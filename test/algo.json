@@ -1,0 +1,4927 @@
+{
+    "algorithm": {
+        "k": 1,
+        "name": "ExactEigensolver"
+    },
+    "backend": {
+        "name": "local_statevector_simulator"
+    },
+    "qubitop": [
+        {
+            "paulis": [
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.00763160018577445
+                    },
+                    "label": "IXXIIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.00763160018577445
+                    },
+                    "label": "IYYIIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -5.144991310321565
+                    },
+                    "label": "IIIIIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.22962128922868325
+                    },
+                    "label": "IIIIIIIIIIZI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.02555454989319869
+                    },
+                    "label": "IIIIIIXZXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.02555454989319869
+                    },
+                    "label": "IIIIIIYZYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.025554549893198726
+                    },
+                    "label": "XZXIIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.025554549893198726
+                    },
+                    "label": "YZYIIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.007631600185774444
+                    },
+                    "label": "IIIIIIIYYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.007631600185774444
+                    },
+                    "label": "IIIIIIIXXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.014743232926393604
+                    },
+                    "label": "IIIIIIYYIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.014743232926393604
+                    },
+                    "label": "IIIIIIXXIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.005931509837126741
+                    },
+                    "label": "IYZZZYIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.005931509837126741
+                    },
+                    "label": "IXZZZXIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.01460247410878678
+                    },
+                    "label": "IIXZZXIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.01460247410878678
+                    },
+                    "label": "IIYZZYIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.01474323292639357
+                    },
+                    "label": "XXIIIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.01474323292639357
+                    },
+                    "label": "YYIIIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 1.008713643380809
+                    },
+                    "label": "IIIIIIZIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.014602474108786765
+                    },
+                    "label": "IIIIIIIIYZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.014602474108786765
+                    },
+                    "label": "IIIIIIIIXZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.1977365945865519
+                    },
+                    "label": "IIIIIIIIZIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.005931509837126741
+                    },
+                    "label": "IIIIIIIXZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.005931509837126741
+                    },
+                    "label": "IIIIIIIYZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.22962128922868322
+                    },
+                    "label": "IIIIIIIIIZII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0008922054040958079
+                    },
+                    "label": "XZZZZXIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0008922054040958079
+                    },
+                    "label": "YZZZZYIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.11669661475262431
+                    },
+                    "label": "IZIIIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.3921795380262622
+                    },
+                    "label": "IIIIIZIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 1.0087136433808082
+                    },
+                    "label": "ZIIIIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0008922054040958001
+                    },
+                    "label": "IIIIIIXZZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0008922054040958001
+                    },
+                    "label": "IIIIIIYZZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.2296212892286832
+                    },
+                    "label": "IIIIZIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.22962128922868325
+                    },
+                    "label": "IIIZIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.11669661475262426
+                    },
+                    "label": "IIIIIIIZIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.19773659458655185
+                    },
+                    "label": "IIZIIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.3921795380262622
+                    },
+                    "label": "IIIIIIIIIIIZ"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.09355960852578478
+                    },
+                    "label": "ZIZIIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.053149723175577576
+                    },
+                    "label": "IZZIIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.003247294960864787
+                    },
+                    "label": "YIYIIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.003247294960864787
+                    },
+                    "label": "XIXIIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0009904220882358723
+                    },
+                    "label": "YYIIIIIIYZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0009904220882358723
+                    },
+                    "label": "YYIIIIIIXZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0009904220882358723
+                    },
+                    "label": "XXIIIIIIYZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0009904220882358723
+                    },
+                    "label": "XXIIIIIIXZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0039011246698965325
+                    },
+                    "label": "YZYIIZIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0039011246698965325
+                    },
+                    "label": "XZXIIZIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.006622823020623007
+                    },
+                    "label": "ZXZZZXIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.006622823020623007
+                    },
+                    "label": "ZYZZZYIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.00024683442824478363
+                    },
+                    "label": "ZYYIIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.00024683442824478363
+                    },
+                    "label": "ZXXIIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0011190812840308796
+                    },
+                    "label": "YYIIIIIIIZII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0011190812840308796
+                    },
+                    "label": "XXIIIIIIIZII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.004372953235805608
+                    },
+                    "label": "ZIIIIIIIYZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.004372953235805608
+                    },
+                    "label": "ZIIIIIIIXZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0009688325309911493
+                    },
+                    "label": "YYXZZXIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0013577422996368439
+                    },
+                    "label": "YYYZZYIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0003889097686456942
+                    },
+                    "label": "YXXZZYIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0003889097686456942
+                    },
+                    "label": "XYYZZXIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0013577422996368439
+                    },
+                    "label": "XXXZZXIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0009688325309911493
+                    },
+                    "label": "XXYZZYIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0008859467592564747
+                    },
+                    "label": "YYIIIZIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0008859467592564747
+                    },
+                    "label": "XXIIIZIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 6.013819269809164e-05
+                    },
+                    "label": "YZZZZYIYZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 6.013819269809164e-05
+                    },
+                    "label": "YZZZZYIXZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 6.013819269809164e-05
+                    },
+                    "label": "XZZZZXIYZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 6.013819269809164e-05
+                    },
+                    "label": "XZZZZXIXZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.08846855543295573
+                    },
+                    "label": "ZIIIIZIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0016124135701301183
+                    },
+                    "label": "YZZIZYIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0016124135701301183
+                    },
+                    "label": "XZZIZXIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -2.158955724472292e-05
+                    },
+                    "label": "YZYIIIIYZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -2.158955724472292e-05
+                    },
+                    "label": "YZYIIIIXZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -2.158955724472292e-05
+                    },
+                    "label": "XZXIIIIYZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -2.158955724472292e-05
+                    },
+                    "label": "XZXIIIIXZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0016124135701301183
+                    },
+                    "label": "YZZZIYIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0016124135701301183
+                    },
+                    "label": "XZZZIXIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.003002334556365084
+                    },
+                    "label": "YYIZIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.003002334556365084
+                    },
+                    "label": "XXIZIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.001307033290455975
+                    },
+                    "label": "YYIIIIIYZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.001307033290455975
+                    },
+                    "label": "YYIIIIIXZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.001307033290455975
+                    },
+                    "label": "XXIIIIIYZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.001307033290455975
+                    },
+                    "label": "XXIIIIIXZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0028914637741281985
+                    },
+                    "label": "XXZIIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0028914637741281985
+                    },
+                    "label": "YYZIIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.09907851927900067
+                    },
+                    "label": "ZIIIIIIIIZII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.008762487227737415
+                    },
+                    "label": "ZIIIIIIYZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.008762487227737415
+                    },
+                    "label": "ZIIIIIIXZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0018832532723342048
+                    },
+                    "label": "YZZYIIIYZYII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0018832532723342048
+                    },
+                    "label": "YZZYIIIXZXII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0018832532723342048
+                    },
+                    "label": "XZZXIIIYZYII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0018832532723342048
+                    },
+                    "label": "XZZXIIIXZXII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.003507436555203403
+                    },
+                    "label": "IYYIZIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.003507436555203403
+                    },
+                    "label": "IXXIZIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0013959319967865886
+                    },
+                    "label": "YZIZZYIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0013959319967865886
+                    },
+                    "label": "XZIZZXIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0019749026780050537
+                    },
+                    "label": "YZZZZYYZZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0019749026780050537
+                    },
+                    "label": "YZZZZYXZZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0019749026780050537
+                    },
+                    "label": "XZZZZXYZZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0019749026780050537
+                    },
+                    "label": "XZZZZXXZZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0024546314921762647
+                    },
+                    "label": "YZZYIIYZZYII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0024546314921762647
+                    },
+                    "label": "YZZYIIXZZXII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0024546314921762647
+                    },
+                    "label": "XZZXIIYZZYII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0024546314921762647
+                    },
+                    "label": "XZZXIIXZZXII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.001112995838950876
+                    },
+                    "label": "YZYIIIIIYZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.001112995838950876
+                    },
+                    "label": "YZYIIIIIXZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.001112995838950876
+                    },
+                    "label": "XZXIIIIIYZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.001112995838950876
+                    },
+                    "label": "XZXIIIIIXZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0004553713359521033
+                    },
+                    "label": "YZYIIIYZZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0004553713359521033
+                    },
+                    "label": "YZYIIIXZZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0004553713359521033
+                    },
+                    "label": "XZXIIIYZZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0004553713359521033
+                    },
+                    "label": "XZXIIIXZZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.001063922240603849
+                    },
+                    "label": "YZZZZYIIXZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.001063922240603849
+                    },
+                    "label": "YZZZZYIIYZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.001063922240603849
+                    },
+                    "label": "XZZZZXIIXZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.001063922240603849
+                    },
+                    "label": "XZZZZXIIYZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0035074365552034033
+                    },
+                    "label": "IYYZIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0035074365552034033
+                    },
+                    "label": "IXXZIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0038018562371649155
+                    },
+                    "label": "YZYZIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0038018562371649155
+                    },
+                    "label": "XZXZIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.09662388778682442
+                    },
+                    "label": "ZIIZIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0021396642071144075
+                    },
+                    "label": "YYIIIIYZZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0021396642071144075
+                    },
+                    "label": "YYIIIIXZZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0021396642071144075
+                    },
+                    "label": "XXIIIIYZZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0021396642071144075
+                    },
+                    "label": "XXIIIIXZZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.012095640593314123
+                    },
+                    "label": "ZIIIIIYZZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.012095640593314123
+                    },
+                    "label": "ZIIIIIXZZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.004958440087414618
+                    },
+                    "label": "IYIZZYIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.004958440087414618
+                    },
+                    "label": "IXIZZXIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.004828324571757711
+                    },
+                    "label": "ZIXZZXIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.004828324571757711
+                    },
+                    "label": "ZIYZZYIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.00151486844909627
+                    },
+                    "label": "YZZZYIIIIIXX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.00151486844909627
+                    },
+                    "label": "YZZZYIIIIIYY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.00151486844909627
+                    },
+                    "label": "XZZZXIIIIIXX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.00151486844909627
+                    },
+                    "label": "XZZZXIIIIIYY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.08310690181686335
+                    },
+                    "label": "IZIIIZIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -9.754512103384785e-05
+                    },
+                    "label": "YZZZZYIIIIZI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -9.754512103384785e-05
+                    },
+                    "label": "XZZZZXIIIIZI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.002562388858349872
+                    },
+                    "label": "YZZZYIIIXZXI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.002562388858349872
+                    },
+                    "label": "YZZZYIIIYZYI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.002562388858349872
+                    },
+                    "label": "XZZZXIIIXZXI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.002562388858349872
+                    },
+                    "label": "XZZZXIIIYZYI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.08981456154514664
+                    },
+                    "label": "ZZIIIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0012394673788150433
+                    },
+                    "label": "YZYIIIIIIIZI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0012394673788150433
+                    },
+                    "label": "XZXIIIIIIIZI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.002562388858349872
+                    },
+                    "label": "YZZYIIIIXXII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.002562388858349872
+                    },
+                    "label": "YZZYIIIIYYII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.002562388858349872
+                    },
+                    "label": "XZZXIIIIXXII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.002562388858349872
+                    },
+                    "label": "XZZXIIIIYYII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0042802473400649094
+                    },
+                    "label": "IZXZZXIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0042802473400649094
+                    },
+                    "label": "IZYZZYIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0011190812840308796
+                    },
+                    "label": "YYIIIIIIIIZI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0011190812840308796
+                    },
+                    "label": "XXIIIIIIIIZI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0025089278357374647
+                    },
+                    "label": "YZZZZYIIZIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0025089278357374647
+                    },
+                    "label": "XZZZZXIIZIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0029189691231460203
+                    },
+                    "label": "XIZZZXIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0029189691231460203
+                    },
+                    "label": "YIZZZYIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.09907851927900067
+                    },
+                    "label": "ZIIIIIIIIIZI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.00047907160403136526
+                    },
+                    "label": "YZYIIIIIZIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.00047907160403136526
+                    },
+                    "label": "XZXIIIIIZIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0028397309126498614
+                    },
+                    "label": "YYIIIIIIZIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0028397309126498614
+                    },
+                    "label": "XXIIIIIIZIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.06226567498347953
+                    },
+                    "label": "IZIIZIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0989567273888683
+                    },
+                    "label": "ZIIIIIIIZIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0018832532723342048
+                    },
+                    "label": "YZZZYIIYZZYI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0018832532723342048
+                    },
+                    "label": "YZZZYIIXZZXI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0018832532723342048
+                    },
+                    "label": "XZZZXIIYZZYI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0018832532723342048
+                    },
+                    "label": "XZZZXIIXZZXI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.06226567498347953
+                    },
+                    "label": "IZIZIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0003673202114009713
+                    },
+                    "label": "YZZZZYIYYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0003673202114009713
+                    },
+                    "label": "YZZZZYIXXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0003673202114009713
+                    },
+                    "label": "XZZZZXIYYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0003673202114009713
+                    },
+                    "label": "XZZZZXIXXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 5.173286147833757e-05
+                    },
+                    "label": "YZYIIIIYYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 5.173286147833757e-05
+                    },
+                    "label": "YZYIIIIXXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 5.173286147833757e-05
+                    },
+                    "label": "XZXIIIIYYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 5.173286147833757e-05
+                    },
+                    "label": "XZXIIIIXXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0024546314921762647
+                    },
+                    "label": "YZZZYIYZZZYI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0024546314921762647
+                    },
+                    "label": "YZZZYIXZZZXI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0024546314921762647
+                    },
+                    "label": "XZZZXIYZZZYI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0024546314921762647
+                    },
+                    "label": "XZZZXIXZZZXI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0008758770917230417
+                    },
+                    "label": "YYIIIIIYYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0008758770917230417
+                    },
+                    "label": "YYIIIIIXXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0008758770917230417
+                    },
+                    "label": "XXIIIIIYYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0008758770917230417
+                    },
+                    "label": "XXIIIIIXXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.003002334556365084
+                    },
+                    "label": "YYIIZIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.003002334556365084
+                    },
+                    "label": "XXIIZIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.003091553999928325
+                    },
+                    "label": "ZIIIIIIYYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.003091553999928325
+                    },
+                    "label": "ZIIIIIIXXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.00151486844909627
+                    },
+                    "label": "YZZYIIIIIXZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.00151486844909627
+                    },
+                    "label": "YZZYIIIIIYZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.00151486844909627
+                    },
+                    "label": "XZZXIIIIIXZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.00151486844909627
+                    },
+                    "label": "XZZXIIIIIYZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0004553713359521033
+                    },
+                    "label": "YZZZZYYZYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0004553713359521033
+                    },
+                    "label": "YZZZZYXZXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0004553713359521033
+                    },
+                    "label": "XZZZZXYZYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0004553713359521033
+                    },
+                    "label": "XZZZZXXZXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0053971188630835285
+                    },
+                    "label": "YZYIIIYZYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0053971188630835285
+                    },
+                    "label": "YZYIIIXZXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0053971188630835285
+                    },
+                    "label": "XZXIIIYZYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0053971188630835285
+                    },
+                    "label": "XZXIIIXZXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -9.754512103384785e-05
+                    },
+                    "label": "YZZZZYIIIZII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -9.754512103384785e-05
+                    },
+                    "label": "XZZZZXIIIZII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0035013942010126593
+                    },
+                    "label": "YYIIIIYYIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0035013942010126593
+                    },
+                    "label": "YYIIIIXXIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0035013942010126593
+                    },
+                    "label": "XXIIIIYYIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0035013942010126593
+                    },
+                    "label": "XXIIIIXXIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0028447195716835407
+                    },
+                    "label": "YYIIIIYZYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0028447195716835407
+                    },
+                    "label": "YYIIIIXZXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0028447195716835407
+                    },
+                    "label": "XXIIIIYZYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0028447195716835407
+                    },
+                    "label": "XXIIIIXZXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.003801856237164915
+                    },
+                    "label": "YZYIZIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.003801856237164915
+                    },
+                    "label": "XZXIZIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.03452598560795422
+                    },
+                    "label": "ZIIIIIYZYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.03452598560795422
+                    },
+                    "label": "ZIIIIIXZXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.028569617561899345
+                    },
+                    "label": "ZIIIIIYYIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.028569617561899345
+                    },
+                    "label": "ZIIIIIXXIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.002844719571683541
+                    },
+                    "label": "YZYIIIYYIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.002844719571683541
+                    },
+                    "label": "YZYIIIXXIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.002844719571683541
+                    },
+                    "label": "XZXIIIYYIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.002844719571683541
+                    },
+                    "label": "XZXIIIXXIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0012394673788150433
+                    },
+                    "label": "YZYIIIIIIZII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0012394673788150433
+                    },
+                    "label": "XZXIIIIIIZII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.09662388778682442
+                    },
+                    "label": "ZIIIZIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0016119358326900457
+                    },
+                    "label": "YZZZZYIZIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0016119358326900457
+                    },
+                    "label": "XZZZZXIZIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.002139664207114408
+                    },
+                    "label": "YZZZZYXXIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.002139664207114408
+                    },
+                    "label": "YZZZZYYYIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.002139664207114408
+                    },
+                    "label": "XZZZZXXXIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.002139664207114408
+                    },
+                    "label": "XZZZZXYYIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0006522469624169326
+                    },
+                    "label": "YZZZZYIIIIIZ"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0006522469624169326
+                    },
+                    "label": "XZZZZXIIIIIZ"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.004123172052587829
+                    },
+                    "label": "YZYIIIIZIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.004123172052587829
+                    },
+                    "label": "XZXIIIIZIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0028372024292926835
+                    },
+                    "label": "YZYIIIIIIIIZ"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0028372024292926835
+                    },
+                    "label": "XZXIIIIIIIIZ"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0009460849519545663
+                    },
+                    "label": "YYIIIIIIIIIZ"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0009460849519545663
+                    },
+                    "label": "XXIIIIIIIIIZ"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0016843900602791948
+                    },
+                    "label": "YYIIIIIZIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0016843900602791948
+                    },
+                    "label": "XXIIIIIZIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.012095640593314123
+                    },
+                    "label": "YZZZZYZIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.012095640593314123
+                    },
+                    "label": "XZZZZXZIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.09044345811096079
+                    },
+                    "label": "ZIIIIIIIIIIZ"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.03452598560795422
+                    },
+                    "label": "YZYIIIZIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.03452598560795422
+                    },
+                    "label": "XZXIIIZIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0933159557461593
+                    },
+                    "label": "ZIIIIIIZIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.02856961756189934
+                    },
+                    "label": "YYIIIIZIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.02856961756189934
+                    },
+                    "label": "XXIIIIZIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.414596003726094
+                    },
+                    "label": "ZIIIIIZIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0028228151658551354
+                    },
+                    "label": "IYYIIZIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0028228151658551354
+                    },
+                    "label": "IXXIIZIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0015070366521066727
+                    },
+                    "label": "IYZIZYIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0015070366521066727
+                    },
+                    "label": "IXZIZXIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0015070366521066727
+                    },
+                    "label": "IYZZIYIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0015070366521066727
+                    },
+                    "label": "IXZZIXIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0933159557461593
+                    },
+                    "label": "IZIIIIZIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0030915539999283245
+                    },
+                    "label": "IYYIIIZIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0030915539999283245
+                    },
+                    "label": "IXXIIIZIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.008762487227737415
+                    },
+                    "label": "IYZZZYZIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.008762487227737415
+                    },
+                    "label": "IXZZZXZIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.001684390060279195
+                    },
+                    "label": "IZIIIIXXIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.001684390060279195
+                    },
+                    "label": "IZIIIIYYIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0008758770917230417
+                    },
+                    "label": "IYYIIIXXIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0008758770917230417
+                    },
+                    "label": "IYYIIIYYIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0008758770917230417
+                    },
+                    "label": "IXXIIIXXIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0008758770917230417
+                    },
+                    "label": "IXXIIIYYIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0013070332904559752
+                    },
+                    "label": "IYZZZYXXIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0013070332904559752
+                    },
+                    "label": "IYZZZYYYIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0013070332904559752
+                    },
+                    "label": "IXZZZXXXIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0013070332904559752
+                    },
+                    "label": "IXZZZXYYIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.004123172052587829
+                    },
+                    "label": "IZIIIIXZXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.004123172052587829
+                    },
+                    "label": "IZIIIIYZYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 5.173286147833758e-05
+                    },
+                    "label": "IYYIIIXZXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 5.173286147833758e-05
+                    },
+                    "label": "IYYIIIYZYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 5.173286147833758e-05
+                    },
+                    "label": "IXXIIIXZXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 5.173286147833758e-05
+                    },
+                    "label": "IXXIIIYZYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -2.1589557244722926e-05
+                    },
+                    "label": "IYZZZYXZXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -2.1589557244722926e-05
+                    },
+                    "label": "IYZZZYYZYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -2.1589557244722926e-05
+                    },
+                    "label": "IXZZZXXZXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -2.1589557244722926e-05
+                    },
+                    "label": "IXZZZXYZYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0018832532723342048
+                    },
+                    "label": "IYZYIIXZZXII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0018832532723342048
+                    },
+                    "label": "IYZYIIYZZYII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0018832532723342048
+                    },
+                    "label": "IXZXIIXZZXII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0018832532723342048
+                    },
+                    "label": "IXZXIIYZZYII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0018832532723342048
+                    },
+                    "label": "IYZZYIXZZZXI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0018832532723342048
+                    },
+                    "label": "IYZZYIYZZZYI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0018832532723342048
+                    },
+                    "label": "IXZZXIXZZZXI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0018832532723342048
+                    },
+                    "label": "IXZZXIYZZZYI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0016119358326900455
+                    },
+                    "label": "IZIIIIXZZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0016119358326900455
+                    },
+                    "label": "IZIIIIYZZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.00036732021140097125
+                    },
+                    "label": "IYYIIIXZZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.00036732021140097125
+                    },
+                    "label": "IYYIIIYZZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.00036732021140097125
+                    },
+                    "label": "IXXIIIXZZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.00036732021140097125
+                    },
+                    "label": "IXXIIIYZZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 6.013819269809165e-05
+                    },
+                    "label": "IYZZZYXZZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 6.013819269809165e-05
+                    },
+                    "label": "IYZZZYYZZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 6.013819269809165e-05
+                    },
+                    "label": "IXZZZXXZZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 6.013819269809165e-05
+                    },
+                    "label": "IXZZZXYZZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.12274319040851588
+                    },
+                    "label": "IZIIIIIZIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.011925352798546316
+                    },
+                    "label": "IYYIIIIZIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.011925352798546316
+                    },
+                    "label": "IXXIIIIZIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.03239588431257754
+                    },
+                    "label": "IYZZZYIZIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.03239588431257754
+                    },
+                    "label": "IXZZZXIZIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.003139383413315066
+                    },
+                    "label": "IYYIIIIXXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.003139383413315066
+                    },
+                    "label": "IYYIIIIYYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.003139383413315066
+                    },
+                    "label": "IXXIIIIXXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.003139383413315066
+                    },
+                    "label": "IXXIIIIYYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.011925352798546316
+                    },
+                    "label": "IZIIIIIXXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.011925352798546316
+                    },
+                    "label": "IZIIIIIYYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.008499040122081063
+                    },
+                    "label": "IYZZZYIXXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.008499040122081063
+                    },
+                    "label": "IYZZZYIYYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.008499040122081063
+                    },
+                    "label": "IXZZZXIXXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.008499040122081063
+                    },
+                    "label": "IXZZZXIYYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0059289773346780945
+                    },
+                    "label": "IYZYIIIXZXII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0059289773346780945
+                    },
+                    "label": "IYZYIIIYZYII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0059289773346780945
+                    },
+                    "label": "IXZXIIIXZXII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0059289773346780945
+                    },
+                    "label": "IXZXIIIYZYII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0059289773346780945
+                    },
+                    "label": "IYZZYIIXZZXI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0059289773346780945
+                    },
+                    "label": "IYZZYIIYZZYI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0059289773346780945
+                    },
+                    "label": "IXZZXIIXZZXI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0059289773346780945
+                    },
+                    "label": "IXZZXIIYZZYI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.03239588431257754
+                    },
+                    "label": "IZIIIIIXZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.03239588431257754
+                    },
+                    "label": "IZIIIIIYZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.030845992706272217
+                    },
+                    "label": "IYZZZYIXZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.030845992706272217
+                    },
+                    "label": "IYZZZYIYZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.030845992706272217
+                    },
+                    "label": "IXZZZXIXZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.030845992706272217
+                    },
+                    "label": "IXZZZXIYZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.008499040122081063
+                    },
+                    "label": "IYYIIIIXZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.008499040122081063
+                    },
+                    "label": "IYYIIIIYZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.008499040122081063
+                    },
+                    "label": "IXXIIIIXZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.008499040122081063
+                    },
+                    "label": "IXXIIIIYZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.056289106588892635
+                    },
+                    "label": "IZIIIIIIZIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0016973229461024265
+                    },
+                    "label": "IYYIIIIIZIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0016973229461024265
+                    },
+                    "label": "IXXIIIIIZIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.002736932477758117
+                    },
+                    "label": "IYZZZYIIZIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.002736932477758117
+                    },
+                    "label": "IXZZZXIIZIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.004809199383245582
+                    },
+                    "label": "IYZYIIIIXXII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.004809199383245582
+                    },
+                    "label": "IYZYIIIIYYII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.004809199383245582
+                    },
+                    "label": "IXZXIIIIXXII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.004809199383245582
+                    },
+                    "label": "IXZXIIIIYYII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.004809199383245582
+                    },
+                    "label": "IYZZYIIIXZXI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.004809199383245582
+                    },
+                    "label": "IYZZYIIIYZYI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.004809199383245582
+                    },
+                    "label": "IXZZXIIIXZXI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.004809199383245582
+                    },
+                    "label": "IXZZXIIIYZYI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.012779287462145975
+                    },
+                    "label": "IZIIIIIIXZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.012779287462145975
+                    },
+                    "label": "IZIIIIIIYZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0022215076096565012
+                    },
+                    "label": "IYYIIIIIXZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0022215076096565012
+                    },
+                    "label": "IYYIIIIIYZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0022215076096565012
+                    },
+                    "label": "IXXIIIIIXZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0022215076096565012
+                    },
+                    "label": "IXXIIIIIYZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.007858912834981044
+                    },
+                    "label": "IYZZZYIIXZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.007858912834981044
+                    },
+                    "label": "IYZZZYIIYZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.007858912834981044
+                    },
+                    "label": "IXZZZXIIXZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.007858912834981044
+                    },
+                    "label": "IXZZZXIIYZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0681946523181576
+                    },
+                    "label": "IZIIIIIIIZII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0013017628280421797
+                    },
+                    "label": "IYYIIIIIIZII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0013017628280421797
+                    },
+                    "label": "IXXIIIIIIZII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.00489055583293631
+                    },
+                    "label": "IYZYIIIIIXZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.00489055583293631
+                    },
+                    "label": "IYZYIIIIIYZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.00489055583293631
+                    },
+                    "label": "IXZXIIIIIXZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.00489055583293631
+                    },
+                    "label": "IXZXIIIIIYZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0033835191808296375
+                    },
+                    "label": "IYZZZYIIIZII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0033835191808296375
+                    },
+                    "label": "IXZZZXIIIZII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0681946523181576
+                    },
+                    "label": "IZIIIIIIIIZI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0033835191808296375
+                    },
+                    "label": "IYZZZYIIIIZI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0033835191808296375
+                    },
+                    "label": "IXZZZXIIIIZI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0013017628280421797
+                    },
+                    "label": "IYYIIIIIIIZI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0013017628280421797
+                    },
+                    "label": "IXXIIIIIIIZI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.00489055583293631
+                    },
+                    "label": "IYZZYIIIIIXX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.00489055583293631
+                    },
+                    "label": "IYZZYIIIIIYY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.00489055583293631
+                    },
+                    "label": "IXZZXIIIIIXX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.00489055583293631
+                    },
+                    "label": "IXZZXIIIIIYY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.11395289452313558
+                    },
+                    "label": "IZIIIIIIIIIZ"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.01068172800083618
+                    },
+                    "label": "IYYIIIIIIIIZ"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.01068172800083618
+                    },
+                    "label": "IXXIIIIIIIIZ"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.03439042137190708
+                    },
+                    "label": "IYZZZYIIIIIZ"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.03439042137190708
+                    },
+                    "label": "IXZZZXIIIIIZ"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.06020591029323943
+                    },
+                    "label": "IIZZIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.06020591029323943
+                    },
+                    "label": "IIZIZIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.053852622323824886
+                    },
+                    "label": "IIZIIZIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.003899749241664802
+                    },
+                    "label": "IIYIZYIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.003899749241664802
+                    },
+                    "label": "IIXIZXIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.003899749241664802
+                    },
+                    "label": "IIYZIYIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.003899749241664802
+                    },
+                    "label": "IIXZIXIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0989567273888683
+                    },
+                    "label": "IIZIIIZIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.004372953235805608
+                    },
+                    "label": "IIYZZYZIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.004372953235805608
+                    },
+                    "label": "IIXZZXZIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.002839730912649861
+                    },
+                    "label": "IIZIIIXXIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.002839730912649861
+                    },
+                    "label": "IIZIIIYYIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0009904220882358723
+                    },
+                    "label": "IIYZZYXXIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0009904220882358723
+                    },
+                    "label": "IIYZZYYYIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0009904220882358723
+                    },
+                    "label": "IIXZZXXXIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0009904220882358723
+                    },
+                    "label": "IIXZZXYYIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.00047907160403136526
+                    },
+                    "label": "IIZIIIXZXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.00047907160403136526
+                    },
+                    "label": "IIZIIIYZYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0011129958389508759
+                    },
+                    "label": "IIYZZYXZXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0011129958389508759
+                    },
+                    "label": "IIYZZYYZYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0011129958389508759
+                    },
+                    "label": "IIXZZXXZXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0011129958389508759
+                    },
+                    "label": "IIXZZXYZYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.002562388858349872
+                    },
+                    "label": "IIYYIIXZZXII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.002562388858349872
+                    },
+                    "label": "IIYYIIYZZYII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.002562388858349872
+                    },
+                    "label": "IIXXIIXZZXII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.002562388858349872
+                    },
+                    "label": "IIXXIIYZZYII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0025623888583498717
+                    },
+                    "label": "IIYZYIXZZZXI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0025623888583498717
+                    },
+                    "label": "IIYZYIYZZZYI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0025623888583498717
+                    },
+                    "label": "IIXZXIXZZZXI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0025623888583498717
+                    },
+                    "label": "IIXZXIYZZZYI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0025089278357374647
+                    },
+                    "label": "IIZIIIXZZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0025089278357374647
+                    },
+                    "label": "IIZIIIYZZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.001063922240603849
+                    },
+                    "label": "IIYZZYXZZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.001063922240603849
+                    },
+                    "label": "IIYZZYYZZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.001063922240603849
+                    },
+                    "label": "IIXZZXXZZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.001063922240603849
+                    },
+                    "label": "IIXZZXYZZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.056289106588892635
+                    },
+                    "label": "IIZIIIIZIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.012779287462145973
+                    },
+                    "label": "IIYZZYIZIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.012779287462145973
+                    },
+                    "label": "IIXZZXIZIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0016973229461024262
+                    },
+                    "label": "IIZIIIIXXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0016973229461024262
+                    },
+                    "label": "IIZIIIIYYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0022215076096565012
+                    },
+                    "label": "IIYZZYIXXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0022215076096565012
+                    },
+                    "label": "IIYZZYIYYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0022215076096565012
+                    },
+                    "label": "IIXZZXIXXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0022215076096565012
+                    },
+                    "label": "IIXZZXIYYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.004809199383245582
+                    },
+                    "label": "IIYYIIIXZXII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.004809199383245582
+                    },
+                    "label": "IIYYIIIYZYII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.004809199383245582
+                    },
+                    "label": "IIXXIIIXZXII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.004809199383245582
+                    },
+                    "label": "IIXXIIIYZYII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.004809199383245582
+                    },
+                    "label": "IIYZYIIXZZXI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.004809199383245582
+                    },
+                    "label": "IIYZYIIYZZYI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.004809199383245582
+                    },
+                    "label": "IIXZXIIXZZXI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.004809199383245582
+                    },
+                    "label": "IIXZXIIYZZYI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0027369324777581166
+                    },
+                    "label": "IIZIIIIXZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0027369324777581166
+                    },
+                    "label": "IIZIIIIYZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.007858912834981045
+                    },
+                    "label": "IIYZZYIXZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.007858912834981045
+                    },
+                    "label": "IIYZZYIYZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.007858912834981045
+                    },
+                    "label": "IIXZZXIXZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.007858912834981045
+                    },
+                    "label": "IIXZZXIYZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.08460141359009749
+                    },
+                    "label": "IIZIIIIIZIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.009002508845638729
+                    },
+                    "label": "IIYZZYIIZIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.009002508845638729
+                    },
+                    "label": "IIXZZXIIZIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.010323105279300986
+                    },
+                    "label": "IIYYIIIIXXII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.010323105279300986
+                    },
+                    "label": "IIYYIIIIYYII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.010323105279300986
+                    },
+                    "label": "IIXXIIIIXXII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.010323105279300986
+                    },
+                    "label": "IIXXIIIIYYII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.010323105279300986
+                    },
+                    "label": "IIYZYIIIXZXI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.010323105279300986
+                    },
+                    "label": "IIYZYIIIYZYI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.010323105279300986
+                    },
+                    "label": "IIXZXIIIXZXI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.010323105279300986
+                    },
+                    "label": "IIXZXIIIYZYI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.006587569241070445
+                    },
+                    "label": "IIYZZYIIXZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.006587569241070445
+                    },
+                    "label": "IIYZZYIIYZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.006587569241070445
+                    },
+                    "label": "IIXZZXIIXZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.006587569241070445
+                    },
+                    "label": "IIXZZXIIYZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.009002508845638729
+                    },
+                    "label": "IIZIIIIIXZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.009002508845638729
+                    },
+                    "label": "IIZIIIIIYZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0705290155725404
+                    },
+                    "label": "IIZIIIIIIZII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0004474643715619567
+                    },
+                    "label": "IIYZZYIIIZII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0004474643715619567
+                    },
+                    "label": "IIXZZXIIIZII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0034522848701028456
+                    },
+                    "label": "IIYYIIIIIXZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0034522848701028456
+                    },
+                    "label": "IIYYIIIIIYZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0034522848701028456
+                    },
+                    "label": "IIXXIIIIIXZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0034522848701028456
+                    },
+                    "label": "IIXXIIIIIYZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0705290155725404
+                    },
+                    "label": "IIZIIIIIIIZI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0004474643715619567
+                    },
+                    "label": "IIYZZYIIIIZI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0004474643715619567
+                    },
+                    "label": "IIXZZXIIIIZI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0034522848701028456
+                    },
+                    "label": "IIYZYIIIIIXX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0034522848701028456
+                    },
+                    "label": "IIYZYIIIIIYY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0034522848701028456
+                    },
+                    "label": "IIXZXIIIIIXX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0034522848701028456
+                    },
+                    "label": "IIXZXIIIIIYY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.06044019156489533
+                    },
+                    "label": "IIZIIIIIIIIZ"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.010952717714183834
+                    },
+                    "label": "IIYZZYIIIIIZ"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.010952717714183834
+                    },
+                    "label": "IIXZZXIIIIIZ"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.06558452315458402
+                    },
+                    "label": "IIIZZIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.06229285409750904
+                    },
+                    "label": "IIIZIZIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.09907851927900067
+                    },
+                    "label": "IIIZIIZIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0011190812840308794
+                    },
+                    "label": "IIIZIIXXIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0011190812840308794
+                    },
+                    "label": "IIIZIIYYIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0012394673788150435
+                    },
+                    "label": "IIIZIIXZXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0012394673788150435
+                    },
+                    "label": "IIIZIIYZYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0015148684490962699
+                    },
+                    "label": "IIIYZYXZZXII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0015148684490962699
+                    },
+                    "label": "IIIYZYYZZYII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0015148684490962699
+                    },
+                    "label": "IIIXZXXZZXII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0015148684490962699
+                    },
+                    "label": "IIIXZXYZZYII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -9.754512103384786e-05
+                    },
+                    "label": "IIIZIIXZZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -9.754512103384786e-05
+                    },
+                    "label": "IIIZIIYZZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0681946523181576
+                    },
+                    "label": "IIIZIIIZIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0013017628280421797
+                    },
+                    "label": "IIIZIIIXXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0013017628280421797
+                    },
+                    "label": "IIIZIIIYYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.00489055583293631
+                    },
+                    "label": "IIIYZYIXZXII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.00489055583293631
+                    },
+                    "label": "IIIYZYIYZYII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.00489055583293631
+                    },
+                    "label": "IIIXZXIXZXII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.00489055583293631
+                    },
+                    "label": "IIIXZXIYZYII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0033835191808296375
+                    },
+                    "label": "IIIZIIIXZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0033835191808296375
+                    },
+                    "label": "IIIZIIIYZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0705290155725404
+                    },
+                    "label": "IIIZIIIIZIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0034522848701028447
+                    },
+                    "label": "IIIYZYIIXXII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0034522848701028447
+                    },
+                    "label": "IIIYZYIIYYII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0034522848701028447
+                    },
+                    "label": "IIIXZXIIXXII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0034522848701028447
+                    },
+                    "label": "IIIXZXIIYYII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.00044746437156195667
+                    },
+                    "label": "IIIZIIIIXZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.00044746437156195667
+                    },
+                    "label": "IIIZIIIIYZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.07823637778985212
+                    },
+                    "label": "IIIZIIIIIZII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.004217284878422725
+                    },
+                    "label": "IIIYYIIIIXXI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.004217284878422725
+                    },
+                    "label": "IIIYYIIIIYYI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.004217284878422725
+                    },
+                    "label": "IIIXXIIIIXXI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.004217284878422725
+                    },
+                    "label": "IIIXXIIIIYYI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.004902734209129033
+                    },
+                    "label": "IIIYZYIIIXZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.004902734209129033
+                    },
+                    "label": "IIIYZYIIIYZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.004902734209129033
+                    },
+                    "label": "IIIXZXIIIXZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.004902734209129033
+                    },
+                    "label": "IIIXZXIIIYZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.06980180803300673
+                    },
+                    "label": "IIIZIIIIIIZI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.06719558830663808
+                    },
+                    "label": "IIIZIIIIIIIZ"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.06229285409750904
+                    },
+                    "label": "IIIIZZIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0011190812840308794
+                    },
+                    "label": "IIIIZIXXIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0011190812840308794
+                    },
+                    "label": "IIIIZIYYIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.09907851927900067
+                    },
+                    "label": "IIIIZIZIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0012394673788150435
+                    },
+                    "label": "IIIIZIXZXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0012394673788150435
+                    },
+                    "label": "IIIIZIYZYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0015148684490962699
+                    },
+                    "label": "IIIIYYXZZZXI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0015148684490962699
+                    },
+                    "label": "IIIIYYYZZZYI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0015148684490962699
+                    },
+                    "label": "IIIIXXXZZZXI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0015148684490962699
+                    },
+                    "label": "IIIIXXYZZZYI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -9.754512103384786e-05
+                    },
+                    "label": "IIIIZIXZZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -9.754512103384786e-05
+                    },
+                    "label": "IIIIZIYZZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0681946523181576
+                    },
+                    "label": "IIIIZIIZIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0013017628280421797
+                    },
+                    "label": "IIIIZIIXXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0013017628280421797
+                    },
+                    "label": "IIIIZIIYYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.004890555832936311
+                    },
+                    "label": "IIIIYYIXZZXI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.004890555832936311
+                    },
+                    "label": "IIIIYYIYZZYI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.004890555832936311
+                    },
+                    "label": "IIIIXXIXZZXI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.004890555832936311
+                    },
+                    "label": "IIIIXXIYZZYI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0033835191808296375
+                    },
+                    "label": "IIIIZIIXZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0033835191808296375
+                    },
+                    "label": "IIIIZIIYZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0705290155725404
+                    },
+                    "label": "IIIIZIIIZIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0034522848701028447
+                    },
+                    "label": "IIIIYYIIXZXI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0034522848701028447
+                    },
+                    "label": "IIIIYYIIYZYI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0034522848701028447
+                    },
+                    "label": "IIIIXXIIXZXI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0034522848701028447
+                    },
+                    "label": "IIIIXXIIYZYI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.00044746437156195667
+                    },
+                    "label": "IIIIZIIIXZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.00044746437156195667
+                    },
+                    "label": "IIIIZIIIYZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.06980180803300673
+                    },
+                    "label": "IIIIZIIIIZII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.07823637778985212
+                    },
+                    "label": "IIIIZIIIIIZI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.004902734209129033
+                    },
+                    "label": "IIIIYYIIIIXX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.004902734209129033
+                    },
+                    "label": "IIIIYYIIIIYY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.004902734209129033
+                    },
+                    "label": "IIIIXXIIIIXX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.004902734209129033
+                    },
+                    "label": "IIIIXXIIIIYY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.06719558830663808
+                    },
+                    "label": "IIIIZIIIIIIZ"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.09044345811096079
+                    },
+                    "label": "IIIIIZZIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0009460849519545663
+                    },
+                    "label": "IIIIIZXXIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0009460849519545663
+                    },
+                    "label": "IIIIIZYYIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.002837202429292684
+                    },
+                    "label": "IIIIIZXZXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.002837202429292684
+                    },
+                    "label": "IIIIIZYZYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0006522469624169325
+                    },
+                    "label": "IIIIIZXZZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0006522469624169325
+                    },
+                    "label": "IIIIIZYZZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.11395289452313558
+                    },
+                    "label": "IIIIIZIZIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.01068172800083618
+                    },
+                    "label": "IIIIIZIXXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.01068172800083618
+                    },
+                    "label": "IIIIIZIYYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.03439042137190708
+                    },
+                    "label": "IIIIIZIXZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.03439042137190708
+                    },
+                    "label": "IIIIIZIYZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.06044019156489533
+                    },
+                    "label": "IIIIIZIIZIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.010952717714183834
+                    },
+                    "label": "IIIIIZIIXZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.010952717714183834
+                    },
+                    "label": "IIIIIZIIYZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.06719558830663808
+                    },
+                    "label": "IIIIIZIIIZII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.06719558830663808
+                    },
+                    "label": "IIIIIZIIIIZI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.11384362549027395
+                    },
+                    "label": "IIIIIZIIIIIZ"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0002468344282447835
+                    },
+                    "label": "IIIIIIZYYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0002468344282447835
+                    },
+                    "label": "IIIIIIZXXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.08981456154514662
+                    },
+                    "label": "IIIIIIZZIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.006622823020623007
+                    },
+                    "label": "IIIIIIZYZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.006622823020623007
+                    },
+                    "label": "IIIIIIZXZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.09355960852578478
+                    },
+                    "label": "IIIIIIZIZIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.004828324571757711
+                    },
+                    "label": "IIIIIIZIYZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.004828324571757711
+                    },
+                    "label": "IIIIIIZIXZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.09662388778682442
+                    },
+                    "label": "IIIIIIZIIZII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.09662388778682442
+                    },
+                    "label": "IIIIIIZIIIZI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.08846855543295573
+                    },
+                    "label": "IIIIIIZIIIIZ"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0032472949608647866
+                    },
+                    "label": "IIIIIIYIYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0032472949608647866
+                    },
+                    "label": "IIIIIIXIXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0029189691231460203
+                    },
+                    "label": "IIIIIIYIZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0029189691231460203
+                    },
+                    "label": "IIIIIIXIZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0028914637741281985
+                    },
+                    "label": "IIIIIIYYZIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0028914637741281985
+                    },
+                    "label": "IIIIIIXXZIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0013577422996368439
+                    },
+                    "label": "IIIIIIYYYZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0009688325309911493
+                    },
+                    "label": "IIIIIIYYXZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0003889097686456941
+                    },
+                    "label": "IIIIIIYXXZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0003889097686456941
+                    },
+                    "label": "IIIIIIXYYZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0009688325309911493
+                    },
+                    "label": "IIIIIIXXYZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0013577422996368439
+                    },
+                    "label": "IIIIIIXXXZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.003002334556365084
+                    },
+                    "label": "IIIIIIYYIZII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.003002334556365084
+                    },
+                    "label": "IIIIIIXXIZII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.003002334556365084
+                    },
+                    "label": "IIIIIIYYIIZI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.003002334556365084
+                    },
+                    "label": "IIIIIIXXIIZI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0008859467592564747
+                    },
+                    "label": "IIIIIIYYIIIZ"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0008859467592564747
+                    },
+                    "label": "IIIIIIXXIIIZ"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0013959319967865886
+                    },
+                    "label": "IIIIIIYZIZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0013959319967865886
+                    },
+                    "label": "IIIIIIXZIZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0038018562371649155
+                    },
+                    "label": "IIIIIIYZYZII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0038018562371649155
+                    },
+                    "label": "IIIIIIXZXZII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.003801856237164915
+                    },
+                    "label": "IIIIIIYZYIZI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.003801856237164915
+                    },
+                    "label": "IIIIIIXZXIZI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0039011246698965325
+                    },
+                    "label": "IIIIIIYZYIIZ"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0039011246698965325
+                    },
+                    "label": "IIIIIIXZXIIZ"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0016124135701301183
+                    },
+                    "label": "IIIIIIYZZIZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0016124135701301183
+                    },
+                    "label": "IIIIIIXZZIZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0016124135701301183
+                    },
+                    "label": "IIIIIIYZZZIY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0016124135701301183
+                    },
+                    "label": "IIIIIIXZZZIX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.053149723175577576
+                    },
+                    "label": "IIIIIIIZZIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0042802473400649094
+                    },
+                    "label": "IIIIIIIZYZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0042802473400649094
+                    },
+                    "label": "IIIIIIIZXZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.06226567498347953
+                    },
+                    "label": "IIIIIIIZIIZI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.06226567498347953
+                    },
+                    "label": "IIIIIIIZIZII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.08310690181686335
+                    },
+                    "label": "IIIIIIIZIIIZ"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.004958440087414618
+                    },
+                    "label": "IIIIIIIYIZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.004958440087414618
+                    },
+                    "label": "IIIIIIIXIZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0035074365552034033
+                    },
+                    "label": "IIIIIIIYYZII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0035074365552034033
+                    },
+                    "label": "IIIIIIIXXZII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.003507436555203403
+                    },
+                    "label": "IIIIIIIYYIZI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.003507436555203403
+                    },
+                    "label": "IIIIIIIXXIZI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0028228151658551354
+                    },
+                    "label": "IIIIIIIYYIIZ"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.0028228151658551354
+                    },
+                    "label": "IIIIIIIXXIIZ"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0015070366521066727
+                    },
+                    "label": "IIIIIIIYZIZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0015070366521066727
+                    },
+                    "label": "IIIIIIIXZIZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0015070366521066727
+                    },
+                    "label": "IIIIIIIYZZIY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.0015070366521066727
+                    },
+                    "label": "IIIIIIIXZZIX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.06020591029323943
+                    },
+                    "label": "IIIIIIIIZZII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.06020591029323943
+                    },
+                    "label": "IIIIIIIIZIZI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.053852622323824886
+                    },
+                    "label": "IIIIIIIIZIIZ"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.003899749241664802
+                    },
+                    "label": "IIIIIIIIYIZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.003899749241664802
+                    },
+                    "label": "IIIIIIIIXIZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.003899749241664802
+                    },
+                    "label": "IIIIIIIIYZIY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.003899749241664802
+                    },
+                    "label": "IIIIIIIIXZIX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.06558452315458402
+                    },
+                    "label": "IIIIIIIIIZZI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.06229285409750904
+                    },
+                    "label": "IIIIIIIIIZIZ"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.06229285409750904
+                    },
+                    "label": "IIIIIIIIIIZZ"
+                }
+            ]
+        },
+        {
+            "paulis": [
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.48710765019580243
+                    },
+                    "label": "IIIIIIIYZZYI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.48710765019580243
+                    },
+                    "label": "IIIIIIIXZZXI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.10312890101251286
+                    },
+                    "label": "IIIIIIXZZZXI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.10312890101251286
+                    },
+                    "label": "IIIIIIYZZZYI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.4389549277150877
+                    },
+                    "label": "IIIIXXIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.4389549277150877
+                    },
+                    "label": "IIIIYYIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.10312890101251286
+                    },
+                    "label": "XZZZXIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.10312890101251286
+                    },
+                    "label": "YZZZYIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.6829146027816784
+                    },
+                    "label": "IIXZXIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.6829146027816784
+                    },
+                    "label": "IIYZYIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.6829146027816784
+                    },
+                    "label": "IIIIIIIIXZXI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.6829146027816784
+                    },
+                    "label": "IIIIIIIIYZYI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.48710765019580243
+                    },
+                    "label": "IYZZYIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.48710765019580243
+                    },
+                    "label": "IXZZXIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.4389549277150877
+                    },
+                    "label": "IIIIIIIIIIYY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.4389549277150877
+                    },
+                    "label": "IIIIIIIIIIXX"
+                }
+            ]
+        },
+        {
+            "paulis": [
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.10312890101251286
+                    },
+                    "label": "IIIIIIYZZYII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.10312890101251286
+                    },
+                    "label": "IIIIIIXZZXII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.6829146027816784
+                    },
+                    "label": "IIXXIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.6829146027816784
+                    },
+                    "label": "IIYYIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.6829146027816784
+                    },
+                    "label": "IIIIIIIIYYII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.6829146027816784
+                    },
+                    "label": "IIIIIIIIXXII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.48710765019580243
+                    },
+                    "label": "IYZYIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.48710765019580243
+                    },
+                    "label": "IXZXIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.48710765019580243
+                    },
+                    "label": "IIIIIIIXZXII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.48710765019580243
+                    },
+                    "label": "IIIIIIIYZYII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.10312890101251286
+                    },
+                    "label": "YZZYIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.10312890101251286
+                    },
+                    "label": "XZZXIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.4389549277150877
+                    },
+                    "label": "IIIYZYIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.4389549277150877
+                    },
+                    "label": "IIIXZXIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.4389549277150877
+                    },
+                    "label": "IIIIIIIIIYZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.4389549277150877
+                    },
+                    "label": "IIIIIIIIIXZX"
+                }
+            ]
+        },
+        {
+            "paulis": [
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 1.8265186106192948
+                    },
+                    "label": "IIIIIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.36550988215031205
+                    },
+                    "label": "IIIIZIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.20286818008451163
+                    },
+                    "label": "IIIIIIIYYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.20286818008451163
+                    },
+                    "label": "IIIIIIIXXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.05657230895125641
+                    },
+                    "label": "IIIIIIYYIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.05657230895125641
+                    },
+                    "label": "IIIIIIXXIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.36550988215031205
+                    },
+                    "label": "IIIZIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.05644439430340216
+                    },
+                    "label": "IIIIIIXZZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.05644439430340216
+                    },
+                    "label": "IIIIIIYZZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.4859236515913917
+                    },
+                    "label": "IIXZZXIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.4859236515913917
+                    },
+                    "label": "IIYZZYIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.3316935118639519
+                    },
+                    "label": "IIIIIIIYZZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.3316935118639519
+                    },
+                    "label": "IIIIIIIXZZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.07299475406229208
+                    },
+                    "label": "XZXIIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.07299475406229208
+                    },
+                    "label": "YZYIIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.05644439430340216
+                    },
+                    "label": "YZZZZYIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.05644439430340216
+                    },
+                    "label": "XZZZZXIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.3316935118639519
+                    },
+                    "label": "IXZZZXIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.3316935118639519
+                    },
+                    "label": "IYZZZYIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.07299475406229208
+                    },
+                    "label": "IIIIIIYZYIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.07299475406229208
+                    },
+                    "label": "IIIIIIXZXIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -1.1855912255586532
+                    },
+                    "label": "IIIIIIIIZIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -1.1855912255586532
+                    },
+                    "label": "IIZIIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.4859236515913917
+                    },
+                    "label": "IIIIIIIIYZZY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.4859236515913917
+                    },
+                    "label": "IIIIIIIIXZZX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.8431837583347793
+                    },
+                    "label": "IIIIIIIZIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.526664494983727
+                    },
+                    "label": "IIIIIZIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.05657230895125641
+                    },
+                    "label": "XXIIIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.05657230895125641
+                    },
+                    "label": "YYIIIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.36649656876887643
+                    },
+                    "label": "IIIIIIZIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.8431837583347793
+                    },
+                    "label": "IZIIIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.20286818008451163
+                    },
+                    "label": "IXXIIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.20286818008451163
+                    },
+                    "label": "IYYIIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.36649656876887643
+                    },
+                    "label": "ZIIIIIIIIIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.36550988215031205
+                    },
+                    "label": "IIIIIIIIIZII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.36550988215031205
+                    },
+                    "label": "IIIIIIIIIIZI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.526664494983727
+                    },
+                    "label": "IIIIIIIIIIIZ"
+                }
+            ]
+        }
+    ]
+}
