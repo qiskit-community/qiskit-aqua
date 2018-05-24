@@ -13,9 +13,10 @@ The following algorithms are part of the library:
 * [QPE](#qpe): Quantum Phase Estimation 
 * [IQPE](#iqpe): Iterative Quantum Phase Estimation 
 * [Dynamics](#dynamics): Quantum Dynamics evolution
+* [Grover](#grover): Quantum Grover search 
+* [SVM_QKernel](#svm_qkernel): Quantum feature-map classifier via direct estimation of the kernel
+* [SVM_Variational](#svm_variational): Variational Quantum feature-map classifier
 * [ExactEigensolver](#exacteigensolver): Classical eigenvalue solver 
-* [Grover](#grover): Grover search 
-* [SVM_QKernel](#svm_qkernel): Feature Map Classifier 
 
 
 ## VQE
@@ -160,18 +161,6 @@ phase so as to require less qubits. It takes in the same set of parameters as QP
 For more detail, please see [https://arxiv.org/abs/quant-ph/0610214](https://arxiv.org/abs/quant-ph/0610214).
 
 
-## ExactEigensolver
-
-While this algorithm does not use a quantum computer, and relies on a purely classical approach to find eigenvalues,
-it may be useful in the near term while experimenting with, developing and testing quantum algorithms.
-
-ExactEigensolver can be configured with the following parameter:
-
-* `k`=*integer 1 to n*
-
-  Returns up to k smallest eigenvalues. k defaults to 1.
-
-
 ## Grover
 
 Grover's Search is a well known quantum algorithm for searching through unstructured collection of records for particular
@@ -200,7 +189,29 @@ is called the _kernel_ and it is perfectly possible to have feature maps that ar
 
 The SVM_QKernel algorithm applies to classification problems that require a feature map for which computing the kernel 
 is not efficient classically.  This means that the required computational resources are expected to scale exponentially with 
-the size of the problem. SVM_QKernel uses a Quantum processor to solve this problem by a direct estimation of the kernel in the feature space. The method used falls in the category of what is called _supervised learning_, consisting of a _training phase_ (where the kernel is calculated and the support vectors obtained) and a _test or classification phase_ (where new labeless data is classified according to the solution found in the training phase).
+the size of the problem. SVM_QKernel uses a Quantum processor to solve this problem by a direct estimation of the kernel in 
+the feature space. The method used falls in the category of what is called _supervised learning_, consisting of a _training 
+phase_ (where the kernel is calculated and the support vectors obtained) and a _test or classification phase_ (where new 
+labeless data is classified according to the solution found in the training phase).
+
+
+## SVM_Variational
+
+Just like SVM_Kernel, the SVM_Variational algorithm applies to classification problems that require a feature map for which 
+computing the kernel is not efficient classically.  SVM_Variational solves such problems in a quantum processor by 
+variational method that optimizes a parameterized quantum circuit to provide a solution that cleanly separates the data.
+
+
+## ExactEigensolver
+
+While this algorithm does not use a quantum computer, and relies on a purely classical approach to find eigenvalues,
+it may be useful in the near term while experimenting with, developing and testing quantum algorithms.
+
+ExactEigensolver can be configured with the following parameter:
+
+* `k`=*integer 1 to n*
+
+  Returns up to k smallest eigenvalues. k defaults to 1.
 
 
 # Developers  
