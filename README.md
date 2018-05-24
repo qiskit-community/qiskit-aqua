@@ -2,10 +2,8 @@
 
 QISKit ACQUA Chemistry is a set of tools, algorithms and software for use with Quantum computers
 to carry out research and investigate how to take advantage of Quantum computing power to solve chemistry
-problems. This library uses [QISKit](https://www.qiskit.org/) for its Quantum computation.  It allows users with
-different levels of experience to execute experiments and contribute to the software stack.  Users with pure Chemistry
-background can continue to configure chemistry problems according to their favorite software packages, called *drivers*.
-These users do not need to learn the details of Quantum Computing; QISKit Chemistry translates any
+problems. QISKit ACQUA Chemistry translates chemistry-specific problem inputs into inputs for a Quantum algorithm residing in QISKit ACQUA, and then uses [QISKit](https://www.qiskit.org/) for the relevant Quantum computation.  It allows users with
+different levels of experience to execute chemistry experiments and contribute to the software stack.  Users with pure Chemistry background can continue to configure chemistry problems according to their favorite software packages, called *drivers*.  These users do not need to learn the details of Quantum Computing; QISKit Chemistry translates any
 chemistry program configuration entered by any end user in their favorite driver into Quantum-specific input.
 QISKit Chemistry allows also users more knowledgeable in the area of Quantum Computing to plug
 their contributions in.  For example, new Quantum algorithms, optimizers and variational forms can easily be plugged in,
