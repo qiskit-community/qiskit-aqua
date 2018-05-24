@@ -1,0 +1,19 @@
+{
+    "algorithm": {
+        "name": "VQE",
+        "operator_mode": "matrix"
+    },
+    "backend": {
+        "name": "local_statevector_simulator"
+    },
+    "driver": {
+        "name": "HDF5"
+    },
+    "HDF5": {
+        "hdf5_input": "molecule.hdf5"
+    },
+    "operator": {
+        "name" : "hamiltonian",
+        "qubit_mapping": "parity"
+    }
+}

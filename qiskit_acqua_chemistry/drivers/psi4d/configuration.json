@@ -1,0 +1,12 @@
+{
+    "name": "PSI4",
+    "description": "PSI4 Driver",
+    "module": "psi4driver",
+    "input_schema" : {
+        "$schema": "http://json-schema.org/schema#",
+        "id": "psi4_schema",
+        "type": "string",
+        "default": "molecule h2 {\n  0 1\n  H  0.0 0.0 0.0\n  H  0.0 0.0 0.735\n}\n\nset {\n  basis sto-3g\n  scf_type pk\n}"
+    }
+}
+          

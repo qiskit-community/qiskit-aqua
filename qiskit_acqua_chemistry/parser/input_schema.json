@@ -1,0 +1,87 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "id": "input_schema.json",
+    
+    "definitions": {
+        "name":   { 
+            "type": "string",
+            "default": "Quantum Chemistry experiment"
+         },
+         "problem": {
+            "type": "object",
+            "properties": {
+                "name": { 
+                    "type": "string",
+                    "default": "energy"
+                 },
+                "enable_substitutions": { 
+                    "type": "boolean",
+                    "default": "true"
+                },
+                "random_seed": {
+                    "type": ["integer", "null"],
+                    "default": null
+                }
+            },
+            "required": ["name"],
+            "additionalProperties": false
+        },
+        "driver": {
+            "type": "object",
+            "properties": {
+                "name": { 
+                    "type": "string",
+                    "default": "HDF5"
+                 },
+                "hdf5_output": { 
+                    "type": ["string","null"],
+                    "default" : null
+                }
+            },
+            "required": ["name"],
+            "additionalProperties": false
+        },
+        "algorithm": {
+            "type": "object",
+            "properties": {
+                "name": { 
+                    "type": "string",
+                    "default": "VQE"
+                }
+            },
+            "required": ["name"],
+            "additionalProperties": false
+        },
+        "backend": {
+            "type": "object",
+            "properties": {
+                "name": { 
+                    "type": "string",
+                    "default": "local_statevector_simulator"
+                },
+                "shots": { 
+                    "type": "integer",
+                    "default": 1024,
+                    "minimum": 1
+                },
+                "skip_translation": { 
+                    "type": "boolean",
+                    "default": false
+                }
+            },
+            "required": ["name"],
+            "additionalProperties": false
+        }
+    },
+    
+    "type": "object",
+    "properties": {
+        "name":             { "$ref": "#/definitions/name" },
+        "problem":          { "$ref": "#/definitions/problem" },
+        "driver":           { "$ref": "#/definitions/driver" },
+        "algorithm":        { "$ref": "#/definitions/algorithm" },
+        "backend":          { "$ref": "#/definitions/backend" }
+    },
+    "required": ["driver"],
+    "additionalProperties": true
+}

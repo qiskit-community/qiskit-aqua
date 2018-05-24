@@ -1,0 +1,40 @@
+{
+    "name": "PYQUANTE",
+    "description": "PyQuante Driver",
+    "module": "pyquantedriver",
+    "input_schema" : {
+        "$schema": "http://json-schema.org/schema#",
+        "id": "pyquante_schema",
+        "type": "object",
+        "properties": {
+            "atoms":  {
+                "type": "string",
+                "pattern" : "[a-zA-Z]+\\s*([+-]?(\\d+(\\.\\d*)?|\\.\\d+)\\s*){3}(\\;\\s+[a-zA-Z]+\\s*([+-]?(\\d+(\\.\\d*)?|\\.\\d+)\\s*){3})*$",
+                "default": "H 0.0 0.0 0.0; H 0.0 0.0 0.735"
+            },
+            "units": {
+                "type": "string",
+                "default": "Angstrom",
+                "oneOf": [
+                     {"enum": ["Angstrom", "Bohr"]}
+                ]
+            },
+            "charge":  {
+                "type": "integer",
+                "default": 0
+            },
+            "multiplicity": {
+                "type": "integer",
+                "default": 1
+            },
+            "basis": {
+                "type": "string",
+                "default": "sto3g",
+                "oneOf": [
+                     {"enum": ["sto3g", "6-31g", "6-31g**"]}
+                ]
+            }
+        },
+        "additionalProperties": false
+    }
+}

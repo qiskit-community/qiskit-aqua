@@ -1,0 +1,37 @@
+{
+    "name": "PYSCF",
+    "description": "PYSCF Driver",
+    "module": "pyscfdriver",
+    "input_schema" : {
+        "$schema": "http://json-schema.org/schema#",
+        "id": "pyscf_schema",
+        "type": "object",
+        "properties": {
+            "atom":  {
+                "type": "string",
+                "default": "H 0.0 0.0 0.0; H 0.0 0.0 0.735"
+            },
+            "unit": {
+                "type": "string",
+                "default": "Angstrom",
+                "oneOf": [
+                     {"enum": ["Angstrom", "Bohr"]}
+                ]
+            },
+            "charge":  {
+                "type": "integer",
+                "default": 0
+            },
+            "spin": {
+                "type": "integer",
+                "default": 0
+            },
+            "basis": {
+                "type": "string",
+                "default": "sto3g"
+            }
+        },
+        "additionalProperties": false
+    }
+}
+          

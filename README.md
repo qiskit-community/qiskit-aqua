@@ -35,15 +35,15 @@ using the input file.
 
 The following will run the GUI
 
-`python qischem/ui`:
+`python qiskit_acqua_chemistry/ui`:
 
 ### Command line
 
-Summary of qischem/algorithms command line options:
+Summary of qiskit_acqua_chemistry command line options:
 
-`python qischem`:
+`python qiskit_acqua_chemistry`:
 ```
-usage: qischem [-h] [-o output | -jo json output] input
+usage: qiskit_acqua_chemistry [-h] [-o output | -jo json output] input
 
 Quantum Chemistry Program.
 
@@ -54,19 +54,6 @@ optional arguments:
   -h, --help       show this help message and exit
   -o output        Algorithm Results Output file name
   -jo json output  Algorithm JSON Output file name
-```
-`python algorithms`:
-```
-usage: algorithms [-h] [-jo output] input
-
-Algorithms Program.
-
-positional arguments:
-  input       Algorithm JSON input file
-
-optional arguments:
-  -h, --help  show this help message and exit
-  -jo output  Algorithm JSON output file name
 ```
 
 ## Installation
@@ -83,7 +70,7 @@ Additionally if you want to develop/run the unit tests then further packages are
 
 `pip install -r requirements-dev.txt` 
 
-Finally you will need to install a chemistry driver. See the chemistry drivers [readme](qischem/drivers/readme.md)
+Finally you will need to install a chemistry driver. See the chemistry drivers [readme](qiskit_acqua_chemistry/drivers/readme.md)
 for more detail as the installation varies by driver due to their use of a separate chemistry program or chemistry 
 library specific to that driver.
 
@@ -115,13 +102,13 @@ Ground state energy computed via Variational Quantum Eigensolver
 
 DRIVER is a mandatory section. This section defines the molecule and associated configuration for the electronic
 structure computation by the chosen driver via its external chemistry program or library. The exact form on the
-configuration depends on the specific driver being used. See the chemistry drivers [readme](qischem/drivers/readme.md)
+configuration depends on the specific driver being used. See the chemistry drivers [readme](qiskit_acqua_chemistry/drivers/readme.md)
 for more information about the drivers and their configuration. You will need to look at the readme of the driver you
 are using to find out about the configuration. Here are a couple of examples. Note that the DRIVER section names
 which specific chemistry driver will be used and that a subsequent section, in the name of the driver, then supplies
 the driver specific configuration.
 
-Here is an example using the [PYSCF driver](qischem/drivers/pyscfd/readme.md). The DRIVER section names PYSCF as the
+Here is an example using the [PYSCF driver](qiskit_acqua_chemistry/drivers/pyscfd/readme.md). The DRIVER section names PYSCF as the
 driver and then a PYSCF section, corresponding to the name, provides the molecule and basis set that will be used by
 the PYSCF driver and hence the PySCF library to compute the electronic structure.
 
@@ -136,7 +123,7 @@ the PYSCF driver and hence the PySCF library to compute the electronic structure
 &END
 ```
 
-Here is another example using the [PSI4 driver](qischem/drivers/psi4d/readme.md). Here PSI4 is named as the driver to be
+Here is another example using the [PSI4 driver](qiskit_acqua_chemistry/drivers/psi4d/readme.md). Here PSI4 is named as the driver to be
 used and the PSI4 section contains the molecule and basis set directly in a form that PSI4 understands. This is the
 Psithon input file language for PSI4, and thus should be familiar to existing users of PSI4.
 
@@ -330,7 +317,7 @@ PROBLEM is an optional section that includes the overall problem being solved an
 
 ### Programming interface
 
-The UI and Command line tools use QISChem from qischem.py when solving the chemistry problem given by the supplied
+The UI and Command line tools use qiskit_acqua_chemistry from qischem.py when solving the chemistry problem given by the supplied
 input file. A programmatic interface is also available that can be called using a dictionary in the same formula as the
 input file. Like the input file its parameters take on the same values and same defaults.
 
@@ -405,7 +392,7 @@ You can follow the implementations already in the repo.
 
 ### For unit test writers:
 
-Unit tests should go under "test" folder and be classes derived from QISChemTestCase class.
+Unit tests should go under "test" folder and be classes derived from QISKitAcquaChemistryTestCase class.
 
 They should not have print statements, instead use self.log.debug. If they use assert, they should be from the unittest
 package like self.AssertTrue, self.assertRaises etc.

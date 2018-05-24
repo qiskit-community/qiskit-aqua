@@ -1,0 +1,54 @@
+import numpy
+
+# Fix geometry location & orientation and force c1 symmetry on molecule
+core.get_active_molecule().fix_com(True)
+core.get_active_molecule().fix_orientation(True)
+core.get_active_molecule().reset_point_group('c1')
+
+_q_hf_energy, _q_hf_wavefn = energy('scf', return_wfn=True)
+_q_mints = MintsHelper(_q_hf_wavefn.basisset())
+_q_mol   = _q_hf_wavefn.molecule()
+
+# Energies and orbits
+_q_molecule._hf_energy                = _q_hf_energy
+_q_molecule._nuclear_repulsion_energy = _q_mol.nuclear_repulsion_energy()
+_q_molecule._num_orbitals             = _q_hf_wavefn.nmo()
+_q_molecule._num_alpha                = _q_hf_wavefn.nalpha()
+_q_molecule._num_beta                 = _q_hf_wavefn.nbeta()
+_q_molecule._mo_coeff                 = numpy.asarray(_q_hf_wavefn.Ca())
+_q_molecule._orbital_energies         = numpy.asarray(_q_hf_wavefn.epsilon_a())
+# Molecule geometry
+_q_molecule._molecular_charge = _q_mol.molecular_charge()
+_q_molecule._multiplicity     = _q_mol.multiplicity()
+_q_molecule._num_atoms        = _q_mol.natom()
+_q_molecule._atom_symbol      = []
+_q_molecule._atom_xyz         = numpy.empty([_q_mol.natom(), 3])
+for _n in range(0, _q_molecule._num_atoms):
+    _q_molecule._atom_symbol.append(_q_mol.symbol(_n))
+    _q_molecule._atom_xyz[_n][0] = _q_mol.x(_n)
+    _q_molecule._atom_xyz[_n][1] = _q_mol.y(_n)
+    _q_molecule._atom_xyz[_n][2] = _q_mol.z(_n)
+   
+# 1 and 2 electron integrals   
+_q_h1 = _q_mints.ao_kinetic()
+_q_h1.add(_q_mints.ao_potential())
+_q_h1.name = "Core-Hamiltonian"
+_q_h1.transform(_q_hf_wavefn.Ca())
+_q_mohij = numpy.asarray(_q_h1)
+_q_molecule._mo_onee_ints = _q_mohij
+#
+_q_mohijkl = numpy.asarray(_q_mints.mo_eri(_q_hf_wavefn.Ca(), _q_hf_wavefn.Ca(), _q_hf_wavefn.Ca(), _q_hf_wavefn.Ca()))
+_q_molecule._mo_eri_ints = _q_mohijkl
+
+# dipole integrals
+_q_dipole = _q_mints.ao_dipole()
+for _n in range(len(_q_dipole)):
+    _q_dipole[_n].transform(_q_hf_wavefn.Ca())
+_q_molecule._x_dip_mo_ints = numpy.asarray(_q_dipole[0])
+_q_molecule._y_dip_mo_ints = numpy.asarray(_q_dipole[1])
+_q_molecule._z_dip_mo_ints = numpy.asarray(_q_dipole[2])
+_q_nd = _q_mol.nuclear_dipole()
+_q_molecule._nuclear_dipole_moment = numpy.array([_q_nd[0], _q_nd[1], _q_nd[2]])
+_q_molecule._reverse_dipole_sign = False
+
+_q_molecule.save()

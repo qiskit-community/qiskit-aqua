@@ -1,0 +1,78 @@
+# Sample input file for QISChem chemistry stack
+# Optional section for the user to describe this file's purpose
+#
+&NAME
+Molecule experiment
+&END
+
+# External library DRIVER used for electronic structure computation.
+# The DRIVER section is named here and that section should contains the
+# molecule and any additional configuration needed such as basis set
+# in order that a computation can be run with one and two electron
+# integrals being extracted from the driver's result.
+#
+&DRIVER
+  name=PYSCF
+&END
+
+# -- Molecule and config in driver specific format
+# Configuration supported here is a subset of the arguments
+# as can be passed to PySCF pyscf.gto.Mole class namely:
+#   atom (str only), unit, charge, spin, basis (str only)
+#   max_memory may be specified here to override PySCF default
+#     and should be specified the same way i.e in MB e.g 4000 for 4GB
+&PYSCF
+atom=H .0 .0 -1.160518; Li .0 .0 0.386839
+#atom=H .0 .0 .0; H .0 .0 0.7459
+#atom=Li 0 0 0; H 0 0 1.595
+#atom=B 0 0 0; H 0 0 1
+#atom=Be 5 -2.89 0; H 10 0 0; H 0 0 0
+#atom=N 0 0 -0.5669; N 0 0 0.5669
+#atom=O 0.000 0.000 0.000; H 0.757 0.586 0.000; H -0.757 0.586 0.000
+#atom=O 0.054786 0.666393 0.0; H -0.931356 0.865002 0.0; F 0.054786 -0.68846 0.0
+#atom=Si 0 0 0; H 0.8125 0.8125 0.8125; H -0.8125 -0.8125 0.8125; H -0.8125 0.8125 -0.8125; H 0.8125 -0.8125 -0.8125
+#atom=Na 0.0 0.0 -1.3480170; Cl 0.0 0.0 0.8722460
+unit=Angstrom
+charge=0
+spin=0
+basis=sto3g
+&END
+
+# Absolute bare minimum input file is just the driver info. With just
+# this a default HAMILTONIAN and ALGORITHM will be used for the computation
+# HAMILTONIAN and ALGORITHM may be given here to select a specific chosen
+# configuration other than the default.
+#
+# At this point we have integral matrices which we are passed on down the
+# chemistry stack to create the fermionic and qubit hamiltonians and run the energy
+# computation using the algorithm which defaults to VQE.
+&OPERATOR
+ name=hamiltonian
+ qubit_mapping=jordan_wigner
+ freeze_core=true
+ orbital_reduction=[-3,-2]
+ #N2 orbital_reduction=[0,1,8,9]
+ #HOF orbital_reduction=[0,1,9,10]
+ #SiH4 orbital_reduction=[0,1,2,3,4,11,12]
+ #NaCl orbital_reduction=[0,1,2,3,4,5,6,7,8,9,16,17]
+&END
+
+# Algorithm is named here. Default is VQE.
+#
+# VQE has some parameters and an Optimizer and Variational form can be specifically
+# defined in this input file to replace the default ones that would otherwise be used
+#
+&ALGORITHM
+  name=ExactEigensolver
+  k=1
+&END
+
+# BACKEND specifies the particular quantum computing backend, whether real device
+# or simulator that wll be used.
+# The user also needs to have edited the qiskit Qconfig.py.default file from the
+# qiskit root and placed there Qconfig.py with the right values, such as API_Token
+# The BACKEND will default to the QISkit local simulator without this section
+#
+&BACKEND
+  name=local_statevector_simulator
+&END

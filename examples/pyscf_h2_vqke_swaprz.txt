@@ -1,0 +1,52 @@
+&name
+H2 excited states molecule experiment. Var for SWAPRZ with VQKE
+
+
+&end
+
+&driver
+   name=PYSCF
+&end
+
+&pyscf
+   atom=H 0.0 0.0 0.0; H 0.0 0.0 0.735
+   unit=Angstrom
+   charge=0
+   spin=0
+   basis=sto3g
+&end
+
+&operator
+   name=hamiltonian
+   qubit_mapping=parity
+   two_qubit_reduction=True
+&end
+
+&algorithm
+   name=VQKE
+   k=4
+   gap_lb=0.1
+&end
+
+&initial_state
+   name=HartreeFock
+   qubit_mapping=parity
+   two_qubit_reduction=True
+   num_particles=2
+   num_orbitals=4
+&end
+
+&optimizer
+   name=COBYLA
+   maxiter=10000
+&end
+
+&variational_form
+   name=SWAPRZ
+   depth=3
+   entanglement=full
+&end
+
+&backend
+   name=local_statevector_simulator
+&end

@@ -1,0 +1,49 @@
+&name
+  H2 molecule experiment
+&end
+
+&problem
+   name=energy
+&end
+
+&driver
+   name=PYQUANTE
+   hdf5_output=None
+&end
+
+&pyquante
+   atoms=H .0 .0 .0; H .0 .0 0.735
+   units=Angstrom
+   charge=0
+   multiplicity=1
+   basis=sto3g
+&end
+
+&initial_state
+   name=HartreeFock
+   qubit_mapping=jordan_wigner
+   num_particles=2
+   num_orbitals=4
+&end
+
+&operator
+   name=hamiltonian
+   transformation=full
+   qubit_mapping=jordan_wigner
+   freeze_core=False
+&end
+
+&algorithm
+   name=QPE
+   num_time_slices=1
+   paulis_grouping=default
+   expansion_mode=trotter
+   expansion_order=2
+   num_ancillae=5
+&end
+
+&backend
+   name=local_qasm_simulator
+   shots=100
+   skip_translation=False
+&end
