@@ -1,8 +1,6 @@
-# IBM Quantum Library
+# QISKit ACQUA
 
-The IBM Quantum Library is a set of algorithms and support software for use with Quantum computers
-to carry out research and investigate how to solve problems using near term Quantum computing power having
-short depth circuits. This library uses [QISKit](https://www.qiskit.org/) for its Quantum computation.
+QISKit Algorithms and Circuits for QUantum Applications (QISKit ACQUA) is a set of algorithms and support software for use with Quantum computers to carry out research and investigate how to solve problems using near term Quantum computing power having short depth circuits. This library uses [QISKit](https://www.qiskit.org/) for its Quantum computation.
   
 This library has algorithms that may be used to solve problems across different application domains.
 
@@ -156,7 +154,8 @@ QPE is also configured with the following parameter settings:
 ## IQPE
 
 IQPE, the Iterative Quantum Phase Estimation algorithm, as its name suggests, iteratively computes the
-phase so as to require less qubits. It takes in the same set of parameters as QPE except for the number of ancillary qubits `num_ancillae`, which is replaced by `num_iterations`. Also, the inverse quantum fourier transform isn't used for IQPE.
+phase so as to require less qubits. It takes in the same set of parameters as QPE except for the number of ancillary qubits
+`num_ancillae`, which is replaced by `num_iterations`. Also, the inverse quantum fourier transform isn't used for IQPE.
 
 For more detail, please see [https://arxiv.org/abs/quant-ph/0610214](https://arxiv.org/abs/quant-ph/0610214).
 
@@ -175,14 +174,33 @@ ExactEigensolver can be configured with the following parameter:
 
 ## Grover
 
-Grover's Search is a well known quantum algorithm for searching through unstructured collection of records for particular targets with quadratic speedups. All that's needed for carrying out a search is an oracle for specifying the search criterion, which basically indicates a hit or miss for any given record. Currently the SAT (satisfiability) oracle implementation is provided, which takes as input a SAT problem in [DIMACS CNF format](http://www.satcompetition.org/2009/format-benchmarks2009.html) and constructs the corresponding quantum circuit.
+Grover's Search is a well known quantum algorithm for searching through unstructured collection of records for particular
+targets with quadratic speedups. All that's needed for carrying out a search is an oracle for specifying the search criterion,
+which basically indicates a hit or miss for any given record. Currently the SAT (satisfiability) oracle implementation is
+provided, which takes as input a SAT problem in [DIMACS CNF format](http://www.satcompetition.org/2009/format
+benchmarks2009.html) and constructs the corresponding quantum circuit.
 
 
 ## SVM_QKernel
 
-SVM QKernel is a feature map classification algorithm....
+Classification algorithms and methods for machine learning are essential for pattern recognition and data mining applications. 
+Well known techniques, such as support vector machines or neural networks, have blossomed over the last two decades as a 
+result of the spectacular advances in classical hardware computational capabilities and speed. This progress in computer power
+made it possible to apply techniques theoretically developed towards the middle of the XX century on classification problems 
+that soon became increasingly challenging.
 
- --- Todo add more description and parameters ---
+A key concept in classification methods is that of a kernel. Data cannot typically be separated by a hyperplane in its 
+original space. A common technique used to find such a hyperplane consists on applying a non-linear transformation function to 
+the data. This function is called a _feature map_, as it transforms the raw features, or measurable properties, of the 
+phenomenon or subject under study. Classifying in this new feature space -- and, as a matter of fact, also in any other space, 
+including the raw original one -- is nothing more than seeing how close data points are to each other. This is the same as 
+computing the inner product for each pair of data in the set. In fact we do not need to compute the non-linear feature map for 
+each datum, but only the inner product of each pair of data points in the new feature space. This collection of inner products 
+is called the _kernel_ and it is perfectly possible to have feature maps that are hard to compute but whose kernels are not.
+
+The SVM_QKernel algorithm applies to classification problems that require a feature map for which computing the kernel 
+is not efficient classically.  This means that the required computational resources are expected to scale exponentially with 
+the size of the problem. SVM_QKernel uses a Quantum processor to solve this problem by a direct estimation of the kernel in the feature space. The method used falls in the category of what is called _supervised learning_, consisting of a _training phase_ (where the kernel is calculated and the support vectors obtained) and a _test or classification phase_ (where new labeless data is classified according to the solution found in the training phase).
 
 
 # Developers  
