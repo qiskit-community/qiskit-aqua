@@ -31,7 +31,9 @@ logger = logging.getLogger(__name__)
 try:
     from qiskit_acqua_chemistry.fermionic_operator import FermionicOperator
 except:
-    logger.warning('UCCSD can be only used with qiskit_acqua_chemistry lib. Please install it.')
+    logger.debug('UCCSD can be only used with qiskit_acqua_chemistry lib. \
+        If you would like to use it for other purpose, please install qiskit_acqua_chemistry first.')
+    return
 
 
 class VarFormUCCSD(VariationalForm):
@@ -240,7 +242,8 @@ class VarFormUCCSD(VariationalForm):
                 if i >= num_particles // 2:
                     raise ValueError('Invalid index {} in active active_occ_list {}'.format(i, active_occ_list))
         if active_unocc_list is not None:
-            active_unocc_list = [i + num_particles // 2 if i >= 0 else i + num_orbitals // 2 for i in active_unocc_list]
+            active_unocc_list = [i + num_particles // 2 if i >=
+                                 0 else i + num_orbitals // 2 for i in active_unocc_list]
             for i in active_unocc_list:
                 if i < 0 or i >= num_orbitals // 2:
                     raise ValueError('Invalid index {} in active active_unocc_list {}'.format(i, active_unocc_list))
