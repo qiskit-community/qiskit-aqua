@@ -45,10 +45,12 @@ def _discover_qconfig_on_demand():
             path = os.getcwd()
             __QCONFIG__ = discover_qconfig(path)
             if __QCONFIG__ is None:
-                logger.debug('{} not loaded from {}'.format(_QCONFIG_NAME,path))
+                logger.debug('{} not loaded from {} and below'.format(_QCONFIG_NAME,path))
             
         _QCONFIG_DISCOVERED = True
-        
+        if __QCONFIG__ is not None:
+            logger.debug('Loaded {} from {}'.format(_QCONFIG_NAME,os.path.abspath(__QCONFIG__.__file__)))
+            
     return __QCONFIG__
         
 def get_qconfig():
@@ -110,10 +112,7 @@ def discover_qconfig(directory):
                     return None
                     
                 mod = importlib.util.module_from_spec(modspec)
-                modspec.loader.exec_module(mod)
-                if mod is not None:
-                    logger.debug('Loaded {} from {}'.format(_QCONFIG_NAME,fullpath))
-                    
+                modspec.loader.exec_module(mod)    
                 return mod
             except Exception as e:
                 # Ignore if it could not be initialized.
