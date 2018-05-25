@@ -14,7 +14,7 @@ involved in the project:
 * Peng Liu
 * Manoel Marques
 * Antonio Mezzacapo
-* Nikolay Moll
+* Nikolaj Moll
 * Giacomo Nannicini
 * Marco Pistoia
 * Julia Rice
