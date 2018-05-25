@@ -32,7 +32,7 @@ try:
     from qiskit_acqua_chemistry.fermionic_operator import FermionicOperator
 except:
     logger.debug('UCCSD can be only used with qiskit_acqua_chemistry lib. \
-        If you would like to use it for other purpose, please install qiskit_acqua_chemistry first.')
+        If you would like to use it for other purposes, please install qiskit_acqua_chemistry first.')
     return
 
 
