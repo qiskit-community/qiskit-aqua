@@ -28,6 +28,8 @@ from ._discover import (local_pluggables_types,
                         local_pluggables,
                         get_pluggable_configuration)
 
+__version__ = '0.1.0'
+
 __all__ = [ 'get_qconfig',
             'set_qconfig',
             'load_qconfig',

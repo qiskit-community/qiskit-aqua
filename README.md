@@ -64,4 +64,4 @@ optimizers, and initial states.
 
 In essence, QISKit ACQUA is a novel software framework that allows users to experience the flexibility provided by the
 integration of classical computational software, the error-resilient configuration, the ability to contribute new
-components at differnet levels of the Quantum software stack, and the ability to extend QISKit ACQUA to new domains.
+components at different levels of the Quantum software stack, and the ability to extend QISKit ACQUA to new domains.
