@@ -26,7 +26,7 @@ sys.path.insert(0,'qiskit_acqua_chemistry')
 sys.path.insert(0,qiskit_acqua_chemistry_directory)
 # hack untils qiskit-acqua is installable
 qiskit_acqua_directory = os.path.join(qiskit_acqua_chemistry_directory,'../qiskit-acqua')
-sys.path.insert(0,qiskit_acqua_directory)
+sys.path.append(qiskit_acqua_directory)
 # ---
 
 from qiskit_acqua_chemistry._logging import build_logging_config,set_logger_config
