@@ -59,7 +59,7 @@ class SectionPropertiesView(ToolbarView):
             value = '' if value_tuple[0] is None else str(value_tuple[0])
             value = value.replace('\r', '\\r').replace('\n', '\\n')
             if value_tuple[1]:
-                self._tree.insert('',tk.END, text=property_name, values=[value], tags="SUBSTITUTIONS")
+                self._tree.insert('',tk.END, text=property_name, values=[], tags="SUBSTITUTIONS")
             else:
                 self._tree.insert('',tk.END, text=property_name, values=[value])
                 
