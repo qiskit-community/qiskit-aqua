@@ -61,7 +61,15 @@ class Controller(object):
         self._thread_queue = queue.Queue()
         self._thread = None
         self._command = Controller._START
-        self._config_mgr = ConfigurationManager()
+        self._driver_names = []
+        config_mgr = ConfigurationManager()
+        for name in config_mgr.module_names:
+            try:
+                config_mgr.get_driver_instance(name)
+                self._driver_names.append(name)
+            except:
+                pass
+            
         self._process_stop = False
         self._validate_integer_command = self._view.register(Controller._validate_integer)
         self._validate_float_command = self._view.register(Controller._validate_float)
@@ -461,7 +469,7 @@ class Controller(object):
         if InputParser.OPERATOR == section_name and InputParser.NAME == property_name:
             values = self._model.get_operator_section_names()
         elif InputParser.DRIVER == section_name and InputParser.NAME == property_name:
-            values = self._config_mgr.module_names
+            values = self._driver_names
         elif InputParser.NAME == property_name and Model.is_pluggable_section(section_name):
             values = self._model.get_pluggable_section_names(section_name)
         elif InputParser.BACKEND == section_name and InputParser.NAME == property_name:
