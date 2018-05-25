@@ -20,17 +20,23 @@ import logging
 from itertools import product
 from sys import stdout
 
+from qiskit_acqua import AlgorithmError
 
 logger = logging.getLogger(__name__)
 
 try:
     from cplex import Cplex, SparsePair, SparseTriple
-except ImportError:
-    raise ImportWarning('CPLEX is not installed. See https://www.ibm.com/support/knowledgecenter/SSSA5P_12.8.0/ilog.odms.studio.help/Optimization_Studio/topics/COS_home.html')
+
+    has_cplex = True
+except ModuleNotFoundError:
+    has_cplex = False
 
 
 class SimpleCPLEX:
     def __init__(self, cplex=None):
+        if not has_cplex:
+            logger.critical('CPLEX is not installed. See https://www.ibm.com/support/knowledgecenter/SSSA5P_12.8.0/ilog.odms.studio.help/Optimization_Studio/topics/COS_home.html')
+            raise AlgorithmError('CPLEX is not installed')
         if cplex:
             self._model = Cplex(cplex._model)
         else:
