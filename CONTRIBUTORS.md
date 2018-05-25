@@ -9,6 +9,7 @@ involved in the project:
 * Antonio Córcoles-Gonzalez
 * Jay Gambetta
 * Shaohan Hu
+* Takashi Imamichi
 * Tal Kachman
 * Peng Liu
 * Manoel Marques
