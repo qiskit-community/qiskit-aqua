@@ -30,10 +30,10 @@ logger = logging.getLogger(__name__)
 
 try:
     from qiskit_acqua_chemistry.fermionic_operator import FermionicOperator
-except:
-    logger.debug('UCCSD can be only used with qiskit_acqua_chemistry lib. \
+except ImportError:
+    logger.warning('UCCSD can be only used with qiskit_acqua_chemistry lib. \
         If you would like to use it for other purposes, please install qiskit_acqua_chemistry first.')
-    return
+    # return
 
 
 class VarFormUCCSD(VariationalForm):
