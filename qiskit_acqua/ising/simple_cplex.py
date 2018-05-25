@@ -25,9 +25,8 @@ logger = logging.getLogger(__name__)
 
 try:
     from cplex import Cplex, SparsePair, SparseTriple
-except ModuleNotFoundError as err:
-    logger.warning('CPLEX is not installed. See https://www.ibm.com/support/knowledgecenter/SSSA5P_12.8.0/ilog.odms.studio.help/Optimization_Studio/topics/COS_home.html')
-    raise err
+except ImportError:
+    raise ImportWarning('CPLEX is not installed. See https://www.ibm.com/support/knowledgecenter/SSSA5P_12.8.0/ilog.odms.studio.help/Optimization_Studio/topics/COS_home.html')
 
 
 class SimpleCPLEX:
