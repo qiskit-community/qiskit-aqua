@@ -1,2 +1,3 @@
 discover
 parameterized
+sphinxcontrib-fulltoc
