@@ -171,11 +171,12 @@ For more detail, please see [https://arxiv.org/abs/quant-ph/0610214](https://arx
 
 ## Grover
 
-Grover's Search is a well known quantum algorithm for searching through unstructured collection of records for particular
-targets with quadratic speedups. All that's needed for carrying out a search is an oracle for specifying the search criterion,
-which basically indicates a hit or miss for any given record. Currently the SAT (satisfiability) oracle implementation is
-provided, which takes as input a SAT problem in [DIMACS CNF format](http://www.satcompetition.org/2009/format
-benchmarks2009.html) and constructs the corresponding quantum circuit.
+Grover's Search is a well known quantum algorithm for searching through unstructured collection of records for
+particular targets with quadratic speedups. All that's needed for carrying out a search is an oracle for specifying 
+the search criterion, which basically indicates a hit or miss for any given record. Currently the SAT (satisfiability)
+oracle implementation is provided, which takes as input a SAT problem in 
+[DIMACS CNF format](http://www.satcompetition.org/2009/format-benchmarks2009.html) and constructs the corresponding 
+quantum circuit.
 
 
 ## SVM_QKernel

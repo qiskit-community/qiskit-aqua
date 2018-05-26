@@ -6,7 +6,7 @@ The *iqfts* folder here contains Inverse Quantum Fourier Transform pluggable obj
 
 # IQFTs
 
-IQFTs are currently used by the by the [Quantum Phase Estimation (QPE)](../../../algorithms#qpe) algorithm. 
+IQFTs are currently used by the by the [Quantum Phase Estimation (QPE)](../../../qiskit_acqua#qpe) algorithm. 
 
 The following IQFTs are supplied here:
 

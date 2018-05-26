@@ -7,7 +7,7 @@ The *initial_states* folder here contains initial-state pluggable objects that m
 # Initial States
 
 Initial states are currently used to define a starting state for the [variational forms](../variational_forms) and
-as a trial state to be evolved by the [Quantum Phase Estimation (QPE)](../../../algorithms#qpe) algorithm. An initial
+as a trial state to be evolved by the [Quantum Phase Estimation (QPE)](../../../qiskit_acqua#qpe) algorithm. An initial
 state provides a circuit that can take the starting point of all zero qubits to the defined state.  
 
 The following initial states are supplied:

@@ -7,7 +7,7 @@ The *variational_forms* folder here contains trial wavefunction pluggable object
 # Variational Forms
 
 The variational form represents a trial wavefunction that may be used in an algorithm such as
-[VQE](../../../algorithms#vqe). The following variational forms are supplied here:
+[VQE](../../../qiskit_acqua#vqe). The following variational forms are supplied here:
 
 * [RY](#ry)
 * [RYRZ](#ryrz)
