@@ -42,7 +42,9 @@ def compute_integrals(config):
     unit = config.get('unit', 'Angstrom')
     charge = int(config.get('charge', '0'))
     spin = int(config.get('spin', '0'))
-    max_memory = int(config.get('max_memory', str(param.MAX_MEMORY)))
+    max_memory = config.get('max_memory')
+    if max_memory is None:
+        max_memory = param.MAX_MEMORY
     calc_type = config.get('calc_type', 'rhf').lower()
 
     try:

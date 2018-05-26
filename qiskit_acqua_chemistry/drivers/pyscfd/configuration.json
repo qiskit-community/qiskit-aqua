@@ -30,8 +30,9 @@
                 "type": "string",
                 "default": "sto3g"
             },
-            "max_memory":  {
-                "type": "integer"
+            "max_memory": {
+                "type": ["integer", "null"],
+                "default": null
             }
         },
         "additionalProperties": false
