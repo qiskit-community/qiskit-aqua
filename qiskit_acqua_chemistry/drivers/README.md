@@ -1,8 +1,8 @@
-# IBM Quantum Library for Chemistry
+# QISKit ACQUA Chemistry
 
 ## Electronic structure drivers
 
-IBM Quantum Library for Chemistry, qiskit_acqua_chemistry, requires a computational chemistry program or library to be available in
+QISKit ACQUA Chemistry requires a computational chemistry program or library to be available in
 order that it can be used for electronic structure computation. For example the computation of one and two electron
 integrals for the molecule in the experiment.
 

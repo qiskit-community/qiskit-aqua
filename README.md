@@ -1,14 +1,20 @@
 # QISKit ACQUA Chemistry
 
-QISKit ACQUA Chemistry is a set of tools, algorithms and software for use with Quantum computers
-to carry out research and investigate how to take advantage of Quantum computing power to solve chemistry
-problems. QISKit ACQUA Chemistry translates chemistry-specific problem inputs into inputs for a Quantum algorithm residing in QISKit ACQUA, and then uses [QISKit](https://www.qiskit.org/) for the relevant Quantum computation.  It allows users with
-different levels of experience to execute chemistry experiments and contribute to the software stack.  Users with pure Chemistry background can continue to configure chemistry problems according to their favorite software packages, called *drivers*.  These users do not need to learn the details of Quantum Computing; QISKit Chemistry translates any
-chemistry program configuration entered by any end user in their favorite driver into Quantum-specific input.
-QISKit Chemistry allows also users more knowledgeable in the area of Quantum Computing to plug
-their contributions in.  For example, new Quantum algorithms, optimizers and variational forms can easily be plugged in,
-thereby allowing algorithm providers to contribute new Quantum algorithms or more efficient implementations of
-existing ones.
+QISKit ACQUA Chemistry is a set of tools, algorithms and software for use with quantum computers
+to carry out research and investigate how to take advantage of quantum computing power to solve chemistry
+problems. QISKit ACQUA Chemistry translates chemistry-specific problem inputs into inputs for a quantum algorithm
+supplied by QISKit ACQUA, and then uses [QISKit](https://www.qiskit.org/) for the actual quantum computation. 
+
+QISKit ACQUA Chemistry allows users with different levels of experience to execute chemistry experiments and 
+contribute to the software stack.  Users with pure chemistry background can continue to configure chemistry 
+problems according to their favorite software packages, called *drivers*.  These users do not need to learn the 
+details of quantum computing; QISKit ACQUA Chemistry translates any chemistry program configuration entered by 
+any end user in their favorite driver into quantum-specific input.
+
+QISKit ACQUA allows also users more knowledgeable in the area of quantum computing to plug their contributions in.
+For example, new quantum algorithms, optimizers and variational forms can easily be plugged in,
+thereby allowing algorithm providers to contribute new quantum algorithms or more efficient implementations of
+existing ones. Such algorithms may then be utilized by QISKit ACQUA Chemistry as applicable.
 
 You can follow the [installation](#installation) instructions to install this software and its dependencies.
 
@@ -22,8 +28,8 @@ seamlessly integrate them and make them available for use and configuration via 
 
 ## GUI and command line tools
 
-The IBM Quantum Library for Chemistry has both GUI and command line tools which may be used to solve chemistry
-problems. Both can load and run an [input file](#input-file) specifying the molecule, which algorithm is used and its
+QISKit ACQUA Chemistry has both GUI and command line tools which may be used when solving chemistry
+problems. Both can load and run an [input file](#input-file) specifying the molecule, an algorithm to be used and its
 configuration, and various other options to tailor the experiment. If you are new to the library we highly recommend
 getting started with the GUI.  
 
@@ -58,7 +64,7 @@ optional arguments:
 
 ## Installation
 
-The IBM Quantum Library for Chemistry requires Python 3.5 or newer to be installed.
+QISKit ACQUA Chemistry requires Python 3.5 or newer to be installed.
 
 The library can currently be obtained either by cloning this repository, or by downloading
 the zip of the source and unpacking it locally on your machine. The library requires several additional packages
@@ -158,7 +164,13 @@ The following parameters may be set:
 
 * transformation=**full** | particle_hole
 
-  Do *full* transformation or use *particle_hole* simplification 
+  Do *full* transformation or use *particle_hole* 
+  
+  The 'standard' second quantized Hamiltonian can be transformed using the particle-hole (p/h) option, which makes the
+  expansion of the trial wavefunction from the HartreeFock reference state more natural. For trial wavefunctions
+  in QISKit ACQUA, such as UCCSD, the p/h Hamiltonian can improve the speed of convergence of the
+  VQE algorithm for the calculation of the electronic ground state properties.
+  For more information on the p/h formalism see: [P. Barkoutsos, arXiv:1805.04340](https://arxiv.org/abs/1805.04340).
 
 * qubit_mapping=jordan_wigner | **parity** | bravyi_kitaev
 
@@ -253,8 +265,8 @@ variational forms that are used by VQE.
 &END
 ``` 
 
-See the [algorithm](./algorithms) you are using, and any pluggable entities it may use, for more specifics about their
-exact configuration options.
+For more information on algorithms, and any pluggable entities it may use, see QISKit ACQUA for more specifics about 
+them and their configuration options.
 
 
 #### BACKEND   
@@ -317,7 +329,7 @@ PROBLEM is an optional section that includes the overall problem being solved an
 
 ### Programming interface
 
-The UI and Command line tools use qiskit_acqua_chemistry from qischem.py when solving the chemistry problem given by the supplied
+The UI and Command line tools use qischem.py when solving the chemistry problem given by the supplied
 input file. A programmatic interface is also available that can be called using a dictionary in the same formula as the
 input file. Like the input file its parameters take on the same values and same defaults.
 
@@ -378,17 +390,11 @@ dictionary contains the following fields of note:
 
   The result dictionary of the algorithm that ran for the above values. See the algorithm for any further information.  
 
-### For writers of algorithms, optimizers and variational forms:
+### For writers of algorithms and other utilities such as optimizers and variational forms:
 
-Algorithms classes should be under their own folder under "algorithms" folder and should derive from QuantumAlgorithm class.
-
-Optimizers should go under "algorithms/utils/optimizers" and derive from Optimizer class.
-
-Variational Forms should go under "algorithms/utils/variational_forms" and derive from VariationalForm class.
-
-All the classes above should have a configuration dictionary with "name","description" and "input_schema" properties.
-
-You can follow the implementations already in the repo.
+QISKit ACQUA is the library of cross-domain algorithms and pluggable utilities. Please refer to the documentation 
+there for more information on how to write and contribute such objects to QISKit ACQUA. Such objects are then available
+to be used by QISKit ACQUA Chemistry.  
 
 ### For unit test writers:
 

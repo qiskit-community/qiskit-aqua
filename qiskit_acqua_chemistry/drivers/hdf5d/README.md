@@ -1,10 +1,10 @@
-# IBM Quantum Library for Chemistry
+# QISKit ACQUA Chemistry
 
 ## Driver for electronic structure previously stored in an HDF5 file
 
 When using a driver, that interfaces to a chemistry program or chemistry library, the electronic structure
-information that qischem obtains and formats into common data structures, for it's subsequent computation on that
-molecule, can be saved at that point as an HDF5 file, for later use by this driver.
+information that QISKit ACQUA Chemistry obtains and formats into common data structures, for it's subsequent
+computation on that molecule, can be saved at that point as an HDF5 file, for later use by this driver.
  
 For example, the following input file snippet shows the chemistry program driver for PSI4 being used and the
 resulting electronic structure stored in the file molecule.hdf5. The name given here is relative to the folder

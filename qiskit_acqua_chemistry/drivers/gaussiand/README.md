@@ -1,4 +1,4 @@
-# IBM Quantum Library for Chemistry
+# QISKit ACQUA Chemistry
 
 ## Electronic structure driver for Gaussian 16
 
@@ -7,9 +7,9 @@ Gaussian 16 is a commercial program for computational chemistry, see http://gaus
 The driver accesses the electronic structure from Gaussian 16 via the Gaussian supplied open-source interfacing code
 available from Gaussian at http://www.gaussian.com/interfacing/
 
-In the folder here 'gauopen' the Python part of the above interfacing code needed by qiskit_acqua_chemistry has been made available
-here. It is licensed under a [Gaussian Open-Source Public License](./gauopen/LICENSE.txt) which can also be found in
-this folder.
+In the folder here 'gauopen' the Python part of the above interfacing code needed by QISKit ACQUA Chemistry has been
+made available here. It is licensed under a [Gaussian Open-Source Public License](./gauopen/LICENSE.txt) which can
+also be found in this folder.
 
 ### Compile the Fortran interfacing code
 
@@ -41,8 +41,8 @@ may need to be simplified by deleting the first three and last line above, leavi
       Parameter (Len12D=4,Len4D=4)
 ```
 
-On Linux/Mac you will find a file such as qcmatrixio.so is created and on Windows it could be something like this
-qcmatrixio.cp36-win_amd64.pyd
+On Linux/Mac you will find a qcmatrixio.so file such as `qcmatrixio.cpython-36m-x86_64-linux-gnu.so` is created and on 
+Windows it could be something like this `qcmatrixio.cp36-win_amd64.pyd`
 
 ### Ensure G16 is in the Path and the environment setup for G16
 
@@ -51,9 +51,9 @@ exports such as GAUSS_EXEDIR etc have been done as per Gaussian installation ins
 http://gaussian.com/techsupport/#install
 
 ## Input file example
-To configure a molecule on which to do a chemistry experiment with qiskit_acqua_chemistry create a GAUSSIAN section in the input file
-as per the example below. Here the molecule, basis set and other options are specified according to GAUSSIAN control
-file, so blank lines, control line syntax etc according to Gaussian should be followed.
+To configure a molecule on which to do a chemistry experiment with QISKit ACQUA Chemistry create a GAUSSIAN section
+in the input file as per the example below. Here the molecule, basis set and other options are specified according
+to GAUSSIAN control file, so blank lines, control line syntax etc according to Gaussian should be followed.
 ```
 &GAUSSIAN
 # rhf/sto-3g scf(conventional)

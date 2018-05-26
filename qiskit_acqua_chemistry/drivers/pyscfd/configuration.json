@@ -29,6 +29,9 @@
             "basis": {
                 "type": "string",
                 "default": "sto3g"
+            },
+            "max_memory":  {
+                "type": "integer"
             }
         },
         "additionalProperties": false
