@@ -110,7 +110,7 @@ class VarFormSwapRZ(VariationalForm):
             circuit.u1(parameters[param_idx], q[qubit])
             param_idx += 1
             # circuit.rz(parameters[self._num_qubits*block*2 + qubit*2 + 1], q[qubit])
-        for block in range(1, self._depth+1):
+        for block in range(self._depth):
             circuit.barrier(q)
             for node in self._entangler_map:
                 for target in self._entangler_map[node]:
