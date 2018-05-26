@@ -13,7 +13,7 @@ each driver folder.
 At least one chemistry program/library needs to be installed. A number of different options are available here.
 
 However it is possible to run chemistry experiments if you have an HDF5 file that has been previously created by a 
-driver. The HDF5 driver can do this. See its [readme](./hdf5d/readme.md) for more information    
+driver. The HDF5 driver can do this. See its [readme](./hdf5d) for more information    
 
 ## Writing a new driver
 
