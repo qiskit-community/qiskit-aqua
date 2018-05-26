@@ -45,7 +45,7 @@ class EnergyInput(AlgorithmInput):
             },
             'additionalProperties': False
         },
-        'problems': ['energy', 'excited_states', 'dynamics']
+        'problems': ['energy', 'excited_states', 'dynamics', 'ising']
     }
 
     def __init__(self, configuration=None):

@@ -22,14 +22,14 @@ from qiskit_acqua import AlgorithmError
 
 class AlgorithmInput(ABC):
 
-    _PROBLEM_SET = ['energy', 'excited_states', 'dynamics', 'search', 'svm_classification']
+    _PROBLEM_SET = ['energy', 'excited_states', 'dynamics', 'search', 'svm_classification', 'ising']
 
     @abstractmethod
     def __init__(self, configuration=None):
         self._configuration = configuration
         if 'problems' not in configuration or len(configuration['problems']) <= 0:
             raise AlgorithmError('Algorithm Input missing or empty configuration problems')
-            
+
         for problem in configuration['problems']:
             if problem not in AlgorithmInput._PROBLEM_SET:
                 raise AlgorithmError('Problem {} not in known problem set {}'.format(problem, AlgorithmInput._PROBLEM_SET))

@@ -48,7 +48,7 @@ class ExactEigensolver(QuantumAlgorithm):
             },
             'additionalProperties': False
         },
-        'problems': ['energy', 'excited_states']
+        'problems': ['energy', 'excited_states', 'ising']
     }
 
     def __init__(self, configuration=None):

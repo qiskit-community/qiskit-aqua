@@ -57,7 +57,7 @@ class CPLEX(QuantumAlgorithm):
             },
             'additionalProperties': False
         },
-        'problems': ['energy']
+        'problems': ['ising']
     }
 
     def __init__(self, configuration=None):
