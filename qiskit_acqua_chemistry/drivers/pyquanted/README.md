@@ -7,6 +7,8 @@ installation instructions and its licensing terms.
 
 This driver requires PyQuante2 to be installed and available for QISKit ACQUA Chemistry to access/call.
 
+_**Note**: molecular dipole moment is not computed by QISKit ACQUA Chemistry when using this driver._
+
 ## Input file example
 To configure a molecule on which to do a chemistry experiment with QISKit ACQUA Chemistry create a PYQUANTE section
 in the input file as per the example below. Here the molecule, basis set and other options are specified as
