@@ -1,7 +1,7 @@
 # QISKit ACQUA - Examples
 
-This folder contains a number of example json input files that can be loaded and run by the QISKit ACQUA [GUI](../README.md#gui) 
-or run by the [command line](../README.md#command-line) tool.
+This folder contains a number of example json input files that can be loaded and run by the QISKit ACQUA
+[GUI](../README.md#gui) or run by the [command line](../README.md#command-line) tool.
 
 ## Jupyter Notebook
 

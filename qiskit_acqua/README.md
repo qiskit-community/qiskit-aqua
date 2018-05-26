@@ -1,6 +1,9 @@
 # QISKit ACQUA
 
-QISKit Algorithms and Circuits for QUantum Applications (QISKit ACQUA) is a set of algorithms and support software for use with Quantum computers to carry out research and investigate how to solve problems using near term Quantum computing power having short depth circuits. This library uses [QISKit](https://www.qiskit.org/) for its Quantum computation.
+QISKit Algorithms and Circuits for QUantum Applications (QISKit ACQUA) is a set of algorithms and utilities
+for use with quantum computers to carry out research and investigate how to solve problems using near-term
+quantum computing power having short depth circuits. This library uses [QISKit](https://www.qiskit.org/) for 
+its quantum computation.
   
 This library has algorithms that may be used to solve problems across different application domains.
 
@@ -17,12 +20,15 @@ The following algorithms are part of the library:
 * [SVM_QKernel](#svm_qkernel): Quantum feature-map classifier via direct estimation of the kernel
 * [SVM_Variational](#svm_variational): Variational Quantum feature-map classifier
 * [ExactEigensolver](#exacteigensolver): Classical eigenvalue solver 
+* [CPLEX](#cplex): Classical optimization solver for Ising modelled problems  
 
 
 ## VQE
 
-[VQE](https://arxiv.org/abs/1304.3061), the Variational Quantum Eigensolver algorithm, as its name suggests, uses a variational approach to find the minimum eigenvalue of a Hamiltonian energy problem. It is configured with a trial wavefunction, supplied by a [variational form](./utils/variational_forms), and an [optimizer](./utils/optimizers). An
-[initial state](./utils/initial_states) may be supplied too.    
+[VQE](https://arxiv.org/abs/1304.3061), the Variational Quantum Eigensolver algorithm, as its name suggests, 
+uses a variational approach to find the minimum eigenvalue of a Hamiltonian energy problem. It is configured 
+with a trial wavefunction, supplied by a [variational form](./utils/variational_forms), and
+an [optimizer](./utils/optimizers). An [initial state](./utils/initial_states) may be supplied too.    
 
 
 VQE can be configured with the following parameters:
@@ -155,10 +161,12 @@ QPE is also configured with the following parameter settings:
 ## IQPE
 
 IQPE, the Iterative Quantum Phase Estimation algorithm, as its name suggests, iteratively computes the
-phase so as to require less qubits. It takes in the same set of parameters as QPE except for the number of ancillary qubits
-`num_ancillae`, which is replaced by `num_iterations`. Also, the inverse quantum fourier transform isn't used for IQPE.
+phase so as to require less qubits. It takes in the same set of parameters as QPE except for the number
+of ancillary qubits `num_ancillae`, which is replaced by `num_iterations`. Also, an inverse quantum fourier
+transform isn't used for IQPE.
 
 For more detail, please see [https://arxiv.org/abs/quant-ph/0610214](https://arxiv.org/abs/quant-ph/0610214).
+
 
 
 ## Grover
@@ -214,14 +222,39 @@ ExactEigensolver can be configured with the following parameter:
   Returns up to k smallest eigenvalues. k defaults to 1.
 
 
+## CPLEX
+
+While this algorithm does not use a quantum computer, and relies on a purely classical approach,
+it may be useful in the near term while experimenting with, developing and testing quantum algorithms. This algorithm
+uses the [IBM ILOG CPLEX Optimization Studio](https://www.ibm.com/support/knowledgecenter/SSSA5P_12.8.0/ilog.odms.studio.help/Optimization_Studio/topics/COS_home.html)
+which should be installed, and its 
+[Python API](https://www.ibm.com/support/knowledgecenter/SSSA5P_12.8.0/ilog.odms.cplex.help/CPLEX/GettingStarted/topics/set_up/Python_setup.html)
+setup, for this algorithm to be operational. This algorithm currently supports computing the energy of an Ising model
+Hamiltonian. 
+
+CPLEX can be configured with the following parameter:
+
+* `timelimit`=*integer 1 to n*
+
+  Time limit, defaults to 600.
+
+* `thread`=*integer*
+
+  Thread, defaults to 1.
+
+*  `display`=*integer*
+
+  Display, defaults to 2.
+
+
 # Developers  
 
-Algorithms and some of the utils objects have been designed to be pluggable. A new object may be developed according to
-the pattern that will be described and by simply adding the code to set of existing code it will be immediately 
-recognized and be made available for use within the framework.
+Algorithms and many of the utils objects have been designed to be pluggable. A new object may be developed according to
+the pattern that will be described and by simply adding the new code to set of existing code it will be immediately 
+recognized and be made available for use within the framework of QISKit ACQUA.
 
-To develop/deploy here any new algorithms the new classes should be under their own folder here in *algorithms*, like
-the existing algorithms, vqe, vqke etc., and should derive from QuantumAlgorithm class. 
+To develop/deploy here any new algorithms the new class and module(s) should be under their own folder here in
+*qiskit_acqua*, like the existing algorithms, vqe, vqke etc., and should derive from QuantumAlgorithm class. 
 
 The [utils](./utils) folder here has common utility classes and other pluggable entities that may be used by the
 algorithms
@@ -242,9 +275,12 @@ algorithms
  
   IQFT (Inverse Quantum Fourier Transform) objects should go under *utils/iqfts* and derive from IQFT class.
 
+* [Oracles](./oracles)
+
+  Oracles, for use with algorithms like Grover, should go under *utils/oracles* and derive from Oracle class.  
 
 All the above classes above should have a configuration dictionary with "name", "description" and "input_schema" 
 properties.
 
-You can follow the implementations already in the repo.
+You can follow the implementations already in the repository here.
  

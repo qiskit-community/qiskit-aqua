@@ -1,13 +1,14 @@
-# IBM Quantum Library - Optimizers - NLopt
+# QISKit ACQUA - Optimizers - NLopt
 
-The IBM Quantum Library is a set of algorithms and support software for use with Quantum computers. The
-*nlopts* folder here contains a variety of different optimizers for use by algorithms. These optimizers are based on the
-open-source [NLOpt](https://nlopt.readthedocs.io) package.
+QISKit Algorithms and Circuits for QUantum Applications (QISKit ACQUA) is a set of algorithms and utilities
+for use with quantum computers. 
+The *nlopts* folder here contains a variety of different optimizers for use by algorithms.
+These optimizers are based on the open-source [NLOpt](https://nlopt.readthedocs.io) package.
 
 # Optimizers
 
-Optimizers may be used in variational algorithms, such as [VQE](../../../algorithms#vqe)
-and [VQkE](../../../algorithms#vqke).
+Optimizers may be used in variational algorithms, such as [VQE](../../../../qiskit_acqua#vqe)
+and [VQkE](../../../../qiskit_acqua#vqke).
  
 The following optimizers are supplied here. These are global optimizers:
 

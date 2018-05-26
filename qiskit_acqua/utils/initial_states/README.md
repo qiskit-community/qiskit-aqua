@@ -1,7 +1,8 @@
-# IBM Quantum Library - Initial States
+# QISKit ACQUA - Initial States
 
-The IBM Quantum Library is a set of algorithms and supporting software for use with Quantum computers. The
-*initial_states* folder here contains initial-state pluggable objects that may be used by algorithms
+QISKit Algorithms and Circuits for QUantum Applications (QISKit ACQUA) is a set of algorithms and utilities
+for use with quantum computers. 
+The *initial_states* folder here contains initial-state pluggable objects that may be used by algorithms
 
 # Initial States
 
@@ -26,12 +27,13 @@ physics/chemistry. This initial state has no parameters and will return the zero
 ## CUSTOM
 
 This initial state allows for different desired starting states. In addition to some pre-defined states, a totally 
-custom state may be specified through this option. This initial state has the following parameters and will return a state for use with
-`num_qubits`.
+custom state may be specified through this option. This initial state has the following parameters and will return
+a state for use with `num_qubits`.
 
 * state=**zero** | uniform | random
 
-  This state can take the value of *zero*, which is the same as using the [ZERO](#zero) initial state object, *uniform* which will set the qubits in superposition, or *random*.
+  This state can take the value of *zero*, which is the same as using the [ZERO](#zero) initial state object,
+  *uniform* which will set the qubits in superposition, or *random*.
 
 * state_vector
 
@@ -63,5 +65,5 @@ account in computing this number, which will be used internally to prepare the c
 
 # Developers
 
-New initial states may be added. See [Developers](../../../algorithms#developers) section in algorithms readme
+New initial states may be added. See [Developers](../../../qiskit_acqua#developers) section in algorithms readme
 for further information.

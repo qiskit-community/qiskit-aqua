@@ -1,7 +1,8 @@
-# IBM Quantum Library - Utils
+# QISKit ACQUA - Utils
 
-The IBM Quantum Library is a set of algorithms and support software for use with Quantum computers. The
-*utils* folder here contains common software and pluggable objects that may be used by algorithms 
+QISKit Algorithms and Circuits for QUantum Applications (QISKit ACQUA) is a set of algorithms and utilities
+for use with quantum computers. 
+The *utils* folder here contains common software and pluggable objects that may be used by algorithms 
 
 In addition to common utility code in this folder the following pluggable objects exist within their respective 
 designated folders: 

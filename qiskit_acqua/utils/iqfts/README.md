@@ -1,7 +1,8 @@
-# IBM Quantum Library - Inverse Quantum Fourier Tranforms (IQFT)
+# QISKit ACQUA - Inverse Quantum Fourier Tranforms (IQFT)
 
-The IBM Quantum Library is a set of algorithms and support software for use with Quantum computers. The
-*iqfts* folder here contains Inverse Quantum Fourier Transform pluggable objects that may be used by algorithms
+QISKit Algorithms and Circuits for QUantum Applications (QISKit ACQUA) is a set of algorithms and utilities
+for use with quantum computers. 
+The *iqfts* folder here contains Inverse Quantum Fourier Transform pluggable objects that may be used by algorithms
 
 # IQFTs
 
@@ -33,5 +34,5 @@ This is an approximate IQFT. This IQFT has the following parameters and will ret
 
 # Developers
 
-New IQFTs may be added. See [Developers](../../../algorithms#developers) section in algorithms readme
+New IQFTs may be added. See [Developers](../../../qiskit_acqua#developers) section in algorithms readme
 for further information.

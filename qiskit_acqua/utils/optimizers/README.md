@@ -1,12 +1,13 @@
-# IBM Quantum Library - Optimizers
+# QISKit ACQUA - Optimizers
 
-The IBM Quantum Library is a set of algorithms and support software for use with Quantum computers. The
-*optimizers* folder here contains a variety of different optimizers for use by algorithms
+QISKit Algorithms and Circuits for QUantum Applications (QISKit ACQUA) is a set of algorithms and utilities
+for use with quantum computers. 
+The *optimizers* folder here contains a variety of different optimizers for use by algorithms
 
 # Optimizers
 
-Optimizers may be used in variational algorithms, such as [VQE](../../../algorithms#vqe)
-and [VQkE](../../../algorithms#vqke). 
+Optimizers may be used in variational algorithms, such as [VQE](../../../qiskit_acqua#vqe)
+and [VQkE](../../../qiskit_acqua#vqke). 
 
 The following optimizers are supplied here. These are all local optimizers:
 

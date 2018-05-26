@@ -1,7 +1,8 @@
-# IBM Quantum Library - Variational Forms
+# QISKit ACQUA - Variational Forms
 
-The IBM Quantum Library is a set of algorithms and support software for use with Quantum computers. The
-*variational_forms* folder here contains trial wavefunction pluggable objects that may be used by algorithms
+QISKit Algorithms and Circuits for QUantum Applications (QISKit ACQUA) is a set of algorithms and utilities
+for use with quantum computers. 
+The *variational_forms* folder here contains trial wavefunction pluggable objects that may be used by algorithms
 
 # Variational Forms
 
@@ -145,8 +146,8 @@ The following allows a specific form to be configured:
 
 # Developers
 
-New variational forms may be added programmatically and dynamically discovered by the IBM Quantum Library.
-See [Developers](../../../algorithms#developers) section in algorithms readme for further information.
+New variational forms may be added programmatically and dynamically discovered by the QISKit ACQUA.
+See [Developers](../../../qiskit_acqua#developers) section in algorithms readme for further information.
 
 A new variational form should extend the variational_form class. A schema should define the configuration of this new
 variational form. See the existing forms for examples. When the variational form is used and run the init_args will be
