@@ -1,6 +1,9 @@
 # MacOSX
 .DS_Store
 
+# Dolphin KDE
+.directory
+
 # QISKit SDK config file
 Qconfig.py
 
