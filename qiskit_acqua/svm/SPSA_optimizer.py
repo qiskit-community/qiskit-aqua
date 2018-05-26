@@ -16,6 +16,10 @@
 # =============================================================================
 
 import numpy as np
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 def SPSA_parameters(): # pre-computed
     SPSA_params = np.zeros((5))
@@ -25,6 +29,7 @@ def SPSA_parameters(): # pre-computed
     SPSA_params[3] = 0.101
     SPSA_params[4] = 0
     return SPSA_params
+
 
 def SPSA_calibration(obj_fun, initial_theta, initial_c, target_update, stat):
     """Calibrates the first SPSA parameter.
@@ -51,7 +56,7 @@ def SPSA_calibration(obj_fun, initial_theta, initial_c, target_update, stat):
     for i in range(stat):
 
         if i % 5 == 0:
-            print('calibration step # '+str(i)+' of '+str(stat))
+            logger.debug('calibration step # '+str(i)+' of '+str(stat))
 
         Delta = 2*np.random.randint(2, size=np.shape(initial_theta)[0]) - 1
 
@@ -62,9 +67,10 @@ def SPSA_calibration(obj_fun, initial_theta, initial_c, target_update, stat):
 
     SPSA_parameters[0] = target_update*2/Delta_obj*SPSA_parameters[1]*(SPSA_parameters[4]+1)
 
-    print('calibrated SPSA_parameters[0] is '+str(SPSA_parameters[0]))
+    logger.debug('calibrated SPSA_parameters[0] is '+str(SPSA_parameters[0]))
 
     return SPSA_parameters
+
 
 def SPSA_optimization(obj_fun, initial_theta, SPSA_parameters, max_trials, save_steps = 10):
     """Minimize the obj_fun(controls).
@@ -95,12 +101,12 @@ def SPSA_optimization(obj_fun, initial_theta, SPSA_parameters, max_trials, save_
         theta = theta - a_spsa*g_spsa
         # saving
         if k % save_steps == 0:
-            print('Step # ' + str(k) + ' o+: ',cost_plus, 'o-:', cost_minus)
+            logger.debug('Step # ' + str(k) + ' o+: ',cost_plus, 'o-:', cost_minus)
             theta_plus_save.append(theta_plus)
             theta_minus_save.append(theta_minus)
             cost_plus_save.append(cost_plus)
             cost_minus_save.append(cost_minus)
     # final cost update
     cost_final = obj_fun(theta)[0]
-    print('Final Cost is: ' + str(cost_final))
+    logger.debug('Final Cost is: ' + str(cost_final))
     return cost_final, theta, cost_plus_save, cost_minus_save, theta_plus_save, theta_minus_save

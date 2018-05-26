@@ -15,42 +15,35 @@
 # limitations under the License.
 # =============================================================================
 
-import sys
-if sys.version_info < (3,0):
-    raise Exception("Please use Python version 3 or greater.")
-
-
 from qiskit_acqua import QuantumAlgorithm
-from quantum_circuit_kernel import *
-from qpsolver import optimize_SVM
-import numpy as np
-from data_preprocess import *
+from .quantum_circuit_kernel import *
+from .qpsolver import optimize_SVM
+from .data_preprocess import *
+
 
 class SVM_QKernel(QuantumAlgorithm):
     SVM_QKERNEL_CONFIGURATION = {
-                'name': 'SVM_QKernel',
-                'description': 'SVM_QKernel Algorithm',
-                'input_schema': {
-                    '$schema': 'http://json-schema.org/schema#',
-                    'id': 'SVM_QKernel_schema',
-                    'type': 'object',
-                    'properties': {
-                        'num_of_qubits': {
-                            'type': 'integer',
-                            'default': 2,
-                            'minimum': 2
-                        }
-                    },
-                    'additionalProperties': False
-                },
-                'problems': ['svm_classification']
-            }
+        'name': 'SVM_QKernel',
+        'description': 'SVM_QKernel Algorithm',
+        'input_schema': {
+            '$schema': 'http://json-schema.org/schema#',
+            'id': 'SVM_QKernel_schema',
+            'type': 'object',
+            'properties': {
+                'num_of_qubits': {
+                    'type': 'integer',
+                    'default': 2,
+                    'minimum': 2
+                }
+            },
+            'additionalProperties': False
+        },
+        'problems': ['svm_classification']
+    }
+
     def __init__(self, configuration=None):
         super().__init__(configuration or self.SVM_QKERNEL_CONFIGURATION.copy())
         self._ret = {}
-
-
-
 
     def init_params(self, params, algo_input):
         SVMQK_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
@@ -61,18 +54,19 @@ class SVM_QKernel(QuantumAlgorithm):
 
         self.init_args(SVMQK_params.get('num_of_qubits'))
 
-    def init_args(self, num_of_qubits=2): # 2
-        self.num_of_qubits=num_of_qubits
+    def init_args(self, num_of_qubits=2):  # 2
+        self.num_of_qubits = num_of_qubits
         self.entangler_map = entangler_map_creator(num_of_qubits)
         self.coupling_map = None
         self.initial_layout = None
-        self.shots=self._execute_config['shots']
-        self.backend=self._backend
+        self.shots = self._execute_config['shots']
+        self.backend = self._backend
 
     def train(self, training_input, class_labels):
         training_points, training_points_labels, label_to_class = get_points_and_labels(training_input, class_labels)
 
-        Kernel_mat  = kernel_join(training_points, training_points, self.entangler_map, self.coupling_map, self.initial_layout, self.shots, self.num_of_qubits, self.backend)
+        Kernel_mat  = kernel_join(training_points, training_points, self.entangler_map, self.coupling_map,
+                                  self.initial_layout, self.shots, self.num_of_qubits, self.backend)
 
         [alpha, b, support] = optimize_SVM(Kernel_mat,training_points_labels)
         alphas = np.array([])
@@ -80,18 +74,18 @@ class SVM_QKernel(QuantumAlgorithm):
         yin = np.array([])
         for alphindex in range(len(support)):
             if support[alphindex]:
-                alphas=np.vstack([alphas,alpha[alphindex]]) if alphas.size else alpha[alphindex]
-                SVMs = np.vstack([SVMs,training_points[alphindex]]) if SVMs.size else training_points[alphindex]
-                yin = np.vstack([yin,training_points_labels[alphindex]]) if yin.size else training_points_labels[alphindex]
+                alphas = np.vstack([alphas, alpha[alphindex]]) if alphas.size else alpha[alphindex]
+                SVMs = np.vstack([SVMs, training_points[alphindex]]) if SVMs.size else training_points[alphindex]
+                yin = np.vstack([yin, training_points_labels[alphindex]]) if yin.size else training_points_labels[alphindex]
 
         return [alphas, b, SVMs, yin]
-
 
     def test(self, svm, test_input, class_labels):
         test_points, test_points_labels, label_to_labelclass = get_points_and_labels(test_input, class_labels)
 
         alphas, bias, SVMs, yin = svm
-        kernel_matrix = kernel_join(test_points, SVMs, self.entangler_map, self.coupling_map, self.initial_layout, self.shots, self.num_of_qubits, self.backend)
+        kernel_matrix = kernel_join(test_points, SVMs, self.entangler_map, self.coupling_map,
+                                    self.initial_layout, self.shots, self.num_of_qubits, self.backend)
         success_ratio = 0
         L = 0
         total_num_points = len(test_points)
@@ -103,6 +97,7 @@ class SVM_QKernel(QuantumAlgorithm):
                 Ltot +=  L
 
             Lsign[tin] = np.sign(Ltot+bias)
+            # todo Figure a better way to handle/return instead of directly printing
             print("\n=============================================")
             print('classifying', test_points[tin])
             print('Label should be ', label_to_labelclass[np.int(test_points_labels[tin])])
@@ -115,23 +110,23 @@ class SVM_QKernel(QuantumAlgorithm):
             if Lsign[tin] == test_points_labels[tin]:
                 success_ratio += 1
         final_success_ratio = success_ratio/total_num_points
+        # todo Figure a better way to handle/return instead of directly printing
         print('Classification success for this set is %s %% \n'%(100*final_success_ratio))
         return final_success_ratio
 
     def predict(self, svm, test_points):
         alphas, bias, SVMs, yin = svm
-        kernel_matrix = kernel_join(test_points, SVMs, self.entangler_map, self.coupling_map, self.initial_layout, self.shots, self.num_of_qubits, self.backend)
+        kernel_matrix = kernel_join(test_points, SVMs, self.entangler_map, self.coupling_map,
+                                    self.initial_layout, self.shots, self.num_of_qubits, self.backend)
         total_num_points = len(test_points)
         Lsign = np.zeros(total_num_points)
         for tin in range(total_num_points):
             Ltot = 0
             for sin in range(len(SVMs)):
                 L = yin[sin]*alphas[sin]*kernel_matrix[tin][sin]
-                Ltot +=  L
+                Ltot += L
             Lsign[tin] = np.int(np.sign(Ltot+bias))
         return Lsign
-
-
 
     def run(self):
         if self.training_dataset is None:
@@ -139,7 +134,6 @@ class SVM_QKernel(QuantumAlgorithm):
             return self._ret
 
         svm = self.train(self.training_dataset, self.class_labels)
-
 
         if self.test_dataset is not None:
             success_ratio = self.test(svm, self.test_dataset, self.class_labels)
@@ -152,9 +146,3 @@ class SVM_QKernel(QuantumAlgorithm):
             self._ret['predicted_labels'] = predicted_labelclasses
 
         return self._ret
-
-
-
-
-
-

@@ -15,6 +15,11 @@
 # limitations under the License.
 # =============================================================================
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 def optimize_SVM(K, y, scaling=None, max_iters=500, show_progress=False):
     import numpy as np
     from cvxopt import matrix, solvers
@@ -45,5 +50,5 @@ def optimize_SVM(K, y, scaling=None, max_iters=500, show_progress=False):
     b = (avg_y - avg_mat) / n
 
     support = alpha > tolerance
-    print("Solving QP problem is completed.")
+    logger.debug('Solving QP problem is completed.')
     return alpha.flatten(), b.flatten(), support.flatten()
