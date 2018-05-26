@@ -6,14 +6,13 @@ involved in the project:
 
 * Panagiotis Barkoutsos
 * Chun-Fu (Richard) Chen
-* Antonio Córcoles-Gonzalez
 * Jay Gambetta
 * Shaohan Hu
 * Tal Kachman
 * Peng Liu
 * Manoel Marques
 * Antonio Mezzacapo
-* Nikolay Moll
+* Nikolaj Moll
 * Giacomo Nannicini
 * Marco Pistoia
 * Julia Rice
