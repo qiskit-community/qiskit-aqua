@@ -56,7 +56,7 @@ class ACQUAChemistry(object):
         Params:
             level (int): minimum severity of the messages that are displayed.
         """
-        logging_config = build_logging_config(['qischem','algorithms'],level)
+        logging_config = build_logging_config(['qiskit_acqua_chemistry', 'qiskit_acqua'], level)
         preferences = Preferences()
         preferences.set_logging_config(logging_config)
         preferences.save()
