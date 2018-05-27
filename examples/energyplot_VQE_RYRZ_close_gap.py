@@ -24,7 +24,7 @@ import pprint
 #note for pyscf:
 #  use atomic, rather than atoms.
 #  use "spin": 0, rather than multiplicity
-qischem_dict =  {
+acqua_chemistry_dict = {
     "algorithm": {
         "name": "VQE",
         "operator_mode": "matrix",
@@ -69,7 +69,7 @@ qischem_dict =  {
 
 
 
-# Input dictionary to configure qischem for the chemistry problem.
+# Input dictionary to configure acqua_chemistry for the chemistry problem.
 # Note: In order to allow this to run reasonably quickly it takes advantage
 #       of the ability to freeze core orbitals and remove unoccupied virtual
 #       orbitals to reduce the size of the problem. The result without this
@@ -153,12 +153,12 @@ if __name__ == '__main__':
 
 
 
-    qischem_dict['optimizer']['name'] = args.optimizer
-    qischem_dict['variational_form']['depth'] = depths[args.molecule]
-    qischem_dict['optimizer']['maxiter'] = evalnums[args.molecule]
+    acqua_chemistry_dict['optimizer']['name'] = args.optimizer
+    acqua_chemistry_dict['variational_form']['depth'] = depths[args.molecule]
+    acqua_chemistry_dict['optimizer']['maxiter'] = evalnums[args.molecule]
 
     if args.eval_number != -1:
-        qischem_dict['optimizer']['maxiter'] = args.eval_number
+        acqua_chemistry_dict['optimizer']['maxiter'] = args.eval_number
 
     orbit_num = orbitnums[args.molecule]
 
@@ -168,13 +168,13 @@ if __name__ == '__main__':
             orbit_num = int(orbit_num/2) # thanks to the core freezing and orbital reduction
 
             # extra reduction:
-            qischem_dict['operator']['qubit_mapping'] = 'parity'
+            acqua_chemistry_dict['operator']['qubit_mapping'] = 'parity'
             orbit_num = orbit_num - 2 # extra orbital reduction thanks to the parity map
 
 
 
-            qischem_dict['operator']['freeze_core'] = True
-            qischem_dict['operator']['orbital_reduction'] = [-3,-2]
+            acqua_chemistry_dict['operator']['freeze_core'] = True
+            acqua_chemistry_dict['operator']['orbital_reduction'] = [-3, -2]
         elif args.molecule == 'H2': # no, we cannot reduce for H2
             pass
 
@@ -185,11 +185,11 @@ if __name__ == '__main__':
         gmap = generate_all_map(orbit_num)
 
 
-    qischem_dict['variational_form']['entangler_map'] = gmap
+    acqua_chemistry_dict['variational_form']['entangler_map'] = gmap
 
 
     molecule = molecule_templates[args.molecule]
-    qischem_dict['pyscf']['atom'] = molecule  # temporarily set, will be overwritten
+    acqua_chemistry_dict['pyscf']['atom'] = molecule  # temporarily set, will be overwritten
 
     start = starts[args.molecule]
     by    = bys[args.molecule] # How much to increase distance by
@@ -197,14 +197,14 @@ if __name__ == '__main__':
 
 
     pp = pprint.PrettyPrinter(indent=4)
-    pp.pprint(qischem_dict)
+    pp.pprint(acqua_chemistry_dict)
 
 
     #print('\b\b{:2d}'.format(i), end='', flush=True)
     d = args.distance
-    qischem_dict['pyscf']['atom'] = molecule.format(d/2)
+    acqua_chemistry_dict['pyscf']['atom'] = molecule.format(d / 2)
     solver = ACQUAChemistry()
-    result = solver.run(qischem_dict)
+    result = solver.run(acqua_chemistry_dict)
     print(d, result['energy'], result['total_dipole_moment'])
 
     # the output will be appended to a file

@@ -49,7 +49,7 @@ from qiskit_acqua_chemistry.drivers import ConfigurationManager
 #     elif map_type == 'bravyi_kitaev':
 #         a = self._bravyi_kitaev_mode(n)
 #     else:
-#         raise QISChemError('Please specify the supported modes: jordan_wigner, parity, bravyi_kitaev')
+#         raise ACQUAChemistryError('Please specify the supported modes: jordan_wigner, parity, bravyi_kitaev')
 #     """
 #     ####################################################################
 #     ############    BUILDING THE MAPPED HAMILTONIAN     ################
