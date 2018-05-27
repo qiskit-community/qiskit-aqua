@@ -17,11 +17,11 @@
 
 """Main qiskit_acqua_chemistry public functionality."""
 
-from .qischemerror import QISChemError
+from .acqua_chemistry_error import ACQUAChemistryError
 from .qmolecule import QMolecule
-from .qischem import QISChem
+from .acqua_chemistry import ACQUAChemistry
 from .fermionic_operator import FermionicOperator
 
 __version__ = '0.1.0'
 
-__all__ = ['QISChemError','QMolecule','QISChem','FermionicOperator']
+__all__ = ['ACQUAChemistryError', 'QMolecule', 'ACQUAChemistry', 'FermionicOperator']

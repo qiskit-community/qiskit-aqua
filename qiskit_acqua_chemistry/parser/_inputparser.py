@@ -15,7 +15,7 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit_acqua_chemistry import QISChemError
+from qiskit_acqua_chemistry import ACQUAChemistryError
 from qiskit_acqua_chemistry.drivers import ConfigurationManager
 import ast
 import json
@@ -68,7 +68,7 @@ class InputParser(object):
             elif isinstance(input, str):
                 self._filename = input
             else:
-                raise QISChemError("Invalid parser input type.")
+                raise ACQUAChemistryError("Invalid parser input type.")
              
         self._section_order = [InputParser.NAME,InputParser.PROBLEM,
                                InputParser.DRIVER,InputParser._UNKNOWN,
@@ -114,7 +114,7 @@ class InputParser(object):
         """Parse the data."""
         if self._inputdict is None:
             if self._filename is None:
-                raise QISChemError("Missing input file")
+                raise ACQUAChemistryError("Missing input file")
                 
             section = None
             self._sections = OrderedDict()
@@ -163,7 +163,7 @@ class InputParser(object):
                     if k is not None and v is not None:   
                         self._sections[section_name]['properties'][k] = v
             else:
-                raise QISChemError("Invalid parser input type for section {}".format(section_name))
+                raise ACQUAChemistryError("Invalid parser input type for section {}".format(section_name))
        
     def is_modified(self):
         """
@@ -181,7 +181,7 @@ class InputParser(object):
             section_name = ''
         section_name = section_name.lower().strip()
         if len(section_name) == 0:
-            raise QISChemError("Empty section name.")
+            raise ACQUAChemistryError("Empty section name.")
             
         return section_name
     
@@ -191,7 +191,7 @@ class InputParser(object):
             property_name = ''
         property_name = property_name.strip()
         if len(property_name) == 0:
-            raise QISChemError("Empty property name.")
+            raise ACQUAChemistryError("Empty property name.")
             
         return property_name
     
@@ -423,7 +423,7 @@ class InputParser(object):
                 problem_name = self.get_property_default_value(InputParser.PROBLEM,InputParser.NAME)
                 
             if problem_name is None:
-                raise QISChemError("No algorithm 'problem' section found on input.")
+                raise ACQUAChemistryError("No algorithm 'problem' section found on input.")
         
             for name in local_chemistry_operators():
                 if problem_name in self.get_operator_problems(name):
@@ -621,7 +621,7 @@ class InputParser(object):
             jsonschema.validate(json_dict,self._schema)
         except jsonschema.exceptions.ValidationError as ve:
             logger.info('JSON Validation error: {}'.format(str(ve)))
-            raise QISChemError(ve.message)
+            raise ACQUAChemistryError(ve.message)
             
         self._validate_algorithm_problem()
         self._validate_operator_problem()
@@ -636,11 +636,11 @@ class InputParser(object):
             problem_name = self.get_property_default_value(InputParser.PROBLEM,InputParser.NAME)
                 
         if problem_name is None:
-            raise QISChemError("No algorithm 'problem' section found on input.")
+            raise ACQUAChemistryError("No algorithm 'problem' section found on input.")
        
         problems = InputParser.get_algorithm_problems(algo_name)
         if problem_name not in problems:
-            raise QISChemError(
+            raise ACQUAChemistryError(
             "Problem: {} not in the list of problems: {} for algorithm: {}.".format(problem_name,problems,algo_name))
         
     def _validate_operator_problem(self):
@@ -653,11 +653,11 @@ class InputParser(object):
             problem_name = self.get_property_default_value(InputParser.PROBLEM,InputParser.NAME)
                 
         if problem_name is None:
-            raise QISChemError("No algorithm 'problem' section found on input.")
+            raise ACQUAChemistryError("No algorithm 'problem' section found on input.")
        
         problems = InputParser.get_operator_problems(operator_name)
         if problem_name not in problems:
-            raise QISChemError(
+            raise ACQUAChemistryError(
             "Problem: {} not in the list of problems: {} for operator: {}.".format(problem_name,problems,operator_name))
            
     def to_JSON(self):
@@ -682,11 +682,11 @@ class InputParser(object):
                     
     def save_to_file(self,file_name):
         if file_name is None:
-            raise QISChemError('Missing file path')
+            raise ACQUAChemistryError('Missing file path')
             
         file_name = file_name.strip()
         if len(file_name) == 0:
-            raise QISChemError('Missing file path')
+            raise ACQUAChemistryError('Missing file path')
             
         prev_filename = self.get_filename()
         sections = copy.deepcopy(self.get_sections())
@@ -716,11 +716,11 @@ class InputParser(object):
             
     def export_dictionary(self,file_name):
         if file_name is None:
-            raise QISChemError('Missing file path')
+            raise ACQUAChemistryError('Missing file path')
             
         file_name = file_name.strip()
         if len(file_name) == 0:
-            raise QISChemError('Missing file path')
+            raise ACQUAChemistryError('Missing file path')
             
         value = json.loads(json.dumps(self.to_dictionary()))
         value = pprint.pformat(value, indent=4)
@@ -761,13 +761,13 @@ class InputParser(object):
         Returns:
             Section: The section with this name
         Raises:
-            QISChemError: if the section does not exist.
+            ACQUAChemistryError: if the section does not exist.
         """
         section_name = InputParser._format_section_name(section_name)     
         try:
             return self._sections[section_name]
         except KeyError:
-            raise QISChemError('No section "{0}"'.format(section_name))
+            raise ACQUAChemistryError('No section "{0}"'.format(section_name))
             
     def get_section_text(self,section_name):
         section = self.get_section(section_name)
@@ -874,7 +874,7 @@ class InputParser(object):
                     break
             
             if not valid:
-                raise QISChemError("{}.{} Value '{}' is not of types: '{}'".format(section_name,property_name,value,types)) 
+                raise ACQUAChemistryError("{}.{} Value '{}' is not of types: '{}'".format(section_name, property_name, value, types))
       
         InputParser._set_section_property(self._sections,section_name,property_name,value)
         if property_name == InputParser.NAME:
@@ -920,7 +920,7 @@ class InputParser(object):
             problem_name = self.get_property_default_value(InputParser.PROBLEM,InputParser.NAME)
                 
         if problem_name is None:
-            raise QISChemError("No algorithm 'problem' section found on input.")
+            raise ACQUAChemistryError("No algorithm 'problem' section found on input.")
             
         algo_name = self.get_section_property(InputParser.ALGORITHM,InputParser.NAME)
         if algo_name is not None and problem_name in InputParser.get_algorithm_problems(algo_name):
@@ -941,7 +941,7 @@ class InputParser(object):
             problem_name = self.get_property_default_value(InputParser.PROBLEM,InputParser.NAME)
                 
         if problem_name is None:
-            raise QISChemError("No algorithm 'problem' section found on input.")
+            raise ACQUAChemistryError("No algorithm 'problem' section found on input.")
             
         operator_name = self.get_section_property(InputParser.OPERATOR,InputParser.NAME)
         if operator_name is not None and problem_name in InputParser.get_operator_problems(operator_name):
@@ -1102,7 +1102,7 @@ class InputParser(object):
                     break
             
             if not valid:
-                raise QISChemError("{}: Value '{}' is not of types: '{}'".format(section_name,value,types)) 
+                raise ACQUAChemistryError("{}: Value '{}' is not of types: '{}'".format(section_name, value, types))
         
         self._sections[section_name] = OrderedDict([(InputParser.NAME,section_name)])
         self._sections[section_name]['data'] = value
@@ -1221,7 +1221,7 @@ class InputParser(object):
         
     def process_substitutions(self,substitutions = None):
         if substitutions is not None and not isinstance(substitutions,dict):
-            raise QISChemError('Invalid substitution parameter: {}'.format(substitutions))
+            raise ACQUAChemistryError('Invalid substitution parameter: {}'.format(substitutions))
             
         if not self.is_substitution_allowed():
             return {}
@@ -1230,7 +1230,7 @@ class InputParser(object):
         for key,value in self._substitutions.items():
             key_items = key.split('.')
             if len(key_items) != 3:
-                raise QISChemError('Invalid substitution key: {}'.format(key))
+                raise ACQUAChemistryError('Invalid substitution key: {}'.format(key))
                 
             name = self.get_property_default_value(key_items[0],InputParser.NAME)
             name = self.get_section_property(key_items[0],InputParser.NAME,name)
@@ -1273,7 +1273,7 @@ class InputParser(object):
         
         if stripLine.startswith(InputParser._START_SECTION):
             if section is not None:
-                raise QISChemError('New section "{0}" starting before the end of previuos section "{1}"'.format(line,section[InputParser.NAME]))
+                raise ACQUAChemistryError('New section "{0}" starting before the end of previuos section "{1}"'.format(line, section[InputParser.NAME]))
             
             return OrderedDict([(InputParser.NAME,stripLine[1:].lower()), ('data',[])])
         

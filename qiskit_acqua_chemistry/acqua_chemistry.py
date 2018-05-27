@@ -15,7 +15,7 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit_acqua_chemistry import QISChemError
+from qiskit_acqua_chemistry import ACQUAChemistryError
 from qiskit_acqua_chemistry.drivers import ConfigurationManager
 from qiskit_acqua import run_algorithm
 from qiskit_acqua.utils import convert_json_to_dict
@@ -30,13 +30,13 @@ from qiskit_acqua_chemistry._logging import get_logger_levels_for_names,build_lo
 
 logger = logging.getLogger(__name__)
 
-class QISChem(object):
+class ACQUAChemistry(object):
     """Main entry point."""
 
     KEY_HDF5_OUTPUT = 'hdf5_output'
 
     def __init__(self):
-        """Create an QISChem object."""
+        """Create an ACQUAChemistry object."""
         self._configuration_mgr = ConfigurationManager()
         self._parser = None
         self._core = None
@@ -64,7 +64,7 @@ class QISChem(object):
 
     def run(self, input, output=None):
         if input is None:
-            raise QISChemError("Missing input.")
+            raise ACQUAChemistryError("Missing input.")
 
         self._parser = InputParser(input)
         self._parser.parse()
@@ -75,7 +75,7 @@ class QISChem(object):
 
         data = run_algorithm(driver_return[0],driver_return[1],True)
         if not isinstance(data, dict):
-            raise QISChemError("Algorithm run result should be a dictionary")
+            raise ACQUAChemistryError("Algorithm run result should be a dictionary")
 
         logger.debug('Algorithm returned: {}'.format(json.dumps(data, indent=4)))
 
@@ -97,13 +97,13 @@ class QISChem(object):
             input_file (string): file path
         """
         if self._parser is None:
-           raise QISChemError("Missing input information.")
+           raise ACQUAChemistryError("Missing input information.")
 
         self._parser.save_to_file(input_file)
 
     def run_drive_to_jsonfile(self,input,jsonfile):
         if jsonfile is None:
-            raise QISChemError("Missing json file")
+            raise ACQUAChemistryError("Missing json file")
 
         data = self._run_drive(input,True)
         if data is None:
@@ -123,7 +123,7 @@ class QISChem(object):
     def run_algorithm_from_json(self, params, output=None):
         ret = run_algorithm(params,None,True)
         if not isinstance(ret, dict):
-            raise QISChemError("Algorithm run result should be a dictionary")
+            raise ACQUAChemistryError("Algorithm run result should be a dictionary")
 
         logger.debug('Algorithm returned: {}'.format(json.dumps(ret, indent=4)))
         convert_json_to_dict(ret)
@@ -145,7 +145,7 @@ class QISChem(object):
 
     def _run_drive(self, input,save_json_algo_file):
         if input is None:
-            raise QISChemError("Missing input.")
+            raise ACQUAChemistryError("Missing input.")
 
         self._parser = InputParser(input)
         self._parser.parse()
@@ -156,7 +156,7 @@ class QISChem(object):
 
     def _run_drive_from_parser(self, p, save_json_algo_file):
         if p is None:
-            raise QISChemError("Missing parser")
+            raise ACQUAChemistryError("Missing parser")
 
         p.validate_merge_defaults()
         #logger.debug('ALgorithm Input Schema: {}'.format(json.dumps(p.to_JSON(), sort_keys=True, indent=4)))
@@ -171,16 +171,16 @@ class QISChem(object):
 
         driver_name = p.get_section_property(InputParser.DRIVER,InputParser.NAME)
         if driver_name is None:
-             raise QISChemError('Property "{0}" missing in section "{1}"'.format(InputParser.NAME,InputParser.DRIVER))
+             raise ACQUAChemistryError('Property "{0}" missing in section "{1}"'.format(InputParser.NAME, InputParser.DRIVER))
 
-        hdf5_file = p.get_section_property(InputParser.DRIVER,QISChem.KEY_HDF5_OUTPUT)
+        hdf5_file = p.get_section_property(InputParser.DRIVER, ACQUAChemistry.KEY_HDF5_OUTPUT)
 
         section = p.get_section(driver_name)
         if 'data' not in section:
-            raise QISChemError('Property "data" missing in section "{0}"'.format(driver_name))
+            raise ACQUAChemistryError('Property "data" missing in section "{0}"'.format(driver_name))
 
         if driver_name not in self._configuration_mgr.module_names:
-            raise QISChemError('Driver "{0}" missing in local drivers'.format(driver_name))
+            raise ACQUAChemistryError('Driver "{0}" missing in local drivers'.format(driver_name))
 
         work_path = None
         input_file = p.get_filename()

@@ -54,8 +54,8 @@ if preferences.get_logging_config() is None:
 
 set_logger_config(preferences.get_logging_config())
 
-from qiskit_acqua_chemistry import QISChem
-qischem = QISChem()
+from qiskit_acqua_chemistry import ACQUAChemistry
+qischem = ACQUAChemistry()
 
 # check to see if input is json file
 params = None

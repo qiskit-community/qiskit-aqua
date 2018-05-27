@@ -18,7 +18,7 @@
 from qiskit_acqua_chemistry.drivers import BaseDriver
 import logging
 from qiskit_acqua_chemistry import QMolecule
-from qiskit_acqua_chemistry import QISChemError
+from qiskit_acqua_chemistry import ACQUAChemistryError
 import os
 
 logger = logging.getLogger(__name__)
@@ -38,7 +38,7 @@ class HDF5Driver(BaseDriver):
     def run(self, section):
         properties = section['properties']
         if HDF5Driver.KEY_HDF5_INPUT not in properties:
-            raise QISChemError('Missing hdf5 input property')
+            raise ACQUAChemistryError('Missing hdf5 input property')
        
         hdf5_file = properties[HDF5Driver.KEY_HDF5_INPUT]
         if self.work_path is not None and not os.path.isabs(hdf5_file):

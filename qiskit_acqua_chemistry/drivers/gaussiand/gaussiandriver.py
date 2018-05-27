@@ -25,7 +25,7 @@ import numpy as np
 from .gauopen.QCMatEl import MatEl
 
 from qiskit_acqua_chemistry import QMolecule
-from qiskit_acqua_chemistry import QISChemError
+from qiskit_acqua_chemistry import ACQUAChemistryError
 from qiskit_acqua_chemistry.drivers import BaseDriver
 
 logger = logging.getLogger(__name__)
@@ -35,7 +35,7 @@ GAUSSIAN_16_DESC = 'Gaussian 16'
 
 g16prog = which(GAUSSIAN_16)
 if g16prog is None:
-    raise QISChemError("Could not locate {}".format(GAUSSIAN_16_DESC))
+    raise ACQUAChemistryError("Could not locate {}".format(GAUSSIAN_16_DESC))
 
 
 class GaussianDriver(BaseDriver):
@@ -98,7 +98,7 @@ class GaussianDriver(BaseDriver):
                         while not added:
                             line = inf.readline()
                             if not line:
-                                raise QISChemError('Unexpected end of Gaussian input')
+                                raise ACQUAChemistryError('Unexpected end of Gaussian input')
                             if len(line.strip()) == 0:
                                 outf.write('# Window=Full Int=NoRaff Symm=(NoInt,None) output=(matrix,i4labels,mo2el) tran=full\n')
                                 added = True
@@ -116,7 +116,7 @@ class GaussianDriver(BaseDriver):
                 while not added:
                     line = inf.readline()
                     if not line:
-                        raise QISChemError('Unexpected end of Gaussian input')
+                        raise ACQUAChemistryError('Unexpected end of Gaussian input')
                     if len(line.strip()) == 0:
                         blank = True
                         if section_count == 2:
@@ -232,7 +232,7 @@ class GaussianDriver(BaseDriver):
             if process is not None:
                 process.kill()
 
-            raise QISChemError('{} run has failed'.format(GAUSSIAN_16_DESC))
+            raise ACQUAChemistryError('{} run has failed'.format(GAUSSIAN_16_DESC))
 
         if process.returncode != 0:
             errmsg = ""
@@ -244,7 +244,7 @@ class GaussianDriver(BaseDriver):
                 for i in range(start, len(lines)):
                     logger.error(lines[i])
                     errmsg += lines[i]+"\n"
-            raise QISChemError('{} process return code {}\n{}'.format(GAUSSIAN_16_DESC, process.returncode, errmsg))
+            raise ACQUAChemistryError('{} process return code {}\n{}'.format(GAUSSIAN_16_DESC, process.returncode, errmsg))
         else:
             if logger.isEnabledFor(logging.DEBUG):
                 alltext = ""

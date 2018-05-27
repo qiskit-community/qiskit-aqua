@@ -91,7 +91,7 @@ molecule = 'H .0 .0 -{0}; H .0 .0 {0}'
 energies = []
 for i in range(100):
     atoms = molecule.format((distance + i*0.5/100)/2) # From 0.5 to 1.0 in steps of 0.5/100. Each atom at half distance - and +
-    solver = qiskit_acqua_chemistry.QISChem()
+    solver = qiskit_acqua_chemistry.ACQUAChemistry()
     input_loop = {
         'driver': {'name':'PYSCF'},
         'PYSCF': {'atom': atoms, 'unit': 'Angstrom', 'charge': 0, 'spin': 0, 'basis': 'sto3g'},

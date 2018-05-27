@@ -6,7 +6,7 @@ sys.path.insert(0,algo_directory)
 import matplotlib
 matplotlib.use('Agg')
 import pylab
-from qiskit_acqua_chemistry import QISChem
+from qiskit_acqua_chemistry import ACQUAChemistry
 import  argparse
 import pprint
 
@@ -203,7 +203,7 @@ if __name__ == '__main__':
     #print('\b\b{:2d}'.format(i), end='', flush=True)
     d = args.distance
     qischem_dict['pyscf']['atom'] = molecule.format(d/2)
-    solver = QISChem()
+    solver = ACQUAChemistry()
     result = solver.run(qischem_dict)
     print(d, result['energy'], result['total_dipole_moment'])
 

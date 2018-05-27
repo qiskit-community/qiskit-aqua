@@ -349,7 +349,7 @@ molecule = 'H .0 .0 -{0}; H .0 .0 {0}'
 d = 0.74
 
 qischem_dict['PYSCF']['atom'] = molecule.format(d/2) 
-solver = QISChem()
+solver = ACQUAChemistry()
 result = solver.run(qischem_dict)
 print('Ground state energy {}'.format(result['energy']))
 ```
@@ -359,7 +359,7 @@ file or create a new one and then simply export it as a dictionary for use in a 
 
 ### Result dictionary
 
-As can be seen in the programming interface example above the QISChem run() method returns a result dictionary. The
+As can be seen in the programming interface example above the ACQUAChemistry run() method returns a result dictionary. The
 dictionary contains the following fields of note:
 
 * *energy*

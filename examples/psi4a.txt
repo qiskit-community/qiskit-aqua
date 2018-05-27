@@ -1,4 +1,4 @@
-# Sample input file for QISChem chemistry stack
+# Sample input file for QISKit ACQUA Chemistry stack
 # Optional section for the user to describe this file's purpose
 #
 &NAME

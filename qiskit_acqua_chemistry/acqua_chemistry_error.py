@@ -17,15 +17,15 @@
 
 
 """
-Exception for errors raised by the QISChem SDK.
+Exception for errors raised by the ACQUAChemistry SDK.
 """
 
-class QISChemError(Exception):
-    """Base class for errors raised by the QISChem SDK."""
+class ACQUAChemistryError(Exception):
+    """Base class for errors raised by the ACQUAChemistry SDK."""
 
     def __init__(self, *message):
         """Set the error message."""
-        super(QISChemError, self).__init__(' '.join(message))
+        super(ACQUAChemistryError, self).__init__(' '.join(message))
         self.message = ' '.join(message)
 
     def __str__(self):
