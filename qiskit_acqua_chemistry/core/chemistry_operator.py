@@ -24,6 +24,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class ChemistryOperator(ABC):
     """
     Base class for ChemistryOperator.
@@ -72,8 +73,12 @@ class ChemistryOperator(ABC):
         """
         Convert the qmolecule, according to the ChemistryOperator, into an Operator
         that can be given to a QuantumAlgorithm
-        :param qmolecule: QMolecule from a chemistry driver
-        :return: Algorithm input class instance
+
+        Args:
+            qmolecule: QMolecule from a chemistry driver
+
+        Returns:
+            Algorithm input class instance
         """
         raise NotImplementedError
 
@@ -84,7 +89,7 @@ class ChemistryOperator(ABC):
         final result.
 
         Args:
-            algo_result: Result from algorithm
+            algo_result (dict): Result from algorithm
 
         Returns:
             Final computation result
