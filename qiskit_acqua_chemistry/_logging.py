@@ -20,7 +20,7 @@ import copy
 import logging
 from logging.config import dictConfig
 
-_QISCHEM_LOGGING_CONFIG = {
+_ACQUA_CHEMISTRY_LOGGING_CONFIG = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
@@ -40,13 +40,13 @@ _QISCHEM_LOGGING_CONFIG = {
 def build_logging_config(names,level):
     """
      Creates a the configuration dict of the named loggers using the default SDK
-     configuration provided by `_QISCHEM_LOGGING_CONFIG`:
+     configuration provided by `_ACQUA_CHEMISTRY_LOGGING_CONFIG`:
 
     * console logging using a custom format for levels != level parameter.
     * console logging with simple format for level parameter.
     * set logger level to level parameter.
     """
-    dict = copy.deepcopy(_QISCHEM_LOGGING_CONFIG)
+    dict = copy.deepcopy(_ACQUA_CHEMISTRY_LOGGING_CONFIG)
     for name in names: 
         dict['loggers'][name] = {   
                     'handlers' : ['h'],

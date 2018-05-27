@@ -48,14 +48,14 @@ from qiskit_acqua_chemistry.preferences import Preferences
 
 preferences = Preferences()
 if preferences.get_logging_config() is None:
-    logging_config = build_logging_config(['qiskit_acqua_chemistry','qiskit_acqua'],logging.INFO)
+    logging_config = build_logging_config(['qiskit_acqua_chemistry', 'qiskit_acqua'], logging.INFO)
     preferences.set_logging_config(logging_config)
     preferences.save()
 
 set_logger_config(preferences.get_logging_config())
 
 from qiskit_acqua_chemistry import ACQUAChemistry
-qischem = ACQUAChemistry()
+solver = ACQUAChemistry()
 
 # check to see if input is json file
 params = None
@@ -66,12 +66,12 @@ except Exception as e:
     pass
 
 if params is not None:
-    qischem.run_algorithm_from_json(params,args.o)
+    solver.run_algorithm_from_json(params, args.o)
 else:
     if args.jo is not None:
-        qischem.run_drive_to_jsonfile(args.input,args.jo)
+        solver.run_drive_to_jsonfile(args.input, args.jo)
     else:
-        result = qischem.run(args.input,args.o)
+        result = solver.run(args.input, args.o)
         if 'printable' in result:
             print('\n\n--------------------------------- R E S U L T ------------------------------------\n')
             for line in result['printable']:

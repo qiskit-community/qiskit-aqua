@@ -15,10 +15,8 @@
 # limitations under the License.
 # =============================================================================
 
+"""Exception for errors raised by the ACQUAChemistry SDK."""
 
-"""
-Exception for errors raised by the ACQUAChemistry SDK.
-"""
 
 class ACQUAChemistryError(Exception):
     """Base class for errors raised by the ACQUAChemistry SDK."""

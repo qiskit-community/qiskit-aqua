@@ -561,7 +561,7 @@ class Controller(object):
                     preferences.set_savefile_initialdir(os.path.dirname(filename))
                     preferences.save()
                         
-                self._thread = QISChemThread(self._model,self._outputView,self._thread_queue,filename)
+                self._thread = ACQUAChemistryThread(self._model, self._outputView, self._thread_queue, filename)
                 self._thread.daemon = True
                 self._thread.start()
             else:
@@ -630,10 +630,10 @@ class Controller(object):
         self._view.after(100, self._process_thread_queue)
         
 
-class QISChemThread(threading.Thread):
+class ACQUAChemistryThread(threading.Thread):
     
     def __init__(self,model,output,queue,filename):
-        super(QISChemThread, self).__init__(name='Chemistry run thread')
+        super(ACQUAChemistryThread, self).__init__(name='Chemistry run thread')
         self._model = model
         self._output = output
         self._thread_queue = queue
@@ -663,8 +663,8 @@ class QISChemThread(threading.Thread):
         output_file = None
         temp_input = False
         try:
-            qischem_directory = os.path.dirname(os.path.realpath(__file__))
-            qischem_directory = os.path.abspath(os.path.join(qischem_directory,'..'))
+            acqua_chemistry_directory = os.path.dirname(os.path.realpath(__file__))
+            acqua_chemistry_directory = os.path.abspath(os.path.join(acqua_chemistry_directory,'..'))
             input_file = self._model.get_filename()
             if input_file is None or self._model.is_modified():
                 fd,input_file = tempfile.mkstemp(suffix='.in')
@@ -676,7 +676,7 @@ class QISChemThread(threading.Thread):
             if process_name is None or len(process_name) == 0:
                 process_name = 'python'
                 
-            input_array = [process_name,qischem_directory,input_file]
+            input_array = [process_name,acqua_chemistry_directory,input_file]
             if self._json_algo_file:
                 input_array.extend(['-jo',self._json_algo_file])
             else:

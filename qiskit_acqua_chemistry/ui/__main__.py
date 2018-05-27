@@ -62,7 +62,7 @@ from qiskit_acqua_chemistry.preferences import Preferences
 
 preferences = Preferences()
 if preferences.get_logging_config() is None:
-    logging_config = build_logging_config(['qischem','algorithms'],logging.INFO)
+    logging_config = build_logging_config(['qiskit_acqua_chemistry', 'qiskit_acqua'], logging.INFO)
     preferences.set_logging_config(logging_config)
     preferences.save()
 

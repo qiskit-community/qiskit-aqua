@@ -48,13 +48,13 @@ class PSI4Driver(BaseDriver):
         # create input
         psi4d_directory = os.path.dirname(os.path.realpath(__file__))
         template_file = psi4d_directory + '/_template.txt'
-        qischem_directory = os.path.abspath(os.path.join(psi4d_directory, '../..'))
+        acqua_chemistry_directory = os.path.abspath(os.path.join(psi4d_directory, '../..'))
         
         molecule = QMolecule()
     
         input_text = section['data'] + '\n'
         input_text += 'import sys\n'
-        syspath = '[\'' + qischem_directory + '\',\'' + '\',\''.join(sys.path) + '\']'
+        syspath = '[\'' + acqua_chemistry_directory + '\',\'' + '\',\''.join(sys.path) + '\']'
        
         input_text += 'sys.path = ' + syspath + ' + sys.path\n'
         input_text += 'from qmolecule import QMolecule\n'

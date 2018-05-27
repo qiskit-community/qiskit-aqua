@@ -18,10 +18,10 @@ driver. The HDF5 driver can do this. See its [readme](./hdf5d) for more informat
 ## Writing a new driver
 
 The drivers here were designed to be pluggable and discoverable. Thus a new driver can be created and simply added and
-will be found for use within qischem. If you are writing a new driver to your favorite chemistry program/library then
-the driver should derive from BaseDriver class.
+will be found for use within QISKit ACQUA Chemistry. If you are writing a new driver to your favorite chemistry
+program/library then the driver should derive from BaseDriver class.
 
-A configuration.json file is also needed that names the driver to qischem and specifies the main class that has been
+A configuration.json file is also needed that names the driver and specifies its main class that has been
 derived from BaseDriver.
 
 The core of the driver should use the chemistry program/library and populate a QMolecule instance with the electronic
