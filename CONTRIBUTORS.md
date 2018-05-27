@@ -8,7 +8,6 @@ involved in the project:
 * Chun-Fu (Richard) Chen
 * Jay Gambetta
 * Shaohan Hu
-* Tal Kachman
 * Peng Liu
 * Manoel Marques
 * Antonio Mezzacapo
