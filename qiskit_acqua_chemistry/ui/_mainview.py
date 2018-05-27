@@ -43,7 +43,7 @@ class MainView(ttk.Frame):
         self._controller = Controller(self)
         self.pack(expand=tk.YES,fill=tk.BOTH)
         self._create_widgets()
-        self.master.title('QIKit Acqua Chemistry')
+        self.master.title('QISKit ACQUA Chemistry')
         if parent is not None:
             parent.protocol('WM_DELETE_WINDOW',self.quit)
             
