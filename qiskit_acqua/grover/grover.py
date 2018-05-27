@@ -65,7 +65,7 @@ class Grover(QuantumAlgorithm):
         if algo_input is not None:
             raise AlgorithmError("Unexpected Input instance.")
 
-        oracle_params = params.get('oracle')
+        oracle_params = params.get(QuantumAlgorithm.SECTION_KEY_ORACLE)
         oracle = get_oracle_instance(oracle_params['name'])
         oracle.init_params(oracle_params)
         self.init_args(oracle)

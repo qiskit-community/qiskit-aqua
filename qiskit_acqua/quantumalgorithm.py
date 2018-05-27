@@ -43,17 +43,18 @@ class QuantumAlgorithm(ABC):
     SECTION_KEY_VAR_FORM = 'variational_form'
     SECTION_KEY_INITIAL_STATE = 'initial_state'
     SECTION_KEY_IQFT = 'iqft'
+    SECTION_KEY_ORACLE = 'oracle'
 
     UNSUPPORTED_BACKENDS = ['local_unitary_simulator', 'local_clifford_simulator']
 
     EQUIVALENT_BACKENDS = {'local_statevector_simulator_py': 'local_statevector_simulator',
-                            'local_statevector_simulator_cpp': 'local_statevector_simulator',
-                            'local_statevector_simulator_sympy': 'local_statevector_simulator',
-                            'local_statevector_simulator_projectq': 'local_statevector_simulator',
-                            'local_qasm_simulator_py': 'local_qasm_simulator',
-                            'local_qasm_simulator_cpp': 'local_qasm_simulator',
-                            'local_qasm_simulator_projectq': 'local_qasm_simulator'
-                            }
+                           'local_statevector_simulator_cpp': 'local_statevector_simulator',
+                           'local_statevector_simulator_sympy': 'local_statevector_simulator',
+                           'local_statevector_simulator_projectq': 'local_statevector_simulator',
+                           'local_qasm_simulator_py': 'local_qasm_simulator',
+                           'local_qasm_simulator_cpp': 'local_qasm_simulator',
+                           'local_qasm_simulator_projectq': 'local_qasm_simulator'
+                           }
     """
     Base class for Algorithms.
 
@@ -69,12 +70,13 @@ class QuantumAlgorithm(ABC):
         self._qconfig = None
         self._backend = None
         self._execute_config = {}
+        self._qjob_config = {}
         self._random_seed = None
         self._random = None
 
     @property
     def configuration(self):
-        """Return driver configuration"""
+        """Return algorithm configuration"""
         return self._configuration
 
     @property
@@ -133,7 +135,7 @@ class QuantumAlgorithm(ABC):
 
         self._backend = backend
         self._qjob_config = {'timeout': timeout,
-                                'wait': wait}
+                             'wait': wait}
 
         shots = 1 if 'statevector' in backend else 1024 if shots == 1 else shots
 
@@ -159,24 +161,11 @@ class QuantumAlgorithm(ABC):
 
     def execute(self, circuits):
         """
-        A wrapper for all algorithm to interface with quantum backend.
-        All parameters will be directly passed to qiskit.
-
-        Note: TBD
-            Move more setting in setup_quantum_backend.
+        A wrapper for all algorithms to interface with quantum backend.
 
         Args:
             circuits (QuantumCircuit or list[QuantumCircuit]): circuits to execute
-            config (dict): dictionary of parameters (e.g. noise) used by runner
-            basis_gates (str): comma-separated basis gate set to compile to
-            coupling_map (list): coupling map (perhaps custom) to target in mapping
-            initial_layout (list): initial layout of qubits in mapping
-            max_credits (int): maximum credits to use
-            seed (int): random seed for simulators
-            qobj_id (int): identifier for the generated qobj
-            hpc (dict): HPC simulator parameters
         """
-
         job = q_execute(circuits, self._backend, **self._execute_config)
         result = job.result(**self._qjob_config)
         return result
