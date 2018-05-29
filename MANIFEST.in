@@ -1,0 +1,6 @@
+recursive-include qiskit_acqua_chemistry *.json
+include qiskit_acqua_chemistry/Qconfig_template.txt
+include qiskit_acqua_chemistry/drivers/gaussiand/gauopen/LICENSE.txt
+include qiskit_acqua_chemistry/drivers/gaussiand/gauopen/QCMatEl.py
+include qiskit_acqua_chemistry/drivers/gaussiand/gauopen/QCOpMat.py
+include qiskit_acqua_chemistry/drivers/gaussiand/gauopen/qcmatrixio.F
