@@ -34,6 +34,10 @@ class SVM_QKernel(QuantumAlgorithm):
                     'type': 'integer',
                     'default': 2,
                     'minimum': 2
+                },
+                'print_info': {
+                    'type': 'boolean',
+                    'default': False
                 }
             },
             'additionalProperties': False
@@ -52,15 +56,17 @@ class SVM_QKernel(QuantumAlgorithm):
         self.datapoints = algo_input.datapoints
         self.class_labels = list(self.training_dataset.keys())
 
-        self.init_args(SVMQK_params.get('num_of_qubits'))
+        self.init_args(SVMQK_params.get('num_of_qubits'), SVMQK_params.get('print_info'))
 
-    def init_args(self, num_of_qubits=2):  # 2
+    def init_args(self, num_of_qubits=2, print_info=False):  # 2
         self.num_of_qubits = num_of_qubits
         self.entangler_map = entangler_map_creator(num_of_qubits)
         self.coupling_map = None
         self.initial_layout = None
         self.shots = self._execute_config['shots']
         self.backend = self._backend
+
+        self.print_info = print_info
 
     def train(self, training_input, class_labels):
         training_points, training_points_labels, label_to_class = get_points_and_labels(training_input, class_labels)
@@ -97,21 +103,21 @@ class SVM_QKernel(QuantumAlgorithm):
                 Ltot +=  L
 
             Lsign[tin] = np.sign(Ltot+bias)
-            # todo Figure a better way to handle/return instead of directly printing
-            print("\n=============================================")
-            print('classifying', test_points[tin])
-            print('Label should be ', label_to_labelclass[np.int(test_points_labels[tin])])
-            print('Predicted label is ', label_to_labelclass[np.int(Lsign[tin])])
-            if np.int(test_points_labels[tin]) == np.int(Lsign[tin]):
-                print('CORRECT')
-            else:
-                print('INCORRECT')
+            if self.print_info:
+                print("\n=============================================")
+                print('classifying', test_points[tin])
+                print('Label should be ', label_to_labelclass[np.int(test_points_labels[tin])])
+                print('Predicted label is ', label_to_labelclass[np.int(Lsign[tin])])
+                if np.int(test_points_labels[tin]) == np.int(Lsign[tin]):
+                    print('CORRECT')
+                else:
+                    print('INCORRECT')
 
             if Lsign[tin] == test_points_labels[tin]:
                 success_ratio += 1
         final_success_ratio = success_ratio/total_num_points
-        # todo Figure a better way to handle/return instead of directly printing
-        print('Classification success for this set is %s %% \n'%(100*final_success_ratio))
+        if self.print_info:
+            print('Classification success for this set is %s %% \n'%(100*final_success_ratio))
         return final_success_ratio
 
     def predict(self, svm, test_points):

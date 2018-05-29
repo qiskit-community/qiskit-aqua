@@ -16,7 +16,11 @@
 # =============================================================================
 
 import numpy as np
-import nlopt
+try:
+    import nlopt
+except ImportError:
+    raise ImportWarning('nlopt cannot be imported')
+
 import logging
 
 logger = logging.getLogger(__name__)

@@ -72,6 +72,11 @@ def trial_circuit_ML(entangler_map, coupling_map, initial_layout, n, m, theta, x
             trial_circuit.measure(q[j], c[j])
     return name, trial_circuit
 
+print_info = False
+
+def set_print_info(print_info_arg):
+    global print_info
+    print_info = print_info_arg
 
 def eval_cost_function(entangler_map, coupling_map, initial_layout, n, m, x_vec, class_labels,
                        backend, shots, train, theta):
@@ -134,8 +139,8 @@ def eval_cost_function(entangler_map, coupling_map, initial_layout, n, m, x_vec,
         predicted_results.append(max(probs.items(), key=operator.itemgetter(1))[0])
         if max(probs.items(), key=operator.itemgetter(1))[0] == expected_outcome:
             success += 1
-        #todo Figure a better way to handle/return instead of directly printing
-        if not train:
+        global print_info
+        if not train and print_info:
             print("\n=============================================\n")
             print('Classifying point %s. Label should be  %s \n'%(unlabeled_data[v] ,expected_outcome))
             print('Measured label probability distribution is %s \n'%probs)

@@ -21,7 +21,8 @@ params = {
         'name': 'SVM_Variational',
         'num_of_qubits': num_of_qubits,
         'circuit_depth':3,
-        'max_trials':10  #critical!!!  ideal: >200
+        'max_trials':10,  #critical!!!  ideal: >200
+        'print_info': True
     }
 }
 

@@ -19,8 +19,27 @@ from qiskit_acqua import QuantumAlgorithm
 from functools import partial
 from .SPSA_optimizer import SPSA_parameters, SPSA_optimization
 from .cost_helpers import *
-from .quantum_circuit_variational import eval_cost_function, eval_cost_function_with_unlabeled_data
 
+from .quantum_circuit_variational import eval_cost_function, eval_cost_function_with_unlabeled_data
+from .quantum_circuit_variational import set_print_info
+
+# helper
+def entangler_map_creator(n):
+    if n == 2:
+        entangler_map = {0: [1]}
+    elif n == 3:
+        entangler_map = {0: [2, 1],
+                         1: [2]}
+    elif n == 4:
+        entangler_map = {0: [2, 1],
+                         1: [2],
+                         3: [2]}
+    elif n == 5:
+        entangler_map = {0: [2, 1],
+                         1: [2],
+                         3: [2, 4],
+                         4: [2]}
+    return entangler_map
 
 class SVM_Variational(QuantumAlgorithm):
 
@@ -46,6 +65,10 @@ class SVM_Variational(QuantumAlgorithm):
                     'type': 'integer',
                     'default': 10,
                     'minimum': 10
+                },
+                'print_info': {
+                    'type': 'boolean',
+                    'default': False
                 }
             },
             'additionalProperties': False
@@ -63,9 +86,9 @@ class SVM_Variational(QuantumAlgorithm):
         self.test_dataset = algo_input.test_dataset
         self.datapoints = algo_input.datapoints
         self.class_labels = list(self.training_dataset.keys())
-        self.init_args(SVMQK_params.get('num_of_qubits'), SVMQK_params.get('circuit_depth'), SVMQK_params.get('max_trials'))
+        self.init_args(SVMQK_params.get('num_of_qubits'), SVMQK_params.get('circuit_depth'), SVMQK_params.get('max_trials'), SVMQK_params.get('print_info'))
 
-    def init_args(self, num_of_qubits=2, circuit_depth=3, max_trials=250):
+    def init_args(self, num_of_qubits=2, circuit_depth=3, max_trials=250, print_info=False):
         self.num_of_qubits=num_of_qubits
         self.entangler_map = entangler_map_creator(num_of_qubits)
         self.coupling_map = None  # the coupling_maps gates allowed on the device
@@ -74,6 +97,10 @@ class SVM_Variational(QuantumAlgorithm):
         self.backend = self._backend
         self.circuit_depth = circuit_depth
         self.max_trials = max_trials
+        self.print_info = print_info
+
+        set_print_info(print_info)
+
 
     def train(self, training_input, class_labels):
         initial_theta=np.random.randn(2 * self.num_of_qubits * (self.circuit_depth + 1))
@@ -93,8 +120,8 @@ class SVM_Variational(QuantumAlgorithm):
                                self.circuit_depth, test_input, class_labels, self.backend, self.shots,
                                train=False, theta=theta_Best)
 
-        # todo Figure a better way to handle/return instead of directly printing
-        print('Classification success for this set is  %s %%  \n'%(100*success_ratio))
+        if self.print_info:
+            print('Classification success for this set is  %s %%  \n'%(100*success_ratio))
         return success_ratio
 
     def predict(self, theta_Best, input_datapoints, class_labels):

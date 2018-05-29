@@ -23,7 +23,6 @@ np.warnings.filterwarnings('ignore')
 
 
 
-# todo This is the same as in cost_helpers.py
 def entangler_map_creator(n):
     if n == 2:
         entangler_map = {0: [1]}

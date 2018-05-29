@@ -19,22 +19,6 @@ import numpy as np
 from collections import Counter
 
 
-def entangler_map_creator(n):
-    if n == 2:
-        entangler_map = {0: [1]}
-    elif n == 3:
-        entangler_map = {0: [2, 1],
-                         1: [2]}
-    elif n == 4:
-        entangler_map = {0: [2, 1],
-                         1: [2],
-                         3: [2]}
-    elif n == 5:
-        entangler_map = {0: [2, 1],
-                         1: [2],
-                         3: [2, 4],
-                         4: [2]}
-    return entangler_map
 
 
 def assign_label(key, class_labels):

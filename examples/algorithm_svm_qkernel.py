@@ -18,7 +18,8 @@ params = {
     'backend': {'name': 'local_qasm_simulator', 'shots':1000},
     'algorithm': {
         'name': 'SVM_QKernel',
-        'num_of_qubits': num_of_qubits
+        'num_of_qubits': num_of_qubits,
+        'print_info': True
     }
 }
 
