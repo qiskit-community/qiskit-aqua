@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# QLib documentation build configuration file, created by
+# QISKit ACQUA  documentation build configuration file, created by
 # sphinx-quickstart on Mon Feb  5 15:24:52 2018.
 #
 # This file is execfile()d with the current directory set to its
@@ -72,13 +72,13 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'QISKit Acqua'
-copyright = '2018 IBM Research'
-author = 'IBM Research'
+project = 'QISKit ACQUA'
+copyright = '2018 IBM'
+author = 'IBM'
 
 # Add description
 html_context = {
-    'description': 'QISKit Acqua'
+    'description': 'QISKit ACQUA'
 }
 
 # The version info for the project you're documenting, acts as replacement for
@@ -170,7 +170,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'QISKitAcqua.tex', 'QISKit Acqua Documentation',
+    (master_doc, 'QISKitAcqua.tex', 'QISKit ACQUA Documentation',
      'Several authors', 'manual'),
 ]
 
@@ -191,10 +191,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'qiskit_acqua', 'QISKit Acqua Documentation',
+    (master_doc, 'qiskit_acqua', 'QISKit ACQUA Documentation',
      author, 'qiskit_acqua', 'One line description of project.',
      'Miscellaneous'),
 ]
-
-
 

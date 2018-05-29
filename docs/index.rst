@@ -1,13 +1,13 @@
-.. QISKit ACQHA documentation master file, created by
+.. QISKit ACQUA documentation master file, created by
    sphinx-quickstart on Mon Feb  5 15:24:52 2018.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
 ====================
-QISKit Acqua Documentation
+QISKit ACQUA Documentation
 ====================
 
-QISKit Acqua.
+QISKit ACQUA
 
 
 Table of Contents
