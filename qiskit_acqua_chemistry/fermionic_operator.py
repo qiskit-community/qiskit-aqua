@@ -18,8 +18,9 @@
 import concurrent.futures
 import multiprocessing
 import itertools
-import numpy as np
 import logging
+
+import numpy as np
 from qiskit.tools.qi.pauli import Pauli, sgn_prod, label_to_pauli
 
 from qiskit_acqua import Operator
