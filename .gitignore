@@ -94,7 +94,11 @@ instance/
 docs/_build/
 docs/*.rst
 #Allow
+!docs/dev_introduction.rst
 !docs/index.rst
+!docs/install.rst
+!docs/quickstart.rst
+!docs/releases.rst
 
 # PyBuilder
 target/
