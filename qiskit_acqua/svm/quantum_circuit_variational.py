@@ -15,10 +15,12 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit import QuantumCircuit, QuantumProgram, QuantumRegister, ClassicalRegister
-from .cost_helpers import *
-import numpy as np
 import operator
+
+import numpy as np
+from qiskit import QuantumCircuit, QuantumProgram, QuantumRegister, ClassicalRegister
+
+from .cost_helpers import *
 
 
 def trial_circuit_ML(entangler_map, coupling_map, initial_layout, n, m, theta, x_vec, name='circuit',
@@ -39,36 +41,36 @@ def trial_circuit_ML(entangler_map, coupling_map, initial_layout, n, m, theta, x
     q = QuantumRegister(n, "q")
     c = ClassicalRegister(n, "c")
     trial_circuit = QuantumCircuit(q, c)
-    
+
     # write input state from sample distribution
     for feat_map in range(2):
         for r in range(len(x_vec)):
-            trial_circuit.h(q[r])
+            trial_circuit.u2(0.0, np.pi, q[r])  # h
             trial_circuit.u1(2*x_vec[r], q[r])
         for node in entangler_map:
             for j in entangler_map[node]:
                 trial_circuit.cx(q[node], q[j])
                 trial_circuit.u1(2*(np.pi-x_vec[node])*(np.pi-x_vec[j]), q[j])
                 trial_circuit.cx(q[node], q[j])
-        
+
     trial_circuit.barrier(q)
     for r in range(len(x_vec)):
-        # trial_circuit.u3(theta[r * 3], theta[r * 3 + 1], theta[r * 3+ 2], q[r])
-        trial_circuit.ry(theta[2*r], q[r])
-        trial_circuit.rz(theta[2*r + 1], q[r])
+        trial_circuit.u3(theta[2*r], 0.0, 0.0, q[r]) #ry
+        trial_circuit.u1(theta[2*r + 1], q[r]) #rz
     for i in range(m):
         for node in entangler_map:
             for j in entangler_map[node]:
-                trial_circuit.cz(q[node], q[j])
+                #cz
+                trial_circuit.u2(0.0, np.pi, q[node])  # h
+                trial_circuit.cx(q[node], q[j])
+                trial_circuit.u2(0.0, np.pi, q[node])  # h
         for j in range(n):
-            # trial_circuit.u3(theta[n * (i+1) * 3 + 3*j], theta[n * (i+1) * 3 + 3*j + 1], theta[n * (i+1) * 3 + 3*j + 2], q[j])
-            trial_circuit.ry(theta[n * (i+1) * 2 + 2*j], q[j])
-            trial_circuit.rz(theta[n * (i+1) * 2 + 2*j + 1], q[j])
+            trial_circuit.u3(theta[n * (i+1) * 2 + 2*j], 0.0, 0.0, q[j]) #ry
+            trial_circuit.u1(theta[n * (i+1) * 2 + 2*j + 1], q[j]) #rz
     trial_circuit.barrier(q)
 
     if measurement:
         for j in range(n):
-            # trial_circuit.h(q[j])
             trial_circuit.measure(q[j], c[j])
     return name, trial_circuit
 
@@ -94,7 +96,6 @@ def eval_cost_function(entangler_map, coupling_map, initial_layout, n, m, x_vec,
     # Q_program.set_api(Qconfig.APItoken,Qconfig.config["url"])
 
     ### RUN CIRCUITS
-
     circuits = []
     c = []
     sequences = []

@@ -15,12 +15,12 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit import QuantumCircuit, QuantumProgram, QuantumRegister, ClassicalRegister
-import numpy as np
 import itertools
 
-np.warnings.filterwarnings('ignore')
+from qiskit import QuantumCircuit, QuantumProgram, QuantumRegister, ClassicalRegister
+import numpy as np
 
+np.warnings.filterwarnings('ignore')
 
 
 def entangler_map_creator(n):
@@ -50,7 +50,7 @@ def inner_prod_circuit_ML(entangler_map, coupling_map, initial_layout, n, x_vec1
 
     # write input state from sample distribution
     for r in range(len(x_vec1)):
-        trial_circuit.h(q[r])
+        trial_circuit.u2(0.0, np.pi, q[r]) #h
         trial_circuit.u1(2*x_vec1[r], q[r])
     for node in entangler_map:
         for j in entangler_map[node]:
@@ -59,7 +59,7 @@ def inner_prod_circuit_ML(entangler_map, coupling_map, initial_layout, n, x_vec1
             trial_circuit.cx(q[node], q[j])
 
     for r in range(len(x_vec1)):
-        trial_circuit.h(q[r])
+        trial_circuit.u2(0.0, np.pi, q[r]) #h
         trial_circuit.u1(2*x_vec1[r], q[r])
     for node in entangler_map:
         for j in entangler_map[node]:
@@ -72,7 +72,7 @@ def inner_prod_circuit_ML(entangler_map, coupling_map, initial_layout, n, x_vec1
             trial_circuit.cx(q[node], q[j])
     for r in range(len(x_vec2)):
         trial_circuit.u1(-2*x_vec2[r], q[r])
-        trial_circuit.h(q[r])
+        trial_circuit.u2(0.0, np.pi, q[r]) #h
 
     for node in entangler_map:
         for j in entangler_map[node]:
@@ -81,7 +81,7 @@ def inner_prod_circuit_ML(entangler_map, coupling_map, initial_layout, n, x_vec1
             trial_circuit.cx(q[node], q[j])
     for r in range(len(x_vec2)):
         trial_circuit.u1(-2*x_vec2[r], q[r])
-        trial_circuit.h(q[r])
+        trial_circuit.u2(0.0, np.pi, q[r]) #h
 
     if measurement:
         for j in range(n):
@@ -104,7 +104,8 @@ def get_zero_string(num_of_qubits):
     return my_zero_string
 
 
-def kernel_join(points_array, points_array2, entangler_map, coupling_map, initial_layout, shots, num_of_qubits, backend):
+def kernel_join(points_array, points_array2, entangler_map, coupling_map, initial_layout,
+                shots, num_of_qubits, backend):
     Q_program = QuantumProgram()
     circuits = []
     is_identical = np.all(points_array == points_array2)
@@ -148,11 +149,11 @@ def kernel_join(points_array, points_array2, entangler_map, coupling_map, initia
 
         for a in range(len(total_test)):
             for b in range(len(svm)):
-                sequencesp = inner_prod_circuit_ML(entangler_map, coupling_map, initial_layout,num_of_qubits,
+                sequencesp = inner_prod_circuit_ML(entangler_map, coupling_map, initial_layout, num_of_qubits,
                                                    svm[b], total_test[a], None, True)
                 cp = 'join_'+str(a) + "_" + str(b)
                 circuits.append(cp)
-                Q_program.add_circuit(cp,sequencesp)
+                Q_program.add_circuit(cp, sequencesp)
 
         circuit_list = [c for c in circuits]
         program_data = Q_program.execute(circuit_list, backend=backend,

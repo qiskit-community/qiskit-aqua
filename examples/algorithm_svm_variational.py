@@ -16,13 +16,17 @@ total_array, label_to_labelclass = get_points(test_input, class_labels)
 
 params = {
     'problem': {'name': 'svm_classification'},
-    'backend': {'name': 'local_qasm_simulator', 'shots':1000},
+    'backend': {'name': 'local_qasm_simulator', 'shots': 1000},
     'algorithm': {
         'name': 'SVM_Variational',
         'num_of_qubits': num_of_qubits,
-        'circuit_depth':3,
-        'max_trials':10,  #critical!!!  ideal: >200
+        'circuit_depth': 3,
         'print_info': True
+    },
+    'optimizer': {
+    	'name': 'SPSA',
+    	'max_trials': 200,
+    	'save_steps': 10
     }
 }
 

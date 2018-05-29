@@ -16,6 +16,7 @@
 # =============================================================================
 
 from qiskit_acqua import QuantumAlgorithm
+
 from .quantum_circuit_kernel import *
 from .qpsolver import optimize_SVM
 from .data_preprocess import *

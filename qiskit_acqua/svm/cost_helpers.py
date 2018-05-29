@@ -15,10 +15,9 @@
 # limitations under the License.
 # =============================================================================
 
-import numpy as np
 from collections import Counter
 
-
+import numpy as np
 
 
 def assign_label(key, class_labels):
@@ -30,7 +29,7 @@ def assign_label(key, class_labels):
         return class_labels[result]
     # If even number of qubits and two labels we use parity
     elif len(class_labels) == 2:
-        hamming_weight = sum([int(k) for k in list(key)]) 
+        hamming_weight = sum([int(k) for k in list(key)])
         is_odd_parity = hamming_weight & 1
 
         if is_odd_parity:
@@ -45,7 +44,7 @@ def assign_label(key, class_labels):
         hamming_weight_2 = sum([int(k) for k in list(key)[first_half+modulo:]])   # Second half of key
         is_odd_parity_1 = hamming_weight_1 & 1
         is_odd_parity_2 = hamming_weight_2 & 1
-        
+
         if (not is_odd_parity_1) & (not is_odd_parity_2):  # Both halves even
             return class_labels[0]
         elif is_odd_parity_1 & is_odd_parity_2:  # Both halves odd
@@ -65,19 +64,19 @@ def assign_label(key, class_labels):
 def cost_estimate_sigmoid(shots, probs, expected_category):
 
     p = probs.get(expected_category)
- 
+
     if p < 0:
         p = 0
     elif p > 1:
         p = 1
-    
-    probs_without_measured_expectation = [v for key, v in probs.items() if key != expected_category] 
+
+    probs_without_measured_expectation = [v for key, v in probs.items() if key != expected_category]
 
     number_of_classes = len(probs)
 
     sig = None
     if number_of_classes == 2:
-        if np.isclose(p, 0.0): 
+        if np.isclose(p, 0.0):
             sig = 1
         elif np.isclose(p, 1.0):
             sig = 0
@@ -86,7 +85,7 @@ def cost_estimate_sigmoid(shots, probs, expected_category):
             x = np.sqrt(shots)*(0.5-p)/denominator
             sig = 1/(1+np.exp(-x))
     elif number_of_classes == 3:
-        if np.isclose(p, 0.0): 
+        if np.isclose(p, 0.0):
             sig = 1
         elif np.isclose(p, 1.0):
             sig = 0
@@ -101,9 +100,10 @@ def cost_estimate_sigmoid(shots, probs, expected_category):
 def return_probabilities(counts, class_labels):
     hits = sum(counts.values())
 
-    result = {class_labels[p]:0 for p in range(len(class_labels))}
+    result = {class_labels[p]: 0 for p in range(len(class_labels))}
     for (key, item) in counts.items():
-        hw = assign_label(key, class_labels)  # The different measurement transforms into a class result happens in assign_label
+        # The different measurement transforms into a class result happens in assign_label
+        hw = assign_label(key, class_labels)
         result[hw] += counts[key]/hits
 
     return result
