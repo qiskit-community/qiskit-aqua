@@ -18,7 +18,13 @@
 from qiskit_acqua.utils.optimizers import Optimizer
 from ._nloptimizer import minimize
 import logging
-import nlopt
+
+try:
+    import nlopt
+except ImportError:
+    raise ImportWarning('nlopt cannot be imported')
+
+
 
 logger = logging.getLogger(__name__)
 
