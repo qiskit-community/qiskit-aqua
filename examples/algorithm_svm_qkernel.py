@@ -2,10 +2,8 @@ import os
 import sys
 algo_directory = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.insert(0,algo_directory)
-
 from algorithm_svm_datasets import *
 from qiskit_acqua.svm.data_preprocess import *
-
 from qiskit_acqua.input import get_input_instance
 from qiskit_acqua import run_algorithm
 

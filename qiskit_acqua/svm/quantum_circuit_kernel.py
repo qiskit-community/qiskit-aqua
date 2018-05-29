@@ -19,6 +19,9 @@ from qiskit import QuantumCircuit, QuantumProgram, QuantumRegister, ClassicalReg
 import numpy as np
 import itertools
 
+np.warnings.filterwarnings('ignore')
+
+
 
 # todo This is the same as in cost_helpers.py
 def entangler_map_creator(n):
