@@ -3,7 +3,6 @@ scipy>=0.19,<1.1
 numpy>=1.13,<1.15
 psutil
 jsonschema
-sparse
 pyobjc; sys_platform == 'darwin'
 scikit-learn
 cvxopt
