@@ -20,9 +20,7 @@ import multiprocessing
 import itertools
 import numpy as np
 import logging
-# import sparse as sptensor
 from qiskit.tools.qi.pauli import Pauli, sgn_prod, label_to_pauli
-from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 
 from qiskit_acqua import Operator
 from qiskit_acqua_chemistry import ACQUAChemistryError

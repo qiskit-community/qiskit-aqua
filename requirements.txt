@@ -4,5 +4,4 @@ numpy>=1.13,<1.15
 h5py
 psutil
 jsonschema
-sparse
 pyobjc; sys_platform == 'darwin'
