@@ -63,7 +63,7 @@ class SectionPropertiesView(ToolbarView):
             else:
                 self._tree.insert('',tk.END, text=property_name, values=[value])
                 
-        self._tree.tag_configure('SUBSTITUTIONS',foreground='blue')
+        self._tree.tag_configure('SUBSTITUTIONS',foreground='gray')
         self._properties = properties
             
     def set_property(self,property_name,value):
