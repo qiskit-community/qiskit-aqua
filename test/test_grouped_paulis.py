@@ -15,22 +15,24 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit.tools.qi.pauli import pauli_group
-from qiskit_acqua.operator import Operator
 import unittest
 from test.common import QISKitAcquaTestCase
 
-@unittest.skipUnless(QISKitAcquaTestCase.SLOW_TEST, 'slow')
+from qiskit.tools.qi.pauli import pauli_group
+
+from qiskit_acqua.operator import Operator
+
+
 class TestGroupedPaulis(QISKitAcquaTestCase):
     """GroupedPaulki tests."""
 
     def test_grouped_paulis(self):
-        n = 3 #number of qubits
+        n = 3  # number of qubits
 
         pg = pauli_group(n, case=1)
         self.assertTrue(pg != -1, "Error in pauli_group()")
 
-        pg = [ [1.0, x] for x in pg ] # create paulis with equal weight
+        pg = [[1.0, x] for x in pg]  # create paulis with equal weight
         self.log.debug("Number of Paulis: {}".format(len(pg)))
 
         hamOpOriginal = Operator(paulis=pg, coloring=None)
@@ -41,7 +43,7 @@ class TestGroupedPaulis(QISKitAcquaTestCase):
         hamOpNew._paulis_to_grouped_paulis()
         gpNew = hamOpNew.grouped_paulis
 
-        self.log.debug("#groups in original= {} #groups in new={}".format(len(gpOriginal),len(gpNew)))
+        self.log.debug("#groups in original= {} #groups in new={}".format(len(gpOriginal), len(gpNew)))
 
         self.log.debug("------- Original --------")
         for each in gpOriginal:
@@ -54,6 +56,7 @@ class TestGroupedPaulis(QISKitAcquaTestCase):
             for x in each:
                 self.log.debug('{} {}'.format(x[0], x[1].to_label()))
             self.log.debug('---')
-            
+
+
 if __name__ == '__main__':
     unittest.main()

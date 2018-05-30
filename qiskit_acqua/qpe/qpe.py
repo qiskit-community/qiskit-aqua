@@ -22,6 +22,7 @@ import logging
 
 import numpy as np
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
+
 from qiskit_acqua import Operator, QuantumAlgorithm, AlgorithmError
 from qiskit_acqua import get_initial_state_instance, get_iqft_instance
 

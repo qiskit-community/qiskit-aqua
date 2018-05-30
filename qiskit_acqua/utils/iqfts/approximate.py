@@ -15,11 +15,13 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit import QuantumRegister, QuantumCircuit
-from qiskit.qasm import pi
-from .iqft import IQFT
 from scipy import linalg
 import numpy as np
+
+from qiskit import QuantumRegister, QuantumCircuit
+from qiskit.qasm import pi
+
+from .iqft import IQFT
 
 
 class Approximate(IQFT):

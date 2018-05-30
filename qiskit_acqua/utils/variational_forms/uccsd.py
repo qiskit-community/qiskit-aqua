@@ -21,18 +21,19 @@
 """
 
 import logging
+
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 
 from .variational_form import VariationalForm
-
-logger = logging.getLogger(__name__)
 
 try:
     from qiskit_acqua_chemistry.fermionic_operator import FermionicOperator
 except ImportError:
     raise ImportWarning('UCCSD can be only used with qiskit_acqua_chemistry lib. \
         If you would like to use it for other purposes, please install qiskit_acqua_chemistry first.')
+
+logger = logging.getLogger(__name__)
 
 
 class VarFormUCCSD(VariationalForm):

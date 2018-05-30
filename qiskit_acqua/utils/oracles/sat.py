@@ -15,11 +15,13 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit import QuantumRegister, QuantumCircuit
-from . import Oracle
 import itertools
 import operator
 import logging
+
+from qiskit import QuantumRegister, QuantumCircuit
+
+from . import Oracle
 
 logger = logging.getLogger(__name__)
 
@@ -71,10 +73,10 @@ class SAT(Oracle):
             [int(v) for v in c.split() if not int(v) == 0]
             for c in cs
             if (
-                       len(c.replace('0', '')) > 0
-               ) and (
-                       '0' <= c[0] <= '9' or c[0] == '-'
-               )
+                len(c.replace('0', '')) > 0
+            ) and (
+                '0' <= c[0] <= '9' or c[0] == '-'
+            )
         ]
 
         nv = max(set([abs(v) for v in list(itertools.chain.from_iterable(self._cnf))]))
@@ -132,4 +134,3 @@ class SAT(Oracle):
     def interpret_measurement(self, measurement, *args, **kwargs):
         top_measurement = max(measurement.items(), key=operator.itemgetter(1))[0]
         return [(var + 1) * (int(tf) * 2 - 1) for tf, var in zip(top_measurement[::-1], range(len(top_measurement)))]
-

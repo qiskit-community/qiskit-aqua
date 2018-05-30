@@ -15,8 +15,6 @@
 # limitations under the License.
 # =============================================================================
 
-import math
-
 from qiskit import QuantumRegister, QuantumCircuit
 import numpy as np
 
@@ -73,7 +71,7 @@ class Custom(InitialState):
             if self._state == 'zero':
                 self._state_vector = np.array([1.0] + [0.0] * (size - 1))
             elif self._state == 'uniform':
-                self._state_vector = np.array([1.0 / math.sqrt(size)] * size)
+                self._state_vector = np.array([1.0 / np.sqrt(size)] * size)
             elif self._state == 'random':
                 self._state_vector = Custom._normalize(np.random.rand(size))
             else:

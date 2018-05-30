@@ -18,8 +18,9 @@
 For coloring Pauli Graph for transforming paulis into grouped Paulis
 """
 
-import numpy as np
 import copy
+
+import numpy as np
 
 
 class PauliGraph(object):

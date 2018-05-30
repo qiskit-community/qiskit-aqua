@@ -19,9 +19,10 @@ The Variational Quantum Eigensolver algorithm.
 See https://arxiv.org/abs/1304.3061
 """
 
-import numpy as np
 import time
 import logging
+
+import numpy as np
 from qiskit import QuantumCircuit, ClassicalRegister
 
 from qiskit_acqua import QuantumAlgorithm, AlgorithmError

@@ -18,13 +18,14 @@
 import unittest
 from collections import OrderedDict
 import itertools
+from test.common import QISKitAcquaTestCase
 
 import numpy as np
 from qiskit.tools.qi.pauli import Pauli, label_to_pauli
 
 from qiskit_acqua import Operator
-from test.common import QISKitAcquaTestCase
 from qiskit_acqua import get_variational_form_instance
+
 
 class TestOperator(QISKitAcquaTestCase):
     """Operator tests."""

@@ -19,8 +19,9 @@
 
 from abc import ABC, abstractmethod
 from enum import IntEnum
-import numpy as np
 import logging
+
+import numpy as np
 
 logger = logging.getLogger(__name__)
 

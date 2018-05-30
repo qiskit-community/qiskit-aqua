@@ -2,6 +2,7 @@
 
 import numpy as np
 import scipy
+
 from . import tensorproduct
 
 
@@ -10,10 +11,10 @@ def random_h1_body(N):
     Generate a random one body integrals.
 
     Args:
-        - N (int): the number of spin orbitals.
+        N (int): the number of spin orbitals.
 
     Returns:
-        - np.ndarray: a 2-D matrix with np.complex data type.
+        np.ndarray: a 2-D matrix with np.complex data type.
     """
     Pup = np.asarray([[1, 0], [0, 0]])
     Pdown = np.asarray([[0, 0], [0, 1]])
@@ -31,9 +32,9 @@ def random_unitary(N):
     Generate a random unitary matrix with NxN matrix.
 
     Args:
-		- N: the dimension of unitary matrixs
+        N: the dimension of unitary matrixs
     Returns:
-    	- np.ndarray: a 2-D matrix with np.complex data type.
+        np.ndarray: a 2-D matrix with np.complex data type.
     """
     X = (np.random.randint(N, size=(N, N)) + 1j*np.random.randint(N, size=(N, N))) / np.sqrt(2)
     Q, R = np.linalg.qr(X)
@@ -46,10 +47,10 @@ def random_h2_body(N, M):
     """
     Generate a random two body integrals.
     Args:
-    	- N : number of spin-orbitals (dimentsion of h2)
-		- M : number of non-zero entries
+        N (int) : number of spin-orbitals (dimentsion of h2)
+        M (int) : number of non-zero entries
     Returns:
-		- np.ndarray: a numpy 4-D tensor with np.complex data type.
+        np.ndarray: a numpy 4-D tensor with np.complex data type.
     """
     if N % 2 == 1:
         assert 0, "The number of spin orbitals must be even."
@@ -68,7 +69,7 @@ def random_h2_body(N, M):
 
     if M > max_nonzero_elements:
         assert 0, 'Too many non-zero elements required, given the molecular symmetries. \n\
-					The maximal number of non-zero elements for {} spin-orbitals is {}'.format(N, max_nonzero_elements)
+                    The maximal number of non-zero elements for {} spin-orbitals is {}'.format(N, max_nonzero_elements)
 
     element_count = 0
     while element_count < M:

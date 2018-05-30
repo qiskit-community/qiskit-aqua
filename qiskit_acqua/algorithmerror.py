@@ -20,6 +20,7 @@
 Exception for errors raised by the Algorithm SDK.
 """
 
+
 class AlgorithmError(Exception):
     """Base class for errors raised by the Algorithm SDK."""
 

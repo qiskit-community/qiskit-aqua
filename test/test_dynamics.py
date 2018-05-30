@@ -15,17 +15,18 @@
 # limitations under the License.
 # =============================================================================
 
-import numpy as np
 import unittest
-from qiskit.tools.qi.qi import state_fidelity
-from qiskit import QuantumRegister
 from test.common import QISKitAcquaTestCase
+
+import numpy as np
+from qiskit import QuantumRegister
+from qiskit.wrapper import execute as q_execute
+from qiskit.tools.qi.qi import state_fidelity
+
 from qiskit_acqua.operator import Operator
 from qiskit_acqua import get_algorithm_instance, get_initial_state_instance
-from qiskit.wrapper import execute as q_execute
 
 
-# @unittest.skipUnless(QISKitAcquaTestCase.SLOW_TEST, 'slow')
 class TestEvolution(QISKitAcquaTestCase):
     """Evolution tests."""
 
@@ -36,7 +37,7 @@ class TestEvolution(QISKitAcquaTestCase):
         #Y = [[0, -1j], [1j, 0]]
         Z = [[1, 0], [0, -1]]
         I = [[1, 0], [0, 1]]
-        h1 = np.kron(I, Z)# + 0.5 * np.kron(Y, X)# + 0.3 * np.kron(Z, X) + 0.4 * np.kron(Z, Y)
+        h1 = np.kron(I, Z)  # + 0.5 * np.kron(Y, X)# + 0.3 * np.kron(Z, X) + 0.4 * np.kron(Z, Y)
 
         # np.random.seed(2)
         temp = np.random.random((2 ** SIZE, 2 ** SIZE))
@@ -64,4 +65,3 @@ class TestEvolution(QISKitAcquaTestCase):
 
 if __name__ == '__main__':
     unittest.main()
-

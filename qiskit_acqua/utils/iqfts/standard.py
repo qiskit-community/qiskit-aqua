@@ -15,11 +15,12 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit import QuantumRegister, QuantumCircuit
-from qiskit.qasm import pi
-from .iqft import IQFT
 from scipy import linalg
 
+from qiskit import QuantumRegister, QuantumCircuit
+from qiskit.qasm import pi
+
+from .iqft import IQFT
 
 class Standard(IQFT):
     """A normal standard IQFT."""

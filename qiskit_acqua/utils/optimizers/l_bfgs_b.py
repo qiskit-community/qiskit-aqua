@@ -15,9 +15,11 @@
 # limitations under the License.
 # =============================================================================
 
-from scipy import optimize as sciopt
-from .optimizer import Optimizer
 import logging
+
+from scipy import optimize as sciopt
+
+from .optimizer import Optimizer
 
 logger = logging.getLogger(__name__)
 

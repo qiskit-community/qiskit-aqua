@@ -15,12 +15,14 @@
 # limitations under the License.
 # =============================================================================
 
-from .optimizer import Optimizer
-from scipy import optimize as sciopt
-import numpy as np
 import multiprocessing
 import platform
 import logging
+
+import numpy as np
+from scipy import optimize as sciopt
+
+from .optimizer import Optimizer
 
 logger = logging.getLogger(__name__)
 

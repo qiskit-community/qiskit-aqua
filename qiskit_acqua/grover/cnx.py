@@ -18,8 +18,7 @@
 """
 CNX gate. N Controlled-Not Gate.
 """
-from qiskit import QuantumCircuit
-from qiskit import CompositeGate
+from qiskit import QuantumCircuit, CompositeGate
 
 
 class CNXGate(CompositeGate):

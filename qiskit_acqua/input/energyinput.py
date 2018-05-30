@@ -15,10 +15,10 @@
 # limitations under the License.
 # =============================================================================
 
-
-from .algorithminput import AlgorithmInput
-from qiskit_acqua import AlgorithmError, Operator
 import copy
+
+from qiskit_acqua import AlgorithmError, Operator
+from qiskit_acqua.algorithminput import AlgorithmInput
 
 
 class EnergyInput(AlgorithmInput):

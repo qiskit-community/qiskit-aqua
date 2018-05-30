@@ -17,6 +17,7 @@
 
 
 from abc import ABC, abstractmethod
+
 from qiskit_acqua import AlgorithmError
 
 

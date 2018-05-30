@@ -18,8 +18,7 @@
 from functools import partial
 
 from qiskit_acqua import QuantumAlgorithm, get_optimizer_instance
-
-from .cost_helpers import *
+from .cost_helpers import assign_label, cost_estimate_sigmoid, return_probabilities
 from .quantum_circuit_variational import eval_cost_function, eval_cost_function_with_unlabeled_data
 from .quantum_circuit_variational import set_print_info
 

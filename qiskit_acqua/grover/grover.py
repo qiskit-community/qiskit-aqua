@@ -21,9 +21,9 @@ The Grover Quantum algorithm.
 import logging
 
 from qiskit import ClassicalRegister, QuantumCircuit
+
 from qiskit_acqua import QuantumAlgorithm, AlgorithmError
 from qiskit_acqua import get_oracle_instance
-
 
 logger = logging.getLogger(__name__)
 

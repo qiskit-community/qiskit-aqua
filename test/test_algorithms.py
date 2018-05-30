@@ -21,8 +21,10 @@ InputParser test.
 
 import unittest
 from test.common import QISKitAcquaTestCase
-from qiskit_acqua import run_algorithm
 import json
+
+from qiskit_acqua import run_algorithm
+
 
 @unittest.skipUnless(QISKitAcquaTestCase.SLOW_TEST, 'slow')
 class TestAlgorithms(QISKitAcquaTestCase):
@@ -34,7 +36,8 @@ class TestAlgorithms(QISKitAcquaTestCase):
         with open(filepath) as json_file:
             params = json.load(json_file)
 
-        run_algorithm(params,None,True)
-            
+        run_algorithm(params, None, True)
+
+
 if __name__ == '__main__':
     unittest.main()

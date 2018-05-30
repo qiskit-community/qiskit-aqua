@@ -22,8 +22,9 @@ See https://arxiv.org/abs/quant-ph/0610214
 import logging
 
 import numpy as np
-from qiskit.qasm import pi
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
+from qiskit.qasm import pi
+
 from qiskit_acqua import Operator, QuantumAlgorithm, AlgorithmError
 from qiskit_acqua import get_initial_state_instance
 

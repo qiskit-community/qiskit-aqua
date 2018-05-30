@@ -21,6 +21,7 @@ The Quantum Dynamics algorithm.
 import logging
 
 from qiskit import QuantumRegister
+
 from qiskit_acqua import QuantumAlgorithm, AlgorithmError
 from qiskit_acqua import get_initial_state_instance
 
