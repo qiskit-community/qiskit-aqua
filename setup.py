@@ -34,8 +34,8 @@ class GaussianBuild(build):
     _GAUOPEN_DIR = 'qiskit_acqua_chemistry/drivers/gaussiand/gauopen'
     _PLATFORM_DIRS = {'darwin': 'macosx_x86_64',
                       'linux': 'manylinux1_x86_64',
-                      'win32': 'win_x86_64',
-                      'cygwin': 'win_x86_64'}
+                      'win32': 'win_amd64',
+                      'cygwin': 'win_amd64'}
     def run(self):
         super().run()
         if sys.platform not in GaussianBuild._PLATFORM_DIRS:
