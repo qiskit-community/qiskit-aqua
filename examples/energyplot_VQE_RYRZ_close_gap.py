@@ -11,7 +11,7 @@ import pprint
 
 import logging
 logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
+# logger.setLevel(logging.DEBUG)
 
 # README:
 # If you want to simply close the gap, just use this command (You still need to tell the distance you are interested in): 
@@ -211,9 +211,13 @@ if __name__ == '__main__':
     result = solver.run(acqua_chemistry_dict)
     print(d, result['energy'], result['total_dipole_moment'])
 
+
+
     # the output will be appended to a file
-    with open('./' + args.molecule +  '_distance='+ str(args.distance) + "_optimizer=" + str(args.optimizer), 'a') as f:
+    with open('./' + args.molecule +  '_distance='+ str(args.distance) + "_optimizer=" + str(args.optimizer), 'w') as f:
         f.write("\ndistance: " + str(d) +"\n")
         f.write("energy:" + str(result['energy'])+"\n")
         f.write("dipole moment:" + str(result['total_dipole_moment'])+"\n")
-        #f.write("energy:" + str(result['energy']))
+        f.write("\n")
+        for line in result['printable']:
+            f.write(line + "\n")
