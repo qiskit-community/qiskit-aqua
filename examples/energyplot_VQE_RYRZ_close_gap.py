@@ -30,6 +30,14 @@ acqua_chemistry_dict = {
         "name": "VQE",
         "operator_mode": "matrix"
     },
+    "problem":{
+      "random_seed": 101
+    },
+    'backend':{
+        'name': 'local_statevector_simulator',
+        'shots': 1
+    },
+
     "backend": {
         "name": "local_statevector_simulator"
     },
@@ -56,11 +64,7 @@ acqua_chemistry_dict = {
     },
     "variational_form": {
         "depth": 10,
-        "entangler_map": {
-            "0": [
-                1
-            ]
-        },
+        'entanglement': 'linear',
         "name": "RYRZ"
     }
 
@@ -75,7 +79,7 @@ acqua_chemistry_dict = {
 #       orbitals to reduce the size of the problem. The result without this
 #       will be more accurate but it takes rather longer to run.
 
-#  LiH: --molecule LiH --orbital_reduction 1 --eval_number 10000 --distance 1.0
+#  LiH: python3 energyplot_VQE_RYRZ_close_gap.py --molecule LiH --eval_number 10000 --distance 1.0 --optimizer COBYLA --noisy True
 def makeArgs():
     parser = argparse.ArgumentParser()
 
@@ -83,33 +87,19 @@ def makeArgs():
                            help='optimizer name')
     parser.add_argument('--distance', type=float, default=1.0,
                            help='steps')
-    parser.add_argument('--molecule', type=str, default="H2",
+    parser.add_argument('--molecule', type=str, default="LiH",
                            help='molecular')
-    parser.add_argument('--orbital_reduction', type=int, default=1,
-                           help='orbital reduction')
-    parser.add_argument('--map', type=str, default="linear", # all
-                           help='orbital reduction')
-    parser.add_argument('--eval_number', type=int, default=2,
-                           help='orbital reduction')
+    parser.add_argument('--eval_number', type=int, default=1000,
+                           help='number of eval')
+
+    parser.add_argument('--noisy', type=bool, default=False,
+                           help='do we have noise?')
 
     args = parser.parse_args()
     return args
 
 
-def generate_linear_map(orbit_num):
-    mymap = {}
-    for i in range(orbit_num-1):
-        mymap[str(i)] = [i+1]
-    return mymap
 
-# {0: [1, 2, 3, 4, 5], 1: [0, 2, 3, 4, 5], 2: [0, 1, 3, 4, 5], 3: [0, 1, 2, 4, 5], 4: [0, 1, 2, 3, 5], 5: [0, 1, 2, 3, 4]}
-def generate_all_map(orbital_num):
-    mymap = {}
-    for i in range(orbit_num):
-        all = list(range(orbit_num))
-        all.remove(i)
-        mymap[str(i)] = all
-    return mymap
 
 
 def report(distances, energies, args):
@@ -137,10 +127,7 @@ if __name__ == '__main__':
         'H2': 10000,
         'LiH': 10000
     }
-    orbitnums = {
-        'H2': 4,
-        'LiH': 12
-    }
+
     molecule_templates = {
         'H2': 'H .0 .0 -{0}; H .0 .0 {0}',
         'LiH': 'Li .0 .0 -{0}; H .0 .0 {0}'
@@ -161,35 +148,23 @@ if __name__ == '__main__':
     acqua_chemistry_dict['variational_form']['depth'] = depths[args.molecule]
     acqua_chemistry_dict['optimizer']['maxiter'] = evalnums[args.molecule]
 
-    if args.eval_number != -1:
+    if args.eval_number > 0:
         acqua_chemistry_dict['optimizer']['maxiter'] = args.eval_number
 
-    orbit_num = orbitnums[args.molecule]
 
-    if args.orbital_reduction == 1:
-        if args.molecule == 'LiH':
+    if args.molecule == 'LiH':
+        acqua_chemistry_dict['operator']['qubit_mapping'] = 'parity'
+        acqua_chemistry_dict['operator']['two_qubit_reduction'] = True
 
-            orbit_num = int(orbit_num/2) # thanks to the core freezing and orbital reduction
-
-            # extra reduction:
-            acqua_chemistry_dict['operator']['qubit_mapping'] = 'parity'
-            orbit_num = orbit_num - 2 # extra orbital reduction thanks to the parity map
+        acqua_chemistry_dict['operator']['freeze_core'] = True
+    elif args.molecule == 'H2': # no, we cannot reduce for H2
+        pass
 
 
+    if args.noisy:
+        acqua_chemistry_dict['backend']['name'] = 'local_qasm_simulator'
+        acqua_chemistry_dict['backend']['shots'] = 1000
 
-            acqua_chemistry_dict['operator']['freeze_core'] = True
-            acqua_chemistry_dict['operator']['orbital_reduction'] = [-3, -2]
-        elif args.molecule == 'H2': # no, we cannot reduce for H2
-            pass
-
-
-    if args.map == "linear":
-        gmap = generate_linear_map(orbit_num)
-    elif args.map == 'all':
-        gmap = generate_all_map(orbit_num)
-
-
-    acqua_chemistry_dict['variational_form']['entangler_map'] = gmap
 
 
     molecule = molecule_templates[args.molecule]
