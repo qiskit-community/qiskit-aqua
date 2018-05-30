@@ -16,13 +16,14 @@
 # =============================================================================
 
 import unittest
+import copy
 from collections import OrderedDict
 import itertools
-from test.common import QISKitAcquaTestCase
 
 import numpy as np
 from qiskit.tools.qi.pauli import Pauli, label_to_pauli
 
+from test.common import QISKitAcquaTestCase
 from qiskit_acqua import Operator
 from qiskit_acqua import get_variational_form_instance
 
@@ -222,6 +223,148 @@ class TestOperator(QISKitAcquaTestCase):
         op._to_dia_matrix('paulis')
 
         self.assertEqual(op.matrix.ndim, 2)
+
+    def test_equal_operator(self):
+
+        paulis = ['IXYZ', 'XXZY', 'IIZZ', 'XXYY', 'ZZXX', 'YYYY']
+        coeffs = [0.2, 0.6, 0.8, -0.2, -0.6, -0.8]
+        op1 = Operator(paulis=[])
+        for coeff, pauli in zip(coeffs, paulis):
+            pauli_term = [coeff, label_to_pauli(pauli)]
+            op1 += Operator(paulis=[pauli_term])
+
+        paulis = ['IXYZ', 'XXZY', 'IIZZ', 'XXYY', 'ZZXX', 'YYYY']
+        coeffs = [0.2, 0.6, 0.8, -0.2, -0.6, -0.8]
+        op2 = Operator(paulis=[])
+        for coeff, pauli in zip(coeffs, paulis):
+            pauli_term = [coeff, label_to_pauli(pauli)]
+            op2 += Operator(paulis=[pauli_term])
+
+        paulis = ['IXYY', 'XXZY', 'IIZZ', 'XXYY', 'ZZXX', 'YYYY']
+        coeffs = [0.2, 0.6, 0.8, -0.2, -0.6, -0.8]
+        op3 = Operator(paulis=[])
+        for coeff, pauli in zip(coeffs, paulis):
+            pauli_term = [coeff, label_to_pauli(pauli)]
+            op3 += Operator(paulis=[pauli_term])
+
+        paulis = ['IXYZ', 'XXZY', 'IIZZ', 'XXYY', 'ZZXX', 'YYYY']
+        coeffs = [-0.2, 0.6, 0.8, -0.2, -0.6, -0.8]
+        op4 = Operator(paulis=[])
+        for coeff, pauli in zip(coeffs, paulis):
+            pauli_term = [coeff, label_to_pauli(pauli)]
+            op4 += Operator(paulis=[pauli_term])
+
+        self.assertEqual(op1, op2)
+        self.assertNotEqual(op1, op3)
+        self.assertNotEqual(op1, op4)
+        self.assertNotEqual(op3, op4)
+
+    def test_chop_real_only(self):
+
+        paulis = ['IXYZ', 'XXZY', 'IIZZ', 'XXYY', 'ZZXX', 'YYYY']
+        coeffs = [0.2, 0.6, 0.8, -0.2, -0.6, -0.8]
+        op = Operator(paulis=[])
+        for coeff, pauli in zip(coeffs, paulis):
+            pauli_term = [coeff, label_to_pauli(pauli)]
+            op += Operator(paulis=[pauli_term])
+
+        op1 = copy.deepcopy(op)
+        op1.chop(threshold=0.4)
+        self.assertEqual(len(op1.paulis), 4, "\n{}".format(op1.print_operators()))
+        gt_op1 = Operator(paulis=[])
+        for i in range(1, 3):
+            pauli_term = [coeffs[i], label_to_pauli(paulis[i])]
+            gt_op1 += Operator(paulis=[pauli_term])
+            pauli_term = [coeffs[i+3], label_to_pauli(paulis[i+3])]
+            gt_op1 += Operator(paulis=[pauli_term])
+        self.assertEqual(op1, gt_op1)
+
+        op2 = copy.deepcopy(op)
+        op2.chop(threshold=0.7)
+        self.assertEqual(len(op2.paulis), 2, "\n{}".format(op2.print_operators()))
+        gt_op2 = Operator(paulis=[])
+        for i in range(2, 3):
+            pauli_term = [coeffs[i], label_to_pauli(paulis[i])]
+            gt_op2 += Operator(paulis=[pauli_term])
+            pauli_term = [coeffs[i+3], label_to_pauli(paulis[i+3])]
+            gt_op2 += Operator(paulis=[pauli_term])
+        self.assertEqual(op2, gt_op2)
+
+        op3 = copy.deepcopy(op)
+        op3.chop(threshold=0.9)
+        self.assertEqual(len(op3.paulis), 0, "\n{}".format(op3.print_operators()))
+        gt_op3 = Operator(paulis=[])
+        for i in range(3, 3):
+            pauli_term = [coeffs[i], label_to_pauli(paulis[i])]
+            gt_op3 += Operator(paulis=[pauli_term])
+            pauli_term = [coeffs[i+3], label_to_pauli(paulis[i+3])]
+            gt_op3 += Operator(paulis=[pauli_term])
+        self.assertEqual(op3, gt_op3)
+
+    def test_chop_complex_only_1(self):
+
+        paulis = ['IXYZ', 'XXZY', 'IIZZ', 'XXYY', 'ZZXX', 'YYYY']
+        coeffs = [0.2 + -1j * 0.2, 0.6 + -1j * 0.6, 0.8 + -1j * 0.8,
+                    -0.2 + -1j * 0.2, -0.6 - -1j * 0.6, -0.8 - -1j * 0.8]
+        op = Operator(paulis=[])
+        for coeff, pauli in zip(coeffs, paulis):
+            pauli_term = [coeff, label_to_pauli(pauli)]
+            op += Operator(paulis=[pauli_term])
+
+        op1 = copy.deepcopy(op)
+        op1.chop(threshold=0.4)
+        self.assertEqual(len(op1.paulis), 4, "\n{}".format(op1.print_operators()))
+        gt_op1 = Operator(paulis=[])
+        for i in range(1, 3):
+            pauli_term = [coeffs[i], label_to_pauli(paulis[i])]
+            gt_op1 += Operator(paulis=[pauli_term])
+            pauli_term = [coeffs[i+3], label_to_pauli(paulis[i+3])]
+            gt_op1 += Operator(paulis=[pauli_term])
+        self.assertEqual(op1, gt_op1)
+
+        op2 = copy.deepcopy(op)
+        op2.chop(threshold=0.7)
+        self.assertEqual(len(op2.paulis), 2, "\n{}".format(op2.print_operators()))
+        gt_op2 = Operator(paulis=[])
+        for i in range(2, 3):
+            pauli_term = [coeffs[i], label_to_pauli(paulis[i])]
+            gt_op2 += Operator(paulis=[pauli_term])
+            pauli_term = [coeffs[i+3], label_to_pauli(paulis[i+3])]
+            gt_op2 += Operator(paulis=[pauli_term])
+        self.assertEqual(op2, gt_op2)
+
+        op3 = copy.deepcopy(op)
+        op3.chop(threshold=0.9)
+        self.assertEqual(len(op3.paulis), 0, "\n{}".format(op3.print_operators()))
+        gt_op3 = Operator(paulis=[])
+        for i in range(3, 3):
+            pauli_term = [coeffs[i], label_to_pauli(paulis[i])]
+            gt_op3 += Operator(paulis=[pauli_term])
+            pauli_term = [coeffs[i+3], label_to_pauli(paulis[i+3])]
+            gt_op3 += Operator(paulis=[pauli_term])
+        self.assertEqual(op3, gt_op3)
+
+    def test_chop_complex_only_2(self):
+
+        paulis = ['IXYZ', 'XXZY', 'IIZZ', 'XXYY', 'ZZXX', 'YYYY']
+        coeffs = [0.2 + -1j * 0.8, 0.6 + -1j * 0.6, 0.8 + -1j * 0.2,
+                    -0.2 + -1j * 0.8, -0.6 - -1j * 0.6, -0.8 - -1j * 0.2]
+        op = Operator(paulis=[])
+        for coeff, pauli in zip(coeffs, paulis):
+            pauli_term = [coeff, label_to_pauli(pauli)]
+            op += Operator(paulis=[pauli_term])
+
+        op1 = copy.deepcopy(op)
+        op1.chop(threshold=0.4)
+        self.assertEqual(len(op1.paulis), 6, "\n{}".format(op1.print_operators()))
+
+        op2 = copy.deepcopy(op)
+        op2.chop(threshold=0.7)
+        self.assertEqual(len(op2.paulis), 4, "\n{}".format(op2.print_operators()))
+
+        op3 = copy.deepcopy(op)
+        op3.chop(threshold=0.9)
+        self.assertEqual(len(op3.paulis), 0, "\n{}".format(op3.print_operators()))
 
 
 if __name__ == '__main__':

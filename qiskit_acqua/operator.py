@@ -117,6 +117,34 @@ class Operator(object):
         """Overload += operation"""
         return self._add_extend_or_combine(rhs, 'inplace')
 
+    def __eq__(self, rhs):
+        """Overload == operation"""
+        if self._matrix is not None and rhs._matrix is not None:
+            return np.all(self._matrix == rhs._matrix)
+        if self._paulis is not None and rhs._paulis is not None:
+            if len(self._paulis) != len(rhs._paulis):
+                return False
+            for coeff, pauli in self._paulis:
+                found_pauli = False
+                rhs_coeff = 0.0
+                for coeff2, pauli2 in rhs._paulis:
+                    if pauli == pauli2:
+                        found_pauli = True
+                        rhs_coeff = coeff2
+                        break
+                if found_pauli == False and rhs_coeff != 0.0: # since we might have 0 weights of paulis.
+                    return False
+                if coeff != rhs_coeff:
+                    return False
+            return True
+        if self._grouped_paulis is not None and rhs._grouped_paulis is not None:
+            self._paulis_to_grouped_paulis()
+            rhs._paulis_to_grouped_paulis()
+            return self.__eq__(rhs)
+
+    def __ne__(self, rhs):
+        return not self.__eq__(rhs)
+
     def chop(self, threshold=1e-15):
         """
         Eliminate the real and imagine part of coeff in each pauli by `threshold`.
