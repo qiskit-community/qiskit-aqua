@@ -17,12 +17,13 @@
 
 import logging
 
+import numpy as np
+from cvxopt import matrix, solvers
+
 logger = logging.getLogger(__name__)
 
 
 def optimize_SVM(K, y, scaling=None, max_iters=500, show_progress=False):
-    import numpy as np
-    from cvxopt import matrix, solvers
     if y.ndim == 1:
         y = y[:, np.newaxis]
     H = np.outer(y, y) * K
@@ -42,7 +43,7 @@ def optimize_SVM(K, y, scaling=None, max_iters=500, show_progress=False):
     b = matrix(np.zeros(1), (1, 1))
     solvers.options['maxiters'] = max_iters
     solvers.options['show_progress'] = show_progress
-    # solvers.options['refinement'] = 1
+
     ret = solvers.qp(P, q, G, h, A, b, kktsolver='ldl')
     alpha = np.asarray(ret['x']) * scaling
     avg_y = np.sum(y)
