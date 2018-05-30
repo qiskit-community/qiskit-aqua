@@ -1,8 +1,7 @@
 #import paths
 import os
 import sys
-algo_directory = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-sys.path.insert(0,algo_directory)
+
 import matplotlib
 matplotlib.use('Agg')
 import pylab
@@ -10,7 +9,9 @@ from qiskit_acqua_chemistry import ACQUAChemistry
 import  argparse
 import pprint
 
-
+import logging
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
 
 # README:
 # If you want to simply close the gap, just use this command (You still need to tell the distance you are interested in): 
@@ -27,8 +28,7 @@ import pprint
 acqua_chemistry_dict = {
     "algorithm": {
         "name": "VQE",
-        "operator_mode": "matrix",
-        "shots": 1
+        "operator_mode": "matrix"
     },
     "backend": {
         "name": "local_statevector_simulator"
@@ -83,13 +83,13 @@ def makeArgs():
                            help='optimizer name')
     parser.add_argument('--distance', type=float, default=1.0,
                            help='steps')
-    parser.add_argument('--molecule', type=str, default="LiH",
+    parser.add_argument('--molecule', type=str, default="H2",
                            help='molecular')
     parser.add_argument('--orbital_reduction', type=int, default=1,
                            help='orbital reduction')
     parser.add_argument('--map', type=str, default="linear", # all
                            help='orbital reduction')
-    parser.add_argument('--eval_number', type=int, default=20000,
+    parser.add_argument('--eval_number', type=int, default=2,
                            help='orbital reduction')
 
     args = parser.parse_args()
@@ -124,6 +124,10 @@ def report(distances, energies, args):
 
 
 if __name__ == '__main__':
+
+
+
+
     args = makeArgs()
     depths = {
         'H2': 10,
@@ -208,7 +212,7 @@ if __name__ == '__main__':
     print(d, result['energy'], result['total_dipole_moment'])
 
     # the output will be appended to a file
-    with open('./singlepoint_' + args.molecule +  '_'+ str(args.distance), 'a') as f:
+    with open('./' + args.molecule +  '_distance='+ str(args.distance) + "_optimizer=" + str(args.optimizer), 'a') as f:
         f.write("\ndistance: " + str(d) +"\n")
         f.write("energy:" + str(result['energy'])+"\n")
         f.write("dipole moment:" + str(result['total_dipole_moment'])+"\n")
