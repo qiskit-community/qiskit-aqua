@@ -21,17 +21,60 @@ InputParser test.
 
 import unittest
 from test.common import QISKitAcquaChemistryTestCase
+from qiskit_acqua_chemistry import ACQUAChemistryError
 from qiskit_acqua_chemistry.parser import InputParser
+import os
+import json
 
 class TestInputParser(QISKitAcquaChemistryTestCase):
     """InputParser tests."""
+    
+    def setUp(self):
+        filepath = self._get_resource_path('pyscfa.txt')
+        self.parser = InputParser(filepath)
+        self.parser.parse()
 
-    def test_parse(self):
-        filepath = self._get_resource_path('input.txt')
-        parser = InputParser(filepath)
-        parser.parse()
-        for name in parser.get_section_names():
-            self.log.debug(parser.get_section(name))
+    def test_save(self):
+        save_path = self._get_resource_path('output.txt')
+        self.parser.save_to_file(save_path)
+        
+        p = InputParser(save_path)
+        p.parse()
+        os.remove(save_path)
+        dict1 = json.loads(json.dumps(self.parser.to_dictionary()))
+        dict2 = json.loads(json.dumps(p.to_dictionary()))
+        self.assertEqual(dict1,dict2)
+        
+    def test_load_from_dict(self):
+        json_dict = self.parser.to_JSON()
+        
+        p = InputParser(json_dict)
+        p.parse()
+        dict1 = json.loads(json.dumps(self.parser.to_dictionary()))
+        dict2 = json.loads(json.dumps(p.to_dictionary()))
+        self.assertEqual(dict1,dict2)
+        
+    def test_is_modified(self):
+        json_dict = self.parser.to_JSON()
+        
+        p = InputParser(json_dict)
+        p.parse()
+        p.set_section_property('optimizer','maxfun',1002)
+        self.assertTrue(p.is_modified())
+        self.assertEqual(p.get_section_property('optimizer','maxfun'),1002)
+        
+    def test_validate(self):
+        json_dict = self.parser.to_JSON()
+        
+        p = InputParser(json_dict)
+        p.parse()
+        try:
+            p.validate_merge_defaults()
+        except Exception as e:
+            self.fail(str(e))
+            
+        p.set_section_property('optimizer','dummy',1002)
+        self.assertRaises(ACQUAChemistryError, p.validate_merge_defaults)
             
 if __name__ == '__main__':
     unittest.main()
