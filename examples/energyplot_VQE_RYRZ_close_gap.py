@@ -31,7 +31,7 @@ acqua_chemistry_dict = {
         "operator_mode": "matrix"
     },
     "problem":{
-      "random_seed": 101
+         "random_seed": 101
     },
     'backend':{
         'name': 'local_statevector_simulator',
@@ -91,7 +91,8 @@ def makeArgs():
                            help='molecular')
     parser.add_argument('--eval_number', type=int, default=1000,
                            help='number of eval')
-
+    parser.add_argument('--initial_point_seed', type=int, default=100,
+                           help='seed for random init point generation')
     parser.add_argument('--noisy', type=bool, default=False,
                            help='do we have noise?')
 
@@ -142,11 +143,11 @@ if __name__ == '__main__':
         'LiH': 0.5
     }
 
-
-
+    acqua_chemistry_dict['problem']['random_seed'] = args.initial_point_seed
     acqua_chemistry_dict['optimizer']['name'] = args.optimizer
     acqua_chemistry_dict['variational_form']['depth'] = depths[args.molecule]
     acqua_chemistry_dict['optimizer']['maxiter'] = evalnums[args.molecule]
+
 
     if args.eval_number > 0:
         acqua_chemistry_dict['optimizer']['maxiter'] = args.eval_number
