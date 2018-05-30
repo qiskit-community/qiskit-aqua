@@ -25,6 +25,11 @@ __pycache__/
 *.so
 *.so.dSYM
 *.dll
+#Allow
+!qiskit_acqua_chemistry/drivers/gaussiand/gauopen/macosx_x86_64/*.so
+!qiskit_acqua_chemistry/drivers/gaussiand/gauopen/macosx_x86_64/*.so.dSYM
+!qiskit_acqua_chemistry/drivers/gaussiand/gauopen/macosx_x86_64/*.so.dSYM/**/*.so
+
 
 # Distribution / packaging
 .Python
