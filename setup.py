@@ -16,12 +16,18 @@
 # =============================================================================
 
 import setuptools
+from setuptools.dist import Distribution
 
 with open('README.md', 'r') as fh:
     long_description = fh.read()
     
 with open('requirements.txt', 'r') as fh:
     requirements = fh.readlines()
+    
+class BinaryDistribution(Distribution):
+    """Distribution always forces binary package with platform name"""
+    def has_ext_modules(self):
+        return True
 
 setuptools.setup(
     name='qiskit_acqua',
@@ -49,5 +55,6 @@ setuptools.setup(
     packages=setuptools.find_packages(exclude=['test*']),
     install_requires=requirements,
     include_package_data=True,
-    python_requires=">=3.5"
+    python_requires=">=3.5",
+    distclass=BinaryDistribution
 )
