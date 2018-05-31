@@ -17,54 +17,11 @@
 
 import sys
 import os
-import argparse
 
 algo_directory = os.path.dirname(os.path.realpath(__file__))
 algo_directory = os.path.join(algo_directory,'..')
 sys.path.insert(0,algo_directory)
 
-parser = argparse.ArgumentParser(description='QISKit Acqua Program.')
-parser.add_argument('input', 
-                    metavar='input', 
-                    help='Algorithm JSON input file')
-parser.add_argument('-jo', 
-                    metavar='output', 
-                    help='Algorithm JSON output file name',
-                    required=False)
+from qiskit_acqua.command_line import main
 
-args = parser.parse_args()
-
-import json
-import logging
-from qiskit_acqua._logging import build_logging_config,set_logger_config
-from qiskit_acqua.preferences import Preferences
-from qiskit_acqua import run_algorithm
-from qiskit_acqua.utils import convert_json_to_dict
-
-preferences = Preferences()
-if preferences.get_logging_config() is None:
-    logging_config = build_logging_config(['qiskit_acqua'],logging.INFO)
-    preferences.set_logging_config(logging_config)
-    preferences.save()
-
-set_logger_config(preferences.get_logging_config())
-
-params = None
-with open(args.input) as json_file:
-    params = json.load(json_file)
-
-ret = run_algorithm(params,None,True)
-
-if args.jo is not None:
-    with open(args.jo, 'w') as f:
-        print('{}'.format(ret), file=f)
-else:
-    convert_json_to_dict(ret)
-    print('Output:')
-    if isinstance(ret,dict):
-        for k,v in ret.items():
-            print("'{}': {}".format(k,v))
-    else:
-        print(ret)
-            
-
+main()
