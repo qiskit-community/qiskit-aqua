@@ -17,6 +17,8 @@
 
 from functools import partial
 
+import numpy as np
+
 from qiskit_acqua import QuantumAlgorithm, get_optimizer_instance
 from .cost_helpers import assign_label, cost_estimate_sigmoid, return_probabilities
 from .quantum_circuit_variational import eval_cost_function, eval_cost_function_with_unlabeled_data
@@ -97,7 +99,7 @@ class SVM_Variational(QuantumAlgorithm):
         opt_params = params.get(QuantumAlgorithm.SECTION_KEY_OPTIMIZER)
         optimizer = get_optimizer_instance(opt_params['name'])
         # hard-coded params if SPSA is used.
-        if opt_params['name'] == 'SPSA':
+        if opt_params['name'] == 'SPSA' and opt_params['parameters'] is None:
             opt_params['parameters'] = np.asarray([4.0, 0.1, 0.602, 0.101, 0.0])
         optimizer.init_params(opt_params)
         optimizer.set_options(save_steps=10)
