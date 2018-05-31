@@ -30,7 +30,7 @@ sys.path.append(qiskit_acqua_directory)
 # ---
 
 from qiskit_acqua_chemistry._logging import build_logging_config,set_logger_config
-from _uipreferences import UIPreferences
+from qiskit_acqua_chemistry.ui._uipreferences import UIPreferences
 
 if sys.platform == 'darwin':
     from Foundation import NSBundle
@@ -68,7 +68,7 @@ if preferences.get_logging_config() is None:
 
 set_logger_config(preferences.get_logging_config())
 
-from _mainview import MainView
+from qiskit_acqua_chemistry.ui._mainview import MainView
 
 view = MainView(root)
 root.after(0, root.deiconify)
