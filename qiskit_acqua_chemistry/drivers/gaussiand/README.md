@@ -47,8 +47,33 @@ Windows it could be something like this `qcmatrixio.cp36-win_amd64.pyd`
 ### Ensure G16 is in the Path and the environment setup for G16
 
 You should also make sure the g16 executable can be run from a command line. Make sure it's in the path and appropriate
-exports such as GAUSS_EXEDIR etc have been done as per Gaussian installation instructions which may be found here
-http://gaussian.com/techsupport/#install
+exports such as GAUSS_EXEDIR etc have been done as per Gaussian installation instructions which may be found here:
+[http://gaussian.com/techsupport/#install](http://gaussian.com/techsupport/#install).
+
+As an example, if your account is using the bash shell on a macOS X machine, you can edit the `.bash_profile` file in your account's home directory and add the following lines:
+```
+export GAUSS_SCRDIR=~/.gaussian
+export g16root=/Applications
+alias enable_gaussian='. $g16root/g16/bsd/g16.profile'
+```
+assuming that Gaussian 16 was placed in the /Applications folder and that ~/.gaussian is the full path to the selected scratch 
+folder, where Gaussian 16 stores its temporary files.  Before executing QISKit ACQUA Chemistry, you will have to run the 
+`enable_gaussian` command.  This command, however, may generate an error:
+```
+bash: ulimit: open files: cannot modify limit: Invalid argument
+```
+This error is not harmful, but if you want to suppress it, enter the following commands on the command line:
+```
+echo kern.maxfiles=65536 | sudo tee -a /etc/sysctl.conf
+echo kern.maxfilesperproc=65536 | sudo tee -a /etc/sysctl.conf
+sudo sysctl -w kern.maxfiles=65536
+sudo sysctl -w kern.maxfilesperproc=65536
+ulimit -n 65536 65536 
+```
+and finally add the following line to the `.bash_profile` file in your account's home directory:
+```
+ulimit -n 65536 65536
+```
 
 ## Input file example
 To configure a molecule on which to do a chemistry experiment with QISKit ACQUA Chemistry create a GAUSSIAN section
