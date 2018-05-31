@@ -36,7 +36,10 @@ class TestDriverPyQuante(QISKitAcquaChemistryTestCase, TestDriver):
             ('basis', 'sto3g')
         ])
         section = {'properties': pyquante_cfg}
-        driver = cfg_mgr.get_driver_instance('PYQUANTE')
+        try:
+            driver = cfg_mgr.get_driver_instance('PYQUANTE')
+        except ModuleNotFoundError:
+            self.skipTest('PYQUANTE driver does not appear to be installed')
         self.qmolecule = driver.run(section)
 
 

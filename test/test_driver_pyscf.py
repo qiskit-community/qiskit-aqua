@@ -36,7 +36,10 @@ class TestDriverPySCF(QISKitAcquaChemistryTestCase, TestDriver):
             ('basis', 'sto3g')
         ])
         section = {'properties': pyscf_cfg}
-        driver = cfg_mgr.get_driver_instance('PYSCF')
+        try:
+            driver = cfg_mgr.get_driver_instance('PYSCF')
+        except ModuleNotFoundError:
+            self.skipTest('PYSCF driver does not appear to be installed')
         self.qmolecule = driver.run(section)
 
 
