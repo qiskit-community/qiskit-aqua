@@ -96,9 +96,11 @@ setuptools.setup(
     python_requires=">=3.5",
     entry_points = {
         'console_scripts': [
-                'qiskit_acqua_chemistry=qiskit_acqua_chemistry.__main__',
-                'qiskit_acqua_chemistry_ui=qiskit_acqua_chemistry.ui.__main__'
+                'qiskit_acqua_chemistry_cmd=qiskit_acqua_chemistry.command_line:main'
         ],
+        'gui_scripts': [
+                'qiskit_acqua_chemistry_ui=qiskit_acqua_chemistry.ui.__main__'
+        ]
     },
     cmdclass={
         'build': GaussianBuild,

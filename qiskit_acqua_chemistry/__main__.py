@@ -17,7 +17,6 @@
 
 import sys
 import os
-import argparse
 
 qiskit_acqua_chemistry_directory = os.path.dirname(os.path.realpath(__file__))
 qiskit_acqua_chemistry_directory = os.path.join(qiskit_acqua_chemistry_directory,'..')
@@ -27,55 +26,8 @@ qiskit_acqua_directory = os.path.join(qiskit_acqua_chemistry_directory,'../qiski
 sys.path.append(qiskit_acqua_directory)
 # ---
 
-parser = argparse.ArgumentParser(description='Quantum Chemistry Program.')
-parser.add_argument('input', 
-                    metavar='input', 
-                    help='Chemistry Driver input or Algorithm JSON input file')
-group = parser.add_mutually_exclusive_group(required=False)
-group.add_argument('-o', 
-                    metavar='output', 
-                    help='Algorithm Results Output file name')
-group.add_argument('-jo', 
-                    metavar='json output', 
-                    help='Algorithm JSON Output file name')
+from qiskit_acqua_chemistry.command_line import main
 
-args = parser.parse_args()
-
-import json
-import logging
-from qiskit_acqua_chemistry._logging import build_logging_config,set_logger_config
-from qiskit_acqua_chemistry.preferences import Preferences
-
-preferences = Preferences()
-if preferences.get_logging_config() is None:
-    logging_config = build_logging_config(['qiskit_acqua_chemistry', 'qiskit_acqua'], logging.INFO)
-    preferences.set_logging_config(logging_config)
-    preferences.save()
-
-set_logger_config(preferences.get_logging_config())
-
-from qiskit_acqua_chemistry import ACQUAChemistry
-solver = ACQUAChemistry()
-
-# check to see if input is json file
-params = None
-try:
-    with open(args.input) as json_file:
-        params = json.load(json_file)
-except Exception as e:
-    pass
-
-if params is not None:
-    solver.run_algorithm_from_json(params, args.o)
-else:
-    if args.jo is not None:
-        solver.run_drive_to_jsonfile(args.input, args.jo)
-    else:
-        result = solver.run(args.input, args.o)
-        if 'printable' in result:
-            print('\n\n--------------------------------- R E S U L T ------------------------------------\n')
-            for line in result['printable']:
-                print(line)
-
+main()
             
 
