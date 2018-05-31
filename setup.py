@@ -99,7 +99,7 @@ setuptools.setup(
                 'qiskit_acqua_chemistry_cmd=qiskit_acqua_chemistry.command_line:main'
         ],
         'gui_scripts': [
-                'qiskit_acqua_chemistry_ui=qiskit_acqua_chemistry.ui.__main__'
+                'qiskit_acqua_chemistry_ui=qiskit_acqua_chemistry.ui.command_line:main'
         ]
     },
     cmdclass={

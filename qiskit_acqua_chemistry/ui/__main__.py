@@ -17,8 +17,6 @@
 
 import sys
 import os
-import logging
-import tkinter as tk
 
 qiskit_acqua_chemistry_directory = os.path.dirname(os.path.realpath(__file__))
 qiskit_acqua_chemistry_directory = os.path.join(qiskit_acqua_chemistry_directory,'../..')
@@ -29,50 +27,7 @@ qiskit_acqua_directory = os.path.join(qiskit_acqua_chemistry_directory,'../qiski
 sys.path.append(qiskit_acqua_directory)
 # ---
 
-from qiskit_acqua_chemistry._logging import build_logging_config,set_logger_config
-from qiskit_acqua_chemistry.ui._uipreferences import UIPreferences
 
-if sys.platform == 'darwin':
-    from Foundation import NSBundle
-    bundle = NSBundle.mainBundle()
-    if bundle:
-        info = bundle.localizedInfoDictionary() or bundle.infoDictionary()
-        info['CFBundleName'] = 'QISkit Acqua Chemistry'
+from qiskit_acqua_chemistry.ui.command_line import main
 
-root = tk.Tk()
-root.withdraw()
-root.update_idletasks()
-
-preferences = UIPreferences()
-geometry = preferences.get_geometry()
-if geometry is None:
-    ws = root.winfo_screenwidth()
-    hs = root.winfo_screenheight()
-    w = int(ws / 1.3)
-    h = int(hs / 1.3)
-    x = int(ws/2 - w/2)
-    y = int(hs/2 - h/2)
-    geometry = '{}x{}+{}+{}'.format(w,h,x,y)
-    preferences.set_geometry(geometry)
-    preferences.save()
-
-root.geometry(geometry)
-
-from qiskit_acqua_chemistry.preferences import Preferences
-
-preferences = Preferences()
-if preferences.get_logging_config() is None:
-    logging_config = build_logging_config(['qiskit_acqua_chemistry', 'qiskit_acqua'], logging.INFO)
-    preferences.set_logging_config(logging_config)
-    preferences.save()
-
-set_logger_config(preferences.get_logging_config())
-
-from qiskit_acqua_chemistry.ui._mainview import MainView
-
-view = MainView(root)
-root.after(0, root.deiconify)
-root.mainloop()
-
-            
-
+main()
