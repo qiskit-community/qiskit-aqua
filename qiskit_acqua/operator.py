@@ -25,7 +25,7 @@ from scipy import sparse as scisparse
 from scipy import linalg as scila
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.wrapper import execute as q_execute
-from qiskit.tools.qi.pauli import Pauli, label_to_pauli
+from qiskit.tools.qi.pauli import Pauli, label_to_pauli, sgn_prod
 from qiskit.qasm import pi
 
 from .algorithmerror import AlgorithmError
@@ -235,8 +235,8 @@ class Operator(object):
             ret_pauli = Operator(paulis=[])
             for existed_pauli in self._paulis:
                 for pauli in rhs._paulis:
-                    coeff = existed_pauli[0] * pauli[0]
-                    basis = existed_pauli[1] * pauli[1]
+                    basis, sign = sgn_prod(existed_pauli[1], pauli[1])
+                    coeff = existed_pauli[0] * pauli[0] * sign
                     pauli_term = [coeff, basis]
                     ret_pauli += Operator(paulis=[pauli_term])
             return ret_pauli
@@ -250,7 +250,7 @@ class Operator(object):
             return ret_grouped_pauli
 
         elif self._matrix is not None and rhs._matrix is not None:
-            ret_matrix = np.dot(self._matrix, rhs._matrix)
+            ret_matrix = self._matrix.dot(rhs._matrix)
             return Operator(matrix=ret_matrix)
         else:
             raise TypeError("the representations of two Operators should be the same. ({}, {})".format(
