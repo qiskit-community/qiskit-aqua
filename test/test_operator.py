@@ -151,7 +151,7 @@ class TestOperator(QISKitAcquaTestCase):
         # print(newOP.print_operators())
 
         self.assertEqual(1, len(newOP.paulis))
-        self.assertEqual(0.25, newOP.paulis[0][0])
+        self.assertEqual(-0.25, newOP.paulis[0][0])
         self.assertEqual('ZZYY', newOP.paulis[0][1].to_label())
 
     def test_addition(self):

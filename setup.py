@@ -52,9 +52,11 @@ setuptools.setup(
     python_requires=">=3.5",
     entry_points = {
         'console_scripts': [
-                'qiskit_acqua=qiskit_acqua.__main__',
-                'qiskit_acqua_ui=qiskit_acqua.ui.run.__main__',
-                'qiskit_acqua_browser=qiskit_acqua.ui.browser.__main__'
+                'qiskit_acqua_cmd=qiskit_acqua.command_line:main'
+        ],
+        'gui_scripts': [
+                'qiskit_acqua_ui=qiskit_acqua.ui.run.command_line:main',
+                'qiskit_acqua_browser=qiskit_acqua.ui.browser.command_line:main'
         ]
     }
 )
