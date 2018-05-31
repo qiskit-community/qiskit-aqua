@@ -64,7 +64,7 @@ if preferences.get_logging_config() is None:
 
 set_logger_config(preferences.get_logging_config())
   
-from _mainview import MainView
+from qiskit_acqua.ui.browser._mainview import MainView
 
 view = MainView(root)
 root.after(0, root.deiconify)

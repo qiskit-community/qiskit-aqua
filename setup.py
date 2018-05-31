@@ -49,5 +49,12 @@ setuptools.setup(
     packages=setuptools.find_packages(exclude=['test*']),
     install_requires=requirements,
     include_package_data=True,
-    python_requires=">=3.5"
+    python_requires=">=3.5",
+    entry_points = {
+        'console_scripts': [
+                'qiskit_acqua=qiskit_acqua.__main__',
+                'qiskit_acqua_ui=qiskit_acqua.ui.run.__main__',
+                'qiskit_acqua_browser=qiskit_acqua.ui.browser.__main__'
+        ]
+    }
 )
