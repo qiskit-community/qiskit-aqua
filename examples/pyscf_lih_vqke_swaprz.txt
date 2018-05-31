@@ -8,7 +8,7 @@ LiH excited states molecule experiment. Var for SWAPRZ with VQKE
 
 &pyscf
    atom=Li .0 .0 -0.8; H .0 .0 0.8
-   units=Angstrom
+   unit=Angstrom
    charge=0
    spin=0
    basis=sto3g
