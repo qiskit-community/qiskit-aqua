@@ -11,6 +11,10 @@ In the folder here 'gauopen' the Python part of the above interfacing code neede
 made available here. It is licensed under a [Gaussian Open-Source Public License](./gauopen/LICENSE.txt) which can
 also be found in this folder.
 
+Part of the interfacing code, qcmatrixio.F. requires compiling but QISKit ACQUA contains pre-built binaries for most
+common platforms. If there is no pre-built binary matching you platform then it will be necessary to compile this file
+as per the instructions below.  
+
 ### Compile the Fortran interfacing code
 
 To use the Gaussian driver on your machine the Fortran file qcmatrixIO.F must be compiled into object code that can
@@ -50,19 +54,26 @@ You should also make sure the g16 executable can be run from a command line. Mak
 exports such as GAUSS_EXEDIR etc have been done as per Gaussian installation instructions which may be found here:
 [http://gaussian.com/techsupport/#install](http://gaussian.com/techsupport/#install).
 
-As an example, if your account is using the bash shell on a macOS X machine, you can edit the `.bash_profile` file in your account's home directory and add the following lines:
+
+### MacOS X notes
+
+As an example, if your account is using the bash shell on a macOS X machine, you can edit the `.bash_profile` file
+in your account's home directory and add the following lines:
 ```
 export GAUSS_SCRDIR=~/.gaussian
 export g16root=/Applications
 alias enable_gaussian='. $g16root/g16/bsd/g16.profile'
 ```
-assuming that Gaussian 16 was placed in the /Applications folder and that ~/.gaussian is the full path to the selected scratch 
-folder, where Gaussian 16 stores its temporary files.  Before executing QISKit ACQUA Chemistry, you will have to run the 
-`enable_gaussian` command.  This command, however, may generate an error:
+The above assumes that Gaussian 16 was placed in the /Applications folder and that ~/.gaussian is the full path to
+the selected scratch folder, where Gaussian 16 stores its temporary files. 
+ 
+Now before executing QISKit ACQUA Chemistry, to use it with Gaussian, you will have to run the `enable_gaussian` command.
+This, however, may generate the following error:
 ```
 bash: ulimit: open files: cannot modify limit: Invalid argument
 ```
-This error is not harmful, but if you want to suppress it, enter the following commands on the command line:
+Now while this error is not harmful, you might want to suppress it, which can be done by entering the following sequence
+of commands at the command line:
 ```
 echo kern.maxfiles=65536 | sudo tee -a /etc/sysctl.conf
 echo kern.maxfilesperproc=65536 | sudo tee -a /etc/sysctl.conf
@@ -70,12 +81,13 @@ sudo sysctl -w kern.maxfiles=65536
 sudo sysctl -w kern.maxfilesperproc=65536
 ulimit -n 65536 65536 
 ```
-and finally add the following line to the `.bash_profile` file in your account's home directory:
+as well as finally adding the following line to the `.bash_profile` file in your account's home directory:
 ```
 ulimit -n 65536 65536
 ```
 
 ## Input file example
+
 To configure a molecule on which to do a chemistry experiment with QISKit ACQUA Chemistry create a GAUSSIAN section
 in the input file as per the example below. Here the molecule, basis set and other options are specified according
 to GAUSSIAN control file, so blank lines, control line syntax etc according to Gaussian should be followed.
