@@ -67,12 +67,12 @@ alias enable_gaussian='. $g16root/g16/bsd/g16.profile'
 The above assumes that Gaussian 16 was placed in the /Applications folder and that ~/.gaussian is the full path to
 the selected scratch folder, where Gaussian 16 stores its temporary files. 
  
-Now before executing QISKit ACQUA Chemistry, to use it with Gaussian, you will have to run the `enable_gaussian` command.
+Now, before executing QISKit ACQUA Chemistry, to use it with Gaussian, you will have to run the `enable_gaussian` command.
 This, however, may generate the following error:
 ```
 bash: ulimit: open files: cannot modify limit: Invalid argument
 ```
-Now while this error is not harmful, you might want to suppress it, which can be done by entering the following sequence
+While this error is not harmful, you might want to suppress it, which can be done by entering the following sequence
 of commands at the command line:
 ```
 echo kern.maxfiles=65536 | sudo tee -a /etc/sysctl.conf
