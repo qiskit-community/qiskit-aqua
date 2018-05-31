@@ -20,12 +20,13 @@ InputParser test.
 """
 
 import unittest
-from test.common import QISKitAcquaTestCase
-from qiskit_acqua import AlgorithmError
-from qiskit_acqua.parser import InputParser
 import os
 import json
+
+from test.common import QISKitAcquaTestCase
+from qiskit_acqua import AlgorithmError
 from qiskit_acqua import run_algorithm
+from qiskit_acqua.parser import InputParser
 
 class TestInputParser(QISKitAcquaTestCase):
     """Input Parser and algorithms tests."""
@@ -38,45 +39,45 @@ class TestInputParser(QISKitAcquaTestCase):
     def test_save(self):
         save_path = self._get_resource_path('output.txt')
         self.parser.save_to_file(save_path)
-        
+
         p = InputParser(save_path)
         p.parse()
         os.remove(save_path)
         dict1 = json.loads(json.dumps(self.parser.get_sections()))
         dict2 = json.loads(json.dumps(p.get_sections()))
         self.assertEqual(dict1,dict2)
-        
+
     def test_load_from_dict(self):
         json_dict = self.parser.get_sections()
-        
+
         p = InputParser(json_dict)
         p.parse()
         dict1 = json.loads(json.dumps(self.parser.get_sections()))
         dict2 = json.loads(json.dumps(p.get_sections()))
         self.assertEqual(dict1,dict2)
-        
+
     def test_is_modified(self):
         json_dict = self.parser.get_sections()
-        
+
         p = InputParser(json_dict)
         p.parse()
         p.set_section_property('optimizer','maxfun',1002)
         self.assertTrue(p.is_modified())
         self.assertEqual(p.get_section_property('optimizer','maxfun'),1002)
-        
+
     def test_validate(self):
         json_dict = self.parser.get_sections()
-        
+
         p = InputParser(json_dict)
         p.parse()
         try:
             p.validate_merge_defaults()
         except Exception as e:
             self.fail(str(e))
-            
+
         p.set_section_property('optimizer','dummy',1002)
         self.assertRaises(AlgorithmError, p.validate_merge_defaults)
-        
+
     def test_run_algorithm(self):
         filepath = self._get_resource_path('ExactEigensolver.json')
         params = None
@@ -88,7 +89,7 @@ class TestInputParser(QISKitAcquaTestCase):
             dict_ret = run_algorithm(params, None, False)
         except Exception as e:
             self.fail(str(e))
-        
+
         self.assertIsInstance(dict_ret, dict)
 
 if __name__ == '__main__':

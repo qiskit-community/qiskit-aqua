@@ -16,10 +16,10 @@
 # =============================================================================
 
 import unittest
-from test.common import QISKitAcquaTestCase
 
 from qiskit.tools.qi.pauli import pauli_group
 
+from test.common import QISKitAcquaTestCase
 from qiskit_acqua.operator import Operator
 
 

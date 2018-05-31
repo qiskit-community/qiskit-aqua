@@ -16,13 +16,13 @@
 # =============================================================================
 
 import unittest
-from test.common import QISKitAcquaTestCase
 
 import numpy as np
 from qiskit import QuantumRegister
 from qiskit.tools.qi.qi import state_fidelity
 from qiskit.wrapper import execute as q_execute
 
+from test.common import QISKitAcquaTestCase
 from qiskit_acqua.operator import Operator
 from qiskit_acqua import get_algorithm_instance, get_initial_state_instance
 

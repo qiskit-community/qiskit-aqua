@@ -34,8 +34,8 @@ class TestOperator(QISKitAcquaTestCase):
     def setUp(self):
         np.random.seed(0)
 
-        num_qubits = 4
-        m_size = np.power(2, num_qubits)
+        self.num_qubits = 4
+        m_size = np.power(2, self.num_qubits)
         matrix = np.random.rand(m_size, m_size)
         self.qubitOp = Operator(matrix=matrix)
 
@@ -365,6 +365,29 @@ class TestOperator(QISKitAcquaTestCase):
         op3 = copy.deepcopy(op)
         op3.chop(threshold=0.9)
         self.assertEqual(len(op3.paulis), 0, "\n{}".format(op3.print_operators()))
+
+
+    def test_representations(self):
+
+        self.assertEqual(len(self.qubitOp.representations), 1)
+        self.assertEqual(self.qubitOp.representations, ['matrix'])
+        self.qubitOp.convert("matrix", "paulis")
+        self.assertEqual(len(self.qubitOp.representations), 2)
+        self.assertEqual(self.qubitOp.representations, ['paulis', 'matrix'])
+        self.qubitOp.convert("matrix", "grouped_paulis")
+        self.assertEqual(len(self.qubitOp.representations), 3)
+        self.assertEqual(self.qubitOp.representations, ['paulis', 'grouped_paulis', 'matrix'])
+
+    def test_num_qubits(self):
+
+        op = Operator(paulis=[])
+        self.assertEqual(op.num_qubits, 0)
+        self.assertEqual(self.qubitOp.num_qubits, self.num_qubits)
+
+    def test_is_empty(self):
+        op = Operator(paulis=[])
+        self.assertTrue(op.is_empty())
+        self.assertFalse(self.qubitOp.is_empty())
 
 
 if __name__ == '__main__':

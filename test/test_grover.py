@@ -17,9 +17,9 @@
 
 import os
 import unittest
-from test.common import QISKitAcquaTestCase
 import operator
 
+from test.common import QISKitAcquaTestCase
 from qiskit_acqua import get_algorithm_instance, get_oracle_instance
 
 

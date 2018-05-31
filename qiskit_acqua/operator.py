@@ -974,20 +974,6 @@ class Operator(object):
             cov += (sign_1 - avg_1) * (sign_2 - avg_2) * data[key] / (shots - 1)
         return cov
 
-    # @staticmethod
-    # def index_2_bit(state_index, num_bits):
-    #     """Returns bit string corresponding to quantum state index
-
-    #     Args:
-    #         state_index () : basis index of a quantum state
-    #         num_bits : the number of bits in the returned string
-    #     Returns:
-    #         A integer array with the binary representation of state_index
-    #     """
-    #     return np.array([int(c) for c
-    #                      in np.binary_repr(state_index, num_bits)[::-1]],
-    #                     dtype=np.uint8)  # change to dtype to int?
-
     def two_qubit_reduced_operator(self, m, threshold=10**-13):
         """
         Eliminates the central and last qubit in a list of Pauli that has
