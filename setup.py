@@ -24,9 +24,16 @@ import sys
 
 with open('README.md', 'r') as fh:
     long_description = fh.read()
-    
-with open('requirements.txt', 'r') as fh:
-    requirements = fh.readlines()
+
+requirements = [
+    "qiskit>=0.5.2",
+    "numpy>=1.13,<1.15",
+    "h5py",
+    "psutil",
+    "jsonschema",
+    "pyobjc-core; sys_platform == 'darwin'",
+    "pyobjc-framework-Cocoa; sys_platform == 'darwin'"
+]
 
 # Gaussian files include
 class GaussianBuild(build):
