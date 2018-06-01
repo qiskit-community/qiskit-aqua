@@ -26,6 +26,7 @@ with open('README.md', 'r') as fh:
     long_description = fh.read()
 
 requirements = [
+    "qiskit_acqua",
     "qiskit>=0.5.2",
     "numpy>=1.13,<1.15",
     "h5py",
