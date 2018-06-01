@@ -25,7 +25,7 @@ import importlib
 import inspect
 from collections import namedtuple
 from .quantumalgorithm import QuantumAlgorithm
-from .algorithmerror import AlgorithmError
+from qiskit_acqua import AlgorithmError
 from qiskit_acqua.utils.optimizers import Optimizer
 from qiskit_acqua.utils.variational_forms import VariationalForm
 from qiskit_acqua.utils.initial_states import InitialState
@@ -89,21 +89,21 @@ def discover_local_pluggables(directory=os.path.dirname(__file__),
             to the directory of this module.
         parentname (str, optional): Module parent name. Defaults to current directory name
     """
-    
-    def _get_sys_path(directory):  
+
+    def _get_sys_path(directory):
         syspath = [os.path.abspath(directory)]
         for item  in os.listdir(directory):
             fullpath = os.path.join(directory,item)
             if item != '__pycache__' and not item.endswith('dSYM') and os.path.isdir(fullpath):
                 syspath += _get_sys_path(fullpath)
-                
+
         return syspath
 
     def _discover_local_pluggables(directory,parentname):
         for _, name, ispackage in pkgutil.iter_modules([directory]):
             if ispackage:
                 continue
-            
+
             # Iterate through the modules
             if name not in _NAMES_TO_EXCLUDE:  # skip those modules
                 try:
@@ -122,12 +122,12 @@ def discover_local_pluggables(directory=os.path.dirname(__file__),
                 except Exception as e:
                     # Ignore algorithms that could not be initialized.
                     logger.debug('Failed to load {} error {}'.format(fullname, str(e)))
-                    
+
         for item  in os.listdir(directory):
             fullpath = os.path.join(directory,item)
             if item not in _FOLDERS_TO_EXCLUDE and not item.endswith('dSYM') and os.path.isdir(fullpath):
                 _discover_local_pluggables(fullpath,parentname + '.' + item)
-    
+
     global _DISCOVERED
     _DISCOVERED = True
     syspath_save = sys.path
@@ -157,10 +157,10 @@ def register_pluggable(cls, configuration=None):
         if issubclass(cls, c):
             pluggable_type = type
             break
-            
+
     if pluggable_type is None:
         raise AlgorithmError('Could not register class {} is not subclass of any known pluggable'.format(cls))
-    
+
     return _register_pluggable(pluggable_type,cls,configuration)
 
 def _register_pluggable(pluggable_type, cls, configuration=None):
@@ -177,7 +177,7 @@ def _register_pluggable(pluggable_type, cls, configuration=None):
     """
     if pluggable_type not in _REGISTERED_PLUGGABLES:
         _REGISTERED_PLUGGABLES[pluggable_type] = {}
-        
+
     # Verify that the pluggable is not already registered.
     registered_classes = _REGISTERED_PLUGGABLES[pluggable_type]
     if cls in [pluggable.cls for pluggable in registered_classes.values()]:
@@ -193,7 +193,7 @@ def _register_pluggable(pluggable_type, cls, configuration=None):
         pluggable_name = pluggable_instance.configuration['name']
     except (LookupError, TypeError):
         raise AlgorithmError('Could not register pluggable: invalid configuration')
-        
+
     if pluggable_name in _REGISTERED_PLUGGABLES[pluggable_type]:
         raise AlgorithmError('Could not register class {}. Name {} {} is already registered'.format(cls,
                              pluggable_name,_REGISTERED_PLUGGABLES[pluggable_type][pluggable_name].cls))
@@ -212,15 +212,15 @@ def deregister_pluggable(pluggable_type,pluggable_name):
         AlgorithmError: if the class is not registered
     """
     _discover_on_demand()
-  
+
     if pluggable_type not in _REGISTERED_PLUGGABLES:
         raise AlgorithmError('Could not deregister {} {} not registered'.format(pluggable_type,pluggable_name))
-        
+
     if pluggable_name not in _REGISTERED_PLUGGABLES[pluggable_type]:
         raise AlgorithmError('Could not deregister {} {} not registered'.format(pluggable_type,pluggable_name))
-        
+
     _REGISTERED_PLUGGABLES[pluggable_type].pop(pluggable_name)
-    
+
 def get_pluggable_class(pluggable_type,pluggable_name):
     """
     Accesses pluggable class
@@ -233,13 +233,13 @@ def get_pluggable_class(pluggable_type,pluggable_name):
         AlgorithmError: if the class is not registered
     """
     _discover_on_demand()
-  
+
     if pluggable_type not in _REGISTERED_PLUGGABLES:
         raise AlgorithmError('{} {} not registered'.format(pluggable_type,pluggable_name))
-        
+
     if pluggable_name not in _REGISTERED_PLUGGABLES[pluggable_type]:
         raise AlgorithmError('{} {} not registered'.format(pluggable_type,pluggable_name))
-        
+
     return _REGISTERED_PLUGGABLES[pluggable_type][pluggable_name].cls
 
 def get_pluggable_instance(pluggable_type,pluggable_name):
@@ -252,16 +252,16 @@ def get_pluggable_instance(pluggable_type,pluggable_name):
         instance: pluggable instance
     """
     _discover_on_demand()
-  
+
     if pluggable_type not in _REGISTERED_PLUGGABLES:
         raise AlgorithmError('{} {} not registered'.format(pluggable_type,pluggable_name))
-        
+
     if pluggable_name not in _REGISTERED_PLUGGABLES[pluggable_type]:
         raise AlgorithmError('{} {} not registered'.format(pluggable_type,pluggable_name))
-        
+
     return _REGISTERED_PLUGGABLES[pluggable_type][pluggable_name].cls(
             configuration=_REGISTERED_PLUGGABLES[pluggable_type][pluggable_name].configuration)
-    
+
 def get_pluggable_configuration(pluggable_type,pluggable_name):
     """
     Accesses pluggable configuration
@@ -274,13 +274,13 @@ def get_pluggable_configuration(pluggable_type,pluggable_name):
         AlgorithmError: if the class is not registered
     """
     _discover_on_demand()
-  
+
     if pluggable_type not in _REGISTERED_PLUGGABLES:
         raise AlgorithmError('{} {} not registered'.format(pluggable_type,pluggable_name))
-        
+
     if pluggable_name not in _REGISTERED_PLUGGABLES[pluggable_type]:
         raise AlgorithmError('{} {} not registered'.format(pluggable_type,pluggable_name))
-    
+
     return _REGISTERED_PLUGGABLES[pluggable_type][pluggable_name].configuration
 
 def local_pluggables_types():
@@ -305,7 +305,7 @@ def local_pluggables(pluggable_type):
     _discover_on_demand()
     if pluggable_type not in _REGISTERED_PLUGGABLES:
         raise AlgorithmError('{} not registered'.format(pluggable_type))
-    
+
     return [pluggable.name for pluggable in _REGISTERED_PLUGGABLES[pluggable_type].values()]
 
 for pluggable_type in _PLUGGABLES.keys():

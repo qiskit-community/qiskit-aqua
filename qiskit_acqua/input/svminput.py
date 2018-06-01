@@ -18,7 +18,7 @@
 import copy
 
 from qiskit_acqua import AlgorithmError
-from .algorithminput import AlgorithmInput
+from qiskit_acqua.input import AlgorithmInput
 
 
 class SVMInput(AlgorithmInput):

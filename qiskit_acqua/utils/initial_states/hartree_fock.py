@@ -18,7 +18,7 @@
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 
-from .initial_state import InitialState
+from qiskit_acqua.utils.initial_states import InitialState
 
 
 class HartreeFock(InitialState):

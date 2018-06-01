@@ -20,7 +20,7 @@ import operator
 import numpy as np
 from qiskit import QuantumCircuit, QuantumProgram, QuantumRegister, ClassicalRegister
 
-from .cost_helpers import assign_label, cost_estimate_sigmoid, return_probabilities
+from qiskit_acqua.svm import assign_label, cost_estimate_sigmoid, return_probabilities
 
 
 def trial_circuit_ML(entangler_map, coupling_map, initial_layout, n, m, theta, x_vec, name='circuit',

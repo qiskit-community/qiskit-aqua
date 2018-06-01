@@ -28,8 +28,8 @@ from qiskit.wrapper import execute as q_execute
 from qiskit.tools.qi.pauli import Pauli, label_to_pauli, sgn_prod
 from qiskit.qasm import pi
 
-from .algorithmerror import AlgorithmError
-from .utils import PauliGraph
+from qiskit_acqua import AlgorithmError
+from qiskit_acqua.utils import PauliGraph
 
 logger = logging.getLogger(__name__)
 

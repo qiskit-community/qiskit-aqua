@@ -24,7 +24,7 @@ import pkgutil
 import importlib
 import inspect
 from collections import namedtuple
-from .algorithminput import AlgorithmInput
+from qiskit_acqua.input import AlgorithmInput
 from qiskit_acqua import AlgorithmError
 import logging
 import sys
@@ -58,21 +58,21 @@ def discover_local_inputs(directory=os.path.dirname(__file__),
             to the directory of this module.
         parentname (str, optional): Module parent name. Defaults to current directory name
     """
-    
-    def _get_sys_path(directory):  
+
+    def _get_sys_path(directory):
         syspath = [os.path.abspath(directory)]
         for item  in os.listdir(directory):
             fullpath = os.path.join(directory,item)
             if item != '__pycache__' and not item.endswith('dSYM') and os.path.isdir(fullpath):
                 syspath += _get_sys_path(fullpath)
-                
+
         return syspath
 
     def _discover_localinputs(directory,parentname):
         for _, name, ispackage in pkgutil.iter_modules([directory]):
             if ispackage:
                 continue
-            
+
             # Iterate through the modules
             if name not in _NAMES_TO_EXCLUDE:  # skip those modules
                 try:
@@ -88,12 +88,12 @@ def discover_local_inputs(directory=os.path.dirname(__file__),
                 except Exception as e:
                     # Ignore algorithms that could not be initialized.
                     logger.debug('Failed to load {} error {}'.format(fullname, str(e)))
-                    
+
         for item  in os.listdir(directory):
             fullpath = os.path.join(directory,item)
             if item not in _FOLDERS_TO_EXCLUDE and not item.endswith('dSYM') and os.path.isdir(fullpath):
                 _discover_localinputs(fullpath,parentname + '.' + item)
-    
+
     global _DISCOVERED
     _DISCOVERED = True
     syspath_save = sys.path
@@ -115,8 +115,8 @@ def register_input(cls, configuration=None):
         AlgorithmError: if the class is already registered or could not be registered
     """
     _discover_on_demand()
-       
-    # Verify that the pluggable is not already registered 
+
+    # Verify that the pluggable is not already registered
     if cls in [input.cls for input in _REGISTERED_INPUTS.values()]:
         raise AlgorithmError('Could not register class {} is already registered'.format(cls))
 
@@ -130,7 +130,7 @@ def register_input(cls, configuration=None):
         input_name = input_instance.configuration['name']
     except (LookupError, TypeError):
         raise AlgorithmError('Could not register input: invalid configuration')
-        
+
     if input_name in _REGISTERED_INPUTS:
         raise AlgorithmError('Could not register class {}. Name {} {} is already registered'.format(cls,
                              input_name,_REGISTERED_INPUTS[input_name].cls))
@@ -148,12 +148,12 @@ def deregister_input(input_name):
         AlgorithmError: if the class is not registered
     """
     _discover_on_demand()
-  
+
     if input_name not in _REGISTERED_INPUTS:
         raise AlgorithmError('Could not deregister {} not registered'.format(input_name))
-            
+
     _REGISTERED_INPUTS.pop(input_name)
-    
+
 def get_input_class(input_name):
     """
     Accesses input class
@@ -165,29 +165,29 @@ def get_input_class(input_name):
         AlgorithmError: if the class is not registered
     """
     _discover_on_demand()
-  
+
     if input_name not in _REGISTERED_INPUTS:
         raise AlgorithmError('{} not registered'.format(input_name))
-        
+
     return _REGISTERED_INPUTS[input_name].cls
 
 def get_input_instance(input_name):
     """
     Instantiates an input class
     Args:
-        input_name (str): The input name 
+        input_name (str): The input name
     Returns:
         instance: input instance
     Raises:
         AlgorithmError: if the class is not registered
     """
     _discover_on_demand()
-  
+
     if input_name not in _REGISTERED_INPUTS:
         raise AlgorithmError('{} not registered'.format(input_name))
-           
+
     return _REGISTERED_INPUTS[input_name].cls(configuration=_REGISTERED_INPUTS[input_name].configuration)
-    
+
 def get_input_configuration(input_name):
     """
     Accesses input configuration
@@ -199,10 +199,10 @@ def get_input_configuration(input_name):
         AlgorithmError: if the class is not registered
     """
     _discover_on_demand()
-  
+
     if input_name not in _REGISTERED_INPUTS:
         raise AlgorithmError('{} not registered'.format(input_name))
-        
+
     return _REGISTERED_INPUTS[input_name].configuration
 
 def local_inputs():

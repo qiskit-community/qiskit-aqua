@@ -21,7 +21,7 @@ import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.qasm import pi
 
-from .iqft import IQFT
+from qiskit_acqua.utils.iqfts import IQFT
 
 
 class Approximate(IQFT):

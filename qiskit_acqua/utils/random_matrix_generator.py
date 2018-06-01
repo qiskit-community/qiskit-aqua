@@ -3,7 +3,7 @@
 import numpy as np
 import scipy
 
-from . import tensorproduct
+from qiskit_acqua.utils import tensorproduct
 
 
 def random_h1_body(N):

@@ -21,7 +21,7 @@ import logging
 
 from qiskit import QuantumRegister, QuantumCircuit
 
-from . import Oracle
+from qiskit_acqua.utils.oracles import Oracle
 
 logger = logging.getLogger(__name__)
 

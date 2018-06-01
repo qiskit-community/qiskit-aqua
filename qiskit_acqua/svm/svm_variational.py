@@ -20,28 +20,8 @@ from functools import partial
 import numpy as np
 
 from qiskit_acqua import QuantumAlgorithm, get_optimizer_instance
-from .cost_helpers import assign_label, cost_estimate_sigmoid, return_probabilities
-from .quantum_circuit_variational import eval_cost_function, eval_cost_function_with_unlabeled_data
-from .quantum_circuit_variational import set_print_info
-
-
-def entangler_map_creator(n):
-    # helper
-    if n == 2:
-        entangler_map = {0: [1]}
-    elif n == 3:
-        entangler_map = {0: [2, 1],
-                         1: [2]}
-    elif n == 4:
-        entangler_map = {0: [2, 1],
-                         1: [2],
-                         3: [2]}
-    elif n == 5:
-        entangler_map = {0: [2, 1],
-                         1: [2],
-                         3: [2, 4],
-                         4: [2]}
-    return entangler_map
+from qiskit_acqua.svm import (eval_cost_function, eval_cost_function_with_unlabeled_data,
+                              set_print_info, entangler_map_creator)
 
 
 class SVM_Variational(QuantumAlgorithm):
@@ -131,8 +111,8 @@ class SVM_Variational(QuantumAlgorithm):
 
         theta_best, cost_final, _ = self.optimizer.optimize(
             initial_theta.shape[0], objective_function, initial_point=initial_theta)
-        costs = [cost_final]  # , cost_plus, cost_minus
-        return theta_best, costs
+        # costs = cost_final  # , cost_plus, cost_minus
+        return theta_best, cost_final
 
     def test(self, theta_best, test_input, class_labels):
         total_cost, std_cost, success_ratio, predicted_labels = \
@@ -158,6 +138,8 @@ class SVM_Variational(QuantumAlgorithm):
             return self._ret
 
         theta_best, costs = self.train(self.training_dataset, self.class_labels)
+        self._ret['opt_params'] = theta_best
+        self._ret['training_loss'] = costs
 
         if self.test_dataset is not None:
             success_ratio = self.test(theta_best, self.test_dataset, self.class_labels)

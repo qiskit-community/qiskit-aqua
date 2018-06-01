@@ -22,7 +22,7 @@ import logging
 import numpy as np
 from scipy import optimize as sciopt
 
-from .optimizer import Optimizer
+from qiskit_acqua.utils.optimizers import Optimizer
 
 logger = logging.getLogger(__name__)
 

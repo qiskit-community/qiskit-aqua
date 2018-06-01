@@ -151,7 +151,7 @@ def kernel_join(points_array, points_array2, entangler_map, coupling_map, initia
             for b in range(len(svm)):
                 sequencesp = inner_prod_circuit_ML(entangler_map, coupling_map, initial_layout, num_of_qubits,
                                                    svm[b], total_test[a], None, True)
-                cp = 'join_'+str(a) + "_" + str(b)
+                cp = 'join_' + str(a) + "_" + str(b)
                 circuits.append(cp)
                 Q_program.add_circuit(cp, sequencesp)
 

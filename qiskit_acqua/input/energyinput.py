@@ -18,7 +18,7 @@
 import copy
 
 from qiskit_acqua import AlgorithmError, Operator
-from .algorithminput import AlgorithmInput
+from qiskit_acqua.input import AlgorithmInput
 
 
 class EnergyInput(AlgorithmInput):

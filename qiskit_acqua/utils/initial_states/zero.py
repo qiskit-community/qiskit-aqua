@@ -18,7 +18,7 @@
 from qiskit import QuantumRegister, QuantumCircuit
 import numpy as np
 
-from .initial_state import InitialState
+from qiskit_acqua.utils.initial_states import InitialState
 
 
 class Zero(InitialState):

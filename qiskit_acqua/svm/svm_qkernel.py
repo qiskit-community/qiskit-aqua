@@ -15,10 +15,11 @@
 # limitations under the License.
 # =============================================================================
 
+import numpy as np
+
 from qiskit_acqua import QuantumAlgorithm
-from .quantum_circuit_kernel import *
-from .qpsolver import optimize_SVM
-from .data_preprocess import *
+from qiskit_acqua.svm import (get_points_and_labels, optimize_SVM,
+                              kernel_join, entangler_map_creator)
 
 
 class SVM_QKernel(QuantumAlgorithm):
@@ -71,10 +72,10 @@ class SVM_QKernel(QuantumAlgorithm):
     def train(self, training_input, class_labels):
         training_points, training_points_labels, label_to_class = get_points_and_labels(training_input, class_labels)
 
-        Kernel_mat  = kernel_join(training_points, training_points, self.entangler_map, self.coupling_map,
-                                  self.initial_layout, self.shots, self.num_of_qubits, self.backend)
+        Kernel_mat = kernel_join(training_points, training_points, self.entangler_map, self.coupling_map,
+                                 self.initial_layout, self.shots, self.num_of_qubits, self.backend)
 
-        [alpha, b, support] = optimize_SVM(Kernel_mat,training_points_labels)
+        [alpha, b, support] = optimize_SVM(Kernel_mat, training_points_labels)
         alphas = np.array([])
         SVMs = np.array([])
         yin = np.array([])
@@ -82,7 +83,8 @@ class SVM_QKernel(QuantumAlgorithm):
             if support[alphindex]:
                 alphas = np.vstack([alphas, alpha[alphindex]]) if alphas.size else alpha[alphindex]
                 SVMs = np.vstack([SVMs, training_points[alphindex]]) if SVMs.size else training_points[alphindex]
-                yin = np.vstack([yin, training_points_labels[alphindex]]) if yin.size else training_points_labels[alphindex]
+                yin = np.vstack([yin, training_points_labels[alphindex]]
+                                ) if yin.size else training_points_labels[alphindex]
 
         return [alphas, b, SVMs, yin]
 
@@ -100,7 +102,7 @@ class SVM_QKernel(QuantumAlgorithm):
             Ltot = 0
             for sin in range(len(SVMs)):
                 L = yin[sin]*alphas[sin]*kernel_matrix[tin][sin]
-                Ltot +=  L
+                Ltot += L
 
             Lsign[tin] = np.sign(Ltot+bias)
             if self.print_info:
@@ -117,7 +119,7 @@ class SVM_QKernel(QuantumAlgorithm):
                 success_ratio += 1
         final_success_ratio = success_ratio/total_num_points
         if self.print_info:
-            print('Classification success for this set is %s %% \n'%(100*final_success_ratio))
+            print('Classification success for this set is %s %% \n' % (100*final_success_ratio))
         return final_success_ratio
 
     def predict(self, svm, test_points):

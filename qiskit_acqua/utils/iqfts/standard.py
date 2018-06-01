@@ -20,7 +20,7 @@ from scipy import linalg
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.qasm import pi
 
-from .iqft import IQFT
+from qiskit_acqua.utils.iqfts import IQFT
 
 class Standard(IQFT):
     """A normal standard IQFT."""

@@ -19,7 +19,7 @@ import logging
 
 import numpy as np
 
-from .optimizer import Optimizer
+from qiskit_acqua.utils.optimizers import Optimizer
 
 logger = logging.getLogger(__name__)
 

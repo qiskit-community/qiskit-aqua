@@ -26,7 +26,7 @@ from typing import Dict, List, Tuple, Any
 import numpy as np
 
 from qiskit_acqua import QuantumAlgorithm, AlgorithmError
-from .simple_cplex import SimpleCPLEX
+from qiskit_acqua.ising import SimpleCPLEX
 
 logger = logging.getLogger(__name__)
 

@@ -30,7 +30,7 @@ from qiskit.wrapper import register as q_register
 from qiskit.wrapper import execute as q_execute
 from qiskit.wrapper import available_backends, get_backend
 
-from . import get_qconfig, AlgorithmError
+from qiskit_acqua import get_qconfig, AlgorithmError
 
 logger = logging.getLogger(__name__)
 

@@ -18,7 +18,7 @@
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 
-from .variational_form import VariationalForm
+from qiskit_acqua.utils.variational_forms import VariationalForm
 
 
 class VarFormRY(VariationalForm):

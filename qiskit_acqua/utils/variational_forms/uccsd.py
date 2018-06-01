@@ -25,7 +25,7 @@ import logging
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 
-from .variational_form import VariationalForm
+from qiskit_acqua.utils.variational_forms import VariationalForm
 
 try:
     from qiskit_acqua_chemistry.fermionic_operator import FermionicOperator
