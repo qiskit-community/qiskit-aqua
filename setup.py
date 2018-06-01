@@ -16,11 +16,6 @@
 # =============================================================================
 
 import setuptools
-from setuptools.dist import Distribution
-from distutils.command.build import build
-import os
-import shutil
-import sys
 
 with open('README.md', 'r') as fh:
     long_description = fh.read()
@@ -35,45 +30,6 @@ requirements = [
     "pyobjc-core; sys_platform == 'darwin'",
     "pyobjc-framework-Cocoa; sys_platform == 'darwin'"
 ]
-
-# Gaussian files include
-class GaussianBuild(build):
-    
-    _GAUOPEN_DIR = 'qiskit_acqua_chemistry/drivers/gaussiand/gauopen'
-    _PLATFORM_DIRS = {'darwin': 'macosx_x86_64',
-                      'linux': 'manylinux1_x86_64',
-                      'win32': 'win_amd64',
-                      'cygwin': 'win_amd64'}
-    def run(self):
-        super().run()
-        if sys.platform not in GaussianBuild._PLATFORM_DIRS:
-            print("WARNING: Missing Gaussian binaries for '{}'. It will continue.".format(sys.platform))
-            return
-        
-        platform_dir = GaussianBuild._PLATFORM_DIRS[sys.platform]
-        gaussian_binaries_dir = os.path.join(GaussianBuild._GAUOPEN_DIR,platform_dir)
-        for dirpath, dirnames, filenames in os.walk(gaussian_binaries_dir):
-            dirpath = os.path.normpath(dirpath)
-            source_files = [os.path.join(dirpath,f) for f in filenames if not f.endswith('.DS_Store')]
-            for source_file in source_files:
-                target_file = source_file
-                components = source_file.split(os.sep)
-                try:
-                    components.remove(platform_dir)
-                    target_file = os.path.join(*components)
-                except:
-                    pass
-                
-                target_file = os.path.join(self.build_lib,target_file)
-                os.makedirs(os.path.dirname(target_file), exist_ok=True)
-                shutil.copyfile(source_file,target_file)
-                
-
-class BinaryDistribution(Distribution):
-    """Distribution always forces binary package with platform name"""
-    def has_ext_modules(self):
-        return True
-
 
 setuptools.setup(
     name='qiskit_acqua_chemistry',
@@ -109,9 +65,5 @@ setuptools.setup(
         'gui_scripts': [
                 'qiskit_acqua_chemistry_ui=qiskit_acqua_chemistry.ui.command_line:main'
         ]
-    },
-    cmdclass={
-        'build': GaussianBuild,
-    },
-    distclass=BinaryDistribution
+    }
 )
