@@ -22,8 +22,6 @@ from shutil import which
 import tempfile
 import numpy as np
 
-from .gauopen.QCMatEl import MatEl
-
 from qiskit_acqua_chemistry import QMolecule
 from qiskit_acqua_chemistry import ACQUAChemistryError
 from qiskit_acqua_chemistry.drivers import BaseDriver
@@ -35,7 +33,16 @@ GAUSSIAN_16_DESC = 'Gaussian 16'
 
 g16prog = which(GAUSSIAN_16)
 if g16prog is None:
-    raise ACQUAChemistryError("Could not locate {}".format(GAUSSIAN_16_DESC))
+    raise ACQUAChemistryError("Could not locate {} executable '{}'. Please check that it is installed correctly."
+                              .format(GAUSSIAN_16_DESC, GAUSSIAN_16))
+
+try:
+    from .gauopen.QCMatEl import MatEl
+except ModuleNotFoundError as mnfe:
+    if mnfe.name == 'qcmatrixio':
+        err_msg = "qcmatrixio extension not found. See Gaussian driver readme to build qcmatrixio.F using f2py"
+        raise ACQUAChemistryError(err_msg) from mnfe
+    raise mnfe
 
 
 class GaussianDriver(BaseDriver):
