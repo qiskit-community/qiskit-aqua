@@ -76,7 +76,7 @@ Additionally if you want to develop/run the unit tests then further packages are
 
 `pip install -r requirements-dev.txt` 
 
-Finally you will need to install a chemistry driver. See the chemistry drivers [readme](qiskit_acqua_chemistry/drivers)
+Finally you will need to install a chemistry driver. See the chemistry drivers [readme](qiskit_acqua_chemistry/drivers/README.md)
 for more detail as the installation varies by driver due to their use of a separate chemistry program or chemistry 
 library specific to that driver.
 
