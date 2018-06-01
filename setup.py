@@ -20,8 +20,16 @@ import setuptools
 with open('README.md', 'r') as fh:
     long_description = fh.read()
     
-with open('requirements.txt', 'r') as fh:
-    requirements = fh.readlines()
+requirements = [
+    "qiskit>=0.5.2",
+    "scipy>=0.19,<1.2",
+    "numpy>=1.13,<1.15",
+    "psutil",
+    "jsonschema",
+    "scikit-learn",
+    "cvxopt",
+    "pyobjc; sys_platform == 'darwin'"
+]
 
 setuptools.setup(
     name='qiskit_acqua',
