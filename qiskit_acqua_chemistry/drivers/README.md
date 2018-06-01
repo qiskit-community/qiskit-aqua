@@ -12,15 +12,15 @@ each driver folder.
 
 At least one chemistry program/library needs to be installed.
 
-* [Gaussian](./gaussiand): A commercial chemistry program  
-* [PyQuante](./pyquanted): An open-source Python library, with a pure Python version usable cross-platform
-* [PySCF](./pyscfd): An open-source Python library 
-* [PSI4](./psi4d): An open-source chemistry program built on Python
+* [Gaussian](./gaussiand/README.md): A commercial chemistry program  
+* [PyQuante](./pyquanted/README.md): An open-source Python library, with a pure Python version usable cross-platform
+* [PySCF](./pyscfd/README.md): An open-source Python library 
+* [PSI4](./psi4d/README.md): An open-source chemistry program built on Python
 
 However it is possible to run some chemistry experiments if you have a QISKit ACQUA Chemistry HDF5 file that has been
 previously created when using one of the above drivers. The HDF5 driver takes such an input. 
 
-* [HDF5](./hdf5d): Driver for QISKit ACQUA Chemistry hdf5 files    
+* [HDF5](./hdf5d/README.md): Driver for QISKit ACQUA Chemistry hdf5 files    
 
 ## Writing a new driver
 
