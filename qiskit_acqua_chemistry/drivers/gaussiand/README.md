@@ -11,9 +11,9 @@ In the folder here 'gauopen' the Python part of the above interfacing code neede
 made available here. It is licensed under a [Gaussian Open-Source Public License](./gauopen/LICENSE.txt) which can
 also be found in this folder.
 
-Part of the interfacing code, qcmatrixio.F. requires compiling but QISKit ACQUA contains pre-built binaries for most
-common platforms. If there is no pre-built binary matching you platform then it will be necessary to compile this file
-as per the instructions below.  
+Part of this interfacing code, qcmatrixio.F, requires compilation to a Python native extension, however
+QISKit ACQUA Chemistry does have pre-built binaries for most common platforms. If there is no pre-built binary
+matching your platform then it will be necessary to compile this file as per the instructions below.  
 
 ### Compile the Fortran interfacing code
 
