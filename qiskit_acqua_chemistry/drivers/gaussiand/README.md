@@ -22,14 +22,14 @@ to use the Gaussian driver on your machine the Fortran file qcmatrixio.F must be
 be used by Python. This is accomplished using f2py, which is part of numpy https://docs.scipy.org/doc/numpy/f2py/
 
 Change directory to gauopen and from your Python environment use the following command. You will need a supported
-Fortran compiler installed. On MacOS you may have to download GCC and the GFortan Compiler source and compile it first
+Fortran compiler installed. On MacOS you may have to download GCC and the GFortran Compiler source and compile it first
 if you do not a suitable Fortran compiler installed. With Linux you may be able to download one via your distribution's
 installer.
 
 >f2py -c -m qcmatrixio qcmatrixio.F
 
-The following can be used with the Intel Fortran e.g on Microsoft Windows platform. On Windows with the Intel Fortan
-compiler the environment can be setup with ifortvars.bat e.g. `ifortvars -arch intel64`. 
+The following can be used with the Intel Fortran e.g on Microsoft Windows platform. On Windows with the Intel Fortran
+compiler the environment can be setup with _ifortvars.bat_ e.g. `ifortvars -arch intel64`. 
 
 >f2py -c --fcompiler=intelvem -m qcmatrixio qcmatrixio.F
 
