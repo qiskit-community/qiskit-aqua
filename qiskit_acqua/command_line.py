@@ -18,11 +18,12 @@
 import argparse
 import json
 import logging
-from qiskit_acqua._logging import build_logging_config,set_logger_config
+from qiskit_acqua._logging import build_logging_config, set_logger_config
 from qiskit_acqua.preferences import Preferences
 from qiskit_acqua import run_algorithm
 from qiskit_acqua.utils import convert_json_to_dict
-    
+
+
 def main():
     parser = argparse.ArgumentParser(description='QISKit Acqua Program.')
     parser.add_argument('input', 
@@ -37,7 +38,7 @@ def main():
     
     preferences = Preferences()
     if preferences.get_logging_config() is None:
-        logging_config = build_logging_config(['qiskit_acqua'],logging.INFO)
+        logging_config = build_logging_config(['qiskit_acqua'], logging.INFO)
         preferences.set_logging_config(logging_config)
         preferences.save()
     
@@ -47,18 +48,16 @@ def main():
     with open(args.input) as json_file:
         params = json.load(json_file)
     
-    ret = run_algorithm(params,None,True)
+    ret = run_algorithm(params, None, True)
     
     if args.jo is not None:
         with open(args.jo, 'w') as f:
             print('{}'.format(ret), file=f)
     else:
         convert_json_to_dict(ret)
-        print('Output:')
+        print('\n\n--------------------------------- R E S U L T ------------------------------------\n')
         if isinstance(ret,dict):
-            for k,v in ret.items():
-                print("'{}': {}".format(k,v))
+            for k, v in ret.items():
+                print("'{}': {}".format(k, v))
         else:
             print(ret)
-                
-    
