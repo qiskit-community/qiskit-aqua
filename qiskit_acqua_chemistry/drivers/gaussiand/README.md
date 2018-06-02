@@ -4,30 +4,32 @@
 
 Gaussian 16 is a commercial program for computational chemistry, see http://gaussian.com/gaussian16/
 
-The driver accesses the electronic structure from Gaussian 16 via the Gaussian supplied open-source interfacing code
-available from Gaussian at http://www.gaussian.com/interfacing/
+The driver accesses electronic structure information from Gaussian 16 via the Gaussian supplied open-source 
+interfacing code available from Gaussian at http://www.gaussian.com/interfacing/
 
-In the folder here 'gauopen' the Python part of the above interfacing code needed by QISKit ACQUA Chemistry has been
-made available here. It is licensed under a [Gaussian Open-Source Public License](./gauopen/LICENSE.txt) which can
+In the folder here called 'gauopen' the Python part of the above interfacing code, as needed by QISKit ACQUA Chemistry,
+has been made available. It is licensed under a [Gaussian Open-Source Public License](./gauopen/LICENSE.txt) which can
 also be found in this folder.
 
 Part of this interfacing code, qcmatrixio.F, requires compilation to a Python native extension, however
-QISKit ACQUA Chemistry does have pre-built binaries for most common platforms. If there is no pre-built binary
+QISKit ACQUA Chemistry comes with pre-built binaries for most common platforms. If there is no pre-built binary
 matching your platform then it will be necessary to compile this file as per the instructions below.  
 
-### Compile the Fortran interfacing code
+### Compiling the Fortran interfacing code
 
-To use the Gaussian driver on your machine the Fortran file qcmatrixIO.F must be compiled into object code that can
-be used by python. This is accomplished using f2py, which is part of numpy https://docs.scipy.org/doc/numpy/f2py/
+If no pre-built native extension binary, as supplied with QISKit ACQUA Chemistry, works for your platform then
+to use the Gaussian driver on your machine the Fortran file qcmatrixio.F must be compiled into object code that can
+be used by Python. This is accomplished using f2py, which is part of numpy https://docs.scipy.org/doc/numpy/f2py/
 
-Change directory to gauopen and from your python environment use the following command. You will need a supported
-Fortran compiler installed. On MacOS you may have to download GCC and the GFortan Compiler source and compiler it first
+Change directory to gauopen and from your Python environment use the following command. You will need a supported
+Fortran compiler installed. On MacOS you may have to download GCC and the GFortan Compiler source and compile it first
 if you do not a suitable Fortran compiler installed. With Linux you may be able to download one via your distribution's
 installer.
 
 >f2py -c -m qcmatrixio qcmatrixio.F
 
-The following can be used with the Intel Fortran e.g on Microsoft Windows platform
+The following can be used with the Intel Fortran e.g on Microsoft Windows platform. On Windows with the Intel Fortan
+compiler the environment can be setup with ifortvars.bat e.g. `ifortvars -arch intel64`. 
 
 >f2py -c --fcompiler=intelvem -m qcmatrixio qcmatrixio.F
 
@@ -88,9 +90,9 @@ ulimit -n 65536 65536
 
 ## Input file example
 
-To configure a molecule on which to do a chemistry experiment with QISKit ACQUA Chemistry create a GAUSSIAN section
+To configure a molecule, on which to do a chemistry experiment with QISKit ACQUA Chemistry, create a GAUSSIAN section
 in the input file as per the example below. Here the molecule, basis set and other options are specified according
-to GAUSSIAN control file, so blank lines, control line syntax etc according to Gaussian should be followed.
+to the GAUSSIAN control file, so blank lines, control line syntax etc. according to Gaussian should be followed.
 ```
 &GAUSSIAN
 # rhf/sto-3g scf(conventional)
