@@ -66,5 +66,7 @@ for pluggable_type in _PLUGGABLES.keys():
     
 from .algomethods import run_algorithm
 __all__.append('run_algorithm')
+from .algomethods import run_algorithm_to_json
+__all__.append('run_algorithm_to_json')
 from .operator import Operator
 __all__.append('Operator')

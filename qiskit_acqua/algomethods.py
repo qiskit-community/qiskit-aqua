@@ -31,7 +31,19 @@ import copy
 logger = logging.getLogger(__name__)
 
 
-def run_algorithm(params, algo_input = None,json_output=False):
+def run_algorithm(params, algo_input=None, json_output=False):
+    """
+    Run algorithm as named in params, using params and algo_input as input data
+    and returning a result dictionary
+
+    Args:
+        params (dict): Dictionary of params for algo and dependent objects
+        algo_input(algorithminput): Main input data for algorithm. Optional, an algo may run entirely from params
+        json_output(bool): False for regular python dictionary return, True for json conversion
+
+    Returns:
+        Result dictionary containing result of algorithm computation
+    """
     _discover_on_demand()
 
     inputparser = InputParser(params)
@@ -73,3 +85,38 @@ def run_algorithm(params, algo_input = None,json_output=False):
         convert_dict_to_json(value)
 
     return value
+
+
+def run_algorithm_to_json(params, algo_input=None, jsonfile='algorithm.json'):
+    """
+    Run algorithm as named in params, using params and algo_input as input data
+    and save the combined input as a json file. This json is self-contained and
+    can later be used as a basis to call run_algorithm
+
+    Args:
+        params (dict): Dictionary of params for algo and dependent objects
+        algo_input(algorithminput): Main input data for algorithm. Optional, an algo may run entirely from params
+        jsonfile(string): Name of file in which json should be saved
+
+    Returns:
+        Result dictionary containing the jsonfile name
+    """
+    _discover_on_demand()
+
+    inputparser = InputParser(params)
+    inputparser.parse()
+    inputparser.validate_merge_defaults()
+
+    algo_params = copy.deepcopy(inputparser.get_sections())
+
+    if algo_input is not None:
+        algo_params['input'] = algo_input.to_params()
+        algo_params['input']['name'] = algo_input.configuration['name']
+
+    logger.debug('Result: {}'.format(json.dumps(algo_params, sort_keys=True, indent=4)))
+    with open(jsonfile, 'w') as fp:
+        json.dump(algo_params, fp, sort_keys=True, indent=4)
+
+    logger.info("Algorithm input file saved: '{}'".format(jsonfile))
+
+    return {'jsonfile': jsonfile}
