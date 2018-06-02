@@ -203,12 +203,36 @@ the feature space. The method used falls in the category of what is called _supe
 phase_ (where the kernel is calculated and the support vectors obtained) and a _test or classification phase_ (where new 
 labeless data is classified according to the solution found in the training phase).
 
+SVM_QKernel can be configured with the following parameters:
+
+* `num_qubits`=*integer 2 to n, defaults to 2*
+
+  Number of qubits to use for the problem.
+
+* `print_info`=*False* | True
+
+  Whether to print additional information or not when the algorithm is running.
+
 
 ## SVM_Variational
 
 Just like SVM_Kernel, the SVM_Variational algorithm applies to classification problems that require a feature map for which 
 computing the kernel is not efficient classically.  SVM_Variational solves such problems in a quantum processor by 
 variational method that optimizes a parameterized quantum circuit to provide a solution that cleanly separates the data.
+
+SVM_Variational can be configured with the following parameters:
+
+* `num_qubits`=*integer 2 to n, defaults to 2*
+
+  Number of qubits to use for the problem.
+
+* `circuit_depth`=*integer 3 to n, defaults to 3*
+
+  Circuit depth to use for the variational form.
+
+* `print_info`=*False* | True
+
+  Whether to print additional information or not when the algorithm is running.
 
 
 ## ExactEigensolver
@@ -243,7 +267,7 @@ CPLEX can be configured with the following parameter:
 
   Thread, defaults to 1.
 
-*  `display`=*integer*
+* `display`=*integer*
 
   Display, defaults to 2.
 
