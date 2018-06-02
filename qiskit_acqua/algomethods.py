@@ -110,7 +110,7 @@ def run_algorithm_to_json(params, algo_input=None, jsonfile='algorithm.json'):
     algo_params = copy.deepcopy(inputparser.get_sections())
 
     if algo_input is not None:
-        algo_params['input'] = algo_input.to_params()
+        algo_params['input'] = convert_dict_to_json(algo_input.to_params())
         algo_params['input']['name'] = algo_input.configuration['name']
 
     logger.debug('Result: {}'.format(json.dumps(algo_params, sort_keys=True, indent=4)))
