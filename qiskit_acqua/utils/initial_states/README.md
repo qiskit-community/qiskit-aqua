@@ -6,9 +6,9 @@ The *initial_states* folder here contains initial-state pluggable objects that m
 
 # Initial States
 
-Initial states are currently used to define a starting state for the [variational forms](../variational_forms) and
-as a trial state to be evolved by the [Quantum Phase Estimation (QPE)](../../../qiskit_acqua#qpe) algorithm. An initial
-state provides a circuit that can take the starting point of all zero qubits to the defined state.  
+Initial states are currently used to define a starting state for the [variational forms](../variational_forms/README.md)
+and as a trial state to be evolved by the [Quantum Phase Estimation (QPE)](../../../qiskit_acqua#qpe) algorithm.
+An initial state provides a circuit that can take the starting point of all zero qubits to the defined state.  
 
 The following initial states are supplied:
 
@@ -30,12 +30,12 @@ This initial state allows for different desired starting states. In addition to 
 custom state may be specified through this option. This initial state has the following parameters and will return
 a state for use with `num_qubits`.
 
-* state=**zero** | uniform | random
+* `state`=**zero** | uniform | random
 
   This state can take the value of *zero*, which is the same as using the [ZERO](#zero) initial state object,
   *uniform* which will set the qubits in superposition, or *random*.
 
-* state_vector
+* `state_vector`=*array of numbers*
 
   The *state_vector* parameter allows a specific custom initial state to be defined. The state vector must be an
   array of numbers of length `2 ** num_qubits`. The vector will be normalized so that the total probability represented
@@ -45,23 +45,24 @@ a state for use with `num_qubits`.
 ## HartreeFock
 
 This initial state corresponds to the Hartree-Fock state for a molecule in chemistry. The following parameters allow
-this initial state to be configured. The number of orbitals is implicitly defined via the `num_qubits`
-form to be configured:
+this initial state to be configured:
 
-* qubit_mapping=jordan_wigner | **parity** | bravyi_kitaev
+* `qubit_mapping`=jordan_wigner | **parity** | bravyi_kitaev
 
   The mapping that is used from fermion to qubit. Note: bravyi_kitaev is also known as binary-tree-based qubit mapping. 
 
-* two_qubit_reduction=**true** | false
+* `two_qubit_reduction`=**true** | false
 
   Whether two-qubit reduction is being used. Only valid with parity mapping, otherwise ignored
   
-* num_particles
+* `num_particles`=*integer*
 
   The number of particles for which the state should be created 
 
-Note: the number or orbitals is implicitly given as `num_qubits`; the two-qubit reduction is also taken into
-account in computing this number, which will be used internally to prepare the correct state for the particles. 
+* `num_orbitals`=*integer*
+
+  The number of spin orbitals for which the state should be created 
+
 
 # Developers
 

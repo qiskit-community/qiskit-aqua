@@ -21,7 +21,7 @@ The following optimizers are supplied here. These are all local optimizers:
 * [SPSA](#spsa)
 * [TNC](#tnc)
 
-Further optimizers may be found in the [nlopts](./nlopts) folder that use the open-source
+Further optimizers may be found in the [nlopts](./nlopts/README.md) folder that use the open-source
 [NLOpt](https://nlopt.readthedocs.io) package and require NLopt to be installed to be used.
 
 The optimizers here that are based on
@@ -42,19 +42,19 @@ method. Only the first derivatives are used.
 
 The following parameters are supported:
 
-* maxiter: *defaults to 20*
+* `maxiter`=*integer, defaults to 20*
 
   Maximum number of iterations to perform.
 
-* disp: True|**False**
+* `disp`=True|**False**
 
   Set to True to print convergence messages.
   
-* gtol: *defaults to 1e-05*
+* `gtol`=*number, defaults to 1e-05*
 
   Gradient norm must be less than gtol before successful termination.
 
-* tol: float, optional
+* `tol`=*number, optional, defaults to None*
 
   Tolerance for termination
 
@@ -67,19 +67,19 @@ Constrained Optimization By Linear Approximation algorithm.
 
 The following parameters are supported:
 
-* maxiter: *defaults to 1000*
+* `maxiter`=*integer, defaults to 1000*
 
   Maximum number of iterations to perform.
 
-* disp: True|**False**
+* `disp`=True|**False**
 
   Set to True to print convergence messages.
   
-* rhobeg: *defaults to 1.0*
+* `rhobeg`=*number, defaults to 1.0*
 
   Reasonable initial changes to the variables.
 
-* tol: float, optional
+* `tol`=*number, optional, defaults to None*
 
   Tolerance for termination
 
@@ -92,15 +92,15 @@ optimizer as its core.
  
 The following parameters are supported:
 
-* maxfun: *defaults to 1000*
+* `maxfun`=*integer, defaults to 1000*
 
   Maximum number of function evaluations
 
-* factr: *defaults to 10*
+* `factr`=*integer, defaults to 10*
 
   An iteration stopping parameter
 
-* iprint: *defaults to -1*
+* `iprint`=*integer, defaults to -1*
 
   Controls the frequency of printed output that shows optimizer workings.
 
@@ -119,23 +119,23 @@ be preferred for their better performance in general.
 
 The following parameters are supported:
 
-* maxiter: integer, optional
+* `maxiter`=*integer, optional*
 
   Maximum number of iterations to perform.
 
-* maxfev: *defaults to 1000*
+* `maxfev`=*integer, defaults to 1000*
 
   Maximum number of functional evaluations to perform.
 
-* disp: True|**False**
+* `disp`=True|**False**
 
   Set to True to print convergence messages.
   
-* xatol: *defaults to 0.0001*
+* `xatol`=*number, defaults to 0.0001*
 
   Absolute error in xopt between iterations that is acceptable for convergence.
 
-* tol: float, optional
+* `tol`=*number, optional, defaults to None*
 
   Tolerance for termination
 
@@ -146,7 +146,7 @@ This is a parallel use of [L_BFGS_B](#l_bfgs_b) that can be useful when the targ
 running on a classical machine. This allows the multiple processes to use simulation to potentially reach a minimum
 faster. It has the same parameters as [L_BFGS_B](#l_bfgs_b) and additionally the following.
 
-* max_processes: integer, optional, minimum value is 1
+* `max_processes`=*integer, optional, minimum value is 1*
 
   By default P_BFGS will run one optimization in the current process and spawn additional processes up to
   the number of processor cores. An integer may be specified to limit the total number of processes (cores)
@@ -168,23 +168,23 @@ minimization loop. The function need not be differentiable, and no derivatives a
 
 The following parameters are supported:
 
-* maxiter: integer, optional
+* `maxiter`=*integer, optional*
 
   Maximum number of iterations to perform.
 
-* maxfev: *defaults to 1000*
+* `maxfev`=*integer, defaults to 1000*
 
   Maximum number of functional evaluations to perform.
 
-* disp: True|**False**
+* `disp`=True|**False**
 
   Set to True to print convergence messages.
   
-* xtol: *defaults to 0.0001*
+* `xtol`=*number, defaults to 0.0001*
 
   Relative error in solution xopt acceptable for convergence.
 
-* tol: float, optional
+* `tol`=*number, optional, defaults to None*
 
   Tolerance for termination
 
@@ -200,19 +200,19 @@ floating values.
 
 The following parameters are supported:
 
-* maxiter: *defaults to 100*
+* `maxiter`=*integer, defaults to 100*
 
   Maximum number of iterations to perform.
 
-* disp: True|**False**
+* `disp`=True|**False**
 
   Set to True to print convergence messages.
   
-* ftol: *defaults to 1e-06*
+* `ftol`=*number, defaults to 1e-06*
 
   Precision goal for the value of f in the stopping criterion.
 
-* tol: float, optional
+* `tol`=*number, optional, defaults to None*
 
   Tolerance for termination
 
@@ -229,19 +229,22 @@ The optimization includes a calibration that will include additional functional 
 
 The following parameters are supported:
 
-* max_trials: *defaults to 1000*
+* `max_trials`=*integer, defaults to 1000*
 
   Maximum number of trial steps for to be taken for the optimization. There are two function evaluations per trial.
 
-* save_steps: *defaults to 1*
+* `save_steps`=*integer, defaults to 1*
 
   Stores optimization outcomes each 'save_steps' trial steps
 
-* last_avg: *defaults to 1*
+* `last_avg`=*integer, defaults to 1*
 
   The number of last updates of the variables to average on for the final objective function.
 
+* `parameters`=*array of 5 numbers, optional, defaults to None*
 
+  Control parameters for SPSA
+  
 ## TNC
 
 It utilizes the scipy.optimize package: https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
@@ -252,30 +255,30 @@ above as it wraps a C implementation and allows each variable to be given upper 
 
 The following parameters are supported:
 
-* maxiter: *defaults to 100*
+* `maxiter`=*integer, defaults to 100*
 
   Maximum number of iterations to perform.
 
-* disp: True|**False**
+* `disp`=True|**False**
 
   Set to True to print convergence messages.
   
-* accuracy: *defaults to 0*
+* `accuracy`=*number, defaults to 0*
 
   Relative precision for finite difference calculations.
 
-* ftol: *defaults to -1*
+* `ftol`=*number, defaults to -1*
 
   Precision goal for the value of f in the stopping criterion.
 
-* xtol: *defaults to -1*
+* `xtol`=*number, defaults to -1*
 
   Precision goal for the value of x in the stopping criterion (after applying x scaling factors).
 
-* gtol: *defaults to -1*
+* `gtol`=*number, defaults to -1*
 
   Precision goal for the value of the projected gradient in the stopping criterion (after applying x scaling factors).
 
-* tol: float, optional
+* `tol`=*number, optional, defaults to None*
 
   Tolerance for termination

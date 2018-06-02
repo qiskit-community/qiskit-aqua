@@ -21,7 +21,7 @@ This oracle is for use when searching for solutions to a Satisfiability (SAT) pr
 [Conjunctive Normal Form](https://en.wikipedia.org/wiki/Conjunctive_normal_form) as used in specifying SAT problems,
 and thus enables the provided Grover's implementation be used to build the search circuit for SAT problem instances.
 
-* cnf=*string*
+* `cnf`=*string*
 
   A string in [DIMACS](http://www.satcompetition.org/2009/format-benchmarks2009.html) cnf format
   defining the SAT problem.

@@ -27,8 +27,8 @@ The following algorithms are part of the library:
 
 [VQE](https://arxiv.org/abs/1304.3061), the Variational Quantum Eigensolver algorithm, as its name suggests, 
 uses a variational approach to find the minimum eigenvalue of a Hamiltonian energy problem. It is configured 
-with a trial wavefunction, supplied by a [variational form](./utils/variational_forms), and
-an [optimizer](./utils/optimizers). An [initial state](./utils/initial_states) may be supplied too.    
+with a trial wavefunction, supplied by a [variational form](./utils/variational_forms/README.md), and
+an [optimizer](./utils/optimizers/README.md). An [initial state](./utils/initial_states/README.md) may be supplied too.    
 
 
 VQE can be configured with the following parameters:
@@ -40,7 +40,8 @@ VQE can be configured with the following parameters:
 * `initial_point`=*optional array of numbers*
 
   An optional array of numbers may be provided as the starting point for the
-  [variational form](./utils/variational_forms). The length of this array must match the variational form being used.
+  [variational form](./utils/variational_forms/README.md). The length of this array must match the variational
+  form being used.
   
   If not provided VQE will create a random starting point for the optimizer where its values are randomly chosen to
   lie within the bounds of the variational form. If the variational form provides None back for any or all elements
@@ -52,14 +53,14 @@ VQE can be configured with the following parameters:
 
 VQkE, the Variational Quantum k-Eigensolver algorithm, is a variant of [VQE](#vqe) that, in addition to finding the
 minimum eignevalue, can also find the next k-1 lowest eigenvalues. Like VQE, it is configured with a trial wavefunction,
-supplied by a [variational form](./utils/variational_forms), and an [optimizer](./utils/optimizers).
-An [initial state](./utils/initial_states) may be supplied too.    
+supplied by a [variational form](./utils/variational_forms/README.md), and an [optimizer](./utils/optimizers/README.md).
+An [initial state](./utils/initial_states/README.md) may be supplied too.    
 
 VQkE can be configured with the following parameters:
 
 * See [VQE](#vqe) for common parameter settings
 
-* `k`=*integer 1 to n*
+* `k`=*integer 1 to n, default 1*
 
   Returns up to k smallest eigenvalues. k defaults to 1, in which case VQkE coincides with VQE.
 
@@ -67,16 +68,16 @@ VQkE can be configured with the following parameters:
 
   A list of k pairs of floats indicating lower and upper bounds for the desired eigenvalues.
 
-* `penalty_factor`=*number default 100*
+* `penalty_factor`=*number, default 100*
 
   A penalty factor for condition number of the eigenvalue in the objective function of the
   metalevel search problem, and for violating the bounds on the eigenvalue.
 
-* `norm_threshold`=*number default 1e-04*
+* `norm_threshold`=*number, default 1e-04*
 
   Minimum value of `|<psi|H^2|psi> - <psi|H|psi>^2|` before we start penalizing it in the objective function
 
-* `gap_lb`=*number default 0.1*
+* `gap_lb`=*number, default 0.1*
 
   Lower bound on gap between eigenvalues.
 
@@ -130,8 +131,8 @@ The information of the corresponding eigenvalue is then *kicked-back* into the p
 which can then be deconvoluted by the inverse Quantum Fourier Transform,
 and then measured for read-out in binary decimal format.
 
-QPE is configured with an [initial state](./utils/initial_states) 
-and an [inverse quantum fourier transform](./utils/iqfts)
+QPE is configured with an [initial state](./utils/initial_states/README.md) 
+and an [inverse quantum fourier transform](./utils/iqfts/README.md)
 
 Note: this algorithm **_does not_** support the `local_state_vector` simulator.
 
@@ -209,7 +210,7 @@ SVM_QKernel can be configured with the following parameters:
 
   Number of qubits to use for the problem.
 
-* `print_info`=*False* | True
+* `print_info`=**False** | True
 
   Whether to print additional information or not when the algorithm is running.
 
@@ -230,7 +231,7 @@ SVM_Variational can be configured with the following parameters:
 
   Circuit depth to use for the variational form.
 
-* `print_info`=*False* | True
+* `print_info`=**False** | True
 
   Whether to print additional information or not when the algorithm is running.
 
@@ -242,7 +243,7 @@ it may be useful in the near term while experimenting with, developing and testi
 
 ExactEigensolver can be configured with the following parameter:
 
-* `k`=*integer 1 to n*
+* `k`=*integer 1 to n, default 1*
 
   Returns up to k smallest eigenvalues. k defaults to 1.
 
@@ -259,15 +260,15 @@ Hamiltonian.
 
 CPLEX can be configured with the following parameter:
 
-* `timelimit`=*integer 1 to n*
+* `timelimit`=*integer 1 to n, default 600*
 
   Time limit, defaults to 600.
 
-* `thread`=*integer*
+* `thread`=*integer, default 1*
 
   Thread, defaults to 1.
 
-* `display`=*integer*
+* `display`=*integer, default 2*
 
   Display, defaults to 2.
 
@@ -281,26 +282,26 @@ recognized and be made available for use within the framework of QISKit ACQUA.
 To develop/deploy here any new algorithms the new class and module(s) should be under their own folder here in
 *qiskit_acqua*, like the existing algorithms, vqe, vqke etc., and should derive from QuantumAlgorithm class. 
 
-The [utils](./utils) folder here has common utility classes and other pluggable entities that may be used by the
+The [utils](./utils/README.md) folder here has common utility classes and other pluggable entities that may be used by the
 algorithms
 
-* [Optimizers](./utils/optimizers) 
+* [Optimizers](./utils/optimizers/README.md) 
 
   Optimizers should go under *utils/optimizers* and derive from Optimizer class.
 
-* [Variational Forms](./utils/variational_forms)
+* [Variational Forms](./utils/variational_forms/README.md)
  
   Trial wavefunction objects should go under *utils/variational_forms* and derive from VariationalForm class.
 
-* [Initial States](./utils/initial_states)
+* [Initial States](./utils/initial_states/README.md)
  
   Initial state objects should go under *utils/initial_states* and derive from InitialState class.
 
-* [IQFTs](./utils/iqfts)
+* [IQFTs](./utils/iqfts/README.md)
  
   IQFT (Inverse Quantum Fourier Transform) objects should go under *utils/iqfts* and derive from IQFT class.
 
-* [Oracles](./oracles)
+* [Oracles](./oracles/README.md)
 
   Oracles, for use with algorithms like Grover, should go under *utils/oracles* and derive from Oracle class.  
 

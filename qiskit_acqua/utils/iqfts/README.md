@@ -25,7 +25,7 @@ This is a standard IQFT. This IQFT has no parameters and will return an IQFT cir
 This is an approximate IQFT. This IQFT has the following parameters and will return an IQFT circuit based on
 `num qubits`.
 
-* degree=**integer, default is 0**
+* `degree`=**integer, default is 0**
 
   This parameter controls the approximation. The value here will reduce the depth of neighbor terms allowed in the
   IQFT circuit. At 0 this will result in the same as the [STANDARD](#standard) IQFT. Each value above that however 

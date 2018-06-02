@@ -27,7 +27,7 @@ to be used. See the [Installation](#installation) section below for more informa
 NLopt has the optimizers supported by a common interface. The parameters here are common to all the
 optimizers provided below from the NLopt package and are:
 
-* max_evals: **default 1000**
+* `max_evals`=*integer, default 1000*
 
   Maximum object function evaluations
 
