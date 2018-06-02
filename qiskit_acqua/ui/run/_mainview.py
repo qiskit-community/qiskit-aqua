@@ -43,12 +43,12 @@ class MainView(ttk.Frame):
         self._controller = Controller(self)
         self.pack(expand=tk.YES,fill=tk.BOTH)
         self._create_widgets()
-        self.master.title('QISKit Acqua')
+        self.master.title('QISKit ACQUA')
         if parent is not None:
             parent.protocol('WM_DELETE_WINDOW',self.quit)
             
     def _show_about_dialog(self):
-        tkmb.showinfo(message= 'QISKit Acqua')
+        tkmb.showinfo(message= 'QISKit ACQUA')
 
     def _show_preferences(self):
         dialog = PreferencesDialog(self._controller,self)
@@ -79,7 +79,7 @@ class MainView(ttk.Frame):
         if sys.platform == 'darwin':
             app_menu = tk.Menu(menubar, name='apple')
             menubar.add_cascade(menu=app_menu)
-            app_menu.add_command(label='About QISKit Acqua',command=self._show_about_dialog)
+            app_menu.add_command(label='About QISKit ACQUA',command=self._show_about_dialog)
             self.master.createcommand('tk::mac::ShowPreferences', self._show_preferences)
             self.master.createcommand('tk::mac::Quit', self.quit)
             
@@ -91,7 +91,7 @@ class MainView(ttk.Frame):
             tools_menu.add_command(label='Options',command=self._show_preferences)
             menubar.add_cascade(label='Tools',menu=tools_menu)
             help_menu = tk.Menu(menubar,tearoff=False)
-            help_menu.add_command(label='About QISKit Acqua',command=self._show_about_dialog)
+            help_menu.add_command(label='About QISKit ACQUA',command=self._show_about_dialog)
             menubar.add_cascade(label='Help',menu=help_menu)
         
     def _fileMenu(self,menubar):
