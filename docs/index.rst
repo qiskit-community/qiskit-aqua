@@ -39,3 +39,6 @@ Main Modules
 
 Authors (alphabetical)
 ======================
+Panagiotis Barkoutsos, Chun-Fu (Richard) Chen, Antonio Córcoles-Gonzalez, Jay Gambetta, Shaohan Hu, Takashi Imamichi,
+Tal Kachman, Peng Liu, Manoel Marques, Antonio Mezzacapo, Nikolaj Moll, Giacomo Nannicini, Marco Pistoia, Julia Rice,
+Raymond Harry Putra Rudy, Ivano Tavernelli, Stephen Wood
