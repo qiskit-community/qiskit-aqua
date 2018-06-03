@@ -243,7 +243,20 @@ The following parameters are supported:
 
 * `parameters`=*array of 5 numbers, optional, defaults to None*
 
-  Control parameters for SPSA
+  Control parameters for SPSA. The SPSA updates the parameters (theta) for objective function (J) through the following equation at iteration k.
+
+  > theta_{k+1} = theta_{k} + step_size * gradient,
+
+  - step_size = c0 * (k + 1 + c4)^(-c2)
+  - gradient = (J(theta_{k}+) - J(theta_{k}-)) * delta / (2 * c1 * (k+1)^(-c3))
+    - theta_{k}+ = theta_{k} + c1 * (k+1)^(-c3) * delta; theta_{k}- = theta_{k} - c1 * (k+1)^(-c3) * delta
+  - J(theta): objective value of theta
+
+  c0 to c4 are the five control parameters.
+
+  By default, c0 are calibrated through few evaluations on the objective function with
+  the initial theta. c1 to c4 are set as 0.1, 0.602, 0.101, 0.0, respectively.
+
   
 ## TNC
 
