@@ -17,10 +17,10 @@ You can follow the [installation](#installation) instructions to install this so
 Once you have it installed you can experiment with the library using either the supplied [GUI](#gui) or
 [command line](#command-line) tools.
 
-More advanced users and [developers](#developers) may wish to develop and add their own algorithms or other code.
-Algorithms and supporting components may be added to [QISKit ACQUA](https://github.ibm.com/IBMQuantum/qiskit-acqua)
-which was designed with an extensible, pluggable framework. QISKit ACQUA Chemistry utilizes a similiar framework for
-drivers and the core computation.
+More advanced users and [developers](qiskit_acqua_chemistry#developers) may wish to develop and add their own
+algorithms or other code. Algorithms and supporting components may be added to
+[QISKit ACQUA](https://github.ibm.com/IBMQuantum/qiskit-acqua) which was designed with an extensible, pluggable
+framework. QISKit ACQUA Chemistry utilizes a similiar framework for drivers and the core computation.
 
 **If you'd like to contribute to QISKit ACQUA Chemistry, please take a look at our**
 [contribution guidelines](.github/CONTRIBUTING.rst).
