@@ -7,6 +7,8 @@ involved in the project:
 * Panagiotis Barkoutsos
 * Chun-Fu (Richard) Chen
 * Jay Gambetta
+* Jennifer Glick
+* Tanvi Gujarati
 * Shaohan Hu
 * Peng Liu
 * Manoel Marques
