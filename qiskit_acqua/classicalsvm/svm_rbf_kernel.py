@@ -18,24 +18,18 @@
 import numpy as np
 
 from qiskit_acqua import QuantumAlgorithm
-from qiskit_acqua.svm import (get_points_and_labels, optimize_SVM,
-                              kernel_join, entangler_map_creator)
+from qiskit_acqua.svm import (get_points_and_labels, optimize_SVM)
 
 
-class SVM_QKernel(QuantumAlgorithm):
-    SVM_QKERNEL_CONFIGURATION = {
-        'name': 'SVM_QKernel',
-        'description': 'SVM_QKernel Algorithm',
+class SVM_RBF_Kernel(QuantumAlgorithm):
+    SVM_RBF_KERNEL_CONFIGURATION = {
+        'name': 'SVM_RBF_Kernel',
+        'description': 'SVM_RBF_Kernel Algorithm',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
-            'id': 'SVM_QKernel_schema',
+            'id': 'SVM_RBF_schema',
             'type': 'object',
             'properties': {
-                'num_of_qubits': {
-                    'type': 'integer',
-                    'default': 2,
-                    'minimum': 2
-                },
                 'print_info': {
                     'type': 'boolean',
                     'default': False
@@ -47,49 +41,49 @@ class SVM_QKernel(QuantumAlgorithm):
     }
 
     def __init__(self, configuration=None):
-        super().__init__(configuration or self.SVM_QKERNEL_CONFIGURATION.copy())
+        super().__init__(configuration or self.SVM_RBF_KERNEL_CONFIGURATION.copy())
         self._ret = {}
 
+    def kernel_join_classical(self, points_array, points_array2, gamma=None):
+        from sklearn.metrics.pairwise import rbf_kernel, laplacian_kernel
+        return rbf_kernel(points_array, points_array2, gamma)
+
+
+
     def init_params(self, params, algo_input):
-        SVMQK_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
+        SVM_RBF_K_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
         self.training_dataset = algo_input.training_dataset
         self.test_dataset = algo_input.test_dataset
         self.datapoints = algo_input.datapoints
         self.class_labels = list(self.training_dataset.keys())
 
-        self.init_args(SVMQK_params.get('num_of_qubits'), SVMQK_params.get('print_info'))
+        self.init_args(SVM_RBF_K_params.get('print_info'))
 
-    def init_args(self, num_of_qubits=2, print_info=False):  # 2
-        self.num_of_qubits = num_of_qubits
-        self.entangler_map = entangler_map_creator(num_of_qubits)
-        self.coupling_map = None
-        self.initial_layout = None
-        self.shots = self._execute_config['shots']
-        self.backend = self._backend
-
+    def init_args(self, print_info=False):  #
         self.print_info = print_info
+
+
 
     def train(self, training_input, class_labels):
         training_points, training_points_labels, label_to_class = get_points_and_labels(training_input, class_labels)
 
-        kernel_matrix = kernel_join(training_points, training_points, self.entangler_map, self.coupling_map,
-                                 self.initial_layout, self.shots, self._random_seed, self.num_of_qubits, self.backend)
+        Kernel_mat  = self.kernel_join_classical(training_points, training_points)
+
 
         if self.print_info:
             import matplotlib.pyplot as plt
-            img = plt.imshow(np.asmatrix(kernel_matrix),interpolation='nearest',origin='upper',cmap='bone_r')
+            img = plt.imshow(np.asmatrix(Kernel_mat),interpolation='nearest',origin='upper',cmap='bone_r')
             plt.show()
 
-        [alpha, b, support] = optimize_SVM(kernel_matrix, training_points_labels)
+        [alpha, b, support] = optimize_SVM(Kernel_mat,training_points_labels)
         alphas = np.array([])
         SVMs = np.array([])
         yin = np.array([])
         for alphindex in range(len(support)):
             if support[alphindex]:
-                alphas = np.vstack([alphas, alpha[alphindex]]) if alphas.size else alpha[alphindex]
-                SVMs = np.vstack([SVMs, training_points[alphindex]]) if SVMs.size else training_points[alphindex]
-                yin = np.vstack([yin, training_points_labels[alphindex]]
-                                ) if yin.size else training_points_labels[alphindex]
+                alphas=np.vstack([alphas,alpha[alphindex]]) if alphas.size else alpha[alphindex]
+                SVMs = np.vstack([SVMs,training_points[alphindex]]) if SVMs.size else training_points[alphindex]
+                yin = np.vstack([yin,training_points_labels[alphindex]]) if yin.size else training_points_labels[alphindex]
 
         return [alphas, b, SVMs, yin]
 
@@ -97,8 +91,7 @@ class SVM_QKernel(QuantumAlgorithm):
         test_points, test_points_labels, label_to_labelclass = get_points_and_labels(test_input, class_labels)
 
         alphas, bias, SVMs, yin = svm
-        kernel_matrix = kernel_join(test_points, SVMs, self.entangler_map, self.coupling_map,
-                                    self.initial_layout, self.shots, self._random_seed, self.num_of_qubits, self.backend)
+        kernel_matrix = self.kernel_join_classical(test_points, SVMs)
         success_ratio = 0
         L = 0
         total_num_points = len(test_points)
@@ -107,8 +100,7 @@ class SVM_QKernel(QuantumAlgorithm):
             Ltot = 0
             for sin in range(len(SVMs)):
                 L = yin[sin]*alphas[sin]*kernel_matrix[tin][sin]
-                Ltot += L
-
+                Ltot +=  L
             Lsign[tin] = np.sign(Ltot+bias)
             if self.print_info:
                 print("\n=============================================")
@@ -119,18 +111,21 @@ class SVM_QKernel(QuantumAlgorithm):
                     print('CORRECT')
                 else:
                     print('INCORRECT')
-
             if Lsign[tin] == test_points_labels[tin]:
                 success_ratio += 1
         final_success_ratio = success_ratio/total_num_points
         if self.print_info:
             print('Classification success for this set is %s %% \n' % (100*final_success_ratio))
+
         return final_success_ratio
+
+
+
 
     def predict(self, svm, test_points):
         alphas, bias, SVMs, yin = svm
-        kernel_matrix = kernel_join(test_points, SVMs, self.entangler_map, self.coupling_map,
-                                    self.initial_layout, self.shots, self._random_seed, self.num_of_qubits, self.backend)
+        kernel_matrix = self.kernel_join_classical(test_points, SVMs)
+
         total_num_points = len(test_points)
         Lsign = np.zeros(total_num_points)
         for tin in range(total_num_points):
@@ -157,5 +152,4 @@ class SVM_QKernel(QuantumAlgorithm):
             _, _, label_to_class = get_points_and_labels(self.training_dataset, self.class_labels)
             predicted_labelclasses = [label_to_class[x] for x in predicted_labels]
             self._ret['predicted_labels'] = predicted_labelclasses
-
         return self._ret
