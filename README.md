@@ -127,8 +127,8 @@ to the project at different levels.
 
 This project uses the [Apache License Version 2.0 software license](https://www.apache.org/licenses/LICENSE-2.0).
 
-Some [drivers](qiskit_acqua_chemistry/drivers/README.md) for interfacing to external chemistry programs/libraries
-have some additional licensing.
+Some code supplied here for [drivers](qiskit_acqua_chemistry/drivers/README.md), for interfacing to external chemistry
+programs/libraries, has additional licensing.
 
 * The [Gaussian 16 driver](qiskit_acqua_chemistry/drivers/gaussiand/README.md) contains work licensed under the
 [Gaussian Open-Source Public License](qiskit_acqua_chemistry/drivers/gaussiand/gauopen/LICENSE.txt).
