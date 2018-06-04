@@ -1,8 +1,8 @@
 QISKit ACQUA
 ============
 
-QISKit Algorithms and Circuits for QUantum Applications,
-``QISKit ACQUA``, is a library of algorithms for quantum computing that
+QISKit Algorithms and Circuits for QUantum Applications
+(QISKit ACQUA) is a library of algorithms for quantum computing that
 uses `QISkit <https://qiskit.org/>`__ to build out and run quantum
 circuits. More detail can be found behind the architecture, motivation
 and design philosophy of QISKit ACQUA in the `Background <Background>`__
@@ -164,7 +164,7 @@ Programming
 ~~~~~~~~~~~
 
 Any algoirithm in QISJit ACQUA can be run programmatically too. The
-``examples`` folder contains numerous cases that explain  how to do this. Here you will
+`examples <./examples>`__ folder contains numerous cases that explain  how to do this. Here you will
 see there is a ``run_algorithm`` method used, which takes either the JSON algorithm input
 or an equivalent Python dictionary and optional ``AlgorithmInput`` object
 for the algorithm. There is also a ``run_algorithm_to_json`` that simply
@@ -180,7 +180,7 @@ QISKit ACQUA was inspired, authored and brought about by the collective
 work of a team of researchers.
 
 QISKit ACQUA continues now to grow with the help and work of `many
-people <CONTRIBUTORS.html>`__, who contribute to the project at different
+people <./docs/CONTRIBUTORS.rst>`__, who contribute to the project at different
 levels.
 
 .. _license:-4
