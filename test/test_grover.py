@@ -25,7 +25,7 @@ from qiskit_acqua import get_algorithm_instance, get_oracle_instance
 
 class TestGrover(QISKitAcquaTestCase):
     def setUp(self):
-        self.input_file = os.path.join(os.path.dirname(__file__), '..', 'examples', '3sat3-5.cnf')
+        self.input_file = os.path.join(os.path.dirname(__file__), 'test_grover.cnf')
         # get ground-truth
         with open(self.input_file) as f:
             header = f.readline()
