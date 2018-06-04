@@ -7,9 +7,12 @@ its quantum computation.
   
 This library has algorithms that may be used to solve problems across different application domains.
 
+_**Note**: This library has also some classical algorithms that may be useful in the near term while
+experimenting with, developing and testing quantum algorithms to compare and contrast results._
+
 # Algorithms
 
-The following algorithms are part of the library:
+The following quantum algorithms are part of the library:
 
 * [VQE](#vqe): Variational Quantum Eigensolver 
 * [VQkE](#vqke): Variational Quantum k-Eigensolver 
@@ -19,8 +22,12 @@ The following algorithms are part of the library:
 * [Grover](#grover): Quantum Grover search 
 * [SVM_QKernel](#svm_qkernel): Quantum feature-map classifier via direct estimation of the kernel
 * [SVM_Variational](#svm_variational): Variational Quantum feature-map classifier
+
+and these are classical:
+
 * [ExactEigensolver](#exacteigensolver): Classical eigenvalue solver 
-* [CPLEX](#cplex): Classical optimization solver for Ising modelled problems  
+* [CPLEX](#cplex): Optimization solver for Ising modelled problems  
+* [SVM_RBF_Kernel](#svm_rbf_kernel): RBF SVM algorithm  
 
 
 ## VQE
@@ -271,6 +278,18 @@ CPLEX can be configured with the following parameter:
 * `display`=*integer, default 2*
 
   Display, defaults to 2.
+
+
+## SVM_RBF_Kernel
+
+This is uses classical approach to solving feature map classification problem. It may be useful in the near term while
+experimenting with, developing and testing quantum algorithms to compare and contrast results.
+
+SVM_RBF_Kernel can be configured with the following parameters:
+
+* `print_info`=**False** | True
+
+  Whether to print additional information or not when the algorithm is running.
 
 
 # Developers  
