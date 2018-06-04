@@ -21,7 +21,7 @@ discovered dynamically at runtime.
 Links to Sections:
 
 * [Installation](#installation)
-* [Running an algorithm](#running-an-algorithm)
+* [Running an Algorithm](#running-an-algorithm)
 * [Authors](#authors)
 * [License](#license)
 * [Background](#background)
