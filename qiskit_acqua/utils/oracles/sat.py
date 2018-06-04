@@ -46,10 +46,10 @@ class SAT(Oracle):
     def __init__(self, configuration=None):
         super().__init__(configuration or self.SAT_CONFIGURATION.copy())
         self._cnf = None
-        self._qr_a = None
-        self._qr_c = None
-        self._qr_t = None
-        self._qr_v = None
+        self._qr_ancilla = None
+        self._qr_clause = None
+        self._qr_outcome = None
+        self._qr_variable = None
 
     def init_args(self, cnf):
         ls = [
@@ -86,45 +86,45 @@ class SAT(Oracle):
         if not h_nc == nc:
             logger.warning('Inaccurate clause count {} in cnf header, actual count is {}.'.format(h_nc, nc))
 
-        self._qr_t = QuantumRegister(1, name='t')
-        self._qr_v = QuantumRegister(nv, name='v')
-        self._qr_c = QuantumRegister(nc, name='c')
-        self._qr_a = QuantumRegister(max(max(nc, nv) - 2, 0), name='a')
+        self._qr_outcome = QuantumRegister(1, name='o')
+        self._qr_variable = QuantumRegister(nv, name='v')
+        self._qr_clause = QuantumRegister(nc, name='c')
+        self._qr_ancilla = QuantumRegister(max(max(nc, nv) - 2, 0), name='a')
 
     def variable_register(self):
-        return self._qr_v
+        return self._qr_variable
 
     def ancillary_register(self):
-        return self._qr_a
+        return self._qr_ancilla
 
     def target_register(self):
-        return self._qr_t
+        return self._qr_outcome
 
     def _logic_or(self, circuit, conj_expr, conj_index):
         qs = [abs(v) for v in conj_expr]
-        ctl_bits = [self._qr_v[idx - 1] for idx in qs]
-        anc_bits = [self._qr_a[idx] for idx in range(len(qs) - 2)]
-        tgt_bits = self._qr_c[conj_index]
+        ctl_bits = [self._qr_variable[idx - 1] for idx in qs]
+        anc_bits = [self._qr_ancilla[idx] for idx in range(len(qs) - 2)]
+        tgt_bits = self._qr_clause[conj_index]
         for idx in [v for v in conj_expr if v > 0]:
-            circuit.x(self._qr_v[idx - 1])
+            circuit.x(self._qr_variable[idx - 1])
         circuit.cnx(ctl_bits, anc_bits, tgt_bits)
         for idx in [v for v in conj_expr if v > 0]:
-            circuit.x(self._qr_v[idx - 1])
+            circuit.x(self._qr_variable[idx - 1])
 
     def construct_circuit(self):
-        qc = QuantumCircuit(self._qr_v, self._qr_c, self._qr_a, self._qr_t)
+        qc = QuantumCircuit(self._qr_variable, self._qr_clause, self._qr_ancilla, self._qr_outcome)
 
         # init all clause qubit to 1:
-        qc.x(self._qr_c)
+        qc.x(self._qr_clause)
 
         # build all clause
         for conj_index, conj_expr in enumerate(self._cnf):
             self._logic_or(qc, conj_expr, conj_index)
         # keep results
         qc.cnx(
-            [self._qr_c[i] for i in range(len(self._qr_c))],
-            [self._qr_a[i] for i in range(len(self._qr_a))],
-            self._qr_t[0]
+            [self._qr_clause[i] for i in range(len(self._qr_clause))],
+            [self._qr_ancilla[i] for i in range(len(self._qr_ancilla))],
+            self._qr_outcome[0]
         )
         # reverse, de-entanglement
         for conj_index, conj_expr in reversed(list(enumerate(self._cnf))):
