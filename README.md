@@ -1,15 +1,15 @@
 # QISKit ACQUA
 
 QISKit Algorithms and Circuits for QUantum Applications, `QISKit ACQUA`, is a library of algorithms for quantum computing
-that uses [QISkit](https://qiskit.org/) to build out and run quantum circuits. More detail can be found behind the
+that uses [QISKit](https://qiskit.org/) to build out and run quantum circuits. More detail can be found behind the
 architecture, motivation and design philosophy of QISKit ACQUA in the [Background](Background) section. 
 
 QISKit ACQUA provides a library of cross-domain algorithms upon which domain specific applications and stacks can be
 built. At the time of writing [QISKit ACQUA Chemistry](https://github.ibm.com/IBMQuantum/qiskit-acqua-chemistry) has
 been created to utilize QISKit ACQUA for quantum chemistry computations. QISKIt ACQUA is also showcased for other
 domains with both code and notebook examples. Please see
-[QISKit ACQUA Optimzation](https://github.ibm.com/IBMQuantum/qiskit-acqua-optimization) and
-[QISKit ACQUA Artifical Intelligence](https://github.ibm.com/IBMQuantum/qiskit-acqua-artifical-intelligence)
+[QISKit ACQUA Optimization](https://github.ibm.com/IBMQuantum/qiskit-acqua-optimization) and
+[QISKit ACQUA Artificial Intelligence](https://github.ibm.com/IBMQuantum/qiskit-acqua-artifical-intelligence)
 
 QISKit ACQUA was designed to be extensible and uses a pluggable framework where algorithms and support objects used
 by algorithms, e.g optimizers, variational forms, oracles etc. are derived from a defined base class for the type and
