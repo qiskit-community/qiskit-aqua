@@ -72,10 +72,10 @@ class SVM_QKernel(QuantumAlgorithm):
     def train(self, training_input, class_labels):
         training_points, training_points_labels, label_to_class = get_points_and_labels(training_input, class_labels)
 
-        Kernel_mat = kernel_join(training_points, training_points, self.entangler_map, self.coupling_map,
-                                 self.initial_layout, self.shots, self.num_of_qubits, self.backend)
+        kernel_matrix = kernel_join(training_points, training_points, self.entangler_map, self.coupling_map,
+                                 self.initial_layout, self.shots, self._random_seed, self.num_of_qubits, self.backend)
 
-        [alpha, b, support] = optimize_SVM(Kernel_mat, training_points_labels)
+        [alpha, b, support] = optimize_SVM(kernel_matrix, training_points_labels)
         alphas = np.array([])
         SVMs = np.array([])
         yin = np.array([])
@@ -93,7 +93,7 @@ class SVM_QKernel(QuantumAlgorithm):
 
         alphas, bias, SVMs, yin = svm
         kernel_matrix = kernel_join(test_points, SVMs, self.entangler_map, self.coupling_map,
-                                    self.initial_layout, self.shots, self.num_of_qubits, self.backend)
+                                    self.initial_layout, self.shots, self._random_seed, self.num_of_qubits, self.backend)
         success_ratio = 0
         L = 0
         total_num_points = len(test_points)
@@ -125,7 +125,7 @@ class SVM_QKernel(QuantumAlgorithm):
     def predict(self, svm, test_points):
         alphas, bias, SVMs, yin = svm
         kernel_matrix = kernel_join(test_points, SVMs, self.entangler_map, self.coupling_map,
-                                    self.initial_layout, self.shots, self.num_of_qubits, self.backend)
+                                    self.initial_layout, self.shots, self._random_seed, self.num_of_qubits, self.backend)
         total_num_points = len(test_points)
         Lsign = np.zeros(total_num_points)
         for tin in range(total_num_points):

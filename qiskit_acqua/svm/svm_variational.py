@@ -100,11 +100,11 @@ class SVM_Variational(QuantumAlgorithm):
         set_print_info(print_info)
 
     def train(self, training_input, class_labels):
-        initial_theta = np.random.randn(2 * self.num_of_qubits * (self.circuit_depth + 1))
+        initial_theta = self.random.randn(2 * self.num_of_qubits * (self.circuit_depth + 1))
 
         eval_cost_function_partial = partial(eval_cost_function, self.entangler_map, self.coupling_map,
                                              self.initial_layout, self.num_of_qubits, self.circuit_depth,
-                                             training_input, class_labels, self.backend, self.shots, True)
+                                             training_input, class_labels, self.backend, self.shots, self._random_seed, True)
 
         def objective_function(theta):
             return eval_cost_function_partial(theta)[0]
@@ -117,7 +117,7 @@ class SVM_Variational(QuantumAlgorithm):
     def test(self, theta_best, test_input, class_labels):
         total_cost, std_cost, success_ratio, predicted_labels = \
             eval_cost_function(self.entangler_map, self.coupling_map, self.initial_layout, self.num_of_qubits,
-                               self.circuit_depth, test_input, class_labels, self.backend, self.shots,
+                               self.circuit_depth, test_input, class_labels, self.backend, self.shots, self._random_seed,
                                train=False, theta=theta_best)
 
         if self.print_info:
@@ -128,7 +128,7 @@ class SVM_Variational(QuantumAlgorithm):
         predicted_labels = eval_cost_function_with_unlabeled_data(self.entangler_map, self.coupling_map,
                                                                   self.initial_layout, self.num_of_qubits,
                                                                   self.circuit_depth, input_datapoints, class_labels,
-                                                                  self.backend, self.shots,
+                                                                  self.backend, self.shots, self._random_seed,
                                                                   train=False, theta=theta_best)
         return predicted_labels
 

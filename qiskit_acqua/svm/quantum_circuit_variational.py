@@ -81,7 +81,7 @@ def set_print_info(print_info_arg):
     print_info = print_info_arg
 
 def eval_cost_function(entangler_map, coupling_map, initial_layout, n, m, x_vec, class_labels,
-                       backend, shots, train, theta):
+                       backend, shots, seed, train, theta):
     sample_shots = 0
     # x_vec is the vector of training characteristics - size n
     # y is the binary outcome for each x_vec
@@ -124,7 +124,7 @@ def eval_cost_function(entangler_map, coupling_map, initial_layout, n, m, x_vec,
     # print(Q_program.get_qasm(circuit_list[0]))
 
     program_data = Q_program.execute(circuit_list, backend=backend, coupling_map=coupling_map,
-                                     initial_layout=initial_layout, shots=shots)
+                                     initial_layout=initial_layout, shots=shots, seed=seed)
     result = 0
     success = 0
     for v in range(len(circuit_list)):
@@ -157,7 +157,7 @@ def eval_cost_function(entangler_map, coupling_map, initial_layout, n, m, x_vec,
 
 
 def eval_cost_function_with_unlabeled_data(entangler_map, coupling_map, initial_layout, n, m, unlabeled_data,
-                                           class_labels, backend, shots, train, theta):
+                                           class_labels, backend, shots, seed, train, theta):
     predicted_results = []
     Q_program = QuantumProgram()
     circuits = []
@@ -170,7 +170,7 @@ def eval_cost_function_with_unlabeled_data(entangler_map, coupling_map, initial_
 
     circuit_list = [c[1] for c in circuits]
     program_data = Q_program.execute(circuit_list, backend=backend, coupling_map=coupling_map,
-                                     initial_layout=initial_layout, shots=shots)
+                                     initial_layout=initial_layout, shots=shots, seed=seed)
 
     for v in range(len(circuit_list)):
         countsloop = program_data.get_counts(circuit_list[v])

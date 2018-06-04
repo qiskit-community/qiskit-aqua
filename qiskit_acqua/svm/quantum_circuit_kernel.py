@@ -50,7 +50,7 @@ def inner_prod_circuit_ML(entangler_map, coupling_map, initial_layout, n, x_vec1
 
     # write input state from sample distribution
     for r in range(len(x_vec1)):
-        trial_circuit.u2(0.0, np.pi, q[r]) #h
+        trial_circuit.u2(0.0, np.pi, q[r])  # h
         trial_circuit.u1(2*x_vec1[r], q[r])
     for node in entangler_map:
         for j in entangler_map[node]:
@@ -59,7 +59,7 @@ def inner_prod_circuit_ML(entangler_map, coupling_map, initial_layout, n, x_vec1
             trial_circuit.cx(q[node], q[j])
 
     for r in range(len(x_vec1)):
-        trial_circuit.u2(0.0, np.pi, q[r]) #h
+        trial_circuit.u2(0.0, np.pi, q[r])  # h
         trial_circuit.u1(2*x_vec1[r], q[r])
     for node in entangler_map:
         for j in entangler_map[node]:
@@ -72,7 +72,7 @@ def inner_prod_circuit_ML(entangler_map, coupling_map, initial_layout, n, x_vec1
             trial_circuit.cx(q[node], q[j])
     for r in range(len(x_vec2)):
         trial_circuit.u1(-2*x_vec2[r], q[r])
-        trial_circuit.u2(0.0, np.pi, q[r]) #h
+        trial_circuit.u2(0.0, np.pi, q[r])  # h
 
     for node in entangler_map:
         for j in entangler_map[node]:
@@ -81,7 +81,7 @@ def inner_prod_circuit_ML(entangler_map, coupling_map, initial_layout, n, x_vec1
             trial_circuit.cx(q[node], q[j])
     for r in range(len(x_vec2)):
         trial_circuit.u1(-2*x_vec2[r], q[r])
-        trial_circuit.u2(0.0, np.pi, q[r]) #h
+        trial_circuit.u2(0.0, np.pi, q[r])  # h
 
     if measurement:
         for j in range(n):
@@ -105,7 +105,7 @@ def get_zero_string(num_of_qubits):
 
 
 def kernel_join(points_array, points_array2, entangler_map, coupling_map, initial_layout,
-                shots, num_of_qubits, backend):
+                shots, seed, num_of_qubits, backend):
     Q_program = QuantumProgram()
     circuits = []
     is_identical = np.all(points_array == points_array2)
@@ -125,8 +125,8 @@ def kernel_join(points_array, points_array2, entangler_map, coupling_map, initia
             Q_program.add_circuit(circuit_name, sequencesp)
 
         circuit_list = [c for c in circuits]
-        program_data = Q_program.execute(circuit_list, backend=backend,
-                                         coupling_map=coupling_map, initial_layout=initial_layout, shots=shots)
+        program_data = Q_program.execute(circuit_list, backend=backend, coupling_map=coupling_map,
+                                         initial_layout=initial_layout, shots=shots, seed=seed)
 
         mat = np.eye(size, size)  # element on the diagonal is always 1: point*point=|point|^2
         for v in range(len(program_data)):
@@ -156,8 +156,8 @@ def kernel_join(points_array, points_array2, entangler_map, coupling_map, initia
                 Q_program.add_circuit(cp, sequencesp)
 
         circuit_list = [c for c in circuits]
-        program_data = Q_program.execute(circuit_list, backend=backend,
-                                         coupling_map=coupling_map, initial_layout=initial_layout, shots=shots)
+        program_data = Q_program.execute(circuit_list, backend=backend, coupling_map=coupling_map,
+                                            initial_layout=initial_layout, shots=shots, seed=seed)
 
         mat = np.zeros((len(total_test), len(svm)))
         for v in range(len(program_data)):
