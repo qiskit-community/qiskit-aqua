@@ -31,7 +31,7 @@ Links to Sections:
 
 -  `Installation <#installation>`__
 -  `Running an algorithm <#running-an-algorithm>`__
--  `Authors <#authors-alphabetical>`__
+-  `Authors <#authors>`__
 -  `License <#license>`__
 -  `Background <#background>`__
 
