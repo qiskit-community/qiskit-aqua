@@ -35,18 +35,18 @@ Links to Sections:
 -  `License <#license>`__
 -  `Background <#background>`__
 
-Installation
-------------
+Installation and Setup
+=====================
 
 Dependencies
-~~~~~~~~~~~~
+------------
 
-As QISKit ACQUA is built upon QISKit you are encouraged to look over the
+As QISKit ACQUA is built upon `QISKit <https://qiskit.org>`__, you are encouraged to look over the
 `QISKit
 installation <https://github.com/QISKit/qiskit-sdk-py/blob/master/README.md#installation>`__
 too.
 
-Like QISKit at least `Python 3.5 or
+Like for QISKit, at least `Python 3.5 or
 later <https://www.python.org/downloads/>`__ is needed to use QISKit
 ACQUA. In addition, `Jupyter
 Notebook <https://jupyter.readthedocs.io/en/latest/install.html>`__ is
@@ -58,100 +58,140 @@ comes with all of these dependencies pre-installed.
 .. _installation-1:
 
 Installation
-~~~~~~~~~~~~
+------------
 
-We encourage you to install QISKit ACQUA via the PIP tool (a Python
+We encourage you to install QISKit ACQUA via the `pip <https://pip.pypa.io/en/stable/>`__  tool (a Python
 package manager):
 
-::
+.. code:: sh
 
-   pip install qiskit_acqua
+    pip install qiskit_acqua
 
-PIP will handle all dependencies automatically and you will always
+pip will handle all dependencies automatically and you will always
 install the latest (and well-tested) release version.
 
 We recommend using Python virtual environments to improve your
 experience.
 
-Running an algorithm
+.. _running-an-algorithm-2:
+
+Running an Algorithm
 --------------------
 
-Now that you have installed QISKit ACQUA you can run an algorithm. This
-can be done programmatically and can also use json input that was saved
-from a prior run. The json input can be given to either the UI or the
-command line tool to run the algorithm as specified by that json.
+Now that you have installed QISKit ACQUA, you can run an algorithm by invoking it with the appropriate input.
+The input to a QISKit ACQUA algorithm is expected to be in `JSON <http://json.org>`__ format.
+This can be done programmaticall, via the Graphical User Interface (GUI) or from the command line.  In addition to the input itself,
+the JSON file encodes the algorithm that QISKit ACQUA will invoke on that input.
+One way to generate the JSON input is by
+serializing the input to QISKit ACQUA when executing one of the applications running on top of QISKit ACQUA,
+such as QISKit ACQUA Chemistry, QISKit ACQUA Artificial Intelligence, and QISKit ACQUA Optimization.
 
 GUI
 ~~~
+The QISKit ACQUA GUI allows you to load and save a JSON file to run an algorithm
+as well as create a new one or edit an existing one. So, for example,
+using the UI, you can alter the parameters of an  algorithm and/or its dependent
+objects to see how the changes affect the outcome. pip installs a
+small script that allows you to start the GUI from the command line, as follows:
 
-The GUI allows you load to load and save a json file to run an algorithm
-as well as create a new one or edit an existing one. So for example
-using UI you can alter parameters of algorithm and/or its dependent
-objects to see how the changes affect the outcome. PIP install setups a
-small script to invoke the GUI as follows:
+.. code:: sh
 
-``> qiskit_acqua_ui``
+    qiskit_acqua_ui
 
-Note: if you clone and run direct from the repository instead of using
-the pip install recommended way then it can be run using
-``> python qiskit_acqua/ui/run`` from the root folder of the
-qiskit-acqua repository clone.
+If you clone and run directly from the repository instead of using
+the ``pip install`` recommended way, then it can be run using
+
+.. code::
+ 
+   python qiskit_acqua/ui/run
+
+from the root folder of the ``qiskit-acqua`` repository clone.
+
+Configuring an experiment that involves both quantum-computing and domain-specific parameters
+may look like a challenging activity, which requires specialized knowledge on both the specific
+domain in which the experiment runs and quantum computing itslf.  QISKit ACQUA simplifies the
+configuration of any run in two ways:
+
+1. Defaults are provided for each parameter.  Such defaults have been validated to be the best choices in most cases.
+
+2. A robust configuration correctness enforcement mechanism is in place.  Any configuration is validated by QISKit ACQUA upon startup, and if the user has chosen to use the GUI to configure an experiment, the GUI itself prevents incompatible parameters from being selected, making the configuration error resilient.
 
 Command Line
 ~~~~~~~~~~~~
 
-The command line tool will run an algorithm from the supplied json file.
-Run without any arguments it will print some help. PIP install setups a
-small script to invoke the command line, e.g:
+The command line tool will run an algorithm from the supplied JSON file.
+Run without any arguments, it will print help ibformation.  pip installs a
+small script, which can be invoked with a JSON algorithm input file from the command line as follows:
 
-``> qiskit_acqua_cmd examples/H2-0.735.json``
+.. code:: sh
 
-Note: if you clone and run direct from the repository instead of using
-the pip install recommended way then it can be run using
-``> python qiskit_acqua`` from the root folder of the qiskit-acqua
+    qiskit_acqua_cmd examples/H2-0.735.json
+
+If you clone and run direct from the repository instead of using
+the ``pip install`` recommended way then it can be run using
+
+.. code:: sh
+
+    python qiskit_acqua
+
+from the root folder of the ``qiskit-acqua``
 repository clone.
 
 Browser
 ~~~~~~~
 
-As QISKit ACQUA is extensible with pluggable components we have provided
-a GUI that shows all the pluggable components along with the schema for
-their parameters. PIP install setups a small script to invoke the
+As QISKit ACQUA is extensible with pluggable components, we have provided
+a documentation GUI that shows all the pluggable components along with the schema for
+their parameters. ``pip`` installsa small script to invoke the
 browser GUI as follows:
 
-``> qiskit_acqua_browser``
+.. code:: sh
 
-Note: if you clone and run direct from the repository instead of using
-the pip install recommended way then it can be run using
-``> python qiskit_acqua/ui/browse`` from the root folder of the
-qiskit-acqua repository clone.
+    qiskit_acqua_browser
+
+Note: if you clone the repository and want to start the documentation GUI
+directly from your local repository instead of using
+the ``pip install`` recommended way, then the documentation GUI can be run using the following command:
+
+.. code:: sh
+
+    python qiskit_acqua/ui/browser
+
+from the root folder of the
+``qiskit-acqua`` repository clone.
 
 Programming
 ~~~~~~~~~~~
 
-The algorithms can be run programmatically too. Please refer to the
-`examples <examples>`__ folder for a number of examples. Here you will
-see there is a ``run_algorithm`` method used that takes either the json
-or an equivalent Python dictionary and optional AlgorithmInput object
+Any algoirithm in QISJit ACQUA can be run programmatically too. The
+``examples`` folder contains numerous cases that explain  how to do this. Here you will
+see there is a ``run_algorithm`` method used, which takes either the JSON algorithm input
+or an equivalent Python dictionary and optional ``AlgorithmInput`` object
 for the algorithm. There is also a ``run_algorithm_to_json`` that simply
-takes the input and saves it to json in a self-contained form that can
-later be used by the command line or UI.
+takes the input and saves it to JSON in a self-contained form, which  can
+later be used by the command line or GUI.
+
+.. _authors-alphabetical:-3
 
 Authors
 -------
 
 QISKit ACQUA was inspired, authored and brought about by the collective
-work of many individuals.
+work of a team of researchers.
 
 QISKit ACQUA continues now to grow with the help and work of `many
-people <CONTRIBUTORS.md>`__ who contribute to the project at different
+people <CONTRIBUTORS.html>`__, who contribute to the project at different
 levels.
+
+.. _license:-4
 
 License
 -------
 
 This project uses the `Apache License Version 2.0 software
 license <https://www.apache.org/licenses/LICENSE-2.0>`__.
+
+.. _background:-5
 
 Background
 ----------
