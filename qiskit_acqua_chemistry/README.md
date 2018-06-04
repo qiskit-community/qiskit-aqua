@@ -2,83 +2,18 @@
 
 QISKit ACQUA Chemistry is a set of tools, algorithms and software for use with quantum computers
 to carry out research and investigate how to take advantage of quantum computing power to solve chemistry
-problems. QISKit ACQUA Chemistry translates chemistry-specific problem inputs into inputs for a quantum algorithm
-supplied by QISKit ACQUA, and then uses [QISKit](https://www.qiskit.org/) for the actual quantum computation. 
+problems.
 
-QISKit ACQUA Chemistry allows users with different levels of experience to execute chemistry experiments and 
-contribute to the software stack.  Users with pure chemistry background can continue to configure chemistry 
-problems according to their favorite software packages, called *drivers*.  These users do not need to learn the 
-details of quantum computing; QISKit ACQUA Chemistry translates any chemistry program configuration entered by 
-any end user in their favorite driver into quantum-specific input.
+If you need introductory material see the main [readme](../README.md) which has
+[installation](../README.md#installation) instructions and information on how to use QISKit ACQUA Chemistry for 
+[running a chemistry experiment](../README.md#running-a-chemistry-experiment).
 
-QISKit ACQUA allows also users more knowledgeable in the area of quantum computing to plug their contributions in.
-For example, new quantum algorithms, optimizers and variational forms can easily be plugged in,
-thereby allowing algorithm providers to contribute new quantum algorithms or more efficient implementations of
-existing ones. Such algorithms may then be utilized by QISKit ACQUA Chemistry as applicable.
+This readme contains the following sections: 
 
-You can follow the [installation](#installation) instructions to install this software and its dependencies.
+* [Input file](#input-file)
+* [Developers](#developers)
+* [Additional reading](#additional-reading)
 
-Once you have it installed you can experiment with the library using either the supplied [GUI](#gui) or
-[command line](#command-line) tools.
-
-More advanced users and [developers](#developers) may wish to develop and add their own algorithms or other code.
-As mentioned above, the library has been designed with several extension points where, for example, new algorithms,
-optimizers and variational forms can be created, and simply dropping the code into the appropriate folder will
-seamlessly integrate them and make them available for use and configuration via the input file.
-
-## GUI and command line tools
-
-QISKit ACQUA Chemistry has both GUI and command line tools which may be used when solving chemistry
-problems. Both can load and run an [input file](#input-file) specifying the molecule, an algorithm to be used and its
-configuration, and various other options to tailor the experiment. If you are new to the library we highly recommend
-getting started with the GUI.  
-
-### GUI 
-
-The GUI allows provides an easy means to load and run an input file specifying your chemistry problem. An input file
-can also be created, edited and saved with validation of values to provide ease of configuring the chemistry problem
-using the input file.
-
-The following will run the GUI
-
-`python qiskit_acqua_chemistry/ui`:
-
-### Command line
-
-Summary of qiskit_acqua_chemistry command line options:
-
-`python qiskit_acqua_chemistry`:
-```
-usage: qiskit_acqua_chemistry [-h] [-o output | -jo json output] input
-
-Quantum Chemistry Program.
-
-positional arguments:
-  input            Chemistry Driver input or Algorithm JSON input file
-
-optional arguments:
-  -h, --help       show this help message and exit
-  -o output        Algorithm Results Output file name
-  -jo json output  Algorithm JSON Output file name
-```
-
-## Installation
-
-QISKit ACQUA Chemistry requires Python 3.5 or newer to be installed.
-
-The library can currently be obtained either by cloning this repository, or by downloading
-the zip of the source and unpacking it locally on your machine. The library requires several additional packages
-to be installed in your Python environment. They can simply be installed using the following:
-
-`pip install -r requirements.txt` 
-
-Additionally if you want to develop/run the unit tests then further packages are needed and can be installed as follows: 
-
-`pip install -r requirements-dev.txt` 
-
-Finally you will need to install a chemistry driver. See the chemistry drivers [readme](qiskit_acqua_chemistry/drivers/README.md)
-for more detail as the installation varies by driver due to their use of a separate chemistry program or chemistry 
-library specific to that driver.
 
 ## Input file
 
@@ -88,7 +23,7 @@ chemistry program or chemistry library via a chemistry driver. Further configura
 control the processing and the quantum algorithm, used for the computation, instead of using defaulted values when
 none are supplied.
 
-Several sample input files can be found in the [examples](examples) folder 
+Several sample input files can be found in the [examples](../examples) folder 
 
 An input file comprises the following main sections, although not all are mandatory:
 
@@ -108,15 +43,17 @@ Ground state energy computed via Variational Quantum Eigensolver
 
 DRIVER is a mandatory section. This section defines the molecule and associated configuration for the electronic
 structure computation by the chosen driver via its external chemistry program or library. The exact form on the
-configuration depends on the specific driver being used. See the chemistry drivers [readme](qiskit_acqua_chemistry/drivers/README.md)
-for more information about the drivers and their configuration. You will need to look at the readme of the driver you
-are using to find out about the configuration. Here are a couple of examples. Note that the DRIVER section names
-which specific chemistry driver will be used and that a subsequent section, in the name of the driver, then supplies
-the driver specific configuration.
+configuration depends on the specific driver being used. See the chemistry drivers
+[readme](../qiskit_acqua_chemistry/drivers/README.md) for more information about the drivers and their configuration.
 
-Here is an example using the [PYSCF driver](qiskit_acqua_chemistry/drivers/pyscfd/README.md). The DRIVER section names PYSCF as the
-driver and then a PYSCF section, corresponding to the name, provides the molecule and basis set that will be used by
-the PYSCF driver and hence the PySCF library to compute the electronic structure.
+You will need to look at the readme of the driver you are using to find out about its specific configuration.
+Here are a couple of examples. Note that the DRIVER section names which specific chemistry driver will be used and
+that a subsequent section, in the name of the driver, then supplies the driver specific configuration.
+
+Here is an example using the [PYSCF driver](../qiskit_acqua_chemistry/drivers/pyscfd/README.md).
+The DRIVER section names PYSCF as the driver and then a PYSCF section, corresponding to the name, provides the
+molecule and basis set that will be used by the PYSCF driver and hence the PySCF library to compute the electronic
+structure.
 
 ```
 &DRIVER
@@ -129,9 +66,9 @@ the PYSCF driver and hence the PySCF library to compute the electronic structure
 &END
 ```
 
-Here is another example using the [PSI4 driver](qiskit_acqua_chemistry/drivers/psi4d/README.md). Here PSI4 is named as the driver to be
-used and the PSI4 section contains the molecule and basis set directly in a form that PSI4 understands. This is the
-Psithon input file language for PSI4, and thus should be familiar to existing users of PSI4.
+Here is another example using the [PSI4 driver](../qiskit_acqua_chemistry/drivers/psi4d/README.md). Here PSI4 is named
+as the driver to be used and the PSI4 section contains the molecule and basis set directly in a form that PSI4
+understands. This is the Psithon input file language for PSI4, and thus should be familiar to existing users of PSI4.
 
 ```
 &DRIVER
@@ -158,11 +95,11 @@ OPERATOR is an optional section. This section can be configured to control the s
 structure information, from the driver, is converted to QuBit operator form in order to be processed by the ALGORITHM.
 The following parameters may be set:
 
-* name=hamiltonian
+* `name`=hamiltonian
 
   Currently 'hamiltonian' should be used as the name since there only one operator entity at present 
 
-* transformation=**full** | particle_hole
+* `transformation`=**full** | particle_hole
 
   Do *full* transformation or use *particle_hole* 
   
@@ -172,27 +109,27 @@ The following parameters may be set:
   VQE algorithm for the calculation of the electronic ground state properties.
   For more information on the p/h formalism see: [P. Barkoutsos, arXiv:1805.04340](https://arxiv.org/abs/1805.04340).
 
-* qubit_mapping=jordan_wigner | **parity** | bravyi_kitaev
+* `qubit_mapping`=jordan_wigner | **parity** | bravyi_kitaev
 
   Desired mapping from fermion to qubit. Note: bravyi_kitaev is also known as the binary-tree-based qubit mapping. 
 
-* two_qubit_reduction=**true** | false
+* `two_qubit_reduction`=**true** | false
 
   With parity mapping the operator can be reduced by two qubits 
 
-* max_workers=*integer, default 4*
+* `max_workers`=*integer, default 4*
 
   Processing of the hamiltonian from fermionic to qubit can take advantage of multiple cpu cores to run parallel
   processes to carry out the transformation. The number of such worker processes used will not exceed the
   actual number of cup cores or this max_workers number, whichever is the smaller.
 
-* freeze_core=true | **false**
+* `freeze_core`=true | **false**
 
   Whether to freeze core orbitals in the computation or not. Frozen core orbitals are removed from the
   subsequent computation by the ALGORITHM and a corresponding offset from this removal is added back into the
   final computed result. This may be combined with orbital_reduction below.
 
-* orbital_reduction=[]
+* `orbital_reduction`=*array of integers*
 
   The orbitals from the electronic structure can be simplified for the subsequent computation.
    
@@ -238,6 +175,7 @@ is relative to the highest orbital and will always refer to the highest two orbi
 #### ALGORITHM
 
 ALGORITHM is an optional section that allows you to define which quantum algorithm will be used by the computation.
+Algorithms are provided by [QISKIt ACQUA](https://github.ibm.com/IBMQuantum/qiskit-acqua/blob/master/qiskit_acqua/README.md)
 The algorithm defaults to VQE (Variational Quantum Eigensolver), with a set of default parameters. 
 
 According to each ALGORITHM you may add further sections to optionally configure the algorithm further. These sections
@@ -265,8 +203,9 @@ variational forms that are used by VQE.
 &END
 ``` 
 
-For more information on algorithms, and any pluggable entities it may use, see QISKit ACQUA for more specifics about 
-them and their configuration options.
+For more information on algorithms, and any pluggable entities it may use, see
+[QISKit ACQUA](https://github.ibm.com/IBMQuantum/qiskit-acqua/blob/master/qiskit_acqua/README.md) for more specifics 
+about them and their configuration options.
 
 
 #### BACKEND   
@@ -274,19 +213,19 @@ them and their configuration options.
 BACKEND is an optional section that includes naming the [QISKit](https://www.qiskit.org/) quantum computational
 backend to be used for the quantum computation. This defaults to a local quantum simulator backend. 
 
-* name=*'qiskit backend name'* 
+* `name`=*'qiskit backend name'* 
 
   Defaults to 'local_statevector_simulator' but any suitable quantum backend can be selected. The QConfig.py file
   may need to be setup for QISKit to access remote devices.
   See [QISKit installation](https://qiskit.org/documentation/install.html#installation) for information on how to
   configure the QConfig.py
   
-* shots=*integer defaults to 1024*
+* `shots`=*integer defaults to 1024*
 
   With a backend such as local_qasm_simulator, or a real device, this is number of repetitions of each circuit
   for sampling to be used.
 
-* skip_translation=**false** | true
+* `skip_translation`=**false** | true
 
   Skip circuit translation phase. If the algorithm uses only basis gates directly supported then no translation of
   the circuit into basis gates is required. Skipping the translation may improve overall performance a little
@@ -295,15 +234,33 @@ backend to be used for the quantum computation. This defaults to a local quantum
   *Note: use with caution as if the algorithm does not restrict itself to the set of basis gates supported by the
    backend then the circuit (algorithm) will fail to run.*     
 
+* `noise_params`=*dictionary of noise control key/values, optional, defaults to None*
+
+   When a local simulator is used an optional dictionary can be supplied to control its noise model. For more
+   information see 
+   [Noise Parameters](https://github.com/QISKit/qiskit-sdk-py/tree/master/src/qasm-simulator-cpp#noise-parameters)
+   The following is an example of such a dictionary that can be used:
+   
+   ```
+   "noise_params": {"U": {"p_depol": 0.001,
+                          "p_pauli": [0, 0, 0.01],
+                          "gate_time": 1,
+                          "U_error": [ [[1, 0], [0, 0]],
+                                       [[0, 0], [0.995004165, 0.099833417]]
+                                     ]
+                         }
+                   }
+   ```
+
 #### PROBLEM
 
 PROBLEM is an optional section that includes the overall problem being solved and overall problem level configuration
 
-* name=**energy** | excited_states
+* `name`=**energy** | excited_states
 
   Specifies the problem being solved. Ensures that algorithms that can handle this class of problem are used.
   
-* enable_substitutions=**true** | false
+* `enable_substitutions`=**true** | false
 
   During configuration some items may require matching their settings e.g. UCCSD variation form and HartreeFock
   initial state configuration need qubit_mapping and two_qubit_reduction to match what is set in [OPERATOR](#operator)
@@ -315,7 +272,7 @@ PROBLEM is an optional section that includes the overall problem being solved an
   any values in the targeted fields appropriately. If enable_substitutions is set false then the end user has the
   full responsibility for the entire configuration.
   
-* random_seed=*An integer, default None*  
+* `random_seed`=*An integer, default None*  
 
   Aspects of the computation may include use of random numbers. For instance VQE will often use a random initial
   point if the variation form does not supply any preference based on the initial state (and not overridden by a user
@@ -334,8 +291,8 @@ input file. A programmatic interface is also available that can be called using 
 input file. Like the input file its parameters take on the same values and same defaults.
 
 The dictionary can be manipulated programmatically, if desired, to vary the problem e.g. changing the interatomic
-distance of the molecule, changing basis set, algorithm etc. You can find notebooks in the [examples](examples) folder
-demonstrating this usage.
+distance of the molecule, changing basis set, algorithm etc. You can find notebooks in the [examples](../examples)
+folder demonstrating this usage.
 
 The code fragment below also shows such a dictionary and a simple usage.     
 
@@ -359,8 +316,8 @@ file or create a new one and then simply export it as a dictionary for use in a 
 
 ### Result dictionary
 
-As can be seen in the programming interface example above the ACQUAChemistry run() method returns a result dictionary. The
-dictionary contains the following fields of note:
+As can be seen in the programming interface example above the ACQUAChemistry run() method returns a result dictionary.
+The dictionary contains the following fields of note:
 
 * *energy*
 
