@@ -112,8 +112,8 @@ class QuantumAlgorithm(ABC):
                 self._random = np.random.RandomState(self._random_seed)
         return self._random
 
-    def setup_quantum_backend(self, backend='local_statevector_simulator',
-                              shots=1024, skip_translation=False, timeout=None, wait=5):
+    def setup_quantum_backend(self, backend='local_statevector_simulator', shots=1024, skip_translation=False,
+                              timeout=None, wait=5, noise_config=None):
         """
         Setup the quantum backend.
 
@@ -124,6 +124,7 @@ class QuantumAlgorithm(ABC):
                                      basis gates of the backend are executed others are skipped.
             timeout (float or None): seconds to wait for job. If None, wait indefinitely.
             wait (float): seconds between queries
+            noise_config (dict): the noise setting for simulator
 
         Raises:
             AlgorithmError: set backend with invalid Qconfig
@@ -138,6 +139,7 @@ class QuantumAlgorithm(ABC):
                              'wait': wait}
 
         shots = 1 if 'statevector' in backend else 1024 if shots == 1 else shots
+        noise_config = noise_config if 'simulator' in backend else None
 
         if backend.startswith('local'):
             self._qjob_config.pop('wait', None)
@@ -145,7 +147,7 @@ class QuantumAlgorithm(ABC):
         my_backend = get_backend(backend)
         self._execute_config = {'shots': shots,
                                 'skip_translation': skip_translation,
-                                'config': None,
+                                'config': noise_config,
                                 'basis_gates': my_backend.configuration['basis_gates'],
                                 'coupling_map': my_backend.configuration['coupling_map'],
                                 'initial_layout': None,

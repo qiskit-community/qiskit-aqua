@@ -1,12 +1,12 @@
 {
     "$schema": "http://json-schema.org/schema#",
     "id": "input_schema.json",
-    
+
     "definitions": {
         "problem": {
             "type": "object",
             "properties": {
-                "name": { 
+                "name": {
                     "type": "string",
                     "default": "energy"
                  },
@@ -21,7 +21,7 @@
         "algorithm": {
             "type": "object",
             "properties": {
-                "name": { 
+                "name": {
                     "type": "string",
                     "default": "VQE"
                 }
@@ -32,25 +32,30 @@
         "backend": {
             "type": "object",
             "properties": {
-                "name": { 
+                "name": {
                     "type": "string",
                     "default": "local_statevector_simulator"
                 },
-                "shots": { 
+                "shots": {
                     "type": "integer",
                     "default": 1024,
                     "minimum": 1
                 },
-                "skip_translation": { 
+                "skip_translation": {
                     "type": "boolean",
                     "default": false
+                },
+                "noise_config": {
+                    "type": ["object", "null"],
+                    "default": null
                 }
+
             },
             "required": ["name"],
             "additionalProperties": false
         }
     },
-    
+
     "type": "object",
     "properties": {
         "input":            { "$ref": "#/definitions/input" },
