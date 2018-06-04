@@ -41,16 +41,16 @@ def entangler_map_creator(n):
     return entangler_map
 
 
-def inner_prod_circuit_ML(entangler_map, coupling_map, initial_layout, n, x_vec1, x_vec2,
-                          meas_string=None, measurement=True):
+
+def inner_prod_circuit_ML(entangler_map, coupling_map, initial_layout,n, x_vec1, x_vec2, meas_string = None, measurement = True):
 
     q = QuantumRegister(n, "q")
     c = ClassicalRegister(n, "c")
     trial_circuit = QuantumCircuit(q, c)
 
-    # write input state from sample distribution
+    #write input state from sample distribution
     for r in range(len(x_vec1)):
-        trial_circuit.u2(0.0, np.pi, q[r])  # h
+        trial_circuit.h(q[r])
         trial_circuit.u1(2*x_vec1[r], q[r])
     for node in entangler_map:
         for j in entangler_map[node]:
@@ -59,20 +59,14 @@ def inner_prod_circuit_ML(entangler_map, coupling_map, initial_layout, n, x_vec1
             trial_circuit.cx(q[node], q[j])
 
     for r in range(len(x_vec1)):
-        trial_circuit.u2(0.0, np.pi, q[r])  # h
+        trial_circuit.h(q[r])
         trial_circuit.u1(2*x_vec1[r], q[r])
     for node in entangler_map:
         for j in entangler_map[node]:
             trial_circuit.cx(q[node], q[j])
             trial_circuit.u1(2*(np.pi-x_vec1[node])*(np.pi-x_vec1[j]), q[j])
-
-    for node in entangler_map:
-        for j in entangler_map[node]:
-            trial_circuit.u1(-2*(np.pi-x_vec2[node])*(np.pi-x_vec2[j]), q[j])
             trial_circuit.cx(q[node], q[j])
-    for r in range(len(x_vec2)):
-        trial_circuit.u1(-2*x_vec2[r], q[r])
-        trial_circuit.u2(0.0, np.pi, q[r])  # h
+
 
     for node in entangler_map:
         for j in entangler_map[node]:
@@ -81,13 +75,71 @@ def inner_prod_circuit_ML(entangler_map, coupling_map, initial_layout, n, x_vec1
             trial_circuit.cx(q[node], q[j])
     for r in range(len(x_vec2)):
         trial_circuit.u1(-2*x_vec2[r], q[r])
-        trial_circuit.u2(0.0, np.pi, q[r])  # h
+        trial_circuit.h(q[r])
+
+    for node in entangler_map:
+        for j in entangler_map[node]:
+            trial_circuit.cx(q[node], q[j])
+            trial_circuit.u1(-2*(np.pi-x_vec2[node])*(np.pi-x_vec2[j]), q[j])
+            trial_circuit.cx(q[node], q[j])
+    for r in range(len(x_vec2)):
+        trial_circuit.u1(-2*x_vec2[r], q[r])
+        trial_circuit.h(q[r])
 
     if measurement:
         for j in range(n):
             trial_circuit.measure(q[j], c[j])
 
     return trial_circuit
+
+
+# def inner_prod_circuit_ML(entangler_map, coupling_map, initial_layout, n, x_vec1, x_vec2,
+#                           meas_string=None, measurement=True):
+#
+#     q = QuantumRegister(n, "q")
+#     c = ClassicalRegister(n, "c")
+#     trial_circuit = QuantumCircuit(q, c)
+#
+#     # write input state from sample distribution
+#     for r in range(len(x_vec1)):
+#         trial_circuit.u2(0.0, np.pi, q[r])  # h
+#         trial_circuit.u1(2*x_vec1[r], q[r])
+#     for node in entangler_map:
+#         for j in entangler_map[node]:
+#             trial_circuit.cx(q[node], q[j])
+#             trial_circuit.u1(2*(np.pi-x_vec1[node])*(np.pi-x_vec1[j]), q[j])
+#             trial_circuit.cx(q[node], q[j])
+#
+#     for r in range(len(x_vec1)):
+#         trial_circuit.u2(0.0, np.pi, q[r])  # h
+#         trial_circuit.u1(2*x_vec1[r], q[r])
+#     for node in entangler_map:
+#         for j in entangler_map[node]:
+#             trial_circuit.cx(q[node], q[j])
+#             trial_circuit.u1(2*(np.pi-x_vec1[node])*(np.pi-x_vec1[j]), q[j])
+#
+#     for node in entangler_map:
+#         for j in entangler_map[node]:
+#             trial_circuit.u1(-2*(np.pi-x_vec2[node])*(np.pi-x_vec2[j]), q[j])
+#             trial_circuit.cx(q[node], q[j])
+#     for r in range(len(x_vec2)):
+#         trial_circuit.u1(-2*x_vec2[r], q[r])
+#         trial_circuit.u2(0.0, np.pi, q[r])  # h
+#
+#     for node in entangler_map:
+#         for j in entangler_map[node]:
+#             trial_circuit.cx(q[node], q[j])
+#             trial_circuit.u1(-2*(np.pi-x_vec2[node])*(np.pi-x_vec2[j]), q[j])
+#             trial_circuit.cx(q[node], q[j])
+#     for r in range(len(x_vec2)):
+#         trial_circuit.u1(-2*x_vec2[r], q[r])
+#         trial_circuit.u2(0.0, np.pi, q[r])  # h
+#
+#     if measurement:
+#         for j in range(n):
+#             trial_circuit.measure(q[j], c[j])
+#
+#     return trial_circuit
 
 
 my_zero_string = ''
