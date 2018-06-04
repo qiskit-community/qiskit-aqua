@@ -27,8 +27,6 @@ __pycache__/
 *.dll
 #Allow
 !qiskit_acqua_chemistry/drivers/gaussiand/gauopen/*.so
-!qiskit_acqua_chemistry/drivers/gaussiand/gauopen/*.so.dSYM
-!qiskit_acqua_chemistry/drivers/gaussiand/gauopen/*.so.dSYM/**/*.so
 !qiskit_acqua_chemistry/drivers/gaussiand/gauopen/*.pyd
 
 
