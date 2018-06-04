@@ -99,6 +99,7 @@ docs/*.rst
 !docs/install.rst
 !docs/quickstart.rst
 !docs/releases.rst
+!docs/CONTRIBUTORS.rst
 
 # PyBuilder
 target/
