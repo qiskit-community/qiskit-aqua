@@ -14,11 +14,3 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-
-
-
-__all__ = [
-           'get_points_and_labels',
-           'get_points',
-           'optimize_SVM'
-           ]

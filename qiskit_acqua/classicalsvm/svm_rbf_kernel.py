@@ -17,6 +17,8 @@
 
 import numpy as np
 
+from sklearn.metrics.pairwise import rbf_kernel
+
 from qiskit_acqua import QuantumAlgorithm
 from qiskit_acqua.svm import (get_points_and_labels, optimize_SVM)
 
@@ -45,10 +47,7 @@ class SVM_RBF_Kernel(QuantumAlgorithm):
         self._ret = {}
 
     def kernel_join_classical(self, points_array, points_array2, gamma=None):
-        from sklearn.metrics.pairwise import rbf_kernel, laplacian_kernel
         return rbf_kernel(points_array, points_array2, gamma)
-
-
 
     def init_params(self, params, algo_input):
         SVM_RBF_K_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
@@ -59,31 +58,28 @@ class SVM_RBF_Kernel(QuantumAlgorithm):
 
         self.init_args(SVM_RBF_K_params.get('print_info'))
 
-    def init_args(self, print_info=False):  #
+    def init_args(self, print_info=False):
         self.print_info = print_info
-
-
 
     def train(self, training_input, class_labels):
         training_points, training_points_labels, label_to_class = get_points_and_labels(training_input, class_labels)
 
-        Kernel_mat  = self.kernel_join_classical(training_points, training_points)
-
+        Kernel_mat = self.kernel_join_classical(training_points, training_points)
 
         if self.print_info:
             import matplotlib.pyplot as plt
-            img = plt.imshow(np.asmatrix(Kernel_mat),interpolation='nearest',origin='upper',cmap='bone_r')
+            img = plt.imshow(np.asmatrix(Kernel_mat), interpolation='nearest', origin='upper', cmap='bone_r')
             plt.show()
 
-        [alpha, b, support] = optimize_SVM(Kernel_mat,training_points_labels)
+        [alpha, b, support] = optimize_SVM(Kernel_mat, training_points_labels)
         alphas = np.array([])
         SVMs = np.array([])
         yin = np.array([])
         for alphindex in range(len(support)):
             if support[alphindex]:
-                alphas=np.vstack([alphas,alpha[alphindex]]) if alphas.size else alpha[alphindex]
-                SVMs = np.vstack([SVMs,training_points[alphindex]]) if SVMs.size else training_points[alphindex]
-                yin = np.vstack([yin,training_points_labels[alphindex]]) if yin.size else training_points_labels[alphindex]
+                alphas = np.vstack([alphas, alpha[alphindex]]) if alphas.size else alpha[alphindex]
+                SVMs = np.vstack([SVMs, training_points[alphindex]]) if SVMs.size else training_points[alphindex]
+                yin = np.vstack([yin, training_points_labels[alphindex]]) if yin.size else training_points_labels[alphindex]
 
         return [alphas, b, SVMs, yin]
 
@@ -100,7 +96,7 @@ class SVM_RBF_Kernel(QuantumAlgorithm):
             Ltot = 0
             for sin in range(len(SVMs)):
                 L = yin[sin]*alphas[sin]*kernel_matrix[tin][sin]
-                Ltot +=  L
+                Ltot += L
             Lsign[tin] = np.sign(Ltot+bias)
             if self.print_info:
                 print("\n=============================================")
@@ -118,9 +114,6 @@ class SVM_RBF_Kernel(QuantumAlgorithm):
             print('Classification success for this set is %s %% \n' % (100*final_success_ratio))
 
         return final_success_ratio
-
-
-
 
     def predict(self, svm, test_points):
         alphas, bias, SVMs, yin = svm
