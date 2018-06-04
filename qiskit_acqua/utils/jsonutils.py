@@ -26,6 +26,8 @@ def convert_dict_to_json(in_item):
     stored in dictionaries!
     Arg:
         in_item (dict or list): the input dict/list
+    Returns:
+        Result in_item possibly modified
     """
 
     key_list = []
@@ -55,11 +57,15 @@ def convert_dict_to_json(in_item):
         else:
             in_item[curkey] = in_item[curkey].tolist()
             
+    return in_item
+            
 def convert_json_to_dict(in_item):
     """Combs recursively through a list/dictionary that was loaded from json
     and finds any lists that were converted from ndarray and converts them back
     Arg:
         in_item (dict or list): the input dict/list
+    Returns:
+        Result in_item possibly modified
     """
 
     key_list = []
@@ -86,4 +92,6 @@ def convert_json_to_dict(in_item):
             in_item[curkey_root] = in_item[curkey_root] + 1j * numpy.array(
                 in_item[curkey_root + '_ndarray_imag'])
             in_item.pop(curkey_root + '_ndarray_imag')
+            
+    return in_item
 

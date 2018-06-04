@@ -21,7 +21,7 @@ from qiskit_acqua.algorithmerror import AlgorithmError
 from qiskit_acqua._discover import (_discover_on_demand,
                                   local_algorithms,
                                   get_algorithm_instance)
-from qiskit_acqua.utils.jsonutils import convert_dict_to_json
+from qiskit_acqua.utils.jsonutils import convert_dict_to_json,convert_json_to_dict
 from qiskit_acqua.parser._inputparser import InputParser
 from qiskit_acqua.input import get_input_instance
 import logging
@@ -77,6 +77,7 @@ def run_algorithm(params, algo_input=None, json_output=False):
             algo_input = get_input_instance(input_name)
             input_params = copy.deepcopy(inputparser.get_section_properties('input'))
             del input_params[InputParser.NAME]
+            convert_json_to_dict(input_params)
             algo_input.from_params(input_params)
 
     algorithm.init_params(algo_params, algo_input)
