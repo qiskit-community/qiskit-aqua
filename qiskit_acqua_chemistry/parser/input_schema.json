@@ -68,7 +68,7 @@
                     "type": "boolean",
                     "default": false
                 },
-                "noise_config": {
+                "noise_params": {
                     "type": ["object", "null"],
                     "default": null
                 }
