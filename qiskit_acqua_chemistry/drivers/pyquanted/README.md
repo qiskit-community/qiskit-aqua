@@ -3,7 +3,10 @@
 ## Electronic structure driver for PyQuante2
 
 PyQuante2 is an open-source library for computational chemistry, see https://github.com/rpmuller/pyquante2 for
-installation instructions and its licensing terms.
+installation instructions and its licensing terms. 
+
+This driver contains a couple of methods here, in transform.py, from Pyquante1, which was licensed under a
+[modified BSD license](./LICENSE.txt) 
 
 This driver requires PyQuante2 to be installed and available for QISKit ACQUA Chemistry to access/call.
 
