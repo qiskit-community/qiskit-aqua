@@ -75,6 +75,11 @@ class SVM_QKernel(QuantumAlgorithm):
         kernel_matrix = kernel_join(training_points, training_points, self.entangler_map, self.coupling_map,
                                  self.initial_layout, self.shots, self._random_seed, self.num_of_qubits, self.backend)
 
+        if self.print_info:
+            import matplotlib.pyplot as plt
+            img = plt.imshow(np.asmatrix(kernel_matrix),interpolation='nearest',origin='upper',cmap='bone_r')
+            plt.show()
+
         [alpha, b, support] = optimize_SVM(kernel_matrix, training_points_labels)
         alphas = np.array([])
         SVMs = np.array([])

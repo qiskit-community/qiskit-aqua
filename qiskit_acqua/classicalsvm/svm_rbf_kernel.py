@@ -68,8 +68,12 @@ class SVM_RBF_Kernel(QuantumAlgorithm):
         training_points, training_points_labels, label_to_class = get_points_and_labels(training_input, class_labels)
 
         Kernel_mat  = self.kernel_join_classical(training_points, training_points)
-        # img = plt.imshow(np.asmatrix(Kernel_mat),interpolation='nearest',origin='upper',cmap='bone_r')
-        # plt.show()
+
+
+        if self.print_info:
+            import matplotlib.pyplot as plt
+            img = plt.imshow(np.asmatrix(Kernel_mat),interpolation='nearest',origin='upper',cmap='bone_r')
+            plt.show()
 
         [alpha, b, support] = optimize_SVM(Kernel_mat,training_points_labels)
         alphas = np.array([])
