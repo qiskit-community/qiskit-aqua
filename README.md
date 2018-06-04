@@ -57,7 +57,12 @@ We recommend using Python virtual environments to improve your experience.
 
 Now that you have installed QISKit ACQUA you can run an algorithm. This can be done programmatically and can also
 use json input that was saved from a prior run. The json input can be given to either the UI or the command line tool
-to run the algorithm as specified by that json.
+to run the algorithm, as specified by that json.
+
+A problem can be selected and an algorithm can be configured along with any dependents it needs, as well as
+a backend selected for the quantum computation. For more detailed information see the
+[algorithms](qiskit_acqua/README.md) readme which lists the algorithms and their configuration parameters along with
+links to the respective components they use.   
 
 ### GUI
 
