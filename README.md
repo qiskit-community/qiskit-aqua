@@ -44,7 +44,7 @@ recommend installing the [Anaconda
 3](https://www.continuum.io/downloads) Python distribution, as it comes
 with all of these dependencies pre-installed.
 
-### Getting the COde
+### Getting the Code
 
 We encourage you to install QISKit ACQUA via the
 [pip](https://pip.pypa.io/en/stable/) tool (a Python package manager):
