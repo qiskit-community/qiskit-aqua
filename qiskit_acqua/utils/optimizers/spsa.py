@@ -74,6 +74,10 @@ class SPSA(Optimizer):
         self._parameters = parameters
 
     def optimize(self, num_vars, objective_function, gradient_function=None, variable_bounds=None, initial_point=None):
+
+        if not isinstance(initial_point, np.ndarray):
+            initial_point = np.asarray(initial_point)
+
         super().optimize(num_vars, objective_function, gradient_function, variable_bounds, initial_point)
 
         initial_c = 0.1
