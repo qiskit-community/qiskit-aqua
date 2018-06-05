@@ -100,17 +100,19 @@ class Controller(object):
         if action != '1':
             return True
         
-        if value_if_allowed == '+' or value_if_allowed == '-' or value_if_allowed == 'e':
+        if value_if_allowed == '+' or value_if_allowed == '-':
             return True
         
         if value_if_allowed is not None:
             index = value_if_allowed.find('e')
-            if index >= 0:
-                if index > 0:
-                    try:
-                        float(value_if_allowed[:index])
-                    except ValueError:
-                        return False
+            if index == 0:
+                return False
+            
+            if index > 0:
+                try:
+                    float(value_if_allowed[:index])
+                except ValueError:
+                    return False
                    
                 if index < len(value_if_allowed) - 1:
                     right = value_if_allowed[index+1:]
