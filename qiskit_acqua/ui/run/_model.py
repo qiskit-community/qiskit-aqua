@@ -22,6 +22,7 @@ from qiskit_acqua.parser import InputParser
 from qiskit_acqua import local_pluggables
 from qiskit_acqua.input import local_inputs
 from qiskit_acqua.ui._uipreferences import UIPreferences
+from collections import OrderedDict
 
 class Model(object):
    
@@ -115,6 +116,26 @@ class Model(object):
             return {}
         
         return self._parser.get_section_properties(section_name)
+    
+    def default_properties_equals_properties(self,section_name):
+        if self.section_is_text(section_name): 
+            return self.get_section_default_properties(section_name) == self.get_section_data(section_name)
+        
+        default_properties = self.get_section_default_properties(section_name)
+        if isinstance(default_properties,OrderedDict):
+            default_properties =  dict(default_properties)
+            
+        properties = self.get_section_properties(section_name)
+        if isinstance(properties,OrderedDict):
+            properties =  dict(properties)
+                
+        if not isinstance(default_properties,dict) or not isinstance(properties,dict):
+            return default_properties == properties
+            
+        if InputParser.NAME in properties:
+            default_properties[InputParser.NAME] = properties[InputParser.NAME]
+            
+        return default_properties == properties
     
     def get_section_property(self,section_name,property_name):
         if self._parser is None:
