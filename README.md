@@ -62,22 +62,17 @@ experience.
 ### Running an Algorithm
 
 Now that you have installed QISKit ACQUA you can run an algorithm.
-This can be done programmatically using a Python dictionary and an AlgorithmInput,
-the latter dependent on the algorithm, or can be done using JSON as an input.
+This can be done [programmatically](#programming) or can be done using JSON as an input.
 Whether via dictionary or via JSON the input is validated for correctness against
-schema. 
+schemas. 
  
-Using JSON is convenient when the algorithm input has been saved in this form on a prior run.
+JSON is convenient when the algorithm input has been saved in this form from a prior run.
 A file containing a saved JSON input can be given to either the UI or the command line
 tool in order to run the algorithm. One simple way to generate such JSON input is by serializing 
 the input to QISKit ACQUA when executing one of the applications running on top of QISKit ACQUA, such
-as QISKit ACQUA Chemistry, QISKit ACQUA Artificial Intelligence or
-QISKit ACQUA Optimization.
+as QISKit ACQUA Chemistry, QISKit ACQUA Artificial Intelligence or QISKit ACQUA Optimization. The
+GUI also saves any entered configuration in JSON 
 
-To run an algorithm a problem must be selected, whereupon an algorithm that can handle that
-problem can be chosen and configured along with any dependents it needs. This includes selecting 
-a backend and its configuration for the quantum computation. For more detailed information on configuring
- 
 The [algorithms](qiskit_acqua/README.md) readme contains detailed information on the various
 parameters for each algorithm along with links to the respective components they use.
  
