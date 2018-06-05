@@ -104,7 +104,7 @@ class EvolutionFidelity(QuantumAlgorithm):
         circuit += self._operator.evolve(
             None, evo_time, 'circuit', 1,
             quantum_registers=qr,
-            expansion_mode='trotter',
+            expansion_mode='suzuki',
             expansion_order=self._expansion_order
         )
 
