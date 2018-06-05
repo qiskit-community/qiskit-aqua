@@ -62,7 +62,7 @@ class Oracle(ABC):
 
     @property
     @abstractmethod
-    def target_register(self):
+    def outcome_register(self):
         raise NotImplementedError()
 
     @abstractmethod
