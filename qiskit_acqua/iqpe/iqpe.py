@@ -47,7 +47,7 @@ class IQPE(QuantumAlgorithm):
     DEFAULT_PROP_PAULIS_GROUPING = 'default'        # grouped_paulis
     ALTERNATIVE_PROP_PAULIS_GROUPING = 'random'     # paulis
     DEFAULT_PROP_EXPANSION_MODE = 'trotter'
-    ALTERNATIVE_PROP_EXPANSION_MODE = 'naive'
+    ALTERNATIVE_PROP_EXPANSION_MODE = 'suzuki'
     DEFAULT_PROP_EXPANSION_ORDER = 2
     DEFAULT_PROP_NUM_ITERATIONS = 1
 
@@ -182,10 +182,10 @@ class IQPE(QuantumAlgorithm):
         if len(pauli_list) == 1:
             slice_pauli_list = pauli_list
         else:
-            if self._expansion_mode == 'naive':
+            if self._expansion_mode == 'trotter':
                 slice_pauli_list = pauli_list
             else:
-                slice_pauli_list = Operator._trotter_expansion_slice_pauli_list(pauli_list, 1, self._expansion_order)
+                slice_pauli_list = Operator._suzuki_expansion_slice_pauli_list(pauli_list, 1, self._expansion_order)
 
         k, omega_coef = self._num_iterations, 0
         while True:

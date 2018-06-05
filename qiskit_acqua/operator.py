@@ -1174,18 +1174,18 @@ class Operator(object):
         return reduce(QuantumCircuit.__add__, [qc] * num_time_slices)
 
     @staticmethod
-    def _trotter_expansion_slice_matrix(pauli_list, lam, expansion_order):
+    def _suzuki_expansion_slice_matrix(pauli_list, lam, expansion_order):
         """
-        Compute the matrix for a single slice of the trotter expansion following the paper
+        Compute the matrix for a single slice of the suzuki expansion following the paper
         https://arxiv.org/pdf/quant-ph/0508139.pdf
 
         Args:
-            pauli_list (list): The operator's complete list of pauli terms for the trotter expansion
+            pauli_list (list): The operator's complete list of pauli terms for the suzuki expansion
             lam (float): The parameter lambda as defined in said paper
-            expansion_order (int): The order for the trotter expansion
+            expansion_order (int): The order for the suzuki expansion
 
         Returns:
-            numpy array: The matrix representation corresponding to the specified trotter expansion
+            numpy array: The matrix representation corresponding to the specified suzuki expansion
         """
         if expansion_order == 1:
             left = reduce(
@@ -1199,13 +1199,13 @@ class Operator(object):
             return left @ right
         else:
             pk = (4 - 4 ** (1 / (2 * expansion_order - 1))) ** -1
-            side_base = Operator._trotter_expansion_slice_matrix(
+            side_base = Operator._suzuki_expansion_slice_matrix(
                 pauli_list,
                 lam * pk,
                 expansion_order - 1
             )
             side = side_base @ side_base
-            middle = Operator._trotter_expansion_slice_matrix(
+            middle = Operator._suzuki_expansion_slice_matrix(
                 pauli_list,
                 lam * (1 - 4 * pk),
                 expansion_order - 1
@@ -1213,10 +1213,10 @@ class Operator(object):
             return side @ middle @ side
 
     @staticmethod
-    def _trotter_expansion_slice_pauli_list(pauli_list, lam_coef, expansion_order):
+    def _suzuki_expansion_slice_pauli_list(pauli_list, lam_coef, expansion_order):
         """
-        Similar to _trotter_expansion_slice_matrix, with the difference that this method
-        computes the list of pauli terms for a single slice of the trotter expansion,
+        Similar to _suzuki_expansion_slice_matrix, with the difference that this method
+        computes the list of pauli terms for a single slice of the suzuki expansion,
         which can then be fed to construct_evolution_circuit to build the QuantumCircuit.
         """
         if expansion_order == 1:
@@ -1224,13 +1224,13 @@ class Operator(object):
             return half + list(reversed(half))
         else:
             pk = (4 - 4 ** (1 / (2 * expansion_order - 1))) ** -1
-            side_base = Operator._trotter_expansion_slice_pauli_list(
+            side_base = Operator._suzuki_expansion_slice_pauli_list(
                 pauli_list,
                 lam_coef * pk,
                 expansion_order - 1
             )
             side = side_base * 2
-            middle = Operator._trotter_expansion_slice_pauli_list(
+            middle = Operator._suzuki_expansion_slice_pauli_list(
                 pauli_list,
                 lam_coef * (1 - 4 * pk),
                 expansion_order - 1
@@ -1252,11 +1252,11 @@ class Operator(object):
             paulis_grouping (str): The grouping to dictate the ordering of the pauli terms.
                 See reorder_paulis method for more details.
             expansion_mode (str): The mode under which the expansion is to be done.
-                Currently support 'naive', which follows the expansion as discussed in
+                Currently support 'trotter', which follows the expansion as discussed in
                 http://science.sciencemag.org/content/273/5278/1073,
-                and 'trotter', which corresponds to trotter expansion, as discussed in
+                and 'suzuki', which corresponds to the discussion in
                 https://arxiv.org/pdf/quant-ph/0508139.pdf
-            expansion_order (int): The order for trotter expansion
+            expansion_order (int): The order for suzuki expansion
 
         Returns:
             Depending on the evo_mode specified, either return the matrix vector multiplication result
@@ -1265,7 +1265,7 @@ class Operator(object):
         """
         if num_time_slices < 0 or not isinstance(num_time_slices, int):
             raise ValueError('Number of time slices should be a non-negative integer.')
-        if not (expansion_mode == 'naive' or expansion_mode == 'trotter'):
+        if not (expansion_mode == 'trotter' or expansion_mode == 'suzuki'):
             raise NotImplementedError('Expansion mode {} not supported.'.format(expansion_mode))
 
         pauli_list = self.reorder_paulis(grouping=paulis_grouping)
@@ -1281,7 +1281,7 @@ class Operator(object):
                         -1.j * evo_time / num_time_slices * pauli_list[0][0] * pauli_list[0][1].to_spmatrix().tocsc()
                     )
                 else:
-                    if expansion_mode == 'naive':
+                    if expansion_mode == 'trotter':
                         approx_matrix_slice = reduce(
                             lambda x, y: x @ y,
                             [
@@ -1289,9 +1289,9 @@ class Operator(object):
                                 for c, p in pauli_list
                             ]
                         )
-                    # trotter expansion
+                    # suzuki expansion
                     else:
-                        approx_matrix_slice = Operator._trotter_expansion_slice_matrix(
+                        approx_matrix_slice = Operator._suzuki_expansion_slice_matrix(
                             pauli_list,
                             -1.j * evo_time / num_time_slices,
                             expansion_order
@@ -1307,11 +1307,11 @@ class Operator(object):
                 if len(pauli_list) == 1:
                     slice_pauli_list = pauli_list
                 else:
-                    if expansion_mode == 'naive':
+                    if expansion_mode == 'trotter':
                         slice_pauli_list = pauli_list
-                    # trotter expansion
+                    # suzuki expansion
                     else:
-                        slice_pauli_list = Operator._trotter_expansion_slice_pauli_list(
+                        slice_pauli_list = Operator._suzuki_expansion_slice_pauli_list(
                             pauli_list,
                             1,
                             expansion_order
@@ -1321,7 +1321,6 @@ class Operator(object):
                 )
         else:
             raise ValueError('Evolution mode should be either "matrix" or "circuit".')
-
 
     def is_empty(self):
         """
