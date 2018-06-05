@@ -61,16 +61,26 @@ experience.
 
 ### Running an Algorithm
 
-Now that you have installed QISKit ACQUA, you can run an algorithm by
-invoking it with the appropriate input. The input to a QISKit ACQUA
-algorithm is expected to be in [JSON](http://json.org) format. This can
-be done programmaticall, via the Graphical User Interface (GUI) or from
-the command line. In addition to the input itself, the JSON file encodes
-the algorithm that QISKit ACQUA will invoke on that input. One way to
-generate the JSON input is by serializing the input to QISKit ACQUA when
-executing one of the applications running on top of QISKit ACQUA, such
-as QISKit ACQUA Chemistry, QISKit ACQUA Artificial Intelligence, and
+Now that you have installed QISKit ACQUA you can run an algorithm.
+This can be done programmatically using a Python dictionary and an AlgorithmInput,
+the latter dependent on the algorithm, or can be done using JSON as an input.
+Whether via dictionary or via JSON the input is validated for correctness against
+schema. 
+ 
+Using JSON is convenient when the algorithm input has been saved in this form on a prior run.
+A file containing a saved JSON input can be given to either the UI or the command line
+tool in order to run the algorithm. One simple way to generate such JSON input is by serializing 
+the input to QISKit ACQUA when executing one of the applications running on top of QISKit ACQUA, such
+as QISKit ACQUA Chemistry, QISKit ACQUA Artificial Intelligence or
 QISKit ACQUA Optimization.
+
+To run an algorithm a problem must be selected, whereupon an algorithm that can handle that
+problem can be chosen and configured along with any dependents it needs. This includes selecting 
+a backend and its configuration for the quantum computation. For more detailed information on configuring
+ 
+The [algorithms](qiskit_acqua/README.md) readme contains detailed information on the various
+parameters for each algorithm along with links to the respective components they use.
+ 
 
 ### GUI
 
@@ -78,7 +88,7 @@ The QISKit ACQUA GUI allows you to load and save a JSON file to run an
 algorithm as well as create a new one or edit an existing one. So, for
 example, using the UI, you can alter the parameters of an algorithm
 and/or its dependent objects to see how the changes affect the outcome.
-pip installs a small script that allows you to start the GUI from the
+The pip install creates a script that allows you to start the GUI from the
 command line, as follows:
 
 ``` {.sourceCode .sh}
@@ -97,7 +107,7 @@ from the root folder of the `qiskit-acqua` repository clone.
 Configuring an experiment that involves both quantum-computing and
 domain-specific parameters may look like a challenging activity, which
 requires specialized knowledge on both the specific domain in which the
-experiment runs and quantum computing itslf. QISKit ACQUA simplifies the
+experiment runs and quantum computing itself. QISKit ACQUA simplifies the
 configuration of any run in two ways:
 
 1.  Defaults are provided for each parameter. Such defaults have been
@@ -111,9 +121,9 @@ configuration of any run in two ways:
 ### Command Line
 
 The command line tool will run an algorithm from the supplied JSON file.
-Run without any arguments, it will print help ibformation. pip installs
-a small script, which can be invoked with a JSON algorithm input file
-from the command line as follows:
+Run without any arguments, it will print help information. The pip install
+creates a script, which can be invoked with a JSON algorithm input file
+from the command line, for example as follows:
 
 ``` {.sourceCode .sh}
 qiskit_acqua_cmd examples/H2-0.735.json
@@ -132,7 +142,7 @@ from the root folder of the `qiskit-acqua` repository clone.
 
 As QISKit ACQUA is extensible with pluggable components, we have
 provided a documentation GUI that shows all the pluggable components
-along with the schema for their parameters. `pip` installsa small script
+along with the schema for their parameters. The pip install creates a script
 to invoke the browser GUI as follows:
 
 ``` {.sourceCode .sh}
@@ -152,8 +162,8 @@ from the root folder of the `qiskit-acqua` repository clone.
 
 ### Programming
 
-Any algoirithm in QISJit ACQUA can be run programmatically too. The
-[examples](./examples) folder contains numerous cases that explain how
+Any algorithm in QISKit ACQUA can be run programmatically too. The
+[examples](./examples) folder contains numerous cases that demonstrate how
 to do this. Here you will see there is a `run_algorithm` method used,
 which takes either the JSON algorithm input or an equivalent Python
 dictionary and optional `AlgorithmInput` object for the algorithm. There
