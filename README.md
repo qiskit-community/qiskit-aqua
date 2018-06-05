@@ -80,9 +80,11 @@ command line, as follows:
 `qiskit_acqua_chemistry_ui`
 
 If you clone and run directly from the repository, instead of using
-pip install, then it can be run using
+pip install, then it can be run using:
 
-`python qiskit_acqua_chemistry/ui`:
+`python qiskit_acqua_chemistry/ui`
+
+from the root folder of the qiskit-acqua-chemistry repository clone.
 
 ### Command line
 
@@ -108,6 +110,7 @@ pip install, then it can be run using
 
 `python qiskit_acqua_chemistry`
 
+from the root folder of the qiskit-acqua-chemistry repository clone.
 
 ### Programming
 
