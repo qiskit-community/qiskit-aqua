@@ -1126,30 +1126,29 @@ class Operator(object):
             # insert Rz gate
             if top_XYZ_pauli_indices[pauli_idx] >= 0:
                 if ancillary_registers is None:
+                    lam = (2.0 * pauli[0] * evo_time / num_time_slices).real
                     if use_basis_gates:
-                        qc.u1(
-                            (2.0 * pauli[0] * evo_time / num_time_slices).real,
-                            state_registers[top_XYZ_pauli_indices[pauli_idx]]
-                        )
+                        qc.u1(lam, state_registers[top_XYZ_pauli_indices[pauli_idx]])
                     else:
-                        qc.rz(
-                            (2.0 * pauli[0] * evo_time / num_time_slices).real,
-                            state_registers[top_XYZ_pauli_indices[pauli_idx]]
-                        )
+                        qc.rz(lam, state_registers[top_XYZ_pauli_indices[pauli_idx]])
                 else:
                     unitary_power = (2 ** ctl_idx) if unitary_power is None else unitary_power
+                    lam = (2.0 * pauli[0] * evo_time / num_time_slices * unitary_power).real
+
                     if use_basis_gates:
-                        lam = (2.0 * pauli[0] * evo_time / num_time_slices * unitary_power).real
                         qc.u1(lam / 2, state_registers[top_XYZ_pauli_indices[pauli_idx]])
                         qc.cx(ancillary_registers[ctl_idx], state_registers[top_XYZ_pauli_indices[pauli_idx]])
                         qc.u1(-lam / 2, state_registers[top_XYZ_pauli_indices[pauli_idx]])
                         qc.cx(ancillary_registers[ctl_idx], state_registers[top_XYZ_pauli_indices[pauli_idx]])
                     else:
-                        qc.crz(
-                            (2.0 * pauli[0] * evo_time / num_time_slices * unitary_power).real,
-                            ancillary_registers[ctl_idx],
-                            state_registers[top_XYZ_pauli_indices[pauli_idx]]
-                        )
+                        qc.crz(lam, ancillary_registers[ctl_idx], state_registers[top_XYZ_pauli_indices[pauli_idx]])
+
+                    # lam = (pauli[0] * evo_time / num_time_slices * unitary_power).real
+                    # # qc.u1(lam, ancillary_registers[ctl_idx])
+                    # qc.cx(ancillary_registers[ctl_idx], state_registers[top_XYZ_pauli_indices[pauli_idx]])
+                    # qc.u1(-lam, state_registers[top_XYZ_pauli_indices[pauli_idx]])
+                    # qc.cx(ancillary_registers[ctl_idx], state_registers[top_XYZ_pauli_indices[pauli_idx]])
+                    # qc.u1(lam, state_registers[top_XYZ_pauli_indices[pauli_idx]])
 
             # insert rhs cnot gates
             for pair in reversed(cnot_qubit_pairs[pauli_idx]):
