@@ -67,8 +67,10 @@ Whether via dictionary or via JSON the input is validated for correctness agains
 schemas. 
  
 JSON is convenient when the algorithm input has been saved in this form from a prior run.
-A file containing a saved JSON input can be given to either the UI or the command line
-tool in order to run the algorithm. One simple way to generate such JSON input is by serializing 
+A file containing a saved JSON input can be given to either the [GUI](#gui) or the
+[command line](#command-line) tool in order to run the algorithm.
+ 
+One simple way to generate such JSON input is by serializing 
 the input to QISKit ACQUA when executing one of the applications running on top of QISKit ACQUA, such
 as QISKit ACQUA Chemistry, QISKit ACQUA Artificial Intelligence or QISKit ACQUA Optimization. The
 GUI also saves any entered configuration in JSON 
