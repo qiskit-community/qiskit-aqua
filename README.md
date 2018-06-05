@@ -20,7 +20,7 @@ Once you have it installed you can experiment with the library using either the 
 More advanced users and [developers](qiskit_acqua_chemistry#developers) may wish to develop and add their own
 algorithms or other code. Algorithms and supporting components may be added to
 [QISKit ACQUA](https://github.ibm.com/IBMQuantum/qiskit-acqua) which was designed with an extensible, pluggable
-framework. QISKit ACQUA Chemistry utilizes a similiar framework for drivers and the core computation.
+framework. QISKit ACQUA Chemistry utilizes a similar framework for drivers and the core computation.
 
 **If you'd like to contribute to QISKit ACQUA Chemistry, please take a look at our**
 [contribution guidelines](.github/CONTRIBUTING.rst).
@@ -74,9 +74,13 @@ If you are new to the library we highly recommend getting started with the GUI.
 
 The GUI allows provides an easy means to load and run an input file specifying your chemistry problem. An input file
 can also be created, edited and saved with validation of values to provide ease of configuring the chemistry problem
-using the input file.
+using the input file. The pip install creates a script that allows you to start the GUI from the
+command line, as follows:
 
-The following will run the GUI
+`qiskit_acqua_chemistry_ui`
+
+If you clone and run directly from the repository, instead of using
+pip install, then it can be run using
 
 `python qiskit_acqua_chemistry/ui`:
 
@@ -84,7 +88,7 @@ The following will run the GUI
 
 Summary of qiskit_acqua_chemistry command line options:
 
-`python qiskit_acqua_chemistry`:
+`qiskit_acqua_chemistry_cmd`:
 ```
 usage: qiskit_acqua_chemistry [-h] [-o output | -jo json output] input
 
@@ -98,6 +102,12 @@ optional arguments:
   -o output        Algorithm Results Output file name
   -jo json output  Algorithm JSON Output file name
 ```
+
+If you clone and run directly from the repository, instead of using
+pip install, then it can be run using
+
+`python qiskit_acqua_chemistry`
+
 
 ### Programming
 
