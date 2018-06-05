@@ -143,6 +143,33 @@ class Model(object):
             
         return properties_with_substitution
     
+    def default_properties_equals_properties(self,section_name):
+        if self.section_is_text(section_name): 
+            return self.get_section_default_properties(section_name) == self.get_section_data(section_name)
+        
+        default_properties = self.get_section_default_properties(section_name)
+        properties = self.get_section_properties(section_name)
+        if not isinstance(default_properties,dict) or not isinstance(properties,dict):
+            return default_properties == properties
+            
+        if InputParser.NAME in properties:
+            default_properties[InputParser.NAME] = properties[InputParser.NAME]
+            
+        if len(default_properties) != len(properties):
+            return False
+         
+        substitution_tuples  = self._parser.check_if_substitution_key(section_name,list(properties.keys()))
+        for substitution_tuple in substitution_tuples:
+            property_name = substitution_tuple[0]
+            if property_name not in default_properties:
+                return False
+            
+            if not substitution_tuple[1]:
+                if default_properties[property_name] != properties[property_name]:
+                    return False
+                
+        return True
+     
     def get_section_property(self,section_name,property_name):
         if self._parser is None:
             return None

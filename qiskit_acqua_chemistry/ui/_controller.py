@@ -268,32 +268,20 @@ class Controller(object):
     def on_section_select(self,section_name): 
         self._sectionsView.show_remove_button(True)
         self._sectionView_title.set(section_name)
-        default_value = self._model.get_section_default_properties(section_name)
-        if isinstance(default_value,OrderedDict):
-            default_value =  dict(default_value)
-            
         if self._model.section_is_text(section_name):
             text = self._model.get_section_text(section_name)
             self._textView.populate(text)
             self._textView.section_name = section_name
             self._textView.show_add_button(False)
             self._textView.show_remove_button(False)
-            value = self._model.get_section_data(section_name)
-            self._textView.show_defaults_button(default_value != value)
+            self._textView.show_defaults_button(not self._model.default_properties_equals_properties(section_name))
             self._textView.tkraise()
         else:  
-            properties = self._model.get_section_properties(section_name)
             self._propertiesView.show_add_button(self.shows_add_button(section_name))
             self._propertiesView.populate(self._model.get_section_properties_with_substitution(section_name))
             self._propertiesView.section_name = section_name
             self._propertiesView.show_remove_button(False)
-            if isinstance(default_value,dict) and InputParser.NAME in properties:
-                default_value[InputParser.NAME] = properties[InputParser.NAME]
-          
-            if isinstance(properties,OrderedDict):
-                properties =  dict(properties)
-            
-            self._propertiesView.show_defaults_button(default_value != properties)
+            self._propertiesView.show_defaults_button(not self._model.default_properties_equals_properties(section_name))
             self._propertiesView.tkraise()
             
     def on_property_select(self,section_name,property_name):
@@ -402,19 +390,11 @@ class Controller(object):
             return False
             
         try:
-            properties = self._model.get_section_properties(section_name)
             self._propertiesView.populate(self._model.get_section_properties_with_substitution(section_name))
             self._propertiesView.show_add_button(self.shows_add_button(section_name))
             self._propertiesView.show_remove_button(
                     property_name != InputParser.NAME and self._propertiesView.has_selection()) 
-            default_properties = self._model.get_section_default_properties(section_name)
-            if isinstance(default_properties,OrderedDict):
-                default_properties =  dict(default_properties)
-                
-            if isinstance(default_properties,dict) and InputParser.NAME in properties:
-                default_properties[InputParser.NAME] = properties[InputParser.NAME]
-                
-            self._propertiesView.show_defaults_button(properties != default_properties)
+            self._propertiesView.show_defaults_button(not self._model.default_properties_equals_properties(section_name))
             section_names = self._model.get_section_names()
             self._sectionsView.populate(section_names,section_name)
             missing = self.get_sections_names_missing()
@@ -438,27 +418,17 @@ class Controller(object):
     def on_section_property_remove(self,section_name,property_name):
         try:
             self._model.delete_section_property(section_name,property_name)
-            properties = self._model.get_section_properties(section_name)
             self._propertiesView.populate(self._model.get_section_properties_with_substitution(section_name))
             self._propertiesView.show_add_button(self.shows_add_button(section_name))
             self._propertiesView.show_remove_button(False)
-            default_properties = self._model.get_section_default_properties(section_name)
-            if isinstance(default_properties,OrderedDict):
-                default_properties =  dict(default_properties)
-                
-            if isinstance(default_properties,dict) and InputParser.NAME in properties:
-                default_properties[InputParser.NAME] = properties[InputParser.NAME]
-                
-            self._propertiesView.show_defaults_button(properties != default_properties)
+            self._propertiesView.show_defaults_button(not self._model.default_properties_equals_properties(section_name))
         except Exception as e:
             self._outputView.write_line(str(e)) 
     
     def on_text_set(self,section_name,value):
         try:
             self._model.set_section_text(section_name,value)
-            value = self._model.get_section_text(section_name)
-            default_value = self._model.get_section_default_properties(section_name)
-            self._textView.show_defaults_button(value != default_value)
+            self._textView.show_defaults_button(not self._model.default_properties_equals_properties(section_name))
         except Exception as e:
             self._outputView.write_line(str(e)) 
             return False
