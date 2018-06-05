@@ -109,11 +109,11 @@ configuration of any run in two ways:
 
 1.  Defaults are provided for each parameter. Such defaults have been
     validated to be the best choices in most cases.
-2.  A robust configuration correctness enforcement mechanism is in
-    place. Any configuration is validated by QISKit ACQUA upon startup,
-    and if the user has chosen to use the GUI to configure an
+2.  Robust configuration correctness enforcement mechanisms are in
+    place. The input parameters are always schema validated by QISKit ACQUA 
+    when attempting to run an algorithm. When using the GUI to configure an
     experiment, the GUI itself prevents incompatible parameters from
-    being selected, making the configuration error resilient.
+    being selected.
 
 ### Command Line
 
