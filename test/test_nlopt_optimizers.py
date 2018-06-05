@@ -25,7 +25,7 @@ from test.common import QISKitAcquaTestCase
 from qiskit_acqua import get_optimizer_instance
 
 
-class TestOptimizers(QISKitAcquaTestCase):
+class TestNLOptOptimizers(QISKitAcquaTestCase):
 
     def setUp(self):
         np.random.seed(50)
