@@ -66,10 +66,6 @@ class SVM_Variational(QuantumAlgorithm):
 
     def init_params(self, params, algo_input):
         SVMQK_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
-        self.training_dataset = algo_input.training_dataset
-        self.test_dataset = algo_input.test_dataset
-        self.datapoints = algo_input.datapoints
-        self.class_labels = list(self.training_dataset.keys())
 
         num_of_qubits = SVMQK_params.get('num_of_qubits')
         circuit_depth = SVMQK_params.get('circuit_depth')
@@ -84,9 +80,17 @@ class SVM_Variational(QuantumAlgorithm):
         optimizer.init_params(opt_params)
         optimizer.set_options(save_steps=10)
 
-        self.init_args(num_of_qubits, circuit_depth, print_info, optimizer)
+        self.init_args(algo_input.training_dataset, algo_input.test_dataset, algo_input.datapoints,
+                        optimizer, num_of_qubits, circuit_depth, print_info)
 
-    def init_args(self, num_of_qubits=2, circuit_depth=3, print_info=False, optimizer=None):
+    def init_args(self, training_dataset, test_dataset, datapoints, optimizer, num_of_qubits=2,
+                  circuit_depth=3, print_info=False):
+
+        self.training_dataset = training_dataset
+        self.test_dataset = test_dataset
+        self.datapoints = datapoints
+        self.class_labels = list(self.training_dataset.keys())
+
         self.num_of_qubits = num_of_qubits
         self.entangler_map = entangler_map_creator(num_of_qubits)
         self.coupling_map = None  # the coupling_maps gates allowed on the device
