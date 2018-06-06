@@ -52,32 +52,33 @@ class SVM_QKernel(QuantumAlgorithm):
 
     def init_params(self, params, algo_input):
         SVMQK_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
-        self.training_dataset = algo_input.training_dataset
-        self.test_dataset = algo_input.test_dataset
-        self.datapoints = algo_input.datapoints
-        self.class_labels = list(self.training_dataset.keys())
 
-        self.init_args(SVMQK_params.get('num_of_qubits'), SVMQK_params.get('print_info'))
+        self.init_args(algo_input.training_dataset, algo_input.test_dataset,
+                       algo_input.datapoints,
+                       SVMQK_params.get('num_of_qubits'), SVMQK_params.get('print_info'))
 
-    def init_args(self, num_of_qubits=2, print_info=False):  # 2
+    def init_args(self, training_dataset, test_dataset, datapoints,
+                  num_of_qubits=2, print_info=False):  # 2
+
+        self.training_dataset = training_dataset
+        self.test_dataset = test_dataset
+        self.datapoints = datapoints
+        self.class_labels = class_labels = list(self.training_dataset.keys())
+
         self.num_of_qubits = num_of_qubits
         self.entangler_map = entangler_map_creator(num_of_qubits)
         self.coupling_map = None
         self.initial_layout = None
         self.shots = self._execute_config['shots']
-        self.backend = self._backend
 
         self.print_info = print_info
 
     def train(self, training_input, class_labels):
         training_points, training_points_labels, label_to_class = get_points_and_labels(training_input, class_labels)
 
-        kernel_matrix = kernel_join(training_points, training_points, self.entangler_map, self.coupling_map,
-                                 self.initial_layout, self.shots, self._random_seed, self.num_of_qubits, self.backend)
-
-        # if self.print_info:
-        #     img = plt.imshow(np.asmatrix(kernel_matrix),interpolation='nearest',origin='upper',cmap='bone_r')
-        #     plt.show()
+        kernel_matrix = kernel_join(training_points, training_points, self.entangler_map,
+                                    self.coupling_map, self.initial_layout, self.shots,
+                                    self._random_seed, self.num_of_qubits, self._backend)
 
         self._ret['kernel_matrix_training'] = kernel_matrix
 
@@ -92,6 +93,7 @@ class SVM_QKernel(QuantumAlgorithm):
                 yin = np.vstack([yin, training_points_labels[alphindex]]
                                 ) if yin.size else training_points_labels[alphindex]
 
+        self._ret['support_vectors'] = SVMs
         return [alphas, b, SVMs, yin]
 
     def test(self, svm, test_input, class_labels):
@@ -99,7 +101,8 @@ class SVM_QKernel(QuantumAlgorithm):
 
         alphas, bias, SVMs, yin = svm
         kernel_matrix = kernel_join(test_points, SVMs, self.entangler_map, self.coupling_map,
-                                    self.initial_layout, self.shots, self._random_seed, self.num_of_qubits, self.backend)
+                                    self.initial_layout, self.shots, self._random_seed,
+                                    self.num_of_qubits, self._backend)
 
         self._ret['kernel_matrix_testing'] = kernel_matrix
 
@@ -134,10 +137,10 @@ class SVM_QKernel(QuantumAlgorithm):
     def predict(self, svm, test_points):
         alphas, bias, SVMs, yin = svm
         kernel_matrix = kernel_join(test_points, SVMs, self.entangler_map, self.coupling_map,
-                                    self.initial_layout, self.shots, self._random_seed, self.num_of_qubits, self.backend)
+                                    self.initial_layout, self.shots, self._random_seed,
+                                    self.num_of_qubits, self._backend)
 
         self._ret['kernel_matrix_prediction'] = kernel_matrix
-
 
         total_num_points = len(test_points)
         Lsign = np.zeros(total_num_points)
