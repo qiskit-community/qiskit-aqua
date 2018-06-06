@@ -23,7 +23,7 @@ from scipy.linalg import expm
 from test.common import QISKitAcquaTestCase
 from qiskit.wrapper import execute as q_execute
 from qiskit import QuantumCircuit, QuantumRegister
-from qiskit.qasm import pi
+from qiskit.tools.qi.qi import qft
 
 
 class TestQPENumerical(QISKitAcquaTestCase):
@@ -38,7 +38,8 @@ class TestQPENumerical(QISKitAcquaTestCase):
         Z = [[1, 0], [0, -1]]
         I = [[1, 0], [0, 1]]
         # h1 = np.array(np.kron(X, Y)) + np.array(np.kron(Y, Y))  #np.kron(X, Y) + np.kron(X, Z)# + 0.3 * np.kron(Z, X) + 0.4 * np.kron(Z, Y)
-        h1 = np.array(X) + np.array(Z)
+        c1, c2 = -1, -1
+        h1 = c1 * np.array(Z) + c2 * np.array(Y)
         # h1 = np.array(np.kron(X, Y)) + np.array(np.kron(Z, Y))
         self.qubitOp = Operator(matrix=h1)
 
@@ -60,12 +61,12 @@ class TestQPENumerical(QISKitAcquaTestCase):
 
         self.ref_eigenval = w[0]
         self.ref_eigenvec = v[0]
-        self.log.debug('The exact energy is: {}'.format(self.ref_eigenval))
-        self.log.debug('The corresponding eigenvector is: {}'.format(self.ref_eigenvec))
+        self.log.debug('The exact eigenvalue is:       {}'.format(self.ref_eigenval))
+        self.log.debug('The corresponding eigenvector: {}'.format(self.ref_eigenvec))
 
     def test_qpe(self):
-        num_time_slices = 200
-        n_ancillae = 3
+        num_time_slices = 100
+        n_ancillae = 4
 
         qpe = get_algorithm_instance('QPE')
         qpe.setup_quantum_backend(backend='local_qasm_simulator', shots=1000, skip_translation=False)
@@ -99,17 +100,16 @@ class TestQPENumerical(QISKitAcquaTestCase):
         qc = qpe._ret['circuit_components']['state_init']
         # self.log.debug('Initial quantum state circuit:\n\n{}'.format(qc.qasm()))
         vec_init = np.asarray(q_execute(qc, 'local_statevector_simulator').result().get_statevector(qc))
-        self.log.debug('Full quantum state vector after phase kickback: {}'.format(vec_qpe))
-        self.log.debug('Concise quantum state vector after initialization: {}'.format(vec_init))
+        # self.log.debug('Full quantum state vector after phase kickback: {}'.format(vec_qpe))
+        # self.log.debug('Concise quantum state vector after initialization: {}'.format(vec_init))
         fidelity = get_subsystem_fidelity(vec_qpe, range(n_ancillae), vec_init)
         self.log.debug('Quantum state fidelity after phase kickback: {}'.format(fidelity))
-        np.testing.assert_approx_equal(fidelity, 1, 4)
+        # np.testing.assert_approx_equal(fidelity, 1, 4)
 
+        # run the complete qpe
         result = qpe.run()
-
         self.log.debug('operator paulis:\n{}'.format(self.qubitOp.print_operators('paulis')))
         # self.log.debug('qpe circuit:\n\n{}'.format(result['circuit']['complete'].qasm()))
-
         qft_q = QuantumRegister(n_ancillae, 'a')
         qft_qc = QuantumCircuit(qft_q)
         qft(qft_qc, qft_q, n_ancillae)
@@ -127,12 +127,3 @@ class TestQPENumerical(QISKitAcquaTestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
-
-# from qiskit
-def qft(circ, q, n):
-    """n-qubit QFT on q in circ."""
-    for j in range(n):
-        for k in range(j):
-            circ.cu1(pi / float(2**(j - k)), q[j], q[k])
-        circ.h(q[j])
