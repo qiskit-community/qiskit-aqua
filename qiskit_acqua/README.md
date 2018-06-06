@@ -217,7 +217,7 @@ SVM_QKernel can be configured with the following parameters:
 
 * `num_qubits`=*integer 2 to n, defaults to 2*
 
-  Number of qubits to use for the problem.
+  Number of qubits required is equal to the number of features used for classification.
 
 * `print_info`=**False** | True
 
@@ -236,11 +236,11 @@ SVM_Variational can be configured with the following parameters:
 
 * `num_qubits`=*integer 2 to n, defaults to 2*
 
-  Number of qubits to use for the problem.
+  Number of qubits required is equal to the number of features used for classification.
 
 * `circuit_depth`=*integer 3 to n, defaults to 3*
 
-  Circuit depth to use for the variational form.
+  Depth of variational circuit that is optimized. 
 
 * `print_info`=**False** | True
 
