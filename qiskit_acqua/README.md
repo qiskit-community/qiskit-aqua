@@ -324,7 +324,7 @@ algorithms
  
   IQFT (Inverse Quantum Fourier Transform) objects should go under *utils/iqfts* and derive from IQFT class.
 
-* [Oracles](./oracles/README.md)
+* [Oracles](./utils/oracles/README.md)
 
   Oracles, for use with algorithms like Grover, should go under *utils/oracles* and derive from Oracle class.  
 
