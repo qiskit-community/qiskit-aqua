@@ -1289,12 +1289,14 @@ class Operator(object):
                             ]
                         )
                     # suzuki expansion
-                    else:
+                    elif expansion_mode == 'suzuki':
                         approx_matrix_slice = Operator._suzuki_expansion_slice_matrix(
                             pauli_list,
                             -1.j * evo_time / num_time_slices,
                             expansion_order
                         )
+                    else:
+                        raise ValueError('Unrecognized expansion mode {}.'.format(expansion_mode))
                 return reduce(lambda x, y: x @ y, [approx_matrix_slice] * num_time_slices) @ state_in
 
         elif evo_mode == 'circuit':
@@ -1347,31 +1349,36 @@ class Operator(object):
         Raises:
             ValueError: if the `targeted_representation` is not recognized.
         """
-        if targeted_represnetation == 'paulis' and self._paulis is None:
-            if self._matrix is not None:
-                self._matrix_to_paulis()
-            elif self._grouped_paulis is not None:
-                self._grouped_paulis_to_paulis()
-            else:
-                raise AlgorithmError(
-                    "at least having one of the three operator representations.")
+        if targeted_represnetation == 'paulis':
+            if self._paulis is None:
+                if self._matrix is not None:
+                    self._matrix_to_paulis()
+                elif self._grouped_paulis is not None:
+                    self._grouped_paulis_to_paulis()
+                else:
+                    raise AlgorithmError(
+                        "at least having one of the three operator representations.")
 
-        elif targeted_represnetation == 'grouped_paulis' and self._grouped_paulis is None:
-            if self._paulis is not None:
-                self._paulis_to_grouped_paulis()
-            elif self._matrix is not None:
-                self._matrix_to_grouped_paulis()
-            else:
-                raise AlgorithmError(
-                    "at least having one of the three operator representations.")
+        elif targeted_represnetation == 'grouped_paulis':
+            if self._grouped_paulis is None:
+                if self._paulis is not None:
+                    self._paulis_to_grouped_paulis()
+                elif self._matrix is not None:
+                    self._matrix_to_grouped_paulis()
+                else:
+                    raise AlgorithmError(
+                        "at least having one of the three operator representations.")
 
-        elif targeted_represnetation == 'matrix' and self._matrix is None:
-            if self._paulis is not None:
-                self._paulis_to_matrix()
-            elif self._grouped_paulis is not None:
-                self._grouped_paulis_to_matrix()
-            else:
-                raise AlgorithmError(
-                    "at least having one of the three operator representations.")
+        elif targeted_represnetation == 'matrix':
+            if self._matrix is None:
+                if self._paulis is not None:
+                    self._paulis_to_matrix()
+                elif self._grouped_paulis is not None:
+                    self._grouped_paulis_to_matrix()
+                else:
+                    raise AlgorithmError(
+                        "at least having one of the three operator representations.")
         else:
-            ValueError('\"targeted_represnetation\" should be one of \"paulis\", \"grouped_paulis\" and \"matrix\".')
+            raise ValueError(
+                '"targeted_represnetation" should be one of "paulis", "grouped_paulis" and "matrix".'
+            )

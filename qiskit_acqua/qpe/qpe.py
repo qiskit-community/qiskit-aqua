@@ -20,9 +20,11 @@ The Quantum Phase Estimation Algorithm.
 
 import logging
 
+from functools import reduce
 import numpy as np
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
-
+from qiskit.tools.qi.pauli import Pauli
+from qiskit.tools.qi.qi import qft
 from qiskit_acqua import Operator, QuantumAlgorithm, AlgorithmError
 from qiskit_acqua import get_initial_state_instance, get_iqft_instance
 
@@ -37,6 +39,7 @@ class QPE(QuantumAlgorithm):
     PROP_EXPANSION_MODE = 'expansion_mode'
     PROP_EXPANSION_ORDER = 'expansion_order'
     PROP_NUM_ANCILLAE = 'num_ancillae'
+    PROP_USE_BASIS_GATES = 'use_basis_gates'
 
     DEFAULT_PROP_NUM_TIME_SLICES = 1
     DEFAULT_PROP_PAULIS_GROUPING = 'default'        # grouped_paulis
@@ -88,6 +91,10 @@ class QPE(QuantumAlgorithm):
                     'type': 'integer',
                     'default': DEFAULT_PROP_NUM_ANCILLAE,
                     'minimum': 1
+                },
+                PROP_USE_BASIS_GATES: {
+                    'type': 'boolean',
+                    'default': True
                 }
             },
             'additionalProperties': False
@@ -113,6 +120,7 @@ class QPE(QuantumAlgorithm):
         self._expansion_mode = None
         self._expansion_order = None
         self._num_ancillae = 0
+        self._use_basis_gates = False
         self._ret = {}
 
     def init_params(self, params, algo_input):
@@ -133,6 +141,7 @@ class QPE(QuantumAlgorithm):
         expansion_mode = qpe_params.get(QPE.PROP_EXPANSION_MODE)
         expansion_order = qpe_params.get(QPE.PROP_EXPANSION_ORDER)
         num_ancillae = qpe_params.get(QPE.PROP_NUM_ANCILLAE)
+        use_basis_gates = qpe_params.get(QPE.PROP_USE_BASIS_GATES)
 
         # Set up initial state, we need to add computed num qubits to params
         init_state_params = params.get(QuantumAlgorithm.SECTION_KEY_INITIAL_STATE)
@@ -149,10 +158,10 @@ class QPE(QuantumAlgorithm):
         self.init_args(
             operator, init_state, iqft, num_time_slices, num_ancillae,
             paulis_grouping=paulis_grouping, expansion_mode=expansion_mode,
-            expansion_order=expansion_order)
+            expansion_order=expansion_order, use_basis_gates=use_basis_gates)
 
     def init_args(self, operator, state_in, iqft, num_time_slices, num_ancillae,
-                  paulis_grouping='default', expansion_mode='trotter', expansion_order=1):
+                  paulis_grouping='default', expansion_mode='trotter', expansion_order=1, use_basis_gates=True):
         if self._backend.find('statevector') >= 0:
             raise ValueError('Selected backend does not support measurements.')
         self._operator = operator
@@ -163,6 +172,7 @@ class QPE(QuantumAlgorithm):
         self._paulis_grouping = paulis_grouping
         self._expansion_mode = expansion_mode
         self._expansion_order = expansion_order
+        self._use_basis_gates = use_basis_gates
         self._ret = {}
 
     def _construct_qpe_evolution(self):
@@ -171,12 +181,15 @@ class QPE(QuantumAlgorithm):
         a = QuantumRegister(self._num_ancillae, name='a')
         c = ClassicalRegister(self._num_ancillae, name='c')
         q = QuantumRegister(self._operator.num_qubits, name='q')
-        qc = QuantumCircuit(a, c, q)
+        self._ret['circuit_components'] = {}
+        self._ret['circuit_components']['registers'] = {'a': a, 'q': q, 'c': c}
 
-        qc += self._state_in.construct_circuit('circuit', q)
+        self._ret['circuit_components']['state_init'] = self._state_in.construct_circuit('circuit', q)
 
-        # Put all ancillae in uniform superposition
+        # # Put all ancillae in uniform superposition
+        qc = QuantumCircuit(a)
         qc.h(a)
+        self._ret['circuit_components']['ancilla_superposition'] = qc
 
         # phase kickbacks via dynamics
         pauli_list = self._operator.reorder_paulis(grouping=self._paulis_grouping)
@@ -185,37 +198,78 @@ class QPE(QuantumAlgorithm):
         else:
             if self._expansion_mode == 'trotter':
                 slice_pauli_list = pauli_list
-            # suzuki expansion
-            else:
+            elif self._expansion_mode == 'suzuki':
                 slice_pauli_list = Operator._suzuki_expansion_slice_pauli_list(
                     pauli_list,
                     1,
                     self._expansion_order
                 )
-
+            else:
+                raise ValueError('Unrecognized expansion mode {}.'.format(self._expansion_mode))
+        qc = QuantumCircuit(a, q)
         for i in range(self._num_ancillae):
             qc += self._operator.construct_evolution_circuit(
-                slice_pauli_list, 1, self._num_time_slices, q, a, ctl_idx=i
+                slice_pauli_list, -2 * np.pi, self._num_time_slices, q, a, ctl_idx=i,
+                use_basis_gates=self._use_basis_gates
             )
+            qc.u1(np.pi * (2 ** i), a[i])
 
+        self._ret['circuit_components']['phase_kickback'] = qc
+
+        qc = QuantumCircuit(a)
         # inverse qft on ancillae
+        # qc.swap(a[0], a[1])
+        # QPE.qft(qc, a, self._num_ancillae)
         self._iqft.construct_circuit('circuit', a, qc)
+        self._ret['circuit_components']['iqft'] = qc
 
         # measuring ancillae
+        qc = QuantumCircuit(c, a)
         qc.measure(a, c)
-        return qc
+        self._ret['circuit_components']['measure'] = qc
+
+        self._ret['circuit'] = reduce(
+            QuantumCircuit.__add__,
+            [
+                self._ret['circuit_components'][component]
+                for component in ['state_init', 'ancilla_superposition', 'phase_kickback', 'iqft', 'measure']
+            ]
+        )
+
+    def _setup_qpe(self):
+        self._operator._check_representation('paulis')
+        self._ret['translation'] = sum([abs(p[0]) for p in self._operator.paulis])
+        self._ret['stretch'] = 0.5 / self._ret['translation']
+
+        # translate the operator
+        self._operator._simplify_paulis()
+        translation_op = Operator([
+            [
+                self._ret['translation'],
+                Pauli(
+                    np.zeros(self._operator.num_qubits),
+                    np.zeros(self._operator.num_qubits)
+                )
+            ]
+        ])
+        translation_op._simplify_paulis()
+        self._operator += translation_op
+
+        # stretch the operator
+        for p in self._operator._paulis:
+            p[0] = p[0] * self._ret['stretch']
+
+        self._construct_qpe_evolution()
+        logger.info('QPE circuit depth is roughly {}.'.format(
+            len(self._ret['circuit'].qasm().split('\n'))
+        ))
 
     def _compute_energy(self):
-        bound = sum([abs(p[0]) for p in self._operator.paulis])
-        translation = bound
-        stretch = np.pi / bound
+        if 'circuit' not in self._ret:
+            self._setup_qpe()
+        result = self.execute(self._ret['circuit'])
 
-        qc = self._construct_qpe_evolution()
-        logger.info('QPE circuit depth is roughly {}.'.format(len(qc.qasm().split('\n'))))
-
-        result = self.execute(qc)
-
-        rd = result.get_counts(qc)
+        rd = result.get_counts(self._ret['circuit'])
         rets = sorted([(rd[k], k) for k in rd])[::-1]
         ret = rets[0][-1][::-1]
         retval = sum([t[0] * t[1] for t in zip(
@@ -226,7 +280,7 @@ class QPE(QuantumAlgorithm):
         self._ret['measurements'] = rets
         self._ret['top_measurement_label'] = ret
         self._ret['top_measurement_decimal'] = retval
-        self._ret['energy'] = retval * 2 * np.pi / stretch - translation
+        self._ret['energy'] = retval / self._ret['stretch'] - self._ret['translation']
 
     def run(self):
         self._compute_energy()
