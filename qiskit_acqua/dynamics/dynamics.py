@@ -85,7 +85,7 @@ class Dynamics(QuantumAlgorithm):
                     'oneOf': [
                         {'enum': [
                             'trotter',
-                            'naive'
+                            'suzuki'
                         ]}
                     ]
                 },

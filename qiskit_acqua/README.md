@@ -116,9 +116,9 @@ Dynamics can be configured with the following parameter settings:
 
   When *default* paulis are grouped
 
-* `expansion_mode`=naive \ **trotter**
+* `expansion_mode`= **trotter** | suzuki
 
-  Expansion mode: *naive* (Lloyd's method) or *trotter* for Trotter-Suzuki expansion
+  Expansion mode: *trotter* (Lloyd's method) or *suzuki* for Trotter-Suzuki expansion
 
 * `expansion_order`=*integer, default 2* 
 
@@ -153,9 +153,9 @@ QPE is also configured with the following parameter settings:
 
   When *default* paulis are grouped
 
-* `expansion_mode`=naive | **trotter**
+* `expansion_mode`=**trotter** | suzuki
 
-  Expansion mode: *naive* (Lloyd's method) or *trotter* for Trotter-Suzuki expansion
+  Expansion mode: *trotter* (Lloyd's method) or *suzuki* for Trotter-Suzuki expansion
 
 * `expansion_order`=*integer, default 2* 
 

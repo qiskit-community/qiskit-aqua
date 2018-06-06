@@ -82,10 +82,10 @@ class TestEvolution(QISKitAcquaTestCase):
 
         for grouping in ['default', 'random']:
             self.log.debug('Under {} paulis grouping:'.format(grouping))
-            for expansion_mode in ['naive', 'trotter']:
+            for expansion_mode in ['trotter', 'suzuki']:
                 self.log.debug('Under {} expansion mode:'.format(expansion_mode))
-                for expansion_order in [1, 2, 3, 4] if expansion_mode == 'trotter' else [1]:
-                    if expansion_mode == 'trotter':
+                for expansion_order in [1, 2, 3, 4] if expansion_mode == 'suzuki' else [1]:
+                    if expansion_mode == 'suzuki':
                         self.log.debug('With expansion order {}:'.format(expansion_order))
                     state_out_matrix = qubitOp.evolve(
                         state_in.construct_circuit('vector'), evo_time, 'matrix', num_time_slices,

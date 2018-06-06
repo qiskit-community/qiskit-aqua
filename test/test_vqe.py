@@ -16,57 +16,92 @@
 # =============================================================================
 
 import unittest
-from parameterized import parameterized
-from collections import OrderedDict
-
 import numpy as np
-from qiskit.tools.qi.pauli import Pauli, label_to_pauli
+from parameterized import parameterized
 
 from test.common import QISKitAcquaTestCase
-from qiskit_acqua import Operator
-from qiskit_acqua import get_variational_form_instance, get_algorithm_instance, get_optimizer_instance
+from qiskit_acqua import Operator, run_algorithm
+from qiskit_acqua.input import get_input_instance
+from qiskit_acqua import get_algorithm_instance, get_initial_state_instance, \
+                         get_variational_form_instance, get_optimizer_instance
 
 
 class TestVQE(QISKitAcquaTestCase):
-    """Operator tests."""
 
     def setUp(self):
+        np.random.seed(50)
+        pauli_dict = {
+            'paulis': [{"coeff": {"imag": 0.0, "real": -1.052373245772859}, "label": "II"},
+                       {"coeff": {"imag": 0.0, "real": 0.39793742484318045}, "label": "ZI"},
+                       {"coeff": {"imag": 0.0, "real": -0.39793742484318045}, "label": "IZ"},
+                       {"coeff": {"imag": 0.0, "real": -0.01128010425623538}, "label": "ZZ"},
+                       {"coeff": {"imag": 0.0, "real": 0.18093119978423156}, "label": "XX"}
+                       ]
+        }
+        qubitOp = Operator.load_from_dict(pauli_dict)
+        self.algo_input = get_input_instance('EnergyInput')
+        self.algo_input.qubit_op = qubitOp
 
-        # create a H2 molecular:
-        paulis = [[-1.052373245772859+0j, label_to_pauli('II')],
-                    [0.39793742484318045+0j, label_to_pauli('ZI')],
-                    [-0.39793742484318045+0j, label_to_pauli('IZ')],
-                    [0.18093119978423156+0j, label_to_pauli('XX')],
-                    [-0.01128010425623538+0j, label_to_pauli('ZZ')]
-            ]
-        self.qubit_op = Operator(paulis=paulis)
-        self.gt_eigval = -1.857275027031588
+    def test_vqe_via_run_algorithm(self):
+        params = {
+            'algorithm': {'name': 'VQE'},
+            'backend': {'name': 'local_statevector_simulator'}
+        }
+        result = run_algorithm(params, self.algo_input)
+        self.assertAlmostEqual(result['energy'], -1.85727503)
+        np.testing.assert_array_almost_equal(result['eigvals'], [-1.85727503])
+        np.testing.assert_array_almost_equal(result['opt_params'], [-0.58294401, -1.86141794, -1.97209632, -0.54796022,
+                                                                    -0.46945572, 2.60114794, -1.15637845,  1.40498879,
+                                                                    1.14479635, -0.48416694, -0.66608349, -1.1367579 ,
+                                                                    -2.67097002,  3.10214631,  3.10000313, 0.37235089])
+        self.assertIn('eval_count', result)
+        self.assertIn('eval_time', result)
 
     @parameterized.expand([
-        ['COBYLA_M', 'COBYLA', 'local_statevector_simulator', 'matrix', 1],
-        ['COBYLA_P', 'COBYLA', 'local_statevector_simulator', 'paulis', 1],
-        ['SPSA_P', 'SPSA', 'local_qasm_simulator', 'paulis', 1024],
-        ['SPSA_GP', 'SPSA', 'local_qasm_simulator', 'grouped_paulis', 1024]
+        ['CG', 5],
+        ['COBYLA', 5],
+        ['L_BFGS_B', 5],
+        ['NELDER_MEAD', 5],
+        ['POWELL', 5],
+        ['SLSQP', 5],
+        ['SPSA', 5],
+        ['TNC', 2]
     ])
-    def test_minimization(self, name, optimizer, backend, mode, shots):
+    def test_vqe_optimzers(self, name, places):
+        params = {
+            'algorithm': {'name': 'VQE'},
+            'optimizer': {'name': name},
+            'backend': {'name': 'local_statevector_simulator'}
+        }
+        result = run_algorithm(params, self.algo_input)
+        self.assertAlmostEqual(result['energy'], -1.85727503, places=places)
 
-        opt = get_optimizer_instance(optimizer)
-        if optimizer == 'COBYLA':
-            opt.set_options(maxiter=1000)
-        elif optimizer == 'SPSA':
-            opt.init_args(max_trials=1000)
+    @parameterized.expand([
+        ['RY', 5],
+        ['RYRZ', 5]
+    ])
+    def test_vqe_var_forms(self, name, places):
+        params = {
+            'algorithm': {'name': 'VQE'},
+            'variational_form': {'name': name},
+            'backend': {'name': 'local_statevector_simulator'}
+        }
+        result = run_algorithm(params, self.algo_input)
+        self.assertAlmostEqual(result['energy'], -1.85727503, places=places)
 
-            opt.set_options(save_steps=25)
+    def test_vqe_direct(self):
+        num_qbits = self.algo_input.qubit_op.num_qubits
+        init_state = get_initial_state_instance('ZERO')
+        init_state.init_args(num_qbits)
         var_form = get_variational_form_instance('RY')
-        var_form.init_args(self.qubit_op.num_qubits, 3, entanglement = 'full')
-        vqe = get_algorithm_instance('VQE')
-        vqe.setup_quantum_backend(backend=backend, shots=shots)
-        vqe.init_args(self.qubit_op, mode, var_form, opt)
-        results = vqe.run()
-
-        eigval = results['eigvals'][0]
-        precision_place = 2 if shots > 1 else 7
-        self.assertAlmostEqual(eigval, self.gt_eigval, places=precision_place)
+        var_form.init_args(num_qbits, 3, initial_state=init_state)
+        optimizer = get_optimizer_instance('L_BFGS_B')
+        optimizer.init_args()
+        algo = get_algorithm_instance('VQE')
+        algo.setup_quantum_backend(backend='local_statevector_simulator')
+        algo.init_args(self.algo_input.qubit_op, 'matrix', var_form, optimizer)
+        result = algo.run()
+        self.assertAlmostEqual(result['energy'], -1.85727503)
 
 
 if __name__ == '__main__':

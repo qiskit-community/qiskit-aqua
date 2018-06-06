@@ -86,18 +86,18 @@ class Grover(QuantumAlgorithm):
         qc.extend(self._oracle.construct_circuit())
         qc.h(self._oracle.variable_register())
         qc.x(self._oracle.variable_register())
-        qc.x(self._oracle.target_register())
-        qc.h(self._oracle.target_register())
+        qc.x(self._oracle.outcome_register())
+        qc.h(self._oracle.outcome_register())
         qc.cnx(
             [self._oracle.variable_register()[i] for i in range(len(self._oracle.variable_register()))],
             [self._oracle.ancillary_register()[i] for i in range(len(self._oracle.ancillary_register()))],
-            self._oracle.target_register()[0]
+            self._oracle.outcome_register()[0]
         )
-        qc.h(self._oracle.target_register())
+        qc.h(self._oracle.outcome_register())
         qc.x(self._oracle.variable_register())
-        qc.x(self._oracle.target_register())
+        qc.x(self._oracle.outcome_register())
         qc.h(self._oracle.variable_register())
-        qc.h(self._oracle.target_register())
+        qc.h(self._oracle.outcome_register())
 
         qc.measure(self._oracle.variable_register(), measurement_cr)
         return qc

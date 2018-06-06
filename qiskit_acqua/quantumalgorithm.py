@@ -178,8 +178,12 @@ class QuantumAlgorithm(ABC):
             hub = qconfig.config.get('hub', None)
             group = qconfig.config.get('group', None)
             project = qconfig.config.get('project', None)
+            proxies = qconfig.config.get('proxies', None)
+            verify = qconfig.config.get('verify', True)
+            provider_name = qconfig.config.get('provider_name', 'ibmq')
             try:
-                q_register(qconfig.APItoken, qconfig.config["url"], hub=hub, group=group, project=project)
+                q_register(qconfig.APItoken, qconfig.config["url"], hub=hub, group=group, project=project,
+                           proxies=proxies, verify=verify, provider_name=provider_name)
             except:
                 logger.debug("WARNING: Can not register quantum backends. Check your Qconfig.py.")
 
