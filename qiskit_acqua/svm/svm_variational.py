@@ -116,24 +116,26 @@ class SVM_Variational(QuantumAlgorithm):
         theta_best, cost_final, _ = self.optimizer.optimize(
             initial_theta.shape[0], objective_function, initial_point=initial_theta)
         # costs = cost_final  # , cost_plus, cost_minus
-        return theta_best, cost_final
 
-    def test(self, theta_best, test_input, class_labels):
+        self._ret['opt_params'] = theta_best
+        self._ret['training_loss'] = cost_final
+
+    def test(self, test_input, class_labels):
         total_cost, std_cost, success_ratio, predicted_labels = \
             eval_cost_function(self.entangler_map, self.coupling_map, self.initial_layout, self.num_of_qubits,
                                self.circuit_depth, test_input, class_labels, self.backend, self.shots, self._random_seed,
-                               train=False, theta=theta_best)
+                               train=False, theta=self._ret['opt_params'])
 
         if self.print_info:
             print('Classification success for this set is  %s %%  \n' % (100.0 * success_ratio))
         return success_ratio
 
-    def predict(self, theta_best, input_datapoints, class_labels):
+    def predict(self, input_datapoints, class_labels):
         predicted_labels = eval_cost_function_with_unlabeled_data(self.entangler_map, self.coupling_map,
                                                                   self.initial_layout, self.num_of_qubits,
                                                                   self.circuit_depth, input_datapoints, class_labels,
                                                                   self.backend, self.shots, self._random_seed,
-                                                                  train=False, theta=theta_best)
+                                                                  train=False, theta=self._ret['opt_params'])
         return predicted_labels
 
     def run(self):
@@ -141,16 +143,14 @@ class SVM_Variational(QuantumAlgorithm):
             self._ret['error'] = 'training dataset is missing! please provide it'
             return self._ret
 
-        theta_best, costs = self.train(self.training_dataset, self.class_labels)
-        self._ret['opt_params'] = theta_best
-        self._ret['training_loss'] = costs
+        self.train(self.training_dataset, self.class_labels)
 
         if self.test_dataset is not None:
-            success_ratio = self.test(theta_best, self.test_dataset, self.class_labels)
+            success_ratio = self.test(self.test_dataset, self.class_labels)
             self._ret['test_success_ratio'] = success_ratio
 
         if self.datapoints is not None:
-            predicted_labels = self.predict(theta_best, self.datapoints, self.class_labels)
+            predicted_labels = self.predict(self.datapoints, self.class_labels)
             self._ret['predicted_labels'] = predicted_labels
 
         return self._ret

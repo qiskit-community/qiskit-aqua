@@ -94,16 +94,19 @@ class SVM_QKernel(QuantumAlgorithm):
                                 ) if yin.size else training_points_labels[alphindex]
 
         self._ret['svm'] = {}
-        self._ret['svm']['support_vectors'] = SVMs
         self._ret['svm']['alphas'] = alphas
-        self._ret['svm']['b'] = b
+        self._ret['svm']['bias'] = b
+        self._ret['svm']['support_vectors'] = SVMs
         self._ret['svm']['yin'] = yin
-        return [alphas, b, SVMs, yin]
 
-    def test(self, svm, test_input, class_labels):
+    def test(self, test_input, class_labels):
         test_points, test_points_labels, label_to_labelclass = get_points_and_labels(test_input, class_labels)
 
-        alphas, bias, SVMs, yin = svm
+        alphas = self._ret['svm']['alphas']
+        bias = self._ret['svm']['bias']
+        SVMs = self._ret['svm']['support_vectors']
+        yin = self._ret['svm']['yin']
+
         kernel_matrix = kernel_join(test_points, SVMs, self.entangler_map, self.coupling_map,
                                     self.initial_layout, self.shots, self._random_seed,
                                     self.num_of_qubits, self._backend)
@@ -138,8 +141,13 @@ class SVM_QKernel(QuantumAlgorithm):
             print('Classification success for this set is %s %% \n' % (100*final_success_ratio))
         return final_success_ratio
 
-    def predict(self, svm, test_points):
-        alphas, bias, SVMs, yin = svm
+    def predict(self, test_points):
+
+        alphas = self._ret['svm']['alphas']
+        bias = self._ret['svm']['bias']
+        SVMs = self._ret['svm']['support_vectors']
+        yin = self._ret['svm']['yin']
+
         kernel_matrix = kernel_join(test_points, SVMs, self.entangler_map, self.coupling_map,
                                     self.initial_layout, self.shots, self._random_seed,
                                     self.num_of_qubits, self._backend)
@@ -161,14 +169,14 @@ class SVM_QKernel(QuantumAlgorithm):
             self._ret['error'] = 'training dataset is missing! please provide it'
             return self._ret
 
-        svm = self.train(self.training_dataset, self.class_labels)
+        self.train(self.training_dataset, self.class_labels)
 
         if self.test_dataset is not None:
-            success_ratio = self.test(svm, self.test_dataset, self.class_labels)
+            success_ratio = self.test(self.test_dataset, self.class_labels)
             self._ret['test_success_ratio'] = success_ratio
 
         if self.datapoints is not None:
-            predicted_labels = self.predict(svm, self.datapoints)
+            predicted_labels = self.predict(self.datapoints)
             _, _, label_to_class = get_points_and_labels(self.training_dataset, self.class_labels)
             predicted_labelclasses = [label_to_class[x] for x in predicted_labels]
             self._ret['predicted_labels'] = predicted_labelclasses

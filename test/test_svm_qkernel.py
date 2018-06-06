@@ -63,9 +63,9 @@ class TestSVMQKernel(QISKitAcquaTestCase):
         np.testing.assert_array_almost_equal(
             result['kernel_matrix_testing'], self.ref_kernel_matrix_testing, decimal=4)
 
-        self.assertEqual(len(result['support_vectors']), 4)
+        self.assertEqual(len(result['svm']['support_vectors']), 4)
         np.testing.assert_array_almost_equal(
-            result['support_vectors'], self.ref_support_vectors, decimal=4)
+            result['svm']['support_vectors'], self.ref_support_vectors, decimal=4)
 
         self.assertEqual(result['test_success_ratio'], 0.5)
 
@@ -82,8 +82,8 @@ class TestSVMQKernel(QISKitAcquaTestCase):
         np.testing.assert_array_almost_equal(
             result['kernel_matrix_testing'], self.ref_kernel_matrix_testing, decimal=2)
 
-        self.assertEqual(len(result['support_vectors']), 4)
+        self.assertEqual(len(result['svm']['support_vectors']), 4)
         np.testing.assert_array_almost_equal(
-            result['support_vectors'], self.ref_support_vectors, decimal=4)
+            result['svm']['support_vectors'], self.ref_support_vectors, decimal=4)
 
         self.assertEqual(result['test_success_ratio'], 0.5)
