@@ -76,11 +76,16 @@ class TestQPENumerical(QISKitAcquaTestCase):
         iqft = get_iqft_instance('STANDARD')
         iqft.init_args(n_ancillae)
 
-        qpe.init_args(self.qubitOp, state_in, iqft, num_time_slices, n_ancillae,
-                      paulis_grouping='random', expansion_mode='naive', expansion_order=2, use_basis_gates=False)
+        qpe.init_args(
+            self.qubitOp, state_in, iqft, num_time_slices, n_ancillae,
+            paulis_grouping='random',
+            expansion_mode='trotter',
+            # expansion_order=2,
+            use_basis_gates=False
+        )
 
+        # check that controlled-U's don't alter the quantum state
         qpe._setup_qpe()
-
         qc = QuantumCircuit(
             qpe._ret['circuit_components']['registers']['a'],
             qpe._ret['circuit_components']['registers']['q']
