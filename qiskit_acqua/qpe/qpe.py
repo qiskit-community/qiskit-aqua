@@ -209,7 +209,7 @@ class QPE(QuantumAlgorithm):
         qc = QuantumCircuit(a, q)
         for i in range(self._num_ancillae):
             qc += self._operator.construct_evolution_circuit(
-                slice_pauli_list, 2 * np.pi, self._num_time_slices, q, a, ctl_idx=i,
+                slice_pauli_list, -2 * np.pi, self._num_time_slices, q, a, ctl_idx=i,
                 use_basis_gates=self._use_basis_gates
             )
             qc.u1(np.pi * (2 ** i), a[i])
