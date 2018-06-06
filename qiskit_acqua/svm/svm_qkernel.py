@@ -93,7 +93,11 @@ class SVM_QKernel(QuantumAlgorithm):
                 yin = np.vstack([yin, training_points_labels[alphindex]]
                                 ) if yin.size else training_points_labels[alphindex]
 
-        self._ret['support_vectors'] = SVMs
+        self._ret['svm'] = {}
+        self._ret['svm']['support_vectors'] = SVMs
+        self._ret['svm']['alphas'] = alphas
+        self._ret['svm']['b'] = b
+        self._ret['svm']['yin'] = yin
         return [alphas, b, SVMs, yin]
 
     def test(self, svm, test_input, class_labels):
