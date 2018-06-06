@@ -65,11 +65,12 @@ class SVM_RBF_Kernel(QuantumAlgorithm):
         training_points, training_points_labels, label_to_class = get_points_and_labels(training_input, class_labels)
 
         Kernel_mat = self.kernel_join_classical(training_points, training_points)
+        self._ret['kernel_matrix_training'] = Kernel_mat
 
-        if self.print_info:
-            import matplotlib.pyplot as plt
-            img = plt.imshow(np.asmatrix(Kernel_mat), interpolation='nearest', origin='upper', cmap='bone_r')
-            plt.show()
+        # if self.print_info:
+        #     import matplotlib.pyplot as plt
+        #     img = plt.imshow(np.asmatrix(Kernel_mat), interpolation='nearest', origin='upper', cmap='bone_r')
+        #     plt.show()
 
         [alpha, b, support] = optimize_SVM(Kernel_mat, training_points_labels)
         alphas = np.array([])
@@ -88,6 +89,8 @@ class SVM_RBF_Kernel(QuantumAlgorithm):
 
         alphas, bias, SVMs, yin = svm
         kernel_matrix = self.kernel_join_classical(test_points, SVMs)
+        self._ret['kernel_matrix_testing'] = kernel_matrix
+
         success_ratio = 0
         L = 0
         total_num_points = len(test_points)
@@ -118,6 +121,7 @@ class SVM_RBF_Kernel(QuantumAlgorithm):
     def predict(self, svm, test_points):
         alphas, bias, SVMs, yin = svm
         kernel_matrix = self.kernel_join_classical(test_points, SVMs)
+        self._ret['kernel_matrix_prediction'] = kernel_matrix
 
         total_num_points = len(test_points)
         Lsign = np.zeros(total_num_points)

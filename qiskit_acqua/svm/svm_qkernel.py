@@ -75,10 +75,11 @@ class SVM_QKernel(QuantumAlgorithm):
         kernel_matrix = kernel_join(training_points, training_points, self.entangler_map, self.coupling_map,
                                  self.initial_layout, self.shots, self._random_seed, self.num_of_qubits, self.backend)
 
-        if self.print_info:
-            import matplotlib.pyplot as plt
-            img = plt.imshow(np.asmatrix(kernel_matrix),interpolation='nearest',origin='upper',cmap='bone_r')
-            plt.show()
+        # if self.print_info:
+        #     img = plt.imshow(np.asmatrix(kernel_matrix),interpolation='nearest',origin='upper',cmap='bone_r')
+        #     plt.show()
+
+        self._ret['kernel_matrix_training'] = kernel_matrix
 
         [alpha, b, support] = optimize_SVM(kernel_matrix, training_points_labels)
         alphas = np.array([])
@@ -99,6 +100,9 @@ class SVM_QKernel(QuantumAlgorithm):
         alphas, bias, SVMs, yin = svm
         kernel_matrix = kernel_join(test_points, SVMs, self.entangler_map, self.coupling_map,
                                     self.initial_layout, self.shots, self._random_seed, self.num_of_qubits, self.backend)
+
+        self._ret['kernel_matrix_testing'] = kernel_matrix
+
         success_ratio = 0
         L = 0
         total_num_points = len(test_points)
@@ -131,6 +135,10 @@ class SVM_QKernel(QuantumAlgorithm):
         alphas, bias, SVMs, yin = svm
         kernel_matrix = kernel_join(test_points, SVMs, self.entangler_map, self.coupling_map,
                                     self.initial_layout, self.shots, self._random_seed, self.num_of_qubits, self.backend)
+
+        self._ret['kernel_matrix_prediction'] = kernel_matrix
+
+
         total_num_points = len(test_points)
         Lsign = np.zeros(total_num_points)
         for tin in range(total_num_points):
