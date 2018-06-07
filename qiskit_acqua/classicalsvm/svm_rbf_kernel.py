@@ -18,7 +18,7 @@
 import numpy as np
 
 from sklearn.metrics.pairwise import rbf_kernel
-
+import copy
 from qiskit_acqua import QuantumAlgorithm
 from qiskit_acqua.svm import (get_points_and_labels, optimize_SVM)
 
@@ -27,6 +27,7 @@ class SVM_RBF_Kernel(QuantumAlgorithm):
     SVM_RBF_KERNEL_CONFIGURATION = {
         'name': 'SVM_RBF_Kernel',
         'description': 'SVM_RBF_Kernel Algorithm',
+        'classical': True,
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
             'id': 'SVM_RBF_schema',
@@ -47,7 +48,7 @@ class SVM_RBF_Kernel(QuantumAlgorithm):
     }
 
     def __init__(self, configuration=None):
-        super().__init__(configuration or self.SVM_RBF_KERNEL_CONFIGURATION.copy())
+        super().__init__(configuration or copy.deepcopy(SVM_RBF_Kernel.SVM_RBF_KERNEL_CONFIGURATION))
         self._ret = {}
 
     def init_params(self, params, algo_input):

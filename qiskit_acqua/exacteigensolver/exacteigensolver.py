@@ -20,7 +20,7 @@ import logging
 
 import numpy as np
 from scipy import sparse as scisparse
-
+import copy
 from qiskit_acqua import QuantumAlgorithm
 from qiskit_acqua import AlgorithmError
 
@@ -35,6 +35,7 @@ class ExactEigensolver(QuantumAlgorithm):
     EXACTEIGENSOLVER_CONFIGURATION = {
         'name': 'ExactEigensolver',
         'description': 'ExactEigensolver Algorithm',
+        'classical': True,
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
             'id': 'ExactEigensolver_schema',
@@ -52,7 +53,7 @@ class ExactEigensolver(QuantumAlgorithm):
     }
 
     def __init__(self, configuration=None):
-        super().__init__(configuration or self.EXACTEIGENSOLVER_CONFIGURATION.copy())
+        super().__init__(configuration or copy.deepcopy(ExactEigensolver.EXACTEIGENSOLVER_CONFIGURATION))
         self._operator = None
         self._aux_operators = None
         self._k = 1
