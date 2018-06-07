@@ -15,11 +15,12 @@
 # limitations under the License.
 # =============================================================================
 
-# Convert maxcut instances into Pauli list
-# Deal with Gset format. See https://web.stanford.edu/~yyye/yyye/Gset/
-# Design the maxcut object `w` as a two-dimensional np.array
-# e.g., w[i, j] = x means that the weight of a edge between i and j is x
-# Note that the weights are symmetric, i.e., w[j, i] = x always holds.
+# Convert stable set instances into Pauli list.  We read instances in
+# the Gset format, see https://web.stanford.edu/~yyye/yyye/Gset/ , for
+# compatibility with the maxcut format, but the weights on the edges
+# as they are not really used and are always assumed to be 1.  The
+# graph is represented by an adjacency matrix.
+
 
 import logging
 import numpy as np
@@ -31,35 +32,26 @@ from qiskit_acqua import Operator
 logger = logging.getLogger(__name__)
 
 
-def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None,
-                  seed=None):
-    """Generate random Erdos-Renyi graph for MaxCut.
+def random_graph(n, edge_prob = 0.5, savefile=None):
+    """Generate a random Erdos-Renyi graph on n nodes.
 
     Args:
         n (int): number of nodes.
-        weight_range (int): weights will be smaller than this value,
-            in absolute value.
         edge_prob (float): probability of edge appearing.
-        savefile (str or None): name of file where to save graph.
-        seed (int or None): random seed - if None, will not initialize.
+        savefile (str or None): write graph to this file.
 
     Returns:
-        Adjacency matrix (with weights) as a numpy array.
-
+        Adjacency matrix as a 2D numpy array.
     """
-    assert(weight_range >= 0)
-    if seed:
-        rand.seed(seed)
     w = np.zeros((n, n))
     m = 0
     for i in range(n):
         for j in range(i+1, n):
             if rand.rand() <= edge_prob:
-                w[i, j] = rand.randint(1, weight_range)
-                if rand.rand() >= 0.5:
-                    w[i, j] *= -1
+                w[i, j] = 1
                 m += 1
     w += w.T
+
     if savefile:
         with open(savefile, 'w') as outfile:
             outfile.write('{} {}\n'.format(n, m))
@@ -70,28 +62,34 @@ def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None,
     return w
 
 
-def get_maxcut_qubitops(weight_matrix):
+def get_stableset_qubitops(w):
     """Generate Hamiltonian for the maximum stableset in a graph.
 
     Args:
-        weight_matrix (numpy.ndarray) : adjacency matrix.
+        w (numpy.ndarray) : adjacency matrix.
 
     Returns:
         Weighted Pauli list and a constant shift for the obj function.
     """
-    num_nodes = len(weight_matrix)
+    num_nodes = len(w)
     pauli_list = []
     shift = 0
     for i in range(num_nodes):
-        for j in range(i):
-            if (weight_matrix[i,j] != 0):
+        for j in range(i+1, num_nodes):
+            if (w[i, j] != 0):
                 wp = np.zeros(num_nodes)
                 vp = np.zeros(num_nodes)
                 vp[i] = 1
                 vp[j] = 1
-                pauli_list.append((0.5*weight_matrix[i, j], Pauli(vp, wp)))
-                shift -= 0.5*weight_matrix[i, j]
-    return Operator(paulis=pauli_list), shift
+                pauli_list.append((1.0, Pauli(vp, wp)))
+                shift += 1
+    for i in range(num_nodes):
+        degree = sum(w[i, :])
+        wp = np.zeros(num_nodes)
+        vp = np.zeros(num_nodes)
+        vp[i] = 1
+        pauli_list.append((degree - 1/2, Pauli(vp, wp)))
+    return Operator(paulis=pauli_list), shift - num_nodes/2
 
 
 def parse_gset_format(filename):
@@ -118,24 +116,31 @@ def parse_gset_format(filename):
                 s, t, x = v
                 s -= 1  # adjust 1-index
                 t -= 1  # ditto
-                w[s, t] = t
+                w[s, t] = 1 if x != 0 else 0
                 count += 1
         assert m == count
     w += w.T
     return w
 
-def maxcut_value(x, w):
-    """Compute the value of a cut.
+def stableset_value(x, w):
+    """Compute the value of a stable set, and its feasibility.
     
     Args:
         x (numpy.ndarray): binary string as numpy array.
         w (numpy.ndarray): adjacency matrix.
 
     Returns:
-        Value of the cut.
+        Size of the stable set, and Boolean indicating feasibility.
     """
-    X = np.outer(x, (1-x))
-    return np.sum(w * X)
+    assert(len(x) == len(w))
+    feasible = True
+    num_nodes = len(w)
+    for i in range(num_nodes):
+        for j in range(i+1, num_nodes):
+            if w[i, j] != 0 and x[i] != 0 and x[j] != 0:
+                feasible = False
+                break
+    return len(x) - np.sum(x), feasible
 
 def get_graph_solution(x):
     """Get graph solution from binary string.
@@ -165,13 +170,4 @@ def sample_most_likely(n, state_vector):
         k >>= 1
     return x
 
-def get_gset_result(x):
-    """Get graph solution in Gset format from binary string.
 
-    Args:
-        x (numpy.ndarray) : binary string as numpy array.
-
-    Returns:
-        Graph solution as binary numpy array.
-    """
-    return {i + 1: 1 - x[i] for i in range(len(x))}
