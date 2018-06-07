@@ -14,6 +14,8 @@ h2 molecule
 0 1
 H   0.0  0.0 -0.3675
 H   0.0  0.0  0.3675
+
+
 &end
 
 &operator
