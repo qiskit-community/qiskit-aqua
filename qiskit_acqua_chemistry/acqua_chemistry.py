@@ -34,6 +34,8 @@ class ACQUAChemistry(object):
     """Main entry point."""
 
     KEY_HDF5_OUTPUT = 'hdf5_output'
+    _DRIVER_RUN_TO_HDF5 = 1
+    _DRIVER_RUN_TO_ALGO_INPUT = 2
 
     def __init__(self):
         """Create an ACQUAChemistry object."""
@@ -61,19 +63,20 @@ class ACQUAChemistry(object):
         preferences.set_logging_config(logging_config)
         preferences.save()
         set_logger_config(logging_config)
-
+   
     def run(self, input, output=None):
         if input is None:
             raise ACQUAChemistryError("Missing input.")
 
         self._parser = InputParser(input)
         self._parser.parse()
-        driver_return = self._run_drive_from_parser(self._parser,False)
-        if driver_return is None:
+        driver_return = self._run_driver_from_parser(self._parser,False)
+        if driver_return[0] == ACQUAChemistry._DRIVER_RUN_TO_HDF5:
             logger.info('No further process.')
+            print(driver_return[1])
             return None
 
-        data = run_algorithm(driver_return[0],driver_return[1],True)
+        data = run_algorithm(driver_return[1],driver_return[2],True)
         if not isinstance(data, dict):
             raise ACQUAChemistryError("Algorithm run result should be a dictionary")
 
@@ -114,7 +117,7 @@ class ACQUAChemistry(object):
         with open(jsonfile, 'w') as fp:
             json.dump(data, fp, sort_keys=True, indent=4)
             
-        logger.info("Algorithm input file saved: '{}'".format(jsonfile))
+        print("Algorithm input file saved: '{}'".format(jsonfile))
 
     def run_algorithm_from_jsonfile(self, jsonfile, output=None):
         with open(jsonfile) as json_file:
@@ -149,12 +152,12 @@ class ACQUAChemistry(object):
 
         self._parser = InputParser(input)
         self._parser.parse()
-        driver_return = self._run_drive_from_parser(self._parser,save_json_algo_file)
-        driver_return[0]['input'] = driver_return[1].to_params()
-        driver_return[0]['input']['name'] = driver_return[1].configuration['name']
-        return driver_return[0]
+        driver_return = self._run_driver_from_parser(self._parser,save_json_algo_file)
+        driver_return[1]['input'] = driver_return[2].to_params()
+        driver_return[1]['input']['name'] = driver_return[2].configuration['name']
+        return driver_return[1]
 
-    def _run_drive_from_parser(self, p, save_json_algo_file):
+    def _run_driver_from_parser(self, p, save_json_algo_file):
         if p is None:
             raise ACQUAChemistryError("Missing parser")
 
@@ -200,10 +203,11 @@ class ACQUAChemistry(object):
             molecule._origin_driver_name = driver_name
             molecule._origin_driver_config = section['data']
             molecule.save(hdf5_file)
-            logger.info("HDF5 file saved '{}'".format(hdf5_file))
+            text = "HDF5 file saved '{}'".format(hdf5_file)
+            logger.info(text)
             if not save_json_algo_file:
                 logger.info('Run ended with hdf5 file saved.')
-                return None
+                return ACQUAChemistry._DRIVER_RUN_TO_HDF5, text
 
         # Run the Hamiltonian to process the QMolecule and get an input for algorithms
         self._core = get_chemistry_operator_instance(p.get_section_property(InputParser.OPERATOR, InputParser.NAME))
@@ -228,4 +232,4 @@ class ACQUAChemistry(object):
                 InputParser.ENABLE_SUBSTITUTIONS in params[section_name]:
                 del params[section_name][InputParser.ENABLE_SUBSTITUTIONS]
 
-        return params, input_object
+        return ACQUAChemistry._DRIVER_RUN_TO_ALGO_INPUT, params, input_object
