@@ -295,6 +295,71 @@ SVM_RBF_Kernel can be configured with the following parameters:
 
   Whether to print additional information or not when the algorithm is running.
 
+# Additional configuration
+
+To run an algorithm a [problem](#problem) configuration is needed and for quantum algorithms a [backend](#backend)
+
+## PROBLEM
+
+PROBLEM is an optional section that includes the overall problem being solved and overall problem level configuration
+
+* `name`=**energy** | excited_states | ising | dynamics | search | svm_classification
+
+  Specifies the problem being solved. Ensures that algorithms that can handle this class of problem are used.
+ 
+* `random_seed`=*An integer, default None*  
+
+  Aspects of the computation may include use of random numbers. For instance VQE will often use a random initial
+  point if the variation form does not supply any preference based on the initial state (and not overridden by a user
+  supplied initial point). In this case each run of VQE, for an otherwise a constant problem, can result in a different
+  result. And even if the final value might be the same the number of evaluations may differ. To enable repeatable
+  experiments, with the exact same outcome, an integer random seed can be set so as the (pseudo-)random numbers will
+  be generated the same each time the experiment is run.
+
+
+## BACKEND   
+
+BACKEND is an optional section that includes naming the [QISKit](https://www.qiskit.org/) quantum computational
+backend to be used for the quantum computation. This defaults to a local quantum simulator backend. 
+
+* `name`=*'qiskit backend name'* 
+
+  Defaults to 'local_statevector_simulator' but any suitable quantum backend can be selected. The QConfig.py file
+  may need to be setup for QISKit to access remote devices.
+  See [QISKit installation](https://qiskit.org/documentation/install.html#installation) for information on how to
+  configure the QConfig.py
+  
+* `shots`=*integer defaults to 1024*
+
+  With a backend such as local_qasm_simulator, or a real device, this is number of repetitions of each circuit
+  for sampling to be used.
+
+* `skip_translation`=**false** | true
+
+  Skip circuit translation phase. If the algorithm uses only basis gates directly supported then no translation of
+  the circuit into basis gates is required. Skipping the translation may improve overall performance a little
+  especially when many circuits are used repeatedly such as is teh case with the VQE algorithm.
+   
+  *Note: use with caution as if the algorithm does not restrict itself to the set of basis gates supported by the
+   backend then the circuit (algorithm) will fail to run.*     
+
+* `noise_params`=*dictionary of noise control key/values, optional, defaults to None*
+
+   When a local simulator is used an optional dictionary can be supplied to control its noise model. For more
+   information see 
+   [Noise Parameters](https://github.com/QISKit/qiskit-sdk-py/tree/master/src/qasm-simulator-cpp#noise-parameters)
+   The following is an example of such a dictionary that can be used:
+   
+   ```
+   "noise_params": {"U": {"p_depol": 0.001,
+                          "p_pauli": [0, 0, 0.01],
+                          "gate_time": 1,
+                          "U_error": [ [[1, 0], [0, 0]],
+                                       [[0, 0], [0.995004165, 0.099833417]]
+                                     ]
+                         }
+                   }
+   ```
 
 # Developers  
 
