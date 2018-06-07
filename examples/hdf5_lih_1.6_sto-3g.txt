@@ -28,7 +28,7 @@ HDF5 LiH experiment
 &end
 
 &variational_form
-   name=USSCD
+   name=UCCSD
 &end
 
 &initial_state
