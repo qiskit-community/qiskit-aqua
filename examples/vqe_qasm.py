@@ -20,11 +20,14 @@ from qiskit_acqua import Operator, run_algorithm
 from qiskit_acqua.input import get_input_instance
 
 pauli_dict = {
-    'paulis': [{"coeff": {"imag": 0.0, "real": -1.052373245772859}, "label": "II"},
-               {"coeff": {"imag": 0.0, "real": 0.39793742484318045}, "label": "ZI"},
-               {"coeff": {"imag": 0.0, "real": -0.39793742484318045}, "label": "IZ"},
-               {"coeff": {"imag": 0.0, "real": -0.01128010425623538}, "label": "ZZ"},
-               {"coeff": {"imag": 0.0, "real": 0.18093119978423156}, "label": "XX"}
+    'paulis': [{"coeff": {"imag": 0.0, "real": -1.052373245772859},
+                "label": "II"},
+               {"coeff": {"imag": 0.0, "real": 0.39793742484318045},
+                "label": "ZI"},
+               {"coeff": {"imag": 0.0, "real": -0.39793742484318045},
+                "label": "ZZ"},
+               {"coeff": {"imag": 0.0, "real": 0.18093119978423156},
+                "label": "XX"}
                ]
 }
 algo_input = get_input_instance('EnergyInput')
