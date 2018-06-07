@@ -209,13 +209,15 @@ is not efficient classically.  This means that the required computational resour
 the size of the problem. SVM_QKernel uses a Quantum processor to solve this problem by a direct estimation of the kernel in 
 the feature space. The method used falls in the category of what is called _supervised learning_, consisting of a _training 
 phase_ (where the kernel is calculated and the support vectors obtained) and a _test or classification phase_ (where new 
-labeless data is classified according to the solution found in the training phase).
+unlabelled data is classified according to the solution found in the training phase).
+
+For more detail, please see [https://arxiv.org/abs/1804.11326](https://arxiv.org/abs/1804.11326).
 
 SVM_QKernel can be configured with the following parameters:
 
 * `num_qubits`=*integer 2 to n, defaults to 2*
 
-  Number of qubits to use for the problem.
+  Number of qubits required is equal to the number of features used for classification.
 
 * `print_info`=**False** | True
 
@@ -228,15 +230,17 @@ Just like SVM_Kernel, the SVM_Variational algorithm applies to classification pr
 computing the kernel is not efficient classically.  SVM_Variational solves such problems in a quantum processor by 
 variational method that optimizes a parameterized quantum circuit to provide a solution that cleanly separates the data.
 
+For more detail, please see [https://arxiv.org/abs/1804.11326](https://arxiv.org/abs/1804.11326).
+
 SVM_Variational can be configured with the following parameters:
 
 * `num_qubits`=*integer 2 to n, defaults to 2*
 
-  Number of qubits to use for the problem.
+  Number of qubits required is equal to the number of features used for classification.
 
 * `circuit_depth`=*integer 3 to n, defaults to 3*
 
-  Circuit depth to use for the variational form.
+  Depth of variational circuit that is optimized. 
 
 * `print_info`=**False** | True
 
@@ -320,7 +324,7 @@ algorithms
  
   IQFT (Inverse Quantum Fourier Transform) objects should go under *utils/iqfts* and derive from IQFT class.
 
-* [Oracles](./oracles/README.md)
+* [Oracles](./utils/oracles/README.md)
 
   Oracles, for use with algorithms like Grover, should go under *utils/oracles* and derive from Oracle class.  
 

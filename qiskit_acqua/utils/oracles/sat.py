@@ -97,7 +97,7 @@ class SAT(Oracle):
     def ancillary_register(self):
         return self._qr_ancilla
 
-    def target_register(self):
+    def outcome_register(self):
         return self._qr_outcome
 
     def _logic_or(self, circuit, conj_expr, conj_index):

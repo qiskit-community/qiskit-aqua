@@ -552,6 +552,9 @@ class InputParser(object):
             raise AlgorithmError(
             "Problem: {} not in the list of problems: {} for input: {}.".format(problem_name,problems,input_name))
            
+    def commit_changes(self):
+        self._original_sections = copy.deepcopy(self._sections)
+        
     def save_to_file(self,file_name):
         if file_name is None:
             raise AlgorithmError('Missing file path')
