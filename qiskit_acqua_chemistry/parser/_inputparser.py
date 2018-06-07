@@ -127,7 +127,6 @@ class InputParser(object):
         self._update_pluggable_input_schemas()
         self._update_driver_input_schemas()
         self._update_operator_input_schema()
-        self.process_substitutions()
         self._sections = self._order_sections(self._sections)  
         self._original_sections = copy.deepcopy(self._sections)
         
@@ -298,7 +297,7 @@ class InputParser(object):
             default_value = values['default'] if 'default' in values else None
             properties[property_name] = InputParser._get_value(default_value,types)
            
-        return self._substitute_properties(section_name,properties)
+        return properties
      
     def allows_additional_properties(self,section_name):
         section_name = InputParser._format_section_name(section_name)
@@ -871,8 +870,6 @@ class InputParser(object):
             self._sections[section_name]['data'] = ''
             self._sections = self._order_sections(self._sections)
             
-        self.process_substitutions()
-            
     def delete_section(self, section_name):
         """
         Args:
@@ -943,10 +940,6 @@ class InputParser(object):
                     self._update_driver_input_schemas()
                     self._update_driver_sections()
                     
-        if section_name == InputParser.PROBLEM and property_name == InputParser.ENABLE_SUBSTITUTIONS:
-            self.process_substitutions()
-        else:
-            self._process_substitutions(section_name,property_name)
         self._sections = self._order_sections(self._sections)
         
     def _update_algorithm_problem(self):
@@ -1202,66 +1195,6 @@ class InputParser(object):
                 continue
         
         return result
-    
-    def _substitute_properties(self,section_name,properties):
-        if not self.is_substitution_allowed():
-            return properties
-        
-        section_name = InputParser._format_section_name(section_name)
-        section_property_name = self.get_property_default_value(section_name,InputParser.NAME)
-        section_property_name = self.get_section_property(section_name,InputParser.NAME,section_property_name)
-        for key,value in self._substitutions.items():
-            value_items = value.split('.')
-            if len(value_items) != 3:
-                continue
-            
-            name = self.get_property_default_value(value_items[0],InputParser.NAME)
-            name = self.get_section_property(value_items[0],InputParser.NAME,name)
-            if name != value_items[1]:
-                continue
-            
-            key_items = key.split('.')
-            if len(key_items) == 3 and \
-                key_items[0] == section_name and \
-                key_items[1] == section_property_name and \
-                key_items[2] in properties:
-                v = self.get_property_default_value(value_items[0],value_items[2])
-                v = self.get_section_property(value_items[0],value_items[2],v)
-                properties[key_items[2]] = v
-        
-        return properties
-        
-    def _process_substitutions(self,section_name,property_name):   
-        if not self.is_substitution_allowed():
-            return
-        
-        section_name = InputParser._format_section_name(section_name)
-        property_name = InputParser._format_property_name(property_name)
-        section_property_name = self.get_property_default_value(section_name,InputParser.NAME)
-        section_property_name = self.get_section_property(section_name,InputParser.NAME,section_property_name)
-        v = self.get_property_default_value(section_name,property_name)
-        v = self.get_section_property(section_name,property_name,v)
-        if v is None:
-            return
-        # look for keys to substitute the value above
-        for key,value in self._substitutions.items():
-            key_items = key.split('.')
-            if len(key_items) != 3:
-                continue
-            
-            value_items = value.split('.')
-            if len(value_items) != 3 or \
-                value_items[0] != section_name or \
-                value_items[1] != section_property_name or \
-                value_items[2] != property_name:
-                continue
-                
-            name = self.get_property_default_value(key_items[0],InputParser.NAME)
-            name = self.get_section_property(key_items[0],InputParser.NAME,name)
-            if name != key_items[1]:
-                continue
-        
-            self.set_section_property(key_items[0],key_items[2],v)
         
     def process_substitutions(self,substitutions = None):
         if substitutions is not None and not isinstance(substitutions,dict):

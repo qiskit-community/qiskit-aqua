@@ -33,6 +33,7 @@ from qiskit_acqua_chemistry.parser import InputParser
 from qiskit_acqua_chemistry.ui._uipreferences import UIPreferences
 import ast
 import pprint
+import sys
 import logging
 
 logger = logging.getLogger(__name__)
@@ -646,6 +647,14 @@ class ACQUAChemistryThread(threading.Thread):
             process_name = psutil.Process().exe()
             if process_name is None or len(process_name) == 0:
                 process_name = 'python'
+            else:
+                if sys.platform.startswith('win') and process_name.endswith('pythonw.exe'):
+                    path = os.path.dirname(process_name)
+                    files = [f for f in os.listdir(path) if not f.endswith('pythonw.exe') and f.startswith('python') and f.endwith('.exe')]
+                    for file in files:
+                        process_name = os.path.join(path,file)
+                        if os.isfile(process_name):
+                            break
                 
             input_array = [process_name,acqua_chemistry_directory,input_file]
             if self._json_algo_file:
