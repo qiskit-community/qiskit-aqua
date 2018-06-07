@@ -62,7 +62,7 @@ def main():
             solver.run_drive_to_jsonfile(args.input, args.jo)
         else:
             result = solver.run(args.input, args.o)
-            if 'printable' in result:
+            if result is not None and 'printable' in result:
                 print('\n\n--------------------------------- R E S U L T ------------------------------------\n')
                 for line in result['printable']:
                     print(line)
