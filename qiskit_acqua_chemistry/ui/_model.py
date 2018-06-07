@@ -46,6 +46,7 @@ class Model(object):
             uipreferences = UIPreferences()
             if uipreferences.get_populate_defaults(True):
                 self._parser.validate_merge_defaults()
+                self._parser.commit_changes()
                 
             return self._parser.get_section_names()   
         except:
@@ -61,6 +62,7 @@ class Model(object):
             uipreferences = UIPreferences()
             if uipreferences.get_populate_defaults(True):
                 self._parser.validate_merge_defaults()
+                self._parser.commit_changes()
                 
             return self._parser.get_section_names()   
         except:

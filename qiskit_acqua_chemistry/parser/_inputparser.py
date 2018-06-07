@@ -52,7 +52,7 @@ class InputParser(object):
     _OPTIMIZER = 'optimizer'
     _VARIATIONAL_FORM = 'variational_form'
     _UNKNOWN = 'unknown'
-    _HDF5_PROPERTIES = ['hdf5_input','hdf5_output']
+    _HDF5_INPUT = 'hdf5_input'
     _DRIVER_NAMES = None
     _PROPERTY_ORDER = [NAME,_UNKNOWN]
     
@@ -169,7 +169,26 @@ class InputParser(object):
         """
         Returns true if data has been changed
         """
-        return self._original_sections != self._sections
+        original_section_names = set(self._original_sections.keys())
+        section_names = set(self._sections.keys())
+        if original_section_names != section_names:
+            return True
+        
+        for section_name in section_names:
+            original_section = self._original_sections[section_name]
+            section = self._sections[section_name]
+            if self.section_is_text(section_name):
+                original_data = original_section['data'] if 'data' in original_section else None
+                data = section['data'] if 'data' in section else None
+                if original_data != data:
+                    return True
+            else:
+                original_properties = original_section['properties'] if 'properties' in original_section else None
+                properties = section['properties'] if 'properties' in section else None
+                if original_properties != properties:
+                    return True
+        
+        return False
             
     @staticmethod
     def is_pluggable_section(section_name):
@@ -679,6 +698,9 @@ class InputParser(object):
                 dict[section_name] = self.get_section_properties(section_name) 
      
         return dict
+    
+    def commit_changes(self):
+        self._original_sections = copy.deepcopy(self._sections)
                     
     def save_to_file(self,file_name):
         if file_name is None:
@@ -733,7 +755,7 @@ class InputParser(object):
         for _,section in sections.items():
             if 'properties' in section:
                 for key,value in section['properties'].items():
-                    if key in InputParser._HDF5_PROPERTIES:
+                    if key == InputParser._HDF5_INPUT:
                         if value is not None and not os.path.isabs(value):
                             value = os.path.abspath(os.path.join(directory,value))
                             InputParser._set_section_property(sections,section[InputParser.NAME],key,value)

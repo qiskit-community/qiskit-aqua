@@ -31,7 +31,6 @@ import tkinter.filedialog as tkfd
 import json
 from qiskit_acqua_chemistry.parser import InputParser
 from qiskit_acqua_chemistry.ui._uipreferences import UIPreferences
-from collections import OrderedDict
 import ast
 import pprint
 import logging
