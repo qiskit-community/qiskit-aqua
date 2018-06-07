@@ -398,6 +398,7 @@ class InputParser(object):
             
         # update alogorithm depoendencies scheme
         config = {} if algo_name is None else get_algorithm_configuration(algo_name) 
+        classical = config['classical'] if 'classical' in config else False 
         pluggable_dependencies = [] if 'depends' not in config else config['depends']
         pluggable_defaults = {} if 'defaults' not in config else config['defaults']
         pluggable_types = local_pluggables_types()
@@ -407,7 +408,19 @@ class InputParser(object):
                 if pluggable_type in self._schema['definitions']:
                     del self._schema['definitions'][pluggable_type]
                 if pluggable_type in self._schema['properties']:
-                    del self._schema['properties'][pluggable_type]       
+                    del self._schema['properties'][pluggable_type]
+                    
+        # update algorithm backend from schema if it is classical or not
+        if classical:
+            if InputParser.BACKEND in self._schema['definitions']:
+                del self._schema['definitions'][InputParser.BACKEND]
+            if InputParser.BACKEND in self._schema['properties']:
+                del self._schema['properties'][InputParser.BACKEND]
+        else:
+            if InputParser.BACKEND not in self._schema['definitions']:
+                self._schema['definitions'][InputParser.BACKEND] = self._original_schema['definitions'][InputParser.BACKEND]
+            if InputParser.BACKEND not in self._schema['properties']:
+                self._schema['properties'][InputParser.BACKEND] = self._original_schema['properties'][InputParser.BACKEND]
         
         # update schema with dependencies
         for pluggable_type in pluggable_dependencies:
@@ -599,8 +612,6 @@ class InputParser(object):
             self.set_section(InputParser.NAME)
             
         if InputParser.ALGORITHM in section_names:
-            if InputParser.BACKEND not in section_names:
-                self.set_section(InputParser.BACKEND)
             if InputParser.PROBLEM not in section_names:
                 self.set_section(InputParser.PROBLEM)
                 
@@ -983,6 +994,7 @@ class InputParser(object):
     def _update_dependency_sections(self):
         algo_name = self.get_section_property(InputParser.ALGORITHM,InputParser.NAME)
         config = {} if algo_name is None else get_algorithm_configuration(algo_name) 
+        classical = config['classical'] if 'classical' in config else False 
         pluggable_dependencies = [] if 'depends' not in config else config['depends']
         pluggable_defaults = {} if 'defaults' not in config else config['defaults']
         pluggable_types = local_pluggables_types()
@@ -1000,7 +1012,15 @@ class InputParser(object):
            
             if pluggable_name is not None and pluggable_type not in self._sections:
                 self.set_section_property(pluggable_type,InputParser.NAME,pluggable_name)
-        
+                
+        # update backend based on classical
+        if classical:
+            if InputParser.BACKEND in self._sections:
+                del self._sections[InputParser.BACKEND]
+        else:
+            if InputParser.BACKEND not in self._sections:
+                self._sections[InputParser.BACKEND] = self.get_section_default_properties(InputParser.BACKEND)
+
     def _update_driver_sections(self):
         driver_name = self.get_section_property(InputParser.DRIVER,InputParser.NAME)
         if driver_name is not None:
