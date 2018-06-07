@@ -63,6 +63,6 @@
         "algorithm":        { "$ref": "#/definitions/algorithm" },
         "backend":          { "$ref": "#/definitions/backend" }
     },
-    "required": ["algorithm","backend"],
+    "required": ["algorithm"],
     "additionalProperties": false
 }

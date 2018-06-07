@@ -58,16 +58,16 @@ def run_algorithm(params, algo_input=None, json_output=False):
     if algo_name not in local_algorithms():
         raise AlgorithmError('Algorithm "{0}" missing in local algorithms'.format(algo_name))
 
+    backend_cfg = None
     backend = inputparser.get_section_property(InputParser.BACKEND, InputParser.NAME)
-    if backend is None:
-        raise AlgorithmError('Missing backend name')
-
-    backend_cfg = {k: v for k, v in inputparser.get_section(InputParser.BACKEND).items() if k != 'name'}
-    backend_cfg['backend'] = backend
+    if backend is not None:
+        backend_cfg = {k: v for k, v in inputparser.get_section(InputParser.BACKEND).items() if k != 'name'}
+        backend_cfg['backend'] = backend
 
     algorithm = get_algorithm_instance(algo_name)
     algorithm.random_seed = inputparser.get_section_property(InputParser.PROBLEM, 'random_seed')
-    algorithm.setup_quantum_backend(**backend_cfg)
+    if backend_cfg is not None:
+        algorithm.setup_quantum_backend(**backend_cfg)
 
     algo_params = copy.deepcopy(inputparser.get_sections())
 
