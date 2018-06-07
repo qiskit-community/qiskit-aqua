@@ -64,7 +64,8 @@ class GaussianDriver(BaseDriver):
 
     def run(self, section):
         cfg = section['data']
-        logger.debug('User supplied configuration:\n{}'.format(cfg))
+        logger.debug("User supplied configuration raw: '{}'".format(cfg.replace('\r', '\\r').replace('\n', '\\n')))
+        logger.debug('User supplied configuration\n{}'.format(cfg))
 
         # To the Gaussian section of the input file passed here as section['data']
         # add line '# Symm=NoInt output=(matrix,i4labels,mo2el) tran=full'
