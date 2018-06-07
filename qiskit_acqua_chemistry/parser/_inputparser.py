@@ -713,7 +713,9 @@ class InputParser(object):
         prev_filename = self.get_filename()
         sections = copy.deepcopy(self.get_sections())
         if prev_filename is not None:
-            if os.path.realpath(prev_filename) != os.path.realpath(file_name):
+            prev_dirname = os.path.dirname(os.path.realpath(prev_filename))
+            dirname = os.path.dirname(os.path.realpath(file_name))
+            if prev_dirname != dirname:
                 InputParser._from_relative_to_abs_paths(sections,prev_filename)
                 
         contents = ''
