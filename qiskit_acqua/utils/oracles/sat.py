@@ -22,6 +22,8 @@ import logging
 from qiskit import QuantumRegister, QuantumCircuit
 
 from qiskit_acqua.utils.oracles import Oracle
+import qiskit_acqua.grover.cnx
+
 
 logger = logging.getLogger(__name__)
 
