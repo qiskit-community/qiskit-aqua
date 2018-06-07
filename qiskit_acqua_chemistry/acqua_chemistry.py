@@ -73,8 +73,7 @@ class ACQUAChemistry(object):
         driver_return = self._run_driver_from_parser(self._parser,False)
         if driver_return[0] == ACQUAChemistry._DRIVER_RUN_TO_HDF5:
             logger.info('No further process.')
-            print(driver_return[1])
-            return None
+            return {'printable': [driver_return[1]]}
 
         data = run_algorithm(driver_return[1],driver_return[2],True)
         if not isinstance(data, dict):
