@@ -27,7 +27,6 @@ import tempfile
 import tkinter as tk
 from tkinter import messagebox
 from qiskit_acqua.parser import InputParser
-from collections import OrderedDict
 import json
 import ast
 import logging
