@@ -16,6 +16,7 @@
 # =============================================================================
 
 import unittest
+from parameterized import parameterized
 from qiskit_acqua import get_algorithm_instance, get_initial_state_instance, get_iqft_instance, Operator
 from qiskit_acqua.utils.subsystem import get_subsystem_fidelity
 import numpy as np
@@ -25,30 +26,38 @@ from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.tools.qi.qi import qft
 
 
-class TestQPENumerical(QISKitAcquaTestCase):
+X = np.array([[0, 1], [1, 0]])
+Y = np.array([[0, -1j], [1j, 0]])
+Z = np.array([[1, 0], [0, -1]])
+I = np.array([[1, 0], [0, 1]])
+h1 = X + Y + Z + I
+qubitOp_simple = Operator(matrix=h1)
+
+
+pauli_dict = {
+    'paulis': [
+        {"coeff": {"imag": 0.0, "real": -1.052373245772859}, "label": "II"},
+        {"coeff": {"imag": 0.0, "real": 0.39793742484318045}, "label": "ZI"},
+        {"coeff": {"imag": 0.0, "real": -0.39793742484318045}, "label": "IZ"},
+        {"coeff": {"imag": 0.0, "real": -0.01128010425623538}, "label": "ZZ"},
+        {"coeff": {"imag": 0.0, "real": 0.18093119978423156}, "label": "XX"}
+    ]
+}
+qubitOp_h2_with_2_qubit_reduction = Operator.load_from_dict(pauli_dict)
+
+
+class TestQPE(QISKitAcquaTestCase):
     """QPE tests."""
 
-    def setUp(self):
+    @parameterized.expand([
+        [qubitOp_simple],
+        [qubitOp_h2_with_2_qubit_reduction],
+    ])
+    def test_qpe(self, qubitOp):
         self.algorithm = 'QPE'
-        self.log.debug('Testing QPE Numerically')
+        self.log.debug('Testing QPE')
 
-        X = [[0, 1], [1, 0]]
-        Y = [[0, -1j], [1j, 0]]
-        Z = [[1, 0], [0, -1]]
-        I = [[1, 0], [0, 1]]
-        # h1 = np.array(np.kron(X, Y)) + np.array(np.kron(Z, Y))
-        # self.qubitOp = Operator(matrix=h1)
-
-        pauli_dict = {
-            'paulis': [
-                {"coeff": {"imag": 0.0, "real": -1.052373245772859}, "label": "II"},
-                {"coeff": {"imag": 0.0, "real": 0.39793742484318045}, "label": "ZI"},
-                {"coeff": {"imag": 0.0, "real": -0.39793742484318045}, "label": "IZ"},
-                {"coeff": {"imag": 0.0, "real": -0.01128010425623538}, "label": "ZZ"},
-                {"coeff": {"imag": 0.0, "real": 0.18093119978423156}, "label": "XX"}
-            ]
-        }
-        self.qubitOp = Operator.load_from_dict(pauli_dict)
+        self.qubitOp = qubitOp
 
         exact_eigensolver = get_algorithm_instance('ExactEigensolver')
         exact_eigensolver.init_args(self.qubitOp, k=1)
@@ -57,8 +66,7 @@ class TestQPENumerical(QISKitAcquaTestCase):
         w = results['eigvals']
         v = results['eigvecs']
 
-        self.qubitOp._check_representation('matrix')
-
+        # self.qubitOp._check_representation('matrix')
         # np.testing.assert_almost_equal(
         #     self.qubitOp.matrix @ v[0],
         #     w[0] * v[0]
@@ -73,7 +81,6 @@ class TestQPENumerical(QISKitAcquaTestCase):
         self.log.debug('The exact eigenvalue is:       {}'.format(self.ref_eigenval))
         self.log.debug('The corresponding eigenvector: {}'.format(self.ref_eigenvec))
 
-    def test_qpe(self):
         num_time_slices = 20
         n_ancillae = 8
 

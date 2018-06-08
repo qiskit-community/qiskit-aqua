@@ -268,7 +268,7 @@ class QPE(QuantumAlgorithm):
                 num_identities += 1
                 if num_identities > 1:
                     raise RuntimeError('Multiple identity pauli terms are present.')
-                self._ancilla_phase_coef = p[0].real if p[0].__class__ is complex else p[0]
+                self._ancilla_phase_coef = p[0].real if isinstance(p[0], complex) else p[0]
 
         self._construct_qpe_evolution()
         logger.info('QPE circuit depth is roughly {}.'.format(
