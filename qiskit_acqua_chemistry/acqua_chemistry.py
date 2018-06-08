@@ -79,7 +79,8 @@ class ACQUAChemistry(object):
         if not isinstance(data, dict):
             raise ACQUAChemistryError("Algorithm run result should be a dictionary")
 
-        logger.debug('Algorithm returned: {}'.format(json.dumps(data, indent=4)))
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug('Algorithm returned: {}'.format(json.dumps(data, indent=4)))
 
         convert_json_to_dict(data)
         lines, result = self._format_result(data)
