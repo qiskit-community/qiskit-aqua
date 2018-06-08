@@ -134,7 +134,7 @@ class IsingInstance:
                                 len(pauli['label']), pauli)
                 continue
             label = pauli['label']
-            if pauli['coeff']['imag'] != 0.0:
+            if 'imag' in pauli['coeff'] and pauli['coeff']['imag'] != 0.0:
                 logger.critical('CPLEX backend cannot deal with complex coefficient %s', pauli)
                 continue
             weight = pauli['coeff']['real']
@@ -199,8 +199,8 @@ class IsingModel:
                 lin[j] = 0
             lin[i] += -2 * w
             lin[j] += -2 * w
-        self._cplex.set_objective([(x[i], w) for i, w in lin.items()])
-        self._cplex.set_objective([(x[i], x[j], 4 * w) for (i, j), w in self._quad.items()])
+        self._cplex.set_objective([(x[i], float(w)) for i, w in lin.items()])
+        self._cplex.set_objective([(x[i], x[j], float(4 * w)) for (i, j), w in self._quad.items()])
         self._cplex.set_objective(fsum([self._const] + list(self._lin.values()) + list(self._quad.values())))
 
     def solve(self):
