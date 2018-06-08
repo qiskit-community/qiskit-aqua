@@ -651,15 +651,27 @@ class ACQUAChemistryThread(threading.Thread):
             else:
                 if sys.platform == 'win32' and process_name.endswith('pythonw.exe'):
                     path = os.path.dirname(process_name)
-                    files = [f for f in os.listdir(path) if f != 'pythonw.exe' and f.startswith('python') and f.endswith('.exe')]   
+                    files = [f for f in os.listdir(path) if f != 'pythonw.exe' and f.startswith('python') and f.endswith('.exe')]
+                    # sort reverse to have the python versions first: python3.exe before python2.exe
+                    files = sorted(files,key=str.lower, reverse=True)
+                    new_process = None
                     for file in files:
                         p = os.path.join(path,file)
                         if os.path.isfile(p):
-                            startupinfo = subprocess.STARTUPINFO()
-                            startupinfo.dwFlags = subprocess.STARTF_USESHOWWINDOW
-                            startupinfo.wShowWindow = subprocess.SW_HIDE
-                            process_name = p
-                            break
+                            # python.exe takes precedence
+                            if file.lower() == 'python.exe':
+                                new_process = p
+                                break
+                            
+                            # use first found
+                            if new_process is None:
+                                new_process = p
+                        
+                    if new_process is not None:
+                        startupinfo = subprocess.STARTUPINFO()
+                        startupinfo.dwFlags = subprocess.STARTF_USESHOWWINDOW
+                        startupinfo.wShowWindow = subprocess.SW_HIDE
+                        process_name = new_process
                 
             input_array = [process_name,acqua_chemistry_directory,input_file]
             if self._json_algo_file:
