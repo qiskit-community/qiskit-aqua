@@ -644,16 +644,21 @@ class ACQUAChemistryThread(threading.Thread):
                 temp_input = True
                 self._model.save_to_file(input_file)
                 
+            startupinfo = None
             process_name = psutil.Process().exe()
             if process_name is None or len(process_name) == 0:
                 process_name = 'python'
             else:
-                if sys.platform.startswith('win') and process_name.endswith('pythonw.exe'):
+                if sys.platform == 'win32' and process_name.endswith('pythonw.exe'):
                     path = os.path.dirname(process_name)
-                    files = [f for f in os.listdir(path) if not f.endswith('pythonw.exe') and f.startswith('python') and f.endwith('.exe')]
+                    files = [f for f in os.listdir(path) if f != 'pythonw.exe' and f.startswith('python') and f.endswith('.exe')]   
                     for file in files:
-                        process_name = os.path.join(path,file)
-                        if os.isfile(process_name):
+                        p = os.path.join(path,file)
+                        if os.path.isfile(p):
+                            startupinfo = subprocess.STARTUPINFO()
+                            startupinfo.dwFlags = subprocess.STARTF_USESHOWWINDOW
+                            startupinfo.wShowWindow = subprocess.SW_HIDE
+                            process_name = p
                             break
                 
             input_array = [process_name,acqua_chemistry_directory,input_file]
@@ -670,7 +675,8 @@ class ACQUAChemistryThread(threading.Thread):
             self._popen = subprocess.Popen(input_array,
                                        stdout=subprocess.PIPE,
                                        stderr=subprocess.STDOUT,
-                                       universal_newlines=True)
+                                       universal_newlines=True,
+                                       startupinfo=startupinfo)
             if self._thread_queue is not None:
                 self._thread_queue.put(Controller._START)
             for line in iter(self._popen.stdout.readline,''):
