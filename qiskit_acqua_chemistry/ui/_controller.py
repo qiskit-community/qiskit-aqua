@@ -685,6 +685,7 @@ class ACQUAChemistryThread(threading.Thread):
                 self._output.write('Process: {}\n'.format(process_name))
                 
             self._popen = subprocess.Popen(input_array,
+                                       stdin=subprocess.DEVNULL,
                                        stdout=subprocess.PIPE,
                                        stderr=subprocess.STDOUT,
                                        universal_newlines=True,
