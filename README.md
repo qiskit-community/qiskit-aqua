@@ -131,7 +131,8 @@ such as plotting a [disocciation curve](https://github.ibm.com/IBMQuantum/qiskit
 
 ## Authors
 
-QISKit ACQUA Chemistry was inspired, authored and brought about by the collective work of many individuals.
+QISKit ACQUA Chemistry was inspired, authored and brought about by the collective
+work of a team of researchers.
 
 QISKit ACQUA Chemistry continues now to grow with the help and work of [many people](CONTRIBUTORS.md) who contribute
 to the project at different levels.
