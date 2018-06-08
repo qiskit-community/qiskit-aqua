@@ -63,6 +63,7 @@ pip-delete-this-directory.txt
 # Unit test / coverage reports
 *.hdf5
 !examples/*.hdf5
+!test/*.hdf5
 htmlcov/
 .tox/
 .coverage
