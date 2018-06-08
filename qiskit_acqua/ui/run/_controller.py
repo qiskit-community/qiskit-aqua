@@ -29,6 +29,7 @@ from tkinter import messagebox
 from qiskit_acqua.parser import InputParser
 import json
 import ast
+import sys
 import logging
 
 logger = logging.getLogger(__name__)
@@ -577,9 +578,34 @@ class AlgoritthmThread(threading.Thread):
                 temp_input = True
                 self._model.save_to_file(input_file)
                 
+            startupinfo = None
             process_name = psutil.Process().exe()
             if process_name is None or len(process_name) == 0:
                 process_name = 'python'
+            else:
+                if sys.platform == 'win32' and process_name.endswith('pythonw.exe'):
+                    path = os.path.dirname(process_name)
+                    files = [f for f in os.listdir(path) if f != 'pythonw.exe' and f.startswith('python') and f.endswith('.exe')]
+                    # sort reverse to have hihre python versions first: python3.exe before python2.exe
+                    files = sorted(files,key=str.lower, reverse=True)
+                    new_process = None
+                    for file in files:
+                        p = os.path.join(path,file)
+                        if os.path.isfile(p):
+                            # python.exe takes precedence
+                            if file.lower() == 'python.exe':
+                                new_process = p
+                                break
+                            
+                            # use first found
+                            if new_process is None:
+                                new_process = p
+                        
+                    if new_process is not None:
+                        startupinfo = subprocess.STARTUPINFO()
+                        startupinfo.dwFlags = subprocess.STARTF_USESHOWWINDOW
+                        startupinfo.wShowWindow = subprocess.SW_HIDE
+                        process_name = new_process
                 
             if self._output is not None and logger.getEffectiveLevel() == logging.DEBUG:
                 self._output.write('Process: {}\n'.format(process_name))
@@ -589,7 +615,8 @@ class AlgoritthmThread(threading.Thread):
                                            input_file],
                                        stdout=subprocess.PIPE,
                                        stderr=subprocess.STDOUT,
-                                       universal_newlines=True)
+                                       universal_newlines=True,
+                                       startupinfo=startupinfo)
             if self._thread_queue is not None:
                 self._thread_queue.put(Controller._START)
             for line in iter(self._popen.stdout.readline,''):

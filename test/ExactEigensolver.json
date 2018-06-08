@@ -3,11 +3,6 @@
         "k": 1,
         "name": "ExactEigensolver"
     },
-    "backend": {
-        "name": "local_statevector_simulator",
-        "shots": 1,
-        "skip_translation": false
-    },
     "input": {
         "aux_ops": [],
         "name": "EnergyInput",

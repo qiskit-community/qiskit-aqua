@@ -22,7 +22,7 @@ import logging
 from math import fsum
 from timeit import default_timer
 from typing import Dict, List, Tuple, Any
-
+import copy
 import numpy as np
 
 from qiskit_acqua import QuantumAlgorithm, AlgorithmError
@@ -35,6 +35,7 @@ class CPLEX(QuantumAlgorithm):
     CPLEX_CONFIGURATION = {
         'name': 'CPLEX',
         'description': 'CPLEX backend for Ising Hamiltonian',
+        'classical': True,
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
             'id': 'CPLEX_schema',
@@ -62,7 +63,7 @@ class CPLEX(QuantumAlgorithm):
     }
 
     def __init__(self, configuration=None):
-        super().__init__(configuration or self.CPLEX_CONFIGURATION)
+        super().__init__(configuration or copy.deepcopy(CPLEX.CPLEX_CONFIGURATION))
         self._ins = IsingInstance()
         self._sol = None
         self._params = None
