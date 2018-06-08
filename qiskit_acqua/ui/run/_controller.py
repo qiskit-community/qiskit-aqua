@@ -613,6 +613,7 @@ class AlgoritthmThread(threading.Thread):
             self._popen = subprocess.Popen([process_name,
                                            algorithms_directory,
                                            input_file],
+                                       stdin=subprocess.DEVNULL,
                                        stdout=subprocess.PIPE,
                                        stderr=subprocess.STDOUT,
                                        universal_newlines=True,
