@@ -44,7 +44,7 @@ class TestQPE(QISKitAcquaChemistryTestCase):
         self.molecule = driver.run(section)
 
         ferOp = FermionicOperator(h1=self.molecule._one_body_integrals, h2=self.molecule._two_body_integrals)
-        self.qubitOp = ferOp.mapping(map_type='JORDAN_WIGNER', threshold=1e-10)
+        self.qubitOp = ferOp.mapping(map_type='PARITY', threshold=1e-10).two_qubit_reduced_operator(2)
 
         exact_eigensolver = get_algorithm_instance('ExactEigensolver')
         exact_eigensolver.init_args(self.qubitOp, k=1)
@@ -54,32 +54,40 @@ class TestQPE(QISKitAcquaChemistryTestCase):
 
     def test_qpe(self):
         num_particles = self.molecule._num_alpha + self.molecule._num_beta
-        two_qubit_reduction = False
+        two_qubit_reduction = True
         num_orbitals = self.qubitOp.num_qubits + (2 if two_qubit_reduction else 0)
-        qubit_mapping = 'jordan_wigner'
+        qubit_mapping = 'parity'
 
-        num_time_slices = 1
-        n_ancillae = 5
+        num_time_slices = 20
+        n_ancillae = 8
 
         qpe = get_algorithm_instance('QPE')
-        qpe.setup_quantum_backend(backend='local_qasm_simulator', shots=100)
+        qpe.setup_quantum_backend(backend='local_qasm_simulator', shots=1000, skip_translation=False)
 
         state_in = get_initial_state_instance('HartreeFock')
         state_in.init_args(self.qubitOp.num_qubits, num_orbitals, qubit_mapping, two_qubit_reduction, num_particles)
 
-        iqft = get_iqft_instance('APPROXIMATE')
-        iqft.init_args(n_ancillae, degree=n_ancillae-3)
+        iqft = get_iqft_instance('STANDARD')
+        iqft.init_args(n_ancillae)
 
-        qpe.init_args(self.qubitOp, state_in, iqft, num_time_slices, n_ancillae,
-                      paulis_grouping='default', expansion_mode='trotter', expansion_order=2)
+        qpe.init_args(
+            self.qubitOp, state_in, iqft, num_time_slices, n_ancillae,
+            paulis_grouping='random',
+            expansion_mode='suzuki',
+            expansion_order=2,
+            use_basis_gates=False
+        )
 
         result = qpe.run()
 
-        self.log.debug('measurement results:   {}'.format(result['measurements']))
-        self.log.debug('top result str label:  {}'.format(result['top_measurement_label']))
-        self.log.debug('top result in decimal: {}'.format(result['top_measurement_decimal']))
-        self.log.debug('final energy from QPE: {}'.format(result['energy']))
-        self.log.debug('reference energy:      {}'.format(self.reference_energy))
+        self.log.debug('measurement results:     {}'.format(result['measurements']))
+        self.log.debug('top result str label:    {}'.format(result['top_measurement_label']))
+        self.log.debug('top result in decimal:   {}'.format(result['top_measurement_decimal']))
+        self.log.debug('stretch:                 {}'.format(result['stretch']))
+        self.log.debug('translation:             {}'.format(result['translation']))
+        self.log.debug('final energy from QPE:   {}'.format(result['energy']))
+        self.log.debug('reference energy:        {}'.format(self.reference_energy))
+        self.log.debug('ref energy (transformed) {}'.format((self.reference_energy + result['translation']) * result['stretch']))
 
 
 if __name__ == '__main__':
