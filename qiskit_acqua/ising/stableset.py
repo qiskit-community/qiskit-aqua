@@ -128,7 +128,8 @@ def stableset_value(x, w):
     """Compute the value of a stable set, and its feasibility.
     
     Args:
-        x (numpy.ndarray): binary string as numpy array.
+        x (numpy.ndarray): binary string in original format -- not 
+            graph solution!.
         w (numpy.ndarray): adjacency matrix.
 
     Returns:
@@ -140,7 +141,7 @@ def stableset_value(x, w):
     num_nodes = len(w)
     for i in range(num_nodes):
         for j in range(i+1, num_nodes):
-            if w[i, j] != 0 and x[i] != 0 and x[j] != 0:
+            if w[i, j] != 0 and x[i] == 0 and x[j] == 0:
                 feasible = False
                 break
     return len(x) - np.sum(x), feasible
