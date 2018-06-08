@@ -121,6 +121,7 @@ class QPE(QuantumAlgorithm):
         self._expansion_order = None
         self._num_ancillae = 0
         self._use_basis_gates = False
+        self._ancilla_phase_coef = 1
         self._ret = {}
 
     def init_params(self, params, algo_input):
@@ -212,7 +213,8 @@ class QPE(QuantumAlgorithm):
                 slice_pauli_list, -2 * np.pi, self._num_time_slices, q, a, ctl_idx=i,
                 use_basis_gates=self._use_basis_gates
             )
-            qc.u1(np.pi * (2 ** i), a[i])
+            # global phase shift for the ancilla due to the identity pauli term
+            qc.u1(2 * np.pi * self._ancilla_phase_coef * (2 ** i), a[i])
 
         self._ret['circuit_components']['phase_kickback'] = qc
 
@@ -258,6 +260,15 @@ class QPE(QuantumAlgorithm):
         # stretch the operator
         for p in self._operator._paulis:
             p[0] = p[0] * self._ret['stretch']
+
+        # check for identify paulis to get its coef for applying global phase shift on ancillae later
+        num_identities = 0
+        for p in self._operator.paulis:
+            if np.all(p[1].v == 0) and np.all(p[1].w == 0):
+                num_identities += 1
+                if num_identities > 1:
+                    raise RuntimeError('Multiple identity pauli terms are present.')
+                self._ancilla_phase_coef = p[0].real if p[0].__class__ is complex else p[0]
 
         self._construct_qpe_evolution()
         logger.info('QPE circuit depth is roughly {}.'.format(
