@@ -41,7 +41,7 @@ def random_graph(n, edge_prob = 0.5, savefile=None):
         savefile (str or None): write graph to this file.
 
     Returns:
-        Adjacency matrix as a 2D numpy array.
+        numpy.ndarray: adjacency matrix (with weights).
     """
     w = np.zeros((n, n))
     m = 0
@@ -69,7 +69,9 @@ def get_stableset_qubitops(w):
         w (numpy.ndarray) : adjacency matrix.
 
     Returns:
-        Weighted Pauli list and a constant shift for the obj function.
+        operator.Operator, float: operator for the Hamiltonian and a
+        constant shift for the obj function.
+
     """
     num_nodes = len(w)
     pauli_list = []
@@ -99,7 +101,7 @@ def parse_gset_format(filename):
         filename (str): name of the file.
 
     Returns:
-        Adjacency matrix as a 2D numpy array.
+        numpy.ndarray: adjacency matrix as a 2D numpy array.
     """
     n = -1
     with open(filename) as infile:
@@ -130,7 +132,8 @@ def stableset_value(x, w):
         w (numpy.ndarray): adjacency matrix.
 
     Returns:
-        Size of the stable set, and Boolean indicating feasibility.
+        float, bool: size of the stable set, and Boolean indicating 
+            feasibility.
     """
     assert(len(x) == len(w))
     feasible = True
@@ -149,7 +152,7 @@ def get_graph_solution(x):
         x (numpy.ndarray) : binary string as numpy array.
 
     Returns:
-        Graph solution as binary numpy array.
+        numpy.ndarray: graph solution as binary numpy array.
     """
     return 1 - x
 
@@ -161,7 +164,7 @@ def sample_most_likely(n, state_vector):
         state_vector (numpy.ndarray): state vector.
 
     Returns:
-        Binary string as numpy.ndarray of ints.
+        numpy.ndarray: binary string as numpy.ndarray of ints.
     """
     k = np.argmax(state_vector)
     x = np.zeros(n)

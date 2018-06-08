@@ -44,7 +44,7 @@ def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None,
         seed (int or None): random seed - if None, will not initialize.
 
     Returns:
-        Adjacency matrix (with weights) as a numpy array.
+        numpy.ndarray: adjacency matrix (with weights).
 
     """
     assert(weight_range >= 0)
@@ -77,7 +77,9 @@ def get_maxcut_qubitops(weight_matrix):
         weight_matrix (numpy.ndarray) : adjacency matrix.
 
     Returns:
-        Weighted Pauli list and a constant shift for the obj function.
+        operator.Operator, float: operator for the Hamiltonian and a
+        constant shift for the obj function.
+
     """
     num_nodes = len(weight_matrix)
     pauli_list = []
@@ -101,7 +103,7 @@ def parse_gset_format(filename):
         filename (str): name of the file.
 
     Returns:
-        Adjacency matrix as a 2D numpy array.
+        numpy.ndarray: adjacency matrix as a 2D numpy array.
     """
     n = -1
     with open(filename) as infile:
@@ -132,7 +134,7 @@ def maxcut_value(x, w):
         w (numpy.ndarray): adjacency matrix.
 
     Returns:
-        Value of the cut.
+        float: value of the cut.
     """
     X = np.outer(x, (1-x))
     return np.sum(w * X)
@@ -144,7 +146,7 @@ def get_graph_solution(x):
         x (numpy.ndarray) : binary string as numpy array.
 
     Returns:
-        Graph solution as binary numpy array.
+        numpy.ndarray: graph solution as binary numpy array.
     """
     return 1 - x
 
@@ -156,7 +158,7 @@ def sample_most_likely(n, state_vector):
         state_vector (numpy.ndarray): state vector.
 
     Returns:
-        Binary string as numpy.ndarray of ints.
+        numpy.ndarray: binary string as numpy.ndarray of ints.
     """
     k = np.argmax(state_vector)
     x = np.zeros(n)
@@ -172,6 +174,6 @@ def get_gset_result(x):
         x (numpy.ndarray) : binary string as numpy array.
 
     Returns:
-        Graph solution as binary numpy array.
+        Dict[int, int]: graph solution in Gset format.
     """
     return {i + 1: 1 - x[i] for i in range(len(x))}

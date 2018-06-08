@@ -37,7 +37,7 @@ def random_number_list(n, weight_range=100, savefile=None):
         savefile (str or None): write numbers to this file.
 
     Returns:
-        The list of integer numbers, given as a numpy.array.
+        numpy.ndarray: the list of integer numbers.
     """
     number_list = np.random.randint(low=1, high=(weight_range+1), size=n)
     if savefile:
@@ -56,7 +56,9 @@ def get_partition_qubitops(values):
         values (numpy.ndarray): array of values.
 
     Returns:
-        Weighted Pauli list and a constant shift for the obj function.
+        operator.Operator, float: operator for the Hamiltonian and a
+        constant shift for the obj function.
+
     """
     n = len(values)
     # The Hamiltonian is:
@@ -78,7 +80,7 @@ def read_numbers_from_file(filename):
         filename (str): name of the file.
 
     Returns:
-        List of numbers as a numpy.ndarray.
+        numpy.ndarray: list of numbers as a numpy.ndarray.
     """
     numbers = []
     with open(filename) as infile:
@@ -95,7 +97,8 @@ def partition_value(x, number_list):
         number_list (numpy.ndarray): list of numbers in the instance.
 
     Returns:
-        Difference squared between the two sides of the number partition.
+        float: difference squared between the two sides of the number 
+            partition.
     """
     diff = np.sum(number_list[x == 0]) - np.sum(number_list[x == 1])
     return diff*diff
@@ -108,7 +111,7 @@ def sample_most_likely(n, state_vector):
         state_vector (numpy.ndarray): state vector.
 
     Returns:
-        Binary string as numpy.ndarray of ints.
+        numpy.ndarray: binary string as numpy.ndarray of ints.
     """
     k = np.argmax(state_vector)
     x = np.zeros(n)
