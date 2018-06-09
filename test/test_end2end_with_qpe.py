@@ -16,6 +16,7 @@
 # =============================================================================
 
 import unittest
+from parameterized import parameterized
 from collections import OrderedDict
 import numpy as np
 
@@ -28,12 +29,17 @@ from qiskit_acqua_chemistry import FermionicOperator
 class TestQPE(QISKitAcquaChemistryTestCase):
     """QPE tests."""
 
-    def setUp(self):
+    @parameterized.expand([
+        [0.5],
+        [0.735],
+        [1],
+    ])
+    def test_qpe(self, distance):
         self.algorithm = 'QPE'
-        self.log.debug('Testing QPE with H2')
+        self.log.debug('Testing QPE with H2 with interatomic distance {}.'.format(distance))
         cfg_mgr = ConfigurationManager()
         pyscf_cfg = OrderedDict([
-            ('atom', 'H .0 .0 .0; H .0 .0 0.735'),
+            ('atom', 'H .0 .0 .0; H .0 .0 {}'.format(distance)),
             ('unit', 'Angstrom'),
             ('charge', 0),
             ('spin', 0),
@@ -53,13 +59,13 @@ class TestQPE(QISKitAcquaChemistryTestCase):
         self.reference_energy = results['energy']
         self.log.debug('The exact ground state energy is: {}'.format(results['energy']))
 
-    def test_qpe(self):
+
         num_particles = self.molecule._num_alpha + self.molecule._num_beta
         two_qubit_reduction = True
         num_orbitals = self.qubitOp.num_qubits + (2 if two_qubit_reduction else 0)
         qubit_mapping = 'parity'
 
-        num_time_slices = 20
+        num_time_slices = 100
         n_ancillae = 8
 
         qpe = get_algorithm_instance('QPE')
