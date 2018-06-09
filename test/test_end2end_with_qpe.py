@@ -26,7 +26,7 @@ from qiskit_acqua_chemistry.drivers import ConfigurationManager
 from qiskit_acqua_chemistry import FermionicOperator
 
 
-class TestQPE(QISKitAcquaChemistryTestCase):
+class TestEnd2EndWithQPE(QISKitAcquaChemistryTestCase):
     """QPE tests."""
 
     @parameterized.expand([
@@ -36,7 +36,7 @@ class TestQPE(QISKitAcquaChemistryTestCase):
     ])
     def test_qpe(self, distance):
         self.algorithm = 'QPE'
-        self.log.debug('Testing QPE with H2 with interatomic distance {}.'.format(distance))
+        self.log.debug('Testing End-to-End with QPE on H2 with interatomic distance {}.'.format(distance))
         cfg_mgr = ConfigurationManager()
         pyscf_cfg = OrderedDict([
             ('atom', 'H .0 .0 .0; H .0 .0 {}'.format(distance)),
