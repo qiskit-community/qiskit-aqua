@@ -16,12 +16,13 @@ Table of Contents
 .. toctree::
    :maxdepth: 2
    
-   install
-   Getting started <quickstart>
-   QISKit ACQUA overview <qiskit_acqua>
-   Developer documentation <dev_introduction>
-   SDK reference <_autodoc/qiskit_acqua>
-   Release history <releases>
+   QISKit ACQUA Overview <qiskit-acqua>
+   Installation and Setup <install>
+   Algorithm Library <algorithms>
+   Getting Started <quickstart>
+   Developer Documentation <dev_introduction>
+   SDK Reference <_autodoc/qiskit_acqua>
+   Release History <releases>
 
 Python Modules
 ==============

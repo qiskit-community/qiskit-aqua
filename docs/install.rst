@@ -132,19 +132,4 @@ for the algorithm. There is also a ``run_algorithm_to_json`` that simply
 takes the input and saves it to JSON in a self-contained form, which  can
 later be used by the command line or GUI.
 
-Authors
--------
-
-QISKit ACQUA was inspired, authored and brought about by the collective
-work of a team of researchers.
-
-QISKit ACQUA continues now to grow with the help and work of `many
-people <CONTRIBUTORS.html>`__, who contribute to the project at different
-levels.
-
-License
--------
-
-This project uses the `Apache License Version 2.0 software
-license <https://www.apache.org/licenses/LICENSE-2.0>`__.
 
