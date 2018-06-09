@@ -17,6 +17,7 @@
 
 import unittest
 from collections import OrderedDict
+import numpy as np
 
 from qiskit_acqua import get_algorithm_instance, get_initial_state_instance, get_iqft_instance
 from test.common import QISKitAcquaChemistryTestCase
@@ -88,6 +89,8 @@ class TestQPE(QISKitAcquaChemistryTestCase):
         self.log.debug('final energy from QPE:   {}'.format(result['energy']))
         self.log.debug('reference energy:        {}'.format(self.reference_energy))
         self.log.debug('ref energy (transformed) {}'.format((self.reference_energy + result['translation']) * result['stretch']))
+
+        np.testing.assert_approx_equal(result['energy'], self.reference_energy, significant=2)
 
 
 if __name__ == '__main__':
