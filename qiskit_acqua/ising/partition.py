@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 def random_number_list(n, weight_range=100, savefile=None):
     """Generate a set of positive integers within the given range.
 
-    Args: 
+    Args:
         n (int): size of the set of numbers.
         weight_range (int): maximum absolute value of the numbers.
         savefile (str or None): write numbers to this file.
@@ -48,7 +48,7 @@ def random_number_list(n, weight_range=100, savefile=None):
 
 def get_partition_qubitops(values):
     """Construct the Hamiltonian for a given Partition instance.
-    
+
     Given a list of numbers for the Number Partitioning problem, we
     construct the Hamiltonian described as a list of Pauli gates.
 
@@ -91,13 +91,13 @@ def read_numbers_from_file(filename):
 
 def partition_value(x, number_list):
     """Compute the value of a partition.
-    
+
     Args:
         x (numpy.ndarray): binary string as numpy array.
         number_list (numpy.ndarray): list of numbers in the instance.
 
     Returns:
-        float: difference squared between the two sides of the number 
+        float: difference squared between the two sides of the number
             partition.
     """
     diff = np.sum(number_list[x == 0]) - np.sum(number_list[x == 1])
@@ -108,11 +108,21 @@ def sample_most_likely(n, state_vector):
 
     Args:
         n (int): number of  qubits.
-        state_vector (numpy.ndarray): state vector.
+        state_vector (numpy.ndarray or dict): state vector or counts.
 
     Returns:
         numpy.ndarray: binary string as numpy.ndarray of ints.
     """
+    if isinstance(state_vector, dict) or isinstance(state_vector, OrderedDict):
+        temp_vec = np.zeros(2**n)
+        total = 0
+        for i in range(2**n):
+            state = np.binary_repr(i, n)
+            count = state_vector.get(state, 0)
+            temp_vec[i] = count
+            total += count
+        state_vector = temp_vec / float(total)
+
     k = np.argmax(state_vector)
     x = np.zeros(n)
     for i in range(n):

@@ -157,7 +157,7 @@ def sample_most_likely(n, state_vector):
 
     Args:
         n (int): number of  qubits.
-        state_vector (numpy.ndarray): state vector.
+        state_vector (numpy.ndarray or dict): state vector or counts.
 
     Returns:
         numpy.ndarray: binary string as numpy.ndarray of ints.
