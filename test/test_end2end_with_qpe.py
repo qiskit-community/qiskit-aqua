@@ -65,7 +65,7 @@ class TestEnd2EndWithQPE(QISKitAcquaChemistryTestCase):
         num_orbitals = self.qubitOp.num_qubits + (2 if two_qubit_reduction else 0)
         qubit_mapping = 'parity'
 
-        num_time_slices = 100
+        num_time_slices = 20
         n_ancillae = 8
 
         qpe = get_algorithm_instance('QPE')
