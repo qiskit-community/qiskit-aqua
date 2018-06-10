@@ -85,7 +85,7 @@ class TestQPE(QISKitAcquaTestCase):
         n_ancillae = 8
 
         qpe = get_algorithm_instance('QPE')
-        qpe.setup_quantum_backend(backend='local_qasm_simulator', shots=1000, skip_translation=False)
+        qpe.setup_quantum_backend(backend='local_qasm_simulator', shots=100, skip_translation=False)
 
         state_in = get_initial_state_instance('CUSTOM')
         state_in.init_args(self.qubitOp.num_qubits, state_vector=self.ref_eigenvec)
@@ -104,16 +104,16 @@ class TestQPE(QISKitAcquaTestCase):
         # check that controlled-U's don't alter the quantum state
         qpe._setup_qpe()
         qc = QuantumCircuit(
-            qpe._ret['circuit_components']['registers']['a'],
-            qpe._ret['circuit_components']['registers']['q']
+            qpe._circuit_components['registers']['a'],
+            qpe._circuit_components['registers']['q']
         )
-        qc += qpe._ret['circuit_components']['state_init']
-        qc += qpe._ret['circuit_components']['ancilla_superposition']
-        qc += qpe._ret['circuit_components']['phase_kickback']
+        qc += qpe._circuit_components['state_init']
+        qc += qpe._circuit_components['ancilla_superposition']
+        qc += qpe._circuit_components['phase_kickback']
         # self.log.debug('Phase kickback circuit:\n\n{}'.format(qc.qasm()))
         vec_qpe = np.asarray(q_execute(qc, 'local_statevector_simulator').result().get_statevector(qc))
 
-        qc = qpe._ret['circuit_components']['state_init']
+        qc = qpe._circuit_components['state_init']
         # self.log.debug('Initial quantum state circuit:\n\n{}'.format(qc.qasm()))
         vec_init = np.asarray(q_execute(qc, 'local_statevector_simulator').result().get_statevector(qc))
         # self.log.debug('Full quantum state vector after phase kickback: {}'.format(vec_qpe))
