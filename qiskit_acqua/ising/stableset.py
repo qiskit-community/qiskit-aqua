@@ -126,14 +126,14 @@ def parse_gset_format(filename):
 
 def stableset_value(x, w):
     """Compute the value of a stable set, and its feasibility.
-    
+
     Args:
-        x (numpy.ndarray): binary string in original format -- not 
+        x (numpy.ndarray): binary string in original format -- not
             graph solution!.
         w (numpy.ndarray): adjacency matrix.
 
     Returns:
-        float, bool: size of the stable set, and Boolean indicating 
+        float, bool: size of the stable set, and Boolean indicating
             feasibility.
     """
     assert(len(x) == len(w))
@@ -162,11 +162,21 @@ def sample_most_likely(n, state_vector):
 
     Args:
         n (int): number of  qubits.
-        state_vector (numpy.ndarray): state vector.
+        state_vector (numpy.ndarray or dict): state vector or counts.
 
     Returns:
         numpy.ndarray: binary string as numpy.ndarray of ints.
     """
+    if isinstance(state_vector, dict) or isinstance(state_vector, OrderedDict):
+        temp_vec = np.zeros(2**n)
+        total = 0
+        for i in range(2**n):
+            state = np.binary_repr(i, n)
+            count = state_vector.get(state, 0)
+            temp_vec[i] = count
+            total += count
+        state_vector = temp_vec / float(total)
+
     k = np.argmax(state_vector)
     x = np.zeros(n)
     for i in range(n):

@@ -121,6 +121,8 @@ class QPE(QuantumAlgorithm):
         self._expansion_order = None
         self._num_ancillae = 0
         self._use_basis_gates = False
+        self._ancilla_phase_coef = 1
+        self._circuit = None
         self._ret = {}
 
     def init_params(self, params, algo_input):
@@ -181,15 +183,15 @@ class QPE(QuantumAlgorithm):
         a = QuantumRegister(self._num_ancillae, name='a')
         c = ClassicalRegister(self._num_ancillae, name='c')
         q = QuantumRegister(self._operator.num_qubits, name='q')
-        self._ret['circuit_components'] = {}
-        self._ret['circuit_components']['registers'] = {'a': a, 'q': q, 'c': c}
+        self._circuit_components = {}
+        self._circuit_components['registers'] = {'a': a, 'q': q, 'c': c}
 
-        self._ret['circuit_components']['state_init'] = self._state_in.construct_circuit('circuit', q)
+        self._circuit_components['state_init'] = self._state_in.construct_circuit('circuit', q)
 
         # # Put all ancillae in uniform superposition
         qc = QuantumCircuit(a)
         qc.h(a)
-        self._ret['circuit_components']['ancilla_superposition'] = qc
+        self._circuit_components['ancilla_superposition'] = qc
 
         # phase kickbacks via dynamics
         pauli_list = self._operator.reorder_paulis(grouping=self._paulis_grouping)
@@ -212,26 +214,27 @@ class QPE(QuantumAlgorithm):
                 slice_pauli_list, -2 * np.pi, self._num_time_slices, q, a, ctl_idx=i,
                 use_basis_gates=self._use_basis_gates
             )
-            qc.u1(np.pi * (2 ** i), a[i])
+            # global phase shift for the ancilla due to the identity pauli term
+            qc.u1(2 * np.pi * self._ancilla_phase_coef * (2 ** i), a[i])
 
-        self._ret['circuit_components']['phase_kickback'] = qc
+        self._circuit_components['phase_kickback'] = qc
 
         qc = QuantumCircuit(a)
         # inverse qft on ancillae
         # qc.swap(a[0], a[1])
         # QPE.qft(qc, a, self._num_ancillae)
         self._iqft.construct_circuit('circuit', a, qc)
-        self._ret['circuit_components']['iqft'] = qc
+        self._circuit_components['iqft'] = qc
 
         # measuring ancillae
         qc = QuantumCircuit(c, a)
         qc.measure(a, c)
-        self._ret['circuit_components']['measure'] = qc
+        self._circuit_components['measure'] = qc
 
-        self._ret['circuit'] = reduce(
+        self._circuit = reduce(
             QuantumCircuit.__add__,
             [
-                self._ret['circuit_components'][component]
+                self._circuit_components[component]
                 for component in ['state_init', 'ancilla_superposition', 'phase_kickback', 'iqft', 'measure']
             ]
         )
@@ -259,17 +262,26 @@ class QPE(QuantumAlgorithm):
         for p in self._operator._paulis:
             p[0] = p[0] * self._ret['stretch']
 
+        # check for identify paulis to get its coef for applying global phase shift on ancillae later
+        num_identities = 0
+        for p in self._operator.paulis:
+            if np.all(p[1].v == 0) and np.all(p[1].w == 0):
+                num_identities += 1
+                if num_identities > 1:
+                    raise RuntimeError('Multiple identity pauli terms are present.')
+                self._ancilla_phase_coef = p[0].real if isinstance(p[0], complex) else p[0]
+
         self._construct_qpe_evolution()
-        logger.info('QPE circuit depth is roughly {}.'.format(
-            len(self._ret['circuit'].qasm().split('\n'))
+        logger.info('QPE circuit qasm length is roughly {}.'.format(
+            len(self._circuit.qasm().split('\n'))
         ))
 
     def _compute_energy(self):
-        if 'circuit' not in self._ret:
+        if self._circuit is None:
             self._setup_qpe()
-        result = self.execute(self._ret['circuit'])
+        result = self.execute(self._circuit)
 
-        rd = result.get_counts(self._ret['circuit'])
+        rd = result.get_counts(self._circuit)
         rets = sorted([(rd[k], k) for k in rd])[::-1]
         ret = rets[0][-1][::-1]
         retval = sum([t[0] * t[1] for t in zip(

@@ -10,6 +10,13 @@ This library has algorithms that may be used to solve problems across different 
 _**Note**: This library has also some classical algorithms that may be useful in the near term while
 experimenting with, developing and testing quantum algorithms to compare and contrast results._
 
+Links to Sections:
+
+* [Algorithms](#algorithms)
+* [Additional Configuration](#additional-configuration)
+* [Developers](#developers)
+
+
 # Algorithms
 
 The following quantum algorithms are part of the library:
@@ -29,6 +36,8 @@ and these are classical:
 * [CPLEX](#cplex): Optimization solver for Ising modelled problems  
 * [SVM_RBF_Kernel](#svm_rbf_kernel): RBF SVM algorithm  
 
+The [Additional Configuration](#additional-configuration) section has overall problem and quantum backend
+configuration that will be needed when running an algorithm. 
 
 ## VQE
 
@@ -37,6 +46,8 @@ uses a variational approach to find the minimum eigenvalue of a Hamiltonian ener
 with a trial wavefunction, supplied by a [variational form](./utils/variational_forms/README.md), and
 an [optimizer](./utils/optimizers/README.md). An [initial state](./utils/initial_states/README.md) may be supplied too.    
 
+
+VQE supports the problems: `energy` and `ising`
 
 VQE can be configured with the following parameters:
 
@@ -62,6 +73,8 @@ VQkE, the Variational Quantum k-Eigensolver algorithm, is a variant of [VQE](#vq
 minimum eignevalue, can also find the next k-1 lowest eigenvalues. Like VQE, it is configured with a trial wavefunction,
 supplied by a [variational form](./utils/variational_forms/README.md), and an [optimizer](./utils/optimizers/README.md).
 An [initial state](./utils/initial_states/README.md) may be supplied too.    
+
+VQkE supports the problems: `energy`, `excited_states` and `ising`
 
 VQkE can be configured with the following parameters:
 
@@ -90,6 +103,7 @@ VQkE can be configured with the following parameters:
 
 
 ## Dynamics
+
 Dynamics provides the lower-level building blocks for simulating universal quantum systems.
 For any given quantum system that can be decomposed into local interactions
 (e.g., a global hamiltonian *H* as the weighted sum of several pauli spin operators),
@@ -97,6 +111,8 @@ the local interactions can then be used to approximate the global quantum system
 for example, Lloyd's method, or Trotter-Suzuki decomposition.
 
 Note: this algorithm **_only_** supports the `local_state_vector` simulator.
+
+Dynamics supports the problems: `dynamics`
 
 Dynamics can be configured with the following parameter settings:
 
@@ -143,6 +159,8 @@ and an [inverse quantum fourier transform](./utils/iqfts/README.md)
 
 Note: this algorithm **_does not_** support the `local_state_vector` simulator.
 
+QPE supports the problems: `energy`
+
 QPE is also configured with the following parameter settings:
 
 * `num_time_slices`=*integer, default 1*
@@ -175,6 +193,7 @@ transform isn't used for IQPE.
 
 For more detail, please see [https://arxiv.org/abs/quant-ph/0610214](https://arxiv.org/abs/quant-ph/0610214).
 
+IQPE supports the problems: `energy`
 
 
 ## Grover
@@ -186,6 +205,7 @@ oracle implementation is provided, which takes as input a SAT problem in
 [DIMACS CNF format](http://www.satcompetition.org/2009/format-benchmarks2009.html) and constructs the corresponding 
 quantum circuit.
 
+Grover supports the problems: `search`
 
 ## SVM_QKernel
 
@@ -213,6 +233,8 @@ unlabelled data is classified according to the solution found in the training ph
 
 For more detail, please see [https://arxiv.org/abs/1804.11326](https://arxiv.org/abs/1804.11326).
 
+SVM_QKernel supports the problems: `svm_classification`
+
 SVM_QKernel can be configured with the following parameters:
 
 * `num_qubits`=*integer 2 to n, defaults to 2*
@@ -231,6 +253,8 @@ computing the kernel is not efficient classically.  SVM_Variational solves such 
 variational method that optimizes a parameterized quantum circuit to provide a solution that cleanly separates the data.
 
 For more detail, please see [https://arxiv.org/abs/1804.11326](https://arxiv.org/abs/1804.11326).
+
+SVM_Variational supports the problems: `svm_classification`
 
 SVM_Variational can be configured with the following parameters:
 
@@ -252,6 +276,8 @@ SVM_Variational can be configured with the following parameters:
 While this algorithm does not use a quantum computer, and relies on a purely classical approach to find eigenvalues,
 it may be useful in the near term while experimenting with, developing and testing quantum algorithms.
 
+ExactEigensolver supports the problems: `'energy`, `excited_states` and `ising`
+
 ExactEigensolver can be configured with the following parameter:
 
 * `k`=*integer 1 to n, default 1*
@@ -268,6 +294,8 @@ which should be installed, and its
 [Python API](https://www.ibm.com/support/knowledgecenter/SSSA5P_12.8.0/ilog.odms.cplex.help/CPLEX/GettingStarted/topics/set_up/Python_setup.html)
 setup, for this algorithm to be operational. This algorithm currently supports computing the energy of an Ising model
 Hamiltonian. 
+
+CPLEX supports the problems: `ising`
 
 CPLEX can be configured with the following parameter:
 
@@ -288,6 +316,8 @@ CPLEX can be configured with the following parameter:
 
 This is uses classical approach to solving feature map classification problem. It may be useful in the near term while
 experimenting with, developing and testing quantum algorithms to compare and contrast results.
+
+SVM_RBF_Kernel supports the problems: `svm_classification`
 
 SVM_RBF_Kernel can be configured with the following parameters:
 

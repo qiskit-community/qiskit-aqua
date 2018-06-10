@@ -22,6 +22,8 @@
 # Note that the weights are symmetric, i.e., w[j, i] = x always holds.
 
 import logging
+from collections import OrderedDict
+
 import numpy as np
 import numpy.random as rand
 
@@ -128,7 +130,7 @@ def parse_gset_format(filename):
 
 def maxcut_value(x, w):
     """Compute the value of a cut.
-    
+
     Args:
         x (numpy.ndarray): binary string as numpy array.
         w (numpy.ndarray): adjacency matrix.
@@ -155,11 +157,21 @@ def sample_most_likely(n, state_vector):
 
     Args:
         n (int): number of  qubits.
-        state_vector (numpy.ndarray): state vector.
+        state_vector (numpy.ndarray or dict): state vector or counts.
 
     Returns:
         numpy.ndarray: binary string as numpy.ndarray of ints.
     """
+    if isinstance(state_vector, dict) or isinstance(state_vector, OrderedDict):
+        temp_vec = np.zeros(2**n)
+        total = 0
+        for i in range(2**n):
+            state = np.binary_repr(i, n)
+            count = state_vector.get(state, 0)
+            temp_vec[i] = count
+            total += count
+        state_vector = temp_vec / float(total)
+
     k = np.argmax(state_vector)
     x = np.zeros(n)
     for i in range(n):
