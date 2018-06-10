@@ -23,7 +23,6 @@ import logging
 
 import numpy as np
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
-from qiskit.qasm import pi
 from qiskit.tools.qi.pauli import Pauli
 
 from qiskit_acqua import Operator, QuantumAlgorithm, AlgorithmError
@@ -194,7 +193,8 @@ class IQPE(QuantumAlgorithm):
         omega_coef = 0
         # k runs from the number of iterations back to 1
         for k in range(self._num_iterations, 0, -1):
-            qc = self._construct_kth_evolution(slice_pauli_list, k, -2 * pi * omega_coef)
+            omega_coef /= 2
+            qc = self._construct_kth_evolution(slice_pauli_list, k, -2 * np.pi * omega_coef)
             measurements = self.execute(qc).get_counts(qc)
 
             if '0' not in measurements:
@@ -208,9 +208,9 @@ class IQPE(QuantumAlgorithm):
                 else:
                     x = 1 if measurements['1'] > measurements['0'] else 0
             self._ret['top_measurement_label'] = '{}{}'.format(x, self._ret['top_measurement_label'])
-            omega_coef = omega_coef / 2 + x / 4
-            # print('k:{} measurements:{} x:{} omega:{}'.format(k, measurements, x, omega_coef))
-        return 2 * omega_coef
+            omega_coef = omega_coef + x / 2
+            logger.info('Reverse iteration {} of {} with measured bit {}'.format(k, self._num_iterations, x))
+        return omega_coef
 
     def _compute_energy(self):
         self._operator._check_representation('paulis')
