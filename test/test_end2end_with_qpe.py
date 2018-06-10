@@ -19,7 +19,7 @@ import unittest
 from parameterized import parameterized
 from collections import OrderedDict
 import numpy as np
-
+from qiskit_acqua.utils import decimal_to_binary
 from qiskit_acqua import get_algorithm_instance, get_initial_state_instance, get_iqft_instance
 from test.common import QISKitAcquaChemistryTestCase
 from qiskit_acqua_chemistry.drivers import ConfigurationManager
@@ -87,14 +87,21 @@ class TestEnd2EndWithQPE(QISKitAcquaChemistryTestCase):
 
         result = qpe.run()
 
-        self.log.debug('measurement results:     {}'.format(result['measurements']))
-        self.log.debug('top result str label:    {}'.format(result['top_measurement_label']))
-        self.log.debug('top result in decimal:   {}'.format(result['top_measurement_decimal']))
-        self.log.debug('stretch:                 {}'.format(result['stretch']))
-        self.log.debug('translation:             {}'.format(result['translation']))
-        self.log.debug('final energy from QPE:   {}'.format(result['energy']))
-        self.log.debug('reference energy:        {}'.format(self.reference_energy))
-        self.log.debug('ref energy (transformed) {}'.format((self.reference_energy + result['translation']) * result['stretch']))
+        self.log.debug('measurement results:      {}'.format(result['measurements']))
+        self.log.debug('top result str label:     {}'.format(result['top_measurement_label']))
+        self.log.debug('top result in decimal:    {}'.format(result['top_measurement_decimal']))
+        self.log.debug('stretch:                  {}'.format(result['stretch']))
+        self.log.debug('translation:              {}'.format(result['translation']))
+        self.log.debug('final energy from QPE:    {}'.format(result['energy']))
+        self.log.debug('reference energy:         {}'.format(self.reference_energy))
+        self.log.debug('ref energy (transformed): {}'.format(
+            (self.reference_energy + result['translation']) * result['stretch'])
+        )
+        self.log.debug('ref binary str label:     {}'.format(decimal_to_binary(
+            (self.reference_energy + result['translation']) * result['stretch'],
+            max_num_digits=n_ancillae + 3,
+            fractional_part_only=True
+        )))
 
         np.testing.assert_approx_equal(result['energy'], self.reference_energy, significant=2)
 
