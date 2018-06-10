@@ -19,11 +19,11 @@ import unittest
 from parameterized import parameterized
 from qiskit_acqua import get_algorithm_instance, get_initial_state_instance, get_iqft_instance, Operator
 from qiskit_acqua.utils.subsystem import get_subsystem_fidelity
+from qiskit_acqua.utils import decimal_to_binary
 import numpy as np
 from test.common import QISKitAcquaTestCase
 from qiskit.wrapper import execute as q_execute
 from qiskit import QuantumCircuit, QuantumRegister
-from qiskit.tools.qi.qi import qft
 
 
 X = np.array([[0, 1], [1, 0]])
@@ -138,7 +138,14 @@ class TestQPE(QISKitAcquaTestCase):
         self.log.debug('translation:                  {}'.format(result['translation']))
         self.log.debug('final eigenvalue from QPE:    {}'.format(result['energy']))
         self.log.debug('reference eigenvalue:         {}'.format(self.ref_eigenval))
-        self.log.debug('ref eigenvalue (transformed): {}'.format((self.ref_eigenval + result['translation']) * result['stretch']))
+        self.log.debug('ref eigenvalue (transformed): {}'.format(
+            (self.ref_eigenval + result['translation']) * result['stretch'])
+        )
+        self.log.debug('reference binary str label:   {}'.format(decimal_to_binary(
+            (self.ref_eigenval + result['translation']) * result['stretch'],
+            max_num_digits=n_ancillae + 3,
+            fractional_part_only=True
+        )))
 
         np.testing.assert_approx_equal(self.ref_eigenval, result['energy'], significant=2)
 
