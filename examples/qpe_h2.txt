@@ -1,5 +1,5 @@
 &name
-  H2 molecule experiment
+  H2 molecule experiment with QPE
 &end
 
 &problem
@@ -8,42 +8,31 @@
 
 &driver
    name=PYQUANTE
-   hdf5_output=None
 &end
 
 &pyquante
    atoms=H .0 .0 .0; H .0 .0 0.735
-   units=Angstrom
-   charge=0
-   multiplicity=1
    basis=sto3g
 &end
 
 &initial_state
    name=HartreeFock
-   qubit_mapping=jordan_wigner
-   num_particles=2
-   num_orbitals=4
 &end
 
 &operator
    name=hamiltonian
-   transformation=full
-   qubit_mapping=jordan_wigner
-   freeze_core=False
+   qubit_mapping=parity
 &end
 
 &algorithm
    name=QPE
-   num_time_slices=1
-   paulis_grouping=default
-   expansion_mode=trotter
+   num_time_slices=100
+   expansion_mode=suzuki
    expansion_order=2
-   num_ancillae=5
+   num_ancillae=8
 &end
 
 &backend
    name=local_qasm_simulator
    shots=100
-   skip_translation=False
 &end
