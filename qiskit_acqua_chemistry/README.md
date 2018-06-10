@@ -277,8 +277,8 @@ result = solver.run(acqua_chemistry_dict)
 print('Ground state energy {}'.format(result['energy']))
 ```
 
-Note: the [GUI](#gui) tool can export a dictionary from an [input file](#input-file). You can load an existing input
-file or create a new one and then simply export it as a dictionary for use in a program.
+Note: the [GUI](../README.md#gui) tool can export a dictionary from an [input file](#input-file). You can load an
+existing input file or create a new one and then simply export it as a dictionary for use in a program.
 
 ### Result dictionary
 

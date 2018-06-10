@@ -64,6 +64,12 @@ class GaussianDriver(BaseDriver):
 
     def run(self, section):
         cfg = section['data']
+        if cfg is None or not isinstance(cfg,str):
+            raise ACQUAChemistryError("Gaussian user supplied configuration invalid: '{}'".format(cfg))
+            
+        while not cfg.endswith('\n\n'):
+            cfg += '\n'
+            
         logger.debug("User supplied configuration raw: '{}'".format(cfg.replace('\r', '\\r').replace('\n', '\\n')))
         logger.debug('User supplied configuration\n{}'.format(cfg))
 
