@@ -25,7 +25,7 @@ from qiskit_acqua.utils import convert_json_to_dict
 
 
 def main():
-    parser = argparse.ArgumentParser(description='QISKit Acqua Program.')
+    parser = argparse.ArgumentParser(description='QISKit ACQUA Command Line Tool')
     parser.add_argument('input', 
                         metavar='input', 
                         help='Algorithm JSON input file')
