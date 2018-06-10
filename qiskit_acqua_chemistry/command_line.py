@@ -23,10 +23,10 @@ from qiskit_acqua_chemistry._logging import build_logging_config,set_logger_conf
 from qiskit_acqua_chemistry.preferences import Preferences
 
 def main():
-    parser = argparse.ArgumentParser(description='Quantum Chemistry Program.')
+    parser = argparse.ArgumentParser(description='QISKit ACQUA Chemistry Command Line Tool')
     parser.add_argument('input', 
                         metavar='input', 
-                        help='Chemistry Driver input or Algorithm JSON input file')
+                        help='Chemistry input file or saved JSON input file')
     group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument('-o', 
                         metavar='output', 
