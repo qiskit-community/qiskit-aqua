@@ -48,7 +48,7 @@ We encourage you to install QISKit ACQUA via the
 [pip](https://pip.pypa.io/en/stable/) tool (a Python package manager):
 
 ``` {.sourceCode .sh}
-pip install qiskit_acqua
+pip install qiskit-acqua
 ```
 
 pip will handle all dependencies automatically and you will always
