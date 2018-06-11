@@ -42,7 +42,7 @@ Methods
 OpMat (name,array,nelem=1,type=None,asym=False,dimens=None):
   initialization, copies arguments to the corresponding properties.
   type defaults based on the data type in the array, which must be
-  np.int32, np.float64, or np.complex128.  asym is False for
+  np.int32, np.int64, np.float64, or np.complex128.  asym is False for
   symmetric/Hermetian and True for antisymmetric/anti-Hermetian
   and only matters if dimens marks some some indices as lower
   triangular/tetrahedral/etc.  dimens defaults to one dimension
@@ -123,10 +123,14 @@ def sqout (label,m,n,x,key,im,**kwargs):
 
 """
 
+__version__ = 2.0
 import sys
 import io
 import re
 import numpy as np
+import os
+INTSIZE_NAME = "GAUOPEN_INTSIZE"
+doi8 = False
 import qcmatrixio as qcmio
 
 INPKW = "input"
@@ -299,7 +303,7 @@ def ltout (label,n,x,key,im,doinp=False,**kwargs):
   if doinpprt (label,x,doinp=False,**kwargs): return
   if key > 0: thresh = 0.0e0
   else:  thresh = 10.0e0**(key-6)
-  ntt = int((n*(n+1))/2)
+  ntt = (n*(n+1))//2
   if im > 0:
     print ("%s, matrix %6d:" % (label,im),**kwargs)
     imoff = (im-1)*ntt
@@ -316,7 +320,7 @@ def ltout (label,n,x,key,im,doinp=False,**kwargs):
     print (**kwargs)
     for irow in range (ist,n):
       ir = min(irow-ist+1,nc)
-      l = int((irow*(irow+1))/2) + ist + imoff
+      l = (irow*(irow+1))//2 + ist + imoff
       print ("%4d" % (irow+1),end="",**kwargs)
       for i in range(ir):
         s = x[l]
@@ -336,9 +340,15 @@ def sqout (label,m,n,x,key,im,doinp=False,**kwargs):
   if (type(x[0]) == np.complex128):
     nc = 4
     fmthead = "%23i       "
+    fmtval = "%14.6e"
+  elif (type(x[0]) == np.float64):
+    nc = 5
+    fmthead = "%14i"
+    fmtval = "%14.6e"
   else:
     nc = 5
     fmthead = "%14i"
+    fmtval = "%14d"
   for jl in range(0,n,nc):
     ju = min(jl+nc,n)
     num = ju - jl
@@ -348,7 +358,7 @@ def sqout (label,m,n,x,key,im,doinp=False,**kwargs):
       imx = i + imoff
       print ("%7d " % (i+1),end="",**kwargs)
       for j in range(jl,ju):
-        s = formatx ("%14s","","%14.6e",thresh,x[imx+j*m])
+        s = formatx ("%14s","",fmtval,thresh,x[imx+j*m])
         print (s,end="",**kwargs)
       print (**kwargs)
 
@@ -363,6 +373,7 @@ class OpMat (object):
     else: raise TypeError
     if type is None:
       if self.array.dtype == np.int32: self.type = "i"
+      elif self.array.dtype == np.int64: self.type = "i"
       elif self.array.dtype == np.float64: self.type = "d"
       elif self.array.dtype == np.complex128: self.type = "c"
       else: raise TypeError
@@ -392,16 +403,12 @@ class OpMat (object):
       ni = self.nelem
       nr = 0
       nri = 1
-    ntot = self.nelem * self.lenarray
+    ntot = self.lenarray
     n1 = self.dimens[0]
-    if len(self.dimens) >= 2: n2 = self.dimens[1]
-    else:  n2 = 1
-    if len(self.dimens) >= 3: n3 = self.dimens[2]
-    else:  n3 = 1
-    if len(self.dimens) >= 4: n4 = self.dimens[3]
-    else:  n4 = 1
-    if len(self.dimens) >= 5: n5 = self.dimens[3]
-    else:  n5 = 1
+    n2 = self.dimens[1] if len(self.dimens) >= 2 else 1
+    n3 = self.dimens[2] if len(self.dimens) >= 3 else 1  
+    n4 = self.dimens[3] if len(self.dimens) >= 4 else 1  
+    n5 = self.dimens[3] if len(self.dimens) >= 5 else 1  
     return (self.name,ni,nr,nri,ntot,n1,n2,n3,n4,n5,self.asym)
 
   def print_mat (self,wid=1,doinp=False,**kwargs):
@@ -426,7 +433,7 @@ class OpMat (object):
       elif self.dimens[0] > 0 and self.dimens[1] > 0 and allpos:
         for im in range(self.dimens[2]): sqout(name,self.dimens[0],self.dimens[1],self.array,0,im+1,**kwargs)
       elif (len(self.dimens) >= 4) and (self.dimens[0] == -self.dimens[1]) and (self.dimens[2] == -self.dimens[3]):
-        nmat = int((self.dimens[3]*(self.dimens[3]+1))/2)
+        nmat = (self.dimens[3]*(self.dimens[3]+1))//2
         if len(self.dimens) >= 5: nmat = self.dimens[4]*nmat
         for im in range(nmat): ltout(name,self.dimens[1],self.array,0,im+1,**kwargs)
       else: print1d (False,self.type,1," ",self.array,**kwargs)
@@ -450,7 +457,7 @@ class OpMat (object):
     val = self.array[indx]
     if sign < 0:
       if self.type == "c": val = val.conjugate()
-      else: val = -val
+      if self.asym: val = -val
     return val
 
   def get_elemc (self,*args):
@@ -458,21 +465,25 @@ class OpMat (object):
     val = self.array[indx]
     if sign < 0:
       if self.type == "c": val = val.conjugate()
-      else: val = -val
+      if self.asym: val = -val
     return val
   
   def set_elemf (self,value,*args):
     indx,sign = _makeindx(self.dimens,self.asym,args)
-    if sign >0: self.array[indx] = value
-    elif self.type == "c": self.array[indx] = value.conjg
-    else: self.array[indx] = -value
+    val = value
+    if sign < 0:
+      if self.type == "c": val = val.conjugate()
+      if self.asym: val = -val
+    self.array[indx] = val
     return self.array[indx]
 
   def set_elemc (self,value,*args):
     indx,sign = _makeindxc(self.dimens,self.asym,args)
-    if sign >0: self.array[indx] = value
-    elif self.type == "c": self.array[indx] = value.conjg
-    else: self.array[indx] = -value
+    val = value
+    if sign < 0:
+      if self.type == "c": val = val.conjugate()
+      if self.asym: val = -val
+    self.array[indx] = val
     return self.array[indx]
   
   def expand (self):
@@ -480,7 +491,7 @@ class OpMat (object):
     if qcmio.aoints(self.name):
       if self.dimens[0] < 0:
         n = self.dimens[3]
-        lr = int(self.array.size/self.nelem)
+        lr = self.array.size//self.nelem
         if self.nelem == 1: narr = qcmio.expao1(n,self.array)
         else: narr = qcmio.expaon(n,self.array)
       else: narr = self.array
@@ -494,7 +505,7 @@ class OpMat (object):
   def wr_lbuf(self,iu,lenbuf):
     label,ni,nr,nri,ntot,n1,n2,n3,n4,n5,asym = self.labpars
     lenbx = lenbuf - (lenbuf % (nri * self.nelem))
-    lenbx = int(lenbx/nri)
+    lenbx = lenbx//nri
     qcmio.wr_labl(iu,label,ni,nr,ntot,lenbx,n1,n2,n3,n4,n5,asym)
     if self.type == "i": qcmio.wr_ibuf(iu,lenbx,self.array)
     elif self.type == "c": qcmio.wr_cbuf(iu,lenbx,self.array)
@@ -502,7 +513,7 @@ class OpMat (object):
 
   def wr_lrind (iu,lenbuf):
     ntot = self.lenarr
-    lenbx = lenbuf/self.nelem
+    lenbx = lenbuf//self.nelem
     y = self.array.reshape((self.nelem,ntot),order='F')
     nnz = qcmio.numnzr(y)
     wr_labl(iu,self.name,1,nr,nnz,lenbx,ntot,1,1,1,1,0)
@@ -514,7 +525,7 @@ class OpMat (object):
     if ((ntot*self.nelem) != self.array.size) or (self.nelem > 3):
       print ("2e write error NTot=",ntot,"nelem=",self.nelem,"size",self.array.size)
       raise TypeError
-    lenbx = lenbuf/(2+self.nelem)
+    lenbx = lenbuf//(2+self.nelem)
     nnz = qcmio.numnza(self.array)
     qcmio.wr_labl(iu,label,4,nr,nnz,lenbx,n1,n2,n3,n4,n5,asym)
     qcmio.wr_2e(iu,nnz,self.dimens[3],lenbx,self.array)

@@ -49,8 +49,10 @@ C     indices are assumed to be valid.  The C versions take c-style
 C     indices (0-based and rightmost dimension and index fastest
 C     running) while the others are Fortran-style (1-based and
 C     leftmost dimension and index fastest running).  Sign is +/-1
-C     to indicate whether sign should be flipped or a complex congugate
-C     taken.  Note the all functions return a 0-based index.
+C     to indicate whether the upper or lower triangle was selected
+C     (i.e., whether to apply a sign flip for anti-symmetric/Hermetian
+C     matrices and/or take a complex conjugate.
+C     Note the all functions return a 0-based index.
 C
 C     Call Rd_Head(IU,NLab,NAtoms,NBasis,IAn,IAtTyp,AtmChg,C,
 C    $  IBfAtm,IBfTyp,AtmWgt,NFC,NFV,ITran,IDum9,NShlAO,NPrmAO,NShlDB,
@@ -143,11 +145,7 @@ C     Open a Gaussian Matrix-element file and read header information.
 C     IU receives the Fortran unit number or -1 if the open failed.
 C
       Integer LStr, IUUse, Len12D, Len4D, IUSt, IUEnd
-#ifdef USE_I8
-      Parameter (Len12D=8,Len4D=8)
-#else
       Parameter (Len12D=4,Len4D=4)
-#endif
       Parameter (LStr=64,IUSt=57,IUEnd=99)
 C     The latest f2py is now "improved" and is now too stupid to handle
 C     character string lengths given by parameters.
@@ -212,11 +210,7 @@ C     Open a Gaussian Matrix-element file and write header information.
 C     IU receives the Fortran unit number or -1 if the open failed.
 C
       Integer LStr,IUUse,IVers,Len12L,Len4L,NLab,IUSt,IUEnd
-#ifdef USE_I8
-      Parameter (Len12L=8,Len4L=8)
-#else
       Parameter (Len12L=4,Len4L=4)
-#endif
       Parameter (LStr=64,IUSt=57,IUEnd=99,IVers=2,NLab=11)
 C     The latest f2py is now "improved" and is now too stupid to handle
 C     character string lengths given by parameters.
@@ -273,7 +267,7 @@ C
 *Deck LenArr
       Integer Function LenArr(N1,N2,N3,N4,N5)
       Implicit None
-      Integer N1,N2,N3,N4,N5,N1X,N2X,N3X,N4X,N5X,IAbs,Lind5,Sign
+      Integer N1,N2,N3,N4,N5,N1X,N2X,N3X,N4X,N5X,Abs,Lind5,Sign
 C
       N1X = N1
       If(N1X.eq.0) N1X = 1
@@ -285,8 +279,8 @@ C
       If(N4X.eq.0) N4X = 1
       N5X = N5
       If(N5X.eq.0) N5X = 1
-      LenArr = Lind5(.False.,N1X,N2X,N3X,N4X,N5X,.False.,IAbs(N1X),
-     $  IAbs(N2X),IAbs(N3X),IAbs(N4X),IAbs(N5X),Sign) + 1
+      LenArr = Lind5(.False.,N1X,N2X,N3X,N4X,N5X,.False.,Abs(N1X),
+     $  Abs(N2X),Abs(N3X),Abs(N4X),Abs(N5X),Sign) + 1
       Return
       End
 *Deck LInd2C
@@ -316,7 +310,7 @@ CF2PY Intent (Out) Sign
 C
       Sign = 1
       If(Check.and.(N2.le.0.or.N1.eq.0.or.(N1.lt.0.and.N1.ne.(-N2)).or.
-     $  I.lt.1.or.I.gt.IAbs(N1).or.J.lt.1.or.J.gt.N2)) then
+     $  I.lt.1.or.I.gt.Abs(N1).or.J.lt.1.or.J.gt.N2)) then
         Lind2 = -1
         Return
         endIf
@@ -325,7 +319,7 @@ C
           Lind2 = (I*(I-1))/2 + J - 1
         else
           Lind2 = (J*(J-1))/2 + I - 1
-          If(ASym) Sign = -1
+          Sign = -1
           endIf
       else
         Lind2 = N1*(J-1) + I - 1
@@ -359,9 +353,9 @@ CF2PY Intent (Out) Sign
 C
       Sign = 1
       If(Check.and.(N3.le.0.or.(N1*N2).eq.0.or.
-     $  (N1.lt.0.and.N1.ne.(-IAbs(N2))).or.
-     $  (N2.lt.0.and.N2.ne.(-N3)).or.I.lt.1.or.I.gt.IAbs(N1).or.
-     $  J.lt.1.or.J.gt.IAbs(N2).or.K.lt.1.or.K.gt.N3)) then
+     $  (N1.lt.0.and.N1.ne.(-Abs(N2))).or.
+     $  (N2.lt.0.and.N2.ne.(-N3)).or.I.lt.1.or.I.gt.Abs(N1).or.
+     $  J.lt.1.or.J.gt.Abs(N2).or.K.lt.1.or.K.gt.N3)) then
         Lind3 = -1
         Return
         endIf
@@ -380,7 +374,7 @@ C
           IJ = (I*I1)/2 + J1
         else
           IJ = (J*J1)/2 + I1
-          If(ASym) Sign = -1
+          Sign = -1
           endIf
         Lind3 = N12*K1 + IJ
       else
@@ -418,11 +412,11 @@ C
 CF2PY Intent (Out) Sign
 C
       If(Check.and.(N4.le.0.or.(N1*N2*N3).eq.0.or.
-     $  (N1.lt.0.and.N1.ne.(-IAbs(N2))).or.
-     $  (N2.lt.0.and.N2.ne.(-IAbs(N3))).or.
+     $  (N1.lt.0.and.N1.ne.(-Abs(N2))).or.
+     $  (N2.lt.0.and.N2.ne.(-Abs(N3))).or.
      $  (N3.lt.0.and.N3.ne.(-N4)).or.
-     $  I.lt.1.or.I.gt.IAbs(N1).or.J.lt.1.or.J.gt.IAbs(N2).or.
-     $  K.lt.1.or.K.gt.IAbs(N3).or.L.lt.1.or.L.gt.N4)) then
+     $  I.lt.1.or.I.gt.Abs(N1).or.J.lt.1.or.J.gt.Abs(N2).or.
+     $  K.lt.1.or.K.gt.Abs(N3).or.L.lt.1.or.L.gt.N4)) then
         Lind4 = -1
         Sign = 1
         Return
@@ -486,7 +480,8 @@ C     I<=J<=K<=L
       Return
       End
 *Deck Lind5C
-      Integer Function Lind5C(Check,N1,N2,N3,N4,N5,ASym,I,J,K,L,M,Sign)
+      Integer Function Lind5C(Check,N1,N2,N3,N4,N5,ASym,I,J,K,L,M,
+     $  Sign)
       Implicit None
 C
 C     Linear or square indexing, I,J,K,L,M are 0-based, c order
@@ -512,19 +507,19 @@ C
 CF2PY Intent (Out) Sign
 C
       If(Check.and.(N5.le.0.or.N4.le.0.or.(N1*N2*N3).eq.0.or.
-     $  (N1.lt.0.and.N1.ne.(-IAbs(N2))).or.
-     $  (N2.lt.0.and.N2.ne.(-IAbs(N3))).or.
+     $  (N1.lt.0.and.N1.ne.(-Abs(N2))).or.
+     $  (N2.lt.0.and.N2.ne.(-Abs(N3))).or.
      $  (N3.lt.0.and.N2.ne.(-N4)).or.
-     $  I.lt.1.or.I.gt.IAbs(N1).or.J.lt.1.or.J.gt.IAbs(N2).or.
-     $  K.lt.1.or.K.gt.IAbs(N3).or.L.lt.1.or.L.gt.N4)) then
+     $  I.lt.1.or.I.gt.Abs(N1).or.J.lt.1.or.J.gt.Abs(N2).or.
+     $  K.lt.1.or.K.gt.Abs(N3).or.L.lt.1.or.L.gt.N4)) then
         Lind5 = -1
         Sign = 1
         Return
         endIf
       M1 = M - 1
-      N1A = IAbs(N1)
-      N2A = IAbs(N2)
-      N3A = IAbs(N3)
+      N1A = Abs(N1)
+      N2A = Abs(N2)
+      N3A = Abs(N3)
       N1234 = Lind4(.False.,N1,N2,N3,N4,ASym,N1A,N2A,N3A,N4,Sign) + 1
       Lind5 = Lind4(.False.,N1,N2,N3,N4,ASym,I,J,K,L,Sign) + N1234*M1
       Return
@@ -829,8 +824,8 @@ C
       Subroutine Wr_2E(IU,NTot,NR,N,LR,LenBuf,RArr)
       Implicit None
       Logical NonZ
-      Integer IU,NR,N,LR,LenBuf,IBuf(4,LenBuf),I,J,K,L,LimL,IJKL,IB,IR,
-     $  NNZ,NTot
+      Integer IU,NR,N,LR,LenBuf,IBuf(4,LenBuf),I,J,K,L,LimL,IJKL,
+     $  IB,IR,NNZ,NTot
       Real*8 RArr(LR,NR),RBuf(NR,LenBuf),Zero
       Parameter (Zero=0.0d0)
 C
@@ -1097,12 +1092,13 @@ C
       End
 *Deck AClear
       Subroutine AClear(N,A)
-      Implicit Real*8(A-H,O-Z)
+      Implicit None
 C
 C     Routine to clear N elements in array A.
 C
+      Integer N, I
+      Real*8 Zero, A(N)
       Parameter (Zero=0.0D0)
-      Dimension A(N)
 C
       Do 10 I = 1, N
    10   A(I) = Zero
@@ -1110,11 +1106,11 @@ C
       End
 *Deck IClear
       Subroutine IClear(N,IA)
-      Implicit Real*8(A-H,O-Z)
+      Implicit None
 C
 C     Routine to clear N elements in array IA.
 C
-      Dimension IA(N)
+      Integer N,IA(N),I
 C
       Do 10 I = 1, N
    10   IA(I) = 0
