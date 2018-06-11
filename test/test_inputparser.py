@@ -30,7 +30,7 @@ class TestInputParser(QISKitAcquaChemistryTestCase):
     """InputParser tests."""
     
     def setUp(self):
-        filepath = self._get_resource_path('pyscfa.txt')
+        filepath = self._get_resource_path('test_input_parser.txt')
         self.parser = InputParser(filepath)
         self.parser.parse()
 
