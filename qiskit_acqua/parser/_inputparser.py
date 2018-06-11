@@ -688,6 +688,12 @@ class InputParser(object):
             
             if not valid:
                 raise AlgorithmError("{}.{}: Value '{}' is not of types: '{}'".format(section_name,property_name,value,types)) 
+            
+        sections_temp = copy.deepcopy(self._sections)
+        InputParser._set_section_property(sections_temp,section_name,property_name,value)
+        msg = self._validate(sections_temp,section_name, property_name)
+        if msg is not None:
+            raise AlgorithmError("{}.{}: Value '{}': '{}'".format(section_name,property_name,value,msg)) 
       
         InputParser._set_section_property(self._sections,section_name,property_name,value)
         if property_name == InputParser.NAME:
@@ -717,7 +723,15 @@ class InputParser(object):
                     self._update_dependency_sections()
                     
         self._sections = self._order_sections(self._sections)
-        
+       
+    def _validate(self,sections,section_name, property_name):
+        validator = jsonschema.Draft4Validator(self._schema)
+        for error in sorted(validator.iter_errors(sections), key=str):
+            if len(error.path) == 2 and error.path[0] == section_name and error.path[1] == property_name:
+                return error.message
+          
+        return None
+    
     def _update_algorithm_problem(self):
         problem_name = self.get_section_property(InputParser.PROBLEM,InputParser.NAME)
         if problem_name is None:
