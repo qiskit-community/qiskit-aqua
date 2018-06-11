@@ -283,6 +283,8 @@ existing input file or create a new one and then simply export it as a dictionar
 ### Result dictionary
 
 As can be seen in the programming interface example above the ACQUAChemistry run() method returns a result dictionary.
+Energies are in units of `Hartree` and dipole moment in units of `a.u.`.
+
 The dictionary contains the following fields of note:
 
 * *energy*
