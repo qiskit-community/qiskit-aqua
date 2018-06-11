@@ -26,6 +26,7 @@ from abc import ABC, abstractmethod
 import logging
 
 import numpy as np
+from qiskit import __version__ as qiskit_version
 from qiskit.wrapper import register as q_register
 from qiskit.wrapper import execute as q_execute
 from qiskit.wrapper import available_backends, get_backend
@@ -159,6 +160,7 @@ class QuantumAlgorithm(ABC):
         info = "Algorithm: '{}' setup with backend '{}', with following setting:\n {}\n{}".format(
             self._configuration['name'], my_backend.configuration['name'], self._execute_config, self._qjob_config)
 
+        logger.info('QISKit Core version {}'.format(qiskit_version))
         logger.info(info)
 
     def execute(self, circuits):
