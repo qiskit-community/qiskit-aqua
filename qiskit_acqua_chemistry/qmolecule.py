@@ -128,9 +128,9 @@ class QMolecule(object):
 
                 # Energies
                 data = f["energy/hf_energy"][...]
-                self._hf_energy = data if data.dtype.num != 0 else None
+                self._hf_energy = float(data) if data.dtype.num != 0 else None
                 data = f["energy/nuclear_repulsion_energy"][...]
-                self._nuclear_repulsion_energy = data if data.dtype.num != 0 else None
+                self._nuclear_repulsion_energy = float(data) if data.dtype.num != 0 else None
                 
                 # Orbitals
                 data = f["orbitals/num_orbitals"][...]
