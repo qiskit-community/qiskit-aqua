@@ -32,15 +32,11 @@ class TestEnd2End(QISKitAcquaChemistryTestCase):
 
     def setUp(self):
         cfg_mgr = ConfigurationManager()
-        pyscf_cfg = OrderedDict([
-            ('atom', 'H .0 .0 .0; H .0 .0 0.735'),
-            ('unit', 'Angstrom'),
-            ('charge', 0),
-            ('spin', 0),
-            ('basis', 'sto3g')
+        hdf5_cfg = OrderedDict([
+            ('hdf5_input', './examples/molecule.hdf5')
         ])
-        section = {'properties': pyscf_cfg}
-        driver = cfg_mgr.get_driver_instance('PYSCF')
+        section = {'properties': hdf5_cfg}
+        driver = cfg_mgr.get_driver_instance('HDF5')
         self.qmolecule = driver.run(section)
 
         core = get_chemistry_operator_instance('hamiltonian')
@@ -55,33 +51,28 @@ class TestEnd2End(QISKitAcquaChemistryTestCase):
         core.init_params(hamiltonian_cfg)
         self.algo_input = core.run(self.qmolecule)
 
-
-        algo_params = {'problem': {'name': 'energy', 'random_seed': 50},
-                        'algorithm': {'name': 'ExactEigensolver', 'k': 1} }
-
-        results = run_algorithm(algo_params, self.algo_input)
-        self.reference_energy = results['energy']
+        self.reference_energy = -1.857275027031588
 
     @parameterized.expand([
-        ['COBYLA', 'local_statevector_simulator', 'matrix', 1],
-        ['COBYLA', 'local_statevector_simulator', 'paulis', 1],
-        ['SPSA', 'local_qasm_simulator', 'paulis', 1024],
-        ['SPSA', 'local_qasm_simulator', 'grouped_paulis', 1024]
+        ['COBYLA_M', 'COBYLA', 'local_statevector_simulator', 'matrix', 1],
+        ['COBYLA_P', 'COBYLA', 'local_statevector_simulator', 'paulis', 1],
+        ['SPSA_P', 'SPSA', 'local_qasm_simulator', 'paulis', 1024],
+        ['SPSA_GP', 'SPSA', 'local_qasm_simulator', 'grouped_paulis', 1024]
     ])
-    def test_end2end_H2(self, optimizer, backend, mode, shots):
+    def test_end2end_H2(self, name, optimizer, backend, mode, shots):
 
         optimizer_params = {'name': optimizer}
         if optimizer == 'COBYLA':
             optimizer_params['maxiter'] = 1000
         elif optimizer == 'SPSA':
-            optimizer_params['max_trials'] = 1000
+            optimizer_params['max_trials'] = 2000
             optimizer_params['save_steps'] = 25
 
         algo_params = {'problem': {'name': 'energy'},
                     'backend': {'name': backend, 'shots': shots},
                     'algorithm': {'name': 'VQE'},
                     'optimizer': optimizer_params,
-                    'variational_form': {'name': 'RYRZ', 'depth': 3, 'entanglement': 'full'}
+                    'variational_form': {'name': 'RYRZ', 'depth': 5, 'entanglement': 'full'}
                     }
 
         results = run_algorithm(algo_params, self.algo_input)

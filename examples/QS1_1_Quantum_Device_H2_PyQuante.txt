@@ -58,5 +58,5 @@ H2 molecule experiment
 &backend
    name=QS1_1
    shots=1024
-   skip_translation=False
+   skip_transpiler=False
 &end
