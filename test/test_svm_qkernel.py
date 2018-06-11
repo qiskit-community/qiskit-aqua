@@ -74,7 +74,7 @@ class TestSVMQKernel(QISKitAcquaTestCase):
         svm = get_algorithm_instance("SVM_QKernel")
         svm.setup_quantum_backend(backend='local_qasm_simulator', shots=1024)
         svm.random_seed = self.random_seed
-        svm.init_args(self.training_data, self.testing_data, None, num_of_qubits=2, print_info=False)
+        svm.init_args(self.training_data, self.testing_data, None, print_info=False)
         result = svm.run()
 
         np.testing.assert_array_almost_equal(
