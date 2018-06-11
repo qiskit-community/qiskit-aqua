@@ -23,14 +23,6 @@ import numpy as np
 from test.common import QISKitAcquaTestCase
 
 
-X = np.array([[0, 1], [1, 0]])
-Y = np.array([[0, -1j], [1j, 0]])
-Z = np.array([[1, 0], [0, -1]])
-I = np.array([[1, 0], [0, 1]])
-h1 = X + Y + Z + I
-qubitOp_simple = Operator(matrix=h1)
-
-
 pauli_dict = {
     'paulis': [
         {"coeff": {"imag": 0.0, "real": -1.052373245772859}, "label": "II"},
@@ -47,7 +39,6 @@ class TestIQPE(QISKitAcquaTestCase):
     """QPE tests."""
 
     @parameterized.expand([
-        [qubitOp_simple],
         [qubitOp_h2_with_2_qubit_reduction],
     ])
     def test_qpe(self, qubitOp):
@@ -78,11 +69,11 @@ class TestIQPE(QISKitAcquaTestCase):
         self.log.debug('The exact eigenvalue is:       {}'.format(self.ref_eigenval))
         self.log.debug('The corresponding eigenvector: {}'.format(self.ref_eigenvec))
 
-        num_time_slices = 20
-        num_iterations = 8
+        num_time_slices = 100
+        num_iterations = 12
 
         iqpe = get_algorithm_instance('IQPE')
-        iqpe.setup_quantum_backend(backend='local_qasm_simulator', shots=1, skip_transpiler=False)
+        iqpe.setup_quantum_backend(backend='local_qasm_simulator', shots=1)
 
         state_in = get_initial_state_instance('CUSTOM')
         state_in.init_args(self.qubitOp.num_qubits, state_vector=self.ref_eigenvec)
@@ -113,8 +104,7 @@ class TestIQPE(QISKitAcquaTestCase):
             fractional_part_only=True
         )))
 
-
-        # np.testing.assert_approx_equal(self.ref_eigenval, result['energy'], significant=2)
+        np.testing.assert_approx_equal(self.ref_eigenval, result['energy'], significant=2)
 
 
 if __name__ == '__main__':
