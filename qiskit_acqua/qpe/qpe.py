@@ -40,14 +40,6 @@ class QPE(QuantumAlgorithm):
     PROP_NUM_ANCILLAE = 'num_ancillae'
     PROP_USE_BASIS_GATES = 'use_basis_gates'
 
-    DEFAULT_PROP_NUM_TIME_SLICES = 1
-    DEFAULT_PROP_PAULIS_GROUPING = 'default'        # grouped_paulis
-    ALTERNATIVE_PROP_PAULIS_GROUPING = 'random'     # paulis
-    DEFAULT_PROP_EXPANSION_MODE = 'trotter'
-    ALTERNATIVE_PROP_EXPANSION_MODE = 'suzuki'
-    DEFAULT_PROP_EXPANSION_ORDER = 2
-    DEFAULT_PROP_NUM_ANCILLAE = 1
-
     QPE_CONFIGURATION = {
         'name': 'QPE',
         'description': 'Quantum Phase Estimation for Quantum Systems',
@@ -58,37 +50,37 @@ class QPE(QuantumAlgorithm):
             'properties': {
                 PROP_NUM_TIME_SLICES: {
                     'type': 'integer',
-                    'default': DEFAULT_PROP_NUM_TIME_SLICES,
+                    'default': 1,
                     'minimum': 0
                 },
                 PROP_PAULIS_GROUPING: {
                     'type': 'string',
-                    'default': DEFAULT_PROP_PAULIS_GROUPING,
+                    'default': 'random',
                     'oneOf': [
                         {'enum': [
-                            DEFAULT_PROP_PAULIS_GROUPING,
-                            ALTERNATIVE_PROP_PAULIS_GROUPING
+                            'random',
+                            'default'
                         ]}
                     ]
                 },
                 PROP_EXPANSION_MODE: {
                     'type': 'string',
-                    'default': DEFAULT_PROP_EXPANSION_MODE,
+                    'default': 'suzuki',
                     'oneOf': [
                         {'enum': [
-                            DEFAULT_PROP_EXPANSION_MODE,
-                            ALTERNATIVE_PROP_EXPANSION_MODE
+                            'suzuki',
+                            'trotter'
                         ]}
                     ]
                 },
                 PROP_EXPANSION_ORDER: {
                     'type': 'integer',
-                    'default': DEFAULT_PROP_EXPANSION_ORDER,
+                    'default': 2,
                     'minimum': 1
                 },
                 PROP_NUM_ANCILLAE: {
                     'type': 'integer',
-                    'default': DEFAULT_PROP_NUM_ANCILLAE,
+                    'default': 1,
                     'minimum': 1
                 },
                 PROP_USE_BASIS_GATES: {
@@ -162,7 +154,7 @@ class QPE(QuantumAlgorithm):
             expansion_order=expansion_order, use_basis_gates=use_basis_gates)
 
     def init_args(self, operator, state_in, iqft, num_time_slices, num_ancillae,
-                  paulis_grouping='default', expansion_mode='trotter', expansion_order=1, use_basis_gates=True):
+                  paulis_grouping='random', expansion_mode='trotter', expansion_order=1, use_basis_gates=True):
         if self._backend.find('statevector') >= 0:
             raise ValueError('Selected backend does not support measurements.')
         self._operator = operator

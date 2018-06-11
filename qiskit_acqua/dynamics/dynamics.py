@@ -71,7 +71,7 @@ class Dynamics(QuantumAlgorithm):
                 },
                 PROP_PAULIS_GROUPING: {
                     'type': 'string',
-                    'default': 'default',
+                    'default': 'random',
                     'oneOf': [
                         {'enum': [
                             'default',

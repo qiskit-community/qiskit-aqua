@@ -167,7 +167,7 @@ QPE is also configured with the following parameter settings:
 
   Number of time slices: non-negative integer
 
-* `paulis_grouping`=**default** | random
+* `paulis_grouping`=default | **random**
 
   When *default* paulis are grouped
 

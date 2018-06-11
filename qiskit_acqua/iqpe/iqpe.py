@@ -43,14 +43,6 @@ class IQPE(QuantumAlgorithm):
     PROP_EXPANSION_ORDER = 'expansion_order'
     PROP_NUM_ITERATIONS = 'num_iterations'
 
-    DEFAULT_PROP_NUM_TIME_SLICES = 1
-    DEFAULT_PROP_PAULIS_GROUPING = 'default'        # grouped_paulis
-    ALTERNATIVE_PROP_PAULIS_GROUPING = 'random'     # paulis
-    DEFAULT_PROP_EXPANSION_MODE = 'trotter'
-    ALTERNATIVE_PROP_EXPANSION_MODE = 'suzuki'
-    DEFAULT_PROP_EXPANSION_ORDER = 2
-    DEFAULT_PROP_NUM_ITERATIONS = 1
-
     IQPE_CONFIGURATION = {
         'name': 'IQPE',
         'description': 'Iterative Quantum Phase Estimation for Quantum Systems',
@@ -61,37 +53,37 @@ class IQPE(QuantumAlgorithm):
             'properties': {
                 PROP_NUM_TIME_SLICES: {
                     'type': 'integer',
-                    'default': DEFAULT_PROP_NUM_TIME_SLICES,
-                    'minimum': 0
+                    'default': 1,
+                    'minimum': 1
                 },
                 PROP_PAULIS_GROUPING: {
                     'type': 'string',
-                    'default': DEFAULT_PROP_PAULIS_GROUPING,
+                    'default': 'random',
                     'oneOf': [
                         {'enum': [
-                            DEFAULT_PROP_PAULIS_GROUPING,
-                            ALTERNATIVE_PROP_PAULIS_GROUPING
+                            'random',
+                            'default'
                         ]}
                     ]
                 },
                 PROP_EXPANSION_MODE: {
                     'type': 'string',
-                    'default': DEFAULT_PROP_EXPANSION_MODE,
+                    'default': 'suzuki',
                     'oneOf': [
                         {'enum': [
-                            DEFAULT_PROP_EXPANSION_MODE,
-                            ALTERNATIVE_PROP_EXPANSION_MODE
+                            'suzuki',
+                            'trotter'
                         ]}
                     ]
                 },
                 PROP_EXPANSION_ORDER: {
                     'type': 'integer',
-                    'default': DEFAULT_PROP_EXPANSION_ORDER,
+                    'default': 2,
                     'minimum': 1
                 },
                 PROP_NUM_ITERATIONS: {
                     'type': 'integer',
-                    'default': DEFAULT_PROP_NUM_ITERATIONS,
+                    'default': 1,
                     'minimum': 1
                 }
             },

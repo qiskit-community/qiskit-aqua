@@ -1245,7 +1245,7 @@ class Operator(object):
             return side + middle + side
 
     def evolve(self, state_in, evo_time, evo_mode, num_time_slices, quantum_registers=None,
-               paulis_grouping='default', expansion_mode='trotter', expansion_order=1):
+               paulis_grouping='random', expansion_mode='trotter', expansion_order=1):
         """
         Carry out the dynamics evolution for the operator under supplied specifications.
 
