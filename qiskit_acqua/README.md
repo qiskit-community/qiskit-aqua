@@ -243,10 +243,6 @@ SVM_QKernel supports the problems: `svm_classification`
 
 SVM_QKernel can be configured with the following parameters:
 
-* `num_qubits`=*integer 2 to n, defaults to 2*
-
-  Number of qubits required is equal to the number of features used for classification.
-
 * `print_info`=**False** | True
 
   Whether to print additional information or not when the algorithm is running.
@@ -265,10 +261,6 @@ Note: this algorithm **_does not_** support the `local_state_vector` simulator.
 SVM_Variational supports the problems: `svm_classification`
 
 SVM_Variational can be configured with the following parameters:
-
-* `num_qubits`=*integer 2 to n, defaults to 2*
-
-  Number of qubits required is equal to the number of features used for classification.
 
 * `circuit_depth`=*integer 3 to n, defaults to 3*
 
