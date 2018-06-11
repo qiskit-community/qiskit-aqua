@@ -182,6 +182,7 @@ head_arrays   -- dict listing the arrays which are setored in header
 
 """
 
+__version__ = 2.0
 import sys
 import io
 import re
@@ -189,7 +190,10 @@ import os
 import subprocess
 import tempfile
 import numpy as np
+INTSIZE_NAME = "GAUOPEN_INTSIZE"
+doi8 = False
 import qcmatrixio as qcmio
+INTTYPE = "int32"
 import QCOpMat as qco
 
 # name of scalars in the /Gen/ areray
@@ -206,6 +210,7 @@ GSNAME = "GAUSSIAN SCALARS"
 
 WLENBUF = 4000
 WLENBFS = 2000
+FRAGNAME = "INTEGER FRAGMENT"
 
 # names for standard order of matrices in file, for writing
 
@@ -309,8 +314,10 @@ def makegauinp (matfi, matfo, tinput=None, dofock=False, motran=None,
     fi.write (matfi+"\n")
   else:
     fi = io.StringIO()
-    newpa.append ("-IM4="+matfi)
-  fi.write ("#p "+model+" geom=allcheck " + basis + " test output=(matrix,i4labels")
+    if doi8: newpa.append ("-IM="+matfi)
+    else: newpa.append ("-IM4="+matfi)
+  fi.write ("#p "+model+" geom=allcheck " + basis + " test output=(matrix")
+  if not doi8: fi.write (",i4labels")
   if motran is not None: fi.write (",mo2el")
   fi.write (") ")
   if symm != "": fi.write(symm+" ")
@@ -334,7 +341,8 @@ def makegauinp (matfi, matfo, tinput=None, dofock=False, motran=None,
     fi.write("\n\n"+matfo+"\n\n")
     itemp = fi.name
   else:
-    newpa.append ("-OM4="+matfo)
+    if doi8: newpa.append ("-OM="+matfo)
+    else: newpa.append ("-OM4="+matfo)
     newpa.append ("-X="+fi.getvalue())
     itemp = None
   fi.close()
@@ -371,7 +379,7 @@ class MatEl (object):
     self.__LENREC = 4000
     self.__LEN12L = 4
     self.__LEN4L = 4
-    self.__REC11 = np.array([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],dtype="int32")
+    self.__REC11 = np.array([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],dtype=INTTYPE)
     self.__GSCAL = np.zeros((LENGS))
     self.natoms = 0
     self.nbasis = 1
@@ -395,8 +403,8 @@ class MatEl (object):
     self.atmchg = None
     self.atmwgt = None
     self.c = None
-    self.ibfatm = np.array([0],dtype="int32")
-    self.ibftyp = np.array([0],dtype="int32")
+    self.ibfatm = np.array([0],dtype=INTTYPE)
+    self.ibftyp = np.array([0],dtype=INTTYPE)
     self.__MATLIST = {}
     if file is not None:  self.read(file,**kwargs)
     
@@ -421,6 +429,11 @@ class MatEl (object):
 
   @property
   def scalars (self):  return self.__GSCAL
+
+  @property
+  def nfrag (self):
+    if FRAGNAME in self.__MATLIST: return max (self.__MATLIST[FRAGNAME].array)
+    else:  return 0;
 
   def addobj (self,obj):
     name = obj.name.upper()
@@ -569,7 +582,7 @@ class MatEl (object):
         if lab in self.__MATLIST: self.__MATLIST[lab].write(self.unit,WLENBUF)
     for lab in sorted(self.__MATLIST):
       if not lab in mat_names: self.__MATLIST[lab].write(self.unit,WLENBUF)
-    qcmio.wr_labl(self.unit,"END",0,0,0,0,0,0,0,0,0,True)
+    qcmio.wr_labl(self.unit,"END",0,0,0,0,0,0,0,0,0,False)
     qcmio.close_matf(self.unit)
 
   def update (self, matfi=None, matfo=None, check_status=True, doinit=False, **kwargs):
@@ -611,7 +624,7 @@ class MatEl (object):
     self.iopcl = iopcl
     if icgu is None:
       if iopcl == 6: self.icgu = 221
-      else: self.icgu = 10*int((iopcl % 4)/2) + (iopcl % 2) + 111
+      else: self.icgu = 10*((iopcl % 4)//2) + (iopcl % 2) + 111
     else: self.icgu = icgu
     self.nfc = nfc
     self.nfv = nfv
@@ -623,11 +636,11 @@ class MatEl (object):
     self.nprmdb = 0
     self.nbondtot = 0
     assert len(ian) == self.natoms
-    self.ian = np.array(ian,dtype="int32")
-    if iattyp is None: self.iattyp = np.zeros((natoms,),dtype="int32")
+    self.ian = np.array(ian,dtype=INTTYPE)
+    if iattyp is None: self.iattyp = np.zeros((natoms,),dtype=INTTYPE)
     else:
       assert len(iattyp) == self.natoms
-      self.iattyp = np.array(iattyp,dtype="int32")
+      self.iattyp = np.array(iattyp,dtype=INTTYPE)
     if atmchg is None: self.atmchg = np.array(self.ian,dtype="float64")
     else:
       assert len(atmchg) == self.natoms
@@ -639,8 +652,8 @@ class MatEl (object):
     else:
       assert len(atmwgt) == self.natoms
       self.atmwgt = np.array(atmwgt,dtype="float64")
-    self.ibfatm = np.zeros((self.nbasis,),dtype="int32")
-    self.ibftyp = np.zeros((self.nbasis,),dtype="int32")
+    self.ibfatm = np.zeros((self.nbasis,),dtype=INTTYPE)
+    self.ibftyp = np.zeros((self.nbasis,),dtype=INTTYPE)
     self.__MATLIST = {}
     for i in range(len(self.__GSCAL)): self.__GSCAL[i] = 0.0e0
     if atznuc is None: znuc = self.atmchg
