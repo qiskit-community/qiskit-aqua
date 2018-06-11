@@ -42,8 +42,7 @@ class TestExactEignesolver(QISKitAcquaTestCase):
 
     def test_ee_via_run_algorithm(self):
         params = {
-            'algorithm': {'name': 'ExactEigensolver'},
-            'backend': {'name': 'local_statevector_simulator'}
+            'algorithm': {'name': 'ExactEigensolver'}
         }
         result = run_algorithm(params, self.algo_input)
         self.assertAlmostEqual(result['energy'], -1.85727503)
@@ -52,8 +51,7 @@ class TestExactEignesolver(QISKitAcquaTestCase):
 
     def test_ee_via_run_algorithm_k4(self):
         params = {
-            'algorithm': {'name': 'ExactEigensolver', 'k': 4},
-            'backend': {'name': 'local_statevector_simulator'}
+            'algorithm': {'name': 'ExactEigensolver', 'k': 4}
         }
         result = run_algorithm(params, self.algo_input)
         self.assertAlmostEqual(result['energy'], -1.85727503)
