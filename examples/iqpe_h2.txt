@@ -24,7 +24,7 @@
 &operator
    name=hamiltonian
    transformation=full
-   qubit_mapping=jordan_wigner
+   qubit_mapping=parity
    two_qubit_reduction=True
    freeze_core=False
    orbital_reduction=[]
@@ -33,7 +33,7 @@
 
 &algorithm
    name=IQPE
-   num_time_slices=100
+   num_time_slices=50
    paulis_grouping=random
    expansion_mode=suzuki
    expansion_order=2
