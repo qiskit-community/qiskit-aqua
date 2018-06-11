@@ -81,11 +81,11 @@ class TestQPE(QISKitAcquaTestCase):
         self.log.debug('The exact eigenvalue is:       {}'.format(self.ref_eigenval))
         self.log.debug('The corresponding eigenvector: {}'.format(self.ref_eigenvec))
 
-        num_time_slices = 20
-        n_ancillae = 8
+        num_time_slices = 50
+        n_ancillae = 9
 
         qpe = get_algorithm_instance('QPE')
-        qpe.setup_quantum_backend(backend='local_qasm_simulator', shots=100, skip_transpiler=False)
+        qpe.setup_quantum_backend(backend='local_qasm_simulator', shots=100)
 
         state_in = get_initial_state_instance('CUSTOM')
         state_in.init_args(self.qubitOp.num_qubits, state_vector=self.ref_eigenvec)
