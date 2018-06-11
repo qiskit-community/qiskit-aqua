@@ -59,17 +59,16 @@ class TestEnd2EndWithQPE(QISKitAcquaChemistryTestCase):
         self.reference_energy = results['energy']
         self.log.debug('The exact ground state energy is: {}'.format(results['energy']))
 
-
         num_particles = self.molecule._num_alpha + self.molecule._num_beta
         two_qubit_reduction = True
         num_orbitals = self.qubitOp.num_qubits + (2 if two_qubit_reduction else 0)
         qubit_mapping = 'parity'
 
-        num_time_slices = 20
-        n_ancillae = 8
+        num_time_slices = 50
+        n_ancillae = 9
 
         qpe = get_algorithm_instance('QPE')
-        qpe.setup_quantum_backend(backend='local_qasm_simulator', shots=1000, skip_translation=False)
+        qpe.setup_quantum_backend(backend='local_qasm_simulator', shots=100, skip_translation=False)
 
         state_in = get_initial_state_instance('HartreeFock')
         state_in.init_args(self.qubitOp.num_qubits, num_orbitals, qubit_mapping, two_qubit_reduction, num_particles)
