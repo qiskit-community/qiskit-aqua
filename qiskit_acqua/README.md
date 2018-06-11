@@ -193,6 +193,8 @@ transform isn't used for IQPE.
 
 For more detail, please see [https://arxiv.org/abs/quant-ph/0610214](https://arxiv.org/abs/quant-ph/0610214).
 
+Note: this algorithm **_does not_** support the `local_state_vector` simulator.
+
 IQPE supports the problems: `energy`
 
 
@@ -204,6 +206,8 @@ the search criterion, which basically indicates a hit or miss for any given reco
 oracle implementation is provided, which takes as input a SAT problem in 
 [DIMACS CNF format](http://www.satcompetition.org/2009/format-benchmarks2009.html) and constructs the corresponding 
 quantum circuit.
+
+Note: this algorithm **_does not_** support the `local_state_vector` simulator.
 
 Grover supports the problems: `search`
 
@@ -233,6 +237,8 @@ unlabelled data is classified according to the solution found in the training ph
 
 For more detail, please see [https://arxiv.org/abs/1804.11326](https://arxiv.org/abs/1804.11326).
 
+Note: this algorithm **_does not_** support the `local_state_vector` simulator.
+
 SVM_QKernel supports the problems: `svm_classification`
 
 SVM_QKernel can be configured with the following parameters:
@@ -253,6 +259,8 @@ computing the kernel is not efficient classically.  SVM_Variational solves such 
 variational method that optimizes a parameterized quantum circuit to provide a solution that cleanly separates the data.
 
 For more detail, please see [https://arxiv.org/abs/1804.11326](https://arxiv.org/abs/1804.11326).
+
+Note: this algorithm **_does not_** support the `local_state_vector` simulator.
 
 SVM_Variational supports the problems: `svm_classification`
 
