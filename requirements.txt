@@ -1,4 +1,4 @@
-qiskit>=0.5.2
+qiskit>=0.5.4
 numpy>=1.13,<1.15
 h5py
 psutil

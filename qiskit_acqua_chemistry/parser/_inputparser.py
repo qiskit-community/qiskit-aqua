@@ -908,6 +908,12 @@ class InputParser(object):
             if not valid:
                 raise ACQUAChemistryError("{}.{} Value '{}' is not of types: '{}'".format(section_name, property_name, value, types))
       
+        parser_temp = copy.deepcopy(self)
+        InputParser._set_section_property(parser_temp._sections,section_name,property_name,value)
+        msg = self._validate(parser_temp.to_JSON(),section_name, property_name)
+        if msg is not None:
+            raise ACQUAChemistryError("{}.{}: Value '{}': '{}'".format(section_name,property_name,value,msg))
+ 
         InputParser._set_section_property(self._sections,section_name,property_name,value)
         if property_name == InputParser.NAME:
             if InputParser.OPERATOR == section_name:
@@ -941,6 +947,14 @@ class InputParser(object):
                     self._update_driver_sections()
                     
         self._sections = self._order_sections(self._sections)
+        
+    def _validate(self,sections,section_name, property_name):
+        validator = jsonschema.Draft4Validator(self._schema)
+        for error in sorted(validator.iter_errors(sections), key=str):
+            if len(error.path) == 2 and error.path[0] == section_name and error.path[1] == property_name:
+                return error.message
+          
+        return None
         
     def _update_algorithm_problem(self):
         problem_name = self.get_section_property(InputParser.PROBLEM,InputParser.NAME)
