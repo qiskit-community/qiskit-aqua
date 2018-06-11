@@ -101,7 +101,7 @@ docs/*.rst
 !docs/releases.rst
 !docs/CONTRIBUTORS.rst
 !docs/algorithms.rst
-!docs/optmizers.rst
+!docs/optimizers.rst
 !docs/variational_forms.rst
 !docs/iqfts.rst
 !docs/oracles.rst
