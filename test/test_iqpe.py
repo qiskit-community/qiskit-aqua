@@ -69,7 +69,7 @@ class TestIQPE(QISKitAcquaTestCase):
         self.log.debug('The exact eigenvalue is:       {}'.format(self.ref_eigenval))
         self.log.debug('The corresponding eigenvector: {}'.format(self.ref_eigenvec))
 
-        num_time_slices = 100
+        num_time_slices = 50
         num_iterations = 12
 
         iqpe = get_algorithm_instance('IQPE')
