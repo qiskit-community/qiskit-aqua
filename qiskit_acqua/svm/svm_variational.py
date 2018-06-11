@@ -85,6 +85,8 @@ class SVM_Variational(QuantumAlgorithm):
 
     def init_args(self, training_dataset, test_dataset, datapoints, optimizer, num_of_qubits=2,
                   circuit_depth=3, print_info=False):
+        if 'statevector' in self._backend:
+            raise ValueError('Selected backend  "{}" does not support measurements.'.format(self._backend))
 
         self.training_dataset = training_dataset
         self.test_dataset = test_dataset

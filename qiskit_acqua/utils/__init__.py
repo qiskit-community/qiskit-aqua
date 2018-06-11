@@ -19,7 +19,7 @@ from .tensorproduct import tensorproduct
 from .pauligraph import PauliGraph
 from .jsonutils import convert_dict_to_json,convert_json_to_dict
 from .random_matrix_generator import random_unitary, random_h2_body, random_h1_body
-
+from .decimal_to_binary import decimal_to_binary
 
 __all__ = ['tensorproduct',
            'PauliGraph',
@@ -27,4 +27,5 @@ __all__ = ['tensorproduct',
            'convert_json_to_dict',
            'random_unitary',
            'random_h2_body',
-           'random_h1_body']
+           'random_h1_body',
+           'decimal_to_binary']

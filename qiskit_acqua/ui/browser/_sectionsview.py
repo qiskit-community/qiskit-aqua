@@ -35,11 +35,15 @@ class SectionsView(ScrollbarView):
             
     def populate(self,algos):
         self.clear()
+        root_identifier = None
         for main_name,sections in algos.items():
             identifier = self._tree.insert('',
                                            tk.END, 
                                            text=main_name,
                                            values=[''])
+            if root_identifier is None:
+                root_identifier = identifier
+                
             child_identifier = None
             for algo_name,_ in sections.items():
                 child_identifier = self._tree.insert(identifier,
@@ -49,6 +53,9 @@ class SectionsView(ScrollbarView):
                 
             if child_identifier is not None:
                 self._tree.see(child_identifier)
+                
+        if root_identifier is not None:
+                self._tree.see(root_identifier)
      
     def has_selection(self):
         return self._tree.selection()

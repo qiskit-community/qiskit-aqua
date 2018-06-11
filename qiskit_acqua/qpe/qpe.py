@@ -24,7 +24,6 @@ from functools import reduce
 import numpy as np
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.tools.qi.pauli import Pauli
-from qiskit.tools.qi.qi import qft
 from qiskit_acqua import Operator, QuantumAlgorithm, AlgorithmError
 from qiskit_acqua import get_initial_state_instance, get_iqft_instance
 

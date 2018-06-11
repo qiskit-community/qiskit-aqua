@@ -23,7 +23,7 @@ import logging
 
 import numpy as np
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
-from qiskit.qasm import pi
+from qiskit.tools.qi.pauli import Pauli
 
 from qiskit_acqua import Operator, QuantumAlgorithm, AlgorithmError
 from qiskit_acqua import get_initial_state_instance
@@ -169,8 +169,9 @@ class IQPE(QuantumAlgorithm):
         qc += self._state_in.construct_circuit('circuit', q)
         qc.h(a[0])
         qc += self._operator.construct_evolution_circuit(
-            slice_pauli_list, 1, self._num_time_slices, q, a, unitary_power=2**(k-1)
+            slice_pauli_list, -2 * np.pi, self._num_time_slices, q, a, unitary_power=2 ** (k - 1)
         )
+        qc.u1(2 * np.pi * self._ancilla_phase_coef * (2 ** (k - 1)), a[0])
         qc.u1(omega, a[0]) if use_basis_gates else qc.rz(omega, a[0])
         qc.h(a[0])
         qc.measure(a, c)
@@ -187,10 +188,15 @@ class IQPE(QuantumAlgorithm):
             else:
                 slice_pauli_list = Operator._suzuki_expansion_slice_pauli_list(pauli_list, 1, self._expansion_order)
 
-        k, omega_coef = self._num_iterations, 0
-        while True:
-            qc = self._construct_kth_evolution(slice_pauli_list, k, -2 * pi * omega_coef)
+        self._ret['top_measurement_label'] = ''
+
+        omega_coef = 0
+        # k runs from the number of iterations back to 1
+        for k in range(self._num_iterations, 0, -1):
+            omega_coef /= 2
+            qc = self._construct_kth_evolution(slice_pauli_list, k, -2 * np.pi * omega_coef)
             measurements = self.execute(qc).get_counts(qc)
+
             if '0' not in measurements:
                 if '1' in measurements:
                     x = 1
@@ -201,18 +207,49 @@ class IQPE(QuantumAlgorithm):
                     x = 0
                 else:
                     x = 1 if measurements['1'] > measurements['0'] else 0
-            omega_coef = omega_coef / 2 + x / 4
-            # print('k:{} measurements:{} x:{} omega:{}'.format(k, measurements, x, omega_coef))
-            k -= 1
-            if k <= 0:
-                return 2 * omega_coef
+            self._ret['top_measurement_label'] = '{}{}'.format(x, self._ret['top_measurement_label'])
+            omega_coef = omega_coef + x / 2
+            logger.info('Reverse iteration {} of {} with measured bit {}'.format(k, self._num_iterations, x))
+        return omega_coef
 
     def _compute_energy(self):
-        bound = sum([abs(p[0].real) for p in self._operator.paulis])
-        translation = bound
-        stretch = np.pi / bound
+        self._operator._check_representation('paulis')
+        self._ret['translation'] = sum([abs(p[0]) for p in self._operator.paulis])
+        self._ret['stretch'] = 0.5 / self._ret['translation']
+
+        # translate the operator
+        self._operator._simplify_paulis()
+        translation_op = Operator([
+            [
+                self._ret['translation'],
+                Pauli(
+                    np.zeros(self._operator.num_qubits),
+                    np.zeros(self._operator.num_qubits)
+                )
+            ]
+        ])
+        translation_op._simplify_paulis()
+        self._operator += translation_op
+
+        # stretch the operator
+        for p in self._operator._paulis:
+            p[0] = p[0] * self._ret['stretch']
+
+        # check for identify paulis to get its coef for applying global phase shift on ancilla later
+        num_identities = 0
+        for p in self._operator.paulis:
+            if np.all(p[1].v == 0) and np.all(p[1].w == 0):
+                num_identities += 1
+                if num_identities > 1:
+                    raise RuntimeError('Multiple identity pauli terms are present.')
+                self._ancilla_phase_coef = p[0].real if isinstance(p[0], complex) else p[0]
+
         self._ret['phase'] = self._estimate_phase_iteratively()
-        self._ret['energy'] = self._ret['phase'] * 2 * np.pi / stretch - translation
+        self._ret['top_measurement_decimal'] = sum([t[0] * t[1] for t in zip(
+            [1 / 2 ** p for p in range(1, self._num_iterations + 1)],
+            [int(n) for n in self._ret['top_measurement_label']]
+        )])
+        self._ret['energy'] = self._ret['phase'] / self._ret['stretch'] - self._ret['translation']
 
     def run(self):
         self._compute_energy()
