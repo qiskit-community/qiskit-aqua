@@ -49,12 +49,13 @@ class CPLEX(QuantumAlgorithm):
                 'thread': {
                     'type': 'integer',
                     'default': 1,
-                    'minimum': 1
+                    'minimum': 0
                 },
                 'display': {
                     'type': 'integer',
                     'default': 2,
-                    'minimum': 0
+                    'minimum': 0,
+                    'maximum': 5
                 }
             },
             'additionalProperties': False
