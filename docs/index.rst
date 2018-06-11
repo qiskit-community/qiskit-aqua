@@ -19,6 +19,12 @@ Table of Contents
    QISKit ACQUA Overview <qiskit-acqua>
    Installation and Setup <install>
    Algorithms <algorithms>
+   Optimizers <optimizers>
+   Variational Forms <variational_forms>
+   Initial States <initial_states>
+   Inverse Quantum Fourier Transforms <iqfts>
+   Oracles <oracles>
+   Extending QISKit ACQUA <extending>
    Getting Started <quickstart>
    Developer Documentation <dev_introduction>
    SDK Reference <_autodoc/qiskit_acqua>
