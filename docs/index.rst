@@ -18,7 +18,7 @@ Table of Contents
    
    QISKit ACQUA Overview <qiskit-acqua>
    Installation and Setup <install>
-   Algorithm Library <algorithms>
+   Algorithms <algorithms>
    Getting Started <quickstart>
    Developer Documentation <dev_introduction>
    SDK Reference <_autodoc/qiskit_acqua>

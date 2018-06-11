@@ -41,7 +41,8 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.mathjax',
               'sphinx.ext.viewcode',
               'sphinx.ext.githubpages',
-              'sphinxcontrib.fulltoc']
+              'sphinxcontrib.fulltoc',
+              'sphinx.ext.autosectionlabel']
 
 autodoc_default_flags = ['members', 'undoc-members', 'show-inheritance',
                          'inherited-members']
