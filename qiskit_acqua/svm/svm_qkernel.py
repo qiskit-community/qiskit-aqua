@@ -59,6 +59,8 @@ class SVM_QKernel(QuantumAlgorithm):
 
     def init_args(self, training_dataset, test_dataset, datapoints,
                   num_of_qubits=2, print_info=False):  # 2
+        if 'statevector' in self._backend:
+            raise ValueError('Selected backend  "{}" does not support measurements.'.format(self._backend))
 
         self.training_dataset = training_dataset
         self.test_dataset = test_dataset
