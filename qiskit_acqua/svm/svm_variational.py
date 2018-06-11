@@ -34,11 +34,7 @@ class SVM_Variational(QuantumAlgorithm):
             'id': 'SVM_Variational_schema',
             'type': 'object',
             'properties': {
-                'num_of_qubits': {
-                    'type': 'integer',
-                    'default': 2,
-                    'minimum': 2
-                },
+
                 'circuit_depth': {
                     'type': 'integer',
                     'default': 3,
@@ -81,10 +77,9 @@ class SVM_Variational(QuantumAlgorithm):
         optimizer.set_options(save_steps=10)
 
         self.init_args(algo_input.training_dataset, algo_input.test_dataset, algo_input.datapoints,
-                        optimizer, num_of_qubits, circuit_depth, print_info)
+                        optimizer, circuit_depth, print_info)
 
-    def init_args(self, training_dataset, test_dataset, datapoints, optimizer, num_of_qubits=2,
-                  circuit_depth=3, print_info=False):
+    def init_args(self, training_dataset, test_dataset, datapoints, optimizer, circuit_depth=3, print_info=False):
         if 'statevector' in self._backend:
             raise ValueError('Selected backend  "{}" does not support measurements.'.format(self._backend))
 
@@ -93,8 +88,8 @@ class SVM_Variational(QuantumAlgorithm):
         self.datapoints = datapoints
         self.class_labels = list(self.training_dataset.keys())
 
-        self.num_of_qubits = num_of_qubits
-        self.entangler_map = entangler_map_creator(num_of_qubits)
+        self.num_of_qubits = self.auto_detect_qubitnum(training_dataset) # auto-detect mode
+        self.entangler_map = entangler_map_creator(self.num_of_qubits)
         self.coupling_map = None  # the coupling_maps gates allowed on the device
         self.initial_layout = None
         self.shots = self._execute_config['shots']
@@ -104,6 +99,17 @@ class SVM_Variational(QuantumAlgorithm):
         self.optimizer = optimizer
 
         set_print_info(print_info)
+
+
+    def auto_detect_qubitnum(self, training_dataset):
+        auto_detected_size = -1
+        for key in training_dataset:
+            val = training_dataset[key]
+            for item in val:
+                auto_detected_size = len(item)
+                return auto_detected_size
+        return auto_detected_size
+
 
     def train(self, training_input, class_labels):
         initial_theta = self.random.randn(2 * self.num_of_qubits * (self.circuit_depth + 1))
@@ -143,6 +149,14 @@ class SVM_Variational(QuantumAlgorithm):
     def run(self):
         if self.training_dataset is None:
             self._ret['error'] = 'training dataset is missing! please provide it'
+            return self._ret
+
+        num_of_qubits = self.auto_detect_qubitnum(self.training_dataset) # auto-detect mode
+        if num_of_qubits == -1:
+            self._ret['error'] = 'Something wrong with the auto-detection of num_of_qubits'
+            return self._ret
+        if num_of_qubits != 2 and num_of_qubits != 3:
+            self._ret['error'] = 'You should lower the feature size to 2 or 3 using PCA first!'
             return self._ret
 
         self.train(self.training_dataset, self.class_labels)
