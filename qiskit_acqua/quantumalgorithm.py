@@ -112,7 +112,7 @@ class QuantumAlgorithm(ABC):
                 self._random = np.random.RandomState(self._random_seed)
         return self._random
 
-    def setup_quantum_backend(self, backend='local_statevector_simulator', shots=1024, skip_translation=False,
+    def setup_quantum_backend(self, backend='local_statevector_simulator', shots=1024, skip_transpiler=False,
                               timeout=None, wait=5, noise_params=None):
         """
         Setup the quantum backend.
@@ -120,7 +120,7 @@ class QuantumAlgorithm(ABC):
         Args:
             backend (str): name of selected backend
             shots (int): number of shots for the backend
-            skip_translation (bool): flag of skipping gate mapping, be aware that only
+            skip_transpiler (bool): flag of skipping gate mapping, be aware that only
                                      basis gates of the backend are executed others are skipped.
             timeout (float or None): seconds to wait for job. If None, wait indefinitely.
             wait (float): seconds between queries
@@ -146,7 +146,7 @@ class QuantumAlgorithm(ABC):
 
         my_backend = get_backend(backend)
         self._execute_config = {'shots': shots,
-                                'skip_translation': skip_translation,
+                                'skip_transpiler': skip_transpiler,
                                 'config': {"noise_params": noise_params},
                                 'basis_gates': my_backend.configuration['basis_gates'],
                                 'coupling_map': my_backend.configuration['coupling_map'],

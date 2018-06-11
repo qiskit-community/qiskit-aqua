@@ -34,13 +34,13 @@ class TestSVMQKernel(QISKitAcquaTestCase):
         self.testing_data = {'A': np.asarray([[3.83274304, 2.45044227]]),
                              'B': np.asarray([[3.89557489, 0.31415927]])}
 
-        self.ref_kernel_matrix_training = np.asarray([[1., 0.84667969, 0.13085938, 0.36914062],
-                                                      [0.84667969, 1., 0.125, 0.46679688],
-                                                      [0.13085938, 0.125, 1., 0.66601562],
-                                                      [0.36914062, 0.46679688, 0.66601562, 1.]])
+        self.ref_kernel_matrix_training = np.asarray([[1., 0.8388671875, 0.1142578125, 0.3564453125],
+                                                      [0.8388671875, 1., 0.1044921875, 0.427734375],
+                                                      [0.1142578125, 0.1044921875, 1., 0.66015625],
+                                                      [0.3564453125, 0.427734375, 0.66015625, 1.]])
 
-        self.ref_kernel_matrix_testing = np.asarray([[0.15136719, 0.18359375, 0.48535156, 0.15625],
-                                                     [0.32519531, 0.3828125,  0.02734375, 0.16601562]])
+        self.ref_kernel_matrix_testing = np.asarray([[0.1357421875, 0.166015625, 0.4580078125, 0.140625],
+                                                     [0.3076171875, 0.3623046875, 0.0166015625, 0.150390625]])
 
         self.ref_support_vectors = np.asarray([[2.95309709, 2.51327412], [3.14159265, 4.08407045],
                                                [4.08407045, 2.26194671], [4.46106157, 2.38761042]])
@@ -69,7 +69,6 @@ class TestSVMQKernel(QISKitAcquaTestCase):
 
         self.assertEqual(result['test_success_ratio'], 0.5)
 
-
     def test_svm_qkernel_directly(self):
         svm = get_algorithm_instance("SVM_QKernel")
         svm.setup_quantum_backend(backend='local_qasm_simulator', shots=1024)
@@ -78,9 +77,9 @@ class TestSVMQKernel(QISKitAcquaTestCase):
         result = svm.run()
 
         np.testing.assert_array_almost_equal(
-            result['kernel_matrix_training'], self.ref_kernel_matrix_training, decimal=2)
+            result['kernel_matrix_training'], self.ref_kernel_matrix_training, decimal=4)
         np.testing.assert_array_almost_equal(
-            result['kernel_matrix_testing'], self.ref_kernel_matrix_testing, decimal=2)
+            result['kernel_matrix_testing'], self.ref_kernel_matrix_testing, decimal=4)
 
         self.assertEqual(len(result['svm']['support_vectors']), 4)
         np.testing.assert_array_almost_equal(

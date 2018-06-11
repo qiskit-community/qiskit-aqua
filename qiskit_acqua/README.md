@@ -372,7 +372,7 @@ backend to be used for the quantum computation. This defaults to a local quantum
   With a backend such as local_qasm_simulator, or a real device, this is number of repetitions of each circuit
   for sampling to be used.
 
-* `skip_translation`=**false** | true
+* `skip_transpiler`=**false** | true
 
   Skip circuit translation phase. If the algorithm uses only basis gates directly supported then no translation of
   the circuit into basis gates is required. Skipping the translation may improve overall performance a little

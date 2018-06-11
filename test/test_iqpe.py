@@ -82,7 +82,7 @@ class TestIQPE(QISKitAcquaTestCase):
         num_iterations = 8
 
         iqpe = get_algorithm_instance('IQPE')
-        iqpe.setup_quantum_backend(backend='local_qasm_simulator', shots=1, skip_translation=False)
+        iqpe.setup_quantum_backend(backend='local_qasm_simulator', shots=1, skip_transpiler=False)
 
         state_in = get_initial_state_instance('CUSTOM')
         state_in.init_args(self.qubitOp.num_qubits, state_vector=self.ref_eigenvec)

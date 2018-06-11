@@ -41,7 +41,7 @@
                     "default": 1024,
                     "minimum": 1
                 },
-                "skip_translation": {
+                "skip_transpiler": {
                     "type": "boolean",
                     "default": false
                 },

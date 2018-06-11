@@ -87,6 +87,12 @@ class Operator(object):
                 idx = self._paulis_table.get(pauli_label, None)
                 if idx is not None:
                     self._paulis[idx][0] += pauli[0]
+                    if self._paulis[idx][0] == 0.0:
+                        del self._paulis[idx]
+                        self._paulis_table.pop(pauli_label, None)
+                        for k, v in self._paulis_table.items():
+                            if v > idx:
+                                self._paulis_table[k] -= 1
                 else:
                     self._paulis_table[pauli_label] = len(self._paulis)
                     self._paulis.append(pauli)
@@ -725,7 +731,7 @@ class Operator(object):
             avg, std_dev = self._eval_multiple_shots(operator_mode, input_circuit, backend, execute_config, qjob_config)
         return avg, std_dev
 
-    def convert(self, input_format, output_format):
+    def convert(self, input_format, output_format, force=False):
         """
         A wrapper for conversion among all representations.
         Note that, if the output target is already there, it will skip the conversion.
@@ -736,6 +742,7 @@ class Operator(object):
                                 should be one of "paulis", "grouped_paulis", "matrix"
             output_format (str): case-insensitive output format,
                                  should be one of "paulis", "grouped_paulis", "matrix"
+            force (bool): convert to targeted format regardless its present.
 
         Raises:
             ValueError: if the unsupported output_format is specified.
@@ -751,13 +758,13 @@ class Operator(object):
             raise ValueError(
                 "Output format {} is not supported".format(output_format))
 
-        if output_format == "paulis" and self._paulis is None:
+        if output_format == "paulis" and (self._paulis is None or force):
             if input_format == "matrix":
                 self._matrix_to_paulis()
             elif input_format == "grouped_paulis":
                 self._grouped_paulis_to_paulis()
 
-        elif output_format == "grouped_paulis" and self._grouped_paulis is None:
+        elif output_format == "grouped_paulis" and (self._grouped_paulis is None or force):
             if self._grouped_paulis == []:
                 return
             if input_format == "paulis":
@@ -765,7 +772,7 @@ class Operator(object):
             elif input_format == "matrix":
                 self._matrix_to_grouped_paulis()
 
-        elif output_format == "matrix" and self._matrix is None:
+        elif output_format == "matrix" and (self._matrix is None or force):
             if input_format == "paulis":
                 self._paulis_to_matrix()
             elif input_format == "grouped_paulis":
@@ -884,6 +891,7 @@ class Operator(object):
             return
         self._to_dia_matrix(mode='paulis')
         if self._dia_matrix is None:
+
             p = self._paulis[0]
             hamiltonian = p[0] * p[1].to_spmatrix()
             for idx in range(1, len(self._paulis)):
