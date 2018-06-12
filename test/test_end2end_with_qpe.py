@@ -81,7 +81,7 @@ class TestEnd2EndWithQPE(QISKitAcquaChemistryTestCase):
             paulis_grouping='random',
             expansion_mode='suzuki',
             expansion_order=2,
-            use_basis_gates=False
+            use_basis_gates=True
         )
 
         result = qpe.run()
