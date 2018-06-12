@@ -38,7 +38,7 @@ setuptools.setup(
     description='QISKit ACQUA library of algorithms',
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url='https://github.ibm.com/IBMQuantum/qiskit-acqua',
+    url='https://github.com/IBMQuantum/qiskit-acqua',
     author='QISKit ACQUA Development Team',
     author_email='qiskit@us.ibm.com',
     license='Apache-2.0',
