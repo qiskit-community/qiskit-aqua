@@ -5,96 +5,113 @@ QISKit ACQUA  contains a variety of different optimizers for
 use by quantum variational algorithms, such as `VQE <./algorithms.html#variational-quantum-eigensolver-vqe>`__.  We can logically divide
 optimizers into two categories:
 
-- Local optimizers
+- :ref:`Local Optimizers`: Given an optimization problem, a *local optimizer* is a function that attempts to find an optimal value
+within the neighboring set of a candidate solution.
+
+- :ref:`Global Optimizers`: Given an optimization problem, a *global optimizer* is a function that attempts to find an optimal value
+among all possible solutions.
+
+
+.. topic:: Extending the Optimizer Library
+    Consistent with its unique  design and architecture, QISKit ACQUA has a modular and
+    extensible architecture. Algorithms and their supporting objects, such as optimizers for quantum vational algorithms,
+    are pluggable modules in QISKit ACQUA. This was done in order to encourage researchers and developers interested in
+    quantum algorithms to extend the QISKit ACQUA framework with their novel research contributions.
+    New optimizers for quantum variational algorithms should be installed in the ``qiskit_acqua/utils/optimizers`` folder and derive from the
+    ``Optimizer`` class.
 
 
 Local Optimizers
 ----------------
 
-Optimizers may be used in variational algorithms, such as
-`VQE <../../../qiskit_acqua#vqe>`__ and
-`VQkE <../../../qiskit_acqua#vqke>`__.
-
-The following optimizers are supplied here. These are all local
-optimizers:
-
--  `CG <#cg>`__
--  `COBYLA <#cobyla>`__
--  `L_BFGS_B <#l_bfgs_b>`__
--  `NELDER_MEAD <#nelder_mead>`__
--  `P_BFGS <#p_bfgs>`__
--  `POWELL <#powell>`__
--  `SLSQP <#slsqp>`__
--  `SPSA <#spsa>`__
--  `TNC <#tnc>`__
-
-Further optimizers may be found in the `nlopts <./nlopts/README.md>`__
-folder that use the open-source `NLOpt <https://nlopt.readthedocs.io>`__
-package and require NLopt to be installed to be used.
-
-The optimizers here that are based on
-`scipy.optimize.minimize <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html>`__
-have a common pattern for parameters exposed here. The *tol* parameter
-is from the *minimize* method itself and the remaining parameters are
+This section presents the local optimizers made available in QISKit ACQUA, and meant to be used in conjunction with a quantum variational
+algorithms.  Theae optimizers are based on the ``scipy.optimize.minimize`` optimization function in 
+`SciPy.org <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html>`__.
+They all have a common pattern for parameters. Specifically, The ``tol`` parameter, whose value
+must be a ``float`` indicating *tolerance for termination*,
+is from the ``scipy.optimize.minimize``  method itself, while the remaining parameters are
 from the `options
-dictionary <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.show_options.html>`__
-which may be referred to for further information
+dictionary <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.show_options.html>`__,
+which may be referred to for further information.
 
-
-CG
---
-
-It utilizes the scipy.optimize package:
-https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
-
-CG algorithm: Unconstrained optimization. It will ignore bounds or
-constraints Method CG uses a nonlinear conjugate gradient algorithm by
-Polak and Ribiere, a variant of the Fletcher-Reeves method. Only the
-first derivatives are used.
+Conjugate Gradient (CG) Method
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+CG is an algorithm for the numerical solution of systems of linear equations whose matrices are symmetric and positive-definite.
+It is an *iterative algorithm* in that it uses an initial guess to generate a sequence of improving approximate solutions for a problems, in whicheach approximation is derived from the previous ones.  It is often used to solve unconstrained optimization problems, such as energy minimization.
 
 The following parameters are supported:
 
--  ``maxiter``\ =\ *integer, defaults to 20*
+-  The maximum number of iterations to perform:
 
-   Maximum number of iterations to perform.
+   .. code:: pyton
 
--  ``disp``\ =True\|\ **False**
+       maxiter : int
 
-   Set to True to print convergence messages.
+   An integer value is expected,  The default is ``20``.
 
--  ``gtol``\ =\ *number, defaults to 1e-05*
+-  A Boolean value indicating whether or not to print convergence messages:
 
-   Gradient norm must be less than gtol before successful termination.
+    .. code:: python
 
--  ``tol``\ =\ *number, optional, defaults to None*
+        disp : bool
 
-   Tolerance for termination
+   The default value is ``False``.
 
-COBYLA
-------
+-  A tolerance value that must be greater than the gradient norm before successful termination.
 
-It utilizes the scipy.optimize package:
-https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
+    .. code:: python
 
-Constrained Optimization By Linear Approximation algorithm.
+        gtol : float
 
-The following parameters are supported:
+   A number is expected here.  The default value is ``1e-05``.
 
--  ``maxiter``\ =\ *integer, defaults to 1000*
 
-   Maximum number of iterations to perform.
+-  The tolerance for termination:
 
--  ``disp``\ =True\|\ **False**
+    .. code::
 
-   Set to True to print convergence messages.
+        tol : number
 
--  ``rhobeg``\ =\ *number, defaults to 1.0*
+   This parameter is optional.  If specified, the value of this parameter must be a number, otherwise, it is  ``Nonw``.
+   The default is ``None``.
 
-   Reasonable initial changes to the variables.
+Constrained Optimization BY Linear Approximation (COBYLA)
+---------------------------------------------------------
+COBYLA is a numerical optimization method for constrained problems where the derivative of the objective function is not known.
+COBYLA supports the following parameters:
 
--  ``tol``\ =\ *number, optional, defaults to None*
+-  The maximum number of iterations to perform:
 
-   Tolerance for termination
+   .. code:: pyton
+
+       maxiter : int
+
+   An integer value is expected,  The default is ``1000``.
+
+-  A Boolean value indicating whether or not to print convergence messages:
+
+    .. code:: python
+
+        disp : bool
+
+   The default value is ``False``.
+
+-  Reasonable initial changes to the variable:
+
+   .. code:: python
+
+       rhobeg : float
+
+   The default value is ``1.0``.
+
+-  The tolerance for termination:
+
+    .. code::
+
+        tol : float
+
+   This parameter is optional.  If specified, the value of this parameter must be of type ``float``, otherwise, it is  ``Nonw``.
+   The default is ``None``.
 
 L_BFGS_B
 --------

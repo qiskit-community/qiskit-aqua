@@ -61,25 +61,25 @@ state <./initial_states.html>`__ may be supplied too.
 
 Additionally, VQE can be configured with the following parameters:
 
--  The mode used by the ``Operator`` class for the computation:
+-  A ``string`` indicating the mode used by the ``Operator`` class for the computation:
 
    .. code:: python
 
-       operator_mode = matrix | paulis | group_paulis
+       operator_mode : "matrix" | "paulis" | "group_paulis"
 
-   If no value for ``operator_mode`` ia specified, the default is ``matrix``. 
+   If no value for ``operator_mode`` ia specified, the default is ``"matrix"``. 
 
 -  The initial point for the search of the minimum eigenvalue:
 
    .. code:: python
 
-       initial_point = optional_array_of_numbers
+       initial_point : list of floats
 
-   An optional array of numbers may be provided as the starting point
+   An optional list of ``float`` values  may be provided as the starting point
    for the variational form.
-   The length of this array must match the number of the parameters expected by the variational form being used.
+   The length of this list must match the number of the parameters expected by the variational form being used.
 
-   If such array is not provided, VQE will create a random starting point for the
+   If such list is not provided, VQE will create a random starting point for the
    optimizer, with values randomly chosen to lie within the
    bounds of the variational form. If the variational form provides no lower bound, the VQE
    will default it to :math:`-2\pi`; if the upper bound is missing, the default value is :math:`2\pi`.
@@ -113,7 +113,7 @@ Dynamics can be configured with the following parameter settings:
 
    .. code:: python
    
-       evo_time = non_negative_number
+       evo_time : float
 
    A number is expected.  The minimum value is ``0.0``.  The default value is ``1.0``.
 
@@ -121,9 +121,9 @@ Dynamics can be configured with the following parameter settings:
 
    .. code:: python 
 
-       evo_mode = matrix | circuit
+       evo_mode = "matrix" | "circuit"
 
-   Two string values are permitted: ``matrix`` or ``circuit``, with ``circuit`` being the default.
+   Two ``string`` values are permitted: ``"matrix"`` or ``"circuit"``, with ``"circuit"`` being the default.
 
 -  The number of time slices: 
 
@@ -131,24 +131,25 @@ Dynamics can be configured with the following parameter settings:
 
        num_time_slices = 0 | 1 | ...
    
-   This has to be a non-negative  integer.  The default value is ``1``.
+   This has to be a non-negative ``int`` value.  The default is ``1``.
 
 -  Paulis grouping mode:
 
    .. code:: python
 
-       paulis_grouping = default | random
+       paulis_grouping = "default" | "random"
 
-   Two string values are permitted: ``default`` or ``random``, with ``default`` being the default and indicating that the paulis should be grouped.
+   Two ``string`` values are permitted: ``"default"`` or ``"random"``, with ``"default"`` being the default and indicating
+   that the paulis should be grouped.
 
 -  The expansion mode: 
 
    .. code:: python
 
-       expansion_mode = trotter | suzuki
+       expansion_mode = "trotter" | "suzuki"
 
-   Two string values are permitted: ``trotter`` (Lloyd's method) or ``suzuki`` (for Trotter-Suzuki expansion),
-   with  ``trotter`` being the default one.
+   Two ``string`` values are permitted: ``"trotter"`` (Lloyd's method) or ``"suzuki"`` (for Trotter-Suzuki expansion),
+   with  ``"trotter"`` being the default one.
 
 -  The expansion order:
 
@@ -156,7 +157,7 @@ Dynamics can be configured with the following parameter settings:
 
        expansion_order = 1 | 2 | ...
 
-   This parameter sets the Trotter-Suzuki expansion order.  A positive integer value is expected.  The default value is ``2``.
+   This parameter sets the Trotter-Suzuki expansion order.  A positive ``int`` value is expected.  The default value is ``2``.
 
 .. topic:: Declarative Name
 
@@ -197,24 +198,25 @@ QPE is also configured with the following parameter settings:
 
        num_time_slices = 0 | 1 | ...
 
-   This has to be a non-negative integer.  The default value is ``1``.
+   This has to be a non-negative ``int`` value.  The default value is ``1``.
 
 -  Paulis grouping mode:
 
    .. code:: python
 
-       paulis_grouping = default | random
+       paulis_grouping = "default" | "random"
 
-   Two string values are permitted: ``default`` or ``random``, with ``default`` being the default and indicating that the paulis should be grouped.
+   Two string values are permitted: ``"default"`` or ``"random"``, with ``"default"``
+   being the default and indicating that the paulis should be grouped.
 
 -  The expansion mode:
 
    .. code:: python
 
-       expansion_mode = trotter | suzuki
+       expansion_mode = "trotter" | "suzuki"
 
-   Two string values are permitted: ``trotter`` (Lloyd's method) or ``suzuki`` (for Trotter-Suzuki expansion),
-   with  ``trotter`` being the default one.
+   Two ``string`` values are permitted: ``"trotter"`` (Lloyd's method) or ``"suzuki"`` (for Trotter-Suzuki expansion),
+   with  ``"trotter"`` being the default one.
 
 -  The expansion order:
 
@@ -222,7 +224,7 @@ QPE is also configured with the following parameter settings:
 
        expansion_order = 1 | 2 | ...
 
-   This parameter sets the Trotter-Suzuki expansion order.  A positive integer is expected.  The default value is ``2``.
+   This parameter sets the Trotter-Suzuki expansion order.  A positive ``int`` value is expected.  The default value is ``2``.
 
 -  The number of ancillae:
 
@@ -230,7 +232,8 @@ QPE is also configured with the following parameter settings:
 
        num_ancillae = 1 | 2 | ...
 
-   This parameter sets the number of ancillary qubits to be used by QPE.  A positive integer is expected.  The default value is ``1``.
+   This parameter sets the number of ancillary qubits to be used by QPE.  A positive ``int`` value is expected.
+   The default value is ``1``.
 
 .. topic:: Declarative Name
 
@@ -248,7 +251,7 @@ IQPE, as its name
 suggests, iteratively computes the phase so as to require less qubits.
 It takes in the same set of parameters as :ref:`Quantum Phase Estimation (QPE)`, except for the number of
 ancillary qubits ``num_ancillae``, which is replaced by
-``num_iterations`` (a positive integer, also defaulted to ``1``), and for the fact that an `IQFT <./iqfts.html>`__ is not
+``num_iterations`` (a positive ``int``, also defaulted to ``1``), and for the fact that an `IQFT <./iqfts.html>`__ is not
 used for IQPE.
 
 .. note::
@@ -334,7 +337,7 @@ SVM Q Kernel can be configured with the following parameter:
 
    .. code:: python
 
-       print_info = True | False
+       print_info : bool
 
    A Boolean value is expected.  The default is ``False``.
 
@@ -371,7 +374,7 @@ SVM_Variational can be configured with the following parameters:
 
    .. code:: python
 
-       print_info = True | False
+       print_info : bool
 
    A Boolean value is expected.  The default is ``False``.
 
@@ -411,7 +414,7 @@ It can be configured with the following parameter:
 
        k = 1 | 2 | ... | n
 
-   An integer ``k`` in the range :math:`[1,n]` is expected. The default is ``1``.
+   An ``int`` value ``k`` in the range :math:`[1,n]` is expected. The default is ``1``.
 
 .. topic:: Declarative Name
 
@@ -441,7 +444,7 @@ CPLEX can be configured with the following parameters:
 
        timelimit = 1 | 2 | ...
 
-   A positive integer is expected.  The default value is `600`.
+   A positive ``int`` val;ue is expected.  The default value is `600`.
 
 -  The number of threads that CPLEX uses:
 
@@ -449,7 +452,7 @@ CPLEX can be configured with the following parameters:
 
        thread = 0 | 1 | 2 | ...
 
-   A non-negative integer is expected. Setting ``thread`` to ``0`` lets CPLEX decide the number of threads to allocate, but this may
+   A non-negative ``int`` value is expected. Setting ``thread`` to ``0`` lets CPLEX decide the number of threads to allocate, but this may
    not be ideal for small problems.  Any value
    greater than ``0`` specifically sets the thread count.  The default value is ``1``, which is ideal for small problems.
 
@@ -459,7 +462,7 @@ CPLEX can be configured with the following parameters:
 
        display = 0 | 1 | 2 | 3 | 4 | 5
 
-   An integer between ``0`` and ``5`` is expected.
+   An ``int`` value between ``0`` and ``5`` is expected.
    The amount of information displayed increases with increasing values of this parameter.
    By default, this value is set to ``2``.
 
@@ -484,7 +487,7 @@ SVM RBF Kernel can be configured with the following parameter:
 
    .. code:: python
 
-       print_info = True | False
+       print_info : bool
 
    A Boolean value is expected.  The default is ``False``.
 
