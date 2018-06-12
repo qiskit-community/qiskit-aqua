@@ -284,7 +284,7 @@ SVM_RBF_Kernel supports the problems: `svm_classification`
 
 SVM_RBF_Kernel can be configured with the following parameters:
 
-* `gamma`=**None**
+* `gamma`=*A number, default None*
 
   Gamma value used in the rbf kernel.
 
