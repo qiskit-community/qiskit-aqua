@@ -59,12 +59,10 @@ class TestIQPE(QISKitAcquaChemistryTestCase):
         self.reference_energy = results['energy']
         self.log.debug('The exact ground state energy is: {}'.format(results['energy']))
 
-
         num_particles = self.molecule._num_alpha + self.molecule._num_beta
         two_qubit_reduction = True
         num_orbitals = self.qubitOp.num_qubits + (2 if two_qubit_reduction else 0)
         qubit_mapping = 'parity'
-
 
         num_time_slices = 100
         num_iterations = 12
