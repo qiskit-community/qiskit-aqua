@@ -175,7 +175,7 @@ is relative to the highest orbital and will always refer to the highest two orbi
 #### ALGORITHM
 
 ALGORITHM is an optional section that allows you to define which quantum algorithm will be used by the computation.
-Algorithms are provided by [QISKIt ACQUA](https://github.ibm.com/IBMQuantum/qiskit-acqua/blob/master/qiskit_acqua/README.md)
+Algorithms are provided by [QISKIt ACQUA](https://github.com/IBMQuantum/qiskit-acqua/blob/master/qiskit_acqua/README.md)
 The algorithm defaults to VQE (Variational Quantum Eigensolver), with a set of default parameters. 
 
 According to each ALGORITHM you may add further sections to optionally configure the algorithm further. These sections
@@ -204,7 +204,7 @@ variational forms that are used by VQE.
 ``` 
 
 For more information on algorithms, and any pluggable entities it may use, see
-[QISKit ACQUA](https://github.ibm.com/IBMQuantum/qiskit-acqua/blob/master/qiskit_acqua/README.md) for more specifics 
+[QISKit ACQUA](https://github.com/IBMQuantum/qiskit-acqua/blob/master/qiskit_acqua/README.md) for more specifics 
 about them and their configuration options.
 
 
@@ -212,13 +212,13 @@ about them and their configuration options.
 
 BACKEND is an optional section that includes naming the [QISKit](https://www.qiskit.org/) quantum computational
 backend to be used for the quantum algorithm computation. This defaults to a local quantum simulator backend. See
-[QISKit ACQUA](https://github.ibm.com/IBMQuantum/qiskit-acqua/blob/master/qiskit_acqua/README.md#backend) for more
+[QISKit ACQUA](https://github.com/IBMQuantum/qiskit-acqua/blob/master/qiskit_acqua/README.md#backend) for more
 information. 
 
 #### PROBLEM
 
 PROBLEM is an optional section that includes the overall problem being solved and overall problem level configuration
-See [QISKit ACQUA](https://github.ibm.com/IBMQuantum/qiskit-acqua/blob/master/qiskit_acqua/README.md#problem) for more
+See [QISKit ACQUA](https://github.com/IBMQuantum/qiskit-acqua/blob/master/qiskit_acqua/README.md#problem) for more
 information.
 
 This is the same PROBLEM specification but 
@@ -245,7 +245,7 @@ This is the same PROBLEM specification but
   
 * `random_seed`=*An integer, default None*  
   
-   See [QISKit ACQUA](https://github.ibm.com/IBMQuantum/qiskit-acqua/blob/master/qiskit_acqua/README.md#problem)
+   See [QISKit ACQUA](https://github.com/IBMQuantum/qiskit-acqua/blob/master/qiskit_acqua/README.md#problem)
    `random_seed` for more information.  
 
 ## Developers

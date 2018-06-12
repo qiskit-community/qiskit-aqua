@@ -3,7 +3,7 @@
 `QISKit ACQUA Chemistry` is a set of tools, algorithms and software for use with quantum computers
 to carry out research and investigate how to take advantage of quantum computing power to solve chemistry
 problems. QISKit ACQUA Chemistry translates chemistry-specific problem inputs into inputs for a quantum algorithm
-supplied by [QISKit ACQUA](https://github.ibm.com/IBMQuantum/qiskit-acqua), which then in turn uses
+supplied by [QISKit ACQUA](https://github.com/IBMQuantum/qiskit-acqua), which then in turn uses
 [QISKit](https://www.qiskit.org/) for the actual quantum computation. 
 
 QISKit ACQUA Chemistry allows users with different levels of experience to execute chemistry experiments and 
@@ -19,7 +19,7 @@ Once you have it installed you can experiment with the library using either the 
 
 More advanced users and [developers](qiskit_acqua_chemistry#developers) may wish to develop and add their own
 algorithms or other code. Algorithms and supporting components may be added to
-[QISKit ACQUA](https://github.ibm.com/IBMQuantum/qiskit-acqua) which was designed with an extensible, pluggable
+[QISKit ACQUA](https://github.com/IBMQuantum/qiskit-acqua) which was designed with an extensible, pluggable
 framework. QISKit ACQUA Chemistry utilizes a similar framework for drivers and the core computation.
 
 **If you'd like to contribute to QISKit ACQUA Chemistry, please take a look at our**
@@ -37,7 +37,7 @@ Links to Sections:
 ### Dependencies
 
 As QISKit ACQUA Chemistry is built upon QISKit ACQUA you are encouraged to look over the 
-[QISKit ACQUA installation](https://github.ibm.com/IBMQuantum/qiskit-acqua/blob/master/README.md#installation) too.
+[QISKit ACQUA installation](https://github.com/IBMQuantum/qiskit-acqua/blob/master/README.md#installation) too.
 
 Like QISKit ACQUA at least [Python 3.5 or later](https://www.python.org/downloads/) is needed to use
 QISKit ACQUA Chemistry.
@@ -122,11 +122,11 @@ to run the experiment and return the result.
 solver = ACQUAChemistry()
 result = solver.run(acqua_chemistry_dict)
 ```
-The [acqua_chemistry_howto](https://github.ibm.com/IBMQuantum/qiskit-acqua-chemistry/blob/master/examples/acqua_chemistry_howto.ipynb)
+The [acqua_chemistry_howto](https://github.com/IBMQuantum/qiskit-acqua-chemistry/blob/master/examples/acqua_chemistry_howto.ipynb)
 notebook details this simple example. 
 
 Since the Python dictionary can be updated programmatically it is possible to carry out more complicated experiments
-such as plotting a [disocciation curve](https://github.ibm.com/IBMQuantum/qiskit-acqua-chemistry/blob/master/examples/lih_uccsd.ipynb)
+such as plotting a [disocciation curve](https://github.com/IBMQuantum/qiskit-acqua-chemistry/blob/master/examples/lih_uccsd.ipynb)
 
 
 ## Authors
