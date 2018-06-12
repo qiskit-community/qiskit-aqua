@@ -1087,7 +1087,6 @@ class Operator(object):
         # for each pauli [IXYZ]+, record the highest index of the nontrivial pauli gate (X,Y, or Z)
         top_XYZ_pauli_indices = [-1] * len(slice_pauli_list)
 
-        # for cur_slice in range(num_time_slices):
         for pauli_idx, pauli in enumerate(reversed(slice_pauli_list)):
             # changes bases if necessary
             nontrivial_pauli_indices = []
@@ -1177,8 +1176,9 @@ class Operator(object):
                             qc.u3(-pi / 2, -pi / 2, pi / 2, state_registers[qubit_idx])
                         else:
                             qc.rx(-pi / 2, state_registers[qubit_idx])
-
-        return reduce(QuantumCircuit.__add__, [qc] * num_time_slices)
+        # repeat the slice
+        qc.data *= num_time_slices
+        return qc
 
     @staticmethod
     def _suzuki_expansion_slice_matrix(pauli_list, lam, expansion_order):
