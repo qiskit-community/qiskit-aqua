@@ -7,8 +7,7 @@ These optimizers are based on the open-source [NLOpt](https://nlopt.readthedocs.
 
 # Optimizers
 
-Optimizers may be used in variational algorithms, such as [VQE](../../../../qiskit_acqua#vqe)
-and [VQkE](../../../../qiskit_acqua#vqke).
+Optimizers may be used in variational algorithms, such as [VQE](../../../../qiskit_acqua#vqe).
  
 The following optimizers are supplied here. These are global optimizers:
 

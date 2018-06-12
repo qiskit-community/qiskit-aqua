@@ -22,7 +22,6 @@ Links to Sections:
 The following quantum algorithms are part of the library:
 
 * [VQE](#vqe): Variational Quantum Eigensolver 
-* [VQkE](#vqke): Variational Quantum k-Eigensolver 
 * [QPE](#qpe): Quantum Phase Estimation 
 * [IQPE](#iqpe): Iterative Quantum Phase Estimation 
 * [Dynamics](#dynamics): Quantum Dynamics evolution
@@ -65,42 +64,6 @@ VQE can be configured with the following parameters:
   lie within the bounds of the variational form. If the variational form provides None back for any or all elements
   of its bounds then VQE will default that aspect of the bound to the range -2pi to 2pi and the corresponding value
   for the point will be randomly generated in this default range.  
-
-
-## VQkE
-
-VQkE, the Variational Quantum k-Eigensolver algorithm, is a variant of [VQE](#vqe) that, in addition to finding the
-minimum eignevalue, can also find the next k-1 lowest eigenvalues. Like VQE, it is configured with a trial wavefunction,
-supplied by a [variational form](./utils/variational_forms/README.md), and an [optimizer](./utils/optimizers/README.md).
-An [initial state](./utils/initial_states/README.md) may be supplied too.    
-
-VQkE supports the problems: `energy`, `excited_states` and `ising`
-
-VQkE can be configured with the following parameters:
-
-* See [VQE](#vqe) for common parameter settings
-
-* `k`=*integer 1 to n, default 1*
-
-  Returns up to k smallest eigenvalues. k defaults to 1, in which case VQkE coincides with VQE.
-
-* `eigval_bounds`=optional array of pairs
-
-  A list of k pairs of floats indicating lower and upper bounds for the desired eigenvalues.
-
-* `penalty_factor`=*number, default 100*
-
-  A penalty factor for condition number of the eigenvalue in the objective function of the
-  metalevel search problem, and for violating the bounds on the eigenvalue.
-
-* `norm_threshold`=*number, default 1e-04*
-
-  Minimum value of `|<psi|H^2|psi> - <psi|H|psi>^2|` before we start penalizing it in the objective function
-
-* `gap_lb`=*number, default 0.1*
-
-  Lower bound on gap between eigenvalues.
-
 
 ## Dynamics
 
@@ -398,7 +361,7 @@ the pattern that will be described and by simply adding the new code to set of e
 recognized and be made available for use within the framework of QISKit ACQUA.
 
 To develop/deploy here any new algorithms the new class and module(s) should be under their own folder here in
-*qiskit_acqua*, like the existing algorithms, vqe, vqke etc., and should derive from QuantumAlgorithm class. 
+*qiskit_acqua*, like the existing algorithms, vqe etc., and should derive from QuantumAlgorithm class. 
 
 The [utils](./utils/README.md) folder here has common utility classes and other pluggable entities that may be used by the
 algorithms

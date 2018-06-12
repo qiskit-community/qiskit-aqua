@@ -160,7 +160,7 @@ number of parameters it has and the bounds of these e.g.
    self._num_parameters = num_qubits * (depth + 1)
    self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 ```
-These values will later be used by VQE and VQKE in conjunction with the optimizer. The variational form can also
+These values will later be used by VQE in conjunction with the optimizer. The variational form can also
 indicate a preferred initial point. VQE will take an optional initial point from the user, if the user does not supply
 one the it will look to the variational form for a preferred value. If this returns none then a random point will be
 generated within the parameter bounds set, as per above. Finally should the variational form return `(None, None)` then
