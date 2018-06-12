@@ -18,12 +18,10 @@
 import unittest
 from parameterized import parameterized
 from qiskit_acqua import get_algorithm_instance, get_initial_state_instance, get_iqft_instance, Operator
-from qiskit_acqua.utils.subsystem import get_subsystem_fidelity
 from qiskit_acqua.utils import decimal_to_binary
 import numpy as np
 from test.common import QISKitAcquaTestCase
-from qiskit.wrapper import execute as q_execute
-from qiskit import QuantumCircuit, QuantumRegister
+from scipy.linalg import expm
 
 
 X = np.array([[0, 1], [1, 0]])
@@ -66,15 +64,15 @@ class TestQPE(QISKitAcquaTestCase):
         w = results['eigvals']
         v = results['eigvecs']
 
-        # self.qubitOp._check_representation('matrix')
-        # np.testing.assert_almost_equal(
-        #     self.qubitOp.matrix @ v[0],
-        #     w[0] * v[0]
-        # )
-        # np.testing.assert_almost_equal(
-        #     expm(-1.j * self.qubitOp.matrix) @ v[0],
-        #     np.exp(-1.j * w[0]) * v[0]
-        # )
+        self.qubitOp._check_representation('matrix')
+        np.testing.assert_almost_equal(
+            self.qubitOp.matrix @ v[0],
+            w[0] * v[0]
+        )
+        np.testing.assert_almost_equal(
+            expm(-1.j * self.qubitOp.matrix) @ v[0],
+            np.exp(-1.j * w[0]) * v[0]
+        )
 
         self.ref_eigenval = w[0]
         self.ref_eigenvec = v[0]
@@ -101,36 +99,11 @@ class TestQPE(QISKitAcquaTestCase):
             use_basis_gates=False
         )
 
-        # check that controlled-U's don't alter the quantum state
-        qpe._setup_qpe()
-        qc = QuantumCircuit(
-            qpe._circuit_components['registers']['a'],
-            qpe._circuit_components['registers']['q']
-        )
-        qc += qpe._circuit_components['state_init']
-        qc += qpe._circuit_components['ancilla_superposition']
-        qc += qpe._circuit_components['phase_kickback']
-        # self.log.debug('Phase kickback circuit:\n\n{}'.format(qc.qasm()))
-        vec_qpe = np.asarray(q_execute(qc, 'local_statevector_simulator').result().get_statevector(qc))
-
-        qc = qpe._circuit_components['state_init']
-        # self.log.debug('Initial quantum state circuit:\n\n{}'.format(qc.qasm()))
-        vec_init = np.asarray(q_execute(qc, 'local_statevector_simulator').result().get_statevector(qc))
-        # self.log.debug('Full quantum state vector after phase kickback: {}'.format(vec_qpe))
-        # self.log.debug('Concise quantum state vector after initialization: {}'.format(vec_init))
-        fidelity = get_subsystem_fidelity(vec_qpe, range(n_ancillae), vec_init)
-        self.log.debug('Quantum state fidelity after phase kickback: {}'.format(fidelity))
-        # np.testing.assert_approx_equal(fidelity, 1, 4)
-
-        # run the complete qpe
+        # run qpe
         result = qpe.run()
-        self.log.debug('operator paulis:\n{}'.format(self.qubitOp.print_operators('paulis')))
-        # self.log.debug('qpe circuit:\n\n{}'.format(result['circuit']['complete'].qasm()))
-        # qft_q = QuantumRegister(n_ancillae, 'a')
-        # qft_qc = QuantumCircuit(qft_q)
-        # qft(qft_qc, qft_q, n_ancillae)
-        # self.log.debug('size {} qft circuit:\n\n{}'.format(n_ancillae, qft_qc.qasm()))
+        # self.log.debug('transformed operator paulis:\n{}'.format(self.qubitOp.print_operators('paulis')))
 
+        # report result
         self.log.debug('measurement results:          {}'.format(result['measurements']))
         self.log.debug('top result str label:         {}'.format(result['top_measurement_label']))
         self.log.debug('top result in decimal:        {}'.format(result['top_measurement_decimal']))
