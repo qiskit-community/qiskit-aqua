@@ -86,7 +86,7 @@ class TestIQPE(QISKitAcquaTestCase):
         )
 
         result = iqpe.run()
-        self.log.debug('operator paulis:\n{}'.format(self.qubitOp.print_operators('paulis')))
+        # self.log.debug('operator paulis:\n{}'.format(self.qubitOp.print_operators('paulis')))
         # self.log.debug('qpe circuit:\n\n{}'.format(result['circuit']['complete'].qasm()))
 
         self.log.debug('top result str label:         {}'.format(result['top_measurement_label']))
