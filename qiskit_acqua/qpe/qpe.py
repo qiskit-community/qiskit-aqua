@@ -111,7 +111,7 @@ class QPE(QuantumAlgorithm):
         self._expansion_mode = None
         self._expansion_order = None
         self._num_ancillae = 0
-        self._use_basis_gates = False
+        self._use_basis_gates = None
         self._ancilla_phase_coef = 1
         self._circuit = None
         self._ret = {}
