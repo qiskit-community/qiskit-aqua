@@ -174,15 +174,13 @@ class QPE(QuantumAlgorithm):
         a = QuantumRegister(self._num_ancillae, name='a')
         c = ClassicalRegister(self._num_ancillae, name='c')
         q = QuantumRegister(self._operator.num_qubits, name='q')
-        self._circuit_components = {}
-        self._circuit_components['registers'] = {'a': a, 'q': q, 'c': c}
+        qc = QuantumCircuit(a, q, c)
 
-        self._circuit_components['state_init'] = self._state_in.construct_circuit('circuit', q)
+        # initialize state_in
+        qc += self._state_in.construct_circuit('circuit', q)
 
-        # # Put all ancillae in uniform superposition
-        qc = QuantumCircuit(a)
+        # Put all ancillae in uniform superposition
         qc.h(a)
-        self._circuit_components['ancilla_superposition'] = qc
 
         # phase kickbacks via dynamics
         pauli_list = self._operator.reorder_paulis(grouping=self._paulis_grouping)
@@ -199,7 +197,6 @@ class QPE(QuantumAlgorithm):
                 )
             else:
                 raise ValueError('Unrecognized expansion mode {}.'.format(self._expansion_mode))
-        qc = QuantumCircuit(a, q)
         for i in range(self._num_ancillae):
             qc += self._operator.construct_evolution_circuit(
                 slice_pauli_list, -2 * np.pi, self._num_time_slices, q, a, ctl_idx=i,
@@ -208,27 +205,13 @@ class QPE(QuantumAlgorithm):
             # global phase shift for the ancilla due to the identity pauli term
             qc.u1(2 * np.pi * self._ancilla_phase_coef * (2 ** i), a[i])
 
-        self._circuit_components['phase_kickback'] = qc
-
-        qc = QuantumCircuit(a)
         # inverse qft on ancillae
-        # qc.swap(a[0], a[1])
-        # QPE.qft(qc, a, self._num_ancillae)
         self._iqft.construct_circuit('circuit', a, qc)
-        self._circuit_components['iqft'] = qc
 
         # measuring ancillae
-        qc = QuantumCircuit(c, a)
         qc.measure(a, c)
-        self._circuit_components['measure'] = qc
 
-        self._circuit = reduce(
-            QuantumCircuit.__add__,
-            [
-                self._circuit_components[component]
-                for component in ['state_init', 'ancilla_superposition', 'phase_kickback', 'iqft', 'measure']
-            ]
-        )
+        self._circuit = qc
 
     def _setup_qpe(self):
         self._operator._check_representation('paulis')
