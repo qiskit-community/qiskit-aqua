@@ -123,7 +123,7 @@ Dynamics can be configured with the following parameter settings:
 
        evo_mode = matrix | circuit
 
-   Two ``string`` values are permitted: ``matrix`` or ``circuit``, with ``circuit`` being the default.
+   Two string values are permitted: ``matrix`` or ``circuit``, with ``circuit`` being the default.
 
 -  The number of time slices: 
 
@@ -139,7 +139,7 @@ Dynamics can be configured with the following parameter settings:
 
        paulis_grouping = default | random
 
-   Two ``string`` values are permitted: ``default`` or ``random``, with ``default`` being the default and indicating that the paulis should be grouped.
+   Two string values are permitted: ``default`` or ``random``, with ``default`` being the default and indicating that the paulis should be grouped.
 
 -  The expansion mode: 
 
@@ -147,7 +147,7 @@ Dynamics can be configured with the following parameter settings:
 
        expansion_mode = trotter | suzuki
 
-   Two ``string`` values are permitted: ``trotter`` (Lloyd's method) or ``suzuki`` (for Trotter-Suzuki expansion),
+   Two string values are permitted: ``trotter`` (Lloyd's method) or ``suzuki`` (for Trotter-Suzuki expansion),
    with  ``trotter`` being the default one.
 
 -  The expansion order:
@@ -205,7 +205,7 @@ QPE is also configured with the following parameter settings:
 
        paulis_grouping = default | random
 
-   Two ``string`` values are permitted: ``default`` or ``random``, with ``default`` being the default and indicating that the paulis should be grouped.
+   Two string values are permitted: ``default`` or ``random``, with ``default`` being the default and indicating that the paulis should be grouped.
 
 -  The expansion mode:
 
@@ -213,7 +213,7 @@ QPE is also configured with the following parameter settings:
 
        expansion_mode = trotter | suzuki
 
-   Two ``string`` values are permitted: ``trotter`` (Lloyd's method) or ``suzuki`` (for Trotter-Suzuki expansion),
+   Two string values are permitted: ``trotter`` (Lloyd's method) or ``suzuki`` (for Trotter-Suzuki expansion),
    with  ``trotter`` being the default one.
 
 -  The expansion order:
