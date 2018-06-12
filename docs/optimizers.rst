@@ -25,9 +25,9 @@ Local Optimizers
 ----------------
 
 This section presents the local optimizers made available in QISKit ACQUA, and meant to be used in conjunction with a quantum variational
-algorithms.  Theae optimizers are based on the ``scipy.optimize.minimize`` optimization function in 
+algorithms.  Except for :ref:`Parallel Broyden-Fletcher-Goldfarb-Shann (P-BFGS)`, all hese optimizers are directly based on the ``scipy.optimize.minimize`` optimization function in 
 `SciPy.org <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html>`__.
-They all have a common pattern for parameters. Specifically, The ``tol`` parameter, whose value
+They all have a common pattern for parameters. Specifically, the ``tol`` parameter, whose value
 must be a ``float`` indicating *tolerance for termination*,
 is from the ``scipy.optimize.minimize``  method itself, while the remaining parameters are
 from the `options
@@ -47,7 +47,7 @@ The following parameters are supported:
 
        maxiter : int
 
-   An integer value is expected,  The default is ``20``.
+   The default is ``20``.
 
 -  A Boolean value indicating whether or not to print convergence messages:
 
@@ -63,7 +63,7 @@ The following parameters are supported:
 
         gtol : float
 
-   A number is expected here.  The default value is ``1e-05``.
+   The default value is ``1e-05``.
 
 
 -  The tolerance for termination:
@@ -75,18 +75,23 @@ The following parameters are supported:
    This parameter is optional.  If specified, the value of this parameter must be a number, otherwise, it is  ``Nonw``.
    The default is ``None``.
 
+.. topic:: Declarative Name
+
+   When referring to CG declaratively inside QISKit ACQUA, its code ``name``, by which QISKit ACQUA dynamically discovers and loads it,
+   is ``CG``.
+
 Constrained Optimization BY Linear Approximation (COBYLA)
----------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 COBYLA is a numerical optimization method for constrained problems where the derivative of the objective function is not known.
 COBYLA supports the following parameters:
 
 -  The maximum number of iterations to perform:
 
-   .. code:: pyton
+   .. code:: python
 
        maxiter : int
 
-   An integer value is expected,  The default is ``1000``.
+   The default is ``1000``.
 
 -  A Boolean value indicating whether or not to print convergence messages:
 
@@ -110,249 +115,429 @@ COBYLA supports the following parameters:
 
         tol : float
 
-   This parameter is optional.  If specified, the value of this parameter must be of type ``float``, otherwise, it is  ``Nonw``.
+   This parameter is optional.  If specified, the value of this parameter must be of type ``float``, otherwise, it is  ``None``.
    The default is ``None``.
 
-L_BFGS_B
---------
+.. topic:: Declarative Name
 
-This utilizes the
-`scipy.optimize.fmin_l_bfgs_b <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.fmin_l_bfgs_b.html>`__
-optimizer as its core.
+   When referring to COBYLA declaratively inside QISKit ACQUA, its code ``name``, by which QISKit ACQUA dynamically discovers and loads it,
+   is ``COBYLA``.
+
+Limited-memory Broyden-Fletcher-Goldfarb-Shanno Bound (L-BFGS-B)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The target goal of L-BFGS-B is to minimize the value of a differentiable scalar function :math:`f`. 
+This optimizer is a *quasi-Newton method*, meaning tha, in contrast to *Newtons's method*, it 
+does not require :math:f's *Hessian* (the matrix of :math:`f`'s second derivatives)
+when attempting to compute :math:`f`'s minimum value.
+Like BFGS, L-BFGS is an iterative method for solving unconstrained, non-linear optimization problems, but approximates 
+BFGS using a limited amount of computer memory.
+L-BFGS starts with an initial estimate of the optimal value, and proceeds iteratively
+to refine that estimate with a sequence of better estimates.
+The derivatives of :math:`f` are used to identify the direction of steepest descent,
+and also to form an estimate of the Hessian matrix (second derivative) of :math:`f`.
+L-BFGS-B extends L-BFGS to handle simple, per-variable bound constraints. 
 
 The following parameters are supported:
 
--  ``maxfun``\ =\ *integer, defaults to 1000*
+-  The maximum number of function evaluations:
 
-   Maximum number of function evaluations
+    .. code:: python
 
--  ``factr``\ =\ *integer, defaults to 10*
+        maxfun : int
 
-   An iteration stopping parameter
+   The default is `` 1000``.
 
--  ``iprint``\ =\ *integer, defaults to -1*
+-  The maximum number of function evaluations:
 
-   Controls the frequency of printed output that shows optimizer
-   workings.
+    .. code:: python
+
+        maxfun : int
+
+   The default is `` 1000``.
+
+-  The maximum number of iterations:
+
+    .. code:: python
+
+        factr : int
+
+   The default is ``10``.
+
+-  An ``int`` value controlling the frequency of the printed output showing the  optimizer's
+   operations.
+
+    .. code:: python
+
+        iprint : int
+
+    The default is ``-1``.
 
 Further detailed information on *factr* and *iprint* may be found at
-`scipy.optimize.fmin_l_bfgs_b <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.fmin_l_bfgs_b.html>`__
+`scipy.optimize.fmin_l_bfgs_b <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.fmin_l_bfgs_b.html>`__.
 
-NELDER_MEAD
------------
+.. topic:: Declarative Name
 
-It utilizes the scipy.optimize package:
-https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
+   When referring to L-BFGS-B declaratively inside QISKit ACQUA, its code ``name``, by which QISKit ACQUA dynamically discovers and loads it,
+   is ``L_BFGS_B``.
 
-NELDER_MEAD algorithm: Unconstrained optimization. It will ignore bounds
-or constraints Method Nelder-Mead uses the Simplex algorithm. This
-algorithm is robust in many applications. However, if numerical
-computation of derivative can be trusted, other algorithms using the
+Nelder-Mead
+~~~~~~~~~~~
+
+The Nelder-Mead algorithm performs unnconstrained optimization; it ignores bounds
+or constraints.  It is used to find the minimum or maximum of an objective function
+in a multidimensional space.  It is based on the Simplex algorithm. Nelder-Mead
+is robust in many applications, especially when the first and second derivativerds of the 
+objective function are not known. However, if numerical
+computation of the derivatives can be trusted to be accurate, other algorithms using the
 first and/or second derivatives information might be preferred for their
-better performance in general.
+better performance in the general case, especially in consideration of the fact that
+the Nelder–Mead technique is a heuristic search method that can converge to non-stationary points.
 
 The following parameters are supported:
 
--  ``maxiter``\ =\ *integer, optional*
+-  The maximum number of iterations:
 
-   Maximum number of iterations to perform.
+    .. code:: python
 
--  ``maxfev``\ =\ *integer, defaults to 1000*
+        maxiter : int
 
-   Maximum number of functional evaluations to perform.
+   This parameter is optional.  If specified, the value of this parameter must be of type ``int``, otherwise, it is  ``None``.
+   The default is ``None``.
 
--  ``disp``\ =True\|\ **False**
+-  The maximum number of functional evaluations to perform:
 
-   Set to True to print convergence messages.
+    .. code:: python
 
--  ``xatol``\ =\ *number, defaults to 0.0001*
+        maxfev : int
 
-   Absolute error in xopt between iterations that is acceptable for
-   convergence.
+   The default is ``1000``.
 
--  ``tol``\ =\ *number, optional, defaults to None*
+-  A ``bool`` value indicating whether or not to print convergence messages:
 
-   Tolerance for termination
+    .. code:: python
 
-P_BFGS
-------
+        disp : bool
 
-This is a parallel use of `L_BFGS_B <#l_bfgs_b>`__ that can be useful
-when the target hardware is Quantum Simulators running on a classical
+   The default is ``False``.
+
+-  A tolerance parameter indicating the absolute error in ``xopt`` between iterations that will be considered acceptable
+   for convergence.
+
+    .. code:: python
+
+        xatol : float 
+
+   The default value is ``0.0001``.
+
+-  The tolerance for termination:
+
+    .. code::
+
+        tol : float
+
+   This parameter is optional.  If specified, the value of this parameter must be of type ``float``, otherwise, it is  ``None``.
+   The default is ``None``.
+
+.. topic:: Declarative Name
+
+   When referring to Nelder-Mead declaratively inside QISKit ACQUA, its code ``name``, by which QISKit ACQUA dynamically discovers and loads it,
+   is ``NELDER_MEAD``.
+
+Parallel Broyden-Fletcher-Goldfarb-Shann (P-BFGS)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+P-BFGS is a parallellized version of  :ref:`Limited-memory Broyden-Fletcher-Goldfarb-Shanno Bound (L-BFGS-B)`,
+with which it shares the same parameters.
+P-BFGS can be useful when the target hardware is a quantum simulator running on a classical
 machine. This allows the multiple processes to use simulation to
-potentially reach a minimum faster. It has the same parameters as
-`L_BFGS_B <#l_bfgs_b>`__ and additionally the following.
+potentially reach a minimum faster. The parallelization may help the optimizer avoid getting stuck
+at local mimima.  In addition to the parameters of
+L-BFGS-B, P-BFGS supports the following parameter:
 
--  ``max_processes``\ =\ *integer, optional, minimum value is 1*
+-  The maximum numer of processes spawned by P-BFGS:
 
-   By default P_BFGS will run one optimization in the current process
-   and spawn additional processes up to the number of processor cores.
-   An integer may be specified to limit the total number of processes
-   (cores) used.
+    .. code:: python
 
-   Note: the parallel processes do not currently work for this optimizer
-   on the Microsoft Windows platform. There it will just run the one
-   optimization in the main process and hence the resulting behavior
-   will be the same as the L_BFGS_B optimizer
+        max_processes = 1 | 2 | ...
 
-POWELL
-------
+   By default, P-BFGS runs one optimization in the current process
+   and spawns additional processes up to the number of processor cores.
+   An ``int`` value may be specified to limit the total number of processes
+   (or cores) used.  This parameter is optional.  If specified, the value of this parameter must be of type ``int``,
+   otherwise, it is ``None``.
+   The default is ``None``.
 
-It utilizes the scipy.optimize package:
-https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
+.. note::
+   The parallel processes do not currently work for this optimizer
+   on the Microsoft Windows platform. There, P-BFGS will just run the one
+   optimization in the main process, without spawning new processes.
+   Therefore, the resulting behavior
+   will be the same as the L-BFGS-B optimizer.
 
-POWELL algorithm: Unconstrained optimization. It will ignore bounds or
-constraints Method Powell is a modification of Powell’s method which is
-a conjugate direction method. It performs sequential one-dimensional
-minimization along each vector of the directions, which is updated at
-each iteration of the main minimization loop. The function need not be
+.. topic:: Declarative Name
+
+   When referring to P-BFGS declaratively inside QISKit ACQUA,
+   its code ``name``, by which QISKit ACQUA dynamically discovers and loads it,
+   is ``P_BFGS``.
+
+Powell
+~~~~~~
+
+The Powell algorithm performs unconstrained optimization; it ignores bounds or
+constraints. Powell is
+a *conjugate direction method*: it performs sequential one-dimensional
+minimization along each directional vector, which is updated at
+each iteration of the main minimization loop. The function being minimized need not be
 differentiable, and no derivatives are taken.
 
 The following parameters are supported:
 
--  ``maxiter``\ =\ *integer, optional*
+-  The maximum number of iterations:
 
-   Maximum number of iterations to perform.
+    .. code:: python
 
--  ``maxfev``\ =\ *integer, defaults to 1000*
+        maxiter : int
 
-   Maximum number of functional evaluations to perform.
+   This parameter is optional.  If specified, the value of this parameter must be of type ``int``, otherwise, it is  ``None``.
+   The default is ``None``.
 
--  ``disp``\ =True\|\ **False**
+-  The maximum number of functional evaluations to perform:
 
-   Set to True to print convergence messages.
+    .. code:: python
 
--  ``xtol``\ =\ *number, defaults to 0.0001*
+        maxfev : int
 
-   Relative error in solution xopt acceptable for convergence.
+   The default value is ``1000``.
 
--  ``tol``\ =\ *number, optional, defaults to None*
+-  A ``bool`` value indicating whether or not to print convergence messages:
 
-   Tolerance for termination
+    .. code:: python
 
-SLSQP
------
+        disp : bool
 
-It utilizes the scipy.optimize package:
-https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
+   The default is ``False``.
 
-Method SLSQP uses Sequential Least SQuares Programming to minimize a
+-  A tolerance parameter indicating the absolute error in ``xopt`` between iterations that will be considered acceptable
+   for convergence.
+
+    .. code:: python
+
+        xtol : float
+
+   The default value is ``0.0001``.
+
+-  The tolerance for termination:
+
+    .. code::
+
+        tol : float
+
+   This parameter is optional.  If specified, the value of this parameter must be of type ``float``, otherwise, it is  ``None``.
+   The default is ``None``.
+
+.. topic:: Declarative Name
+
+   When referring to Powell declaratively inside QISKit ACQUA, its code ``name``, by which QISKit ACQUA dynamically discovers and loads it,
+   is ``POWELL``.
+
+Sequential Least SQuares Programming (SLSQP)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+SLSQP minimizes a
 function of several variables with any combination of bounds, equality
 and inequality constraints. The method wraps the SLSQP Optimization
-subroutine originally implemented by Dieter Kraft. Note that the wrapper
+subroutine originally implemented by Dieter Kraft.
+SLSQP is ideal for  mathematical problems for which the objective function and the constraints are twice continuously differentiable.
+Note that the wrapper
 handles infinite values in bounds by converting them into large floating
 values.
 
 The following parameters are supported:
 
--  ``maxiter``\ =\ *integer, defaults to 100*
+-  The maximum number of iterations:
 
-   Maximum number of iterations to perform.
+    .. code:: python
 
--  ``disp``\ =True\|\ **False**
+        maxiter : int
 
-   Set to True to print convergence messages.
+   The default is ``100``.
 
--  ``ftol``\ =\ *number, defaults to 1e-06*
+-  A ``bool`` value indicating whether or not to print convergence messages:
 
-   Precision goal for the value of f in the stopping criterion.
+    .. code:: python
 
--  ``tol``\ =\ *number, optional, defaults to None*
+        disp : bool
 
-   Tolerance for termination
+   The default is ``False``.
 
-SPSA
-----
+-  A tolerance value indicating precision goal for the value of the objective function in the stopping criterion.
 
-Simultaneous Perturbation Stochastic Approximation algorithm.
+    .. code:: python
 
-This optimizer can be used in the presence of noise, such as measurement
-uncertainty on a Quantum computation, when finding a minimum. If you are
-using a qasm simulator or a real device this would be an optimum choice
-among the optimizers provided here.
+        gtol : float
 
-The optimization includes a calibration that will include additional
-functional evaluations to do this.
+   The default value is ``1e-06``.
 
-The following parameters are supported:
+-  The tolerance for termination:
 
--  ``max_trials``\ =\ *integer, defaults to 1000*
+    .. code::
 
-   Maximum number of trial steps for to be taken for the optimization.
-   There are two function evaluations per trial.
+        tol : number
 
--  ``save_steps``\ =\ *integer, defaults to 1*
+   This parameter is optional.  If specified, the value of this parameter must be a number, otherwise, it is  ``Nonw``.
+   The default is ``None``.
 
-   Stores optimization outcomes each ‘save_steps’ trial steps
+.. topic:: Declarative Name
 
--  ``last_avg``\ =\ *integer, defaults to 1*
+   When referring to SLSQP declaratively inside QISKit ACQUA, its code ``name``, by which QISKit ACQUA dynamically discovers and loads it,
+   is ``SLSQP``.
 
-   The number of last updates of the variables to average on for the
-   final objective function.
+Simultaneous Perturbation Stochastic Approximation (SPSA)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--  ``parameters``\ =\ *array of 5 numbers, optional, defaults to None*
+SPSA is an algorithmic method for optimizing systems with multiple unknown parameters.
+As an optimization method, it is appropriately suited to large-scale population models, adaptive modeling,and simulation optimization. Many examples are presented at the `SPSA Web site <http://www.jhuapl.edu/SPSA>`__.
+SPSA is a descent method capable of finding global minima,
+sharing this property with other methods as simulated annealing.
+Its main feature is the gradient approximation, which requires only two
+measurements of the objective function, regardless of the dimension of the optimization problem.
 
-   Control parameters for SPSA. The SPSA updates the parameters (theta)
-   for objective function (J) through the following equation at
-   iteration k.
+.. note::
+    SPSA can be used in the presence of noise, and it is therefore indicated in situations
+    involving measurement uncertainty on a quantum computation when finding a minimum. If you are
+    executing a variational algorithm using a Quantum ASseMbly Language (QASM) simulator or a real device,
+    SPSA would be the most  recommended choice among the optimizers provided here.
 
-      theta_{k+1} = theta_{k} + step_size \* gradient,
+The optimization process includes a calibration phase, which requires additional
+functional evaluations.  Overall, the following parameters are supported:
 
-   -  step_size = c0 \* (k + 1 + c4)^(-c2)
-   -  gradient = (J(theta_{k}+) - J(theta_{k}-)) \* delta / (2 \* c1 \*
-      (k+1)^(-c3))
+-  Maximum number of trial steps for to be taken for the optimization.
+   There are two function evaluations per trial:
 
-      -  theta_{k}+ = theta_{k} + c1 \* (k+1)^(-c3) \* delta; theta_{k}-
-         = theta_{k} - c1 \* (k+1)^(-c3) \* delta
+    .. code:: python
 
-   -  J(theta): objective value of theta
+        max_trials : int
+   
+   The default value is ``1000``.
 
-   c0 to c4 are the five control parameters.
+-  Am ``int`` value determining how often optimization outcomes should be stored during execution:
 
-   By default, c0 are calibrated through few evaluations on the
-   objective function with the initial theta. c1 to c4 are set as 0.1,
-   0.602, 0.101, 0.0, respectively.
+   .. code:: python
 
-TNC
----
+        save_steps : int
 
-It utilizes the scipy.optimize package:
-https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
+   SPSA will store optimization outcomes every ``save_steps`` trial steps.  The default value is ``1``.
 
-Method TNC uses a truncated Newton algorithm to minimize a function with
+-  The number of last updates of the variables to average on for the
+   final objective function:
+
+    .. code:: python
+
+        last_avg : int
+
+   The default value is ``1``.
+
+
+-  Control parameters for SPSA:
+
+    .. code:: python
+
+        parameters = list_of_5_numbers
+
+   This is an optional parameter, consisting of a list of 5 ``float`` elements.  The default value is ``None``. 
+   SPSA updates the parameters (``theta``)
+   for the objective function (``J``) through the following equation at
+   iteration ``k``:
+
+    .. code:: python
+        theta_{k+1} = theta_{k} + step_size * gradient
+        step_size = c0 * (k + 1 + c4)^(-c2)
+        gradient = (J(theta_{k}+) - J(theta_{k}-)) * delta / (2 * c1 * (k + 1)^(-c3))
+        theta_{k}+ = theta_{k} + c1 * ( k + 1)^(-c3) * delta
+        theta_{k}- = theta_{k} - c1 * ( k + 1)^(-c3) * delta
+
+   ``J(theta)`` is the  objective value of ``theta``. ``c0``, ``c1``, ``c2``, ``c3`` and ``c4`` are the five control parameters.
+   By default, ``c0`` is calibrated through a few evaluations on the
+   objective function with the initial ``theta``. ``c1``, ``c2``, ``c3`` and ``c4`` are set as ``0.1``,
+   ``0.602``, ``0.101``, ``0.0``, respectively.
+
+.. topic:: Declarative Name
+
+   When referring to SPSA declaratively inside QISKit ACQUA, its code ``name``, by which QISKit ACQUA dynamically discovers and loads it,
+   is ``SPSA``.
+
+
+Truncated Newton (TNC)
+~~~~~~~~~~~~~~~~~~~~~~
+TNC uses a truncated Newton algorithm to minimize a function with
 variables subject to bounds. This algorithm uses gradient information;
 it is also called Newton Conjugate-Gradient. It differs from the
-Newton-CG method described above as it wraps a C implementation and
+:ref:`Conjugate Gradient (CG) Method` method as it wraps a C implementation and
 allows each variable to be given upper and lower bounds.
 
 The following parameters are supported:
 
--  ``maxiter``\ =\ *integer, defaults to 100*
+-  The maximum number of iterations:
 
-   Maximum number of iterations to perform.
+    .. code:: python
 
--  ``disp``\ =True\|\ **False**
+        maxiter : int
 
-   Set to True to print convergence messages.
+   The default is ``100``.
 
--  ``accuracy``\ =\ *number, defaults to 0*
+-  A Boolean value indicating whether or not to print convergence messages:
 
-   Relative precision for finite difference calculations.
+    .. code:: python
 
--  ``ftol``\ =\ *number, defaults to -1*
+        disp : bool
 
-   Precision goal for the value of f in the stopping criterion.
+   The default value is ``False``.
 
--  ``xtol``\ =\ *number, defaults to -1*
+-  Relative precision for finite difference calculations:
 
-   Precision goal for the value of x in the stopping criterion (after
-   applying x scaling factors).
+    .. code:: python
 
--  ``gtol``\ =\ *number, defaults to -1*
+        accuracy : float
 
-   Precision goal for the value of the projected gradient in the
-   stopping criterion (after applying x scaling factors).
+   The default value is ``0.0``.
 
--  ``tol``\ =\ *number, optional, defaults to None*
+-  A tolerance value indicating the precision goal for the value of the objective function ``f`` in the stopping criterion.
 
-   Tolerance for termination
+    .. code:: python
+
+        ftol : float
+
+   The default value is ``-1``.
+
+-  A tolerance value indicating precision goal for the value of ``x`` in the stopping criterion, after applying ``x`` scaling factors.
+
+    .. code:: python
+
+        xtol : float
+
+   The default value is ``-1``.
+
+-  A tolerance value indicating precision goal for the value of the projected gradient ``g`` in the stopping criterion,
+   after applying ``x`` scaling factors.
+
+    .. code:: python
+
+        gtol : float
+
+   The default value is ``-1``.
+
+-  The tolerance for termination:
+
+    .. code::
+
+        tol : number
+
+   This parameter is optional.  If specified, the value of this parameter must be a number, otherwise, it is  ``Nonw``.
+   The default is ``None``
+
+.. topic:: Declarative Name
+
+   When referring to TNC declaratively inside QISKit ACQUA, its code ``name``, by which QISKit ACQUA dynamically discovers and loads it,
+   is ``TNC``.
+.
