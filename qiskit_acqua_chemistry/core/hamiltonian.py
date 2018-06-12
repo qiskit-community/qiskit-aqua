@@ -20,6 +20,7 @@ energy of the electrons and nuclei in a molecule.
 """
 
 from .chemistry_operator import ChemistryOperator
+from qiskit_acqua_chemistry import QMolecule
 from qiskit_acqua_chemistry.fermionic_operator import FermionicOperator
 from qiskit_acqua.input.energyinput import EnergyInput
 import numpy as np
@@ -261,13 +262,15 @@ class Hamiltonian(ChemistryOperator):
         # Ground state energy
         egse = algo_result['energy'] + self._energy_shift + self._ph_energy_shift
         result['energy'] = egse
-        lines = ['* Electronic ground state energy: {}'.format(egse)]
-        lines.append('  - computed part:      {}'.format(algo_result['energy']))
-        lines.append('  - frozen energy part: {}'.format(self._energy_shift))
-        lines.append('  - particle hole part: {}'.format(self._ph_energy_shift))
+        lines = ['=== GROUND STATE ENERGY ===']
+        lines.append(' ')
+        lines.append('* Electronic ground state energy (Hartree): {}'.format(round(egse, 12)))
+        lines.append('  - computed part:      {}'.format(round(algo_result['energy'], 12)))
+        lines.append('  - frozen energy part: {}'.format(round(self._energy_shift, 12)))
+        lines.append('  - particle hole part: {}'.format(round(self._ph_energy_shift, 12)))
         if self._nuclear_repulsion_energy is not None:
-            lines.append('~ Nuclear repulsion energy: {}'.format(self._nuclear_repulsion_energy))
-            lines.append('> Total ground state energy: {}'.format(self._nuclear_repulsion_energy + egse))
+            lines.append('~ Nuclear repulsion energy (Hartree): {}'.format(round(self._nuclear_repulsion_energy, 12)))
+            lines.append('> Total ground state energy (Hartree): {}'.format(round(self._nuclear_repulsion_energy + egse, 12)))
             if 'aux_ops' in algo_result and len(algo_result['aux_ops']) > 0:
                 aux_ops = algo_result['aux_ops'][0]
                 num_particles = aux_ops[0][0]
@@ -286,14 +289,17 @@ class Hamiltonian(ChemistryOperator):
             exste = [x + self._nuclear_repulsion_energy for x in exsce]
             result['energies'] = exste
             if len(exsce) > 1:
-                lines.append('> Excited states energies (plus ground): {}'.format(exste))
-                lines.append('    - computed: {}'.format(algo_result['energies']))
+                lines.append(' ')
+                lines.append('=== EXCITED STATES ===')
+                lines.append(' ')
+                lines.append('> Excited states energies (plus ground): {}'.format([round(x, 12) for x in exste]))
+                lines.append('    - computed: {}'.format([round(x, 12) for x in algo_result['energies']]))
                 if 'cond_number' in algo_result:  # VQKE condition num for eigen vals
                     lines.append('    - cond num: {}'.format(algo_result['cond_number']))
 
                 if 'aux_ops' in algo_result and len(algo_result['aux_ops']) > 0:
-                    lines.append(' ')
-                    lines.append('  ###:  Energy,            Computed,       # particles,   S         M')
+                    lines.append('  ......................................................................')
+                    lines.append('  ###:  Total Energy,      Computed,       # particles,   S         M')
                     for i in range(len(algo_result['aux_ops'])):
                         aux_ops = algo_result['aux_ops'][i]
                         num_particles = aux_ops[0][0]
@@ -315,17 +321,21 @@ class Hamiltonian(ChemistryOperator):
             _elec_dipole = np.array([dipole_moments_x + self._x_dipole_shift + self._ph_x_dipole_shift,
                                      dipole_moments_y + self._y_dipole_shift + self._ph_y_dipole_shift,
                                      dipole_moments_z + self._z_dipole_shift + self._ph_z_dipole_shift])
-            lines.append('* Electronic dipole moment: {}'.format(_elec_dipole))
-            lines.append('  - computed part:      {}'.format(np.array([dipole_moments_x, dipole_moments_y, dipole_moments_z])))
-            lines.append('  - frozen energy part: {}'.format(np.array([self._x_dipole_shift, self._y_dipole_shift, self._z_dipole_shift])))
-            lines.append('  - particle hole part: {}'.format(np.array([self._ph_x_dipole_shift, self._ph_y_dipole_shift, self._ph_z_dipole_shift])))
+            lines.append(' ')
+            lines.append('=== DIPOLE MOMENT ===')
+            lines.append(' ')
+            lines.append('* Electronic dipole moment (a.u.): {}'.format(Hamiltonian._dipole_to_string(_elec_dipole)))
+            lines.append('  - computed part:      {}'.format(Hamiltonian._dipole_to_string([dipole_moments_x, dipole_moments_y, dipole_moments_z])))
+            lines.append('  - frozen energy part: {}'.format(Hamiltonian._dipole_to_string([self._x_dipole_shift, self._y_dipole_shift, self._z_dipole_shift])))
+            lines.append('  - particle hole part: {}'.format(Hamiltonian._dipole_to_string([self._ph_x_dipole_shift, self._ph_y_dipole_shift, self._ph_z_dipole_shift])))
             if self._nuclear_dipole_moment is not None:
                 if self._reverse_dipole_sign:
                     _elec_dipole = -_elec_dipole
                 dipole_moment = self._nuclear_dipole_moment + _elec_dipole
                 total_dipole_moment = np.sqrt(np.sum(np.power(dipole_moment, 2)))
-                lines.append('~ Nuclear dipole moment: {}'.format(self._nuclear_dipole_moment))
-                lines.append('> Dipole moment: {}  Total: {}'.format(dipole_moment, total_dipole_moment))
+                lines.append('~ Nuclear dipole moment (a.u.): {}'.format(Hamiltonian._dipole_to_string(self._nuclear_dipole_moment)))
+                lines.append('> Dipole moment (a.u.): {}  Total: {}'.format(Hamiltonian._dipole_to_string(dipole_moment), Hamiltonian._float_to_string(total_dipole_moment)))
+                lines.append('               (debye): {}  Total: {}'.format(Hamiltonian._dipole_to_string(dipole_moment / QMolecule.DEBYE), Hamiltonian._float_to_string(total_dipole_moment / QMolecule.DEBYE)))
                 result['nuclear_dipole_moment'] = self._nuclear_dipole_moment
                 result['electronic_dipole_moment'] = _elec_dipole
                 result['dipole_moment'] = dipole_moment
@@ -350,3 +360,16 @@ class Hamiltonian(ChemistryOperator):
         if qubit_mapping == 'parity' and two_qubit_reduction:
             qubit_op = qubit_op.two_qubit_reduced_operator(num_particles)
         return qubit_op
+
+    @staticmethod
+    def _dipole_to_string(_dipole):
+        dips = [round(x, 8) for x in _dipole]
+        str = '['
+        for i in range(len(dips)):
+            str += Hamiltonian._float_to_string(dips[i])
+            str += '  ' if i < len(dips)-1 else ']'
+        return str
+
+    @staticmethod
+    def _float_to_string(f, precision=8):
+        return '0.0' if f == 0 else ('{:.' + str(precision) + 'f}').format(f).rstrip('0')
