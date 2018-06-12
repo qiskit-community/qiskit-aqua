@@ -63,7 +63,6 @@ class SVM_Variational(QuantumAlgorithm):
     def init_params(self, params, algo_input):
         SVMQK_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
 
-        num_of_qubits = SVMQK_params.get('num_of_qubits')
         circuit_depth = SVMQK_params.get('circuit_depth')
         print_info = SVMQK_params.get('print_info')
 

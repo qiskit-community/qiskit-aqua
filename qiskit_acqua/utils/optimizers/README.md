@@ -6,8 +6,7 @@ The *optimizers* folder here contains a variety of different optimizers for use 
 
 # Optimizers
 
-Optimizers may be used in variational algorithms, such as [VQE](../../../qiskit_acqua#vqe)
-and [VQkE](../../../qiskit_acqua#vqke). 
+Optimizers may be used in variational algorithms, such as [VQE](../../../qiskit_acqua#vqe). 
 
 The following optimizers are supplied here. These are all local optimizers:
 

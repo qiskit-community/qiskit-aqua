@@ -73,7 +73,7 @@ class TestIQPE(QISKitAcquaTestCase):
         num_iterations = 12
 
         iqpe = get_algorithm_instance('IQPE')
-        iqpe.setup_quantum_backend(backend='local_qasm_simulator', shots=1)
+        iqpe.setup_quantum_backend(backend='local_qasm_simulator', shots=100)
 
         state_in = get_initial_state_instance('CUSTOM')
         state_in.init_args(self.qubitOp.num_qubits, state_vector=self.ref_eigenvec)
@@ -86,7 +86,7 @@ class TestIQPE(QISKitAcquaTestCase):
         )
 
         result = iqpe.run()
-        self.log.debug('operator paulis:\n{}'.format(self.qubitOp.print_operators('paulis')))
+        # self.log.debug('operator paulis:\n{}'.format(self.qubitOp.print_operators('paulis')))
         # self.log.debug('qpe circuit:\n\n{}'.format(result['circuit']['complete'].qasm()))
 
         self.log.debug('top result str label:         {}'.format(result['top_measurement_label']))
