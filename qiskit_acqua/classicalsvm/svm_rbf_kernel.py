@@ -33,7 +33,7 @@ class SVM_RBF_Kernel(QuantumAlgorithm):
             'id': 'SVM_RBF_schema',
             'type': 'object',
             'properties': {
-                'gamme': {
+                'gamma': {
                     'type': ['number', 'null'],
                     'default': None
                 },
