@@ -139,7 +139,7 @@ class QuantumAlgorithm(ABC):
         self._qjob_config = {'timeout': timeout,
                              'wait': wait}
 
-        shots = 1 if 'statevector' in backend else 1024 if shots == 1 else shots
+        shots = 1 if 'statevector' in backend else shots
         noise_params = noise_params if 'simulator' in backend else None
 
         if backend.startswith('local'):
