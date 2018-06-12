@@ -14,12 +14,3 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-
-# hack untils qiskit-acqua is installable
-import os
-import sys
-
-qiskit_acqua_directory = os.path.dirname(os.path.realpath(__file__))
-qiskit_acqua_directory = os.path.join(qiskit_acqua_directory,'../../qiskit-acqua')
-sys.path.append(qiskit_acqua_directory)
-# ---

@@ -21,11 +21,6 @@ import os
 import sys
 
 sys.path.insert(0, os.path.abspath('..'))
-# hack untils qiskit-acqua is installable
-qiskit_acqua_directory = os.path.dirname(os.path.realpath(__file__))
-qiskit_acqua_directory = os.path.join(qiskit_acqua_directory,'../../qiskit-acqua')
-sys.path.append(qiskit_acqua_directory)
-# ---
 
 from qiskit_acqua_chemistry import __version__
 
