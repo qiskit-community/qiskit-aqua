@@ -347,8 +347,7 @@ backend to be used for the quantum computation. This defaults to a local quantum
    "noise_params": {"U": {"p_depol": 0.001,
                           "p_pauli": [0, 0, 0.01],
                           "gate_time": 1,
-                          "U_error": [ [[1, 0], [0, 0]],
-                                       [[0, 0], [0.995004165, 0.099833417]]
+                          "U_error": [ [[1, 0], [0, 0]]
                                      ]
                          }
                    }
