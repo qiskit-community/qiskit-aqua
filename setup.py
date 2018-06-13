@@ -33,7 +33,7 @@ requirements = [
 ]
 
 setuptools.setup(
-    name='qiskit_acqua',
+    name='qiskit-acqua',
     version="0.1.0",  # this should match __init__.__version__
     description='QISKit ACQUA library of algorithms',
     long_description=long_description,
