@@ -32,7 +32,7 @@ requirements = [
 ]
 
 setuptools.setup(
-    name='qiskit_acqua_chemistry',
+    name='qiskit-acqua-chemistry',
     version="0.1.0",  # this should match __init__.__version__
     description='QISKit ACQUA Chemistry',
     long_description=long_description,
