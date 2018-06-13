@@ -37,7 +37,7 @@ setuptools.setup(
     description='QISKit ACQUA Chemistry',
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url='https://github.com/IBMQuantum/qiskit-acqua-chemistry',
+    url='https://github.com/QISKit/qiskit-acqua-chemistry',
     author='QISKit ACQUA Chemistry Development Team',
     author_email='qiskit@us.ibm.com',
     license='Apache-2.0',
