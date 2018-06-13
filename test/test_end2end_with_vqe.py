@@ -26,14 +26,14 @@ from qiskit_acqua.input import get_input_instance
 from qiskit_acqua_chemistry.drivers import ConfigurationManager
 from qiskit_acqua_chemistry.core import get_chemistry_operator_instance
 
-@unittest.skipUnless(QISKitAcquaChemistryTestCase.SLOW_TEST, 'slow')
+
 class TestEnd2End(QISKitAcquaChemistryTestCase):
     """End2End tests."""
 
     def setUp(self):
         cfg_mgr = ConfigurationManager()
         hdf5_cfg = OrderedDict([
-            ('hdf5_input', 'test_driver_hdf5.hdf5')
+            ('hdf5_input', 'test/test_driver_hdf5.hdf5')
         ])
         section = {'properties': hdf5_cfg}
         driver = cfg_mgr.get_driver_instance('HDF5')
