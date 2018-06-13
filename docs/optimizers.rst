@@ -51,7 +51,7 @@ The following parameters are supported:
 
 -  A Boolean value indicating whether or not to print convergence messages:
 
-    .. code:: python
+   .. code:: python
 
         disp : bool
 
@@ -59,7 +59,7 @@ The following parameters are supported:
 
 -  A tolerance value that must be greater than the gradient norm before successful termination.
 
-    .. code:: python
+   .. code:: python
 
         gtol : float
 
@@ -68,9 +68,9 @@ The following parameters are supported:
 
 -  The tolerance for termination:
 
-    .. code::
+   .. code::
 
-        tol : number
+        tol : float
 
    This parameter is optional.  If specified, the value of this parameter must be a number, otherwise, it is  ``Nonw``.
    The default is ``None``.
@@ -95,9 +95,9 @@ COBYLA supports the following parameters:
 
 -  A Boolean value indicating whether or not to print convergence messages:
 
-    .. code:: python
+   .. code:: python
 
-        disp : bool
+       disp : bool
 
    The default value is ``False``.
 
@@ -111,7 +111,7 @@ COBYLA supports the following parameters:
 
 -  The tolerance for termination:
 
-    .. code::
+   .. code::
 
         tol : float
 
@@ -142,23 +142,23 @@ The following parameters are supported:
 
 -  The maximum number of function evaluations:
 
-    .. code:: python
+   .. code:: python
 
         maxfun : int
 
-   The default is `` 1000``.
+   The default is ``1000``.
 
 -  The maximum number of function evaluations:
 
-    .. code:: python
+   .. code:: python
 
         maxfun : int
 
-   The default is `` 1000``.
+   The default is ``1000``.
 
 -  The maximum number of iterations:
 
-    .. code:: python
+   .. code:: python
 
         factr : int
 
@@ -167,11 +167,11 @@ The following parameters are supported:
 -  An ``int`` value controlling the frequency of the printed output showing the  optimizer's
    operations.
 
-    .. code:: python
+   .. code:: python
 
-        iprint : int
+       iprint : int
 
-    The default is ``-1``.
+   The default is ``-1``.
 
 Further detailed information on *factr* and *iprint* may be found at
 `scipy.optimize.fmin_l_bfgs_b <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.fmin_l_bfgs_b.html>`__.
@@ -198,43 +198,43 @@ The following parameters are supported:
 
 -  The maximum number of iterations:
 
-    .. code:: python
+   .. code:: python
 
-        maxiter : int
+       maxiter : int
 
    This parameter is optional.  If specified, the value of this parameter must be of type ``int``, otherwise, it is  ``None``.
    The default is ``None``.
 
 -  The maximum number of functional evaluations to perform:
 
-    .. code:: python
+   .. code:: python
 
-        maxfev : int
+       maxfev : int
 
    The default is ``1000``.
 
 -  A ``bool`` value indicating whether or not to print convergence messages:
 
-    .. code:: python
+   .. code:: python
 
-        disp : bool
+       disp : bool
 
    The default is ``False``.
 
 -  A tolerance parameter indicating the absolute error in ``xopt`` between iterations that will be considered acceptable
    for convergence.
 
-    .. code:: python
+   .. code:: python
 
-        xatol : float 
+       xatol : float 
 
    The default value is ``0.0001``.
 
 -  The tolerance for termination:
 
-    .. code::
+   .. code::
 
-        tol : float
+       tol : float
 
    This parameter is optional.  If specified, the value of this parameter must be of type ``float``, otherwise, it is  ``None``.
    The default is ``None``.
@@ -257,9 +257,9 @@ L-BFGS-B, P-BFGS supports the following parameter:
 
 -  The maximum numer of processes spawned by P-BFGS:
 
-    .. code:: python
+   .. code:: python
 
-        max_processes = 1 | 2 | ...
+       max_processes = 1 | 2 | ...
 
    By default, P-BFGS runs one optimization in the current process
    and spawns additional processes up to the number of processor cores.
@@ -295,43 +295,43 @@ The following parameters are supported:
 
 -  The maximum number of iterations:
 
-    .. code:: python
+   .. code:: python
 
-        maxiter : int
+       maxiter : int
 
    This parameter is optional.  If specified, the value of this parameter must be of type ``int``, otherwise, it is  ``None``.
    The default is ``None``.
 
 -  The maximum number of functional evaluations to perform:
 
-    .. code:: python
+   .. code:: python
 
-        maxfev : int
+       maxfev : int
 
    The default value is ``1000``.
 
 -  A ``bool`` value indicating whether or not to print convergence messages:
 
-    .. code:: python
+   .. code:: python
 
-        disp : bool
+      disp : bool
 
    The default is ``False``.
 
 -  A tolerance parameter indicating the absolute error in ``xopt`` between iterations that will be considered acceptable
    for convergence.
 
-    .. code:: python
+   .. code:: python
 
-        xtol : float
+       xtol : float
 
    The default value is ``0.0001``.
 
 -  The tolerance for termination:
 
-    .. code::
+   .. code::
 
-        tol : float
+       tol : float
 
    This parameter is optional.  If specified, the value of this parameter must be of type ``float``, otherwise, it is  ``None``.
    The default is ``None``.
@@ -357,33 +357,33 @@ The following parameters are supported:
 
 -  The maximum number of iterations:
 
-    .. code:: python
+   .. code:: python
 
-        maxiter : int
+       maxiter : int
 
    The default is ``100``.
 
 -  A ``bool`` value indicating whether or not to print convergence messages:
 
-    .. code:: python
+   .. code:: python
 
-        disp : bool
+       disp : bool
 
    The default is ``False``.
 
 -  A tolerance value indicating precision goal for the value of the objective function in the stopping criterion.
 
-    .. code:: python
+   .. code:: python
 
-        gtol : float
+       gtol : float
 
    The default value is ``1e-06``.
 
 -  The tolerance for termination:
 
-    .. code::
+   .. code::
 
-        tol : number
+       tol : number
 
    This parameter is optional.  If specified, the value of this parameter must be a number, otherwise, it is  ``Nonw``.
    The default is ``None``.
@@ -415,13 +415,13 @@ functional evaluations.  Overall, the following parameters are supported:
 -  Maximum number of trial steps for to be taken for the optimization.
    There are two function evaluations per trial:
 
-    .. code:: python
+   .. code:: python
 
         max_trials : int
    
    The default value is ``1000``.
 
--  Am ``int`` value determining how often optimization outcomes should be stored during execution:
+-  An ``int`` value determining how often optimization outcomes should be stored during execution:
 
    .. code:: python
 
@@ -432,25 +432,25 @@ functional evaluations.  Overall, the following parameters are supported:
 -  The number of last updates of the variables to average on for the
    final objective function:
 
-    .. code:: python
+   .. code:: python
 
-        last_avg : int
+       last_avg : int
 
    The default value is ``1``.
 
 
 -  Control parameters for SPSA:
 
-    .. code:: python
+   .. code:: python
 
-        parameters = list_of_5_numbers
+       parameters = list_of_5_numbers
 
    This is an optional parameter, consisting of a list of 5 ``float`` elements.  The default value is ``None``. 
    SPSA updates the parameters (``theta``)
    for the objective function (``J``) through the following equation at
    iteration ``k``:
 
-    .. code:: python
+   .. code:: python
         theta_{k+1} = theta_{k} + step_size * gradient
         step_size = c0 * (k + 1 + c4)^(-c2)
         gradient = (J(theta_{k}+) - J(theta_{k}-)) * delta / (2 * c1 * (k + 1)^(-c3))
@@ -480,7 +480,7 @@ The following parameters are supported:
 
 -  The maximum number of iterations:
 
-    .. code:: python
+   .. code:: python
 
         maxiter : int
 
@@ -488,7 +488,7 @@ The following parameters are supported:
 
 -  A Boolean value indicating whether or not to print convergence messages:
 
-    .. code:: python
+   .. code:: python
 
         disp : bool
 
@@ -496,7 +496,7 @@ The following parameters are supported:
 
 -  Relative precision for finite difference calculations:
 
-    .. code:: python
+   .. code:: python
 
         accuracy : float
 
@@ -504,7 +504,7 @@ The following parameters are supported:
 
 -  A tolerance value indicating the precision goal for the value of the objective function ``f`` in the stopping criterion.
 
-    .. code:: python
+   .. code:: python
 
         ftol : float
 
@@ -512,7 +512,7 @@ The following parameters are supported:
 
 -  A tolerance value indicating precision goal for the value of ``x`` in the stopping criterion, after applying ``x`` scaling factors.
 
-    .. code:: python
+   .. code:: python
 
         xtol : float
 
@@ -521,7 +521,7 @@ The following parameters are supported:
 -  A tolerance value indicating precision goal for the value of the projected gradient ``g`` in the stopping criterion,
    after applying ``x`` scaling factors.
 
-    .. code:: python
+   .. code:: python
 
         gtol : float
 
@@ -529,7 +529,7 @@ The following parameters are supported:
 
 -  The tolerance for termination:
 
-    .. code::
+   .. code::
 
         tol : number
 

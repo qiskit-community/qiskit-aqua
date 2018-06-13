@@ -15,8 +15,8 @@ The following :ref:`quantum algorithms` are part of QISKit ACQUA:
 -  :ref:`Quantum Phase Estimation (QPE)`
 -  :ref:`Iterative Quantum Phase Estimation (IQPE)`
 -  :ref:`Quantum Grover Search`
--  :ref:`State Vector Machine Quantum Kernel (SVM Q Kernel)`
--  :ref:`State Vector Machine Variational (SVM Variational)`
+-  :ref:`Support Vector Machine Quantum Kernel (SVM Q Kernel)`
+-  :ref:`Support Vector Machine Variational (SVM Variational)`
 
 QISKit ACQUA includes  also some :ref:`classical algorithms`, which may be
 useful to compare and contrast results in the near term while experimenting with, developing and testing
@@ -24,7 +24,7 @@ quantum algorithms:
 
 -  :ref:`Exact Eigensolver`
 -  :ref:`CPLEX`
--  :ref:`State Vector Machine Radial Basis Function Kernel (SVM RBF Kernel)`
+-  :ref:`Support Vector Machine Radial Basis Function Kernel (SVM RBF Kernel)`
 
 .. topic:: Extending the Algorithm Library
 
@@ -73,12 +73,11 @@ Additionally, VQE can be configured with the following parameters:
 
    .. code:: python
 
-       initial_point : list of floats
+       initial_point : [float, float, ... , float]
 
    An optional list of ``float`` values  may be provided as the starting point
    for the variational form.
    The length of this list must match the number of the parameters expected by the variational form being used.
-
    If such list is not provided, VQE will create a random starting point for the
    optimizer, with values randomly chosen to lie within the
    bounds of the variational form. If the variational form provides no lower bound, the VQE
@@ -292,8 +291,8 @@ and constructs the corresponding quantum circuit.
    In QISKit ACQUA, Grover supports the ``search`` problem.
 
 
-State Vector Machine Quantum Kernel (SVM Q Kernel)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Support Vector Machine Quantum Kernel (SVM Q Kernel)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Classification algorithms and methods for machine learning are essential
 for pattern recognition and data mining applications. Well known
@@ -350,8 +349,8 @@ SVM Q Kernel can be configured with the following parameter:
 
    In QISKit ACQUA, SVM Q Kernel  supports the ``svm_classification`` problem.
 
-State Vector Machine Variational (SVM Variational)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Support Vector Machine Variational (SVM Variational)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Just like SVM_Kernel, the SVM_Variational algorithm applies to
 classification problems that require a feature map for which computing
@@ -476,8 +475,8 @@ CPLEX can be configured with the following parameters:
    In QISKit ACQUA, CPLEX supports the ``ising`` problem.
 
 
-State Vector Machine Radial Basis Function Kernel (SVM RBF Kernel)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Support Vector Machine Radial Basis Function Kernel (SVM RBF Kernel)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This algorithm uses a classical approach to experiment with feature map classification
 problems.

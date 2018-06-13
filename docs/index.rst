@@ -25,6 +25,7 @@ Table of Contents
    Inverse Quantum Fourier Transforms <iqfts>
    Oracles <oracles>
    Extending QISKit ACQUA <extending>
+   Additional Configuration <additional> 
    Getting Started <quickstart>
    Developer Documentation <dev_introduction>
    SDK Reference <_autodoc/qiskit_acqua>
