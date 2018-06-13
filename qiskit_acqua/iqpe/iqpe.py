@@ -158,11 +158,11 @@ class IQPE(QuantumAlgorithm):
         c = ClassicalRegister(1, name='c')
         q = QuantumRegister(self._operator.num_qubits, name='q')
         qc = QuantumCircuit(a, c, q)
-        qc += self._state_in.construct_circuit('circuit', q)
+        qc.data += self._state_in.construct_circuit('circuit', q).data
         qc.h(a[0])
-        qc += self._operator.construct_evolution_circuit(
+        qc.data += self._operator.construct_evolution_circuit(
             slice_pauli_list, -2 * np.pi, self._num_time_slices, q, a, unitary_power=2 ** (k - 1)
-        )
+        ).data
         qc.u1(2 * np.pi * self._ancilla_phase_coef * (2 ** (k - 1)), a[0])
         qc.u1(omega, a[0]) if use_basis_gates else qc.rz(omega, a[0])
         qc.h(a[0])
