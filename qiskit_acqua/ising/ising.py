@@ -26,7 +26,7 @@ import copy
 import numpy as np
 
 from qiskit_acqua import QuantumAlgorithm, AlgorithmError
-from qiskit_acqua.ising import SimpleCPLEX
+from qiskit_acqua.ising.simple_cplex import SimpleCPLEX
 
 logger = logging.getLogger(__name__)
 
