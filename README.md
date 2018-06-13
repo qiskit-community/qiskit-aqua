@@ -7,8 +7,8 @@ QISKit ACQUA provides a library of cross-domain algorithms upon which domain-spe
 built. At the time of writing, [QISKit ACQUA Chemistry](https://github.com/QISKit/qiskit-acqua-chemistry) has
 been created to utilize QISKit ACQUA for quantum chemistry computations. QISKIt ACQUA is also showcased for other
 domains with both code and notebook examples. Please see
-[QISKit ACQUA Optimization](https://github.com/QISKit/qiskit-acqua-optimization) and
-[QISKit ACQUA Artificial Intelligence](https://github.com/QISKit/qiskit-acqua-artifical-intelligence).
+[QISKit ACQUA Optimization](https://github.com/QISKit/qiskit-acqua-tutorials/optimization) and
+[QISKit ACQUA Artificial Intelligence](https://github.com/QISKit/qiskit-acqua-tutorials/artificial_intelligence).
 
 QISKit ACQUA was designed to be extensible, and uses a pluggable framework where algorithms and support objects used
 by algorithms, e.g optimizers, variational forms, oracles etc., are derived from a defined base class for the type and
