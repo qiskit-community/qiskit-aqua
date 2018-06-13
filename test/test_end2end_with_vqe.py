@@ -56,8 +56,8 @@ class TestEnd2End(QISKitAcquaChemistryTestCase):
     @parameterized.expand([
         ['COBYLA_M', 'COBYLA', 'local_statevector_simulator', 'matrix', 1],
         ['COBYLA_P', 'COBYLA', 'local_statevector_simulator', 'paulis', 1],
-        ['SPSA_P', 'SPSA', 'local_qasm_simulator', 'paulis', 1024],
-        ['SPSA_GP', 'SPSA', 'local_qasm_simulator', 'grouped_paulis', 1024]
+        # ['SPSA_P', 'SPSA', 'local_qasm_simulator', 'paulis', 1024],
+        # ['SPSA_GP', 'SPSA', 'local_qasm_simulator', 'grouped_paulis', 1024]
     ])
     def test_end2end_H2(self, name, optimizer, backend, mode, shots):
 
