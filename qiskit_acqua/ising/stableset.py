@@ -23,10 +23,12 @@
 
 
 import logging
+from collections import OrderedDict
+
 import numpy as np
 import numpy.random as rand
-
 from qiskit.tools.qi.pauli import Pauli
+
 from qiskit_acqua import Operator
 
 logger = logging.getLogger(__name__)

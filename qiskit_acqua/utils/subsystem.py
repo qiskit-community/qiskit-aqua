@@ -32,11 +32,8 @@ from scipy.linalg import sqrtm
 
 def get_subsystem_fidelity(statevector, trace_systems, subsystem_state):
     rho = np.outer(np.conj(statevector), statevector)
-    # print('rho_trace: {}'.format(np.trace(rho)))
     rho_sub = partial_trace(rho, trace_systems)
     rho_sub_in = np.outer(np.conj(subsystem_state), subsystem_state)
-    # print('rho_sub: {}'.format(np.trace(rho_sub)))
-    # print('rho_sub_in: {}'.format(np.trace(rho_sub_in)))
     fidelity = np.trace(
         sqrtm(
             np.dot(
