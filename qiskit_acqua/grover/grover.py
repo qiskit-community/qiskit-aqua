@@ -83,7 +83,7 @@ class Grover(QuantumAlgorithm):
             measurement_cr
         )
         qc.h(self._oracle.variable_register())
-        qc.extend(self._oracle.construct_circuit())
+        qc += self._oracle.construct_circuit()
         qc.h(self._oracle.variable_register())
         qc.x(self._oracle.variable_register())
         qc.x(self._oracle.outcome_register())
