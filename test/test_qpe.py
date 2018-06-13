@@ -96,7 +96,7 @@ class TestQPE(QISKitAcquaTestCase):
             paulis_grouping='random',
             expansion_mode='suzuki',
             expansion_order=2,
-            use_basis_gates=False
+            use_basis_gates=True
         )
 
         # run qpe

@@ -177,7 +177,7 @@ class QPE(QuantumAlgorithm):
         qc = QuantumCircuit(a, q, c)
 
         # initialize state_in
-        qc += self._state_in.construct_circuit('circuit', q)
+        qc.data += self._state_in.construct_circuit('circuit', q).data
 
         # Put all ancillae in uniform superposition
         qc.h(a)
@@ -198,10 +198,10 @@ class QPE(QuantumAlgorithm):
             else:
                 raise ValueError('Unrecognized expansion mode {}.'.format(self._expansion_mode))
         for i in range(self._num_ancillae):
-            qc += self._operator.construct_evolution_circuit(
+            qc.data += self._operator.construct_evolution_circuit(
                 slice_pauli_list, -2 * np.pi, self._num_time_slices, q, a, ctl_idx=i,
                 use_basis_gates=self._use_basis_gates
-            )
+            ).data
             # global phase shift for the ancilla due to the identity pauli term
             qc.u1(2 * np.pi * self._ancilla_phase_coef * (2 ** i), a[i])
 
