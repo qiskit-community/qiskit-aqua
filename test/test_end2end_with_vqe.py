@@ -33,7 +33,7 @@ class TestEnd2End(QISKitAcquaChemistryTestCase):
     def setUp(self):
         cfg_mgr = ConfigurationManager()
         hdf5_cfg = OrderedDict([
-            ('hdf5_input', './examples/molecule.hdf5')
+            ('hdf5_input', 'test_driver_hdf5.hdf5')
         ])
         section = {'properties': hdf5_cfg}
         driver = cfg_mgr.get_driver_instance('HDF5')
