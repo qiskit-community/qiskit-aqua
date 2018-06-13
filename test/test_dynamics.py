@@ -52,7 +52,7 @@ class TestEvolution(QISKitAcquaTestCase):
         state_in.init_args(SIZE, state='random')
 
         evo_time = 1
-        num_time_slices = 1
+        num_time_slices = 100
 
         dynamics = get_algorithm_instance('Dynamics')
         dynamics.setup_quantum_backend()
