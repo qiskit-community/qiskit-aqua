@@ -67,7 +67,7 @@ state energy of a molecule.
 QISKit ACQUA Chemistry has both [GUI](#gui) and [command line](#command-line) tools which may be used when solving
 chemistry problems. Both can load and run an [input file](qiskit_acqua_chemistry#input-file) specifying the molecule,
 an algorithm to be used and its configuration, and various other options to tailor the experiment. You can find several
-input files in the [examples](https://github.com/QISKit/qiskit-acqua-tutorials/tree/master/chemistry/input_files) folder to experiment with.
+input files in the chemistry folder of [qiskit-acqua-tutorials] (https://github.com/QISKit/qiskit-acqua-tutorials/tree/master/chemistry/input_files) to experiment with.
 If you are new to the library we highly recommend getting started with the GUI.
 
 ### GUI
@@ -114,7 +114,7 @@ from the root folder of the qiskit-acqua-chemistry repository clone.
 
 ### Programming
 
-Chemistry experiments can be run programmatically too. Please refer to the [examples](https://github.com/QISKit/qiskit-acqua-tutorials/tree/master/chemistry/input_files) folder for a number of
+Chemistry experiments can be run programmatically too. Please refer to the chemistry folder of [qiskit-acqua-tutorials](https://github.com/QISKit/qiskit-acqua-tutorials/tree/master/chemistry/input_files) for a number of
 examples. Here you will see different ways of programming an experiment. The simplest, which matches closely to the
 input file, is used in many examples. Here a similar Python dictionary is used and an ACQUAChemistry instance is used
 to run the experiment and return the result.
