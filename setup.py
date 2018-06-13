@@ -39,7 +39,7 @@ requirements = [
 setuptools.setup(
     name='qiskit-acqua',
     version="0.1.0",  # this should match __init__.__version__
-    description='QISKit ACQUA: An extensible library of quantum computing algorithm',
+    description='QISKit ACQUA: An extensible library of quantum computing algorithms',
     long_description=long_description,
     long_description_content_type="text/markdown",
     url='https://github.com/QISKit/qiskit-acqua',
