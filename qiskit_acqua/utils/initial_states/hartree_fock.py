@@ -118,7 +118,7 @@ class HartreeFock(InitialState):
 
         self._bitstr = bitstr
 
-    def construct_circuit(self, mode, register=None):
+    def construct_circuit(self, mode, register=None, use_basis_gates=True):
         """
         Construct the statevector of desired initial state.
 
@@ -127,6 +127,7 @@ class HartreeFock(InitialState):
                             While the `circuit` constructs the quantum circuit corresponding that
                             vector.
             register (QuantumRegister): register for circuit construction.
+            use_basis_gates (bool): boolean flag for indicating only using basis gates when building circuit.
 
         Returns:
             numpy.ndarray or QuantumCircuit: statevector
@@ -146,8 +147,10 @@ class HartreeFock(InitialState):
             quantum_circuit = QuantumCircuit(register)
             for idx, bit in enumerate(self._bitstr):
                 if bit:
-                    # quantum_circuit.x(register[idx])
-                    quantum_circuit.u3(np.pi, 0.0, np.pi, register[idx])
+                    if use_basis_gates:
+                        quantum_circuit.u3(np.pi, 0.0, np.pi, register[idx])
+                    else:
+                        quantum_circuit.x(register[idx])
             return quantum_circuit
         else:
             raise ValueError('Mode should be either "vector" or "circuit"')

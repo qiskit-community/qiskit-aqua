@@ -52,12 +52,13 @@ class InitialState(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def construct_circuit(self, mode, register=None):
+    def construct_circuit(self, mode, register=None, use_basis_gates=True):
         """Construct the initial state circuit.
 
         Args:
             mode (str): 'vector' or 'circuit'
             register (QuantumRegister): register for circuit construction.
+            use_basis_gates (bool): boolean flag for indicating only using basis gates when building circuit.
 
         Returns:
             A quantum circuit.
