@@ -29,6 +29,5 @@ Changed
 - Update description and fixed links in readme
 
 .. _UNRELEASED: https://github.com/QISKit/qiskit-acqua-chemistry/compare/0.1.0...HEAD
-.. _0.1.0: https://github.com/QISKit/qiskit-core/compare/0.5.3...0.1.0
 
 .. _Keep a Changelog: http://keepachangelog.com/en/1.0.0/
