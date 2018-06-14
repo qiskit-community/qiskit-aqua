@@ -1069,7 +1069,7 @@ class Operator(object):
                 qubits for the state_registers of the system
             ctl_idx (int): The index of the qubit of the control ancillary_registers to use
             unitary_power (int): The power to which the unitary operator is to be raised
-            use_basis_gates (bool): The boolean flag for specifying if only basis gates should be used
+            use_basis_gates (bool): boolean flag for indicating only using basis gates when building circuit.
 
         Returns:
             QuantumCircuit: The QISKit QuantumCircuit corresponding to specified evolution.
@@ -1149,13 +1149,6 @@ class Operator(object):
                         qc.cx(ancillary_registers[ctl_idx], state_registers[top_XYZ_pauli_indices[pauli_idx]])
                     else:
                         qc.crz(lam, ancillary_registers[ctl_idx], state_registers[top_XYZ_pauli_indices[pauli_idx]])
-
-                    # lam = (pauli[0] * evo_time / num_time_slices * unitary_power).real
-                    # # qc.u1(lam, ancillary_registers[ctl_idx])
-                    # qc.cx(ancillary_registers[ctl_idx], state_registers[top_XYZ_pauli_indices[pauli_idx]])
-                    # qc.u1(-lam, state_registers[top_XYZ_pauli_indices[pauli_idx]])
-                    # qc.cx(ancillary_registers[ctl_idx], state_registers[top_XYZ_pauli_indices[pauli_idx]])
-                    # qc.u1(lam, state_registers[top_XYZ_pauli_indices[pauli_idx]])
 
             # insert rhs cnot gates
             for pair in reversed(cnot_qubit_pairs[pauli_idx]):
