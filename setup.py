@@ -17,8 +17,10 @@
 
 import setuptools
 
-with open('README.md', 'r') as fh:
-    long_description = fh.read()
+long_description="""<a href="https://qiskit.org/acqua/#/chemistry" rel=nofollow>QISKit ACQUA Chemistry</a> 
+ is a set of quantum computing algorithms, 
+ tools and APIs for experimenting with real-world chemistry applications on near-term quantum devices."""
+    
 
 requirements = [
     "qiskit-acqua",
@@ -32,9 +34,9 @@ requirements = [
 ]
 
 setuptools.setup(
-    name='qiskit_acqua_chemistry',
+    name='qiskit-acqua-chemistry',
     version="0.1.0",  # this should match __init__.__version__
-    description='QISKit ACQUA Chemistry',
+    description='QISKit ACQUA Chemistry: Experiment with chemistry applications on a quantum machine',
     long_description=long_description,
     long_description_content_type="text/markdown",
     url='https://github.com/QISKit/qiskit-acqua-chemistry',
@@ -53,7 +55,7 @@ setuptools.setup(
         "Programming Language :: Python :: 3.6",
         "Topic :: Scientific/Engineering"
     ),
-    keywords=['ibm', 'qiskit', 'sdk', 'quantum', 'acqua', 'chemistry'],
+    keywords='qiskit sdk quantum acqua chemistry',
     packages=setuptools.find_packages(exclude=['test*']),
     install_requires=requirements,
     include_package_data=True,
