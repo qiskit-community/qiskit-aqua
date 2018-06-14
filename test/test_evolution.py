@@ -95,7 +95,7 @@ class TestEvolution(QISKitAcquaTestCase):
                     )
 
                     quantum_registers = QuantumRegister(qubitOp.num_qubits)
-                    qc = state_in.construct_circuit('circuit', quantum_registers, use_basis_gates=True)
+                    qc = state_in.construct_circuit('circuit', quantum_registers)
                     qc += qubitOp.evolve(
                         None, evo_time, 'circuit', num_time_slices,
                         quantum_registers=quantum_registers,

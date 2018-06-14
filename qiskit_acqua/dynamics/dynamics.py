@@ -39,7 +39,6 @@ class Dynamics(QuantumAlgorithm):
     PROP_PAULIS_GROUPING = 'paulis_grouping'
     PROP_EXPANSION_MODE = 'expansion_mode'
     PROP_EXPANSION_ORDER = 'expansion_order'
-    PROP_USE_BASIS_GATES = 'use_basis_gates'
 
     DYNAMICS_CONFIGURATION = {
         'name': 'Dynamics',
@@ -94,10 +93,6 @@ class Dynamics(QuantumAlgorithm):
                     'type': 'integer',
                     'default': 1,
                     'minimum': 1
-                },
-                PROP_USE_BASIS_GATES: {
-                    'type': 'boolean',
-                    'default': True
                 }
             },
             'additionalProperties': False
@@ -122,7 +117,6 @@ class Dynamics(QuantumAlgorithm):
         self._paulis_grouping = None
         self._expansion_mode = None
         self._expansion_order = None
-        self._use_basis_gates = None
         self._ret = {}
 
     def init_params(self, params, algo_input):
@@ -151,7 +145,6 @@ class Dynamics(QuantumAlgorithm):
         paulis_grouping = dynamics_params.get(Dynamics.PROP_PAULIS_GROUPING)
         expansion_mode = dynamics_params.get(Dynamics.PROP_EXPANSION_MODE)
         expansion_order = dynamics_params.get(Dynamics.PROP_EXPANSION_ORDER)
-        use_basis_gates = dynamics_params.get(Dynamics.PROP_USE_BASIS_GATES)
 
         # Set up initial state, we need to add computed num qubits to params
         initial_state_params = params.get(QuantumAlgorithm.SECTION_KEY_INITIAL_STATE)
@@ -161,8 +154,7 @@ class Dynamics(QuantumAlgorithm):
 
         self.init_args(
             operator, operator_mode, initial_state, evo_operator, evo_time, num_time_slices,
-            paulis_grouping=paulis_grouping, expansion_mode=expansion_mode, expansion_order=expansion_order,
-            use_basis_gates=use_basis_gates
+            paulis_grouping=paulis_grouping, expansion_mode=expansion_mode, expansion_order=expansion_order
         )
 
     def init_args(

@@ -42,7 +42,6 @@ class IQPE(QuantumAlgorithm):
     PROP_EXPANSION_MODE = 'expansion_mode'
     PROP_EXPANSION_ORDER = 'expansion_order'
     PROP_NUM_ITERATIONS = 'num_iterations'
-    PROP_USE_BASIS_GATES = 'use_basis_gates'
 
     IQPE_CONFIGURATION = {
         'name': 'IQPE',
@@ -86,10 +85,6 @@ class IQPE(QuantumAlgorithm):
                     'type': 'integer',
                     'default': 1,
                     'minimum': 1
-                },
-                PROP_USE_BASIS_GATES: {
-                    'type': 'boolean',
-                    'default': True
                 }
             },
             'additionalProperties': False
@@ -112,7 +107,6 @@ class IQPE(QuantumAlgorithm):
         self._expansion_mode = None
         self._expansion_order = None
         self._num_iterations = 0
-        self._use_basis_gates = None
         self._ret = {}
 
     def init_params(self, params, algo_input):
@@ -133,7 +127,6 @@ class IQPE(QuantumAlgorithm):
         expansion_mode = iqpe_params.get(IQPE.PROP_EXPANSION_MODE)
         expansion_order = iqpe_params.get(IQPE.PROP_EXPANSION_ORDER)
         num_iterations = iqpe_params.get(IQPE.PROP_NUM_ITERATIONS)
-        use_basis_gates = iqpe_params.get(IQPE.PROP_USE_BASIS_GATES)
 
         # Set up initial state, we need to add computed num qubits to params
         init_state_params = params.get(QuantumAlgorithm.SECTION_KEY_INITIAL_STATE)
@@ -144,7 +137,7 @@ class IQPE(QuantumAlgorithm):
         self.init_args(
             operator, init_state, num_time_slices, num_iterations,
             paulis_grouping=paulis_grouping, expansion_mode=expansion_mode,
-            expansion_order=expansion_order, use_basis_gates=use_basis_gates)
+            expansion_order=expansion_order)
 
     def init_args(self, operator, state_in, num_time_slices, num_iterations,
                   paulis_grouping='default', expansion_mode='trotter', expansion_order=1, use_basis_gates=True):
