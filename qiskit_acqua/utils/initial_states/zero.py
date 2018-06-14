@@ -44,7 +44,7 @@ class Zero(InitialState):
     def init_args(self, num_qubits):
         self._num_qubits = num_qubits
 
-    def construct_circuit(self, mode, register=None, use_basis_gates=True):
+    def construct_circuit(self, mode, register=None):
         if mode == 'vector':
             return np.array([1.0] + [0.0] * (np.power(2, self._num_qubits) - 1))
         elif mode == 'circuit':
