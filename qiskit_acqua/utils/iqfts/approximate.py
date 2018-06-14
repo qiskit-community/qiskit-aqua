@@ -54,7 +54,7 @@ class Approximate(IQFT):
         self._num_qubits = num_qubits
         self._degree = degree
 
-    def construct_circuit(self, mode, register=None, circuit=None):
+    def construct_circuit(self, mode, register=None, circuit=None, use_basis_gates=True):
         if mode == 'vector':
             return linalg.dft(2 ** self._num_qubits, scale='sqrtn')
         elif mode == 'circuit':
@@ -64,11 +64,19 @@ class Approximate(IQFT):
                 circuit = QuantumCircuit(register)
 
             for j in reversed(range(self._num_qubits)):
-                circuit.h(register[j])
+                circuit.u2(0, np.pi, register[j]) if use_basis_gates else circuit.h(register[j])
                 # neighbor_range = range(np.max([0, j - self._degree + 1]), j)
                 neighbor_range = range(np.max([0, j - self._num_qubits + self._degree + 1]), j)
                 for k in reversed(neighbor_range):
-                    circuit.cu1(-1.0 * pi / float(2 ** (j - k)), register[j], register[k])
+                    lam = -1.0 * pi / float(2 ** (j - k))
+                    if use_basis_gates:
+                        circuit.u1(lam / 2, register[j])
+                        circuit.cx(register[j], register[k])
+                        circuit.u1(-lam / 2, register[k])
+                        circuit.cx(register[j], register[k])
+                        circuit.u1(lam / 2, register[k])
+                    else:
+                        circuit.cu1(lam, register[j], register[k])
             return circuit
         else:
             raise ValueError('Mode should be either "vector" or "circuit"')
