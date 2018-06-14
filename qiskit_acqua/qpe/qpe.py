@@ -153,8 +153,10 @@ class QPE(QuantumAlgorithm):
             paulis_grouping=paulis_grouping, expansion_mode=expansion_mode,
             expansion_order=expansion_order, use_basis_gates=use_basis_gates)
 
-    def init_args(self, operator, state_in, iqft, num_time_slices, num_ancillae,
-                  paulis_grouping='random', expansion_mode='trotter', expansion_order=1, use_basis_gates=True):
+    def init_args(
+            self, operator, state_in, iqft, num_time_slices, num_ancillae,
+            paulis_grouping='random', expansion_mode='trotter', expansion_order=1,
+            use_basis_gates=True):
         if self._backend.find('statevector') >= 0:
             raise ValueError('Selected backend does not support measurements.')
         self._operator = operator
@@ -180,7 +182,7 @@ class QPE(QuantumAlgorithm):
         qc.data += self._state_in.construct_circuit('circuit', q).data
 
         # Put all ancillae in uniform superposition
-        qc.h(a)
+        qc.u2(0, np.pi, a) if self._use_basis_gates else qc.h(a)
 
         # phase kickbacks via dynamics
         pauli_list = self._operator.reorder_paulis(grouping=self._paulis_grouping)
