@@ -18,9 +18,6 @@
 import unittest
 
 import numpy as np
-from qiskit import QuantumRegister
-from qiskit.wrapper import execute as q_execute
-from qiskit.tools.qi.qi import state_fidelity
 
 from test.common import QISKitAcquaTestCase
 from qiskit_acqua.operator import Operator
@@ -32,14 +29,7 @@ class TestEvolution(QISKitAcquaTestCase):
 
     def test_evolution(self):
         SIZE = 2
-        #SPARSITY = 0
-        #X = [[0, 1], [1, 0]]
-        #Y = [[0, -1j], [1j, 0]]
-        Z = [[1, 0], [0, -1]]
-        I = [[1, 0], [0, 1]]
-        h1 = np.kron(I, Z)  # + 0.5 * np.kron(Y, X)# + 0.3 * np.kron(Z, X) + 0.4 * np.kron(Z, Y)
 
-        # np.random.seed(2)
         temp = np.random.random((2 ** SIZE, 2 ** SIZE))
         h1 = temp + temp.T
         qubitOp = Operator(matrix=h1)
@@ -55,7 +45,7 @@ class TestEvolution(QISKitAcquaTestCase):
         num_time_slices = 100
 
         dynamics = get_algorithm_instance('Dynamics')
-        dynamics.setup_quantum_backend()
+        dynamics.setup_quantum_backend(skip_transpiler=True)
         # self.log.debug('state_out:\n\n')
 
         dynamics.init_args(qubitOp, 'paulis', state_in, evoOp, evo_time, num_time_slices)

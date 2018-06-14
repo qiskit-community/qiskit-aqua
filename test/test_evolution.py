@@ -57,13 +57,13 @@ class TestEvolution(QISKitAcquaTestCase):
             for p1 in ps:
                 for p2 in ps:
                     if p1 != p2:
-                        diff = p1[1].to_matrix() @ p2[1].to_matrix() - p2[1].to_matrix() @ p1[1].to_matrix()
-                        if diff.any():
-                            raise RuntimeError('Paulis within the same group do not commute!')
+                        np.testing.assert_almost_equal(
+                            p1[1].to_matrix() @ p2[1].to_matrix(),
+                            p2[1].to_matrix() @ p1[1].to_matrix()
+                        )
 
         flattened_grouped_paulis = [pauli for group in qubitOp.grouped_paulis for pauli in group[1:]]
-        if sorted([str(p) for p in flattened_grouped_paulis]) != sorted([str(p) for p in qubitOp.paulis]):
-            raise RuntimeError('grouped_paulis and paulis do not match!')
+        self.assertEqual(sorted([str(p) for p in flattened_grouped_paulis]), sorted([str(p) for p in qubitOp.paulis]))
 
         state_in = get_initial_state_instance('CUSTOM')
         state_in.init_args(SIZE, state='random')
@@ -95,15 +95,16 @@ class TestEvolution(QISKitAcquaTestCase):
                     )
 
                     quantum_registers = QuantumRegister(qubitOp.num_qubits)
-                    qc = state_in.construct_circuit('circuit', quantum_registers)
+                    qc = state_in.construct_circuit('circuit', quantum_registers, use_basis_gates=True)
                     qc += qubitOp.evolve(
                         None, evo_time, 'circuit', num_time_slices,
                         quantum_registers=quantum_registers,
                         paulis_grouping=grouping,
                         expansion_mode=expansion_mode,
-                        expansion_order=expansion_order
+                        expansion_order=expansion_order,
+                        use_basis_gates=True
                     )
-                    job = q_execute(qc, 'local_statevector_simulator')
+                    job = q_execute(qc, 'local_statevector_simulator', skip_transpiler=True)
                     state_out_circuit = np.asarray(job.result().get_statevector(qc))
 
                     self.log.debug('The fidelity between exact and matrix:   {}'.format(
