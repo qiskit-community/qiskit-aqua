@@ -17,8 +17,12 @@
 
 import setuptools
 
-with open('README.md', 'r') as fh:
-    long_description = fh.read()
+long_description="""<a href="https://qiskit.org/acqua" rel=nofollow>QISKit ACQUA</a> is an extensible, 
+ modular, open-source library of quantum computing algorithms.
+ Researchers can experiment with ACQUA algorithms, on near-term quantum devices and simulators, 
+ and can also get involved by contributing new algorithms and algorithm-supporting objects, 
+ such as optimizers and variational forms. QISKit ACQUA is used by QISKit ACQUA Chemistry, 
+ QISKit ACQUA Artificial Intelligence, and QISKit ACQUA Optimization to experiment with real-world applications to quantum computing."""
     
 requirements = [
     "qiskit>=0.5.4",
@@ -34,8 +38,8 @@ requirements = [
 
 setuptools.setup(
     name='qiskit-acqua',
-    version="0.1.0",  # this should match __init__.__version__
-    description='QISKit ACQUA library of algorithms',
+    version="0.1.1",  # this should match __init__.__version__
+    description='QISKit ACQUA: An extensible library of quantum computing algorithms',
     long_description=long_description,
     long_description_content_type="text/markdown",
     url='https://github.com/QISKit/qiskit-acqua',
@@ -54,7 +58,7 @@ setuptools.setup(
         "Programming Language :: Python :: 3.6",
         "Topic :: Scientific/Engineering"
     ),
-    keywords=['ibm', 'qiskit', 'sdk', 'quantum', 'acqua'],
+    keywords='qiskit sdk quantum acqua',
     packages=setuptools.find_packages(exclude=['test*']),
     install_requires=requirements,
     include_package_data=True,

@@ -18,6 +18,14 @@ The format is based on `Keep a Changelog`_.
 `UNRELEASED`_
 =============
 
+`0.1.1`_ - 2018-06-13
+=====================
+
+Changed
+-------
+
+- Changed short and long descriptions in setup.py.
+
 
 `0.1.0` - 2018-06-13
 =====================
@@ -29,6 +37,7 @@ Changed
 - Updated qiskit minimum version in setup.py.
 - Fixed links in readme.me.
 
-.. _UNRELEASED: https://github.com/QISKit/qiskit-acqua/compare/0.1.0...HEAD
+.. _UNRELEASED: https://github.com/QISKit/qiskit-acqua/compare/0.1.1...HEAD
+.. _0.1.1: https://github.com/QISKit/qiskit-acqua/compare/0.1.0...0.1.1
 
 .. _Keep a Changelog: http://keepachangelog.com/en/1.0.0/
