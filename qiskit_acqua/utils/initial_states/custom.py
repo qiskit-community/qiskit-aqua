@@ -111,7 +111,7 @@ class Custom(InitialState):
             else:
                 raise RuntimeError('Unexpected component {} from the initialization circuit.'.format(gates.qasm()))
 
-    def construct_circuit(self, mode, register=None, use_basis_gates=True):
+    def construct_circuit(self, mode, register=None):
         if mode == 'vector':
             return self._state_vector
         elif mode == 'circuit':
@@ -121,13 +121,12 @@ class Custom(InitialState):
 
             if self._state is None or self._state == 'random':
                 circuit.initialize(self._state_vector, [register[i] for i in range(self._num_qubits)])
-                if use_basis_gates:
-                    circuit.data = Custom._convert_to_basis_gates(circuit.data)
+                circuit.data = Custom._convert_to_basis_gates(circuit.data)
             elif self._state == 'zero':
                 pass
             elif self._state == 'uniform':
                 for i in range(self._num_qubits):
-                    circuit.u2(0.0, np.pi, register[i]) if use_basis_gates else circuit.h(register[i])
+                    circuit.u2(0.0, np.pi, register[i])
             else:
                 pass
 

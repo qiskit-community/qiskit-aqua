@@ -20,6 +20,7 @@ from parameterized import parameterized
 from qiskit_acqua import get_algorithm_instance, get_initial_state_instance, Operator
 from qiskit_acqua.utils import decimal_to_binary
 import numpy as np
+from scipy.linalg import expm
 from test.common import QISKitAcquaTestCase
 
 
@@ -54,15 +55,15 @@ class TestIQPE(QISKitAcquaTestCase):
         w = results['eigvals']
         v = results['eigvecs']
 
-        # self.qubitOp._check_representation('matrix')
-        # np.testing.assert_almost_equal(
-        #     self.qubitOp.matrix @ v[0],
-        #     w[0] * v[0]
-        # )
-        # np.testing.assert_almost_equal(
-        #     expm(-1.j * self.qubitOp.matrix) @ v[0],
-        #     np.exp(-1.j * w[0]) * v[0]
-        # )
+        self.qubitOp._check_representation('matrix')
+        np.testing.assert_almost_equal(
+            self.qubitOp.matrix @ v[0],
+            w[0] * v[0]
+        )
+        np.testing.assert_almost_equal(
+            expm(-1.j * self.qubitOp.matrix) @ v[0],
+            np.exp(-1.j * w[0]) * v[0]
+        )
 
         self.ref_eigenval = w[0]
         self.ref_eigenvec = v[0]

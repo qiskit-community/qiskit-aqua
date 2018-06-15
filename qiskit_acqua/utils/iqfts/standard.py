@@ -45,7 +45,7 @@ class Standard(IQFT):
     def init_args(self, num_qubits):
         self._num_qubits = num_qubits
 
-    def construct_circuit(self, mode, register=None, circuit=None, use_basis_gates=True):
+    def construct_circuit(self, mode, register=None, circuit=None):
         if mode == 'vector':
             return linalg.dft(2 ** self._num_qubits, scale='sqrtn')
         elif mode == 'circuit':
@@ -55,17 +55,14 @@ class Standard(IQFT):
                 circuit = QuantumCircuit(register)
 
             for j in reversed(range(self._num_qubits)):
-                circuit.u2(0, np.pi, register[j]) if use_basis_gates else circuit.h(register[j])
+                circuit.u2(0, np.pi, register[j])
                 for k in reversed(range(j)):
                     lam = -1.0 * pi / float(2 ** (j - k))
-                    if use_basis_gates:
-                        circuit.u1(lam / 2, register[j])
-                        circuit.cx(register[j], register[k])
-                        circuit.u1(-lam / 2, register[k])
-                        circuit.cx(register[j], register[k])
-                        circuit.u1(lam / 2, register[k])
-                    else:
-                        circuit.cu1(lam, register[j], register[k])
+                    circuit.u1(lam / 2, register[j])
+                    circuit.cx(register[j], register[k])
+                    circuit.u1(-lam / 2, register[k])
+                    circuit.cx(register[j], register[k])
+                    circuit.u1(lam / 2, register[k])
             return circuit
         else:
             raise ValueError('Mode should be either "vector" or "circuit"')
