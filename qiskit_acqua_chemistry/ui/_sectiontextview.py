@@ -15,7 +15,6 @@
 # limitations under the License.
 # =============================================================================
 
-import os
 import tkinter as tk
 from qiskit_acqua_chemistry.ui._toolbarview import ToolbarView
 from qiskit_acqua_chemistry.ui._customwidgets import TextCustom
