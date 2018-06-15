@@ -102,7 +102,6 @@ class TestEvolution(QISKitAcquaTestCase):
                         paulis_grouping=grouping,
                         expansion_mode=expansion_mode,
                         expansion_order=expansion_order,
-                        use_basis_gates=True
                     )
                     job = q_execute(qc, 'local_statevector_simulator', skip_transpiler=True)
                     state_out_circuit = np.asarray(job.result().get_statevector(qc))

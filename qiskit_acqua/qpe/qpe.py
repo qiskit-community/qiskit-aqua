@@ -148,8 +148,7 @@ class QPE(QuantumAlgorithm):
 
     def init_args(
             self, operator, state_in, iqft, num_time_slices, num_ancillae,
-            paulis_grouping='random', expansion_mode='trotter', expansion_order=1,
-            use_basis_gates=True):
+            paulis_grouping='random', expansion_mode='trotter', expansion_order=1):
         if self._backend.find('statevector') >= 0:
             raise ValueError('Selected backend does not support measurements.')
         self._operator = operator
@@ -160,7 +159,6 @@ class QPE(QuantumAlgorithm):
         self._paulis_grouping = paulis_grouping
         self._expansion_mode = expansion_mode
         self._expansion_order = expansion_order
-        self._use_basis_gates = use_basis_gates
         self._ret = {}
 
     def _construct_qpe_evolution(self):
@@ -175,7 +173,7 @@ class QPE(QuantumAlgorithm):
         qc.data += self._state_in.construct_circuit('circuit', q).data
 
         # Put all ancillae in uniform superposition
-        qc.u2(0, np.pi, a) if self._use_basis_gates else qc.h(a)
+        qc.u2(0, np.pi, a)
 
         # phase kickbacks via dynamics
         pauli_list = self._operator.reorder_paulis(grouping=self._paulis_grouping)
@@ -194,8 +192,7 @@ class QPE(QuantumAlgorithm):
                 raise ValueError('Unrecognized expansion mode {}.'.format(self._expansion_mode))
         for i in range(self._num_ancillae):
             qc.data += self._operator.construct_evolution_circuit(
-                slice_pauli_list, -2 * np.pi, self._num_time_slices, q, a, ctl_idx=i,
-                use_basis_gates=self._use_basis_gates
+                slice_pauli_list, -2 * np.pi, self._num_time_slices, q, a, ctl_idx=i
             ).data
             # global phase shift for the ancilla due to the identity pauli term
             qc.u1(2 * np.pi * self._ancilla_phase_coef * (2 ** i), a[i])
