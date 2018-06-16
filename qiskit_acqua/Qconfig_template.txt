@@ -16,7 +16,9 @@ config = {
     # URL for IBM Q.
     'hub': &hub,
     'group': &group,
-    'project': &project
+    'project': &project,
+    'provider_name': &provider_name,
+    'proxies': &proxies
 }
 
 if 'APItoken' not in locals():
