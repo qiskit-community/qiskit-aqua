@@ -23,7 +23,7 @@
 # Note that the weights are symmetric, i.e., w[j, i] = x always holds.
 
 import logging
-from collections import OrderedDict
+from collections import OrderedDict, namedtuple
 
 import numpy as np
 import numpy.random as rand
@@ -34,9 +34,23 @@ from qiskit_acqua import Operator
 logger = logging.getLogger(__name__)
 
 
-def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None,
-                 seed=None):
-    """Generate random Erdos-Renyi graph for TSP.
+TspData = namedtuple('TspData', 'name dim coord w')
+
+
+def calc_distance(coord, name='tmp'):
+    assert coord.shape[1] == 2
+    dim = coord.shape[0]
+    w = np.zeros((dim, dim))
+    for i in range(dim):
+        for j in range(i + 1, dim):
+            delta = coord[i] - coord[j]
+            w[i, j] = np.hypot(delta[0], delta[1])
+    w += w.T
+    return TspData(name=name, dim=dim, coord=coord, w=w)
+
+
+def random_tsp(n, low=0, high=100, savefile=None, seed=None, name='tmp'):
+    """Generate a random instance for TSP.
 
     Args:
         n (int): number of nodes.
@@ -50,34 +64,70 @@ def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None,
         numpy.ndarray: adjacency matrix (with weights).
 
     """
-    assert (weight_range >= 0)
+    assert n > 0
     if seed:
         rand.seed(seed)
-    w = np.zeros((n, n))
-    m = 0
-    for i in range(n):
-        for j in range(i + 1, n):
-            if rand.rand() <= edge_prob:
-                w[i, j] = rand.randint(1, weight_range)
-                if rand.rand() >= 0.5:
-                    w[i, j] *= -1
-                m += 1
-    w += w.T
+    coord = rand.uniform(low, high, (n, 2))
+    ins = calc_distance(coord, name)
     if savefile:
         with open(savefile, 'w') as outfile:
-            outfile.write('{} {}\n'.format(n, m))
-            for i in range(n):
-                for j in range(i + 1, n):
-                    if w[i, j] != 0:
-                        outfile.write('{} {} {}\n'.format(i + 1, j + 1, w[i, j]))
-    return w
+            outfile.write('NAME : {}\n'.format(ins.name))
+            outfile.write('COMMENT : random data\n')
+            outfile.write('TYPE : TSP\n')
+            outfile.write('DIMENSION : {}\n'.format(ins.dim))
+            outfile.write('EDGE_WEIGHT_TYPE : EUC_2D\n')
+            outfile.write('NODE_COORD_SECTION\n')
+            for i in range(ins.dim):
+                x = ins.coord[i]
+                outfile.write('{} {:.4f} {:.4f}\n'.format(i + 1, x[0], x[1]))
+    return ins
 
 
-def get_tsp_qubitops(weight_matrix):
+def parse_tsplib_format(filename):
+    """Read graph in TSPLIB format from file.
+
+    Args:
+        filename (str): name of the file.
+
+    Returns:
+        numpy.ndarray: adjacency matrix as a 2D numpy array.
+    """
+    name = ''
+    coord = None
+    with open(filename) as infile:
+        coord_section = False
+        for line in infile:
+            if line.startswith('NAME'):
+                name = line.split(':')[1]
+                name.strip()
+            elif line.startswith('TYPE'):
+                typ = line.split(':')[1]
+                typ.strip()
+                if typ != 'TSP':
+                    logger.warning('This supports only "TSP" type. Actual: {}'.format(typ))
+            elif line.startswith('DIMENSION'):
+                dim = int(line.split(':')[1])
+                coord = np.zeros((dim, 2))
+            elif line.startswith('EDGE_WEIGHT_TYPE'):
+                typ = line.split(':')[1]
+                typ.strip()
+                if typ != 'EUC_2D':
+                    logger.warning('This supports only "EUC_2D" edge weight. Actual: {}'.format(typ))
+            elif line.startswith('NODE_COORD_SECTION'):
+                coord_section = True
+            elif coord_section:
+                v = line.split()
+                index = int(v[0]) - 1
+                coord[index][0] = float(v[1])
+                coord[index][1] = float(v[2])
+    return calc_distance(coord, name)
+
+
+def get_tsp_qubitops(ins):
     """Generate Hamiltonian for TSP of a graph.
 
     Args:
-        weight_matrix (numpy.ndarray) : adjacency matrix.
+        ins (TspData) : TSP data including coordinates and distances.
 
     Returns:
         operator.Operator, float: operator for the Hamiltonian and a
@@ -99,38 +149,7 @@ def get_tsp_qubitops(weight_matrix):
     return Operator(paulis=pauli_list), shift
 
 
-def parse_tsplib_format(filename):
-    """Read graph in TSPLIB format from file.
-
-    Args:
-        filename (str): name of the file.
-
-    Returns:
-        numpy.ndarray: adjacency matrix as a 2D numpy array.
-    """
-    n = -1
-    with open(filename) as infile:
-        header = True
-        m = -1
-        count = 0
-        for line in infile:
-            v = map(lambda e: int(e), line.split())
-            if header:
-                n, m = v
-                w = np.zeros((n, n))
-                header = False
-            else:
-                s, t, x = v
-                s -= 1  # adjust 1-index
-                t -= 1  # ditto
-                w[s, t] = t
-                count += 1
-        assert m == count
-    w += w.T
-    return w
-
-
-def maxcut_value(x, w):
+def tsp_value(x, w):
     """Compute the value of a cut.
 
     Args:
