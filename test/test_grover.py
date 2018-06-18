@@ -18,7 +18,7 @@
 import os
 import unittest
 import operator
-
+import warnings
 from test.common import QISKitAcquaTestCase
 from qiskit_acqua import get_algorithm_instance, get_oracle_instance
 
@@ -29,14 +29,17 @@ class TestGrover(QISKitAcquaTestCase):
         # get ground-truth
         with open(self.input_file) as f:
             header = f.readline()
-            self.assertGreaterEqual(header.find('solution'), 0, 'Ground-truth info missing.')
-        self.groundtruth = [
-            ''.join([
-                '1' if i > 0 else '0'
-                for i in sorted([int(v) for v in s.strip().split() if v != '0'], key=abs)
-            ])[::-1]
-            for s in header.split('solutions:' if header.find('solutions:') >= 0 else 'solution:')[-1].split(',')
-        ]
+            if not header.find('solution') >= 0:
+                self.groundtruth = None
+                warnings.warn('Ground-truth info missing.', RuntimeWarning)
+            else:
+                self.groundtruth = [
+                    ''.join([
+                        '1' if i > 0 else '0'
+                        for i in sorted([int(v) for v in s.strip().split() if v != '0'], key=abs)
+                    ])[::-1]
+                    for s in header.split('solutions:' if header.find('solutions:') >= 0 else 'solution:')[-1].split(',')
+                ]
 
     def test_grover(self):
         sat_oracle = get_oracle_instance('SAT')
@@ -54,7 +57,8 @@ class TestGrover(QISKitAcquaTestCase):
         top_measurement = max(ret['measurements'].items(), key=operator.itemgetter(1))[0]
         self.log.debug('Top measurement:        {}.'.format(top_measurement))
         self.log.debug('Search Result:          {}.'.format(ret['result']))
-        self.assertIn(top_measurement, self.groundtruth)
+        if self.groundtruth is not None:
+            self.assertIn(top_measurement, self.groundtruth)
 
 
 if __name__ == '__main__':
