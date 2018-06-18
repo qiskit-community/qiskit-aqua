@@ -24,7 +24,8 @@ class SectionsView(ScrollbarView):
     def __init__(self, controller, parent, **options):
         super(SectionsView, self).__init__(parent, **options)
         self._controller = controller
-        self._tree = ttk.Treeview(self, selectmode=tk.BROWSE)
+        ttk.Style().configure("BrowseSectionsView.Treeview.Heading", font=(None,12,'bold'))
+        self._tree = ttk.Treeview(self,style='BrowseSectionsView.Treeview', selectmode=tk.BROWSE)
         self._tree.heading('#0', text='Sections')
         self._tree.bind('<<TreeviewSelect>>', self._on_tree_select)
         self.init_widgets(self._tree)

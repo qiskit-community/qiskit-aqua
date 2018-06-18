@@ -186,9 +186,10 @@ class QuantumAlgorithm(ABC):
             try:
                 q_register(qconfig.APItoken, qconfig.config["url"], hub=hub, group=group, project=project,
                            proxies=proxies, verify=verify, provider_name=provider_name)
-            except:
-                logger.debug("WARNING: Can not register quantum backends. Check your Qconfig.py.")
-
+                logger.debug('Registered with QISKit successfully.')
+            except Exception as e:
+                logger.debug('Failed to register quantum backends: {}'.format(str(e)))
+            
         backends = available_backends()
         backends = [x for x in backends if x not in QuantumAlgorithm.UNSUPPORTED_BACKENDS]
         return backends

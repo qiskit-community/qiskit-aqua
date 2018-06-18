@@ -18,9 +18,8 @@
 import os
 import json
 import re
-
+import copy
 import qiskit_acqua
-
 
 class Preferences(object):
 
@@ -28,6 +27,8 @@ class Preferences(object):
     _VERSION = '1.0'
     _QCONFIG_NAME = 'Qconfig'
     URL = 'https://quantumexperience.ng.bluemix.net/api'
+    PROVIDER_NAME = 'ibmq'
+    VERIFY = True
 
     def __init__(self):
         """Create Preferences object."""
@@ -41,6 +42,9 @@ class Preferences(object):
         self._hub = None
         self._group = None
         self._project = None
+        self._verify = Preferences.VERIFY
+        self._provider_name = Preferences.PROVIDER_NAME
+        self._proxy_urls = None
         template_file = os.path.join(os.path.dirname(__file__), 'Qconfig_template.txt')
         self._qconfig_template = []
         with open(template_file, 'r') as stream:
@@ -58,6 +62,12 @@ class Preferences(object):
                 self._group = qconfig.config['group']
             if 'project' in qconfig.config:
                 self._project = qconfig.config['project']
+            if 'verify' in qconfig.config:
+                self._verify = qconfig.config['verify']
+            if 'provider_name' in qconfig.config:
+                self._provider_name = qconfig.config['provider_name']
+            if 'proxies' in qconfig.config and isinstance(qconfig.config['proxies'],dict) and 'urls' in qconfig.config['proxies']:
+                self._proxy_urls = qconfig.config['proxies']['urls']
 
         home = os.path.expanduser("~")
         self._filepath = os.path.join(home, Preferences._FILENAME)
@@ -74,11 +84,18 @@ class Preferences(object):
             hub = "'" + self._hub + "'" if self._hub is not None else 'None'
             group = "'" + self._group + "'" if self._group is not None else 'None'
             project = "'" + self._project + "'" if self._project is not None else 'None'
+            provider_name = "'" + self._provider_name + "'" if self._provider_name is not None else 'None'
+            verify = str(self._verify) if self._verify is not None else 'None'
+            proxies = { 'urls': self._proxy_urls } if self._proxy_urls is not None else {}
+            proxies = json.dumps(proxies, sort_keys=True, indent=4) if proxies is not None else 'None'
             qconfig_content = [re.sub('&APItoken', token, l) for l in self._qconfig_template]
             qconfig_content = [re.sub('&url', url, l) for l in qconfig_content]
             qconfig_content = [re.sub('&hub', hub, l) for l in qconfig_content]
             qconfig_content = [re.sub('&group', group, l) for l in qconfig_content]
             qconfig_content = [re.sub('&project', project, l) for l in qconfig_content]
+            qconfig_content = [re.sub('&provider_name', provider_name, l) for l in qconfig_content]
+            qconfig_content = [re.sub('&verify', verify, l) for l in qconfig_content]
+            qconfig_content = [re.sub('&proxies', proxies, l) for l in qconfig_content]
             path = self.get_qconfig_path(os.path.abspath(os.path.join(os.getcwd(), Preferences._QCONFIG_NAME + '.py')))
             with open(path, 'w') as stream:
                 stream.write(''.join(qconfig_content))
@@ -160,7 +177,40 @@ class Preferences(object):
         if self._project != project:
             self._qconfig_changed = True
             self._project = project
+            
+    def get_verify(self, default_value=None):
+        if self._verify is not None:
+            return self._verify
 
+        return default_value
+
+    def set_verify(self, verify):
+        if self._verify != verify:
+            self._qconfig_changed = True
+            self._verify = verify
+            
+    def get_provider_name(self, default_value=None):
+        if self._provider_name is not None:
+            return self._provider_name
+
+        return default_value
+
+    def set_provider_name(self, provider_name):
+        if self._provider_name != provider_name:
+            self._qconfig_changed = True
+            self._provider_name = provider_name
+            
+    def get_proxy_urls(self, default_value=None):
+        if self._proxy_urls is not None:
+            return copy.deepcopy(self._proxy_urls)
+
+        return default_value
+
+    def set_proxy_urls(self, proxy_urls):
+        if self._proxy_urls != proxy_urls:
+            self._qconfig_changed = True
+            self._proxy_urls = proxy_urls
+       
     def get_logging_config(self, default_value=None):
         if 'logging_config' in self._preferences:
             return self._preferences['logging_config']
