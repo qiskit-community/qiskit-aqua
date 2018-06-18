@@ -17,7 +17,7 @@
 
 import setuptools
 
-long_description="""<a href="https://qiskit.org/acqua/#/chemistry" rel=nofollow>QISKit ACQUA Chemistry</a> 
+long_description="""<a href="https://qiskit.org/acqua/chemistry" rel=nofollow>QISKit ACQUA Chemistry</a> 
  is a set of quantum computing algorithms, 
  tools and APIs for experimenting with real-world chemistry applications on near-term quantum devices."""
     

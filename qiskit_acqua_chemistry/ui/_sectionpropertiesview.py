@@ -25,7 +25,8 @@ class SectionPropertiesView(ToolbarView):
     def __init__(self, controller, parent, **options):
         super(SectionPropertiesView, self).__init__(parent, **options)
         self._controller = controller
-        self._tree = ttk.Treeview(self, selectmode=tk.BROWSE, columns=['value'])
+        ttk.Style().configure("SectionPropertiesView.Treeview.Heading", font=(None,12,'bold'))
+        self._tree = ttk.Treeview(self,style='SectionPropertiesView.Treeview', selectmode=tk.BROWSE,columns=['value'])
         self._tree.heading('#0', text='Name')
         self._tree.heading('value',text='Value')
         self._tree.bind('<<TreeviewSelect>>', self._on_tree_select)
