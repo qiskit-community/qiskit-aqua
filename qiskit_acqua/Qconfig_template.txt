@@ -17,6 +17,7 @@ config = {
     'hub': &hub,
     'group': &group,
     'project': &project,
+    'verify': &verify,
     'provider_name': &provider_name,
     'proxies': &proxies
 }

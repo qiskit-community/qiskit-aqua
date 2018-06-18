@@ -104,14 +104,13 @@ class PreferencesDialog(Dialog):
         return True
 
     def apply(self):
-        self._qconfigview.apply()
-        
         level_name = self._levelCombo.get()
         levels = [key for key, value in PreferencesDialog._LOG_LEVELS.items() if value == level_name]
         loglevel = levels[0]
         logging_config = build_logging_config(['qiskit_acqua'],loglevel)
         
         preferences = Preferences()
+        self._qconfigview.apply(preferences)
         preferences.set_logging_config(logging_config)
         preferences.save()
         set_logger_config(logging_config)

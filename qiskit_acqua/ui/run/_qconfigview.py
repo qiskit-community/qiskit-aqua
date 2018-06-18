@@ -17,10 +17,12 @@
 
 import tkinter as tk
 import tkinter.ttk as ttk
+from tkinter import messagebox
 from qiskit_acqua.ui.run._customwidgets import EntryCustom
 from qiskit_acqua.ui.run._toolbarview import ToolbarView
 from qiskit_acqua.preferences import Preferences
 from qiskit_acqua.ui.run._dialog import Dialog
+import urllib
 
 class QconfigView(ttk.Frame):
      
@@ -29,24 +31,37 @@ class QconfigView(ttk.Frame):
        
         self.pack(fill=tk.BOTH, expand=tk.TRUE)
         
-        style = ttk.Style()
-        bg = ttk.Style().lookup('TFrame', 'background')
-        style = ttk.Style()
-        style.configure("TNotebook", background=bg, borderwidth=0)
-        self._notebook = ttk.Notebook(self,style='TNotebook')
-        self._notebook.pack(fill=tk.BOTH, expand=tk.TRUE)
+        self._notebook = ttk.Notebook(self)
+        self._notebook.pack(side=tk.TOP,fill=tk.BOTH, expand=tk.TRUE)
         
-        self._mainpage = MainPage(self._notebook)
-        self._proxiespage = ProxiesPage(self._notebook)
-        self._notebook.add(self._mainpage, text='Main',sticky='nsew')
-        self._notebook.add(self._proxiespage, text='Proxies',sticky='nsew')
+        preferences = Preferences()
+        self._mainpage = MainPage(self._notebook,preferences)
+        self._proxiespage = ProxiesPage(self._notebook,preferences)
+        self._notebook.add(self._mainpage, text='Main')
+        self._notebook.add(self._proxiespage, text='Proxies')
+        
+        frame = ttk.Frame(self)
+        frame.pack(side=tk.BOTTOM,fill=tk.X, expand=tk.TRUE)
+        
+        ttk.Label(frame,
+                  text="Path:",
+                  borderwidth=0,
+                  anchor=tk.E).grid(row=0, column=0,padx=6,sticky='nsew')
+        ttk.Label(frame,
+                  text=preferences.get_qconfig_path(''),
+                  borderwidth=0,
+                  anchor=tk.W).grid(row=0, column=1, sticky='nsw')
         
         self.update_idletasks()
         self._notebook.configure(height=self._mainpage.winfo_reqheight())
         
+    def apply(self,preferences):
+        self._mainpage.apply(preferences)
+        self._proxiespage.apply(preferences)
+        
 class MainPage(ttk.Frame):
      
-    def __init__(self, parent,**options):
+    def __init__(self, parent, preferences,**options):
         super(MainPage, self).__init__(parent, **options)
         self._label_text = None
         self._label = None
@@ -62,18 +77,17 @@ class MainPage(ttk.Frame):
         self._project = tk.StringVar()
         self.providerEntry = None
         self._provider_name = tk.StringVar()
-        self._config_path = tk.StringVar()
+        self._verifyEntry = None
         
         self.pack(fill=tk.BOTH, expand=tk.TRUE)
       
-        preferences = Preferences()
         self._apiToken.set(preferences.get_token('')) 
         self._url.set(preferences.get_url(Preferences.URL)) 
         self._hub.set(preferences.get_hub('')) 
         self._group.set(preferences.get_group('')) 
         self._project.set(preferences.get_project(''))
-        self._provider_name.set(preferences.get_provider_name(''))
-        self._config_path.set(preferences.get_qconfig_path(''))
+        self._provider_name.set(preferences.get_provider_name(Preferences.PROVIDER_NAME))
+        self._verify = preferences.get_verify(Preferences.VERIFY)
         
         ttk.Label(self,
                   text="Token:",
@@ -126,34 +140,38 @@ class MainPage(ttk.Frame):
                                          state=tk.NORMAL)
         self._providerEntry.grid(row=5, column=1,sticky='nsw')
         ttk.Label(self,
-                  text="Path:",
+                  text="Verify:",
                   borderwidth=0,
                   anchor=tk.E).grid(row=6, column=0,sticky='nsew')
-        ttk.Label(self,
-                  textvariable=self._config_path,
-                  borderwidth=0,
-                  anchor=tk.W).grid(row=6, column=1, sticky='nsw')
+        values = ['True','False']
+        self._verifyEntry = ttk.Combobox(self,
+                                  exportselection=0,
+                                  state='readonly',
+                                  values=values,
+                                  width=6)
+        self._verifyEntry.current(values.index(str(self._verify)))
+        self._verifyEntry.grid(row=6, column=1,sticky='nsw')
         
-    def apply(self):
+    def apply(self,preferences):
         token = self._apiToken.get().strip()
         url = self._url.get().strip()
         hub = self._hub.get().strip()
         group = self._group.get().strip()
         project = self._project.get().strip()
         provider_name = self._provider_name.get().strip()
-        
-        preferences = Preferences()
+        verify = self._verifyEntry.get().lower() == 'true'
+    
         preferences.set_token(token if len(token) > 0 else None)
         preferences.set_url(url if len(url) > 0 else None)
         preferences.set_hub(hub if len(hub) > 0 else None)
         preferences.set_group(group if len(group) > 0 else None)
         preferences.set_project(project if len(project) > 0 else None)
         preferences.set_provider_name(provider_name if len(provider_name) > 0 else None)
-        preferences.save()
+        preferences.set_verify(verify)
     
 class ProxiesPage(ToolbarView):
 
-    def __init__(self, parent, **options):
+    def __init__(self, parent, preferences, **options):
         super(ProxiesPage, self).__init__(parent, **options)
         self._tree = ttk.Treeview(self, selectmode=tk.BROWSE, columns=['value'])
         self._tree.heading('#0', text='Protocol')
@@ -163,7 +181,6 @@ class ProxiesPage(ToolbarView):
         self._tree.bind('<Button-1>', self._on_tree_edit)
         self.init_widgets(self._tree)
         
-        preferences = Preferences()
         self._proxies = preferences.get_proxies()
         self._popup_widget = None
         self.pack(fill=tk.BOTH, expand=tk.TRUE)
@@ -244,20 +261,44 @@ class ProxiesPage(ToolbarView):
             break
         
     def on_proxy_set(self,protocol,url):
+        protocol = protocol.strip()
+        if len(protocol) == 0:
+            return False
+        
         url = url.strip()
-        if len(url) == 0:
+        if not ProxiesPage._validate_url(url):
             return False
         
         self._proxies[protocol] = url
         self.populate()
         self.show_remove_button(self.has_selection()) 
         return True
+    
+    @staticmethod
+    def _validate_url(url):
+        if url is None or not isinstance(url,str):
+            return False
         
-    def apply(self):
-        preferences = Preferences()
+        url = url.strip()
+        if len(url) == 0:
+            return False
+        
+        min_attributes = ('scheme','netloc')
+        valid = True
+        try:
+            token = urllib.parse.urlparse(url)
+            if not all([getattr(token,attr) for attr in min_attributes]):
+                valid = False
+        except:
+            valid = False
+         
+        if not valid:
+            messagebox.showerror("Error",'Invalid url')
+      
+        return valid
+        
+    def apply(self,preferences):
         preferences.set_proxies(self._proxies)
-        preferences.save()
-        
         
 class URLPopup(EntryCustom):
 
@@ -317,7 +358,7 @@ class ProxyEntryDialog(Dialog):
             return False
         
         url = self._url.get().strip()
-        if len(url) == 0:
+        if not ProxiesPage._validate_url(url):
             self.initial_focus = self._url
             return False
                 
