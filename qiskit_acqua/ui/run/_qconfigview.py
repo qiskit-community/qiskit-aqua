@@ -17,6 +17,7 @@
 
 import tkinter as tk
 import tkinter.ttk as ttk
+from tkinter import font
 from tkinter import messagebox
 from qiskit_acqua.ui.run._customwidgets import EntryCustom
 from qiskit_acqua.ui.run._toolbarview import ToolbarView
@@ -258,7 +259,9 @@ class ProxiesPage(ToolbarView):
 
     def __init__(self, parent, preferences, **options):
         super(ProxiesPage, self).__init__(parent, **options)
-        self._tree = ttk.Treeview(self, selectmode=tk.BROWSE, columns=['value'])
+        size = font.nametofont('TkHeadingFont').actual('size')
+        ttk.Style().configure("ProxiesPage.Treeview.Heading", font=(None,size,'bold'))
+        self._tree = ttk.Treeview(self, style='ProxiesPage.Treeview', selectmode=tk.BROWSE, columns=['value'])
         self._tree.heading('#0', text='Protocol')
         self._tree.heading('value',text='URL')
         self._tree.column('#0',minwidth=0,width=150,stretch=tk.NO)
