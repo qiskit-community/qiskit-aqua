@@ -38,8 +38,6 @@ class MainView(ttk.Frame):
     def __init__(self,parent=None):
         """Create MainView object."""
         super(MainView, self).__init__(parent)
-        #ttk.Style().configure('Treeview.Heading')
-        font.nametofont('TkHeadingFont').configure(size=12, weight='bold')
         self._controller = Controller(self)
         self.pack(expand=tk.YES,fill=tk.BOTH)
         self._create_widgets()
@@ -189,6 +187,7 @@ class MainView(ttk.Frame):
         
     def _create_pane(self):
         label_font = font.nametofont('TkHeadingFont').copy()
+        label_font.configure(size=12, weight='bold')
         ttk.Style().configure('TLabel',borderwidth=1,relief='solid')
         style = ttk.Style()
         style.configure('Title.TLabel',
