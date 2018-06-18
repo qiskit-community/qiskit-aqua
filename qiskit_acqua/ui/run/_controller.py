@@ -134,6 +134,7 @@ class Controller(object):
                 'url' not in qconfig.config:
                 qconfig = None
     
+            self._available_backends = []
             self._available_backends = QuantumAlgorithm.register_and_get_operational_backends(qconfig)
         except Exception as e:
             logger.debug(str(e))

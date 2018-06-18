@@ -33,7 +33,8 @@ class SectionPropertiesView(ScrollbarView):
             
     def populate(self,column_titles,properties):
         self.clear()
-        self._tree = ttk.Treeview(self, selectmode=tk.BROWSE, columns=column_titles)
+        ttk.Style().configure("BrowseSectionPropertiesView.Treeview.Heading", font=(None,12,'bold')) 
+        self._tree = ttk.Treeview(self,style='BrowseSectionPropertiesView.Treeview', selectmode=tk.BROWSE, columns=column_titles)
         self._tree.heading('#0', text='property')
         self.init_widgets(self._tree)
         for value in column_titles:
