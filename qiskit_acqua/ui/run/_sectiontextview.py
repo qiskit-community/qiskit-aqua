@@ -15,10 +15,11 @@
 # limitations under the License.
 # =============================================================================
 
-import os
 import tkinter as tk
 from qiskit_acqua.ui.run._toolbarview import ToolbarView
 from qiskit_acqua.ui.run._customwidgets import TextCustom
+
+_LINESEP = '\n'
 
 class SectionTextView(ToolbarView):
 
@@ -52,9 +53,9 @@ class SectionTextView(ToolbarView):
         self._text = self._textWidget.get(1.0, tk.END)
             
     def _update_value(self, *ignore):
-        sep_pos = -len(os.linesep)
+        sep_pos = -len(_LINESEP)
         new_text = self._textWidget.get(1.0, tk.END)
-        if len(new_text) >= len(os.linesep) and new_text[sep_pos:] == os.linesep:
+        if len(new_text) >= len(_LINESEP) and new_text[sep_pos:] == _LINESEP:
             new_text = new_text[:sep_pos]
                     
         if self._text != new_text:

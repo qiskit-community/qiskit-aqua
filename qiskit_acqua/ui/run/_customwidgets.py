@@ -19,9 +19,9 @@ from sys import platform
 import tkinter as tk
 import tkinter.ttk as ttk
 from qiskit_acqua.ui.run._dialog import Dialog
-import os
 
 _BIND = '<Button-2><ButtonRelease-2>' if platform == 'darwin' else '<Button-3><ButtonRelease-3>'
+_LINESEP = '\n'
 
 class EntryCustom(ttk.Entry):
     
@@ -156,9 +156,9 @@ class TextPopup(ttk.Frame):
         self._child.tag_add('sel',1.0,tk.END)
         
     def _update_value(self, *ignore):
-        sep_pos = -len(os.linesep)
+        sep_pos = -len(_LINESEP)
         new_text = self._child.get(1.0, tk.END)
-        if len(new_text) >= len(os.linesep) and new_text[sep_pos:] == os.linesep:
+        if len(new_text) >= len(_LINESEP) and new_text[sep_pos:] == _LINESEP:
             new_text = new_text[:sep_pos]
                
         valid = True
