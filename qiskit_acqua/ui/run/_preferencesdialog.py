@@ -97,11 +97,12 @@ class PreferencesDialog(Dialog):
         self._levelCombo.current(index)
         self._levelCombo.grid(row=0, column=1,sticky='nsw')
         
-        self.entry = self._qconfigview
+        self.entry = self._qconfigview.initial_focus
         return self.entry # initial focus
     
     def validate(self):
-        return True
+        self.initial_focus = self._qconfigview.initial_focus
+        return self._qconfigview.validate()
 
     def apply(self):
         level_name = self._levelCombo.get()

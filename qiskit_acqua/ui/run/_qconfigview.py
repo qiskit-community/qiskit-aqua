@@ -39,6 +39,7 @@ class QconfigView(ttk.Frame):
         self._proxiespage = ProxiesPage(self._notebook,preferences)
         self._notebook.add(self._mainpage, text='Main')
         self._notebook.add(self._proxiespage, text='Proxies')
+        self._notebook.bind('<<NotebookTabChanged>>', self._tab_changed)
         
         frame = ttk.Frame(self)
         frame.pack(side=tk.BOTTOM,fill=tk.X, expand=tk.TRUE)
@@ -52,12 +53,83 @@ class QconfigView(ttk.Frame):
                   borderwidth=0,
                   anchor=tk.W).grid(row=0, column=1, sticky='nsw')
         
+        self.initial_focus = self._mainpage.initial_focus
         self.update_idletasks()
         self._notebook.configure(height=self._mainpage.winfo_reqheight())
+        
+    def _tab_changed(self, *ignore):
+        if self._notebook.index(self._notebook.select()) == 0:
+            if not self._mainpage.validate():
+                self.initial_focus = self._mainpage.initial_focus
+                self.initial_focus.focus_set()
+                return
+            
+            if not self._proxiespage.is_valid():
+                self._notebook.select(1)
+    
+        if self._notebook.index(self._notebook.select()) == 1:
+            if not self._proxiespage.validate():
+                self.initial_focus = self._proxiespage.initial_focus
+                self.initial_focus.focus_set()
+                return
+            
+            if not self._mainpage.is_valid():
+                self._notebook.select(0)
+            
+    def validate(self):
+        if not self._mainpage.is_valid():
+            if self._notebook.index(self._notebook.select()) != 0:
+                self._notebook.select(0)
+                return False
+            
+            self._mainpage.validate()
+            self.initial_focus = self._mainpage.initial_focus
+            return False
+          
+        if not self._proxiespage.is_valid():
+            if self._notebook.index(self._notebook.select()) != 1:
+                self._notebook.select(1)
+                return False
+            
+            self._proxiespage.validate()
+            self.initial_focus = self._mainpage.initial_focus
+            return False
+         
+        self.initial_focus = self._mainpage.initial_focus
+        return True
         
     def apply(self,preferences):
         self._mainpage.apply(preferences)
         self._proxiespage.apply(preferences)
+        
+        
+    @staticmethod
+    def _is_valid_url(url):
+        if url is None or not isinstance(url,str):
+            return False
+        
+        url = url.strip()
+        if len(url) == 0:
+            return False
+        
+        min_attributes = ('scheme','netloc')
+        valid = True
+        try:
+            token = urllib.parse.urlparse(url)
+            if not all([getattr(token,attr) for attr in min_attributes]):
+                valid = False
+        except:
+            valid = False
+       
+        return valid
+    
+    @staticmethod
+    def _validate_url(url):
+        valid = QconfigView._is_valid_url(url)
+        if not valid:
+            messagebox.showerror("Error",'Invalid url')
+      
+        return valid
         
 class MainPage(ttk.Frame):
      
@@ -152,6 +224,19 @@ class MainPage(ttk.Frame):
         self._verifyEntry.current(values.index(str(self._verify)))
         self._verifyEntry.grid(row=6, column=1,sticky='nsw')
         
+        self.initial_focus = self._apiTokenEntry
+        
+    def is_valid(self):
+        return QconfigView._is_valid_url(self._url.get().strip())
+        
+    def validate(self):
+        if not QconfigView._validate_url(self._url.get().strip()):
+            self.initial_focus = self._urlEntry
+            return False
+    
+        self.initial_focus = self._apiTokenEntry
+        return True
+        
     def apply(self,preferences):
         token = self._apiToken.get().strip()
         url = self._url.get().strip()
@@ -181,13 +266,14 @@ class ProxiesPage(ToolbarView):
         self._tree.bind('<Button-1>', self._on_tree_edit)
         self.init_widgets(self._tree)
         
-        self._proxies = preferences.get_proxies()
+        self._proxy_urls = preferences.get_proxy_urls({})
         self._popup_widget = None
         self.pack(fill=tk.BOTH, expand=tk.TRUE)
         self.populate()
         self.show_add_button(True)
         self.show_remove_button(self.has_selection())
         self.show_defaults_button(False)
+        self.initial_focus = self._tree
         
     def clear(self):
         if self._popup_widget is not None and self._popup_widget.winfo_exists():
@@ -199,7 +285,7 @@ class ProxiesPage(ToolbarView):
             
     def populate(self):
         self.clear()
-        for protocol,url in self._proxies.items():
+        for protocol,url in self._proxy_urls.items():
             url = '' if url is None else str(url)
             url = url.replace('\r', '\\r').replace('\n', '\\n')
             self._tree.insert('',tk.END, text=protocol, values=[url])
@@ -234,7 +320,7 @@ class ProxiesPage(ToolbarView):
             self._popup_widget = URLPopup(self,
                                 protocol,
                                 self._tree,
-                                self._proxies[protocol],
+                                self._proxy_urls[protocol],
                                 state=tk.NORMAL)
             self._popup_widget.selectAll()
             self._popup_widget.place(x=x, y=y+pady, anchor=tk.W, width=width)
@@ -247,15 +333,15 @@ class ProxiesPage(ToolbarView):
             return
         
         if dialog.result is not None:
-            self._proxies[dialog.result[0]] = dialog.result[1]
+            self._proxy_urls[dialog.result[0]] = dialog.result[1]
             self.populate()
             self.show_remove_button(self.has_selection())
             
     def onremove(self):
         for item in self._tree.selection():
             protocol = self._tree.item(item,'text')
-            if protocol in self._proxies:
-                del self._proxies[protocol]
+            if protocol in self._proxy_urls:
+                del self._proxy_urls[protocol]
                 self.populate()
                 self.show_remove_button(self.has_selection())
             break
@@ -266,39 +352,22 @@ class ProxiesPage(ToolbarView):
             return False
         
         url = url.strip()
-        if not ProxiesPage._validate_url(url):
+        if not QconfigView._validate_url(url):
             return False
         
-        self._proxies[protocol] = url
+        self._proxy_urls[protocol] = url
         self.populate()
         self.show_remove_button(self.has_selection()) 
         return True
     
-    @staticmethod
-    def _validate_url(url):
-        if url is None or not isinstance(url,str):
-            return False
-        
-        url = url.strip()
-        if len(url) == 0:
-            return False
-        
-        min_attributes = ('scheme','netloc')
-        valid = True
-        try:
-            token = urllib.parse.urlparse(url)
-            if not all([getattr(token,attr) for attr in min_attributes]):
-                valid = False
-        except:
-            valid = False
-         
-        if not valid:
-            messagebox.showerror("Error",'Invalid url')
-      
-        return valid
+    def is_valid(self):
+        return True
+    
+    def validate(self):
+        return True
         
     def apply(self,preferences):
-        preferences.set_proxies(self._proxies)
+        preferences.set_proxy_urls(self._proxy_urls if len(self._proxy_urls) > 0 else None)
         
 class URLPopup(EntryCustom):
 
@@ -353,12 +422,12 @@ class ProxyEntryDialog(Dialog):
     
     def validate(self):
         protocol = self._protocol.get().strip()
-        if len(protocol) == 0 or protocol in self._controller._proxies:
+        if len(protocol) == 0 or protocol in self._controller._proxy_urls:
             self.initial_focus = self._protocol
             return False
         
         url = self._url.get().strip()
-        if not ProxiesPage._validate_url(url):
+        if not QconfigView._validate_url(url):
             self.initial_focus = self._url
             return False
                 
