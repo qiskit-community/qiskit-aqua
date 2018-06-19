@@ -28,34 +28,57 @@ class EntryCustom(ttk.Entry):
     def __init__(self, *args, **kwargs):
         super(EntryCustom, self).__init__(*args, **kwargs)
         _create_menu(self)
+        self.bind('<Button-1><ButtonRelease-1>', self._dismiss_menu)
         self.bind_class('Entry', '<Control-a>', self._event_select_all)  
         self.bind(_BIND, self._show_menu)
+        self.bind('<<Paste>>',self._event_paste)
 
     def _event_select_all(self, *args):
-        self.focus_force()
         self.selection_range(0, tk.END)
-        return 'break'
 
     def _show_menu(self, e):
-        self.menu.tk_popup(e.x_root, e.y_root)
-        self.selection_clear()
+        self.menu.post(e.x_root, e.y_root)
+        
+    def _dismiss_menu(self, e):
+        self.menu.unpost()
+        
+    def _event_paste(self,e):
+        try:
+            self.delete("sel.first", "sel.last")
+        except:
+            pass
+        
+        self.insert("insert", self.clipboard_get())
+        return 'break'
 
 class TextCustom(tk.Text):
     
     def __init__(self, *args, **kwargs):
         super(TextCustom, self).__init__(*args, **kwargs)
         _create_menu(self)
+        self.bind('<Button-1><ButtonRelease-1>', self._dismiss_menu)
         self.bind_class('Text', '<Control-a>', self._event_select_all)  
         self.bind(_BIND, self._show_menu)
         self.bind('<1>', lambda event: self.focus_set())
+        self.bind('<<Paste>>',self._event_paste)
       
     def _event_select_all(self, *args):
-        self.focus_force()        
         self.tag_add('sel',1.0,tk.END)
-        return 'break'
 
     def _show_menu(self, e):
-        self.menu.tk_popup(e.x_root, e.y_root)
+        self.menu.post(e.x_root, e.y_root)
+        
+    def _dismiss_menu(self, e):
+        self.menu.unpost()
+        
+    def _event_paste(self,e):
+        try:
+            self.delete("sel.first", "sel.last")
+        except:
+            pass
+        
+        self.insert("insert", self.clipboard_get())
+        return 'break'
         
 class EntryPopup(EntryCustom):
 
@@ -318,4 +341,4 @@ def _create_menu(w):
         w.menu.entryconfigure('Paste', 
                               command=lambda: w.focus_force() or w.event_generate('<<Paste>>'))
     w.menu.entryconfigure('Select all', 
-                          command=lambda: w.after(0, w._event_select_all))    
+                          command=lambda: w.focus_force() or w._event_select_all(None))
