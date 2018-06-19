@@ -105,20 +105,24 @@ class PreferencesDialog(Dialog):
         return self._qconfigview.validate()
 
     def apply(self):
-        level_name = self._levelCombo.get()
-        levels = [key for key, value in PreferencesDialog._LOG_LEVELS.items() if value == level_name]
-        loglevel = levels[0]
-        logging_config = build_logging_config(['qiskit_acqua'],loglevel)
+        try:
+            level_name = self._levelCombo.get()
+            levels = [key for key, value in PreferencesDialog._LOG_LEVELS.items() if value == level_name]
+            loglevel = levels[0]
+            logging_config = build_logging_config(['qiskit_acqua'],loglevel)
         
-        preferences = Preferences()
-        self._qconfigview.apply(preferences)
-        preferences.set_logging_config(logging_config)
-        preferences.save()
-        set_logger_config(logging_config)
+            preferences = Preferences()
+            self._qconfigview.apply(preferences)
+            preferences.set_logging_config(logging_config)
+            preferences.save()
+            set_logger_config(logging_config)
         
-        uipreferences = UIPreferences()
-        populate = self._populateDefaults.get()
-        uipreferences.set_populate_defaults(False if populate == 0 else True)
-        uipreferences.save()
+            uipreferences = UIPreferences()
+            populate = self._populateDefaults.get()
+            uipreferences.set_populate_defaults(False if populate == 0 else True)
+            uipreferences.save()
         
-        self._controller.get_available_backends()
+            self._controller.get_available_backends()
+        except Exception as e:
+            self.controller.outputview.write_line(str(e))
+            
