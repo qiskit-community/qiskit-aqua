@@ -34,21 +34,26 @@ class EntryCustom(ttk.Entry):
         self.bind('<<Paste>>',self._event_paste)
 
     def _event_select_all(self, *args):
+        if platform == 'darwin':
+            self.focus_force()
         self.selection_range(0, tk.END)
+        return 'break'
 
     def _show_menu(self, e):
         self.menu.post(e.x_root, e.y_root)
+        if platform == 'darwin':
+            self.selection_clear()
         
     def _dismiss_menu(self, e):
         self.menu.unpost()
         
     def _event_paste(self,e):
         try:
-            self.delete("sel.first", "sel.last")
+            self.delete(tk.SEL_FIRST,tk.SEL_LAST)
         except:
             pass
         
-        self.insert("insert", self.clipboard_get())
+        self.insert(tk.INSERT, self.clipboard_get())
         return 'break'
 
 class TextCustom(tk.Text):
@@ -63,7 +68,9 @@ class TextCustom(tk.Text):
         self.bind('<<Paste>>',self._event_paste)
       
     def _event_select_all(self, *args):
-        self.tag_add('sel',1.0,tk.END)
+        # do not select the new line that the text widget automatically adds at the end
+        self.tag_add(tk.SEL,1.0,tk.END + '-1c')
+        return 'break'
 
     def _show_menu(self, e):
         self.menu.post(e.x_root, e.y_root)
@@ -73,11 +80,11 @@ class TextCustom(tk.Text):
         
     def _event_paste(self,e):
         try:
-            self.delete("sel.first", "sel.last")
+            self.delete(tk.SEL_FIRST,tk.SEL_LAST)
         except:
             pass
         
-        self.insert("insert", self.clipboard_get())
+        self.insert(tk.INSERT, self.clipboard_get())
         return 'break'
         
 class EntryPopup(EntryCustom):
@@ -176,7 +183,8 @@ class TextPopup(ttk.Frame):
         
     def selectAll(self):
         self._child.focus_force()
-        self._child.tag_add('sel',1.0,tk.END)
+        # do not select the new line that the text widget automatically adds at the end
+        self._child.tag_add(tk.SEL,1.0,tk.END + '-1c')
         
     def _update_value(self, *ignore):
         sep_pos = -len(_LINESEP)
@@ -340,5 +348,11 @@ def _create_menu(w):
     if state == tk.NORMAL:
         w.menu.entryconfigure('Paste', 
                               command=lambda: w.focus_force() or w.event_generate('<<Paste>>'))
-    w.menu.entryconfigure('Select all', 
-                          command=lambda: w.focus_force() or w._event_select_all(None))
+    
+    if platform == 'darwin' and isinstance(w,ttk.Entry):
+        w.menu.entryconfigure('Select all', 
+                              command=lambda: w.after(0, w._event_select_all))  
+    else:
+        w.menu.entryconfigure('Select all',
+                              command=lambda: w.focus_force() or w._event_select_all(None))
+        
