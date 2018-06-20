@@ -16,12 +16,9 @@ Table of Contents
 .. toctree::
    :maxdepth: 2
    
-   install
-   Getting started <quickstart>
-   QISKit ACQUA Chemistry overview <qiskit_acqua_chemistry>
-   Developer documentation <dev_introduction>
-   SDK reference <_autodoc/qiskit_acqua_chemistry>
-   Release history <releases>
+   QISKit ACQUA Chemistry Overview <qiskit-acqua-chemistry>
+   Installation and Setup <install>
+   SDK reference <qiskit_acqua_chemistry>
 
 Python Modules
 ==============
