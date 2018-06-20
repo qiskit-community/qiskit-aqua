@@ -14,7 +14,7 @@ among all possible solutions.
 
 .. topic:: Extending the Optimizer Library
     Consistent with its unique  design and architecture, QISKit ACQUA has a modular and
-    extensible architecture. Algorithms and their supporting objects, such as optimizers for quantum vational algorithms,
+    extensible architecture. Algorithms and their supporting objects, such as optimizers for quantum variational algorithms,
     are pluggable modules in QISKit ACQUA. This was done in order to encourage researchers and developers interested in
     quantum algorithms to extend the QISKit ACQUA framework with their novel research contributions.
     New optimizers for quantum variational algorithms should be installed in the ``qiskit_acqua/utils/optimizers`` folder and derive from the
@@ -72,7 +72,7 @@ The following parameters are supported:
 
         tol : float
 
-   This parameter is optional.  If specified, the value of this parameter must be a number, otherwise, it is  ``Nonw``.
+   This parameter is optional.  If specified, the value of this parameter must be a number, otherwise, it is  ``None``.
    The default is ``None``.
 
 .. topic:: Declarative Name
@@ -127,8 +127,8 @@ Limited-memory Broyden-Fletcher-Goldfarb-Shanno Bound (L-BFGS-B)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The target goal of L-BFGS-B is to minimize the value of a differentiable scalar function :math:`f`. 
-This optimizer is a *quasi-Newton method*, meaning tha, in contrast to *Newtons's method*, it 
-does not require :math:f's *Hessian* (the matrix of :math:`f`'s second derivatives)
+This optimizer is a *quasi-Newton method*, meaning that, in contrast to *Newtons's method*, it 
+does not require :math:`f`'s *Hessian* (the matrix of :math:`f`'s second derivatives)
 when attempting to compute :math:`f`'s minimum value.
 Like BFGS, L-BFGS is an iterative method for solving unconstrained, non-linear optimization problems, but approximates 
 BFGS using a limited amount of computer memory.
@@ -247,7 +247,7 @@ The following parameters are supported:
 Parallel Broyden-Fletcher-Goldfarb-Shann (P-BFGS)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-P-BFGS is a parallellized version of  :ref:`Limited-memory Broyden-Fletcher-Goldfarb-Shanno Bound (L-BFGS-B)`,
+P-BFGS is a parallellized version of  `L-BFGS-B <#limited-memory-broyden-fletcher-goldfarb-shanno-bound-l-bfgs-b>`__,
 with which it shares the same parameters.
 P-BFGS can be useful when the target hardware is a quantum simulator running on a classical
 machine. This allows the multiple processes to use simulation to
@@ -385,7 +385,7 @@ The following parameters are supported:
 
        tol : number
 
-   This parameter is optional.  If specified, the value of this parameter must be a number, otherwise, it is  ``Nonw``.
+   This parameter is optional.  If specified, the value of this parameter must be a number, otherwise, it is  ``None``.
    The default is ``None``.
 
 .. topic:: Declarative Name
@@ -533,7 +533,7 @@ The following parameters are supported:
 
         tol : number
 
-   This parameter is optional.  If specified, the value of this parameter must be a number, otherwise, it is  ``Nonw``.
+   This parameter is optional.  If specified, the value of this parameter must be a number, otherwise, it is  ``None``.
    The default is ``None``
 
 .. topic:: Declarative Name

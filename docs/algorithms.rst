@@ -248,7 +248,7 @@ Iterative Quantum Phase Estimation (IQPE)
 
 IQPE, as its name
 suggests, iteratively computes the phase so as to require less qubits.
-It takes in the same set of parameters as :ref:`Quantum Phase Estimation (QPE)`, except for the number of
+It takes in the same set of parameters as `QPE <#quantum-phase-estimation-qpe>`__, except for the number of
 ancillary qubits ``num_ancillae``, which is replaced by
 ``num_iterations`` (a positive ``int``, also defaulted to ``1``), and for the fact that an `IQFT <./iqfts.html>`__ is not
 used for IQPE.
@@ -330,15 +330,14 @@ the category of what is called *supervised learning*, consisting of a
 obtained) and a *test or classification phase* (where new labeless data
 is classified according to the solution found in the training phase).
 
-SVM Q Kernel can be configured with the following parameter:
+SVM Q Kernel can be configured with a Boolean parameter, indicating
+whether or not to print additional information when the algorithm is running:
 
--  A Boolean indicating whether or not to print additional information when the algorithm is running:
+.. code:: python
 
-   .. code:: python
+    print_info : bool
 
-       print_info : bool
-
-   A Boolean value is expected.  The default is ``False``.
+The default is ``False``.
 
 .. topic:: Declarative Name
 
@@ -405,15 +404,13 @@ Exact Eigensolver
 
 Exact Eigensolver computes up to the first ``k`` eigenvalues of a complex square matrix of dimension ``n x n``,
 with ``k`` :math:`leq` ``n``.
-It can be configured with the following parameter:
+It can be configured with an integer parameter indicating the number of eigenvalues to compute:
 
--  The number of eigenvalues to compute:
+.. code:: python
 
-   .. code:: python
+    k = 1 | 2 | ... | n
 
-       k = 1 | 2 | ... | n
-
-   An ``int`` value ``k`` in the range :math:`[1,n]` is expected. The default is ``1``.
+Specifically, the value of this parameter must be an ``int`` value ``k`` in the range :math:`[1,n]`. The default is ``1``.
 
 .. topic:: Declarative Name
 
@@ -480,15 +477,14 @@ Support Vector Machine Radial Basis Function Kernel (SVM RBF Kernel)
 
 This algorithm uses a classical approach to experiment with feature map classification
 problems.
-SVM RBF Kernel can be configured with the following parameter:
+SVM RBF Kernel can be configured with a Boolean parameter,
+indicating whether or not to print additional information when the algorithm is running:
 
--  A Boolean indicating whether or not to print additional information when the algorithm is running:
+.. code:: python
 
-   .. code:: python
+    print_info : bool
 
-       print_info : bool
-
-   A Boolean value is expected.  The default is ``False``.
+The default value for this parameter is ``False``.
 
 .. topic:: Declarative Name
 
