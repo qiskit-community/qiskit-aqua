@@ -53,7 +53,11 @@ class EntryCustom(ttk.Entry):
         except:
             pass
         
-        self.insert(tk.INSERT, self.clipboard_get())
+        try:
+            self.insert(tk.INSERT, self.clipboard_get())
+        except:
+            pass
+        
         return 'break'
 
 class TextCustom(tk.Text):
@@ -84,7 +88,11 @@ class TextCustom(tk.Text):
         except:
             pass
         
-        self.insert(tk.INSERT, self.clipboard_get())
+        try:
+            self.insert(tk.INSERT, self.clipboard_get())
+        except:
+            pass
+        
         return 'break'
         
 class EntryPopup(EntryCustom):
