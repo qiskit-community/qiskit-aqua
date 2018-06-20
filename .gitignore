@@ -104,6 +104,8 @@ docs/*.rst
 !docs/install.rst
 !docs/quickstart.rst
 !docs/releases.rst
+!docs/qiskit-acqua-chemistry.rst
+!docs/CONTRIBUTORS.rst
 
 # PyBuilder
 target/
