@@ -1,6 +1,6 @@
 # QISKit ACQUA Chemistry
 
-`QISKit ACQUA Chemistry` is a set of tools, algorithms and software for use with quantum computers
+QISKit ACQUA Chemistry is a set of tools, algorithms and software for use with quantum computers
 to carry out research and investigate how to take advantage of quantum computing power to solve chemistry
 problems. QISKit ACQUA Chemistry translates chemistry-specific problem inputs into inputs for a quantum algorithm
 supplied by [QISKit ACQUA](https://github.com/QISKit/qiskit-acqua), which then in turn uses
