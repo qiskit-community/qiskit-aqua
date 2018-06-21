@@ -65,7 +65,7 @@ Additionally, VQE can be configured with the following parameters:
 
    .. code:: python
 
-       operator_mode : "matrix" | "paulis" | "group_paulis"
+       operator_mode : "matrix" | "paulis" | "grouped_paulis"
 
    If no value for ``operator_mode`` ia specified, the default is ``"matrix"``. 
 
