@@ -136,41 +136,42 @@ def get_tsp_qubitops(ins):
 
     """
     num_nodes = ins.dim
-    zero = np.zeros(num_nodes ** 2)
+    num_qubits = num_nodes ** 2
+    zero = np.zeros(num_qubits)
     pauli_list = []
     shift = 0
     for i in range(num_nodes):
         for j in range(i):
             for p in range(num_nodes):
                 q = (p + 1) % num_nodes
-                vp = np.zeros(num_nodes ** 2)
-                wp = np.zeros(num_nodes ** 2)
+                vp = np.zeros(num_qubits)
+                wp = np.zeros(num_qubits)
                 vp[i * num_nodes + p] = 1
                 wp[j * num_nodes + q] = 1
                 pauli_list.append((ins.w[i, j] / 4, Pauli(vp, wp)))
-                pauli_list.append((-ins.w[i, j] / 4, Pauli(vp, zero)))
-                pauli_list.append((-ins.w[i, j] / 4, Pauli(wp, zero)))
+                pauli_list.append([-ins.w[i, j] / 4, Pauli(vp, zero)])  # use list intentionally
+                pauli_list.append([-ins.w[i, j] / 4, Pauli(wp, zero)])  # use list intentionally
             shift += num_nodes * ins.w[i, j] / 4
-    coef = 1e4
+    coef = 1e5
     for i in range(num_nodes):
         for p in range(num_nodes):
-            vp = np.zeros(num_nodes ** 2)
+            vp = np.zeros(num_qubits)
             vp[i * num_nodes + p] = 1
             pauli_list.append((2 * coef, Pauli(vp, vp)))
             pauli_list.append((-4 * coef, Pauli(vp, zero)))
     for p in range(num_nodes):
         for i in range(num_nodes):
             for j in range(i):
-                vp = np.zeros(num_nodes ** 2)
-                wp = np.zeros(num_nodes ** 2)
+                vp = np.zeros(num_qubits)
+                wp = np.zeros(num_qubits)
                 vp[i * num_nodes + p] = 1
                 wp[j * num_nodes + p] = 1
                 pauli_list.append((2 * coef, Pauli(vp, wp)))
     for i in range(num_nodes):
         for p in range(num_nodes):
             for q in range(p):
-                vp = np.zeros(num_nodes ** 2)
-                wp = np.zeros(num_nodes ** 2)
+                vp = np.zeros(num_qubits)
+                wp = np.zeros(num_qubits)
                 vp[i * num_nodes + p] = 1
                 wp[i * num_nodes + q] = 1
                 pauli_list.append((2 * coef, Pauli(vp, wp)))
