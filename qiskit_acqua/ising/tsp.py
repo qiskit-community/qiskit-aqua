@@ -16,7 +16,8 @@
 # =============================================================================
 
 # Convert symmetric TSP instances into Pauli list
-# Deal with TSPLIB format. See https://wwwproxy.iwr.uni-heidelberg.de/groups/comopt/software/TSPLIB95/
+# Deal with TSPLIB format.
+# See https://wwwproxy.iwr.uni-heidelberg.de/groups/comopt/software/TSPLIB95/
 # and http://elib.zib.de/pub/mp-testdata/tsp/tsplib/tsp/index.html
 # Design the tsp object `w` as a two-dimensional np.array
 # e.g., w[i, j] = x means that the length of a edge between i and j is x
@@ -134,18 +135,46 @@ def get_tsp_qubitops(ins):
         constant shift for the obj function.
 
     """
-    num_nodes = len(weight_matrix)
+    num_nodes = ins.dim
+    zero = np.zeros(num_nodes ** 2)
     pauli_list = []
     shift = 0
     for i in range(num_nodes):
         for j in range(i):
-            if weight_matrix[i, j] != 0:
-                wp = np.zeros(num_nodes)
-                vp = np.zeros(num_nodes)
-                vp[i] = 1
-                vp[j] = 1
-                pauli_list.append((0.5 * weight_matrix[i, j], Pauli(vp, wp)))
-                shift -= 0.5 * weight_matrix[i, j]
+            for p in range(num_nodes):
+                q = (p + 1) % num_nodes
+                vp = np.zeros(num_nodes ** 2)
+                wp = np.zeros(num_nodes ** 2)
+                vp[i * num_nodes + p] = 1
+                wp[j * num_nodes + q] = 1
+                pauli_list.append((ins.w[i, j] / 4, Pauli(vp, wp)))
+                pauli_list.append((-ins.w[i, j] / 4, Pauli(vp, zero)))
+                pauli_list.append((-ins.w[i, j] / 4, Pauli(wp, zero)))
+            shift += num_nodes * ins.w[i, j] / 4
+    coef = 1e4
+    for i in range(num_nodes):
+        for p in range(num_nodes):
+            vp = np.zeros(num_nodes ** 2)
+            vp[i * num_nodes + p] = 1
+            pauli_list.append((2 * coef, Pauli(vp, vp)))
+            pauli_list.append((-4 * coef, Pauli(vp, zero)))
+    for p in range(num_nodes):
+        for i in range(num_nodes):
+            for j in range(i):
+                vp = np.zeros(num_nodes ** 2)
+                wp = np.zeros(num_nodes ** 2)
+                vp[i * num_nodes + p] = 1
+                wp[j * num_nodes + p] = 1
+                pauli_list.append((2 * coef, Pauli(vp, wp)))
+    for i in range(num_nodes):
+        for p in range(num_nodes):
+            for q in range(p):
+                vp = np.zeros(num_nodes ** 2)
+                wp = np.zeros(num_nodes ** 2)
+                vp[i * num_nodes + p] = 1
+                wp[i * num_nodes + q] = 1
+                pauli_list.append((2 * coef, Pauli(vp, wp)))
+    shift += 2 * coef * num_nodes
     return Operator(paulis=pauli_list), shift
 
 
