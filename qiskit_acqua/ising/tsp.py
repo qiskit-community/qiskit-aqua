@@ -124,7 +124,7 @@ def parse_tsplib_format(filename):
     return calc_distance(coord, name)
 
 
-def get_tsp_qubitops(ins):
+def get_tsp_qubitops(ins, penalty=1e5):
     """Generate Hamiltonian for TSP of a graph.
 
     Args:
@@ -141,41 +141,51 @@ def get_tsp_qubitops(ins):
     pauli_list = []
     shift = 0
     for i in range(num_nodes):
-        for j in range(i):
+        for j in range(num_nodes):
+            if i == j:
+                continue
             for p in range(num_nodes):
                 q = (p + 1) % num_nodes
                 vp = np.zeros(num_qubits)
-                wp = np.zeros(num_qubits)
                 vp[i * num_nodes + p] = 1
-                wp[j * num_nodes + q] = 1
-                pauli_list.append((ins.w[i, j] / 4, Pauli(vp, wp)))
-                pauli_list.append([-ins.w[i, j] / 4, Pauli(vp, zero)])  # use list intentionally
-                pauli_list.append([-ins.w[i, j] / 4, Pauli(wp, zero)])  # use list intentionally
-            shift += num_nodes * ins.w[i, j] / 4
-    coef = 1e5
+                pauli_list.append([-ins.w[i, j] / 4, Pauli(vp, zero)])
+                vp = np.zeros(num_qubits)
+                vp[j * num_nodes + q] = 1
+                pauli_list.append([-ins.w[i, j] / 4, Pauli(vp, zero)])
+                vp[i * num_nodes + p] = 1
+                pauli_list.append([ins.w[i, j] / 4, Pauli(vp, zero)])
+                shift += ins.w[i, j] / 4
     for i in range(num_nodes):
         for p in range(num_nodes):
             vp = np.zeros(num_qubits)
             vp[i * num_nodes + p] = 1
-            pauli_list.append((2 * coef, Pauli(vp, vp)))
-            pauli_list.append((-4 * coef, Pauli(vp, zero)))
+            pauli_list.append([penalty, Pauli(vp, zero)])
+            shift += -penalty
     for p in range(num_nodes):
         for i in range(num_nodes):
             for j in range(i):
+                shift += penalty / 2
                 vp = np.zeros(num_qubits)
-                wp = np.zeros(num_qubits)
                 vp[i * num_nodes + p] = 1
-                wp[j * num_nodes + p] = 1
-                pauli_list.append((2 * coef, Pauli(vp, wp)))
+                pauli_list.append([-penalty / 2, Pauli(vp, zero)])
+                vp = np.zeros(num_qubits)
+                vp[j * num_nodes + p] = 1
+                pauli_list.append([-penalty / 2, Pauli(vp, zero)])
+                vp[i * num_nodes + p] = 1
+                pauli_list.append([penalty / 2, Pauli(vp, zero)])
     for i in range(num_nodes):
         for p in range(num_nodes):
             for q in range(p):
+                shift += penalty / 2
                 vp = np.zeros(num_qubits)
-                wp = np.zeros(num_qubits)
                 vp[i * num_nodes + p] = 1
-                wp[i * num_nodes + q] = 1
-                pauli_list.append((2 * coef, Pauli(vp, wp)))
-    shift += 2 * coef * num_nodes
+                pauli_list.append([-penalty / 2, Pauli(vp, zero)])
+                vp = np.zeros(num_qubits)
+                vp[i * num_nodes + q] = 1
+                pauli_list.append([-penalty / 2, Pauli(vp, zero)])
+                vp[i * num_nodes + p] = 1
+                pauli_list.append([penalty / 2, Pauli(vp, zero)])
+    shift += 2 * penalty * num_nodes
     return Operator(paulis=pauli_list), shift
 
 
@@ -193,7 +203,18 @@ def tsp_value(x, w):
     return np.sum(w * X)
 
 
-def get_graph_solution(x):
+def tsp_feasible(x):
+    n = x.shape[0]
+    for i in range(n):
+        if sum(x[i, p] for p in range(n)) != 1:
+            return False
+    for p in range(n):
+        if sum(x[i, p] for i in range(n)) != 1:
+            return False
+    return True
+
+
+def get_tsp_solution(x):
     """Get graph solution from binary string.
 
     Args:
@@ -202,7 +223,13 @@ def get_graph_solution(x):
     Returns:
         numpy.ndarray: graph solution as binary numpy array.
     """
-    return 1 - x
+    n = int(np.sqrt(len(x)))
+    print(n)
+    y = np.zeros((n, n))
+    for i in range(n):
+        for p in range(n):
+            y[i, p] = x[i * n + p]
+    return y
 
 
 def sample_most_likely(n, state_vector):
