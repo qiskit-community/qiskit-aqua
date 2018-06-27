@@ -19,6 +19,16 @@ import numpy as np
 from qiskit.dagcircuit import DAGCircuit
 
 def summarize_circuits(circuits):
+    """
+
+    Summarize circuits based on DAGCircuit, and four metrics are summarized.
+    Number of qubits and classical bits, and number of operations and depth of circuits.
+    The average statistic is provided if multiple circuits are inputed.
+
+    Args:
+        circuits (QuantumCircuit or [QuantumCircuit]): the to-be-summarized circuits
+
+    """
     if not isinstance(circuits, list):
         circuits = [circuits]
     ret = ""
