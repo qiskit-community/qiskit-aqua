@@ -29,7 +29,7 @@ from qiskit.tools.qi.pauli import Pauli, label_to_pauli, sgn_prod
 from qiskit.qasm import pi
 
 from qiskit_acqua import AlgorithmError
-from qiskit_acqua.utils import PauliGraph
+from qiskit_acqua.utils import PauliGraph, summarize_circuits
 
 logger = logging.getLogger(__name__)
 
@@ -544,6 +544,7 @@ class Operator(object):
                 self._to_dia_matrix(mode='matrix')
 
             job = q_execute(input_circuit, backend=backend, **execute_config)
+            logger.debug(summarize_circuits(input_circuit))
             quantum_state = np.asarray(job.result().get_statevector(input_circuit))
 
             if self._dia_matrix is not None:
@@ -577,6 +578,7 @@ class Operator(object):
                 circuits.append(circuit)
 
             job = q_execute(circuits, backend=backend, **execute_config)
+            logger.debug(summarize_circuits(circuits))
             # Extract state with no Pauli final rotations
             quantum_state_0 = np.asarray(job.result().get_statevector(circuits[0]))
 
@@ -634,6 +636,7 @@ class Operator(object):
 
                 circuits.append(circuit)
             job = q_execute(circuits, backend=backend, **execute_config)
+            logger.debug(summarize_circuits(circuits))
             avg_paulis = []
             for idx, pauli in enumerate(self._paulis):
                 measured_results = job.result(**qjob_config).get_counts(circuits[idx])
@@ -665,6 +668,7 @@ class Operator(object):
 
             # Execute all the stacked quantum circuits - one for each TPB set
             job = q_execute(circuits, backend=backend, **execute_config)
+            logger.debug(summarize_circuits(circuits))
             # Compute contribution to the average avg and
             # variance from each tpb_set and add up to total avg and std_dev
             for tpb_idx, tpb_set in enumerate(self._grouped_paulis):
