@@ -146,70 +146,103 @@ def get_tsp_qubitops(ins, penalty=1e5):
                 continue
             for p in range(num_nodes):
                 q = (p + 1) % num_nodes
+                shift += ins.w[i, j] / 4
+
                 vp = np.zeros(num_qubits)
                 vp[i * num_nodes + p] = 1
                 pauli_list.append([-ins.w[i, j] / 4, Pauli(vp, zero)])
+
                 vp = np.zeros(num_qubits)
                 vp[j * num_nodes + q] = 1
                 pauli_list.append([-ins.w[i, j] / 4, Pauli(vp, zero)])
+
+                vp = np.zeros(num_qubits)
                 vp[i * num_nodes + p] = 1
+                vp[j * num_nodes + q] = 1
                 pauli_list.append([ins.w[i, j] / 4, Pauli(vp, zero)])
-                shift += ins.w[i, j] / 4
+
     for i in range(num_nodes):
         for p in range(num_nodes):
             vp = np.zeros(num_qubits)
             vp[i * num_nodes + p] = 1
             pauli_list.append([penalty, Pauli(vp, zero)])
             shift += -penalty
+
     for p in range(num_nodes):
         for i in range(num_nodes):
             for j in range(i):
                 shift += penalty / 2
+
                 vp = np.zeros(num_qubits)
                 vp[i * num_nodes + p] = 1
                 pauli_list.append([-penalty / 2, Pauli(vp, zero)])
+
                 vp = np.zeros(num_qubits)
                 vp[j * num_nodes + p] = 1
                 pauli_list.append([-penalty / 2, Pauli(vp, zero)])
+
+                vp = np.zeros(num_qubits)
                 vp[i * num_nodes + p] = 1
+                vp[j * num_nodes + p] = 1
                 pauli_list.append([penalty / 2, Pauli(vp, zero)])
+
     for i in range(num_nodes):
         for p in range(num_nodes):
             for q in range(p):
                 shift += penalty / 2
+
                 vp = np.zeros(num_qubits)
                 vp[i * num_nodes + p] = 1
                 pauli_list.append([-penalty / 2, Pauli(vp, zero)])
+
                 vp = np.zeros(num_qubits)
                 vp[i * num_nodes + q] = 1
                 pauli_list.append([-penalty / 2, Pauli(vp, zero)])
+
+                vp = np.zeros(num_qubits)
                 vp[i * num_nodes + p] = 1
+                vp[i * num_nodes + q] = 1
                 pauli_list.append([penalty / 2, Pauli(vp, zero)])
     shift += 2 * penalty * num_nodes
     return Operator(paulis=pauli_list), shift
 
 
-def tsp_value(x, w):
-    """Compute the value of a cut.
+def tsp_value(z, w):
+    """Compute the TSP value of a solution.
 
     Args:
-        x (numpy.ndarray): binary string as numpy array.
+        z (list[int]): list of cities.
         w (numpy.ndarray): adjacency matrix.
 
     Returns:
         float: value of the cut.
     """
-    X = np.outer(x, (1 - x))
-    return np.sum(w * X)
+    ret = 0.0
+    for i in range(len(z) - 1):
+        ret += w[z[i], z[i + 1]]
+    ret += w[z[-1], z[0]]
+    return ret
 
 
 def tsp_feasible(x):
-    n = x.shape[0]
+    """Check whether a solution is feasible or not.
+
+    Args:
+        x (numpy.ndarray) : binary string as numpy array.
+
+    Returns:
+        bool: feasible or not.
+    """
+    n = int(np.sqrt(len(x)))
+    y = np.zeros((n, n))
     for i in range(n):
-        if sum(x[i, p] for p in range(n)) != 1:
+        for p in range(n):
+            y[i, p] = x[i * n + p]
+    for i in range(n):
+        if sum(y[i, p] for p in range(n)) != 1:
             return False
     for p in range(n):
-        if sum(x[i, p] for i in range(n)) != 1:
+        if sum(y[i, p] for i in range(n)) != 1:
             return False
     return True
 
@@ -221,15 +254,16 @@ def get_tsp_solution(x):
         x (numpy.ndarray) : binary string as numpy array.
 
     Returns:
-        numpy.ndarray: graph solution as binary numpy array.
+        list[int]: sequence of cities to traverse.
     """
     n = int(np.sqrt(len(x)))
-    print(n)
-    y = np.zeros((n, n))
-    for i in range(n):
-        for p in range(n):
-            y[i, p] = x[i * n + p]
-    return y
+    z = []
+    for p in range(n):
+        for i in range(n):
+            if x[i * n + p] >= 0.999:
+                assert len(z) == p
+                z.append(i)
+    return z
 
 
 def sample_most_likely(n, state_vector):
