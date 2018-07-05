@@ -27,7 +27,6 @@ class Preferences(object):
     _VERSION = '1.0'
     _QCONFIG_NAME = 'Qconfig'
     URL = 'https://quantumexperience.ng.bluemix.net/api'
-    PROVIDER_NAME = 'ibmq'
     VERIFY = True
     
     def __init__(self):
@@ -43,7 +42,6 @@ class Preferences(object):
         self._group = None
         self._project = None
         self._verify = Preferences.VERIFY
-        self._provider_name = Preferences.PROVIDER_NAME
         self._proxy_urls = None
         template_file = os.path.join(os.path.dirname(__file__), 'Qconfig_template.txt')
         self._qconfig_template = []
@@ -64,8 +62,6 @@ class Preferences(object):
                 self._project = qconfig.config['project']
             if 'verify' in qconfig.config:
                 self._verify = qconfig.config['verify']
-            if 'provider_name' in qconfig.config:
-                self._provider_name = qconfig.config['provider_name']
             if 'proxies' in qconfig.config and isinstance(qconfig.config['proxies'],dict) and 'urls' in qconfig.config['proxies']:
                 self._proxy_urls = qconfig.config['proxies']['urls']
             
@@ -84,7 +80,6 @@ class Preferences(object):
             hub = "'" + self._hub + "'" if self._hub is not None else 'None'
             group = "'" + self._group + "'" if self._group is not None else 'None'
             project = "'" + self._project + "'" if self._project is not None else 'None'
-            provider_name = "'" + self._provider_name + "'" if self._provider_name is not None else 'None'
             verify = str(self._verify) if self._verify is not None else 'None'
             proxies = { 'urls': self._proxy_urls } if self._proxy_urls is not None else {}
             proxies = json.dumps(proxies, sort_keys=True, indent=4) if proxies is not None else 'None'
@@ -93,7 +88,6 @@ class Preferences(object):
             qconfig_content = [re.sub('&hub', hub, l) for l in qconfig_content]
             qconfig_content = [re.sub('&group', group, l) for l in qconfig_content]
             qconfig_content = [re.sub('&project', project, l) for l in qconfig_content]
-            qconfig_content = [re.sub('&provider_name', provider_name, l) for l in qconfig_content]
             qconfig_content = [re.sub('&verify', verify, l) for l in qconfig_content]
             qconfig_content = [re.sub('&proxies', proxies, l) for l in qconfig_content]
             path = self.get_qconfig_path(os.path.abspath(os.path.join(os.getcwd(),Preferences._QCONFIG_NAME + '.py')))
@@ -188,17 +182,6 @@ class Preferences(object):
         if self._verify != verify:
             self._qconfig_changed = True
             self._verify = verify
-            
-    def get_provider_name(self, default_value=None):
-        if self._provider_name is not None:
-            return self._provider_name
-
-        return default_value
-
-    def set_provider_name(self, provider_name):
-        if self._provider_name != provider_name:
-            self._qconfig_changed = True
-            self._provider_name = provider_name
             
     def get_proxy_urls(self, default_value=None):
         if self._proxy_urls is not None:
