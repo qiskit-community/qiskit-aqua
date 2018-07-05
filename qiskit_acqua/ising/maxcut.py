@@ -172,7 +172,7 @@ def sample_most_likely(n, state_vector):
             total += count
         state_vector = temp_vec / float(total)
 
-    k = np.argmax(state_vector)
+    k = np.argmax(np.abs(state_vector))
     x = np.zeros(n)
     for i in range(n):
         x[i] = k % 2
