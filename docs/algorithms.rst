@@ -65,9 +65,9 @@ Additionally, VQE can be configured with the following parameters:
 
    .. code:: python
 
-       operator_mode : "matrix" | "paulis" | "group_paulis"
+       operator_mode : "matrix" | "paulis" | "grouped_paulis"
 
-   If no value for ``operator_mode`` ia specified, the default is ``"matrix"``. 
+   If no value for ``operator_mode`` ia specified, the default is ``"matrix"``.
 
 -  The initial point for the search of the minimum eigenvalue:
 
@@ -111,25 +111,25 @@ Dynamics can be configured with the following parameter settings:
 -  Evolution time:
 
    .. code:: python
-   
+
        evo_time : float
 
    A number is expected.  The minimum value is ``0.0``.  The default value is ``1.0``.
 
 -  The evolution mode of the computation:
 
-   .. code:: python 
+   .. code:: python
 
        evo_mode = "matrix" | "circuit"
 
    Two ``string`` values are permitted: ``"matrix"`` or ``"circuit"``, with ``"circuit"`` being the default.
 
--  The number of time slices: 
+-  The number of time slices:
 
    .. code:: python
 
        num_time_slices = 0 | 1 | ...
-   
+
    This has to be a non-negative ``int`` value.  The default is ``1``.
 
 -  Paulis grouping mode:
@@ -141,7 +141,7 @@ Dynamics can be configured with the following parameter settings:
    Two ``string`` values are permitted: ``"default"`` or ``"random"``, with ``"default"`` being the default and indicating
    that the paulis should be grouped.
 
--  The expansion mode: 
+-  The expansion mode:
 
    .. code:: python
 
@@ -191,7 +191,7 @@ state <initial_states.html>`__ and an `IQFT <./iqfts.html>`__.
 
 QPE is also configured with the following parameter settings:
 
--  The number of time slices: 
+-  The number of time slices:
 
    .. code:: python
 
@@ -227,7 +227,7 @@ QPE is also configured with the following parameter settings:
 
 -  The number of ancillae:
 
-   .. code:: python 
+   .. code:: python
 
        num_ancillae = 1 | 2 | ...
 
