@@ -28,6 +28,9 @@ import logging
 import numpy as np
 from qiskit import __version__ as qiskit_version
 from qiskit.wrapper import register as q_register
+from qiskit.wrapper import unregister as q_unregister
+from qiskit.wrapper import registered_providers as q_registered_providers
+from qiskit.backends.ibmq import IBMQProvider
 from qiskit.wrapper import execute as q_execute
 from qiskit.wrapper import available_backends, get_backend
 
@@ -176,19 +179,33 @@ class QuantumAlgorithm(ABC):
 
     @staticmethod
     def register_and_get_operational_backends(qconfig):
+        try:
+            for provider in q_registered_providers():
+                if isinstance(provider,IBMQProvider):
+                    q_unregister(provider)
+                    logger.debug("Provider 'IBMQProvider' unregistered with QISKit successfully.")
+                    break
+        except Exception as e:
+                logger.debug("Failed to unregister provider 'IBMQProvider' with QISKit: {}".format(str(e)))
+                
         if qconfig is not None:
             hub = qconfig.config.get('hub', None)
             group = qconfig.config.get('group', None)
             project = qconfig.config.get('project', None)
             proxies = qconfig.config.get('proxies', None)
             verify = qconfig.config.get('verify', True)
-            provider_name = qconfig.config.get('provider_name', 'ibmq')
             try:
-                q_register(qconfig.APItoken, qconfig.config["url"], hub=hub, group=group, project=project,
-                           proxies=proxies, verify=verify, provider_name=provider_name)
-                logger.debug('Registered with QISKit successfully.')
+                q_register(qconfig.APItoken,
+                           provider_class=IBMQProvider,
+                           url=qconfig.config["url"],
+                           hub=hub, 
+                           group=group, 
+                           project=project,
+                           proxies=proxies,
+                           verify=verify)
+                logger.debug("Provider 'IBMQProvider' registered with QISKit successfully.")
             except Exception as e:
-                logger.debug('Failed to register quantum backends: {}'.format(str(e)))
+                logger.debug("Failed to register provider 'IBMQProvider' with QISKit: {}".format(str(e)))
             
         backends = available_backends()
         backends = [x for x in backends if x not in QuantumAlgorithm.UNSUPPORTED_BACKENDS]
