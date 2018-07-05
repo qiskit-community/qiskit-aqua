@@ -148,8 +148,6 @@ class MainPage(ttk.Frame):
         self._group = tk.StringVar()
         self._projectEntry = None
         self._project = tk.StringVar()
-        self.providerEntry = None
-        self._provider_name = tk.StringVar()
         self._verifyEntry = None
         
         self.pack(fill=tk.BOTH, expand=tk.TRUE)
@@ -159,7 +157,6 @@ class MainPage(ttk.Frame):
         self._hub.set(preferences.get_hub('')) 
         self._group.set(preferences.get_group('')) 
         self._project.set(preferences.get_project(''))
-        self._provider_name.set(preferences.get_provider_name(Preferences.PROVIDER_NAME))
         self._verify = preferences.get_verify(Preferences.VERIFY)
         
         ttk.Label(self,
@@ -205,17 +202,9 @@ class MainPage(ttk.Frame):
                                          state=tk.NORMAL)
         self._projectEntry.grid(row=4, column=1,sticky='nsw')
         ttk.Label(self,
-                  text="Provider:",
-                  borderwidth=0,
-                  anchor=tk.E).grid(row=5, column=0,sticky='nsew')
-        self._providerEntry = EntryCustom(self,
-                                         textvariable=self._provider_name,
-                                         state=tk.NORMAL)
-        self._providerEntry.grid(row=5, column=1,sticky='nsw')
-        ttk.Label(self,
                   text="Verify:",
                   borderwidth=0,
-                  anchor=tk.E).grid(row=6, column=0,sticky='nsew')
+                  anchor=tk.E).grid(row=5, column=0,sticky='nsew')
         values = ['True','False']
         self._verifyEntry = ttk.Combobox(self,
                                   exportselection=0,
@@ -223,7 +212,7 @@ class MainPage(ttk.Frame):
                                   values=values,
                                   width=6)
         self._verifyEntry.current(values.index(str(self._verify)))
-        self._verifyEntry.grid(row=6, column=1,sticky='nsw')
+        self._verifyEntry.grid(row=5, column=1,sticky='nsw')
         
         self.initial_focus = self._apiTokenEntry
         
@@ -244,7 +233,6 @@ class MainPage(ttk.Frame):
         hub = self._hub.get().strip()
         group = self._group.get().strip()
         project = self._project.get().strip()
-        provider_name = self._provider_name.get().strip()
         verify = self._verifyEntry.get().lower() == 'true'
     
         preferences.set_token(token if len(token) > 0 else None)
@@ -252,7 +240,6 @@ class MainPage(ttk.Frame):
         preferences.set_hub(hub if len(hub) > 0 else None)
         preferences.set_group(group if len(group) > 0 else None)
         preferences.set_project(project if len(project) > 0 else None)
-        preferences.set_provider_name(provider_name if len(provider_name) > 0 else None)
         preferences.set_verify(verify)
     
 class ProxiesPage(ToolbarView):

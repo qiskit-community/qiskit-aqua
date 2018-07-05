@@ -24,7 +24,7 @@ long_description="""<a href="https://qiskit.org/acqua/chemistry" rel=nofollow>QI
 
 requirements = [
     "qiskit-acqua",
-    "qiskit>=0.5.4",
+    "qiskit>=0.5.5",
     "numpy>=1.13,<1.15",
     "h5py",
     "psutil",
