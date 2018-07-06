@@ -72,7 +72,7 @@ def get_partition_qubitops(values):
             vp = np.zeros(n)
             vp[i] = 1
             vp[j] = 1
-            pauli_list.append((2*values[i]*values[j], Pauli(vp, wp)))
+            pauli_list.append([2*values[i]*values[j], Pauli(vp, wp)])
     return Operator(paulis=pauli_list), sum(values*values)
 
 def read_numbers_from_file(filename):

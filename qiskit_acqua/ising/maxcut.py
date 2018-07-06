@@ -93,7 +93,7 @@ def get_maxcut_qubitops(weight_matrix):
                 vp = np.zeros(num_nodes)
                 vp[i] = 1
                 vp[j] = 1
-                pauli_list.append((0.5*weight_matrix[i, j], Pauli(vp, wp)))
+                pauli_list.append([0.5*weight_matrix[i, j], Pauli(vp, wp)])
                 shift -= 0.5*weight_matrix[i, j]
     return Operator(paulis=pauli_list), shift
 
