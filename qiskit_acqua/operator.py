@@ -27,7 +27,6 @@ from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.wrapper import execute as q_execute
 from qiskit.tools.qi.pauli import Pauli, label_to_pauli, sgn_prod
 from qiskit.qasm import pi
-from copy import deepcopy
 
 from qiskit_acqua import AlgorithmError
 from qiskit_acqua.utils import PauliGraph
@@ -1392,7 +1391,7 @@ class Operator(object):
         finite field
 
         Args:
-            matrix_in (np.array): binary matrix
+            matrix_in (np.ndarray): binary matrix
 
         Returns:
             matrix_out: matrix_in in Echelon row form
@@ -1410,7 +1409,7 @@ class Operator(object):
                 if k != i and matrix_in[k, pivot_index] == 1:
                     matrix_in[k, :] = np.mod(matrix_in[k, :] + matrix_in[i, :], 2)
 
-        matrix_out_temp = deepcopy(matrix_in)
+        matrix_out_temp = copy.deepcopy(matrix_in)
         indices = []
         matrix_out = np.zeros(size)
         
@@ -1431,7 +1430,7 @@ class Operator(object):
         Computes the kernel of a binary matrix on the binary finite field
 
         Args:
-            matrix_in (np.array): binary matrix
+            matrix_in (np.ndarray): binary matrix
             
         Returns:
             kernel: the list of kernel vectors
