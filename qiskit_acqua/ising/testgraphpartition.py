@@ -42,7 +42,7 @@ else:
     }
     result = run_algorithm(params,algo_input)
     # print('objective function:', maxcut.maxcut_obj(result, offset))
-    x = graphpartition.sample_most_likely(len(w), result['eigvecs'][0])
+    x = graphpartition.sample_most_likely(result['eigvecs'][0])
 
     print('solution:', graphpartition.get_graph_solution(x))
     print('solution objective:', graphpartition.objective_value(x, w))
