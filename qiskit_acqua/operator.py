@@ -1408,7 +1408,7 @@ class Operator(object):
             matrix_in (np.ndarray): binary matrix
 
         Returns:
-            matrix_out: matrix_in in Echelon row form
+            np.ndarray : matrix_in in Echelon row form
         """
 
         size = matrix_in.shape
@@ -1447,7 +1447,7 @@ class Operator(object):
             matrix_in (np.ndarray): binary matrix
             
         Returns:
-            kernel: the list of kernel vectors
+            [np.ndarray]: the list of kernel vectors
         """
 
         size = matrix_in.shape
@@ -1467,7 +1467,7 @@ class Operator(object):
         Finds Z2 Pauli-type symmetries of a Operator
         
         Returns:
-            Pauli_symmetries: the list of Pauli objects representing the Z2 symmetries 
+            [Pauli]: the list of Pauli objects representing the Z2 symmetries 
         """
 
         stacked_paulis = []
