@@ -1466,6 +1466,6 @@ class Operator(object):
 
         Pauli_symmetries = []
         for symmetry in symmetries:
-            Pauli_symmetries.append(Pauli(symmetry[0:self.num_qubits],symmetry[self.num_qubits:]))
+            Pauli_symmetries.append(Pauli(symmetry[self.num_qubits:],symmetry[0:self.num_qubits]))
 
         return Pauli_symmetries 
