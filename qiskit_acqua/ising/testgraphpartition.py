@@ -54,7 +54,7 @@ def bitfield(n, L):
     return [int(digit) for digit in result] # [2:] to chop off the "0b" part
 
 L = len(x)
-max = 2^len(x)
+max = 2**len(x)
 minimal_conf = None
 minimal_v = np.inf
 for i in range(max):
