@@ -1383,3 +1383,88 @@ class Operator(object):
             raise ValueError(
                 '"targeted_represnetation" should be one of "paulis", "grouped_paulis" and "matrix".'
             )
+
+    @staticmethod
+    def row_echelon_F2(matrix_in):
+        """
+        Computes the row Echelon form of a binary matrix on the binary
+        finite field
+
+        Args:
+            matrix_in (np.ndarray): binary matrix
+
+        Returns:
+            np.ndarray : matrix_in in Echelon row form
+        """
+
+        size = matrix_in.shape
+
+        for i in range(size[0]):
+            pivot_index = 0
+            for j in range(size[1]):
+                if matrix_in[i, j] == 1:
+                    pivot_index = j
+                    break
+            for k in range(size[0]):
+                if k != i and matrix_in[k, pivot_index] == 1:
+                    matrix_in[k, :] = np.mod(matrix_in[k, :] + matrix_in[i, :], 2)
+
+        matrix_out_temp = copy.deepcopy(matrix_in)
+        indices = []
+        matrix_out = np.zeros(size)
+        
+        for i in range(size[0] - 1):
+            if np.array_equal(matrix_out_temp[i, :], np.zeros(size[1])):
+                indices.append(i)
+        for row in np.sort(indices)[::-1]:
+            matrix_out_temp = np.delete(matrix_out_temp, (row), axis=0)
+                
+        matrix_out[0:size[0] - len(indices), :] = matrix_out_temp
+        matrix_out = matrix_out.astype(int)
+
+        return matrix_out
+
+    @staticmethod
+    def kernel_F2(matrix_in):
+        """
+        Computes the kernel of a binary matrix on the binary finite field
+
+        Args:
+            matrix_in (np.ndarray): binary matrix
+            
+        Returns:
+            [np.ndarray]: the list of kernel vectors
+        """
+
+        size = matrix_in.shape
+        kernel = []
+        matrix_in_id = np.vstack((matrix_in, np.identity(size[1])))
+        matrix_in_id_ech = (Operator.row_echelon_F2(matrix_in_id.transpose())).transpose()
+
+        for col in range(size[1]):
+            if (np.array_equal(matrix_in_id_ech[0:size[0], col], np.zeros(size[0])) and not
+            np.array_equal(matrix_in_id_ech[size[0]:, col], np.zeros(size[1]))) :
+                kernel.append(matrix_in_id_ech[size[0]:, col])
+
+        return kernel
+
+    def find_Z2_symmetries(self):
+        """
+        Finds Z2 Pauli-type symmetries of a Operator
+        
+        Returns:
+            [Pauli]: the list of Pauli objects representing the Z2 symmetries 
+        """
+
+        stacked_paulis = []
+        for pauli in self._paulis:
+            stacked_paulis.append(np.concatenate( (pauli[1].v, pauli[1].w), axis=0))
+        
+        stacked_matrix = np.array(np.stack(stacked_paulis))
+        symmetries = Operator.kernel_F2(stacked_matrix)
+
+        Pauli_symmetries = []
+        for symmetry in symmetries:
+            Pauli_symmetries.append(Pauli(symmetry[self.num_qubits:],symmetry[0:self.num_qubits]))
+
+        return Pauli_symmetries 
