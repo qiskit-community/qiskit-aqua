@@ -152,7 +152,7 @@ def get_graph_solution(x):
     """
     return 1 - x
 
-def sample_most_likely(n, state_vector):
+def sample_most_likely(state_vector):
     """Compute the most likely binary string from state vector.
 
     Args:
