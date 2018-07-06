@@ -164,7 +164,7 @@ def sample_most_likely(state_vector):
     if isinstance(state_vector, dict) or isinstance(state_vector, OrderedDict):
         # get the binary string with the largest count
         binary_string = sorted(state_vector.items(), key=lambda kv: kv[1])[-1][0]
-        x = np.asarray([int(y) for y in list(binary_string)])
+        x = np.asarray([int(y) for y in reversed(list(binary_string))])
         return x
     else:
         n = int(np.log2(state_vector.shape[0]))
