@@ -48,7 +48,29 @@ else:
     print('solution objective:', graphpartition.objective_value(x, w))
 
 
+# brute-force way.
+def bitfield(n, L):
+    result = np.binary_repr(n, L)
+    return [int(digit) for digit in result] # [2:] to chop off the "0b" part
 
+L = len(x)
+max = 2^len(x)
+minimal_conf = None
+minimal_v = np.inf
+for i in range(max):
+    cur = bitfield(i, L)
+
+    how_many_nonzero = np.count_nonzero(cur)
+    if how_many_nonzero *2 != L: # not balanced
+        continue
+
+    cur_v = graphpartition.objective_value(np.array(cur), w)
+    if cur_v < minimal_v:
+        minimal_v = cur_v
+        minimal_conf = cur
+
+print("minimal assigment:", minimal_conf)
+print("minimal objective", minimal_v)
 
 # if 'VQE' not in operational_algos:
 #     print("VQE is not in operational algorithms.")
