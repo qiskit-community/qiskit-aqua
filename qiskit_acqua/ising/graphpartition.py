@@ -177,7 +177,7 @@ def get_graph_solution(x):
     """
     return 1 - x
 
-def sample_most_likely(n, state_vector):
+def sample_most_likely(state_vector):
     """Compute the most likely binary string from state vector.
     Args:
         state_vector (numpy.ndarray or dict): state vector or counts.
@@ -187,7 +187,7 @@ def sample_most_likely(n, state_vector):
     if isinstance(state_vector, dict) or isinstance(state_vector, OrderedDict):
         # get the binary string with the largest count
         binary_string = sorted(state_vector.items(), key=lambda kv: kv[1])[-1][0]
-        x = np.asarray([int(y) for y in list(binary_string)])
+        x = np.asarray([int(y) for y in reversed(list(binary_string))])
         return x
     else:
         n = int(np.log2(state_vector.shape[0]))
