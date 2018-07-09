@@ -196,10 +196,24 @@ class Preferences(object):
             self._proxy_urls = proxy_urls
             
     def get_packages(self, default_value=None):
-        if 'packages' in self._preferences:
-            return self._preferences['packages']
+        if 'packages' in self._preferences and self._preferences['packages'] is not None:
+            return copy.deepcopy(self._preferences['packages'])
 
         return default_value
+    
+    def add_package(self, package):
+        if package is not None and isinstance(package,str): 
+            packages = self.get_packages([])
+            if package not in packages:
+                packages.append(package)
+                self.set_packages(packages)
+                
+    def remove_package(self, package):
+        if package is not None and isinstance(package,str): 
+            packages = self.get_packages([])
+            if package in packages:
+                packages.remove(package)
+                self.set_packages(packages)
 
     def set_packages(self, packages):
         self._packages_changed = True
