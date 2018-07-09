@@ -231,7 +231,7 @@ class ACQUAChemistry(object):
 
             params[section_name] = copy.deepcopy(section['properties'])
             if InputParser.PROBLEM == section_name and \
-                InputParser.ENABLE_SUBSTITUTIONS in params[section_name]:
-                del params[section_name][InputParser.ENABLE_SUBSTITUTIONS]
+                InputParser.AUTO_SUBSTITUTIONS in params[section_name]:
+                del params[section_name][InputParser.AUTO_SUBSTITUTIONS]
 
         return ACQUAChemistry._DRIVER_RUN_TO_ALGO_INPUT, params, input_object
