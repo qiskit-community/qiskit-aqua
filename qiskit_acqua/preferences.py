@@ -34,6 +34,7 @@ class Preferences(object):
         self._preferences = {
             'version': Preferences._VERSION
         }
+        self._packages_changed = False
         self._qconfig_changed = False
         self._logging_config_changed = False
         self._token = None
@@ -99,7 +100,7 @@ class Preferences(object):
             if qconfig is not None:
                 qiskit_acqua.set_qconfig(qconfig)
 
-        if self._logging_config_changed:
+        if self._logging_config_changed or self._packages_changed:
             with open(self._filepath, 'w') as fp:
                 json.dump(self._preferences, fp, sort_keys=True, indent=4)
             self._logging_config_changed = False
@@ -193,6 +194,16 @@ class Preferences(object):
         if self._proxy_urls != proxy_urls:
             self._qconfig_changed = True
             self._proxy_urls = proxy_urls
+            
+    def get_packages(self, default_value=None):
+        if 'packages' in self._preferences:
+            return self._preferences['packages']
+
+        return default_value
+
+    def set_packages(self, packages):
+        self._packages_changed = True
+        self._preferences['packages'] = packages
        
     def get_logging_config(self, default_value=None):
         if 'logging_config' in self._preferences:
