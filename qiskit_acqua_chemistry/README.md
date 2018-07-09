@@ -230,7 +230,7 @@ This is the same PROBLEM specification but
   Restricted to `energy` and `excited_states` computations for the chemistry stack and therefore algorithms that
   can handle these problems. 
   
-* `enable_substitutions`=**true** | false
+* `auto_substitutions`=**true** | false
 
   *This field is only support by QISKit ACQUA Chemistry.* 
 
@@ -241,7 +241,7 @@ This is the same PROBLEM specification but
   are enabled by default.
   
   Substitutions use a predefined set of intra-section and computed values that are used to substitute (overwrite)
-  any values in the targeted fields appropriately. If enable_substitutions is set false then the end user has the
+  any values in the targeted fields appropriately. If auto_substitutions is set false then the end user has the
   full responsibility for the entire configuration.
   
 * `random_seed`=*An integer, default None*  
