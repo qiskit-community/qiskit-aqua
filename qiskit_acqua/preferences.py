@@ -34,6 +34,7 @@ class Preferences(object):
         self._preferences = {
             'version': Preferences._VERSION
         }
+        self._packages_changed = False
         self._qconfig_changed = False
         self._logging_config_changed = False
         self._token = None
@@ -99,7 +100,7 @@ class Preferences(object):
             if qconfig is not None:
                 qiskit_acqua.set_qconfig(qconfig)
 
-        if self._logging_config_changed:
+        if self._logging_config_changed or self._packages_changed:
             with open(self._filepath, 'w') as fp:
                 json.dump(self._preferences, fp, sort_keys=True, indent=4)
             self._logging_config_changed = False
@@ -193,6 +194,30 @@ class Preferences(object):
         if self._proxy_urls != proxy_urls:
             self._qconfig_changed = True
             self._proxy_urls = proxy_urls
+            
+    def get_packages(self, default_value=None):
+        if 'packages' in self._preferences and self._preferences['packages'] is not None:
+            return copy.deepcopy(self._preferences['packages'])
+
+        return default_value
+    
+    def add_package(self, package):
+        if package is not None and isinstance(package,str): 
+            packages = self.get_packages([])
+            if package not in packages:
+                packages.append(package)
+                self.set_packages(packages)
+                
+    def remove_package(self, package):
+        if package is not None and isinstance(package,str): 
+            packages = self.get_packages([])
+            if package in packages:
+                packages.remove(package)
+                self.set_packages(packages)
+
+    def set_packages(self, packages):
+        self._packages_changed = True
+        self._preferences['packages'] = packages
        
     def get_logging_config(self, default_value=None):
         if 'logging_config' in self._preferences:
