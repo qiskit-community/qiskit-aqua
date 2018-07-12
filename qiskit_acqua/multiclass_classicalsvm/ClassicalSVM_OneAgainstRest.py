@@ -23,8 +23,7 @@ from qiskit_acqua import QuantumAlgorithm
 from qiskit_acqua.svm import (get_points_and_labels, optimize_SVM)
 from qiskit_acqua.multiclass.OneAgainstRest import OneAgainstRest
 from qiskit_acqua.multiclass_classicalsvm.LinearSVC_Estimator import LinearSVC_Estimator
-from qiskit_acqua.multiclass.iris_visualization import deterministic_sample
-from qiskit_acqua.multiclass.datasets import *
+from qiskit_acqua.multiclass.data_preprocess import *
 
 class ClassicalSVM_OneAgainstRest(QuantumAlgorithm):
     ClassicalSVM_OneAgainstRest_CONFIGURATION = {
