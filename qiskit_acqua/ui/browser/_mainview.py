@@ -20,6 +20,7 @@ import tkinter as tk
 import tkinter.messagebox as tkmb
 import tkinter.ttk as ttk
 from tkinter import font
+import webbrowser
 from qiskit_acqua.ui.browser._controller import Controller
 from qiskit_acqua.ui.browser._sectionsview import SectionsView
 from qiskit_acqua.ui.browser._sectionpropertiesview import SectionPropertiesView
@@ -27,12 +28,12 @@ from qiskit_acqua.ui.browser._emptyview import EmptyView
 from qiskit_acqua.ui._uipreferences import UIPreferences
 
 class MainView(ttk.Frame):
+    
+    _HELP_LINK = 'http://qiskit.org/documentation/acqua/'
      
     def __init__(self,parent=None):
         """Create MainView object."""
         super(MainView, self).__init__(parent)
-        #ttk.Style().configure('Treeview.Heading')
-        font.nametofont('TkHeadingFont').configure(size=12, weight='bold')
         self._controller = Controller(self)
         self.pack(expand=tk.YES,fill=tk.BOTH)
         self._create_widgets()
@@ -58,10 +59,15 @@ class MainView(ttk.Frame):
         self.master.config(menu=menubar)
         self._controller._filemenu = self._fileMenu(menubar)
         
+        help_menu = tk.Menu(menubar,tearoff=False)
         if sys.platform != 'darwin':
-            help_menu = tk.Menu(menubar,tearoff=False)
             help_menu.add_command(label='About QISKit ACQUA',command=self._show_about_dialog)
-            menubar.add_cascade(label='Help',menu=help_menu)
+            
+        help_menu.add_command(label='Open Help Center',command=self._open_help_center)
+        menubar.add_cascade(label='Help',menu=help_menu)
+        
+    def _open_help_center(self):
+        webbrowser.open(MainView._HELP_LINK)
         
     def _fileMenu(self,menubar):
         if sys.platform != 'darwin':
@@ -95,7 +101,9 @@ class MainView(ttk.Frame):
                           style='PropViewTitle.TLabel',
                           padding=(5,5,5,5),
                           textvariable=self._controller._sectionsView_title)
-        label['font'] = font.nametofont('TkHeadingFont').copy()
+        label_font = font.nametofont('TkHeadingFont').copy()
+        label_font.configure(size=12, weight='bold')
+        label['font'] = label_font
         
         label.pack(side=tk.TOP, expand=tk.NO, fill=tk.X)
         container = tk.Frame(main_container)

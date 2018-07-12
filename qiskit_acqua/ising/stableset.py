@@ -85,14 +85,14 @@ def get_stableset_qubitops(w):
                 vp = np.zeros(num_nodes)
                 vp[i] = 1
                 vp[j] = 1
-                pauli_list.append((1.0, Pauli(vp, wp)))
+                pauli_list.append([1.0, Pauli(vp, wp)])
                 shift += 1
     for i in range(num_nodes):
         degree = sum(w[i, :])
         wp = np.zeros(num_nodes)
         vp = np.zeros(num_nodes)
         vp[i] = 1
-        pauli_list.append((degree - 1/2, Pauli(vp, wp)))
+        pauli_list.append([degree - 1/2, Pauli(vp, wp)])
     return Operator(paulis=pauli_list), shift - num_nodes/2
 
 
@@ -138,9 +138,9 @@ def stableset_value(x, w):
         float, bool: size of the stable set, and Boolean indicating
             feasibility.
     """
-    assert(len(x) == len(w))
+    assert(len(x) == w.shape[0])
     feasible = True
-    num_nodes = len(w)
+    num_nodes = w.shape[0]
     for i in range(num_nodes):
         for j in range(i+1, num_nodes):
             if w[i, j] != 0 and x[i] == 0 and x[j] == 0:
@@ -159,31 +159,27 @@ def get_graph_solution(x):
     """
     return 1 - x
 
-def sample_most_likely(n, state_vector):
+def sample_most_likely(state_vector):
     """Compute the most likely binary string from state vector.
 
     Args:
-        n (int): number of  qubits.
         state_vector (numpy.ndarray or dict): state vector or counts.
 
     Returns:
         numpy.ndarray: binary string as numpy.ndarray of ints.
     """
     if isinstance(state_vector, dict) or isinstance(state_vector, OrderedDict):
-        temp_vec = np.zeros(2**n)
-        total = 0
-        for i in range(2**n):
-            state = np.binary_repr(i, n)
-            count = state_vector.get(state, 0)
-            temp_vec[i] = count
-            total += count
-        state_vector = temp_vec / float(total)
-
-    k = np.argmax(state_vector)
-    x = np.zeros(n)
-    for i in range(n):
-        x[i] = k % 2
-        k >>= 1
-    return x
+        # get the binary string with the largest count
+        binary_string = sorted(state_vector.items(), key=lambda kv: kv[1])[-1][0]
+        x = np.asarray([int(y) for y in reversed(list(binary_string))])
+        return x
+    else:
+        n = int(np.log2(state_vector.shape[0]))
+        k = np.argmax(np.abs(state_vector))
+        x = np.zeros(n)
+        for i in range(n):
+            x[i] = k % 2
+            k >>= 1
+        return x
 
 

@@ -25,7 +25,7 @@ long_description="""<a href="https://qiskit.org/acqua" rel=nofollow>QISKit ACQUA
  QISKit ACQUA Artificial Intelligence, and QISKit ACQUA Optimization to experiment with real-world applications to quantum computing."""
     
 requirements = [
-    "qiskit>=0.5.4",
+    "qiskit>=0.5.6",
     "scipy>=0.19,<1.2",
     "numpy>=1.13,<1.15",
     "psutil",
@@ -38,7 +38,7 @@ requirements = [
 
 setuptools.setup(
     name='qiskit-acqua',
-    version="0.1.1",  # this should match __init__.__version__
+    version="0.1.2",  # this should match __init__.__version__
     description='QISKit ACQUA: An extensible library of quantum computing algorithms',
     long_description=long_description,
     long_description_content_type="text/markdown",

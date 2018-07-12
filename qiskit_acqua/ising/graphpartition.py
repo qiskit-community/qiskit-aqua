@@ -15,11 +15,9 @@
 # limitations under the License.
 # =============================================================================
 
-# Convert maxcut instances into Pauli list
+# Convert graph partitioning instances into Pauli list
 # Deal with Gset format. See https://web.stanford.edu/~yyye/yyye/Gset/
-# Design the maxcut object `w` as a two-dimensional np.array
-# e.g., w[i, j] = x means that the weight of a edge between i and j is x
-# Note that the weights are symmetric, i.e., w[j, i] = x always holds.
+
 
 import logging
 from collections import OrderedDict
@@ -35,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None,
                   seed=None):
-    """Generate random Erdos-Renyi graph for MaxCut.
+    """Generate random Erdos-Renyi graph.
 
     Args:
         n (int): number of nodes.
@@ -72,8 +70,10 @@ def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None,
     return w
 
 
-def get_maxcut_qubitops(weight_matrix):
-    """Generate Hamiltonian for the maximum stableset in a graph.
+
+
+def get_graphpartition_qubitops(weight_matrix):
+    """Generate Hamiltonian for the graph partitioning
 
     Args:
         weight_matrix (numpy.ndarray) : adjacency matrix.
@@ -82,10 +82,19 @@ def get_maxcut_qubitops(weight_matrix):
         operator.Operator, float: operator for the Hamiltonian and a
         constant shift for the obj function.
 
+    Goals:
+        1 separate the vertices into two set of the same size
+        2 make sure the number of edges between the two set is minimized.
+    Hamiltonian:
+    H = H_A + H_B
+    H_A = sum\_{(i,j)\in E}{(1-ZiZj)/2}
+    H_B = (sum_{i}{Zi})^2 = sum_{i}{Zi^2}+sum_{i!=j}{ZiZj}
+    H_A is for achieving goal 2 and H_B is for achieving goal 1.
     """
-    num_nodes = weight_matrix.shape[0]
+    num_nodes = len(weight_matrix)
     pauli_list = []
     shift = 0
+
     for i in range(num_nodes):
         for j in range(i):
             if (weight_matrix[i,j] != 0):
@@ -93,8 +102,19 @@ def get_maxcut_qubitops(weight_matrix):
                 vp = np.zeros(num_nodes)
                 vp[i] = 1
                 vp[j] = 1
-                pauli_list.append([0.5 * weight_matrix[i, j], Pauli(vp, wp)])
-                shift -= 0.5 * weight_matrix[i, j]
+                pauli_list.append([-0.5, Pauli(vp, wp)])
+                shift += 0.5
+
+    for i in range(num_nodes):
+        for j in range(num_nodes):
+            if i != j:
+                wp = np.zeros(num_nodes)
+                vp = np.zeros(num_nodes)
+                vp[i] = 1
+                vp[j] = 1
+                pauli_list.append([1, Pauli(vp, wp)])
+            else:
+                shift += 1
     return Operator(paulis=pauli_list), shift
 
 
@@ -128,7 +148,7 @@ def parse_gset_format(filename):
     w += w.T
     return w
 
-def maxcut_value(x, w):
+def objective_value(x, w):
     """Compute the value of a cut.
 
     Args:
@@ -138,8 +158,13 @@ def maxcut_value(x, w):
     Returns:
         float: value of the cut.
     """
-    X = np.outer(x, (1 - x))
-    return np.sum(w * X)
+    X = np.outer(x, (1-x))
+    w_01 = np.where(w !=0, 1, 0)
+    print(w_01)
+    print(X)
+    print(w_01 * X)
+
+    return np.sum(w_01 * X)
 
 def get_graph_solution(x):
     """Get graph solution from binary string.
@@ -154,10 +179,8 @@ def get_graph_solution(x):
 
 def sample_most_likely(state_vector):
     """Compute the most likely binary string from state vector.
-
     Args:
         state_vector (numpy.ndarray or dict): state vector or counts.
-
     Returns:
         numpy.ndarray: binary string as numpy.ndarray of ints.
     """

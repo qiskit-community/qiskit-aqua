@@ -131,7 +131,7 @@ python qiskit_acqua/ui/browser
 
 ### Programming
 
-Any algorithm in QISKit ACQUA can be run programmatically too. The [examples](./examples) folder contains numerous
+Any algorithm in QISKit ACQUA can be run programmatically too. The acqua folder in the [qiskit-acqua-tutorials](https://github.com/QISKit/qiskit-acqua-tutorials/tree/master/acqua) contains numerous
 samples that demonstrate how to do this. Here you will see there is a `run_algorithm` method used, which takes either
 the JSON algorithm input or an equivalent Python dictionary and optional `AlgorithmInput` object for the algorithm.
 There is also a `run_algorithm_to_json` that simply takes the input and saves it to JSON in a self-contained form,

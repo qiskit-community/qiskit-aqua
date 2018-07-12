@@ -5,6 +5,7 @@ This work is the result of the efforts of many people. Many thanks to
 everyone involved in the project:
 
 -  Panagiotis Barkoutsos
+-  Sergey Bravyi
 -  Chun-Fu (Richard) Chen
 -  Antonio Córcoles-Gonzalez
 -  Jay Gambetta

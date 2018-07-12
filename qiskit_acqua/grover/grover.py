@@ -30,6 +30,9 @@ logger = logging.getLogger(__name__)
 
 class Grover(QuantumAlgorithm):
     """The Grover Quantum algorithm."""
+
+    PROP_NUM_ITERATIONS = 'num_iterations'
+
     GROVER_CONFIGURATION = {
         'name': 'Grover',
         'description': 'Grover',
@@ -38,6 +41,11 @@ class Grover(QuantumAlgorithm):
             'id': 'grover_schema',
             'type': 'object',
             'properties': {
+                PROP_NUM_ITERATIONS: {
+                    'type': 'integer',
+                    'default': 1,
+                    'minimum': 1
+                }
             },
             'additionalProperties': False
         },
@@ -52,6 +60,7 @@ class Grover(QuantumAlgorithm):
 
     def __init__(self, configuration=None):
         super().__init__(configuration or self.GROVER_CONFIGURATION.copy())
+        self._num_iterations = None
         self._oracle = None
         self._ret = {}
 
@@ -65,15 +74,19 @@ class Grover(QuantumAlgorithm):
         if algo_input is not None:
             raise AlgorithmError("Unexpected Input instance.")
 
+        grover_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
+        num_iterations = grover_params.get(Grover.PROP_NUM_ITERATIONS)
+
         oracle_params = params.get(QuantumAlgorithm.SECTION_KEY_ORACLE)
         oracle = get_oracle_instance(oracle_params['name'])
         oracle.init_params(oracle_params)
-        self.init_args(oracle)
+        self.init_args(oracle, num_iterations=num_iterations)
 
-    def init_args(self, oracle):
+    def init_args(self, oracle, num_iterations=1):
         if 'statevector' in self._backend:
             raise ValueError('Selected backend  "{}" does not support measurements.'.format(self._backend))
         self._oracle = oracle
+        self._num_iterations = num_iterations
 
     def _construct_circuit(self):
         measurement_cr = ClassicalRegister(len(self._oracle.variable_register()), name='m')
@@ -83,21 +96,29 @@ class Grover(QuantumAlgorithm):
             measurement_cr
         )
         qc.h(self._oracle.variable_register())
-        qc += self._oracle.construct_circuit()
-        qc.h(self._oracle.variable_register())
-        qc.x(self._oracle.variable_register())
-        qc.x(self._oracle.outcome_register())
-        qc.h(self._oracle.outcome_register())
-        qc.cnx(
+
+        qc_single_iteration = QuantumCircuit(
+            self._oracle.variable_register(),
+            self._oracle.ancillary_register()
+        )
+        qc_single_iteration += self._oracle.construct_circuit()
+        qc_single_iteration.h(self._oracle.variable_register())
+        qc_single_iteration.x(self._oracle.variable_register())
+        qc_single_iteration.x(self._oracle.outcome_register())
+        qc_single_iteration.h(self._oracle.outcome_register())
+        qc_single_iteration.cnx(
             [self._oracle.variable_register()[i] for i in range(len(self._oracle.variable_register()))],
             [self._oracle.ancillary_register()[i] for i in range(len(self._oracle.ancillary_register()))],
             self._oracle.outcome_register()[0]
         )
-        qc.h(self._oracle.outcome_register())
-        qc.x(self._oracle.variable_register())
-        qc.x(self._oracle.outcome_register())
-        qc.h(self._oracle.variable_register())
-        qc.h(self._oracle.outcome_register())
+        qc_single_iteration.h(self._oracle.outcome_register())
+        qc_single_iteration.x(self._oracle.variable_register())
+        qc_single_iteration.x(self._oracle.outcome_register())
+        qc_single_iteration.h(self._oracle.variable_register())
+        qc_single_iteration.h(self._oracle.outcome_register())
+        qc_single_iteration.data *= self._num_iterations
+
+        qc += qc_single_iteration
 
         qc.measure(self._oracle.variable_register(), measurement_cr)
         return qc

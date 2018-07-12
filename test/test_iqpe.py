@@ -20,6 +20,7 @@ from parameterized import parameterized
 from qiskit_acqua import get_algorithm_instance, get_initial_state_instance, Operator
 from qiskit_acqua.utils import decimal_to_binary
 import numpy as np
+from scipy.linalg import expm
 from test.common import QISKitAcquaTestCase
 
 
@@ -54,15 +55,15 @@ class TestIQPE(QISKitAcquaTestCase):
         w = results['eigvals']
         v = results['eigvecs']
 
-        # self.qubitOp._check_representation('matrix')
-        # np.testing.assert_almost_equal(
-        #     self.qubitOp.matrix @ v[0],
-        #     w[0] * v[0]
-        # )
-        # np.testing.assert_almost_equal(
-        #     expm(-1.j * self.qubitOp.matrix) @ v[0],
-        #     np.exp(-1.j * w[0]) * v[0]
-        # )
+        self.qubitOp._check_representation('matrix')
+        np.testing.assert_almost_equal(
+            self.qubitOp.matrix @ v[0],
+            w[0] * v[0]
+        )
+        np.testing.assert_almost_equal(
+            expm(-1.j * self.qubitOp.matrix) @ v[0],
+            np.exp(-1.j * w[0]) * v[0]
+        )
 
         self.ref_eigenval = w[0]
         self.ref_eigenvec = v[0]
@@ -73,7 +74,7 @@ class TestIQPE(QISKitAcquaTestCase):
         num_iterations = 12
 
         iqpe = get_algorithm_instance('IQPE')
-        iqpe.setup_quantum_backend(backend='local_qasm_simulator', shots=100)
+        iqpe.setup_quantum_backend(backend='local_qasm_simulator', shots=100, skip_transpiler=True)
 
         state_in = get_initial_state_instance('CUSTOM')
         state_in.init_args(self.qubitOp.num_qubits, state_vector=self.ref_eigenvec)

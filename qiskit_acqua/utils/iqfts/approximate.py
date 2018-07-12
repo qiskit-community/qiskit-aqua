@@ -64,11 +64,16 @@ class Approximate(IQFT):
                 circuit = QuantumCircuit(register)
 
             for j in reversed(range(self._num_qubits)):
-                circuit.h(register[j])
+                circuit.u2(0, np.pi, register[j])
                 # neighbor_range = range(np.max([0, j - self._degree + 1]), j)
                 neighbor_range = range(np.max([0, j - self._num_qubits + self._degree + 1]), j)
                 for k in reversed(neighbor_range):
-                    circuit.cu1(-1.0 * pi / float(2 ** (j - k)), register[j], register[k])
+                    lam = -1.0 * pi / float(2 ** (j - k))
+                    circuit.u1(lam / 2, register[j])
+                    circuit.cx(register[j], register[k])
+                    circuit.u1(-lam / 2, register[k])
+                    circuit.cx(register[j], register[k])
+                    circuit.u1(lam / 2, register[k])
             return circuit
         else:
             raise ValueError('Mode should be either "vector" or "circuit"')

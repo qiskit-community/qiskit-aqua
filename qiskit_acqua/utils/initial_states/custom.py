@@ -16,6 +16,13 @@
 # =============================================================================
 
 from qiskit import QuantumRegister, QuantumCircuit
+from qiskit.extensions.quantum_initializer import InitializeGate
+from qiskit import CompositeGate
+from qiskit.extensions.standard.ry import RYGate
+from qiskit.extensions.standard.rz import RZGate
+from qiskit.extensions.standard.cx import CnotGate
+from qiskit.extensions.standard.u1 import U1Gate
+from qiskit.extensions.standard.u3 import U3Gate
 import numpy as np
 
 from qiskit_acqua.utils.initial_states import InitialState
@@ -87,6 +94,23 @@ class Custom(InitialState):
     def _normalize(vector):
         return vector / np.linalg.norm(vector)
 
+    @staticmethod
+    def _convert_to_basis_gates(gates):
+        if isinstance(gates, list):
+            return [Custom._convert_to_basis_gates(gate) for gate in gates]
+        elif isinstance(gates, CompositeGate):
+            gates.data = [Custom._convert_to_basis_gates(gate) for gate in gates.data]
+            return gates
+        else:
+            if isinstance(gates, RYGate):
+                return U3Gate(gates.param[0], 0, 0, gates.arg[0])
+            elif isinstance(gates, RZGate):
+                return U1Gate(gates.param[0], gates.arg[0])
+            elif isinstance(gates, CnotGate):
+                return gates
+            else:
+                raise RuntimeError('Unexpected component {} from the initialization circuit.'.format(gates.qasm()))
+
     def construct_circuit(self, mode, register=None):
         if mode == 'vector':
             return self._state_vector
@@ -97,12 +121,12 @@ class Custom(InitialState):
 
             if self._state is None or self._state == 'random':
                 circuit.initialize(self._state_vector, [register[i] for i in range(self._num_qubits)])
+                circuit.data = Custom._convert_to_basis_gates(circuit.data)
             elif self._state == 'zero':
                 pass
             elif self._state == 'uniform':
                 for i in range(self._num_qubits):
                     circuit.u2(0.0, np.pi, register[i])
-                    # circuit.h(register[i])
             else:
                 pass
 

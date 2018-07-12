@@ -93,7 +93,7 @@ class Dynamics(QuantumAlgorithm):
                     'type': 'integer',
                     'default': 1,
                     'minimum': 1
-                },
+                }
             },
             'additionalProperties': False
         },
@@ -157,8 +157,9 @@ class Dynamics(QuantumAlgorithm):
             paulis_grouping=paulis_grouping, expansion_mode=expansion_mode, expansion_order=expansion_order
         )
 
-    def init_args(self, operator, operator_mode, initial_state, evo_operator, evo_time, num_time_slices,
-                  paulis_grouping='default', expansion_mode='trotter', expansion_order=1):
+    def init_args(
+            self, operator, operator_mode, initial_state, evo_operator, evo_time, num_time_slices,
+            paulis_grouping='default', expansion_mode='trotter', expansion_order=1):
         self._operator = operator
         self._operator_mode = operator_mode
         self._initial_state = initial_state
@@ -182,7 +183,7 @@ class Dynamics(QuantumAlgorithm):
             quantum_registers=quantum_registers,
             paulis_grouping=self._paulis_grouping,
             expansion_mode=self._expansion_mode,
-            expansion_order=self._expansion_order
+            expansion_order=self._expansion_order,
         ).data
 
         self._ret['avg'], self._ret['std_dev'] = self._operator.eval(self._operator_mode, qc, self._backend)

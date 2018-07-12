@@ -60,6 +60,6 @@ class IQFT(ABC):
             circuit (QuantumCircuit): circuit for construction.
 
         Returns:
-            A quantum circuit.
+            The iqft circuit.
         """
         raise NotImplementedError()

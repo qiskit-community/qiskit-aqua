@@ -50,7 +50,7 @@ VQE supports the problems: `energy` and `ising`
 
 VQE can be configured with the following parameters:
 
-* `operator_mode`=**matrix** | paulis | group_paulis
+* `operator_mode`=**matrix** | paulis | grouped_paulis
 
   Mode used by the operator.py class for the computation
 

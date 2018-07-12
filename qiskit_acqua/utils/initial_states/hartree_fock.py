@@ -146,7 +146,6 @@ class HartreeFock(InitialState):
             quantum_circuit = QuantumCircuit(register)
             for idx, bit in enumerate(self._bitstr):
                 if bit:
-                    # quantum_circuit.x(register[idx])
                     quantum_circuit.u3(np.pi, 0.0, np.pi, register[idx])
             return quantum_circuit
         else:

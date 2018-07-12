@@ -24,11 +24,12 @@ from ._discover_qconfig import (get_qconfig,
 from .algorithmerror import AlgorithmError
 from .operator import Operator
 from .quantumalgorithm import QuantumAlgorithm
-from ._discover import (local_pluggables_types,
+from ._discover import (refresh_pluggables,
+                        local_pluggables_types,
                         local_pluggables,
                         get_pluggable_configuration)
 
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 
 __all__ = [ 'get_qconfig',
             'set_qconfig',
@@ -37,6 +38,7 @@ __all__ = [ 'get_qconfig',
             'AlgorithmError',
             'Operator',
             'QuantumAlgorithm',
+            'refresh_pluggables',
             'local_pluggables_types',
             'local_pluggables',
             'get_pluggable_configuration']
