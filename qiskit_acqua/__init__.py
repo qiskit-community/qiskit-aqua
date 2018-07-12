@@ -29,7 +29,7 @@ from ._discover import (refresh_pluggables,
                         local_pluggables,
                         get_pluggable_configuration)
 
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 
 __all__ = [ 'get_qconfig',
             'set_qconfig',
