@@ -14,11 +14,25 @@ class OneAgainstRest: # binary: 1 and 0
         self.estimator_cls = estimator_cls
         self.params = params
 
+    # def balance(self, X, Y, num_of_classes):
+    #     cond = (Y==1)
+    #     indcond = np.arange(Y.shape[0])[cond]
+    #     X_filtered = X[indcond]
+    #     Y_filtered = Y[indcond]
+    #
+    #     for i in range(num_of_classes-2):
+    #         Y = np.concatenate((Y,Y_filtered))
+    #         X = np.concatenate((X,X_filtered))
+    #
+    #     return X, Y
+
     def train(self, X_train, y_train):
         self.label_binarizer_ = LabelBinarizer(neg_label=-1)
         Y = self.label_binarizer_.fit_transform(y_train)
         # Y = Y.tocsc()
         self.classes = self.label_binarizer_.classes_
+        num_of_classes = len(self.classes)
+
         columns = (np.ravel(col) for col in Y.T)
         self.estimators = []
         for i, column in enumerate(columns):
@@ -31,6 +45,8 @@ class OneAgainstRest: # binary: 1 and 0
             else:
                 estimator = self.estimator_cls(*self.params)
 
+            # X_train_balanced, column_balanced = self.balance(X_train, column, num_of_classes)
+            # estimator.fit(X_train_balanced, column_balanced)
             estimator.fit(X_train, column)
             self.estimators.append(estimator)
 

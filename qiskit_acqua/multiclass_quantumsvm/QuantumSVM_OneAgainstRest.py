@@ -24,7 +24,7 @@ from qiskit_acqua.svm import (get_points_and_labels, optimize_SVM,
 from qiskit_acqua.multiclass.OneAgainstRest import OneAgainstRest
 from qiskit_acqua.multiclass_quantumsvm.QKernelSVM_Estimator import QKernalSVM_Estimator
 import numpy as np
-from qiskit_acqua.multiclass.datasets import *
+from qiskit_acqua.multiclass.data_preprocess import *
 
 
 class QuantumSVM_OneAgainstRest(QuantumAlgorithm):
