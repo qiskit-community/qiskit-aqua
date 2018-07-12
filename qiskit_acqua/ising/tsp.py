@@ -34,7 +34,7 @@ from qiskit_acqua import Operator
 
 logger = logging.getLogger(__name__)
 
-
+"""Instance data of TSP"""
 TspData = namedtuple('TspData', 'name dim coord w')
 
 
@@ -55,14 +55,14 @@ def random_tsp(n, low=0, high=100, savefile=None, seed=None, name='tmp'):
 
     Args:
         n (int): number of nodes.
-        weight_range (int): weights will be smaller than this value,
-            in absolute value.
-        edge_prob (float): probability of edge appearing.
+        low (float): lower bound of coordinate.
+        high (float): uppper bound of coordinate.
         savefile (str or None): name of file where to save graph.
         seed (int or None): random seed - if None, will not initialize.
+        name (str): name of an instance
 
     Returns:
-        numpy.ndarray: adjacency matrix (with weights).
+        TspData: instance data.
 
     """
     assert n > 0
@@ -91,7 +91,8 @@ def parse_tsplib_format(filename):
         filename (str): name of the file.
 
     Returns:
-        numpy.ndarray: adjacency matrix as a 2D numpy array.
+        TspData: instance data.
+
     """
     name = ''
     coord = None
@@ -129,6 +130,7 @@ def get_tsp_qubitops(ins, penalty=1e5):
 
     Args:
         ins (TspData) : TSP data including coordinates and distances.
+        penalty (float) : Penalty coefficient for the constraints
 
     Returns:
         operator.Operator, float: operator for the Hamiltonian and a
@@ -292,15 +294,3 @@ def sample_most_likely(n, state_vector):
         x[i] = k % 2
         k >>= 1
     return x
-
-
-def get_gset_result(x):
-    """Get graph solution in Gset format from binary string.
-
-    Args:
-        x (numpy.ndarray) : binary string as numpy array.
-
-    Returns:
-        Dict[int, int]: graph solution in Gset format.
-    """
-    return {i + 1: 1 - x[i] for i in range(len(x))}
