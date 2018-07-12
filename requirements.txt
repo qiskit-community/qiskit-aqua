@@ -1,4 +1,4 @@
-qiskit>=0.5.5
+qiskit>=0.5.6
 scipy>=0.19,<1.2
 numpy>=1.13,<1.15
 psutil
