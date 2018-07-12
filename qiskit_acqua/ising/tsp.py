@@ -16,7 +16,7 @@
 # =============================================================================
 
 # Convert symmetric TSP instances into Pauli list
-# Deal with TSPLIB format.
+# Deal with TSPLIB format. It supports only EUC_2D edge weight type.
 # See https://wwwproxy.iwr.uni-heidelberg.de/groups/comopt/software/TSPLIB95/
 # and http://elib.zib.de/pub/mp-testdata/tsp/tsplib/tsp/index.html
 # Design the tsp object `w` as a two-dimensional np.array
@@ -45,7 +45,7 @@ def calc_distance(coord, name='tmp'):
     for i in range(dim):
         for j in range(i + 1, dim):
             delta = coord[i] - coord[j]
-            w[i, j] = np.hypot(delta[0], delta[1])
+            w[i, j] = np.rint(np.hypot(delta[0], delta[1]))
     w += w.T
     return TspData(name=name, dim=dim, coord=coord, w=w)
 

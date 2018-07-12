@@ -87,7 +87,8 @@ class CPLEX(QuantumAlgorithm):
         model = IsingModel(self._ins, timelimit=timelimit, thread=thread, display=display)
         self._sol = model.solve()
         return {'energy': self._sol.objective, 'time': self._sol.time,
-                'x_sol': self._sol.x_sol, 'z_sol': self._sol.z_sol}
+                'x_sol': self._sol.x_sol, 'z_sol': self._sol.z_sol,
+                'eigvecs': self._sol.eigvecs}
 
     @property
     def solution(self):
@@ -100,6 +101,7 @@ def new_cplex(timelimit=600, thread=1, display=2):
     cplex.parameters.threads.set(thread)
     cplex.parameters.mip.display.set(display)
     cplex.parameters.mip.tolerances.integrality.set(0)
+    cplex.parameters.mip.tolerances.mipgap.set(0)
     return cplex
 
 
@@ -234,10 +236,24 @@ class IsingSolution:
         self._z_sol = {k: 1 - 2 * x for k, x in sol.items()}
         self._elapsed = elapsed
         self._obj = obj
+        self._eigvecs = self._calc_eigvecs(sol)
 
     def feasible(self):
         # solutions are always feasible because the problem is unconstrained
         return True
+
+    @staticmethod
+    def _calc_eigvecs(sol):
+        val = 0
+        for k, v in sol.items():
+            val += v * (2 ** k)
+        ret = [0] * 2 ** len(sol)
+        ret[val] = 1
+        return [ret]
+
+    @property
+    def eigvecs(self):
+        return self._eigvecs
 
     @property
     def x_sol(self):
