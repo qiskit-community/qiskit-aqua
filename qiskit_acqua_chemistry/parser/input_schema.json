@@ -14,7 +14,7 @@
                     "type": "string",
                     "default": "energy"
                  },
-                "enable_substitutions": {
+                "auto_substitutions": {
                     "type": "boolean",
                     "default": "true"
                 },

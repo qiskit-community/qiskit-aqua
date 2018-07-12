@@ -23,7 +23,8 @@ chemistry program or chemistry library via a chemistry driver. Further configura
 control the processing and the quantum algorithm, used for the computation, instead of using defaulted values when
 none are supplied.
 
-Several sample input files can be found in the [examples](../examples) folder 
+Several sample input files can be found in the chemistry folder of
+[qiskit-acqua-tutorials](https://github.com/QISKit/qiskit-acqua-tutorials/tree/master/chemistry/input_files)
 
 An input file comprises the following main sections, although not all are mandatory:
 
@@ -229,7 +230,7 @@ This is the same PROBLEM specification but
   Restricted to `energy` and `excited_states` computations for the chemistry stack and therefore algorithms that
   can handle these problems. 
   
-* `enable_substitutions`=**true** | false
+* `auto_substitutions`=**true** | false
 
   *This field is only support by QISKit ACQUA Chemistry.* 
 
@@ -240,7 +241,7 @@ This is the same PROBLEM specification but
   are enabled by default.
   
   Substitutions use a predefined set of intra-section and computed values that are used to substitute (overwrite)
-  any values in the targeted fields appropriately. If enable_substitutions is set false then the end user has the
+  any values in the targeted fields appropriately. If auto_substitutions is set false then the end user has the
   full responsibility for the entire configuration.
   
 * `random_seed`=*An integer, default None*  
@@ -257,8 +258,9 @@ input file. A programmatic interface is also available that can be called using 
 input file. Like the input file its parameters take on the same values and same defaults.
 
 The dictionary can be manipulated programmatically, if desired, to vary the problem e.g. changing the interatomic
-distance of the molecule, changing basis set, algorithm etc. You can find notebooks in the [examples](../examples)
-folder demonstrating this usage.
+distance of the molecule, changing basis set, algorithm etc. You can find notebooks in the 
+[qiskit-acqua-tutorials](https://github.com/QISKit/qiskit-acqua-tutorials/tree/master/chemistry)
+chemistry folder demonstrating this usage.
 
 The code fragment below also shows such a dictionary and a simple usage.     
 

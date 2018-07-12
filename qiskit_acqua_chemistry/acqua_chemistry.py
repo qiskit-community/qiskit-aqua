@@ -23,6 +23,7 @@ from qiskit_acqua_chemistry.parser import InputParser
 import json
 import os
 import copy
+import pprint
 import logging
 from qiskit_acqua_chemistry.preferences import Preferences
 from qiskit_acqua_chemistry.core import get_chemistry_operator_instance
@@ -79,10 +80,10 @@ class ACQUAChemistry(object):
         if not isinstance(data, dict):
             raise ACQUAChemistryError("Algorithm run result should be a dictionary")
 
-        if logger.isEnabledFor(logging.DEBUG):
-            logger.debug('Algorithm returned: {}'.format(json.dumps(data, indent=4)))
-
         convert_json_to_dict(data)
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug('Algorithm returned: {}'.format(pprint.pformat(data, indent=4)))
+
         lines, result = self._format_result(data)
         logger.info('Processing complete. Final result available')
         result['printable'] = lines
@@ -113,7 +114,6 @@ class ACQUAChemistry(object):
             logger.info('No data to save. No further process.')
             return
 
-        logger.debug('Result: {}'.format(json.dumps(data, sort_keys=True, indent=4)))
         with open(jsonfile, 'w') as fp:
             json.dump(data, fp, sort_keys=True, indent=4)
             
@@ -128,8 +128,10 @@ class ACQUAChemistry(object):
         if not isinstance(ret, dict):
             raise ACQUAChemistryError("Algorithm run result should be a dictionary")
 
-        logger.debug('Algorithm returned: {}'.format(json.dumps(ret, indent=4)))
         convert_json_to_dict(ret)
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug('Algorithm returned: {}'.format(pprint.pformat(ret, indent=4)))
+        
         print('Output:')
         if isinstance(ret,dict):
             for k,v in ret.items():
@@ -229,7 +231,7 @@ class ACQUAChemistry(object):
 
             params[section_name] = copy.deepcopy(section['properties'])
             if InputParser.PROBLEM == section_name and \
-                InputParser.ENABLE_SUBSTITUTIONS in params[section_name]:
-                del params[section_name][InputParser.ENABLE_SUBSTITUTIONS]
+                InputParser.AUTO_SUBSTITUTIONS in params[section_name]:
+                del params[section_name][InputParser.AUTO_SUBSTITUTIONS]
 
         return ACQUAChemistry._DRIVER_RUN_TO_ALGO_INPUT, params, input_object

@@ -36,7 +36,7 @@ class TestEnd2EndWithQPE(QISKitAcquaChemistryTestCase):
     ])
     def test_qpe(self, distance):
         self.algorithm = 'QPE'
-        self.log.debug('Testing End-to-End with QPE on H2 with interatomic distance {}.'.format(distance))
+        self.log.debug('Testing End-to-End with QPE on H2 with inter-atomic distance {}.'.format(distance))
         cfg_mgr = ConfigurationManager()
         pyscf_cfg = OrderedDict([
             ('atom', 'H .0 .0 .0; H .0 .0 {}'.format(distance)),
@@ -68,7 +68,7 @@ class TestEnd2EndWithQPE(QISKitAcquaChemistryTestCase):
         n_ancillae = 9
 
         qpe = get_algorithm_instance('QPE')
-        qpe.setup_quantum_backend(backend='local_qasm_simulator', shots=100)
+        qpe.setup_quantum_backend(backend='local_qasm_simulator', shots=100, skip_transpiler=True)
 
         state_in = get_initial_state_instance('HartreeFock')
         state_in.init_args(self.qubitOp.num_qubits, num_orbitals, qubit_mapping, two_qubit_reduction, num_particles)
@@ -80,8 +80,7 @@ class TestEnd2EndWithQPE(QISKitAcquaChemistryTestCase):
             self.qubitOp, state_in, iqft, num_time_slices, n_ancillae,
             paulis_grouping='random',
             expansion_mode='suzuki',
-            expansion_order=2,
-            use_basis_gates=True
+            expansion_order=2
         )
 
         result = qpe.run()
