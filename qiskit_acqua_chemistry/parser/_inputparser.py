@@ -42,7 +42,8 @@ class InputParser(object):
     PROBLEM = 'problem'
     ALGORITHM = 'algorithm'
     BACKEND = 'backend'
-    ENABLE_SUBSTITUTIONS = 'enable_substitutions'
+    AUTO_SUBSTITUTIONS = 'auto_substitutions'
+    _OLD_ENABLE_SUBSTITUTIONS = 'enable_substitutions'
  
     _START_COMMENTS = ['#','%']
     _START_SECTION = '&'
@@ -123,6 +124,12 @@ class InputParser(object):
                     section = self._process_line(section,line)
         else:
             self._load_parser_from_dict()
+            
+        # check for old enable_substitutions name
+        old_enable_substitutions = self.get_section_property(InputParser.PROBLEM, InputParser._OLD_ENABLE_SUBSTITUTIONS)
+        if old_enable_substitutions is not None:
+            self.delete_section_property(InputParser.PROBLEM, InputParser._OLD_ENABLE_SUBSTITUTIONS)
+            self.set_section_property(InputParser.PROBLEM, InputParser.AUTO_SUBSTITUTIONS,old_enable_substitutions)
                 
         self._update_pluggable_input_schemas()
         self._update_driver_input_schemas()
@@ -1183,12 +1190,12 @@ class InputParser(object):
         return list(self._sections.keys())
     
     def is_substitution_allowed(self):
-        enable_substitutions = self.get_property_default_value(InputParser.PROBLEM,InputParser.ENABLE_SUBSTITUTIONS)
-        enable_substitutions = self.get_section_property(InputParser.PROBLEM,InputParser.ENABLE_SUBSTITUTIONS,enable_substitutions)
-        if enable_substitutions is None:
-            enable_substitutions = True
+        auto_substitutions = self.get_property_default_value(InputParser.PROBLEM,InputParser.AUTO_SUBSTITUTIONS)
+        auto_substitutions = self.get_section_property(InputParser.PROBLEM,InputParser.AUTO_SUBSTITUTIONS,auto_substitutions)
+        if auto_substitutions is None:
+            auto_substitutions = True
             
-        return enable_substitutions
+        return auto_substitutions
      
     def check_if_substitution_key(self,section_name,property_names):
         result = [(property_name,False) for property_name in property_names]

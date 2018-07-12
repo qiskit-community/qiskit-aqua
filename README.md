@@ -1,6 +1,6 @@
 # QISKit ACQUA Chemistry
 
-`QISKit ACQUA Chemistry` is a set of tools, algorithms and software for use with quantum computers
+QISKit ACQUA Chemistry is a set of tools, algorithms and software for use with quantum computers
 to carry out research and investigate how to take advantage of quantum computing power to solve chemistry
 problems. QISKit ACQUA Chemistry translates chemistry-specific problem inputs into inputs for a quantum algorithm
 supplied by [QISKit ACQUA](https://github.com/QISKit/qiskit-acqua), which then in turn uses
@@ -59,6 +59,28 @@ release version.
 
 We recommend using Python virtual environments to improve your experience.
 
+#### Chemistry drivers
+
+To run chemistry experiments on molecules you will also need to install a supported chemistry program or library. 
+Several so-called chemistry [drivers](qiskit_acqua_chemistry/drivers/README.md) are supported and while logic to
+interface these external libraries and programs is supplied, by the above pip install, the dependent chemistry library
+or program needs to be installed separately. The following chemistry drivers are supported, please refer to these for
+more instructions on their specific installation: 
+
+* [Gaussian](qiskit_acqua_chemistry/drivers/gaussiand/README.md): A commercial chemistry program  
+* [PyQuante](qiskit_acqua_chemistry/drivers/pyquanted/README.md): An open-source Python library, with a pure Python version usable cross-platform
+* [PySCF](qiskit_acqua_chemistry/drivers/pyscfd/README.md): An open-source Python library 
+* [PSI4](qiskit_acqua_chemistry/drivers/psi4d/README.md): An open-source chemistry program built on Python
+
+However, even without installing one of the above drivers, it is still possible to run some chemistry experiments if
+you have a QISKit ACQUA Chemistry HDF5 file that has been previously created when using one of the above drivers.
+The HDF5 driver takes such an input. 
+
+* [HDF5](qiskit_acqua_chemistry/drivers/hdf5d/README.md): Driver for QISKit ACQUA Chemistry hdf5 files    
+ 
+A few sample hdf5 files have been provided and these can be found in the 
+QISKit ACQUA Tutorial's [chemistry folder](https://github.com/QISKit/qiskit-acqua-tutorials/tree/master/chemistry).  
+
 ## Running a chemistry experiment
 
 Now that you have installed QISKit ACQUA Chemistry you can run an experiment, for example to compute the ground
@@ -67,8 +89,9 @@ state energy of a molecule.
 QISKit ACQUA Chemistry has both [GUI](#gui) and [command line](#command-line) tools which may be used when solving
 chemistry problems. Both can load and run an [input file](qiskit_acqua_chemistry#input-file) specifying the molecule,
 an algorithm to be used and its configuration, and various other options to tailor the experiment. You can find several
-input files in the chemistry folder of [qiskit-acqua-tutorials] (https://github.com/QISKit/qiskit-acqua-tutorials/tree/master/chemistry/input_files) to experiment with.
-If you are new to the library we highly recommend getting started with the GUI.
+input files in the chemistry folder of
+[qiskit-acqua-tutorials](https://github.com/QISKit/qiskit-acqua-tutorials/tree/master/chemistry/input_files)
+to experiment with. If you are new to the library we highly recommend getting started with the GUI.
 
 ### GUI
 
@@ -114,10 +137,11 @@ from the root folder of the qiskit-acqua-chemistry repository clone.
 
 ### Programming
 
-Chemistry experiments can be run programmatically too. Please refer to the chemistry folder of [qiskit-acqua-tutorials](https://github.com/QISKit/qiskit-acqua-tutorials/tree/master/chemistry/input_files) for a number of
-examples. Here you will see different ways of programming an experiment. The simplest, which matches closely to the
-input file, is used in many examples. Here a similar Python dictionary is used and an ACQUAChemistry instance is used
-to run the experiment and return the result.
+Chemistry experiments can be run programmatically too. Please refer to the chemistry folder of
+[qiskit-acqua-tutorials](https://github.com/QISKit/qiskit-acqua-tutorials/tree/master/chemistry)
+for a number of examples. Here you will see different ways of programming an experiment. The simplest, which
+matches closely to the input file, is used in many examples. Here a similar Python dictionary is used and an
+ACQUAChemistry instance is used to run the experiment and return the result.
 ```
 solver = ACQUAChemistry()
 result = solver.run(acqua_chemistry_dict)
@@ -126,7 +150,8 @@ The [acqua_chemistry_howto](https://github.com/QISKit/qiskit-acqua-tutorials/blo
 notebook details this simple example.
 
 Since the Python dictionary can be updated programmatically it is possible to carry out more complicated experiments
-such as plotting a [disocciation curve](https://github.com/QISKit/qiskit-acqua-tutorials/blob/master/chemistry/lih_uccsd.ipynb)
+such as plotting a
+[disocciation curve](https://github.com/QISKit/qiskit-acqua-tutorials/blob/master/chemistry/lih_uccsd.ipynb)
 
 
 ## Authors

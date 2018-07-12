@@ -21,6 +21,7 @@ import tkinter.messagebox as tkmb
 import tkinter.ttk as ttk
 import tkinter.filedialog as tkfd
 from tkinter import font
+import webbrowser
 from qiskit_acqua_chemistry.ui._controller import Controller
 from qiskit_acqua_chemistry.ui._sectionsview import SectionsView
 from qiskit_acqua_chemistry.ui._sectionpropertiesview import SectionPropertiesView
@@ -34,12 +35,12 @@ from qiskit_acqua_chemistry.preferences import Preferences
 import os
 
 class MainView(ttk.Frame):
+    
+    _HELP_LINK = 'http://qiskit.org/documentation/acqua/'
      
     def __init__(self,parent=None):
         """Create MainView object."""
         super(MainView, self).__init__(parent)
-        #ttk.Style().configure('Treeview.Heading')
-        font.nametofont('TkHeadingFont').configure(size=12, weight='bold')
         self._controller = Controller(self)
         self.pack(expand=tk.YES,fill=tk.BOTH)
         self._create_widgets()
@@ -94,9 +95,16 @@ class MainView(ttk.Frame):
             tools_menu = tk.Menu(menubar,tearoff=False)
             tools_menu.add_command(label='Options',command=self._show_preferences)
             menubar.add_cascade(label='Tools',menu=tools_menu)
-            help_menu = tk.Menu(menubar,tearoff=False)
+            
+        help_menu = tk.Menu(menubar,tearoff=False)
+        if sys.platform != 'darwin':
             help_menu.add_command(label='About QISKit ACQUA Chemistry',command=self._show_about_dialog)
-            menubar.add_cascade(label='Help',menu=help_menu)
+            
+        help_menu.add_command(label='Open Help Center',command=self._open_help_center)
+        menubar.add_cascade(label='Help',menu=help_menu)
+    
+    def _open_help_center(self):
+        webbrowser.open(MainView._HELP_LINK)
         
     def _fileMenu(self,menubar):
         file_menu = tk.Menu(menubar,tearoff=False,postcommand=self._recent_files_menu)
@@ -189,6 +197,7 @@ class MainView(ttk.Frame):
         
     def _create_pane(self):
         label_font = font.nametofont('TkHeadingFont').copy()
+        label_font.configure(size=12, weight='bold')
         ttk.Style().configure('TLabel',borderwidth=1,relief='solid')
         style = ttk.Style()
         style.configure('Title.TLabel',

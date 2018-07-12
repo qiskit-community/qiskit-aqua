@@ -131,6 +131,10 @@ class Controller(object):
         except ValueError:
             return False
         
+    @property
+    def outputview(self):
+        return self._outputView
+        
     def get_available_backends(self):
         if self._backendsthread is not None:
             return
