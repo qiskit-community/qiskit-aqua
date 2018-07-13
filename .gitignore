@@ -95,6 +95,7 @@ docs/_build/
 docs/*.rst
 #Allow
 !docs/dev_introduction.rst
+!docs/qiskit-acqua.rst
 !docs/index.rst
 !docs/install.rst
 !docs/quickstart.rst
@@ -107,7 +108,7 @@ docs/*.rst
 !docs/oracles.rst
 !docs/extending.rst
 !docs/initial_states.rst
-!docs/additional.rst
+!docs/problem_backend_config.rst
 
 # PyBuilder
 target/

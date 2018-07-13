@@ -95,8 +95,7 @@ class TestQPE(QISKitAcquaTestCase):
             self.qubitOp, state_in, iqft, num_time_slices, n_ancillae,
             paulis_grouping='random',
             expansion_mode='suzuki',
-            expansion_order=2,
-            use_basis_gates=True
+            expansion_order=2
         )
 
         # run qpe

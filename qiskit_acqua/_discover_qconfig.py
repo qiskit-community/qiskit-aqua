@@ -101,27 +101,32 @@ def discover_qconfig(directory):
     Returns:
         module: Qconfig module
     """
+    
+    try:
+        for item in os.listdir(directory):
+            fullpath = os.path.join(directory,item)
+            if item == _QCONFIG_FILE:
+                try:
+                    modspec = importlib.util.spec_from_file_location(_QCONFIG_NAME,fullpath)
+                    if modspec is None: 
+                        logger.debug('Failed to load {} {}'.format(_QCONFIG_NAME,fullpath))
+                        return None
 
-    for item in os.listdir(directory):
-        fullpath = os.path.join(directory,item)
-        if item == _QCONFIG_FILE:
-            try:
-                modspec = importlib.util.spec_from_file_location(_QCONFIG_NAME,fullpath)
-                if modspec is None:
-                    logger.debug('Failed to load {} {}'.format(_QCONFIG_NAME,fullpath))
+                    mod = importlib.util.module_from_spec(modspec)
+                    modspec.loader.exec_module(mod)
+                    return mod
+                except Exception as e:
+                    # Ignore if it could not be initialized.
+                    logger.debug('Failed to load {} error {}'.format(fullpath, str(e)))
                     return None
 
-                mod = importlib.util.module_from_spec(modspec)
-                modspec.loader.exec_module(mod)
-                return mod
-            except Exception as e:
-                # Ignore if it could not be initialized.
-                logger.debug('Failed to load {} error {}'.format(fullpath, str(e)))
-                return None
-
-        if item != '__pycache__' and not item.endswith('dSYM') and os.path.isdir(fullpath):
-            mod = discover_qconfig(fullpath)
-            if mod is not None:
-                return mod
-
+            if item != '__pycache__' and not item.endswith('dSYM') and os.path.isdir(fullpath):
+                mod = discover_qconfig(fullpath)
+                if mod is not None:
+                    return mod
+                
+    except Exception as e:
+        # Ignore if it could not list
+        logger.debug('Failed to list {} error {}'.format(directory, str(e)))
+     
     return None

@@ -25,7 +25,7 @@ Table of Contents
    Inverse Quantum Fourier Transforms <iqfts>
    Oracles <oracles>
    Extending QISKit ACQUA <extending>
-   Additional Configuration <additional> 
+   Problem and Backend Configuration <problem_backend_config> 
    Getting Started <quickstart>
    Developer Documentation <dev_introduction>
    SDK Reference <_autodoc/qiskit_acqua>
@@ -47,6 +47,4 @@ Main Modules
 
 Authors (alphabetical)
 ======================
-Panagiotis Barkoutsos, Chun-Fu (Richard) Chen, Antonio Córcoles-Gonzalez, Jay Gambetta, Shaohan Hu, Takashi Imamichi,
-Tal Kachman, Peng Liu, Manoel Marques, Antonio Mezzacapo, Nikolaj Moll, Giacomo Nannicini, Marco Pistoia, Julia Rice,
-Raymond Harry Putra Rudy, Ivano Tavernelli, Stephen Wood
+Panagiotis Barkoutsos, Sergey Bravyi, Chun-Fu (Richard) Chen, Antonio Córcoles-Gonzalez, Jay Gambetta, Shaohan Hu, Takashi Imamichi, Tal Kachman, Peng Liu, Manoel Marques, Antonio Mezzacapo, Nikolaj Moll, Giacomo Nannicini, Marco Pistoia, Julia Rice, Raymond Harry Putra Rudy, Ivano Tavernelli, Stephen Wood
