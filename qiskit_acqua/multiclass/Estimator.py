@@ -14,11 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+from abc import ABC, abstractmethod
+
 
 class Estimator:
+    @abstractmethod
     def fit(self, X, y):
         raise NotImplementedError( "Should have implemented this" )
 
+    @abstractmethod
     def decision_function(self, X):
         raise NotImplementedError( "Should have implemented this" )
 
