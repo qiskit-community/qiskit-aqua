@@ -11,6 +11,7 @@ different domains  QISKit ACQUA uses
 The following `quantum algorithms <#quantum-algorithms>`__ are part of QISKit ACQUA:
 
 -  :ref:`Variational Quantum Eigensolver (VQE)`
+-  :ref:`Quantum Approximate Optimization Algorithm (QAOA)`
 -  :ref:`Quantum Dynamics`
 -  :ref:`Quantum Phase Estimation (QPE)`
 -  :ref:`Iterative Quantum Phase Estimation (IQPE)`
@@ -50,7 +51,7 @@ In this section, we describe the quantum algorithms currently available in QISKi
     algorithm.  This is done by configuring the ``backend`` section of the experiment to be run.
 
 Variational Quantum Eigensolver (VQE)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 `VQE <https://arxiv.org/abs/1304.3061>`__ uses a variational approach
 to find the minimum eigenvalue of a Hamiltonian energy problem. It is
@@ -67,7 +68,7 @@ Additionally, VQE can be configured with the following parameters:
 
        operator_mode : "matrix" | "paulis" | "grouped_paulis"
 
-   If no value for ``operator_mode`` ia specified, the default is ``"matrix"``.
+   If no value for ``operator_mode`` is specified, the default is ``"matrix"``.
 
 -  The initial point for the search of the minimum eigenvalue:
 
@@ -91,7 +92,48 @@ Additionally, VQE can be configured with the following parameters:
 
 .. topic:: Problems Supported
 
-   In QISKit ACQUA, VQE supports the ``energy`` and ``ising`` problema.
+   In QISKit ACQUA, VQE supports the ``energy`` and ``ising`` problems.
+
+Quantum Approximate Optimization Algorithm (QAOA)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+`QAOA <https://arxiv.org/abs/1411.4028>`__ is an well-known algorithm for finding approximate solutions to
+combinatorial optimization problems. Similar to VQE, it also uses the variational approach
+for the classical optimization part. But QAOA uses its own fine-tuned variational form comprised of
+parameterized global ``X`` rotations as well as the problem hamiltonian, with a single parameter
+``p`` dictating the depth of the variational form, and thus affecting the approximation quality.
+Similar to VQE, an `optimizer <./optimizers.html>`__ may also be specified.
+
+Additionally, QAOA can be configured with the following parameters:
+
+-  A ``string`` indicating the mode used by the ``Operator`` class for the computation:
+
+   .. code:: python
+
+       operator_mode : "matrix" | "paulis" | "grouped_paulis"
+
+   If no value for ``operator_mode`` is specified, the default is ``"matrix"``.
+
+-  The initial point for the search of the minimum eigenvalue:
+
+   .. code:: python
+
+       initial_point : [float, float, ... , float]
+
+   An optional list of ``2p`` ``float`` values  may be provided as the starting ``beta`` and ``gamma`` parameters
+   (as identically named in the original paper) for the QAOA variational form.
+   If such list is not provided, QAOA will simply start for the all-``0`` vector.
+
+
+.. topic:: Declarative Name
+
+   When referring to QAOA declaratively inside QISKit ACQUA, its code ``name``,
+   by which QISKit ACQUA dynamically discovers and loads it,
+   is ``QAOA``.
+
+.. topic:: Problems Supported
+
+   In QISKit ACQUA, QAOA supports the ``ising`` problem.
 
 Quantum Dynamics
 ~~~~~~~~~~~~~~~~
