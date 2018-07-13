@@ -18,6 +18,7 @@ Table of Contents
    
    QISKit ACQUA Overview <qiskit-acqua>
    Installation and Setup <install>
+   Configuring and Running an Experiment <config_run>
    Algorithms <algorithms>
    Optimizers <optimizers>
    Variational Forms <variational_forms>
@@ -25,11 +26,7 @@ Table of Contents
    Inverse Quantum Fourier Transforms <iqfts>
    Oracles <oracles>
    Extending QISKit ACQUA <extending>
-   Problem and Backend Configuration <problem_backend_config> 
-   Getting Started <quickstart>
-   Developer Documentation <dev_introduction>
-   SDK Reference <_autodoc/qiskit_acqua>
-   Release History <releases>
+   SDK Reference <qiskit_acqua>
 
 Python Modules
 ==============
