@@ -1033,8 +1033,8 @@ class InputParser(object):
                 del self._sections[InputParser.BACKEND]
         else:
             if InputParser.BACKEND not in self._sections:
-                self._sections[InputParser.BACKEND] = self.get_section_default_properties(InputParser.BACKEND)
-
+                self.set_section_properties(InputParser.BACKEND,self.get_section_default_properties(InputParser.BACKEND))
+                
     def _update_driver_sections(self):
         driver_name = self.get_section_property(InputParser.DRIVER,InputParser.NAME)
         if driver_name is not None:
