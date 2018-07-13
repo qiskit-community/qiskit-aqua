@@ -18,6 +18,9 @@ Table of Contents
    
    QISKit ACQUA Chemistry Overview <qiskit-acqua-chemistry>
    Installation and Setup <install>
+   Chemistry Drivers <drivers>
+   Configuring and Running an Experiment <config_run>
+   Extending QISKit ACQUA Chemistry <extending>
    SDK reference <qiskit_acqua_chemistry>
 
 Python Modules

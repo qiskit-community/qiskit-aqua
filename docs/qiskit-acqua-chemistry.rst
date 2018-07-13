@@ -6,20 +6,55 @@ via quantum computing. QISKit ACQUA Chemistry translates chemistry-specific prob
 `QISKit ACQUA algorithm <https://qiskit.org/documentation/acqua/algorithms.html>`__,
 which in turn uses `QISKit Core <https://qiskit.org>`__ for the actual quantum computation.
 
-Users can continue to configure chemistry problems on their favorite classical chemistry computational programs,
-as long as those programs have been installed on the same system in which QISKit ACQUA Chemistry is installed, and
-the appropriate software licenses are in place.  Currently, QISKit ACQUA Chemistry comes with interfaces prebuilt
+QISKit ACQUA Chemistry allows users with different levels of experience to execute chemistry experiments and
+contribute to the quantum computing chemistry software stack.
+Users with pure chemistry background can continue to configure chemistry
+problems according to their favorite computational chemistry software packages, called *drivers*.
+These users do not need to learn the
+details of quantum computing; QISKit ACQUA Chemistry translates any chemistry program configuration entered by
+those users in one of their favorite drivers into quantum-specific input.
+For these to work, the following simple requirements must be met:
+
+- The driver chosen by the user should be installed on the same system in which
+  QISKit ACQUA Chemistry is also installed.
+- The appropriate software license for that driver must be in place.
+- An interface to that driver must be built in QISKit ACQUA Chemistry as a ``BaseDriver`` extension
+  point.
+
+Currently, QISKit ACQUA Chemistry comes with interfaces prebuilt
 for the following four computational chemistry software drivers:
 
-1. `Gaussian™ 16 <http://gaussian.com/gaussian16/>`__
-2. `PSI4 <http://www.psicode.org/>`__
-3. `PySCF <https://github.com/sunqm/pyscf>`__
-4. `PyQuante <http://pyquante.sourceforge.net/>`__
+1. `Gaussian™ 16 <http://gaussian.com/gaussian16/>`__, a commercial chemistry program
+2. `PSI4 <http://www.psicode.org/>`__, an open-source chemistry program built on Python
+3. `PySCF <https://github.com/sunqm/pyscf>`__, an open-source Python chemistry program
+4. `PyQuante <http://pyquante.sourceforge.net/>`__, a pure cross-platform open-source Python chemistry program
 
-Additional chemistry programs can easily be added through via the ``driver`` extension point.
+Additional chemistry drivers can easily be added via the ``BaseDriver`` extension point.  Once an interface
+for a driver installed in the system has been implemented, that driver will be automatically loaded at run time
+and made available in QISkit Quantum Chemistry experiments.
 
-QISKit ACQUA Chemistry provides both programmable and graphical user interfaces with
+QISKit ACQUA Chemistry provides programmable, command-line, and graphical user interfaces with
 schema-enforced configuration correctness.
+Once QISKit ACQUA Chemistry has been installed, a user can execute chemistry experiments
+on a quantum machine by using either the supplied `Graphical User Interface (GUI) <install.html#gui>`__ or
+`command line <install.html#command-line>`__ tools, or by `programming <install.html#programmable-interface>`__
+against the QISKit ACQUA Chemistry
+Application Programming Interfaces (APIs).
+
+.. topic:: Contributing to QISKit ACQUA Chemistry
+
+    Instead of just *accessing* QISKit ACQUA Chemistry as a tool to experiment with chemistry problems
+    on a quantum machine, a user may decide to *contribute* to QISKit ACQUA Chemistry by
+    providing new algorithms, algorithm components, input translators, and driver interfaces.
+    Algorithms and supporting components may be programmatically added to
+    `QISKit ACQUA <https://qiskit.org/acqua>`__, which was designed with an `extensible, pluggable
+    framework <https://qiskit.org/documentation/acqua/extending.html>`__.
+    QISKit ACQUA Chemistry utilizes a similar framework for drivers and the core computation
+    performed at the input-translation layer.
+
+    If you would like to contribute to QISKit ACQUA Chemistry, please follow the
+    QISKit ACQUA Chemistry `contribution
+    guidelines <https://github.com/QISKit/qiskit-acqua-chemistry/blob/master/.github/CONTRIBUTING.rst>`__.
 
 
 Modularity and Extensibility
@@ -43,10 +78,11 @@ combined with the problem
 configuration and translated into input for one or more quantum algorithms, which invoke
 the QISKit code Application Programming Interfaces (APIs) to build, compile and execute quantum circuits.
 
-The following code is the configuration file, written in Gaussian 16, of a molecule of hydrogen, whose two atoms are
-placed at a distance of :math:`0.735 \\A`:
+The following code is the configuration file, written in Gaussian™ 16, of a molecule of hydrogen,
+whose two hydrogen atoms are
+placed at a distance of :math:`0.735` Å:
 
-.. code:: python
+.. code::
 
     # rhf/STO-3G scf(conventional)
 
@@ -181,15 +217,33 @@ and two-body MO integrals, which in turn are used to determine
 the full Configuration Interaction (CI) wave function, the Unitary Coupled Cluster Singles
 and Doubles (UCCSD) wave function, etc.  Computational chemistry software drivers
 expose configuration parameters to make the computation of the
-Hartree-Rock wave function converge, should the default parameter values fail.
+Hartree-Fock wave function converge, should the default parameter values fail.
 QISKit ACQUA Chemistry has no problem supporting such advanced configuration parameters,
-which would be set directly into the configuration file of the underlying driver.  Conversely,
+which would be passed directly into the configuration file as an input to the underlying driver.  Conversely,
 solutions that have chosen to interpose a new programming language or new APIs between the user and
 the underlying drivers currently do not support customizing the parameters for facilitating
 the convergence of the computation of the Hartree-Fock wave function.  In order for these alternative
 solutions to allow for this type of customization, the parameters would have to be exposed through the
-programming language or the APIs.  As a result, the system may not be able to get the integrals
+programming language or the APIs.  As a result, such alternative solutions
+may not be able to get the integrals
 that need to be used in the full CI or UCCSD calculations.
+
+Let us consider yet another example illustrating why a direct use of the classical computational chemistry
+software is superior to the choice of interposing a new programming language or API between the user
+and the driver.  It has been `demonstrated <https://arxiv.org/abs/1701.08213>`__
+that taking into account a molecule's spatial symmetries
+can be used to reduce the number of qubits necessary to model that molecule and compute its energy
+properties.  Computational chemistry software packages allow for configuring spatial symmetries
+in their input files.  Thus, QISKit ACQUA Chemistry can immediately take direct advantage of such feature
+exposed by the underlying computational software packages and obtain from those packages
+intermediate data that is already optimized with respect to the symmetries configured by the user.
+As a result, energy computations performed by QISKit ACQUA Chemistry require fewer qubits when
+a spatial symmetries are present in a molecule.
+Conversely, other solutions that interpose a new programming language or APIs fail to expose
+this configuration feature to their users unless an ad-hoc symmetry API is constructed, which must then be mapped
+to all the underlying software packages interfaced by those solutions.  To make things more complicated,
+for any new software package that is interfaced by those solutions, that symmetry API will have to be
+programmatically mapped to the package's symmetry configuration feature.
 
 In essence, interposing a new language or new APIs between the user and the underlying
 classical drivers severely limits the functionality of the whole system, unless the new
