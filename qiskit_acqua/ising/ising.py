@@ -86,7 +86,7 @@ class CPLEX(QuantumAlgorithm):
             display = 2
         model = IsingModel(self._ins, timelimit=timelimit, thread=thread, display=display)
         self._sol = model.solve()
-        return {'energy': self._sol.objective, 'time': self._sol.time,
+        return {'energy': self._sol.objective, 'eval_time': self._sol.time,
                 'x_sol': self._sol.x_sol, 'z_sol': self._sol.z_sol,
                 'eigvecs': self._sol.eigvecs}
 
@@ -249,7 +249,7 @@ class IsingSolution:
             val += v * (2 ** k)
         ret = [0] * 2 ** len(sol)
         ret[val] = 1
-        return [ret]
+        return np.array([ret])
 
     @property
     def eigvecs(self):
