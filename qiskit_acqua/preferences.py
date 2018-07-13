@@ -104,6 +104,7 @@ class Preferences(object):
             with open(self._filepath, 'w') as fp:
                 json.dump(self._preferences, fp, sort_keys=True, indent=4)
             self._logging_config_changed = False
+            self._packages_changed = False
 
     def get_version(self):
         if 'version' in self._preferences:
