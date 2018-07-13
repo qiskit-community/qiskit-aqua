@@ -108,6 +108,7 @@ docs/*.rst
 !docs/CONTRIBUTORS.rst
 !docs/config_run.rst
 !docs/drivers.rst
+!docs/extending.rst
 
 # PyBuilder
 target/
