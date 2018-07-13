@@ -17,18 +17,20 @@
 
 from .chemistry_operator import ChemistryOperator
 from .hamiltonian import Hamiltonian
-from ._discover_chemoperator import (register_chemistry_operator,
-                              deregister_chemistry_operator,
-                              get_chemistry_operator_class,
-                              get_chemistry_operator_instance,
-                              get_chemistry_operator_configuration,
-                              local_chemistry_operators)
+from ._discover_chemoperator import (refresh_operators,
+                                     register_chemistry_operator,
+                                     deregister_chemistry_operator,
+                                     get_chemistry_operator_class,
+                                     get_chemistry_operator_instance,
+                                     get_chemistry_operator_configuration,
+                                     local_chemistry_operators)
 
 __all__ = ['ChemistryOperator',
            'Hamiltonian',
-          'register_chemistry_operator',
-          'deregister_chemistry_operator',
-          'get_chemistry_operator_class',
-          'get_chemistry_operator_instance',
-          'get_chemistry_operator_configuration',
-          'local_chemistry_operators']
+           'refresh_operators',
+           'register_chemistry_operator',
+           'deregister_chemistry_operator',
+           'get_chemistry_operator_class',
+           'get_chemistry_operator_instance',
+           'get_chemistry_operator_configuration',
+           'local_chemistry_operators']
