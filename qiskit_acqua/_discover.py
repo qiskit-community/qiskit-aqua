@@ -158,7 +158,7 @@ def _discover_local_pluggables(directory,
         for item  in os.listdir(directory):
             fullpath = os.path.join(directory,item)
             if item not in folders_to_exclude and not item.endswith('dSYM') and os.path.isdir(fullpath):
-                _discover_local_pluggables(fullpath,parentname + '.' + item)
+                _discover_local_pluggables(fullpath,parentname + '.' + item,names_to_exclude,folders_to_exclude)
 
 def discover_local_pluggables(directory=os.path.dirname(__file__),
                            parentname=os.path.splitext(__name__)[0],
