@@ -32,6 +32,7 @@ from qiskit_acqua_chemistry.ui._preferencesdialog import PreferencesDialog
 from qiskit_acqua_chemistry.ui._uipreferences import UIPreferences
 from qiskit_acqua_chemistry._logging import set_logger_config
 from qiskit_acqua_chemistry.preferences import Preferences
+from qiskit_acqua_chemistry import __version__
 import os
 
 class MainView(ttk.Frame):
@@ -49,7 +50,7 @@ class MainView(ttk.Frame):
             parent.protocol('WM_DELETE_WINDOW',self.quit)
             
     def _show_about_dialog(self):
-        tkmb.showinfo(message= 'QISKit ACQUA Chemistry')
+        tkmb.showinfo(message= 'QISKit ACQUA Chemistry {}'.format(__version__))
 
     def _show_preferences(self):
         dialog = PreferencesDialog(self._controller,self)
