@@ -8,7 +8,7 @@ quantum applications on short depth circuits. The applications can span
 different domains  QISKit ACQUA uses
 `QISKit <https://www.qiskit.org/>`__ for its quantum computation.
 
-The following :ref:`quantum algorithms` are part of QISKit ACQUA:
+The following `quantum algorithms <#quantum-algorithms>`__ are part of QISKit ACQUA:
 
 -  :ref:`Variational Quantum Eigensolver (VQE)`
 -  :ref:`Quantum Dynamics`
@@ -18,7 +18,7 @@ The following :ref:`quantum algorithms` are part of QISKit ACQUA:
 -  :ref:`Support Vector Machine Quantum Kernel (SVM Q Kernel)`
 -  :ref:`Support Vector Machine Variational (SVM Variational)`
 
-QISKit ACQUA includes  also some :ref:`classical algorithms`, which may be
+QISKit ACQUA includes  also some `classical algorithms <#classical-algorithms>`__, which may be
 useful to compare and contrast results in the near term while experimenting with, developing and testing
 quantum algorithms:
 
@@ -104,32 +104,32 @@ interactions can then be used to approximate the global quantum system
 via, for example, Lloyd’s method or Trotter-Suzuki decomposition.
 
 .. note::
-    This algorithm **only** supports the ``local_state_vector`` simulator.
+    This algorithm *only* supports the ``local_state_vector`` simulator.
 
 Dynamics can be configured with the following parameter settings:
 
 -  Evolution time:
 
    .. code:: python
-
+   
        evo_time : float
 
    A number is expected.  The minimum value is ``0.0``.  The default value is ``1.0``.
 
 -  The evolution mode of the computation:
 
-   .. code:: python
+   .. code:: python 
 
        evo_mode = "matrix" | "circuit"
 
    Two ``string`` values are permitted: ``"matrix"`` or ``"circuit"``, with ``"circuit"`` being the default.
 
--  The number of time slices:
+-  The number of time slices: 
 
    .. code:: python
 
        num_time_slices = 0 | 1 | ...
-
+   
    This has to be a non-negative ``int`` value.  The default is ``1``.
 
 -  Paulis grouping mode:
@@ -141,7 +141,7 @@ Dynamics can be configured with the following parameter settings:
    Two ``string`` values are permitted: ``"default"`` or ``"random"``, with ``"default"`` being the default and indicating
    that the paulis should be grouped.
 
--  The expansion mode:
+-  The expansion mode: 
 
    .. code:: python
 
@@ -191,7 +191,7 @@ state <initial_states.html>`__ and an `IQFT <./iqfts.html>`__.
 
 QPE is also configured with the following parameter settings:
 
--  The number of time slices:
+-  The number of time slices: 
 
    .. code:: python
 
@@ -227,7 +227,7 @@ QPE is also configured with the following parameter settings:
 
 -  The number of ancillae:
 
-   .. code:: python
+   .. code:: python 
 
        num_ancillae = 1 | 2 | ...
 
@@ -494,6 +494,3 @@ The default value for this parameter is ``False``.
 .. topic:: Problems Supported
 
    In QISKit ACQUA, SVM RBF Kernel  supports the ``svm_classification`` problem.
-
-
-
