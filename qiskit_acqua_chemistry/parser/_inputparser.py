@@ -777,7 +777,7 @@ class InputParser(object):
                     if key == InputParser._HDF5_INPUT:
                         if value is not None and not os.path.isabs(value):
                             value = os.path.abspath(os.path.join(directory,value))
-                            InputParser._set_section_property(sections,section[InputParser.NAME],key,value)
+                            InputParser._set_section_property(sections,section[InputParser.NAME],key,value,['string'])
             
     def section_is_driver(self,section_name):
         section_name = InputParser._format_section_name(section_name)
@@ -916,12 +916,12 @@ class InputParser(object):
                 raise ACQUAChemistryError("{}.{} Value '{}' is not of types: '{}'".format(section_name, property_name, value, types))
       
         parser_temp = copy.deepcopy(self)
-        InputParser._set_section_property(parser_temp._sections,section_name,property_name,value)
+        InputParser._set_section_property(parser_temp._sections,section_name,property_name,value, types)
         msg = self._validate(parser_temp.to_JSON(),section_name, property_name)
         if msg is not None:
             raise ACQUAChemistryError("{}.{}: Value '{}': '{}'".format(section_name,property_name,value,msg))
  
-        InputParser._set_section_property(self._sections,section_name,property_name,value)
+        InputParser._set_section_property(self._sections,section_name,property_name,value, types)
         if property_name == InputParser.NAME:
             if InputParser.OPERATOR == section_name:
                 self._update_operator_input_schema()
@@ -1070,16 +1070,17 @@ class InputParser(object):
                 self.set_section_data(driver_name,value)
                     
     @staticmethod
-    def _set_section_property(sections, section_name, property_name, value):
+    def _set_section_property(sections, section_name, property_name, value, types):
         """
         Args:
             section_name (str): the name of the section, case insensitive
             property_name (str): the property name in the section
             value : property value
+            types : schema valid types
         """
         section_name = InputParser._format_section_name(section_name)
         property_name = InputParser._format_property_name(property_name)
-        value = InputParser._get_value(value)
+        value = InputParser._get_value(value,types)
             
         if section_name not in sections:
             sections[section_name] = OrderedDict([(InputParser.NAME,section_name)])
