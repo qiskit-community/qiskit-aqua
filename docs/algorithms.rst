@@ -98,10 +98,15 @@ Quantum Approximate Optimization Algorithm (QAOA)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 `QAOA <https://arxiv.org/abs/1411.4028>`__ is an well-known algorithm for finding approximate solutions to
-combinatorial optimization problems. Similar to VQE, it also uses the variational approach
-for the classical optimization part. But QAOA uses its own fine-tuned variational form comprised of
-parameterized global ``X`` rotations as well as the problem hamiltonian, with a single parameter
-``p`` dictating the depth of the variational form, and thus affecting the approximation quality.
+combinatorial optimization problems.
+Our QAOA implementation directly uses VQE for its general hybrid optimization structure.
+But unlike VQE who can be configured with arbitrary variational forms,
+QAOA uses its own fine-tuned variational form,
+which is comprised of ``p`` parameterized global ``X`` rotations,
+as well as another ``p`` parameterized problem hamiltonian themselves.
+Therefore, rather than needing to have a variational form specified like VQE,
+QAOA is configured mainly by a single integer parameter ``p``,
+which dictates the depth of the variational form, and thus affecting the approximation quality.
 Similar to VQE, an `optimizer <./optimizers.html>`__ may also be specified.
 
 Additionally, QAOA can be configured with the following parameters:
@@ -153,25 +158,25 @@ Dynamics can be configured with the following parameter settings:
 -  Evolution time:
 
    .. code:: python
-   
+
        evo_time : float
 
    A number is expected.  The minimum value is ``0.0``.  The default value is ``1.0``.
 
 -  The evolution mode of the computation:
 
-   .. code:: python 
+   .. code:: python
 
        evo_mode = "matrix" | "circuit"
 
    Two ``string`` values are permitted: ``"matrix"`` or ``"circuit"``, with ``"circuit"`` being the default.
 
--  The number of time slices: 
+-  The number of time slices:
 
    .. code:: python
 
        num_time_slices = 0 | 1 | ...
-   
+
    This has to be a non-negative ``int`` value.  The default is ``1``.
 
 -  Paulis grouping mode:
@@ -183,7 +188,7 @@ Dynamics can be configured with the following parameter settings:
    Two ``string`` values are permitted: ``"default"`` or ``"random"``, with ``"default"`` being the default and indicating
    that the paulis should be grouped.
 
--  The expansion mode: 
+-  The expansion mode:
 
    .. code:: python
 
@@ -233,7 +238,7 @@ state <initial_states.html>`__ and an `IQFT <./iqfts.html>`__.
 
 QPE is also configured with the following parameter settings:
 
--  The number of time slices: 
+-  The number of time slices:
 
    .. code:: python
 
@@ -269,7 +274,7 @@ QPE is also configured with the following parameter settings:
 
 -  The number of ancillae:
 
-   .. code:: python 
+   .. code:: python
 
        num_ancillae = 1 | 2 | ...
 
