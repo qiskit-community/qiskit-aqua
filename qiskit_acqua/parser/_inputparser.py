@@ -690,12 +690,12 @@ class InputParser(object):
                 raise AlgorithmError("{}.{}: Value '{}' is not of types: '{}'".format(section_name,property_name,value,types)) 
             
         sections_temp = copy.deepcopy(self._sections)
-        InputParser._set_section_property(sections_temp,section_name,property_name,value)
+        InputParser._set_section_property(sections_temp,section_name,property_name,value,types)
         msg = self._validate(sections_temp,section_name, property_name)
         if msg is not None:
             raise AlgorithmError("{}.{}: Value '{}': '{}'".format(section_name,property_name,value,msg)) 
       
-        InputParser._set_section_property(self._sections,section_name,property_name,value)
+        InputParser._set_section_property(self._sections,section_name,property_name,value,types)
         if property_name == InputParser.NAME:
             if InputParser.INPUT == section_name:
                 self._update_algorithm_input_schema()
@@ -805,16 +805,17 @@ class InputParser(object):
                 self._sections[InputParser.BACKEND] = self.get_section_default_properties(InputParser.BACKEND)
                     
     @staticmethod
-    def _set_section_property(sections, section_name, property_name, value):
+    def _set_section_property(sections, section_name, property_name, value, types):
         """
         Args:
             section_name (str): the name of the section, case insensitive
             property_name (str): the property name in the section
             value : property value
+            types : schema types
         """
         section_name = InputParser._format_section_name(section_name)
         property_name = InputParser._format_property_name(property_name)
-        value = InputParser._get_value(value)
+        value = InputParser._get_value(value,types)
             
         if section_name not in sections:
             sections[section_name] = OrderedDict()
