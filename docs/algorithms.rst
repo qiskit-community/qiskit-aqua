@@ -97,16 +97,16 @@ Additionally, VQE can be configured with the following parameters:
 Quantum Approximate Optimization Algorithm (QAOA)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-`QAOA <https://arxiv.org/abs/1411.4028>`__ is an well-known algorithm for finding approximate solutions to
-combinatorial optimization problems.
-Our QAOA implementation directly uses VQE for its general hybrid optimization structure.
-But unlike VQE who can be configured with arbitrary variational forms,
+QAOA is a well-known algorithm for finding approximate solutions to
+combinatorial-optimization problems.
+The QAOA implementation in QISKit ACQUA directly uses `VQE <#variational-quantum-eigensolver-vqe>`__ for its general hybrid optimization structure.
+However, unlike VQE, which can be configured with arbitrary variational forms,
 QAOA uses its own fine-tuned variational form,
-which is comprised of ``p`` parameterized global ``X`` rotations,
-as well as another ``p`` parameterized problem hamiltonian themselves.
-Therefore, rather than needing to have a variational form specified like VQE,
-QAOA is configured mainly by a single integer parameter ``p``,
-which dictates the depth of the variational form, and thus affecting the approximation quality.
+which is comprised of :math:`p` parameterized global *X* rotations,
+as well as another :math:`p` parameterized problem hamiltonian themselves.
+As a result, unlike VQE, QAOA does not need to have a variational form specified as an input parameter,
+and is configured mainly by a single integer parameter, :math:`p`,
+which dictates the depth of the variational form, and thus affects the approximation quality.
 Similar to VQE, an `optimizer <./optimizers.html>`__ may also be specified.
 
 Additionally, QAOA can be configured with the following parameters:
@@ -125,9 +125,9 @@ Additionally, QAOA can be configured with the following parameters:
 
        initial_point : [float, float, ... , float]
 
-   An optional list of ``2p`` ``float`` values  may be provided as the starting ``beta`` and ``gamma`` parameters
-   (as identically named in the original paper) for the QAOA variational form.
-   If such list is not provided, QAOA will simply start for the all-``0`` vector.
+   An optional list of :math:`2p` ``float`` values  may be provided as the starting ``beta`` and ``gamma`` parameters
+   (as identically named in the `original QAOA paper <https://arxiv.org/abs/1411.4028>`__) for the QAOA variational form.
+   If such list is not provided, QAOA will simply start with the all-``0`` vector.
 
 
 .. topic:: Declarative Name
