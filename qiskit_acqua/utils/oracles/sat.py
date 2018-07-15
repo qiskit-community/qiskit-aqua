@@ -91,7 +91,9 @@ class SAT(Oracle):
         self._qr_outcome = QuantumRegister(1, name='o')
         self._qr_variable = QuantumRegister(nv, name='v')
         self._qr_clause = QuantumRegister(nc, name='c')
-        self._qr_ancilla = QuantumRegister(max(max(nc, nv) - 2, 0), name='a')
+        num_ancillae = max(max(nc, nv) - 2, 0)
+        if num_ancillae > 0:
+            self._qr_ancilla = QuantumRegister(num_ancillae, name='a')
 
     def variable_register(self):
         return self._qr_variable
@@ -114,7 +116,10 @@ class SAT(Oracle):
             circuit.x(self._qr_variable[idx - 1])
 
     def construct_circuit(self):
-        qc = QuantumCircuit(self._qr_variable, self._qr_clause, self._qr_ancilla, self._qr_outcome)
+        if self._qr_ancilla:
+            qc = QuantumCircuit(self._qr_variable, self._qr_clause, self._qr_ancilla, self._qr_outcome)
+        else:
+            qc = QuantumCircuit(self._qr_variable, self._qr_clause, self._qr_outcome)
 
         # init all clause qubit to 1:
         qc.x(self._qr_clause)
@@ -125,7 +130,7 @@ class SAT(Oracle):
         # keep results
         qc.cnx(
             [self._qr_clause[i] for i in range(len(self._qr_clause))],
-            [self._qr_ancilla[i] for i in range(len(self._qr_ancilla))],
+            [self._qr_ancilla[i] for i in range(len(self._qr_ancilla))] if self._qr_ancilla else [],
             self._qr_outcome[0]
         )
         # reverse, de-entanglement
