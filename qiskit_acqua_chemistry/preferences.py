@@ -24,8 +24,8 @@ from qiskit_acqua_chemistry import ACQUAChemistryError
 
 class Preferences(object):
    
+    PACKAGE_TYPE_DRIVERS = 'drivers'
     PACKAGE_TYPE_CHEMISTRY = 'chemistry'
-    PACKAGE_TYPE_OPERATOR = 'operators'
     _FILENAME = '.qiskit_acqua_chemistry'
     _VERSION = '1.0'
     _QCONFIG_NAME = 'Qconfig'
@@ -209,7 +209,7 @@ class Preferences(object):
     
     def add_package(self, package_type, package):
         if package_type is not None and isinstance(package_type,str) and package is not None and isinstance(package,str): 
-            if package_type != Preferences.PACKAGE_TYPE_CHEMISTRY and package_type != Preferences.PACKAGE_TYPE_OPERATOR:
+            if package_type != Preferences.PACKAGE_TYPE_DRIVERS and package_type != Preferences.PACKAGE_TYPE_CHEMISTRY:
                 raise ACQUAChemistryError('Invalid package type {}'.format(package_type))
                 
             packages = self.get_packages(package_type,[])
@@ -229,7 +229,7 @@ class Preferences(object):
         if package_type is not None and isinstance(package_type,str) and \
             old_package is not None and isinstance(old_package,str) and \
             new_package is not None and isinstance(new_package,str): 
-            if package_type != Preferences.PACKAGE_TYPE_CHEMISTRY and package_type != Preferences.PACKAGE_TYPE_OPERATOR:
+            if package_type != Preferences.PACKAGE_TYPE_DRIVERS and package_type != Preferences.PACKAGE_TYPE_CHEMISTRY:
                 raise ACQUAChemistryError('Invalid package type {}'.format(package_type))
                 
             packages = self.get_packages(package_type,[])
@@ -263,7 +263,7 @@ class Preferences(object):
     
     def set_packages(self, package_type, packages):
         if package_type is not None and isinstance(package_type,str): 
-            if package_type != Preferences.PACKAGE_TYPE_CHEMISTRY and package_type != Preferences.PACKAGE_TYPE_OPERATOR:
+            if package_type != Preferences.PACKAGE_TYPE_DRIVERS and package_type != Preferences.PACKAGE_TYPE_CHEMISTRY:
                 raise ACQUAChemistryError('Invalid package type {}'.format(package_type))
                 
             if 'packages' in self._preferences and self._preferences['packages'] is not None:

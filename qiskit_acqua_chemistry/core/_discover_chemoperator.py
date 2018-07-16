@@ -73,7 +73,7 @@ def discover_preferences_chemistry_operators():
     and attempts to register them. Chem.Operator modules should subclass ChemistryOperator Base class.
     """
     preferences = Preferences()
-    packages = preferences.get_packages(Preferences.PACKAGE_TYPE_OPERATOR,[])
+    packages = preferences.get_packages(Preferences.PACKAGE_TYPE_CHEMISTRY,[])
     for package in packages:
         try:
             mod = importlib.import_module(package)

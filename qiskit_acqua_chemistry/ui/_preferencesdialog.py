@@ -189,13 +189,13 @@ class PackagesPage(ToolbarView):
             
     def populate(self):
         self.clear()
+        packages = self._preferences.get_packages(Preferences.PACKAGE_TYPE_DRIVERS,[])
+        for package in packages:
+            self._populate(Preferences.PACKAGE_TYPE_DRIVERS,package)
+            
         packages = self._preferences.get_packages(Preferences.PACKAGE_TYPE_CHEMISTRY,[])
         for package in packages:
             self._populate(Preferences.PACKAGE_TYPE_CHEMISTRY,package)
-            
-        packages = self._preferences.get_packages(Preferences.PACKAGE_TYPE_OPERATOR,[])
-        for package in packages:
-            self._populate(Preferences.PACKAGE_TYPE_OPERATOR,package)
             
     def _populate(self,package_type,package):
         package_type = '' if type is None else str(package_type)
@@ -271,14 +271,14 @@ class PackagesPage(ToolbarView):
         
     def apply(self,preferences):
         changed = False
+        packages = self._preferences.get_packages(Preferences.PACKAGE_TYPE_DRIVERS,[])
+        if packages != preferences.get_packages(Preferences.PACKAGE_TYPE_DRIVERS,[]):
+            preferences.set_packages(Preferences.PACKAGE_TYPE_DRIVERS,packages)
+            changed = True
+            
         packages = self._preferences.get_packages(Preferences.PACKAGE_TYPE_CHEMISTRY,[])
         if packages != preferences.get_packages(Preferences.PACKAGE_TYPE_CHEMISTRY,[]):
             preferences.set_packages(Preferences.PACKAGE_TYPE_CHEMISTRY,packages)
-            changed = True
-            
-        packages = self._preferences.get_packages(Preferences.PACKAGE_TYPE_OPERATOR,[])
-        if packages != preferences.get_packages(Preferences.PACKAGE_TYPE_OPERATOR,[]):
-            preferences.set_packages(Preferences.PACKAGE_TYPE_OPERATOR,packages)
             changed = True
         
         if changed:
@@ -332,7 +332,7 @@ class PackageComboDialog(Dialog):
         self._package_type = ttk.Combobox(parent,
                                   exportselection=0,
                                   state='readonly',
-                                  values=[Preferences.PACKAGE_TYPE_CHEMISTRY,Preferences.PACKAGE_TYPE_OPERATOR])
+                                  values=[Preferences.PACKAGE_TYPE_DRIVERS,Preferences.PACKAGE_TYPE_CHEMISTRY])
         self._package_type.current(0)
         self._package_type.grid(padx=(0,7),pady=6,row=0, column=1,sticky='nsw')
         

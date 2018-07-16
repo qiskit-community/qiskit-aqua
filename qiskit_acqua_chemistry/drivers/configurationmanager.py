@@ -200,7 +200,7 @@ class ConfigurationManager(object):
             and attempts to load  them.
             """
             preferences = Preferences()
-            packages = preferences.get_packages(Preferences.PACKAGE_TYPE_CHEMISTRY,[])
+            packages = preferences.get_packages(Preferences.PACKAGE_TYPE_DRIVERS,[])
             for package in packages:
                     try:
                         mod = importlib.import_module(package)
