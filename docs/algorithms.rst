@@ -101,9 +101,8 @@ QAOA is a well-known algorithm for finding approximate solutions to
 combinatorial-optimization problems.
 The QAOA implementation in QISKit ACQUA directly uses `VQE <#variational-quantum-eigensolver-vqe>`__ for its general hybrid optimization structure.
 However, unlike VQE, which can be configured with arbitrary variational forms,
-QAOA uses its own fine-tuned variational form,
-which is comprised of :math:`p` parameterized global *X* rotations,
-as well as another :math:`p` parameterized problem hamiltonian themselves.
+QAOA uses its own fine-tuned variational form, which comprises :math:`p` parameterized global :math:`X` rotations and 
+:math:`p` different parameterizations of the problem hamiltonian.
 As a result, unlike VQE, QAOA does not need to have a variational form specified as an input parameter,
 and is configured mainly by a single integer parameter, :math:`p`,
 which dictates the depth of the variational form, and thus affects the approximation quality.
