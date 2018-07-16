@@ -25,6 +25,7 @@ import importlib
 import inspect
 import copy
 from ._basedriver import BaseDriver
+from qiskit_acqua_chemistry.preferences import Preferences
 
 logger = logging.getLogger(__name__)
 
@@ -175,13 +176,43 @@ class ConfigurationManager(object):
             """Return names"""
             self._discover_on_demand()
             return list(self._registration.keys())
-             
+        
+        def refresh_drivers(self):
+            """
+            Attempts to rediscover all drivers
+            """
+            self._discovered = False
+            self._discover_on_demand()
+                
         def _discover_on_demand(self):
             if not self._discovered:
+                self._discovered = True
                 self._registration = OrderedDict()
                 self.discover_configurations(os.path.dirname(__file__),
                                              os.path.splitext(__name__)[0])
-                self._discovered = True
+                self.discover_preferences_configurations()
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug("Found: chemistry driver names {} ".format(self.module_names))
+                    
+        def discover_preferences_configurations(self):
+            """
+            Discovers the configuration.json files on the directory and subdirectories of the preferences package
+            and attempts to load  them.
+            """
+            preferences = Preferences()
+            packages = preferences.get_packages(Preferences.PACKAGE_TYPE_DRIVERS,[])
+            for package in packages:
+                    try:
+                        mod = importlib.import_module(package)
+                        if mod is not None:
+                            self.discover_configurations(os.path.dirname(mod.__file__),
+                                                       os.path.splitext(mod.__name__)[0])
+                        else:
+                            # Ignore package that could not be initialized.
+                            logger.debug('Failed to import package {}'.format(package))
+                    except Exception as e:
+                        # Ignore package that could not be initialized.
+                        logger.debug('Failed to load package {} error {}'.format(package, str(e)))
          
         def discover_configurations(self,directory,parentname):
             """
@@ -202,17 +233,16 @@ class ConfigurationManager(object):
                             jsonschema.validate(json_dict,self.schema)
                             module = json_dict['module']
                             if not os.path.isfile(os.path.join(directory,module + '.py')):
-                                raise LookupError('Module {} not found.'.format(module))
-                            
-                            self._registration[json_dict['name']] = { 
-                                        'path': directory,
-                                        'fullname': parentname + '.' + module,
-                                        'configuration':json_dict,
-                                        'class': None
-                                    }
+                                logger.debug('Module {} not found.'.format(module))
+                            else:
+                                self._registration[json_dict['name']] = { 
+                                            'path': directory,
+                                            'fullname': parentname + '.' + module,
+                                            'configuration':json_dict,
+                                            'class': None
+                                        }
                         except Exception as e:
-                            logger.info('Configuration error: {}'.format(str(e)))
-                            raise
+                            logger.debug('Configuration error: {}'.format(str(e)))
                         
                     continue
                 
