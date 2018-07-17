@@ -16,11 +16,7 @@
 # =============================================================================
 
 
-from qiskit import QuantumCircuit, QuantumRegister
-import numpy as np
-from qiskit.tools.qi.pauli import Pauli
-from functools import reduce
-from qiskit_acqua import QuantumAlgorithm, Operator, AlgorithmError, get_optimizer_instance
+from qiskit_acqua import QuantumAlgorithm, AlgorithmError, get_optimizer_instance, get_variational_form_instance
 from qiskit_acqua.vqe.vqe import VQE
 import logging
 
@@ -33,38 +29,6 @@ class QAOA(VQE):
     The Quantum Approximate Optimization Algorithm.
     See https://arxiv.org/abs/1411.4028
     """
-    class VarForm:
-        def __init__(self, cost_operator, p):
-            self.cost_operator = cost_operator
-            self.p = p
-            self.num_parameters = 2 * p
-            self.parameter_bounds = [(0, np.pi)] * p + [(0, 2 * np.pi)] * p
-            self.preferred_init_points = [0] * p * 2
-
-            # prepare the mixer operator
-            v = np.zeros(self.cost_operator.num_qubits)
-            ws = np.eye(self.cost_operator.num_qubits)
-            self.mixer_operator = reduce(
-                lambda x, y: x + y,
-                [
-                    Operator([[1, Pauli(v, ws[i, :])]])
-                    for i in range(self.cost_operator.num_qubits)
-                ]
-            )
-
-        def construct_circuit(self, angles):
-            if not len(angles) == self.num_parameters:
-                raise ValueError('Incorrect number of angles: expecting {}, but {} given.'.format(
-                    self.num_parameters, len(angles)
-                ))
-            q = QuantumRegister(self.cost_operator.num_qubits, name='q')
-            qc = QuantumCircuit(q)
-            qc.u2(0, np.pi, q)
-            for idx in range(self.p):
-                beta, gamma = angles[idx], angles[idx + self.p]
-                qc += self.cost_operator.evolve(None, gamma, 'circuit', 1, quantum_registers=q)
-                qc += self.mixer_operator.evolve(None, beta, 'circuit', 1, quantum_registers=q)
-            return qc
 
     PROP_OPERATOR_MODE = 'operator_mode'
     PROP_P = 'p'
@@ -153,5 +117,6 @@ class QAOA(VQE):
             optimizer (Optimizer) : the classical optimization algorithm.
             opt_init_point (str) : optimizer initial point.
         """
-        var_form = QAOA.VarForm(operator, p)
+        var_form = get_variational_form_instance('QAOA')
+        var_form.init_args(operator, p)
         super().init_args(operator, operator_mode, var_form, optimizer, opt_init_point=opt_init_point)
