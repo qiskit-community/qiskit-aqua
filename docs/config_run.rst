@@ -178,7 +178,7 @@ repository.
 An input file comprises the following main sections, although not all
 are mandatory:
 
-``problem``
+``"problem"``
 ~~~~~~~~~~~
 
 In QISKit ACQUA,
@@ -189,21 +189,21 @@ This set is extensible: new problems can be added,
 just like new algorithms can be plugged in to solve existing problems in a different way,
 or to solve new problems.
 
-Currently, a problem can be configured by assigning a ``string`` value to the ``name`` parameter:
+Currently, a problem can be configured by assigning a ``string`` value to the ``"name"`` parameter:
 
 .. code:: python
 
-    name = "energy" | "excited_states" | "ising" | "dynamics" | "search" | "svm_classification"
+    "name" = "energy" | "excited_states" | "ising" | "dynamics" | "search" | "svm_classification"
 
 As shown above, ``"energy"``, ``"excited_states"``, ``"ising"``, ``"dynamics"``,
 ``"search"``, and ``"svm_classification"`` are currently
-the only values accepted for ``name``, corresponding to the computation of
+the only values accepted for ``"name"``, corresponding to the computation of
 *energy*, *excited states*, *Ising models*, *dynamics of evolution*, *search* and
 *Support Vector Machine (SVM) classification*, respectively.
 New problems, disambiguated by their
-``name`` parameter, can be programmatically
+``"name"`` parameter, can be programmatically
 added to QISKit ACQUA via the
-``algorithminput.py`` Application Programming Interface (API), and each quantum or classical
+``AlgorithmInput`` Application Programming Interface (API), and each quantum or classical
 `algorithm <./algorithms.html>`__
 should programmatically list the problems it is suitable for in its JSON schema, embedded into
 the class implementing the ``QuantumAlgorithm`` interface.
@@ -224,33 +224,33 @@ be generated every time the experiment is run:
 
 .. code:: python
 
-    random_seed : int
+    "random_seed" : int
 
 The default value for this parameter is ``None``.
 
-``input``
+``"input"``
 ~~~~~~~~~
 
 This section allows the user to specify a the input to the QISKit ACQUA algorithm.
 Such input is expected to be a qubit operator, expressed as the value of the
-``qubit_op`` parameter, for problems of type energy, excited states, Ising models and
+``"qubit_op"`` parameter, for problems of type energy, excited states, Ising models and
 dynamics of evolution.  For problems of type SVM classification, the input consists
 of a *training dataset* (a map linking each label to a list of data points),
 a *test dataset* (also a map linking each label to a list of data points), and
 the list of data points on which to apply classification.
 These are specified as the values of the parameters
-``training_datasets``, ``test_datasets``, and ``datapoints``, respectively.
-The ``input`` section is disabled for problems of type search; for such problems,
+``"training_datasets"``, ``"test_datasets"``, and ``"datapoints"``, respectively.
+The ``"input"`` section is disabled for problems of type search; for such problems,
 the input specification depends on the particular
 `oracle <./oracles.html> chosen for the
 `Grover <./algorithms.html#quantum-grover-search> algorithm.
 Currently the satisfiability (SAT) oracle
 implementation is provided, which takes as input a SAT problem in
 `DIMACS CNF format <http://www.satcompetition.org/2009/format-benchmarks2009.html>`__
-expressed as the value of the ``cnf`` parameter,
+expressed as the value of the ``"cnf"`` parameter,
 and constructs the corresponding quantum circuit.
 
-``algorithm``
+``"algorithm"``
 ~~~~~~~~~~~~~
 
 This is an optional section that allows the user to specify which
@@ -258,12 +258,12 @@ This is an optional section that allows the user to specify which
 will be used for the experiment.
 To compute reference values, QISKit ACQUA also allows the use of a
 `classical algorithm <./algorithms.html#classical-algorithms>`__.
-In the ``algorithm`` section, algorithms are disambiguated using the
+In the ``"algorithm"`` section, algorithms are disambiguated using the
 `declarative names <./algorithms.html>`__
 by which QISKit ACQUA recognizes them, based on the JSON schema
 each algorithm must provide according to the QISKit ACQUA ``QuantumAlgorithm`` API.
-The declarative name is specified as the ``name`` parameter in the ``algorithm`` section.
-The default value for the ``name`` parameter is ``VQE``, corresponding
+The declarative name is specified as the ``"name"`` parameter in the ``"algorithm"`` section.
+The default value for the ``"name"`` parameter is ``"VQE"``, corresponding
 to the `Variational Quantum Eigensolver (VQE)
 <./algorithms.html#variational-quantum-eigensolver-vqe>`__
 algorithm.
@@ -315,7 +315,7 @@ optimizer and the `RYRZ <./variational_forms.html#ryrz>`__ variational form:
     }
 
 
-``backend``
+``"backend"``
 ~~~~~~~~~~~
 
 QISKit ACQUA allows for configuring the *backend*, which is the quantum machine
@@ -323,19 +323,19 @@ on which a quantum experiment will be run.
 This configuration requires specifying 
 the `QISKit <https://www.qiskit.org/>`__ quantum computational
 backend to be used for computation, which is done by assigning a ``string`` value to
-the ``name`` parameter of the ``backend`` section:
+the ``"name"`` parameter of the ``"backend"`` section:
 
 .. code:: python
 
-    name : string
+    "name" : string
 
-The value of the ``name`` parameter indicates either a real-hardware
+The value of the ``"name"`` parameter indicates either a real-hardware
 quantum computer or a quantum simulator.
 The underlying QISKit core used by QISKit ACQUA comes
 with two predefined quantum device simulators: the *local state vector simulator* and
 the *local QASM simulator*, corresponding to the following two
-values for the ``name`` parameter: ``"local_statevector_simulator"`` (which
-is the default value for the ``name`` parameter) and ``"local_qasm_simulator"``, respectively.
+values for the ``"name"`` parameter: ``"local_statevector_simulator"`` (which
+is the default value for the ``"name"`` parameter) and ``"local_qasm_simulator"``, respectively.
 However, any suitable quantum backend can be selected, including
 a real quantum hardware device. The ``QConfig.py`` file
 needs to be setup for QISKit to access remote devices.  For this, it is sufficient to follow the
@@ -353,9 +353,9 @@ accessible through the **Preferences...** menu item.
     and compare and contrast results in quantum research experimentation.
     Since a classical algorithm runs on a classical computer,
     no backend should be configured when a classical algorithm
-    is selected in the ``algorithm`` section.
+    is selected in the ``"algorithm"`` section.
     Accordingly, the QISKit ACQUA `GUI <#gui>` will automatically
-    disable the ``backend`` configuration section
+    disable the ``"backend"`` configuration section
     whenever a non-quantum algorithm is selected. 
 
 Configuring the backend to use by a `quantum algorithm <./algorithms.html#quantum-algorithms>`__
@@ -365,7 +365,7 @@ requires setting the following parameters too:
 
    .. code:: python
 
-        shots : int
+        "shots" : int
 
    This parameter applies, in particular to the local QASM simulator and any real quantum device.  The default
    value is ``1024``. 
@@ -374,9 +374,9 @@ requires setting the following parameters too:
 
    .. code:: python
        
-        skip_transpiler : bool
+        "skip_transpiler" : bool
 
-   The default value is ``False``.  If ``skip_transpiler`` is set to ``True``, then
+   The default value is ``False``.  If ``"skip_transpiler"`` is set to ``True``, then
    QISKit will not perform circuit translation. If QISKit ACQUA has been configured
    to run an experiment with a quantum algorithm that uses only basis gates,
    then no translation of the circuit into basis gates is required.
@@ -385,7 +385,7 @@ requires setting the following parameters too:
    especially when many circuits are used repeatedly, as it is the case with the VQE algorithm.
 
    .. note::
-       Use caution when setting ``skip_transpiler`` to ``True``
+       Use caution when setting ``"skip_transpiler"`` to ``True``
        as if the quantum algorithm does not restrict itself to the set of basis
        gates supported by the backend, then the circuit will fail to run.
 
@@ -396,7 +396,7 @@ requires setting the following parameters too:
 
    .. code:: python
 
-       noise_params : dictionary
+       "noise_params" : dictionary
 
    This is a Python dictionary consisting of key/value pairs.  Configuring it is optional; the default
    value is ``None``.
