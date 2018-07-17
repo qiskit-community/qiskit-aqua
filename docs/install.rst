@@ -4,7 +4,7 @@ Installation and Setup
 Dependencies
 ------------
 
-As QISKit ACQUA Chemistry is built upon QISKit ACQUA.
+QISKit ACQUA Chemistry is built upon QISKit ACQUA.
 Like QISKit ACQUA, at least `Python 3.5 or
 later <https://www.python.org/downloads/>`__ is needed to use QISKit
 ACQUA Chemistry. In addition, `Jupyter
