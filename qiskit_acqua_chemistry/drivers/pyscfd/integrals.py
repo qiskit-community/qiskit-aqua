@@ -64,7 +64,7 @@ def compute_integrals(config):
     _q_._nuclear_repulsion_energy = enuke
     _q_._num_orbitals = norbs
     _q_._num_alpha = mol.nelec[0]
-    _q_._num_beta = mol.nelec[0]
+    _q_._num_beta = mol.nelec[1]
     _q_._mo_coeff = mo_coeff
     _q_._orbital_energies = orbs_energy
     # Molecule geometry
