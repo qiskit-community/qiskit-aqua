@@ -36,7 +36,7 @@ class VarFormQAOA(VariationalForm):
             'id': 'qaoa_vf_schema',
             'type': 'object',
             'properties': {
-                'depth': {
+                'p': {
                     'type': 'integer',
                     'default': 1,
                     'minimum': 1
@@ -48,15 +48,15 @@ class VarFormQAOA(VariationalForm):
 
     def __init__(self, configuration=None):
         super().__init__(configuration or self.QAOA_VF_CONFIGURATION.copy())
-        self._depth = 0
+        self._p = 0
         self._initial_state = None
 
-    def init_args(self, cost_operator, depth, initial_state=None):
+    def init_args(self, cost_operator, p, initial_state=None):
         self._cost_operator = cost_operator
-        self._depth = depth
-        self._num_parameters = 2 * depth
-        self._bounds = [(0, np.pi)] * depth + [(0, 2 * np.pi)] * depth
-        self._preferred_init_points = [0] * depth * 2
+        self._p = p
+        self._num_parameters = 2 * p
+        self._bounds = [(0, np.pi)] * p + [(0, 2 * np.pi)] * p
+        self._preferred_init_points = [0] * p * 2
         self._initial_state = initial_state
 
         # prepare the mixer operator
@@ -81,8 +81,8 @@ class VarFormQAOA(VariationalForm):
             circuit += self._initial_state.construct_circuit('circuit', q)
         else:
             circuit.u2(0, np.pi, q)
-        for idx in range(self._depth):
-            beta, gamma = angles[idx], angles[idx + self._depth]
+        for idx in range(self._p):
+            beta, gamma = angles[idx], angles[idx + self._p]
             circuit += self._cost_operator.evolve(None, gamma, 'circuit', 1, quantum_registers=q)
             circuit += self._mixer_operator.evolve(None, beta, 'circuit', 1, quantum_registers=q)
         return circuit
