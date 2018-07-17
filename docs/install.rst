@@ -18,8 +18,7 @@ comes with all of these dependencies pre-installed.
 Code Installation
 -----------------
 
-We encourage you to install QISKit ACQUA Chemistry via the pip tool (a
-Python package manager):
+We encourage you to install QISKit ACQUA Chemistry via the `pip <https://pypi.org/project/pip/>`__ package management system:
 
 .. code:: sh
 
@@ -28,9 +27,6 @@ Python package manager):
 pip will handle all dependencies automatically (including the dependencies on QISKit ACQUA and QISKit Core). and you will always
 install the latest (and well-tested) release version.
 
-We recommend using Python virtual environments to improve your
-experience.
-
 If your intention is not so much to access QISKIT ACQUA Chemistry
 as a tool to perform chemistry computations on a quantum machine, but rather to extend QISKit ACQUA Chemistry
 with new research contributions --- such as new algorithms, algorithm components, input-translation operators or drivers ---
@@ -38,6 +34,10 @@ then it is advisable to clone both the
 `QISKit ACQUA Chemistry <https://github.com/QISKit/qiskit-acqua-chemistry>`__ and
 `QISKit ACQUA <https://github.com/QISKit/qiskit-acqua>`__ Git repositories in order
 to have easier access to the source code of the various components.
+
+.. note::
+
+    We recommend using Python virtual environments to improve your experience.
 
 Jupyter Notebooks and input files for QISKit ACQUA Chemistry are included as part of the
 `QISKit ACQUA Tutorials <https://nbviewer.jupyter.org/github/QISKit/qiskit-acqua-tutorials/blob/master/index.ipynb>`__.
