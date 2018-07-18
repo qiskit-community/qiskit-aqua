@@ -17,7 +17,7 @@
 from abc import ABC, abstractmethod
 
 
-class Estimator:
+class Estimator(ABC):
     @abstractmethod
     def fit(self, X, y):
         raise NotImplementedError( "Should have implemented this" )
