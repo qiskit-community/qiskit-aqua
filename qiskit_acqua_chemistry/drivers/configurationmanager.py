@@ -205,8 +205,7 @@ class ConfigurationManager(object):
                     try:
                         mod = importlib.import_module(package)
                         if mod is not None:
-                            self.discover_configurations(os.path.dirname(mod.__file__),
-                                                       os.path.splitext(mod.__name__)[0])
+                            self.discover_configurations(os.path.dirname(mod.__file__),mod.__name__)
                         else:
                             # Ignore package that could not be initialized.
                             logger.debug('Failed to import package {}'.format(package))
