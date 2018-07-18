@@ -15,7 +15,7 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit_acqua.multiclass.Estimator import Estimator
+from qiskit_acqua.multiclass.estimator import Estimator
 from sklearn.svm import LinearSVC
 from qiskit_acqua.svm.svm_qkernel import SVM_QKernel
 import numpy as np

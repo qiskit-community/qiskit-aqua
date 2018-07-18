@@ -22,7 +22,7 @@ from qiskit_acqua.svm import (get_points_and_labels, optimize_SVM,
                               kernel_join, entangler_map_creator)
 
 from qiskit_acqua.multiclass.one_against_rest import OneAgainstRest
-from qiskit_acqua.multiclass_quantumsvm.qkernelSVM_estimator import QKernalSVM_Estimator
+from qiskit_acqua.multiclass_quantumsvm.qkernel_svm_estimator import QKernalSVM_Estimator
 import numpy as np
 from qiskit_acqua.multiclass.data_preprocess import *
 
