@@ -79,7 +79,7 @@ def discover_preferences_chemistry_operators():
             mod = importlib.import_module(package)
             if mod is not None:
                 _discover_local_chemistry_operators(os.path.dirname(mod.__file__),
-                                           os.path.splitext(mod.__name__)[0],
+                                           mod.__name__,
                                            names_to_exclude=['__main__'],
                                            folders_to_exclude= ['__pycache__'])
             else:
