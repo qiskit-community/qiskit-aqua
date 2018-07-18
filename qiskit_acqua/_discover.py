@@ -113,7 +113,7 @@ def discover_preferences_pluggables():
             mod = importlib.import_module(package)
             if mod is not None:
                 _discover_local_pluggables(os.path.dirname(mod.__file__),
-                                           os.path.splitext(mod.__name__)[0],
+                                           mod.__name__,
                                            names_to_exclude=['__main__'],
                                            folders_to_exclude= ['__pycache__'])
             else:
