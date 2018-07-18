@@ -1,4 +1,21 @@
-from qiskit_acqua.multiclass.Estimator import Estimator
+# -*- coding: utf-8 -*-
+
+# Copyright 2018 IBM.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# =============================================================================
+
+from qiskit_acqua.multiclass.estimator import Estimator
 from sklearn.svm import LinearSVC
 from qiskit_acqua.svm.svm_qkernel import SVM_QKernel
 import numpy as np
@@ -10,6 +27,7 @@ class QKernalSVM_Estimator(Estimator, SVM_QKernel):
         super(QKernalSVM_Estimator, self).__init__()
         self._backend = backend
         self.shots = shots
+
 
 
     def fit(self, X, y):
@@ -24,10 +42,10 @@ class QKernalSVM_Estimator(Estimator, SVM_QKernel):
         self.entangler_map = entangler_map_creator(self.num_of_qubits)
         self.coupling_map = None
         self.initial_layout = None
-        if self.shots is None:
-            self.shots = 1000
         if self._backend is None:
             self._backend = 'local_qasm_simulator'
+        if self.shots is None:
+            self.shots = 1000
 
         kernel_matrix = kernel_join(X, X, self.entangler_map,
                                     self.coupling_map, self.initial_layout, self.shots,

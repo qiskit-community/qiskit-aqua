@@ -97,11 +97,15 @@ Additionally, VQE can be configured with the following parameters:
 Quantum Approximate Optimization Algorithm (QAOA)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-`QAOA <https://arxiv.org/abs/1411.4028>`__ is an well-known algorithm for finding approximate solutions to
-combinatorial optimization problems. Similar to VQE, it also uses the variational approach
-for the classical optimization part. But QAOA uses its own fine-tuned variational form comprised of
-parameterized global ``X`` rotations as well as the problem hamiltonian, with a single parameter
-``p`` dictating the depth of the variational form, and thus affecting the approximation quality.
+QAOA is a well-known algorithm for finding approximate solutions to
+combinatorial-optimization problems.
+The QAOA implementation in QISKit ACQUA directly uses `VQE <#variational-quantum-eigensolver-vqe>`__ for its general hybrid optimization structure.
+However, unlike VQE, which can be configured with arbitrary variational forms,
+QAOA uses its own fine-tuned variational form, which comprises :math:`p` parameterized global :math:`X` rotations and 
+:math:`p` different parameterizations of the problem hamiltonian.
+As a result, unlike VQE, QAOA does not need to have a variational form specified as an input parameter,
+and is configured mainly by a single integer parameter, :math:`p`,
+which dictates the depth of the variational form, and thus affects the approximation quality.
 Similar to VQE, an `optimizer <./optimizers.html>`__ may also be specified.
 
 Additionally, QAOA can be configured with the following parameters:
@@ -120,9 +124,9 @@ Additionally, QAOA can be configured with the following parameters:
 
        initial_point : [float, float, ... , float]
 
-   An optional list of ``2p`` ``float`` values  may be provided as the starting ``beta`` and ``gamma`` parameters
-   (as identically named in the original paper) for the QAOA variational form.
-   If such list is not provided, QAOA will simply start for the all-``0`` vector.
+   An optional list of :math:`2p` ``float`` values  may be provided as the starting ``beta`` and ``gamma`` parameters
+   (as identically named in the `original QAOA paper <https://arxiv.org/abs/1411.4028>`__) for the QAOA variational form.
+   If such list is not provided, QAOA will simply start with the all-``0`` vector.
 
 
 .. topic:: Declarative Name
@@ -153,25 +157,25 @@ Dynamics can be configured with the following parameter settings:
 -  Evolution time:
 
    .. code:: python
-   
+
        evo_time : float
 
    A number is expected.  The minimum value is ``0.0``.  The default value is ``1.0``.
 
 -  The evolution mode of the computation:
 
-   .. code:: python 
+   .. code:: python
 
        evo_mode = "matrix" | "circuit"
 
    Two ``string`` values are permitted: ``"matrix"`` or ``"circuit"``, with ``"circuit"`` being the default.
 
--  The number of time slices: 
+-  The number of time slices:
 
    .. code:: python
 
        num_time_slices = 0 | 1 | ...
-   
+
    This has to be a non-negative ``int`` value.  The default is ``1``.
 
 -  Paulis grouping mode:
@@ -183,7 +187,7 @@ Dynamics can be configured with the following parameter settings:
    Two ``string`` values are permitted: ``"default"`` or ``"random"``, with ``"default"`` being the default and indicating
    that the paulis should be grouped.
 
--  The expansion mode: 
+-  The expansion mode:
 
    .. code:: python
 
@@ -233,7 +237,7 @@ state <initial_states.html>`__ and an `IQFT <./iqfts.html>`__.
 
 QPE is also configured with the following parameter settings:
 
--  The number of time slices: 
+-  The number of time slices:
 
    .. code:: python
 
@@ -269,7 +273,7 @@ QPE is also configured with the following parameter settings:
 
 -  The number of ancillae:
 
-   .. code:: python 
+   .. code:: python
 
        num_ancillae = 1 | 2 | ...
 

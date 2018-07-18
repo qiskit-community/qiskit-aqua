@@ -14,9 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+from abc import ABC, abstractmethod
 
-from sklearn.decomposition import PCA
 
-def reduce_dim_to(X, dim):
-    X_reduced = PCA(n_components=dim).fit_transform(X)
-    return X_reduced
+class Estimator(ABC):
+    @abstractmethod
+    def fit(self, X, y):
+        raise NotImplementedError( "Should have implemented this" )
+
+    @abstractmethod
+    def decision_function(self, X):
+        raise NotImplementedError( "Should have implemented this" )
+

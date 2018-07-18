@@ -15,8 +15,16 @@
 # limitations under the License.
 # =============================================================================
 
-from sklearn.decomposition import PCA
+from qiskit_acqua.multiclass.estimator import Estimator
+from sklearn.svm import LinearSVC
 
-def reduce_dim_to(X, dim):
-    X_reduced = PCA(n_components=dim).fit_transform(X)
-    return X_reduced
+class LinearSVC_Estimator(Estimator):
+    def __init__(self):
+        self._estimator = LinearSVC(random_state=0)
+
+    def fit(self, X, y):
+        self._estimator.fit(X, y)
+
+    def decision_function(self, X):
+        return self._estimator.decision_function(X)
+

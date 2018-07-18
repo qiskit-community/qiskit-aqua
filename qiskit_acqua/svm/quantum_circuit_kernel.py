@@ -178,7 +178,7 @@ def kernel_join(points_array, points_array2, entangler_map, coupling_map, initia
 
         circuit_list = [c for c in circuits]
         program_data = Q_program.execute(circuit_list, backend=backend, coupling_map=coupling_map,
-                                         initial_layout=initial_layout, shots=shots, seed=seed)
+                                         initial_layout=initial_layout, shots=shots, seed=seed, timeout=600)
 
         mat = np.eye(size, size)  # element on the diagonal is always 1: point*point=|point|^2
         for v in range(len(program_data)):
