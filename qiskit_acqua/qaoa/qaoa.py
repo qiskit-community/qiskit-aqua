@@ -16,9 +16,11 @@
 # =============================================================================
 
 
-from qiskit_acqua import QuantumAlgorithm, AlgorithmError, get_optimizer_instance, get_variational_form_instance
-from qiskit_acqua.vqe.vqe import VQE
 import logging
+
+from qiskit_acqua import QuantumAlgorithm, AlgorithmError, get_optimizer_instance
+from qiskit_acqua.vqe.vqe import VQE
+from .varform import QAOAVarForm
 
 
 logger = logging.getLogger(__name__)
@@ -117,6 +119,5 @@ class QAOA(VQE):
             optimizer (Optimizer) : the classical optimization algorithm.
             opt_init_point (str) : optimizer initial point.
         """
-        var_form = get_variational_form_instance('QAOA')
-        var_form.init_args(operator, p)
+        var_form = QAOAVarForm(operator, p)
         super().init_args(operator, operator_mode, var_form, optimizer, opt_init_point=opt_init_point)

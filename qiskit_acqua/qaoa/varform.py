@@ -17,47 +17,21 @@
 
 import numpy as np
 from functools import reduce
-
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.tools.qi.pauli import Pauli
-
 from qiskit_acqua.operator import Operator
-from qiskit_acqua.utils.variational_forms import VariationalForm
 
 
-class VarFormQAOA(VariationalForm):
+class QAOAVarForm:
     """Global X phases and parameterized problem hamiltonian."""
 
-    QAOA_VF_CONFIGURATION = {
-        'name': 'QAOA',
-        'description': 'QAOA Variational Form',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
-            'id': 'qaoa_vf_schema',
-            'type': 'object',
-            'properties': {
-                'p': {
-                    'type': 'integer',
-                    'default': 1,
-                    'minimum': 1
-                },
-            },
-            'additionalProperties': False
-        }
-    }
-
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.QAOA_VF_CONFIGURATION.copy())
-        self._p = 0
-        self._initial_state = None
-
-    def init_args(self, cost_operator, p, initial_state=None):
+    def __init__(self, cost_operator, p, initial_state=None):
         self._cost_operator = cost_operator
         self._p = p
-        self._num_parameters = 2 * p
-        self._bounds = [(0, np.pi)] * p + [(0, 2 * np.pi)] * p
-        self._preferred_init_points = [0] * p * 2
         self._initial_state = initial_state
+        self.num_parameters = 2 * p
+        self.parameter_bounds = [(0, np.pi)] * p + [(0, 2 * np.pi)] * p
+        self.preferred_init_points = [0] * p * 2
 
         # prepare the mixer operator
         v = np.zeros(self._cost_operator.num_qubits)
