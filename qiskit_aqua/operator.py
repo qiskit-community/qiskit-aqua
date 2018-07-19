@@ -519,8 +519,6 @@ class Operator(object):
         """
         Evaluate an Operator with the `input_circuit`.
         This mode interacts with the quantum state rather than the sampled results from the measurement.
-        - Psi is wave function
-        - Psi is dense matrix
 
         Args:
             operator_mode (str): representation of operator, including paulis, grouped_paulis and matrix
@@ -560,16 +558,27 @@ class Operator(object):
         else:
             self._check_representation("paulis")
             n_qubits = self.num_qubits
-            circuits = []
-            base_circuit = QuantumCircuit() + input_circuit
-            circuits.append(base_circuit)
+
+            input_job = q_execute(input_circuit, backend=backend, **execute_config)
+            simulator_initial_state = np.asarray(input_job.result().get_statevector(input_circuit))
+
+            temp_config = copy.deepcopy(execute_config)
+
+            if 'config' not in temp_config:
+                temp_config['config'] = dict()
+                
+            temp_config['config']['initial_state'] = simulator_initial_state
+            
             # Trial circuit w/o the final rotations
             # Execute trial circuit with final rotations for each Pauli in
             # hamiltonian and store from circuits[1] on
 
+            q = QuantumRegister(n_qubits, name='q')
+
+            circuits_to_simulate = []
+            all_circuits = []
             for idx, pauli in enumerate(self._paulis):
-                circuit = QuantumCircuit() + base_circuit
-                q = circuit.get_qregs()['q']
+                circuit = QuantumCircuit(q)
                 for qubit_idx in range(n_qubits):
                     if pauli[1].v[qubit_idx] == 0 and pauli[1].w[qubit_idx] == 1:
                         circuit.u3(np.pi, 0.0, np.pi, q[qubit_idx]) #x
@@ -577,28 +586,34 @@ class Operator(object):
                         circuit.u1(np.pi, q[qubit_idx]) #z
                     elif pauli[1].v[qubit_idx] == 1 and pauli[1].w[qubit_idx] == 1:
                         circuit.u3(np.pi, np.pi/2, np.pi/2, q[qubit_idx]) #y
-                circuits.append(circuit)
+
+                all_circuits.append(circuit)
+                if len(circuit) != 0:
+                    circuits_to_simulate.append(circuit)
 
             jobs = []
-            chunks = int(np.ceil(len(circuits) / self.MAX_CIRCUITS_PER_JOB))
+            chunks = int(np.ceil(len(circuits_to_simulate) / self.MAX_CIRCUITS_PER_JOB))
             for i in range(chunks):
-                sub_circuits = circuits[i*self.MAX_CIRCUITS_PER_JOB:(i+1)*self.MAX_CIRCUITS_PER_JOB]
-                jobs.append(q_execute(sub_circuits, backend=backend, **execute_config))
+                sub_circuits = circuits_to_simulate[i*self.MAX_CIRCUITS_PER_JOB:(i+1)*self.MAX_CIRCUITS_PER_JOB]
+                jobs.append(q_execute(sub_circuits, backend=backend, **temp_config))
 
             if self._summarize_circuits and logger.isEnabledFor(logging.DEBUG):
-                logger.debug(summarize_circuits(circuits))
+                logger.debug(summarize_circuits(circuits_to_simulate))
 
             results = []
             for job in jobs:
                 results.append(job.result())
-            result = reduce(lambda x, y: x + y, results)
-
-            quantum_state_0 = np.asarray(result.get_statevector(circuits[0]))
+            if(len(results) != 0):
+                result = reduce(lambda x, y: x + y, results)
 
             for idx, pauli in enumerate(self._paulis):
-                quantum_state_i = np.asarray(result.get_statevector(circuits[idx+1]))
-                # inner product with final rotations of (i)-th Pauli
-                avg += pauli[0] * (np.vdot(quantum_state_0, quantum_state_i))
+                circuit = all_circuits[idx]
+                if len(circuit) == 0:
+                    avg += pauli[0]
+                else:
+                    quantum_state_i = np.asarray(result.get_statevector(circuit))
+                    # inner product with final rotations of (i)-th Pauli
+                    avg += pauli[0] * (np.vdot(simulator_initial_state, quantum_state_i))
 
         return avg
 
