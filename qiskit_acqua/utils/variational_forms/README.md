@@ -13,7 +13,6 @@ The variational form represents a trial wavefunction that may be used in an algo
 * [RYRZ](#ryrz)
 * [UCCSD](#uccsd)
 * [SWAPRZ](#swaprz)
-* [QAOA](#qaoa)
 
 
 ## RY
@@ -146,36 +145,6 @@ The following allows a specific form to be configured:
   should be entangled,
   e.g. `{0: [1, 2], 1: [3]}`
 
-
-## QAOA
-
-This is the wavefunction used by the [Quantum Approximate Optimization Algorithm (QAOA)](https://arxiv.org/abs/1411.4028),
-which is geared towards combinatorial optimization problems.
-A single integer `p` 
-(which is similar to the `depth` parameter of the other variational forms 
-but is named `p` to coincide with the original paper)
-is used to parameterize the wavefunction,
-which comprises `p` parameterized global `X` rotations and `p` different parameterizations of the problem hamiltonian.
-The following allows a specific form to be configured:
-
-* `p`=*integer 1 to n*
-
-  Controls the circuit depth to use and in turn affects the approximation quality, default 1.
-
-* `cost_operator`
-
-  The combinatorial problem's cost hamiltonian in the form of an `Operator`, 
-  which can be generated from the various helper modules under the `ising` directory.
-  For example, the included `maxcut` module can take in a graph specification 
-  and produce the corresponding ising model cost operator.
-  
-Please note that the complete implementation of the Quantum Approximate Optimization Algorithm is also included,
-which essentially takes the QAOA variational form and uses VQE to carry out the hybrid iterative optimization.
-You can certainly try using the QAOA wavefunction as a standalone variational form, 
-but due to its particular structure, 
-it might not be ideal if your goal is to find the lowest eigenvalue (ground energy) 
-as opposed to solving combinatorial optimization problems, 
-which is what the QAOA variational form was intended for in the first place.
 
 # Developers
 

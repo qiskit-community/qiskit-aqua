@@ -104,7 +104,7 @@ However, unlike VQE, which can be configured with arbitrary variational forms,
 QAOA uses its own fine-tuned variational form, which comprises :math:`p` parameterized global :math:`X` rotations and 
 :math:`p` different parameterizations of the problem hamiltonian.
 As a result, unlike VQE, QAOA does not need to have a variational form specified as an input parameter,
-and is configured mainly by a single integer parameter, :math:`p`,
+and is configured mainly by a single positive integer parameter, :math:`p` (default 1),
 which dictates the depth of the variational form, and thus affects the approximation quality.
 Similar to VQE, an `optimizer <./optimizers.html>`__ may also be specified.
 
