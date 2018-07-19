@@ -104,11 +104,11 @@ However, unlike VQE, which can be configured with arbitrary variational forms,
 QAOA uses its own fine-tuned variational form, which comprises :math:`p` parameterized global :math:`X` rotations and 
 :math:`p` different parameterizations of the problem hamiltonian.
 As a result, unlike VQE, QAOA does not need to have a variational form specified as an input parameter,
-and is configured mainly by a single positive integer parameter, :math:`p` (default 1),
+and is configured mainly by a single integer parameter, :math:`p`,
 which dictates the depth of the variational form, and thus affects the approximation quality.
 Similar to VQE, an `optimizer <./optimizers.html>`__ may also be specified.
 
-Additionally, QAOA can be configured with the following parameters:
+In summary, QAOA can be configured with the following parameters:
 
 -  A ``string`` indicating the mode used by the ``Operator`` class for the computation:
 
@@ -118,6 +118,14 @@ Additionally, QAOA can be configured with the following parameters:
 
    If no value for ``operator_mode`` is specified, the default is ``"matrix"``.
 
+-  A positive ``integer`` configuring QAOA's particular variational form as discussed above:
+
+   .. code:: python
+
+       p = 1 | 2 | ...
+
+   This has to be a positive ``int`` value.  The default is ``1``.
+
 -  The initial point for the search of the minimum eigenvalue:
 
    .. code:: python
@@ -126,7 +134,7 @@ Additionally, QAOA can be configured with the following parameters:
 
    An optional list of :math:`2p` ``float`` values  may be provided as the starting ``beta`` and ``gamma`` parameters
    (as identically named in the `original QAOA paper <https://arxiv.org/abs/1411.4028>`__) for the QAOA variational form.
-   If such list is not provided, QAOA will simply start with the all-``0`` vector.
+   If such list is not provided, QAOA will simply start with the all-zero vector.
 
 
 .. topic:: Declarative Name
