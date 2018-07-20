@@ -248,8 +248,9 @@ user's home directory:
 .. code:: sh
 
     # PSI4
-    alias enable_psi4='export PATH=/Users/marcopistoia/psi4conda/bin:$PATH'
+    alias enable_psi4='export PATH=/Users/username/psi4conda/bin:$PATH'
 
+where ``username`` should be replaced with the user's account name.
 In order for QISKit ACQUA Chemistry to discover PSI4 at run time, it is then necessary to execute the ``enable_psi4`` command
 before launching QISKit ACQUA Chemistry.
 
