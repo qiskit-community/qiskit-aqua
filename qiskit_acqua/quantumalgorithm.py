@@ -49,6 +49,8 @@ class QuantumAlgorithm(ABC):
     SECTION_KEY_IQFT = 'iqft'
     SECTION_KEY_ORACLE = 'oracle'
 
+    MAX_CIRCUITS_PER_JOB = 300
+
     UNSUPPORTED_BACKENDS = ['local_unitary_simulator', 'local_clifford_simulator']
 
     EQUIVALENT_BACKENDS = {'local_statevector_simulator_py': 'local_statevector_simulator',
@@ -172,10 +174,26 @@ class QuantumAlgorithm(ABC):
 
         Args:
             circuits (QuantumCircuit or list[QuantumCircuit]): circuits to execute
+
+        Returns:
+            Result or [Result]: Result objects it will be a list if number of circuits
+            exceed the maximum number (300)
         """
-        job = q_execute(circuits, self._backend, **self._execute_config)
-        result = job.result(**self._qjob_config)
-        return result
+
+        if not isinstance(circuits, list):
+            circuits = [circuits]
+        jobs = []
+        chunks = int(np.ceil(len(circuits) / self.MAX_CIRCUITS_PER_JOB))
+        for i in range(chunks):
+            sub_circuits = circuits[i*self.MAX_CIRCUITS_PER_JOB:(i+1)*self.MAX_CIRCUITS_PER_JOB]
+            jobs.append(q_execute(sub_circuits, self._backend, **self._execute_config))
+        results = []
+        for job in jobs:
+            results.append(job.result(**self._qjob_config))
+
+        if len(jobs) == 1:
+            results = results[0]
+        return results
 
     @staticmethod
     def register_and_get_operational_backends(qconfig):
@@ -187,7 +205,7 @@ class QuantumAlgorithm(ABC):
                     break
         except Exception as e:
                 logger.debug("Failed to unregister provider 'IBMQProvider' with QISKit: {}".format(str(e)))
-                
+
         if qconfig is not None:
             hub = qconfig.config.get('hub', None)
             group = qconfig.config.get('group', None)
@@ -198,15 +216,15 @@ class QuantumAlgorithm(ABC):
                 q_register(qconfig.APItoken,
                            provider_class=IBMQProvider,
                            url=qconfig.config["url"],
-                           hub=hub, 
-                           group=group, 
+                           hub=hub,
+                           group=group,
                            project=project,
                            proxies=proxies,
                            verify=verify)
                 logger.debug("Provider 'IBMQProvider' registered with QISKit successfully.")
             except Exception as e:
                 logger.debug("Failed to register provider 'IBMQProvider' with QISKit: {}".format(str(e)))
-            
+
         backends = available_backends()
         backends = [x for x in backends if x not in QuantumAlgorithm.UNSUPPORTED_BACKENDS]
         return backends
