@@ -50,7 +50,7 @@ class TestQAOA(QISKitAcquaTestCase):
     ])
     def test_qaoa(self, w, p, solutions):
         self.log.debug('Testing {}-step QAOA with MaxCut on graph\n{}'.format(p, w))
-
+        np.random.seed(0)
         optimizer = get_optimizer_instance('COBYLA')
         qubitOp, offset = maxcut.get_maxcut_qubitops(w)
         qaoa = get_algorithm_instance('QAOA')
