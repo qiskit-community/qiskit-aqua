@@ -732,13 +732,13 @@ requires setting the following parameters too:
 
    .. code:: python
 
-      "noise_params": {"U": {"p_depol": 0.001,
+      noise_params: {"U": {"p_depol": 0.001,
                              "p_pauli": [0, 0, 0.01],
                              "gate_time": 1,
                              "U_error": [ [[1, 0], [0, 0]]
                                         ]
-                            }
-                      }
+                          }
+                    }
 
 ``problem``
 ~~~~~~~~~~~

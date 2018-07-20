@@ -31,7 +31,7 @@ for the following four computational chemistry software drivers:
 
 Additional chemistry drivers can easily be added via the ``BaseDriver`` extension point.  Once an interface
 for a driver installed in the system has been implemented, that driver will be automatically loaded at run time
-and made available in QISkit Quantum Chemistry experiments.
+and made available in QISkit Quantum Chemistry for running experiments.
 
 QISKit ACQUA Chemistry provides programmable, command-line, and graphical user interfaces with
 schema-enforced configuration correctness.
@@ -118,9 +118,11 @@ the level of accuracy of such data does depend on the computational chemistry so
 more elaborate software packages are more likely to produce more accurate data.
 
 QISKit ACQUA Chemistry offers the option to serialize this data in a binary format known as
-Hierarchical Data Format 5 (HDF5).  This is done for future reuse and exchange of
-input data among researchers who may not have a particular computational chemistry driver
-installed on their computer.  HDF5 is configured as a prebuilt driver in
+Hierarchical Data Format 5 (HDF5).  This is done to enable future reuse of previously computed
+input data.  This feature also enables researchers to exchange 
+input data among each other --- which turns out to be particularly useful to researchers who may not have
+particular computational chemistry drivers
+installed on their computers.  HDF5 is configured as a prebuilt driver in
 QISKit ACQUA Chemistry because it allows for chemistry input to be passed into the
 computation.
 

@@ -128,14 +128,17 @@ can contribute to QISKit ACQUA Chemistry.
 Drivers
 ^^^^^^^
 
-QISKit ACQUA Chemistry allows for classical computational chemistry software packages, known as *drivers*,
-to be used as application frontends.  A driver library must be installed on the same system
-as the one where QISKit ACQUA Chemistry runs.  In order for QISKit ACQUA Chemistry to
-be able to interface a driver library, the ``BaseDriver`` abstract class must be implemented in order
-to provide the interfacing code.  As part of this process, the required
+The driver support in QISKit ACQUA Chemistry was designed to make the drivers pluggable and discoverable.
+In order for QISKit ACQUA Chemistry to
+be able to interface a driver library, the ``BaseDriver`` base class must be implemented in order
+to provide the interfacing code, or *wrapper*.  As part of this process, the required
 `JavaScript Object Notation (JSON) <http://json.org>`__ schema for the driver interface must
-be programmatically added to the ``BaseDriver`` implementation.  Drivers are collected in the ``drivers`` folder
+be provided in a file named ``configuration.json``.  The interfacing code in the driver wrapper
+is responsible for constructing and populating a ``QMolecule`` instance with the electronic
+structure data listed above.  Driver wrappers implementing the ``BaseDriver`` class and the
+associated ``configuration.json`` schema file are organized in subfolders of the ``drivers`` folder
 for automatic discovery and dynamic lookup.
+
 
 Chemistry Operators
 ^^^^^^^^^^^^^^^^^^^
