@@ -154,7 +154,7 @@ Verifying Path and Environment Setup
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You should also make sure the Gaussian™ 16 ``g16`` executable can be run from a command line.
-This requires verifying that the ``g16`` executable is in the system path and appropriate
+This requires verifying that the ``g16`` executable is reachable via the system environment path, and appropriate
 exports, such as ``GAUSS_EXEDIR``, have been configured as per
 `Gaussian installation instructions <http://gaussian.com/techsupport/#install]>__.
 
@@ -199,16 +199,27 @@ as well as finally adding the following line to the ``.bash_profile`` file in yo
 
     ulimit -n 65536 65536
 
+At the end of this configuration, the ``.bash_profile`` in your account's home directory should have a section in it
+like in the following script snippet:
+
+.. code:: sh
+
+    # Gaussian 16
+    export GAUSS_SCRDIR=~/.gaussian
+    export g16root=/Applications
+    alias enable_gaussian='. $g16root/g16/bsd/g16.profile'
+    ulimit -n 65536 65536
+
 Input File Example
 ~~~~~~~~~~~~~~~~~~
 
-To configure a molecule on which to do a chemistry experiment with QISKit ACQUA Chemistry, set the ``name`` field
-in the ``driver`` section of the `input file <./config_run.html#input-file>`__ to ``GAUSSIAN`` and then create a ``gaussian``
-section in the input file as per the example below, which shows the configuration of a molecule of hydrogen.
-Here, the molecule, basis set and other options are specified according
+To use Gaussian™ 16 to configure a molecule on which to do a chemistry experiment with QISKit ACQUA Chemistry,
+set the ``name`` field in the ``driver`` section of the `input file <./config_run.html#input-file>`__ to ``GAUSSIAN`` and
+then create a ``gaussian``section in the input file as per the example below, which shows the configuration of a molecule of
+hydrogen.  Here, the molecule, basis set and other options are specified according
 to the Gaussian™ 16 control file, so the syntax specified by Gaussian™ 16 should be followed:
 
-.. code:: python
+.. code::
 
     &gaussian
        # rhf/sto-3g scf(conventional)
@@ -219,3 +230,50 @@ to the Gaussian™ 16 control file, so the syntax specified by Gaussian™ 16 sh
        H   0.0  0.0    0.0
        H   0.0  0.0    0.74
     &end
+
+Experienced chemists who already have existing Gaussian™ 16 control files can simply paste the contents of those files
+into the ``gaussian`` section of the input file.  This configuration can also be easily achieved using the
+QISKit ACQUA Chemistry `Graphical User Interface (GUI) <./config_run.html#gui>`__.
+
+PSI4
+----
+`PSI4 <http://www.psicode.org/>`__ is an open-source program for computational chemistry.
+In order for QISKit ACQUA Chemistry to interface PSI4, accept PSI4 input files and execute PSI4 to extract
+the electronic structure information necessary for the computation of the input to the quantum algorithm,
+PSI4 must be installed and discoverable on the system where QISKit ACQUA Chemistry is installed.
+Therefore, once PSI4 has been installed, the ``psi4`` executable must be reachable via the system environment path.
+For example, on macOS, this can be achieved by adding the following section to the ``.bash_profile`` file in the
+user's home directory:
+
+.. code:: sh
+
+    # PSI4
+    alias enable_psi4='export PATH=/Users/marcopistoia/psi4conda/bin:$PATH'
+
+In order for QISKit ACQUA Chemistry to discover PSI4 at run time, it is then necessary to execute the ``enable_psi4`` command
+before launching QISKit ACQUA Chemistry.
+
+To use PSI4 to configure a molecule on which to do a chemistry experiment with QISKit ACQUA Chemistry,
+set the ``name`` field in the ``driver`` section of the `input file <./config_run.html#input-file>`__ to ``PSI4`` and
+then create a ``psi4``section in the input file as per the example below, which shows the configuration of a molecule of
+hydrogen.  Here, the molecule, basis set and other options are specified according
+to the PSI4 control file, so the syntax specified by PSI4 should be followed:
+
+.. code:: python
+
+    &psi4
+       molecule h2 {
+          0 1
+          H 0.0 0.0 0.0
+          H 0.0 0.0 0.74
+       }
+
+       set {
+          basis sto-3g
+          scf_type pk
+       }
+    &end
+
+Experienced chemists who already have existing PSI4 control files can simply paste the contents of those files
+into the ``psi4`` section of the input file.  This configuration can also be easily achieved using the
+QISKit ACQUA Chemistry `Graphical User Interface (GUI) <./config_run.html#gui>`__.
