@@ -19,6 +19,7 @@ The Grover Quantum algorithm.
 """
 
 import logging
+import warnings
 
 from qiskit import ClassicalRegister, QuantumCircuit
 
@@ -90,34 +91,49 @@ class Grover(QuantumAlgorithm):
 
     def _construct_circuit(self):
         measurement_cr = ClassicalRegister(len(self._oracle.variable_register()), name='m')
-        qc = QuantumCircuit(
-            self._oracle.variable_register(),
-            self._oracle.ancillary_register(),
-            measurement_cr
-        )
+        if self._oracle.ancillary_register():
+            qc = QuantumCircuit(
+                self._oracle.variable_register(),
+                self._oracle.ancillary_register(),
+                measurement_cr
+            )
+            qc_single_iteration = QuantumCircuit(
+                self._oracle.variable_register(),
+                self._oracle.ancillary_register()
+            )
+        else:
+            qc = QuantumCircuit(
+                self._oracle.variable_register(),
+                measurement_cr
+            )
+            qc_single_iteration = QuantumCircuit(
+                self._oracle.variable_register()
+            )
         qc.h(self._oracle.variable_register())
-
-        qc_single_iteration = QuantumCircuit(
-            self._oracle.variable_register(),
-            self._oracle.ancillary_register()
-        )
         qc_single_iteration += self._oracle.construct_circuit()
         qc_single_iteration.h(self._oracle.variable_register())
         qc_single_iteration.x(self._oracle.variable_register())
         qc_single_iteration.x(self._oracle.outcome_register())
         qc_single_iteration.h(self._oracle.outcome_register())
-        qc_single_iteration.cnx(
-            [self._oracle.variable_register()[i] for i in range(len(self._oracle.variable_register()))],
-            [self._oracle.ancillary_register()[i] for i in range(len(self._oracle.ancillary_register()))],
-            self._oracle.outcome_register()[0]
-        )
+        if self._oracle.ancillary_register():
+            qc_single_iteration.cnx(
+                [self._oracle.variable_register()[i] for i in range(len(self._oracle.variable_register()))],
+                [self._oracle.ancillary_register()[i] for i in range(len(self._oracle.ancillary_register()))],
+                self._oracle.outcome_register()[0]
+            )
+        else:
+            qc_single_iteration.cnx(
+                [self._oracle.variable_register()[i] for i in range(len(self._oracle.variable_register()))],
+                [],
+                self._oracle.outcome_register()[0]
+            )
         qc_single_iteration.h(self._oracle.outcome_register())
         qc_single_iteration.x(self._oracle.variable_register())
         qc_single_iteration.x(self._oracle.outcome_register())
         qc_single_iteration.h(self._oracle.variable_register())
         qc_single_iteration.h(self._oracle.outcome_register())
-        qc_single_iteration.data *= self._num_iterations
 
+        qc_single_iteration.data *= self._num_iterations
         qc += qc_single_iteration
 
         qc.measure(self._oracle.variable_register(), measurement_cr)
