@@ -84,39 +84,42 @@ class Operator(object):
         result_paulis = None
         result_grouped_paulis = None
         result_matrix = None
-        if self._paulis is not None and rhs._paulis is not None:
-            for pauli in rhs._paulis:
-                pauli_label = pauli[1].to_label()
-                idx = self._paulis_table.get(pauli_label, None)
-                if idx is not None:
-                    self._paulis[idx][0] += pauli[0]
-                    if self._paulis[idx][0] == 0.0:
-                        del self._paulis[idx]
-                        self._paulis_table.pop(pauli_label, None)
-                        for k, v in self._paulis_table.items():
-                            if v > idx:
-                                self._paulis_table[k] -= 1
-                else:
-                    self._paulis_table[pauli_label] = len(self._paulis)
-                    self._paulis.append(pauli)
-            result_paulis = self._paulis
-        elif self._grouped_paulis is not None and rhs._grouped_paulis is not None:
-            self._grouped_paulis_to_paulis()
-            rhs._grouped_paulis_to_paulis()
-            self = self + rhs
-            self._paulis_to_grouped_paulis()
-            result_grouped_paulis = self._grouped_paulis
-        elif self._matrix is not None and rhs._matrix is not None:
-            self._matrix = self._matrix + rhs._matrix
-            result_matrix = self._matrix
-        else:
-            raise TypeError("the representations of two Operators should be the same. ({}, {})".format(
-                self.representations, rhs.representations))
 
         if mode == 'inplace':
-            return self
+            lhs = self
         elif mode == 'non-inplace':
-            return Operator(paulis=result_paulis, grouped_paulis=result_grouped_paulis, matrix=result_matrix)
+            lhs = copy.deepcopy(self)
+
+        if lhs._paulis is not None and rhs._paulis is not None:
+            for pauli in rhs._paulis:
+                pauli_label = pauli[1].to_label()
+                idx = lhs._paulis_table.get(pauli_label, None)
+                if idx is not None:
+                    lhs._paulis[idx][0] += pauli[0]
+                    if lhs._paulis[idx][0] == 0.0:
+                        del lhs._paulis[idx]
+                        lhs._paulis_table.pop(pauli_label, None)
+                        for k, v in lhs._paulis_table.items():
+                            if v > idx:
+                                lhs._paulis_table[k] -= 1
+                else:
+                    lhs._paulis_table[pauli_label] = len(lhs._paulis)
+                    lhs._paulis.append(pauli)
+            result_paulis = lhs._paulis
+        elif lhs._grouped_paulis is not None and rhs._grouped_paulis is not None:
+            lhs._grouped_paulis_to_paulis()
+            rhs._grouped_paulis_to_paulis()
+            lhs = lhs + rhs
+            lhs._paulis_to_grouped_paulis()
+            result_grouped_paulis = lhs._grouped_paulis
+        elif lhs._matrix is not None and rhs._matrix is not None:
+            lhs._matrix = lhs._matrix + rhs._matrix
+            result_matrix = lhs._matrix
+        else:
+            raise TypeError("the representations of two Operators should be the same. ({}, {})".format(
+                lhs.representations, rhs.representations))
+
+        return lhs
 
     def __add__(self, rhs):
         """Overload + operation"""
@@ -147,8 +150,8 @@ class Operator(object):
                     return False
             return True
         if self._grouped_paulis is not None and rhs._grouped_paulis is not None:
-            self._paulis_to_grouped_paulis()
-            rhs._paulis_to_grouped_paulis()
+            self._grouped_paulis_to_paulis()
+            rhs._grouped_paulis_to_paulis()
             return self.__eq__(rhs)
 
     def __ne__(self, rhs):
@@ -298,12 +301,11 @@ class Operator(object):
                 self._dia_matrix = None
             else:
                 valid_dia_matrix_flag = True
-                dia_matrix = np.zeros(2 ** len(self._paulis[0][1].v), dtype=np.complex)
+                dia_matrix = 0.0
                 for idx in range(len(self._paulis)):
                     coeff, pauli = self._paulis[idx][0], self._paulis[idx][1]
                     if not (np.all(pauli.w == 0)):
                         valid_dia_matrix_flag = False
-                    if valid_dia_matrix_flag == False:
                         break
                     dia_matrix += coeff * pauli.to_spmatrix().diagonal()
                 self._dia_matrix = dia_matrix.copy() if valid_dia_matrix_flag else None
