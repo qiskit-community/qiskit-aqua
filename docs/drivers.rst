@@ -25,7 +25,8 @@ driver that was used to compute it.  The only thing that could still depend on t
 is the level of accuracy of such data; most likely,
 a more elaborate driver will produce more accurate data.
 QISKit ACQUA Chemistry offers the option to serialize this data in a binary format known as
-Hierarchical Data Format 5 (HDF5).  This is done to allow chemists to reuse the same input data in the future
+`Hierarchical Data Format 5 (HDF5) <https://support.hdfgroup.org/HDF5/>`__.
+This is done to allow chemists to reuse the same input data in the future
 and to enable researchers to exchange
 input data with each other --- which is especially useful to researchers who may not have particular
 computational chemistry drivers installed on their computers.
@@ -40,7 +41,7 @@ for the following four computational chemistry software drivers:
 1. `Gaussian™ 16 <http://gaussian.com/gaussian16/>`__, a commercial chemistry program
 2. `PSI4 <http://www.psicode.org/>`__, an open-source chemistry program built on Python
 3. `PySCF <https://github.com/sunqm/pyscf>`__, an open-source Python chemistry program
-4. `PyQuante <http://pyquante.sourceforge.net/>`__, a pure cross-platform open-source Python chemistry program
+4. `PyQuante <https://github.com/rpmuller/pyquante2>`__, a pure cross-platform open-source Python chemistry program
 
 .. topic:: The HDF5 Driver
 
@@ -215,7 +216,7 @@ Input File Example
 
 To use Gaussian™ 16 to configure a molecule on which to do a chemistry experiment with QISKit ACQUA Chemistry,
 set the ``name`` field in the ``driver`` section of the `input file <./config_run.html#input-file>`__ to ``GAUSSIAN`` and
-then create a ``gaussian``section in the input file as per the example below, which shows the configuration of a molecule of
+then create a ``gaussian`` section in the input file as per the example below, which shows the configuration of a molecule of
 hydrogen.  Here, the molecule, basis set and other options are specified according
 to the Gaussian™ 16 control file, so the syntax specified by Gaussian™ 16 should be followed:
 
@@ -240,7 +241,8 @@ PSI4
 `PSI4 <http://www.psicode.org/>`__ is an open-source program for computational chemistry.
 In order for QISKit ACQUA Chemistry to interface PSI4, accept PSI4 input files and execute PSI4 to extract
 the electronic structure information necessary for the computation of the input to the quantum algorithm,
-PSI4 must be installed and discoverable on the system where QISKit ACQUA Chemistry is installed.
+PSI4 must be `installed <http://www.psicode.org/downloads.html>`__ and discoverable on the system where
+QISKit ACQUA Chemistry is also installed.
 Therefore, once PSI4 has been installed, the ``psi4`` executable must be reachable via the system environment path.
 For example, on macOS, this can be achieved by adding the following section to the ``.bash_profile`` file in the
 user's home directory:
@@ -256,7 +258,7 @@ before launching QISKit ACQUA Chemistry.
 
 To use PSI4 to configure a molecule on which to do a chemistry experiment with QISKit ACQUA Chemistry,
 set the ``name`` field in the ``driver`` section of the `input file <./config_run.html#input-file>`__ to ``PSI4`` and
-then create a ``psi4``section in the input file as per the example below, which shows the configuration of a molecule of
+then create a ``psi4`` section in the input file as per the example below, which shows the configuration of a molecule of
 hydrogen.  Here, the molecule, basis set and other options are specified according
 to the PSI4 control file, so the syntax specified by PSI4 should be followed:
 
@@ -278,3 +280,151 @@ to the PSI4 control file, so the syntax specified by PSI4 should be followed:
 Experienced chemists who already have existing PSI4 control files can simply paste the contents of those files
 into the ``psi4`` section of the input file.  This configuration can also be easily achieved using the
 QISKit ACQUA Chemistry `Graphical User Interface (GUI) <./config_run.html#gui>`__.
+
+PySCF
+-----
+`PySCF <https://github.com/sunqm/pyscf>`__ is an open-source library for computational chemistry.
+In order for QISKit ACQUA Chemistry to interface PySCF, accept PySCF input files and execute PySCF to extract
+the electronic structure information necessary for the computation of the input to the quantum algorithm,
+PySCF must be installed.  According to the `installation instructions <http://sunqm.github.io/pyscf/install.html>__,
+the preferred installation method for PySCF is via the pip package management system.  Doing so while in the Python
+virtual environment where QISKit ACQUA Chemistry is also installed will automatically make PySCF dynamically discoverable
+by QISKit ACQUA Chemistry at run time.
+
+To use PySCF to configure a molecule on which to do a chemistry experiment with QISKit ACQUA Chemistry,
+set the ``name`` field in the ``driver`` section of the `input file <./config_run.html#input-file>`__ to ``PYSCF`` and
+then create a ``pyscf`` section in the input file as per the example below, which shows the configuration of a molecule of
+hydrogen.  Here, the molecule, basis set and other options are specified as key/value pairs, according
+to the PySCF-expected syntax.  In PySCF, these arguments can be passed to the ``pyscf.gto.Mole`` class
+
+.. code:: python
+
+    &pyscf
+       atom=H .0 .0 .0; H .0 .0 0.74
+       unit=Angstrom
+       charge=0
+       spin=0
+       basis=sto3g
+    &end
+
+Experienced chemists who already have existing PySCF control files can simply paste the contents of those files
+into the ``pyscf`` section of the input file.  This configuration can also be easily achieved using the
+QISKit ACQUA Chemistry `Graphical User Interface (GUI) <./config_run.html#gui>`__.
+
+PyQuante
+--------
+`PyQuante <https://github.com/rpmuller/pyquante2/>`__ is an open-source library for computational chemistry.
+QISKit ACQUA Chemistry specifically requires PyQuante V2, also known as PyQuante2.
+In order for QISKit ACQUA Chemistry to interface PyQuante, accept PyQuante input files and execute PyQuante to extract
+the electronic structure information necessary for the computation of the input to the quantum algorithm,
+PyQuante2 must be installed and discoverable on the system where
+QISKit ACQUA Chemistry is also installed.  Installing PyQuante2 according to the
+`installation instructions <https://github.com/rpmuller/pyquante2/blob/master/README.md>`__ while
+in the Python virtual environment where QISKit ACQUA Chemistry has also been installed will automatically
+make PyQuante2 dynamically discovered by QISKit ACQUA Chemistry at run time.
+
+The PyQuante2 driver wrapper contains two methods, in ``transform.py``, taken from from
+`Pyquante V1 <http://pyquante.sourceforge.net/>`__, which is `licensed <http://pyquante.sourceforge.net/#license>`__
+under a `modified BSD license <https://opensource.org/licenses/BSD-3-Clause>`__.
+
+.. note::
+    Like all the other drivers currently interfaced by QISKit ACQUA Chemistry,
+    PyQuante2 provides enough intermediate data for QISKit ACQUA Chemistry to compute a molecule's ground
+    state molecular energy.  However, unlike the other drivers, the data computed by PyQuante is not sufficient for
+    QISKit ACQUA Chemistry to compute a molecule's dipole moment.  Therefore, PyQuante is currently
+    the only driver interfaced by QISKit ACQUA Chemistry that does not allow for the computation of a molecule's
+    dipole moment.
+
+To use PyQuante to configure a molecule on which to do a chemistry experiment with QISKit ACQUA Chemistry,
+set the ``name`` field in the ``driver`` section of the `input file <./config_run.html#input-file>`__ to ``PYQUANTE`` and
+then create a ``pyquante`` section in the input file as per the example below, which shows the configuration of a molecule of
+hydrogen.  Here, the molecule, basis set and other options are specified according
+to the PyQuante control file, so the syntax specified by PyQuante should be followed.
+Specifically, a molecule is configured as a list of atoms.  Each atom's chemical symbol is followed by the atom's :math:`x y z`
+geometrical coordinates.  Atom configurations are separated by semicolons.
+
+.. code:: python
+
+    &pyquante
+       atoms=H .0 .0 .0; H .0 .0 0.74
+       units=Angstrom
+       charge=0
+       multiplicity=1
+       basis=sto3g
+    &end
+
+Experienced chemists who already have existing PyQuante control files can simply paste the contents of those files
+into the ``pyquante`` section of the input file.  This configuration can also be easily achieved using the
+QISKit ACQUA Chemistry `Graphical User Interface (GUI) <./config_run.html#gui>`__.
+
+HDF5
+----
+
+QISKit ACQUA Chemistry uses a molecular input file written on top of one of the classical computational software drivers
+that it interfaces.  QISKit ACQUA Chemistry executes a driver classically,
+only to the extent necessary to compute some intermediate data which, combined with the molecular configuration,
+can later be used to form the input to the
+`quantum algorithm <https://qiskit.org/documentation/acqua/algorithms.html>`__ in QISKit ACQUA.
+
+As mentioned above, the intermediate data extracted from the classical computational software consists of the following:
+
+1. One- and two-body integrals in Molecular Orbital (MO) basis
+2. Dipole integrals
+3. Molecular orbital coefficients
+4. Hartree-Fock energy
+5. Nuclear repulsion energy
+
+Once extracted, the structure of this intermediate data is independent of the classical driver
+that was used to compute it.
+However, the level of accuracy of such data does depend on the computational chemistry software;
+more elaborate software packages are more likely to produce more accurate data.
+
+QISKit ACQUA Chemistry offers the option to serialize this data in a binary format known as
+`Hierarchical Data Format 5 (HDF5) <https://support.hdfgroup.org/HDF5/>`__.
+This is done for future reuse and exchange of input data among researchers who may not have a particular computational
+chemistry driver installed on their computers, or may have a different version of that driver.
+HDF5 is configured as a prebuilt driver in Acqua because it allows for chemistry input to be passed into the
+computation.  In fact, HDF5 is the only driver that does not require any installation other
+the installation of QISKit ACQUA Chemistry itself.
+
+Generation of an HDF5 Input File
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The most intuitive way to generate a HDF5 input file is by using the QISKit ACQUA Chemistry
+QISKit ACQUA Chemistry `Graphical User Interface (GUI) <./config_run.html#gui>`__.
+Through the GUI, you can load an existing `input file <./config_run.html#input-file>`__ from the ``chemistry`` folder
+of the `QISKit ACQUA Tutorials repository <https://github.com/Qiskit/qiskit-acqua-tutorials>`__
+(which must have been installed on your file system via a ``git clone`` command)
+by selecting **Open...** from the **File** menu.  Alternatively, you can create and then potentially customize
+a brand new `input file <./config_run.html#input-file>`__ by choosing **New** from the **File** menu.
+Once you have configured the chemistry experiment in one of the existing classical drivers
+(`Gaussian™ 16 <#gaussian™-16>`__, `PSI4 <#psi4>`__, `PySCF <#pyscf>`__ or `PyQuante <#pyquante>`__),
+you can specify the name of the file where you want the HDF5 file to be serialized.  This can be done
+by assigning a value to the ``hdf5_output`` field of the ``driver`` section.
+Upon execution, QISKit ACQUA Chemistry displays the following message:
+
+.. code:: sh
+
+    HDF5 file saved '/Users/username/Documents/Quantum/code/ACQUA/qiskit-acqua-chemistry/molecule.hdf5' 
+
+assuming that ``molecule.hdf5`` and ``/Users/username/Documents/Quantum/code/ACQUA/qiskit-acqua-chemistry/``are the file name
+and directory path you chose.
+
+Using the GUI is the most intuitive option to generate the HDF5 file corresponding to a given experiment.  The
+same result can be obtained by assigning a value to the ``hdf5_output`` field of the ``driver`` section of 
+an `input file <./config_run.html#input-file>`__ and then using the QISKit ACQUA Chemistry
+`input file <./config_run.html#command-line>`__ tool.
+
+Using an HDF5 File as the Input to an Experiment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+If you later want the HDF5 file to be deserialized and its contents used as the input for a chemistry experiment,
+you can select `HDF5` as the driver in an `input file <./config_run.html#input-file>`__.  Doing so will
+require the ``hdf5`` section in the input file to be configured by assigning a valid fully qualified
+file name to the ``hdf5_input`` field, as shown:
+
+.. code:: python
+
+    &hdf5
+       hdf5_input=molecule.hdf5
+    &end
+

@@ -27,7 +27,7 @@ for the following four computational chemistry software drivers:
 1. `Gaussian™ 16 <http://gaussian.com/gaussian16/>`__, a commercial chemistry program
 2. `PSI4 <http://www.psicode.org/>`__, an open-source chemistry program built on Python
 3. `PySCF <https://github.com/sunqm/pyscf>`__, an open-source Python chemistry program
-4. `PyQuante <http://pyquante.sourceforge.net/>`__, a pure cross-platform open-source Python chemistry program
+4. `PyQuante <https://github.com/rpmuller/pyquante2>`__, a pure cross-platform open-source Python chemistry program
 
 Additional chemistry drivers can easily be added via the ``BaseDriver`` extension point.  Once an interface
 for a driver installed in the system has been implemented, that driver will be automatically loaded at run time
@@ -118,7 +118,8 @@ the level of accuracy of such data does depend on the computational chemistry so
 more elaborate software packages are more likely to produce more accurate data.
 
 QISKit ACQUA Chemistry offers the option to serialize this data in a binary format known as
-Hierarchical Data Format 5 (HDF5).  This is done to enable future reuse of previously computed
+`Hierarchical Data Format 5 (HDF5) <https://support.hdfgroup.org/HDF5/>`__.
+This is done to enable future reuse of previously computed
 input data.  This feature also enables researchers to exchange 
 input data among each other --- which turns out to be particularly useful to researchers who may not have
 particular computational chemistry drivers
