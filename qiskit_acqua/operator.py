@@ -1409,13 +1409,13 @@ class Operator(object):
         matrix_out_temp = copy.deepcopy(matrix_in)
         indices = []
         matrix_out = np.zeros(size)
-        
+
         for i in range(size[0] - 1):
             if np.array_equal(matrix_out_temp[i, :], np.zeros(size[1])):
                 indices.append(i)
         for row in np.sort(indices)[::-1]:
             matrix_out_temp = np.delete(matrix_out_temp, (row), axis=0)
-                
+
         matrix_out[0:size[0] - len(indices), :] = matrix_out_temp
         matrix_out = matrix_out.astype(int)
 
@@ -1428,7 +1428,7 @@ class Operator(object):
 
         Args:
             matrix_in (np.ndarray): binary matrix
-            
+
         Returns:
             [np.ndarray]: the list of kernel vectors
         """
@@ -1474,10 +1474,7 @@ class Operator(object):
         paulis.
         """
         if self._paulis is not None:
-            new_paulis = []
-            for pauli in self._paulis:
-                if pauli[0] != 0:
-                    new_paulis.append(pauli)
+            new_paulis = [pauli for pauli in self._paulis if pauli[0] != 0]
             self._paulis = new_paulis
             self._paulis_table = {pauli[1].to_label(): i for i, pauli in enumerate(self._paulis)}
 
