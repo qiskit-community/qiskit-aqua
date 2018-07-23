@@ -1,15 +1,15 @@
 Optimizers
 ==========
 
-QISKit ACQUA  contains a variety of different optimizers for
+QISKit ACQUA  contains a variety of classical optimizers for
 use by quantum variational algorithms, such as `VQE <./algorithms.html#variational-quantum-eigensolver-vqe>`__.  We can logically divide
 optimizers into two categories:
 
 - :ref:`Local Optimizers`: Given an optimization problem, a *local optimizer* is a function that attempts to find an optimal value
-within the neighboring set of a candidate solution.
+  within the neighboring set of a candidate solution.  
 
 - :ref:`Global Optimizers`: Given an optimization problem, a *global optimizer* is a function that attempts to find an optimal value
-among all possible solutions.
+  among all possible solutions.
 
 
 .. topic:: Extending the Optimizer Library
@@ -20,13 +20,23 @@ among all possible solutions.
     New optimizers for quantum variational algorithms should be installed in the ``qiskit_acqua/utils/optimizers`` folder and derive from the
     ``Optimizer`` class.
 
-
 Local Optimizers
 ----------------
 
-This section presents the local optimizers made available in QISKit ACQUA, and meant to be used in conjunction with a quantum variational
-algorithms.  Except for :ref:`Parallel Broyden-Fletcher-Goldfarb-Shann (P-BFGS)`, all hese optimizers are directly based on the ``scipy.optimize.minimize`` optimization function in 
-`SciPy.org <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html>`__.
+This section presents the local optimizers made available in QISKit ACQUA, and meant to be used in conjunction with quantum variational
+algorithms:
+- :ref:`Conjugate Gradient (CG) Method`
+- :ref:`Constrained Optimization BY Linear Approximation (COBYLA)`
+- :ref:`Limited-memory Broyden-Fletcher-Goldfarb-Shanno Bound (L-BFGS-B)`
+- :ref:`Nelder-Mead`
+- :ref:`Parallel Broyden-Fletcher-Goldfarb-Shann (P-BFGS)`
+- :ref:`Powell`
+- :ref:`Sequential Least SQuares Programming (SLSQP)`
+- :ref:`Simultaneous Perturbation Stochastic Approximation (SPSA)`
+- :ref:`Truncated Newton (TNC)`
+
+Except for :ref:`Parallel Broyden-Fletcher-Goldfarb-Shann (P-BFGS)`, all these optimizers are directly based on the ``scipy.optimize.minimize`` optimization function in the 
+`SciPy <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html>`__ Python library.
 They all have a common pattern for parameters. Specifically, the ``tol`` parameter, whose value
 must be a ``float`` indicating *tolerance for termination*,
 is from the ``scipy.optimize.minimize``  method itself, while the remaining parameters are
@@ -245,20 +255,18 @@ P-BFGS can be useful when the target hardware is a quantum simulator running on 
 machine. This allows the multiple processes to use simulation to
 potentially reach a minimum faster. The parallelization may help the optimizer avoid getting stuck
 at local mimima.  In addition to the parameters of
-L-BFGS-B, P-BFGS supports the following parameter:
+L-BFGS-B, P-BFGS supports an following parameter --- the maximum numer of processes spawned by P-BFGS:
 
--  The maximum numer of processes spawned by P-BFGS:
+.. code:: python
 
-   .. code:: python
+    max_processes = 1 | 2 | ...
 
-       max_processes = 1 | 2 | ...
-
-   By default, P-BFGS runs one optimization in the current process
-   and spawns additional processes up to the number of processor cores.
-   An ``int`` value may be specified to limit the total number of processes
-   (or cores) used.  This parameter is optional.  If specified, the value of this parameter must be of type ``int``,
-   otherwise, it is ``None``.
-   The default is ``None``.
+By default, P-BFGS runs one optimization in the current process
+and spawns additional processes up to the number of processor cores.
+An ``int`` value may be specified to limit the total number of processes
+(or cores) used.  This parameter is optional.  If specified, the value of this parameter must be of type ``int``,
+otherwise, it is ``None``.
+The default is ``None``.
 
 .. note::
    The parallel processes do not currently work for this optimizer
@@ -532,3 +540,136 @@ The following parameters are supported:
 
    When referring to TNC declaratively inside QISKit ACQUA, its code ``name``, by which QISKit ACQUA dynamically discovers and loads it,
    is ``TNC``.
+
+Global Optimizers
+-----------------
+QISKit ACQUA supports a number of classical global optimizers,
+all based on the open-source `NonLinear optimization (NLopt) library <https://nlopt.readthedocs.io>`__.
+Each of these optimizers uses the corresponding named optimizer from NLopt.
+This package has native code implementations and must be
+installed locally for these global optimizers to be accessible by QISKit ACQUA.
+Wrapper code allowing QISKit ACQUA to interface these optimizers is installed
+in the ``nlopt`` subfolder of the ``optimizers`` folder.
+
+.. topic:: Installation of NLopt
+
+    The `NLopt download and installation instructions <https://nlopt.readthedocs.io/en/latest/#download-and-installation>`__
+    describe how to install NLopt.
+
+    If you running QISKit ACQUA on Windows, then you might want to refer to the specific `instructions for
+    NLopt on Windows <https://nlopt.readthedocs.io/en/latest/NLopt_on_Windows/>`__.
+
+    If you are running QISKit ACQUA on a Unix-like system, first ensure that your environment is set
+    to the Python executable for which the qiskit_acqua package is installed and running.
+    Now, having downloaded and unpacked the NLopt archive file
+    (for example, ``nlopt-2.4.2.tar.gz`` for version 2.4.2), enter the following commands:
+
+    .. code:: sh
+
+        ./configure --enable-shared --with-python
+        make
+        sudo make install
+
+    The above makes and installs the shared libraries and Python interface in `/usr/local`. To have these be used
+    by QISKit ACQUA, the following commands can be entered to augment the dynamic library load path and python path respectively,
+    assuming that you choose to leave these entities where they were built/installed as per above commands and that you
+    are running Python 3.6:
+
+    .. code:: sh
+
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/lib64
+        export PYTHONPATH=/usr/local/lib/python3.6/site-packages:${PYTHONPATH}
+
+    The two ``export`` commands above can be pasted into the ``.bash_profile`` file in the user's home directory for
+    automatic execution.  Now you can run QISKit ACQUA and these optimizers should be available for you to use.
+
+.. topic:: The ``max_evals`` Parameter
+
+    All the NLopt optimizers are supported by a common interface,
+    allowing the optimizers to share the same common parameters.
+    For quantum variational algorithms, it is necessary to assign a value
+    to the following parameter:
+
+    .. code:: python
+
+        max_evals = 1 | 2 | ...
+
+    This parameter takes a positive integer as its value, indicating the masimum
+    object function evaluation.  The default value is ``1000``.
+
+Currently, QISKit ACQUA supplies the following global optimizers from NLOpt:
+
+- :ref:`Controller Random Search (CRS) with Local Mutation`
+- :ref:`DIviding RECTangles algorithm - Locally based (DIRECT-L)`
+- :ref:`DIviding RECTangles algorithm - Locally based - RANDomized (DIRECT-L-RAND)`
+- :ref:`Evolutionary Strategy algorithm with CaucHy distribution (ESCH)`
+- :ref:`Improved Stochastic Ranking Evolution Strategy (ISRES)`
+
+Controller Random Search (CRS) with Local Mutation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+`CRS with local mutation <http://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#controlled-random-search-crs-with-local-mutation>`__
+is part of the family of the CRS optimizers.
+The CRS optimizers start with a random population of points, and randomly evolve these points by heuristic rules.
+In the case of CRS with local mutation, the evolution is a randomized version of the
+:ref:`Nelder-Mead` local optimizer.
+
+.. topic:: Declarative Name
+
+   When referring to CRS with local mutation declaratively inside QISKit ACQUA, its code ``name``,
+   by which QISKit ACQUA dynamically discovers and loads it, is ``CRS``.
+
+DIviding RECTangles algorithm - Locally based (DIRECT-L)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+DIviding RECTangles (DIRECT) is a deterministic-search algorithms based on systematic division of the search domain
+into smaller and smaller hyperrectangles.
+The `DIRECT-L <http://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#direct-and-direct-l>`__ version
+is a variant of DIRECT that makes the algorithm more biased towards local search,
+so that it is more efficient for functions with few local minima.
+
+.. topic:: Declarative Name
+
+   When referring to DIRECT-L declaratively inside QISKit ACQUA, its code ``name``,
+   by which QISKit ACQUA dynamically discovers and loads it, is ``DIRECT_L``.
+
+DIviding RECTangles algorithm - Locally based - RANDomized (DIRECT-L-RAND)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+`DIRECT-L-RAND <http://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#direct-and-direct-l>`__ is a variant of
+:ref:`DIviding RECTangles algorithm - Locally based (DIRECT-L)`
+that uses some randomization to help decide which dimension to halve next in the case of near-ties.
+
+.. topic:: Declarative Name
+
+   When referring to DIRECT-L-RAND declaratively inside QISKit ACQUA, its code ``name``,
+   by which QISKit ACQUA dynamically discovers and loads it, is ``DIRECT_L_RAND``.
+
+Evolutionary Strategy algorithm with CaucHy distribution (ESCH)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+`ESCH <http://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#esch-evolutionary-algorithm>`__
+is an evolutionary algorithm for global optimization that supports bound constraints only.
+Specifically, it does not support nonlinear constraints.
+
+.. topic:: Declarative Name
+
+   When referring to ESCH declaratively inside QISKit ACQUA, its code ``name``,
+   by which QISKit ACQUA dynamically discovers and loads it, is ``ESCH``.
+
+
+Improved Stochastic Ranking Evolution Strategy (ISRES)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+`ISRES <http://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#isres-improved-stochastic-ranking-evolution-strategy>`__
+is an algorithm for nonlinearly-constrained global optimization.
+It has heuristics to escape local optima, even though convergence to a global optima is not guaranteed.
+The evolution strategy is based on a combination of a mutation rule and differential variation.
+The fitness ranking is simply via the objective function for problems without nonlinear constraints.
+When nonlinear constraints are included, the
+`stochastic ranking proposed by Runarsson and Yao <https://notendur.hi.is/~tpr/software/sres/Tec311r.pdf>`__ is employed.
+This method supports arbitrary nonlinear inequality and equality constraints, in addition to the bound constraints.
+
+.. topic:: Declarative Name
+
+   When referring to ISRES declaratively inside QISKit ACQUA, its code ``name``,
+   by which QISKit ACQUA dynamically discovers and loads it, is ``ISRES``.
