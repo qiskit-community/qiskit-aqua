@@ -1450,21 +1450,140 @@ class Operator(object):
 
     def find_Z2_symmetries(self):
         """
-        Finds Z2 Pauli-type symmetries of a Operator
+        Finds Z2 Pauli-type symmetries of an Operator
         
         Returns:
             [Pauli]: the list of Pauli objects representing the Z2 symmetries 
+            [Pauli]: the list of single - qubit Pauli objects to construct the Cliffors operators
+            [Operators]: the list of Clifford unitaries to block diagonalize Operator
+            [int]: the list of support of the single-qubit Pauli objects used to build the clifford operators
         """
+        
+        Pauli_symmetries = []
+        sq_paulis = []
+        cliffords = []
+        sq_list = []
 
         stacked_paulis = []
         for pauli in self._paulis:
-            stacked_paulis.append(np.concatenate( (pauli[1].v, pauli[1].w), axis=0))
-        
+            stacked_paulis.append(np.concatenate((pauli[1].w, pauli[1].v), axis=0))
+
         stacked_matrix = np.array(np.stack(stacked_paulis))
         symmetries = Operator.kernel_F2(stacked_matrix)
+        stacked_symmetries = np.stack(symmetries)
+        symm_shape = stacked_symmetries.shape
 
-        Pauli_symmetries = []
-        for symmetry in symmetries:
-            Pauli_symmetries.append(Pauli(symmetry[self.num_qubits:],symmetry[0:self.num_qubits]))
+        for row in range(symm_shape[0]):
 
-        return Pauli_symmetries 
+            Pauli_symmetries.append(Pauli(stacked_symmetries[row, : symm_shape[1] // 2],
+                                          stacked_symmetries[row, symm_shape[1] // 2 : ]))
+
+            stacked_symm_del = np.delete(stacked_symmetries, (row), axis=0)
+            for col in range(symm_shape[1] // 2):
+
+                # case symmetries other than one at (row) have Z or I on col qubit
+                Z_or_I = True
+                for symm_idx in range(symm_shape[0] - 1):
+                    if not (stacked_symm_del[symm_idx, col] == 0
+                            and stacked_symm_del[symm_idx, col + symm_shape[1] // 2] in (0, 1)):
+                        Z_or_I = False
+                if Z_or_I == True:
+                    if ((stacked_symmetries[row, col] == 1 and
+                         stacked_symmetries[row, col + symm_shape[1] // 2] == 0) or
+                         (stacked_symmetries[row, col] == 1 and
+                         stacked_symmetries[row, col + symm_shape[1] // 2] == 1)):
+                        sq_paulis.append(Pauli(np.zeros(symm_shape[1] // 2), 
+                                               np.zeros(symm_shape[1] // 2)))
+                        sq_paulis[row].v[col] = 0
+                        sq_paulis[row].w[col] = 1
+                        sq_list.append(col)
+                        break
+
+                # case symmetries other than one at (row) have X or I on col qubit
+                X_or_I = True
+                for symm_idx in range(symm_shape[0] - 1):
+                    if not (stacked_symm_del[symm_idx, col] in (0, 1) and
+                            stacked_symm_del[symm_idx, col + symm_shape[1] // 2] == 0):
+                        X_or_I = False
+                if X_or_I == True:
+                    if ( (stacked_symmetries[row, col] == 0 and
+                          stacked_symmetries[row, col + symm_shape[1] // 2] == 1) or
+                         (stacked_symmetries[row, col] == 1 and
+                          stacked_symmetries[row, col + symm_shape[1] // 2] == 1) ):
+                        sq_paulis.append(Pauli(np.zeros(symm_shape[1] // 2), np.zeros(symm_shape[1] // 2)))
+                        sq_paulis[row].v[col] = 1
+                        sq_paulis[row].w[col] = 0
+                        sq_list.append(col)
+                        break
+
+                # case symmetries other than one at (row)  have Y or I on col qubit 
+                Y_or_I = True 
+                for symm_idx in range(symm_shape[0] - 1):
+                    if not ( (stacked_symm_del[symm_idx, col] == 1 and
+                              stacked_symm_del[symm_idx, col + symm_shape[1] // 2] == 1)
+                        or   (stacked_symm_del[symm_idx, col] == 0 and
+                              stacked_symm_del[symm_idx, col + symm_shape[1] // 2] == 0) ):
+                        Y_or_I = False
+                if Y_or_I == True:
+                    if ( (stacked_symmetries[row, col] == 0 and 
+                          stacked_symmetries[row, col + symm_shape[1] // 2] == 1) or
+                         (stacked_symmetries[row, col] == 1 and 
+                          stacked_symmetries[row, col + symm_shape[1] // 2] == 0) ):
+                        sq_paulis.append(Pauli(np.zeros(symm_shape[1] // 2), np.zeros(symm_shape[1] // 2)))
+                        sq_paulis[row].v[col] = 1
+                        sq_paulis[row].w[col] = 1
+                        sq_list.append(col)
+                        break
+
+        for symm_idx, Pauli_symm in enumerate(Pauli_symmetries):
+            cliffords.append(Operator([[1/np.sqrt(2), Pauli_symm], [1/np.sqrt(2), sq_paulis[symm_idx]]]))
+
+        return Pauli_symmetries, sq_paulis, cliffords, sq_list
+
+    @staticmethod
+    def qubit_tapering(operator, cliffords, sq_list, tapering_values):
+        """
+        Builds an Operator which has a number of qubits tapered off, 
+        based on a block-diagonal Operator built using a list of cliffords.
+        The block-diagonal subspace is an input parameter, set through the list 
+        tapering_values, which takes values +/- 1.
+
+        Args:
+            operator (Operator): the target operator to be tapered
+            cliffords ([Operator]): list of unitary Clifford transformation
+            sq_list ([int]): position of the single-qubit operators that anticommute
+            with the cliffords
+            tapering_values ([int]): array of +/- 1 used to select the subspace. Length
+            has to be equal to the length of cliffords and sq_list
+
+        Returns:
+            Operator : the tapered operator
+        """
+
+        if len(cliffords) != len(sq_list):
+            raise ValueError('number of Clifford unitaries has to be the same as lenght of single\
+            qubit list and tapering values')
+        if len(sq_list) != len(tapering_values):
+            raise ValueError('number of Clifford unitaries has to be the same as lenght of single\
+            qubit list and tapering values')
+
+        for clifford in cliffords:
+            operator = clifford * operator * clifford 
+
+        operator_out = Operator(paulis=[])
+        n = len(operator.paulis[0][1].v)
+        for pauli_term in operator.paulis:  
+            coeff_out = pauli_term[0]
+            for qubit_idx, qubit in enumerate(sq_list):
+                if not (pauli_term[1].v[qubit] == 0 and pauli_term[1].w[qubit] == 0):
+                    coeff_out = tapering_values[qubit_idx] * coeff_out
+            v_temp = []
+            w_temp = []
+            for j in range(n):
+                if j not in sq_list:
+                    v_temp.append(pauli_term[1].v[j])
+                    w_temp.append(pauli_term[1].w[j])
+            pauli_term_out = [coeff_out, Pauli(np.array(v_temp), np.array(w_temp))]
+            operator_out += Operator(paulis=[pauli_term_out])
+
+        return operator_out       
