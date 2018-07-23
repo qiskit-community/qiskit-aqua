@@ -69,10 +69,21 @@ class Oracle(ABC):
     def construct_circuit(self):
         """Construct the oracle circuit.
 
-       Returns:
+        Returns:
             A quantum circuit for the oracle.
         """
         raise NotImplementedError()
+
+    @abstractmethod
+    def evaluate_classically(self, assignment):
+        """For an assignment, check the oracle result (True|False) classically
+        Args:
+            assignment (list of bools) : a particular variable assignment
+
+        Returns:
+            The True|False value of the oracle under the given variable assignment
+        """
+        raise NotImplementedError
 
     @abstractmethod
     def interpret_measurement(self, measurement, *args, **kwargs):

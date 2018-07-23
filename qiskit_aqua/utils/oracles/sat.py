@@ -138,6 +138,13 @@ class SAT(Oracle):
             self._logic_or(qc, conj_expr, conj_index)
         return qc
 
+    def evaluate_classically(self, assignment):
+        assignment_set = set(assignment)
+        for clause in self._cnf:
+            if assignment_set.isdisjoint(clause):
+                return False
+        return True
+
     def interpret_measurement(self, measurement, *args, **kwargs):
         top_measurement = max(measurement.items(), key=operator.itemgetter(1))[0]
         return [(var + 1) * (int(tf) * 2 - 1) for tf, var in zip(top_measurement[::-1], range(len(top_measurement)))]
