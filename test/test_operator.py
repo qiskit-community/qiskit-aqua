@@ -217,6 +217,7 @@ class TestOperator(QISKitAcquaTestCase):
         opA = Operator(paulis=[pauli_term_a])
         opB = Operator(paulis=[pauli_term_b])
         newOP = opA + opB
+        newOP.zeros_coeff_elimination()
 
         self.assertEqual(0, len(newOP.paulis), "{}".format(newOP.print_operators()))
 
@@ -231,8 +232,18 @@ class TestOperator(QISKitAcquaTestCase):
         for i in range(6):
             opA = Operator(paulis=[[-coeffs[i], label_to_pauli(paulis[i])]])
             op += opA
+            op.zeros_coeff_elimination()
             self.assertEqual(6-(i+1), len(op.paulis))
 
+    def test_zero_elimination(self):
+        pauli_a = 'IXYZ'
+        coeff_a = 0.0
+        pauli_term_a = [coeff_a, label_to_pauli(pauli_a)]
+        opA = Operator(paulis=[pauli_term_a])
+        self.assertEqual(1, len(opA.paulis), "{}".format(opA.print_operators()))
+        opA.zeros_coeff_elimination()
+
+        self.assertEqual(0, len(opA.paulis), "{}".format(opA.print_operators()))
 
     def test_dia_matrix(self):
         """

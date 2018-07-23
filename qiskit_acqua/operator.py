@@ -95,13 +95,7 @@ class Operator(object):
                 pauli_label = pauli[1].to_label()
                 idx = lhs._paulis_table.get(pauli_label, None)
                 if idx is not None:
-                    lhs._paulis[idx][0] += pauli[0]
-                    if lhs._paulis[idx][0] == 0.0:
-                        del lhs._paulis[idx]
-                        lhs._paulis_table.pop(pauli_label, None)
-                        for k, v in lhs._paulis_table.items():
-                            if v > idx:
-                                lhs._paulis_table[k] -= 1
+                    self._paulis[idx][0] += pauli[0]
                 else:
                     lhs._paulis_table[pauli_label] = len(lhs._paulis)
                     lhs._paulis.append(pauli)
@@ -144,7 +138,7 @@ class Operator(object):
                         found_pauli = True
                         rhs_coeff = coeff2
                         break
-                if found_pauli == False and rhs_coeff != 0.0: # since we might have 0 weights of paulis.
+                if found_pauli == False and rhs_coeff != 0.0:  # since we might have 0 weights of paulis.
                     return False
                 if coeff != rhs_coeff:
                     return False
@@ -211,22 +205,25 @@ class Operator(object):
 
     def _simplify_paulis(self):
         """
-        Merge the paulis (grouped_paulis) whose bases are identical.
+        Merge the paulis (grouped_paulis) whose bases are identical but the pauli with zero coefficient
+        would not be removed.
+
         Usually used in construction.
         """
         if self._paulis is not None:
-            paulis = []
-            for idx in range(len(self._paulis)):
-                not_found = True
-                for idy in range(len(paulis)):
-                    if self._paulis[idx][1] == paulis[idy][1]:
-                        paulis[idy][0] += self._paulis[idx][0]
-                        not_found = False
-                        break
-                if not_found:
-                    paulis.append(self._paulis[idx])
-            self._paulis = paulis
-            self._paulis_table = {pauli[1].to_label(): i for i, pauli in enumerate(self._paulis)}
+            new_paulis = []
+            new_paulis_table = {}
+            for curr_paulis in self._paulis:
+                pauli_label = curr_paulis[1].to_label()
+                new_idx = new_paulis_table.get(pauli_label, None)
+                if new_idx is not None:
+                    new_paulis[new_idx][0] += curr_paulis[0]
+                else:
+                    new_paulis_table[pauli_label] = len(new_paulis)
+                    new_paulis.append(curr_paulis)
+
+            self._paulis = new_paulis
+            self._paulis_table = new_paulis_table
 
         elif self._grouped_paulis is not None:
             self._grouped_paulis_to_paulis()
@@ -651,7 +648,7 @@ class Operator(object):
                 avg_paulis.append(Operator._measure_pauli_z(measured_results, pauli[1]))
                 avg += pauli[0] * avg_paulis[idx]
                 variance += (pauli[0] ** 2) * Operator._covariance(measured_results, pauli[1], pauli[1],
-                                                                  avg_paulis[idx], avg_paulis[idx])
+                                                                   avg_paulis[idx], avg_paulis[idx])
 
         elif operator_mode == 'grouped_paulis':
             self._check_representation("grouped_paulis")
@@ -694,7 +691,7 @@ class Operator(object):
                     for pauli_2_idx, pauli_2 in enumerate(tpb_set):
                         variance += pauli_1[0] * pauli_2[0] * \
                             Operator._covariance(measured_results, pauli_1[1], pauli_2[1],
-                                                avg_paulis[pauli_1_idx], avg_paulis[pauli_2_idx])
+                                                 avg_paulis[pauli_1_idx], avg_paulis[pauli_2_idx])
 
         std_dev = np.sqrt(variance / num_shots)
 
@@ -1470,13 +1467,31 @@ class Operator(object):
 
         stacked_paulis = []
         for pauli in self._paulis:
-            stacked_paulis.append(np.concatenate( (pauli[1].v, pauli[1].w), axis=0))
+            stacked_paulis.append(np.concatenate((pauli[1].v, pauli[1].w), axis=0))
 
         stacked_matrix = np.array(np.stack(stacked_paulis))
         symmetries = Operator.kernel_F2(stacked_matrix)
 
         Pauli_symmetries = []
         for symmetry in symmetries:
-            Pauli_symmetries.append(Pauli(symmetry[self.num_qubits:],symmetry[0:self.num_qubits]))
+            Pauli_symmetries.append(Pauli(symmetry[self.num_qubits:], symmetry[0:self.num_qubits]))
 
         return Pauli_symmetries
+
+    def zeros_coeff_elimination(self):
+        """
+        Elinminate paulis or grouped paulis whose coefficients are zeros.
+
+        The difference from `_simplify_paulis` method is that, this method will not remove duplicated
+        paulis.
+        """
+        if self._paulis is not None:
+            new_paulis = [pauli for pauli in self._paulis if pauli[0] != 0]
+            self._paulis = new_paulis
+            self._paulis_table = {pauli[1].to_label(): i for i, pauli in enumerate(self._paulis)}
+
+        elif self._grouped_paulis is not None:
+            self._grouped_paulis_to_paulis()
+            self.zeros_coeff_elimination()
+            self._paulis_to_grouped_paulis()
+            self._paulis = None
