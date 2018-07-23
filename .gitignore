@@ -108,7 +108,6 @@ docs/*.rst
 !docs/oracles.rst
 !docs/extending.rst
 !docs/initial_states.rst
-!docs/problem_backend_config.rst
 
 # PyBuilder
 target/

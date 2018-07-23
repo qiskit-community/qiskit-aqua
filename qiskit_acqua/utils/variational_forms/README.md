@@ -164,4 +164,4 @@ These values will later be used by VQE in conjunction with the optimizer. The va
 indicate a preferred initial point. VQE will take an optional initial point from the user, if the user does not supply
 one the it will look to the variational form for a preferred value. If this returns none then a random point will be
 generated within the parameter bounds set, as per above. Finally should the variational form return `(None, None)` then
-VQE will generate a random point assuming bounds of -2*pi and 2*pi.
+VQE will generate a random point assuming bounds of `-2*pi` and `2*pi`.

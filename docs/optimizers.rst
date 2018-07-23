@@ -148,14 +148,6 @@ The following parameters are supported:
 
    The default is ``1000``.
 
--  The maximum number of function evaluations:
-
-   .. code:: python
-
-        maxfun : int
-
-   The default is ``1000``.
-
 -  The maximum number of iterations:
 
    .. code:: python
@@ -540,4 +532,3 @@ The following parameters are supported:
 
    When referring to TNC declaratively inside QISKit ACQUA, its code ``name``, by which QISKit ACQUA dynamically discovers and loads it,
    is ``TNC``.
-.

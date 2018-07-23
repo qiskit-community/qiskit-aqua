@@ -59,7 +59,10 @@ class CNXGate(CompositeGate):
 def cnx(self, control_qubits, ancillary_qubits, target_qubit):
     """Apply CNX to circuit."""
     temp = []
-    all_qubits = control_qubits + ancillary_qubits
+    if ancillary_qubits:
+        all_qubits = control_qubits + ancillary_qubits
+    else:
+        all_qubits = control_qubits
     for qubit in all_qubits:
         self._check_qubit(qubit)
         temp.append(qubit)

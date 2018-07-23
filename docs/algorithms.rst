@@ -8,9 +8,10 @@ quantum applications on short depth circuits. The applications can span
 different domains  QISKit ACQUA uses
 `QISKit <https://www.qiskit.org/>`__ for its quantum computation.
 
-The following :ref:`quantum algorithms` are part of QISKit ACQUA:
+The following `quantum algorithms <#quantum-algorithms>`__ are part of QISKit ACQUA:
 
 -  :ref:`Variational Quantum Eigensolver (VQE)`
+-  :ref:`Quantum Approximate Optimization Algorithm (QAOA)`
 -  :ref:`Quantum Dynamics`
 -  :ref:`Quantum Phase Estimation (QPE)`
 -  :ref:`Iterative Quantum Phase Estimation (IQPE)`
@@ -18,7 +19,7 @@ The following :ref:`quantum algorithms` are part of QISKit ACQUA:
 -  :ref:`Support Vector Machine Quantum Kernel (SVM Q Kernel)`
 -  :ref:`Support Vector Machine Variational (SVM Variational)`
 
-QISKit ACQUA includes  also some :ref:`classical algorithms`, which may be
+QISKit ACQUA includes  also some `classical algorithms <#classical-algorithms>`__, which may be
 useful to compare and contrast results in the near term while experimenting with, developing and testing
 quantum algorithms:
 
@@ -50,7 +51,7 @@ In this section, we describe the quantum algorithms currently available in QISKi
     algorithm.  This is done by configuring the ``backend`` section of the experiment to be run.
 
 Variational Quantum Eigensolver (VQE)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 `VQE <https://arxiv.org/abs/1304.3061>`__ uses a variational approach
 to find the minimum eigenvalue of a Hamiltonian energy problem. It is
@@ -67,7 +68,7 @@ Additionally, VQE can be configured with the following parameters:
 
        operator_mode : "matrix" | "paulis" | "grouped_paulis"
 
-   If no value for ``operator_mode`` ia specified, the default is ``"matrix"``.
+   If no value for ``operator_mode`` is specified, the default is ``"matrix"``.
 
 -  The initial point for the search of the minimum eigenvalue:
 
@@ -91,7 +92,60 @@ Additionally, VQE can be configured with the following parameters:
 
 .. topic:: Problems Supported
 
-   In QISKit ACQUA, VQE supports the ``energy`` and ``ising`` problema.
+   In QISKit ACQUA, VQE supports the ``energy`` and ``ising`` problems.
+
+Quantum Approximate Optimization Algorithm (QAOA)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+QAOA is a well-known algorithm for finding approximate solutions to
+combinatorial-optimization problems.
+The QAOA implementation in QISKit ACQUA directly uses `VQE <#variational-quantum-eigensolver-vqe>`__ for its general hybrid optimization structure.
+However, unlike VQE, which can be configured with arbitrary variational forms,
+QAOA uses its own fine-tuned variational form, which comprises :math:`p` parameterized global :math:`X` rotations and 
+:math:`p` different parameterizations of the problem hamiltonian.
+As a result, unlike VQE, QAOA does not need to have a variational form specified as an input parameter,
+and is configured mainly by a single integer parameter, :math:`p`,
+which dictates the depth of the variational form, and thus affects the approximation quality.
+Similar to VQE, an `optimizer <./optimizers.html>`__ may also be specified.
+
+In summary, QAOA can be configured with the following parameters:
+
+-  A ``string`` indicating the mode used by the ``Operator`` class for the computation:
+
+   .. code:: python
+
+       operator_mode : "matrix" | "paulis" | "grouped_paulis"
+
+   If no value for ``operator_mode`` is specified, the default is ``"matrix"``.
+
+-  A positive ``integer`` configuring QAOA's particular variational form as discussed above:
+
+   .. code:: python
+
+       p = 1 | 2 | ...
+
+   This has to be a positive ``int`` value.  The default is ``1``.
+
+-  The initial point for the search of the minimum eigenvalue:
+
+   .. code:: python
+
+       initial_point : [float, float, ... , float]
+
+   An optional list of :math:`2p` ``float`` values  may be provided as the starting ``beta`` and ``gamma`` parameters
+   (as identically named in the `original QAOA paper <https://arxiv.org/abs/1411.4028>`__) for the QAOA variational form.
+   If such list is not provided, QAOA will simply start with the all-zero vector.
+
+
+.. topic:: Declarative Name
+
+   When referring to QAOA declaratively inside QISKit ACQUA, its code ``name``,
+   by which QISKit ACQUA dynamically discovers and loads it,
+   is ``QAOA``.
+
+.. topic:: Problems Supported
+
+   In QISKit ACQUA, QAOA supports the ``ising`` problem.
 
 Quantum Dynamics
 ~~~~~~~~~~~~~~~~
@@ -104,7 +158,7 @@ interactions can then be used to approximate the global quantum system
 via, for example, Lloyd’s method or Trotter-Suzuki decomposition.
 
 .. note::
-    This algorithm **only** supports the ``local_state_vector`` simulator.
+    This algorithm *only* supports the ``local_state_vector`` simulator.
 
 Dynamics can be configured with the following parameter settings:
 
@@ -494,6 +548,3 @@ The default value for this parameter is ``False``.
 .. topic:: Problems Supported
 
    In QISKit ACQUA, SVM RBF Kernel  supports the ``svm_classification`` problem.
-
-
-

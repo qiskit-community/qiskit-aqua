@@ -35,6 +35,9 @@ logger = logging.getLogger(__name__)
 
 
 class Operator(object):
+
+    MAX_CIRCUITS_PER_JOB = 300
+
     """
     Operators relevant for quantum applications
 
@@ -81,39 +84,36 @@ class Operator(object):
         result_paulis = None
         result_grouped_paulis = None
         result_matrix = None
-        if self._paulis is not None and rhs._paulis is not None:
-            for pauli in rhs._paulis:
-                pauli_label = pauli[1].to_label()
-                idx = self._paulis_table.get(pauli_label, None)
-                if idx is not None:
-                    self._paulis[idx][0] += pauli[0]
-                    if self._paulis[idx][0] == 0.0:
-                        del self._paulis[idx]
-                        self._paulis_table.pop(pauli_label, None)
-                        for k, v in self._paulis_table.items():
-                            if v > idx:
-                                self._paulis_table[k] -= 1
-                else:
-                    self._paulis_table[pauli_label] = len(self._paulis)
-                    self._paulis.append(pauli)
-            result_paulis = self._paulis
-        elif self._grouped_paulis is not None and rhs._grouped_paulis is not None:
-            self._grouped_paulis_to_paulis()
-            rhs._grouped_paulis_to_paulis()
-            self = self + rhs
-            self._paulis_to_grouped_paulis()
-            result_grouped_paulis = self._grouped_paulis
-        elif self._matrix is not None and rhs._matrix is not None:
-            self._matrix = self._matrix + rhs._matrix
-            result_matrix = self._matrix
-        else:
-            raise TypeError("the representations of two Operators should be the same. ({}, {})".format(
-                self.representations, rhs.representations))
 
         if mode == 'inplace':
-            return self
+            lhs = self
         elif mode == 'non-inplace':
-            return Operator(paulis=result_paulis, grouped_paulis=result_grouped_paulis, matrix=result_matrix)
+            lhs = copy.deepcopy(self)
+
+        if lhs._paulis is not None and rhs._paulis is not None:
+            for pauli in rhs._paulis:
+                pauli_label = pauli[1].to_label()
+                idx = lhs._paulis_table.get(pauli_label, None)
+                if idx is not None:
+                    self._paulis[idx][0] += pauli[0]
+                else:
+                    lhs._paulis_table[pauli_label] = len(lhs._paulis)
+                    lhs._paulis.append(pauli)
+            result_paulis = lhs._paulis
+        elif lhs._grouped_paulis is not None and rhs._grouped_paulis is not None:
+            lhs._grouped_paulis_to_paulis()
+            rhs._grouped_paulis_to_paulis()
+            lhs = lhs + rhs
+            lhs._paulis_to_grouped_paulis()
+            result_grouped_paulis = lhs._grouped_paulis
+        elif lhs._matrix is not None and rhs._matrix is not None:
+            lhs._matrix = lhs._matrix + rhs._matrix
+            result_matrix = lhs._matrix
+        else:
+            raise TypeError("the representations of two Operators should be the same. ({}, {})".format(
+                lhs.representations, rhs.representations))
+
+        return lhs
 
     def __add__(self, rhs):
         """Overload + operation"""
@@ -138,14 +138,14 @@ class Operator(object):
                         found_pauli = True
                         rhs_coeff = coeff2
                         break
-                if found_pauli == False and rhs_coeff != 0.0: # since we might have 0 weights of paulis.
+                if found_pauli == False and rhs_coeff != 0.0:  # since we might have 0 weights of paulis.
                     return False
                 if coeff != rhs_coeff:
                     return False
             return True
         if self._grouped_paulis is not None and rhs._grouped_paulis is not None:
-            self._paulis_to_grouped_paulis()
-            rhs._paulis_to_grouped_paulis()
+            self._grouped_paulis_to_paulis()
+            rhs._grouped_paulis_to_paulis()
             return self.__eq__(rhs)
 
     def __ne__(self, rhs):
@@ -205,22 +205,25 @@ class Operator(object):
 
     def _simplify_paulis(self):
         """
-        Merge the paulis (grouped_paulis) whose bases are identical.
+        Merge the paulis (grouped_paulis) whose bases are identical but the pauli with zero coefficient
+        would not be removed.
+
         Usually used in construction.
         """
         if self._paulis is not None:
-            paulis = []
-            for idx in range(len(self._paulis)):
-                not_found = True
-                for idy in range(len(paulis)):
-                    if self._paulis[idx][1] == paulis[idy][1]:
-                        paulis[idy][0] += self._paulis[idx][0]
-                        not_found = False
-                        break
-                if not_found:
-                    paulis.append(self._paulis[idx])
-            self._paulis = paulis
-            self._paulis_table = {pauli[1].to_label(): i for i, pauli in enumerate(self._paulis)}
+            new_paulis = []
+            new_paulis_table = {}
+            for curr_paulis in self._paulis:
+                pauli_label = curr_paulis[1].to_label()
+                new_idx = new_paulis_table.get(pauli_label, None)
+                if new_idx is not None:
+                    new_paulis[new_idx][0] += curr_paulis[0]
+                else:
+                    new_paulis_table[pauli_label] = len(new_paulis)
+                    new_paulis.append(curr_paulis)
+
+            self._paulis = new_paulis
+            self._paulis_table = new_paulis_table
 
         elif self._grouped_paulis is not None:
             self._grouped_paulis_to_paulis()
@@ -295,12 +298,11 @@ class Operator(object):
                 self._dia_matrix = None
             else:
                 valid_dia_matrix_flag = True
-                dia_matrix = np.zeros(2 ** len(self._paulis[0][1].v), dtype=np.complex)
+                dia_matrix = 0.0
                 for idx in range(len(self._paulis)):
                     coeff, pauli = self._paulis[idx][0], self._paulis[idx][1]
                     if not (np.all(pauli.w == 0)):
                         valid_dia_matrix_flag = False
-                    if valid_dia_matrix_flag == False:
                         break
                     dia_matrix += coeff * pauli.to_spmatrix().diagonal()
                 self._dia_matrix = dia_matrix.copy() if valid_dia_matrix_flag else None
@@ -549,7 +551,7 @@ class Operator(object):
             if self._dia_matrix is not None:
                 avg = np.sum(self._dia_matrix * np.absolute(quantum_state) ** 2)
             else:
-                avg = quantum_state.T.conj().dot(self._matrix.dot(quantum_state))
+                avg = np.vdot(quantum_state, self._matrix.dot(quantum_state))
 
         else:
             self._check_representation("paulis")
@@ -566,24 +568,26 @@ class Operator(object):
                 q = circuit.get_qregs()['q']
                 for qubit_idx in range(n_qubits):
                     if pauli[1].v[qubit_idx] == 0 and pauli[1].w[qubit_idx] == 1:
-                        circuit.u3(np.pi, 0.0, np.pi, q[qubit_idx])
-                        # circuits[1+idx].x(q[qubit_idx])
+                        circuit.u3(np.pi, 0.0, np.pi, q[qubit_idx]) #x
                     elif pauli[1].v[qubit_idx] == 1 and pauli[1].w[qubit_idx] == 0:
-                        circuit.u1(np.pi, q[qubit_idx])
-                        # circuits[1+idx].z(q[qubit_idx])
+                        circuit.u1(np.pi, q[qubit_idx]) #z
                     elif pauli[1].v[qubit_idx] == 1 and pauli[1].w[qubit_idx] == 1:
-                        circuit.u3(np.pi, np.pi/2, np.pi/2, q[qubit_idx])
-                        # circuits[1+idx].y(q[qubit_idx])
+                        circuit.u3(np.pi, np.pi/2, np.pi/2, q[qubit_idx]) #y
                 circuits.append(circuit)
 
-            job = q_execute(circuits, backend=backend, **execute_config)
-            # Extract state with no Pauli final rotations
-            quantum_state_0 = np.asarray(job.result().get_statevector(circuits[0]))
+            jobs = []
+            chunks = int(np.ceil(len(circuits) / self.MAX_CIRCUITS_PER_JOB))
+            for i in range(chunks):
+                sub_circuits = circuits[i*self.MAX_CIRCUITS_PER_JOB:(i+1)*self.MAX_CIRCUITS_PER_JOB]
+                jobs.append(q_execute(sub_circuits, backend=backend, **execute_config))
+
+            quantum_state_0 = np.asarray(jobs[0].result().get_statevector(circuits[0]))
 
             for idx, pauli in enumerate(self._paulis):
-                quantum_state_i = np.asarray(job.result().get_statevector(circuits[idx+1]))
+                chunk_idx = (idx+1) // self.MAX_CIRCUITS_PER_JOB
+                quantum_state_i = np.asarray(jobs[chunk_idx].result().get_statevector(circuits[idx+1]))
                 # inner product with final rotations of (i)-th Pauli
-                avg += pauli[0] * (quantum_state_0.T.conj().dot(quantum_state_i))
+                avg += pauli[0] * (np.vdot(quantum_state_0, quantum_state_i))
 
         return avg
 
@@ -622,25 +626,29 @@ class Operator(object):
                 for qubit_idx in range(n_qubits):
                     # Measure X
                     if pauli[1].v[qubit_idx] == 0 and pauli[1].w[qubit_idx] == 1:
-                        circuit.u2(0.0, np.pi, q[qubit_idx])
-                        # circuits[idx].h(q[qubit_idx])
+                        circuit.u2(0.0, np.pi, q[qubit_idx]) #h
                     # Measure Y
                     elif pauli[1].v[qubit_idx] == 1 and pauli[1].w[qubit_idx] == 1:
-                        circuit.u1(np.pi/2, q[qubit_idx]).inverse()
-                        circuit.u2(0.0, np.pi, q[qubit_idx])
-                        # circuits[idx].s(q[qubit_idx]).inverse()
-                        # circuits[idx].h(q[qubit_idx])
+                        circuit.u1(np.pi/2, q[qubit_idx]).inverse() #s
+                        circuit.u2(0.0, np.pi, q[qubit_idx]) #h
                     circuit.measure(q[qubit_idx], c[qubit_idx])
 
                 circuits.append(circuit)
-            job = q_execute(circuits, backend=backend, **execute_config)
+
+            jobs = []
+            chunks = int(np.ceil(len(circuits) / self.MAX_CIRCUITS_PER_JOB))
+            for i in range(chunks):
+                sub_circuits = circuits[i*self.MAX_CIRCUITS_PER_JOB:(i+1)*self.MAX_CIRCUITS_PER_JOB]
+                jobs.append(q_execute(sub_circuits, backend=backend, **execute_config))
+
             avg_paulis = []
             for idx, pauli in enumerate(self._paulis):
-                measured_results = job.result(**qjob_config).get_counts(circuits[idx])
+                chunk_idx = idx // self.MAX_CIRCUITS_PER_JOB
+                measured_results = jobs[chunk_idx].result(**qjob_config).get_counts(circuits[idx])
                 avg_paulis.append(Operator._measure_pauli_z(measured_results, pauli[1]))
                 avg += pauli[0] * avg_paulis[idx]
                 variance += (pauli[0] ** 2) * Operator._covariance(measured_results, pauli[1], pauli[1],
-                                                                  avg_paulis[idx], avg_paulis[idx])
+                                                                   avg_paulis[idx], avg_paulis[idx])
 
         elif operator_mode == 'grouped_paulis':
             self._check_representation("grouped_paulis")
@@ -652,24 +660,25 @@ class Operator(object):
                 for qubit_idx in range(n_qubits):
                     # Measure X
                     if tpb_set[0][1].v[qubit_idx] == 0 and tpb_set[0][1].w[qubit_idx] == 1:
-                        circuit.u2(0.0, np.pi, q[qubit_idx])
-                        # circuits[idx].h(q[qubit_idx])
+                        circuit.u2(0.0, np.pi, q[qubit_idx]) #h
                     # Measure Y
                     elif tpb_set[0][1].v[qubit_idx] == 1 and tpb_set[0][1].w[qubit_idx] == 1:
-                        circuit.u1(np.pi/2, q[qubit_idx]).inverse()
-                        circuit.u2(0.0, np.pi, q[qubit_idx])
-                        # circuits[idx].s(q[qubit_idx]).inverse()
-                        # circuits[idx].h(q[qubit_idx])
+                        circuit.u1(np.pi/2, q[qubit_idx]).inverse() #s
+                        circuit.u2(0.0, np.pi, q[qubit_idx]) #h
                     circuit.measure(q[qubit_idx], c[qubit_idx])
                 circuits.append(circuit)
 
             # Execute all the stacked quantum circuits - one for each TPB set
-            job = q_execute(circuits, backend=backend, **execute_config)
-            # Compute contribution to the average avg and
-            # variance from each tpb_set and add up to total avg and std_dev
+            jobs = []
+            chunks = int(np.ceil(len(circuits) / self.MAX_CIRCUITS_PER_JOB))
+            for i in range(chunks):
+                sub_circuits = circuits[i*self.MAX_CIRCUITS_PER_JOB:(i+1)*self.MAX_CIRCUITS_PER_JOB]
+                jobs.append(q_execute(sub_circuits, backend=backend, **execute_config))
             for tpb_idx, tpb_set in enumerate(self._grouped_paulis):
                 avg_paulis = []
-                measured_results = job.result(**qjob_config).get_counts(circuits[tpb_idx])
+                chunk_idx = tpb_idx // self.MAX_CIRCUITS_PER_JOB
+                sub_idx = tpb_idx % self.MAX_CIRCUITS_PER_JOB
+                measured_results = jobs[chunk_idx].result(**qjob_config).get_counts(circuits[tpb_idx])
                 # Compute the averages of each pauli in tpb_set
                 for pauli_idx, pauli in enumerate(tpb_set):
                     avg_paulis.append(Operator._measure_pauli_z(measured_results, pauli[1]))
@@ -682,7 +691,7 @@ class Operator(object):
                     for pauli_2_idx, pauli_2 in enumerate(tpb_set):
                         variance += pauli_1[0] * pauli_2[0] * \
                             Operator._covariance(measured_results, pauli_1[1], pauli_2[1],
-                                                avg_paulis[pauli_1_idx], avg_paulis[pauli_2_idx])
+                                                 avg_paulis[pauli_1_idx], avg_paulis[pauli_2_idx])
 
         std_dev = np.sqrt(variance / num_shots)
 
@@ -695,7 +704,7 @@ class Operator(object):
         if self._dia_matrix is not None:
             avg = np.sum(self._dia_matrix * np.absolute(quantum_state) ** 2)
         else:
-            avg = quantum_state.T.conj().dot(self._matrix.dot(quantum_state))
+            avg = np.vdot(quantum_state, self._matrix.dot(quantum_state))
         return avg
 
     def eval(self, operator_mode, input_circuit, backend, execute_config={}, qjob_config={}):
@@ -1412,13 +1421,13 @@ class Operator(object):
         matrix_out_temp = copy.deepcopy(matrix_in)
         indices = []
         matrix_out = np.zeros(size)
-        
+
         for i in range(size[0] - 1):
             if np.array_equal(matrix_out_temp[i, :], np.zeros(size[1])):
                 indices.append(i)
         for row in np.sort(indices)[::-1]:
             matrix_out_temp = np.delete(matrix_out_temp, (row), axis=0)
-                
+
         matrix_out[0:size[0] - len(indices), :] = matrix_out_temp
         matrix_out = matrix_out.astype(int)
 
@@ -1431,7 +1440,7 @@ class Operator(object):
 
         Args:
             matrix_in (np.ndarray): binary matrix
-            
+
         Returns:
             [np.ndarray]: the list of kernel vectors
         """
@@ -1587,3 +1596,21 @@ class Operator(object):
             operator_out += Operator(paulis=[pauli_term_out])
 
         return operator_out       
+
+    def zeros_coeff_elimination(self):
+        """
+        Elinminate paulis or grouped paulis whose coefficients are zeros.
+
+        The difference from `_simplify_paulis` method is that, this method will not remove duplicated
+        paulis.
+        """
+        if self._paulis is not None:
+            new_paulis = [pauli for pauli in self._paulis if pauli[0] != 0]
+            self._paulis = new_paulis
+            self._paulis_table = {pauli[1].to_label(): i for i, pauli in enumerate(self._paulis)}
+
+        elif self._grouped_paulis is not None:
+            self._grouped_paulis_to_paulis()
+            self.zeros_coeff_elimination()
+            self._paulis_to_grouped_paulis()
+            self._paulis = None

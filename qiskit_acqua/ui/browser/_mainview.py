@@ -26,6 +26,7 @@ from qiskit_acqua.ui.browser._sectionsview import SectionsView
 from qiskit_acqua.ui.browser._sectionpropertiesview import SectionPropertiesView
 from qiskit_acqua.ui.browser._emptyview import EmptyView
 from qiskit_acqua.ui._uipreferences import UIPreferences
+from qiskit_acqua import __version__
 
 class MainView(ttk.Frame):
     
@@ -42,7 +43,7 @@ class MainView(ttk.Frame):
             parent.protocol('WM_DELETE_WINDOW',self.quit)
             
     def _show_about_dialog(self):
-        tkmb.showinfo(message= 'QISKit ACQUA')
+        tkmb.showinfo(message= 'QISKit ACQUA {}'.format(__version__))
         
     def _create_widgets(self):
         self._makeMenuBar()
