@@ -154,7 +154,7 @@ class TestOperator(QISKitAcquaTestCase):
         self.assertEqual(-0.25, newOP.paulis[0][0])
         self.assertEqual('ZZYY', newOP.paulis[0][1].to_label())
 
-    def test_addition(self):
+    def test_addition_inplace(self):
         """
             test addition
         """
@@ -166,14 +166,40 @@ class TestOperator(QISKitAcquaTestCase):
         pauli_term_b = [coeff_b, label_to_pauli(pauli_b)]
         opA = Operator(paulis=[pauli_term_a])
         opB = Operator(paulis=[pauli_term_b])
+        opA += opB
+
+        self.assertEqual(2, len(opA.paulis))
+
+        pauli_c = 'IXYZ'
+        coeff_c = 0.25
+        pauli_term_c = [coeff_c, label_to_pauli(pauli_c)]
+        opA += Operator(paulis=[pauli_term_c])
+
+        self.assertEqual(2, len(opA.paulis))
+        self.assertEqual(0.75, opA.paulis[0][0])
+
+    def test_addition_noninplace(self):
+        """
+            test addition
+        """
+        pauli_a = 'IXYZ'
+        pauli_b = 'ZYIX'
+        coeff_a = 0.5
+        coeff_b = 0.5
+        pauli_term_a = [coeff_a, label_to_pauli(pauli_a)]
+        pauli_term_b = [coeff_b, label_to_pauli(pauli_b)]
+        opA = Operator(paulis=[pauli_term_a])
+        opB = Operator(paulis=[pauli_term_b])
+        copy_opA = copy.deepcopy(opA)
         newOP = opA + opB
 
+        self.assertEqual(copy_opA, opA)
         self.assertEqual(2, len(newOP.paulis))
 
         pauli_c = 'IXYZ'
         coeff_c = 0.25
         pauli_term_c = [coeff_c, label_to_pauli(pauli_c)]
-        newOP += Operator(paulis=[pauli_term_c])
+        newOP = newOP + Operator(paulis=[pauli_term_c])
 
         self.assertEqual(2, len(newOP.paulis))
         self.assertEqual(0.75, newOP.paulis[0][0])
@@ -414,6 +440,26 @@ class TestOperator(QISKitAcquaTestCase):
         self.assertTrue(op.is_empty())
         self.assertFalse(self.qubitOp.is_empty())
 
+    def test_sumbit_multiple_circutis(self):
+        """
+            test with single paulis
+        """
+        num_qubits = 9
+        pauli_term = []
+        for pauli_label in itertools.product('IXYZ', repeat=num_qubits):
+            coeff = np.random.random(1)[0]
+            pauli_term += [coeff, label_to_pauli(pauli_label)]
+        op = Operator(paulis=[pauli_term])
+
+        op.convert('paulis', 'matrix')
+
+        depth = 1
+        var_form = get_variational_form_instance('RYRZ')
+        var_form.init_args(op.num_qubits, depth)
+        circuit = var_form.construct_circuit(np.array(np.random.randn(var_form.num_parameters)))
+        execute_config = {'shots': 1, 'skip_transpiler': False}
+        matrix_mode = op.eval('matrix', circuit, 'local_statevector_simulator', execute_config)[0]
+        non_matrix_mode = op.eval('paulis', circuit, 'local_statevector_simulator', execute_config)[0]
 
 if __name__ == '__main__':
     unittest.main()
