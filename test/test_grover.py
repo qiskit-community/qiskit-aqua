@@ -26,13 +26,19 @@ from qiskit_acqua import get_algorithm_instance, get_oracle_instance
 class TestGrover(QISKitAcquaTestCase):
 
     @parameterized.expand([
-        ['test_grover_tiny.cnf', 1],
-        ['test_grover.cnf', 2]
+        ['test_grover_tiny.cnf', 'manual', 1],
+        ['test_grover.cnf', 'manual', 2],
+        ['test_grover_no_solution.cnf', 'incremental'],
     ])
-    def test_grover(self, input_file, num_iterations=1):
-        self.log.debug('Testing Grover search with {} iteration(s) on SAT problem instance: \n{}'.format(
-            num_iterations, open(input_file).read(),
-        ))
+    def test_grover(self, input_file, mode='incremental', num_iterations=1):
+        if mode == 'incremental':
+            self.log.debug('Testing incremental Grover search on SAT problem instance: \n{}'.format(
+                open(input_file).read(),
+            ))
+        elif mode == 'manual':
+            self.log.debug('Testing manual Grover search with {} iteration(s) on SAT problem instance: \n{}'.format(
+                num_iterations, open(input_file).read(),
+            ))
         # get ground-truth
         with open(input_file) as f:
             header = f.readline()
@@ -58,8 +64,12 @@ class TestGrover(QISKitAcquaTestCase):
         self.log.debug('Measurement result:     {}.'.format(ret['measurements']))
         top_measurement = max(ret['measurements'].items(), key=operator.itemgetter(1))[0]
         self.log.debug('Top measurement:        {}.'.format(top_measurement))
-        self.log.debug('Search Result:          {}.'.format(ret['result']))
-        self.assertIn(top_measurement, self.groundtruth)
+        if ret['oracle_evaluation']:
+            self.assertIn(top_measurement, self.groundtruth)
+            self.log.debug('Search Result:          {}.'.format(ret['result']))
+        else:
+            self.assertEqual(self.groundtruth, [''])
+            self.log.debug('Nothing found.')
 
 
 if __name__ == '__main__':
