@@ -27,10 +27,10 @@ from qiskit_acqua import get_algorithm_instance, get_initial_state_instance, \
 from qiskit_acqua.utils import decimal_to_binary
 
 
-class TestVQE(QISKitAcquaTestCase):
+class TestVQE2IQPE(QISKitAcquaTestCase):
 
     def setUp(self):
-        np.random.seed(50)
+        np.random.seed(0)
         pauli_dict = {
             'paulis': [{"coeff": {"imag": 0.0, "real": -1.052373245772859}, "label": "II"},
                        {"coeff": {"imag": 0.0, "real": 0.39793742484318045}, "label": "ZI"},
@@ -51,7 +51,7 @@ class TestVQE(QISKitAcquaTestCase):
         var_form.init_args(num_qbits, 3, initial_state=init_state)
         optimizer = get_optimizer_instance('L_BFGS_B')
         optimizer.init_args()
-        optimizer.set_options(**{'maxfun': 20})
+        optimizer.set_options(**{'maxfun': 50})
         algo = get_algorithm_instance('VQE')
         algo.setup_quantum_backend(backend='local_statevector_simulator')
         algo.init_args(self.algo_input.qubit_op, 'matrix', var_form, optimizer)
