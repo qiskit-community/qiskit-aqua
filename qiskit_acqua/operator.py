@@ -556,7 +556,7 @@ class Operator(object):
 
             job = q_execute(input_circuit, backend=backend, **execute_config)
 
-            if self._summarize_circuits:
+            if self._summarize_circuits and logger.isEnabledFor(logging.DEBUG):
                 logger.debug(summarize_circuits(input_circuit))
 
             result = job.result()
@@ -595,7 +595,7 @@ class Operator(object):
                 sub_circuits = circuits[i*self.MAX_CIRCUITS_PER_JOB:(i+1)*self.MAX_CIRCUITS_PER_JOB]
                 jobs.append(q_execute(sub_circuits, backend=backend, **execute_config))
 
-            if self._summarize_circuits:
+            if self._summarize_circuits and logger.isEnabledFor(logging.DEBUG):
                 logger.debug(summarize_circuits(circuits))
 
             results = []
@@ -662,7 +662,7 @@ class Operator(object):
                 sub_circuits = circuits[i*self.MAX_CIRCUITS_PER_JOB:(i+1)*self.MAX_CIRCUITS_PER_JOB]
                 jobs.append(q_execute(sub_circuits, backend=backend, **execute_config))
 
-            if self._summarize_circuits:
+            if self._summarize_circuits and logger.isEnabledFor(logging.DEBUG):
                 logger.debug(summarize_circuits(circuits))
 
             results = []
@@ -703,7 +703,7 @@ class Operator(object):
                 sub_circuits = circuits[i*self.MAX_CIRCUITS_PER_JOB:(i+1)*self.MAX_CIRCUITS_PER_JOB]
                 jobs.append(q_execute(sub_circuits, backend=backend, **execute_config))
 
-            if self._summarize_circuits:
+            if self._summarize_circuits and logger.isEnabledFor(logging.DEBUG):
                 logger.debug(summarize_circuits(circuits))
 
             results = []
