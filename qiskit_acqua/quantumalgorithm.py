@@ -25,6 +25,7 @@ Doing so requires that the required algorithm interface is implemented.
 from abc import ABC, abstractmethod
 import logging
 import sys
+import functools
 
 import numpy as np
 from qiskit import __version__ as qiskit_version
@@ -193,9 +194,8 @@ class QuantumAlgorithm(ABC):
         for job in jobs:
             results.append(job.result(**self._qjob_config))
 
-        if len(jobs) == 1:
-            results = results[0]
-        return results
+        result = functools.reduce(lambda x, y: x + y, results)
+        return result
 
     @staticmethod
     def register_and_get_operational_backends(qconfig):
