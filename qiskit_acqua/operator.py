@@ -19,6 +19,7 @@ import copy
 import itertools
 from functools import reduce
 import logging
+import sys
 
 import numpy as np
 from scipy import sparse as scisparse
@@ -728,10 +729,13 @@ class Operator(object):
         """
 
         # If the statevector is already a vector, skip the evaluation from quantum simulator.
+
+        if backend.startswith('local'):
+            self.MAX_CIRCUITS_PER_JOB = sys.maxsize
+
         if isinstance(input_circuit, np.ndarray):
             avg = self._eval_directly(input_circuit)
             std_dev = 0.0
-
         elif "statevector" in backend:
             execute_config['shots'] = 1
             avg = self._eval_with_statevector(operator_mode, input_circuit, backend, execute_config)

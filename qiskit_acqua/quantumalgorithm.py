@@ -24,6 +24,7 @@ Doing so requires that the required algorithm interface is implemented.
 
 from abc import ABC, abstractmethod
 import logging
+import sys
 
 import numpy as np
 from qiskit import __version__ as qiskit_version
