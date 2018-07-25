@@ -231,6 +231,7 @@ class VQE(QuantumAlgorithm):
         Returns:
             Dictionary of results
         """
+        self._operator.enable_summarize_circuits()
         self._eval_count = 0
         self._solve()
         self._get_ground_state_energy()
@@ -255,6 +256,7 @@ class VQE(QuantumAlgorithm):
                                                      self._backend, self._execute_config, self._qjob_config)
         self._eval_count += 1
 
+        self._operator.disable_summarize_circuits()
         logger.debug('Energy evaluation {} returned {}'.format(self._eval_count, np.real(mean_energy)))
         return np.real(mean_energy)
 

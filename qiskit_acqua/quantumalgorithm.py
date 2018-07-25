@@ -37,6 +37,7 @@ from qiskit.wrapper import execute as q_execute
 from qiskit.wrapper import available_backends, get_backend
 
 from qiskit_acqua import get_qconfig, AlgorithmError
+from qiskit_acqua.utils import summarize_circuits
 
 logger = logging.getLogger(__name__)
 
@@ -190,6 +191,10 @@ class QuantumAlgorithm(ABC):
         for i in range(chunks):
             sub_circuits = circuits[i*self.MAX_CIRCUITS_PER_JOB:(i+1)*self.MAX_CIRCUITS_PER_JOB]
             jobs.append(q_execute(sub_circuits, self._backend, **self._execute_config))
+
+        if logger.isEnabledFor(logging.DEBUG)
+            logger.debug(summarize_circuits(circuits))
+
         results = []
         for job in jobs:
             results.append(job.result(**self._qjob_config))
