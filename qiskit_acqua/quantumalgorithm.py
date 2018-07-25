@@ -24,6 +24,8 @@ Doing so requires that the required algorithm interface is implemented.
 
 from abc import ABC, abstractmethod
 import logging
+import sys
+import functools
 
 import numpy as np
 from qiskit import __version__ as qiskit_version
@@ -150,6 +152,7 @@ class QuantumAlgorithm(ABC):
 
         if backend.startswith('local'):
             self._qjob_config.pop('wait', None)
+            self.MAX_CIRCUITS_PER_JOB = sys.maxsize
 
         my_backend = get_backend(backend)
         self._execute_config = {'shots': shots,
@@ -195,9 +198,8 @@ class QuantumAlgorithm(ABC):
         for job in jobs:
             results.append(job.result(**self._qjob_config))
 
-        if len(jobs) == 1:
-            results = results[0]
-        return results
+        result = functools.reduce(lambda x, y: x + y, results)
+        return result
 
     @staticmethod
     def register_and_get_operational_backends(qconfig):

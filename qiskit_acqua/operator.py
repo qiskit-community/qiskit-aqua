@@ -19,6 +19,7 @@ import copy
 import itertools
 from functools import reduce
 import logging
+import sys
 
 import numpy as np
 from scipy import sparse as scisparse
@@ -97,7 +98,7 @@ class Operator(object):
                 pauli_label = pauli[1].to_label()
                 idx = lhs._paulis_table.get(pauli_label, None)
                 if idx is not None:
-                    self._paulis[idx][0] += pauli[0]
+                    lhs._paulis[idx][0] += pauli[0]
                 else:
                     lhs._paulis_table[pauli_label] = len(lhs._paulis)
                     lhs._paulis.append(pauli)
@@ -558,7 +559,8 @@ class Operator(object):
             if self._summarize_circuits:
                 logger.debug(summarize_circuits(input_circuit))
 
-            quantum_state = np.asarray(job.result().get_statevector(input_circuit))
+            result = job.result()
+            quantum_state = np.asarray(result.get_statevector(input_circuit))
 
             if self._dia_matrix is not None:
                 avg = np.sum(self._dia_matrix * np.absolute(quantum_state) ** 2)
@@ -596,11 +598,15 @@ class Operator(object):
             if self._summarize_circuits:
                 logger.debug(summarize_circuits(circuits))
 
-            quantum_state_0 = np.asarray(jobs[0].result().get_statevector(circuits[0]))
+            results = []
+            for job in jobs:
+                results.append(job.result())
+            result = reduce(lambda x, y: x + y, results)
+
+            quantum_state_0 = np.asarray(result.get_statevector(circuits[0]))
 
             for idx, pauli in enumerate(self._paulis):
-                chunk_idx = (idx+1) // self.MAX_CIRCUITS_PER_JOB
-                quantum_state_i = np.asarray(jobs[chunk_idx].result().get_statevector(circuits[idx+1]))
+                quantum_state_i = np.asarray(result.get_statevector(circuits[idx+1]))
                 # inner product with final rotations of (i)-th Pauli
                 avg += pauli[0] * (np.vdot(quantum_state_0, quantum_state_i))
 
@@ -659,10 +665,14 @@ class Operator(object):
             if self._summarize_circuits:
                 logger.debug(summarize_circuits(circuits))
 
+            results = []
+            for job in jobs:
+                results.append(job.result(**qjob_config))
+            result = reduce(lambda x, y: x + y, results)
+
             avg_paulis = []
             for idx, pauli in enumerate(self._paulis):
-                chunk_idx = idx // self.MAX_CIRCUITS_PER_JOB
-                measured_results = jobs[chunk_idx].result(**qjob_config).get_counts(circuits[idx])
+                measured_results = result.get_counts(circuits[idx])
                 avg_paulis.append(Operator._measure_pauli_z(measured_results, pauli[1]))
                 avg += pauli[0] * avg_paulis[idx]
                 variance += (pauli[0] ** 2) * Operator._covariance(measured_results, pauli[1], pauli[1],
@@ -696,11 +706,14 @@ class Operator(object):
             if self._summarize_circuits:
                 logger.debug(summarize_circuits(circuits))
 
+            results = []
+            for job in jobs:
+                results.append(job.result(**qjob_config))
+            result = reduce(lambda x, y: x + y, results)
+
             for tpb_idx, tpb_set in enumerate(self._grouped_paulis):
                 avg_paulis = []
-                chunk_idx = tpb_idx // self.MAX_CIRCUITS_PER_JOB
-                sub_idx = tpb_idx % self.MAX_CIRCUITS_PER_JOB
-                measured_results = jobs[chunk_idx].result(**qjob_config).get_counts(circuits[tpb_idx])
+                measured_results = result.get_counts(circuits[tpb_idx])
                 # Compute the averages of each pauli in tpb_set
                 for pauli_idx, pauli in enumerate(tpb_set):
                     avg_paulis.append(Operator._measure_pauli_z(measured_results, pauli[1]))
@@ -750,10 +763,13 @@ class Operator(object):
         """
 
         # If the statevector is already a vector, skip the evaluation from quantum simulator.
+
+        if backend.startswith('local'):
+            self.MAX_CIRCUITS_PER_JOB = sys.maxsize
+
         if isinstance(input_circuit, np.ndarray):
             avg = self._eval_directly(input_circuit)
             std_dev = 0.0
-
         elif "statevector" in backend:
             execute_config['shots'] = 1
             avg = self._eval_with_statevector(operator_mode, input_circuit, backend, execute_config)
