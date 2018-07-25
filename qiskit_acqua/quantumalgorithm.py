@@ -150,6 +150,7 @@ class QuantumAlgorithm(ABC):
 
         if backend.startswith('local'):
             self._qjob_config.pop('wait', None)
+            self.MAX_CIRCUITS_PER_JOB = sys.maxsize
 
         my_backend = get_backend(backend)
         self._execute_config = {'shots': shots,
