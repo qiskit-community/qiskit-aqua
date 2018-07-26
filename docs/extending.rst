@@ -1,44 +1,44 @@
-Contributing to QISKit AQUA
+Contributing to Qiskit Aqua
 ============================
 
-QISKit AQUA has a modular and extensible architecture.
+Qiskit Aqua has a modular and extensible architecture.
 
-Instead of just *accessing* QISKit AQUA as a library of quantum algorithms to experiment with quantum
-computing, a user may decide to *contribute* to QISKit AQUA by
+Instead of just *accessing* Qiskit Aqua as a library of quantum algorithms to experiment with quantum
+computing, a user may decide to *contribute* to Qiskit Aqua by
 providing new algorithms and algorithm components.
-These can be programmatically added to QISKit AQUA,
+These can be programmatically added to Qiskit Aqua,
 which was designed as an extensible, pluggable
 framework.
 
 .. topic:: Contribution Guidelines
 
-    Any user who would like to contribute to QISKit AQUA should follow the QISKit AQUA `contribution
-    guidelines <https://github.com/QISKit/aqua/blob/master/.github/CONTRIBUTING.rst>`__.
+    Any user who would like to contribute to Qiskit Aqua should follow the Qiskit Aqua `contribution
+    guidelines <https://github.com/Qiskit/aqua/blob/master/.github/CONTRIBUTING.rst>`__.
 
-Extending QISKit AQUA
+Extending Qiskit Aqua
 ----------------------
 
-QISKit AQUA exposes numerous extension points. Researchers and developers can contribute to QISKit AQUA
-by providing new components, which will be automatically discovered and loaded by QISKit AQUA at run time.
+Qiskit Aqua exposes numerous extension points. Researchers and developers can contribute to Qiskit Aqua
+by providing new components, which will be automatically discovered and loaded by Qiskit Aqua at run time.
 
 Dynamically Discovered Components
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Each component should derive from the corresponding base class, as explained below.  There are three
-ways for a component to be dynamically discovered and loaded by QISKit AQUA at run time:
+ways for a component to be dynamically discovered and loaded by Qiskit Aqua at run time:
 
 1. The class implementing the component should be placed in the appropriate folder in the file system,
    as explained in `Section "Extension Points" <#extension-points>`__ below for each different component type.
    This is the easiest approach.  Researchers
-   and developers extending QISKit AQUA are more likely to have installed QISKit AQUA by cloning the
-   `QISKit AQUA repository <https://github.com/Qiskit/aqua>`__ as opposed to using the pip package
+   and developers extending Qiskit Aqua are more likely to have installed Qiskit Aqua by cloning the
+   `Qiskit Aqua repository <https://github.com/Qiskit/aqua>`__ as opposed to using the pip package
    manager system.  Therefore, the folders indicated below can be easily located in the file system.
 
-2. Alternatively, a developer extending QISKit AQUA with a new component can simply create a dedicated
+2. Alternatively, a developer extending Qiskit Aqua with a new component can simply create a dedicated
    repository with its own versioning.  This repository must be locally installable with the package that was
    created.  Once the repository has been installed, for example via the ``pip install -e`` command,
    the user can access the
-   QISKit AQUA `Graphical User Interface (GUI) <https://qiskit.org/documentation/aqua/install.html#gui>`__
+   Qiskit Aqua `Graphical User Interface (GUI) <https://qiskit.org/documentation/aqua/install.html#gui>`__
    and add the package's name to the list of packages in the **Preferences** panel.
    From that moment on, any custom component found below that package will be dynamically added to
    ``qiskit-aqua`` upon initialization.
@@ -56,7 +56,7 @@ ways for a component to be dynamically discovered and loaded by QISKit AQUA at r
        from setuptools.command.egg_info import egg_info
        import atexit
 
-       long_description = """New Package for QISKit AQUA Component"""
+       long_description = """New Package for Qiskit Aqua Component"""
     
        requirements = [
           "qiskit-aqua>=0.2.0",
@@ -88,11 +88,11 @@ ways for a component to be dynamically discovered and loaded by QISKit AQUA at r
        setuptools.setup(
           name = 'aqua_custom_component_package',
           version = "0.1.0", # this should match __init__.__version__
-          description='QISKit AQUA Component',
+          description='Qiskit Aqua Component',
           long_description = long_description,
           long_description_content_type = "text/markdown",
           url = 'https://github.com/aqua-custom-component-package',
-          author = 'QISKit AQUA Development Team',
+          author = 'Qiskit Aqua Development Team',
           author_email = 'qiskit@us.ibm.com',
           license='Apache-2.0',
           classifiers = (
@@ -127,14 +127,14 @@ Extension Points
 ~~~~~~~~~~~~~~~~
 
 This section details the algorithm and algorithm components that researchers and developers
-interested in quantum algorithms can contribute to QISKit AQUA.
+interested in quantum algorithms can contribute to Qiskit Aqua.
 
 Algorithms
 ^^^^^^^^^^
 
-A new `algorithm <./algorithms.html>`__ may be developed according to the specific API provided by QISKit AQUA.
+A new `algorithm <./algorithms.html>`__ may be developed according to the specific API provided by Qiskit Aqua.
 By simply adding its code to the collection of existing algorithms, that new algorithm
-will be immediately recognized via dynamic lookup, and made available for use within the framework of QISKit AQUA.
+will be immediately recognized via dynamic lookup, and made available for use within the framework of Qiskit Aqua.
 To develop and deploy any new algorithm, the new algorithm class should derive from the ``QuantumAlgorithm`` class.
 Along with all of its supporting modules, the new algorithm class should be installed under its own folder in the
 ``qiskit_aqua`` directory, just like the existing algorithms.
@@ -178,7 +178,7 @@ should go under the
 Unit Tests
 ----------
 
-Contributing new software components to QISKit AQUA requires writing new unit tests for those components,
+Contributing new software components to Qiskit Aqua requires writing new unit tests for those components,
 and executing all the existing unit tests to make sure that no bugs were inadvertently injected.
 
 
@@ -213,7 +213,7 @@ The command for help is as follows:
 `Other running options <https://docs.python.org/3/library/unittest.html#command-line-options>`__ are available
 to users for consultation.
 
-In order to see unit test log messages, researchers and developers contributing to QISKit AQUA
+In order to see unit test log messages, researchers and developers contributing to Qiskit Aqua
 will need to set the ``LOG_LEVEL`` environment variable to ``DEBUG`` mode:
 
 .. code:: sh

@@ -1,6 +1,6 @@
-# QISKit AQUA - Optimizers
+# Qiskit Aqua - Optimizers
 
-QISKit Algorithms and Circuits for QUantum Applications (QISKit AQUA) is a set of algorithms and utilities
+Qiskit Algorithms for QUantum Applications (Qiskit Aqua) is a set of algorithms and utilities
 for use with quantum computers. 
 The *optimizers* folder here contains a variety of different optimizers for use by algorithms
 

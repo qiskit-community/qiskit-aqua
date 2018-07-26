@@ -1,14 +1,14 @@
 Algorithms
 ==========
 
-QISKit Algorithms and Circuits for QUantum Applications (QISKit AQUA)
+Qiskit Algorithms for QUantum Applications (Qiskit Aqua)
 is an extensible collection of algorithms and utilities for use with quantum computers to
 carry out research and investigate how to solve problems using near-term
 quantum applications on short depth circuits. The applications can span
-different domains  QISKit AQUA uses
-`QISKit <https://www.qiskit.org/>`__ for its quantum computation.
+different domains  Qiskit Aqua uses
+`Qiskit <https://www.qiskit.org/>`__ for its quantum computation.
 
-The following `quantum algorithms <#quantum-algorithms>`__ are part of QISKit AQUA:
+The following `quantum algorithms <#quantum-algorithms>`__ are part of Qiskit Aqua:
 
 -  :ref:`Variational Quantum Eigensolver (VQE)`
 -  :ref:`Quantum Approximate Optimization Algorithm (QAOA)`
@@ -19,7 +19,7 @@ The following `quantum algorithms <#quantum-algorithms>`__ are part of QISKit AQ
 -  :ref:`Support Vector Machine Quantum Kernel (SVM Q Kernel)`
 -  :ref:`Support Vector Machine Variational (SVM Variational)`
 
-QISKit AQUA includes  also some `classical algorithms <#classical-algorithms>`__, which may be
+Qiskit Aqua includes  also some `classical algorithms <#classical-algorithms>`__, which may be
 useful to compare and contrast results in the near term while experimenting with, developing and testing
 quantum algorithms:
 
@@ -31,9 +31,9 @@ quantum algorithms:
 
     Algorithms and many of the components they used have been designed to be
     pluggable. A new algorithm may be developed according to the specific API
-    provided by QISKit AQUA, and by simply adding its code to the collection of existing
+    provided by Qiskit Aqua, and by simply adding its code to the collection of existing
     algorithms, that new algorithm  will be immediately recognized via dynamic lookup, and made available for use
-    within the framework of QISKit AQUA.
+    within the framework of Qiskit Aqua.
 
     To develop and deploy any new algorithm, the new algorithm class should derive from the ``QuantumAlgorithm`` class.
     Along with any supporting  module, the new algorithm class
@@ -44,10 +44,10 @@ quantum algorithms:
 
 Quantum Algorithms
 ------------------
-In this section, we describe the quantum algorithms currently available in QISKit AQUA.
+In this section, we describe the quantum algorithms currently available in Qiskit Aqua.
 
 .. note::
-    QISKit AQUA requires associating a quantum device or simulator to any experiment that uses a quantum
+    Qiskit Aqua requires associating a quantum device or simulator to any experiment that uses a quantum
     algorithm.  This is done by configuring the ``backend`` section of the experiment to be run.
 
 Variational Quantum Eigensolver (VQE)
@@ -87,19 +87,19 @@ Additionally, VQE can be configured with the following parameters:
 
 .. topic:: Declarative Name
 
-   When referring to VQE declaratively inside QISKit AQUA, its code ``name``, by which QISKit AQUA dynamically discovers and loads it,
+   When referring to VQE declaratively inside Qiskit Aqua, its code ``name``, by which Qiskit Aqua dynamically discovers and loads it,
    is ``VQE``.
 
 .. topic:: Problems Supported
 
-   In QISKit AQUA, VQE supports the ``energy`` and ``ising`` problems.
+   In Qiskit Aqua, VQE supports the ``energy`` and ``ising`` problems.
 
 Quantum Approximate Optimization Algorithm (QAOA)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 QAOA is a well-known algorithm for finding approximate solutions to
 combinatorial-optimization problems.
-The QAOA implementation in QISKit AQUA directly uses `VQE <#variational-quantum-eigensolver-vqe>`__ for its general hybrid optimization structure.
+The QAOA implementation in Qiskit Aqua directly uses `VQE <#variational-quantum-eigensolver-vqe>`__ for its general hybrid optimization structure.
 However, unlike VQE, which can be configured with arbitrary variational forms,
 QAOA uses its own fine-tuned variational form, which comprises :math:`p` parameterized global :math:`X` rotations and 
 :math:`p` different parameterizations of the problem hamiltonian.
@@ -139,13 +139,13 @@ In summary, QAOA can be configured with the following parameters:
 
 .. topic:: Declarative Name
 
-   When referring to QAOA declaratively inside QISKit AQUA, its code ``name``,
-   by which QISKit AQUA dynamically discovers and loads it,
+   When referring to QAOA declaratively inside Qiskit Aqua, its code ``name``,
+   by which Qiskit Aqua dynamically discovers and loads it,
    is ``QAOA``.
 
 .. topic:: Problems Supported
 
-   In QISKit AQUA, QAOA supports the ``ising`` problem.
+   In Qiskit Aqua, QAOA supports the ``ising`` problem.
 
 Quantum Dynamics
 ~~~~~~~~~~~~~~~~
@@ -214,12 +214,12 @@ Dynamics can be configured with the following parameter settings:
 
 .. topic:: Declarative Name
 
-   When referring to Quantum Dynamics declaratively inside QISKit AQUA, its code ``name``, by which
-   QISKit AQUA dynamically discovers and loads it, is ``Dynamics``.
+   When referring to Quantum Dynamics declaratively inside Qiskit Aqua, its code ``name``, by which
+   Qiskit Aqua dynamically discovers and loads it, is ``Dynamics``.
 
 .. topic:: Problems Supported
 
-   In QISKit AQUA, Quantum Dynamics supports the ``dynamics`` problem.
+   In Qiskit Aqua, Quantum Dynamics supports the ``dynamics`` problem.
 
 
 Quantum Phase Estimation (QPE)
@@ -290,12 +290,12 @@ QPE is also configured with the following parameter settings:
 
 .. topic:: Declarative Name
 
-   When referring to QPE declaratively inside QISKit AQUA, its code ``name``, by which
-   QISKit AQUA dynamically discovers and loads it, is ``QPE``.
+   When referring to QPE declaratively inside Qiskit Aqua, its code ``name``, by which
+   Qiskit Aqua dynamically discovers and loads it, is ``QPE``.
 
 .. topic:: Problems Supported
 
-   In QISKit AQUA, QPE supports the ``energy`` problem.
+   In Qiskit Aqua, QPE supports the ``energy`` problem.
 
 Iterative Quantum Phase Estimation (IQPE)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -314,12 +314,12 @@ For more details, please see `arXiv:quant-ph/0610214 <https://arxiv.org/abs/quan
 
 .. topic:: Declarative Name
 
-   When referring to IQPE declaratively inside QISKit AQUA, its code ``name``, by which
-   QISKit AQUA dynamically discovers and loads it, is ``IQPE``.
+   When referring to IQPE declaratively inside Qiskit Aqua, its code ``name``, by which
+   Qiskit Aqua dynamically discovers and loads it, is ``IQPE``.
 
 .. topic:: Problems Supported
 
-   In QISKit AQUA, IQPE supports the ``energy`` problem.
+   In Qiskit Aqua, IQPE supports the ``energy`` problem.
 
 
 Quantum Grover Search
@@ -337,12 +337,12 @@ and constructs the corresponding quantum circuit.
 
 .. topic:: Declarative Name
 
-   When referring to Quantum Grover Search declaratively inside QISKit AQUA, its code ``name``, by which
-   QISKit AQUA dynamically discovers and loads it, is ``Grover``.
+   When referring to Quantum Grover Search declaratively inside Qiskit Aqua, its code ``name``, by which
+   Qiskit Aqua dynamically discovers and loads it, is ``Grover``.
 
 .. topic:: Problems Supported
 
-   In QISKit AQUA, Grover supports the ``search`` problem.
+   In Qiskit Aqua, Grover supports the ``search`` problem.
 
 
 Support Vector Machine Quantum Kernel (SVM Q Kernel)
@@ -395,12 +395,12 @@ The default is ``False``.
 
 .. topic:: Declarative Name
 
-   When referring to SVM Q Kernel declaratively inside QISKit AQUA, its code ``name``, by which
-   QISKit AQUA dynamically discovers and loads it, is ``SVM_QKernel``.
+   When referring to SVM Q Kernel declaratively inside Qiskit Aqua, its code ``name``, by which
+   Qiskit Aqua dynamically discovers and loads it, is ``SVM_QKernel``.
 
 .. topic:: Problems Supported
 
-   In QISKit AQUA, SVM Q Kernel  supports the ``svm_classification`` problem.
+   In Qiskit Aqua, SVM Q Kernel  supports the ``svm_classification`` problem.
 
 Support Vector Machine Variational (SVM Variational)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -432,24 +432,24 @@ SVM_Variational can be configured with the following parameters:
 
 .. topic:: Declarative Name
 
-   When referring to SVM Variational declaratively inside QISKit AQUA, its code ``name``, by which
-   QISKit AQUA dynamically discovers and loads it, is ``SVM_Variational``.
+   When referring to SVM Variational declaratively inside Qiskit Aqua, its code ``name``, by which
+   Qiskit Aqua dynamically discovers and loads it, is ``SVM_Variational``.
 
 .. topic:: Problems Supported
 
-   In QISKit AQUA, SVM Variational  supports the ``svm_classification`` problem.
+   In Qiskit Aqua, SVM Variational  supports the ``svm_classification`` problem.
 
 
 Classical Algorithms
 --------------------
-In this section, we describe the classical algorithms currently available in QISKit AQUA.
+In this section, we describe the classical algorithms currently available in Qiskit Aqua.
 While these algorithm do not use a quantum device or simulator, and rely on
 purely classical approaches, they may be useful in the
 near term while experimenting with, developing and testing quantum
 algorithms.
 
 .. note::
-    QISKit AQUA prevents associating a quantum device or simulator to any experiment that uses a classical
+    Qiskit Aqua prevents associating a quantum device or simulator to any experiment that uses a classical
     algorithm.  The ``backend`` section of an experiment to be conducted via a classical algorithm is
     disabled.
 
@@ -468,12 +468,12 @@ Specifically, the value of this parameter must be an ``int`` value ``k`` in the 
 
 .. topic:: Declarative Name
 
-   When referring to Exact Eigensolver declaratively inside QISKit AQUA, its code ``name``, by which
-   QISKit AQUA dynamically discovers and loads it, is ``ExactEigensolver``.
+   When referring to Exact Eigensolver declaratively inside Qiskit Aqua, its code ``name``, by which
+   Qiskit Aqua dynamically discovers and loads it, is ``ExactEigensolver``.
 
 .. topic:: Problems Supported
 
-   In QISKit AQUA, Exact Eigensolver supports the ``energy``, ``ising`` and ``excited_states``  problems.
+   In Qiskit Aqua, Exact Eigensolver supports the ``energy``, ``ising`` and ``excited_states``  problems.
 
 
 CPLEX
@@ -518,12 +518,12 @@ CPLEX can be configured with the following parameters:
 
 .. topic:: Declarative Name
 
-   When referring to CPLEX declaratively inside QISKit AQUA, its code ``name``, by which
-   QISKit AQUA dynamically discovers and loads it, is ``CPLEX``.
+   When referring to CPLEX declaratively inside Qiskit Aqua, its code ``name``, by which
+   Qiskit Aqua dynamically discovers and loads it, is ``CPLEX``.
 
 .. topic:: Problems Supported
 
-   In QISKit AQUA, CPLEX supports the ``ising`` problem.
+   In Qiskit Aqua, CPLEX supports the ``ising`` problem.
 
 
 Support Vector Machine Radial Basis Function Kernel (SVM RBF Kernel)
@@ -542,9 +542,9 @@ The default value for this parameter is ``False``.
 
 .. topic:: Declarative Name
 
-   When referring to SVM RBF Kernel declaratively inside QISKit AQUA, its code ``name``, by which
-   QISKit AQUA dynamically discovers and loads it, is ``SVM_RBF_Kernel``.
+   When referring to SVM RBF Kernel declaratively inside Qiskit Aqua, its code ``name``, by which
+   Qiskit Aqua dynamically discovers and loads it, is ``SVM_RBF_Kernel``.
 
 .. topic:: Problems Supported
 
-   In QISKit AQUA, SVM RBF Kernel  supports the ``svm_classification`` problem.
+   In Qiskit Aqua, SVM RBF Kernel  supports the ``svm_classification`` problem.

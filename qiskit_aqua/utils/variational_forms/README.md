@@ -1,6 +1,6 @@
-# QISKit AQUA - Variational Forms
+# Qiskit Aqua - Variational Forms
 
-QISKit Algorithms and Circuits for QUantum Applications (QISKit AQUA) is a set of algorithms and utilities
+Qiskit Algorithms for QUantum Applications (Qiskit Aqua) is a set of algorithms and utilities
 for use with quantum computers. 
 The *variational_forms* folder here contains trial wavefunction pluggable objects that may be used by algorithms
 
@@ -148,7 +148,7 @@ The following allows a specific form to be configured:
 
 # Developers
 
-New variational forms may be added programmatically and dynamically discovered by the QISKit AQUA.
+New variational forms may be added programmatically and dynamically discovered by the Qiskit Aqua.
 See [Developers](../..#developers) section in algorithms readme for further information.
 
 A new variational form should extend the variational_form class. A schema should define the configuration of this new

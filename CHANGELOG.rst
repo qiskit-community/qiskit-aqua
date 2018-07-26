@@ -35,7 +35,7 @@ Changed
 -------
 
 - Clean up use_basis_gates options.
-- Change QISKit registering for QISKit 0.5.5.
+- Change Qiskit registering for Qiskit 0.5.5.
 
 Fixed
 -----
@@ -68,8 +68,8 @@ Changed
 - Updated qiskit minimum version in setup.py.
 - Fixed links in readme.me.
 
-.. _UNRELEASED: https://github.com/QISKit/aqua/compare/0.1.2...HEAD
-.. _0.1.2: https://github.com/QISKit/aqua/compare/0.1.1...0.1.2
-.. _0.1.1: https://github.com/QISKit/aqua/compare/0.1.0...0.1.1
+.. _UNRELEASED: https://github.com/Qiskit/aqua/compare/0.1.2...HEAD
+.. _0.1.2: https://github.com/Qiskit/aqua/compare/0.1.1...0.1.2
+.. _0.1.1: https://github.com/Qiskit/aqua/compare/0.1.0...0.1.1
 
 .. _Keep a Changelog: http://keepachangelog.com/en/1.0.0/

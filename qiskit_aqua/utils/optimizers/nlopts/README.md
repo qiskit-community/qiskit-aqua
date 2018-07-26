@@ -1,6 +1,6 @@
-# QISKit AQUA - Optimizers - NLopt
+# Qiskit Aqua - Optimizers - NLopt
 
-QISKit Algorithms and Circuits for QUantum Applications (QISKit AQUA) is a set of algorithms and utilities
+Qiskit Algorithms for QUantum Applications (Qiskit Aqua) is a set of algorithms and utilities
 for use with quantum computers. 
 The *nlopts* folder here contains a variety of different optimizers for use by algorithms.
 These optimizers are based on the open-source [NLOpt](https://nlopt.readthedocs.io) package.

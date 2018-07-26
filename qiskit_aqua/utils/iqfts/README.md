@@ -1,6 +1,6 @@
-# QISKit AQUA - Inverse Quantum Fourier Tranforms (IQFT)
+# Qiskit Aqua - Inverse Quantum Fourier Tranforms (IQFT)
 
-QISKit Algorithms and Circuits for QUantum Applications (QISKit AQUA) is a set of algorithms and utilities
+Qiskit Algorithms for QUantum Applications (Qiskit Aqua) is a set of algorithms and utilities
 for use with quantum computers. 
 The *iqfts* folder here contains Inverse Quantum Fourier Transform pluggable objects that may be used by algorithms
 

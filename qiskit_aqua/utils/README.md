@@ -1,6 +1,6 @@
-# QISKit AQUA - Utils
+# Qiskit Aqua - Utils
 
-QISKit Algorithms and Circuits for QUantum Applications (QISKit AQUA) is a set of algorithms and utilities
+Qiskit Algorithms for QUantum Applications (Qiskit Aqua) is a set of algorithms and utilities
 for use with quantum computers. 
 The *utils* folder here contains common software and pluggable objects that may be used by algorithms 
 
