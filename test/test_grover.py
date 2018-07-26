@@ -19,11 +19,11 @@ import unittest
 import operator
 
 from parameterized import parameterized
-from test.common import QISKitAquaTestCase
+from test.common import QiskitAquaTestCase
 from qiskit_aqua import get_algorithm_instance, get_oracle_instance
 
 
-class TestGrover(QISKitAquaTestCase):
+class TestGrover(QiskitAquaTestCase):
 
     @parameterized.expand([
         ['test_grover_tiny.cnf', 1],

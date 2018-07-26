@@ -19,14 +19,14 @@ import unittest
 import numpy as np
 from parameterized import parameterized
 
-from test.common import QISKitAquaTestCase
+from test.common import QiskitAquaTestCase
 from qiskit_aqua import Operator, run_algorithm
 from qiskit_aqua.input import get_input_instance
 from qiskit_aqua import get_algorithm_instance, get_initial_state_instance, \
                          get_variational_form_instance, get_optimizer_instance
 
 
-class TestVQE(QISKitAquaTestCase):
+class TestVQE(QiskitAquaTestCase):
 
     def setUp(self):
         np.random.seed(50)

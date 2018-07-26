@@ -19,12 +19,12 @@ import unittest
 
 import numpy as np
 
-from test.common import QISKitAquaTestCase
+from test.common import QiskitAquaTestCase
 from qiskit_aqua.operator import Operator
 from qiskit_aqua import get_algorithm_instance, get_initial_state_instance
 
 
-class TestEvolution(QISKitAquaTestCase):
+class TestEvolution(QiskitAquaTestCase):
     """Evolution tests."""
 
     def test_evolution(self):

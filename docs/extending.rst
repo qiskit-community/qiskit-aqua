@@ -185,7 +185,7 @@ and executing all the existing unit tests to make sure that no bugs were inadver
 Writing Unit Tests
 ~~~~~~~~~~~~~~~~~~
 Unit tests should go under the ``test`` folder and be classes derived from
-the ``QISKitAquaTestCase`` class.  They should not have ``print`` statements;
+the ``QiskitAquaTestCase`` class.  They should not have ``print`` statements;
 rather, they should use ``self.log.debug``. If
 they use assertions, these should be from the ``unittest`` package, such as
 ``self.AssertTrue``, ``self.assertRaises``, etc.

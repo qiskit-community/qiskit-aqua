@@ -21,7 +21,7 @@ from qiskit_aqua import get_algorithm_instance, get_initial_state_instance, Oper
 from qiskit_aqua.utils import decimal_to_binary
 import numpy as np
 from scipy.linalg import expm
-from test.common import QISKitAquaTestCase
+from test.common import QiskitAquaTestCase
 
 
 pauli_dict = {
@@ -36,7 +36,7 @@ pauli_dict = {
 qubitOp_h2_with_2_qubit_reduction = Operator.load_from_dict(pauli_dict)
 
 
-class TestIQPE(QISKitAquaTestCase):
+class TestIQPE(QiskitAquaTestCase):
     """QPE tests."""
 
     @parameterized.expand([

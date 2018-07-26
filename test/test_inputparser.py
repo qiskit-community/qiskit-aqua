@@ -23,12 +23,12 @@ import unittest
 import os
 import json
 
-from test.common import QISKitAquaTestCase
+from test.common import QiskitAquaTestCase
 from qiskit_aqua import AlgorithmError
 from qiskit_aqua import run_algorithm
 from qiskit_aqua.parser import InputParser
 
-class TestInputParser(QISKitAquaTestCase):
+class TestInputParser(QiskitAquaTestCase):
     """Input Parser and algorithms tests."""
 
     def setUp(self):
