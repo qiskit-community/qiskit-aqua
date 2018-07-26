@@ -59,7 +59,7 @@ class PreferencesDialog(Dialog):
         self._populateDefaults.set(1 if populate else 0)
         
         qiskitGroup = ttk.LabelFrame(parent,
-                                     text='QISKit Configuration',
+                                     text='Qiskit Configuration',
                                      padding=(6,6,6,6),
                                      borderwidth=4,
                                      relief=tk.GROOVE)

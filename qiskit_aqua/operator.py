@@ -1111,15 +1111,15 @@ class Operator(object):
             slice_pauli_list (list): The list of pauli terms corresponding to a single time slice to be evolved
             evo_time (int): The evolution time
             num_time_slices (int): The number of time slices for the expansion
-            state_registers (QuantumRegister): The QISKit QuantumRegister corresponding to the qubits of the system
-            ancillary_registers (QuantumRegister): The optional QISKit QuantumRegister corresponding to the control
+            state_registers (QuantumRegister): The Qiskit QuantumRegister corresponding to the qubits of the system
+            ancillary_registers (QuantumRegister): The optional Qiskit QuantumRegister corresponding to the control
                 qubits for the state_registers of the system
             ctl_idx (int): The index of the qubit of the control ancillary_registers to use
             unitary_power (int): The power to which the unitary operator is to be raised
             use_basis_gates (bool): boolean flag for indicating only using basis gates when building circuit.
 
         Returns:
-            QuantumCircuit: The QISKit QuantumCircuit corresponding to specified evolution.
+            QuantumCircuit: The Qiskit QuantumCircuit corresponding to specified evolution.
         """
         if state_registers is None:
             raise ValueError('Quantum state registers are required.')

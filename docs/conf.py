@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# QISKit AQUA  documentation build configuration file, created by
+# Qiskit Aqua  documentation build configuration file, created by
 # sphinx-quickstart on Mon Feb  5 15:24:52 2018.
 #
 # This file is execfile()d with the current directory set to its
@@ -73,13 +73,13 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'QISKit AQUA'
+project = 'Qiskit Aqua'
 copyright = '2018 IBM'
 author = 'IBM'
 
 # Add description
 html_context = {
-    'description': 'QISKit AQUA'
+    'description': 'Qiskit Aqua'
 }
 
 # The version info for the project you're documenting, acts as replacement for
@@ -144,7 +144,7 @@ html_last_updated_fmt = '%Y/%m/%d'
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'QISKitAquadoc'
+htmlhelp_basename = 'QiskitAquadoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -171,7 +171,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'QISKitAqua.tex', 'QISKit AQUA Documentation',
+    (master_doc, 'QiskitAqua.tex', 'Qiskit Aqua Documentation',
      'Several authors', 'manual'),
 ]
 
@@ -181,7 +181,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'qiskit_aqua', 'QISKit AQUA Documentation',
+    (master_doc, 'qiskit_aqua', 'Qiskit Aqua Documentation',
      [author], 1)
 ]
 
@@ -192,7 +192,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'qiskit_aqua', 'QISKit AQUA Documentation',
+    (master_doc, 'qiskit_aqua', 'Qiskit Aqua Documentation',
      author, 'qiskit_aqua', 'One line description of project.',
      'Miscellaneous'),
 ]

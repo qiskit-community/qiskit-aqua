@@ -4,7 +4,7 @@
 # Dolphin KDE
 .directory
 
-# QISKit SDK config file
+# Qiskit SDK config file
 Qconfig.py
 
 # Exclude NLopt

@@ -169,7 +169,7 @@ class QuantumAlgorithm(ABC):
         info = "Algorithm: '{}' setup with backend '{}', with following setting:\n {}\n{}".format(
             self._configuration['name'], my_backend.configuration['name'], self._execute_config, self._qjob_config)
 
-        logger.info('QISKit Core version {}'.format(qiskit_version))
+        logger.info('Qiskit Core version {}'.format(qiskit_version))
         logger.info(info)
 
     def execute(self, circuits):
@@ -208,10 +208,10 @@ class QuantumAlgorithm(ABC):
             for provider in q_registered_providers():
                 if isinstance(provider,IBMQProvider):
                     q_unregister(provider)
-                    logger.debug("Provider 'IBMQProvider' unregistered with QISKit successfully.")
+                    logger.debug("Provider 'IBMQProvider' unregistered with Qiskit successfully.")
                     break
         except Exception as e:
-                logger.debug("Failed to unregister provider 'IBMQProvider' with QISKit: {}".format(str(e)))
+                logger.debug("Failed to unregister provider 'IBMQProvider' with Qiskit: {}".format(str(e)))
 
         if qconfig is not None:
             hub = qconfig.config.get('hub', None)
@@ -228,9 +228,9 @@ class QuantumAlgorithm(ABC):
                            project=project,
                            proxies=proxies,
                            verify=verify)
-                logger.debug("Provider 'IBMQProvider' registered with QISKit successfully.")
+                logger.debug("Provider 'IBMQProvider' registered with Qiskit successfully.")
             except Exception as e:
-                logger.debug("Failed to register provider 'IBMQProvider' with QISKit: {}".format(str(e)))
+                logger.debug("Failed to register provider 'IBMQProvider' with Qiskit: {}".format(str(e)))
 
         backends = available_backends()
         backends = [x for x in backends if x not in QuantumAlgorithm.UNSUPPORTED_BACKENDS]
