@@ -764,18 +764,18 @@ class Operator(object):
 
         # If the statevector is already a vector, skip the evaluation from quantum simulator.
 
-        if backend.startswith('local'):
-            self.MAX_CIRCUITS_PER_JOB = sys.maxsize
-
         if isinstance(input_circuit, np.ndarray):
             avg = self._eval_directly(input_circuit)
             std_dev = 0.0
-        elif "statevector" in backend:
-            execute_config['shots'] = 1
-            avg = self._eval_with_statevector(operator_mode, input_circuit, backend, execute_config)
-            std_dev = 0.0
         else:
-            avg, std_dev = self._eval_multiple_shots(operator_mode, input_circuit, backend, execute_config, qjob_config)
+            if backend.startswith('local'):
+                self.MAX_CIRCUITS_PER_JOB = sys.maxsize
+            if "statevector" in backend:
+                execute_config['shots'] = 1
+                avg = self._eval_with_statevector(operator_mode, input_circuit, backend, execute_config)
+                std_dev = 0.0
+            else:
+                avg, std_dev = self._eval_multiple_shots(operator_mode, input_circuit, backend, execute_config, qjob_config)
         return avg, std_dev
 
     def convert(self, input_format, output_format, force=False):
@@ -1498,14 +1498,14 @@ class Operator(object):
     def find_Z2_symmetries(self):
         """
         Finds Z2 Pauli-type symmetries of an Operator
-        
+
         Returns:
-            [Pauli]: the list of Pauli objects representing the Z2 symmetries 
+            [Pauli]: the list of Pauli objects representing the Z2 symmetries
             [Pauli]: the list of single - qubit Pauli objects to construct the Cliffors operators
             [Operators]: the list of Clifford unitaries to block diagonalize Operator
             [int]: the list of support of the single-qubit Pauli objects used to build the clifford operators
         """
-        
+
         Pauli_symmetries = []
         sq_paulis = []
         cliffords = []
@@ -1539,7 +1539,7 @@ class Operator(object):
                          stacked_symmetries[row, col + symm_shape[1] // 2] == 0) or
                          (stacked_symmetries[row, col] == 1 and
                          stacked_symmetries[row, col + symm_shape[1] // 2] == 1)):
-                        sq_paulis.append(Pauli(np.zeros(symm_shape[1] // 2), 
+                        sq_paulis.append(Pauli(np.zeros(symm_shape[1] // 2),
                                                np.zeros(symm_shape[1] // 2)))
                         sq_paulis[row].v[col] = 0
                         sq_paulis[row].w[col] = 1
@@ -1563,8 +1563,8 @@ class Operator(object):
                         sq_list.append(col)
                         break
 
-                # case symmetries other than one at (row)  have Y or I on col qubit 
-                Y_or_I = True 
+                # case symmetries other than one at (row)  have Y or I on col qubit
+                Y_or_I = True
                 for symm_idx in range(symm_shape[0] - 1):
                     if not ( (stacked_symm_del[symm_idx, col] == 1 and
                               stacked_symm_del[symm_idx, col + symm_shape[1] // 2] == 1)
@@ -1572,9 +1572,9 @@ class Operator(object):
                               stacked_symm_del[symm_idx, col + symm_shape[1] // 2] == 0) ):
                         Y_or_I = False
                 if Y_or_I == True:
-                    if ( (stacked_symmetries[row, col] == 0 and 
+                    if ( (stacked_symmetries[row, col] == 0 and
                           stacked_symmetries[row, col + symm_shape[1] // 2] == 1) or
-                         (stacked_symmetries[row, col] == 1 and 
+                         (stacked_symmetries[row, col] == 1 and
                           stacked_symmetries[row, col + symm_shape[1] // 2] == 0) ):
                         sq_paulis.append(Pauli(np.zeros(symm_shape[1] // 2), np.zeros(symm_shape[1] // 2)))
                         sq_paulis[row].v[col] = 1
@@ -1590,9 +1590,9 @@ class Operator(object):
     @staticmethod
     def qubit_tapering(operator, cliffords, sq_list, tapering_values):
         """
-        Builds an Operator which has a number of qubits tapered off, 
+        Builds an Operator which has a number of qubits tapered off,
         based on a block-diagonal Operator built using a list of cliffords.
-        The block-diagonal subspace is an input parameter, set through the list 
+        The block-diagonal subspace is an input parameter, set through the list
         tapering_values, which takes values +/- 1.
 
         Args:
@@ -1615,11 +1615,11 @@ class Operator(object):
             qubit list and tapering values')
 
         for clifford in cliffords:
-            operator = clifford * operator * clifford 
+            operator = clifford * operator * clifford
 
         operator_out = Operator(paulis=[])
         n = len(operator.paulis[0][1].v)
-        for pauli_term in operator.paulis:  
+        for pauli_term in operator.paulis:
             coeff_out = pauli_term[0]
             for qubit_idx, qubit in enumerate(sq_list):
                 if not (pauli_term[1].v[qubit] == 0 and pauli_term[1].w[qubit] == 0):
@@ -1633,7 +1633,7 @@ class Operator(object):
             pauli_term_out = [coeff_out, Pauli(np.array(v_temp), np.array(w_temp))]
             operator_out += Operator(paulis=[pauli_term_out])
 
-        return operator_out       
+        return operator_out
 
     def zeros_coeff_elimination(self):
         """
