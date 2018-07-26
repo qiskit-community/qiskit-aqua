@@ -17,9 +17,9 @@
 
 import unittest
 from parameterized import parameterized
-from qiskit_acqua import get_algorithm_instance, get_optimizer_instance
-from test.common import QISKitAcquaTestCase
-from qiskit_acqua.ising import maxcut
+from qiskit_aqua import get_algorithm_instance, get_optimizer_instance
+from test.common import QISKitAquaTestCase
+from qiskit_aqua.ising import maxcut
 import numpy as np
 
 w1 = np.array([
@@ -42,7 +42,7 @@ p2 = 1
 s2 = {'1011', '0100'}
 
 
-class TestQAOA(QISKitAcquaTestCase):
+class TestQAOA(QISKitAquaTestCase):
     """Test QAOA with MaxCut."""
     @parameterized.expand([
         [w1, p1, s1],

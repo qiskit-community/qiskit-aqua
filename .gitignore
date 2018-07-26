@@ -95,7 +95,7 @@ docs/_build/
 docs/*.rst
 #Allow
 !docs/dev_introduction.rst
-!docs/qiskit-acqua.rst
+!docs/qiskit-aqua.rst
 !docs/index.rst
 !docs/install.rst
 !docs/quickstart.rst

@@ -18,10 +18,10 @@
 import unittest
 import itertools
 from parameterized import parameterized
-from test.common import QISKitAcquaTestCase
+from test.common import QISKitAquaTestCase
 from qiskit.wrapper import execute as q_execute
 from qiskit import QuantumCircuit, ClassicalRegister
-from qiskit_acqua.utils.oracles.sat import SAT
+from qiskit_aqua.utils.oracles.sat import SAT
 
 
 cnf_str_1 = '''
@@ -52,7 +52,7 @@ p cnf 3 5
 sols_3 = [(True, False, True), (False, False, False), (True, True, False)]
 
 
-class TestSATOracle(QISKitAcquaTestCase):
+class TestSATOracle(QISKitAquaTestCase):
     @parameterized.expand([
         [cnf_str_1, sols_1],
         [cnf_str_2, sols_2],

@@ -1,7 +1,7 @@
 Optimizers
 ==========
 
-QISKit ACQUA  contains a variety of classical optimizers for
+QISKit AQUA  contains a variety of classical optimizers for
 use by quantum variational algorithms, such as `VQE <./algorithms.html#variational-quantum-eigensolver-vqe>`__.  We can logically divide
 optimizers into two categories:
 
@@ -13,17 +13,17 @@ optimizers into two categories:
 
 
 .. topic:: Extending the Optimizer Library
-    Consistent with its unique  design and architecture, QISKit ACQUA has a modular and
+    Consistent with its unique  design and architecture, QISKit AQUA has a modular and
     extensible architecture. Algorithms and their supporting objects, such as optimizers for quantum variational algorithms,
-    are pluggable modules in QISKit ACQUA. This was done in order to encourage researchers and developers interested in
-    quantum algorithms to extend the QISKit ACQUA framework with their novel research contributions.
-    New optimizers for quantum variational algorithms should be installed in the ``qiskit_acqua/utils/optimizers`` folder and derive from the
+    are pluggable modules in QISKit AQUA. This was done in order to encourage researchers and developers interested in
+    quantum algorithms to extend the QISKit AQUA framework with their novel research contributions.
+    New optimizers for quantum variational algorithms should be installed in the ``qiskit_aqua/utils/optimizers`` folder and derive from the
     ``Optimizer`` class.
 
 Local Optimizers
 ----------------
 
-This section presents the local optimizers made available in QISKit ACQUA, and meant to be used in conjunction with quantum variational
+This section presents the local optimizers made available in QISKit AQUA, and meant to be used in conjunction with quantum variational
 algorithms:
 - :ref:`Conjugate Gradient (CG) Method`
 - :ref:`Constrained Optimization BY Linear Approximation (COBYLA)`
@@ -87,7 +87,7 @@ The following parameters are supported:
 
 .. topic:: Declarative Name
 
-   When referring to CG declaratively inside QISKit ACQUA, its code ``name``, by which QISKit ACQUA dynamically discovers and loads it,
+   When referring to CG declaratively inside QISKit AQUA, its code ``name``, by which QISKit AQUA dynamically discovers and loads it,
    is ``CG``.
 
 Constrained Optimization BY Linear Approximation (COBYLA)
@@ -130,7 +130,7 @@ COBYLA supports the following parameters:
 
 .. topic:: Declarative Name
 
-   When referring to COBYLA declaratively inside QISKit ACQUA, its code ``name``, by which QISKit ACQUA dynamically discovers and loads it,
+   When referring to COBYLA declaratively inside QISKit AQUA, its code ``name``, by which QISKit AQUA dynamically discovers and loads it,
    is ``COBYLA``.
 
 Limited-memory Broyden-Fletcher-Goldfarb-Shanno Bound (L-BFGS-B)
@@ -180,7 +180,7 @@ Further detailed information on *factr* and *iprint* may be found at
 
 .. topic:: Declarative Name
 
-   When referring to L-BFGS-B declaratively inside QISKit ACQUA, its code ``name``, by which QISKit ACQUA dynamically discovers and loads it,
+   When referring to L-BFGS-B declaratively inside QISKit AQUA, its code ``name``, by which QISKit AQUA dynamically discovers and loads it,
    is ``L_BFGS_B``.
 
 Nelder-Mead
@@ -243,7 +243,7 @@ The following parameters are supported:
 
 .. topic:: Declarative Name
 
-   When referring to Nelder-Mead declaratively inside QISKit ACQUA, its code ``name``, by which QISKit ACQUA dynamically discovers and loads it,
+   When referring to Nelder-Mead declaratively inside QISKit AQUA, its code ``name``, by which QISKit AQUA dynamically discovers and loads it,
    is ``NELDER_MEAD``.
 
 Parallel Broyden-Fletcher-Goldfarb-Shann (P-BFGS)
@@ -277,8 +277,8 @@ The default is ``None``.
 
 .. topic:: Declarative Name
 
-   When referring to P-BFGS declaratively inside QISKit ACQUA,
-   its code ``name``, by which QISKit ACQUA dynamically discovers and loads it,
+   When referring to P-BFGS declaratively inside QISKit AQUA,
+   its code ``name``, by which QISKit AQUA dynamically discovers and loads it,
    is ``P_BFGS``.
 
 Powell
@@ -338,7 +338,7 @@ The following parameters are supported:
 
 .. topic:: Declarative Name
 
-   When referring to Powell declaratively inside QISKit ACQUA, its code ``name``, by which QISKit ACQUA dynamically discovers and loads it,
+   When referring to Powell declaratively inside QISKit AQUA, its code ``name``, by which QISKit AQUA dynamically discovers and loads it,
    is ``POWELL``.
 
 Sequential Least SQuares Programming (SLSQP)
@@ -390,7 +390,7 @@ The following parameters are supported:
 
 .. topic:: Declarative Name
 
-   When referring to SLSQP declaratively inside QISKit ACQUA, its code ``name``, by which QISKit ACQUA dynamically discovers and loads it,
+   When referring to SLSQP declaratively inside QISKit AQUA, its code ``name``, by which QISKit AQUA dynamically discovers and loads it,
    is ``SLSQP``.
 
 Simultaneous Perturbation Stochastic Approximation (SPSA)
@@ -464,7 +464,7 @@ functional evaluations.  Overall, the following parameters are supported:
 
 .. topic:: Declarative Name
 
-   When referring to SPSA declaratively inside QISKit ACQUA, its code ``name``, by which QISKit ACQUA dynamically discovers and loads it,
+   When referring to SPSA declaratively inside QISKit AQUA, its code ``name``, by which QISKit AQUA dynamically discovers and loads it,
    is ``SPSA``.
 
 
@@ -538,17 +538,17 @@ The following parameters are supported:
 
 .. topic:: Declarative Name
 
-   When referring to TNC declaratively inside QISKit ACQUA, its code ``name``, by which QISKit ACQUA dynamically discovers and loads it,
+   When referring to TNC declaratively inside QISKit AQUA, its code ``name``, by which QISKit AQUA dynamically discovers and loads it,
    is ``TNC``.
 
 Global Optimizers
 -----------------
-QISKit ACQUA supports a number of classical global optimizers,
+QISKit AQUA supports a number of classical global optimizers,
 all based on the open-source `NonLinear optimization (NLopt) library <https://nlopt.readthedocs.io>`__.
 Each of these optimizers uses the corresponding named optimizer from NLopt.
 This package has native code implementations and must be
-installed locally for these global optimizers to be accessible by QISKit ACQUA.
-Wrapper code allowing QISKit ACQUA to interface these optimizers is installed
+installed locally for these global optimizers to be accessible by QISKit AQUA.
+Wrapper code allowing QISKit AQUA to interface these optimizers is installed
 in the ``nlopt`` subfolder of the ``optimizers`` folder.
 
 .. topic:: Installation of NLopt
@@ -556,11 +556,11 @@ in the ``nlopt`` subfolder of the ``optimizers`` folder.
     The `NLopt download and installation instructions <https://nlopt.readthedocs.io/en/latest/#download-and-installation>`__
     describe how to install NLopt.
 
-    If you running QISKit ACQUA on Windows, then you might want to refer to the specific `instructions for
+    If you running QISKit AQUA on Windows, then you might want to refer to the specific `instructions for
     NLopt on Windows <https://nlopt.readthedocs.io/en/latest/NLopt_on_Windows/>`__.
 
-    If you are running QISKit ACQUA on a Unix-like system, first ensure that your environment is set
-    to the Python executable for which the qiskit_acqua package is installed and running.
+    If you are running QISKit AQUA on a Unix-like system, first ensure that your environment is set
+    to the Python executable for which the qiskit_aqua package is installed and running.
     Now, having downloaded and unpacked the NLopt archive file
     (for example, ``nlopt-2.4.2.tar.gz`` for version 2.4.2), enter the following commands:
 
@@ -571,7 +571,7 @@ in the ``nlopt`` subfolder of the ``optimizers`` folder.
         sudo make install
 
     The above makes and installs the shared libraries and Python interface in `/usr/local`. To have these be used
-    by QISKit ACQUA, the following commands can be entered to augment the dynamic library load path and python path respectively,
+    by QISKit AQUA, the following commands can be entered to augment the dynamic library load path and python path respectively,
     assuming that you choose to leave these entities where they were built/installed as per above commands and that you
     are running Python 3.6:
 
@@ -581,7 +581,7 @@ in the ``nlopt`` subfolder of the ``optimizers`` folder.
         export PYTHONPATH=/usr/local/lib/python3.6/site-packages:${PYTHONPATH}
 
     The two ``export`` commands above can be pasted into the ``.bash_profile`` file in the user's home directory for
-    automatic execution.  Now you can run QISKit ACQUA and these optimizers should be available for you to use.
+    automatic execution.  Now you can run QISKit AQUA and these optimizers should be available for you to use.
 
 .. topic:: The ``max_evals`` Parameter
 
@@ -597,7 +597,7 @@ in the ``nlopt`` subfolder of the ``optimizers`` folder.
     This parameter takes a positive integer as its value, indicating the masimum
     object function evaluation.  The default value is ``1000``.
 
-Currently, QISKit ACQUA supplies the following global optimizers from NLOpt:
+Currently, QISKit AQUA supplies the following global optimizers from NLOpt:
 
 - :ref:`Controller Random Search (CRS) with Local Mutation`
 - :ref:`DIviding RECTangles algorithm - Locally based (DIRECT-L)`
@@ -615,8 +615,8 @@ In the case of CRS with local mutation, the evolution is a randomized version of
 
 .. topic:: Declarative Name
 
-   When referring to CRS with local mutation declaratively inside QISKit ACQUA, its code ``name``,
-   by which QISKit ACQUA dynamically discovers and loads it, is ``CRS``.
+   When referring to CRS with local mutation declaratively inside QISKit AQUA, its code ``name``,
+   by which QISKit AQUA dynamically discovers and loads it, is ``CRS``.
 
 DIviding RECTangles algorithm - Locally based (DIRECT-L)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -629,8 +629,8 @@ so that it is more efficient for functions with few local minima.
 
 .. topic:: Declarative Name
 
-   When referring to DIRECT-L declaratively inside QISKit ACQUA, its code ``name``,
-   by which QISKit ACQUA dynamically discovers and loads it, is ``DIRECT_L``.
+   When referring to DIRECT-L declaratively inside QISKit AQUA, its code ``name``,
+   by which QISKit AQUA dynamically discovers and loads it, is ``DIRECT_L``.
 
 DIviding RECTangles algorithm - Locally based - RANDomized (DIRECT-L-RAND)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -641,8 +641,8 @@ that uses some randomization to help decide which dimension to halve next in the
 
 .. topic:: Declarative Name
 
-   When referring to DIRECT-L-RAND declaratively inside QISKit ACQUA, its code ``name``,
-   by which QISKit ACQUA dynamically discovers and loads it, is ``DIRECT_L_RAND``.
+   When referring to DIRECT-L-RAND declaratively inside QISKit AQUA, its code ``name``,
+   by which QISKit AQUA dynamically discovers and loads it, is ``DIRECT_L_RAND``.
 
 Evolutionary Strategy algorithm with CaucHy distribution (ESCH)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -653,8 +653,8 @@ Specifically, it does not support nonlinear constraints.
 
 .. topic:: Declarative Name
 
-   When referring to ESCH declaratively inside QISKit ACQUA, its code ``name``,
-   by which QISKit ACQUA dynamically discovers and loads it, is ``ESCH``.
+   When referring to ESCH declaratively inside QISKit AQUA, its code ``name``,
+   by which QISKit AQUA dynamically discovers and loads it, is ``ESCH``.
 
 
 Improved Stochastic Ranking Evolution Strategy (ISRES)
@@ -671,5 +671,5 @@ This method supports arbitrary nonlinear inequality and equality constraints, in
 
 .. topic:: Declarative Name
 
-   When referring to ISRES declaratively inside QISKit ACQUA, its code ``name``,
-   by which QISKit ACQUA dynamically discovers and loads it, is ``ISRES``.
+   When referring to ISRES declaratively inside QISKit AQUA, its code ``name``,
+   by which QISKit AQUA dynamically discovers and loads it, is ``ISRES``.

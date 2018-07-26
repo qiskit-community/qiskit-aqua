@@ -1,50 +1,50 @@
-Contributing to QISKit ACQUA
+Contributing to QISKit AQUA
 ============================
 
-QISKit ACQUA has a modular and extensible architecture.
+QISKit AQUA has a modular and extensible architecture.
 
-Instead of just *accessing* QISKit ACQUA as a library of quantum algorithms to experiment with quantum
-computing, a user may decide to *contribute* to QISKit ACQUA by
+Instead of just *accessing* QISKit AQUA as a library of quantum algorithms to experiment with quantum
+computing, a user may decide to *contribute* to QISKit AQUA by
 providing new algorithms and algorithm components.
-These can be programmatically added to QISKit ACQUA,
+These can be programmatically added to QISKit AQUA,
 which was designed as an extensible, pluggable
 framework.
 
 .. topic:: Contribution Guidelines
 
-    Any user who would like to contribute to QISKit ACQUA should follow the QISKit ACQUA `contribution
-    guidelines <https://github.com/QISKit/qiskit-acqua/blob/master/.github/CONTRIBUTING.rst>`__.
+    Any user who would like to contribute to QISKit AQUA should follow the QISKit AQUA `contribution
+    guidelines <https://github.com/QISKit/aqua/blob/master/.github/CONTRIBUTING.rst>`__.
 
-Extending QISKit ACQUA
+Extending QISKit AQUA
 ----------------------
 
-QISKit ACQUA exposes numerous extension points. Researchers and developers can contribute to QISKit ACQUA
-by providing new components, which will be automatically discovered and loaded by QISKit ACQUA at run time.
+QISKit AQUA exposes numerous extension points. Researchers and developers can contribute to QISKit AQUA
+by providing new components, which will be automatically discovered and loaded by QISKit AQUA at run time.
 
 Dynamically Discovered Components
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Each component should derive from the corresponding base class, as explained below.  There are three
-ways for a component to be dynamically discovered and loaded by QISKit ACQUA at run time:
+ways for a component to be dynamically discovered and loaded by QISKit AQUA at run time:
 
 1. The class implementing the component should be placed in the appropriate folder in the file system,
    as explained in `Section "Extension Points" <#extension-points>`__ below for each different component type.
    This is the easiest approach.  Researchers
-   and developers extending QISKit ACQUA are more likely to have installed QISKit ACQUA by cloning the
-   `QISKit ACQUA repository <https://github.com/Qiskit/qiskit-acqua>`__ as opposed to using the pip package
+   and developers extending QISKit AQUA are more likely to have installed QISKit AQUA by cloning the
+   `QISKit AQUA repository <https://github.com/Qiskit/aqua>`__ as opposed to using the pip package
    manager system.  Therefore, the folders indicated below can be easily located in the file system.
 
-2. Alternatively, a developer extending QISKit ACQUA with a new component can simply create a dedicated
+2. Alternatively, a developer extending QISKit AQUA with a new component can simply create a dedicated
    repository with its own versioning.  This repository must be locally installable with the package that was
    created.  Once the repository has been installed, for example via the ``pip install -e`` command,
    the user can access the
-   QISKit ACQUA `Graphical User Interface (GUI) <https://qiskit.org/documentation/acqua/install.html#gui>`__
+   QISKit AQUA `Graphical User Interface (GUI) <https://qiskit.org/documentation/aqua/install.html#gui>`__
    and add the package's name to the list of packages in the **Preferences** panel.
    From that moment on, any custom component found below that package will be dynamically added to
-   ``qiskit-acqua`` upon initialization.
+   ``qiskit-aqua`` upon initialization.
 
 3. There is yet another way to achieve the same goal, and it simply consists of customizing the
-   ``setup.py`` file of the new component in order to add the package's name to ``qiskit-acqua``
+   ``setup.py`` file of the new component in order to add the package's name to ``qiskit-aqua``
    when someone installs the package, without the need of using the GUI to enter it later.  This is an example
    of what ``setup.py`` would look like:
 
@@ -56,18 +56,18 @@ ways for a component to be dynamically discovered and loaded by QISKit ACQUA at 
        from setuptools.command.egg_info import egg_info
        import atexit
 
-       long_description = """New Package for QISKit ACQUA Component"""
+       long_description = """New Package for QISKit AQUA Component"""
     
        requirements = [
-          "qiskit-acqua>=0.1.2",
+          "qiskit-aqua>=0.2.0",
           "qiskit>=0.5.6",
           "numpy>=1.13,<1.15"
        ]
 
        def _post_install():
-          from qiskit_acqua.preferences import Preferences
+          from qiskit_aqua.preferences import Preferences
           preferences = Preferences()
-          preferences.add_package('acqua_custom_component_package')
+          preferences.add_package('aqua_custom_component_package')
           preferences.save()
 
        class CustomInstallCommand(install):
@@ -86,13 +86,13 @@ ways for a component to be dynamically discovered and loaded by QISKit ACQUA at 
           egg_info.run(self)
     
        setuptools.setup(
-          name = 'acqua_custom_component_package',
+          name = 'aqua_custom_component_package',
           version = "0.1.0", # this should match __init__.__version__
-          description='QISKit ACQUA Component',
+          description='QISKit AQUA Component',
           long_description = long_description,
           long_description_content_type = "text/markdown",
-          url = 'https://github.com/acqua-custom-component-package',
-          author = 'QISKit ACQUA Development Team',
+          url = 'https://github.com/aqua-custom-component-package',
+          author = 'QISKit AQUA Development Team',
           author_email = 'qiskit@us.ibm.com',
           license='Apache-2.0',
           classifiers = (
@@ -107,7 +107,7 @@ ways for a component to be dynamically discovered and loaded by QISKit ACQUA at 
              "Programming Language :: Python :: 3.6",
              "Topic :: Scientific/Engineering"
           ),
-          keywords = 'qiskit sdk quantum acqua',
+          keywords = 'qiskit sdk quantum aqua',
           packages = setuptools.find_packages(exclude=['test*']),
           install_requires = requirements,
           include_package_data = True,
@@ -127,23 +127,23 @@ Extension Points
 ~~~~~~~~~~~~~~~~
 
 This section details the algorithm and algorithm components that researchers and developers
-interested in quantum algorithms can contribute to QISKit ACQUA.
+interested in quantum algorithms can contribute to QISKit AQUA.
 
 Algorithms
 ^^^^^^^^^^
 
-A new `algorithm <./algorithms.html>`__ may be developed according to the specific API provided by QISKit ACQUA.
+A new `algorithm <./algorithms.html>`__ may be developed according to the specific API provided by QISKit AQUA.
 By simply adding its code to the collection of existing algorithms, that new algorithm
-will be immediately recognized via dynamic lookup, and made available for use within the framework of QISKit ACQUA.
+will be immediately recognized via dynamic lookup, and made available for use within the framework of QISKit AQUA.
 To develop and deploy any new algorithm, the new algorithm class should derive from the ``QuantumAlgorithm`` class.
 Along with all of its supporting modules, the new algorithm class should be installed under its own folder in the
-``qiskit_acqua`` directory, just like the existing algorithms.
+``qiskit_aqua`` directory, just like the existing algorithms.
 
 Optimizers
 ^^^^^^^^^^
 
 New `optimizers <./optimizers.html>`__ for quantum variational algorithms
-should be installed in the ``qiskit_acqua/utils/optimizers`` folder  and derive from
+should be installed in the ``qiskit_aqua/utils/optimizers`` folder  and derive from
 the ``Optimizer`` class.
 
 Variational Forms
@@ -151,7 +151,7 @@ Variational Forms
 
 `Trial wavefunctions <./variational_forms.html>`__ for quantum variational algorithms, such as
 `VQE <./algorithms.html#variational-quantum-eigensolver-vqe>`__
-should go under the ``qiskit_acqua/utils/variational_forms`` folder
+should go under the ``qiskit_aqua/utils/variational_forms`` folder
 and derive from the ``VariationalForm`` class.
 
 Initial States
@@ -159,33 +159,33 @@ Initial States
 
 `Initial states <./initial_states.html>`__, for algorithms such as `VQE <./algorithms.html#variational-quantum-eigensolver-vqe>`__,
 `QPE <./algorithms.html#quantum-phase-estimation-qpe>`__
-and `IQPE <./algorithms.html#iterative-quantum-phase-estimation-iqpe>`__, should go under the ``qiskit_acqua/utils/initial_states`` folder and
+and `IQPE <./algorithms.html#iterative-quantum-phase-estimation-iqpe>`__, should go under the ``qiskit_aqua/utils/initial_states`` folder and
 derive from the ``InitialState`` class.
 
 Inverse Quantum Fourier Transforms (IQFTs)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `IQFTs <./iqfts.html>`__, for use for example for `QPE <./algorithms.html#quantum-phase-estimation-qpe>`__, should be installed  under the
-``qiskit_acqua/utils/iqfts`` folder and derive from the ``IQFT`` class.
+``qiskit_aqua/utils/iqfts`` folder and derive from the ``IQFT`` class.
 
 Oracles
 ^^^^^^^
 
 `Oracles <./oracles.html>`__, for use with algorithms such as `Grover's search <./algorithms.html#quantum-grover-search>`__,
 should go under the
-``qiskit_acqua/utils/oracles`` folder  and derive from the ``Oracle`` class.
+``qiskit_aqua/utils/oracles`` folder  and derive from the ``Oracle`` class.
 
 Unit Tests
 ----------
 
-Contributing new software components to QISKit ACQUA requires writing new unit tests for those components,
+Contributing new software components to QISKit AQUA requires writing new unit tests for those components,
 and executing all the existing unit tests to make sure that no bugs were inadvertently injected.
 
 
 Writing Unit Tests
 ~~~~~~~~~~~~~~~~~~
 Unit tests should go under the ``test`` folder and be classes derived from
-the ``QISKitAcquaTestCase`` class.  They should not have ``print`` statements;
+the ``QISKitAquaTestCase`` class.  They should not have ``print`` statements;
 rather, they should use ``self.log.debug``. If
 they use assertions, these should be from the ``unittest`` package, such as
 ``self.AssertTrue``, ``self.assertRaises``, etc.
@@ -213,7 +213,7 @@ The command for help is as follows:
 `Other running options <https://docs.python.org/3/library/unittest.html#command-line-options>`__ are available
 to users for consultation.
 
-In order to see unit test log messages, researchers and developers contributing to QISKit ACQUA
+In order to see unit test log messages, researchers and developers contributing to QISKit AQUA
 will need to set the ``LOG_LEVEL`` environment variable to ``DEBUG`` mode:
 
 .. code:: sh

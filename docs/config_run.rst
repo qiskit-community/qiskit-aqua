@@ -1,35 +1,35 @@
 Configuring and Running an Experiment
 =====================================
 
-QISKit ACQUA supports two types of users:
+QISKit AQUA supports two types of users:
 
-1. *Practitioners*, who are merely interested in executing QISKit ACQUA
+1. *Practitioners*, who are merely interested in executing QISKit AQUA
    as a tool from which they can choose a
-   `quantum algorithm <https://qiskit.org/documentation/acqua/algorithms.html#quantum-algorithms>`__.
-   These users may not be interested in extending QISKit ACQUA
+   `quantum algorithm <https://qiskit.org/documentation/aqua/algorithms.html#quantum-algorithms>`__.
+   These users may not be interested in extending QISKit AQUA
    with additional capabilities.  In fact, they may not even be interested
    in learning the details of quantum computing, such as the notions of
    circuits, gates and qubits.  What these users expect
    from quantum computing is the gains in performance and accuracy, and
    the reduction in computational complexity, compared to the use of
    a `classical
-   algorithm <https://qiskit.org/documentation/acqua/algorithms.html#classical-algorithms>`__
+   algorithm <https://qiskit.org/documentation/aqua/algorithms.html#classical-algorithms>`__
    for generating reference values.
 2. *Quantum algorithm researchers and developers*, who are interested in extending
-   QISKit ACQUA with new quantum algorithms or algorithm components for more efficient
+   QISKit AQUA with new quantum algorithms or algorithm components for more efficient
    and accurate computations.
 
 In this section, we cover the first class of users --- the algorithm practitioners.
-Specifically, this section describes how QISKit ACQUA can be accessed as a
+Specifically, this section describes how QISKit AQUA can be accessed as a
 tool for experimenting with the execution of quantum algorithms.
 
-To see how you can extend QISKit ACQUA Chemistry with new components,
-please refer to `Section "Contributing to QISKit ACQUA <./extending.html>`__.
+To see how you can extend QISKit AQUA Chemistry with new components,
+please refer to `Section "Contributing to QISKit AQUA <./extending.html>`__.
 
 Execution Modes
 ---------------
 
-QISKit ACQUA has both `Graphical User Interface (GUI) <#gui>`__ and `command
+QISKit AQUA has both `Graphical User Interface (GUI) <#gui>`__ and `command
 line <#command-line>`__ tools, which may be used when experimenting with quantum algorithms.
 Both can load and run an `input
 file <#input-file>`__ specifying the the type of problem the experiment is about,
@@ -37,8 +37,8 @@ and the quantum
 algorithm to be used for the computation, along with the algorithm configuration
 and various other options to
 customize the experiment.  If you are new to
-QISKit ACQUA, we highly recommend getting started with the GUI.
-Finally, QISKIT ACQUA can also be accessed
+QISKit AQUA, we highly recommend getting started with the GUI.
+Finally, QISKIT AQUA can also be accessed
 `programmatically <#programmable-interface>`__ by users interested
 in customizing the experiments beyond what the command line and GUI can offer.
 
@@ -48,49 +48,49 @@ GUI
 The GUI provides an easy means to create from scratch, or load
 an existing, `input file <#input-file>`__, and then run that input file to experiment with a
 quantum algorithm.
-An input file for QISKit ACQUA is assumed to be in JSON format.  Such a file is created,
+An input file for QISKit AQUA is assumed to be in JSON format.  Such a file is created,
 edited and saved with schema-based validation of parameter values.
 
 When `installing <./install.html>`__
-QISKit ACQUA via the ``pip install`` command,
+QISKit AQUA via the ``pip install`` command,
 a script is created that allows you to start the GUI from the command line,
 as follows:
 
 .. code:: sh
 
-   qiskit_acqua_ui
+   qiskit_aqua_ui
 
-If you cloned QISKit ACQUA directly from the
-`GitHub repository <https://github.com/QISKit/qiskit-acqua>`__ instead of using ``pip
+If you cloned QISKit AQUA directly from the
+`GitHub repository <https://github.com/QISKit/aqua>`__ instead of using ``pip
 install``, then the script above will not be present and the launching command should be instead:
 
 .. code:: sh
 
-   python qiskit_acqua/ui/run
+   python qiskit_aqua/ui/run
 
-This command must be launched from the root folder of the ``qiskit-acqua`` repository clone.
+This command must be launched from the root folder of the ``qiskit-aqua`` repository clone.
 
 Command Line
 ~~~~~~~~~~~~
 
-QISKit ACQUA, if `installed <./install.html>`__ via ``pip install``,
+QISKit AQUA, if `installed <./install.html>`__ via ``pip install``,
 comes with the following command-line tool:
 
 .. code:: sh
 
-   qiskit_acqua_cmd
+   qiskit_aqua_cmd
 
-If you cloned QISKit ACQUA from its remote
-`GitHub repository <https://github.com/QISKit/qiskit-acqua>`__
+If you cloned QISKit AQUA from its remote
+`GitHub repository <https://github.com/QISKit/aqua>`__
 instead of using ``pip install``, then the command-line interface can be executed as follows:
 
 .. code:: sh
 
-   python qiskit_acqua
+   python qiskit_aqua
 
-from the root folder of the ``qiskit-acqua`` repository clone.
+from the root folder of the ``qiskit-aqua`` repository clone.
 
-When invoking QISKit ACQUA from the command line, a JSON
+When invoking QISKit AQUA from the command line, a JSON
 `input file <#input-file>`__ is expected as a command-line
 parameter.
 
@@ -99,40 +99,40 @@ Programmable Interface
 ~~~~~~~~~~~~~~~~~~~~~~
 
 Experiments can be run programmatically too. Numerous
-examples on how to program an experiment in QISKit ACQUA
-can be found in the ``acqua`` folder of the
-`QISKit ACQUA Tutorials GitHub repository
-<https://github.com/QISKit/qiskit-acqua-tutorials>`__.
+examples on how to program an experiment in QISKit AQUA
+can be found in the ``aqua`` folder of the
+`QISKit AQUA Tutorials GitHub repository
+<https://github.com/QISKit/aqua-tutorials>`__.
 
-It should be noted at this point that QISKit ACQUA is
+It should be noted at this point that QISKit AQUA is
 designed to be as much declarative as possible.  This is done in order
-to simplify the programmatic access to QISKit ACQUA and
+to simplify the programmatic access to QISKit AQUA and
 minimize the chances for configuration errors, and helping users
 who might be experts in chemistry but not interested in writing a lot of code or
 learning new Application Programming Interfaces (APIs).
 
 There is
-nothing preventing a user from accessing the QISKit ACQUA APIs and
-programming an experiment step by step, but a  more direct way to access QISKit ACQUA programmatically
+nothing preventing a user from accessing the QISKit AQUA APIs and
+programming an experiment step by step, but a  more direct way to access QISKit AQUA programmatically
 is by obtaining a JSON algorithm input file, such as one of those
-available in the ``acqua/input_files`` subfolder of the
-`QISKit ACQUA Tutorials <https://github.com/QISKit/qiskit-acqua-tutorials>`__
+available in the ``aqua/input_files`` subfolder of the
+`QISKit AQUA Tutorials <https://github.com/QISKit/aqua-tutorials>`__
 repository.  Such files can be constructed either manually or automatically
-via QISKit ACQUA domain-specific applications.  For example,
-the QISKit ACQUA Chemistry `command-line tool
-<https://qiskit.org/documentation/acqua/chemistry/config_run.html#command-line>`__
-and `GUI <https://qiskit.org/documentation/acqua/chemistry/config_run.html#gui>`__ 
+via QISKit AQUA domain-specific applications.  For example,
+the QISKit AQUA Chemistry `command-line tool
+<https://qiskit.org/documentation/aqua/chemistry/config_run.html#command-line>`__
+and `GUI <https://qiskit.org/documentation/aqua/chemistry/config_run.html#gui>`__ 
 have options to serialize the input to the quantum algorithm for future reuse.
 The JSON file can then be pasted into a Python program and modified according to the
-needs of the developer, before invoking the ``run_algorithm`` API in ``qiskit_acqua``.
+needs of the developer, before invoking the ``run_algorithm`` API in ``qiskit_aqua``.
 This technique can be used, for example, to compare the results of two different algorithms.
 
 Input File
 ----------
 
-An input file is used to define an QISKit ACQUA problem,
+An input file is used to define an QISKit AQUA problem,
 and includes the input to the
-`quantum algorithm <https://qiskit.org/documentation/acqua/algorithms.html>`__
+`quantum algorithm <https://qiskit.org/documentation/aqua/algorithms.html>`__
 as well as configuration information for
 the underlying quantum system.
 Specific configuration parameter values can be supplied to
@@ -143,13 +143,13 @@ supplied.
 The format for the input file is `JavaScript Object Notation (JSON) <https://www.json.org/>`__.
 This allows for schema-based
 configuration-input correctness validation.  While it is certainly possible to
-generate a JSON input file manually, QISKit ACQUA allows for a simple way
+generate a JSON input file manually, QISKit AQUA allows for a simple way
 to achieve the automatic generation of such a JSON input file from the execution
 of a domain-specific application.
 
-For example, the `QISKit ACQUA Chemistry `command-line tool
-<https://qiskit.org/documentation/acqua/chemistry/config_run.html#command-line>`__
-and `GUI <https://qiskit.org/documentation/acqua/chemistry/config_run.html#gui>`__ 
+For example, the `QISKit AQUA Chemistry `command-line tool
+<https://qiskit.org/documentation/aqua/chemistry/config_run.html#command-line>`__
+and `GUI <https://qiskit.org/documentation/aqua/chemistry/config_run.html#gui>`__ 
 both allow for automatically serializing the input to the quantum algorithm
 as a JSON file.  Serializing the input to the quantum algorithm at this point is useful in many scenarios
 because the contents of one of such JSON files are domain- and problem-independent:
@@ -170,9 +170,9 @@ because the contents of one of such JSON files are domain- and problem-independe
   restart any new experiment directly at the algorithm level, thereby bypassing the
   input extraction from the driver, and the input translation into a qubit operator.
 
-A number of sample JSON input files for QISKit ACQUA are available in the
-``acqua/input_files``
-subfolder of the `QISKit ACQUA Tutorials <https://github.com/QISKit/qiskit-acqua-tutorials>`__
+A number of sample JSON input files for QISKit AQUA are available in the
+``aqua/input_files``
+subfolder of the `QISKit AQUA Tutorials <https://github.com/QISKit/aqua-tutorials>`__
 repository.
 
 An input file comprises the following main sections, although not all
@@ -181,10 +181,10 @@ are mandatory:
 ``"problem"``
 ~~~~~~~~~~~
 
-In QISKit ACQUA,
+In QISKit AQUA,
 a *problem* specifies the type of experiment being run.  Configuring the problem is essential
 because it determines which algorithms are suitable for the specific experiment.
-QISKit ACQUA comes with a set of predefined problems.
+QISKit AQUA comes with a set of predefined problems.
 This set is extensible: new problems can be added,
 just like new algorithms can be plugged in to solve existing problems in a different way,
 or to solve new problems.
@@ -202,7 +202,7 @@ the only values accepted for ``"name"``, corresponding to the computation of
 *Support Vector Machine (SVM) classification*, respectively.
 New problems, disambiguated by their
 ``"name"`` parameter, can be programmatically
-added to QISKit ACQUA via the
+added to QISKit AQUA via the
 ``AlgorithmInput`` Application Programming Interface (API), and each quantum or classical
 `algorithm <./algorithms.html>`__
 should programmatically list the problems it is suitable for in its JSON schema, embedded into
@@ -231,7 +231,7 @@ The default value for this parameter is ``None``.
 ``"input"``
 ~~~~~~~~~
 
-This section allows the user to specify a the input to the QISKit ACQUA algorithm.
+This section allows the user to specify a the input to the QISKit AQUA algorithm.
 Such input is expected to be a qubit operator, expressed as the value of the
 ``"qubit_op"`` parameter, for problems of type energy, excited states, Ising models and
 dynamics of evolution.  For problems of type SVM classification, the input consists
@@ -256,12 +256,12 @@ and constructs the corresponding quantum circuit.
 This is an optional section that allows the user to specify which
 `quantum algorithm <./algorithms.html#quantum-algorithms>`__
 will be used for the experiment.
-To compute reference values, QISKit ACQUA also allows the use of a
+To compute reference values, QISKit AQUA also allows the use of a
 `classical algorithm <./algorithms.html#classical-algorithms>`__.
 In the ``"algorithm"`` section, algorithms are disambiguated using the
 `declarative names <./algorithms.html>`__
-by which QISKit ACQUA recognizes them, based on the JSON schema
-each algorithm must provide according to the QISKit ACQUA ``QuantumAlgorithm`` API.
+by which QISKit AQUA recognizes them, based on the JSON schema
+each algorithm must provide according to the QISKit AQUA ``QuantumAlgorithm`` API.
 The declarative name is specified as the ``"name"`` parameter in the ``"algorithm"`` section.
 The default value for the ``"name"`` parameter is ``"VQE"``, corresponding
 to the `Variational Quantum Eigensolver (VQE)
@@ -270,7 +270,7 @@ algorithm.
 
 An algorithm typically comes with a set of configuration parameters.
 For each of them, a default value is provided according to the
-``QuantumAlgorithm`` API of QISKit ACQUA.
+``QuantumAlgorithm`` API of QISKit AQUA.
 
 Furthermore, according to each algorithm, additional sections
 may become relevant to optionally
@@ -282,7 +282,7 @@ whereas `Quantum Phase Estimation (QPE) <./algorithms.html#quantum-phase-estimat
 allows the user to configure which
 `Inverse Quantum Fourier Transform (IQFT) <./iqfts.html>`__ to use.
 
-The `QISKit ACQUA documentation <./index.html>`__
+The `QISKit AQUA documentation <./index.html>`__
 explains how to configure each algorithm and any of the pluggable entities it may use,
 such as `optimizers <./optimizers.html>`__, `variational forms <./variational_forms.html>`__,
 `initial states <./initial_states.html>`__, `oracles <./oracles.html>`__, and
@@ -318,7 +318,7 @@ optimizer and the `RYRZ <./variational_forms.html#ryrz>`__ variational form:
 ``"backend"``
 ~~~~~~~~~~~
 
-QISKit ACQUA allows for configuring the *backend*, which is the quantum machine
+QISKit AQUA allows for configuring the *backend*, which is the quantum machine
 on which a quantum experiment will be run.
 This configuration requires specifying 
 the `QISKit <https://www.qiskit.org/>`__ quantum computational
@@ -331,7 +331,7 @@ the ``"name"`` parameter of the ``"backend"`` section:
 
 The value of the ``"name"`` parameter indicates either a real-hardware
 quantum computer or a quantum simulator.
-The underlying QISKit core used by QISKit ACQUA comes
+The underlying QISKit core used by QISKit AQUA comes
 with two predefined quantum device simulators: the *local state vector simulator* and
 the *local QASM simulator*, corresponding to the following two
 values for the ``"name"`` parameter: ``"local_statevector_simulator"`` (which
@@ -340,12 +340,12 @@ However, any suitable quantum backend can be selected, including
 a real quantum hardware device. The ``QConfig.py`` file
 needs to be setup for QISKit to access remote devices.  For this, it is sufficient to follow the
 `QISKit installation instructions <https://qiskit.org/documentation/install.html#installation>`__.
-The QISKit ACQUA `GUI <#GUI>` greatly simplifies the
+The QISKit AQUA `GUI <#GUI>` greatly simplifies the
 configuration of ``QConfig.py`` via a user friendly interface,
 accessible through the **Preferences...** menu item.
 
 .. topic:: Backend Configuration: Quantum vs. Classical Algorithms
-    Although QISKit ACQUA is mostly a library of
+    Although QISKit AQUA is mostly a library of
     `quantum algorithms <./algorithms.html#quantum-algorithms>`__,
     it also includes a number of
     `classical algorithms <./algorithms.html#classical-algorithms>`__,
@@ -354,7 +354,7 @@ accessible through the **Preferences...** menu item.
     Since a classical algorithm runs on a classical computer,
     no backend should be configured when a classical algorithm
     is selected in the ``"algorithm"`` section.
-    Accordingly, the QISKit ACQUA `GUI <#gui>` will automatically
+    Accordingly, the QISKit AQUA `GUI <#gui>` will automatically
     disable the ``"backend"`` configuration section
     whenever a non-quantum algorithm is selected. 
 
@@ -377,7 +377,7 @@ requires setting the following parameters too:
         "skip_transpiler" : bool
 
    The default value is ``False``.  If ``"skip_transpiler"`` is set to ``True``, then
-   QISKit will not perform circuit translation. If QISKit ACQUA has been configured
+   QISKit will not perform circuit translation. If QISKit AQUA has been configured
    to run an experiment with a quantum algorithm that uses only basis gates,
    then no translation of the circuit into basis gates is required.
    Only in such cases is it safe to skip circuit translation.

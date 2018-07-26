@@ -23,12 +23,12 @@ import itertools
 import numpy as np
 from qiskit.tools.qi.pauli import Pauli, label_to_pauli
 
-from test.common import QISKitAcquaTestCase
-from qiskit_acqua import Operator
-from qiskit_acqua import get_variational_form_instance
+from test.common import QISKitAquaTestCase
+from qiskit_aqua import Operator
+from qiskit_aqua import get_variational_form_instance
 
 
-class TestOperator(QISKitAcquaTestCase):
+class TestOperator(QISKitAquaTestCase):
     """Operator tests."""
 
     def setUp(self):

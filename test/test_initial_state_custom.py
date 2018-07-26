@@ -18,11 +18,11 @@
 import unittest
 import numpy as np
 
-from test.common import QISKitAcquaTestCase
-from qiskit_acqua import get_initial_state_instance
+from test.common import QISKitAquaTestCase
+from qiskit_aqua import get_initial_state_instance
 
 
-class TestInitialStateCustom(QISKitAcquaTestCase):
+class TestInitialStateCustom(QISKitAquaTestCase):
 
     def setUp(self):
         self.custom = get_initial_state_instance('CUSTOM')

@@ -18,14 +18,14 @@
 import unittest
 from itertools import combinations, chain
 from parameterized import parameterized
-from test.common import QISKitAcquaTestCase
+from test.common import QISKitAquaTestCase
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.wrapper import execute as q_execute
 import numpy as np
-import qiskit_acqua.grover.cnx
+import qiskit_aqua.grover.cnx
 
 
-class TestCNX(QISKitAcquaTestCase):
+class TestCNX(QISKitAquaTestCase):
     @parameterized.expand([
         [1, 1],
         [2, 1],

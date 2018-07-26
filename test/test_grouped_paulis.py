@@ -19,11 +19,11 @@ import unittest
 
 from qiskit.tools.qi.pauli import pauli_group
 
-from test.common import QISKitAcquaTestCase
-from qiskit_acqua.operator import Operator
+from test.common import QISKitAquaTestCase
+from qiskit_aqua.operator import Operator
 
 
-class TestGroupedPaulis(QISKitAcquaTestCase):
+class TestGroupedPaulis(QISKitAquaTestCase):
     """GroupedPaulki tests."""
 
     def test_grouped_paulis(self):

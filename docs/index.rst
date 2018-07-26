@@ -1,13 +1,13 @@
-.. QISKit ACQUA documentation master file, created by
+.. QISKit AQUA documentation master file, created by
    sphinx-quickstart on Mon Feb  5 15:24:52 2018.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
 ====================
-QISKit ACQUA Documentation
+QISKit AQUA Documentation
 ====================
 
-QISKit ACQUA
+QISKit AQUA
 
 
 Table of Contents
@@ -16,7 +16,7 @@ Table of Contents
 .. toctree::
    :maxdepth: 2
    
-   QISKit ACQUA Overview <qiskit-acqua>
+   QISKit AQUA Overview <qiskit-aqua>
    Installation and Setup <install>
    Configuring and Running an Experiment <config_run>
    Algorithms <algorithms>
@@ -25,8 +25,8 @@ Table of Contents
    Initial States <initial_states>
    Inverse Quantum Fourier Transforms <iqfts>
    Oracles <oracles>
-   Extending QISKit ACQUA <extending>
-   SDK Reference <qiskit_acqua>
+   Extending QISKit AQUA <extending>
+   SDK Reference <qiskit_aqua>
 
 Python Modules
 ==============
@@ -37,7 +37,7 @@ Main Modules
 .. autosummary::
    :nosignatures:
 
-   qiskit_acqua
+   qiskit_aqua
 
 :ref:`modindex`
 

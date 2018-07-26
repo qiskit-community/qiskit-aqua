@@ -22,12 +22,12 @@ from qiskit import QuantumRegister
 from qiskit.tools.qi.qi import state_fidelity
 from qiskit.wrapper import execute as q_execute
 
-from test.common import QISKitAcquaTestCase
-from qiskit_acqua.operator import Operator
-from qiskit_acqua import get_algorithm_instance, get_initial_state_instance
+from test.common import QISKitAquaTestCase
+from qiskit_aqua.operator import Operator
+from qiskit_aqua import get_algorithm_instance, get_initial_state_instance
 
 
-class TestEvolution(QISKitAcquaTestCase):
+class TestEvolution(QISKitAquaTestCase):
     """Evolution tests."""
 
     def test_evolution(self):

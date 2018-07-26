@@ -19,11 +19,11 @@ import unittest
 from scipy.optimize import rosen
 import numpy as np
 
-from test.common import QISKitAcquaTestCase
-from qiskit_acqua import get_optimizer_instance
+from test.common import QISKitAquaTestCase
+from qiskit_aqua import get_optimizer_instance
 
 
-class TestOptimizers(QISKitAcquaTestCase):
+class TestOptimizers(QISKitAquaTestCase):
 
     def setUp(self):
         np.random.seed(50)
