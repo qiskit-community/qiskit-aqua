@@ -20,20 +20,20 @@ import numpy as np
 from qiskit_acqua import QuantumAlgorithm
 from qiskit_acqua.svm import (get_points_and_labels, optimize_SVM,
                               kernel_join, entangler_map_creator)
-from qiskit_acqua.multiclass.allpairs import AllPairs
 
+from qiskit_acqua.multiclass.error_correcting_code import ErrorCorrectingCode
 from qiskit_acqua.multiclass_quantumsvm.qkernel_svm_estimator import QKernalSVM_Estimator
 import numpy as np
 from qiskit_acqua.multiclass.data_preprocess import *
 
 
-class QuantumSVM_AllPairs(QuantumAlgorithm):
-    QuantumSVM_AllPairs_CONFIGURATION = {
-        'name': 'QuantumSVM_AllPairs',
-        'description': 'QuantumSVM_AllPairs Algorithm',
+class QuantumSVM_ErrorCorrectingCode(QuantumAlgorithm):
+    QuantumSVM_ErrorCorrectingCode_CONFIGURATION = {
+        'name': 'QuantumSVM_ErrorCorrectingCode',
+        'description': 'QuantumSVM_ErrorCorrectingCode Algorithm',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
-            'id': 'QuantumSVM_AllPairs_schema',
+            'id': 'QuantumSVM_ErrorCorrectingCode_schema',
             'type': 'object',
             'properties': {
                 'print_info': {
@@ -47,14 +47,14 @@ class QuantumSVM_AllPairs(QuantumAlgorithm):
     }
 
     def __init__(self, configuration=None):
-        super().__init__(configuration or self.QuantumSVM_AllPairs_CONFIGURATION.copy())
+        super().__init__(configuration or self.QuantumSVM_ErrorCorrectingCode_CONFIGURATION.copy())
         self._ret = {}
 
     def init_params(self, params, algo_input):
-        QuantumSVM_AllPairs_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
+        QuantumSVM_ErrorCorrectingCode_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
 
         self.init_args(algo_input.training_dataset, algo_input.test_dataset,
-                       algo_input.datapoints, QuantumSVM_AllPairs_params.get('print_info'))
+                       algo_input.datapoints, QuantumSVM_ErrorCorrectingCode_params.get('print_info'))
 
     def auto_detect_qubitnum(self, training_dataset):
         auto_detected_size = -1
@@ -100,16 +100,15 @@ class QuantumSVM_AllPairs(QuantumAlgorithm):
         X_train, y_train, label_to_class = multiclass_get_points_and_labels(self.training_dataset, self.class_labels)
         X_test, y_test, label_to_class = multiclass_get_points_and_labels(self.test_dataset, self.class_labels)
 
-        allpairs = AllPairs(QKernalSVM_Estimator, [self._backend, self.shots])
-        allpairs.train(X_train, y_train)
-
+        ecc = ErrorCorrectingCode(QKernalSVM_Estimator, code_size=4, params = [self._backend, self.shots])
+        ecc.train(X_train, y_train)
 
         if self.test_dataset is not None:
-            success_ratio = allpairs.test(X_test, y_test)
+            success_ratio = ecc.test(X_test, y_test)
             self._ret['test_success_ratio'] = success_ratio
 
         if self.datapoints is not None:
-            predicted_labels = allpairs.predict(X_test)
+            predicted_labels = ecc.predict(X_test)
             predicted_labelclasses = [label_to_class[x] for x in predicted_labels]
             self._ret['predicted_labels'] = predicted_labelclasses
 

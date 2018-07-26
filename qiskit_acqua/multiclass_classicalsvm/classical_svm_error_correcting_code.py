@@ -21,18 +21,18 @@ from sklearn.metrics.pairwise import rbf_kernel
 import copy
 from qiskit_acqua import QuantumAlgorithm
 from qiskit_acqua.svm import (get_points_and_labels, optimize_SVM)
-from qiskit_acqua.multiclass.allpairs import AllPairs
+from qiskit_acqua.multiclass.error_correcting_code import ErrorCorrectingCode
 from qiskit_acqua.multiclass_classicalsvm.linear_svc_estimator import LinearSVC_Estimator
 from qiskit_acqua.multiclass.data_preprocess import *
 
-class ClassicalSVM_AllPairs(QuantumAlgorithm):
-    ClassicalSVM_AllPairs_CONFIGURATION = {
-        'name': 'ClassicalSVM_AllPairs',
-        'description': 'ClassicalSVM_AllPairs Algorithm',
+class ClassicalSVM_ErrorCorrectingCode(QuantumAlgorithm):
+    ClassicalSVM_ErrorCorrectingCode_CONFIGURATION = {
+        'name': 'ClassicalSVM_ErrorCorrectingCode',
+        'description': 'ClassicalSVM_ErrorCorrectingCode Algorithm',
         'classical': True,
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
-            'id': 'ClassicalSVM_AllPairs_schema',
+            'id': 'ClassicalSVM_ErrorCorrectingCode_schema',
             'type': 'object',
             'properties': {
                 'gamma': {
@@ -50,13 +50,13 @@ class ClassicalSVM_AllPairs(QuantumAlgorithm):
     }
 
     def __init__(self, configuration=None):
-        super().__init__(configuration or copy.deepcopy(ClassicalSVM_AllPairs.ClassicalSVM_AllPairs_CONFIGURATION))
+        super().__init__(configuration or copy.deepcopy(ClassicalSVM_ErrorCorrectingCode.ClassicalSVM_ErrorCorrectingCode_CONFIGURATION))
         self._ret = {}
 
     def init_params(self, params, algo_input):
-        ClassicalSVM_Allpairs_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
+        ClassicalSVM_ErrorCorrectingCode_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
         self.init_args(algo_input.training_dataset, algo_input.test_dataset,
-                       algo_input.datapoints, ClassicalSVM_Allpairs_params.get('print_info'))
+                       algo_input.datapoints, ClassicalSVM_ErrorCorrectingCode_params.get('print_info'))
 
     def init_args(self, training_dataset, test_dataset, datapoints, print_info=False):
         self.training_dataset = training_dataset
@@ -75,15 +75,17 @@ class ClassicalSVM_AllPairs(QuantumAlgorithm):
         X_train, y_train, label_to_class = multiclass_get_points_and_labels(self.training_dataset, self.class_labels)
         X_test, y_test, label_to_class = multiclass_get_points_and_labels(self.test_dataset, self.class_labels)
 
-        allpairs = AllPairs(LinearSVC_Estimator)
-        allpairs.train(X_train, y_train)
+        ecc = ErrorCorrectingCode(LinearSVC_Estimator, code_size=4)
+        ecc.train(X_train, y_train)
+
+
 
         if self.test_dataset is not None:
-            success_ratio = allpairs.test(X_test, y_test)
+            success_ratio = ecc.test(X_test, y_test)
             self._ret['test_success_ratio'] = success_ratio
 
         if self.datapoints is not None:
-            predicted_labels = allpairs.predict(X_test)
+            predicted_labels = ecc.predict(X_test)
             predicted_labelclasses = [label_to_class[x] for x in predicted_labels]
             self._ret['predicted_labels'] = predicted_labelclasses
         return self._ret
