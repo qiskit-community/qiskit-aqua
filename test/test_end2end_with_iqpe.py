@@ -19,14 +19,14 @@ import unittest
 from parameterized import parameterized
 from collections import OrderedDict
 import numpy as np
-from qiskit_acqua.utils import decimal_to_binary
-from qiskit_acqua import get_algorithm_instance, get_initial_state_instance
-from test.common import QISKitAcquaChemistryTestCase
-from qiskit_acqua_chemistry.drivers import ConfigurationManager
-from qiskit_acqua_chemistry import FermionicOperator
+from qiskit_aqua.utils import decimal_to_binary
+from qiskit_aqua import get_algorithm_instance, get_initial_state_instance
+from test.common import QiskitAquaChemistryTestCase
+from qiskit_aqua_chemistry.drivers import ConfigurationManager
+from qiskit_aqua_chemistry import FermionicOperator
 
 
-class TestIQPE(QISKitAcquaChemistryTestCase):
+class TestIQPE(QiskitAquaChemistryTestCase):
     """IQPE tests."""
 
     @parameterized.expand([

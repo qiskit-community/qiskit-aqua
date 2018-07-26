@@ -18,16 +18,16 @@
 import unittest
 from collections import OrderedDict
 from parameterized import parameterized
-from test.common import QISKitAcquaChemistryTestCase
+from test.common import QiskitAquaChemistryTestCase
 
-from qiskit_acqua import run_algorithm
-from qiskit_acqua.input import get_input_instance
+from qiskit_aqua import run_algorithm
+from qiskit_aqua.input import get_input_instance
 
-from qiskit_acqua_chemistry.drivers import ConfigurationManager
-from qiskit_acqua_chemistry.core import get_chemistry_operator_instance
+from qiskit_aqua_chemistry.drivers import ConfigurationManager
+from qiskit_aqua_chemistry.core import get_chemistry_operator_instance
 
 
-class TestEnd2End(QISKitAcquaChemistryTestCase):
+class TestEnd2End(QiskitAquaChemistryTestCase):
     """End2End tests."""
 
     def setUp(self):

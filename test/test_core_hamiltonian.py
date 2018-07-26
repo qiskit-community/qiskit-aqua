@@ -18,12 +18,12 @@
 import unittest
 from collections import OrderedDict
 
-from test.common import QISKitAcquaChemistryTestCase
-from qiskit_acqua_chemistry.drivers import ConfigurationManager
-from qiskit_acqua_chemistry.core import get_chemistry_operator_instance
+from test.common import QiskitAquaChemistryTestCase
+from qiskit_aqua_chemistry.drivers import ConfigurationManager
+from qiskit_aqua_chemistry.core import get_chemistry_operator_instance
 
 
-class TestCoreHamiltonian(QISKitAcquaChemistryTestCase):
+class TestCoreHamiltonian(QiskitAquaChemistryTestCase):
     """core/hamiltonian Driver tests."""
 
     def setUp(self):

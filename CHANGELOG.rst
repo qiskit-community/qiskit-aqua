@@ -30,7 +30,7 @@ Changed
 -------
 
 - Remove use_basis_gates flag.
-- Change QISKit registering for QISKit 0.5.5.
+- Change Qiskit registering for Qiskit 0.5.5.
 - Changed enable_substitutions to auto_substitutions.
 
 Fixed
@@ -51,7 +51,7 @@ Changed
 - Changed description and change package name to dashes in setup.py.
 - Update description and fixed links in readme
 
-.. _UNRELEASED: https://github.com/QISKit/qiskit-acqua-chemistry/compare/0.1.1...HEAD
-.. _0.1.1: https://github.com/QISKit/qiskit-acqua-chemistry/compare/0.1.0...0.1.1
+.. _UNRELEASED: https://github.com/Qiskit/aqua-chemistry/compare/0.1.1...HEAD
+.. _0.1.1: https://github.com/Qiskit/aqua-chemistry/compare/0.1.0...0.1.1
 
 .. _Keep a Changelog: http://keepachangelog.com/en/1.0.0/

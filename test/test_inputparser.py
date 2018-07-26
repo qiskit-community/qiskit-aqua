@@ -20,13 +20,13 @@ InputParser test.
 """
 
 import unittest
-from test.common import QISKitAcquaChemistryTestCase
-from qiskit_acqua_chemistry import ACQUAChemistryError
-from qiskit_acqua_chemistry.parser import InputParser
+from test.common import QiskitAquaChemistryTestCase
+from qiskit_aqua_chemistry import AQUAChemistryError
+from qiskit_aqua_chemistry.parser import InputParser
 import os
 import json
 
-class TestInputParser(QISKitAcquaChemistryTestCase):
+class TestInputParser(QiskitAquaChemistryTestCase):
     """InputParser tests."""
     
     def setUp(self):
@@ -74,7 +74,7 @@ class TestInputParser(QISKitAcquaChemistryTestCase):
             self.fail(str(e))
             
         p.set_section_property('optimizer','dummy',1002)
-        self.assertRaises(ACQUAChemistryError, p.validate_merge_defaults)
+        self.assertRaises(AQUAChemistryError, p.validate_merge_defaults)
             
 if __name__ == '__main__':
     unittest.main()

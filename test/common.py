@@ -23,7 +23,7 @@ import logging
 import os
 import unittest
 
-from qiskit_acqua_chemistry import __path__ as qiskit_acqua_chemistry_path
+from qiskit_aqua_chemistry import __path__ as qiskit_aqua_chemistry_path
 
 TRAVIS_FORK_PULL_REQUEST = False
 if os.getenv('TRAVIS_PULL_REQUEST_SLUG'):
@@ -32,12 +32,12 @@ if os.getenv('TRAVIS_PULL_REQUEST_SLUG'):
 
 class Path(Enum):
     """Helper with paths commonly used during the tests."""
-    # Main SDK path:    qiskit_acqua_chemistry/
-    SDK = qiskit_acqua_chemistry_path[0]
+    # Main SDK path:    qiskit_aqua_chemistry/
+    SDK = qiskit_aqua_chemistry_path[0]
     # test.python path: test/
     TEST = os.path.dirname(__file__)
 
-class QISKitAcquaChemistryTestCase(unittest.TestCase):
+class QiskitAquaChemistryTestCase(unittest.TestCase):
     """Helper class that contains common functionality."""
     
     SLOW_TEST = int(os.getenv('SLOW_TEST','0'))
