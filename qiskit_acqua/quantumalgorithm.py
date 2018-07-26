@@ -192,7 +192,7 @@ class QuantumAlgorithm(ABC):
             sub_circuits = circuits[i*self.MAX_CIRCUITS_PER_JOB:(i+1)*self.MAX_CIRCUITS_PER_JOB]
             jobs.append(q_execute(sub_circuits, self._backend, **self._execute_config))
 
-        if logger.isEnabledFor(logging.DEBUG)
+        if logger.isEnabledFor(logging.DEBUG):
             logger.debug(summarize_circuits(circuits))
 
         results = []
