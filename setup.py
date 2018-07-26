@@ -17,7 +17,7 @@
 
 import setuptools
 
-long_description="""<a href="https://qiskit.org/aqua/chemistry" rel=nofollow>Qiskit AQUA Chemistry</a> 
+long_description="""<a href="https://qiskit.org/aqua/chemistry" rel=nofollow>Qiskit Aqua Chemistry</a> 
  is a set of quantum computing algorithms, 
  tools and APIs for experimenting with real-world chemistry applications on near-term quantum devices."""
     
@@ -36,11 +36,11 @@ requirements = [
 setuptools.setup(
     name='qiskit-aqua-chemistry',
     version="0.2.0",  # this should match __init__.__version__
-    description='Qiskit AQUA Chemistry: Experiment with chemistry applications on a quantum machine',
+    description='Qiskit Aqua Chemistry: Experiment with chemistry applications on a quantum machine',
     long_description=long_description,
     long_description_content_type="text/markdown",
     url='https://github.com/Qiskit/aqua-chemistry',
-    author='Qiskit AQUA Chemistry Development Team',
+    author='Qiskit Aqua Chemistry Development Team',
     author_email='qiskit@us.ibm.com',
     license='Apache-2.0',
     classifiers=(

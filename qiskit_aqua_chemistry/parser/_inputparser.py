@@ -653,7 +653,7 @@ class InputParser(object):
             self._merge_default_values()
             json_dict = self.to_JSON() 
             logger.debug('JSON Input: {}'.format(json.dumps(json_dict, sort_keys=True, indent=4)))
-            logger.debug('AQUA Chemistry Input Schema: {}'.format(json.dumps(self._schema, sort_keys=True, indent=4)))
+            logger.debug('Aqua Chemistry Input Schema: {}'.format(json.dumps(self._schema, sort_keys=True, indent=4)))
             jsonschema.validate(json_dict,self._schema)
         except jsonschema.exceptions.ValidationError as ve:
             logger.info('JSON Validation error: {}'.format(str(ve)))

@@ -1,15 +1,15 @@
-# Qiskit AQUA Chemistry
+# Qiskit Aqua Chemistry
 
-Qiskit AQUA Chemistry is a set of tools, algorithms and software for use with quantum computers
+Qiskit Aqua Chemistry is a set of tools, algorithms and software for use with quantum computers
 to carry out research and investigate how to take advantage of quantum computing power to solve chemistry
-problems. Qiskit AQUA Chemistry translates chemistry-specific problem inputs into inputs for a quantum algorithm
-supplied by [Qiskit AQUA](https://github.com/Qiskit/aqua), which then in turn uses
+problems. Qiskit Aqua Chemistry translates chemistry-specific problem inputs into inputs for a quantum algorithm
+supplied by [Qiskit Aqua](https://github.com/Qiskit/aqua), which then in turn uses
 [Qiskit](https://www.qiskit.org/) for the actual quantum computation.
 
-Qiskit AQUA Chemistry allows users with different levels of experience to execute chemistry experiments and
+Qiskit Aqua Chemistry allows users with different levels of experience to execute chemistry experiments and
 contribute to the software stack.  Users with pure chemistry background can continue to configure chemistry
 problems according to their favorite software packages, called *drivers*.  These users do not need to learn the
-details of quantum computing; Qiskit AQUA Chemistry translates any chemistry program configuration entered by
+details of quantum computing; Qiskit Aqua Chemistry translates any chemistry program configuration entered by
 any end user in their favorite driver into quantum-specific input.
 
 You can follow the [installation](#installation) instructions to install this software and its dependencies.
@@ -19,10 +19,10 @@ Once you have it installed you can experiment with the library using either the 
 
 More advanced users and [developers](qiskit_aqua_chemistry#developers) may wish to develop and add their own
 algorithms or other code. Algorithms and supporting components may be added to
-[Qiskit AQUA](https://github.com/Qiskit/aqua) which was designed with an extensible, pluggable
-framework. Qiskit AQUA Chemistry utilizes a similar framework for drivers and the core computation.
+[Qiskit Aqua](https://github.com/Qiskit/aqua) which was designed with an extensible, pluggable
+framework. Qiskit Aqua Chemistry utilizes a similar framework for drivers and the core computation.
 
-**If you'd like to contribute to Qiskit AQUA Chemistry, please take a look at our**
+**If you'd like to contribute to Qiskit Aqua Chemistry, please take a look at our**
 [contribution guidelines](.github/CONTRIBUTING.rst).
 
 Links to Sections:
@@ -36,11 +36,11 @@ Links to Sections:
 
 ### Dependencies
 
-As Qiskit AQUA Chemistry is built upon Qiskit AQUA you are encouraged to look over the
-[Qiskit AQUA installation](https://github.com/Qiskit/aqua/blob/master/README.md#installation) too.
+As Qiskit Aqua Chemistry is built upon Qiskit Aqua you are encouraged to look over the
+[Qiskit Aqua installation](https://github.com/Qiskit/aqua/blob/master/README.md#installation) too.
 
-Like Qiskit AQUA at least [Python 3.5 or later](https://www.python.org/downloads/) is needed to use
-Qiskit AQUA Chemistry.
+Like Qiskit Aqua at least [Python 3.5 or later](https://www.python.org/downloads/) is needed to use
+Qiskit Aqua Chemistry.
 In addition, [Jupyter Notebook](https://jupyter.readthedocs.io/en/latest/install.html) is recommended
 for interacting with the tutorials.
 For this reason we recommend installing the [Anaconda 3](https://www.continuum.io/downloads)
@@ -48,7 +48,7 @@ Python distribution, as it comes with all of these dependencies pre-installed.
 
 ### Installation
 
-We encourage you to install Qiskit AQUA Chemistry via the PIP tool (a Python package manager):
+We encourage you to install Qiskit Aqua Chemistry via the PIP tool (a Python package manager):
 
 ```
 pip install qiskit-aqua-chemistry
@@ -73,20 +73,20 @@ more instructions on their specific installation:
 * [PSI4](qiskit_aqua_chemistry/drivers/psi4d/README.md): An open-source chemistry program built on Python
 
 However, even without installing one of the above drivers, it is still possible to run some chemistry experiments if
-you have a Qiskit AQUA Chemistry HDF5 file that has been previously created when using one of the above drivers.
+you have a Qiskit Aqua Chemistry HDF5 file that has been previously created when using one of the above drivers.
 The HDF5 driver takes such an input. 
 
-* [HDF5](qiskit_aqua_chemistry/drivers/hdf5d/README.md): Driver for Qiskit AQUA Chemistry hdf5 files    
+* [HDF5](qiskit_aqua_chemistry/drivers/hdf5d/README.md): Driver for Qiskit Aqua Chemistry hdf5 files    
  
 A few sample hdf5 files have been provided and these can be found in the 
-Qiskit AQUA Tutorial's [chemistry folder](https://github.com/Qiskit/aqua-tutorials/tree/master/chemistry).  
+Qiskit Aqua Tutorial's [chemistry folder](https://github.com/Qiskit/aqua-tutorials/tree/master/chemistry).  
 
 ## Running a chemistry experiment
 
-Now that you have installed Qiskit AQUA Chemistry you can run an experiment, for example to compute the ground
+Now that you have installed Qiskit Aqua Chemistry you can run an experiment, for example to compute the ground
 state energy of a molecule.
 
-Qiskit AQUA Chemistry has both [GUI](#gui) and [command line](#command-line) tools which may be used when solving
+Qiskit Aqua Chemistry has both [GUI](#gui) and [command line](#command-line) tools which may be used when solving
 chemistry problems. Both can load and run an [input file](qiskit_aqua_chemistry#input-file) specifying the molecule,
 an algorithm to be used and its configuration, and various other options to tailor the experiment. You can find several
 input files in the chemistry folder of
@@ -156,10 +156,10 @@ such as plotting a
 
 ## Authors
 
-Qiskit AQUA Chemistry was inspired, authored and brought about by the collective
+Qiskit Aqua Chemistry was inspired, authored and brought about by the collective
 work of a team of researchers.
 
-Qiskit AQUA Chemistry continues now to grow with the help and work of [many people](CONTRIBUTORS.md) who contribute
+Qiskit Aqua Chemistry continues now to grow with the help and work of [many people](CONTRIBUTORS.md) who contribute
 to the project at different levels.
 
 ## License

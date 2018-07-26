@@ -1,13 +1,13 @@
-.. Qiskit AQUA Chemistry documentation master file, created by
+.. Qiskit Aqua Chemistry documentation master file, created by
    sphinx-quickstart on Mon Feb  5 15:24:52 2018.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
 ====================
-Qiskit AQUA Chemistry Documentation
+Qiskit Aqua Chemistry Documentation
 ====================
 
-Qiskit AQUA Chemistry
+Qiskit Aqua Chemistry
 
 
 Table of Contents
@@ -16,11 +16,11 @@ Table of Contents
 .. toctree::
    :maxdepth: 2
    
-   Qiskit AQUA Chemistry Overview <qiskit-aqua-chemistry>
+   Qiskit Aqua Chemistry Overview <qiskit-aqua-chemistry>
    Installation and Setup <install>
    Chemistry Drivers <drivers>
    Configuring and Running an Experiment <config_run>
-   Extending Qiskit AQUA Chemistry <extending>
+   Extending Qiskit Aqua Chemistry <extending>
    SDK reference <qiskit_aqua_chemistry>
 
 Python Modules

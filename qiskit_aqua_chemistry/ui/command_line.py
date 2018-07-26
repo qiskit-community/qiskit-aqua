@@ -29,7 +29,7 @@ def main():
         bundle = NSBundle.mainBundle()
         if bundle:
             info = bundle.localizedInfoDictionary() or bundle.infoDictionary()
-            info['CFBundleName'] = 'QISkit AQUA Chemistry'
+            info['CFBundleName'] = 'QISkit Aqua Chemistry'
     
     root = tk.Tk()
     root.withdraw()

@@ -1,11 +1,11 @@
-# Qiskit AQUA Chemistry
+# Qiskit Aqua Chemistry
 
-Qiskit AQUA Chemistry is a set of tools, algorithms and software for use with quantum computers
+Qiskit Aqua Chemistry is a set of tools, algorithms and software for use with quantum computers
 to carry out research and investigate how to take advantage of quantum computing power to solve chemistry
 problems.
 
 If you need introductory material see the main [readme](../README.md) which has
-[installation](../README.md#installation) instructions and information on how to use Qiskit AQUA Chemistry for 
+[installation](../README.md#installation) instructions and information on how to use Qiskit Aqua Chemistry for 
 [running a chemistry experiment](../README.md#running-a-chemistry-experiment).
 
 This readme contains the following sections: 
@@ -106,7 +106,7 @@ The following parameters may be set:
   
   The 'standard' second quantized Hamiltonian can be transformed using the particle-hole (p/h) option, which makes the
   expansion of the trial wavefunction from the HartreeFock reference state more natural. For trial wavefunctions
-  in Qiskit AQUA, such as UCCSD, the p/h Hamiltonian can improve the speed of convergence of the
+  in Qiskit Aqua, such as UCCSD, the p/h Hamiltonian can improve the speed of convergence of the
   VQE algorithm for the calculation of the electronic ground state properties.
   For more information on the p/h formalism see: [P. Barkoutsos, arXiv:1805.04340](https://arxiv.org/abs/1805.04340).
 
@@ -176,7 +176,7 @@ is relative to the highest orbital and will always refer to the highest two orbi
 #### ALGORITHM
 
 ALGORITHM is an optional section that allows you to define which quantum algorithm will be used by the computation.
-Algorithms are provided by [QISKIt AQUA](https://github.com/Qiskit/aqua/blob/master/qiskit_aqua/README.md)
+Algorithms are provided by [QISKIt Aqua](https://github.com/Qiskit/aqua/blob/master/qiskit_aqua/README.md)
 The algorithm defaults to VQE (Variational Quantum Eigensolver), with a set of default parameters. 
 
 According to each ALGORITHM you may add further sections to optionally configure the algorithm further. These sections
@@ -205,7 +205,7 @@ variational forms that are used by VQE.
 ``` 
 
 For more information on algorithms, and any pluggable entities it may use, see
-[Qiskit AQUA](https://github.com/Qiskit/aqua/blob/master/qiskit_aqua/README.md) for more specifics 
+[Qiskit Aqua](https://github.com/Qiskit/aqua/blob/master/qiskit_aqua/README.md) for more specifics 
 about them and their configuration options.
 
 
@@ -213,13 +213,13 @@ about them and their configuration options.
 
 BACKEND is an optional section that includes naming the [Qiskit](https://www.qiskit.org/) quantum computational
 backend to be used for the quantum algorithm computation. This defaults to a local quantum simulator backend. See
-[Qiskit AQUA](https://github.com/Qiskit/aqua/blob/master/qiskit_aqua/README.md#backend) for more
+[Qiskit Aqua](https://github.com/Qiskit/aqua/blob/master/qiskit_aqua/README.md#backend) for more
 information. 
 
 #### PROBLEM
 
 PROBLEM is an optional section that includes the overall problem being solved and overall problem level configuration
-See [Qiskit AQUA](https://github.com/Qiskit/aqua/blob/master/qiskit_aqua/README.md#problem) for more
+See [Qiskit Aqua](https://github.com/Qiskit/aqua/blob/master/qiskit_aqua/README.md#problem) for more
 information.
 
 This is the same PROBLEM specification but 
@@ -232,7 +232,7 @@ This is the same PROBLEM specification but
   
 * `auto_substitutions`=**true** | false
 
-  *This field is only support by Qiskit AQUA Chemistry.* 
+  *This field is only support by Qiskit Aqua Chemistry.* 
 
   During configuration some items may require matching their settings e.g. UCCSD variation form and HartreeFock
   initial state configuration need qubit_mapping and two_qubit_reduction to match what is set in [OPERATOR](#operator)
@@ -246,7 +246,7 @@ This is the same PROBLEM specification but
   
 * `random_seed`=*An integer, default None*  
   
-   See [Qiskit AQUA](https://github.com/Qiskit/aqua/blob/master/qiskit_aqua/README.md#problem)
+   See [Qiskit Aqua](https://github.com/Qiskit/aqua/blob/master/qiskit_aqua/README.md#problem)
    `random_seed` for more information.  
 
 ## Developers
@@ -319,9 +319,9 @@ The dictionary contains the following fields of note:
 
 ### For writers of algorithms and other utilities such as optimizers and variational forms:
 
-Qiskit AQUA is the library of cross-domain algorithms and pluggable utilities. Please refer to the documentation 
-there for more information on how to write and contribute such objects to Qiskit AQUA. Such objects are then available
-to be used by Qiskit AQUA Chemistry.  
+Qiskit Aqua is the library of cross-domain algorithms and pluggable utilities. Please refer to the documentation 
+there for more information on how to write and contribute such objects to Qiskit Aqua. Such objects are then available
+to be used by Qiskit Aqua Chemistry.  
 
 ### For unit test writers:
 

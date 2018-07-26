@@ -23,7 +23,7 @@ from qiskit_aqua_chemistry._logging import build_logging_config,set_logger_confi
 from qiskit_aqua_chemistry.preferences import Preferences
 
 def main():
-    parser = argparse.ArgumentParser(description='Qiskit AQUA Chemistry Command Line Tool')
+    parser = argparse.ArgumentParser(description='Qiskit Aqua Chemistry Command Line Tool')
     parser.add_argument('input', 
                         metavar='input', 
                         help='Chemistry input file or saved JSON input file')

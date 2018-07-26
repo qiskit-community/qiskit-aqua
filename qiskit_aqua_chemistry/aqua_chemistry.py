@@ -46,7 +46,7 @@ class AQUAChemistry(object):
 
     def get_effective_logging_level(self):
         """
-        Returns the logging level being used by AQUA Chemistry
+        Returns the logging level being used by Aqua Chemistry
         """
         levels = get_logger_levels_for_names(['qiskit_aqua_chemistry', 'qiskit_aqua'])
         return levels[0]

@@ -1,9 +1,9 @@
-# Qiskit AQUA Chemistry
+# Qiskit Aqua Chemistry
 
 ## Driver for electronic structure previously stored in an HDF5 file
 
 When using a driver, that interfaces to a chemistry program or chemistry library, the electronic structure
-information that Qiskit AQUA Chemistry obtains and formats into common data structures, for it's subsequent
+information that Qiskit Aqua Chemistry obtains and formats into common data structures, for it's subsequent
 computation on that molecule, can be saved at that point as an HDF5 file, for later use by this driver.
  
 For example, the following input file snippet shows the chemistry program driver for PSI4 being used and the
