@@ -18,13 +18,13 @@
 import unittest
 import numpy as np
 
-from test.common import QISKitAcquaTestCase
-from qiskit_acqua import Operator, run_algorithm
-from qiskit_acqua.input import get_input_instance
-from qiskit_acqua import get_algorithm_instance
+from test.common import QiskitAquaTestCase
+from qiskit_aqua import Operator, run_algorithm
+from qiskit_aqua.input import get_input_instance
+from qiskit_aqua import get_algorithm_instance
 
 
-class TestExactEignesolver(QISKitAcquaTestCase):
+class TestExactEignesolver(QiskitAquaTestCase):
 
     def setUp(self):
         np.random.seed(50)

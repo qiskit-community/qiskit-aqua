@@ -15,19 +15,26 @@
 # limitations under the License.
 # =============================================================================
 
-import os
 import unittest
 import operator
 
-from test.common import QISKitAcquaTestCase
-from qiskit_acqua import get_algorithm_instance, get_oracle_instance
+from parameterized import parameterized
+from test.common import QiskitAquaTestCase
+from qiskit_aqua import get_algorithm_instance, get_oracle_instance
 
 
-class TestGrover(QISKitAcquaTestCase):
-    def setUp(self):
-        self.input_file = os.path.join(os.path.dirname(__file__), 'test_grover.cnf')
+class TestGrover(QiskitAquaTestCase):
+
+    @parameterized.expand([
+        ['test_grover_tiny.cnf', 1],
+        ['test_grover.cnf', 2]
+    ])
+    def test_grover(self, input_file, num_iterations=1):
+        self.log.debug('Testing Grover search with {} iteration(s) on SAT problem instance: \n{}'.format(
+            num_iterations, open(input_file).read(),
+        ))
         # get ground-truth
-        with open(self.input_file) as f:
+        with open(input_file) as f:
             header = f.readline()
             self.assertGreaterEqual(header.find('solution'), 0, 'Ground-truth info missing.')
         self.groundtruth = [
@@ -37,15 +44,13 @@ class TestGrover(QISKitAcquaTestCase):
             ])[::-1]
             for s in header.split('solutions:' if header.find('solutions:') >= 0 else 'solution:')[-1].split(',')
         ]
-
-    def test_grover(self):
         sat_oracle = get_oracle_instance('SAT')
-        with open(self.input_file) as f:
+        with open(input_file) as f:
             sat_oracle.init_args(f.read())
 
         grover = get_algorithm_instance('Grover')
         grover.setup_quantum_backend(backend='local_qasm_simulator', shots=100)
-        grover.init_args(sat_oracle, num_iterations=2)
+        grover.init_args(sat_oracle, num_iterations=num_iterations)
 
         ret = grover.run()
 

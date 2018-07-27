@@ -21,11 +21,11 @@ from parameterized import parameterized
 from scipy.optimize import rosen
 import numpy as np
 
-from test.common import QISKitAcquaTestCase
-from qiskit_acqua import get_optimizer_instance
+from test.common import QiskitAquaTestCase
+from qiskit_aqua import get_optimizer_instance
 
 
-class TestNLOptOptimizers(QISKitAcquaTestCase):
+class TestNLOptOptimizers(QiskitAquaTestCase):
 
     def setUp(self):
         np.random.seed(50)

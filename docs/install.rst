@@ -1,17 +1,17 @@
 Installation and Setup
-=====================
+======================
 
 Dependencies
 ------------
 
-As QISKit ACQUA is built upon `QISKit <https://qiskit.org>`__, you are encouraged to look over the
-`QISKit
-installation <https://github.com/QISKit/qiskit-sdk-py/blob/master/README.md#installation>`__
+Since Qiskit Aqua is built upon `Qiskit <https://qiskit.org>`__, you are encouraged to look over the
+`Qiskit
+installation <https://github.com/Qiskit/qiskit-sdk-py/blob/master/README.md#installation>`__
 too.
 
-Like for QISKit, at least `Python 3.5 or
-later <https://www.python.org/downloads/>`__ is needed to use QISKit
-ACQUA. In addition, `Jupyter
+Like for Qiskit, at least `Python 3.5 or
+later <https://www.python.org/downloads/>`__ is needed to use Qiskit
+Aqua. In addition, `Jupyter
 Notebook <https://jupyter.readthedocs.io/en/latest/install.html>`__ is
 recommended for interacting with the tutorials. For this reason we
 recommend installing the `Anaconda
@@ -23,113 +23,32 @@ comes with all of these dependencies pre-installed.
 Installation
 ------------
 
-We encourage you to install QISKit ACQUA via the `pip <https://pip.pypa.io/en/stable/>`__  tool (a Python
-package manager):
+Qiskit Aqua can be used as a tool to execute `quantum algorithms <./algorithms.html>`__.
+With the appropriate input, a quantum algorithm will run on top of the underlying `Qiskit <https://qiskit.org>`__
+platform, which will generate, compile and execute a circuit modeling the input problem.
+Qiskit Aqua can also be used as the foundation for domain-specific applications, such as
+`Qiskit Aqua Chemistry <https://qiskit.org/aqua/chemistry>`__,
+`Qiskit Aqua Artificial Intelligence <https://qiskit.org/aqua/ai>`__ and
+`Qiskit Aqua Optimization <https://qiskit.org/aqua/optimization>`__.
+The best way to install Qiskit Aqua when the goal is to use as a tool or as a library
+of quantum algorithms is via the `pip <https://pip.pypa.io/en/stable/>`__  package management system:
 
 .. code:: sh
 
-    pip install qiskit_acqua
+    pip install qiskit_aqua
 
 pip will handle all dependencies automatically and you will always
 install the latest (and well-tested) release version.
 
-We recommend using Python virtual environments to improve your
-experience.
+A different class of users --- namely, quantum researchers and developers --- might be more interested
+in exploring the source code of Qiskit Aqua and `extending it <./extending.html>`__ by providing
+new components, such as `quantum algorithms <./algorithms.html>`__, `optimizers <./optimizers.html>`__,
+`variational forms <./variational_forms.html>`__, `initial states <./initial_states.html>`__,
+`inverse Quantum Fourier Transforms (IQFTs) <./iqfts.html>`__ and `Grover search oracles <./oracles.html>`__.
+The best way to install Qiskit Aqua when the goal is extending its capabilities is by cloning
+the `Qiskit Aqua repository <https://github.com/Qiskit/aqua>`__.
 
-Running an Algorithm
---------------------
-
-Now that you have installed QISKit ACQUA, you can run an algorithm by invoking it with the appropriate input.
-The input to a QISKit ACQUA algorithm is expected to be in `JSON <http://json.org>`__ format.
-This can be done programmatically, via the Graphical User Interface (GUI) or from the command line.  In addition to the input itself,
-the JSON file encodes the algorithm that QISKit ACQUA will invoke on that input.
-One way to generate the JSON input is by
-serializing the input to QISKit ACQUA when executing one of the applications running on top of QISKit ACQUA,
-such as QISKit ACQUA Chemistry, QISKit ACQUA Artificial Intelligence, and QISKit ACQUA Optimization.
-
-GUI
-~~~
-The QISKit ACQUA GUI allows you to load and save a JSON file to run an algorithm
-as well as create a new one or edit an existing one. So, for example,
-using the UI, you can alter the parameters of an algorithm and/or its dependent
-objects to see how the changes affect the outcome. pip installs a
-small script that allows you to start the GUI from the command line, as follows:
-
-.. code:: sh
-
-    qiskit_acqua_ui
-
-If you clone and run directly from the repository instead of using
-the ``pip install`` recommended way, then it can be run using
-
-.. code::
- 
-   python qiskit_acqua/ui/run
-
-from the root folder of the ``qiskit-acqua`` repository clone.
-
-Configuring an experiment that involves both quantum-computing and domain-specific parameters
-may look like a challenging activity, which requires specialized knowledge on both the specific
-domain in which the experiment runs and quantum computing itself.  QISKit ACQUA simplifies the
-configuration of any run in two ways:
-
-1. Defaults are provided for each parameter.  Such defaults have been validated to be the best choices in most cases.
-
-2. A robust configuration correctness enforcement mechanism is in place.  Any configuration is validated by QISKit ACQUA upon startup, and if the user has chosen to use the GUI to configure an experiment, the GUI itself prevents incompatible parameters from being selected, making the configuration error resilient.
-
-Command Line
-~~~~~~~~~~~~
-
-The command line tool will run an algorithm from the supplied JSON file.
-Run without any arguments, it will print help information.  pip installs a
-small script, which can be invoked with a JSON algorithm input file from the command line as follows:
-
-.. code:: sh
-
-    qiskit_acqua_cmd examples/H2-0.735.json
-
-If you clone and run direct from the repository instead of using
-the ``pip install`` recommended way then it can be run using
-
-.. code:: sh
-
-    python qiskit_acqua
-
-from the root folder of the ``qiskit-acqua``
-repository clone.
-
-Browser
-~~~~~~~
-
-As QISKit ACQUA is extensible with pluggable components, we have provided
-a documentation GUI that shows all the pluggable components along with the schema for
-their parameters. ``pip`` installs a small script to invoke the
-browser GUI as follows:
-
-.. code:: sh
-
-    qiskit_acqua_browser
-
-Note: if you clone the repository and want to start the documentation GUI
-directly from your local repository instead of using
-the ``pip install`` recommended way, then the documentation GUI can be run using the following command:
-
-.. code:: sh
-
-    python qiskit_acqua/ui/browser
-
-from the root folder of the
-``qiskit-acqua`` repository clone.
-
-Programming
-~~~~~~~~~~~
-
-Any algorithm in QISKit ACQUA can be run programmatically too. The
-``examples`` folder contains numerous cases that explain  how to do this. Here you will
-see there is a ``run_algorithm`` method used, which takes either the JSON algorithm input
-or an equivalent Python dictionary and optional ``AlgorithmInput`` object
-for the algorithm. There is also a ``run_algorithm_to_json`` that simply
-takes the input and saves it to JSON in a self-contained form, which  can
-later be used by the command line or GUI.
+.. note::
+    We recommend using Python virtual environments to improve your experience.
 
 

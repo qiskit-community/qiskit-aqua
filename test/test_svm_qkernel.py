@@ -19,13 +19,13 @@ import unittest
 import numpy as np
 from parameterized import parameterized
 
-from test.common import QISKitAcquaTestCase
-from qiskit_acqua import Operator, run_algorithm
-from qiskit_acqua.input import get_input_instance
-from qiskit_acqua import get_algorithm_instance
+from test.common import QiskitAquaTestCase
+from qiskit_aqua import Operator, run_algorithm
+from qiskit_aqua.input import get_input_instance
+from qiskit_aqua import get_algorithm_instance
 
 
-class TestSVMQKernel(QISKitAcquaTestCase):
+class TestSVMQKernel(QiskitAquaTestCase):
 
     def setUp(self):
         self.random_seed = 10598

@@ -18,6 +18,35 @@ The format is based on `Keep a Changelog`_.
 `UNRELEASED`_
 =============
 
+`0.2.0`_ - 2018-07-27
+=====================
+
+Added
+-----
+
+- Ising model for TSP.
+- add summarize circuits.
+- Relax max circuits for simulation.
+- Added qubit_tapering method.
+- multiclass svm (one against all).
+- Allow dynamic loading preferences package.module.
+
+Changed
+-------
+
+- Changed name from acqua to aqua.
+- Move QAOA's variational form to under the algorithm implementation directory.
+- Factor out the QAOA variational form.
+
+Fixed
+-----
+
+- Operator will crash if the backend is None.
+- Fix/max num circuits.
+- fix grover for cases that don't need ancillary qubits.
+- Fixed validation error for string of numbers.
+- fix link to ai and opt notebooks.
+
 `0.1.2`_ - 2018-07-12
 =====================
 
@@ -35,7 +64,7 @@ Changed
 -------
 
 - Clean up use_basis_gates options.
-- Change QISKit registering for QISKit 0.5.5.
+- Change Qiskit registering for Qiskit 0.5.5.
 
 Fixed
 -----
@@ -68,8 +97,9 @@ Changed
 - Updated qiskit minimum version in setup.py.
 - Fixed links in readme.me.
 
-.. _UNRELEASED: https://github.com/QISKit/qiskit-acqua/compare/0.1.2...HEAD
-.. _0.1.2: https://github.com/QISKit/qiskit-acqua/compare/0.1.1...0.1.2
-.. _0.1.1: https://github.com/QISKit/qiskit-acqua/compare/0.1.0...0.1.1
+.. _UNRELEASED: https://github.com/Qiskit/aqua/compare/0.2.0...HEAD
+.. _0.2.0: https://github.com/Qiskit/aqua/compare/0.1.2...0.2.0
+.. _0.1.2: https://github.com/Qiskit/aqua/compare/0.1.1...0.1.2
+.. _0.1.1: https://github.com/Qiskit/aqua/compare/0.1.0...0.1.1
 
 .. _Keep a Changelog: http://keepachangelog.com/en/1.0.0/

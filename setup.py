@@ -17,12 +17,12 @@
 
 import setuptools
 
-long_description="""<a href="https://qiskit.org/acqua" rel=nofollow>QISKit ACQUA</a> is an extensible, 
+long_description="""<a href="https://qiskit.org/aqua" rel=nofollow>Qiskit Aqua</a> is an extensible, 
  modular, open-source library of quantum computing algorithms.
- Researchers can experiment with ACQUA algorithms, on near-term quantum devices and simulators, 
+ Researchers can experiment with Aqua algorithms, on near-term quantum devices and simulators, 
  and can also get involved by contributing new algorithms and algorithm-supporting objects, 
- such as optimizers and variational forms. QISKit ACQUA is used by QISKit ACQUA Chemistry, 
- QISKit ACQUA Artificial Intelligence, and QISKit ACQUA Optimization to experiment with real-world applications to quantum computing."""
+ such as optimizers and variational forms. Qiskit Aqua is used by Qiskit Aqua Chemistry, 
+ Qiskit Aqua Artificial Intelligence, and Qiskit Aqua Optimization to experiment with real-world applications to quantum computing."""
     
 requirements = [
     "qiskit>=0.5.6",
@@ -37,13 +37,13 @@ requirements = [
 ]
 
 setuptools.setup(
-    name='qiskit-acqua',
-    version="0.1.2",  # this should match __init__.__version__
-    description='QISKit ACQUA: An extensible library of quantum computing algorithms',
+    name='qiskit-aqua',
+    version="0.2.0",  # this should match __init__.__version__
+    description='Qiskit Aqua: An extensible library of quantum computing algorithms',
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url='https://github.com/QISKit/qiskit-acqua',
-    author='QISKit ACQUA Development Team',
+    url='https://github.com/Qiskit/aqua',
+    author='Qiskit Aqua Development Team',
     author_email='qiskit@us.ibm.com',
     license='Apache-2.0',
     classifiers=(
@@ -58,18 +58,18 @@ setuptools.setup(
         "Programming Language :: Python :: 3.6",
         "Topic :: Scientific/Engineering"
     ),
-    keywords='qiskit sdk quantum acqua',
+    keywords='qiskit sdk quantum aqua',
     packages=setuptools.find_packages(exclude=['test*']),
     install_requires=requirements,
     include_package_data=True,
     python_requires=">=3.5",
     entry_points = {
         'console_scripts': [
-                'qiskit_acqua_cmd=qiskit_acqua.command_line:main'
+                'qiskit_aqua_cmd=qiskit_aqua.command_line:main'
         ],
         'gui_scripts': [
-                'qiskit_acqua_ui=qiskit_acqua.ui.run.command_line:main',
-                'qiskit_acqua_browser=qiskit_acqua.ui.browser.command_line:main'
+                'qiskit_aqua_ui=qiskit_aqua.ui.run.command_line:main',
+                'qiskit_aqua_browser=qiskit_aqua.ui.browser.command_line:main'
         ]
     }
 )

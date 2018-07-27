@@ -18,11 +18,11 @@
 import unittest
 import numpy as np
 
-from test.common import QISKitAcquaTestCase
-from qiskit_acqua import get_initial_state_instance
+from test.common import QiskitAquaTestCase
+from qiskit_aqua import get_initial_state_instance
 
 
-class TestInitialStateHartreeFock(QISKitAcquaTestCase):
+class TestInitialStateHartreeFock(QiskitAquaTestCase):
 
     def setUp(self):
         self.hf = get_initial_state_instance('HartreeFock')

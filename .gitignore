@@ -4,7 +4,7 @@
 # Dolphin KDE
 .directory
 
-# QISKit SDK config file
+# Qiskit SDK config file
 Qconfig.py
 
 # Exclude NLopt
@@ -95,7 +95,7 @@ docs/_build/
 docs/*.rst
 #Allow
 !docs/dev_introduction.rst
-!docs/qiskit-acqua.rst
+!docs/qiskit-aqua.rst
 !docs/index.rst
 !docs/install.rst
 !docs/quickstart.rst
@@ -108,7 +108,6 @@ docs/*.rst
 !docs/oracles.rst
 !docs/extending.rst
 !docs/initial_states.rst
-!docs/problem_backend_config.rst
 
 # PyBuilder
 target/
