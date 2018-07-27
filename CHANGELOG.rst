@@ -18,6 +18,27 @@ The format is based on `Keep a Changelog`_.
 `UNRELEASED`_
 =============
 
+`0.2.0`_ - 2018-07-27
+=====================
+
+Added
+-----
+
+- Allow dynamic loading preferences package.module.
+- Dynamic loading of client preference chemistry operators and drivers.
+
+Changed
+-------
+
+- Changed name from acqua to aqua.
+- Add version to about dialog
+
+Fixed
+-----
+
+- Fixed validation error for string of numbers.
+- Fix backend name ui show
+
 `0.1.1`_ - 2018-07-12
 =====================
 
@@ -30,7 +51,7 @@ Changed
 -------
 
 - Remove use_basis_gates flag.
-- Change QISKit registering for QISKit 0.5.5.
+- Change Qiskit registering for Qiskit 0.5.5.
 - Changed enable_substitutions to auto_substitutions.
 
 Fixed
@@ -51,7 +72,8 @@ Changed
 - Changed description and change package name to dashes in setup.py.
 - Update description and fixed links in readme
 
-.. _UNRELEASED: https://github.com/QISKit/qiskit-acqua-chemistry/compare/0.1.1...HEAD
-.. _0.1.1: https://github.com/QISKit/qiskit-acqua-chemistry/compare/0.1.0...0.1.1
+.. _UNRELEASED: https://github.com/Qiskit/aqua-chemistry/compare/0.2.0...HEAD
+.. _0.2.0: https://github.com/Qiskit/aqua-chemistry/compare/0.1.1...0.2.0
+.. _0.1.1: https://github.com/Qiskit/aqua-chemistry/compare/0.1.0...0.1.1
 
 .. _Keep a Changelog: http://keepachangelog.com/en/1.0.0/

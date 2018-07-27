@@ -4,7 +4,7 @@
 # Dolphin KDE
 .directory
 
-# QISKit SDK config file
+# Qiskit SDK config file
 Qconfig.py
 
 # Exclude NLopt
@@ -26,8 +26,8 @@ __pycache__/
 *.so.dSYM
 *.dll
 #Allow
-!qiskit_acqua_chemistry/drivers/gaussiand/gauopen/*.so
-!qiskit_acqua_chemistry/drivers/gaussiand/gauopen/*.pyd
+!qiskit_aqua_chemistry/drivers/gaussiand/gauopen/*.so
+!qiskit_aqua_chemistry/drivers/gaussiand/gauopen/*.pyd
 
 
 # Distribution / packaging
@@ -104,10 +104,11 @@ docs/*.rst
 !docs/install.rst
 !docs/quickstart.rst
 !docs/releases.rst
-!docs/qiskit-acqua-chemistry.rst
+!docs/qiskit-aqua-chemistry.rst
 !docs/CONTRIBUTORS.rst
 !docs/config_run.rst
 !docs/drivers.rst
+!docs/extending.rst
 
 # PyBuilder
 target/

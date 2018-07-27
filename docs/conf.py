@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# QISKit ACQUA Chemistry documentation build configuration file, created by
+# Qiskit Aqua Chemistry documentation build configuration file, created by
 # sphinx-quickstart on Mon Feb  5 15:24:52 2018.
 #
 # This file is execfile()d with the current directory set to its
@@ -22,7 +22,7 @@ import sys
 
 sys.path.insert(0, os.path.abspath('..'))
 
-from qiskit_acqua_chemistry import __version__
+from qiskit_aqua_chemistry import __version__
 
 # -- General configuration ------------------------------------------------
 
@@ -72,13 +72,13 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'QISKit ACQUA Chemistry'
+project = 'Qiskit Aqua Chemistry'
 copyright = '2018 IBM'
 author = 'IBM'
 
 # Add description
 html_context = {
-    'description': 'QISKit ACQUA Chemistry'
+    'description': 'Qiskit Aqua Chemistry'
 }
 
 # The version info for the project you're documenting, acts as replacement for
@@ -143,7 +143,7 @@ html_last_updated_fmt = '%Y/%m/%d'
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'QISKitAcquaChemistrydoc'
+htmlhelp_basename = 'QiskitAquaChemistrydoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -170,7 +170,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'QISKitAcquaChemistry.tex', 'QISKit ACQUA Chemistry Documentation',
+    (master_doc, 'QiskitAquaChemistry.tex', 'Qiskit Aqua Chemistry Documentation',
      'Several authors', 'manual'),
 ]
 
@@ -180,7 +180,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'qiskit_acqua_chemistry', 'QISKit Acqua Chemistry Documentation',
+    (master_doc, 'qiskit_aqua_chemistry', 'Qiskit Aqua Chemistry Documentation',
      [author], 1)
 ]
 
@@ -191,8 +191,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'qiskit_acqua_chemistry', 'QISKit ACQUA Chemistry Documentation',
-     author, 'qiskit_acqua_chemistry', 'One line description of project.',
+    (master_doc, 'qiskit_aqua_chemistry', 'Qiskit Aqua Chemistry Documentation',
+     author, 'qiskit_aqua_chemistry', 'One line description of project.',
      'Miscellaneous'),
 ]
 

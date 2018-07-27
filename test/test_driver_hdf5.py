@@ -18,12 +18,12 @@
 import unittest
 from collections import OrderedDict
 
-from test.common import QISKitAcquaChemistryTestCase
-from qiskit_acqua_chemistry.drivers import ConfigurationManager
+from test.common import QiskitAquaChemistryTestCase
+from qiskit_aqua_chemistry.drivers import ConfigurationManager
 from test.test_driver import TestDriver
 
 
-class TestDriverHDF5(QISKitAcquaChemistryTestCase, TestDriver):
+class TestDriverHDF5(QiskitAquaChemistryTestCase, TestDriver):
     """HDF5 Driver tests."""
 
     def setUp(self):

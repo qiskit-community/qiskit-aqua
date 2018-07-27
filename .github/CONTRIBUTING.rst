@@ -12,7 +12,7 @@ Issue reporting
 ~~~~~~~~~~~~~~~
 
 This is a good point to start, when you find a problem please add
-it to the `issue tracker <https://github.com/QISKit/qiskit-acqua-chemistry/issues>`_.
+it to the `issue tracker <https://github.com/Qiskit/aqua-chemistry/issues>`_.
 The ideal report should include the steps to reproduce it.
 
 Doubts solving

@@ -4,10 +4,10 @@ Installation and Setup
 Dependencies
 ------------
 
-As QISKit ACQUA Chemistry is built upon QISKit ACQUA.
-Like QISKit ACQUA, at least `Python 3.5 or
-later <https://www.python.org/downloads/>`__ is needed to use QISKit
-ACQUA Chemistry. In addition, `Jupyter
+Qiskit Aqua Chemistry is built upon Qiskit Aqua.
+Like Qiskit Aqua, at least `Python 3.5 or
+later <https://www.python.org/downloads/>`__ is needed to use Qiskit
+Aqua Chemistry. In addition, `Jupyter
 Notebook <https://jupyter.readthedocs.io/en/latest/install.html>`__ is
 recommended for interacting with the tutorials. For this reason we
 recommend installing the `Anaconda
@@ -15,125 +15,57 @@ recommend installing the `Anaconda
 comes with all of these dependencies pre-installed.
 
 
-Installation
-------------
+Code Installation
+-----------------
 
-We encourage you to install QISKit ACQUA Chemistry via the pip tool (a
-Python package manager):
+We encourage you to install Qiskit Aqua Chemistry via the `pip <https://pypi.org/project/pip/>`__ package management system:
 
 .. code:: sh
 
-   pip install qiskit-acqua-chemistry
+   pip install qiskit-aqua-chemistry
 
-pip will handle all dependencies automatically and you will always
+pip will handle all dependencies automatically (including the dependencies on Qiskit Aqua and Qiskit Core). and you will always
 install the latest (and well-tested) release version.
 
-We recommend using Python virtual environments to improve your
-experience.
+If your intention is not so much to access Qiskit Aqua Chemistry
+as a tool to perform chemistry computations on a quantum machine, but rather to extend Qiskit Aqua Chemistry
+with new research contributions --- such as new algorithms, algorithm components, input-translation operators or drivers ---
+then it is advisable to clone both the
+`Qiskit Aqua Chemistry <https://github.com/Qiskit/aqua-chemistry>`__ and
+`Qiskit Aqua <https://github.com/Qiskit/aqua>`__ Git repositories in order
+to have easier access to the source code of the various components.
 
-Running a Chemistry Experiment
-------------------------------
+.. note::
 
-Now that you have installed QISKit ACQUA Chemistry, you can run an
-experiment, for example to compute the ground state energy of a
-molecule.
+    We recommend using Python virtual environments to improve your experience.
 
-QISKit ACQUA Chemistry has both `GUI <#gui>`__ and `command
-line <#command-line>`__ tools, which may be used when solving chemistry
-problems. Both can load and run an `input
-file <qiskit_acqua_chemistry#input-file>`__ specifying the molecule, an
-algorithm to be used and its configuration, and various other options to
-tailor the experiment.  If you are new to the
-library we highly recommend getting started with the GUI.
-Finally, QISKIT ACQUA Chemistry can also be accessed `programmatically <#programming>`__.
+Jupyter Notebooks and input files for Qiskit Aqua Chemistry are included as part of the
+`Qiskit Aqua Tutorials <https://nbviewer.jupyter.org/github/Qiskit/aqua-tutorials/blob/master/index.ipynb>`__.
 
-GUI
-~~~
+Installation of Chemistry Drivers
+---------------------------------
 
-The GUI allows provides an easy means to load and run an input file
-specifying your chemistry problem. An input file is created,
-edited and saved with validation of parameter values to provide ease of
-configuring the chemistry problem using the input file. The ``pip install``
-creates a script that allows you to start the GUI from the command line,
-as follows:
+To run chemistry experiments on various molecules, you will also need to install one of the supported
+classical computational chemistry programs, or *drivers*,
+interfaced by Qiskit Aqua Chemistry.
+Currently, Qiskit Aqua Chemistry comes with built-in interfaces for four drivers:
 
-.. code:: sh
+1. `Gaussian™ 16 <http://gaussian.com/gaussian16/>`__, a commercial chemistry program
+2. `PSI4 <http://www.psicode.org/>`__, an open-source chemistry program built on Python
+3. `PySCF <https://github.com/sunqm/pyscf>`__, an open-source Python chemistry program
+4. `PyQuante <http://pyquante.sourceforge.net/>`__, a pure cross-platform open-source Python chemistry program
 
-   qiskit_acqua_chemistry_ui
+While the logic to
+interface these drivers is supplied as part of the Qiskit Aqua Chemistry installation, the dependent chemistry programs
+need to be installed separately.  This can be done by following the `instructions provided <./drivers.html>`__.
+Supporting additional drivers in Qiskit Aqua Chemistry can be easily achieved by extending the ``BaseDriver`` interface.
 
-If you clone and run directly from the repository, instead of using ``pip
-install``, then it can be run using:
-
-.. code:: sh
-
-   python qiskit_acqua_chemistry/ui``
-
-from the root folder of the ``qiskit-acqua-chemistry`` repository clone.
-
-Command Line
-~~~~~~~~~~~~
-
-Here is a summary of the ``qiskit_acqua_chemistry`` command-line options:
-
-.. code:: sh
-
-   usage: qiskit_acqua_chemistry [-h] [-o output | -jo json output] input
-
-   Quantum Chemistry Program.
-
-   positional arguments:
-     input            Chemistry Driver input or Algorithm JSON input file
-
-   optional arguments:
-     -h, --help       show this help message and exit
-     -o output        Algorithm Results Output file name
-     -jo json output  Algorithm JSON Output file name
-
-QISKit ACQUA Chemistry, if installed via ``pip install``, comes with the following command-line tool:
-
-.. code:: sh
-
-   qiskit_acqua_chemistry_cmd
-
-If you cloned QISKit ACQUA Chemistry from the repository instead of using ``pip
-install``, then the command-line interface can be executed as follows:
-
-.. code:: sh
-
-   python qiskit_acqua_chemistry
-
-from the root folder of the ``qiskit-acqua-chemistry`` repository clone.
-
-Programming
-~~~~~~~~~~~
-
-Chemistry experiments can be run programmatically too. Please refer to
-the tutorials for a number of examples. Here you
-will see different ways of programming an experiment. The simplest,
-which matches closely to the input file, is used in many examples. Here,
-a Python dictionary is passed as an input to an ``ACQUAChemistry`` instance to
-run the experiment and return the result.
-
-.. code:: python
-
-   solver = ACQUAChemistry()
-   result = solver.run(acqua_chemistry_dict)
-
-The
-`acqua_chemistry_howto <https://github.com/QISKit/qiskit-acqua-tutorials/blob/master/chemistry/acqua_chemistry_howto.ipynb>`__
-notebook details this simple example.
-
-Creating the Python dictionary for a programmatic experiment without the risk
-of typos, mismatching parameters, or parameter values out of range or of the wrong type
-can be a challenge.  QISKit ACQUA Chemistry dramatically simplifies the
-generation of a correct Python dictionary of a chemistry problem.  Users can first
-configure a chemistry problem by using the `GUI <#gui>`__, extract the corresponding
-Python dictionary through the GUI utilities, embed that dictionary in
-a Python program, and programmatically customize the dictionary according to their needs.
-
-Since a Python dictionary can be updated programmatically, it is
-possible to carry out more complicated experiments, such as plotting a
-`dissociation curve 
-<https://github.com/QISKit/qiskit-acqua-tutorials/blob/master/chemistry/lih_dissoc.ipynb>`__
-or `comparing results obtained with different algorithms 
-<https://github.com/QISKit/qiskit-acqua-tutorials/blob/master/chemistry/lih_uccsd.ipynb>`__.
+Even without installing any of the drivers above, it is still possible to run chemistry experiments by passing
+to the inout-translation layer a Hierarchical Data Format 5 (HDF5) binary file serializing the intermediate data
+previously generated by one of the supported chemistry drivers.  This offers researchers the opportunity to share
+chemistry input files and replicate each other's results.  Given its support to take an HDF5 files as the input to initiate a chemistry experiment,
+Qiskit ACQUQ Chemistry lists HDF5 as an additional driver --- in fact, the only built-in driver coming
+with Qiskit Aqua Chemistry.
+ 
+A few sample HDF5 files are provided as input files in the ``chemistry`` folder of the
+`Qiskit Aqua Tutorials <https://nbviewer.jupyter.org/github/Qiskit/aqua-tutorials/blob/master/index.ipynb>`__.

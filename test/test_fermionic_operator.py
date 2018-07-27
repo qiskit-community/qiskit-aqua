@@ -21,10 +21,10 @@ from collections import OrderedDict
 
 import numpy as np
 
-from qiskit_acqua_chemistry import FermionicOperator
-from qiskit_acqua.utils import random_unitary
-from test.common import QISKitAcquaChemistryTestCase
-from qiskit_acqua_chemistry.drivers import ConfigurationManager
+from qiskit_aqua_chemistry import FermionicOperator
+from qiskit_aqua.utils import random_unitary
+from test.common import QiskitAquaChemistryTestCase
+from qiskit_aqua_chemistry.drivers import ConfigurationManager
 
 # def mapping_slow(self, map_type, threshold=0.00000001):
 #     """
@@ -49,7 +49,7 @@ from qiskit_acqua_chemistry.drivers import ConfigurationManager
 #     elif map_type == 'bravyi_kitaev':
 #         a = self._bravyi_kitaev_mode(n)
 #     else:
-#         raise ACQUAChemistryError('Please specify the supported modes: jordan_wigner, parity, bravyi_kitaev')
+#         raise AQUAChemistryError('Please specify the supported modes: jordan_wigner, parity, bravyi_kitaev')
 #     """
 #     ####################################################################
 #     ############    BUILDING THE MAPPED HAMILTONIAN     ################
@@ -140,7 +140,7 @@ def h2_transform_slow(h2, unitary_matrix):
                         temp_ret[a, b, c, d] += unitary_matrix[l, d] * temp3[a, b, c, l]
     return temp_ret
 
-class TestFermionicOperator(QISKitAcquaChemistryTestCase):
+class TestFermionicOperator(QiskitAquaChemistryTestCase):
     """Fermionic Operator tests."""
 
     def setUp(self):

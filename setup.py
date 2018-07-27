@@ -17,13 +17,13 @@
 
 import setuptools
 
-long_description="""<a href="https://qiskit.org/acqua/chemistry" rel=nofollow>QISKit ACQUA Chemistry</a> 
+long_description="""<a href="https://qiskit.org/aqua/chemistry" rel=nofollow>Qiskit Aqua Chemistry</a> 
  is a set of quantum computing algorithms, 
  tools and APIs for experimenting with real-world chemistry applications on near-term quantum devices."""
     
 
 requirements = [
-    "qiskit-acqua>=0.1.2",
+    "qiskit-aqua>=0.2.0",
     "qiskit>=0.5.6",
     "numpy>=1.13,<1.15",
     "h5py",
@@ -34,13 +34,13 @@ requirements = [
 ]
 
 setuptools.setup(
-    name='qiskit-acqua-chemistry',
-    version="0.1.1",  # this should match __init__.__version__
-    description='QISKit ACQUA Chemistry: Experiment with chemistry applications on a quantum machine',
+    name='qiskit-aqua-chemistry',
+    version="0.2.0",  # this should match __init__.__version__
+    description='Qiskit Aqua Chemistry: Experiment with chemistry applications on a quantum machine',
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url='https://github.com/QISKit/qiskit-acqua-chemistry',
-    author='QISKit ACQUA Chemistry Development Team',
+    url='https://github.com/Qiskit/aqua-chemistry',
+    author='Qiskit Aqua Chemistry Development Team',
     author_email='qiskit@us.ibm.com',
     license='Apache-2.0',
     classifiers=(
@@ -55,17 +55,17 @@ setuptools.setup(
         "Programming Language :: Python :: 3.6",
         "Topic :: Scientific/Engineering"
     ),
-    keywords='qiskit sdk quantum acqua chemistry',
+    keywords='qiskit sdk quantum aqua chemistry',
     packages=setuptools.find_packages(exclude=['test*']),
     install_requires=requirements,
     include_package_data=True,
     python_requires=">=3.5",
     entry_points = {
         'console_scripts': [
-                'qiskit_acqua_chemistry_cmd=qiskit_acqua_chemistry.command_line:main'
+                'qiskit_aqua_chemistry_cmd=qiskit_aqua_chemistry.command_line:main'
         ],
         'gui_scripts': [
-                'qiskit_acqua_chemistry_ui=qiskit_acqua_chemistry.ui.command_line:main'
+                'qiskit_aqua_chemistry_ui=qiskit_aqua_chemistry.ui.command_line:main'
         ]
     }
 )
