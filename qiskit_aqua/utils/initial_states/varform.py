@@ -15,17 +15,8 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit import QuantumRegister, QuantumCircuit
-from qiskit.extensions.quantum_initializer import InitializeGate
-from qiskit import CompositeGate
-from qiskit.extensions.standard.ry import RYGate
-from qiskit.extensions.standard.rz import RZGate
-from qiskit.extensions.standard.cx import CnotGate
-from qiskit.extensions.standard.u1 import U1Gate
-from qiskit.extensions.standard.u3 import U3Gate
-import numpy as np
 
-from qiskit_acqua.utils.initial_states import InitialState
+from qiskit_aqua.utils.initial_states import InitialState
 
 
 class VarForm(InitialState):
