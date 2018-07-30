@@ -134,7 +134,7 @@ class QuantumAlgorithm(ABC):
             skip_transpiler (bool): skip most of the compile steps and produce qobj directly
             noise_params (dict): the noise setting for simulator
             coupling_map (list): coupling map (perhaps custom) to target in mapping
-            initial_layout (list): initial layout of qubits in mapping
+            initial_layout (dict): initial layout of qubits in mapping
             hpc_params (dict): HPC simulator parameters
             basis_gates (str): comma-separated basis gate set to compile to
             max_credits (int): maximum credits to use
