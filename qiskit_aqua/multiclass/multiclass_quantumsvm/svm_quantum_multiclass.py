@@ -17,25 +17,31 @@
 
 import numpy as np
 
-from qiskit_aqua import QuantumAlgorithm
-from qiskit_aqua.svm import (get_points_and_labels, optimize_SVM,
-                             kernel_join, entangler_map_creator)
+from qiskit_acqua import QuantumAlgorithm
+from qiskit_acqua.svm import (get_points_and_labels, optimize_SVM,
+                              kernel_join, entangler_map_creator)
 
-from qiskit_aqua.multiclass.one_against_rest import OneAgainstRest
-from qiskit_aqua.multiclass_quantumsvm.qkernel_svm_estimator import QKernalSVM_Estimator
+from qiskit_acqua.multiclass.multiclass_quantumsvm.qkernel_svm_estimator import QKernalSVM_Estimator
 import numpy as np
-from qiskit_aqua.multiclass.data_preprocess import *
+from qiskit_acqua.multiclass.data_preprocess import *
+from qiskit_acqua.multiclass.error_correcting_code import ErrorCorrectingCode
+from qiskit_acqua.multiclass.allpairs import AllPairs
+from qiskit_acqua.multiclass.one_against_rest import OneAgainstRest
 
 
-class QuantumSVM_OneAgainstRest(QuantumAlgorithm):
-    QuantumSVM_OneAgainstRest_CONFIGURATION = {
-        'name': 'QuantumSVM_OneAgainstRest',
-        'description': 'QuantumSVM_OneAgainstRest Algorithm',
+class SVM_Quantum_Multiclass(QuantumAlgorithm):
+    SVM_Quantum_Multiclass_CONFIGURATION = {
+        'name': 'SVM_Quantum_Multiclass',
+        'description': 'SVM_Quantum_Multiclass Algorithm',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
-            'id': 'QuantumSVM_OneAgainstRest_schema',
+            'id': 'SVM_Quantum_Multiclass_schema',
             'type': 'object',
             'properties': {
+                'multiclass_alg': {
+                    'type': 'string',
+                    'default': 'all_pairs'
+                },
                 'print_info': {
                     'type': 'boolean',
                     'default': False
@@ -47,14 +53,14 @@ class QuantumSVM_OneAgainstRest(QuantumAlgorithm):
     }
 
     def __init__(self, configuration=None):
-        super().__init__(configuration or self.QuantumSVM_OneAgainstRest_CONFIGURATION.copy())
+        super().__init__(configuration or self.SVM_Quantum_Multiclass_CONFIGURATION.copy())
         self._ret = {}
 
     def init_params(self, params, algo_input):
-        QuantumSVM_OneAgainstRest_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
+        svm_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
 
         self.init_args(algo_input.training_dataset, algo_input.test_dataset,
-                       algo_input.datapoints, QuantumSVM_OneAgainstRest_params.get('print_info'))
+                       algo_input.datapoints, svm_params.get('print_info'), svm_params.get('multiclass_alg'))
 
     def auto_detect_qubitnum(self, training_dataset):
         auto_detected_size = -1
@@ -65,7 +71,7 @@ class QuantumSVM_OneAgainstRest(QuantumAlgorithm):
                 return auto_detected_size
         return auto_detected_size
 
-    def init_args(self, training_dataset, test_dataset, datapoints, print_info=False):  # 2
+    def init_args(self, training_dataset, test_dataset, datapoints, print_info, multiclass_alg):  # 2
         if 'statevector' in self._backend:
             raise ValueError('Selected backend  "{}" does not support measurements.'.format(self._backend))
 
@@ -81,6 +87,7 @@ class QuantumSVM_OneAgainstRest(QuantumAlgorithm):
         self.shots = self._execute_config['shots']
 
         self.print_info = print_info
+        self.multiclass_alg = multiclass_alg
 
 
 
@@ -100,17 +107,26 @@ class QuantumSVM_OneAgainstRest(QuantumAlgorithm):
         X_train, y_train, label_to_class = multiclass_get_points_and_labels(self.training_dataset, self.class_labels)
         X_test, y_test, label_to_class = multiclass_get_points_and_labels(self.test_dataset, self.class_labels)
 
-        oar = OneAgainstRest(QKernalSVM_Estimator, [self._backend, self.shots])
-        oar.train(X_train, y_train)
-
+        if self.multiclass_alg == "all_pairs":
+            multiclass_classifier = AllPairs(QKernalSVM_Estimator, [self._backend, self.shots])
+        elif self.multiclass_alg == "one_against_all":
+            multiclass_classifier = OneAgainstRest(QKernalSVM_Estimator, [self._backend, self.shots])
+        elif self.multiclass_alg == "error_correcting_code":
+            multiclass_classifier = ErrorCorrectingCode(QKernalSVM_Estimator, code_size=4, params = [self._backend, self.shots])
+        else:
+            self._ret['error'] = 'the multiclass alg should be one of {"all_pairs", "one_against_all", "error_correcting_code"}. You did not specify it correctly!'
+            return self._ret
+        if self.print_info:
+            print("You are using the multiclass alg: " + self.multiclass_alg)
+        multiclass_classifier.train(X_train, y_train)
 
 
         if self.test_dataset is not None:
-            success_ratio = oar.test(X_test, y_test)
+            success_ratio = multiclass_classifier.test(X_test, y_test)
             self._ret['test_success_ratio'] = success_ratio
 
         if self.datapoints is not None:
-            predicted_labels = oar.predict(X_test)
+            predicted_labels = multiclass_classifier.predict(X_test)
             predicted_labelclasses = [label_to_class[x] for x in predicted_labels]
             self._ret['predicted_labels'] = predicted_labelclasses
 
