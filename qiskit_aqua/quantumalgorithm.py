@@ -122,19 +122,25 @@ class QuantumAlgorithm(ABC):
                 self._random = np.random.RandomState(self._random_seed)
         return self._random
 
+
     def setup_quantum_backend(self, backend='local_statevector_simulator', shots=1024, skip_transpiler=False,
-                              timeout=None, wait=5, noise_params=None):
+                              noise_params=None, coupling_map=None, initial_layout=None, hpc_params=None,
+                              basis_gates=None, max_credits=10, timeout=None, wait=5):
         """
         Setup the quantum backend.
 
         Args:
             backend (str): name of selected backend
             shots (int): number of shots for the backend
-            skip_transpiler (bool): flag of skipping gate mapping, be aware that only
-                                     basis gates of the backend are executed others are skipped.
+            skip_transpiler (bool): skip most of the compile steps and produce qobj directly
+            noise_params (dict): the noise setting for simulator
+            coupling_map (list): coupling map (perhaps custom) to target in mapping
+            initial_layout (list): initial layout of qubits in mapping
+            hpc_params (dict): HPC simulator parameters
+            basis_gates (str): comma-separated basis gate set to compile to
+            max_credits (int): maximum credits to use
             timeout (float or None): seconds to wait for job. If None, wait indefinitely.
             wait (float): seconds between queries
-            noise_params (dict): the noise setting for simulator
 
         Raises:
             AlgorithmError: set backend with invalid Qconfig
@@ -156,16 +162,22 @@ class QuantumAlgorithm(ABC):
             self.MAX_CIRCUITS_PER_JOB = sys.maxsize
 
         my_backend = get_backend(backend)
+
+        if coupling_map is None:
+            coupling_map = my_backend.configuration['coupling_map']
+        if basis_gates is None:
+            basis_gates = my_backend.configuration['basis_gates']
+
         self._execute_config = {'shots': shots,
                                 'skip_transpiler': skip_transpiler,
                                 'config': {"noise_params": noise_params},
-                                'basis_gates': my_backend.configuration['basis_gates'],
-                                'coupling_map': my_backend.configuration['coupling_map'],
-                                'initial_layout': None,
-                                'max_credits': 10,
+                                'basis_gates': basis_gates,
+                                'coupling_map': coupling_map,
+                                'initial_layout': initial_layout,
+                                'max_credits': max_credits,
                                 'seed': self._random_seed,
                                 'qobj_id': None,
-                                'hpc': None}
+                                'hpc': hpc_params}
 
         info = "Algorithm: '{}' setup with backend '{}', with following setting:\n {}\n{}".format(
             self._configuration['name'], my_backend.configuration['name'], self._execute_config, self._qjob_config)
