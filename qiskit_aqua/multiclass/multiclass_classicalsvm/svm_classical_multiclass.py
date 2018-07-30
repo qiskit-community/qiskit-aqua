@@ -19,13 +19,13 @@ import numpy as np
 
 from sklearn.metrics.pairwise import rbf_kernel
 import copy
-from qiskit_acqua import QuantumAlgorithm
-from qiskit_acqua.svm import (get_points_and_labels, optimize_SVM)
-from qiskit_acqua.multiclass.allpairs import AllPairs
-from qiskit_acqua.multiclass.error_correcting_code import ErrorCorrectingCode
-from qiskit_acqua.multiclass.one_against_rest import OneAgainstRest
-from qiskit_acqua.multiclass.multiclass_classicalsvm.linear_svc_estimator import LinearSVC_Estimator
-from qiskit_acqua.multiclass.data_preprocess import *
+from qiskit_aqua import QuantumAlgorithm
+from qiskit_aqua.svm import (get_points_and_labels, optimize_SVM)
+from qiskit_aqua.multiclass.allpairs import AllPairs
+from qiskit_aqua.multiclass.error_correcting_code import ErrorCorrectingCode
+from qiskit_aqua.multiclass.one_against_rest import OneAgainstRest
+from qiskit_aqua.multiclass.multiclass_classicalsvm.linear_svc_estimator import LinearSVC_Estimator
+from qiskit_aqua.multiclass.data_preprocess import *
 
 class SVM_Classical_Multiclass(QuantumAlgorithm):
     SVM_CLASSICAL_MULTICLASS_CONFIGURATION = {

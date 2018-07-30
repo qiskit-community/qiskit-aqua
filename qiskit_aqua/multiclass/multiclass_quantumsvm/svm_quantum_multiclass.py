@@ -17,16 +17,16 @@
 
 import numpy as np
 
-from qiskit_acqua import QuantumAlgorithm
-from qiskit_acqua.svm import (get_points_and_labels, optimize_SVM,
+from qiskit_aqua import QuantumAlgorithm
+from qiskit_aqua.svm import (get_points_and_labels, optimize_SVM,
                               kernel_join, entangler_map_creator)
 
-from qiskit_acqua.multiclass.multiclass_quantumsvm.qkernel_svm_estimator import QKernalSVM_Estimator
+from qiskit_aqua.multiclass.multiclass_quantumsvm.qkernel_svm_estimator import QKernalSVM_Estimator
 import numpy as np
-from qiskit_acqua.multiclass.data_preprocess import *
-from qiskit_acqua.multiclass.error_correcting_code import ErrorCorrectingCode
-from qiskit_acqua.multiclass.allpairs import AllPairs
-from qiskit_acqua.multiclass.one_against_rest import OneAgainstRest
+from qiskit_aqua.multiclass.data_preprocess import *
+from qiskit_aqua.multiclass.error_correcting_code import ErrorCorrectingCode
+from qiskit_aqua.multiclass.allpairs import AllPairs
+from qiskit_aqua.multiclass.one_against_rest import OneAgainstRest
 
 
 class SVM_Quantum_Multiclass(QuantumAlgorithm):
