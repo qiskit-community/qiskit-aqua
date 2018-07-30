@@ -15,11 +15,11 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit_acqua.multiclass.estimator import Estimator
+from qiskit_aqua.multiclass.estimator import Estimator
 from sklearn.svm import LinearSVC
-from qiskit_acqua.svm.svm_qkernel import SVM_QKernel
+from qiskit_aqua.svm.svm_qkernel import SVM_QKernel
 import numpy as np
-from qiskit_acqua.svm import (get_points_and_labels, optimize_SVM,
+from qiskit_aqua.svm import (get_points_and_labels, optimize_SVM,
                               kernel_join, entangler_map_creator)
 
 class QKernalSVM_Estimator(Estimator, SVM_QKernel):

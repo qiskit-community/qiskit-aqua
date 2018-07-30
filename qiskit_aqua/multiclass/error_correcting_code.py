@@ -3,7 +3,7 @@ from sklearn import datasets
 from sklearn.decomposition import PCA
 from sklearn import datasets
 from sklearn.cross_validation import train_test_split
-from qiskit_acqua.multiclass.dimension_reduction import reduce_dim_to
+from qiskit_aqua.multiclass.dimension_reduction import reduce_dim_to
 import numpy as np
 from sklearn.svm import LinearSVC
 from sklearn.utils.validation import _num_samples
