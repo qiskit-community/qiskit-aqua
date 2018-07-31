@@ -22,7 +22,6 @@ Links to Sections:
 * [Installation](#installation)
 * [Running an Algorithm](#running-an-algorithm)
 * [Authors](#authors)
-* [License](#license)
 
 ## Installation
 
@@ -53,19 +52,19 @@ We recommend using Python virtual environments to improve your experience.
 
 Now that you have installed Qiskit Aqua you can run an algorithm. This can be done [programmatically](#programming)
 or can be done using JSON as an input. Whether via dictionary or via JSON the input is validated for correctness against
-schemas. 
- 
+schemas.
+
 JSON is convenient when the algorithm input has been saved in this form from a prior run. A file containing a saved
 JSON input can be given to either the [GUI](#gui) or the [command line](#command-line) tool in order to run
 the algorithm.
- 
+
 One simple way to generate such JSON input is by serializing the input to Qiskit Aqua when executing one of the
 applications running on top of Qiskit Aqua, such as Qiskit Aqua Chemistry, Qiskit Aqua Artificial Intelligence
-or Qiskit Aqua Optimization. The GUI also saves any entered configuration in JSON 
+or Qiskit Aqua Optimization. The GUI also saves any entered configuration in JSON
 
 The [algorithms](aqua/README.md) readme contains detailed information on the various parameters for each
 algorithm along with links to the respective components they use.
- 
+
 
 ### GUI
 
@@ -85,7 +84,7 @@ be run, from the root folder of the `qiskit-aqua` repository clone, using
 python qiskit_aqua/ui/run
 ```
 
-Configuring an experiment that involves both quantum-computing and domain-specific parameters may look like a 
+Configuring an experiment that involves both quantum-computing and domain-specific parameters may look like a
 challenging activity, which requires specialized knowledge on both the specific domain in which the experiment runs and
 quantum computing itself. Qiskit Aqua simplifies the configuration of any run in two ways:
 
@@ -143,7 +142,3 @@ Qiskit Aqua was inspired, authored and brought about by the collective work of a
 
 Qiskit Aqua continues now to grow with the help and work of [many people](./CONTRIBUTORS.md), who contribute
 to the project at different levels.
-
-## License
-
-This project uses the [Apache License Version 2.0 software license](https://www.apache.org/licenses/LICENSE-2.0).
