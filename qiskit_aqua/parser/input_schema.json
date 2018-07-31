@@ -66,16 +66,18 @@
                     "default": null
                 },
                 "max_credits": {
-                    "type": ["integer", "null"],
-                    "default": null
+                    "type": "integer",
+                    "default": 10,
+                    "minimum": 1
                 },
                 "timeout": {
                     "type": ["number", "null"],
                     "default": null
                 },
                 "wait": {
-                    "type": ["number", "null"],
-                    "default": null
+                    "type": "number",
+                    "default": 5.0,
+                    "minimum": 0.0
                 }
             },
             "required": ["name"],
