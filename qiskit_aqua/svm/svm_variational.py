@@ -74,7 +74,7 @@ class SVM_Variational(QuantumAlgorithm):
         optimizer.init_params(opt_params)
 
         # Set up variational form
-        fea_ext_params = params.get(QuantumAlgorithm.SECTION_KEY_FEATURE_EXTREACTION)
+        fea_ext_params = params.get(QuantumAlgorithm.SECTION_KEY_FEATURE_EXTRACTION)
         num_qubits = self._auto_detect_qubitnum(algo_input.training_dataset)
         fea_ext_params['num_qubits'] = num_qubits
         feature_extraction = get_feature_extraction_instance(fea_ext_params['name'])
@@ -174,7 +174,6 @@ class SVM_Variational(QuantumAlgorithm):
         predicted_probs = []
         predicted_labels = []
         circuits = {}
-
         for c_id, datum in enumerate(data):
             circuit = self._construct_circuit(datum, theta)
             circuits[c_id] = circuit
@@ -209,6 +208,7 @@ class SVM_Variational(QuantumAlgorithm):
 
         self._ret['opt_params'] = theta_best
         self._ret['training_loss'] = cost_final
+
 
     def test(self, data):
         data_samples = []

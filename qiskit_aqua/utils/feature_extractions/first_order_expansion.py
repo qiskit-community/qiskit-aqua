@@ -22,10 +22,8 @@ feature extraction. Several types of commonly used approaches.
 
 import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister, CompositeGate
-from qiskit.extensions.standard.cx import CnotGate
 from qiskit.extensions.standard.u1 import U1Gate
 from qiskit.extensions.standard.u2 import U2Gate
-from qiskit.extensions.standard.u3 import U3Gate
 
 from qiskit_aqua.utils.feature_extractions import FeatureExtraction
 

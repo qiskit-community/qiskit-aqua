@@ -83,9 +83,10 @@ class SPSA(Optimizer):
         initial_c = 0.1
         target_update = 2*np.pi*0.1
         if self._parameters is None: # at least one calibration, at most 25 calibrations
-            logger.debug('SPSA parameters is manually set, skip calibration.')
             num_steps_calibration = min(25, max(1, self._max_trials // 5))
             self._calibration(objective_function, initial_point, initial_c, target_update, num_steps_calibration)
+        else:
+            logger.debug('SPSA parameters is manually set, skip calibration.')
         opt, sol, cplus, cminus, tplus, tminus = self._optimization(objective_function, initial_point,
                                                                     max_trials=self._max_trials, **self._options)
         return sol, opt, None

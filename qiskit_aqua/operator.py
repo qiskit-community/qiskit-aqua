@@ -26,7 +26,7 @@ import numpy as np
 from scipy import sparse as scisparse
 from scipy import linalg as scila
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
-from qiskit.wrapper import execute as q_execute
+from qiskit import execute as q_execute
 from qiskit.tools.qi.pauli import Pauli, label_to_pauli, sgn_prod
 from qiskit.qasm import pi
 
