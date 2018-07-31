@@ -50,10 +50,12 @@ class SVM_Variational(QuantumAlgorithm):
                 'name': 'SPSA'
             },
             'feature_extraction': {
-                'name': 'SecondOrderExpansion'
+                'name': 'SecondOrderExpansion',
+                'depth': 2
             },
             'variational_form': {
-                'name': 'RYRZ'
+                'name': 'RYRZ',
+                'depth': 3
             }
         }
     }
