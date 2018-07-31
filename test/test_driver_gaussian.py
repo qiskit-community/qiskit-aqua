@@ -18,7 +18,7 @@
 import unittest
 
 from test.common import QiskitAquaChemistryTestCase
-from qiskit_aqua_chemistry import AQUAChemistryError
+from qiskit_aqua_chemistry import AquaChemistryError
 from qiskit_aqua_chemistry.drivers import ConfigurationManager
 from test.test_driver import TestDriver
 
@@ -41,7 +41,7 @@ H   0.0  0.0    0.735
         section = {'data': gaussian_cfg}
         try:
             driver = cfg_mgr.get_driver_instance('GAUSSIAN')
-        except AQUAChemistryError:
+        except AquaChemistryError:
             self.skipTest('GAUSSIAN driver does not appear to be installed')
         self.qmolecule = driver.run(section)
 

@@ -25,7 +25,7 @@ import importlib
 import inspect
 from collections import namedtuple
 from .chemistry_operator import ChemistryOperator
-from qiskit_aqua_chemistry import AQUAChemistryError
+from qiskit_aqua_chemistry import AquaChemistryError
 from qiskit_aqua_chemistry.preferences import Preferences
 import logging
 import sys
@@ -158,28 +158,28 @@ def register_chemistry_operator(cls, configuration=None):
     Returns:
         name: input name
     Raises:
-        AQUAChemistryError: if the class is already registered or could not be registered
+        AquaChemistryError: if the class is already registered or could not be registered
     """
     _discover_on_demand()
        
     # Verify that the pluggable is not already registered 
     if cls in [input.cls for input in _REGISTERED_CHEMISTRY_OPERATORS.values()]:
-        raise AQUAChemistryError('Could not register class {} is already registered'.format(cls))
+        raise AquaChemistryError('Could not register class {} is already registered'.format(cls))
 
     try:
         chem_instance = cls(configuration=configuration)
     except Exception as err:
-        raise AQUAChemistryError('Could not register chemistry operator:{} could not be instantiated: {}'.format(cls, str(err)))
+        raise AquaChemistryError('Could not register chemistry operator:{} could not be instantiated: {}'.format(cls, str(err)))
 
     # Verify that it has a minimal valid configuration.
     try:
         chemistry_operator_name = chem_instance.configuration['name']
     except (LookupError, TypeError):
-        raise AQUAChemistryError('Could not register chemistry operator: invalid configuration')
+        raise AquaChemistryError('Could not register chemistry operator: invalid configuration')
         
     if chemistry_operator_name in _REGISTERED_CHEMISTRY_OPERATORS:
-        raise AQUAChemistryError('Could not register class {}. Name {} {} is already registered'.format(cls,
-                                                                                                         chemistry_operator_name, _REGISTERED_CHEMISTRY_OPERATORS[chemistry_operator_name].cls))
+        raise AquaChemistryError('Could not register class {}. Name {} {} is already registered'.format(cls,
+                                                                                                        chemistry_operator_name, _REGISTERED_CHEMISTRY_OPERATORS[chemistry_operator_name].cls))
 
     # Append the pluggable to the `registered_classes` dict.
     _REGISTERED_CHEMISTRY_OPERATORS[chemistry_operator_name] = RegisteredChemOp(chemistry_operator_name, cls, chem_instance.configuration)
@@ -191,12 +191,12 @@ def deregister_chemistry_operator(chemistry_operator_name):
     Args:
         chemistry_operator_name(str): The chemistry operator name
     Raises:
-        AQUAChemistryError: if the class is not registered
+        AquaChemistryError: if the class is not registered
     """
     _discover_on_demand()
   
     if chemistry_operator_name not in _REGISTERED_CHEMISTRY_OPERATORS:
-        raise AQUAChemistryError('Could not deregister {} not registered'.format(chemistry_operator_name))
+        raise AquaChemistryError('Could not deregister {} not registered'.format(chemistry_operator_name))
             
     _REGISTERED_CHEMISTRY_OPERATORS.pop(chemistry_operator_name)
     
@@ -208,12 +208,12 @@ def get_chemistry_operator_class(chemistry_operator_name):
     Returns:
         cls: chemistry operator class
     Raises:
-        AQUAChemistryError: if the class is not registered
+        AquaChemistryError: if the class is not registered
     """
     _discover_on_demand()
   
     if chemistry_operator_name not in _REGISTERED_CHEMISTRY_OPERATORS:
-        raise AQUAChemistryError('{} not registered'.format(chemistry_operator_name))
+        raise AquaChemistryError('{} not registered'.format(chemistry_operator_name))
         
     return _REGISTERED_CHEMISTRY_OPERATORS[chemistry_operator_name].cls
 
@@ -225,12 +225,12 @@ def get_chemistry_operator_instance(chemistry_operator_name):
     Returns:
         instance: chemistry operator instance
     Raises:
-        AQUAChemistryError: if the class is not registered
+        AquaChemistryError: if the class is not registered
     """
     _discover_on_demand()
   
     if chemistry_operator_name not in _REGISTERED_CHEMISTRY_OPERATORS:
-        raise AQUAChemistryError('{} not registered'.format(chemistry_operator_name))
+        raise AquaChemistryError('{} not registered'.format(chemistry_operator_name))
            
     return _REGISTERED_CHEMISTRY_OPERATORS[chemistry_operator_name].cls(configuration=_REGISTERED_CHEMISTRY_OPERATORS[chemistry_operator_name].configuration)
     
@@ -242,12 +242,12 @@ def get_chemistry_operator_configuration(chemistry_operator_name):
     Returns:
         configuration: chemistry operator configuration
     Raises:
-        AQUAChemistryError: if the class is not registered
+        AquaChemistryError: if the class is not registered
     """
     _discover_on_demand()
   
     if chemistry_operator_name not in _REGISTERED_CHEMISTRY_OPERATORS:
-        raise AQUAChemistryError('{} not registered'.format(chemistry_operator_name))
+        raise AquaChemistryError('{} not registered'.format(chemistry_operator_name))
         
     return _REGISTERED_CHEMISTRY_OPERATORS[chemistry_operator_name].configuration
 

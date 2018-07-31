@@ -169,11 +169,11 @@ experiment can be executed with the following two lines of code:
 
 .. code:: python
 
-   solver = AQUAChemistry()
+   solver = AquaChemistry()
    result = solver.run(aqua_chemistry_dict)
 
 Executing the Python dictionary extracted from the `input file <#input-file>`__
-via a call to the ``run`` method of an ``AQUAChemistry`` solver
+via a call to the ``run`` method of an ``AquaChemistry`` solver
 is essentially what the `command line <#command-line>`__ and `GUI <#gui>`__
 do too in order to execute an experiment.
 
@@ -230,8 +230,8 @@ classical algorithm.  A comparison with the Hartree-Fock energy is also offered.
     }
 
     # Execute the experiments
-    result_qpe = AQUAChemistry().run(aqua_chemistry_qpe_dict)
-    result_ees = AQUAChemistry().run(aqua_chemistry_ees_dict)
+    result_qpe = AquaChemistry().run(aqua_chemistry_qpe_dict)
+    result_ees = AquaChemistry().run(aqua_chemistry_ees_dict)
 
     # Extract the energy values
     print('The ground-truth ground-state energy is       {}.'.format(result_ees['energy']))
@@ -248,7 +248,7 @@ Result dictionary
 ^^^^^^^^^^^^^^^^^
 
 As can be seen in the programmable-interface example above, the
-``AQUAChemistry`` ``run`` method returns a result dictionary.
+``AquaChemistry`` ``run`` method returns a result dictionary.
 The unit of measure for the energy values is
 Hartree, while for the dipole-moment values it is atomic units (a.u.).
 

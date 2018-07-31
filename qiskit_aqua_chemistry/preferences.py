@@ -20,7 +20,7 @@ import json
 import re
 import copy
 import qiskit_aqua
-from qiskit_aqua_chemistry import AQUAChemistryError
+from qiskit_aqua_chemistry import AquaChemistryError
 
 class Preferences(object):
    
@@ -210,7 +210,7 @@ class Preferences(object):
     def add_package(self, package_type, package):
         if package_type is not None and isinstance(package_type,str) and package is not None and isinstance(package,str): 
             if package_type != Preferences.PACKAGE_TYPE_DRIVERS and package_type != Preferences.PACKAGE_TYPE_CHEMISTRY:
-                raise AQUAChemistryError('Invalid package type {}'.format(package_type))
+                raise AquaChemistryError('Invalid package type {}'.format(package_type))
                 
             packages = self.get_packages(package_type,[])
             if package not in packages:
@@ -230,7 +230,7 @@ class Preferences(object):
             old_package is not None and isinstance(old_package,str) and \
             new_package is not None and isinstance(new_package,str): 
             if package_type != Preferences.PACKAGE_TYPE_DRIVERS and package_type != Preferences.PACKAGE_TYPE_CHEMISTRY:
-                raise AQUAChemistryError('Invalid package type {}'.format(package_type))
+                raise AquaChemistryError('Invalid package type {}'.format(package_type))
                 
             packages = self.get_packages(package_type,[])
             for index,package in enumerate(packages):
@@ -264,7 +264,7 @@ class Preferences(object):
     def set_packages(self, package_type, packages):
         if package_type is not None and isinstance(package_type,str): 
             if package_type != Preferences.PACKAGE_TYPE_DRIVERS and package_type != Preferences.PACKAGE_TYPE_CHEMISTRY:
-                raise AQUAChemistryError('Invalid package type {}'.format(package_type))
+                raise AquaChemistryError('Invalid package type {}'.format(package_type))
                 
             if 'packages' in self._preferences and self._preferences['packages'] is not None:
                 self._preferences['packages'][package_type] = packages
