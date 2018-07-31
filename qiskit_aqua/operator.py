@@ -20,6 +20,7 @@ import itertools
 from functools import reduce
 import logging
 import sys
+import json
 
 import numpy as np
 from scipy import sparse as scisparse
@@ -392,17 +393,9 @@ class Operator(object):
 
         Returns:
             Operator class: the loaded operator.
-
-        Note:
-            Do we need to support complex coefficient? If so, what is the format?
         """
-        with open(file_name, 'r+') as file:
-            ham_array = file.readlines()
-        ham_array = [x.strip() for x in ham_array]
-        paulis = [[float(ham_array[2 * i + 1]), label_to_pauli(ham_array[2 * i])]
-                  for i in range(len(ham_array) // 2)]
-
-        return Operator(paulis=paulis)
+        with open(file_name, 'r') as file:
+            return Operator.load_from_dict(json.load(file))
 
     def save_to_file(self, file_name):
         """
@@ -413,10 +406,7 @@ class Operator(object):
 
         """
         with open(file_name, 'w') as f:
-            self._check_representation("paulis")
-            for pauli in self._paulis:
-                print("{}".format(pauli[1].to_label()), file=f)
-                print("{}".format(pauli[0]), file=f)
+            json.dump(self.save_to_dict(), f)
 
     @staticmethod
     def load_from_dict(dictionary):
@@ -472,17 +462,17 @@ class Operator(object):
             dict: a dictionary contains an operator with pauli representation.
         """
         self._check_representation("paulis")
-        ret_dict = {'paulis': []}
+        ret_dict = {"paulis": []}
         for pauli in self._paulis:
-            op = {'label': pauli[1].to_label()}
+            op = {"label": pauli[1].to_label()}
             if isinstance(pauli[0], complex):
-                op['coeff'] = {'real': np.real(pauli[0]),
-                               'imag': np.imag(pauli[0])
+                op["coeff"] = {"real": np.real(pauli[0]),
+                               "imag": np.imag(pauli[0])
                                }
             else:
-                op['coeff'] = {'real': pauli[0]}
+                op["coeff"] = {"real": pauli[0]}
 
-            ret_dict['paulis'].append(op)
+            ret_dict["paulis"].append(op)
 
         return ret_dict
 
