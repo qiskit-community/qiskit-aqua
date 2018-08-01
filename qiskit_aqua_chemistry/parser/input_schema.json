@@ -40,41 +40,6 @@
             },
             "required": ["name"],
             "additionalProperties": false
-        },
-        "algorithm": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string",
-                    "default": "VQE"
-                }
-            },
-            "required": ["name"],
-            "additionalProperties": false
-        },
-        "backend": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string",
-                    "default": "local_statevector_simulator"
-                },
-                "shots": {
-                    "type": "integer",
-                    "default": 1024,
-                    "minimum": 1
-                },
-                "skip_transpiler": {
-                    "type": "boolean",
-                    "default": false
-                },
-                "noise_params": {
-                    "type": ["object", "null"],
-                    "default": null
-                }
-            },
-            "required": ["name"],
-            "additionalProperties": false
         }
     },
 
@@ -82,9 +47,7 @@
     "properties": {
         "name":             { "$ref": "#/definitions/name" },
         "problem":          { "$ref": "#/definitions/problem" },
-        "driver":           { "$ref": "#/definitions/driver" },
-        "algorithm":        { "$ref": "#/definitions/algorithm" },
-        "backend":          { "$ref": "#/definitions/backend" }
+        "driver":           { "$ref": "#/definitions/driver" }
     },
     "required": ["driver"],
     "additionalProperties": true
