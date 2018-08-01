@@ -36,7 +36,10 @@ class TestCoreHamiltonianOrbReduce(QiskitAquaChemistryTestCase):
             ('basis', 'sto3g')
         ])
         section = {'properties': pyscf_cfg}
-        driver = cfg_mgr.get_driver_instance('PYSCF')
+        try:
+            driver = cfg_mgr.get_driver_instance('PYSCF')
+        except ModuleNotFoundError:
+            self.skipTest('PYSCF driver does not appear to be installed')
         self.qmolecule = driver.run(section)
 
     def _validate_vars(self, core, energy_shift=0.0, ph_energy_shift=0.0):
