@@ -3,9 +3,9 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-====================
+=========================
 Qiskit Aqua Documentation
-====================
+=========================
 
 Qiskit Aqua
 
@@ -16,17 +16,7 @@ Table of Contents
 .. toctree::
    :maxdepth: 2
    
-   Qiskit Aqua Overview <qiskit-aqua>
-   Installation and Setup <install>
-   Configuring and Running an Experiment <config_run>
-   Algorithms <algorithms>
-   Optimizers <optimizers>
-   Variational Forms <variational_forms>
-   Initial States <initial_states>
-   Inverse Quantum Fourier Transforms <iqfts>
-   Oracles <oracles>
-   Extending Qiskit Aqua <extending>
-   SDK Reference <qiskit_aqua>
+   Qiskit Aqua <aqua>
 
 Python Modules
 ==============
