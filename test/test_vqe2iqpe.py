@@ -43,18 +43,16 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         self.algo_input = get_input_instance('EnergyInput')
         self.algo_input.qubit_op = qubitOp
 
-    def test_vqe_direct(self):
+    def test_vqe_2_iqpe(self):
         num_qbits = self.algo_input.qubit_op.num_qubits
-        init_state = get_initial_state_instance('ZERO')
-        init_state.init_args(num_qbits)
-        var_form = get_variational_form_instance('RY')
-        var_form.init_args(num_qbits, 3, initial_state=init_state)
-        optimizer = get_optimizer_instance('L_BFGS_B')
-        optimizer.init_args()
-        optimizer.set_options(**{'maxfun': 50})
+        var_form = get_variational_form_instance('RYRZ')
+        var_form.init_args(num_qbits, 3)
+        optimizer = get_optimizer_instance('SPSA')
+        optimizer.init_args(max_trials=10)
+        # optimizer.set_options(**{'max_trials': 500})
         algo = get_algorithm_instance('VQE')
-        algo.setup_quantum_backend(backend='local_statevector_simulator')
-        algo.init_args(self.algo_input.qubit_op, 'matrix', var_form, optimizer)
+        algo.setup_quantum_backend(backend='local_qasm_simulator')
+        algo.init_args(self.algo_input.qubit_op, 'paulis', var_form, optimizer)
         result = algo.run()
 
         print(result)
@@ -62,7 +60,7 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         self.ref_eigenval = -1.85727503
 
 
-        num_time_slices = 50
+        num_time_slices = 100
         num_iterations = 12
 
         iqpe = get_algorithm_instance('IQPE')
