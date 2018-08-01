@@ -332,8 +332,11 @@ QISKit ACQUA was inspired, authored and brought about by the collective work of 
 
 QISKit ACQUA continues now to grow with the help and work of [many people](./docs/CONTRIBUTORS.rst), who contribute
 to the project at different levels.
+<<<<<<< HEAD
 
 ## License
 
 This project uses the [Apache License Version 2.0 software license](https://www.apache.org/licenses/LICENSE-2.0).
 >>>>>>> Add files via upload
+=======
+>>>>>>> Update README.md
