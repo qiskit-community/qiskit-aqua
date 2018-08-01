@@ -537,7 +537,7 @@ class Controller(object):
                     preferences.set_savefile_initialdir(os.path.dirname(filename))
                     preferences.save()
                         
-                self._thread = AQUAChemistryThread(self._model, self._outputView, self._thread_queue, filename)
+                self._thread = AquaChemistryThread(self._model, self._outputView, self._thread_queue, filename)
                 self._thread.daemon = True
                 self._thread.start()
             else:
@@ -606,10 +606,10 @@ class Controller(object):
         self._view.after(100, self._process_thread_queue)
         
 
-class AQUAChemistryThread(threading.Thread):
+class AquaChemistryThread(threading.Thread):
     
     def __init__(self,model,output,queue,filename):
-        super(AQUAChemistryThread, self).__init__(name='Chemistry run thread')
+        super(AquaChemistryThread, self).__init__(name='Chemistry run thread')
         self._model = model
         self._output = output
         self._thread_queue = queue

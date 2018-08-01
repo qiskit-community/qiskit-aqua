@@ -19,7 +19,7 @@ import logging
 from pyscf import gto, scf, ao2mo
 from pyscf.lib import param
 from pyscf.lib import logger as pylogger
-from qiskit_aqua_chemistry import AQUAChemistryError
+from qiskit_aqua_chemistry import AquaChemistryError
 from qiskit_aqua_chemistry import QMolecule
 import numpy as np
 
@@ -32,10 +32,10 @@ def compute_integrals(config):
     # other parameters are as per PySCF got.Mole format
 
     if 'atom' not in config:
-        raise AQUAChemistryError('Atom is missing')
+        raise AquaChemistryError('Atom is missing')
     val = config['atom']
     if val is None:
-        raise AQUAChemistryError('Atom value is missing')
+        raise AquaChemistryError('Atom value is missing')
 
     atom = val
     basis = config.get('basis', 'sto3g')
@@ -55,7 +55,7 @@ def compute_integrals(config):
         mol.build(parse_arg=False)
         ehf, enuke, norbs, mohij, mohijkl, mo_coeff, orbs_energy, x_dip, y_dip, z_dip, nucl_dip = _calculate_integrals(mol, calc_type)
     except Exception as exc:
-        raise AQUAChemistryError('Failed electronic structure computation') from exc
+        raise AquaChemistryError('Failed electronic structure computation') from exc
 
     # Create driver level molecule object and populate
     _q_ = QMolecule()
@@ -122,7 +122,7 @@ def _calculate_integrals(mol, calc_type='rhf'):
     elif calc_type == 'uhf':
         mf = scf.UHF(mol)
     else:
-        raise AQUAChemistryError('Invalid calc_type: {}'.format(calc_type))
+        raise AquaChemistryError('Invalid calc_type: {}'.format(calc_type))
 
     ehf = mf.kernel()
 

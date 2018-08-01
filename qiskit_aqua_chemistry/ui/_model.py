@@ -17,7 +17,7 @@
 
 import os
 import json
-from qiskit_aqua_chemistry import AQUAChemistryError
+from qiskit_aqua_chemistry import AquaChemistryError
 from qiskit_aqua_chemistry.drivers import ConfigurationManager
 from qiskit_aqua_chemistry.parser import InputParser
 from qiskit_aqua import local_pluggables
@@ -83,20 +83,20 @@ class Model(object):
         
     def save_to_file(self,filename):
         if self.is_empty():
-            raise AQUAChemistryError("Empty input data.")
+            raise AquaChemistryError("Empty input data.")
                 
         self._parser.save_to_file(filename) 
         
         
     def get_dictionary(self):
         if self.is_empty():
-            raise AQUAChemistryError("Empty input data.")
+            raise AquaChemistryError("Empty input data.")
             
         return self._parser.to_dictionary()
         
     def export_dictionary(self,filename):
         if self.is_empty():
-            raise AQUAChemistryError("Empty input data.")
+            raise AquaChemistryError("Empty input data.")
                 
         self._parser.export_dictionary(filename) 
             
@@ -183,7 +183,7 @@ class Model(object):
     
     def set_section(self,section_name):
         if self._parser is None:
-            raise AQUAChemistryError('Input not initialized.')
+            raise AquaChemistryError('Input not initialized.')
             
         self._parser.set_section(section_name)
         value = self._parser.get_section_default_properties(section_name)
@@ -210,7 +210,7 @@ class Model(object):
             
     def set_default_properties_for_name(self,section_name):
         if self._parser is None:
-            raise AQUAChemistryError('Input not initialized.')
+            raise AquaChemistryError('Input not initialized.')
             
         name = self._parser.get_section_property(section_name,InputParser.NAME)
         self._parser.delete_section_properties(section_name)
@@ -283,43 +283,43 @@ class Model(object):
              
     def delete_section(self, section_name):
         if self._parser is None:
-            raise AQUAChemistryError('Input not initialized.')
+            raise AquaChemistryError('Input not initialized.')
             
         self._parser.delete_section(section_name)
         
     def get_default_sections(self):
         if self._parser is None:
-            raise AQUAChemistryError('Input not initialized.')
+            raise AquaChemistryError('Input not initialized.')
             
         return self._parser.get_default_sections()
          
     def get_section_default_properties(self,section_name):
         if self._parser is None:
-            raise AQUAChemistryError('Input not initialized.')
+            raise AquaChemistryError('Input not initialized.')
             
         return self._parser.get_section_default_properties(section_name)
     
     def allows_additional_properties(self,section_name):
         if self._parser is None:
-            raise AQUAChemistryError('Input not initialized.')
+            raise AquaChemistryError('Input not initialized.')
         
         return self._parser.allows_additional_properties(section_name)
     
     def get_property_default_value(self,section_name,property_name):
         if self._parser is None:
-            raise AQUAChemistryError('Input not initialized.')
+            raise AquaChemistryError('Input not initialized.')
             
         return self._parser.get_property_default_value(section_name,property_name)
     
     def get_property_types(self,section_name,property_name):
         if self._parser is None:
-            raise AQUAChemistryError('Input not initialized.')
+            raise AquaChemistryError('Input not initialized.')
             
         return self._parser.get_property_types(section_name,property_name)
     
     def set_section_property(self, section_name, property_name, value):
         if self._parser is None:
-            raise AQUAChemistryError('Input not initialized.')
+            raise AquaChemistryError('Input not initialized.')
             
         self._parser.set_section_property(section_name,property_name,value)
         if InputParser.is_pluggable_section(section_name) and property_name == InputParser.NAME:
@@ -332,7 +332,7 @@ class Model(object):
         
     def delete_section_property(self, section_name, property_name):
         if self._parser is None:
-            raise AQUAChemistryError('Input not initialized.')
+            raise AquaChemistryError('Input not initialized.')
             
         self._parser.delete_section_property(section_name, property_name)
         if InputParser.is_pluggable_section(section_name) and property_name == InputParser.NAME:
@@ -340,12 +340,12 @@ class Model(object):
             
     def set_section_text(self, section_name, value):  
         if self._parser is None:
-            raise AQUAChemistryError('Input not initialized.')
+            raise AquaChemistryError('Input not initialized.')
             
         self._parser.set_section_data(section_name, value)
         
     def delete_section_text(self, section_name):  
         if self._parser is None:
-            raise AQUAChemistryError('Input not initialized.')
+            raise AquaChemistryError('Input not initialized.')
             
         self._parser.delete_section_text(section_name)

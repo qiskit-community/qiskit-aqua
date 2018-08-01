@@ -141,9 +141,9 @@ Chemistry experiments can be run programmatically too. Please refer to the chemi
 [aqua-tutorials](https://github.com/Qiskit/aqua-tutorials/tree/master/chemistry)
 for a number of examples. Here you will see different ways of programming an experiment. The simplest, which
 matches closely to the input file, is used in many examples. Here a similar Python dictionary is used and an
-AQUAChemistry instance is used to run the experiment and return the result.
+AquaChemistry instance is used to run the experiment and return the result.
 ```
-solver = AQUAChemistry()
+solver = AquaChemistry()
 result = solver.run(aqua_chemistry_dict)
 ```
 The [aqua_chemistry_howto](https://github.com/Qiskit/aqua-tutorials/blob/master/chemistry/aqua_chemistry_howto.ipynb)

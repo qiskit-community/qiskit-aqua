@@ -21,7 +21,7 @@ import os
 import subprocess
 import logging
 from qiskit_aqua_chemistry import QMolecule
-from qiskit_aqua_chemistry import AQUAChemistryError
+from qiskit_aqua_chemistry import AquaChemistryError
 import sys
 from shutil import which
 
@@ -31,7 +31,7 @@ PSI4 = 'psi4'
 
 psi4 = which(PSI4)
 if psi4 is None:
-    raise AQUAChemistryError("Could not locate {}".format(PSI4))
+    raise AquaChemistryError("Could not locate {}".format(PSI4))
 
 
 class PSI4Driver(BaseDriver):
@@ -115,7 +115,7 @@ class PSI4Driver(BaseDriver):
             if process is not None:
                 process.kill()
             
-            raise AQUAChemistryError('{} run has failed'.format(PSI4))
+            raise AquaChemistryError('{} run has failed'.format(PSI4))
 
         if process.returncode != 0:
             errmsg = ""
@@ -124,4 +124,4 @@ class PSI4Driver(BaseDriver):
                 for i in range(len(lines)):
                     logger.error(lines[i])
                     errmsg += lines[i]+"\n"
-            raise AQUAChemistryError('{} process return code {}\n{}'.format(PSI4, process.returncode, errmsg))
+            raise AquaChemistryError('{} process return code {}\n{}'.format(PSI4, process.returncode, errmsg))

@@ -18,7 +18,7 @@
 import argparse
 import json
 import logging
-from qiskit_aqua_chemistry import AQUAChemistry
+from qiskit_aqua_chemistry import AquaChemistry
 from qiskit_aqua_chemistry._logging import build_logging_config,set_logger_config
 from qiskit_aqua_chemistry.preferences import Preferences
 
@@ -45,7 +45,7 @@ def main():
     
     set_logger_config(preferences.get_logging_config())
     
-    solver = AQUAChemistry()
+    solver = AquaChemistry()
     
     # check to see if input is json file
     params = None

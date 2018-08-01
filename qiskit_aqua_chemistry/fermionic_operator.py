@@ -24,7 +24,7 @@ import numpy as np
 from qiskit.tools.qi.pauli import Pauli, sgn_prod, label_to_pauli
 
 from qiskit_aqua import Operator
-from qiskit_aqua_chemistry import AQUAChemistryError
+from qiskit_aqua_chemistry import AquaChemistryError
 from qiskit_aqua_chemistry.particle_hole import particle_hole_transformation
 
 logger = logging.getLogger(__name__)
@@ -284,7 +284,7 @@ class FermionicOperator(object):
             Operator: create an Operator object in Paulis form.
 
         Raises:
-            AQUAChemistryError: if the `map_type` can not be recognized.
+            AquaChemistryError: if the `map_type` can not be recognized.
         """
 
         """
@@ -301,7 +301,7 @@ class FermionicOperator(object):
         elif map_type == 'bravyi_kitaev':
             a = self._bravyi_kitaev_mode(n)
         else:
-            raise AQUAChemistryError('Please specify the supported modes: jordan_wigner, parity, bravyi_kitaev')
+            raise AquaChemistryError('Please specify the supported modes: jordan_wigner, parity, bravyi_kitaev')
         """
         ####################################################################
         ############    BUILDING THE MAPPED HAMILTONIAN     ################

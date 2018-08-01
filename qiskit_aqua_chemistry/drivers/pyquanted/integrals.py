@@ -20,7 +20,7 @@ from pyquante2 import onee_integrals
 from pyquante2.ints.integrals import twoe_integrals
 from pyquante2.utils import simx
 from .transform import transformintegrals, ijkl2intindex
-from qiskit_aqua_chemistry import AQUAChemistryError
+from qiskit_aqua_chemistry import AquaChemistryError
 from qiskit_aqua_chemistry import QMolecule
 import numpy as np
 import re
@@ -39,10 +39,10 @@ def compute_integrals(config):
     # where we support symbol for atom as well as number
 
     if 'atoms' not in config:
-        raise AQUAChemistryError('Atoms is missing')
+        raise AquaChemistryError('Atoms is missing')
     val = config['atoms']
     if val is None:
-        raise AQUAChemistryError('Atoms value is missing')
+        raise AquaChemistryError('Atoms value is missing')
 
     charge = int(config.get('charge', '0'))
     multiplicity = int(config.get('multiplicity', '1'))
@@ -54,7 +54,7 @@ def compute_integrals(config):
     try:
         ehf, enuke, norbs, mohij, mohijkl, orbs, orbs_energy = _calculate_integrals(mol, basis, calc_type)
     except Exception as exc:
-        raise AQUAChemistryError('Failed electronic structure computation') from exc
+        raise AquaChemistryError('Failed electronic structure computation') from exc
 
     # Create driver level molecule object and populate
     _q_ = QMolecule()
@@ -117,7 +117,7 @@ def _calculate_integrals(molecule, basis='sto3g', calc_type='rhf'):
     elif calc_type == 'uhf':
         solver = uhf(molecule, bfs)
     else:
-        raise AQUAChemistryError('Invalid calc_type: {}'.format(calc_type))
+        raise AquaChemistryError('Invalid calc_type: {}'.format(calc_type))
     logger.debug('Solver name {}'.format(solver.name))
     ehf = solver.converge()
     if hasattr(solver, 'orbs'):
@@ -146,35 +146,35 @@ def _calculate_integrals(molecule, basis='sto3g', calc_type='rhf'):
 def __parseMolecule(val, units, charge, multiplicity):
     parts = [x.strip() for x in val.split(';')]
     if parts is None or len(parts) < 1:
-        raise AQUAChemistryError('Molecule format error: ' + val)
+        raise AquaChemistryError('Molecule format error: ' + val)
     geom = []
     for n in range(len(parts)):
         part = parts[n]
         geom.append(__parseAtom(part))
 
     if len(geom) < 1:
-        raise AQUAChemistryError('Molecule format error: ' + val)
+        raise AquaChemistryError('Molecule format error: ' + val)
 
     try:
         return molecule(geom, units=units, charge=charge, multiplicity=multiplicity)
     except Exception as exc:
-        raise AQUAChemistryError('Failed to create molecule') from exc
+        raise AquaChemistryError('Failed to create molecule') from exc
 
 
 def __parseAtom(val):
     if val is None or len(val) < 1:
-        raise AQUAChemistryError('Molecule atom format error: ' + val)
+        raise AquaChemistryError('Molecule atom format error: ' + val)
 
     parts = re.split('\s+', val)
     if len(parts) != 4:
-        raise AQUAChemistryError('Molecule atom format error: ' + val)
+        raise AquaChemistryError('Molecule atom format error: ' + val)
 
     parts[0] = parts[0].lower().capitalize()
     if not parts[0].isdigit():
         if parts[0] in QMolecule.symbols:
             parts[0] = QMolecule.symbols.index(parts[0])
         else:
-            raise AQUAChemistryError('Molecule atom symbol error: ' + parts[0])
+            raise AquaChemistryError('Molecule atom symbol error: ' + parts[0])
 
     return int(float(parts[0])), float(parts[1]), float(parts[2]), float(parts[3])
 
@@ -185,5 +185,5 @@ def __checkUnits(units):
     elif units.lower() in ["bohr", "b"]:
         units = 'Bohr'
     else:
-        raise AQUAChemistryError('Molecule units format error: ' + units)
+        raise AquaChemistryError('Molecule units format error: ' + units)
     return units
