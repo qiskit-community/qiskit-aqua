@@ -21,7 +21,7 @@ new computational software can be easily plugged in.  Behind the scenes, Aqua le
 software perform some initial computations classically.  The  results of those computations
 are then combined with the problem
 configuration and translated into input for one or more quantum algorithms, which invoke
-the `Qiskit Terra <https://Qiskit.org/terra>`__ code APIs to build, compile and execute quantum circuits.
+the `Qiskit Terra <https://qiskit.org/terra>`__ code APIs to build, compile and execute quantum circuits.
 
 ^^^^^^^^^^^^^^^^^
 Input Translation
@@ -52,7 +52,7 @@ Novel Features
 In addition to its modularity and extensibility, ability to span across multiple
 domains, and top-to-bottom completeness from classical computational software to
 quantum hardware, compared to other quantum software stacks, Aqua presents numerous unique advantages
-in terms of usability, functionality, and configuration-correctness enforcement.  
+in terms of usability, functionality, and configuration-correctness enforcement.
 
 ^^^^^^^^^^^^^^^
 User Experience
@@ -146,10 +146,3 @@ levels:
 -  Raymond Harry Putra Rudy
 -  Ivano Tavernelli
 -  Stephen Wood
-
--------
-License
--------
-
-This project uses the `Apache License Version 2.0 software
-license <https://www.apache.org/licenses/LICENSE-2.0>`__.
