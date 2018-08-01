@@ -6,7 +6,8 @@ Overview
 Modularity and Extensibility
 ----------------------------
 
-Aqua was specifically designed in order to be extensible at each level of the software stack.
+Aqua is a library of quantum algorithms specifically designed in order to be modular and extensible
+at multiple levels.
 This allows different users with different levels of experience and scientific interests
 to contribute to, and extend, the Aqua software stack at different levels.
 
