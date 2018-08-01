@@ -115,7 +115,7 @@ If, however, your goal is not to use Aqua has a tool, but rather to contribute n
 cloning this repository.  This will give you a more direct access to the code.  In any case, we recommend using Python virtual 
 environments to improve your experience.
 
-### Running an Algorithm
+## Running an Algorithm
 
 <<<<<<< HEAD
 <<<<<<< HEAD
