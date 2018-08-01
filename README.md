@@ -33,7 +33,7 @@ domains with both code and notebook examples, such as
 [Aqua Optimization](https://github.com/Qiskit/aqua-tutorials/tree/master/optimization) and
 [Aqua Artificial Intelligence](https://github.com/Qiskit/aqua-tutorials/tree/master/artificial_intelligence).
 
-QISKit ACQUA was designed to be extensible, and uses a pluggable framework where algorithms and support objects used
+Aqua was designed to be extensible, and uses a pluggable framework where algorithms and support objects used
 by algorithms, such as optimizers, variational forms, and oracles, are derived from a defined base class for the type and
 discovered dynamically at run time.
 
@@ -242,7 +242,7 @@ qiskit_aqua_cmd examples/H2-0.735.json
 ```
 
 If you installed Aqua by cloning this repository directly, instead of using the pip tool, then the command line tool can be
-run from the root folder of the qiskit-acqua repository clone using the following command:
+run from the root folder of the qiskit-aqua repository clone using the following command:
 
 ```
 <<<<<<< HEAD
@@ -295,7 +295,7 @@ qiskit_aqua_browser
 ```
 
 If you installed Aqua by cloning this repository directly, instead of using the pip tool, then the documentation GUI can be 
-run from the root folder of the qiskit-acqua repository clone using the following command:
+run from the root folder of the qiskit-aqua repository clone using the following command:
 
 ```
 python qiskit_aqua/ui/browser
@@ -313,7 +313,7 @@ Any algorithm in QISKit ACQUA can be run programmatically too. The acqua folder 
 samples that demonstrate how to do this. Here you will see there is a `run_algorithm` method used, which takes either
 =======
 Any algorithm in Aqua can be run programmatically too. The aqua folder in the
-[aqua-tutorials GitHub repository](https://github.com/Qiskit/aqua-tutorials/tree/master/acqua) contains numerous
+[aqua-tutorials GitHub repository](https://github.com/Qiskit/aqua-tutorials/tree/master/aqua) contains numerous
 examples that demonstrate how to do this. As you can see, Aqua exposes a `run_algorithm` method, which takes either
 >>>>>>> Update README.md
 the JSON algorithm input or an equivalent Python dictionary and optional `AlgorithmInput` object for the algorithm.
@@ -323,14 +323,18 @@ which can later be used by the command line or GUI.
 ## Authors
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 Qiskit Aqua was inspired, authored and brought about by the collective work of a team of researchers.
 
 Qiskit Aqua continues now to grow with the help and work of [many people](./CONTRIBUTORS.md), who contribute
 to the project at different levels.
 =======
 QISKit ACQUA was inspired, authored and brought about by the collective work of a team of researchers.
+=======
+Aqua was inspired, authored and brought about by the collective work of a team of researchers.
+>>>>>>> Update README.md
 
-QISKit ACQUA continues now to grow with the help and work of [many people](./docs/CONTRIBUTORS.rst), who contribute
+Aqua continues now to grow with the help and work of [many people](./docs/CONTRIBUTORS.rst), who contribute
 to the project at different levels.
 <<<<<<< HEAD
 
