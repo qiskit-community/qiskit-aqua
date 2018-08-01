@@ -26,8 +26,8 @@ from qiskit_aqua import get_algorithm_instance, get_oracle_instance
 class TestGrover(QiskitAquaTestCase):
 
     @parameterized.expand([
-        ['test_grover_tiny.cnf', 1],
-        ['test_grover.cnf', 2]
+        ['test/test_grover_tiny.cnf', 1],
+        ['test/test_grover.cnf', 2]
     ])
     def test_grover(self, input_file, num_iterations=1):
         self.log.debug('Testing Grover search with {} iteration(s) on SAT problem instance: \n{}'.format(
