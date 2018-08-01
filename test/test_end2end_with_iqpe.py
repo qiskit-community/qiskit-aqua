@@ -47,7 +47,10 @@ class TestIQPE(QiskitAquaChemistryTestCase):
         ])
         section = {}
         section['properties'] = pyscf_cfg
-        driver = cfg_mgr.get_driver_instance('PYSCF')
+        try:
+            driver = cfg_mgr.get_driver_instance('PYSCF')
+        except ModuleNotFoundError:
+            self.skipTest('PYSCF driver does not appear to be installed')
         self.molecule = driver.run(section)
 
         ferOp = FermionicOperator(h1=self.molecule._one_body_integrals, h2=self.molecule._two_body_integrals)
