@@ -19,7 +19,6 @@ from qiskit_aqua.algorithmerror import AlgorithmError
 import ast
 import json
 import jsonschema
-import os
 from collections import OrderedDict
 import logging
 import copy
@@ -28,6 +27,7 @@ from qiskit_aqua import (local_pluggables_types,
                          get_algorithm_configuration,
                          local_algorithms)
 from qiskit_aqua.input import (local_inputs, get_input_configuration)
+from .jsonschema import JSONSchema
 
 logger = logging.getLogger(__name__)
 
@@ -70,11 +70,9 @@ class InputParser(object):
                 problems_dict[problem] = None
           
         problems_enum = { 'enum' : list(problems_dict.keys()) }
-        jsonfile = os.path.join(os.path.dirname(__file__), 'input_schema.json')
-        with open(jsonfile) as json_file:
-            self._schema = json.load(json_file)
-            self._schema['definitions'][InputParser.PROBLEM]['properties'][InputParser.NAME]['oneOf'] = [problems_enum]
-            self._original_schema = copy.deepcopy(self._schema)
+        self._schema = JSONSchema.load_algorithms_main_schema().schema
+        self._schema['definitions'][InputParser.PROBLEM]['properties'][InputParser.NAME]['oneOf'] = [problems_enum]
+        self._original_schema = copy.deepcopy(self._schema)
             
     def _order_sections(self,sections):
         sections_sorted = OrderedDict(sorted(list(sections.items()),

@@ -19,6 +19,7 @@ import unittest
 import copy
 from collections import OrderedDict
 import itertools
+import os
 
 import numpy as np
 from qiskit.tools.qi.pauli import Pauli, label_to_pauli
@@ -460,6 +461,23 @@ class TestOperator(QiskitAquaTestCase):
         execute_config = {'shots': 1, 'skip_transpiler': False}
         matrix_mode = op.eval('matrix', circuit, 'local_statevector_simulator', execute_config)[0]
         non_matrix_mode = op.eval('paulis', circuit, 'local_statevector_simulator', execute_config)[0]
+
+    def test_load_from_file(self):
+        paulis = ['IXYZ', 'XXZY', 'IIZZ', 'XXYY', 'ZZXX', 'YYYY']
+        coeffs = [0.2 + -1j * 0.8, 0.6 + -1j * 0.6, 0.8 + -1j * 0.2,
+                    -0.2 + -1j * 0.8, -0.6 - -1j * 0.6, -0.8 - -1j * 0.2]
+        op = Operator(paulis=[])
+        for coeff, pauli in zip(coeffs, paulis):
+            pauli_term = [coeff, label_to_pauli(pauli)]
+            op += Operator(paulis=[pauli_term])
+
+        op.save_to_file('temp_op.json')
+        load_op = Operator.load_from_file('temp_op.json')
+
+        self.assertTrue(os.path.exists('temp_op.json'))
+        self.assertEqual(op, load_op)
+
+        os.remove('temp_op.json')
 
 if __name__ == '__main__':
     unittest.main()

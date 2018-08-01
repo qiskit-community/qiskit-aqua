@@ -87,7 +87,6 @@
 
     "type": "object",
     "properties": {
-        "input":            { "$ref": "#/definitions/input" },
         "problem":          { "$ref": "#/definitions/problem" },
         "algorithm":        { "$ref": "#/definitions/algorithm" },
         "backend":          { "$ref": "#/definitions/backend" }
