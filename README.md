@@ -22,7 +22,6 @@ Links to Sections:
 * [Installation](#installation)
 * [Running an Algorithm](#running-an-algorithm)
 * [Authors](#authors)
-* [License](#license)
 
 ## Installation
 
