@@ -29,6 +29,7 @@ from qiskit_aqua import (local_pluggables_types,
                          get_pluggable_configuration,
                          get_algorithm_configuration,
                          local_algorithms)
+from qiskit_aqua.parser import JSONSchema
 from qiskit_aqua_chemistry.core import (local_chemistry_operators, get_chemistry_operator_configuration)
 
 logger = logging.getLogger(__name__)
@@ -92,12 +93,20 @@ class InputParser(object):
         with open(jsonfile) as json_file:
             self._substitutions = json.load(json_file)
             
-        jsonfile = os.path.join(os.path.dirname(__file__), 'input_schema.json')
-        with open(jsonfile) as json_file:
-            self._schema = json.load(json_file)
-            self._schema['definitions'][InputParser.PROBLEM]['properties'][InputParser.NAME]['oneOf'] = [problems_enum]
-            self._original_schema = copy.deepcopy(self._schema)
+        self._schema = JSONSchema(os.path.join(os.path.dirname(__file__), 'input_schema.json'),True).schema
+        self._schema['properties'][InputParser.PROBLEM]['properties'][InputParser.NAME]['oneOf'] = [problems_enum]
+        
+        # get some properties from algorithms schema
+        algo_schema = JSONSchema.load_algorithms_main_schema(True).schema
+        if InputParser.ALGORITHM in algo_schema['properties']:
+            self._schema['properties'][InputParser.ALGORITHM] = algo_schema['properties'][InputParser.ALGORITHM]
+           
+        if InputParser.BACKEND in algo_schema['properties']:
+            self._schema['properties'][InputParser.BACKEND] = algo_schema['properties'][InputParser.BACKEND]
             
+        self._original_schema = copy.deepcopy(self._schema)
+        #logger.debug('Resolved Schema Input: {}'.format(json.dumps(self._schema, sort_keys=True, indent=4)))
+                    
     def _order_sections(self,sections):
         sections_sorted = OrderedDict(sorted(list(sections.items()),
              key=lambda x: self._section_order.index(x[0]) 
@@ -222,16 +231,16 @@ class InputParser(object):
     
     def get_section_types(self,section_name):
         section_name = InputParser._format_section_name(section_name)
-        if 'definitions' not in self._schema:
+        if 'properties' not in self._schema:
             return []
         
-        if section_name not in self._schema['definitions']:
+        if section_name not in self._schema['properties']:
             return []
         
-        if 'type' not in self._schema['definitions'][section_name]:
+        if 'type' not in self._schema['properties'][section_name]:
             return []
         
-        types = self._schema['definitions'][section_name]['type']
+        types = self._schema['properties'][section_name]['type']
         if isinstance(types,list):
             return types
             
@@ -240,19 +249,19 @@ class InputParser(object):
     def get_property_types(self,section_name,property_name):
         section_name = InputParser._format_section_name(section_name)
         property_name = InputParser._format_property_name(property_name)
-        if 'definitions' not in self._schema:
+        if 'properties' not in self._schema:
             return []
         
-        if section_name not in self._schema['definitions']:
+        if section_name not in self._schema['properties']:
             return []
         
-        if 'properties' not in self._schema['definitions'][section_name]:
+        if 'properties' not in self._schema['properties'][section_name]:
             return []
         
-        if property_name not in self._schema['definitions'][section_name]['properties']:
+        if property_name not in self._schema['properties'][section_name]['properties']:
             return []
         
-        prop = self._schema['definitions'][section_name]['properties'][property_name]
+        prop = self._schema['properties'][section_name]['properties'][property_name]
         if 'type' in prop:
             types  = prop['type']
             if isinstance(types,list):
@@ -263,17 +272,17 @@ class InputParser(object):
         return []
     
     def get_default_sections(self):
-        if 'definitions' not in self._schema:
+        if 'properties' not in self._schema:
             return None
         
-        definitions = copy.deepcopy(self._schema['definitions'])
+        properties = copy.deepcopy(self._schema['properties'])
         driver_name = self.get_section_property(InputParser.DRIVER,InputParser.NAME)
         if driver_name is not None:
-             definitions[driver_name.lower()] = { 
+             properties[driver_name.lower()] = { 
                      "type": "object"
              }
              
-        return copy.deepcopy(self._schema['definitions'])
+        return properties
     
     def get_default_section_names(self):
         sections = self.get_default_sections()
@@ -281,25 +290,25 @@ class InputParser(object):
     
     def get_section_default_properties(self,section_name):
         section_name = InputParser._format_section_name(section_name)
-        if 'definitions' not in self._schema:
+        if 'properties' not in self._schema:
             return None
         
-        if section_name not in self._schema['definitions']:
+        if section_name not in self._schema['properties']:
             return None
         
-        types = [self._schema['definitions'][section_name]['type']] if 'type' in self._schema['definitions'][section_name] else []
+        types = [self._schema['properties'][section_name]['type']] if 'type' in self._schema['properties'][section_name] else []
         
-        if 'default' in self._schema['definitions'][section_name]:
-            return InputParser._get_value(self._schema['definitions'][section_name]['default'],types)
+        if 'default' in self._schema['properties'][section_name]:
+            return InputParser._get_value(self._schema['properties'][section_name]['default'],types)
         
         if 'object' not in types:
             return InputParser._get_value(None,types)
         
-        if 'properties' not in self._schema['definitions'][section_name]:
+        if 'properties' not in self._schema['properties'][section_name]:
             return None
         
         properties = OrderedDict()
-        for property_name,values in self._schema['definitions'][section_name]['properties'].items():
+        for property_name,values in self._schema['properties'][section_name]['properties'].items():
             types = [values['type']] if 'type' in values else []
             default_value = values['default'] if 'default' in values else None
             properties[property_name] = InputParser._get_value(default_value,types)
@@ -308,33 +317,33 @@ class InputParser(object):
      
     def allows_additional_properties(self,section_name):
         section_name = InputParser._format_section_name(section_name)
-        if 'definitions' not in self._schema:
+        if 'properties' not in self._schema:
             return True
         
-        if section_name not in self._schema['definitions']:
+        if section_name not in self._schema['properties']:
             return True
         
-        if 'additionalProperties' not in self._schema['definitions'][section_name]:
+        if 'additionalProperties' not in self._schema['properties'][section_name]:
             return True
         
-        return InputParser._get_value(self._schema['definitions'][section_name]['additionalProperties'])
+        return InputParser._get_value(self._schema['properties'][section_name]['additionalProperties'])
         
     def get_property_default_values(self,section_name,property_name):
         section_name = InputParser._format_section_name(section_name)
         property_name = InputParser._format_property_name(property_name)
-        if 'definitions' not in self._schema:
+        if 'properties' not in self._schema:
             return None
         
-        if section_name not in self._schema['definitions']:
+        if section_name not in self._schema['properties']:
             return None
         
-        if 'properties' not in self._schema['definitions'][section_name]:
+        if 'properties' not in self._schema['properties'][section_name]:
             return None
         
-        if property_name not in self._schema['definitions'][section_name]['properties']:
+        if property_name not in self._schema['properties'][section_name]['properties']:
             return None
         
-        prop = self._schema['definitions'][section_name]['properties'][property_name]
+        prop = self._schema['properties'][section_name]['properties'][property_name]
         if 'type' in prop:
             types = prop['type']
             if not isinstance(types,list):
@@ -355,19 +364,19 @@ class InputParser(object):
     def get_property_default_value(self,section_name,property_name):
         section_name = InputParser._format_section_name(section_name)
         property_name = InputParser._format_property_name(property_name)
-        if 'definitions' not in self._schema:
+        if 'properties' not in self._schema:
             return None
         
-        if section_name not in self._schema['definitions']:
+        if section_name not in self._schema['properties']:
             return None
         
-        if 'properties' not in self._schema['definitions'][section_name]:
+        if 'properties' not in self._schema['properties'][section_name]:
             return None
         
-        if property_name not in self._schema['definitions'][section_name]['properties']:
+        if property_name not in self._schema['properties'][section_name]['properties']:
             return None
         
-        prop = self._schema['definitions'][section_name]['properties'][property_name]
+        prop = self._schema['properties'][section_name]['properties'][property_name]
         if 'default' in prop:
             return InputParser._get_value(prop['default'])
         
@@ -411,23 +420,17 @@ class InputParser(object):
         for pluggable_type in pluggable_types:
             if pluggable_type != InputParser.ALGORITHM and pluggable_type not in pluggable_dependencies:
                 # remove pluggables from schema that ate not in the dependencies
-                if pluggable_type in self._schema['definitions']:
-                    del self._schema['definitions'][pluggable_type]
                 if pluggable_type in self._schema['properties']:
                     del self._schema['properties'][pluggable_type]
                     
         # update algorithm backend from schema if it is classical or not
         if classical:
-            if InputParser.BACKEND in self._schema['definitions']:
-                del self._schema['definitions'][InputParser.BACKEND]
             if InputParser.BACKEND in self._schema['properties']:
                 del self._schema['properties'][InputParser.BACKEND]
         else:
-            if InputParser.BACKEND not in self._schema['definitions']:
-                self._schema['definitions'][InputParser.BACKEND] = self._original_schema['definitions'][InputParser.BACKEND]
             if InputParser.BACKEND not in self._schema['properties']:
                 self._schema['properties'][InputParser.BACKEND] = self._original_schema['properties'][InputParser.BACKEND]
-        
+            
         # update schema with dependencies
         for pluggable_type in pluggable_dependencies:
             pluggable_name = None
@@ -446,9 +449,9 @@ class InputParser(object):
             
             # update dependency schema
             self._update_pluggable_input_schema(pluggable_type,pluggable_name,default_name) 
-            for property_name in self._schema['definitions'][pluggable_type]['properties'].keys():
+            for property_name in self._schema['properties'][pluggable_type]['properties'].keys():
                 if property_name in default_properties:
-                    self._schema['definitions'][pluggable_type]['properties'][property_name]['default'] = default_properties[property_name]
+                    self._schema['properties'][pluggable_type]['properties'][property_name]['default'] = default_properties[property_name]
         
     def _update_operator_input_schema(self):
         # find operator
@@ -471,10 +474,9 @@ class InputParser(object):
                 
         if operator_name is None:
             # just remove fromm schema if none solves the problem
-            if InputParser.OPERATOR in self._schema['definitions']:
-                del self._schema['definitions'][InputParser.OPERATOR]
             if InputParser.OPERATOR in self._schema['properties']:
                 del self._schema['properties'][InputParser.OPERATOR]
+            
             return
         
         if default_name is None:
@@ -495,17 +497,12 @@ class InputParser(object):
             properties[InputParser.NAME]['default'] = default_name
             required.append(InputParser.NAME) 
         
-        if InputParser.OPERATOR not in self._schema['definitions']:
-            self._schema['definitions'][InputParser.OPERATOR] = { 'type': 'object' }
-            
         if InputParser.OPERATOR not in self._schema['properties']:
-            self._schema['properties'][InputParser.OPERATOR] = {
-                    '$ref': "#/definitions/{}".format(InputParser.OPERATOR)
-            }
+            self._schema['properties'][InputParser.OPERATOR] = { 'type': 'object' }
         
-        self._schema['definitions'][InputParser.OPERATOR]['properties'] = properties
-        self._schema['definitions'][InputParser.OPERATOR]['required'] = required
-        self._schema['definitions'][InputParser.OPERATOR]['additionalProperties'] = additionalProperties
+        self._schema['properties'][InputParser.OPERATOR]['properties'] = properties
+        self._schema['properties'][InputParser.OPERATOR]['required'] = required
+        self._schema['properties'][InputParser.OPERATOR]['additionalProperties'] = additionalProperties
         
     def _update_pluggable_input_schema(self,pluggable_type,pluggable_name,default_name):
         config = {}
@@ -523,17 +520,12 @@ class InputParser(object):
             properties[InputParser.NAME]['default'] = default_name
             required.append(InputParser.NAME) 
         
-        if pluggable_type not in self._schema['definitions']:
-            self._schema['definitions'][pluggable_type] = { 'type': 'object' }
-            
         if pluggable_type not in self._schema['properties']:
-            self._schema['properties'][pluggable_type] = {
-                    '$ref': "#/definitions/{}".format(pluggable_type)
-            }
-        
-        self._schema['definitions'][pluggable_type]['properties'] = properties
-        self._schema['definitions'][pluggable_type]['required'] = required
-        self._schema['definitions'][pluggable_type]['additionalProperties'] = additionalProperties
+            self._schema['properties'][pluggable_type] = { 'type': 'object' }
+       
+        self._schema['properties'][pluggable_type]['properties'] = properties
+        self._schema['properties'][pluggable_type]['required'] = required
+        self._schema['properties'][pluggable_type]['additionalProperties'] = additionalProperties
                 
     def _merge_dependencies(self):
         algo_name = self.get_section_property(InputParser.ALGORITHM,InputParser.NAME)
@@ -594,17 +586,10 @@ class InputParser(object):
                 if 'id' in input_schema:
                     del input_schema['id']
                     
-                self._schema['definitions'][driver_name] = input_schema
-                ref = "#/definitions/{}".format(driver_name)
-                self._schema['properties'][driver_name] = { 
-                    '$ref': ref
-                }
+                self._schema['properties'][driver_name] = input_schema
             else:
                 if name in self._schema['properties']:
                     del self._schema['properties'][name]
-                    
-                if name in self._schema['definitions']:
-                    del self._schema['definitions'][name]
                     
     @staticmethod
     def _load_driver_names():
