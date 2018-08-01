@@ -51,9 +51,12 @@ Links to Sections:
 * [Running an Algorithm](#running-an-algorithm)
 * [Authors](#authors)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 * [License](#license)
 >>>>>>> Add files via upload
+=======
+>>>>>>> Remove link to License section that was removed
 
 ## Installation
 
