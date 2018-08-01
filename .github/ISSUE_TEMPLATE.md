@@ -5,7 +5,7 @@
 
 ### Informations
 
-- **Qiskit (Python SDK) version**:
+- **Qiskit Aqua version**:
 - **Python version**:
 - **Operating system**:
 
