@@ -104,8 +104,10 @@ class VariationalForm(ABC):
     def preferred_init_points(self):
         return None
 
-    def get_entangler_map(self, map_type, num_qubits):
+    @staticmethod
+    def get_entangler_map(map_type, num_qubits):
         return get_entangler_map(map_type, num_qubits)
 
-    def validate_entangler_map(self, entangler_map, num_qubits):
+    @staticmethod
+    def validate_entangler_map(entangler_map, num_qubits):
         return validate_entangler_map(entangler_map, num_qubits)
