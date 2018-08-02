@@ -19,11 +19,14 @@
 Methods for pluggable objects discovery, registration, information
 """
 
+import logging
+import sys
 import os
 import pkgutil
 import importlib
 import inspect
 from collections import namedtuple
+
 from .quantumalgorithm import QuantumAlgorithm
 from qiskit_aqua import AlgorithmError
 from qiskit_aqua.preferences import Preferences
@@ -32,8 +35,7 @@ from qiskit_aqua.utils.variational_forms import VariationalForm
 from qiskit_aqua.utils.initial_states import InitialState
 from qiskit_aqua.utils.iqfts import IQFT
 from qiskit_aqua.utils.oracles import Oracle
-import logging
-import sys
+from qiskit_aqua.utils.feature_extractions import FeatureExtraction
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +45,8 @@ _PLUGGABLES = {
     'variational_form': VariationalForm,
     'initial_state': InitialState,
     'iqft': IQFT,
-    'oracle': Oracle
+    'oracle': Oracle,
+    'feature_extraction': FeatureExtraction
 }
 
 _NAMES_TO_EXCLUDE = [
@@ -62,7 +65,8 @@ _NAMES_TO_EXCLUDE = [
     'variational_form',
     'initial_state',
     'iqft',
-    'oracle'
+    'oracle',
+    'feature_extraction'
 ]
 
 _FOLDERS_TO_EXCLUDE = ['__pycache__','input','ui','parser']
@@ -81,7 +85,7 @@ def refresh_pluggables():
     _REGISTERED_PLUGGABLES = {}
     global _DISCOVERED
     _DISCOVERED = True
-    discover_local_pluggables() 
+    discover_local_pluggables()
     discover_preferences_pluggables()
     if logger.isEnabledFor(logging.DEBUG):
         for ptype in local_pluggables_types():
@@ -94,13 +98,13 @@ def _discover_on_demand():
     global _DISCOVERED
     if not _DISCOVERED:
         _DISCOVERED = True
-        discover_local_pluggables() 
+        discover_local_pluggables()
         discover_preferences_pluggables()
         if logger.isEnabledFor(logging.DEBUG):
             for ptype in local_pluggables_types():
                 logger.debug("Found: '{}' has pluggables {} ".format(ptype, local_pluggables(ptype)))
 
-        
+
 def discover_preferences_pluggables():
     """
     Discovers the pluggable modules on the directory and subdirectories of the preferences package
@@ -122,7 +126,7 @@ def discover_preferences_pluggables():
         except Exception as e:
             # Ignore package that could not be initialized.
             logger.debug('Failed to load package {} error {}'.format(package, str(e)))
-            
+
 def _discover_local_pluggables(directory,
                                parentname,
                                names_to_exclude=_NAMES_TO_EXCLUDE,
@@ -150,7 +154,7 @@ def _discover_local_pluggables(directory,
                         except Exception as e:
                             # Ignore pluggables that could not be initialized.
                             logger.debug('Failed to load {} error {}'.format(fullname, str(e)))
-                    
+
                 except Exception as e:
                     # Ignore pluggables that could not be initialized.
                     logger.debug('Failed to load {} error {}'.format(fullname, str(e)))
@@ -180,7 +184,7 @@ def discover_local_pluggables(directory=os.path.dirname(__file__),
             if item != '__pycache__' and not item.endswith('dSYM') and os.path.isdir(fullpath):
                 syspath += _get_sys_path(fullpath)
 
-        return syspath        
+        return syspath
 
     syspath_save = sys.path
     sys.path = _get_sys_path(directory) + sys.path
