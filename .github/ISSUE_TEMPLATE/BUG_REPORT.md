@@ -1,7 +1,10 @@
+---
+name: 🐛 Bug report
+about: Create a report to help us improve 🤔.
+---
+
 <!-- ⚠️ If you do not respect this template, your issue will be closed -->
 <!-- ⚠️ Make sure to browse the opened and closed issues -->
-
-*BUG TEMPLATE* <!-- Delete this header from your issue -->
 
 ### Informations
 
@@ -22,21 +25,5 @@
 
 
 ### Suggested solutions
-
-
-
----
-
-*FEATURE REQUEST TEMPLATE*  <!-- Delete this header from your issue -->
-
-### What is the expected behavior?
-
-
-
----
-
-*ENHANCEMENT REQUEST TEMPLATE*  <!-- Delete this header from your issue -->
-
-### What is the expected enhancement?
 
 
