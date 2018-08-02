@@ -603,7 +603,7 @@ class Operator(object):
             results = []
             for job in jobs:
                 results.append(job.result())
-            if(len(results) != 0):
+            if len(results) != 0:
                 result = reduce(lambda x, y: x + y, results)
 
             for idx, pauli in enumerate(self._paulis):
