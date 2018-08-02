@@ -56,10 +56,6 @@ class FirstOrderExpansion(FeatureExtraction):
         super().__init__(configuration or self.FIRST_ORDER_EXPANSION_CONFIGURATION.copy())
         self._ret = {}
 
-    def init_params(self, params):
-        args = {k: v for k, v in params.items() if k != 'name'}
-        self.init_args(**args)
-
     def init_args(self, num_qubits, depth, entangler_map=None, entanglement='full'):
         self._num_qubits = num_qubits
         self._depth = depth

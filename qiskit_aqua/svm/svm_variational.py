@@ -127,9 +127,7 @@ class SVM_Variational(QuantumAlgorithm):
         cr = ClassicalRegister(self.num_qubits, name='c')
         qc = QuantumCircuit(qr, cr)
         qc += self.feature_extraction.construct_circuit(x, qr)
-        # qc.barrier(qr)
         qc += self.var_form.construct_circuit(theta, qr)
-        # qc.barrier(qr)
         qc.measure(qr, cr)
 
         return qc
@@ -240,8 +238,4 @@ class SVM_Variational(QuantumAlgorithm):
             self._ret['predicted_labels'] = predicted_labels
 
         return self._ret
-
-
-if __name__ == '__main__':
-    a = SVM_Variational()
 

@@ -20,6 +20,8 @@ variational forms. Several types of commonly used ansatz.
 """
 from abc import ABC, abstractmethod
 
+from qiskit_aqua.utils import get_entangler_map, validate_entangler_map
+
 
 class VariationalForm(ABC):
 
@@ -102,54 +104,8 @@ class VariationalForm(ABC):
     def preferred_init_points(self):
         return None
 
-    @staticmethod
-    def get_entangler_map(map_type, num_qubits):
-        """Utility method to get an entangler map among qubits
+    def get_entangler_map(self, map_type, num_qubits):
+        return get_entangler_map(map_type, num_qubits)
 
-        Args:
-            map_type (str): 'full' entangles each qubit with all the subsequent ones
-                           'linear' entangles each qubit with the next
-            num_qubits (int): Number of qubits for which the map is needed
-
-        Returns:
-            A map of qubit index to an array of indexes to which this should be entangled
-        """
-        ret = {}
-        if num_qubits > 1:
-            if map_type is None or map_type == 'full':
-                ret = {i: [j for j in range(i, num_qubits) if j != i] for i in range(num_qubits-1)}
-            elif map_type == 'linear':
-                ret = {i: [i + 1] for i in range(num_qubits-1)}
-        return ret
-
-    @staticmethod
-    def validate_entangler_map(entangler_map, num_qubits, allow_double_entanglement=False):
-        """Validates a user supplied entangler map and converts entries to ints
-
-        Args:
-            entangler_map (dict) : An entangler map, keys are source qubit index (int), value is array
-                                   of target qubit index(es) (int)
-            num_qubits (int) : Number of qubits
-            allow_double_entanglement: If we allow in list x entangled to y and vice-versa or not
-        Returns:
-            Validated/converted map
-        """
-        if not isinstance(entangler_map, dict):
-            raise TypeError('Entangler map type dictionary expected')
-        for k, v in entangler_map.items():
-            if not isinstance(v, list):
-                raise TypeError('Entangle index list expected but got {}'.format(type(v)))
-
-        ret_map = {}
-        for k, v in entangler_map.items():
-            ret_map[int(k)] = [int(x) for x in v]
-
-        for k, v in ret_map.items():
-            if k < 0 or k >= num_qubits:
-                raise ValueError('Qubit value {} invalid for {} qubits'.format(k, num_qubits))
-            for i in v:
-                if i < 0 or i >= num_qubits:
-                    raise ValueError('Qubit entangle target value {} invalid for {} qubits'.format(i, num_qubits))
-                if allow_double_entanglement is False and i in ret_map and k in ret_map[i]:
-                    raise ValueError('Qubit {} and {} cross-listed'.format(i, k))
-        return ret_map
+    def validate_entangler_map(self, entangler_map, num_qubits):
+        return validate_entangler_map(entangler_map, num_qubits)
