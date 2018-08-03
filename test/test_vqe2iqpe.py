@@ -66,7 +66,10 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         iqpe = get_algorithm_instance('IQPE')
         iqpe.setup_quantum_backend(backend='local_qasm_simulator', shots=100, skip_transpiler=True)
 
-        state_in = get_initial_state_instance('VarForm')
+        from qiskit_aqua.utils.initial_states.varform import VarForm
+
+        # state_in = get_initial_state_instance('VarForm')
+        state_in = VarForm()
         state_in.init_args(var_form, result['opt_params'])
 
         iqpe.init_args(

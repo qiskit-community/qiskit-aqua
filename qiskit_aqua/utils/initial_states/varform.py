@@ -19,7 +19,7 @@
 from qiskit_aqua.utils.initial_states import InitialState
 
 
-class VarForm(InitialState):
+class VarForm:
     """An initial state derived from a variational form."""
 
     VAR_FORM_CONFIGURATION = {
@@ -35,7 +35,7 @@ class VarForm(InitialState):
     }
 
     def __init__(self, configuration=None):
-        super().__init__(configuration or self.VAR_FORM_CONFIGURATION.copy())
+        # super().__init__(configuration or self.VAR_FORM_CONFIGURATION.copy())
         self._var_form = None
         self._var_form_params = None
 
