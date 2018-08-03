@@ -19,12 +19,12 @@ import unittest
 
 import numpy as np
 from qiskit import QuantumRegister
+from qiskit import execute as q_execute
 from qiskit.tools.qi.qi import state_fidelity
-from qiskit.wrapper import execute as q_execute
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua.operator import Operator
-from qiskit_aqua import get_algorithm_instance, get_initial_state_instance
+from qiskit_aqua import get_initial_state_instance
 
 
 class TestEvolution(QiskitAquaTestCase):

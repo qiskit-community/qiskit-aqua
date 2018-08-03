@@ -17,10 +17,6 @@
 """
 This module contains the definition of a base class for
 feature extraction. Several types of commonly used approaches.
-
-TODO: the methods `get_entangler_map` and `validate_entangler_map` are copied
-from `variational_form`.
-
 """
 from abc import ABC, abstractmethod
 

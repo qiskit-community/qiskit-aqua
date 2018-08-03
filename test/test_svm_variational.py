@@ -16,8 +16,8 @@
 # =============================================================================
 
 import unittest
+
 import numpy as np
-from parameterized import parameterized
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua.input import get_input_instance
