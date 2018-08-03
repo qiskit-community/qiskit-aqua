@@ -205,12 +205,15 @@ class Hamiltonian(ChemistryOperator):
         logger.debug('Converting to qubit using {} mapping'.format(self._qubit_mapping))
         qubit_op = Hamiltonian._map_fermionic_operator_to_qubit(fer_op, self._qubit_mapping, new_nel,
                                                                 self._two_qubit_reduction, self._max_workers)
+        logger.debug('  num paulis: {}, num qubits: {}'.format(len(qubit_op.paulis), qubit_op.num_qubits))
         algo_input = EnergyInput()
         algo_input.qubit_op = qubit_op
 
         def _add_aux_op(aux_op):
             algo_input.add_aux_op(Hamiltonian._map_fermionic_operator_to_qubit(aux_op, self._qubit_mapping, new_nel,
                                                                                self._two_qubit_reduction, self._max_workers))
+            logger.debug('  num paulis: {}'.format(len(algo_input.aux_ops[-1].paulis)))
+
         logger.debug('Creating aux op for Number of Particles')
         _add_aux_op(fer_op.total_particle_number())
         logger.debug('Creating aux op for S^2')
@@ -232,6 +235,7 @@ class Hamiltonian(ChemistryOperator):
                     logger.info("Particle hole {} dipole shift: {}".format(axis, ph_shift_))
                 qubit_op_ = self._map_fermionic_operator_to_qubit(fer_op_, self._qubit_mapping, new_nel,
                                                                   self._two_qubit_reduction, self._max_workers)
+                logger.debug('  num paulis: {}'.format(len(qubit_op_.paulis)))
                 return qubit_op_, shift, ph_shift_
 
             op_dipole_x, self._x_dipole_shift, self._ph_x_dipole_shift = _dipole_op(qmolecule._x_dipole_integrals, 'x')
