@@ -94,20 +94,20 @@ instance/
 docs/_build/
 docs/*.rst
 #Allow
-!docs/dev_introduction.rst
 !docs/qiskit-aqua.rst
 !docs/index.rst
-!docs/install.rst
-!docs/quickstart.rst
-!docs/releases.rst
-!docs/CONTRIBUTORS.rst
-!docs/algorithms.rst
-!docs/optimizers.rst
-!docs/variational_forms.rst
-!docs/iqfts.rst
-!docs/oracles.rst
-!docs/extending.rst
-!docs/initial_states.rst
+!docs/aqua.rst
+!docs/LIBRARY.rst
+!docs/OVERVIEW.rst
+!docs/INSTALLATION.rst
+!docs/EXECUTION.rst
+!docs/EXTENDING.rst
+!docs/ALGORITHMS.rst
+!docs/OPTIMIZERS.rst
+!docs/VARIATIONAL_FORMS.rst
+!docs/ORACLES.rst
+!docs/IQFTS.rst
+!docs/INITIAL_STATWA.rst
 
 # PyBuilder
 target/
