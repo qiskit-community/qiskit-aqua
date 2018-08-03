@@ -20,6 +20,7 @@ from qiskit_aqua_chemistry.drivers import ConfigurationManager
 from qiskit_aqua import run_algorithm
 from qiskit_aqua.utils import convert_json_to_dict
 from qiskit_aqua_chemistry.parser import InputParser
+from qiskit_aqua.parser import JSONSchema
 import json
 import os
 import copy
@@ -167,16 +168,16 @@ class AquaChemistry(object):
         #logger.debug('ALgorithm Input Schema: {}'.format(json.dumps(p.to_JSON(), sort_keys=True, indent=4)))
 
         experiment_name = "-- no &NAME section found --"
-        if InputParser.NAME in p.get_section_names():
-            name_sect = p.get_section(InputParser.NAME)
+        if JSONSchema.NAME in p.get_section_names():
+            name_sect = p.get_section(JSONSchema.NAME)
             if 'data' in name_sect:
                 experiment_name = name_sect['data']
         logger.info('Running chemistry problem from input file: {}'.format(p.get_filename()))
         logger.info('Experiment description: {}'.format(experiment_name.rstrip()))
 
-        driver_name = p.get_section_property(InputParser.DRIVER,InputParser.NAME)
+        driver_name = p.get_section_property(InputParser.DRIVER,JSONSchema.NAME)
         if driver_name is None:
-             raise AquaChemistryError('Property "{0}" missing in section "{1}"'.format(InputParser.NAME, InputParser.DRIVER))
+             raise AquaChemistryError('Property "{0}" missing in section "{1}"'.format(JSONSchema.NAME, InputParser.DRIVER))
 
         hdf5_file = p.get_section_property(InputParser.DRIVER, AquaChemistry.KEY_HDF5_OUTPUT)
 
@@ -212,7 +213,7 @@ class AquaChemistry(object):
                 return AquaChemistry._DRIVER_RUN_TO_HDF5, text
 
         # Run the Hamiltonian to process the QMolecule and get an input for algorithms
-        self._core = get_chemistry_operator_instance(p.get_section_property(InputParser.OPERATOR, InputParser.NAME))
+        self._core = get_chemistry_operator_instance(p.get_section_property(InputParser.OPERATOR, JSONSchema.NAME))
         self._core.init_params(p.get_section_properties(InputParser.OPERATOR))
         input_object = self._core.run(molecule)
 
@@ -222,7 +223,7 @@ class AquaChemistry(object):
 
         params = {}
         for section_name,section in p.get_sections().items():
-            if section_name == InputParser.NAME or \
+            if section_name == JSONSchema.NAME or \
                section_name == InputParser.DRIVER or \
                section_name == driver_name.lower() or \
                section_name == InputParser.OPERATOR or \
@@ -230,7 +231,7 @@ class AquaChemistry(object):
                 continue
 
             params[section_name] = copy.deepcopy(section['properties'])
-            if InputParser.PROBLEM == section_name and \
+            if JSONSchema.PROBLEM == section_name and \
                 InputParser.AUTO_SUBSTITUTIONS in params[section_name]:
                 del params[section_name][InputParser.AUTO_SUBSTITUTIONS]
 

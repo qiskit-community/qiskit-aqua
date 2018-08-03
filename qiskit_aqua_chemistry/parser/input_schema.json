@@ -7,25 +7,6 @@
             "type": "string",
             "default": "Quantum Chemistry experiment"
          },
-         "problem": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string",
-                    "default": "energy"
-                 },
-                "auto_substitutions": {
-                    "type": "boolean",
-                    "default": "true"
-                },
-                "random_seed": {
-                    "type": ["integer", "null"],
-                    "default": null
-                }
-            },
-            "required": ["name"],
-            "additionalProperties": false
-        },
         "driver": {
             "type": "object",
             "properties": {
@@ -46,7 +27,6 @@
     "type": "object",
     "properties": {
         "name":             { "$ref": "#/definitions/name" },
-        "problem":          { "$ref": "#/definitions/problem" },
         "driver":           { "$ref": "#/definitions/driver" }
     },
     "required": ["driver"],
