@@ -141,5 +141,5 @@ which can later be used by the command line or GUI.
 
 Aqua was inspired, authored and brought about by the collective work of a team of researchers.
 
-Aqua continues now to grow with the help and work of [many people](../CONTRIBUTORS.rst), who contribute
+Aqua continues now to grow with the help and work of [many people](./CONTRIBUTORS.rst), who contribute
 to the project at different levels.
