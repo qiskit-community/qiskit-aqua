@@ -67,7 +67,7 @@ Several so-called chemistry drivers are supported and while logic to
 interface these external libraries and programs is supplied, by the above pip install, the dependent chemistry library
 or program needs to be installed separately. The following chemistry drivers are supported:
 
-1. [Gaussian? 16](http://gaussian.com/gaussian16/), a commercial chemistry program
+1. [Gaussian 16](http://gaussian.com/gaussian16/), a commercial chemistry program
 2. [PSI4](http://www.psicode.org/), an open-source chemistry program built on Python
 3. [PySCF](https://github.com/sunqm/pyscf), an open-source Python chemistry program
 4. [PyQuante](https://github.com/rpmuller/pyquante2), a pure cross-platform open-source Python chemistry program
