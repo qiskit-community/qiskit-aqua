@@ -150,7 +150,7 @@ The JSON file can then be pasted into a Python program and modified according to
 needs of the developer, before invoking the ``run_algorithm`` API in ``qiskit_aqua``.
 This technique can be used, for example, to compare the results of two different algorithms.
 
-.. _aqua-documentation-ui
+.. _aqua-doc-ui:
 
 ^^^^^^^^^^^^^^^^^^^^^
 Aqua Documentation UI

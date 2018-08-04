@@ -215,7 +215,7 @@ folder in the file system.
 Aqua Documentation UI
 ---------------------
 Researchers and developers interested in extending Aqua with new
-algorithms and computational components can access the :ref:`aqua-documentation-ui`,
+algorithms and computational components can access the :ref:`aqua-doc-ui`,
 which offers a quick and succinct overview of all the extensible components
 along with their configuration schemas.
 
