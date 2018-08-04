@@ -17,7 +17,7 @@ You can follow the [installation](#installation) instructions to install this so
 Once you have it installed, you can experiment with Aqua Chemistry using either the supplied [GUI](#gui) or
 [command line](#command-line) tools.
 
-More advanced users and [developers](qiskit_aqua_chemistry#developers) may wish to develop and add their own
+More advanced users and developers may wish to develop and add their own
 algorithms or other code. Algorithms and supporting components may be added to
 [Qiskit Aqua](https://github.com/Qiskit/aqua) which was designed with an extensible, pluggable
 framework. Qiskit Aqua Chemistry utilizes a similar framework for drivers and the core computation.
