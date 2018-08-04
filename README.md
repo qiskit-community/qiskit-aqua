@@ -1,6 +1,11 @@
 # Qiskit Aqua Chemistry
 
-Qiskit Aqua Chemistry is a set of tools, algorithms and software for use with quantum computers
+This README file presents a quick overview of Qiskit Aqua Chemistry, with brief installation, setup and execution
+instructions.  Please refer to the [Aqua documentation](https://qiskit.org/documentation/aqua/) for a detailed
+presentation of Aqua Chemistry and its components and capabilities, as well as step-by-step installation and
+execution instructions.
+
+Aqua Chemistry is a set of tools, algorithms and software for use with quantum computers
 to carry out research and investigate how to take advantage of the quantum computational power to solve chemistry
 problems. Qiskit Aqua Chemistry translates chemistry-specific problem inputs into inputs for a quantum algorithm
 supplied by [Qiskit Aqua](https://github.com/Qiskit/aqua), which then in turn uses
