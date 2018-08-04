@@ -211,6 +211,14 @@ unless the dynamic-discovery approach has been
 chosen, in which case a new initial state can register itself as an Aqua initial state irrespective of its installation
 folder in the file system.
 
+---------------------
+Aqua Documentation UI
+---------------------
+Researchers and developers interested in extending Aqua with new
+algorithms and computational components can access the :ref:`aqua-documentation-ui`,
+which offers a quick and succinct overview of all the extensible components
+along with their configuration schemas.
+
 ---------------
 Aqua Unit Tests
 ---------------

@@ -41,9 +41,13 @@ algorithm to be used for the computation, along with the algorithm configuration
 and various other options to
 customize the experiment.  If you are new to
 Aqua, we highly recommend getting started with the GUI.
-Finally, Aqua can also be accessed
+Aqua can also be accessed
 `programmatically <#aqua-programmable-interface>`__ by users interested
 in customizing the experiments beyond what the command line and GUI can offer.
+Finally, users configuring an Aqua experiment and researchers
+intersted in extending Aqua with new components can access
+the :ref:`aqua-documentation-ui` for quickly inspecting the various components
+and their configuration parameters.
 
 .. _aqua-gui:
 
@@ -145,6 +149,37 @@ have options to serialize the input to the quantum algorithm for future reuse.
 The JSON file can then be pasted into a Python program and modified according to the
 needs of the developer, before invoking the ``run_algorithm`` API in ``qiskit_aqua``.
 This technique can be used, for example, to compare the results of two different algorithms.
+
+.. _aqua-documentation-ui
+
+^^^^^^^^^^^^^^^^^^^^^
+Aqua Documentation UI
+^^^^^^^^^^^^^^^^^^^^^
+
+Aqua is a modular and extensible software framework, supporting two types of endusers: those who want
+to simply use Aqua as a tool to execute experiments, and those interested in extending Aqua
+with new components.  Users in either of these categories may find it useful to access the Aqua documentation UI,
+which shows all the
+pluggable components along with the schemas for their parameters.
+
+If installed via ``pip install``,
+Aqua comes with the following command-line tool
+to launch the Aqua documentation UI:
+
+.. code:: sh
+
+   qiskit_aqua_browser
+
+If you cloned Aqua from its remote
+`GitHub repository <https://github.com/QISKit/aqua>`__
+instead of using ``pip install``, then the
+Aqua documentation UI can be launched as follows:
+
+.. code:: sh
+
+   python qiskit_aqua/ui/browser
+
+from the root folder of the ``qiskit-aqua`` repository clone.
 
 .. _aqua-input-file:
 
