@@ -1,5 +1,10 @@
 # Qiskit Aqua
 
+This README file presents a quick overview of Qiskit Aqua, with brief installation, setup and execution
+instructions.  Please refer to the [Aqua documentation](https://qiskit.org/documentation/aqua/) for a detailed
+presentation of Aqua and its components and capabilities, as well as step-by-step installation and
+execution instructions.
+
 Qiskit Algorithms for Quantum Applications (Qiskit Aqua) is a library of algorithms for quantum computing
 that uses [Qiskit Terra](https://qiskit.org/terra) to build out, compile and run quantum circuits.
 
