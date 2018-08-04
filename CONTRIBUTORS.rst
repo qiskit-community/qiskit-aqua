@@ -1,7 +1,3 @@
-------------
-Contributors
-------------
-
 Aqua was inspired, authored and brought about by the collective
 work of a team of researchers.
 Aqua continues now to grow with the help and work of many
