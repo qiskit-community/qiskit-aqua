@@ -21,4 +21,4 @@ and then the domain-specific applications of Aqua: Chemistry, AI and Optimizatio
 .. toctree::
    :maxdepth: 2
    
-   A Library of Quantum Algorithms <LIBRARY>
+   Aqua: A Library of Quantum Algorithms <LIBRARY>
