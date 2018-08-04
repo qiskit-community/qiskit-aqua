@@ -32,7 +32,7 @@ Links to Sections:
 * [Authors](#authors-alphabetical)
 * [License](#license)
 
-## Installation
+## Installation and Setup
 
 ### Dependencies
 
@@ -60,7 +60,7 @@ release version.
 We recommend using Python virtual environments to cleanly separate the installation of Terra, Aqua and Aqua Chemistry
 from other programs and improve your experience.
 
-#### Chemistry drivers
+### Chemistry Drivers
 
 To run chemistry experiments on molecules, you will also need to install a supported chemistry program or library. 
 Several so-called chemistry drivers are supported and while logic to
@@ -80,7 +80,7 @@ The HDF5 driver takes such an input.
 A few sample hdf5 files have been provided and these can be found in the 
 Qiskit Aqua Tutorials GitHub repository's [chemistry folder](https://github.com/Qiskit/aqua-tutorials/tree/master/chemistry).
 
-## Running a chemistry experiment
+## Running a Chemistry Experiment
 
 Now that you have installed Aqua Chemistry you can run an experiment, for example to compute the ground
 state energy of a molecule.
@@ -108,7 +108,7 @@ pip install, then it can be run using:
 
 from the root folder of the aqua-chemistry repository clone.
 
-### Command line
+### Command Line
 
 Summary of qiskit_aqua_chemistry command line options:
 
