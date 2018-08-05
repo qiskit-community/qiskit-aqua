@@ -209,9 +209,16 @@ Setting up a custom probability distribution requires assigning a value to the f
 
   .. warning::
 
-     Aqua does not expose an API to set :math:`q` --- the number of qubits to use in an experiment.  This is because :math:`q`
-     is computed internally at run time based on the particular experiment.  Manually configuring the state vector, however,
-     requires knowing :math:`q`, since the length of the state vector is :math:`2^q`.  Providing a state vector of the wrong
+     The ``InitialState`` Application Programming Interface (API) exposes an initialization method, ``init_args``, that allows for
+     programmatically setting ``num_qubits``, the number of qubits in the ``InitialState`` object.  However, when configured declaratively,
+     Aqua and its domain specific applications
+     (:ref:`aqua-chemistry`, :ref:`aqua-ai`, and :ref:`aqua-optimization`) do not expose a configuration parameter in
+     an ``InitialState`` object to set
+     the number of qubits to use in an experiment.  This is because, when it is used as a tool to execute experiments,
+     Aqua is working at a higher, more abstract level.  In such cases, the number of qubits
+     is computed internally at run time based on the particular experiment, and passed programmatically to
+     ``init_args``.  Manually configuring the state vector, therefore,
+     requires knowing the number of qubits :math:`q`, since the length of the state vector is :math:`2^q`.  Providing a state vector of the wrong
      size will generate a run-time error.  Therefore, caution should be used when manually configuring the state vector.
 
   .. note::

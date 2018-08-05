@@ -133,12 +133,29 @@ is set to ``RY``:
   As explained more generally above, the form of the map is a dictionary; each entry in the dictionary has a source qubit
   index as the key, with the corresponding value being a list of target qubit indexes to which the source qubit should
   be entangled.  The source qubit index is excluded from the list of its corresponding target qubit indexes.
-  Indexes are non-negative ``int`` values from ``0`` to ``q - 1``, where ``q`` is the total number of qubits,
+  Indexes are ``int`` values from ``0`` to ``q - 1``, where ``q`` is the total number of qubits,
   as in the following example:
   
   .. code:: python
 
       entangler_map = {0: [1, 2], 1: [3]}
+
+  .. warning::
+
+     When configured declaratively,
+     Aqua and its domain specific applications
+     (:ref:`aqua-chemistry`, :ref:`aqua-ai`, and :ref:`aqua-optimization`) do not expose a configuration parameter in
+     a ``VariationalForm`` object to set
+     the number of qubits that will be used in an experiment.  This is because, when it is used as a tool to execute experiments,
+     Aqua is working at a higher, more abstract level.  In such cases, the number of qubits
+     is computed internally at run time based on the particular experiment, and passed programmatically to
+     the ``init_args`` initialization method of the ``VariationalForm`` object.
+     Manually configuring the entangler map, therefore,
+     requires knowing the number of qubits :math:`q`, since the qubit indexes allowed
+     in the entangler map comfiguration can only take ``int`` values from :math:`0` to :math:`q-1`.  Providing an entangler
+     map with indexes outside of this range will generate a run-time error.  Therefore, caution should be used when
+     manually configuring the entangler map.
+
 
 .. topic:: Declarative Name
 

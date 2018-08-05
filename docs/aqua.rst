@@ -10,7 +10,7 @@ To address the needs of the vast population of practitioners who want to use and
 contribute to quantum computing at various levels of the software stack, we have
 created :ref:`aqua-library` that can be invoked directly or via domain-specific computational
 applications:
-:ref:`aqua-chemistry`, :ref:`aqua-ai`, and `aqua-optimization`.
+:ref:`aqua-chemistry`, :ref:`aqua-ai`, and :ref:`aqua-optimization`.
 A companion library of notebooks, input files and sample code
 is also made available in the form of a
 `GitHub repository <https://github.com/Qiskit/aqua-tutorials>`__.
