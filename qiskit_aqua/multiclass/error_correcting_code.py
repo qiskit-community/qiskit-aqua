@@ -57,6 +57,7 @@ class ErrorCorrectingCode: # binary: 1 and -1
             if A[i] != B[i]:
                 diff = diff + 1
         print("%d out of %d are wrong" %(diff, l))
+        return 1-(diff*1.0/l)
 
 
     def predict(self, X):

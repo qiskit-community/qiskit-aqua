@@ -16,12 +16,12 @@
 # =============================================================================
 
 from qiskit_aqua.multiclass.estimator import Estimator
-from sklearn.svm import LinearSVC
+from sklearn.svm import SVC
 
 
-class LinearSVC_Estimator(Estimator):
+class RBF_SVC_Estimator(Estimator):
     def __init__(self):
-        self._estimator = LinearSVC(random_state=0)
+        self._estimator = SVC(kernel='rbf')
 
     def fit(self, X, y):
         self._estimator.fit(X, y)
