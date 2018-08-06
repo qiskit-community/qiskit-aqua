@@ -181,8 +181,10 @@ class Operator(object):
             paulis = [x for x in self._paulis if x[0] != 0.0]
             self._paulis = paulis
             self._paulis_table = {pauli[1].to_label(): i for i, pauli in enumerate(self._paulis)}
+            if self._dia_matrix is not None:
+                self._to_dia_matrix('paulis')
 
-        if self._grouped_paulis is not None:
+        elif self._grouped_paulis is not None:
             grouped_paulis = []
             for group_idx in range(1, len(self._grouped_paulis)):
                 for pauli_idx in range(len(self._grouped_paulis[group_idx])):
@@ -191,21 +193,16 @@ class Operator(object):
                 paulis = [x for x in self._grouped_paulis[group_idx] if x[0] != 0.0]
                 grouped_paulis.append(paulis)
             self._grouped_paulis = grouped_paulis
+            if self._dia_matrix is not None:
+                self._to_dia_matrix('grouped_paulis')
 
-        if self._matrix is not None:
+        elif self._matrix is not None:
             rows, cols = self._matrix.nonzero()
             for row, col in zip(rows, cols):
                 self._matrix[row, col] = chop_real_imag(self._matrix[row, col], threshold)
             self._matrix.eliminate_zeros()
-
-        if self._dia_matrix is not None:
-            temp_real = self._dia_matrix.real
-            temp_imag = self._dia_matrix.imag
-            real_chopped_idx = np.absolute(temp_real) < threshold
-            imag_chopped_idx = np.absolute(temp_imag) < threshold
-            temp_real[real_chopped_idx] = 0.0
-            temp_imag[imag_chopped_idx] = 0.0
-            self._dia_matrix = temp_real + 1j * temp_imag
+            if self._dia_matrix is not None:
+                self._to_dia_matrix('matrix')
 
     def _simplify_paulis(self):
         """
@@ -566,9 +563,9 @@ class Operator(object):
 
             if 'config' not in temp_config:
                 temp_config['config'] = dict()
-                
+
             temp_config['config']['initial_state'] = simulator_initial_state
-            
+
             # Trial circuit w/o the final rotations
             # Execute trial circuit with final rotations for each Pauli in
             # hamiltonian and store from circuits[1] on
@@ -845,6 +842,8 @@ class Operator(object):
             for idx in range(1, len(group)):  # the first one is the header.
                 paulis.append(group[idx])
         self._paulis = paulis
+        self._matrix = None
+        self._grouped_paulis = None
 
     def _matrix_to_paulis(self):
         """
@@ -870,6 +869,8 @@ class Operator(object):
             if alpha_i != 0.0:
                 paulis.append([alpha_i, pauli_i])
         self._paulis = paulis
+        self._matrix = None
+        self._grouped_paulis = None
 
     def _paulis_to_grouped_paulis(self):
         """
@@ -924,6 +925,8 @@ class Operator(object):
                                 sorted_paulis.append(p_2)
                     grouped_paulis.append(paulis_temp)
             self._grouped_paulis = grouped_paulis
+        self._matrix = None
+        self._paulis = None
 
     def _matrix_to_grouped_paulis(self):
         """
@@ -933,6 +936,8 @@ class Operator(object):
             return
         self._matrix_to_paulis()
         self._paulis_to_grouped_paulis()
+        self._matrix = None
+        self._paulis = None
 
     def _paulis_to_matrix(self):
         """
@@ -950,6 +955,8 @@ class Operator(object):
                 p = self._paulis[idx]
                 hamiltonian += p[0] * p[1].to_spmatrix()
             self._matrix = hamiltonian
+        self._paulis = None
+        self._grouped_paulis = None
 
     def _grouped_paulis_to_matrix(self):
         """
@@ -971,6 +978,8 @@ class Operator(object):
                     p = group[idx]
                     hamiltonian += p[0] * p[1].to_spmatrix()
             self._matrix = hamiltonian
+            self._paulis = None
+            self._grouped_paulis = None
 
     @staticmethod
     def _measure_pauli_z(data, pauli):
