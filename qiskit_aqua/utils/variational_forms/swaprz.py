@@ -83,12 +83,13 @@ class VarFormSwapRZ(VariationalForm):
             (num_qubits + sum([len(v) for k, v in self._entangler_map.items()]))
         self._bounds = [(-np.pi, np.pi)] * self._num_parameters
 
-    def construct_circuit(self, parameters):
+    def construct_circuit(self, parameters, q=None):
         """
         Construct the variational form, given its parameters.
 
         Args:
             parameters (numpy.ndarray): circuit parameters
+            q (QuantumRegister): Quantum Register for the circuit.
 
         Returns:
             QuantumCircuit: a quantum circuit with given `parameters`
@@ -99,7 +100,8 @@ class VarFormSwapRZ(VariationalForm):
         if len(parameters) != self._num_parameters:
             raise ValueError('The number of parameters has to be {}'.format(self._num_parameters))
 
-        q = QuantumRegister(self._num_qubits, name='q')
+        if q is None:
+            q = QuantumRegister(self._num_qubits, name='q')
         if self._initial_state is not None:
             circuit = self._initial_state.construct_circuit('circuit', q)
         else:

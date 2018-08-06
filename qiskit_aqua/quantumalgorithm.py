@@ -29,12 +29,12 @@ import functools
 
 import numpy as np
 from qiskit import __version__ as qiskit_version
-from qiskit.wrapper import register as q_register
-from qiskit.wrapper import unregister as q_unregister
-from qiskit.wrapper import registered_providers as q_registered_providers
+from qiskit import register as q_register
+from qiskit import unregister as q_unregister
+from qiskit import registered_providers as q_registered_providers
+from qiskit import execute as q_execute
+from qiskit import available_backends, get_backend
 from qiskit.backends.ibmq import IBMQProvider
-from qiskit.wrapper import execute as q_execute
-from qiskit.wrapper import available_backends, get_backend
 
 from qiskit_aqua import get_qconfig, AlgorithmError
 from qiskit_aqua.utils import summarize_circuits
@@ -51,6 +51,7 @@ class QuantumAlgorithm(ABC):
     SECTION_KEY_INITIAL_STATE = 'initial_state'
     SECTION_KEY_IQFT = 'iqft'
     SECTION_KEY_ORACLE = 'oracle'
+    SECTION_KEY_FEATURE_EXTRACTION = 'feature_extraction'
 
     MAX_CIRCUITS_PER_JOB = 300
 

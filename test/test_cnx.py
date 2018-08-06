@@ -17,11 +17,13 @@
 
 import unittest
 from itertools import combinations, chain
-from parameterized import parameterized
-from test.common import QiskitAquaTestCase
-from qiskit import QuantumCircuit, QuantumRegister
-from qiskit.wrapper import execute as q_execute
+
 import numpy as np
+from parameterized import parameterized
+from qiskit import QuantumCircuit, QuantumRegister
+from qiskit import execute as q_execute
+
+from test.common import QiskitAquaTestCase
 import qiskit_aqua.grover.cnx
 
 

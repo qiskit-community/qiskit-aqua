@@ -19,6 +19,7 @@ import unittest
 import operator
 
 from parameterized import parameterized
+
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import get_algorithm_instance, get_oracle_instance
 
