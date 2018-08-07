@@ -16,11 +16,12 @@ Table of Contents
 .. toctree::
    :maxdepth: 2
    
-   Overview <OVERVIEW>
-   Installation and Setup <INSTALLATION>
-   Drivers <DRIVERS>
-   Running an Experiment <EXECUTION>
-   Contributing to Aqua Chemistry <EXTENDING>
+   Overview <AQUA_CHEMISTRY_OVERVIEW>
+   Installation and Setup <AQUA_CHEMISTRY_INSTALLATION>
+   Drivers <AQUA_CHEMISTRY_DRIVERS>
+   Running an Experiment <AQUA_CHEMISTRY_EXECUTION>
+   Contributing to Aqua Chemistry <AQUA_CHEMISTRY_EXTENDING>
+   Translators <AQUA_CHEMISTRY_TRANSLATORS>
    SDK Reference <qiskit_aqua_chemistry>
 
 Python Modules

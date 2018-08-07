@@ -18,17 +18,12 @@ framework.  Once added, new components are automatically discovered.
     Any user who would like to contribute to Aqua or Aqua Chemistry should follow the Aqua `contribution
     guidelines <https://github.com/Qiskit/aqua-chemistry/blob/master/.github/CONTRIBUTING.rst>`__.
 
-------------------------
-Extending Aqua Chemistry
-------------------------
-Researchers and developers can contribute to Aqua Chemistry
-by providing new components, which will be automatically discovered and loaded by Aqua at run time.
-
-
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Dynamically Discovered Components
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Researchers and developers can contribute to Aqua Chemistry
+by providing new components, which will be automatically discovered and loaded by Aqua at run time.
 Each component should derive from the corresponding base class, as explained below.  There are three
 ways for a component to be dynamically discovered and loaded by Aqua Chemistry at run time:
 
