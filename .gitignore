@@ -109,7 +109,7 @@ docs/*.rst
 !docs/IQFTS.rst
 !docs/INITIAL_STATES.rst
 !docs/AQUA_CHEMISTRY_*.rst
-
+!docs/qiskit_aqua_chemistry.rst
 
 # PyBuilder
 target/
