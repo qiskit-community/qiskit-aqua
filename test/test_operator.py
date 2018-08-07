@@ -105,16 +105,15 @@ class TestOperator(QiskitAquaTestCase):
             pauli_term = [coeff, label_to_pauli(pauli_label)]
             op = Operator(paulis=[pauli_term])
 
-            op.convert('paulis', 'matrix')
-            op.convert('paulis', 'grouped_paulis')
-
             depth = 1
             var_form = get_variational_form_instance('RYRZ')
             var_form.init_args(op.num_qubits, depth)
             circuit = var_form.construct_circuit(np.array(np.random.randn(var_form.num_parameters)))
             execute_config = {'shots': 1, 'skip_transpiler': False}
-            matrix_mode = op.eval('matrix', circuit, 'local_statevector_simulator', execute_config)[0]
             non_matrix_mode = op.eval('paulis', circuit, 'local_statevector_simulator', execute_config)[0]
+            matrix_mode = op.eval('matrix', circuit, 'local_statevector_simulator', execute_config)[0]
+
+            self.assertAlmostEqual(matrix_mode, non_matrix_mode, 6)
 
     def test_create_from_matrix(self):
         """
@@ -125,16 +124,17 @@ class TestOperator(QiskitAquaTestCase):
             matrix = np.random.rand(m_size, m_size)
 
             op = Operator(matrix=matrix)
-            op.convert('matrix', 'paulis')
-            op.convert('matrix', 'grouped_paulis')
+
             depth = 1
             var_form = get_variational_form_instance('RYRZ')
             var_form.init_args(op.num_qubits, depth)
             circuit = var_form.construct_circuit(np.array(np.random.randn(var_form.num_parameters)))
 
             execute_config = {'shots': 1, 'skip_transpiler': False}
-            matrix_mode = op.eval('matrix', circuit, 'local_statevector_simulator', execute_config)[0]
             non_matrix_mode = op.eval('paulis', circuit, 'local_statevector_simulator', execute_config)[0]
+            matrix_mode = op.eval('matrix', circuit, 'local_statevector_simulator', execute_config)[0]
+
+            self.assertAlmostEqual(matrix_mode, non_matrix_mode, 6)
 
     def test_multiplication(self):
         """
@@ -258,8 +258,8 @@ class TestOperator(QiskitAquaTestCase):
         op = Operator(paulis=pauli_term)
 
         op.convert('paulis', 'matrix')
-        op.convert('paulis', 'grouped_paulis')
-        op._to_dia_matrix('paulis')
+        op.convert('matrix', 'grouped_paulis')
+        op._to_dia_matrix('grouped_paulis')
 
         self.assertEqual(op.matrix.ndim, 1)
 
@@ -271,8 +271,7 @@ class TestOperator(QiskitAquaTestCase):
         op = Operator(paulis=pauli_term)
 
         op.convert('paulis', 'matrix')
-        op.convert('paulis', 'grouped_paulis')
-        op._to_dia_matrix('paulis')
+        op._to_dia_matrix('matrix')
 
         self.assertEqual(op.matrix.ndim, 2)
 
@@ -424,11 +423,11 @@ class TestOperator(QiskitAquaTestCase):
         self.assertEqual(len(self.qubitOp.representations), 1)
         self.assertEqual(self.qubitOp.representations, ['matrix'])
         self.qubitOp.convert("matrix", "paulis")
-        self.assertEqual(len(self.qubitOp.representations), 2)
-        self.assertEqual(self.qubitOp.representations, ['paulis', 'matrix'])
-        self.qubitOp.convert("matrix", "grouped_paulis")
-        self.assertEqual(len(self.qubitOp.representations), 3)
-        self.assertEqual(self.qubitOp.representations, ['paulis', 'grouped_paulis', 'matrix'])
+        self.assertEqual(len(self.qubitOp.representations), 1)
+        self.assertEqual(self.qubitOp.representations, ['paulis'])
+        self.qubitOp.convert("paulis", "grouped_paulis")
+        self.assertEqual(len(self.qubitOp.representations), 1)
+        self.assertEqual(self.qubitOp.representations, ['grouped_paulis'])
 
     def test_num_qubits(self):
 
@@ -445,22 +444,22 @@ class TestOperator(QiskitAquaTestCase):
         """
             test with single paulis
         """
-        num_qubits = 9
+        num_qubits = 4
         pauli_term = []
         for pauli_label in itertools.product('IXYZ', repeat=num_qubits):
             coeff = np.random.random(1)[0]
-            pauli_term += [coeff, label_to_pauli(pauli_label)]
-        op = Operator(paulis=[pauli_term])
-
-        op.convert('paulis', 'matrix')
+            pauli_term.append([coeff, label_to_pauli(pauli_label)])
+        op = Operator(paulis=pauli_term)
 
         depth = 1
         var_form = get_variational_form_instance('RYRZ')
         var_form.init_args(op.num_qubits, depth)
         circuit = var_form.construct_circuit(np.array(np.random.randn(var_form.num_parameters)))
         execute_config = {'shots': 1, 'skip_transpiler': False}
-        matrix_mode = op.eval('matrix', circuit, 'local_statevector_simulator', execute_config)[0]
         non_matrix_mode = op.eval('paulis', circuit, 'local_statevector_simulator', execute_config)[0]
+        matrix_mode = op.eval('matrix', circuit, 'local_statevector_simulator', execute_config)[0]
+
+        self.assertAlmostEqual(matrix_mode, non_matrix_mode, 6)
 
     def test_load_from_file(self):
         paulis = ['IXYZ', 'XXZY', 'IIZZ', 'XXYY', 'ZZXX', 'YYYY']
@@ -478,6 +477,53 @@ class TestOperator(QiskitAquaTestCase):
         self.assertEqual(op, load_op)
 
         os.remove('temp_op.json')
+
+
+    def test_group_paulis_1(self):
+        """
+            Test with color grouping approach
+        """
+        num_qubits = 4
+        pauli_term = []
+        for pauli_label in itertools.product('IXYZ', repeat=num_qubits):
+            coeff = np.random.random(1)[0]
+            pauli_term.append([coeff, label_to_pauli(''.join(pauli_label))])
+        op = Operator(paulis=pauli_term)
+        paulis = copy.deepcopy(op.paulis)
+        op.convert("paulis", "grouped_paulis")
+        flattened_grouped_paulis = [pauli for group in op.grouped_paulis for pauli in group[1:]]
+
+        for gp in flattened_grouped_paulis:
+            passed = False
+            for p in paulis:
+                if p[1] == gp[1]:
+                    passed = p[0] == gp[0]
+                    break
+            self.assertTrue(passed, "non-existed paulis in grouped_paulis: {}".format(gp[1].to_label()))
+
+    def test_group_paulis_2(self):
+        """
+            Test with normal grouping approach
+        """
+
+        num_qubits = 4
+        pauli_term = []
+        for pauli_label in itertools.product('IXYZ', repeat=num_qubits):
+            coeff = np.random.random(1)[0]
+            pauli_term.append([coeff, label_to_pauli(''.join(pauli_label))])
+        op = Operator(paulis=pauli_term)
+        op.coloring = None
+        paulis = copy.deepcopy(op.paulis)
+        op.convert("paulis", "grouped_paulis")
+        flattened_grouped_paulis = [pauli for group in op.grouped_paulis for pauli in group[1:]]
+
+        for gp in flattened_grouped_paulis:
+            passed = False
+            for p in paulis:
+                if p[1] == gp[1]:
+                    passed = p[0] == gp[0]
+                    break
+            self.assertTrue(passed, "non-existed paulis in grouped_paulis: {}".format(gp[1].to_label()))
 
 if __name__ == '__main__':
     unittest.main()
