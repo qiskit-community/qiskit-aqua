@@ -101,14 +101,8 @@ docs/*.rst
 #Allow
 !docs/dev_introduction.rst
 !docs/index.rst
-!docs/install.rst
-!docs/quickstart.rst
 !docs/releases.rst
-!docs/qiskit-aqua-chemistry.rst
-!docs/CONTRIBUTORS.rst
-!docs/config_run.rst
-!docs/drivers.rst
-!docs/extending.rst
+!docs/AQUA_CHEMISTRY_*.rst
 
 # PyBuilder
 target/
