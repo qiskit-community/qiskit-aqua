@@ -1,6 +1,9 @@
-Aqua was inspired, authored and brought about by the collective
-work of a team of researchers.  Aqua continues now to grow with the help and work of many
-people, listed here in alphabetical order, who contribute to the project at different
+------------------------------
+CONTRIBUTORS TO AQUA CHEMISTRY
+------------------------------
+
+Aqua Chemistry was inspired, authored and brought about by the collective
+work of a team of researchers.  Aqua Chemistry continues now to grow with the help and work of many people, listed here in alphabetical order, who contribute to the project at different
 levels:
 
 - Panagiotis Barkoutsos
