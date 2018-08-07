@@ -29,11 +29,8 @@ Main Modules
    :nosignatures:
 
    qiskit_aqua
+   qiskit_aqua_chemistry
 
 :ref:`modindex`
-
-====================================
-Contributors (in Alphabetical Order)
-====================================
 
 .. include:: ../CONTRIBUTORS.RST

@@ -430,6 +430,7 @@ oracles and extend Aqua's oracle library.
 
 .. _svm-q-kernel:
 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Support Vector Machine Quantum Kernel (SVM Q Kernel)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

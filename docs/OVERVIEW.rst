@@ -116,9 +116,6 @@ resilient to configuration errors. Very importantly, configuration
 correctness is dynamically enforced even for components that are
 dynamically discovered and loaded.
 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Contributors (in Alphabetical Order)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. include:: ../CONTRIBUTORS.RST
 

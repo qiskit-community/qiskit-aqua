@@ -42,6 +42,7 @@ the number of qubits.
    When referring to the zero initial state declaratively inside Aqua, its code ``name``, by which Aqua dynamically discovers and loads it,
    is ``ZERO``.
 
+.. _hartree-fock:
 ------------
 Hartree-Fock
 ------------
@@ -83,41 +84,24 @@ the Hartree-Fock initial state to be configured:
 
   This parameter expects a positive ``int`` value.
 
--  The desired mapping from fermion to qubit:
+-  The desired :ref:`translators` from fermions to qubits:
 
    .. code:: python
 
-       qubit_mapping = "jordan_wigner" | "parity" | "bravyi_kitaev"
+       qubit_mapping = jordan_wigner | parity | bravyi_kitaev
 
    This parameter takes a value of type ``str``.  Currently, only the three values
    above are supported, but new qubit mappings can easily be plugged in.
    Specifically:
 
-   1. ``"jordan_wigner"`` corresponds to the
-      `Jordan-Wigner transformation <https://rd.springer.com/article/10.1007%2FBF01331938>`__,
-      which maps spin operators onto fermionic creation and annihilation operators.
-      It was proposed by Ernst Pascual Jordan and Eugene Paul Wigner
-      for one-dimensional lattice models,
-      but now two-dimensional analogues of the transformation have also been created.
-      The Jordan–Wigner transformation is often used to exactly solve 1D spin-chains
-      by transforming the spin operators to fermionic operators and then diagonalizing
-      in the fermionic basis.
+   1. ``"jordan_wigner"`` corresponds to the :ref:`jordan-wigner` transformation.
    2. ``"parity"``, the default value for the ``qubit_mapping`` parameter, corresponds to the
-      `parity-mapping transformation <https://arxiv.org/abs/1701.08213>`__.
-      This mapping optimizes encodings of fermionic many-body systems by qubits
-      in the presence of symmetries.
-      Such encodings eliminate redundant degrees of freedom in a way that preserves
-      a simple structure of the system Hamiltonian enabling quantum simulations with fewer qubits. 
-   3. ``"bravyi_kitaev"`` corresponds to the
-      `binary-tree-based qubit mapping
-      <https://www.sciencedirect.com/science/article/pii/S0003491602962548>`__,
-      which was proposed by Sergey B. Bravyi and Alexei Yu. Kitaev.
-      The Bravyi–Kitaev transformation is a method of mapping the occupation state of a
-      fermionic system onto qubits. This transformation maps the Hamiltonian of :math:`n`
-      interacting fermions to an :math:`\mathcal{O}(\log n)`
-      local Hamiltonian of :math:`n` qubits.
-      This is an improvement in locality over the Jordan–Wigner transformation, which results
-      in an :math:`\mathcal{O}(n)` local qubit Hamiltonian.
+      :ref:`parity` mapping transformation. When this mapping is selected,
+      it is possible to reduce by 2 the number of qubits required by the computation
+      without loss of precision by setting the ``two_qubit_reduction`` parameter to ``True``,
+      as explained next.
+   3. ``"bravyi_kitaev"`` corresponds to the :ref:`bravyi-kitaev` transformation,
+      also known as *binary-tree-based qubit mapping*.     
 
 -  A Boolean flag specifying whether or not to apply the precision-preserving two-qubit reduction
    optimization:
@@ -129,8 +113,11 @@ the Hartree-Fock initial state to be configured:
    The default value for this parameter is ``True``.
    When the parity mapping is selected, and ``two_qubit_reduction`` is set to ``True``,
    then the operator can be reduced by two qubits without loss
-   of precision.  If the mapping from fermionic to qubit is set to a value other than
-   the parity mapping, the value assigned to ``two_qubit_reduction`` is ignored.
+   of precision.
+
+   .. warning::
+       If the mapping from fermionic to qubit is set to something other than
+       the parity mapping, the value assigned to ``two_qubit_reduction`` is ignored.
 
 .. note::
 

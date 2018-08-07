@@ -25,6 +25,7 @@ Aqua exposes numerous extension points. Researchers and developers can contribut
 by providing new components, which will be automatically discovered and loaded by Aqua at run time.
 
 .. _aqua-dynamically-discovered-components:
+
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Dynamically Discovered Components
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -46,10 +47,10 @@ ways for a component to be dynamically discovered and loaded by Aqua at run time
    Aqua `Graphical User Interface (GUI) <#aqua-gui>`__
    and add the package's name to the list of packages in the **Preferences** panel.
    From that moment on, any custom component found below that package will be dynamically added to
-   ``qiskit-aqua`` upon initialization.
+   ``aqua`` upon initialization.
 
 3. There is yet another way to achieve the same goal, and it simply consists of customizing the
-   ``setup.py`` file of the new component in order to add the package's name to ``qiskit-aqua``
+   ``setup.py`` file of the new component in order to add the package's name to ``aqua``
    when someone installs the package, without the need of using the GUI to enter it later.  This is an example
    of what ``setup.py`` would look like:
 
@@ -64,7 +65,7 @@ ways for a component to be dynamically discovered and loaded by Aqua at run time
        long_description = """New Package for Aqua Component"""
     
        requirements = [
-          "qiskit-aqua>=0.1.2",
+          "aqua>=0.1.2",
           "qiskit>=0.5.6",
           "numpy>=1.13,<1.15"
        ]
@@ -137,12 +138,13 @@ This section details the algorithm and algorithm components that researchers and
 interested in quantum algorithms can contribute to Aqua.
 
 .. _extending-algorithms:
+
 ^^^^^^^^^^
 Algorithms
 ^^^^^^^^^^
 
-A new `algorithm <#algorithms>`__ may be developed according to the specific API provided by Aqua.
-By simply adding its code to the collection of existing algorithms, that new algorithm
+New :ref:`quantum-algorithms` may be developed according to the specific API provided by Aqua.
+By simply adding the code of an algorithm to the collection of existing algorithms, that new algorithm
 will be immediately recognized via dynamic lookup, and made available for use within the framework of Aqua.
 To develop and deploy any new algorithm, the new algorithm class should derive from the ``QuantumAlgorithm`` class.
 Along with all of its supporting modules, the new algorithm class should be installed under its own folder in the
@@ -151,6 +153,7 @@ chosen, in which case the algorithm can register itself as an Aqua algorithm irr
 folder in the file system.
 
 .. _extending-optimizers:
+
 ^^^^^^^^^^
 Optimizers
 ^^^^^^^^^^
@@ -158,12 +161,13 @@ Optimizers
 New `optimizers <#optimizers>`__ for quantum variational algorithms
 should and derive from
 the ``Optimizer`` class.  They should also be installed in the ``qiskit_aqua/utils/optimizers`` folder
-of the qiskit-aqua repository clone,
+of the ``aqua`` repository clone,
 unless the dynamic-discovery approach has been
 chosen, in which case a new optimizer can register itself as an Aqua optimizer irrespective of its installation
 folder in the file system.
 
 .. _extending-variational-forms:
+
 ^^^^^^^^^^^^^^^^^
 Variational Forms
 ^^^^^^^^^^^^^^^^^
@@ -176,6 +180,7 @@ chosen, in which case a new trial wave function can register itself as an Aqua v
 folder in the file system.
 
 .. _extending-oracles:
+
 ^^^^^^^
 Oracles
 ^^^^^^^
@@ -187,7 +192,8 @@ unless the dynamic-discovery approach has been
 chosen, in which case a new oracle can register itself as an Aqua oracle irrespective of its installation
 folder in the file system.
 
-.. _extending-algorithms:
+.. _extending-iqfts:
+
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Inverse Quantum Fourier Transforms (IQFTs)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -199,6 +205,7 @@ chosen, in which case a new IQFT can register itself as an Aqua IQFT irrespectiv
 folder in the file system.
 
 .. _extending-initial-states:
+
 ^^^^^^^^^^^^^^
 Initial States
 ^^^^^^^^^^^^^^

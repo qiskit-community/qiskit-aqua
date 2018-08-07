@@ -22,3 +22,4 @@ and then the domain-specific applications of Aqua: Chemistry, AI and Optimizatio
    :maxdepth: 2
    
    Aqua: A Library of Quantum Algorithms <LIBRARY>
+   Aqua Chemistry <AQUA_CHEMISTRY>

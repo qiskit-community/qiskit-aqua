@@ -43,6 +43,7 @@ Local Optimizers
 This section presents the classical local optimizers made available in Aqua.
 These optimizers are meant to be used in conjunction with quantum variational
 algorithms:
+
 - :ref:`Conjugate Gradient (CG) Method`
 - :ref:`Constrained Optimization BY Linear Approximation (COBYLA)`
 - :ref:`Limited-memory Broyden-Fletcher-Goldfarb-Shanno Bound (L-BFGS-B)`
@@ -502,6 +503,7 @@ functional evaluations.  Overall, the following parameters are supported:
    iteration ``k``:
 
    .. code:: python
+
         theta_{k+1} = theta_{k} + step_size * gradient
         step_size = c0 * (k + 1 + c4)^(-c2)
         gradient = (J(theta_{k}+) - J(theta_{k}-)) * delta / (2 * c1 * (k + 1)^(-c3))

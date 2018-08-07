@@ -46,7 +46,7 @@ Aqua can also be accessed
 in customizing the experiments beyond what the command line and GUI can offer.
 Finally, users configuring an Aqua experiment and researchers
 intersted in extending Aqua with new components can access
-the :ref:`aqua-documentation-ui` for quickly inspecting the various components
+the :ref:`aqua-doc-ui` for quickly inspecting the various components
 and their configuration parameters.
 
 .. _aqua-gui:
@@ -208,7 +208,8 @@ For example, the Aqua Chemistry `command-line tool
 :ref:`aqua-chemistry-command-line`
 and :ref:`aqua-chemistry-gui` 
 both allow for automatically serializing the input to the quantum algorithm
-as a JSON file.  Serializing the input to the quantum algorithm is useful in many scenarios
+as a JSON :ref:`input-file-for-direct-algorithm-invocation`.
+Serializing the input to the quantum algorithm is useful in many scenarios
 because the contents of one of such JSON files are domain- and problem-independent:
 
 - Users can share JSON files among each other in order to compare and contrast
