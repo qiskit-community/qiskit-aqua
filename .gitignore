@@ -107,7 +107,9 @@ docs/*.rst
 !docs/VARIATIONAL_FORMS.rst
 !docs/ORACLES.rst
 !docs/IQFTS.rst
-!docs/INITIAL_STATWA.rst
+!docs/INITIAL_STATES.rst
+!docs/AQUA_CHEMISTRY_*.rst
+
 
 # PyBuilder
 target/
