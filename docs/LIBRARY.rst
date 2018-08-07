@@ -21,4 +21,4 @@ real quantum device).
    Oracles <ORACLES>
    Inverse Quantum Fourier Transforms <IQFTS>
    Initial States <INITIAL_STATES>
-   SDK Reference <qiskit_aqua>
+   Aqua SDK Reference <qiskit_aqua>
