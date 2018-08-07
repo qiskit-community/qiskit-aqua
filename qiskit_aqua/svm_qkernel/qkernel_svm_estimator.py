@@ -90,6 +90,5 @@ class QKernalSVM_Estimator(Estimator):
                 Ltot += L
             Lsign[tin] = Ltot+bias
 
-        print(Lsign)
 
         return Lsign
