@@ -31,16 +31,17 @@ logger = logging.getLogger(__name__)
 
 
 class QPE(QuantumAlgorithm):
-    """The Quantum Phase Estimation algorithm."""
+    """The Quantum Phase Estimation algorithm modified for HHL fitting."""
 
     PROP_NUM_TIME_SLICES = 'num_time_slices'
     PROP_PAULIS_GROUPING = 'paulis_grouping'
     PROP_EXPANSION_MODE = 'expansion_mode'
     PROP_EXPANSION_ORDER = 'expansion_order'
     PROP_NUM_ANCILLAE = 'num_ancillae'
+    PROP_EVO_TIME = 'evo_time'
 
     QPE_CONFIGURATION = {
-        'name': 'QPE',
+        'name': 'QPE_HHL',
         'description': 'Quantum Phase Estimation for Quantum Systems',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
@@ -81,6 +82,10 @@ class QPE(QuantumAlgorithm):
                     'type': 'integer',
                     'default': 1,
                     'minimum': 1
+                },
+                PROP_EVO_TIME: {
+                    'type': 'float',
+                    'minimum': 1.0
                 }
             },
             'additionalProperties': False
@@ -128,6 +133,7 @@ class QPE(QuantumAlgorithm):
         expansion_mode = qpe_params.get(QPE.PROP_EXPANSION_MODE)
         expansion_order = qpe_params.get(QPE.PROP_EXPANSION_ORDER)
         num_ancillae = qpe_params.get(QPE.PROP_NUM_ANCILLAE)
+        evo_time = qpe_params.get(QPE.PROP_EVO_TIME)
 
         # Set up initial state, we need to add computed num qubits to params
         init_state_params = params.get(QuantumAlgorithm.SECTION_KEY_INITIAL_STATE)
@@ -144,11 +150,12 @@ class QPE(QuantumAlgorithm):
         self.init_args(
             operator, init_state, iqft, num_time_slices, num_ancillae,
             paulis_grouping=paulis_grouping, expansion_mode=expansion_mode,
-            expansion_order=expansion_order)
+            expansion_order=expansion_order, evo_time=evo_time)
 
     def init_args(
             self, operator, state_in, iqft, num_time_slices, num_ancillae,
-            paulis_grouping='random', expansion_mode='trotter', expansion_order=1):
+            paulis_grouping='random', expansion_mode='trotter', expansion_order=1
+            evo_time=1.0):
         if self._backend.find('statevector') >= 0:
             raise ValueError('Selected backend does not support measurements.')
         self._operator = operator
@@ -159,18 +166,21 @@ class QPE(QuantumAlgorithm):
         self._paulis_grouping = paulis_grouping
         self._expansion_mode = expansion_mode
         self._expansion_order = expansion_order
+        self._evo_time = evo_time
         self._ret = {}
 
-    def _construct_qpe_evolution(self):
+    def _construct_phase_estimation_circuit(self, measure=False):
         """Implement the Quantum Phase Estimation algorithm"""
 
         a = QuantumRegister(self._num_ancillae, name='a')
-        c = ClassicalRegister(self._num_ancillae, name='c')
         q = QuantumRegister(self._operator.num_qubits, name='q')
-        qc = QuantumCircuit(a, q, c)
+        qc = QuantumCircuit(a, q)
+        if measure:
+            c = ClassicalRegister(self._num_ancillae, name='c')
+            qc.add(c)
 
         # initialize state_in
-        qc.data += self._state_in.construct_circuit('circuit', q).data
+        qc += self._state_in.construct_circuit('circuit', q)
 
         # Put all ancillae in uniform superposition
         qc.u2(0, np.pi, a)
@@ -191,19 +201,20 @@ class QPE(QuantumAlgorithm):
             else:
                 raise ValueError('Unrecognized expansion mode {}.'.format(self._expansion_mode))
         for i in range(self._num_ancillae):
-            qc.data += self._operator.construct_evolution_circuit(
-                slice_pauli_list, -2 * np.pi, self._num_time_slices, q, a, ctl_idx=i
-            ).data
+            qc += self._operator.construct_evolution_circuit(
+                slice_pauli_list, -2 * np.pi * self._evo_time, self._num_time_slices, q, a, ctl_idx=i
+            )
             # global phase shift for the ancilla due to the identity pauli term
             qc.u1(2 * np.pi * self._ancilla_phase_coef * (2 ** i), a[i])
 
         # inverse qft on ancillae
         self._iqft.construct_circuit('circuit', a, qc)
 
-        # measuring ancillae
-        qc.measure(a, c)
+        if measure:
+            qc.measure(a, c)
 
         self._circuit = qc
+        return qc
 
     def _setup_qpe(self):
         self._operator._check_representation('paulis')
@@ -260,6 +271,24 @@ class QPE(QuantumAlgorithm):
         self._ret['top_measurement_decimal'] = retval
         self._ret['energy'] = retval / self._ret['stretch'] - self._ret['translation']
 
+    def _compute_eigenvalue(self):
+        if self._circuit is None:
+            self._construct_phase_estimation_circuit(measure=True)
+        result = self.execute(self._circuit)
+        counts = result.get_counts(self._circuit)
+
+        rd = result.get_counts(self._circuit)
+        rets = sorted([(rd[k], k) for k in rd])[::-1]
+        ret = rets[0][-1][::-1]
+        retval = sum([t[0] * t[1] for t in zip(
+            [1 / 2 ** p / self._evo_time for p in range(1, self._num_ancillae + 1)],
+            [int(n) for n in ret]
+        )])
+
+        self._ret['measurements'] = rets
+        self._ret["eigenvalues"] = retval
+
+
     def run(self):
-        self._compute_energy()
+        self._compute_eigenvalue()
         return self._ret
