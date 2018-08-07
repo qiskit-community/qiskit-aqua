@@ -221,6 +221,7 @@ class VarFormUCCSD(VariationalForm):
     def compute_excitation_lists(num_particles, num_orbitals, active_occ_list=None, active_unocc_list=None):
         """
         Computes single and double excitation lists
+        
         Args:
             num_particles: Total number of particles
             num_orbitals:  Total number of spin orbitals
