@@ -1,0 +1,1 @@
+.. include:: ../../aqua-chemistry/docs/qiskit_aqua_chemistry.rst
