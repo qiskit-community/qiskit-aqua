@@ -155,6 +155,16 @@ class Operator(object):
     def __ne__(self, rhs):
         return not self.__eq__(rhs)
 
+    def __str__(self):
+        if self._paulis is not None:
+            return self.print_operators('paulis')
+        elif self._grouped_paulis is not None:
+            return self.print_operators('grouped_paulis')
+        elif self._matrix is not None:
+            return self.print_operators('matrix')
+        else:
+            return "Empty operator."
+
     def chop(self, threshold=1e-15):
         """
         Eliminate the real and imagine part of coeff in each pauli by `threshold`.
@@ -946,15 +956,13 @@ class Operator(object):
         """
         if self._paulis == []:
             return
-        self._to_dia_matrix(mode='paulis')
-        if self._dia_matrix is None:
-
-            p = self._paulis[0]
-            hamiltonian = p[0] * p[1].to_spmatrix()
-            for idx in range(1, len(self._paulis)):
-                p = self._paulis[idx]
-                hamiltonian += p[0] * p[1].to_spmatrix()
-            self._matrix = hamiltonian
+        p = self._paulis[0]
+        hamiltonian = p[0] * p[1].to_spmatrix()
+        for idx in range(1, len(self._paulis)):
+            p = self._paulis[idx]
+            hamiltonian += p[0] * p[1].to_spmatrix()
+        self._matrix = hamiltonian
+        self._to_dia_matrix(mode='matrix')
         self._paulis = None
         self._grouped_paulis = None
 
@@ -965,21 +973,20 @@ class Operator(object):
         """
         if self._grouped_paulis == []:
             return
-        self._to_dia_matrix(mode='grouped_paulis')
-        if self._dia_matrix is None:
-            p = self._grouped_paulis[0][1]
-            hamiltonian = p[0] * p[1].to_spmatrix()
-            for idx in range(2, len(self._grouped_paulis[0])):
-                p = self._grouped_paulis[0][idx]
+        p = self._grouped_paulis[0][1]
+        hamiltonian = p[0] * p[1].to_spmatrix()
+        for idx in range(2, len(self._grouped_paulis[0])):
+            p = self._grouped_paulis[0][idx]
+            hamiltonian += p[0] * p[1].to_spmatrix()
+        for group_idx in range(1, len(self._grouped_paulis)):
+            group = self._grouped_paulis[group_idx]
+            for idx in range(1, len(group)):
+                p = group[idx]
                 hamiltonian += p[0] * p[1].to_spmatrix()
-            for group_idx in range(1, len(self._grouped_paulis)):
-                group = self._grouped_paulis[group_idx]
-                for idx in range(1, len(group)):
-                    p = group[idx]
-                    hamiltonian += p[0] * p[1].to_spmatrix()
-            self._matrix = hamiltonian
-            self._paulis = None
-            self._grouped_paulis = None
+        self._matrix = hamiltonian
+        self._to_dia_matrix(mode='matrix')
+        self._paulis = None
+        self._grouped_paulis = None
 
     @staticmethod
     def _measure_pauli_z(data, pauli):

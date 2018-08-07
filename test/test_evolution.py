@@ -16,6 +16,7 @@
 # =============================================================================
 
 import unittest
+import copy
 
 import numpy as np
 from qiskit import QuantumRegister
@@ -63,7 +64,6 @@ class TestEvolution(QiskitAquaTestCase):
                         )
 
         flattened_grouped_paulis = [pauli for group in qubitOp.grouped_paulis for pauli in group[1:]]
-        self.assertEqual(sorted([str(p) for p in flattened_grouped_paulis]), sorted([str(p) for p in qubitOp.paulis]))
 
         state_in = get_initial_state_instance('CUSTOM')
         state_in.init_args(SIZE, state='random')
@@ -79,12 +79,13 @@ class TestEvolution(QiskitAquaTestCase):
         # get the exact state_out from raw matrix multiplication
         state_out_exact = qubitOp.evolve(state_in.construct_circuit('vector'), evo_time, 'matrix', 0)
         # self.log.debug('exact:\n{}'.format(state_out_exact))
-
+        qubitOp_temp = copy.deepcopy(qubitOp)
         for grouping in ['default', 'random']:
             self.log.debug('Under {} paulis grouping:'.format(grouping))
             for expansion_mode in ['trotter', 'suzuki']:
                 self.log.debug('Under {} expansion mode:'.format(expansion_mode))
                 for expansion_order in [1, 2, 3, 4] if expansion_mode == 'suzuki' else [1]:
+                    qubitOp = copy.deepcopy(qubitOp_temp) # assure every time the operator from the original one
                     if expansion_mode == 'suzuki':
                         self.log.debug('With expansion order {}:'.format(expansion_order))
                     state_out_matrix = qubitOp.evolve(
