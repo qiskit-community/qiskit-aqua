@@ -31,9 +31,6 @@ from qiskit_aqua import get_initial_state_instance
 class TestEvolution(QiskitAquaTestCase):
     """Evolution tests."""
 
-    def setUp(self):
-        np.random.seed(10598)
-
     def test_evolution(self):
         SIZE = 2
         #SPARSITY = 0
