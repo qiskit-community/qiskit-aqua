@@ -17,57 +17,22 @@
 
 import numpy as np
 
-from sklearn.metrics.pairwise import rbf_kernel
 import copy
 from qiskit_aqua import QuantumAlgorithm
-from qiskit_aqua.svm import (get_points_and_labels, optimize_SVM)
-from qiskit_aqua.multiclass.allpairs import AllPairs
-from qiskit_aqua.multiclass.error_correcting_code import ErrorCorrectingCode
-from qiskit_aqua.multiclass.one_against_rest import OneAgainstRest
-from qiskit_aqua.multiclass.multiclass_classicalsvm.rbf_svc_estimator import RBF_SVC_Estimator
-from qiskit_aqua.multiclass.data_preprocess import *
+from qiskit_aqua.svm_qkernel import (get_points_and_labels, optimize_SVM)
+from qiskit_aqua.utils.multiclass.allpairs import AllPairs
+from qiskit_aqua.utils.multiclass.error_correcting_code import ErrorCorrectingCode
+from qiskit_aqua.utils.multiclass.one_against_rest import OneAgainstRest
+from qiskit_aqua.svm_classical.rbf_svc_estimator import RBF_SVC_Estimator
+from qiskit_aqua.utils.multiclass.data_preprocess import *
+from qiskit_aqua.svm_classical.svm_classical_abc import SVM_Classical_ABC
 
-class SVM_Multiclass_RBF(QuantumAlgorithm):
-    SVM_CLASSICAL_MULTICLASS_CONFIGURATION = {
-        'name': 'SVM_Multiclass_RBF',
-        'description': 'SVM_Multiclass_RBF Algorithm',
-        'classical': True,
-        'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
-            'id': 'SVM_Multiclass_RBF_schema',
-            'type': 'object',
-            'properties': {
-                'multiclass_alg': {
-                    'type': 'string',
-                    'default': 'all_pairs'
-                },
-                'print_info': {
-                    'type': 'boolean',
-                    'default': False
-                }
-            },
-            'additionalProperties': False
-        },
-        'problems': ['svm_classification']
-    }
+class SVM_Classical_Multiclass(SVM_Classical_ABC):
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or copy.deepcopy(SVM_Multiclass_RBF.SVM_CLASSICAL_MULTICLASS_CONFIGURATION))
+
+    def __init__(self):
         self._ret = {}
 
-    def init_params(self, params, algo_input):
-        svm_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
-        self.init_args(algo_input.training_dataset, algo_input.test_dataset,
-                       algo_input.datapoints, svm_params.get('print_info'), svm_params.get('multiclass_alg')
-                       )
-
-    def init_args(self, training_dataset, test_dataset, datapoints, print_info, multiclass_alg):
-        self.training_dataset = training_dataset
-        self.test_dataset = test_dataset
-        self.datapoints = datapoints
-        self.class_labels = list(self.training_dataset.keys())
-        self.print_info = print_info
-        self.multiclass_alg = multiclass_alg
 
 
     def run(self):

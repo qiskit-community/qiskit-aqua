@@ -20,50 +20,16 @@ import numpy as np
 from sklearn.metrics.pairwise import rbf_kernel
 import copy
 from qiskit_aqua import QuantumAlgorithm
-from qiskit_aqua.svm import (get_points_and_labels, optimize_SVM)
+from qiskit_aqua.svm_qkernel import (get_points_and_labels, optimize_SVM)
+from qiskit_aqua.svm_classical.svm_classical_abc import SVM_Classical_ABC
 
-
-class SVM_RBF_Kernel(QuantumAlgorithm):
-    SVM_RBF_KERNEL_CONFIGURATION = {
-        'name': 'SVM_RBF_Kernel',
-        'description': 'SVM_RBF_Kernel Algorithm',
-        'classical': True,
-        'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
-            'id': 'SVM_RBF_schema',
-            'type': 'object',
-            'properties': {
-                'gamma': {
-                    'type': ['number', 'null'],
-                    'default': None
-                },
-                'print_info': {
-                    'type': 'boolean',
-                    'default': False
-                }
-            },
-            'additionalProperties': False
-        },
-        'problems': ['svm_classification']
-    }
-
-    def __init__(self, configuration=None):
-        super().__init__(configuration or copy.deepcopy(SVM_RBF_Kernel.SVM_RBF_KERNEL_CONFIGURATION))
+class SVM_Classical_Binary(SVM_Classical_ABC):
+    def __init__(self):
         self._ret = {}
 
-    def init_params(self, params, algo_input):
-        SVM_RBF_K_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
-        gamma = SVM_RBF_K_params.get('gamma')
-        self.init_args(algo_input.training_dataset, algo_input.test_dataset,
-                       algo_input.datapoints, gamma, SVM_RBF_K_params.get('print_info'))
 
-    def init_args(self, training_dataset, test_dataset, datapoints, gamma, print_info=False):
-        self.training_dataset = training_dataset
-        self.test_dataset = test_dataset
-        self.datapoints = datapoints
-        self.class_labels = list(self.training_dataset.keys())
-        self.print_info = print_info
-        self.gamma = gamma
+
+
 
     def kernel_join(self, points_array, points_array2, gamma=None):
         return rbf_kernel(points_array, points_array2, gamma)
@@ -71,7 +37,7 @@ class SVM_RBF_Kernel(QuantumAlgorithm):
     def train(self, training_input, class_labels):
         training_points, training_points_labels, label_to_class = get_points_and_labels(training_input, class_labels)
 
-        kernel_matrix = self.kernel_join(training_points, training_points, self.gamma)
+        kernel_matrix = self.kernel_join(training_points, training_points, None)
         self._ret['kernel_matrix_training'] = kernel_matrix
 
         [alpha, b, support] = optimize_SVM(kernel_matrix, training_points_labels)
@@ -99,7 +65,7 @@ class SVM_RBF_Kernel(QuantumAlgorithm):
         SVMs = self._ret['svm']['support_vectors']
         yin = self._ret['svm']['yin']
 
-        kernel_matrix = self.kernel_join(test_points, SVMs, self.gamma)
+        kernel_matrix = self.kernel_join(test_points, SVMs)
         self._ret['kernel_matrix_testing'] = kernel_matrix
 
         success_ratio = 0
@@ -134,7 +100,7 @@ class SVM_RBF_Kernel(QuantumAlgorithm):
         bias = self._ret['svm']['bias']
         SVMs = self._ret['svm']['support_vectors']
         yin = self._ret['svm']['yin']
-        kernel_matrix = self.kernel_join(test_points, SVMs, self.gamma)
+        kernel_matrix = self.kernel_join(test_points, SVMs)
         self._ret['kernel_matrix_prediction'] = kernel_matrix
 
         total_num_points = len(test_points)

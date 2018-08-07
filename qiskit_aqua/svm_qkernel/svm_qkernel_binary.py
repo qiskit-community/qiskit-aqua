@@ -17,65 +17,14 @@
 
 import numpy as np
 
-from qiskit_aqua import QuantumAlgorithm
-from qiskit_aqua.svm import (get_points_and_labels, optimize_SVM,
-                             kernel_join, entangler_map_creator)
+from qiskit_aqua.svm_qkernel import (get_points_and_labels, optimize_SVM,kernel_join)
+from qiskit_aqua.svm_qkernel.svm_qkernel_abc import SVM_QKernel_ABC
 
-
-class SVM_QKernel(QuantumAlgorithm):
-    SVM_QKERNEL_CONFIGURATION = {
-        'name': 'SVM_QKernel',
-        'description': 'SVM_QKernel Algorithm',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
-            'id': 'SVM_QKernel_schema',
-            'type': 'object',
-            'properties': {
-                'print_info': {
-                    'type': 'boolean',
-                    'default': False
-                }
-            },
-            'additionalProperties': False
-        },
-        'problems': ['svm_classification']
-    }
-
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.SVM_QKERNEL_CONFIGURATION.copy())
+class SVM_QKernel_Binary(SVM_QKernel_ABC):
+    def __init__(self):
         self._ret = {}
 
-    def init_params(self, params, algo_input):
-        SVMQK_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
 
-        self.init_args(algo_input.training_dataset, algo_input.test_dataset,
-                       algo_input.datapoints, SVMQK_params.get('print_info'))
-
-    def auto_detect_qubitnum(self, training_dataset):
-        auto_detected_size = -1
-        for key in training_dataset:
-            val = training_dataset[key]
-            for item in val:
-                auto_detected_size = len(item)
-                return auto_detected_size
-        return auto_detected_size
-
-    def init_args(self, training_dataset, test_dataset, datapoints, print_info=False):  # 2
-        if 'statevector' in self._backend:
-            raise ValueError('Selected backend  "{}" does not support measurements.'.format(self._backend))
-
-        self.training_dataset = training_dataset
-        self.test_dataset = test_dataset
-        self.datapoints = datapoints
-        self.class_labels = class_labels = list(self.training_dataset.keys())
-
-        self.num_of_qubits = self.auto_detect_qubitnum(training_dataset) # auto-detect mode
-        self.entangler_map = entangler_map_creator(self.num_of_qubits)
-        self.coupling_map = None
-        self.initial_layout = None
-        self.shots = self._execute_config['shots']
-
-        self.print_info = print_info
 
     def train(self, training_input, class_labels):
         training_points, training_points_labels, label_to_class = get_points_and_labels(training_input, class_labels)
