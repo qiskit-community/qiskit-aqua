@@ -162,6 +162,8 @@ class Operator(object):
             return self.print_operators('grouped_paulis')
         elif self._matrix is not None:
             return self.print_operators('matrix')
+        else:
+            return "Empty operator."
 
     def chop(self, threshold=1e-15):
         """
