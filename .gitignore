@@ -102,7 +102,8 @@ docs/*.rst
 !docs/dev_introduction.rst
 !docs/index.rst
 !docs/releases.rst
-!docs/AQUA_CHEMISTRY_*.rst
+!docs/aqua_chemistry.rst
+!docs/aqua_chemistry_*.rst
 
 # PyBuilder
 target/
