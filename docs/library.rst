@@ -11,14 +11,14 @@ real quantum device).
 .. toctree::
    :maxdepth: 2
 
-   Overview <OVERVIEW>   
-   Installation and Setup <INSTALLATION>
-   Running an Experiment <EXECUTION>
-   Contributing to Aqua <EXTENDING>
-   Algorithms <ALGORITHMS>
-   Optimizers <OPTIMIZERS>
-   Variational Forms <VARIATIONAL_FORMS>
-   Oracles <ORACLES>
-   Inverse Quantum Fourier Transforms <IQFTS>
-   Initial States <INITIAL_STATES>
+   Overview <overview>   
+   Installation and Setup <installation>
+   Running an Experiment <execution>
+   Contributing to Aqua <extending>
+   Algorithms <algorithms>
+   Optimizers <optimizers>
+   Variational Forms <variational_forms>
+   Oracles <oracles>
+   Inverse Quantum Fourier Transforms <iqfts>
+   Initial States <initial_states>
    Aqua SDK Reference <qiskit_aqua>
