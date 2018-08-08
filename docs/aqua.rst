@@ -20,8 +20,8 @@ and then the domain-specific applications of Aqua: Chemistry, AI and Optimizatio
 .. toctree::
    :maxdepth: 2
    
-   Aqua: A Library of Quantum Algorithms <LIBRARY>
-   Aqua Chemistry <AQUA_CHEMISTRY>
-   Aqua Artificial Intelligence <AQUA_AI>
-   Aqua Optimization <AQUA_OPTIMIZATION>
-   Aqua Tutorials <AQUA_TUTORIALS>
+   Aqua: A Library of Quantum Algorithms <library>
+   Aqua Chemistry <aqua_chemistry>
+   Aqua Artificial Intelligence <aqua_ai>
+   Aqua Optimization <aqua_optimization>
+   Aqua Tutorials <aqua_tutorials>
