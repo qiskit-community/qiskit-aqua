@@ -14,8 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+import logging
+from qiskit_aqua._logging import build_logging_config, set_logger_config
 
-
+set_logger_config(build_logging_config(['qiskit_aqua'], logging.DEBUG))
 
 from qiskit_aqua.utils.multiclass.data_preprocess import *
 from qiskit_aqua.svm_qkernel.data_preprocess import *
