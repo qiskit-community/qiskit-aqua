@@ -1,8 +1,8 @@
 .. _aqua-chemistry:
 
-==============
-Aqua Chemistry
-==============
+========
+Overview
+========
 
 Qiskit Aqua Chemistry is a set of tools and algorithms that enable experimenting with chemistry problems
 via quantum computing. Aqua Chemistry translates chemistry-specific problems into inputs for an algorithm from the Aqua :ref:`quantum-algorithms` library,
