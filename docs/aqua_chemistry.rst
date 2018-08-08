@@ -11,10 +11,10 @@ real quantum device).
 .. toctree::
    :maxdepth: 2
 
-   Overview <AQUA_CHEMISTRY_OVERVIEW>
-   Installation and Setup <AQUA_CHEMISTRY_INSTALLATION>
-   Drivers <AQUA_CHEMISTRY_DRIVERS>
-   Translators <AQUA_CHEMISTRY_TRANSLATORS>
-   Running an Experiment <AQUA_CHEMISTRY_EXECUTION>
-   Contributing to Aqua Chemistry <AQUA_CHEMISTRY_EXTENDING>
+   Overview <aqua_chemistry_overview>
+   Installation and Setup <aqua_chemistry_installation>
+   Drivers <aqua_chemistry_drivers>
+   Translators <aqua_chemistry_translators>
+   Running an Experiment <aqua_chemistry_execution>
+   Contributing to Aqua Chemistry <aqua_chemistry_extending>
    Aqua Chemistry SDK Reference <qiskit_aqua_chemistry>
