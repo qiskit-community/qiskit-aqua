@@ -1,14 +1,14 @@
-# Automatically Generating the Integrated Aqua and Aqua Chemistry Documentation
+# Automatically Generating the Integrated Aqua, Aqua-Chemistry, Aqua Artificial Intelligence, Aqua Optimization and Aqua Tutorial Documentation
 
-1. Make sure you have Sphinx >= 1.7.6, sphinxcontrib-fulltoc >= 1.2.0, and sphinxcontrib-websupport >= 1.1.0 installed
-   in the same Python environment where you have Aqua and Aqua Chemistry installed.
-2. The `aqua` and `aqua-chemistry` repository must be installed via `git clone` next to each other in the same folder of the
+1. Make sure you have `Sphinx` >= 1.7.6, `sphinxcontrib-fulltoc` >= 1.2.0, and `sphinxcontrib-websupport` >= 1.1.0 installed
+   in the same Python environment where you have `aqua` and `aqua-chemistry` installed.
+2. The `aqua` and `aqua-chemistry` repositories must be installed via `git clone` next to each other in the same folder of the
    file system.
 3. From the `docs` folder of `aqua-chemistry`, issue the following commands:
 
-   a. `make clean`
-   b. `sphinx-apidoc -f -o . ..`
-   c, `make html`
+   - `make clean`
+   - `sphinx-apidoc -f -o . ..`
+   - `make html`
    
 4. Repeat steps 3.a, 3.b and 3.c from the `docs` folder of `aqua`
 5. The Aqua, Aqua-Chemistry, Aqua Artificial Intelligence, Aqua Optimization and Aqua Tutorial documentation will
