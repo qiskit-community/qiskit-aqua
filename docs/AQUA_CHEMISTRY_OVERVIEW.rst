@@ -193,7 +193,7 @@ To better illustrate this point, consider the ability of popular computational c
 :ref:`gaussian-16`, :ref:`psi4` and :ref:`pyscf` --- all interfaced by Aqua Chemistry --- to accept the configuration of
 a molecule where different atoms are represented in different basis sets, as opposed to having to necessarily impose
 one single basis set for all the atoms.  As an example, the following code snippet, written in the PSI4 language,
-configuring the basis sets for a molecule of benzene, whose chemical formula is ::math::`C_6H_6`:
+configuring the basis sets for a molecule of benzene, whose chemical formula is :math:`C_6H_6`, indicating the fact that the molecule comprises six atoms of carbon and six of hydrogen:
 
 .. code::
 

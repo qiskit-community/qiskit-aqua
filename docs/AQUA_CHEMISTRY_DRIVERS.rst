@@ -40,10 +40,10 @@ Application Programming Interface (API) to support interfacing new drivers.
 Currently, Aqua Chemistry comes with interfaces prebuilt
 for the following four computational chemistry software drivers:
 
-1. `Gaussian™ 16 <http://gaussian.com/gaussian16/>`__, a commercial chemistry program
-2. `PSI4 <http://www.psicode.org/>`__, an open-source chemistry program built on Python
-3. `PySCF <https://github.com/sunqm/pyscf>`__, an open-source Python chemistry program
-4. `PyQuante <https://github.com/rpmuller/pyquante2>`__, a pure cross-platform open-source Python chemistry program
+1. :ref:`gaussian-16`
+2. :ref:`psi4`
+3. :ref:`pyscf`
+4. :ref:`pyquante`
 
 .. topic:: The HDF5 Driver
 
