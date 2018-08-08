@@ -14,7 +14,7 @@ then provides a circuit that can take the starting point of all zero qubits to t
     Consistent with its unique  design, Aqua has a modular and
     extensible architecture. Algorithms and their supporting objects, such as initial states for
     variational forms and :ref:`qpe`, are pluggable modules in Aqua.
-    New initial states are typically installed in the ``qiskit_acqua/utils/initial_states`` folder and derive from
+    New initial states are typically installed in the ``qiskit_aqua/utils/initial_states`` folder and derive from
     the ``InitialState`` class.  Aqua also allows for
     :ref:`aqua-dynamically-discovered-components`: new initial states can register themselves
     as Aqua extensions and be dynamically discovered at run time independent of their

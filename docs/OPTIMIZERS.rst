@@ -20,7 +20,7 @@ Logically, these optimizers can be divided into two categories:
     Consistent with its unique  design, Aqua has a modular and
     extensible architecture. Algorithms and their supporting objects, such as optimizers for quantum variational algorithms,
     are pluggable modules in Aqua.
-    New optimizers for quantum variational algorithms are typically installed in the ``qiskit_acqua/utils/optimizers`` folder and derive from
+    New optimizers for quantum variational algorithms are typically installed in the ``qiskit_aqua/utils/optimizers`` folder and derive from
     the ``Optimizer`` class.  Aqua also allows for
     :ref:`aqua-dynamically-discovered-components`: new optimizers can register themselves
     as Aqua extensions and be dynamically discovered at run time independent of their
@@ -618,7 +618,7 @@ in the ``nlopt`` subfolder of the ``optimizers`` folder.
     NLopt on Windows <https://nlopt.readthedocs.io/en/latest/NLopt_on_Windows/>`__.
 
     If you are running Aqua on a Unix-like system, first ensure that your environment is set
-    to the Python executable for which the qiskit_acqua package is installed and running.
+    to the Python executable for which the qiskit_aqua package is installed and running.
     Now, having downloaded and unpacked the NLopt archive file
     (for example, ``nlopt-2.4.2.tar.gz`` for version 2.4.2), enter the following commands:
 

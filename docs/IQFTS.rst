@@ -44,7 +44,7 @@ Aqua can plug their own IQFT implementation.
     are pluggable modules in Aqua. This is done in order to encourage researchers and
     developers interested in
     :ref:`aqua-extending` to extend the Aqua framework with their novel research contributions.
-    New IQFTs are typically installed in the ``qiskit_acqua/utils/iqfts``
+    New IQFTs are typically installed in the ``qiskit_aqua/utils/iqfts``
     folder and derive from the ``IQFT`` class.  Aqua also allows for
     :ref:`aqua-dynamically-discovered-components`: new IQFTs can register themselves
     as Aqua extensions and be dynamically discovered at run time independent of their

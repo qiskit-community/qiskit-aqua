@@ -35,7 +35,7 @@ box.
     Consistent with its unique  design, Aqua has a modular and
     extensible architecture. Algorithms and their supporting objects, such as oracles for Grover's Search Algorithm,
     are pluggable modules in Aqua.
-    New oracles are typically installed in the ``qiskit_acqua/utils/oracles`` folder and derive from
+    New oracles are typically installed in the ``qiskit_aqua/utils/oracles`` folder and derive from
     the ``Oracle`` class.  Aqua also allows for
     :ref:`aqua-dynamically-discovered-components`: new oracles can register themselves
     as Aqua extensions and be dynamically discovered at run time independent of their

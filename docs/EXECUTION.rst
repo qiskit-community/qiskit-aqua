@@ -68,7 +68,7 @@ as follows:
 
 .. code:: sh
 
-   qiskit_acqua_ui
+   qiskit_aqua_ui
 
 If you cloned Aqua directly from the
 `GitHub repository <https://github.com/Qiskit/aqua>`__ instead of using ``pip
@@ -76,7 +76,7 @@ install``, then the script above will not be present and the launching command s
 
 .. code:: sh
 
-   python qiskit_acqua/ui/run
+   python qiskit_aqua/ui/run
 
 This command must be launched from the root folder of the ``qiskit-aqua`` repository clone.
 
@@ -95,7 +95,7 @@ Aqua comes with the following command-line tool:
 
 .. code:: sh
 
-   qiskit_acqua_cmd
+   qiskit_aqua_cmd
 
 If you cloned Aqua from its remote
 `GitHub repository <https://github.com/QISKit/aqua>`__
@@ -103,7 +103,7 @@ instead of using ``pip install``, then the command-line interface can be execute
 
 .. code:: sh
 
-   python qiskit_acqua
+   python qiskit_aqua
 
 from the root folder of the ``qiskit-aqua`` repository clone.
 
@@ -138,7 +138,7 @@ There is
 nothing preventing a user from accessing the Aqua APIs and
 programming an experiment step by step, but a  more direct way to access Aqua programmatically
 is by obtaining a JSON algorithm input file, such as one of those
-available in the ``acqua/input_files`` subfolder of the
+available in the ``aqua/input_files`` subfolder of the
 `Aqua Tutorials GitHub repository <https://github.com/QISKit/aqua-tutorials>`__.
 Such files can be constructed manually, but a much more intuitive way to automatically
 construct one of these input files is

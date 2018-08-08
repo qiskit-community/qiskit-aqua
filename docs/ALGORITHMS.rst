@@ -7,7 +7,7 @@ Algorithms
 Aqua is an extensible collection of algorithms and utilities for use with quantum computers to
 carry out research and investigate how to solve problems using near-term
 quantum applications on short depth circuits. The applications can span
-different domains. ACQUA uses
+different domains. Aqua uses
 `Terra <https://www.qiskit.org/terra>`__ for the generation, compilation and execution
 of the quantum circuits modeling the specific problems.
 
@@ -41,7 +41,7 @@ quantum algorithms:
     and made available for use within the framework of Aqua.
     Specifically, to develop and deploy any new algorithm, the new algorithm class should derive from the ``QuantumAlgorithm`` class.
     Along with any supporting  module, for immediate dynamic discovery, the new algorithm class
-    can simply be installed under its own folder in the ``qiskit_acqua`` directory, just like the
+    can simply be installed under its own folder in the ``qiskit_aqua`` directory, just like the
     existing algorithms.  Aqua also allows for
     :ref:`aqua-dynamically-discovered-components`: new algorithms can register themselves
     as Aqua extensions and be dynamically discovered at run time independent of their
