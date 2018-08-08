@@ -69,7 +69,7 @@ available for use by quantum variational algorithms.
 
 .. seealso::
 
-    `Section :ref:`aqua-extending` provides more
+    Section ":ref:`aqua-extending`" provides more
     details on how to extend Aqua with new components.
 
 .. topic:: Entangler Map Associated with a Variational Form
@@ -98,8 +98,8 @@ The Ry trial wave function is layers of :math:`y` rotations with entanglements. 
 creates and uses is given by :math:`q \times (d + 1)`, where :math:`q` is the total number of qubits and :math:`d` is the depth of the circuit.
 
 The following allows a specific form to be configured in the
-``variational_form`` section of the
-Aqua `input file <#aqua-input-file> when the ``name `` field
+``variational_form`` section of the Aqua
+:ref:`aqua-input-file` when the ``name `` field
 is set to ``RY``:
 
 - The depth of the circuit:
@@ -172,7 +172,7 @@ The RyRz trial wave function is layers of :math:`y` plus :math:`z` rotations wit
 The number of optimizer parameters this form
 creates and uses is given by :math:`q \times (d + 1) \times 2`, where :math:`q` is the total number of qubits and :math:`d` is the depth of the circuit.
 The parameters of RyRz can be configured after selecting ``RYRZ`` as the value of the ``name`` field in the
-``variational_form`` section of the :ref:`aqua-input-file`.  These parameters are ``depth``, ``entanglement``, and ``entangler_map`` --- the same
+``variational_form`` section of the Aqua :ref:`input-file`.  These parameters are ``depth``, ``entanglement``, and ``entangler_map`` --- the same
 as those of :ref:`Ry`.
 
 .. topic:: Declarative Name
@@ -410,18 +410,16 @@ SwapRz
 
 This trial wave function is layers of swap plus :math:`z` rotations with entanglements.
 It was designed principally to be a particle-preserving variational form for
-`chemistry <#qiskit-aqua-chemistry>`,
-and is optimally used in conjunction with the Jordan-Wigner qubit mapping and
-the `Hartree-Fock initial state <#Hartree-Fock>.
+:ref:`aqua-chemistry`.
 
 .. warning::
 
     Particle preservation with SwapRz is not guaranteed unless SwapRz is used in conjunction with
-    the Jordan-Wigner qubit mapping and the `Hartree-Fock initial state.
+    the :ref:`jordan-wigner` qubit mapping and the :ref:`hartree-fock` initial state.
 
 The parameters of SwapRz can be configured after selecting ``SWAPRZ`` as the value of the ``name`` field in the
 ``variational_form`` section of the Aqua
-`input file <#aqua-input-file>.  These parameters are ``depth``. ``entanglement``, and ``entangler_map`` --- the same
+:ref:`aqua-input file`.  These parameters are ``depth``. ``entanglement``, and ``entangler_map`` --- the same
 as those of :ref:`Ry`.
 
 Based on the notation introduced above for the entangler map associated with a variational form,

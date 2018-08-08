@@ -11,8 +11,7 @@ contribute to quantum computing at various levels of the software stack, we have
 created :ref:`aqua-library` that can be invoked directly or via domain-specific computational
 applications:
 :ref:`aqua-chemistry`, :ref:`aqua-ai`, and :ref:`aqua-optimization`.
-A companion library of notebooks, input files and sample code
-is also made available in the form of a
+Finally, :ref:`aqua-tutorials` is a companion library of notebooks, input files and sample code made available in the form of a
 `GitHub repository <https://github.com/Qiskit/aqua-tutorials>`__.
 
 This part of the documentation will first cover Aqua as a library of quantum applications,
@@ -23,3 +22,6 @@ and then the domain-specific applications of Aqua: Chemistry, AI and Optimizatio
    
    Aqua: A Library of Quantum Algorithms <LIBRARY>
    Aqua Chemistry <AQUA_CHEMISTRY>
+   Aqua Artificial Intelligence <AQUA_AI>
+   Aqua Optimization <AQUA_OPTIMIZATION>
+   Aqua Tutorials <AQUA_TUTORIALS>

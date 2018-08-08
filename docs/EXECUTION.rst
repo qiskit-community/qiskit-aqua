@@ -51,9 +51,9 @@ and their configuration parameters.
 
 .. _aqua-gui:
 
-^^^^^^^^
-Aqua GUI
-^^^^^^^^
+^^^
+GUI
+^^^
 
 The GUI provides an easy means to create from scratch, or load
 an existing, `input file <#aqua-input-file>`__, and then run that input file to experiment with a
@@ -86,9 +86,9 @@ This command must be launched from the root folder of the ``qiskit-aqua`` reposi
 
 .. _aqua-command-line:
 
-^^^^^^^^^^^^^^^^^
-Aqua Command Line
-^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^
+Command Line
+^^^^^^^^^^^^
 
 If installed via ``pip install``,
 Aqua comes with the following command-line tool:
@@ -117,9 +117,9 @@ is expected as a command-line parameter.
 
 .. _aqua-programmable-interface:
 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Aqua Programmable Interface
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^
+Programmable Interface
+^^^^^^^^^^^^^^^^^^^^^^
 
 Experiments can be run programmatically too. Numerous
 examples on how to program an experiment in Aqua
@@ -152,9 +152,9 @@ This technique can be used, for example, to compare the results of two different
 
 .. _aqua-doc-ui:
 
-^^^^^^^^^^^^^^^^^^^^^
-Aqua Documentation UI
-^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^
+Documentation UI
+^^^^^^^^^^^^^^^^
 
 Aqua is a modular and extensible software framework, supporting two types of endusers: those who want
 to simply use Aqua as a tool to execute experiments, and those interested in extending Aqua
@@ -183,9 +183,9 @@ from the root folder of the ``qiskit-aqua`` repository clone.
 
 .. _aqua-input-file:
 
----------------
-Aqua Input File
----------------
+----------
+Input File
+----------
 
 An input file is used to define an Aqua problem,
 and includes the input to the
