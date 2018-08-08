@@ -97,21 +97,21 @@ docs/*.rst
 !docs/qiskit-aqua.rst
 !docs/index.rst
 !docs/aqua.rst
-!docs/LIBRARY.rst
-!docs/OVERVIEW.rst
-!docs/INSTALLATION.rst
-!docs/EXECUTION.rst
-!docs/EXTENDING.rst
-!docs/ALGORITHMS.rst
-!docs/OPTIMIZERS.rst
-!docs/VARIATIONAL_FORMS.rst
-!docs/ORACLES.rst
-!docs/IQFTS.rst
-!docs/INITIAL_STATES.rst
-!docs/AQUA_CHEMISTRY_*.rst
-!docs/AQUA_AI.rst
-!docs/AQUA_OPTIMIZATION.rst
-!docs/AQUA_TUTORIALS.rst
+!docs/library.rst
+!docs/overview.rst
+!docs/installation.rst
+!docs/execution.rst
+!docs/extending.rst
+!docs/algorithms.rst
+!docs/optimizers.rst
+!docs/variational_forms.rst
+!docs/oracles.rst
+!docs/iqfts.rst
+!docs/initial_states.rst
+!docs/aqua_chemistry_*.rst
+!docs/aqua_ai.rst
+!docs/aqua_optimization.rst
+!docs/aqua_tutorials.rst
 !docs/qiskit_aqua_chemistry.rst
 
 # PyBuilder
