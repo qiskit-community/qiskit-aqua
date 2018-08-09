@@ -40,7 +40,7 @@ params = {
     'algorithm': {
         'name': 'SVM_QKernel',
         'print_info': True,
-        'multiclass_alg': "all_pairs"
+        'multiclass_alg': "error_correcting_code"
 
     }
 }

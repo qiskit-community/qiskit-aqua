@@ -39,7 +39,8 @@ params = {
     'problem': {'name': 'svm_classification'},
     'algorithm': {
         'name': 'SVM_Classical',
-        'print_info': True
+        'print_info': True,
+        'multiclass_alg':'one_against_all'
     }
 }
 
