@@ -18,9 +18,9 @@ framework.  Once added, new components are automatically discovered.
     Any user who would like to contribute to Aqua or Aqua Chemistry should follow the Aqua `contribution
     guidelines <https://github.com/Qiskit/aqua-chemistry/blob/master/.github/CONTRIBUTING.rst>`__.
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------------
 Dynamically Discovered Components
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------------
 
 Researchers and developers can contribute to Aqua Chemistry
 by providing new components, which will be automatically discovered and loaded by Aqua at run time.
@@ -120,15 +120,17 @@ ways for a component to be dynamically discovered and loaded by Aqua Chemistry a
        )
 
 
-~~~~~~~~~~~~~~~~
+----------------
 Extension Points
-~~~~~~~~~~~~~~~~
+----------------
 This section details the components that researchers and developers
 can contribute to Aqua Chemistry.
 Aqua Chemistry exposes two extension points:
 
 1. :ref:`chemistry-drivers`
 2. :ref:`chemistry-operators`
+
+.. _chemistry-drivers:
 
 ^^^^^^^^^^^^^^^^^
 Chemistry Drivers
@@ -145,6 +147,7 @@ structure data listed above.  Driver wrappers implementing the ``BaseDriver`` cl
 associated ``configuration.json`` schema file are organized in subfolders of the ``drivers`` folder
 for automatic discovery and dynamic lookup.
 
+.. _chemistry-operators:
 
 ^^^^^^^^^^^^^^^^^^^
 Chemistry Operators
@@ -157,23 +160,26 @@ can be plugged in by extending the ``ChemistryOperator`` interface and providing
 for automatic discovery and dynamic lookup.
 
 
+----------
 Unit Tests
 ----------
 
 Contributing new software components to Aqua Chemistry requires writing new unit tests for those components,
 and executing all the existing unit tests to make sure that no bugs were inadvertently injected.
 
-
+^^^^^^^^^^^^^^^^^^
 Writing Unit Tests
-~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^
 Unit tests should go under the ``test`` folder and be classes derived from
 the ``QiskitAquaChemistryTestCase`` class.  They should not have ``print`` statements;
 rather, they should use ``self.log.debug``. If
 they use assertions, these should be from the ``unittest`` package, such as
 ``self.AssertTrue``, ``self.assertRaises``, etc.
 
+
+^^^^^^^^^^^^^^^^^^^^
 Executing Unit Tests
-~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^
 To run all unit tests, execute the following command:
 
 .. code:: sh
