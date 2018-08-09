@@ -16,37 +16,9 @@ experiments and contribute to the quantum computing optimization software stack.
 Users with a pure optimization background or interests can continue to configure
 optimization problems without having to learn the details of quantum computing.
 
---------------------------------
-Optimization-specific Algorithms
---------------------------------
-
-:ref:`aqua-library` includes numerous quantum algorithms
-that can be used to experiment with optimization problems,
-such as :ref:`vqe`, :ref:`qaoa`, :ref:`qpe`, :ref:`iqpe` and :ref:`grover`.
-
-Research and developers interested in :ref:`aqua-extending` with new optimization-specific
-capabilities can take advantage
-of the modular architecture of Aqua and easily extend Aqua with more algorithms
-and algorithm components, such as new :ref:`oracles` for the :ref:`grover` algorithm,
-new :ref:`optimizers` and :ref:`variational-forms` for :ref:`vqe` and :ref:`qaoa`,
-and new :ref:`iqfts` for :ref:`qpe` and :ref:`iqpe`.
-
-To produce reference values and compare and contrast results during experimentation,
-the Aqua library of :ref:`classical-reference-algorithms` also includes the
-:ref:`exact-eigensolver` and :ref:`cplex` classical algorithms.
-
---------
-Examples
--------- 
-
-The ``optimization`` folder of the `Aqua Tutorials GitHub Repository
-<https://github.com/Qiskit/aqua-tutorials>`__ contains numerous
-`Jupyter Notebooks <http://jupyter.org/>`__
-explaining how to use Aqua Optimization.
-
----------------------
-Optimization Problems
----------------------
+--------------------------
+Aqua Optimization Problems
+--------------------------
 
 Aqua Optimization can already be used to experiment with numerous well known optimization
 problems, such as:
@@ -55,3 +27,48 @@ problems, such as:
 2. `Maximum Cut (MaxCut) <https://github.com/Qiskit/aqua-tutorials/blob/master/optimization/maxcut.ipynb>`__
 3. `Partition <https://github.com/Qiskit/aqua-tutorials/blob/master/optimization/partition.ipynb>`__
 4. `3 Satisfiability (3-SAT) <https://github.com/Qiskit/aqua-tutorials/blob/master/optimization/grover.ipynb>`__
+
+
+--------------------------------
+Aqua Algorithms for Optimization
+--------------------------------
+
+:ref:`aqua-library` includes numerous algorithms
+that can be used to experiment with optimization problems.
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+General Quantum Algorithms for Optimization
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The following quantum algorithms are suitable to optimization problems:
+:ref:`vqe`, :ref:`qaoa`, :ref:`qpe`, :ref:`iqpe` and :ref:`grover`.
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Classical Reference Algorithms for Optimization
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To produce reference values and compare and contrast results during experimentation,
+the Aqua library of :ref:`classical-reference-algorithms` includes the
+:ref:`exact-eigensolver` and :ref:`cplex` classical algorithms.
+
+---------------------------------
+Contributing to Aqua Optimization
+---------------------------------
+
+Research and developers interested in :ref:`aqua-extending` with new optimization-specific
+capabilities can take advantage
+of the modular architecture of Aqua and easily extend Aqua with more algorithms
+and algorithm components, such as new :ref:`oracles` for the :ref:`grover` algorithm,
+new :ref:`optimizers` and :ref:`variational-forms` for :ref:`vqe` and :ref:`qaoa`,
+and new :ref:`iqfts` for :ref:`qpe` and :ref:`iqpe`.
+
+
+--------
+Examples
+-------- 
+
+The ``optimization`` folder of the `Aqua Tutorials GitHub Repository
+<https://github.com/Qiskit/aqua-tutorials>`__ contains numerous
+`Jupyter Notebooks <http://jupyter.org/>`__ and sample input data files
+explaining how to use Aqua Optimization.
+

@@ -16,9 +16,16 @@ experiments and contribute to the quantum computing AI software stack.
 Users with a pure AI background or interests can continue to configure AI problems
 without having to learn the details of quantum computing.
 
-----------------------
-AI-specific Algorithms
-----------------------
+---------------------
+Applicable Algorithms
+---------------------
+
+There are numerous algorithms from :ref:`aqua-library` that can be applied
+to AI problems.
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AI-specific Quantum Algorithms
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Aqua AI comes with two quantum Support Vector Machine (SVM) algorithms
 already integrated into the Aqua library:
@@ -41,9 +48,25 @@ already integrated into the Aqua library:
    a parameterized quantum circuit to provide a solution that cleanly
    separates the data.
 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+General Quantum Algorithms for AI
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 Other quantum algorithms available in Aqua
 that can be used to experiment with AI problems
 include :ref:`vqe`, :ref:`qaoa`, :ref:`qpe`, :ref:`iqpe` and :ref:`grover`.
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Classical Reference Algorithms for AI
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To produce reference values and compare and contrast results during experimentation,
+the Aqua library of :ref:`classical-reference-algorithms` also includes the
+:ref:`avm-rbf-kernel` classical algorithm.
+
+-----------------------
+Contributing to Aqua AI
+-----------------------
 
 Research and developers interested in :ref:`aqua-extending` with new AI-specific
 capabilities can take advantage
@@ -52,9 +75,6 @@ or algorithm components, such as new :ref:`oracles` for the :ref:`grover` algori
 new :ref:`optimizers` and :ref:`variational-forms` for :ref:`vqe` and :ref:`qaoa`,
 and new :ref:`iqfts` for :ref:`qpe` and :ref:`iqpe`.
 
-To produce reference values and compare and contrast results during experimentation,
-the Aqua library of :ref:`classical-reference-algorithms` also includes the
-:ref:`avm-rbf-kernel` classical algorithm.
 
 --------
 Examples
@@ -62,5 +82,5 @@ Examples
 
 The ``artificial_intelligence`` folder of the `Aqua Tutorials GitHub Repository
 <https://github.com/Qiskit/aqua-tutorials>`__ contains numerous
-`Jupyter Notebooks <http://jupyter.org/>`__
+`Jupyter Notebooks <http://jupyter.org/>`__ and input data files
 explaining how to use Aqua AI.
