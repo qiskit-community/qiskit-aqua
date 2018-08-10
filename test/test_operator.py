@@ -205,6 +205,93 @@ class TestOperator(QiskitAquaTestCase):
         self.assertEqual(2, len(newOP.paulis))
         self.assertEqual(0.75, newOP.paulis[0][0])
 
+    def test_subtraction_noninplace(self):
+        """
+            test subtraction
+        """
+        pauli_a = 'IXYZ'
+        pauli_b = 'ZYIX'
+        coeff_a = 0.5
+        coeff_b = 0.5
+        pauli_term_a = [coeff_a, label_to_pauli(pauli_a)]
+        pauli_term_b = [coeff_b, label_to_pauli(pauli_b)]
+        opA = Operator(paulis=[pauli_term_a])
+        opB = Operator(paulis=[pauli_term_b])
+        copy_opA = copy.deepcopy(opA)
+        newOP = opA - opB
+
+        self.assertEqual(copy_opA, opA)
+        self.assertEqual(2, len(newOP.paulis))
+
+        pauli_c = 'IXYZ'
+        coeff_c = 0.25
+        pauli_term_c = [coeff_c, label_to_pauli(pauli_c)]
+        newOP = newOP - Operator(paulis=[pauli_term_c])
+
+        self.assertEqual(2, len(newOP.paulis))
+        self.assertEqual(0.25, newOP.paulis[0][0])
+
+    def test_subtraction_inplace(self):
+        """
+            test addition
+        """
+        pauli_a = 'IXYZ'
+        pauli_b = 'ZYIX'
+        coeff_a = 0.5
+        coeff_b = 0.5
+        pauli_term_a = [coeff_a, label_to_pauli(pauli_a)]
+        pauli_term_b = [coeff_b, label_to_pauli(pauli_b)]
+        opA = Operator(paulis=[pauli_term_a])
+        opB = Operator(paulis=[pauli_term_b])
+        opA -= opB
+
+        self.assertEqual(2, len(opA.paulis))
+
+        pauli_c = 'IXYZ'
+        coeff_c = 0.25
+        pauli_term_c = [coeff_c, label_to_pauli(pauli_c)]
+        opA -= Operator(paulis=[pauli_term_c])
+
+        self.assertEqual(2, len(opA.paulis))
+        self.assertEqual(0.25, opA.paulis[0][0])
+
+    def test_scaling_coeff(self):
+        """
+            test scale
+        """
+        pauli_a = 'IXYZ'
+        pauli_b = 'ZYIX'
+        coeff_a = 0.5
+        coeff_b = 0.5
+        pauli_term_a = [coeff_a, label_to_pauli(pauli_a)]
+        pauli_term_b = [coeff_b, label_to_pauli(pauli_b)]
+        opA = Operator(paulis=[pauli_term_a])
+        opB = Operator(paulis=[pauli_term_b])
+        opA += opB
+
+        self.assertEqual(2, len(opA.paulis))
+
+        opA.scaling_coeff(0.7)
+
+        self.assertEqual(2, len(opA.paulis))
+        self.assertEqual(0.35, opA.paulis[0][0])
+
+    def test_str(self):
+        """
+            test str
+        """
+        pauli_a = 'IXYZ'
+        pauli_b = 'ZYIX'
+        coeff_a = 0.5
+        coeff_b = 0.5
+        pauli_term_a = [coeff_a, label_to_pauli(pauli_a)]
+        pauli_term_b = [coeff_b, label_to_pauli(pauli_b)]
+        opA = Operator(paulis=[pauli_term_a])
+        opB = Operator(paulis=[pauli_term_b])
+        opA += opB
+
+        self.assertEqual("Representation: paulis, qubits: 4, size: 2", str(opA))
+
     def test_zero_coeff(self):
         """
             test addition
