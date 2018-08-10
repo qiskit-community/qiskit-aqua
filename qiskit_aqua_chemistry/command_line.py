@@ -19,7 +19,7 @@ import argparse
 import json
 import logging
 from qiskit_aqua_chemistry import AquaChemistry
-from qiskit_aqua_chemistry._logging import build_logging_config,set_logger_config
+from qiskit_aqua_chemistry._logging import get_logging_level,build_logging_config,set_logging_config
 from qiskit_aqua_chemistry.preferences import Preferences
 
 def main():
@@ -37,13 +37,17 @@ def main():
     
     args = parser.parse_args()
     
+    # update logging setting with latest external packages
     preferences = Preferences()
-    if preferences.get_logging_config() is None:
-        logging_config = build_logging_config(['qiskit_aqua_chemistry', 'qiskit_aqua'], logging.INFO)
-        preferences.set_logging_config(logging_config)
-        preferences.save()
+    logging_level = logging.INFO
+    if preferences.get_logging_config() is not None:
+        set_logging_config(preferences.get_logging_config())
+        logging_level = get_logging_level()
+        
+    preferences.set_logging_config(build_logging_config(logging_level))
+    preferences.save()
     
-    set_logger_config(preferences.get_logging_config())
+    set_logging_config(preferences.get_logging_config())
     
     solver = AquaChemistry()
     
@@ -52,7 +56,7 @@ def main():
     try:
         with open(args.input) as json_file:
             params = json.load(json_file)
-    except Exception as e:
+    except:
         pass
     
     if params is not None:

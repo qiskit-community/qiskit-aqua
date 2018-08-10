@@ -18,7 +18,7 @@
 import sys
 import logging
 import tkinter as tk
-from qiskit_aqua_chemistry._logging import build_logging_config,set_logger_config
+from qiskit_aqua_chemistry._logging import get_logging_level,build_logging_config,set_logging_config
 from qiskit_aqua_chemistry.ui._uipreferences import UIPreferences
 from qiskit_aqua_chemistry.preferences import Preferences
 from qiskit_aqua_chemistry.ui._mainview import MainView
@@ -50,13 +50,17 @@ def main():
     
     root.geometry(geometry)
    
+    # update logging setting with latest external packages
     preferences = Preferences()
-    if preferences.get_logging_config() is None:
-        logging_config = build_logging_config(['qiskit_aqua_chemistry', 'qiskit_aqua'], logging.INFO)
-        preferences.set_logging_config(logging_config)
-        preferences.save()
+    logging_level = logging.INFO
+    if preferences.get_logging_config() is not None:
+        set_logging_config(preferences.get_logging_config())
+        logging_level = get_logging_level()
+        
+    preferences.set_logging_config(build_logging_config(logging_level))
+    preferences.save()
     
-    set_logger_config(preferences.get_logging_config())
+    set_logging_config(preferences.get_logging_config())
    
     MainView(root)
     root.after(0, root.deiconify)
