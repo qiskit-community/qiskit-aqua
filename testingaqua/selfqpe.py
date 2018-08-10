@@ -8,7 +8,7 @@ from qiskit_aqua import Operator, QuantumAlgorithm, AlgorithmError
 from qiskit_aqua import get_initial_state_instance, get_iqft_instance
 from qiskit import available_backends, execute, register, get_backend
 import matplotlib.pyplot as plt
-from qiskit.tools.visualization import plot_histogram
+from qiskit.tools.visualization import plot_histogram, matplotlib_circuit_drawer as drawer
 
 
 from qiskit_aqua.input import get_input_instance
@@ -34,17 +34,17 @@ backend = "local_qasm_simulator"
 operator = None
 state_in = None
 #state_in.append([1])
-num_time_slices = 1
+num_time_slices = 6
 paulis_grouping = 'random'
 expansion_mode = 'suzuki'
 expansion_order = 3
-num_ancillae = 7
+num_ancillae = 4
 ancilla_phase_coef = 1
 circuit = None
 ret = {}
-b = [1]
-b = b.append( [1])
-matr = np.array([[0.125, 0], [0,0.5]])
+b = [0]
+b = b.append( [0])
+matr = np.array([[0.25, 0], [0,0.5]])
 qubit0p = Operator(matrix=matr)
 operator = qubit0p
 
@@ -60,6 +60,7 @@ if circuit is None:
     operator._check_representation('paulis')
     print(operator.print_operators('matrix'))
     ret['translation'] = sum([abs(p[0]) for p in operator.paulis])
+    print(ret['translation'])
     ret['stretch'] = 0.5 / ret['translation']
 
         # translate the operator
@@ -80,7 +81,7 @@ if circuit is None:
         # stretch the operator
     for p in operator._paulis:
         p[0] = p[0] * ret['stretch']
-
+        print(p)
         # check for identify paulis to get its coef for applying global phase shift on ancillae later
     num_identities = 0
     for p in operator.paulis:
@@ -103,6 +104,7 @@ if circuit is None:
 
         # phase kickbacks via dynamics
     pauli_list = operator.reorder_paulis(grouping=paulis_grouping)
+    print(pauli_list)
     if len(pauli_list) == 1:
         slice_pauli_list = pauli_list
     else:
@@ -121,11 +123,11 @@ if circuit is None:
             slice_pauli_list, -2 * np.pi, num_time_slices, q, a, ctl_idx=i
         ).data
             # global phase shift for the ancilla due to the identity pauli term
-        #qc.u1(2 * np.pi * ancilla_phase_coef * (2 ** i), a[i])
+        qc.u1(2 * np.pi * ancilla_phase_coef * (2 ** i), a[i])
 
         # inverse qft on ancillae
     iqft.construct_circuit('circuit', a, qc)
-
+    #drawer(qc)
         # measuring ancillae
     qc.measure(a, c)
 
@@ -143,12 +145,13 @@ retval = sum([t[0] * t[1] for t in zip(
     [int(n) for n in ret]
 )])
 
+
 #ret['measurements'] = rets
 #ret['top_measurement_label'] = ret
 #ret['top_measurement_decimal'] = retval
 #ret['energy'] = retval / ret['stretch'] - ret['translation']
 
-print(results)
+print(results.get_counts())
 print(operator.print_operators('paulis'))
 print(operator.print_operators('matrix'))
 
