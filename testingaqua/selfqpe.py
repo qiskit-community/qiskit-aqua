@@ -42,9 +42,9 @@ num_ancillae = 4
 ancilla_phase_coef = 1
 circuit = None
 ret = {}
-b = [0]
-b = b.append( [0])
-matr = np.array([[0.25, 0], [0,0.5]])
+b = [1]
+b = b.append([1])
+matr = np.array([[0.5, 0], [0,0.25]])
 qubit0p = Operator(matrix=matr)
 operator = qubit0p
 
@@ -58,13 +58,14 @@ iqft.init_args(num_qubits = num_ancillae)
 
 if circuit is None:
     operator._check_representation('paulis')
-    print(operator.print_operators('matrix'))
+    print(operator.print_operators('paulis'))
     ret['translation'] = sum([abs(p[0]) for p in operator.paulis])
     print(ret['translation'])
     ret['stretch'] = 0.5 / ret['translation']
 
         # translate the operator
     operator._simplify_paulis()
+    print(operator.print_operators('paulis'))
     translation_op = Operator([
         [
             ret['translation'],
