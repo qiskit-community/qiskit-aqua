@@ -44,9 +44,9 @@ class TestIQPE(QiskitAquaTestCase):
     @parameterized.expand([
         [qubitOp_h2_with_2_qubit_reduction],
     ])
-    def test_qpe(self, qubitOp):
+    def test_iqpe(self, qubitOp):
         self.algorithm = 'QPE'
-        self.log.debug('Testing QPE')
+        self.log.debug('Testing IQPE')
 
         self.qubitOp = qubitOp
 
