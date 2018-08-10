@@ -16,6 +16,7 @@
 # =============================================================================
 
 import unittest
+
 import numpy as np
 
 from test.common import QiskitAquaTestCase

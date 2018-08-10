@@ -21,10 +21,6 @@ from .qpsolver import optimize_SVM
 from .quantum_circuit_kernel import (entangler_map_creator, inner_prod_circuit_ML,
                                      get_zero_string, kernel_join)
 
-from .quantum_circuit_variational import (trial_circuit_ML, set_print_info,
-                                          eval_cost_function,
-                                          eval_cost_function_with_unlabeled_data)
-
 __all__ = ['assign_label',
            'cost_estimate_sigmoid',
            'return_probabilities',
@@ -34,8 +30,5 @@ __all__ = ['assign_label',
            'entangler_map_creator',
            'inner_prod_circuit_ML',
            'get_zero_string',
-           'kernel_join',
-           'trial_circuit_ML',
-           'eval_cost_function',
-           'eval_cost_function_with_unlabeled_data'
+           'kernel_join'
            ]

@@ -19,6 +19,7 @@ import unittest
 import operator
 
 from parameterized import parameterized
+
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import get_algorithm_instance, get_oracle_instance
 
@@ -30,6 +31,7 @@ class TestGrover(QiskitAquaTestCase):
         ['test_grover.cnf', 2]
     ])
     def test_grover(self, input_file, num_iterations=1):
+        input_file = self._get_resource_path(input_file)
         self.log.debug('Testing Grover search with {} iteration(s) on SAT problem instance: \n{}'.format(
             num_iterations, open(input_file).read(),
         ))

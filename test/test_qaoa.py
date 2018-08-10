@@ -16,11 +16,14 @@
 # =============================================================================
 
 import unittest
-from parameterized import parameterized
-from qiskit_aqua import get_algorithm_instance, get_optimizer_instance
-from test.common import QiskitAquaTestCase
-from qiskit_aqua.ising import maxcut
+
 import numpy as np
+from parameterized import parameterized
+
+from test.common import QiskitAquaTestCase
+from qiskit_aqua import get_algorithm_instance, get_optimizer_instance
+from qiskit_aqua.ising import maxcut
+
 
 w1 = np.array([
     [0, 1, 0, 1],
