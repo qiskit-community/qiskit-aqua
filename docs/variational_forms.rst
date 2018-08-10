@@ -99,7 +99,7 @@ creates and uses is given by :math:`q \times (d + 1)`, where :math:`q` is the to
 
 The following allows a specific form to be configured in the
 ``variational_form`` section of the Aqua
-:ref:`aqua-input-file` when the ``name `` field
+:ref:`aqua-input-file` when the ``name`` field
 is set to ``RY``:
 
 - The depth of the circuit:
