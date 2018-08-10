@@ -458,13 +458,13 @@ the algorithm. The following parameters may be set:
    above are supported, but new qubit mappings can easily be plugged in.
    Specifically:
 
-   1. ``"jordan_wigner"`` corresponds to the :ref:`jordan-wigner` transformation.
-   2. ``"parity"``, the default value for the ``qubit_mapping`` parameter, corresponds to the
+   1. ``jordan_wigner`` corresponds to the :ref:`jordan-wigner` transformation.
+   2. ``parity``, the default value for the ``qubit_mapping`` parameter, corresponds to the
       :ref:`parity` mapping transformation. When this mapping is selected,
       it is possible to reduce by 2 the number of qubits required by the computation
       without loss of precision by setting the ``two_qubit_reduction`` parameter to ``True``,
       as explained next.
-   3. ``"bravyi_kitaev"`` corresponds to the :ref:`bravyi-kitaev` transformation,
+   3. ``bravyi_kitaev`` corresponds to the :ref:`bravyi-kitaev` transformation,
       also known as *binary-tree-based qubit mapping*.     
 
 -  A Boolean flag specifying whether or not to apply the precision-preserving two-qubit reduction
