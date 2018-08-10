@@ -28,7 +28,7 @@ import pprint
 import logging
 from qiskit_aqua_chemistry.preferences import Preferences
 from qiskit_aqua_chemistry.core import get_chemistry_operator_instance
-from qiskit_aqua_chemistry._logging import get_logger_levels_for_names,build_logging_config,set_logger_config
+from qiskit_aqua_chemistry._logging import get_logging_level,build_logging_config,set_logging_config
 
 logger = logging.getLogger(__name__)
 
@@ -49,8 +49,7 @@ class AquaChemistry(object):
         """
         Returns the logging level being used by Aqua Chemistry
         """
-        levels = get_logger_levels_for_names(['qiskit_aqua_chemistry', 'qiskit_aqua'])
-        return levels[0]
+        return get_logging_level()
 
     def set_logging(self, level=logging.INFO):
         """Sets logging output of the logging messages.
@@ -60,11 +59,11 @@ class AquaChemistry(object):
         Params:
             level (int): minimum severity of the messages that are displayed.
         """
-        logging_config = build_logging_config(['qiskit_aqua_chemistry', 'qiskit_aqua'], level)
+        logging_config = build_logging_config(level)
         preferences = Preferences()
         preferences.set_logging_config(logging_config)
         preferences.save()
-        set_logger_config(logging_config)
+        set_logging_config(logging_config)
    
     def run(self, input, output=None):
         if input is None:

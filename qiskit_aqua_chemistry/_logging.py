@@ -19,6 +19,9 @@
 import copy
 import logging
 from logging.config import dictConfig
+from collections import OrderedDict
+from  qiskit_aqua import Preferences as AquaPreferences
+from qiskit_aqua_chemistry import Preferences as ChemistryPreferences
 
 _AQUA_CHEMISTRY_LOGGING_CONFIG = {
     'version': 1,
@@ -37,7 +40,27 @@ _AQUA_CHEMISTRY_LOGGING_CONFIG = {
     'loggers': {}
 }
         
-def build_logging_config(names,level):
+def _get_logging_names():
+    names = OrderedDict()
+    names['qiskit_aqua_chemistry'] = None
+    preferences = ChemistryPreferences()
+    packages = preferences.get_packages(ChemistryPreferences.PACKAGE_TYPE_DRIVERS,[])
+    for package in packages:
+        names[package] = None
+        
+    packages = preferences.get_packages(ChemistryPreferences.PACKAGE_TYPE_CHEMISTRY,[])
+    for package in packages:
+        names[package] = None
+        
+    names['qiskit_aqua'] = None
+    preferences = AquaPreferences()
+    packages = preferences.get_packages([])
+    for package in packages:
+        names[package] = None
+        
+    return list(names.keys())
+        
+def build_logging_config(level):
     """
      Creates a the configuration dict of the named loggers using the default SDK
      configuration provided by `_AQUA_CHEMISTRY_LOGGING_CONFIG`:
@@ -47,7 +70,7 @@ def build_logging_config(names,level):
     * set logger level to level parameter.
     """
     dict = copy.deepcopy(_AQUA_CHEMISTRY_LOGGING_CONFIG)
-    for name in names: 
+    for name in _get_logging_names(): 
         dict['loggers'][name] = {   
                     'handlers' : ['h'],
                     'propagate' : False,
@@ -55,11 +78,11 @@ def build_logging_config(names,level):
         }
     return dict
 
-def get_logger_levels_for_names(names):
-    """get levels for the named loggers."""
-    return[logging.getLogger(name).getEffectiveLevel() for name in names]
+def get_logging_level():
+    """get level for the named logger."""   
+    return logging.getLogger('qiskit_aqua_chemistry').getEffectiveLevel()
 
-def set_logger_config(logging_config):
+def set_logging_config(logging_config):
     """Update logger configurations using a SDK default one.
 
     Warning:
@@ -68,11 +91,3 @@ def set_logger_config(logging_config):
         configurations.
     """
     dictConfig(logging_config)
-
-def unset_loggers(names):
-    """Remove the handlers for the named loggers."""
-    for name in names: 
-        name_logger = logging.getLogger(name)
-        if name_logger is not None:
-            for handler in name_logger.handlers:
-                name_logger.removeHandler(handler)
