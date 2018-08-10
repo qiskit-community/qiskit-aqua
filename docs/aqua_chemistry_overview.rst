@@ -26,10 +26,10 @@ For these to work, the following simple requirements must be met:
 Currently, Aqua Chemistry comes with interfaces prebuilt
 for the following four computational chemistry software drivers:
 
-1. `Gaussian™ 16 <http://gaussian.com/gaussian16/>`__, a commercial chemistry program
-2. `PSI4 <http://www.psicode.org/>`__, an open-source chemistry program built on Python
-3. `PySCF <https://github.com/sunqm/pyscf>`__, an open-source Python chemistry program
-4. `PyQuante <https://github.com/rpmuller/pyquante2>`__, a pure cross-platform open-source Python chemistry program
+1. :ref:`gaussian-16`, a commercial chemistry program
+2. :ref:`psi4`, an open-source chemistry program built on Python
+3. :ref:`pyscf`, an open-source Python chemistry program
+4. :ref:`pyquante`, a pure Python cross-platform open-source chemistry program
 
 Additional chemistry drivers can easily be added via the ``BaseDriver`` extension point.  Once an interface
 for a driver installed in the system has been implemented, that driver will be automatically loaded at run time
@@ -111,7 +111,7 @@ of the following:
 1. One- and two-body integrals in Molecular Orbital (MO) basis
 2. Dipole integrals
 3. Molecular orbital coefficients
-4. Hartree-Fock energy
+4. :ref:`hartree-fock` energy
 5. Nuclear repulsion energy
 
 Once extracted, the structure of this intermediate data is independent of the

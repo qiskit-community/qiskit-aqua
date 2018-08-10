@@ -15,6 +15,6 @@ real quantum device).
    Installation and Setup <aqua_chemistry_installation>
    Drivers <aqua_chemistry_drivers>
    Translators <aqua_chemistry_translators>
-   Running an Experiment <aqua_chemistry_execution>
+   Configuring and Running an Experiment <aqua_chemistry_execution>
    Contributing to Aqua Chemistry <aqua_chemistry_extending>
    Aqua Chemistry SDK Reference <qiskit_aqua_chemistry>
