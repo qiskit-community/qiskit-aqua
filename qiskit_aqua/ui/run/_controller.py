@@ -27,6 +27,7 @@ import tempfile
 import tkinter as tk
 from tkinter import messagebox
 from qiskit_aqua.parser import InputParser
+from qiskit_aqua.parser import JSONSchema
 import json
 import ast
 import sys
@@ -251,7 +252,7 @@ class Controller(object):
             self._propertiesView.tkraise()
             
     def on_property_select(self,section_name,property_name):
-        self._propertiesView.show_remove_button(property_name != InputParser.NAME)
+        self._propertiesView.show_remove_button(property_name != JSONSchema.NAME)
              
     def on_section_add(self,section_name):
         try:
@@ -353,7 +354,7 @@ class Controller(object):
             self._propertiesView.populate(self._model.get_section_properties(section_name))
             self._propertiesView.show_add_button(self.shows_add_button(section_name))
             self._propertiesView.show_remove_button(
-                    property_name != InputParser.NAME and self._propertiesView.has_selection()) 
+                    property_name != JSONSchema.NAME and self._propertiesView.has_selection()) 
             self._propertiesView.show_defaults_button(not self._model.default_properties_equals_properties(section_name))
             section_names = self._model.get_section_names()
             self._sectionsView.populate(section_names,section_name)
@@ -398,11 +399,11 @@ class Controller(object):
     def create_popup(self,section_name,property_name,parent,value):
         values = None
         types = ['string']
-        if InputParser.NAME == property_name and InputParser.INPUT == section_name:
+        if JSONSchema.NAME == property_name and InputParser.INPUT == section_name:
             values = self._model.get_input_section_names()
-        elif InputParser.NAME == property_name and Model.is_pluggable_section(section_name):
+        elif JSONSchema.NAME == property_name and Model.is_pluggable_section(section_name):
             values = self._model.get_pluggable_section_names(section_name)
-        elif InputParser.BACKEND == section_name and InputParser.NAME == property_name:
+        elif JSONSchema.BACKEND == section_name and JSONSchema.NAME == property_name:
             values = self._available_backends
         else: 
             values = self._model.get_property_default_values(section_name,property_name)

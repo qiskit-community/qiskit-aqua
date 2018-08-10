@@ -20,12 +20,13 @@ import itertools
 from functools import reduce
 import logging
 import sys
+import json
 
 import numpy as np
 from scipy import sparse as scisparse
 from scipy import linalg as scila
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
-from qiskit.wrapper import execute as q_execute
+from qiskit import execute as q_execute
 from qiskit.tools.qi.pauli import Pauli, label_to_pauli, sgn_prod
 from qiskit.qasm import pi
 
@@ -154,6 +155,16 @@ class Operator(object):
     def __ne__(self, rhs):
         return not self.__eq__(rhs)
 
+    def __str__(self):
+        if self._paulis is not None:
+            return self.print_operators('paulis')
+        elif self._grouped_paulis is not None:
+            return self.print_operators('grouped_paulis')
+        elif self._matrix is not None:
+            return self.print_operators('matrix')
+        else:
+            return "Empty operator."
+
     def chop(self, threshold=1e-15):
         """
         Eliminate the real and imagine part of coeff in each pauli by `threshold`.
@@ -180,8 +191,10 @@ class Operator(object):
             paulis = [x for x in self._paulis if x[0] != 0.0]
             self._paulis = paulis
             self._paulis_table = {pauli[1].to_label(): i for i, pauli in enumerate(self._paulis)}
+            if self._dia_matrix is not None:
+                self._to_dia_matrix('paulis')
 
-        if self._grouped_paulis is not None:
+        elif self._grouped_paulis is not None:
             grouped_paulis = []
             for group_idx in range(1, len(self._grouped_paulis)):
                 for pauli_idx in range(len(self._grouped_paulis[group_idx])):
@@ -190,21 +203,16 @@ class Operator(object):
                 paulis = [x for x in self._grouped_paulis[group_idx] if x[0] != 0.0]
                 grouped_paulis.append(paulis)
             self._grouped_paulis = grouped_paulis
+            if self._dia_matrix is not None:
+                self._to_dia_matrix('grouped_paulis')
 
-        if self._matrix is not None:
+        elif self._matrix is not None:
             rows, cols = self._matrix.nonzero()
             for row, col in zip(rows, cols):
                 self._matrix[row, col] = chop_real_imag(self._matrix[row, col], threshold)
             self._matrix.eliminate_zeros()
-
-        if self._dia_matrix is not None:
-            temp_real = self._dia_matrix.real
-            temp_imag = self._dia_matrix.imag
-            real_chopped_idx = np.absolute(temp_real) < threshold
-            imag_chopped_idx = np.absolute(temp_imag) < threshold
-            temp_real[real_chopped_idx] = 0.0
-            temp_imag[imag_chopped_idx] = 0.0
-            self._dia_matrix = temp_real + 1j * temp_imag
+            if self._dia_matrix is not None:
+                self._to_dia_matrix('matrix')
 
     def _simplify_paulis(self):
         """
@@ -392,17 +400,9 @@ class Operator(object):
 
         Returns:
             Operator class: the loaded operator.
-
-        Note:
-            Do we need to support complex coefficient? If so, what is the format?
         """
-        with open(file_name, 'r+') as file:
-            ham_array = file.readlines()
-        ham_array = [x.strip() for x in ham_array]
-        paulis = [[float(ham_array[2 * i + 1]), label_to_pauli(ham_array[2 * i])]
-                  for i in range(len(ham_array) // 2)]
-
-        return Operator(paulis=paulis)
+        with open(file_name, 'r') as file:
+            return Operator.load_from_dict(json.load(file))
 
     def save_to_file(self, file_name):
         """
@@ -413,10 +413,7 @@ class Operator(object):
 
         """
         with open(file_name, 'w') as f:
-            self._check_representation("paulis")
-            for pauli in self._paulis:
-                print("{}".format(pauli[1].to_label()), file=f)
-                print("{}".format(pauli[0]), file=f)
+            json.dump(self.save_to_dict(), f)
 
     @staticmethod
     def load_from_dict(dictionary):
@@ -472,17 +469,17 @@ class Operator(object):
             dict: a dictionary contains an operator with pauli representation.
         """
         self._check_representation("paulis")
-        ret_dict = {'paulis': []}
+        ret_dict = {"paulis": []}
         for pauli in self._paulis:
-            op = {'label': pauli[1].to_label()}
+            op = {"label": pauli[1].to_label()}
             if isinstance(pauli[0], complex):
-                op['coeff'] = {'real': np.real(pauli[0]),
-                               'imag': np.imag(pauli[0])
+                op["coeff"] = {"real": np.real(pauli[0]),
+                               "imag": np.imag(pauli[0])
                                }
             else:
-                op['coeff'] = {'real': pauli[0]}
+                op["coeff"] = {"real": pauli[0]}
 
-            ret_dict['paulis'].append(op)
+            ret_dict["paulis"].append(op)
 
         return ret_dict
 
@@ -529,8 +526,6 @@ class Operator(object):
         """
         Evaluate an Operator with the `input_circuit`.
         This mode interacts with the quantum state rather than the sampled results from the measurement.
-        - Psi is wave function
-        - Psi is dense matrix
 
         Args:
             operator_mode (str): representation of operator, including paulis, grouped_paulis and matrix
@@ -570,16 +565,27 @@ class Operator(object):
         else:
             self._check_representation("paulis")
             n_qubits = self.num_qubits
-            circuits = []
-            base_circuit = QuantumCircuit() + input_circuit
-            circuits.append(base_circuit)
+
+            input_job = q_execute(input_circuit, backend=backend, **execute_config)
+            simulator_initial_state = np.asarray(input_job.result().get_statevector(input_circuit))
+
+            temp_config = copy.deepcopy(execute_config)
+
+            if 'config' not in temp_config:
+                temp_config['config'] = dict()
+
+            temp_config['config']['initial_state'] = simulator_initial_state
+
             # Trial circuit w/o the final rotations
             # Execute trial circuit with final rotations for each Pauli in
             # hamiltonian and store from circuits[1] on
 
+            q = QuantumRegister(n_qubits, name='q')
+
+            circuits_to_simulate = []
+            all_circuits = []
             for idx, pauli in enumerate(self._paulis):
-                circuit = QuantumCircuit() + base_circuit
-                q = circuit.get_qregs()['q']
+                circuit = QuantumCircuit(q)
                 for qubit_idx in range(n_qubits):
                     if pauli[1].v[qubit_idx] == 0 and pauli[1].w[qubit_idx] == 1:
                         circuit.u3(np.pi, 0.0, np.pi, q[qubit_idx]) #x
@@ -587,28 +593,34 @@ class Operator(object):
                         circuit.u1(np.pi, q[qubit_idx]) #z
                     elif pauli[1].v[qubit_idx] == 1 and pauli[1].w[qubit_idx] == 1:
                         circuit.u3(np.pi, np.pi/2, np.pi/2, q[qubit_idx]) #y
-                circuits.append(circuit)
+
+                all_circuits.append(circuit)
+                if len(circuit) != 0:
+                    circuits_to_simulate.append(circuit)
 
             jobs = []
-            chunks = int(np.ceil(len(circuits) / self.MAX_CIRCUITS_PER_JOB))
+            chunks = int(np.ceil(len(circuits_to_simulate) / self.MAX_CIRCUITS_PER_JOB))
             for i in range(chunks):
-                sub_circuits = circuits[i*self.MAX_CIRCUITS_PER_JOB:(i+1)*self.MAX_CIRCUITS_PER_JOB]
-                jobs.append(q_execute(sub_circuits, backend=backend, **execute_config))
+                sub_circuits = circuits_to_simulate[i*self.MAX_CIRCUITS_PER_JOB:(i+1)*self.MAX_CIRCUITS_PER_JOB]
+                jobs.append(q_execute(sub_circuits, backend=backend, **temp_config))
 
             if self._summarize_circuits and logger.isEnabledFor(logging.DEBUG):
-                logger.debug(summarize_circuits(circuits))
+                logger.debug(summarize_circuits(circuits_to_simulate))
 
             results = []
             for job in jobs:
                 results.append(job.result())
-            result = reduce(lambda x, y: x + y, results)
-
-            quantum_state_0 = np.asarray(result.get_statevector(circuits[0]))
+            if len(results) != 0:
+                result = reduce(lambda x, y: x + y, results)
 
             for idx, pauli in enumerate(self._paulis):
-                quantum_state_i = np.asarray(result.get_statevector(circuits[idx+1]))
-                # inner product with final rotations of (i)-th Pauli
-                avg += pauli[0] * (np.vdot(quantum_state_0, quantum_state_i))
+                circuit = all_circuits[idx]
+                if len(circuit) == 0:
+                    avg += pauli[0]
+                else:
+                    quantum_state_i = np.asarray(result.get_statevector(circuit))
+                    # inner product with final rotations of (i)-th Pauli
+                    avg += pauli[0] * (np.vdot(simulator_initial_state, quantum_state_i))
 
         return avg
 
@@ -840,6 +852,8 @@ class Operator(object):
             for idx in range(1, len(group)):  # the first one is the header.
                 paulis.append(group[idx])
         self._paulis = paulis
+        self._matrix = None
+        self._grouped_paulis = None
 
     def _matrix_to_paulis(self):
         """
@@ -865,6 +879,8 @@ class Operator(object):
             if alpha_i != 0.0:
                 paulis.append([alpha_i, pauli_i])
         self._paulis = paulis
+        self._matrix = None
+        self._grouped_paulis = None
 
     def _paulis_to_grouped_paulis(self):
         """
@@ -919,6 +935,8 @@ class Operator(object):
                                 sorted_paulis.append(p_2)
                     grouped_paulis.append(paulis_temp)
             self._grouped_paulis = grouped_paulis
+        self._matrix = None
+        self._paulis = None
 
     def _matrix_to_grouped_paulis(self):
         """
@@ -928,6 +946,8 @@ class Operator(object):
             return
         self._matrix_to_paulis()
         self._paulis_to_grouped_paulis()
+        self._matrix = None
+        self._paulis = None
 
     def _paulis_to_matrix(self):
         """
@@ -936,15 +956,15 @@ class Operator(object):
         """
         if self._paulis == []:
             return
-        self._to_dia_matrix(mode='paulis')
-        if self._dia_matrix is None:
-
-            p = self._paulis[0]
-            hamiltonian = p[0] * p[1].to_spmatrix()
-            for idx in range(1, len(self._paulis)):
-                p = self._paulis[idx]
-                hamiltonian += p[0] * p[1].to_spmatrix()
-            self._matrix = hamiltonian
+        p = self._paulis[0]
+        hamiltonian = p[0] * p[1].to_spmatrix()
+        for idx in range(1, len(self._paulis)):
+            p = self._paulis[idx]
+            hamiltonian += p[0] * p[1].to_spmatrix()
+        self._matrix = hamiltonian
+        self._to_dia_matrix(mode='matrix')
+        self._paulis = None
+        self._grouped_paulis = None
 
     def _grouped_paulis_to_matrix(self):
         """
@@ -953,19 +973,20 @@ class Operator(object):
         """
         if self._grouped_paulis == []:
             return
-        self._to_dia_matrix(mode='grouped_paulis')
-        if self._dia_matrix is None:
-            p = self._grouped_paulis[0][1]
-            hamiltonian = p[0] * p[1].to_spmatrix()
-            for idx in range(2, len(self._grouped_paulis[0])):
-                p = self._grouped_paulis[0][idx]
+        p = self._grouped_paulis[0][1]
+        hamiltonian = p[0] * p[1].to_spmatrix()
+        for idx in range(2, len(self._grouped_paulis[0])):
+            p = self._grouped_paulis[0][idx]
+            hamiltonian += p[0] * p[1].to_spmatrix()
+        for group_idx in range(1, len(self._grouped_paulis)):
+            group = self._grouped_paulis[group_idx]
+            for idx in range(1, len(group)):
+                p = group[idx]
                 hamiltonian += p[0] * p[1].to_spmatrix()
-            for group_idx in range(1, len(self._grouped_paulis)):
-                group = self._grouped_paulis[group_idx]
-                for idx in range(1, len(group)):
-                    p = group[idx]
-                    hamiltonian += p[0] * p[1].to_spmatrix()
-            self._matrix = hamiltonian
+        self._matrix = hamiltonian
+        self._to_dia_matrix(mode='matrix')
+        self._paulis = None
+        self._grouped_paulis = None
 
     @staticmethod
     def _measure_pauli_z(data, pauli):

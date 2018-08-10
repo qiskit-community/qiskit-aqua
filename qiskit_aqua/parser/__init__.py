@@ -15,6 +15,7 @@
 # limitations under the License.
 # =============================================================================
 
+from .jsonschema import JSONSchema
 from ._inputparser import InputParser
 
-__all__ = [ 'InputParser']
+__all__ = [ 'InputParser','JSONSchema']

@@ -143,12 +143,13 @@ class VarFormUCCSD(VariationalForm):
         self._num_parameters = (len(self._single_excitations) + len(self._double_excitations)) * self._depth
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
-    def construct_circuit(self, parameters):
+    def construct_circuit(self, parameters, q=None):
         """
         Construct the variational form, given its parameters.
 
         Args:
-            parameters (numpy.ndarray) : circuit parameters
+            parameters (numpy.ndarray): circuit parameters
+            q (QuantumRegister): Quantum Register for the circuit.
 
         Returns:
             QuantumCircuit: a quantum circuit with given `parameters`
@@ -159,7 +160,8 @@ class VarFormUCCSD(VariationalForm):
         if len(parameters) != self._num_parameters:
             raise ValueError('The number of parameters has to be {}'.format(self._num_parameters))
 
-        q = QuantumRegister(self._num_qubits, name='q')
+        if q is None:
+            q = QuantumRegister(self._num_qubits, name='q')
         if self._initial_state is not None:
             circuit = self._initial_state.construct_circuit('circuit', q)
         else:
@@ -219,6 +221,7 @@ class VarFormUCCSD(VariationalForm):
     def compute_excitation_lists(num_particles, num_orbitals, active_occ_list=None, active_unocc_list=None):
         """
         Computes single and double excitation lists
+        
         Args:
             num_particles: Total number of particles
             num_orbitals:  Total number of spin orbitals
