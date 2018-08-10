@@ -52,10 +52,12 @@ class AquaChemistry(object):
         return get_logging_level()
 
     def set_logging(self, level=logging.INFO):
-        """Sets logging output of the logging messages.
-        Sets the output of logging messages (above level `level`) by
-        configuring the logger accordingly.
+        """
+        Sets logging output of the logging messages. \
+        Sets the output of logging messages (above level `level`) by \
+        configuring the logger accordingly. \
         Disables logging if set to logging.NOTSET
+
         Params:
             level (int): minimum severity of the messages that are displayed.
         """
@@ -64,7 +66,7 @@ class AquaChemistry(object):
         preferences.set_logging_config(logging_config)
         preferences.save()
         set_logging_config(logging_config)
-   
+
     def run(self, input, output=None):
         if input is None:
             raise AquaChemistryError("Missing input.")
@@ -96,7 +98,9 @@ class AquaChemistry(object):
         return result
 
     def save_input(self,input_file):
-        """Save the input of a run to a file.
+        """
+        Save the input of a run to a file.
+
         Params:
             input_file (string): file path
         """
@@ -116,7 +120,7 @@ class AquaChemistry(object):
 
         with open(jsonfile, 'w') as fp:
             json.dump(data, fp, sort_keys=True, indent=4)
-            
+
         print("Algorithm input file saved: '{}'".format(jsonfile))
 
     def run_algorithm_from_jsonfile(self, jsonfile, output=None):
@@ -131,20 +135,20 @@ class AquaChemistry(object):
         convert_json_to_dict(ret)
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug('Algorithm returned: {}'.format(pprint.pformat(ret, indent=4)))
-        
+
         print('Output:')
         if isinstance(ret,dict):
             for k,v in ret.items():
                 print("'{}': {}".format(k,v))
         else:
             print(ret)
-        
+
         return ret
 
     def _format_result(self, data):
         lines, result = self._core.process_algorithm_result(data)
         return lines, result
-    
+
     def run_drive(self, input):
         return self._run_drive(input,False)
 
