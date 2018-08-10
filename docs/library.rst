@@ -13,7 +13,7 @@ real quantum device).
 
    Overview <overview>   
    Installation and Setup <installation>
-   Running an Experiment <execution>
+   Configuring and Running an Experiment <execution>
    Contributing to Aqua <extending>
    Algorithms <algorithms>
    Optimizers <optimizers>

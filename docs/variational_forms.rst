@@ -132,13 +132,24 @@ is set to ``RY``:
   from full or linear is desired.
   As explained more generally above, the form of the map is a dictionary; each entry in the dictionary has a source qubit
   index as the key, with the corresponding value being a list of target qubit indexes to which the source qubit should
-  be entangled.  The source qubit index is excluded from the list of its corresponding target qubit indexes.
-  Indexes are ``int`` values from ``0`` to ``q - 1``, where ``q`` is the total number of qubits,
+  be entangled.
+  Indexes are ``int`` values from :math:`0` to :math:`q-1`, where :math:`q` is the total number of qubits,
   as in the following example:
   
   .. code:: python
 
       entangler_map = {0: [1, 2], 1: [3]}
+
+  .. warning::
+
+     The source qubit index is excluded from the list of its corresponding target qubit indexes.  In other words,
+     qubit :math:`i` cannot be in the list `:math:D(i)` of qubits mapped to qubit :math:`i` itself.
+
+     Furthermore, by default, if 
+     the ``entangler_map`` parameter specifies that :math:`j \in D(i)`, where :math:`i,j \in \{0, 1, q-1\}, i \neq j`, then it cannot also specify
+     :math:`j \in D(i)`.  A run-time error will be generated if double entanglement is configured.  This
+     restriction can be lifted programmatically by setting the ``allow_double_entanglement`` boolean flag to ``True`` inside the
+     ``validate_entangler_map`` method in the ``entangler_map`` Application Programming Interface (API).
 
   .. warning::
 
@@ -424,7 +435,7 @@ as those of :ref:`Ry`.
 
 Based on the notation introduced above for the entangler map associated with a variational form,
 the number of optimizer parameters SwapRz creates and uses is given by
-:math:`q + d \times \left(q + \sum_{k=1}^{q}|D(k)|\right)`, where :math:`|D(k)|` denotes the *cardinality* of
+:math:`q + d \times \left(q + \sum_{k=0}^{q-1}|D(k)|\right)`, where :math:`|D(k)|` denotes the *cardinality* of
 :math:`D(k)` or, more precisely, the *length* of :math:`D(k)` (since :math:`D(k)` is not
 just a set, but a list).
 
