@@ -16,7 +16,7 @@ then provides a circuit that can take the starting point of all zero qubits to t
     variational forms and :ref:`qpe`, are pluggable modules in Aqua.
     New initial states are typically installed in the ``qiskit_aqua/utils/initial_states`` folder and derive from
     the ``InitialState`` class.  Aqua also allows for
-    :ref:`aqua-dynamically-discovered-components`: new initial states can register themselves
+    :ref:`aqua-dynamically-discovered-components`: new components can register themselves
     as Aqua extensions and be dynamically discovered at run time independent of their
     location in the file system.
     This is done in order to encourage researchers and

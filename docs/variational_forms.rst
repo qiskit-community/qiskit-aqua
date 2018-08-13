@@ -31,7 +31,7 @@ available for use by quantum variational algorithms.
     New variational forms for quantum variational algorithms are typically installed in the ``qiskit_aqua/utils/variational_forms``
     folder and derive from the ``VariationalForm`` class.
     Aqua also allows for
-    :ref:`aqua-dynamically-discovered-components`: new algorithms can register themselves
+    :ref:`aqua-dynamically-discovered-components`: new components can register themselves
     as Aqua extensions and be dynamically discovered at run time independent of their
     location in the file system.
     This is done in order to encourage researchers and
