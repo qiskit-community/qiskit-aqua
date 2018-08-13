@@ -3,13 +3,13 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-============================
+############################
 Aqua Chemistry Documentation
-============================
+############################
 
 Aqua Chemistry
 
-
+=================
 Table of Contents
 =================
 
@@ -24,9 +24,11 @@ Table of Contents
    Translators <aqua_chemistry_translators>
    Aqua Chemistry SDK Reference <qiskit_aqua_chemistry>
 
+==============
 Python Modules
 ==============
 
+------------
 Main Modules
 ------------
 
@@ -37,4 +39,4 @@ Main Modules
 
 :ref:`modindex`
 
-.. include:: ../../aqua/docs/CONTRIBUTORS.rst
+.. include:: ../../aqua/CONTRIBUTORS.rst
