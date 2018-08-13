@@ -138,13 +138,18 @@ class PreferencesDialog(Dialog):
             level_name = self._levelCombo.get()
             levels = [key for key, value in PreferencesDialog._LOG_LEVELS.items() if value == level_name]
             loglevel = levels[0]
-            logging_config = build_logging_config(loglevel)
         
             preferences = Preferences()
             self._qconfigview.apply(preferences)
             self._packagesPage.apply(preferences)
+            preferences.save()
+            
+            logging_config = build_logging_config(loglevel)
+            
+            preferences = Preferences()
             preferences.set_logging_config(logging_config)
             preferences.save()
+            
             set_logging_config(logging_config)
         
             uipreferences = UIPreferences()
