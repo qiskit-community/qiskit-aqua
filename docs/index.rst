@@ -37,4 +37,4 @@ Main Modules
 
 :ref:`modindex`
 
-.. include:: ../CONTRIBUTORS.rst
+.. include:: ../../aqua/docs/CONTRIBUTORS.rst
