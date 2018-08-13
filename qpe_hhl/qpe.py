@@ -224,7 +224,8 @@ class QPE():
     def _setup_qpe(self, measure=False):
         self._operator._check_representation('paulis')
         if self._evo_time == None:
-            self._evo_time = 2*np.pi/sum([abs(p[0]) for p in self._operator.paulis])
+            self._evo_time = (1-2**-self._num_ancillae)*2*np.pi/sum([abs(p[0]) for p in self._operator.paulis])
+
 
         # check for identify paulis to get its coef for applying global phase shift on ancillae later
         num_identities = 0
@@ -252,10 +253,9 @@ class QPE():
         rets = sorted([[rd[k], k, k] for k in rd])[::-1]
         for d in rets:
             d[2] = sum([2**-(i+1) for i, e in enumerate(reversed(d[2])) if e == "1"])*2*np.pi/self._evo_time
-            if d[2] == 0:
-                d[2] = 2*np.pi/self._evo_time
 
         self._ret['measurements'] = rets
+        self._ret['evo_time'] = self._evo_time
 
 
     def run(self):
