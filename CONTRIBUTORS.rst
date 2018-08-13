@@ -13,7 +13,7 @@ levels:
 - Chun-Fu (Richard) Chen
 - Antonio Córcoles-Gonzalez
 - Jay Gambetta
-- Jen Glick
+- Jennifer Glick
 - Tanvi Gujarati
 - Shaohan Hu
 - Takashi Imamichi
