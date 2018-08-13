@@ -32,20 +32,19 @@ logger = logging.getLogger(__name__)
 
 class FermionicOperator(object):
     """
-    A set of functions to map fermionic Hamiltonians to qubit Hamiltonians.
+    A set of functions to map fermionic Hamiltonians to qubit Hamiltonians. \
 
-    References:
-    - E. Wigner and P. Jordan., Über das Paulische Äguivalenzverbot,
-        Z. Phys., 47:631 (1928).
-    - S. Bravyi and A. Kitaev. Fermionic quantum computation,
-        Ann. of Phys., 298(1):210–226 (2002).
-    - A. Tranter, S. Sofia, J. Seeley, M. Kaicher, J. McClean, R. Babbush,
-        P. Coveney, F. Mintert, F. Wilhelm, and P. Love. The Bravyi–Kitaev
-        transformation: Properties and applications. Int. Journal of Quantum
-        Chemistry, 115(19):1431–1441 (2015).
-    - S. Bravyi, J. M. Gambetta, A. Mezzacapo, and K. Temme,
-        arXiv e-print arXiv:1701.08213 (2017).
-
+    References: \
+    - E. Wigner and P. Jordan., Über das Paulische Äguivalenzverbot, \
+        Z. Phys., 47:631 (1928). \
+    - S. Bravyi and A. Kitaev. Fermionic quantum computation, \
+        Ann. of Phys., 298(1):210–226 (2002). \
+    - A. Tranter, S. Sofia, J. Seeley, M. Kaicher, J. McClean, R. Babbush, \
+        P. Coveney, F. Mintert, F. Wilhelm, and P. Love. The Bravyi–Kitaev \
+        transformation: Properties and applications. Int. Journal of Quantum \
+        Chemistry, 115(19):1431–1441 (2015). \
+    - S. Bravyi, J. M. Gambetta, A. Mezzacapo, and K. Temme, \
+        arXiv e-print arXiv:1701.08213 (2017). \
     """
     def __init__(self, h1, h2=None, ph_trans_shift=None):
         """
@@ -530,8 +529,8 @@ class FermionicOperator(object):
 
     def total_magnetization(self):
         """
-        A data_preprocess_helper fermionic operator which can be used to evaluate the magnetization
-         of the given eigenstate.
+        A data_preprocess_helper fermionic operator which can be used to \
+        evaluate the magnetization of the given eigenstate.
 
         Returns:
             FermionicOperator: Fermionic Hamiltonian
