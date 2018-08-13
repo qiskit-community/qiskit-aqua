@@ -385,15 +385,7 @@ class Operator(object):
     @staticmethod
     def load_from_file(file_name):
         """
-        Load paulis in a file to construct an Operator, only support paulis as an input and its coefficient is real.
-        E.g.:
-            IIII
-            0.34511
-            ZZZZ
-            0.31256
-            XXYY
-            5.84215
-            ...
+        Load paulis in a file to construct an Operator.
 
         Args:
             file_name (str): path to the file, which contains a list of Paulis and coefficients.
@@ -418,18 +410,18 @@ class Operator(object):
     @staticmethod
     def load_from_dict(dictionary):
         """
-        Load paulis in a dict to construct an Operator,
-        the dict must be represented as follows: label and coeff (real and imag).
-        E.g.:
-           {'paulis':
-               [
-                   {'label': 'IIII',
-                    'coeff': {'real': -0.33562957575267038, 'imag': 0.0}},
-                   {'label': 'ZIII',
-                    'coeff': {'real': 0.28220597164664896, 'imag': 0.0}},
-                    ...
-                ]
-            }
+        Load paulis in a dict to construct an Operator, \
+        the dict must be represented as follows: label and coeff (real and imag). \
+        E.g.: \
+           {'paulis': \
+               [ \
+                   {'label': 'IIII', \
+                    'coeff': {'real': -0.33562957575267038, 'imag': 0.0}}, \
+                   {'label': 'ZIII', \
+                    'coeff': {'real': 0.28220597164664896, 'imag': 0.0}}, \
+                    ... \
+                ] \
+            } \
 
         Args:
             dictionary (dict): dictionary, which contains a list of Paulis and coefficients.
@@ -758,9 +750,9 @@ class Operator(object):
         """
         Supporting three ways to evaluate the given circuits with the operator.
         1. If `input_circuit` is a numpy.ndarray, it will directly perform inner product with the operator.
-        2. If `backend` is a statevector simulator, use quantum backend to get statevector
+        2. If `backend` is a statevector simulator, use quantum backend to get statevector \
            and then evaluate with the operator.
-        3. Other cases: it use with quanutm backend (simulator or real quantum machine),
+        3. Other cases: it use with quanutm backend (simulator or real quantum machine), \
            to obtain the mean and standard deviation of measured results.
 
         Args:
@@ -773,8 +765,6 @@ class Operator(object):
         Returns:
             float, float: mean and standard deviation of avg
         """
-
-        # If the statevector is already a vector, skip the evaluation from quantum simulator.
 
         if isinstance(input_circuit, np.ndarray):
             avg = self._eval_directly(input_circuit)
