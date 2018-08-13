@@ -21,6 +21,7 @@ from functools import reduce
 import logging
 import sys
 import json
+from operator import iadd as op_iadd, isub as op_isub
 
 import numpy as np
 from scipy import sparse as scisparse
@@ -71,7 +72,7 @@ class Operator(object):
 
         self._summarize_circuits = False
 
-    def _add_extend_or_combine(self, rhs, mode):
+    def _extend_or_combine(self, rhs, mode, operation=op_iadd):
         """
         Add two operators either extend (in-place) or combine (copy) them.
         The addition performs optimized combiniation of two operators.
@@ -99,7 +100,7 @@ class Operator(object):
                 pauli_label = pauli[1].to_label()
                 idx = lhs._paulis_table.get(pauli_label, None)
                 if idx is not None:
-                    lhs._paulis[idx][0] += pauli[0]
+                    lhs._paulis[idx][0] = operation(lhs._paulis[idx][0], pauli[0])
                 else:
                     lhs._paulis_table[pauli_label] = len(lhs._paulis)
                     lhs._paulis.append(pauli)
@@ -121,11 +122,19 @@ class Operator(object):
 
     def __add__(self, rhs):
         """Overload + operation"""
-        return self._add_extend_or_combine(rhs, 'non-inplace')
+        return self._extend_or_combine(rhs, 'non-inplace', op_iadd)
 
     def __iadd__(self, rhs):
         """Overload += operation"""
-        return self._add_extend_or_combine(rhs, 'inplace')
+        return self._extend_or_combine(rhs, 'inplace', op_iadd)
+
+    def __sub__(self, rhs):
+        """Overload - operation"""
+        return self._extend_or_combine(rhs, 'non-inplace', op_isub)
+
+    def __isub__(self, rhs):
+        """Overload -= operation"""
+        return self._extend_or_combine(rhs, 'inplace', op_isub)
 
     def __eq__(self, rhs):
         """Overload == operation"""
@@ -153,17 +162,28 @@ class Operator(object):
             return self.__eq__(rhs)
 
     def __ne__(self, rhs):
+        """ != """
         return not self.__eq__(rhs)
 
     def __str__(self):
+        """Overload str()"""
+        curr_repr = ""
+        length = ""
+        group = None
         if self._paulis is not None:
-            return self.print_operators('paulis')
+            curr_repr = 'paulis'
+            length = len(self._paulis)
         elif self._grouped_paulis is not None:
-            return self.print_operators('grouped_paulis')
+            curr_repr = 'grouped_paulis'
+            group = len(self._grouped_paulis)
+            length = sum([len(gp) - 1 for gp in self._grouped_paulis])
         elif self._matrix is not None:
-            return self.print_operators('matrix')
-        else:
-            return "Empty operator."
+            curr_repr = 'matrix'
+            length = "{}x{}".format(2 ** self.num_qubits, 2 ** self.num_qubits)
+
+        ret = "Representation: {}, qubits: {}, size: {}{}".format(curr_repr, self.num_qubits, length, "" if group is None else " {}".format(group))
+
+        return ret
 
     def chop(self, threshold=1e-15):
         """
@@ -1663,3 +1683,27 @@ class Operator(object):
             self.zeros_coeff_elimination()
             self._paulis_to_grouped_paulis()
             self._paulis = None
+
+
+    def scaling_coeff(self, scaling_factor):
+        """
+        Constant scale the coefficient in an operator.
+
+        Note that: the behavior of scaling in paulis (grouped_paulis) might be different from matrix
+
+        Args:
+            scaling_factor (float): the sacling factor
+        """
+        if self._paulis is not None:
+            for idx in range(len(self._paulis)):
+                self._paulis[idx] = [self._paulis[idx][0] * scaling_factor, self._paulis[idx][1]]
+        elif self._grouped_paulis is not None:
+            self._grouped_paulis_to_paulis()
+            self._scale_paulis(scaling_factor)
+            self._paulis_to_grouped_paulis()
+        elif self._matrix is not None:
+            self._matrix *= scaling_factor
+            if self._dia_matrix is not None:
+                self._dia_matrix *= scaling_factor
+
+
