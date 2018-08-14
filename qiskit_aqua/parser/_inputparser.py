@@ -502,8 +502,8 @@ class InputParser(object):
         pluggable_defaults = {} if 'defaults' not in config else config['defaults']
         pluggable_types = local_pluggables_types()
         for pluggable_type in pluggable_types:
-            # remove pluggables from input from the previous algorithm dependencies
-            if pluggable_type != JSONSchema.ALGORITHM and pluggable_type in self._sections:
+            # remove pluggables from input that are not in the dependencies
+            if pluggable_type != JSONSchema.ALGORITHM and pluggable_type not in pluggable_dependencies and pluggable_type in self._sections:
                 del self._sections[pluggable_type] 
        
         for pluggable_type in pluggable_dependencies:
