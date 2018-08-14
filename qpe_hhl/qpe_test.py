@@ -34,7 +34,7 @@ params = {
 'algorithm': {
         'name': 'QPE',
         'num_ancillae': 4,
-        'num_time_slices': 10,
+        'num_time_slices': 4,
         'expansion_mode': 'suzuki',
         'expansion_order': 3,
         #'evo_time': np.pi/2

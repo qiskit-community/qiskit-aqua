@@ -205,7 +205,7 @@ class QPE():
                 raise ValueError('Unrecognized expansion mode {}.'.format(self._expansion_mode))
         for i in range(self._num_ancillae):
             qc += self._operator.construct_evolution_circuit(
-                slice_pauli_list, self._evo_time, self._num_time_slices, q, a, ctl_idx=i
+                slice_pauli_list, -self._evo_time, self._num_time_slices, q, a, ctl_idx=i
             )
             # global phase shift for the ancilla due to the identity pauli term
             qc.u1(self._evo_time * self._ancilla_phase_coef * (2 ** i), a[i])
@@ -223,7 +223,7 @@ class QPE():
     def _setup_qpe(self, measure=False):
         self._operator._check_representation('paulis')
         if self._evo_time == None:
-            self._evo_time = (1-2**-self._num_ancillae)*2*np.pi/sum([abs(p[0]) for p in self._operator.paulis])
+            self._evo_time = (1-2**(-self._num_ancillae))*2*np.pi/sum([abs(p[0]) for p in self._operator.paulis])
 
 
         # check for identify paulis to get its coef for applying global phase shift on ancillae later
