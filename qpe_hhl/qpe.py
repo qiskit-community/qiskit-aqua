@@ -27,6 +27,8 @@ from qiskit.tools.qi.pauli import Pauli
 from qiskit_aqua import Operator, QuantumAlgorithm, AlgorithmError
 from qiskit_aqua import get_initial_state_instance, get_iqft_instance
 
+from qiskit.tools.visualization._circuit_visualization import matplotlib_circuit_drawer
+
 logger = logging.getLogger(__name__)
 
 class QPE():
@@ -38,6 +40,7 @@ class QPE():
     PROP_EXPANSION_ORDER = 'expansion_order'
     PROP_NUM_ANCILLAE = 'num_ancillae'
     PROP_EVO_TIME = 'evo_time'
+    PROP_USE_BASIS_GATES = 'use_basis_gates'
 
     QPE_CONFIGURATION = {
         'name': 'QPE_HHL',
@@ -85,7 +88,11 @@ class QPE():
                 PROP_EVO_TIME: {
                     'type': 'float',
                     'minimum': 1.0
-                }
+                },
+                PROP_USE_BASIS_GATES: {
+                    'type': 'boolean',
+                    'default': True,
+                },
             },
             'additionalProperties': False
         },
@@ -110,7 +117,7 @@ class QPE():
         self._expansion_mode = None
         self._expansion_order = None
         self._num_ancillae = 0
-        self._ancilla_phase_coef = 1
+        self._ancilla_phase_coef = 0
         self._circuit = None
         self._ret = {}
 
@@ -137,6 +144,7 @@ class QPE():
         expansion_order = qpe_params.get(QPE.PROP_EXPANSION_ORDER)
         num_ancillae = qpe_params.get(QPE.PROP_NUM_ANCILLAE)
         evo_time = qpe_params.get(QPE.PROP_EVO_TIME)
+        use_basis_gates = qpe_params.get(QPE.PROP_USE_BASIS_GATES)
 
         # Set up initial state, we need to add computed num qubits to params
         init_state_params = params.get(QuantumAlgorithm.SECTION_KEY_INITIAL_STATE)
@@ -153,12 +161,13 @@ class QPE():
         self.init_args(
             operator, init_state, iqft, num_time_slices, num_ancillae,
             paulis_grouping=paulis_grouping, expansion_mode=expansion_mode,
-            expansion_order=expansion_order, evo_time=evo_time)
+            expansion_order=expansion_order, evo_time=evo_time,
+            use_basis_gates=use_basis_gates)
 
     def init_args(
             self, operator, state_in, iqft, num_time_slices, num_ancillae,
             paulis_grouping='random', expansion_mode='trotter', expansion_order=1,
-            evo_time=None):
+            evo_time=None, use_basis_gates=True):
         # if self._backend.find('statevector') >= 0:
         #     raise ValueError('Selected backend does not support measurements.')
         self._operator = operator
@@ -170,6 +179,7 @@ class QPE():
         self._expansion_mode = expansion_mode
         self._expansion_order = expansion_order
         self._evo_time = evo_time
+        self._use_basis_gates = use_basis_gates
         self._ret = {}
 
     def _construct_phase_estimation_circuit(self, measure=False):
@@ -184,6 +194,7 @@ class QPE():
 
         # initialize state_in
         qc += self._state_in.construct_circuit('circuit', q)
+        qc.barrier(q)
 
         # Put all ancillae in uniform superposition
         qc.u2(0, np.pi, a)
@@ -205,14 +216,16 @@ class QPE():
                 raise ValueError('Unrecognized expansion mode {}.'.format(self._expansion_mode))
         for i in range(self._num_ancillae):
             qc += self._operator.construct_evolution_circuit(
-                slice_pauli_list, -self._evo_time, self._num_time_slices, q, a, ctl_idx=i
+                slice_pauli_list, self._evo_time, self._num_time_slices, q, a,
+                ctl_idx=i, use_basis_gates=self._use_basis_gates
             )
             # global phase shift for the ancilla due to the identity pauli term
-            qc.u1(self._evo_time * self._ancilla_phase_coef * (2 ** i), a[i])
-
+            if self._ancilla_phase_coef > 0:
+                qc.u1(self._evo_time * self._ancilla_phase_coef * (2 ** i), a[i])
+        
+        #matplotlib_circuit_drawer(qc).show()
         # inverse qft on ancillae
         self._iqft.construct_circuit('circuit', a, qc)
-
         if measure:
             qc.measure(a, c)
 
