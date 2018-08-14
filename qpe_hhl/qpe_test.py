@@ -1,22 +1,25 @@
 from qpe import QPE
 from qiskit_aqua import Operator
-
+from qiskit import register
+import Qconfig
 import numpy as np
 
 import matplotlib.pyplot as plt
+
+register(Qconfig.APItoken, Qconfig.config["url"])
 
 qpe = QPE()
 
 w = [-1, -1]
 n = 4
-k = 8
+k = 7
 while min(w) <= 0:
     matrix = np.random.random([n, n])+1j*np.random.random([n, n])
     matrix = 4*(matrix+matrix.T.conj())
 
     w, v = np.linalg.eig(matrix)
 
-matrix = np.diag([1.5, 2.7, 3.8, 5.1])#10*np.random.random(4))
+#matrix = np.diag(10*np.random.random(4))
 #matrix=1/4*np.array([[15, 9, 5, -3], [9, 15, 3, -5], [5, 3, 15, -9], [-3, -5, -9, 15]])
 w, v = np.linalg.eig(matrix)
 
@@ -47,10 +50,10 @@ params = {
 'algorithm': {
         'name': 'QPE',
         'num_ancillae': k,
-        'num_time_slices': 10,
+        'num_time_slices': 5,
         'expansion_mode': 'suzuki',
         'expansion_order': 2,
-        #'evo_time': 2*np.pi/4,
+        #'evo_time': 2*np.pi/8,
         #'use_basis_gates': False,
 },
 "iqft": {
@@ -74,9 +77,9 @@ for c, _, l in res["measurements"]:
     x += [l]
     y += [c]
 
-tx = np.arange(0, 2**k, 0.1)/2**k
+tx = np.arange(0, 2**k, 1)/2**k
 tx *= 2*np.pi/res["evo_time"]
-ty = np.arange(0, 2**k, 0.1)
+ty = np.arange(0, 2**k, 1)
 
 plt.bar(x, y, width=2*np.pi/res["evo_time"]/2**k)
 plt.plot(tx, 1024*fitfun(ty, w.real, k, n, res["evo_time"]), "r")
