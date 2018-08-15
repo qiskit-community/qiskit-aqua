@@ -21,17 +21,14 @@ class SVM_QKernel_ABC(ABC):
         self.training_dataset = training_dataset
         self.test_dataset = test_dataset
         self.datapoints = datapoints
-        self.class_labels = class_labels = list(self.training_dataset.keys())
-
+        self.class_labels = list(self.training_dataset.keys())
         self.num_of_qubits = self.auto_detect_qubitnum(training_dataset) # auto-detect mode
         self.entangler_map = entangler_map_creator(self.num_of_qubits)
         self.coupling_map = None
         self.initial_layout = None
         self.shots = shots
         self._random_seed = random_seed
-
         self.multiclass_alg = multiclass_alg
-
         self.print_info = print_info
 
     @abstractmethod

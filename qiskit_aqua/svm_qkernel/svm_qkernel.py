@@ -15,11 +15,7 @@
 # limitations under the License.
 # =============================================================================
 
-import numpy as np
-
 from qiskit_aqua import QuantumAlgorithm
-from qiskit_aqua.svm_qkernel import (get_points_and_labels, optimize_SVM,
-                             kernel_join, entangler_map_creator)
 from qiskit_aqua.svm_qkernel.svm_qkernel_binary import SVM_QKernel_Binary
 from qiskit_aqua.svm_qkernel.svm_qkernel_multiclass import SVM_QKernel_Multiclass
 

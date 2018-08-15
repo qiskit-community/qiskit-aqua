@@ -15,11 +15,7 @@
 # limitations under the License.
 # =============================================================================
 
-import numpy as np
 
-import copy
-from qiskit_aqua import QuantumAlgorithm
-from qiskit_aqua.svm_qkernel import (get_points_and_labels, optimize_SVM)
 from qiskit_aqua.utils.multiclass.allpairs import AllPairs
 from qiskit_aqua.utils.multiclass.error_correcting_code import ErrorCorrectingCode
 from qiskit_aqua.utils.multiclass.one_against_rest import OneAgainstRest

@@ -14,12 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-
-
-from sklearn.preprocessing import LabelBinarizer
 import numpy as np
 from sklearn.utils.validation import _num_samples
-
+from sklearn.preprocessing import LabelBinarizer
 
 class OneAgainstRest: # binary: 1 and 0
     def __init__(self, estimator_cls, params=None):

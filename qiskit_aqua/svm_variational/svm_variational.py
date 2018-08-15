@@ -29,7 +29,6 @@ from qiskit_aqua.svm_qkernel import (cost_estimate_sigmoid, return_probabilities
 
 logger = logging.getLogger(__name__)
 
-
 class SVM_Variational(QuantumAlgorithm):
 
     SVM_VARIATIONAL_CONFIGURATION = {

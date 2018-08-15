@@ -16,10 +16,8 @@
 # =============================================================================
 
 import itertools
-
 from qiskit import QuantumCircuit, QuantumProgram, QuantumRegister, ClassicalRegister
 import numpy as np
-
 np.warnings.filterwarnings('ignore')
 
 

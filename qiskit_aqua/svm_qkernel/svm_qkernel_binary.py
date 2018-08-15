@@ -16,15 +16,12 @@
 # =============================================================================
 
 import numpy as np
-
 from qiskit_aqua.svm_qkernel import (get_points_and_labels, optimize_SVM,kernel_join)
 from qiskit_aqua.svm_qkernel.svm_qkernel_abc import SVM_QKernel_ABC
 
 class SVM_QKernel_Binary(SVM_QKernel_ABC):
     def __init__(self):
         self._ret = {}
-
-
 
     def train(self, training_input, class_labels):
         training_points, training_points_labels, label_to_class = get_points_and_labels(training_input, class_labels)
@@ -129,7 +126,6 @@ class SVM_QKernel_Binary(SVM_QKernel_ABC):
         if num_of_qubits != 2 and num_of_qubits != 3:
             self._ret['error'] = 'You should lower the feature size to 2 or 3 using PCA first!'
             return self._ret
-
 
         self.train(self.training_dataset, self.class_labels)
 

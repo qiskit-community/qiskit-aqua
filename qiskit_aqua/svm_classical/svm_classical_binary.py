@@ -18,8 +18,6 @@
 import numpy as np
 
 from sklearn.metrics.pairwise import rbf_kernel
-import copy
-from qiskit_aqua import QuantumAlgorithm
 from qiskit_aqua.svm_qkernel import (get_points_and_labels, optimize_SVM)
 from qiskit_aqua.svm_classical.svm_classical_abc import SVM_Classical_ABC
 

@@ -16,7 +16,6 @@
 # =============================================================================
 import logging
 from qiskit_aqua._logging import build_logging_config, set_logger_config
-
 set_logger_config(build_logging_config(['qiskit_aqua'], logging.DEBUG))
 
 from qiskit_aqua.utils.multiclass.data_preprocess import *

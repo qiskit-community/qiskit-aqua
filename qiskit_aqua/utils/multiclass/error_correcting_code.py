@@ -39,8 +39,6 @@ class ErrorCorrectingCode: # binary: 1 and -1
                 estimator.fit(X, Ybit)
             self.estimators.append(estimator)
 
-
-
     def test(self, X, y):
         A = self.predict(X)
         B = y
@@ -52,13 +50,11 @@ class ErrorCorrectingCode: # binary: 1 and -1
         print("%d out of %d are wrong" %(diff, l))
         return 1-(diff*1.0/l)
 
-
     def predict(self, X):
         confidences = []
         for e in self.estimators:
             confidence = np.ravel(e.decision_function(X))
             confidences.append(confidence)
-
         Y = np.array(confidences).T
         pred = euclidean_distances(Y, self.codebook).argmin(axis=1)
         return self.classes[pred]

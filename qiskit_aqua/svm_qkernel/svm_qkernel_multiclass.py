@@ -30,8 +30,6 @@ class SVM_QKernel_Multiclass(SVM_QKernel_ABC):
     def __init__(self):
         self._ret = {}
 
-
-
     def run(self):
         if self.training_dataset is None:
             self._ret['error'] = 'training dataset is missing! please provide it'
@@ -60,7 +58,6 @@ class SVM_QKernel_Multiclass(SVM_QKernel_ABC):
         if self.print_info:
             print("You are using the multiclass alg: " + self.multiclass_alg)
         multiclass_classifier.train(X_train, y_train)
-
 
         if self.test_dataset is not None:
             success_ratio = multiclass_classifier.test(X_test, y_test)
