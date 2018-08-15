@@ -525,7 +525,7 @@ class JSONSchema(object):
             return str(value)
 
         try:
-            str_value = str(value)
+            str_value = str(value).strip().replace('\n','').replace('\r','')
             if str_value.lower() == 'true':
                 return True
             elif str_value.lower() == 'false':
@@ -538,7 +538,6 @@ class JSONSchema(object):
             return v
         except:
             return value
-
 
     @staticmethod
     def format_section_name(section_name):
