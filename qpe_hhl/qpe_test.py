@@ -1,10 +1,14 @@
 from qpe import QPE
 from qiskit_aqua import Operator
 import scipy
+from qiskit import register
+import Qconfig
 import numpy as np
 from qiskit import available_backends
 
 import matplotlib.pyplot as plt
+
+register(Qconfig.APItoken, Qconfig.config["url"])
 
 qpe = QPE()
 #print(available_backends({'local' : True, 'simulator' : True}))
@@ -21,6 +25,7 @@ while min(w) <= 0:
 #matrix = [[1, 2], [0, 3]]
 #matrix = np.array(matrix)
 #matrix = np.diag([1.5, 2.7, 3.8, 5.1])#10*np.random.random(4))
+#matrix = np.diag(10*np.random.random(4))
 #matrix=1/4*np.array([[15, 9, 5, -3], [9, 15, 3, -5], [5, 3, 15, -9], [-3, -5, -9, 15]])
 #w, v = np.linalg.eig(matrix)
 if not hermitian_matrix:
@@ -54,7 +59,7 @@ params = {
 'algorithm': {
         'name': 'QPE',
         'num_ancillae': k,
-        'num_time_slices': 10,
+        'num_time_slices': 5,
         'expansion_mode': 'suzuki',
         'expansion_order': 2,
         'hermitian_matrix': hermitian_matrix
@@ -82,9 +87,9 @@ for c, _, l in res["measurements"]:
     x += [l]
     y += [c]
 
-tx = np.arange(0, 2**k, 0.1)/2**k
+tx = np.arange(0, 2**k, 1)/2**k
 tx *= 2*np.pi/res["evo_time"]
-ty = np.arange(0, 2**k, 0.1)
+ty = np.arange(0, 2**k, 1)
 
 plt.bar(x, y, width=2*np.pi/res["evo_time"]/2**k)
 plt.plot(tx, 1024*fitfun(ty, w.real, k, n, res["evo_time"]), "r")

@@ -262,7 +262,7 @@ class QPE():
             if self._ancilla_phase_coef > 0:
                 qc.u1(self._evo_time * self._ancilla_phase_coef * (2 ** i), a[i])
         
-        #matplotlib_circuit_drawer(qc).show()
+        #matplotlib_circuit_drawer(qc, style={"plotbarrier": True})
         # inverse qft on ancillae
         self._iqft.construct_circuit('circuit', a, qc)
         if measure:
@@ -296,7 +296,7 @@ class QPE():
     def _compute_eigenvalue(self):
         if self._circuit is None:
             self._setup_qpe(measure=True)
-        result = execute(self._circuit, backend="local_qasm_simulator").result()
+        result = execute(self._circuit, backend="ibmqx5").result()
         print(result)
         counts = result.get_counts(self._circuit)
 
