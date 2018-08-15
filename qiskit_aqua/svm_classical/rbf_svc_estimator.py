@@ -14,3 +14,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+
+from qiskit_aqua.utils.multiclass.estimator import Estimator
+from sklearn.svm import SVC
+
+
+class RBF_SVC_Estimator(Estimator):
+    def __init__(self):
+        self._estimator = SVC(kernel='rbf')
+
+    def fit(self, X, y):
+        self._estimator.fit(X, y)
+
+    def decision_function(self, X):
+        return self._estimator.decision_function(X)
+

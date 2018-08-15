@@ -21,23 +21,25 @@ from sklearn.metrics.pairwise import rbf_kernel
 import copy
 from qiskit_aqua import QuantumAlgorithm
 from qiskit_aqua.svm import (get_points_and_labels, optimize_SVM)
+from qiskit_aqua.multiclass.allpairs import AllPairs
+from qiskit_aqua.multiclass.error_correcting_code import ErrorCorrectingCode
 from qiskit_aqua.multiclass.one_against_rest import OneAgainstRest
-from qiskit_aqua.multiclass_classicalsvm.linear_svc_estimator import LinearSVC_Estimator
+from qiskit_aqua.multiclass.multiclass_classicalsvm.linear_svc_estimator import LinearSVC_Estimator
 from qiskit_aqua.multiclass.data_preprocess import *
 
-class ClassicalSVM_OneAgainstRest(QuantumAlgorithm):
-    ClassicalSVM_OneAgainstRest_CONFIGURATION = {
-        'name': 'ClassicalSVM_OneAgainstRest',
-        'description': 'ClassicalSVM_OneAgainstRest Algorithm',
+class SVM_Classical_Multiclass(QuantumAlgorithm):
+    SVM_CLASSICAL_MULTICLASS_CONFIGURATION = {
+        'name': 'SVM_Classical_Multiclass',
+        'description': 'SVM_Classical_Multiclass Algorithm',
         'classical': True,
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
-            'id': 'ClassicalSVM_OneAgainstRest_schema',
+            'id': 'SVM_Classical_Multiclass_schema',
             'type': 'object',
             'properties': {
-                'gamma': {
-                    'type': ['number', 'null'],
-                    'default': None
+                'multiclass_alg': {
+                    'type': 'string',
+                    'default': 'all_pairs'
                 },
                 'print_info': {
                     'type': 'boolean',
@@ -50,20 +52,22 @@ class ClassicalSVM_OneAgainstRest(QuantumAlgorithm):
     }
 
     def __init__(self, configuration=None):
-        super().__init__(configuration or copy.deepcopy(ClassicalSVM_OneAgainstRest.ClassicalSVM_OneAgainstRest_CONFIGURATION))
+        super().__init__(configuration or copy.deepcopy(SVM_Classical_Multiclass.SVM_CLASSICAL_MULTICLASS_CONFIGURATION))
         self._ret = {}
 
     def init_params(self, params, algo_input):
-        ClassicalSVM_OneAgainstRest_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
+        svm_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
         self.init_args(algo_input.training_dataset, algo_input.test_dataset,
-                       algo_input.datapoints, ClassicalSVM_OneAgainstRest_params.get('print_info'))
+                       algo_input.datapoints, svm_params.get('print_info'), svm_params.get('multiclass_alg')
+                       )
 
-    def init_args(self, training_dataset, test_dataset, datapoints, print_info=False):
+    def init_args(self, training_dataset, test_dataset, datapoints, print_info, multiclass_alg):
         self.training_dataset = training_dataset
         self.test_dataset = test_dataset
         self.datapoints = datapoints
         self.class_labels = list(self.training_dataset.keys())
         self.print_info = print_info
+        self.multiclass_alg = multiclass_alg
 
 
     def run(self):
@@ -75,18 +79,26 @@ class ClassicalSVM_OneAgainstRest(QuantumAlgorithm):
         X_train, y_train, label_to_class = multiclass_get_points_and_labels(self.training_dataset, self.class_labels)
         X_test, y_test, label_to_class = multiclass_get_points_and_labels(self.test_dataset, self.class_labels)
 
-        oar = OneAgainstRest(LinearSVC_Estimator)
-        oar.train(X_train, y_train)
-        # print()
+        if self.multiclass_alg == "all_pairs":
+            multiclass_classifier = AllPairs(LinearSVC_Estimator)
+        elif self.multiclass_alg == "one_against_all":
+            multiclass_classifier = OneAgainstRest(LinearSVC_Estimator)
+        elif self.multiclass_alg == "error_correcting_code":
+            multiclass_classifier = ErrorCorrectingCode(LinearSVC_Estimator, code_size=4)
+        else:
+            self._ret['error'] = 'the multiclass alg should be one of {"all_pairs", "one_against_all", "error_correcting_code"}. You did not specify it correctly!'
+            return self._ret
+        if self.print_info:
+            print("You are using the multiclass alg: " + self.multiclass_alg)
 
-
+        multiclass_classifier.train(X_train, y_train)
 
         if self.test_dataset is not None:
-            success_ratio = oar.test(X_test, y_test)
+            success_ratio = multiclass_classifier.test(X_test, y_test)
             self._ret['test_success_ratio'] = success_ratio
 
         if self.datapoints is not None:
-            predicted_labels = oar.predict(X_test)
+            predicted_labels = multiclass_classifier.predict(X_test)
             predicted_labelclasses = [label_to_class[x] for x in predicted_labels]
             self._ret['predicted_labels'] = predicted_labelclasses
         return self._ret

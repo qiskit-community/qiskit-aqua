@@ -25,7 +25,7 @@ from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 from qiskit_aqua import (QuantumAlgorithm, AlgorithmError,
                          get_optimizer_instance, get_feature_extraction_instance,
                          get_variational_form_instance)
-from qiskit_aqua.svm import (cost_estimate_sigmoid, return_probabilities)
+from qiskit_aqua.svm_qkernel import (cost_estimate_sigmoid, return_probabilities)
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +40,14 @@ class SVM_Variational(QuantumAlgorithm):
             'id': 'SVM_Variational_schema',
             'type': 'object',
             'properties': {
+                'multiclass_alg': {
+                    'type': 'string',
+                    'default': 'all_pairs'
+                },
+                'print_info': {
+                    'type': 'boolean',
+                    'default': False
+                }
             },
             'additionalProperties': False
         },
