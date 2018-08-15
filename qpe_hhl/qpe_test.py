@@ -8,20 +8,23 @@ import matplotlib.pyplot as plt
 
 qpe = QPE()
 #print(available_backends({'local' : True, 'simulator' : True}))
-n = 5
+hermitian_matrix = True
+n = 6
 k = 8
 w = [-1, 0, 0, 0]
 while min(w) <= 0:
     matrix = np.random.random([n, n])+1j*np.random.random([n, n])
     matrix = 4*(matrix+matrix.T.conj())
 
-    w, v = np.linalg.eig(matrix)
+    w = np.linalg.eigvals(matrix)
+
 #matrix = [[1, 2], [0, 3]]
 #matrix = np.array(matrix)
 #matrix = np.diag([1.5, 2.7, 3.8, 5.1])#10*np.random.random(4))
 #matrix=1/4*np.array([[15, 9, 5, -3], [9, 15, 3, -5], [5, 3, 15, -9], [-3, -5, -9, 15]])
-w, v = np.linalg.eig(matrix)
-
+#w, v = np.linalg.eig(matrix)
+if not hermitian_matrix:
+    singval = scipy.linalg.svd(matrix, compute_uv = False)
 #op = Operator(matrix=matrix)
 #op._check_representation("paulis")
 #op._simplify_paulis()
@@ -36,12 +39,14 @@ print(matrix)
 #print(np.amax(abs(v))/np.amin(abs(v)))
 #print(v.real)
 print("eigenvalues ", w)
+#print("singular values", singval)
 
 def fitfun(y, w, k, n, t):
     return 2**(-2*k-n)*np.abs(sum([(1-np.exp(1j*(2**k*wi*t-2*np.pi*y)))/(1-np.exp(1j*(wi*t-2*np.pi*y/2**k))) for wi in w]))**2
 
-invec = sum([v[:,i] for i in range(n)])
-invec /= np.sqrt(invec.dot(invec.conj()))
+#invec = sum([v[:,i] for i in range(n)])
+#invec /= np.sqrt(invec.dot(invec.conj()))
+invec = w
 #op = Operator(matrix=1/4*np.array([[15, 9, 5, -3], [9, 15, 3, -5], [5, 3, 15, -9], [-3, -5, -9, 15]]))
 #invec = [0,0,0,1]
 
@@ -52,7 +57,7 @@ params = {
         'num_time_slices': 10,
         'expansion_mode': 'suzuki',
         'expansion_order': 2,
-        'hermitian_matrix': True
+        'hermitian_matrix': hermitian_matrix
         #'evo_time': 2*np.pi/4,#
         #'use_basis_gates': False,
 },
