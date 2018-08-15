@@ -216,14 +216,14 @@ class QPE():
                 raise ValueError('Unrecognized expansion mode {}.'.format(self._expansion_mode))
         for i in range(self._num_ancillae):
             qc += self._operator.construct_evolution_circuit(
-                slice_pauli_list, self._evo_time, self._num_time_slices, q, a,
+                slice_pauli_list, -self._evo_time, self._num_time_slices, q, a,
                 ctl_idx=i, use_basis_gates=self._use_basis_gates
             )
             # global phase shift for the ancilla due to the identity pauli term
             if self._ancilla_phase_coef > 0:
                 qc.u1(self._evo_time * self._ancilla_phase_coef * (2 ** i), a[i])
         
-        #matplotlib_circuit_drawer(qc).show()
+        #matplotlib_circuit_drawer(qc, style={"plotbarrier": True})
         # inverse qft on ancillae
         self._iqft.construct_circuit('circuit', a, qc)
         if measure:
@@ -257,7 +257,13 @@ class QPE():
     def _compute_eigenvalue(self):
         if self._circuit is None:
             self._setup_qpe(measure=True)
+<<<<<<< HEAD
         result = execute(self._circuit, backend="local_qasm_simulator", shots = 100).result()
+||||||| merged common ancestors
+        result = execute(self._circuit, backend="local_qasm_simulator").result()
+=======
+        result = execute(self._circuit, backend="ibmqx5").result()
+>>>>>>> 918414ef15dbf71aec513a4910739308c1484a11
         print(result)
         counts = result.get_counts(self._circuit)
 
