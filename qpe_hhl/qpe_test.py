@@ -4,15 +4,20 @@ from qiskit import register
 import Qconfig
 import numpy as np
 
+from qiskit_aqua import get_initial_state_instance
+#from qiskit.tools.visualization import circuit_drawer
+from scipy.linalg import expm
+from qiskit.tools.qi.qi import state_fidelity
+
 import matplotlib.pyplot as plt
 
-register(Qconfig.APItoken, Qconfig.config["url"])
+#register(Qconfig.APItoken, Qconfig.config["url"])
 
 qpe = QPE()
 
 w = [-1, -1]
-n = 4
-k = 7
+n = 2
+k = 3
 while min(w) <= 0:
     matrix = np.random.random([n, n])+1j*np.random.random([n, n])
     matrix = 4*(matrix+matrix.T.conj())
@@ -65,9 +70,9 @@ params = {
 }}
 
 qpe.init_params(params, op)
-
-res = qpe.run()
-
+#%%
+res, qpe_state_vec  = qpe.run()
+#%%
 print(res["measurements"][:10])
 print(2*np.pi/res["evo_time"])
 print(qpe._use_basis_gates)
@@ -85,4 +90,31 @@ plt.bar(x, y, width=2*np.pi/res["evo_time"]/2**k)
 plt.plot(tx, 1024*fitfun(ty, w.real, k, n, res["evo_time"]), "r")
 
 plt.show()
+
+# =============================================================================
+# 
+# =============================================================================
+
+A = matrix
+evo_time = res["evo_time"]
+
+qubitOp = Operator(matrix = A)
+in_vec = invec
+#state_in = get_initial_state_instance('CUSTOM')
+#state_in.init_args(num_qubits, state=in_vec)
+
+init_state_params = {}
+
+init_state_params['num_qubits'] = qubitOp.num_qubits
+init_state = get_initial_state_instance('CUSTOM')
+init_state_params['state_vector'] = in_vec
+init_state.init_params(init_state_params)
+
+state_in_vec = init_state.construct_circuit('vector')
+groundtruth = expm(-1.j * A * evo_time) @ state_in_vec
+print('The directly computed groundtruth evolution result state is\n{}.'.format(groundtruth))
+
+print('Fidelity between the groundtruth and the circuit result states is {}.'.format(
+    state_fidelity(groundtruth, qpe_state_vec)
+))
 
