@@ -17,73 +17,27 @@
 
 import numpy as np
 
+from sklearn.metrics.pairwise import rbf_kernel
+import copy
 from qiskit_aqua import QuantumAlgorithm
-from qiskit_aqua.svm import (get_points_and_labels, optimize_SVM,
-                             kernel_join, entangler_map_creator)
+from qiskit_aqua.svm_qkernel import (get_points_and_labels, optimize_SVM)
+from qiskit_aqua.svm_classical.svm_classical_abc import SVM_Classical_ABC
 
-
-class SVM_QKernel(QuantumAlgorithm):
-    SVM_QKERNEL_CONFIGURATION = {
-        'name': 'SVM_QKernel',
-        'description': 'SVM_QKernel Algorithm',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
-            'id': 'SVM_QKernel_schema',
-            'type': 'object',
-            'properties': {
-                'print_info': {
-                    'type': 'boolean',
-                    'default': False
-                }
-            },
-            'additionalProperties': False
-        },
-        'problems': ['svm_classification']
-    }
-
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.SVM_QKERNEL_CONFIGURATION.copy())
+class SVM_Classical_Binary(SVM_Classical_ABC):
+    def __init__(self):
         self._ret = {}
 
-    def init_params(self, params, algo_input):
-        SVMQK_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
 
-        self.init_args(algo_input.training_dataset, algo_input.test_dataset,
-                       algo_input.datapoints, SVMQK_params.get('print_info'))
 
-    def auto_detect_qubitnum(self, training_dataset):
-        auto_detected_size = -1
-        for key in training_dataset:
-            val = training_dataset[key]
-            for item in val:
-                auto_detected_size = len(item)
-                return auto_detected_size
-        return auto_detected_size
 
-    def init_args(self, training_dataset, test_dataset, datapoints, print_info=False):  # 2
-        if 'statevector' in self._backend:
-            raise ValueError('Selected backend  "{}" does not support measurements.'.format(self._backend))
 
-        self.training_dataset = training_dataset
-        self.test_dataset = test_dataset
-        self.datapoints = datapoints
-        self.class_labels = class_labels = list(self.training_dataset.keys())
-
-        self.num_of_qubits = self.auto_detect_qubitnum(training_dataset) # auto-detect mode
-        self.entangler_map = entangler_map_creator(self.num_of_qubits)
-        self.coupling_map = None
-        self.initial_layout = None
-        self.shots = self._execute_config['shots']
-
-        self.print_info = print_info
+    def kernel_join(self, points_array, points_array2, gamma=None):
+        return rbf_kernel(points_array, points_array2, gamma)
 
     def train(self, training_input, class_labels):
         training_points, training_points_labels, label_to_class = get_points_and_labels(training_input, class_labels)
 
-        kernel_matrix = kernel_join(training_points, training_points, self.entangler_map,
-                                    self.coupling_map, self.initial_layout, self.shots,
-                                    self._random_seed, self.num_of_qubits, self._backend)
-
+        kernel_matrix = self.kernel_join(training_points, training_points, None)
         self._ret['kernel_matrix_training'] = kernel_matrix
 
         [alpha, b, support] = optimize_SVM(kernel_matrix, training_points_labels)
@@ -111,10 +65,7 @@ class SVM_QKernel(QuantumAlgorithm):
         SVMs = self._ret['svm']['support_vectors']
         yin = self._ret['svm']['yin']
 
-        kernel_matrix = kernel_join(test_points, SVMs, self.entangler_map, self.coupling_map,
-                                    self.initial_layout, self.shots, self._random_seed,
-                                    self.num_of_qubits, self._backend)
-
+        kernel_matrix = self.kernel_join(test_points, SVMs)
         self._ret['kernel_matrix_testing'] = kernel_matrix
 
         success_ratio = 0
@@ -126,7 +77,6 @@ class SVM_QKernel(QuantumAlgorithm):
             for sin in range(len(SVMs)):
                 L = yin[sin]*alphas[sin]*kernel_matrix[tin][sin]
                 Ltot += L
-
             Lsign[tin] = np.sign(Ltot+bias)
             if self.print_info:
                 print("\n=============================================")
@@ -137,25 +87,20 @@ class SVM_QKernel(QuantumAlgorithm):
                     print('CORRECT')
                 else:
                     print('INCORRECT')
-
             if Lsign[tin] == test_points_labels[tin]:
                 success_ratio += 1
         final_success_ratio = success_ratio/total_num_points
         if self.print_info:
             print('Classification success for this set is %s %% \n' % (100*final_success_ratio))
+
         return final_success_ratio
 
     def predict(self, test_points):
-
         alphas = self._ret['svm']['alphas']
         bias = self._ret['svm']['bias']
         SVMs = self._ret['svm']['support_vectors']
         yin = self._ret['svm']['yin']
-
-        kernel_matrix = kernel_join(test_points, SVMs, self.entangler_map, self.coupling_map,
-                                    self.initial_layout, self.shots, self._random_seed,
-                                    self.num_of_qubits, self._backend)
-
+        kernel_matrix = self.kernel_join(test_points, SVMs)
         self._ret['kernel_matrix_prediction'] = kernel_matrix
 
         total_num_points = len(test_points)
@@ -173,15 +118,6 @@ class SVM_QKernel(QuantumAlgorithm):
             self._ret['error'] = 'training dataset is missing! please provide it'
             return self._ret
 
-        num_of_qubits = self.auto_detect_qubitnum(self.training_dataset) # auto-detect mode
-        if num_of_qubits == -1:
-            self._ret['error'] = 'Something wrong with the auto-detection of num_of_qubits'
-            return self._ret
-        if num_of_qubits != 2 and num_of_qubits != 3:
-            self._ret['error'] = 'You should lower the feature size to 2 or 3 using PCA first!'
-            return self._ret
-
-
         self.train(self.training_dataset, self.class_labels)
 
         if self.test_dataset is not None:
@@ -193,5 +129,4 @@ class SVM_QKernel(QuantumAlgorithm):
             _, _, label_to_class = get_points_and_labels(self.training_dataset, self.class_labels)
             predicted_labelclasses = [label_to_class[x] for x in predicted_labels]
             self._ret['predicted_labels'] = predicted_labelclasses
-
         return self._ret

@@ -15,18 +15,19 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit_aqua.multiclass.estimator import Estimator
-from sklearn.svm import LinearSVC
-from qiskit_aqua.svm.svm_qkernel import SVM_QKernel
+from qiskit_aqua.utils.multiclass.estimator import Estimator
 import numpy as np
-from qiskit_aqua.svm import (get_points_and_labels, optimize_SVM,
-                             kernel_join, entangler_map_creator)
+from qiskit_aqua.svm_qkernel import (optimize_SVM,
+                              kernel_join, entangler_map_creator)
 
-class QKernalSVM_Estimator(Estimator, SVM_QKernel):
-    def __init__(self, backend=None, shots=None):
+class QKernalSVM_Estimator(Estimator):
+    def __init__(self, backend=None, shots=None, random_seed=None):
         super(QKernalSVM_Estimator, self).__init__()
         self._backend = backend
         self.shots = shots
+        self._ret = {}
+        self._random_seed = random_seed
+
 
 
 
@@ -88,4 +89,6 @@ class QKernalSVM_Estimator(Estimator, SVM_QKernel):
                 L = yin[sin]*alphas[sin]*kernel_matrix[tin][sin]
                 Ltot += L
             Lsign[tin] = Ltot+bias
+
+
         return Lsign
