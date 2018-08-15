@@ -22,6 +22,7 @@ import logging
 
 from functools import reduce
 import numpy as np
+from math import log
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit, execute
 from qiskit.tools.qi.pauli import Pauli
 from qiskit_aqua import Operator, QuantumAlgorithm, AlgorithmError
@@ -120,17 +121,30 @@ class QPE():
         self._ancilla_phase_coef = 0
         self._circuit = None
         self._ret = {}
+        self._matrix_dim = True
 
-    def init_params(self, params, qubit_op):
+    def init_params(self, params, matrix):
         """
         Initialize via parameters dictionary and algorithm input instance
         Args:
             params: parameters dictionary
-            qubit_op: Operator instance
+            matrix: two dimensional array which represents the operator
         """
-        if qubit_op is None:
+        if matrix is None:
             raise AlgorithmError("Operator instance is required.")
+        multiples = []
+        for n in range(20):
+            multiples.append(2**n)
 
+        if log(matrix.shape[0], 2) not in multiples:
+            matrix_dim = True
+            next_higher = int(log(matrix.shape[0], 2)) + 1
+            for n in range(matrix.shape[0], 2**(next_higher)):
+                matrix = np.append(matrix, np.zeros((1, matrix.shape[0])), axis = 0)
+                matrix = np.append(matrix, np.zeros((matrix.shape[0], 1)), axis = 1)
+                matrix[n][n] = 1
+
+        qubit_op = Operator(matrix=matrix)
         operator = qubit_op
 
         qpe_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
@@ -146,17 +160,21 @@ class QPE():
         evo_time = qpe_params.get(QPE.PROP_EVO_TIME)
         use_basis_gates = qpe_params.get(QPE.PROP_USE_BASIS_GATES)
 
-        # Set up initial state, we need to add computed num qubits to params
+        # Set up initial state, we need to add computed num qubits to params, check the length of the vector
         init_state_params = params.get(QuantumAlgorithm.SECTION_KEY_INITIAL_STATE)
+        vector = init_state_params['state_vector']
+        if len(vector) < matrix.shape[0]:
+            vector = np.append(vector, (matrix.shape[0] - len(vector)) * [0])
         init_state_params['num_qubits'] = operator.num_qubits
+        init_state_params['state_vector'] = vector
         init_state = get_initial_state_instance(init_state_params['name'])
-        init_state.init_params(init_state_params)
 
         # Set up iqft, we need to add num qubits to params which is our num_ancillae bits here
         iqft_params = params.get(QuantumAlgorithm.SECTION_KEY_IQFT)
         iqft_params['num_qubits'] = num_ancillae
         iqft = get_iqft_instance(iqft_params['name'])
         iqft.init_params(iqft_params)
+        init_state.init_params(init_state_params)
 
         self.init_args(
             operator, init_state, iqft, num_time_slices, num_ancillae,
@@ -216,7 +234,7 @@ class QPE():
                 raise ValueError('Unrecognized expansion mode {}.'.format(self._expansion_mode))
         for i in range(self._num_ancillae):
             qc += self._operator.construct_evolution_circuit(
-                slice_pauli_list, self._evo_time, self._num_time_slices, q, a,
+                slice_pauli_list, -self._evo_time, self._num_time_slices, q, a,
                 ctl_idx=i, use_basis_gates=self._use_basis_gates
             )
             # global phase shift for the ancilla due to the identity pauli term
