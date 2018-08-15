@@ -257,7 +257,7 @@ class QPE():
     def _compute_eigenvalue(self):
         if self._circuit is None:
             self._setup_qpe(measure=True)
-        result = execute(self._circuit, backend="local_qasm_simulator").result()
+        result = execute(self._circuit, backend="local_qasm_simulator", shots = 100).result()
         print(result)
         counts = result.get_counts(self._circuit)
 
