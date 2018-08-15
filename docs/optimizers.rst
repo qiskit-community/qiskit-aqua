@@ -218,7 +218,7 @@ The following parameters are supported:
 
    .. code:: python
 
-        eps : float
+        epsilon : float
 
    The default value is ``1e-08``.
 
