@@ -23,6 +23,7 @@ from collections import OrderedDict
 import logging
 import copy
 import pprint
+import ast
 from qiskit_aqua import (local_pluggables_types,
                          get_algorithm_configuration,
                          local_algorithms)
@@ -114,9 +115,22 @@ class InputParser(object):
                 
             section = None
             self._sections = OrderedDict()
+            contents = ''
             with open(self._filename, 'rt', encoding="utf8", errors='ignore') as f:
                 for line in f:
+                    contents += line
                     section = self._process_line(section,line)
+                 
+            contents = contents.strip().replace('\n','').replace('\r','')
+            if not(self._sections) and len(contents) > 0:
+                # check if input file was dictionary
+                try:
+                    v = ast.literal_eval(contents)
+                    if isinstance(v,dict):
+                        self._inputdict = json.loads(json.dumps(v))
+                        self._load_parser_from_dict()
+                except:
+                    pass
         else:
             self._load_parser_from_dict()
             
