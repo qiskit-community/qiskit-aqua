@@ -42,6 +42,7 @@ class QPE():
     PROP_NUM_ANCILLAE = 'num_ancillae'
     PROP_EVO_TIME = 'evo_time'
     PROP_USE_BASIS_GATES = 'use_basis_gates'
+    PROP_HERMITIAN_MATRIX ='hermitian_matrix'
 
     QPE_CONFIGURATION = {
         'name': 'QPE_HHL',
@@ -94,6 +95,10 @@ class QPE():
                     'type': 'boolean',
                     'default': True,
                 },
+                PROP_HERMITIAN_MATRIX: {
+                    'type': 'boolean',
+                    'default': True
+                }
             },
             'additionalProperties': False
         },
@@ -122,6 +127,7 @@ class QPE():
         self._circuit = None
         self._ret = {}
         self._matrix_dim = True
+        self._hermitian_matrix = True
 
     def init_params(self, params, matrix):
         """
@@ -132,20 +138,7 @@ class QPE():
         """
         if matrix is None:
             raise AlgorithmError("Operator instance is required.")
-        multiples = []
-        for n in range(20):
-            multiples.append(2**n)
-
-        if log(matrix.shape[0], 2) not in multiples:
-            matrix_dim = True
-            next_higher = int(log(matrix.shape[0], 2)) + 1
-            for n in range(matrix.shape[0], 2**(next_higher)):
-                matrix = np.append(matrix, np.zeros((1, matrix.shape[0])), axis = 0)
-                matrix = np.append(matrix, np.zeros((matrix.shape[0], 1)), axis = 1)
-                matrix[n][n] = 1
-
-        qubit_op = Operator(matrix=matrix)
-        operator = qubit_op
+        
 
         qpe_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
         for k, p in self._configuration.get("input_schema").get("properties").items():
@@ -159,12 +152,40 @@ class QPE():
         num_ancillae = qpe_params.get(QPE.PROP_NUM_ANCILLAE)
         evo_time = qpe_params.get(QPE.PROP_EVO_TIME)
         use_basis_gates = qpe_params.get(QPE.PROP_USE_BASIS_GATES)
+        hermitian_matrix = qpe_params.get(QPE.PROP_HERMITIAN_MATRIX)
+
+        # Extending the operator matrix, if the dimension is not in 2**n
+        multiples = []
+        for n in range(20):
+            multiples.append(2**n)
+
+        if log(matrix.shape[0], 2) not in multiples:
+            matrix_dim = True
+            next_higher = int(log(matrix.shape[0], 2)) + 1
+            for n in range(matrix.shape[0], 2**(next_higher)):
+                matrix = np.append(matrix, np.zeros((1, matrix.shape[0])), axis = 0)
+                matrix = np.append(matrix, np.zeros((matrix.shape[0], 1)), axis = 1)
+                matrix[n][n] = 1
+
+        # If operator matrix is not hermitian, extending it to B = ((0, A), (A⁺, 0)), which is hermitian
+        if not hermitian_matrix:
+            new_matrix = np.zeros((2*matrix.shape[0], 2*matrix.shape[0]), dtype=complex)
+            new_matrix[matrix.shape[0]:,:matrix.shape[0]] = np.matrix.getH(matrix)[:,:]
+            new_matrix[:matrix.shape[0],matrix.shape[0]:] = matrix[:,:]
+            matrix = new_matrix
+        print(matrix.shape)
+        qubit_op = Operator(matrix=matrix)
+        operator = qubit_op
 
         # Set up initial state, we need to add computed num qubits to params, check the length of the vector
         init_state_params = params.get(QuantumAlgorithm.SECTION_KEY_INITIAL_STATE)
         vector = init_state_params['state_vector']
-        if len(vector) < matrix.shape[0]:
+        if len(vector) < matrix.shape[0] and hermitian_matrix:
             vector = np.append(vector, (matrix.shape[0] - len(vector)) * [0])
+        if not hermitian_matrix:
+            help_vector = np.zeros(matrix.shape[0] - len(vector))
+            vector = np.append(help_vector, vector)
+            print(vector)
         init_state_params['num_qubits'] = operator.num_qubits
         init_state_params['state_vector'] = vector
         init_state = get_initial_state_instance(init_state_params['name'])

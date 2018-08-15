@@ -16,7 +16,8 @@ while min(w) <= 0:
     matrix = 4*(matrix+matrix.T.conj())
 
     w, v = np.linalg.eig(matrix)
-
+#matrix = [[1, 2], [0, 3]]
+#matrix = np.array(matrix)
 #matrix = np.diag([1.5, 2.7, 3.8, 5.1])#10*np.random.random(4))
 #matrix=1/4*np.array([[15, 9, 5, -3], [9, 15, 3, -5], [5, 3, 15, -9], [-3, -5, -9, 15]])
 w, v = np.linalg.eig(matrix)
@@ -51,7 +52,8 @@ params = {
         'num_time_slices': 10,
         'expansion_mode': 'suzuki',
         'expansion_order': 2,
-        #'evo_time': 2*np.pi/4,
+        'hermitian_matrix': True
+        #'evo_time': 2*np.pi/4,#
         #'use_basis_gates': False,
 },
 "iqft": {
