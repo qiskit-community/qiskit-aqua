@@ -2,25 +2,38 @@ from qpe import QPE
 from qiskit_aqua import Operator
 import scipy
 from qiskit import register
-import Qconfig
+#import Qconfig
 import numpy as np
 from qiskit import available_backends
 
 import matplotlib.pyplot as plt
+try:
+    import sys
+    sys.path.append("~/workspace/") # go to parent dir
+    import Qconfig
+    qx_config = {
+        "APItoken": Qconfig.APItoken,
+        "url": Qconfig.config['url']}
+except Exception as e:
+    print(e)
+    qx_config = {
+        "APItoken":"bad8fd2aba4b1154108dec4b307471b8c20f32afe6b98e59b723f29c0bfc455d4b19e7783ce8d60cd52369909a15349d0d571d1246dedc43ffc21e03ca13a07a",
+        "url":"https://quantumexperience.ng.bluemix.net/api"}
+register(qx_config['APItoken'], qx_config['url'])
 
-register(Qconfig.APItoken, Qconfig.config["url"])
-
+backend = 'ibmqx5'
 qpe = QPE()
 #print(available_backends({'local' : True, 'simulator' : True}))
 hermitian_matrix = True
-n = 6
-k = 8
+n = 2
+k = 3
 w = [-1, 0, 0, 0]
 while min(w) <= 0:
     matrix = np.random.random([n, n])+1j*np.random.random([n, n])
     matrix = 4*(matrix+matrix.T.conj())
+    matrix = np.round(matrix + np.identity(n),1)
+    w, v = np.linalg.eig(matrix)   
 
-    w = np.linalg.eigvals(matrix)
 
 #matrix = [[1, 2], [0, 3]]
 #matrix = np.array(matrix)
@@ -49,9 +62,9 @@ print("eigenvalues ", w)
 def fitfun(y, w, k, n, t):
     return 2**(-2*k-n)*np.abs(sum([(1-np.exp(1j*(2**k*wi*t-2*np.pi*y)))/(1-np.exp(1j*(wi*t-2*np.pi*y/2**k))) for wi in w]))**2
 
-#invec = sum([v[:,i] for i in range(n)])
-#invec /= np.sqrt(invec.dot(invec.conj()))
-invec = w
+invec = sum([v[:,i] for i in range(n)])
+invec /= np.sqrt(invec.dot(invec.conj()))
+#invec = w
 #op = Operator(matrix=1/4*np.array([[15, 9, 5, -3], [9, 15, 3, -5], [5, 3, 15, -9], [-3, -5, -9, 15]]))
 #invec = [0,0,0,1]
 
@@ -62,7 +75,8 @@ params = {
         'num_time_slices': 5,
         'expansion_mode': 'suzuki',
         'expansion_order': 2,
-        'hermitian_matrix': hermitian_matrix
+        'hermitian_matrix': hermitian_matrix,
+        'backend' : backend
         #'evo_time': 2*np.pi/4,#
         #'use_basis_gates': False,
 },

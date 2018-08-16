@@ -43,6 +43,7 @@ class QPE():
     PROP_EVO_TIME = 'evo_time'
     PROP_USE_BASIS_GATES = 'use_basis_gates'
     PROP_HERMITIAN_MATRIX ='hermitian_matrix'
+    PROP_BACKEND = 'backend'
 
     QPE_CONFIGURATION = {
         'name': 'QPE_HHL',
@@ -98,6 +99,10 @@ class QPE():
                 PROP_HERMITIAN_MATRIX: {
                     'type': 'boolean',
                     'default': True
+                },
+                PROP_BACKEND: {
+                    'type': 'string',
+                    'default': 'local_qasm_simulator'
                 }
             },
             'additionalProperties': False
@@ -128,6 +133,7 @@ class QPE():
         self._ret = {}
         self._matrix_dim = True
         self._hermitian_matrix = True
+        self._backend = None
 
     def init_params(self, params, matrix):
         """
@@ -153,6 +159,7 @@ class QPE():
         evo_time = qpe_params.get(QPE.PROP_EVO_TIME)
         use_basis_gates = qpe_params.get(QPE.PROP_USE_BASIS_GATES)
         hermitian_matrix = qpe_params.get(QPE.PROP_HERMITIAN_MATRIX)
+        backend = qpe_params.get(QPE.PROP_BACKEND)
 
         # Extending the operator matrix, if the dimension is not in 2**n
         multiples = []
@@ -162,10 +169,10 @@ class QPE():
         if log(matrix.shape[0], 2) not in multiples:
             matrix_dim = True
             next_higher = int(log(matrix.shape[0], 2)) + 1
-            for n in range(matrix.shape[0], 2**(next_higher)):
-                matrix = np.append(matrix, np.zeros((1, matrix.shape[0])), axis = 0)
-                matrix = np.append(matrix, np.zeros((matrix.shape[0], 1)), axis = 1)
-                matrix[n][n] = 1
+            new_matrix = np.diag([1]*2**next_higher)
+            new_matrix = np.array(new_matrix, dtype = complex)
+            new_matrix[:matrix.shape[0], :matrix.shape[0]] = matrix[:,:]
+            matrix = new_matrix
 
         # If operator matrix is not hermitian, extending it to B = ((0, A), (A⁺, 0)), which is hermitian
         if not hermitian_matrix:
@@ -201,13 +208,13 @@ class QPE():
             operator, init_state, iqft, num_time_slices, num_ancillae,
             paulis_grouping=paulis_grouping, expansion_mode=expansion_mode,
             expansion_order=expansion_order, evo_time=evo_time,
-            use_basis_gates=use_basis_gates)
+            use_basis_gates=use_basis_gates, backend = backend)
 
     def init_args(
             self, operator, state_in, iqft, num_time_slices, num_ancillae,
             paulis_grouping='random', expansion_mode='trotter', expansion_order=1,
-            evo_time=None, use_basis_gates=True):
-        # if self._backend.find('statevector') >= 0:
+            evo_time=None, use_basis_gates=True, backend='local_qasm_simulator'):
+        #if self._backend.find('statevector') >= 0:
         #     raise ValueError('Selected backend does not support measurements.')
         self._operator = operator
         self._state_in = state_in
@@ -220,6 +227,7 @@ class QPE():
         self._evo_time = evo_time
         self._use_basis_gates = use_basis_gates
         self._ret = {}
+        self._backend = backend
 
     def _construct_phase_estimation_circuit(self, measure=False):
         """Implement the Quantum Phase Estimation algorithm"""
@@ -296,7 +304,7 @@ class QPE():
     def _compute_eigenvalue(self):
         if self._circuit is None:
             self._setup_qpe(measure=True)
-        result = execute(self._circuit, backend="ibmqx5").result()
+        result = execute(self._circuit, backend=self._backend).result()
         print(result)
         counts = result.get_counts(self._circuit)
 
