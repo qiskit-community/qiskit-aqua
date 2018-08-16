@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 
 # Copyright 2018 IBM.
@@ -23,6 +22,7 @@ import logging
 
 from functools import reduce
 import numpy as np
+from math import log
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit, execute
 from qiskit.tools.qi.pauli import Pauli
 from qiskit_aqua import Operator, QuantumAlgorithm, AlgorithmError
@@ -42,6 +42,8 @@ class QPE():
     PROP_NUM_ANCILLAE = 'num_ancillae'
     PROP_EVO_TIME = 'evo_time'
     PROP_USE_BASIS_GATES = 'use_basis_gates'
+    PROP_HERMITIAN_MATRIX ='hermitian_matrix'
+    PROP_BACKEND = 'backend'
 
     QPE_CONFIGURATION = {
         'name': 'QPE_HHL',
@@ -94,6 +96,14 @@ class QPE():
                     'type': 'boolean',
                     'default': True,
                 },
+                PROP_HERMITIAN_MATRIX: {
+                    'type': 'boolean',
+                    'default': True
+                },
+                PROP_BACKEND: {
+                    'type': 'string',
+                    'default': 'local_qasm_simulator'
+                }
             },
             'additionalProperties': False
         },
@@ -121,18 +131,20 @@ class QPE():
         self._ancilla_phase_coef = 0
         self._circuit = None
         self._ret = {}
+        self._matrix_dim = True
+        self._hermitian_matrix = True
+        self._backend = None
 
-    def init_params(self, params, qubit_op):
+    def init_params(self, params, matrix):
         """
         Initialize via parameters dictionary and algorithm input instance
         Args:
             params: parameters dictionary
-            qubit_op: Operator instance
+            matrix: two dimensional array which represents the operator
         """
-        if qubit_op is None:
+        if matrix is None:
             raise AlgorithmError("Operator instance is required.")
-
-        operator = qubit_op
+        
 
         qpe_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
         for k, p in self._configuration.get("input_schema").get("properties").items():
@@ -146,30 +158,63 @@ class QPE():
         num_ancillae = qpe_params.get(QPE.PROP_NUM_ANCILLAE)
         evo_time = qpe_params.get(QPE.PROP_EVO_TIME)
         use_basis_gates = qpe_params.get(QPE.PROP_USE_BASIS_GATES)
+        hermitian_matrix = qpe_params.get(QPE.PROP_HERMITIAN_MATRIX)
+        backend = qpe_params.get(QPE.PROP_BACKEND)
 
-        # Set up initial state, we need to add computed num qubits to params
+        # Extending the operator matrix, if the dimension is not in 2**n
+        multiples = []
+        for n in range(20):
+            multiples.append(2**n)
+
+        if log(matrix.shape[0], 2) not in multiples:
+            matrix_dim = True
+            next_higher = int(log(matrix.shape[0], 2)) + 1
+            new_matrix = np.diag([1]*2**next_higher)
+            new_matrix = np.array(new_matrix, dtype = complex)
+            new_matrix[:matrix.shape[0], :matrix.shape[0]] = matrix[:,:]
+            matrix = new_matrix
+
+        # If operator matrix is not hermitian, extending it to B = ((0, A), (A⁺, 0)), which is hermitian
+        if not hermitian_matrix:
+            new_matrix = np.zeros((2*matrix.shape[0], 2*matrix.shape[0]), dtype=complex)
+            new_matrix[matrix.shape[0]:,:matrix.shape[0]] = np.matrix.getH(matrix)[:,:]
+            new_matrix[:matrix.shape[0],matrix.shape[0]:] = matrix[:,:]
+            matrix = new_matrix
+        print(matrix.shape)
+        qubit_op = Operator(matrix=matrix)
+        operator = qubit_op
+
+        # Set up initial state, we need to add computed num qubits to params, check the length of the vector
         init_state_params = params.get(QuantumAlgorithm.SECTION_KEY_INITIAL_STATE)
+        vector = init_state_params['state_vector']
+        if len(vector) < matrix.shape[0] and hermitian_matrix:
+            vector = np.append(vector, (matrix.shape[0] - len(vector)) * [0])
+        if not hermitian_matrix:
+            help_vector = np.zeros(matrix.shape[0] - len(vector))
+            vector = np.append(help_vector, vector)
+            print(vector)
         init_state_params['num_qubits'] = operator.num_qubits
+        init_state_params['state_vector'] = vector
         init_state = get_initial_state_instance(init_state_params['name'])
-        init_state.init_params(init_state_params)
 
         # Set up iqft, we need to add num qubits to params which is our num_ancillae bits here
         iqft_params = params.get(QuantumAlgorithm.SECTION_KEY_IQFT)
         iqft_params['num_qubits'] = num_ancillae
         iqft = get_iqft_instance(iqft_params['name'])
         iqft.init_params(iqft_params)
+        init_state.init_params(init_state_params)
 
         self.init_args(
             operator, init_state, iqft, num_time_slices, num_ancillae,
             paulis_grouping=paulis_grouping, expansion_mode=expansion_mode,
             expansion_order=expansion_order, evo_time=evo_time,
-            use_basis_gates=use_basis_gates)
+            use_basis_gates=use_basis_gates, backend = backend)
 
     def init_args(
             self, operator, state_in, iqft, num_time_slices, num_ancillae,
             paulis_grouping='random', expansion_mode='trotter', expansion_order=1,
-            evo_time=None, use_basis_gates=True):
-        # if self._backend.find('statevector') >= 0:
+            evo_time=None, use_basis_gates=True, backend='local_qasm_simulator'):
+        #if self._backend.find('statevector') >= 0:
         #     raise ValueError('Selected backend does not support measurements.')
         self._operator = operator
         self._state_in = state_in
@@ -182,6 +227,7 @@ class QPE():
         self._evo_time = evo_time
         self._use_basis_gates = use_basis_gates
         self._ret = {}
+        self._backend = backend
 
     def _construct_phase_estimation_circuit(self, measure=False):
         """Implement the Quantum Phase Estimation algorithm"""
@@ -261,7 +307,11 @@ class QPE():
     def _compute_eigenvalue(self, backend="local_qasm_simulator"):
         if self._circuit is None:
             self._setup_qpe(measure=True)
+<<<<<<< HEAD
         result = execute(self._circuit, backend=backend).result()
+=======
+        result = execute(self._circuit, backend=self._backend).result()
+>>>>>>> isabel/sparse
         print(result)
         counts = result.get_counts(self._circuit)
 
