@@ -18,12 +18,25 @@ from sklearn.svm import SVC
 from qiskit_aqua.utils.multiclass.estimator import Estimator
 
 class RBF_SVC_Estimator(Estimator):
+    """The estimator that uses the RBF Kernel."""
+
     def __init__(self):
         self._estimator = SVC(kernel='rbf')
 
     def fit(self, X, y):
+        """
+        fit values for the points and the labels
+        Args:
+            X: input points
+            y: input labels
+        """
         self._estimator.fit(X, y)
 
     def decision_function(self, X):
+        """
+        predicted values for the points which account for both the labels and the confidence
+        Args:
+            X: input points
+        """
         return self._estimator.decision_function(X)
 

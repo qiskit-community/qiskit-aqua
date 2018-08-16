@@ -19,9 +19,12 @@ from qiskit_aqua import QuantumAlgorithm
 from qiskit_aqua.svm_qkernel.svm_qkernel_binary import SVM_QKernel_Binary
 from qiskit_aqua.svm_qkernel.svm_qkernel_multiclass import SVM_QKernel_Multiclass
 
-
-
 class SVM_QKernel(QuantumAlgorithm):
+    """
+    The qkernel interface.
+    Internally, it will run the binary classification or multiclass classification
+    based on how many classes the data have.
+    """
     SVM_QKERNEL_CONFIGURATION = {
         'name': 'SVM_QKernel',
         'description': 'SVM_QKernel Algorithm',
@@ -49,18 +52,13 @@ class SVM_QKernel(QuantumAlgorithm):
         self._ret = {}
 
     def init_params(self, params, algo_input):
-
         SVMQK_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
-
         is_multiclass = (len(algo_input.training_dataset.keys()) > 2)
         if is_multiclass:
             self.instance = SVM_QKernel_Multiclass()
         else:
             self.instance = SVM_QKernel_Binary()
-
         self.instance.init_args(algo_input.training_dataset, algo_input.test_dataset, algo_input.datapoints, SVMQK_params.get('print_info'), SVMQK_params.get('multiclass_alg'), self._backend, self._execute_config['shots'], self._random_seed)
-
-
 
     def run(self):
         self.instance.run()

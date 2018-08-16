@@ -19,21 +19,27 @@ import numpy as np
 from sklearn.utils.multiclass import _ovr_decision_function
 
 
-class AllPairs: # binary: 1 and 0
+class AllPairs:
+    """
+      the multiclass extension based on the all-pairs algorithm.
+    """
     def __init__(self, estimator_cls, params=None):
         self.estimator_cls = estimator_cls
         self.params = params
 
-
-
-
     def train(self, X, y):
+        """
+        training multiple estimators each for distinguishing a pair of classes.
+        Args:
+            X: input points
+            y: input labels
+        """
         self.classes_ = np.unique(y)
         if len(self.classes_) == 1:
             raise ValueError(" can not be fit when only one"
                              " class is present.")
         n_classes = self.classes_.shape[0]
-        self.estimators = {} # 2d dictionary dict[i][j]
+        self.estimators = {}
         for i in range(n_classes):
             estimators_from_i = {}
             for j in range(i + 1, n_classes):
@@ -41,7 +47,6 @@ class AllPairs: # binary: 1 and 0
                     estimator = self.estimator_cls()
                 else:
                     estimator = self.estimator_cls(*self.params)
-
                 cond = np.logical_or(y == i, y == j)
                 indcond = np.arange(X.shape[0])[cond]
                 X_filtered = X[indcond]
@@ -49,16 +54,16 @@ class AllPairs: # binary: 1 and 0
                 y_filtered[y_filtered == i] = -1
                 y_filtered[y_filtered == j] = 1
                 estimator.fit(X_filtered, y_filtered)
-
                 estimators_from_i[j] = estimator
-
             self.estimators[i] = estimators_from_i
 
-
-
-
-
     def test(self, X, y):
+        """
+        testing multiple estimators each for distinguishing a pair of classes.
+        Args:
+            X: input points
+            y: input labels
+        """
         A = self.predict(X)
         B = y
         l = len(A)
@@ -69,9 +74,12 @@ class AllPairs: # binary: 1 and 0
         print("%d out of %d are wrong" %(diff, l))
         return 1-(diff*1.0/l)
 
-
-
     def predict(self, X):
+        """
+        applying multiple estimators for prediction
+        Args:
+            X: input points
+        """
         predictions = []
         confidences = []
         for i in self.estimators:

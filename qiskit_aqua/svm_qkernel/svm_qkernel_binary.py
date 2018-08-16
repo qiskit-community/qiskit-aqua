@@ -20,10 +20,19 @@ from qiskit_aqua.svm_qkernel import (get_points_and_labels, optimize_SVM,kernel_
 from qiskit_aqua.svm_qkernel.svm_qkernel_abc import SVM_QKernel_ABC
 
 class SVM_QKernel_Binary(SVM_QKernel_ABC):
+    """
+    the binary classifier
+    """
     def __init__(self):
         self._ret = {}
 
     def train(self, training_input, class_labels):
+        """
+        train the svm
+        Args:
+            training_input: dictionary which maps each class to the points in the class
+            class_labels: array of classes. For example: ['A', 'B']
+        """
         training_points, training_points_labels, label_to_class = get_points_and_labels(training_input, class_labels)
 
         kernel_matrix = kernel_join(training_points, training_points, self.entangler_map,
@@ -50,6 +59,13 @@ class SVM_QKernel_Binary(SVM_QKernel_ABC):
         self._ret['svm']['yin'] = yin
 
     def test(self, test_input, class_labels):
+        """
+        test the svm
+        Args:
+            test_input: dictionary which maps each class to the points in the class
+            class_labels: array of classes. For example: ['A', 'B']
+        """
+
         test_points, test_points_labels, label_to_labelclass = get_points_and_labels(test_input, class_labels)
 
         alphas = self._ret['svm']['alphas']
@@ -92,7 +108,11 @@ class SVM_QKernel_Binary(SVM_QKernel_ABC):
         return final_success_ratio
 
     def predict(self, test_points):
-
+        """
+        predict using the svm
+        Args:
+            test_points: the points (array)
+        """
         alphas = self._ret['svm']['alphas']
         bias = self._ret['svm']['bias']
         SVMs = self._ret['svm']['support_vectors']
@@ -115,6 +135,9 @@ class SVM_QKernel_Binary(SVM_QKernel_ABC):
         return Lsign
 
     def run(self):
+        """
+        put the train, test, predict together
+        """
         if self.training_dataset is None:
             self._ret['error'] = 'training dataset is missing! please provide it'
             return self._ret
@@ -126,13 +149,10 @@ class SVM_QKernel_Binary(SVM_QKernel_ABC):
         if num_of_qubits != 2 and num_of_qubits != 3:
             self._ret['error'] = 'You should lower the feature size to 2 or 3 using PCA first!'
             return self._ret
-
         self.train(self.training_dataset, self.class_labels)
-
         if self.test_dataset is not None:
             success_ratio = self.test(self.test_dataset, self.class_labels)
             self._ret['test_success_ratio'] = success_ratio
-
         if self.datapoints is not None:
             predicted_labels = self.predict(self.datapoints)
             _, _, label_to_class = get_points_and_labels(self.training_dataset, self.class_labels)

@@ -1,6 +1,9 @@
 from abc import ABC, abstractmethod
 
 class SVM_Classical_ABC(ABC):
+    """
+    abstract base class for the binary classifier and the multiclass classifier
+    """
     def init_args(self, training_dataset, test_dataset, datapoints, print_info, multiclass_alg):
         self.training_dataset = training_dataset
         self.test_dataset = test_dataset

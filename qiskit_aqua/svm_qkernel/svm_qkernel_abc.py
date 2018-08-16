@@ -3,6 +3,9 @@ from abc import ABC, abstractmethod
 from qiskit_aqua.svm_qkernel import entangler_map_creator
 
 class SVM_QKernel_ABC(ABC):
+    """
+    abstract base class for the binary classifier and the multiclass classifier
+    """
     def auto_detect_qubitnum(self, training_dataset):
         auto_detected_size = -1
         for key in training_dataset:
@@ -12,7 +15,7 @@ class SVM_QKernel_ABC(ABC):
                 return auto_detected_size
         return auto_detected_size
 
-    def init_args(self, training_dataset, test_dataset, datapoints, print_info, multiclass_alg, backend, shots, random_seed):  # 2
+    def init_args(self, training_dataset, test_dataset, datapoints, print_info, multiclass_alg, backend, shots, random_seed):
         self._backend = backend
 
         if 'statevector' in self._backend:

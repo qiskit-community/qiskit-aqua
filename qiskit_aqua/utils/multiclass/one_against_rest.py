@@ -18,34 +18,27 @@ import numpy as np
 from sklearn.utils.validation import _num_samples
 from sklearn.preprocessing import LabelBinarizer
 
-class OneAgainstRest: # binary: 1 and 0
+class OneAgainstRest:
+    """
+      the multiclass extension based on the one-against-rest algorithm.
+    """
     def __init__(self, estimator_cls, params=None):
         self.estimator_cls = estimator_cls
         self.params = params
 
-    # def balance(self, X, Y, num_of_classes):
-    #     cond = (Y==1)
-    #     indcond = np.arange(Y.shape[0])[cond]
-    #     X_filtered = X[indcond]
-    #     Y_filtered = Y[indcond]
-    #
-    #     for i in range(num_of_classes-2):
-    #         Y = np.concatenate((Y,Y_filtered))
-    #         X = np.concatenate((X,X_filtered))
-    #
-    #     return X, Y
-
     def train(self, X_train, y_train):
+        """
+        training multiple estimators each for distinguishing a pair of classes.
+        Args:
+            X: input points
+            y: input labels
+        """
         self.label_binarizer_ = LabelBinarizer(neg_label=-1)
         Y = self.label_binarizer_.fit_transform(y_train)
-        # Y = Y.tocsc()
         self.classes = self.label_binarizer_.classes_
-        num_of_classes = len(self.classes)
-
         columns = (np.ravel(col) for col in Y.T)
         self.estimators = []
         for i, column in enumerate(columns):
-            # print(i, column) #X, column
             unique_y = np.unique(column)
             if len(unique_y) == 1:
                 raise Exception("given all data points are assigned to the same class, the prediction would be boring.")
@@ -53,14 +46,16 @@ class OneAgainstRest: # binary: 1 and 0
                 estimator = self.estimator_cls()
             else:
                 estimator = self.estimator_cls(*self.params)
-
-            # X_train_balanced, column_balanced = self.balance(X_train, column, num_of_classes)
-            # estimator.fit(X_train_balanced, column_balanced)
             estimator.fit(X_train, column)
             self.estimators.append(estimator)
 
-
     def test(self, X, y):
+        """
+        testing multiple estimators each for distinguishing a pair of classes.
+        Args:
+            X: input points
+            y: input labels
+        """
         A = self.predict(X)
         B = y
         l = len(A)
@@ -71,8 +66,12 @@ class OneAgainstRest: # binary: 1 and 0
         print("%d out of %d are wrong" %(diff, l))
         return 1-(diff*1.0/l)
 
-
     def predict(self, X):
+        """
+        applying multiple estimators for prediction
+        Args:
+            X: input points
+        """
         n_samples = _num_samples(X)
         maxima = np.empty(n_samples, dtype=float)
         maxima.fill(-np.inf)

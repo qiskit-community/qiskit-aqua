@@ -24,18 +24,20 @@ from qiskit_aqua.utils.multiclass.data_preprocess import *
 from qiskit_aqua.svm_classical.svm_classical_abc import SVM_Classical_ABC
 
 class SVM_Classical_Multiclass(SVM_Classical_ABC):
-
-
+    """
+    the multiclass classifier
+    the classifier is built by wrapping the estimator (for binary classification) with the multiclass extensions
+    """
     def __init__(self):
         self._ret = {}
 
-
-
     def run(self):
+        """
+        put the train, test, predict together
+        """
         if self.training_dataset is None:
             self._ret['error'] = 'training dataset is missing! please provide it'
             return self._ret
-
 
         X_train, y_train, label_to_class = multiclass_get_points_and_labels(self.training_dataset, self.class_labels)
         X_test, y_test, label_to_class = multiclass_get_points_and_labels(self.test_dataset, self.class_labels)

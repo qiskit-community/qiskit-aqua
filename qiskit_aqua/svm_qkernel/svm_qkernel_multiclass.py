@@ -14,9 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-
-
-
 from qiskit_aqua.svm_qkernel.qkernel_svm_estimator import QKernalSVM_Estimator
 from qiskit_aqua.utils.multiclass.data_preprocess import *
 from qiskit_aqua.utils.multiclass.error_correcting_code import ErrorCorrectingCode
@@ -24,13 +21,18 @@ from qiskit_aqua.utils.multiclass.allpairs import AllPairs
 from qiskit_aqua.utils.multiclass.one_against_rest import OneAgainstRest
 from qiskit_aqua.svm_qkernel.svm_qkernel_abc import SVM_QKernel_ABC
 
-
 class SVM_QKernel_Multiclass(SVM_QKernel_ABC):
-
+    """
+    the multiclass classifier
+    the classifier is built by wrapping the estimator (for binary classification) with the multiclass extensions
+    """
     def __init__(self):
         self._ret = {}
 
     def run(self):
+        """
+        put the train, test, predict together
+        """
         if self.training_dataset is None:
             self._ret['error'] = 'training dataset is missing! please provide it'
             return self._ret

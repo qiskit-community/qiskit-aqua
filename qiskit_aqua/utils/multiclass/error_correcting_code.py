@@ -3,7 +3,10 @@ import numpy as np
 from sklearn.metrics.pairwise import euclidean_distances
 from sklearn.multiclass import _ConstantPredictor
 
-class ErrorCorrectingCode: # binary: 1 and -1
+class ErrorCorrectingCode:
+    """
+      the multiclass extension based on the error-correcting-code algorithm.
+    """
     def __init__(self, estimator_cls, code_size=4, params=None):
         self.estimator_cls = estimator_cls
 
@@ -13,8 +16,13 @@ class ErrorCorrectingCode: # binary: 1 and -1
         self.params = params
 
     def train(self, X, y):
+        """
+        training multiple estimators each for distinguishing a pair of classes.
+        Args:
+            X: input points
+            y: input labels
+        """
         self.estimators = []
-
         self.classes = np.unique(y)
         n_classes = self.classes.shape[0]
         code_size = int(n_classes * self.code_size)
@@ -40,6 +48,12 @@ class ErrorCorrectingCode: # binary: 1 and -1
             self.estimators.append(estimator)
 
     def test(self, X, y):
+        """
+        testing multiple estimators each for distinguishing a pair of classes.
+        Args:
+            X: input points
+            y: input labels
+        """
         A = self.predict(X)
         B = y
         l = len(A)
@@ -51,6 +65,11 @@ class ErrorCorrectingCode: # binary: 1 and -1
         return 1-(diff*1.0/l)
 
     def predict(self, X):
+        """
+        applying multiple estimators for prediction
+        Args:
+            X: input points
+        """
         confidences = []
         for e in self.estimators:
             confidence = np.ravel(e.decision_function(X))

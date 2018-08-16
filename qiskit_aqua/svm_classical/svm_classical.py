@@ -15,16 +15,19 @@
 # limitations under the License.
 # =============================================================================
 
-import numpy as np
 
-from sklearn.metrics.pairwise import rbf_kernel
 import copy
 from qiskit_aqua import QuantumAlgorithm
-from qiskit_aqua.svm_qkernel import (get_points_and_labels, optimize_SVM)
 from qiskit_aqua.svm_classical.svm_classical_binary import SVM_Classical_Binary
 from qiskit_aqua.svm_classical.svm_classical_multiclass import SVM_Classical_Multiclass
 
 class SVM_Classical(QuantumAlgorithm):
+    """
+    The classical svm interface.
+    Internally, it will run the binary classification or multiclass classification
+    based on how many classes the data have.
+    """
+
     SVM_Classical_CONFIGURATION = {
         'name': 'SVM_Classical',
         'description': 'SVM_Classical Algorithm',

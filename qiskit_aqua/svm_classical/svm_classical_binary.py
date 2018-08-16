@@ -22,17 +22,22 @@ from qiskit_aqua.svm_qkernel import (get_points_and_labels, optimize_SVM)
 from qiskit_aqua.svm_classical.svm_classical_abc import SVM_Classical_ABC
 
 class SVM_Classical_Binary(SVM_Classical_ABC):
+    """
+    the binary classifier
+    """
     def __init__(self):
         self._ret = {}
-
-
-
-
 
     def kernel_join(self, points_array, points_array2, gamma=None):
         return rbf_kernel(points_array, points_array2, gamma)
 
     def train(self, training_input, class_labels):
+        """
+        train the svm
+        Args:
+            training_input: dictionary which maps each class to the points in the class
+            class_labels: array of classes. For example: ['A', 'B']
+        """
         training_points, training_points_labels, label_to_class = get_points_and_labels(training_input, class_labels)
 
         kernel_matrix = self.kernel_join(training_points, training_points, None)
@@ -56,6 +61,12 @@ class SVM_Classical_Binary(SVM_Classical_ABC):
         self._ret['svm']['yin'] = yin
 
     def test(self, test_input, class_labels):
+        """
+        test the svm
+        Args:
+            test_input: dictionary which maps each class to the points in the class
+            class_labels: array of classes. For example: ['A', 'B']
+        """
         test_points, test_points_labels, label_to_labelclass = get_points_and_labels(test_input, class_labels)
 
         alphas = self._ret['svm']['alphas']
@@ -94,6 +105,12 @@ class SVM_Classical_Binary(SVM_Classical_ABC):
         return final_success_ratio
 
     def predict(self, test_points):
+        """
+        predict using the svm
+        Args:
+            test_points: the points (array)
+        """
+
         alphas = self._ret['svm']['alphas']
         bias = self._ret['svm']['bias']
         SVMs = self._ret['svm']['support_vectors']
@@ -112,6 +129,9 @@ class SVM_Classical_Binary(SVM_Classical_ABC):
         return Lsign
 
     def run(self):
+        """
+        put the train, test, predict together
+        """
         if self.training_dataset is None:
             self._ret['error'] = 'training dataset is missing! please provide it'
             return self._ret
