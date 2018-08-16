@@ -35,7 +35,7 @@ class SVM_Classical_Binary(SVM_Classical_ABC):
         """
         train the svm
         Args:
-            test_input (dict): dictionary which maps each class to the points in the class
+            training_input (dict): dictionary which maps each class to the points in the class
             class_labels (list): list of classes. For example: ['A', 'B']
         """
         training_points, training_points_labels, label_to_class = get_points_and_labels(training_input, class_labels)

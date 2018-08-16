@@ -23,7 +23,6 @@ from qiskit_aqua.svm_qkernel import (optimize_SVM,
 
 class QKernalSVM_Estimator(Estimator):
     """The estimator that uses the quantum kernel."""
-
     def __init__(self, backend=None, shots=None, random_seed=None):
         super(QKernalSVM_Estimator, self).__init__()
         self._backend = backend
