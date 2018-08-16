@@ -269,7 +269,7 @@ class QPE():
             # global phase shift for the ancilla due to the identity pauli term
             if self._ancilla_phase_coef > 0:
                 qc.u1(self._evo_time * self._ancilla_phase_coef * (2 ** i), a[i])
-        
+
         #matplotlib_circuit_drawer(qc, style={"plotbarrier": True})
         # inverse qft on ancillae
         self._iqft.construct_circuit('circuit', a, qc)
@@ -299,12 +299,19 @@ class QPE():
         logger.info('QPE circuit qasm length is roughly {}.'.format(
             len(self._circuit.qasm().split('\n'))
         ))
+        print('QPE circuit qasm length is roughly {}.'.format(
+            len(self._circuit.qasm().split('\n'))
+        ))
         return self._circuit
 
-    def _compute_eigenvalue(self):
+    def _compute_eigenvalue(self, backend="local_qasm_simulator"):
         if self._circuit is None:
             self._setup_qpe(measure=True)
+<<<<<<< HEAD
+        result = execute(self._circuit, backend=backend).result()
+=======
         result = execute(self._circuit, backend=self._backend).result()
+>>>>>>> isabel/sparse
         print(result)
         counts = result.get_counts(self._circuit)
 

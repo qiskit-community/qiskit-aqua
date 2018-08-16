@@ -14,12 +14,6 @@ try:
     qx_config = {
         "APItoken": Qconfig.APItoken,
         "url": Qconfig.config['url']}
-except Exception as e:
-    print(e)
-    qx_config = {
-        "APItoken":"bad8fd2aba4b1154108dec4b307471b8c20f32afe6b98e59b723f29c0bfc455d4b19e7783ce8d60cd52369909a15349d0d571d1246dedc43ffc21e03ca13a07a",
-        "url":"https://quantumexperience.ng.bluemix.net/api"}
-register(qx_config['APItoken'], qx_config['url'])
 
 backend = 'local_qasm_simulator'
 qpe = QPE()
@@ -32,7 +26,7 @@ while min(w) <= 0:
     matrix = np.random.random([n, n])+1j*np.random.random([n, n])
     matrix = 4*(matrix+matrix.T.conj())
     matrix = np.round(matrix + np.identity(n),1)
-    w, v = np.linalg.eig(matrix)   
+    w, v = np.linalg.eig(matrix)
 
 
 #matrix = [[1, 2], [0, 3]]
@@ -90,7 +84,9 @@ params = {
 
 qpe.init_params(params, matrix)
 
-res = qpe.run()
+qc = qpe._compute_eigenvalue(backend="ibmq_qasm_simulator")
+res = qpe._ret
+
 
 print(res["measurements"][:10])
 print(2*np.pi/res["evo_time"])
