@@ -50,9 +50,9 @@ params = {
 'algorithm': {
         'name': 'QPE',
         'num_ancillae': k,
-        'num_time_slices': 5,
-        'expansion_mode': 'suzuki',
-        'expansion_order': 2,
+        'num_time_slices': 3,
+        'expansion_mode': 'trotter',
+        'expansion_order': 1,
         #'evo_time': 2*np.pi/8,
         #'use_basis_gates': False,
 },
@@ -66,7 +66,9 @@ params = {
 
 qpe.init_params(params, op)
 
-res = qpe.run()
+qc = qpe._compute_eigenvalue(backend="ibmq_qasm_simulator")
+res = qpe._ret
+
 
 print(res["measurements"][:10])
 print(2*np.pi/res["evo_time"])
