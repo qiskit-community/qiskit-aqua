@@ -7,13 +7,6 @@ import numpy as np
 from qiskit import available_backends
 
 import matplotlib.pyplot as plt
-try:
-    import sys
-    sys.path.append("~/workspace/") # go to parent dir
-    import Qconfig
-    qx_config = {
-        "APItoken": Qconfig.APItoken,
-        "url": Qconfig.config['url']}
 
 qpe = QPE()
 #print(available_backends({'local' : True, 'simulator' : True}))
@@ -69,7 +62,7 @@ params = {
         'expansion_mode': 'suzuki',
         'expansion_order': 2,
         'hermitian_matrix': hermitian_matrix,
-        'backend' : backend
+        'backend' : "local_qasm_simulator"
         #'evo_time': 2*np.pi/4,#
         #'use_basis_gates': False,
 },

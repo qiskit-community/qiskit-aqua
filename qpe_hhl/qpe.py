@@ -144,7 +144,7 @@ class QPE():
         """
         if matrix is None:
             raise AlgorithmError("Operator instance is required.")
-        
+
 
         qpe_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
         for k, p in self._configuration.get("input_schema").get("properties").items():
@@ -162,14 +162,10 @@ class QPE():
         backend = qpe_params.get(QPE.PROP_BACKEND)
 
         # Extending the operator matrix, if the dimension is not in 2**n
-        multiples = []
-        for n in range(20):
-            multiples.append(2**n)
-
-        if log(matrix.shape[0], 2) not in multiples:
+        if np.log2(matrix.shape[0]) % 1 != 0:
             matrix_dim = True
-            next_higher = int(log(matrix.shape[0], 2)) + 1
-            new_matrix = np.diag([1]*2**next_higher)
+            next_higher = np.ceil(np.log2(matrix.shape[0]))
+            new_matrix = np.identity(2**next_higher)
             new_matrix = np.array(new_matrix, dtype = complex)
             new_matrix[:matrix.shape[0], :matrix.shape[0]] = matrix[:,:]
             matrix = new_matrix
@@ -304,14 +300,10 @@ class QPE():
         ))
         return self._circuit
 
-    def _compute_eigenvalue(self, backend="local_qasm_simulator"):
+    def _compute_eigenvalue(self):
         if self._circuit is None:
             self._setup_qpe(measure=True)
-<<<<<<< HEAD
-        result = execute(self._circuit, backend=backend).result()
-=======
         result = execute(self._circuit, backend=self._backend).result()
->>>>>>> isabel/sparse
         print(result)
         counts = result.get_counts(self._circuit)
 
