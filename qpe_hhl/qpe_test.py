@@ -21,12 +21,12 @@ except Exception as e:
         "url":"https://quantumexperience.ng.bluemix.net/api"}
 register(qx_config['APItoken'], qx_config['url'])
 
-backend = 'ibmqx5'
+backend = 'local_qasm_simulator'
 qpe = QPE()
 #print(available_backends({'local' : True, 'simulator' : True}))
 hermitian_matrix = True
 n = 2
-k = 3
+k = 9
 w = [-1, 0, 0, 0]
 while min(w) <= 0:
     matrix = np.random.random([n, n])+1j*np.random.random([n, n])
@@ -72,7 +72,7 @@ params = {
 'algorithm': {
         'name': 'QPE',
         'num_ancillae': k,
-        'num_time_slices': 5,
+        'num_time_slices': 10,
         'expansion_mode': 'suzuki',
         'expansion_order': 2,
         'hermitian_matrix': hermitian_matrix,
