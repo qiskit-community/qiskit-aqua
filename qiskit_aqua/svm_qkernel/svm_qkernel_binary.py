@@ -16,6 +16,7 @@
 # =============================================================================
 
 import numpy as np
+
 from qiskit_aqua.svm_qkernel import (get_points_and_labels, optimize_SVM,kernel_join)
 from qiskit_aqua.svm_qkernel.svm_qkernel_abc import SVM_QKernel_ABC
 
@@ -30,8 +31,8 @@ class SVM_QKernel_Binary(SVM_QKernel_ABC):
         """
         train the svm
         Args:
-            training_input: dictionary which maps each class to the points in the class
-            class_labels: array of classes. For example: ['A', 'B']
+            training_input (dict): dictionary which maps each class to the points in the class
+            class_labels (list): list of classes. For example: ['A', 'B']
         """
         training_points, training_points_labels, label_to_class = get_points_and_labels(training_input, class_labels)
 
@@ -62,8 +63,8 @@ class SVM_QKernel_Binary(SVM_QKernel_ABC):
         """
         test the svm
         Args:
-            test_input: dictionary which maps each class to the points in the class
-            class_labels: array of classes. For example: ['A', 'B']
+            test_input (dict): dictionary which maps each class to the points in the class
+            class_labels (list): list of classes. For example: ['A', 'B']
         """
 
         test_points, test_points_labels, label_to_labelclass = get_points_and_labels(test_input, class_labels)
@@ -111,7 +112,7 @@ class SVM_QKernel_Binary(SVM_QKernel_ABC):
         """
         predict using the svm
         Args:
-            test_points: the points (array)
+            test_points (numpy.ndarray): the points
         """
         alphas = self._ret['svm']['alphas']
         bias = self._ret['svm']['bias']

@@ -14,7 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+
 from sklearn.svm import SVC
+
 from qiskit_aqua.utils.multiclass.estimator import Estimator
 
 class RBF_SVC_Estimator(Estimator):
@@ -27,8 +29,8 @@ class RBF_SVC_Estimator(Estimator):
         """
         fit values for the points and the labels
         Args:
-            X: input points
-            y: input labels
+            X (numpy.ndarray): input points
+            y (numpy.ndarray): input labels
         """
         self._estimator.fit(X, y)
 
@@ -36,7 +38,7 @@ class RBF_SVC_Estimator(Estimator):
         """
         predicted values for the points which account for both the labels and the confidence
         Args:
-            X: input points
+            X (numpy.ndarray): input points
         """
         return self._estimator.decision_function(X)
 

@@ -15,9 +15,11 @@
 # limitations under the License.
 # =============================================================================
 
-import itertools
-from qiskit import QuantumCircuit, QuantumProgram, QuantumRegister, ClassicalRegister
 import numpy as np
+
+import itertools
+
+from qiskit import QuantumCircuit, QuantumProgram, QuantumRegister, ClassicalRegister
 np.warnings.filterwarnings('ignore')
 
 

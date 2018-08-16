@@ -15,8 +15,9 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit_aqua.utils.multiclass.estimator import Estimator
 import numpy as np
+
+from qiskit_aqua.utils.multiclass.estimator import Estimator
 from qiskit_aqua.svm_qkernel import (optimize_SVM,
                               kernel_join, entangler_map_creator)
 
@@ -34,8 +35,8 @@ class QKernalSVM_Estimator(Estimator):
         """
         fit values for the points and the labels
         Args:
-            X: input points
-            y: input labels
+            X (numpy.ndarray): input points
+            y (numpy.ndarray): input labels
         """
         y=y.astype(float)
 
@@ -77,7 +78,7 @@ class QKernalSVM_Estimator(Estimator):
         """
         predicted values for the points which account for both the labels and the confidence
         Args:
-            X: input points
+            X (numpy.ndarray): input points
         """
 
         alphas = self._ret['svm']['alphas']

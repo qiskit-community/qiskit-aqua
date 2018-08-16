@@ -17,6 +17,7 @@
 
 
 import copy
+
 from qiskit_aqua import QuantumAlgorithm
 from qiskit_aqua.svm_classical.svm_classical_binary import SVM_Classical_Binary
 from qiskit_aqua.svm_classical.svm_classical_multiclass import SVM_Classical_Multiclass

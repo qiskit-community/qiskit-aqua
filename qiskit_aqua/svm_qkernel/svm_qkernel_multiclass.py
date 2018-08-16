@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+
 from qiskit_aqua.svm_qkernel.qkernel_svm_estimator import QKernalSVM_Estimator
 from qiskit_aqua.utils.multiclass.data_preprocess import *
 from qiskit_aqua.utils.multiclass.error_correcting_code import ErrorCorrectingCode
