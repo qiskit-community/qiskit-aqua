@@ -31,8 +31,8 @@ class AllPairs:
         """
         training multiple estimators each for distinguishing a pair of classes.
         Args:
-            X: input points
-            y: input labels
+            X (numpy.ndarray): input points
+            y (numpy.ndarray): input labels
         """
         self.classes_ = np.unique(y)
         if len(self.classes_) == 1:
@@ -61,8 +61,8 @@ class AllPairs:
         """
         testing multiple estimators each for distinguishing a pair of classes.
         Args:
-            X: input points
-            y: input labels
+            X (numpy.ndarray): input points
+            y (numpy.ndarray): input labels
         """
         A = self.predict(X)
         B = y
@@ -70,7 +70,7 @@ class AllPairs:
         diff = 0
         for i in range(0, l):
             if A[i] != B[i]:
-                diff = diff + 1
+                diff += 1
         print("%d out of %d are wrong" %(diff, l))
         return 1-(diff*1.0/l)
 
@@ -78,7 +78,7 @@ class AllPairs:
         """
         applying multiple estimators for prediction
         Args:
-            X: input points
+            X (numpy.ndarray): input points
         """
         predictions = []
         confidences = []

@@ -16,14 +16,7 @@
 # =============================================================================
 
 import numpy as np
-import scipy
-from scipy.linalg import expm
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-from sklearn import datasets
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
-from sklearn.decomposition import PCA
+
 
 def multiclass_get_points_and_labels(input, class_labels):
     size = len(class_labels)

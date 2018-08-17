@@ -19,6 +19,7 @@ from sklearn.svm import SVC
 
 from qiskit_aqua.utils.multiclass.estimator import Estimator
 
+
 class RBF_SVC_Estimator(Estimator):
     """The estimator that uses the RBF Kernel."""
 
@@ -41,4 +42,3 @@ class RBF_SVC_Estimator(Estimator):
             X (numpy.ndarray): input points
         """
         return self._estimator.decision_function(X)
-

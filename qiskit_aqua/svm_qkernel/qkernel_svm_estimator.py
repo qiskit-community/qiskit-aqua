@@ -19,10 +19,12 @@ import numpy as np
 
 from qiskit_aqua.utils.multiclass.estimator import Estimator
 from qiskit_aqua.svm_qkernel import (optimize_SVM,
-                              kernel_join, entangler_map_creator)
+                                     kernel_join, entangler_map_creator)
+
 
 class QKernalSVM_Estimator(Estimator):
     """The estimator that uses the quantum kernel."""
+
     def __init__(self, backend=None, shots=None, random_seed=None):
         super(QKernalSVM_Estimator, self).__init__()
         self._backend = backend
@@ -37,7 +39,7 @@ class QKernalSVM_Estimator(Estimator):
             X (numpy.ndarray): input points
             y (numpy.ndarray): input labels
         """
-        y=y.astype(float)
+        y = y.astype(float)
 
         self.class_labels = np.unique(y)
         if len(self.class_labels) == 1:
@@ -94,8 +96,8 @@ class QKernalSVM_Estimator(Estimator):
         for tin in range(total_num_points):
             Ltot = 0
             for sin in range(len(SVMs)):
-                L = yin[sin]*alphas[sin]*kernel_matrix[tin][sin]
+                L = yin[sin] * alphas[sin] * kernel_matrix[tin][sin]
                 Ltot += L
-            Lsign[tin] = Ltot+bias
+            Lsign[tin] = Ltot + bias
 
         return Lsign

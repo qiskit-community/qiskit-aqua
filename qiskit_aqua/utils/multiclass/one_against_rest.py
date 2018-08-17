@@ -18,23 +18,25 @@ import numpy as np
 from sklearn.utils.validation import _num_samples
 from sklearn.preprocessing import LabelBinarizer
 
+
 class OneAgainstRest:
     """
       the multiclass extension based on the one-against-rest algorithm.
     """
+
     def __init__(self, estimator_cls, params=None):
         self.estimator_cls = estimator_cls
         self.params = params
 
-    def train(self, X_train, y_train):
+    def train(self, X, y):
         """
         training multiple estimators each for distinguishing a pair of classes.
         Args:
-            X: input points
-            y: input labels
+            X (numpy.ndarray): input points
+            y (numpy.ndarray): input labels
         """
         self.label_binarizer_ = LabelBinarizer(neg_label=-1)
-        Y = self.label_binarizer_.fit_transform(y_train)
+        Y = self.label_binarizer_.fit_transform(y)
         self.classes = self.label_binarizer_.classes_
         columns = (np.ravel(col) for col in Y.T)
         self.estimators = []
@@ -42,19 +44,19 @@ class OneAgainstRest:
             unique_y = np.unique(column)
             if len(unique_y) == 1:
                 raise Exception("given all data points are assigned to the same class, the prediction would be boring.")
-            if self.params == None:
+            if self.params is None:
                 estimator = self.estimator_cls()
             else:
                 estimator = self.estimator_cls(*self.params)
-            estimator.fit(X_train, column)
+            estimator.fit(X, column)
             self.estimators.append(estimator)
 
     def test(self, X, y):
         """
         testing multiple estimators each for distinguishing a pair of classes.
         Args:
-            X: input points
-            y: input labels
+            X (numpy.ndarray): input points
+            y (numpy.ndarray): input labels
         """
         A = self.predict(X)
         B = y
@@ -62,15 +64,15 @@ class OneAgainstRest:
         diff = 0
         for i in range(0, l):
             if A[i] != B[i]:
-                diff = diff + 1
-        print("%d out of %d are wrong" %(diff, l))
-        return 1-(diff*1.0/l)
+                diff += 1
+        print("%d out of %d are wrong" % (diff, l))
+        return 1 - (diff * 1.0 / l)
 
     def predict(self, X):
         """
         applying multiple estimators for prediction
         Args:
-            X: input points
+            X (numpy.ndarray): input points
         """
         n_samples = _num_samples(X)
         maxima = np.empty(n_samples, dtype=float)
@@ -81,8 +83,3 @@ class OneAgainstRest:
             np.maximum(maxima, pred, out=maxima)
             argmaxima[maxima == pred] = i
         return self.classes[np.array(argmaxima.T)]
-
-
-
-
-

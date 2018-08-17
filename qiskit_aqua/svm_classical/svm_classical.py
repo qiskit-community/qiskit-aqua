@@ -22,6 +22,7 @@ from qiskit_aqua import QuantumAlgorithm
 from qiskit_aqua.svm_classical.svm_classical_binary import SVM_Classical_Binary
 from qiskit_aqua.svm_classical.svm_classical_multiclass import SVM_Classical_Multiclass
 
+
 class SVM_Classical(QuantumAlgorithm):
     """
     The classical svm interface.
@@ -55,6 +56,7 @@ class SVM_Classical(QuantumAlgorithm):
     def __init__(self, configuration=None):
         super().__init__(configuration or copy.deepcopy(SVM_Classical.SVM_Classical_CONFIGURATION))
         self._ret = {}
+        self.instance = None
 
     def init_params(self, params, algo_input):
         SVM_Classical_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
@@ -63,8 +65,9 @@ class SVM_Classical(QuantumAlgorithm):
             self.instance = SVM_Classical_Multiclass()
         else:
             self.instance = SVM_Classical_Binary()
-        self.instance.init_args(algo_input.training_dataset, algo_input.test_dataset, algo_input.datapoints, SVM_Classical_params.get('print_info'), SVM_Classical_params.get('multiclass_alg'))
+        self.instance.init_args(algo_input.training_dataset, algo_input.test_dataset, algo_input.datapoints,
+                                SVM_Classical_params.get('print_info'), SVM_Classical_params.get('multiclass_alg'))
 
     def run(self):
         self.instance.run()
-        return self.instance._ret
+        return self.instance.ret

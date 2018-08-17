@@ -23,21 +23,23 @@ from qiskit_aqua.svm_classical.rbf_svc_estimator import RBF_SVC_Estimator
 from qiskit_aqua.utils.multiclass.data_preprocess import *
 from qiskit_aqua.svm_classical.svm_classical_abc import SVM_Classical_ABC
 
+
 class SVM_Classical_Multiclass(SVM_Classical_ABC):
     """
     the multiclass classifier
     the classifier is built by wrapping the estimator (for binary classification) with the multiclass extensions
     """
+
     def __init__(self):
-        self._ret = {}
+        self.ret = {}
 
     def run(self):
         """
         put the train, test, predict together
         """
         if self.training_dataset is None:
-            self._ret['error'] = 'training dataset is missing! please provide it'
-            return self._ret
+            self.ret['error'] = 'training dataset is missing! please provide it'
+            return self.ret
 
         X_train, y_train, label_to_class = multiclass_get_points_and_labels(self.training_dataset, self.class_labels)
         X_test, y_test, label_to_class = multiclass_get_points_and_labels(self.test_dataset, self.class_labels)
@@ -49,8 +51,9 @@ class SVM_Classical_Multiclass(SVM_Classical_ABC):
         elif self.multiclass_alg == "error_correcting_code":
             multiclass_classifier = ErrorCorrectingCode(RBF_SVC_Estimator, code_size=4)
         else:
-            self._ret['error'] = 'the multiclass alg should be one of {"all_pairs", "one_against_all", "error_correcting_code"}. You did not specify it correctly!'
-            return self._ret
+            self.ret[
+                'error'] = 'the multiclass alg should be one of {"all_pairs", "one_against_all", "error_correcting_code"}. You did not specify it correctly!'
+            return self.ret
         if self.print_info:
             print("You are using the multiclass alg: " + self.multiclass_alg)
 
@@ -58,10 +61,10 @@ class SVM_Classical_Multiclass(SVM_Classical_ABC):
 
         if self.test_dataset is not None:
             success_ratio = multiclass_classifier.test(X_test, y_test)
-            self._ret['test_success_ratio'] = success_ratio
+            self.ret['test_success_ratio'] = success_ratio
 
         if self.datapoints is not None:
             predicted_labels = multiclass_classifier.predict(X_test)
             predicted_labelclasses = [label_to_class[x] for x in predicted_labels]
-            self._ret['predicted_labels'] = predicted_labelclasses
-        return self._ret
+            self.ret['predicted_labels'] = predicted_labelclasses
+        return self.ret

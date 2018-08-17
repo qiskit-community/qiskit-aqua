@@ -21,12 +21,14 @@ from sklearn.metrics.pairwise import rbf_kernel
 from qiskit_aqua.svm_qkernel import (get_points_and_labels, optimize_SVM)
 from qiskit_aqua.svm_classical.svm_classical_abc import SVM_Classical_ABC
 
+
 class SVM_Classical_Binary(SVM_Classical_ABC):
     """
     the binary classifier
     """
+
     def __init__(self):
-        self._ret = {}
+        self.ret = {}
 
     def kernel_join(self, points_array, points_array2, gamma=None):
         return rbf_kernel(points_array, points_array2, gamma)
@@ -41,7 +43,7 @@ class SVM_Classical_Binary(SVM_Classical_ABC):
         training_points, training_points_labels, label_to_class = get_points_and_labels(training_input, class_labels)
 
         kernel_matrix = self.kernel_join(training_points, training_points, None)
-        self._ret['kernel_matrix_training'] = kernel_matrix
+        self.ret['kernel_matrix_training'] = kernel_matrix
 
         [alpha, b, support] = optimize_SVM(kernel_matrix, training_points_labels)
         alphas = np.array([])
@@ -54,11 +56,11 @@ class SVM_Classical_Binary(SVM_Classical_ABC):
                 yin = np.vstack([yin, training_points_labels[alphindex]]
                                 ) if yin.size else training_points_labels[alphindex]
 
-        self._ret['svm'] = {}
-        self._ret['svm']['alphas'] = alphas
-        self._ret['svm']['bias'] = b
-        self._ret['svm']['support_vectors'] = SVMs
-        self._ret['svm']['yin'] = yin
+        self.ret['svm'] = {}
+        self.ret['svm']['alphas'] = alphas
+        self.ret['svm']['bias'] = b
+        self.ret['svm']['support_vectors'] = SVMs
+        self.ret['svm']['yin'] = yin
 
     def test(self, test_input, class_labels):
         """
@@ -69,13 +71,13 @@ class SVM_Classical_Binary(SVM_Classical_ABC):
         """
         test_points, test_points_labels, label_to_labelclass = get_points_and_labels(test_input, class_labels)
 
-        alphas = self._ret['svm']['alphas']
-        bias = self._ret['svm']['bias']
-        SVMs = self._ret['svm']['support_vectors']
-        yin = self._ret['svm']['yin']
+        alphas = self.ret['svm']['alphas']
+        bias = self.ret['svm']['bias']
+        SVMs = self.ret['svm']['support_vectors']
+        yin = self.ret['svm']['yin']
 
         kernel_matrix = self.kernel_join(test_points, SVMs)
-        self._ret['kernel_matrix_testing'] = kernel_matrix
+        self.ret['kernel_matrix_testing'] = kernel_matrix
 
         success_ratio = 0
         L = 0
@@ -84,9 +86,9 @@ class SVM_Classical_Binary(SVM_Classical_ABC):
         for tin in range(total_num_points):
             Ltot = 0
             for sin in range(len(SVMs)):
-                L = yin[sin]*alphas[sin]*kernel_matrix[tin][sin]
+                L = yin[sin] * alphas[sin] * kernel_matrix[tin][sin]
                 Ltot += L
-            Lsign[tin] = np.sign(Ltot+bias)
+            Lsign[tin] = np.sign(Ltot + bias)
             if self.print_info:
                 print("\n=============================================")
                 print('classifying', test_points[tin])
@@ -98,9 +100,9 @@ class SVM_Classical_Binary(SVM_Classical_ABC):
                     print('INCORRECT')
             if Lsign[tin] == test_points_labels[tin]:
                 success_ratio += 1
-        final_success_ratio = success_ratio/total_num_points
+        final_success_ratio = success_ratio / total_num_points
         if self.print_info:
-            print('Classification success for this set is %s %% \n' % (100*final_success_ratio))
+            print('Classification success for this set is %s %% \n' % (100 * final_success_ratio))
 
         return final_success_ratio
 
@@ -110,21 +112,21 @@ class SVM_Classical_Binary(SVM_Classical_ABC):
         Args:
             test_points (numpy.ndarray): the points
         """
-        alphas = self._ret['svm']['alphas']
-        bias = self._ret['svm']['bias']
-        SVMs = self._ret['svm']['support_vectors']
-        yin = self._ret['svm']['yin']
+        alphas = self.ret['svm']['alphas']
+        bias = self.ret['svm']['bias']
+        SVMs = self.ret['svm']['support_vectors']
+        yin = self.ret['svm']['yin']
         kernel_matrix = self.kernel_join(test_points, SVMs)
-        self._ret['kernel_matrix_prediction'] = kernel_matrix
+        self.ret['kernel_matrix_prediction'] = kernel_matrix
 
         total_num_points = len(test_points)
         Lsign = np.zeros(total_num_points)
         for tin in range(total_num_points):
             Ltot = 0
             for sin in range(len(SVMs)):
-                L = yin[sin]*alphas[sin]*kernel_matrix[tin][sin]
+                L = yin[sin] * alphas[sin] * kernel_matrix[tin][sin]
                 Ltot += L
-            Lsign[tin] = np.int(np.sign(Ltot+bias))
+            Lsign[tin] = np.int(np.sign(Ltot + bias))
         return Lsign
 
     def run(self):
@@ -132,18 +134,18 @@ class SVM_Classical_Binary(SVM_Classical_ABC):
         put the train, test, predict together
         """
         if self.training_dataset is None:
-            self._ret['error'] = 'training dataset is missing! please provide it'
-            return self._ret
+            self.ret['error'] = 'training dataset is missing! please provide it'
+            return self.ret
 
         self.train(self.training_dataset, self.class_labels)
 
         if self.test_dataset is not None:
             success_ratio = self.test(self.test_dataset, self.class_labels)
-            self._ret['test_success_ratio'] = success_ratio
+            self.ret['test_success_ratio'] = success_ratio
 
         if self.datapoints is not None:
             predicted_labels = self.predict(self.datapoints)
             _, _, label_to_class = get_points_and_labels(self.training_dataset, self.class_labels)
             predicted_labelclasses = [label_to_class[x] for x in predicted_labels]
-            self._ret['predicted_labels'] = predicted_labelclasses
-        return self._ret
+            self.ret['predicted_labels'] = predicted_labelclasses
+        return self.ret

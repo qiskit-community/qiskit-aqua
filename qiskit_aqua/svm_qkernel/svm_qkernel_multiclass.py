@@ -22,11 +22,13 @@ from qiskit_aqua.utils.multiclass.allpairs import AllPairs
 from qiskit_aqua.utils.multiclass.one_against_rest import OneAgainstRest
 from qiskit_aqua.svm_qkernel.svm_qkernel_abc import SVM_QKernel_ABC
 
+
 class SVM_QKernel_Multiclass(SVM_QKernel_ABC):
     """
     the multiclass classifier
     the classifier is built by wrapping the estimator (for binary classification) with the multiclass extensions
     """
+
     def __init__(self):
         self._ret = {}
 
@@ -38,7 +40,7 @@ class SVM_QKernel_Multiclass(SVM_QKernel_ABC):
             self._ret['error'] = 'training dataset is missing! please provide it'
             return self._ret
 
-        num_of_qubits = self.auto_detect_qubitnum(self.training_dataset) # auto-detect mode
+        num_of_qubits = self.auto_detect_qubitnum(self.training_dataset)  # auto-detect mode
         if num_of_qubits == -1:
             self._ret['error'] = 'Something wrong with the auto-detection of num_of_qubits'
             return self._ret
@@ -54,9 +56,11 @@ class SVM_QKernel_Multiclass(SVM_QKernel_ABC):
         elif self.multiclass_alg == "one_against_all":
             multiclass_classifier = OneAgainstRest(QKernalSVM_Estimator, [self._backend, self.shots, self._random_seed])
         elif self.multiclass_alg == "error_correcting_code":
-            multiclass_classifier = ErrorCorrectingCode(QKernalSVM_Estimator, code_size=4, params = [self._backend, self.shots, self._random_seed])
+            multiclass_classifier = ErrorCorrectingCode(QKernalSVM_Estimator, code_size=4,
+                                                        params=[self._backend, self.shots, self._random_seed])
         else:
-            self._ret['error'] = 'the multiclass alg should be one of {"all_pairs", "one_against_all", "error_correcting_code"}. You did not specify it correctly!'
+            self._ret[
+                'error'] = 'the multiclass alg should be one of {"all_pairs", "one_against_all", "error_correcting_code"}. You did not specify it correctly!'
             return self._ret
         if self.print_info:
             print("You are using the multiclass alg: " + self.multiclass_alg)

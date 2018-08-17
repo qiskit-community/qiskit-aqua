@@ -20,10 +20,12 @@ from abc import ABC, abstractmethod
 
 from qiskit_aqua.svm_qkernel import entangler_map_creator
 
+
 class SVM_QKernel_ABC(ABC):
     """
     abstract base class for the binary classifier and the multiclass classifier
     """
+
     def auto_detect_qubitnum(self, training_dataset):
         auto_detected_size = -1
         for key in training_dataset:
@@ -33,7 +35,8 @@ class SVM_QKernel_ABC(ABC):
                 return auto_detected_size
         return auto_detected_size
 
-    def init_args(self, training_dataset, test_dataset, datapoints, print_info, multiclass_alg, backend, shots, random_seed):
+    def init_args(self, training_dataset, test_dataset, datapoints, print_info, multiclass_alg, backend, shots,
+                  random_seed):
         self._backend = backend
 
         if 'statevector' in self._backend:
@@ -43,7 +46,7 @@ class SVM_QKernel_ABC(ABC):
         self.test_dataset = test_dataset
         self.datapoints = datapoints
         self.class_labels = list(self.training_dataset.keys())
-        self.num_of_qubits = self.auto_detect_qubitnum(training_dataset) # auto-detect mode
+        self.num_of_qubits = self.auto_detect_qubitnum(training_dataset)  # auto-detect mode
         self.entangler_map = entangler_map_creator(self.num_of_qubits)
         self.coupling_map = None
         self.initial_layout = None
@@ -54,6 +57,4 @@ class SVM_QKernel_ABC(ABC):
 
     @abstractmethod
     def run(self):
-        raise NotImplementedError( "Should have implemented this" )
-
-
+        raise NotImplementedError("Should have implemented this")

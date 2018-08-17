@@ -29,8 +29,8 @@ from qiskit_aqua.svm_qkernel import (cost_estimate_sigmoid, return_probabilities
 
 logger = logging.getLogger(__name__)
 
-class SVM_Variational(QuantumAlgorithm):
 
+class SVM_Variational(QuantumAlgorithm):
     SVM_VARIATIONAL_CONFIGURATION = {
         'name': 'SVM_Variational',
         'description': 'SVM_Variational Algorithm',
@@ -159,7 +159,7 @@ class SVM_Variational(QuantumAlgorithm):
             if predicted_class == expected_class:
                 accuracy += 1.0
 
-        accuracy = accuracy / len(labels)
+        accuracy /= len(labels)
         total_loss = loss / len(labels)
 
         return total_loss, accuracy
@@ -214,7 +214,6 @@ class SVM_Variational(QuantumAlgorithm):
         self._ret['opt_params'] = theta_best
         self._ret['training_loss'] = cost_final
 
-
     def test(self, data):
         data_samples = []
         labels = []
@@ -245,4 +244,3 @@ class SVM_Variational(QuantumAlgorithm):
             self._ret['predicted_labels'] = predicted_labels
 
         return self._ret
-
