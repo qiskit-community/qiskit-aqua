@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-
 """
 The Quantum Phase Estimation Subroutine.
 """
@@ -121,9 +120,10 @@ class QPE():
         self._ancilla_phase_coef = 0
         self._circuit = None
         self._ret = {}
-        self._state_vector_out = []
-        self._circuit_test = None
-    def init_params(self, params, qubit_op):
+        
+        self._test_result = None
+
+    def init_params(self, params, qubit_op, test_flag):
         """
         Initialize via parameters dictionary and algorithm input instance
         Args:
@@ -161,13 +161,13 @@ class QPE():
         iqft.init_params(iqft_params)
 
         self.init_args(
-            operator, init_state, iqft, num_time_slices, num_ancillae,
+            test_flag, operator, init_state, iqft, num_time_slices, num_ancillae,
             paulis_grouping=paulis_grouping, expansion_mode=expansion_mode,
             expansion_order=expansion_order, evo_time=evo_time,
             use_basis_gates=use_basis_gates)
 
     def init_args(
-            self, operator, state_in, iqft, num_time_slices, num_ancillae,
+            self, test_flag, operator, state_in, iqft, num_time_slices, num_ancillae,
             paulis_grouping='random', expansion_mode='trotter', expansion_order=1,
             evo_time=None, use_basis_gates=True):
         # if self._backend.find('statevector') >= 0:
@@ -183,7 +183,9 @@ class QPE():
         self._evo_time = evo_time
         self._use_basis_gates = use_basis_gates
         self._ret = {}
-        self._state_vector_out = []#
+        
+        self._test_result = None
+        self._test_flag = test_flag
         
 
     def _construct_phase_estimation_circuit(self, measure=False):
@@ -231,13 +233,11 @@ class QPE():
         # inverse qft on ancillae
         self._iqft.construct_circuit('circuit', a, qc)
         
-        
-        self._circuit_test  = qc
-        job = execute(self._circuit_test, backend='local_statevector_simulator')
-        self._state_vector_out = job.result().get_statevector(self._circuit_test)
+        #job = execute(self._iqft, 'local_statevector_simulator')
+        #self._ancilla_state_result = np.asarray(job.result().get_statevector(self._iqft))
         
         if measure:
-           qc.measure(a, c)
+            qc.measure(a, c)
 
         self._circuit = qc
         return qc
@@ -265,29 +265,29 @@ class QPE():
         return self._circuit
 
     def _compute_eigenvalue(self):
-
+        
+        bcknd="local_qasm_simulator"
         if self._circuit is None:
             self._setup_qpe(measure=True)
-      
+            
+            if self._test_flag:
+                self._setup_qpe(measure=False)
+                bcknd = "local_statevector_simulator"
         
-        result1 = execute(self._circuit, backend="local_qasm_simulator", shots = 100 ).result()
-        print(result1)
-        counts = result1.get_counts(self._circuit)
-        
-        rd = result1.get_counts(self._circuit)
+        result = execute(self._circuit, backend=bcknd).result()
+        print(result)
+        counts = result.get_counts(self._circuit)
+
+        rd = result.get_counts(self._circuit)
         rets = sorted([[rd[k], k, k] for k in rd])[::-1]
         for d in rets:
             d[2] = sum([2**-(i+1) for i, e in enumerate(reversed(d[2])) if e == "1"])*2*np.pi/self._evo_time
 
         self._ret['measurements'] = rets
         self._ret['evo_time'] = self._evo_time
-        #job = execute(self._circuit_test, backend='local_statevector_simulator')
-        #result_ver = execute(self._circuit, backend="local_statevector_simulator").result()
-        #self._state_vector_out = result_ver.get_statevector(self._circuit)
-        #self._state_vector_out = job.result().get_statevector(self._circuit_test)
-    
+        self._test_result = result
 
 
     def run(self):
         self._compute_eigenvalue()
-        return self._ret, self._state_vector_out
+        return self._ret, self._test_result
