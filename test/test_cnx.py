@@ -19,6 +19,7 @@ import unittest
 from itertools import combinations, chain
 from parameterized import parameterized
 from test.common import QiskitAquaTestCase
+from qiskit.tools.qi.qi import state_fidelity
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.wrapper import execute as q_execute
 import numpy as np
@@ -51,10 +52,9 @@ class TestCNX(QiskitAquaTestCase):
             # print(qc.qasm())
             vec = np.asarray(q_execute(qc, 'local_statevector_simulator').result().get_statevector(qc))
             vec_o = [0, 1] if len(subset) == num_controls else [1, 0]
-            np.testing.assert_almost_equal(
-                vec,
-                np.array(vec_o + [0] * (2 ** (num_controls + num_ancillae + 1) - 2))
-            )
+            # print(vec, np.array(vec_o + [0] * (2 ** (num_controls + num_ancillae + 1) - 2)))
+            f = state_fidelity(vec, np.array(vec_o + [0] * (2 ** (num_controls + num_ancillae + 1) - 2)))
+            self.assertAlmostEqual(f, 1)
 
 
 if __name__ == '__main__':
