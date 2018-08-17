@@ -43,7 +43,7 @@ quantum algorithms:
     Along with any supporting  module, for immediate dynamic discovery, the new algorithm class
     can simply be installed under its own folder in the ``qiskit_aqua`` directory, just like the
     existing algorithms.  Aqua also allows for
-    :ref:`aqua-dynamically-discovered-components`: new algorithms can register themselves
+    :ref:`aqua-dynamically-discovered-components`: new components can register themselves
     as Aqua extensions and be dynamically discovered at run time independent of their
     location in the file system.
     This is done in order to encourage researchers and

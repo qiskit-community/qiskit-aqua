@@ -66,6 +66,10 @@ class TNC(Optimizer):
                 'tol': {
                     'type': ['number', 'null'],
                     'default': None
+                },
+                'eps': {
+                    'type': 'number',
+                    'default': 1e-08
                 }
             },
             'additionalProperties': False
@@ -75,7 +79,7 @@ class TNC(Optimizer):
             'bounds': Optimizer.SupportLevel.supported,
             'initial_point': Optimizer.SupportLevel.required
         },
-        'options': ['maxiter', 'disp', 'accuracy', 'ftol', 'xtol', 'gtol'],
+        'options': ['maxiter', 'disp', 'accuracy', 'ftol', 'xtol', 'gtol', 'eps'],
         'optimizer': ['local']
     }
 

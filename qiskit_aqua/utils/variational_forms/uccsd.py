@@ -218,7 +218,8 @@ class VarFormUCCSD(VariationalForm):
                 return None
 
     @staticmethod
-    def compute_excitation_lists(num_particles, num_orbitals, active_occ_list=None, active_unocc_list=None):
+    def compute_excitation_lists(num_particles, num_orbitals,
+                                 active_occ_list=None, active_unocc_list=None, same_spin_doubles=True):
         """
         Computes single and double excitation lists
         
@@ -229,6 +230,8 @@ class VarFormUCCSD(VariationalForm):
                              0 to n where n is num particles // 2
             active_unocc_list: List of unoccupied orbitals to include, indices are
                                0 to m where m is (num_orbitals - num particles) // 2
+            same_spin_doubles: True to include alpha,alpha and beta,beta double excitations
+                               as well as alpha,beta pairings. False includes only alpha,beta
 
         Returns:
             Single and double excitation lists
@@ -277,6 +280,21 @@ class VarFormUCCSD(VariationalForm):
                 for occ_beta in [i + beta_idx for i in active_occ_list]:
                     for unocc_beta in [i + beta_idx for i in active_unocc_list]:
                         double_excitations.append([occ_alpha, unocc_alpha, occ_beta, unocc_beta])
+
+        if same_spin_doubles and len(active_occ_list) > 1 and len(active_unocc_list) > 1:
+            for i, occ_alpha in enumerate(active_occ_list[:-1]):
+                for j, unocc_alpha in enumerate(active_unocc_list[:-1]):
+                    for occ_alpha_1 in active_occ_list[i+1:]:
+                        for unocc_alpha_1 in active_unocc_list[j+1:]:
+                            double_excitations.append([occ_alpha, unocc_alpha, occ_alpha_1, unocc_alpha_1])
+
+            up_active_occ_list = [i + beta_idx for i in active_occ_list]
+            up_active_unocc_list = [i + beta_idx for i in active_unocc_list]
+            for i, occ_beta in enumerate(up_active_occ_list[:-1]):
+                for j, unocc_beta in enumerate(up_active_unocc_list[:-1]):
+                    for occ_beta_1 in up_active_occ_list[i+1:]:
+                        for unocc_beta_1 in up_active_unocc_list[j+1:]:
+                            double_excitations.append([occ_beta, unocc_beta, occ_beta_1, unocc_beta_1])
 
         logger.debug('single_excitations {}'.format(single_excitations))
         logger.debug('double_excitations {}'.format(double_excitations))
