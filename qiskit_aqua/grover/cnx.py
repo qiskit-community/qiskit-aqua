@@ -18,35 +18,116 @@
 """
 CNX gate. N Controlled-Not Gate.
 """
+
+from math import pi, ceil
 from qiskit import QuantumCircuit, CompositeGate
 
 
 class CNXGate(CompositeGate):
     """CNX gate."""
 
-    def __init__(self, ctls, ancis, tgt, circ=None):
+    def __init__(self, q_controls, q_ancilla, q_target, circ=None):
         """Create new CNX gate."""
-        qubits = [v for v in ctls] + [v for v in ancis] + [tgt]
-        n_c = len(ctls)
-        n_a = len(ancis)
+        qubits = [v for v in q_controls] + [v for v in q_ancilla] + [q_target]
+        n_c = len(q_controls)
+        n_a = len(q_ancilla)
         super(CNXGate, self).__init__("cnx", (n_c, n_a), qubits, circ)
+        self.multicx([*q_controls, q_target], q_ancilla[0] if q_ancilla else None)
 
-        if n_c == 1: # cx
-            self.cx(ctls[0], tgt)
-        elif n_c == 2: # ccx
-            self.ccx(ctls[0], ctls[1], tgt)
-        else:
-            anci_idx = 0
-            self.ccx(ctls[0], ctls[1], ancis[anci_idx])
-            for idx in range(2, len(ctls) - 1):
-                assert anci_idx + 1 < n_a, "length of ancillary qubits are not enough, please use a large one."
-                self.ccx(ctls[idx], ancis[anci_idx], ancis[anci_idx+1])
-                anci_idx += 1
-            self.ccx(ctls[len(ctls)-1], ancis[anci_idx], tgt)
-            for idx in (range(2, len(ctls) - 1))[::-1]:
-                self.ccx(ctls[idx], ancis[anci_idx-1], ancis[anci_idx])
-                anci_idx -= 1
-            self.ccx(ctls[0], ctls[1], ancis[anci_idx])
+    def cccx(self, qrs, angle=pi/4):
+        """
+            a 3-qubit controlled-NOT.
+            An implementation based on Page 17 of Barenco et al.
+            Parameters:
+                qrs:
+                    list of quantum registers. The last qubit is the target, the rest are controls
+
+                angle:
+                    default pi/4 when x is not gate
+                    set to pi/8 for square root of not
+        """
+        assert len(qrs) == 4, "There must be exactly 4 qubits of quantum registers for cccx"
+
+        # controlled-V
+        self.ch(qrs[0], qrs[3])
+        self.cu1(-angle, qrs[0], qrs[3])
+        self.ch(qrs[0], qrs[3])
+        # ------------
+
+        self.cx(qrs[0], qrs[1])
+
+        # controlled-Vdag
+        self.ch(qrs[1], qrs[3])
+        self.cu1(angle, qrs[1], qrs[3])
+        self.ch(qrs[1], qrs[3])
+        # ---------------
+
+        self.cx(qrs[0], qrs[1])
+
+        # controlled-V
+        self.ch(qrs[1], qrs[3])
+        self.cu1(-angle, qrs[1], qrs[3])
+        self.ch(qrs[1], qrs[3])
+        # ------------
+
+        self.cx(qrs[1], qrs[2])
+
+        # controlled-Vdag
+        self.ch(qrs[2], qrs[3])
+        self.cu1(angle, qrs[2], qrs[3])
+        self.ch(qrs[2], qrs[3])
+        # ---------------
+
+        self.cx(qrs[0], qrs[2])
+
+        # controlled-V
+        self.ch(qrs[2], qrs[3])
+        self.cu1(-angle, qrs[2], qrs[3])
+        self.ch(qrs[2], qrs[3])
+        # ------------
+
+        self.cx(qrs[1], qrs[2])
+
+        # controlled-Vdag
+        self.ch(qrs[2], qrs[3])
+        self.cu1(angle, qrs[2], qrs[3])
+        self.ch(qrs[2], qrs[3])
+        # ---------------
+
+        self.cx(qrs[0], qrs[2])
+
+        # controlled-V
+        self.ch(qrs[2], qrs[3])
+        self.cu1(-angle, qrs[2], qrs[3])
+        self.ch(qrs[2], qrs[3])
+
+    def ccccx(self, qrs):
+        """
+           a 4-qubit controlled-NOT.
+            An implementation based on Page 21 (Lemma 7.5) of Barenco et al.
+            Parameters:
+                qrs:
+                    list of quantum registers. The last qubit is the target, the rest are controls
+        """
+        assert len(qrs) == 5, "There must be exactly 5 qubits for ccccx"
+
+        # controlled-V
+        self.ch(qrs[3], qrs[4])
+        self.cu1(-pi / 2, qrs[3], qrs[4])
+        self.ch(qrs[3], qrs[4])
+        # ------------
+
+        self.cccx(qrs[:4])
+
+        # controlled-Vdag
+        self.ch(qrs[3], qrs[4])
+        self.cu1(pi / 2, qrs[3], qrs[4])
+        self.ch(qrs[3], qrs[4])
+        # ------------
+
+        self.cccx(qrs[:4])
+
+        self.cccx([qrs[0], qrs[1], qrs[2], qrs[4]], angle=pi / 8)
 
     def reapply(self, circ):
         """Reapply this gate to corresponding qubits in circ."""
@@ -54,6 +135,47 @@ class CNXGate(CompositeGate):
         anc_bits = [x for x in self.arg[self.param[0]:self.param[0]+self.param[1]]]
         tgt_bits = self.arg[-1]
         self._modifiers(circ.cnx(ctl_bits, anc_bits, tgt_bits))
+
+    def multicx(self, qrs, qancilla=None):
+        """
+            construct a circuit for multi-qubit controlled not
+            Parameters:
+                self:
+                    quantum circuit
+                qrs:
+                    list of quantum registers of at least length 1
+                qancilla:
+                    a quantum register. can be None if len(qrs) <= 5
+
+            Returns:
+                qc:
+                    a circuit appended with multi-qubit cnot
+        """
+        if len(qrs) <= 0:
+            pass
+        elif len(qrs) == 1:
+            self.x(qrs[0])
+        elif len(qrs) == 2:
+            self.cx(qrs[0], qrs[1])
+        elif len(qrs) == 3:
+            self.ccx(qrs[0], qrs[1], qrs[2])
+        elif len(qrs) == 4:
+            self.cccx(qrs)
+        elif len(qrs) == 5:
+            self.ccccx(qrs)
+        else:  # qrs[0], qrs[n-2] is the controls, qrs[n-1] is the target, and qancilla as working qubit
+            assert qancilla is not None, "There must be an ancilla qubit not necesseraly initialized to zero"
+            n = len(qrs) + 1  # SOME ERROR HERE
+            m1 = ceil(n / 2)
+            m2 = n - m1 - 1
+
+            self.multicx([*qrs[:m1], qancilla], qrs[m1])
+
+            self.multicx([*qrs[m1:m1 + m2 - 1], qancilla, qrs[n - 2]], qrs[m1 - 1])
+
+            self.multicx([*qrs[:m1], qancilla], qrs[m1])
+
+            self.multicx([*qrs[m1:m1 + m2 - 1], qancilla, qrs[n - 2]], qrs[m1 - 1])
 
 
 def cnx(self, control_qubits, ancillary_qubits, target_qubit):
@@ -70,6 +192,28 @@ def cnx(self, control_qubits, ancillary_qubits, target_qubit):
     temp.append(target_qubit)
     self._check_dups(temp)
     return self._attach(CNXGate(control_qubits, ancillary_qubits, target_qubit, self))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 QuantumCircuit.cnx = cnx
