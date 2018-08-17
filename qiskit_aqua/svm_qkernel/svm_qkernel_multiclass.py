@@ -30,23 +30,23 @@ class SVM_QKernel_Multiclass(SVM_QKernel_ABC):
     """
 
     def __init__(self):
-        self._ret = {}
+        self.ret = {}
 
     def run(self):
         """
         put the train, test, predict together
         """
         if self.training_dataset is None:
-            self._ret['error'] = 'training dataset is missing! please provide it'
-            return self._ret
+            self.ret['error'] = 'training dataset is missing! please provide it'
+            return self.ret
 
         num_of_qubits = self.auto_detect_qubitnum(self.training_dataset)  # auto-detect mode
         if num_of_qubits == -1:
-            self._ret['error'] = 'Something wrong with the auto-detection of num_of_qubits'
-            return self._ret
+            self.ret['error'] = 'Something wrong with the auto-detection of num_of_qubits'
+            return self.ret
         if num_of_qubits != 2 and num_of_qubits != 3:
-            self._ret['error'] = 'You should lower the feature size to 2 or 3 using PCA first!'
-            return self._ret
+            self.ret['error'] = 'You should lower the feature size to 2 or 3 using PCA first!'
+            return self.ret
 
         X_train, y_train, label_to_class = multiclass_get_points_and_labels(self.training_dataset, self.class_labels)
         X_test, y_test, label_to_class = multiclass_get_points_and_labels(self.test_dataset, self.class_labels)
@@ -59,20 +59,20 @@ class SVM_QKernel_Multiclass(SVM_QKernel_ABC):
             multiclass_classifier = ErrorCorrectingCode(QKernalSVM_Estimator, code_size=4,
                                                         params=[self._backend, self.shots, self._random_seed])
         else:
-            self._ret[
+            self.ret[
                 'error'] = 'the multiclass alg should be one of {"all_pairs", "one_against_all", "error_correcting_code"}. You did not specify it correctly!'
-            return self._ret
+            return self.ret
         if self.print_info:
             print("You are using the multiclass alg: " + self.multiclass_alg)
         multiclass_classifier.train(X_train, y_train)
 
         if self.test_dataset is not None:
             success_ratio = multiclass_classifier.test(X_test, y_test)
-            self._ret['test_success_ratio'] = success_ratio
+            self.ret['test_success_ratio'] = success_ratio
 
         if self.datapoints is not None:
             predicted_labels = multiclass_classifier.predict(X_test)
             predicted_labelclasses = [label_to_class[x] for x in predicted_labels]
-            self._ret['predicted_labels'] = predicted_labelclasses
+            self.ret['predicted_labels'] = predicted_labelclasses
 
-        return self._ret
+        return self.ret
