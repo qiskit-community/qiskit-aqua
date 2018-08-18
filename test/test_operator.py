@@ -397,6 +397,28 @@ class TestOperator(QiskitAquaTestCase):
         self.assertNotEqual(op1, op4)
         self.assertNotEqual(op3, op4)
 
+    def test_negation_operator(self):
+
+        paulis = ['IXYZ', 'XXZY', 'IIZZ', 'XXYY', 'ZZXX', 'YYYY']
+        coeffs = [0.2, 0.6, 0.8, -0.2, -0.6, -0.8]
+        op1 = Operator(paulis=[])
+        for coeff, pauli in zip(coeffs, paulis):
+            pauli_term = [coeff, label_to_pauli(pauli)]
+            op1 += Operator(paulis=[pauli_term])
+
+        paulis = ['IXYZ', 'XXZY', 'IIZZ', 'XXYY', 'ZZXX', 'YYYY']
+        coeffs = [-0.2, -0.6, -0.8, 0.2, 0.6, 0.8]
+        op2 = Operator(paulis=[])
+        for coeff, pauli in zip(coeffs, paulis):
+            pauli_term = [coeff, label_to_pauli(pauli)]
+            op2 += Operator(paulis=[pauli_term])
+
+        self.assertNotEqual(op1, op2)
+        self.assertEqual(op1, -op2)
+        self.assertEqual(-op1, op2)
+        op1.scaling_coeff(-1.0)
+        self.assertEqual(op1, op2)
+
     def test_chop_real_only(self):
 
         paulis = ['IXYZ', 'XXZY', 'IIZZ', 'XXYY', 'ZZXX', 'YYYY']
