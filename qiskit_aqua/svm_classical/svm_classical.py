@@ -39,6 +39,10 @@ class SVM_Classical(QuantumAlgorithm):
             'id': 'SVM_Classical_schema',
             'type': 'object',
             'properties': {
+                'gamma': {
+                    'type': ['number', 'null'],
+                    'default': None
+                },
                 'multiclass_alg': {
                     'type': 'string',
                     'default': 'all_pairs'
@@ -66,7 +70,7 @@ class SVM_Classical(QuantumAlgorithm):
         else:
             self.instance = SVM_Classical_Binary()
         self.instance.init_args(algo_input.training_dataset, algo_input.test_dataset, algo_input.datapoints,
-                                SVM_Classical_params.get('print_info'), SVM_Classical_params.get('multiclass_alg'))
+                                SVM_Classical_params.get('print_info'), SVM_Classical_params.get('multiclass_alg'), SVM_Classical_params.get('gamma'))
 
     def run(self):
         self.instance.run()

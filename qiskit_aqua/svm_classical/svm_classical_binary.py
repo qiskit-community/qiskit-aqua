@@ -42,7 +42,7 @@ class SVM_Classical_Binary(SVM_Classical_ABC):
         """
         training_points, training_points_labels, label_to_class = get_points_and_labels(training_input, class_labels)
 
-        kernel_matrix = self.kernel_join(training_points, training_points, None)
+        kernel_matrix = self.kernel_join(training_points, training_points, self.gamma)
         self.ret['kernel_matrix_training'] = kernel_matrix
 
         [alpha, b, support] = optimize_SVM(kernel_matrix, training_points_labels)
@@ -76,7 +76,7 @@ class SVM_Classical_Binary(SVM_Classical_ABC):
         SVMs = self.ret['svm']['support_vectors']
         yin = self.ret['svm']['yin']
 
-        kernel_matrix = self.kernel_join(test_points, SVMs)
+        kernel_matrix = self.kernel_join(test_points, SVMs, self.gamma)
         self.ret['kernel_matrix_testing'] = kernel_matrix
 
         success_ratio = 0
@@ -116,7 +116,7 @@ class SVM_Classical_Binary(SVM_Classical_ABC):
         bias = self.ret['svm']['bias']
         SVMs = self.ret['svm']['support_vectors']
         yin = self.ret['svm']['yin']
-        kernel_matrix = self.kernel_join(test_points, SVMs)
+        kernel_matrix = self.kernel_join(test_points, SVMs, self.gamma)
         self.ret['kernel_matrix_prediction'] = kernel_matrix
 
         total_num_points = len(test_points)
