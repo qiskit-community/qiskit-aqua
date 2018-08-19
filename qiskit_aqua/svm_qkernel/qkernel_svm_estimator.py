@@ -15,23 +15,31 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit_aqua.multiclass.estimator import Estimator
-from sklearn.svm import LinearSVC
-from qiskit_aqua.svm.svm_qkernel import SVM_QKernel
 import numpy as np
-from qiskit_aqua.svm import (get_points_and_labels, optimize_SVM,
-                             kernel_join, entangler_map_creator)
 
-class QKernalSVM_Estimator(Estimator, SVM_QKernel):
-    def __init__(self, backend=None, shots=None):
+from qiskit_aqua.utils.multiclass.estimator import Estimator
+from qiskit_aqua.svm_qkernel import (optimize_SVM,
+                                     kernel_join, entangler_map_creator)
+
+
+class QKernalSVM_Estimator(Estimator):
+    """The estimator that uses the quantum kernel."""
+
+    def __init__(self, backend=None, shots=None, random_seed=None):
         super(QKernalSVM_Estimator, self).__init__()
         self._backend = backend
         self.shots = shots
-
-
+        self._ret = {}
+        self._random_seed = random_seed
 
     def fit(self, X, y):
-        y=y.astype(float) # to make sure cvxopt does not complain about the type!
+        """
+        fit values for the points and the labels
+        Args:
+            X (numpy.ndarray): input points
+            y (numpy.ndarray): input labels
+        """
+        y = y.astype(float)
 
         self.class_labels = np.unique(y)
         if len(self.class_labels) == 1:
@@ -59,8 +67,7 @@ class QKernalSVM_Estimator(Estimator, SVM_QKernel):
             if support[alphindex]:
                 alphas = np.vstack([alphas, alpha[alphindex]]) if alphas.size else alpha[alphindex]
                 SVMs = np.vstack([SVMs, X[alphindex]]) if SVMs.size else X[alphindex]
-                yin = np.vstack([yin, y[alphindex]]
-                                ) if yin.size else y[alphindex]
+                yin = np.vstack([yin, y[alphindex]]) if yin.size else y[alphindex]
 
         self._ret['svm'] = {}
         self._ret['svm']['alphas'] = alphas
@@ -68,9 +75,13 @@ class QKernalSVM_Estimator(Estimator, SVM_QKernel):
         self._ret['svm']['support_vectors'] = SVMs
         self._ret['svm']['yin'] = yin
 
-
-
     def decision_function(self, X):
+        """
+        predicted values for the points which account for both the labels and the confidence
+        Args:
+            X (numpy.ndarray): input points
+        """
+
         alphas = self._ret['svm']['alphas']
         bias = self._ret['svm']['bias']
         SVMs = self._ret['svm']['support_vectors']
@@ -85,7 +96,8 @@ class QKernalSVM_Estimator(Estimator, SVM_QKernel):
         for tin in range(total_num_points):
             Ltot = 0
             for sin in range(len(SVMs)):
-                L = yin[sin]*alphas[sin]*kernel_matrix[tin][sin]
+                L = yin[sin] * alphas[sin] * kernel_matrix[tin][sin]
                 Ltot += L
-            Lsign[tin] = Ltot+bias
+            Lsign[tin] = Ltot + bias
+
         return Lsign
