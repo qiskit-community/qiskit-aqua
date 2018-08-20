@@ -26,7 +26,7 @@ from qiskit_aqua.ui.run._customwidgets import EntryCustom
 from qiskit_aqua.preferences import Preferences
 from qiskit_aqua.ui._uipreferences import UIPreferences
 from qiskit_aqua import refresh_pluggables
-from qiskit_aqua._logging import get_logger_levels_for_names,build_logging_config,set_logger_config
+from qiskit_aqua._logging import get_logging_level,build_logging_config,set_logging_config
 import logging
 
 class PreferencesDialog(Dialog):
@@ -52,7 +52,7 @@ class PreferencesDialog(Dialog):
         preferences = Preferences()
         logging_config = preferences.get_logging_config()
         if logging_config is not None:
-            set_logger_config(logging_config)
+            set_logging_config(logging_config)
         
         uipreferences = UIPreferences()
         populate = uipreferences.get_populate_defaults(True)
@@ -104,8 +104,7 @@ class PreferencesDialog(Dialog):
         loggingGroup.grid(padx=(7,7),pady=6,row=3, column=0,sticky='nsw')
         loggingGroup.columnconfigure(1,pad=7)
         
-        levels = get_logger_levels_for_names(['qiskit_aqua'])
-        loglevel = levels[0]
+        loglevel = get_logging_level()
         
         ttk.Label(loggingGroup,
                   text="Level:",
@@ -139,14 +138,19 @@ class PreferencesDialog(Dialog):
             level_name = self._levelCombo.get()
             levels = [key for key, value in PreferencesDialog._LOG_LEVELS.items() if value == level_name]
             loglevel = levels[0]
-            logging_config = build_logging_config(['qiskit_aqua'],loglevel)
         
             preferences = Preferences()
             self._qconfigview.apply(preferences)
             self._packagesPage.apply(preferences)
+            preferences.save()
+            
+            logging_config = build_logging_config(loglevel)
+            
+            preferences = Preferences()
             preferences.set_logging_config(logging_config)
             preferences.save()
-            set_logger_config(logging_config)
+            
+            set_logging_config(logging_config)
         
             uipreferences = UIPreferences()
             populate = self._populateDefaults.get()

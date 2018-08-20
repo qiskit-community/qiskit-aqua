@@ -141,7 +141,7 @@ class VQE(QuantumAlgorithm):
             operator_mode (str): operator mode, used for eval of operator
             var_form (VariationalForm) : parametrized variational form.
             optimizer (Optimizer) : the classical optimization algorithm.
-            opt_init_point (str) : optimizer initial point.
+            opt_init_point (numpy.ndarray) : optimizer initial point.
             aux_operators ([Operator]): Auxiliary operators to be evaluated at each eigenvalue
         """
         self._operator = operator
