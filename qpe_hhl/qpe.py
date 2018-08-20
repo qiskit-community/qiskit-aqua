@@ -183,7 +183,7 @@ class QPE():
             new_matrix[matrix.shape[0]:,:matrix.shape[0]] = np.matrix.getH(matrix)[:,:]
             new_matrix[:matrix.shape[0],matrix.shape[0]:] = matrix[:,:]
             matrix = new_matrix
-        print(matrix.shape)
+        #print(matrix.shape)
         qubit_op = Operator(matrix=matrix)
         operator = qubit_op
 
@@ -208,13 +208,13 @@ class QPE():
         init_state.init_params(init_state_params)
 
         self.init_args(
-            test_flag, operator, init_state, iqft, num_time_slices, num_ancillae,
+            operator, init_state, iqft, num_time_slices, num_ancillae,
             paulis_grouping=paulis_grouping, expansion_mode=expansion_mode,
             expansion_order=expansion_order, evo_time=evo_time,
             use_basis_gates=use_basis_gates, backend = backend)
 
     def init_args(
-            self, test_flag, operator, state_in, iqft, num_time_slices, num_ancillae,
+            self, operator, state_in, iqft, num_time_slices, num_ancillae,
             paulis_grouping='random', expansion_mode='trotter', expansion_order=1,
             evo_time=None, use_basis_gates=True, backend='local_qasm_simulator'):
         #if self._backend.find('statevector') >= 0:
@@ -307,7 +307,7 @@ class QPE():
         logger.info('QPE circuit qasm length is roughly {}.'.format(
             len(self._circuit.qasm().split('\n'))
         ))
-        return self._circuit
+        return self._circuit, self._evo_time
 
     def _compute_eigenvalue(self):
         
@@ -324,9 +324,9 @@ class QPE():
 
         self._ret['measurements'] = rets
         self._ret['evo_time'] = self._evo_time
-        self._test_result = result
+       
 
 
     def run(self):
         self._compute_eigenvalue()
-        return self._ret, self._test_result
+        return self._ret
