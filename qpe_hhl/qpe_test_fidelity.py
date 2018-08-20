@@ -3,13 +3,6 @@ from qiskit_aqua import Operator
 import numpy as np
 from qiskit.tools.qi.qi import state_fidelity
 
-
-# some parameters for testing:
-n = 4
-k = 3
-matrix = np.diag([3.5,1, 2, 6])
-
-
 def qpe_test_fidelity(n, k, matrix):
     """
     n - siye of the system
@@ -105,3 +98,28 @@ def qpe_test_fidelity(n, k, matrix):
     
     return test_results
 
+
+#sample run:
+if True:    
+    k = 2
+    matrix = np.diag([3.5,1, 2, 6])
+    n = len(matrix)
+    print(qpe_test_fidelity(n, k, matrix))
+
+
+#Run tests over parameter grid (k, n):
+if False:
+    T = ['Test results', k, n]
+    for k in np.arange(3, 7):
+        for n in [2, 4]: 
+            w = [-1, -1]
+            while min(w) <= 0:
+                matrix = np.random.random([n, n])+1j*np.random.random([n, n])
+                matrix = 4*(matrix+matrix.T.conj())
+                w, v = np.linalg.eig(matrix)
+            print('Matrix:', matrix)
+            #matrix = np.random.rand(n, n)
+            #matrix = matrix + matrix.T
+            Ttemp = qpe_test_fidelity(n, k, matrix)
+            T = np.vstack((T, Ttemp))
+            print(Ttemp)
