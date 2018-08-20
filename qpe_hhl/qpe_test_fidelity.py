@@ -19,7 +19,7 @@ while min(w) <= 0:
 
     w, v = np.linalg.eig(matrix)
 
-matrix = np.diag([3,1,4,7])
+matrix = np.diag([3.5,1,4, 7])
 
 #matrix = np.diag(10*np.random.random(4))
 #matrix=1/4*np.array([[15, 9, 5, -3], [9, 15, 3, -5], [5, 3, 15, -9], [-3, -5, -9, 15]])
@@ -87,16 +87,19 @@ tx = np.arange(0, 2**k, 1)/2**k
 tx *= 2*np.pi/res["evo_time"]
 ty = np.arange(0, 2**k, 1)
 
-plt.bar(x, y, width=2*np.pi/res["evo_time"]/2**k)
+plt.bar(x, y, width=2*np.pi/res["evo_time"]/(2**k-1))
 plt.plot(tx, 1024*fitfun(ty, w.real, k, n, res["evo_time"]), "r")
 
 plt.show()
 
 #%%
 #input vector:
-i = 1
-invec = v[:,i]
 
+#for i in range(n):
+#i = 1
+i = 0 
+invec = v[:,i]
+print('Eigenstate', i, '\t', invec)
 #def test_fidelity(k, invec, i)   : 
 #generating quantum state with qpe:
 params = {
@@ -105,7 +108,7 @@ params = {
         'num_ancillae': k,
         'num_time_slices': 5,
         'expansion_mode': 'suzuki',
-        'expansion_order': 2,
+        'expansion_order': 4,
         #'evo_time': 2*np.pi/8,
         #'use_basis_gates': False,
 },
@@ -123,7 +126,7 @@ res2, test_results2 = qpe_t.run()
 
 qvec = test_results2.get_statevector()
 
-print('State vector QPE algorithm:\n', np.round(qvec,3))
+#print('State vector QPE algorithm:\n', np.round(qvec,3))
 
 t = res2["evo_time"]
 
@@ -133,8 +136,8 @@ coeff_l = np.zeros((2**k,1), dtype = complex)
 
 for l in np.arange(2**k):
     for m in np.arange(2**k):       
-        coeff_l[l] = coeff_l[l] + (1/(2**k))*np.exp((-2.j*np.pi*m*l/(2**k)))* np.exp((1.j*w[i]*t*m))
-        #print(l, m, coeff_l[l])
+        coeff_l[l] = coeff_l[l] + np.exp((-2.j*np.pi*m*l/(2**k)))* np.exp((1.j*w[i]*t*m))/(2**k)
+        print(l, m, (np.exp((-2.j*np.pi*m*l/(2**k)))* np.exp((1.j*w[i]*t*m))).round(3))
         
 #alternative method for verification if coeff_l is right
 # =============================================================================
@@ -146,23 +149,16 @@ for l in np.arange(2**k):
 # =============================================================================
 # it's the same
           
-#cvec = np.array(coeff_l)
-#c = np.outer(invec, cvec).reshape((np.shape(np.outer(invec, cvec))[1],np.shape(np.outer(invec, cvec))[0]))    
-#C = np.sum(c,axis = 1)#/np.sqrt(n)#/np.linalg.norm(np.sum(c,axis = 1))
-#C = (np.matrix(c)*np.matrix(invec).T).round(3)
-
-#C1 = (coeff_l.round(3)*invec).reshape((n*2**k, 1), order = 'F')
 C1 = np.tensordot(invec, coeff_l.round(3), axes = 0).reshape((n*2**k,1))
 #generate density matrices:
-rho_q = np.outer(qvec.round(3), qvec.round(3))
-#rho_t = 1/np.sqrt(2)* (np.outer(c[:, 0], c[:, 0]) + np.outer(c[:, 1], c[:, 1]))
-rho_t = np.outer(C1,C1)
+rho_q =np.outer(qvec.round(3), qvec.round(3))
+rho_t =np.outer(C1,C1)
 
-print('Input state', invec.round(3) )
-print('Theoretical state vector: \n', np.round(C1,3))
+#print('Input state', invec.round(3) )
+#print('Theoretical state vector: \n', np.round(C1,3))
 #print('Fidelity:\n', state_fidelity(qvec, np.array(C).reshape(len(C))))
-print('Fidelity (state vectors):\n', state_fidelity(qvec, C1.reshape(len(C1))).round(3))
-#print('Fidelity (density matrices):\n', state_fidelity(rho_q, rho_t).round(3))
+print('Fidelity (state vectors): \t', state_fidelity(qvec, C1.reshape(len(C1))).round(3))
+print('Fidelity (density matrices): \t', state_fidelity(rho_q, rho_t).round(3))
 
 
 # =============================================================================
@@ -177,3 +173,9 @@ print('Fidelity (state vectors):\n', state_fidelity(qvec, C1.reshape(len(C1))).r
 #     
 # =============================================================================
 #test_fidelity(k, invec)
+#%%
+c3 = 0.25 * (1 + np.exp(1*3.5 * t*1j)*np.exp(np.pi*1j) + 
+np.exp(2*3.5 * t*1j)*np.exp(np.pi*2j) + np.exp(3*3.5 * t*1j)*np.exp(np.pi*3*1j))
+
+c2 = 0.25 *(1 + np.exp(1*3.5 * t * 1j)*np.exp(np.pi*0.5j) + np.exp(2*3.5 * t * 1j)*np.exp(np.pi*1j) 
++ np.exp(3*3.5 * t *1j)*np.exp(np.pi*1.5*1j))
