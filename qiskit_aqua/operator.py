@@ -103,6 +103,7 @@ class Operator(object):
                     lhs._paulis[idx][0] = operation(lhs._paulis[idx][0], pauli[0])
                 else:
                     lhs._paulis_table[pauli_label] = len(lhs._paulis)
+                    pauli[0] = operation(0.0, pauli[0])
                     lhs._paulis.append(pauli)
             result_paulis = lhs._paulis
         elif lhs._grouped_paulis is not None and rhs._grouped_paulis is not None:
