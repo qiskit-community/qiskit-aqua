@@ -266,13 +266,14 @@ class QPE():
 
     def _compute_eigenvalue(self):
         
-        bcknd="local_qasm_simulator"
         if self._circuit is None:
-            self._setup_qpe(measure=True)
-            
+        
             if self._test_flag:
                 self._setup_qpe(measure=False)
                 bcknd = "local_statevector_simulator"
+            else:    
+                self._setup_qpe(measure=True)
+                bcknd="local_qasm_simulator"
         
         result = execute(self._circuit, backend=bcknd).result()
         print(result)
