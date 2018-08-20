@@ -26,13 +26,30 @@ from qiskit import QuantumCircuit, CompositeGate
 class CNXGate(CompositeGate):
     """CNX gate."""
 
-    def __init__(self, q_controls, q_ancilla, q_target, circ=None):
+    def __init__(self, q_controls, q_ancilla, q_target, circ=None, mode='basic'):
         """Create new CNX gate."""
         qubits = [v for v in q_controls] + [v for v in q_ancilla] + [q_target]
-        n_c = len(q_controls)
-        n_a = len(q_ancilla)
-        super(CNXGate, self).__init__("cnx", (n_c, n_a), qubits, circ)
-        self.multicx([*q_controls, q_target], q_ancilla[0] if q_ancilla else None)
+        super(CNXGate, self).__init__("cnx", (len(q_controls), len(q_ancilla)), qubits, circ)
+        if mode == 'basic':
+            self.ccx_v_chain(q_controls, q_ancilla, q_target)
+        elif mode == 'advanced':
+            self.multicx([*q_controls, q_target], q_ancilla[0] if q_ancilla else None)
+        else:
+            raise ValueError('Unrecognized mode for building cnx gate: {}.'.format(mode))
+
+    def ccx_v_chain(self, q_controls, q_ancilla, q_target):
+        """Create new CNX gate by chaining ccx gates into a V shape."""
+        anci_idx = 0
+        self.ccx(q_controls[0], q_controls[1], q_ancilla[anci_idx])
+        for idx in range(2, len(q_controls) - 1):
+            assert anci_idx + 1 < len(q_ancilla), "length of ancillary qubits are not enough, please use a large one."
+            self.ccx(q_controls[idx], q_ancilla[anci_idx], q_ancilla[anci_idx + 1])
+            anci_idx += 1
+        self.ccx(q_controls[len(q_controls) - 1], q_ancilla[anci_idx], q_target)
+        for idx in (range(2, len(q_controls) - 1))[::-1]:
+            self.ccx(q_controls[idx], q_ancilla[anci_idx - 1], q_ancilla[anci_idx])
+            anci_idx -= 1
+        self.ccx(q_controls[0], q_controls[1], q_ancilla[anci_idx])
 
     def cccx(self, qrs, angle=pi/4):
         """
@@ -178,42 +195,25 @@ class CNXGate(CompositeGate):
             self.multicx([*qrs[m1:m1 + m2 - 1], qancilla, qrs[n - 2]], qrs[m1 - 1])
 
 
-def cnx(self, control_qubits, ancillary_qubits, target_qubit):
+def cnx(self, q_controls, q_ancilla, q_target, mode=None):
     """Apply CNX to circuit."""
-    temp = []
-    if ancillary_qubits:
-        all_qubits = control_qubits + ancillary_qubits
+    if len(q_controls) == 1:  # cx
+        self.cx(q_controls[0], q_target)
+    elif len(q_controls) == 2:  # ccx
+        self.ccx(q_controls[0], q_controls[1], q_target)
     else:
-        all_qubits = control_qubits
-    for qubit in all_qubits:
-        self._check_qubit(qubit)
-        temp.append(qubit)
-    self._check_qubit(target_qubit)
-    temp.append(target_qubit)
-    self._check_dups(temp)
-    return self._attach(CNXGate(control_qubits, ancillary_qubits, target_qubit, self))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        temp = []
+        if q_ancilla:
+            all_qubits = q_controls + q_ancilla
+        else:
+            all_qubits = q_controls
+        for qubit in all_qubits:
+            self._check_qubit(qubit)
+            temp.append(qubit)
+        self._check_qubit(q_target)
+        temp.append(q_target)
+        self._check_dups(temp)
+        return self._attach(CNXGate(q_controls, q_ancilla, q_target, self, mode=mode))
 
 
 QuantumCircuit.cnx = cnx
