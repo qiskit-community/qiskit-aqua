@@ -83,18 +83,22 @@ def qpe_test_fidelity(n, k, matrix, num_time_slices, expansion_mode, expansion_o
         test_results[i2, :] = np.array([n, k, num_time_slices, expansion_order,
                                 state_fidelity(qvec, C1.reshape(len(C1)))])
     
-    return test_results
+    test_c = np.array([n, k, num_time_slices, expansion_order, 
+                   np.average(test_results[:, -1]), np.min(test_results[:, -1]),
+                              np.max(test_results[:, -1])])
+    
+    return test_c 
 
 #%%
-test1 = ['n', 'k', 'time slices', 'expansion order', 'Fidelity']
+test1 = ['n', 'k', 'time slices', 'expansion order', 'avg Fidelity', 'min', 'max']
 
 #Run tests over parameter grid 
 if True:
-    for expansion_order in [2, 3, 4]:
+    for expansion_order in [1, 2, 3]:
         for expansion_mode in ['suzuki']:
-            for num_time_slices in [5]:    
-                for k in np.arange(3,4):
-                    for n in [2]: 
+            for num_time_slices in np.arange(5, 35,10):    
+                for k in [1, 2, 3 ]:
+                    for n in [2, 4]: 
                         w = [-1, -1]
                         while min(w) <= 0:
                             matrix = np.random.random([n, n])+1j*np.random.random([n, n])
