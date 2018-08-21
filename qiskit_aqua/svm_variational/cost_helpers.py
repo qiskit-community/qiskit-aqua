@@ -15,10 +15,9 @@
 # limitations under the License.
 # =============================================================================
 
-import numpy as np
-
 from collections import Counter
 
+import numpy as np
 
 def assign_label(key, class_labels):
     # If odd number of qubits and two labels we use majority vote

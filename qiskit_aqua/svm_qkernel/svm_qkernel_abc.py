@@ -35,7 +35,7 @@ class SVM_QKernel_ABC(ABC):
                 return auto_detected_size
         return auto_detected_size
 
-    def init_args(self, training_dataset, test_dataset, datapoints, print_info, multiclass_alg, backend, shots,
+    def init_args(self, training_dataset, test_dataset, datapoints, multiclass_alg, backend, shots,
                   random_seed):
         self._backend = backend
 
@@ -53,7 +53,6 @@ class SVM_QKernel_ABC(ABC):
         self.shots = shots
         self._random_seed = random_seed
         self.multiclass_alg = multiclass_alg
-        self.print_info = print_info
 
     @abstractmethod
     def run(self):

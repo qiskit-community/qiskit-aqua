@@ -88,8 +88,7 @@ class TestSVMQKernel(QiskitAquaTestCase):
             'backend': {'name': 'local_qasm_simulator', 'shots': 1000},
 
             'algorithm': {
-                'name': 'SVM_QKernel',
-                'print_info': False
+                'name': 'SVM_QKernel'
             }
         }
 
@@ -126,7 +125,6 @@ class TestSVMQKernel(QiskitAquaTestCase):
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
             'algorithm': {
                 'name': 'SVM_QKernel',
-                'print_info': False,
                 'multiclass_alg':'one_against_all'
             },
             'backend': {'name': 'local_qasm_simulator_py', 'shots': 1024}
@@ -167,7 +165,6 @@ class TestSVMQKernel(QiskitAquaTestCase):
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
             'algorithm': {
                 'name': 'SVM_QKernel',
-                'print_info': False,
                 'multiclass_alg':'all_pairs'
             },
             'backend': {'name': 'local_qasm_simulator_py', 'shots': 1024}
@@ -207,7 +204,6 @@ class TestSVMQKernel(QiskitAquaTestCase):
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
             'algorithm': {
                 'name': 'SVM_QKernel',
-                'print_info': False,
                 'multiclass_alg':'error_correcting_code'
             },
             'backend': {'name': 'local_qasm_simulator_py', 'shots': 1024}

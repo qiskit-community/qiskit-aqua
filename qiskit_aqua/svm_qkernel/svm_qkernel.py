@@ -37,10 +37,6 @@ class SVM_QKernel(QuantumAlgorithm):
                 'multiclass_alg': {
                     'type': 'string',
                     'default': 'all_pairs'
-                },
-                'print_info': {
-                    'type': 'boolean',
-                    'default': False
                 }
             },
             'additionalProperties': False
@@ -59,9 +55,7 @@ class SVM_QKernel(QuantumAlgorithm):
             self.instance = SVM_QKernel_Multiclass()
         else:
             self.instance = SVM_QKernel_Binary()
-        self.instance.init_args(algo_input.training_dataset, algo_input.test_dataset, algo_input.datapoints,
-                                SVMQK_params.get('print_info'), SVMQK_params.get('multiclass_alg'), self._backend,
-                                self._execute_config['shots'], self._random_seed)
+        self.instance.init_args(algo_input.training_dataset, algo_input.test_dataset, algo_input.datapoints, SVMQK_params.get('multiclass_alg'), self._backend, self._execute_config['shots'], self._random_seed)
 
     def run(self):
         self.instance.run()

@@ -15,12 +15,15 @@
 # limitations under the License.
 # =============================================================================
 
-import numpy as np
+import logging
 
+import numpy as np
 from sklearn.metrics.pairwise import rbf_kernel
+
 from qiskit_aqua.svm_qkernel import (get_points_and_labels, optimize_SVM)
 from qiskit_aqua.svm_classical.svm_classical_abc import SVM_Classical_ABC
 
+logger = logging.getLogger(__name__)
 
 class SVM_Classical_Binary(SVM_Classical_ABC):
     """
@@ -89,20 +92,19 @@ class SVM_Classical_Binary(SVM_Classical_ABC):
                 L = yin[sin] * alphas[sin] * kernel_matrix[tin][sin]
                 Ltot += L
             Lsign[tin] = np.sign(Ltot + bias)
-            if self.print_info:
-                print("\n=============================================")
-                print('classifying', test_points[tin])
-                print('Label should be ', label_to_labelclass[np.int(test_points_labels[tin])])
-                print('Predicted label is ', label_to_labelclass[np.int(Lsign[tin])])
-                if np.int(test_points_labels[tin]) == np.int(Lsign[tin]):
-                    print('CORRECT')
-                else:
-                    print('INCORRECT')
+
+            logger.debug("\n=============================================")
+            logger.debug('classifying' + str(test_points[tin]))
+            logger.debug('Label should be ' + str(label_to_labelclass[np.int(test_points_labels[tin])]))
+            logger.debug('Predicted label is ' + label_to_labelclass[np.int(Lsign[tin])])
+            if np.int(test_points_labels[tin]) == np.int(Lsign[tin]):
+                logger.debug('CORRECT')
+            else:
+                logger.debug('INCORRECT')
             if Lsign[tin] == test_points_labels[tin]:
                 success_ratio += 1
         final_success_ratio = success_ratio / total_num_points
-        if self.print_info:
-            print('Classification success for this set is %s %% \n' % (100 * final_success_ratio))
+        logger.debug('Classification success for this set is %s %% \n' % (100 * final_success_ratio))
 
         return final_success_ratio
 

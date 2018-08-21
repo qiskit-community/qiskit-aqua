@@ -15,6 +15,8 @@
 # limitations under the License.
 # =============================================================================
 
+import logging
+
 from qiskit_aqua.svm_qkernel.qkernel_svm_estimator import QKernalSVM_Estimator
 from qiskit_aqua.utils.multiclass.data_preprocess import *
 from qiskit_aqua.utils.multiclass.error_correcting_code import ErrorCorrectingCode
@@ -22,6 +24,7 @@ from qiskit_aqua.utils.multiclass.allpairs import AllPairs
 from qiskit_aqua.utils.multiclass.one_against_rest import OneAgainstRest
 from qiskit_aqua.svm_qkernel.svm_qkernel_abc import SVM_QKernel_ABC
 
+logger = logging.getLogger(__name__)
 
 class SVM_QKernel_Multiclass(SVM_QKernel_ABC):
     """
@@ -62,8 +65,8 @@ class SVM_QKernel_Multiclass(SVM_QKernel_ABC):
             self.ret[
                 'error'] = 'the multiclass alg should be one of {"all_pairs", "one_against_all", "error_correcting_code"}. You did not specify it correctly!'
             return self.ret
-        if self.print_info:
-            print("You are using the multiclass alg: " + self.multiclass_alg)
+
+        logger.debug("You are using the multiclass alg: " + self.multiclass_alg)
         multiclass_classifier.train(X_train, y_train)
 
         if self.test_dataset is not None:

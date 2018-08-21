@@ -14,10 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+import itertools
 
 import numpy as np
-
-import itertools
 
 from qiskit import QuantumCircuit, QuantumProgram, QuantumRegister, ClassicalRegister
 

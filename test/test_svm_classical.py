@@ -17,13 +17,12 @@
 
 import numpy as np
 
-from test.common import QiskitAquaTestCase
-
 from qiskit_aqua.utils.multiclass.data_preprocess import *
 from qiskit_aqua.svm_qkernel.data_preprocess import *
 from qiskit_aqua import run_algorithm, get_algorithm_instance
 from qiskit_aqua.input import get_input_instance
 
+from test.common import QiskitAquaTestCase
 
 class TestSVMClassical(QiskitAquaTestCase):
     def setUp(self):
@@ -97,7 +96,6 @@ class TestSVMClassical(QiskitAquaTestCase):
             'problem': {'name': 'svm_classification'},
             'algorithm': {
                 'name': 'SVM_Classical',
-                'print_info': False
             }
         }
 
@@ -210,7 +208,6 @@ class TestSVMClassical(QiskitAquaTestCase):
             'problem': {'name': 'svm_classification'},
             'algorithm': {
                 'name': 'SVM_Classical',
-                'print_info': True,
                 'multiclass_alg': 'one_against_all'
             }
         }
@@ -324,7 +321,6 @@ class TestSVMClassical(QiskitAquaTestCase):
             'problem': {'name': 'svm_classification'},
             'algorithm': {
                 'name': 'SVM_Classical',
-                'print_info': True,
                 'multiclass_alg': 'all_pairs'
             }
         }
@@ -438,7 +434,6 @@ class TestSVMClassical(QiskitAquaTestCase):
             'problem': {'name': 'svm_classification'},
             'algorithm': {
                 'name': 'SVM_Classical',
-                'print_info': True,
                 'multiclass_alg': 'error_correcting_code'
             }
         }

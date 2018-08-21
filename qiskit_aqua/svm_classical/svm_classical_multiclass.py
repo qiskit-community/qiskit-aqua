@@ -15,6 +15,7 @@
 # limitations under the License.
 # =============================================================================
 
+import logging
 
 from qiskit_aqua.utils.multiclass.allpairs import AllPairs
 from qiskit_aqua.utils.multiclass.error_correcting_code import ErrorCorrectingCode
@@ -23,6 +24,7 @@ from qiskit_aqua.svm_classical.rbf_svc_estimator import RBF_SVC_Estimator
 from qiskit_aqua.utils.multiclass.data_preprocess import *
 from qiskit_aqua.svm_classical.svm_classical_abc import SVM_Classical_ABC
 
+logger = logging.getLogger(__name__)
 
 class SVM_Classical_Multiclass(SVM_Classical_ABC):
     """
@@ -54,8 +56,8 @@ class SVM_Classical_Multiclass(SVM_Classical_ABC):
             self.ret[
                 'error'] = 'the multiclass alg should be one of {"all_pairs", "one_against_all", "error_correcting_code"}. You did not specify it correctly!'
             return self.ret
-        if self.print_info:
-            print("You are using the multiclass alg: " + self.multiclass_alg)
+
+        logger.debug("You are using the multiclass alg: " + self.multiclass_alg)
 
         multiclass_classifier.train(X_train, y_train)
 

@@ -15,9 +15,12 @@
 # limitations under the License.
 # =============================================================================
 
+import logging
+
 import numpy as np
 from sklearn.utils.multiclass import _ovr_decision_function
 
+logger = logging.getLogger(__name__)
 
 class AllPairs:
     """
@@ -71,7 +74,7 @@ class AllPairs:
         for i in range(0, l):
             if A[i] != B[i]:
                 diff += 1
-        print("%d out of %d are wrong" %(diff, l))
+        logger.debug("%d out of %d are wrong" %(diff, l))
         return 1-(diff*1.0/l)
 
     def predict(self, X):

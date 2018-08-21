@@ -1,7 +1,27 @@
+# -*- coding: utf-8 -*-
+
+# Copyright 2018 IBM.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# =============================================================================
+
+import logging
+
 import numpy as np
 from sklearn.metrics.pairwise import euclidean_distances
 from sklearn.multiclass import _ConstantPredictor
 
+logger = logging.getLogger(__name__)
 
 class ErrorCorrectingCode:
     """
@@ -62,7 +82,7 @@ class ErrorCorrectingCode:
         for i in range(0, l):
             if A[i] != B[i]:
                 diff += 1
-        print("%d out of %d are wrong" % (diff, l))
+        logger.debug("%d out of %d are wrong" % (diff, l))
         return 1 - (diff * 1.0 / l)
 
     def predict(self, X):
