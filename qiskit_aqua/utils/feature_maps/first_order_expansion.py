@@ -16,7 +16,7 @@
 # =============================================================================
 """
 This module contains the definition of a base class for
-feature extraction. Several types of commonly used approaches.
+feature map. Several types of commonly used approaches.
 """
 
 
@@ -25,10 +25,10 @@ from qiskit import QuantumCircuit, QuantumRegister, CompositeGate
 from qiskit.extensions.standard.u1 import U1Gate
 from qiskit.extensions.standard.u2 import U2Gate
 
-from qiskit_aqua.utils.feature_extractions import FeatureExtraction
+from qiskit_aqua.utils.feature_maps import FeatureMap
 
 
-class FirstOrderExpansion(FeatureExtraction):
+class FirstOrderExpansion(FeatureMap):
     """
     Mapping data with the first order expansion without entangling gates.
     Refer to https://arxiv.org/pdf/1804.11326.pdf for details.
@@ -36,7 +36,7 @@ class FirstOrderExpansion(FeatureExtraction):
 
     FIRST_ORDER_EXPANSION_CONFIGURATION = {
         'name': 'FirstOrderExpansion',
-        'description': 'First order expansion for feature extraction',
+        'description': 'First order expansion for feature map',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
             'id': 'First_Order_Expansion_schema',

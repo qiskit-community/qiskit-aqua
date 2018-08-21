@@ -23,7 +23,7 @@ import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 
 from qiskit_aqua import (QuantumAlgorithm, AlgorithmError,
-                         get_optimizer_instance, get_feature_extraction_instance,
+                         get_optimizer_instance, get_feature_map_instance,
                          get_variational_form_instance)
 from qiskit_aqua.svm import (cost_estimate_sigmoid, return_probabilities)
 
@@ -43,13 +43,13 @@ class SVM_Variational(QuantumAlgorithm):
             },
             'additionalProperties': False
         },
-        'depends': ['optimizer', 'feature_extraction', 'variational_form'],
+        'depends': ['optimizer', 'feature_map', 'variational_form'],
         'problems': ['svm_classification'],
         'defaults': {
             'optimizer': {
                 'name': 'SPSA'
             },
-            'feature_extraction': {
+            'feature_map': {
                 'name': 'SecondOrderExpansion',
                 'depth': 2
             },
@@ -74,11 +74,11 @@ class SVM_Variational(QuantumAlgorithm):
         optimizer.init_params(opt_params)
 
         # Set up variational form
-        fea_ext_params = params.get(QuantumAlgorithm.SECTION_KEY_FEATURE_EXTRACTION)
+        fea_map_params = params.get(QuantumAlgorithm.SECTION_KEY_FEATURE_MAP)
         num_qubits = self._auto_detect_qubitnum(algo_input.training_dataset)
-        fea_ext_params['num_qubits'] = num_qubits
-        feature_extraction = get_feature_extraction_instance(fea_ext_params['name'])
-        feature_extraction.init_params(fea_ext_params)
+        fea_map_params['num_qubits'] = num_qubits
+        feature_map = get_feature_map_instance(fea_map_params['name'])
+        feature_map.init_params(fea_map_params)
 
         # Set up variational form
         var_form_params = params.get(QuantumAlgorithm.SECTION_KEY_VAR_FORM)
@@ -87,10 +87,10 @@ class SVM_Variational(QuantumAlgorithm):
         var_form.init_params(var_form_params)
 
         self.init_args(algo_input.training_dataset, algo_input.test_dataset, algo_input.datapoints,
-                       optimizer, feature_extraction, var_form)
+                       optimizer, feature_map, var_form)
 
     def init_args(self, training_dataset, test_dataset, datapoints, optimizer,
-                  feature_extraction, var_form):
+                  feature_map, var_form):
 
         if 'statevector' in self._backend:
             raise ValueError('Selected backend  "{}" does not support measurements.'.format(self._backend))
@@ -105,7 +105,7 @@ class SVM_Variational(QuantumAlgorithm):
         self.class_to_label = {name: idx for idx, name in enumerate(self.class_labels)}
 
         self.optimizer = optimizer
-        self.feature_extraction = feature_extraction
+        self.feature_map = feature_map
         self.var_form = var_form
 
         self.num_qubits = self._auto_detect_qubitnum(training_dataset)
@@ -126,7 +126,7 @@ class SVM_Variational(QuantumAlgorithm):
         qr = QuantumRegister(self.num_qubits, name='q')
         cr = ClassicalRegister(self.num_qubits, name='c')
         qc = QuantumCircuit(qr, cr)
-        qc += self.feature_extraction.construct_circuit(x, qr)
+        qc += self.feature_map.construct_circuit(x, qr)
         qc += self.var_form.construct_circuit(theta, qr)
         qc.measure(qr, cr)
 

@@ -15,6 +15,6 @@
 # limitations under the License.
 # =============================================================================
 
-from .feature_extraction import FeatureExtraction
+from .feature_map import FeatureMap
 
-__all__ = ['FeatureExtraction']
+__all__ = ['FeatureMap']

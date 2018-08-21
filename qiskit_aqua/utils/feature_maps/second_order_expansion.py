@@ -16,7 +16,7 @@
 # =============================================================================
 """
 This module contains the definition of a base class for
-feature extraction. Several types of commonly used approaches.
+feature map. Several types of commonly used approaches.
 """
 
 
@@ -27,10 +27,10 @@ from qiskit.extensions.standard.u1 import U1Gate
 from qiskit.extensions.standard.u2 import U2Gate
 from qiskit.extensions.standard.u3 import U3Gate
 
-from qiskit_aqua.utils.feature_extractions import FeatureExtraction
+from qiskit_aqua.utils.feature_maps import FeatureMap
 
 
-class SecondOrderExpansion(FeatureExtraction):
+class SecondOrderExpansion(FeatureMap):
     """
     Mapping data with the second order expansion followed by entangling gates.
     Refer to https://arxiv.org/pdf/1804.11326.pdf for details.
@@ -38,7 +38,7 @@ class SecondOrderExpansion(FeatureExtraction):
 
     SECOND_ORDER_EXPANSION_CONFIGURATION = {
         'name': 'SecondOrderExpansion',
-        'description': 'Second order expansion for feature extraction',
+        'description': 'Second order expansion for feature map',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
             'id': 'Second_Order_Expansion_schema',

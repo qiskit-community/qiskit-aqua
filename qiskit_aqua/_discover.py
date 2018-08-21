@@ -35,7 +35,7 @@ from qiskit_aqua.utils.variational_forms import VariationalForm
 from qiskit_aqua.utils.initial_states import InitialState
 from qiskit_aqua.utils.iqfts import IQFT
 from qiskit_aqua.utils.oracles import Oracle
-from qiskit_aqua.utils.feature_extractions import FeatureExtraction
+from qiskit_aqua.utils.feature_maps import FeatureMap
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +46,7 @@ _PLUGGABLES = {
     'initial_state': InitialState,
     'iqft': IQFT,
     'oracle': Oracle,
-    'feature_extraction': FeatureExtraction
+    'feature_map': FeatureMap
 }
 
 _NAMES_TO_EXCLUDE = [
@@ -66,7 +66,7 @@ _NAMES_TO_EXCLUDE = [
     'initial_state',
     'iqft',
     'oracle',
-    'feature_extraction'
+    'feature_map'
 ]
 
 _FOLDERS_TO_EXCLUDE = ['__pycache__','input','ui','parser']
