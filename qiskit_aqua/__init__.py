@@ -17,6 +17,7 @@
 
 """Algorithm discovery methods, Error and Base classes"""
 
+from .utils import cnx
 from ._discover_qconfig import (get_qconfig,
                                 set_qconfig,
                                 load_qconfig,

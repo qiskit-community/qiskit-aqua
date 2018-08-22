@@ -21,7 +21,6 @@ from itertools import combinations, chain
 from parameterized import parameterized
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.wrapper import execute as q_execute
-from qiskit_aqua.utils.cnx import cnx
 from test.common import QiskitAquaTestCase
 
 
