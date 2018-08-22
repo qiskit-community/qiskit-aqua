@@ -23,6 +23,7 @@ from ._discover_qconfig import (get_qconfig,
                                 load_qconfig,
                                 discover_qconfig)
 from .algorithmerror import AlgorithmError
+from .preferences import Preferences
 from .operator import Operator
 from .quantumalgorithm import QuantumAlgorithm
 from ._discover import (refresh_pluggables,
@@ -37,6 +38,7 @@ __all__ = [ 'get_qconfig',
             'load_qconfig',
             'discover_qconfig',
             'AlgorithmError',
+            'Preferences',
             'Operator',
             'QuantumAlgorithm',
             'refresh_pluggables',

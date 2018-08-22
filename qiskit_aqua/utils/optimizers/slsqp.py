@@ -54,6 +54,10 @@ class SLSQP(Optimizer):
                 'tol': {
                     'type': ['number', 'null'],
                     'default': None
+                },
+                'eps': {
+                    'type': 'number',
+                    'default': 1.4901161193847656e-08
                 }
             },
             'additionalProperties': False
@@ -63,7 +67,7 @@ class SLSQP(Optimizer):
             'bounds': Optimizer.SupportLevel.supported,
             'initial_point': Optimizer.SupportLevel.required
         },
-        'options': ['maxiter', 'disp', 'ftol'],
+        'options': ['maxiter', 'disp', 'ftol', 'eps'],
         'optimizer': ['local']
     }
 
