@@ -16,17 +16,16 @@
 # =============================================================================
 
 import unittest
+import numpy as np
 from itertools import combinations, chain
 from parameterized import parameterized
-from test.common import QiskitAquaTestCase
-from qiskit.tools.qi.qi import state_fidelity
 from qiskit import QuantumCircuit, QuantumRegister
-from qiskit.wrapper import execute as q_execute
-import numpy as np
-from qiskit_aqua.utils.summarize_circuits import summarize_circuits as sc
 from qiskit import transpiler, load_qasm_string
+from qiskit.wrapper import execute as q_execute
 from qiskit.wrapper import get_backend
-import qiskit_aqua.grover.cnx
+from qiskit.tools.qi.qi import state_fidelity
+from qiskit_aqua.utils.summarize_circuits import summarize_circuits as sc
+from test.common import QiskitAquaTestCase
 
 
 class TestCNX(QiskitAquaTestCase):

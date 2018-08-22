@@ -17,4 +17,3 @@
 
 # for core development
 from .grover import Grover
-from .cnx import *

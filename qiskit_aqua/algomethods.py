@@ -23,6 +23,7 @@ from qiskit_aqua._discover import (_discover_on_demand,
                                    get_algorithm_instance)
 from qiskit_aqua.utils.jsonutils import convert_dict_to_json,convert_json_to_dict
 from qiskit_aqua.parser._inputparser import InputParser
+from qiskit_aqua.parser import JSONSchema
 from qiskit_aqua.input import get_input_instance
 import logging
 import json
@@ -51,7 +52,7 @@ def run_algorithm(params, algo_input=None, json_output=False):
     inputparser.validate_merge_defaults()
     logger.debug('Algorithm Input: {}'.format(json.dumps(inputparser.get_sections(), sort_keys=True, indent=4)))
 
-    algo_name = inputparser.get_section_property(InputParser.ALGORITHM, InputParser.NAME)
+    algo_name = inputparser.get_section_property(JSONSchema.ALGORITHM, JSONSchema.NAME)
     if algo_name is None:
         raise AlgorithmError('Missing algorithm name')
 
@@ -59,24 +60,24 @@ def run_algorithm(params, algo_input=None, json_output=False):
         raise AlgorithmError('Algorithm "{0}" missing in local algorithms'.format(algo_name))
 
     backend_cfg = None
-    backend = inputparser.get_section_property(InputParser.BACKEND, InputParser.NAME)
+    backend = inputparser.get_section_property(JSONSchema.BACKEND, JSONSchema.NAME)
     if backend is not None:
-        backend_cfg = {k: v for k, v in inputparser.get_section(InputParser.BACKEND).items() if k != 'name'}
+        backend_cfg = {k: v for k, v in inputparser.get_section(JSONSchema.BACKEND).items() if k != 'name'}
         backend_cfg['backend'] = backend
 
     algorithm = get_algorithm_instance(algo_name)
-    algorithm.random_seed = inputparser.get_section_property(InputParser.PROBLEM, 'random_seed')
+    algorithm.random_seed = inputparser.get_section_property(JSONSchema.PROBLEM, 'random_seed')
     if backend_cfg is not None:
         algorithm.setup_quantum_backend(**backend_cfg)
 
     algo_params = copy.deepcopy(inputparser.get_sections())
 
     if algo_input is None:
-        input_name = inputparser.get_section_property('input', InputParser.NAME)
+        input_name = inputparser.get_section_property('input', JSONSchema.NAME)
         if input_name is not None:
             algo_input = get_input_instance(input_name)
             input_params = copy.deepcopy(inputparser.get_section_properties('input'))
-            del input_params[InputParser.NAME]
+            del input_params[JSONSchema.NAME]
             convert_json_to_dict(input_params)
             algo_input.from_params(input_params)
 

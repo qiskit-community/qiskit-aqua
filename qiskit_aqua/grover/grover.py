@@ -19,9 +19,7 @@ The Grover Quantum algorithm.
 """
 
 import logging
-
 from qiskit import ClassicalRegister, QuantumCircuit
-
 from qiskit_aqua import QuantumAlgorithm, AlgorithmError
 from qiskit_aqua import get_oracle_instance
 
@@ -31,7 +29,7 @@ logger = logging.getLogger(__name__)
 class Grover(QuantumAlgorithm):
     """The Grover Quantum algorithm."""
 
-    PROP_MODE = 'mode'
+    PROP_INCREMENTAL = 'incremental'
     PROP_NUM_ITERATIONS = 'num_iterations'
 
     GROVER_CONFIGURATION = {
@@ -42,18 +40,15 @@ class Grover(QuantumAlgorithm):
             'id': 'grover_schema',
             'type': 'object',
             'properties': {
-                PROP_MODE: {
-                    'type': 'string',
-                    'default': 'incremental',
-                    'oneOf': [
-                        {'enum': ['incremental', 'manual']}
-                    ]
+                PROP_INCREMENTAL: {
+                    'type': 'boolean',
+                    'default': False
                 },
                 PROP_NUM_ITERATIONS: {
                     'type': 'integer',
                     'default': 1,
                     'minimum': 1
-                },
+                }
             },
             'additionalProperties': False
         },
@@ -68,8 +63,8 @@ class Grover(QuantumAlgorithm):
 
     def __init__(self, configuration=None):
         super().__init__(configuration or self.GROVER_CONFIGURATION.copy())
-        self._mode = None
-        self._num_iterations = None
+        self._incremental = False
+        self._num_iterations = 1
         self._oracle = None
         self._ret = {}
 
@@ -84,28 +79,26 @@ class Grover(QuantumAlgorithm):
             raise AlgorithmError("Unexpected Input instance.")
 
         grover_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
-        mode = grover_params.get(Grover.PROP_MODE)
+        incremental = grover_params.get(Grover.PROP_INCREMENTAL)
         num_iterations = grover_params.get(Grover.PROP_NUM_ITERATIONS)
 
         oracle_params = params.get(QuantumAlgorithm.SECTION_KEY_ORACLE)
         oracle = get_oracle_instance(oracle_params['name'])
         oracle.init_params(oracle_params)
-        self.init_args(oracle, mode=mode, num_iterations=num_iterations)
+        self.init_args(oracle, incremental=incremental, num_iterations=num_iterations)
 
-    def init_args(self, oracle, mode='incremental', num_iterations=1):
+    def init_args(self, oracle, incremental=False, num_iterations=1):
         if 'statevector' in self._backend:
             raise ValueError('Selected backend  "{}" does not support measurements.'.format(self._backend))
         self._oracle = oracle
         self._max_num_iterations = 2 ** (len(self._oracle.variable_register()) / 2)
-        self._mode = mode
+        self._incremental = incremental
         self._num_iterations = num_iterations
-        if mode == 'incremental':
+        if incremental:
             logger.debug('Incremental mode specified, ignoring "num_iterations".')
-        elif mode == 'manual':
+        else:
             if num_iterations > self._max_num_iterations:
                 logger.warning('The specified value {} for "num_iterations" might be too high.'.format(num_iterations))
-        else:
-            raise ValueError('Unrecognized mode {}.'.format(mode))
 
     def _construct_circuit_components(self):
         measurement_cr = ClassicalRegister(len(self._oracle.variable_register()), name='m')
@@ -171,12 +164,7 @@ class Grover(QuantumAlgorithm):
     def run(self):
         qc_prefix, qc_amplitude_amplification, qc_measurement = self._construct_circuit_components()
 
-        if self._mode == 'manual':
-            qc_amplitude_amplification.data *= self._num_iterations
-            assignment, oracle_evaluation = self._run_with_num_iterations(
-                qc_prefix, qc_amplitude_amplification, qc_measurement
-            )
-        else:
+        if self._incremental:
             qc_amplitude_amplification_single_iteration_data = qc_amplitude_amplification.data
             current_num_iterations = 1
             while current_num_iterations <= self._max_num_iterations:
@@ -187,6 +175,11 @@ class Grover(QuantumAlgorithm):
                     break
                 current_num_iterations += 1
                 qc_amplitude_amplification.data += qc_amplitude_amplification_single_iteration_data
+        else:
+            qc_amplitude_amplification.data *= self._num_iterations
+            assignment, oracle_evaluation = self._run_with_num_iterations(
+                qc_prefix, qc_amplitude_amplification, qc_measurement
+            )
 
         self._ret['result'] = assignment
         self._ret['oracle_evaluation'] = oracle_evaluation

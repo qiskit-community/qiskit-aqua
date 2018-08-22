@@ -195,7 +195,7 @@ class CNXGate(CompositeGate):
             self.multicx([*qrs[m1:m1 + m2 - 1], qancilla, qrs[n - 2]], qrs[m1 - 1])
 
 
-def cnx(self, q_controls, q_ancilla, q_target, mode=None):
+def cnx(self, q_controls, q_ancilla, q_target, mode='basic'):
     """Apply CNX to circuit."""
     if len(q_controls) == 1:  # cx
         self.cx(q_controls[0], q_target)

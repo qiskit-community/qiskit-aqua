@@ -82,12 +82,13 @@ class VarFormRYRZ(VariationalForm):
             self._entangler_map = VariationalForm.validate_entangler_map(entangler_map, num_qubits)
         self._initial_state = initial_state
 
-    def construct_circuit(self, parameters):
+    def construct_circuit(self, parameters, q=None):
         """
         Construct the variational form, given its parameters.
 
         Args:
             parameters (numpy.ndarray): circuit parameters
+            q (QuantumRegister): Quantum Register for the circuit.
 
         Returns:
             QuantumCircuit: a quantum circuit with given `parameters`
@@ -98,7 +99,8 @@ class VarFormRYRZ(VariationalForm):
         if len(parameters) != self._num_parameters:
             raise ValueError('The number of parameters has to be {}'.format(self._num_parameters))
 
-        q = QuantumRegister(self._num_qubits, name='q')
+        if q is None:
+            q = QuantumRegister(self._num_qubits, name='q')
         if self._initial_state is not None:
             circuit = self._initial_state.construct_circuit('circuit', q)
         else:

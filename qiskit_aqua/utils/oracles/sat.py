@@ -18,12 +18,8 @@
 import itertools
 import operator
 import logging
-
 from qiskit import QuantumRegister, QuantumCircuit
-
 from qiskit_aqua.utils.oracles import Oracle
-import qiskit_aqua.grover.cnx
-
 
 logger = logging.getLogger(__name__)
 

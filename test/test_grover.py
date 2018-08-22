@@ -17,7 +17,6 @@
 
 import unittest
 import operator
-
 from parameterized import parameterized
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import get_algorithm_instance, get_oracle_instance
@@ -26,17 +25,17 @@ from qiskit_aqua import get_algorithm_instance, get_oracle_instance
 class TestGrover(QiskitAquaTestCase):
 
     @parameterized.expand([
-        ['test_grover_tiny.cnf', 'manual', 1],
-        ['test_grover.cnf', 'manual', 2],
-        ['test_grover_no_solution.cnf', 'incremental'],
+        ['test_grover_tiny.cnf', False, 1],
+        ['test_grover.cnf', False, 2],
+        ['test_grover_no_solution.cnf', True, None],
     ])
-    def test_grover(self, input_file, mode='incremental', num_iterations=1):
-        if mode == 'incremental':
+    def test_grover(self, input_file, incremental=True, num_iterations=1):
+        if incremental:
             self.log.debug('Testing incremental Grover search on SAT problem instance: \n{}'.format(
                 open(input_file).read(),
             ))
-        elif mode == 'manual':
-            self.log.debug('Testing manual Grover search with {} iteration(s) on SAT problem instance: \n{}'.format(
+        else:
+            self.log.debug('Testing Grover search with {} iteration(s) on SAT problem instance: \n{}'.format(
                 num_iterations, open(input_file).read(),
             ))
         # get ground-truth
@@ -56,7 +55,7 @@ class TestGrover(QiskitAquaTestCase):
 
         grover = get_algorithm_instance('Grover')
         grover.setup_quantum_backend(backend='local_qasm_simulator', shots=100)
-        grover.init_args(sat_oracle, num_iterations=num_iterations)
+        grover.init_args(sat_oracle, num_iterations=num_iterations, incremental=incremental)
 
         ret = grover.run()
 

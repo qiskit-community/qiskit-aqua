@@ -20,14 +20,15 @@ import numpy
 
 def convert_dict_to_json(in_item):
     """
-    Combs recursively through a list/dictionary and finds any non-json
-    compatible elements and converts them. E.g. complex ndarray's are
-    converted to lists of strings. Assume that all such elements are
+    Combs recursively through a list/dictionary and finds any non-json \
+    compatible elements and converts them. E.g. complex ndarray's are \
+    converted to lists of strings. Assume that all such elements are \
     stored in dictionaries!
-    Arg:
+
+    Args:
         in_item (dict or list): the input dict/list
     Returns:
-        Result in_item possibly modified
+        dict or list: Result in_item possibly modified
     """
 
     key_list = []
@@ -56,16 +57,19 @@ def convert_dict_to_json(in_item):
             in_item.pop(curkey)
         else:
             in_item[curkey] = in_item[curkey].tolist()
-            
+
     return in_item
-            
+
 def convert_json_to_dict(in_item):
-    """Combs recursively through a list/dictionary that was loaded from json
-    and finds any lists that were converted from ndarray and converts them back
-    Arg:
+    """
+    Combs recursively through a list/dictionary that was loaded from json \
+    and finds any lists that were converted from ndarray and converts them back \
+
+    Args:
         in_item (dict or list): the input dict/list
+
     Returns:
-        Result in_item possibly modified
+        dict or list: Result in_item possibly modified
     """
 
     key_list = []
@@ -92,6 +96,6 @@ def convert_json_to_dict(in_item):
             in_item[curkey_root] = in_item[curkey_root] + 1j * numpy.array(
                 in_item[curkey_root + '_ndarray_imag'])
             in_item.pop(curkey_root + '_ndarray_imag')
-            
+
     return in_item
 
