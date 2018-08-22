@@ -26,30 +26,30 @@ from qiskit import QuantumCircuit, CompositeGate, QuantumRegister
 class CNXGate(CompositeGate):
     """CNX gate."""
 
-    def __init__(self, q_controls, q_ancilla, q_target, circ=None, mode='basic'):
+    def __init__(self, control_qubits, target_qubit, ancillary_qubits, circ=None, mode='basic'):
         """Create new CNX gate."""
-        qubits = [v for v in q_controls] + [v for v in q_ancilla] + [q_target]
-        super(CNXGate, self).__init__("cnx", (len(q_controls), len(q_ancilla)), qubits, circ)
+        qubits = control_qubits + ancillary_qubits + [target_qubit]
+        super(CNXGate, self).__init__("cnx", (len(control_qubits), len(ancillary_qubits)), qubits, circ)
         if mode == 'basic':
-            self.ccx_v_chain(q_controls, q_ancilla, q_target)
+            self.ccx_v_chain(control_qubits, target_qubit, ancillary_qubits)
         elif mode == 'advanced':
-            self.multicx([*q_controls, q_target], q_ancilla[0] if q_ancilla else None)
+            self.multicx([*control_qubits, target_qubit], ancillary_qubits[0] if ancillary_qubits else None)
         else:
             raise ValueError('Unrecognized mode for building cnx gate: {}.'.format(mode))
 
-    def ccx_v_chain(self, q_controls, q_ancilla, q_target):
+    def ccx_v_chain(self, control_qubits, target_qubit, ancillary_qubits):
         """Create new CNX gate by chaining ccx gates into a V shape."""
         anci_idx = 0
-        self.ccx(q_controls[0], q_controls[1], q_ancilla[anci_idx])
-        for idx in range(2, len(q_controls) - 1):
-            assert anci_idx + 1 < len(q_ancilla), "length of ancillary qubits are not enough, please use a large one."
-            self.ccx(q_controls[idx], q_ancilla[anci_idx], q_ancilla[anci_idx + 1])
+        self.ccx(control_qubits[0], control_qubits[1], ancillary_qubits[anci_idx])
+        for idx in range(2, len(control_qubits) - 1):
+            assert anci_idx + 1 < len(ancillary_qubits), "Insufficient number of ancillary qubits."
+            self.ccx(control_qubits[idx], ancillary_qubits[anci_idx], ancillary_qubits[anci_idx + 1])
             anci_idx += 1
-        self.ccx(q_controls[len(q_controls) - 1], q_ancilla[anci_idx], q_target)
-        for idx in (range(2, len(q_controls) - 1))[::-1]:
-            self.ccx(q_controls[idx], q_ancilla[anci_idx - 1], q_ancilla[anci_idx])
+        self.ccx(control_qubits[len(control_qubits) - 1], ancillary_qubits[anci_idx], target_qubit)
+        for idx in (range(2, len(control_qubits) - 1))[::-1]:
+            self.ccx(control_qubits[idx], ancillary_qubits[anci_idx - 1], ancillary_qubits[anci_idx])
             anci_idx -= 1
-        self.ccx(q_controls[0], q_controls[1], q_ancilla[anci_idx])
+        self.ccx(control_qubits[0], control_qubits[1], ancillary_qubits[anci_idx])
 
     def cccx(self, qrs, angle=pi/4):
         """
