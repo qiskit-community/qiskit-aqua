@@ -28,6 +28,7 @@ from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit, execute
 from qiskit.tools.qi.pauli import Pauli
 from qiskit_aqua import Operator, QuantumAlgorithm, AlgorithmError
 from qiskit_aqua import get_initial_state_instance, get_iqft_instance
+from copy import deepcopy
 
 #from qiskit.tools.visualization._circuit_visualization import matplotlib_circuit_drawer
 
@@ -298,8 +299,8 @@ class QPE():
     def _construct_inverse(self):
         if self._inverse == None:
             self._inverse = QuantumCircuit(*self._circuit.get_qregs().values())
-            self._inverse.data = reversed(list(map(lambda x:
-                x.inverse(),self._circuit.data)))[:-self._initial_circuit_length]
+            self._inverse.data = list(reversed(list(map(lambda x: deepcopy(x).inverse(), 
+		self._circuit.data))))[:-self._initial_circuit_length]
         return self._inverse
 
 
