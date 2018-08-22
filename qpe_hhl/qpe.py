@@ -232,15 +232,15 @@ class QPE():
     def _construct_phase_estimation_circuit(self, measure=False):
         """Implement the Quantum Phase Estimation algorithm"""
 
-        a = QuantumRegister(self._num_ancillae, name='a')
-        q = QuantumRegister(self._operator.num_qubits, name='q')
+        a = QuantumRegister(self._num_ancillae, name='a_qpe')
+        q = QuantumRegister(self._operator.num_qubits, name='q_qpe')
         qc = QuantumCircuit(a, q)
         if measure:
-            c = ClassicalRegister(self._num_ancillae, name='c')
+            c = ClassicalRegister(self._num_ancillae, name='c_qpe')
             qc.add(c)
 
         # initialize state_in
-        qc += self._state_in.construct_circuit('circuit', q)
+        qc += self._state_in.construct_circuit('circuit', q) #@TODO: need rename here?
         qc.barrier(q)
 
         # Put all ancillae in uniform superposition

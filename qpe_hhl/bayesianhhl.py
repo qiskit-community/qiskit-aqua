@@ -10,7 +10,7 @@ from qiskit.tools.visualization import matplotlib_circuit_drawer as drawer, plot
 import matplotlib.pyplot as plt
 
 backend = 'local_qasm_simulator'
-n = 9
+n = 5
 inputregister = QuantumRegister(n, name="inputregister")
 flagbit = QuantumRegister(1, name="flagbit")
 outputregister = QuantumRegister(n, name="outputregister")
@@ -51,10 +51,10 @@ qc.measure(inputregister, classreg1)
 qc.measure(flagbit, classreg2)
 qc.measure(outputregister, classreg3)
 
-results = execute(qc, backend = backend).result()
-print(results._result)
-print(results.get_counts(qc))
-#drawer(qc, filename="firstnewton.png")
+#results = execute(qc, backend = backend).result()
+#print(results._result)
+#print(results.get_counts(qc))
+drawer(qc, filename="firstnewton.png")
 #plt.show()
 #plot_histogram(results.get_counts())
 
