@@ -16,49 +16,36 @@
 # =============================================================================
 """
 This module contains the definition of a base class for
-feature extraction. Several types of commonly used approaches.
+feature map. Several types of commonly used approaches.
 """
 
 
 import numpy as np
-from qiskit import QuantumCircuit, QuantumRegister, CompositeGate
-from qiskit.extensions.standard.cx import CnotGate
+from qiskit import CompositeGate, QuantumCircuit, QuantumRegister
 from qiskit.extensions.standard.u1 import U1Gate
 from qiskit.extensions.standard.u2 import U2Gate
-from qiskit.extensions.standard.u3 import U3Gate
 
-from qiskit_aqua.utils.feature_extractions import FeatureExtraction
+from qiskit_aqua.utils.feature_maps import FeatureMap
 
 
-class SecondOrderExpansion(FeatureExtraction):
+class FirstOrderExpansion(FeatureMap):
     """
-    Mapping data with the second order expansion followed by entangling gates.
+    Mapping data with the first order expansion without entangling gates.
     Refer to https://arxiv.org/pdf/1804.11326.pdf for details.
     """
 
-    SECOND_ORDER_EXPANSION_CONFIGURATION = {
-        'name': 'SecondOrderExpansion',
-        'description': 'Second order expansion for feature extraction',
+    FIRST_ORDER_EXPANSION_CONFIGURATION = {
+        'name': 'FirstOrderExpansion',
+        'description': 'First order expansion for feature map',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
-            'id': 'Second_Order_Expansion_schema',
+            'id': 'First_Order_Expansion_schema',
             'type': 'object',
             'properties': {
                 'depth': {
                     'type': 'integer',
                     'default': 2,
                     'minimum': 1
-                },
-                'entangler_map': {
-                    'type': ['object', 'null'],
-                    'default': None
-                },
-                'entanglement': {
-                    'type': 'string',
-                    'default': 'full',
-                    'oneOf': [
-                        {'enum': ['full', 'linear']}
-                    ]
                 }
             },
             'additionalProperties': False
@@ -66,35 +53,27 @@ class SecondOrderExpansion(FeatureExtraction):
     }
 
     def __init__(self, configuration=None):
-        super().__init__(configuration or self.SECOND_ORDER_EXPANSION_CONFIGURATION.copy())
+        super().__init__(configuration or self.FIRST_ORDER_EXPANSION_CONFIGURATION.copy())
         self._ret = {}
 
     def init_args(self, num_qubits, depth, entangler_map=None, entanglement='full'):
         self._num_qubits = num_qubits
         self._depth = depth
-        if entangler_map is None:
-            self._entangler_map = self.get_entangler_map(entanglement, num_qubits)
-        else:
-            self._entangler_map = self.validate_entangler_map(entangler_map, num_qubits)
 
     def _build_composite_gate(self, x, qr):
-        composite_gate = CompositeGate("second_order_expansion", [], [qr[i] for i in range(self._num_qubits)])
+        composite_gate = CompositeGate("first_order_expansion",
+                                       [], [qr[i] for i in range(self._num_qubits)])
 
         for _ in range(self._depth):
             for i in range(x.shape[0]):
                 composite_gate._attach(U2Gate(0, np.pi, qr[i]))
                 composite_gate._attach(U1Gate(2 * x[i], qr[i]))
-            for src, targs in self._entangler_map.items():
-                for targ in targs:
-                    composite_gate._attach(CnotGate(qr[src], qr[targ]))
-                    composite_gate._attach(U1Gate(2 * (np.pi - x[src]) * (np.pi - x[targ]), qr[targ]))
-                    composite_gate._attach(CnotGate(qr[src], qr[targ]))
 
         return composite_gate
 
     def construct_circuit(self, x, qr=None, inverse=False):
         """
-        Construct the second order expansion based on given data.
+        Construct the first order expansion based on given data.
 
         Args:
             x (numpy.ndarray): 1-D to-be-transformed data.
@@ -106,9 +85,9 @@ class SecondOrderExpansion(FeatureExtraction):
             QuantumCircuit: a quantum circuit transform data x.
         """
         if not isinstance(x, np.ndarray):
-            raise TypeError("x must be numpy array.")
+            raise TypeError("x should be numpy array.")
         if x.ndim != 1:
-            raise ValueError("x must be 1-D array.")
+            raise ValueError("x should be 1-D array.")
         if x.shape[0] != self._num_qubits:
             raise ValueError("number of qubits and data dimension must be the same.")
 
@@ -116,6 +95,6 @@ class SecondOrderExpansion(FeatureExtraction):
             QuantumRegister(self._num_qubits, 'q')
         qc = QuantumCircuit(qr)
         composite_gate = self._build_composite_gate(x, qr)
-        qc._attach(composite_gate if inverse == False else composite_gate.inverse())
+        qc._attach(composite_gate if not inverse else composite_gate.inverse())
 
         return qc
