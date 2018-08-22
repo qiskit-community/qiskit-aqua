@@ -207,8 +207,8 @@ def bravyi_kitaev_fast_edge_list(fer_op):
 
 
 def edge_operator_aij(edge_list, i, j):
-    """Calculate the edge operator A_ij. The definitions used here are
-    consistent with arXiv:quant-ph/0003137
+    """Calculate the edge operator A_ij.
+    The definitions used here are consistent with arXiv:quant-ph/0003137
 
     Args:
         edge_list (numpy.ndarray): a 2xE matrix, where E is total number of edge
@@ -219,13 +219,10 @@ def edge_operator_aij(edge_list, i, j):
     Returns:
         Operator: qubit operator
     """
-
     v = np.zeros(edge_list.shape[1])
     w = np.zeros(edge_list.shape[1])
 
-    # operator = tuple()
     position_ij = -1
-
     qubit_position_i = np.asarray(np.where(edge_list == i))
 
     for edge_index in range(edge_list.shape[1]):
@@ -267,10 +264,8 @@ def edge_operator_bi(edge_list, i):
     Returns:
         Operator: qubit operator
     """
-
     qubit_position_matrix = np.asarray(np.where(edge_list == i))
     qubit_position = qubit_position_matrix[1]
-    # qubit_position = np.sort(qubit_position)
     v = np.zeros(edge_list.shape[1])
     w = np.zeros(edge_list.shape[1])
     v[qubit_position] = 1
@@ -376,34 +371,22 @@ def vacuum_operator(edge_list):
     g = networkx.Graph()
     g.add_edges_from(tuple(edge_list.transpose()))
     stabs = np.asarray(networkx.cycle_basis(g))
-    print('Stabilizers\n')
     for stab in stabs:
         a = Operator(paulis=[[1.0, label_to_pauli('I' * num_qubits)]])
-        # coeff_operator(num_qubits)
-        # A = self.coeff_operator(edge_list, 1)
         stab = np.asarray(stab)
-        print(stab)
-        print('\n')
         for i in range(np.size(stab)):
             a = a * edge_operator_aij(edge_list, stab[i], stab[(i + 1) % np.size(stab)])
             a.scaling_coeff(1j)
-            # if i == (np.size(stab) - 1):
-            #     a = a * edge_operator_aij(edge_list, stab[i], stab[0])
-            # else:
-            #     a = a * edge_operator_aij(edge_list, stab[i], stab[i+1])
+
         a += Operator(paulis=[[1.0, label_to_pauli('I' * num_qubits)]])
         vac_operator = vac_operator * a
-        # vac_operator = vac_operator * (coeff_operator(num_qubits, 1) + a)
         vac_operator.scaling_coeff(np.sqrt(2))
-        print(a)
-        print('\n')
 
     return vac_operator
 
 
 def number_operator(fer_op, mode_number=None):
-    """Find the qubit operator for the number operator in bravyi_kitaev_fast
-    representation
+    """Find the qubit operator for the number operator in bravyi_kitaev_fast representation
 
     Args:
         fer_op (FermionicOperator): the fermionic operator in the second quanitzed form
@@ -432,8 +415,7 @@ def number_operator(fer_op, mode_number=None):
 
 
 def generate_fermions(fer_op, i, j):
-    """The QubitOperator for generating fermions in bravyi_kitaev_fast
-    representation
+    """The qubit operator for generating fermions in bravyi_kitaev_fast representation
 
     Args:
         edge_list (numpy.ndarray): a 2xE matrix, where E is total number of edge
@@ -451,46 +433,3 @@ def generate_fermions(fer_op, i, j):
 
     gen_fer_operator.scaling_coeff(-1j * 0.5)
     return gen_fer_operator
-
-
-# if __name__ == '__main__':
-#     from collections import OrderedDict
-
-#     from qiskit_aqua_chemistry.drivers import ConfigurationManager
-#     from qiskit_aqua_chemistry.core import get_chemistry_operator_instance
-#     from qiskit_aqua_chemistry import FermionicOperator
-
-#     from qiskit_aqua import run_algorithm
-#     from qiskit_aqua.input import get_input_instance
-
-#     from qiskit_aqua._logging import build_logging_config, set_logging_config
-#     import logging
-#     from scipy.sparse import linalg as scialg
-
-#     set_logging_config(build_logging_config(logging.DEBUG))
-
-#     cfg_mgr = ConfigurationManager()
-#     pyscf_cfg = OrderedDict([
-#         ('atom', 'Li .0 .0 .0; H .0 .0 0.7414'),
-#         ('unit', 'Angstrom'),
-#         ('charge', 0),
-#         ('spin', 0),
-#         ('basis', 'sto3g')
-#     ])
-#     section = {'properties': pyscf_cfg}
-#     driver = cfg_mgr.get_driver_instance('PYSCF')
-#     qmolecule = driver.run(section)
-
-#     fer_op = FermionicOperator(h1=qmolecule._one_body_integrals, h2=qmolecule._two_body_integrals)
-#     fer_op._convert_to_interleaved_spins()
-#     fer_op.h2 = -fer_op.h2
-#     # print(bravyi_kitaev_fast_edge_list(fer_op))
-
-#     qubit_op = bksf_mapping(fer_op)
-#     print(qubit_op.print_operators())
-#     qubit_op.to_matrix()
-#     print(scialg.eigs(qubit_op.matrix, k=1))
-#     # print(fer_op.h1)
-#     # print(fer_op.h2[1,2,2,1])
-
-#     # test_edge_operator_bi()
