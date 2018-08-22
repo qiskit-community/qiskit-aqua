@@ -146,13 +146,6 @@ class CNXGate(CompositeGate):
 
         self.cccx([qrs[0], qrs[1], qrs[2], qrs[4]], angle=pi / 8)
 
-    def reapply(self, circ):
-        """Reapply this gate to corresponding qubits in circ."""
-        ctl_bits = [x for x in self.arg[:self.param[0]]]
-        anc_bits = [x for x in self.arg[self.param[0]:self.param[0]+self.param[1]]]
-        tgt_bits = self.arg[-1]
-        self._modifiers(circ.cnx(ctl_bits, anc_bits, tgt_bits))
-
     def multicx(self, qrs, qancilla=None):
         """
             construct a circuit for multi-qubit controlled not
@@ -194,8 +187,15 @@ class CNXGate(CompositeGate):
 
             self.multicx([*qrs[m1:m1 + m2 - 1], qancilla, qrs[n - 2]], qrs[m1 - 1])
 
+    def reapply(self, circ):
+        """Reapply this gate to corresponding qubits in circ."""
+        ctl_bits = [x for x in self.arg[:self.param[0]]]
+        anc_bits = [x for x in self.arg[self.param[0]:self.param[0]+self.param[1]]]
+        tgt_bits = self.arg[-1]
+        self._modifiers(circ.cnx(ctl_bits, anc_bits, tgt_bits))
 
-def cnx(self, q_controls, q_ancilla, q_target, mode='basic'):
+
+def cnx(self, q_controls, q_ancilla, q_target, mode='advanced'):
     """Apply CNX to circuit."""
     if len(q_controls) == 1:  # cx
         self.cx(q_controls[0], q_target)
