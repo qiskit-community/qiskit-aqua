@@ -2,106 +2,92 @@ from qpe import QPE
 from qiskit_aqua import Operator
 import scipy
 from qiskit import register
-#import Qconfig
 import numpy as np
 from qiskit import available_backends
+import sys
+sys.path.append("..")
+from matrix_gen import gen_matrix
 
 import matplotlib.pyplot as plt
-try:
-    import sys
-    sys.path.append("~/workspace/") # go to parent dir
-    import Qconfig
-    qx_config = {
-        "APItoken": Qconfig.APItoken,
-        "url": Qconfig.config['url']}
 
-backend = 'local_qasm_simulator'
 qpe = QPE()
-#print(available_backends({'local' : True, 'simulator' : True}))
-hermitian_matrix = True
 n = 2
 k = 9
-w = [-1, 0, 0, 0]
-while min(w) <= 0:
-    matrix = np.random.random([n, n])+1j*np.random.random([n, n])
-    matrix = 4*(matrix+matrix.T.conj())
-    matrix = np.round(matrix + np.identity(n),1)
-    w, v = np.linalg.eig(matrix)
+nege = True
 
-
-#matrix = [[1, 2], [0, 3]]
-#matrix = np.array(matrix)
-#matrix = np.diag([1.5, 2.7, 3.8, 5.1])#10*np.random.random(4))
-#matrix = np.diag(10*np.random.random(4))
-#matrix=1/4*np.array([[15, 9, 5, -3], [9, 15, 3, -5], [5, 3, 15, -9], [-3, -5, -9, 15]])
-#w, v = np.linalg.eig(matrix)
-if not hermitian_matrix:
-    singval = scipy.linalg.svd(matrix, compute_uv = False)
-#op = Operator(matrix=matrix)
-#op._check_representation("paulis")
-#op._simplify_paulis()
-#paulis = op.paulis
-#d = []
-#for fac, paul in paulis:
-#    d += [[fac, paul.to_label()]]
-#print(d)
-
+matrix = gen_matrix(n, eigrange=[-5, 5], sparsity=0.6)
+#matrix = np.diag([-1.5, 1])
+#np.save("mat.npy", matrix)
+#matrix = np.load("mat.npy")
+w, v = np.linalg.eigh(matrix) 
 
 print(matrix)
-#print(np.amax(abs(v))/np.amin(abs(v)))
-#print(v.real)
-print("eigenvalues ", w)
-#print("singular values", singval)
-
-def fitfun(y, w, k, n, t):
-    return 2**(-2*k-n)*np.abs(sum([(1-np.exp(1j*(2**k*wi*t-2*np.pi*y)))/(1-np.exp(1j*(wi*t-2*np.pi*y/2**k))) for wi in w]))**2
+print("Eigenvalues:", w)
 
 invec = sum([v[:,i] for i in range(n)])
 invec /= np.sqrt(invec.dot(invec.conj()))
-#invec = w
-#op = Operator(matrix=1/4*np.array([[15, 9, 5, -3], [9, 15, 3, -5], [5, 3, 15, -9], [-3, -5, -9, 15]]))
-#invec = [0,0,0,1]
 
 params = {
-'algorithm': {
-        'name': 'QPE',
-        'num_ancillae': k,
-        'num_time_slices': 10,
-        'expansion_mode': 'suzuki',
-        'expansion_order': 2,
-        'hermitian_matrix': hermitian_matrix,
-        'backend' : backend
-        #'evo_time': 2*np.pi/4,#
-        #'use_basis_gates': False,
-},
-"iqft": {
-    "name": "STANDARD"
-},
-"initial_state": {
-    "name": "CUSTOM",
-    "state_vector": invec#[1/2**0.5,1/2**0.5]
-}}
+    'algorithm': {
+            'name': 'QPE',
+            'num_ancillae': k,
+            'num_time_slices': 50,
+            'expansion_mode': 'suzuki',
+            'expansion_order': 2,
+            'hermitian_matrix': True,
+            'negative_evals': nege,
+            'backend' : "local_qasm_simulator",
+            #'evo_time': 2*np.pi/4,
+            #'use_basis_gates': False,
+    },
+    "iqft": {
+        "name": "STANDARD"
+    },
+    "initial_state": {
+        "name": "CUSTOM",
+        "state_vector": invec#[1/2**0.5,1/2**0.5]
+    }
+}
 
 qpe.init_params(params, matrix)
 
-qc = qpe._compute_eigenvalue(backend="ibmq_qasm_simulator")
+qc = qpe._compute_eigenvalue()
 res = qpe._ret
 
+print("Results:", res["measurements"][:10])
+print("Evolution time 2Pi/t:", 2*np.pi/res["evo_time"])
 
-print(res["measurements"][:10])
-print(2*np.pi/res["evo_time"])
-print(qpe._use_basis_gates)
-x = []
-y = []
-for c, _, l in res["measurements"]:
-    x += [l]
-    y += [c]
+def plot_res_and_theory(res):
+    def theory(y, w, k, n, t):
+        r = np.abs(sum([(1-np.exp(1j*(2**k*wi*t-2*np.pi*y)))/
+            (1-np.exp(1j*(wi*t-2*np.pi*y/2**k))) for wi in w]))
+        r[np.isnan(r)] = 2**k
+        r = 2**(-2*k-n)*r**2
+        r/=sum(r)
+        return r
 
-tx = np.arange(0, 2**k, 1)/2**k
-tx *= 2*np.pi/res["evo_time"]
-ty = np.arange(0, 2**k, 1)
+    x = []
+    y = []
+    for c, _, l in res["measurements"]:
+        x += [l]
+        y += [c]
 
-plt.bar(x, y, width=2*np.pi/res["evo_time"]/2**k)
-plt.plot(tx, 1024*fitfun(ty, w.real, k, n, res["evo_time"]), "r")
+    ty = np.arange(0, 2**k, 1)
+    data = theory(ty, w.real, k, n, res["evo_time"])
 
-plt.show()
+    if nege:
+        tx = np.arange(0, 2**k, 1)/2**k
+        tx[2**(k-1):] = -(1-tx[2**(k-1):])
+        tx *= 2*np.pi/res["evo_time"]
+        tx =   np.concatenate((tx[2**(k-1):], tx[:2**(k-1)])) 
+        data = np.concatenate((data[2**(k-1):], data[:2**(k-1)])) 
+    else:
+        tx = np.arange(0, 2**k, 1)/2**k
+        tx *= 2*np.pi/res["evo_time"]
+
+    plt.bar(x, y, width=2*np.pi/res["evo_time"]/2**k)
+    plt.plot(tx, data, "r")
+
+    plt.show()
+
+plot_res_and_theory(res)

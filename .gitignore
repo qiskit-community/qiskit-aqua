@@ -108,6 +108,7 @@ docs/*.rst
 !docs/oracles.rst
 !docs/iqfts.rst
 !docs/initial_states.rst
+!docs/feature_extractions.rst
 !docs/aqua_chemistry_*.rst
 !docs/aqua_ai.rst
 !docs/aqua_optimization.rst

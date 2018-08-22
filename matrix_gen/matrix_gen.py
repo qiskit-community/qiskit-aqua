@@ -84,6 +84,7 @@ def _gen_random_diag(n, lminmax=None, K=None, lmin=1, eigs=None):
         lmax=1
         lmin=0
     vec = lmin+np.random.random(n)*(lmax-lmin) if np.any(eigs) == None else eigs
+    print(vec)
     return np.diag(vec)
 
 def _gen_random_hermitian_evals(n, lminmax=None, K=None, lmin=1, eigs=None):

@@ -37,7 +37,7 @@ box.
     are pluggable modules in Aqua.
     New oracles are typically installed in the ``qiskit_aqua/utils/oracles`` folder and derive from
     the ``Oracle`` class.  Aqua also allows for
-    :ref:`aqua-dynamically-discovered-components`: new oracles can register themselves
+    :ref:`aqua-dynamically-discovered-components`: new components can register themselves
     as Aqua extensions and be dynamically discovered at run time independent of their
     location in the file system.
     This is done in order to encourage researchers and
