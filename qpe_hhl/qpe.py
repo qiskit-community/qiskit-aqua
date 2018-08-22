@@ -240,11 +240,11 @@ class QPE():
     def _construct_phase_estimation_circuit(self, measure=False):
         """Implement the Quantum Phase Estimation algorithm"""
 
-        a = QuantumRegister(self._num_ancillae, name='a_qpe')
-        q = QuantumRegister(self._operator.num_qubits, name='q_qpe')
+        a = QuantumRegister(self._num_ancillae, name='eigenvalue_reg')
+        q = QuantumRegister(self._operator.num_qubits, name='statevector_reg')
         qc = QuantumCircuit(a, q)
         if measure:
-            c = ClassicalRegister(self._num_ancillae, name='c_qpe')
+            c = ClassicalRegister(self._num_ancillae, name='classical_reg_qpe')
             qc.add(c)
 
         # initialize state_in
@@ -326,6 +326,7 @@ class QPE():
         rets = sorted([[rd[k], k, k] for k in rd])[::-1]
 
         for d in rets:
+            print(d)
             d[0] /= shots
             if d[1][-1] == "1" and self._negative_evals:
                 d[2] = -(1-sum([2**-(i+1) for i, e in enumerate(reversed(d[2])) if e ==

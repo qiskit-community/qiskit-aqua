@@ -8,6 +8,13 @@ from qiskit_aqua import get_initial_state_instance, get_iqft_instance
 
 from qiskit.tools.visualization import matplotlib_circuit_drawer as drawer, plot_histogram
 import matplotlib.pyplot as plt
+import logging
+
+from functools import reduce
+
+
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -19,9 +26,10 @@ def create_cn_x_gate(n,c,t):
 
 class C_ROT():
     """Perform controlled rotation to invert matrix in HHL"""
-
-    PROP_INV_EIG_PRECISION = 'number_quibits_precision_ev'
+    PROP_PREV_CIRCUIT = 'previous_circuit'
+    PROP_INV_EIG_PRECISION = 'num_qbits_precision_ev'
     PROP_USE_BASIS_GATES = 'use_basis_gates'
+    PROP_NEGATIVE_EVALS = 'negative_evals'
     PROP_BACKEND = 'backend'
 
     ROT_CONFIGURATION = {
@@ -32,9 +40,20 @@ class C_ROT():
             'id': 'rotation_schema',
             'type': 'object',
             'properties': {
+                PROP_PREV_CIRCUIT: {
+                    #@TODO double-check
+                    'type': 'QuantumCircuit',
+                    'default': None
+                },
+
                 PROP_INV_EIG_PRECISION: {
                     'type' : 'int',
                     'default': 5
+                },
+
+                PROP_NEGATIVE_EVALS: {
+                    'type': 'boolean',
+                    'default': False
                 },
 
                 PROP_USE_BASIS_GATES: {
@@ -56,76 +75,168 @@ class C_ROT():
         self._configuration = configuration or self.ROT_CONFIGURATION.copy()
 
 
-    def init_params(self,qc):
+    def init_params(self,params):
         """Initialize via parameters dictionary and algorithm input instance
         Args:
             qc: circuit that rotation will be added to
         """
 
         rot_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
+        init_state_params = params.get(QuantumAlgorithm.SECTION_KEY_INITIAL_STATE)
+
+        vector = init_state_params['state_vector']
+        if len(vector) > 0:
+
+            init_state_params['num_qubits'] = int(np.log2(len(vector)))
+            init_state = get_initial_state_instance(init_state_params['name'])
+            init_state.init_params(init_state_params)
+        else:
+            init_state= None
+
         for k, p in self._configuration.get("input_schema").get("properties").items():
             if rot_params.get(k) == None:
                 rot_params[k] = p.get("default")
 
+        qc = rot_params.get(C_ROT.PROP_PREV_CIRCUIT)
         num_quibits_inv_ev = rot_params.get(C_ROT.PROP_INV_EIG_PRECISION)
+        negative_evals = rot_params.get(C_ROT.PROP_NEGATIVE_EVALS)
+
         use_basis_gates = rot_params.get(C_ROT.PROP_USE_BASIS_GATES)
         backend = rot_params.get(C_ROT.PROP_BACKEND)
 
-        self.init_args(num_quibits_inv_ev,use_basis_gates,backend)
 
-    def init_args(self,num_quibits_inv_ev=5,use_basis_gates=True, backend='local_qasm_simulator'):
+        self.init_args(qc,init_state,num_quibits_inv_ev
+                       ,use_basis_gates,
+                       negative_evals=negative_evals, backend=backend)
+
+    def init_args(self,quantum_circuit, state_in = None,num_quibits_inv_ev=5,use_basis_gates=True,
+                  negative_evals=False,  backend='local_qasm_simulator'):
+        if isinstance(quantum_circuit,QuantumCircuit):
+            logger.info('C_Rot circuit is added to existing circuit')
+            print('C_Rot circuit is added to existing circuit')
+            self._circuit = quantum_circuit
+            self._standalone = False
+        else:
+            logger.info('C_Rot circuit is initialized from scratch')
+            print('C_Rot circuit is initialized from scratch')
+            self._circuit = None
+            self._standalone = True
+        self._state_in = state_in
         self._num_quibits_inv_ev = num_quibits_inv_ev
         self._use_basis_gates = use_basis_gates
+        self._negative_evals = negative_evals
+
         self._backend = backend
+        self._ret = {}
+
 
     def _construct_controlled_rotation_circuit(self, measure=False):
         """Implement the controlled rotation algorithm for HHL"""
-        #@TODO Implement passing name of input register
-
-
 
         #############################################################################
         ## Compute multiplicative inverse of EV via first step of Newton iteration ##
         #############################################################################
 
-        n = self._num_quibits_inv_ev
-        inputregister = QuantumRegister(n, name="inputregister")
-        flagbit = QuantumRegister(1, name="flagbit")
-        outputregister = QuantumRegister(n, name="outputregister")
-        anc = QuantumRegister(n - 1, name="anc")
+
+        #if circuit exists, get registers and check if eigenvalue register is included
+        if isinstance(self._circuit,QuantumCircuit):
+            qregs_dict = self._circuit.get_qregs()
+            try:
+                inputregister = qregs_dict['eigenvalue_reg']
+                #@TODO: allow different precision for inverse
+                n = len(inputregister)
+                print("length of register for eigenvalues:",n)
+            #@TODO: better Error catching
+            except:
+                raise RuntimeError('The circuit passed to C_Rot does not contain register with label'
+                                   '\'eigenvalue_reg\''
+                                   )
+        elif self._circuit is None:
+            n = self._num_quibits_inv_ev
+            print("Number of quibits:",n)
+            inputregister = QuantumRegister(n, name="eigenvalue_reg")
+
+        else:
+            raise RuntimeError('Quantum circuit passed to C_Rot instance not understood')
+        flagbit = QuantumRegister(1, name="flagbit_reg")
+        outputregister = QuantumRegister(n, name="inv_eigenvalue_reg")
+        anc = QuantumRegister(n - 1, name="anc_reg_crot")
+
         if measure:
             classreg1 = ClassicalRegister(n)
             classreg2 = ClassicalRegister(1)
             classreg3 = ClassicalRegister(n)
 
-            qc = QuantumCircuit(inputregister, flagbit, anc, outputregister, classreg1, classreg2, classreg3)
+        # add registers to existing circuit
+        if isinstance(self._circuit, QuantumCircuit):
+            qc = self._circuit
+
+            for reg in (flagbit, anc, outputregister):
+                qc.add(reg)
         else:
             qc = QuantumCircuit(inputregister, flagbit, anc, outputregister)
+        if measure:
+            for reg in (classreg1, classreg2, classreg3):
+                qc.add(reg)
 
-        qc.cx(inputregister[0], flagbit)
-        qc.cx(inputregister[0], outputregister[n - 1])
 
-        for i in range(1, n):
-            qc.x(flagbit[0])
-            qc.ccx(inputregister[i], flagbit[0], outputregister[n - 1 - i])
+        # initialize state_in if starting from scratch
+        if self._circuit is None:
+            qc += self._state_in.construct_circuit('circuit', inputregister)  # @TODO: need rename here?
+            qc.barrier(inputregister)
+        if not self._negative_evals:
+            qc.cx(inputregister[0], flagbit)
+            qc.cx(inputregister[0], outputregister[n - 1])
+
+            for i in range(1, n):
+                qc.x(flagbit[0])
+                qc.ccx(inputregister[i], flagbit[0], outputregister[n - 1 - i])
+                qc.x(flagbit)
+                qc.cx(outputregister[n - 1 - i], flagbit)
+
+            # several control registers for the not gate of the flagbit at the end
+            qc.ccx(outputregister[0], outputregister[1], anc[0])
+            for i in range(2, n):
+                qc.ccx(outputregister[i], anc[i - 2], anc[i - 1])
+
+            # copy
+            qc.cx(anc[n - 2], flagbit)
+
+            # uncompute
+            for i in range(n - 1, 1, -1):
+                qc.ccx(outputregister[i], anc[i - 2], anc[i - 1])
+            qc.ccx(outputregister[0], outputregister[1], anc[0])
+
             qc.x(flagbit)
-            qc.cx(outputregister[n - 1 - i], flagbit)
+        else:
+            ##copy sign bit
+            qc.cx(inputregister[0], outputregister[0])
 
-        # several control registers for the not gate of the flagbit at the end
-        qc.ccx(outputregister[0], outputregister[1], anc[0])
-        for i in range(2, n):
-            qc.ccx(outputregister[i], anc[i - 2], anc[i - 1])
+            ## following routine implements first step of the Newton iteration
+            qc.cx(inputregister[1], flagbit)
+            qc.cx(inputregister[1], outputregister[n - 1])
 
-        # copy
-        qc.cx(anc[n - 2], flagbit)
+            for i in range(2, n):
+                qc.x(flagbit[0])
+                qc.ccx(inputregister[i], flagbit[0], outputregister[n - i])
+                qc.x(flagbit)
+                qc.cx(outputregister[n - i], flagbit)
 
-        # uncompute
-        for i in range(n - 1, 1, -1):
-            qc.ccx(outputregister[i], anc[i - 2], anc[i - 1])
-        qc.ccx(outputregister[0], outputregister[1], anc[0])
+            # several control registers for the not gate of the flagbit at the end
+            qc.ccx(outputregister[1], outputregister[2], anc[0])
+            for i in range(3, n):
+                qc.ccx(outputregister[i], anc[i - 3], anc[i - 2])
 
-        #@TODO: Why x gate
-        qc.x(flagbit)
+            # copy
+            qc.cx(anc[n - 3], flagbit)
+
+            # uncompute
+            for i in range(n - 1, 2, -1):
+                qc.ccx(outputregister[i], anc[i - 3], anc[i - 2])
+            qc.ccx(outputregister[1], outputregister[2], anc[0])
+
+            #@TODO: Why x gate
+            qc.x(flagbit)
 
 
         if measure:
@@ -141,7 +252,7 @@ class C_ROT():
         self._circuit = qc
         return qc
 
-    def _setup_qpe(self, measure=False):
+    def _setup_crot(self, measure=False):
 
         self._construct_controlled_rotation_circuit(measure=measure)
         logger.info('C_Rot circuit qasm length is roughly {}.'.format(
@@ -151,3 +262,53 @@ class C_ROT():
             len(self._circuit.qasm().split('\n'))
         ))
         return self._circuit
+
+
+
+    def _compute_inverse_eigenvalue(self, shots=1024):
+        self._setup_crot(measure=True)
+        result = execute(self._circuit, backend=self._backend, shots=shots).result()
+        counts = result.get_counts(self._circuit)
+
+        rd = result.get_counts(self._circuit)
+        print(rd)
+        rets = sorted([[rd[k], k, k] for k in rd])[::-1]
+
+        for d in rets:
+            #print(d)
+            d[0] /= shots
+            #split registers which are white space seperated and decode
+            c1,c2,c3 = d[2].split()
+            #@TODO
+            if self._negative_evals and c1[-1] == "1":
+                c1_ = -(sum([2**(len(c1[:-1])-i-1) for i, e in enumerate(reversed(c1[:-1])) if e ==
+                    "1"]))
+            else:
+                if self._negative_evals:
+                    c1_ = sum([2 ** (i) for i, e in enumerate((c1[:-1])) if e ==
+                               "1"])
+                else:
+                    c1_ = sum([2 **(i) for i, e in enumerate((c1)) if e ==
+                               "1"])
+            if self._negative_evals and c3[-1] == "1":
+                c3_ = -(sum([2**-(i+1) for i, e in enumerate(reversed(c3[:-1])) if e ==
+                    "1"]))
+            else:
+                if self._negative_evals:
+                    c3_ = sum([2 ** -(i + 1) for i, e in enumerate(reversed(c3[:-1])) if e ==
+                               "1"])
+                else:
+                    c3_ = sum([2 ** -(i + 1) for i, e in enumerate(reversed(c3)) if e ==
+                                     "1"])
+            d[2] = ' '.join([str(c1_),c2,str(c3_)])
+
+
+        self._ret['measurements'] = rets
+
+        # print(results._result)
+        # print(results.get_counts(qc))
+
+
+    def run(self):
+        self._compute_inverse_eigenvalue()
+        return self._ret

@@ -21,8 +21,8 @@ classreg3 = ClassicalRegister(n)
 
 qc = QuantumCircuit(inputregister, flagbit,  anc, outputregister, classreg1, classreg2, classreg3)
 
-qc.x(inputregister[4])
-qc.x(inputregister[1])
+#qc.x(inputregister[4])
+qc.x(inputregister[0])
 qc.cx(inputregister[0], flagbit)
 qc.cx(inputregister[0], outputregister[n-1])
 
@@ -51,10 +51,10 @@ qc.measure(inputregister, classreg1)
 qc.measure(flagbit, classreg2)
 qc.measure(outputregister, classreg3)
 
-#results = execute(qc, backend = backend).result()
-#print(results._result)
-#print(results.get_counts(qc))
-drawer(qc, filename="firstnewton.png")
+results = execute(qc, backend = backend).result()
+print(results._result)
+print(results.get_counts(qc))
+#drawer(qc, filename="firstnewton.png")
 #plt.show()
 #plot_histogram(results.get_counts())
 

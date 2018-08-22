@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 qpe = QPE()
 n = 2
-k = 9
+k = 3
 nege = True
 
 matrix = gen_matrix(n, eigrange=[-5, 5], sparsity=0.6)
@@ -31,7 +31,7 @@ params = {
     'algorithm': {
             'name': 'QPE',
             'num_ancillae': k,
-            'num_time_slices': 50,
+            'num_time_slices': 5,
             'expansion_mode': 'suzuki',
             'expansion_order': 2,
             'hermitian_matrix': True,
