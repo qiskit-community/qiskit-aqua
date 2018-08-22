@@ -136,6 +136,7 @@ class QPE():
         self._num_ancillae = 0
         self._ancilla_phase_coef = 0
         self._circuit = None
+        self._circuit_data = None
         self._inverse = None
         self._state_circuit_length = 0
         self._ret = {}
@@ -294,13 +295,14 @@ class QPE():
             qc.measure(a, c)
         #qc.optimize_gates()
         self._circuit = qc
+        self._circuit_data = deepcopy(qc.data)
         return qc
 
     def _construct_inverse(self):
         if self._inverse == None:
             self._inverse = QuantumCircuit()
             self._inverse.regs = self._circuit.regs
-            self._inverse.data = list(reversed(deepcopy(self._circuit.data)))[:-self._initial_circuit_length]
+            self._inverse.data = list(reversed(self._circuit_data))[:-self._initial_circuit_length]
             self._inverse.data = list(map(lambda x: x.inverse(), self._inverse.data))
         return self._inverse
 
