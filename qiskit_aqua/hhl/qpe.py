@@ -72,7 +72,7 @@ class QPE():
                 },
                 PROP_EXPANSION_MODE: {
                     'type': 'string',
-                    'default': 'suzuki',
+                    'default': 'trotter',
                     'oneOf': [
                         {'enum': [
                             'suzuki',
@@ -92,18 +92,18 @@ class QPE():
                 },
                 PROP_EVO_TIME: {
                     'type': 'float',
-                    'minimum': 1.0
+                    'minimum': 1.0,
                 },
                 PROP_USE_BASIS_GATES: {
-                    'type': 'boolean',
+                    'type': 'bool',
                     'default': True,
                 },
                 PROP_HERMITIAN_MATRIX: {
-                    'type': 'boolean',
+                    'type': 'bool',
                     'default': True
                 },
                 PROP_NEGATIVE_EVALS: {
-                    'type': 'boolean',
+                    'type': 'bool',
                     'default': False
                 },
                 PROP_BACKEND: {
@@ -113,7 +113,6 @@ class QPE():
             },
             'additionalProperties': False
         },
-        'problems': ['energy'],
         'depends': ['initial_state', 'iqft'],
         'defaults': {
             'initial_state': {
@@ -136,6 +135,7 @@ class QPE():
         self._num_ancillae = 0
         self._ancilla_phase_coef = 0
         self._circuit = None
+        self._inverse = None
         self._ret = {}
         self._matrix_dim = True
         self._hermitian_matrix = True
@@ -153,10 +153,15 @@ class QPE():
             raise AlgorithmError("Operator instance is required.")
 
 
-        qpe_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
+        qpe_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM) or {}
         for k, p in self._configuration.get("input_schema").get("properties").items():
             if qpe_params.get(k) == None:
                 qpe_params[k] = p.get("default")
+        
+        for k, p in self._configuration.get("defaults").items():
+            if k not in params:
+                params[k] = p
+
 
         num_time_slices = qpe_params.get(QPE.PROP_NUM_TIME_SLICES)
         paulis_grouping = qpe_params.get(QPE.PROP_PAULIS_GROUPING)
@@ -191,15 +196,16 @@ class QPE():
 
         # Set up initial state, we need to add computed num qubits to params, check the length of the vector
         init_state_params = params.get(QuantumAlgorithm.SECTION_KEY_INITIAL_STATE)
-        vector = init_state_params['state_vector']
-        if len(vector) < matrix.shape[0] and hermitian_matrix:
-            vector = np.append(vector, (matrix.shape[0] - len(vector)) * [0])
-        if not hermitian_matrix:
-            help_vector = np.zeros(matrix.shape[0] - len(vector))
-            vector = np.append(help_vector, vector)
-            #print(vector)
+        if init_state_params.get("name") == "CUSTOM":
+            vector = init_state_params['state_vector']
+            if len(vector) < matrix.shape[0] and hermitian_matrix:
+                vector = np.append(vector, (matrix.shape[0] - len(vector)) * [0])
+            if not hermitian_matrix:
+                help_vector = np.zeros(matrix.shape[0] - len(vector))
+                vector = np.append(help_vector, vector)
+                #print(vector)
+            init_state_params['state_vector'] = vector
         init_state_params['num_qubits'] = operator.num_qubits
-        init_state_params['state_vector'] = vector
         init_state = get_initial_state_instance(init_state_params['name'])
 
         # Set up iqft, we need to add num qubits to params which is our num_ancillae bits here
@@ -250,7 +256,6 @@ class QPE():
 
         # initialize state_in
         qc += self._state_in.construct_circuit('circuit', q)
-        qc.barrier(q)
 
         # Put all ancillae in uniform superposition
         qc.u2(0, np.pi, a)
@@ -289,10 +294,11 @@ class QPE():
         return qc
 
     def _construct_inverse(self):
-        self._circuit = self._circuit.reverse()
-        self._circuit.data = list(map(lambda x: x.inverse(),
-            self._circuit.data))
-        return self._circuit
+        if self._inverse == None:
+            self._inverse = QuantumCircuit(*self._circuit.get_qregs().values())
+            self._inverse.data = reversed(self._circuit.data)
+            self._inverse.data = list(map(lambda x: x.inverse(),self._inverse.data))
+        return self._inverse
 
 
     def _setup_qpe(self, measure=False):
