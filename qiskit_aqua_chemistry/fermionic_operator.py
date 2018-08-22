@@ -15,17 +15,21 @@
 # limitations under the License.
 # =============================================================================
 
-import concurrent.futures
-import multiprocessing
+import copy
 import itertools
 import logging
+import multiprocessing
+import concurrent.futures
 
 import numpy as np
-from qiskit.tools.qi.pauli import Pauli, sgn_prod, label_to_pauli
-
+from qiskit.tools.qi.pauli import Pauli, label_to_pauli, sgn_prod
 from qiskit_aqua import Operator
+from scipy import linalg as scila
+
 from qiskit_aqua_chemistry import AquaChemistryError
+from qiskit_aqua_chemistry.bksf import bksf_mapping
 from qiskit_aqua_chemistry.particle_hole import particle_hole_transformation
+
 
 logger = logging.getLogger(__name__)
 
@@ -46,11 +50,13 @@ class FermionicOperator(object):
     - S. Bravyi, J. M. Gambetta, A. Mezzacapo, and K. Temme, \
         arXiv e-print arXiv:1701.08213 (2017). \
     """
+
     def __init__(self, h1, h2=None, ph_trans_shift=None):
         """
         Args:
             h1 (numpy.ndarray): second-quantized fermionic one-body operator, a 2-D (NxN) tensor
-            h2 (numpy.ndarray): second-quantized fermionic two-body operator, a 4-D (NxNxNxN) tensor
+            h2 (numpy.ndarray): second-quantized fermionic two-body operator,
+                                a 4-D (NxNxNxN) tensor
             ph_trans_shift (float): energy shift caused by particle hole transformation
         """
         self._h1 = h1
@@ -58,6 +64,11 @@ class FermionicOperator(object):
             h2 = np.zeros((h1.shape[0], h1.shape[0], h1.shape[0], h1.shape[0]), dtype=h1.dtype)
         self._h2 = h2
         self._ph_trans_shift = ph_trans_shift
+        self._modes = self._h1.shape[0]
+
+    @property
+    def modes(self):
+        return self._modes
 
     @property
     def h1(self):
@@ -99,7 +110,8 @@ class FermionicOperator(object):
             unitary_matrix (numpy.ndarray): A 2-D unitary matrix for h1 transformation.
         """
         num_modes = unitary_matrix.shape[0]
-        temp_ret = np.zeros((num_modes, num_modes, num_modes, num_modes), dtype=unitary_matrix.dtype)
+        temp_ret = np.zeros((num_modes, num_modes, num_modes, num_modes),
+                            dtype=unitary_matrix.dtype)
         unitary_matrix_dagger = np.conjugate(unitary_matrix)
 
         # option 3: temp1 is a 3-D tensor, temp2 and temp3 are 2-D tensors
@@ -121,10 +133,10 @@ class FermionicOperator(object):
         """
         a = []
         for i in range(n):
-            xv = np.asarray([1] * i + [0] + [0] * (n-i-1))
-            xw = np.asarray([0] * i + [1] + [0] * (n-i-1))
-            yv = np.asarray([1] * i + [1] + [0] * (n-i-1))
-            yw = np.asarray([0] * i + [1] + [0] * (n-i-1))
+            xv = np.asarray([1] * i + [0] + [0] * (n - i - 1))
+            xw = np.asarray([0] * i + [1] + [0] * (n - i - 1))
+            yv = np.asarray([1] * i + [1] + [0] * (n - i - 1))
+            yw = np.asarray([0] * i + [1] + [0] * (n - i - 1))
             a.append((Pauli(xv, xw), Pauli(yv, yw)))
         return a
 
@@ -137,15 +149,15 @@ class FermionicOperator(object):
         """
         a = []
         for i in range(n):
-            Xv = [0] * (i-1) + [1] if i > 0 else []
-            Xw = [0] * (i-1) + [0] if i > 0 else []
-            Yv = [0] * (i-1) + [0] if i > 0 else []
-            Yw = [0] * (i-1) + [0] if i > 0 else []
-            Xv = np.asarray(Xv + [0] + [0] * (n-i-1))
-            Xw = np.asarray(Xw + [1] + [1] * (n-i-1))
-            Yv = np.asarray(Yv + [1] + [0] * (n-i-1))
-            Yw = np.asarray(Yw + [1] + [1] * (n-i-1))
-            a.append((Pauli(Xv, Xw), Pauli(Yv, Yw)))
+            x_v = [0] * (i - 1) + [1] if i > 0 else []
+            x_w = [0] * (i - 1) + [0] if i > 0 else []
+            y_v = [0] * (i - 1) + [0] if i > 0 else []
+            y_w = [0] * (i - 1) + [0] if i > 0 else []
+            x_v = np.asarray(x_v + [0] + [0] * (n - i - 1))
+            x_w = np.asarray(x_w + [1] + [1] * (n - i - 1))
+            y_v = np.asarray(y_v + [1] + [0] * (n - i - 1))
+            y_w = np.asarray(y_w + [1] + [1] * (n - i - 1))
+            a.append((Pauli(x_v, x_w), Pauli(y_v, y_w)))
         return a
 
     def _bravyi_kitaev_mode(self, n):
@@ -275,7 +287,8 @@ class FermionicOperator(object):
         observed when h2 is a non-sparse matrix.
 
         Args:
-            map_type (str): case-insensitive mapping type. "jordan_wigner", "parity", "bravyi_kitaev"
+            map_type (str): case-insensitive mapping type.
+                            "jordan_wigner", "parity", "bravyi_kitaev", "bravyi_kitaev_sf"
             threshold (float): threshold for Pauli simplification
             num_workers (int): number of processes used to map.
 
@@ -299,8 +312,11 @@ class FermionicOperator(object):
             a = self._parity_mode(n)
         elif map_type == 'bravyi_kitaev':
             a = self._bravyi_kitaev_mode(n)
+        elif map_type == 'bravyi_kitaev_sf':
+            return bksf_mapping(self)
         else:
-            raise AquaChemistryError('Please specify the supported modes: jordan_wigner, parity, bravyi_kitaev')
+            raise AquaChemistryError('Please specify the supported modes: \
+                                        jordan_wigner, parity, bravyi_kitaev, bravyi_kitaev_sf')
         """
         ####################################################################
         ############    BUILDING THE MAPPED HAMILTONIAN     ################
@@ -309,25 +325,28 @@ class FermionicOperator(object):
         max_workers = min(num_workers, multiprocessing.cpu_count())
         pauli_list = Operator(paulis=[])
         with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
-            #######################    One-body    #############################
-            futures = [executor.submit(FermionicOperator._one_body_mapping, self._h1[i, j], a[i], a[j], threshold)
+            # One-body
+            futures = [executor.submit(FermionicOperator._one_body_mapping,
+                                       self._h1[i, j], a[i], a[j], threshold)
                        for i, j in itertools.product(range(n), repeat=2) if self._h1[i, j] != 0]
             for future in concurrent.futures.as_completed(futures):
                 result = future.result()
                 pauli_list += result
             pauli_list.chop(threshold=threshold)
 
-            #######################    Two-body    #############################
+            # Two-body
             futures = [executor.submit(FermionicOperator._two_body_mapping,
                                        self._h2[i, j, k, m], a[i], a[j], a[k], a[m], threshold)
-                       for i, j, k, m in itertools.product(range(n), repeat=4) if self._h2[i, j, k, m] != 0]
+                       for i, j, k, m in itertools.product(range(n), repeat=4)
+                       if self._h2[i, j, k, m] != 0]
             for future in concurrent.futures.as_completed(futures):
                 result = future.result()
                 pauli_list += result
             pauli_list.chop(threshold=threshold)
 
         if self._ph_trans_shift is not None:
-            pauli_list += Operator(paulis=[[self._ph_trans_shift, label_to_pauli('I' * self._h1.shape[0])]])
+            pauli_term = [self._ph_trans_shift, label_to_pauli('I' * self._h1.shape[0])]
+            pauli_list += Operator(paulis=[pauli_term])
 
         return pauli_list
 
@@ -393,10 +412,10 @@ class FermionicOperator(object):
                                     to up-down-up-down-up-down-up-down
         """
         matrix = np.zeros((self._h1.shape), self._h1.dtype)
-        N = matrix.shape[0]
-        j = np.arange(N//2)
-        matrix[j, 2*j] = 1.0
-        matrix[j + N // 2, 2*j + 1] = 1.0
+        n = matrix.shape[0]
+        j = np.arange(n // 2)
+        matrix[j, 2 * j] = 1.0
+        matrix[j + n // 2, 2 * j + 1] = 1.0
         self.transform(matrix)
 
     def _convert_to_block_spins(self):
@@ -405,10 +424,10 @@ class FermionicOperator(object):
                                     to up-up-up-up-down-down-down-down
         """
         matrix = np.zeros((self._h1.shape), self._h1.dtype)
-        N = matrix.shape[0]
-        j = np.arange(N//2)
-        matrix[2*j, j] = 1.0
-        matrix[2*j+1, N//2+j] = 1.0
+        n = matrix.shape[0]
+        j = np.arange(n // 2)
+        matrix[2 * j, j] = 1.0
+        matrix[2 * j + 1, n // 2 + j] = 1.0
         self.transform(matrix)
 
     def particle_hole_transformation(self, num_particles):
@@ -426,10 +445,11 @@ class FermionicOperator(object):
             num_particles (int): number of particles
         """
         self._convert_to_interleaved_spins()
-        h1, h2, energy_shift = particle_hole_transformation(self._h1.shape[0], num_particles, self._h1, self._h2)
-        new_ferOp = FermionicOperator(h1=h1, h2=h2, ph_trans_shift=energy_shift)
-        new_ferOp._convert_to_block_spins()
-        return new_ferOp, energy_shift
+        h1, h2, energy_shift = particle_hole_transformation(self._h1.shape[0], num_particles,
+                                                            self._h1, self._h2)
+        new_fer_op = FermionicOperator(h1=h1, h2=h2, ph_trans_shift=energy_shift)
+        new_fer_op._convert_to_block_spins()
+        return new_fer_op, energy_shift
 
     def fermion_mode_elimination(self, fermion_mode_array):
         """
@@ -449,7 +469,7 @@ class FermionicOperator(object):
         h1_new = self._h1[h1_id_i, h1_id_j].copy()
         if np.count_nonzero(self._h2) > 0:
             h2_id_i, h2_id_j, h2_id_k, h2_id_l = np.meshgrid(
-                mode_set_diff, mode_set_diff, mode_set_diff, mode_set_diff,  indexing='ij')
+                mode_set_diff, mode_set_diff, mode_set_diff, mode_set_diff, indexing='ij')
             h2_new = self._h2[h2_id_i, h2_id_j, h2_id_k, h2_id_l].copy()
         else:
             h2_new = np.zeros((n_modes_new, n_modes_new, n_modes_new, n_modes_new))
@@ -481,9 +501,9 @@ class FermionicOperator(object):
                 # Untouched terms
                 h2_ijlk = self._h2[i, j, l, k]
                 if h2_ijlk == 0.0:
-                        continue
-                if (i in mode_set_diff and j in mode_set_diff
-                        and l in mode_set_diff and k in mode_set_diff):
+                    continue
+                if (i in mode_set_diff and j in mode_set_diff and
+                        l in mode_set_diff and k in mode_set_diff):
                     h2_new[i - np.where(fermion_mode_array < i)[0].size,
                            j - np.where(fermion_mode_array < j)[0].size,
                            l - np.where(fermion_mode_array < l)[0].size,
@@ -542,7 +562,7 @@ class FermionicOperator(object):
         h2 = np.zeros((size, size, size, size))
         return FermionicOperator(h1, h2)
 
-    def _S_x_squared(self):
+    def _s_x_squared(self):
         """
 
         Returns:
@@ -572,7 +592,7 @@ class FermionicOperator(object):
         h2 *= 0.25
         return h1, h2
 
-    def _S_y_squared(self):
+    def _s_y_squared(self):
         """
 
         Returns:
@@ -602,7 +622,7 @@ class FermionicOperator(object):
         h2 *= 0.25
         return h1, h2
 
-    def _S_z_squared(self):
+    def _s_z_squared(self):
         """
 
         Returns:
@@ -639,10 +659,155 @@ class FermionicOperator(object):
             FermionicOperator: Fermionic Hamiltonian
         """
 
-        x_h1, x_h2 = self._S_x_squared()
-        y_h1, y_h2 = self._S_y_squared()
-        z_h1, z_h2 = self._S_z_squared()
+        x_h1, x_h2 = self._s_x_squared()
+        y_h1, y_h2 = self._s_y_squared()
+        z_h1, z_h2 = self._s_z_squared()
         h1 = x_h1 + y_h1 + z_h1
         h2 = x_h2 + y_h2 + z_h2
 
         return FermionicOperator(h1=h1, h2=h2)
+
+    def __eq__(self, other):
+        """Overload == """
+        ret = np.all(self._h1 == other._h1)
+        if not ret:
+            return ret
+        ret = np.all(self._h2 == other._h2)
+        return ret
+
+    def __ne__(self, other):
+        """Overload == """
+        return not self.__eq__(other)
+
+    @staticmethod
+    def symmetric_reduction(fer_op, swap_index):
+
+        modes = fer_op.modes
+
+        if len(swap_index) > 1:
+            raise AquaChemistryError('Do not support multiple symmetries')
+
+        swap_index_reindexed = []
+        for symmtery in swap_index:
+            symmtery_list = []
+            for swap_pair in symmtery:
+                i, j = swap_pair
+                symmtery_list.append([i % modes, j % modes])
+            swap_index_reindexed.append(symmtery_list)
+
+        flatten_indices = [idx for symmtery in swap_index_reindexed
+                           for swap_pair in symmtery
+                           for idx in swap_pair]
+        if len(flatten_indices) != len(set(flatten_indices)):
+            raise AquaChemistryError('Do not support overlapped swap indices')
+
+        # build matrix R
+        r_matrix = np.eye(fer_op.modes, dtype=fer_op.h1.dtype)
+        for swap_pair in swap_index_reindexed:
+            for i, j in swap_pair:
+                r_matrix[i, j] = r_matrix[j, i] = 1.0
+                r_matrix[i, i] = r_matrix[j, j] = 0.0
+
+        # fill 1 to keep unchanged index
+        # for i in r_matrix.shape[0]:
+        #     if np.sum(r_matrix[i]) == 0:
+        #         r_matrix[i, i] = 1.0
+
+        # check the build r_matrix
+        temp_fer_op = copy.deepcopy(fer_op)
+        temp_fer_op.transform(r_matrix)
+        if temp_fer_op != fer_op:
+            raise AquaChemistryError('The specificed swap index is invalid: \
+                                        {}'.format(swap_index))
+
+        g_matrix = -1j * scila.logm(r_matrix)
+        d_matrix, v_matrix = scila.eig(g_matrix)
+
+        # check the build d_matrix
+        d_matrix = np.around(d_matrix, 5)
+        for eig in d_matrix:
+            if eig != 0.0 and eig != 3.14159:
+                raise AquaChemistryError('The specificed swap index is invalid. \
+                                            Eigenvalues of G includes: {}'.format(eig))
+
+        pi_index = np.where(d_matrix == 3.14159)[0]
+        print(pi_index)
+        s_pauli = ['I'] * modes
+        s_pauli[pi_index[0]] = 'X'
+        s_pauli = ''.join(s_pauli)
+
+        s_op = Operator(paulis=[[1.0, label_to_pauli(s_pauli)]])
+        print(s_op.print_operators())
+
+        clifford_pauli = ''
+        for i in range(modes):
+            clifford_pauli += 'I' if i not in pi_index else 'Z'
+        clifford_op = Operator(paulis=[[1.0, label_to_pauli(clifford_pauli)]])
+        clifford_op += s_op
+        clifford_op.scaling_coeff(1.0 / np.sqrt(2))
+
+        print(clifford_op.print_operators())
+
+        new_fer_op = copy.deepcopy(fer_op)
+        new_fer_op.transform(v_matrix)
+        qubit_op = new_fer_op.mapping(map_type='jordan_wigner')
+
+        # new_qubit_op = Operator.qubit_tapering(qubit_op, [clifford_op], [s_op], [1])
+        ret_ops = []
+        for coeff in itertools.product([1, -1], repeat=1):
+            ret_ops.append(Operator.qubit_tapering(qubit_op, [clifford_op],
+                                                   [pi_index[0]], list(coeff)))
+        return ret_ops
+
+# def fake_toy_model(coeff):
+#     h1 = np.zeros((9,9))
+
+
+# if __name__ == '__main__':
+#     from collections import OrderedDict
+
+#     from qiskit_aqua_chemistry.drivers import ConfigurationManager
+#     from qiskit_aqua_chemistry.core import get_chemistry_operator_instance
+#     from qiskit_aqua_chemistry import FermionicOperator
+
+#     from qiskit_aqua import run_algorithm, get_algorithm_instance
+#     from qiskit_aqua.input import get_input_instance
+
+#     from qiskit_aqua._logging import build_logging_config, set_logging_config
+#     import logging
+
+#     set_logging_config(build_logging_config(logging.DEBUG))
+
+#     cfg_mgr = ConfigurationManager()
+#     pyscf_cfg = OrderedDict([
+#         ('atom', 'H .0 .0 .0; H .0 .0 0.7414'),
+#         ('unit', 'Angstrom'),
+#         ('charge', 0),
+#         ('spin', 0),
+#         ('basis', 'sto3g')
+#     ])
+#     section = {'properties': pyscf_cfg}
+#     driver = cfg_mgr.get_driver_instance('PYSCF')
+#     qmolecule = driver.run(section)
+
+#     fer_op = FermionicOperator(h1=qmolecule._one_body_integrals, h2=qmolecule._two_body_integrals)
+#     ref_op = fer_op.mapping('jordan_wigner')
+#     # print(bravyi_kitaev_fast_edge_list(fer_op))
+
+#     qubit_op = FermionicOperator.symmetric_reduction(fer_op, [[[0, 2], [1, 3]]])
+
+#     # qubit_op[1]._check_representation('matrix')
+#     # print(qubit_op[1].matrix.shape)
+
+#     ee = get_algorithm_instance('ExactEigensolver')
+#     ee.init_args(ref_op, k=1)
+#     print(ref_op)
+#     print(ee.run()['energy'])
+
+#     print(qubit_op[1])
+#     ee.init_args(qubit_op[1], k=1)
+#     print(ee.run()['energy'])
+#     # np.linalg.eigvals(qubit_op[1].matrix)
+
+#     # print(qubit_op[0].print_operators())
+#     # print(qubit_op[1].print_operators())

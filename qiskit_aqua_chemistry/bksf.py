@@ -1,0 +1,500 @@
+# -*- coding: utf-8 -*-
+
+# Copyright 2018 IBM.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# =============================================================================
+
+import copy
+import itertools
+
+import networkx
+import numpy as np
+from qiskit.tools.qi.pauli import Pauli, label_to_pauli
+from qiskit_aqua import Operator
+
+
+def one_body(edge_list, p, q, h1_pq):
+    """
+    Map the term a^\dagger_p a_q + a^\dagger_q a_p to QubitOperator.
+
+    The definitions for various operators will be presented in a paper soon.
+
+    Args:
+        edge_list(numpy.ndarray): 2xE matrix
+        p and q (int): specifying the one body term.
+
+    Return:
+        An instance of QubitOperator()
+    """
+    # Handle off-diagonal terms.
+    final_coeff = 1.0
+    if p != q:
+        a, b = sorted([p, q])
+        b_a = edge_operator_bi(edge_list, a)
+        b_b = edge_operator_bi(edge_list, b)
+        a_ab = edge_operator_aij(edge_list, a, b)
+        qubit_op = a_ab * b_b + b_a * a_ab
+        final_coeff = -1j * 0.5
+
+    # Handle diagonal terms.
+    else:
+        b_p = edge_operator_bi(edge_list, p)
+        v = np.zeros(edge_list.shape[1])
+        w = np.zeros(edge_list.shape[1])
+        id_pauli = Pauli(v, w)
+
+        id_op = Operator(paulis=[[1.0, id_pauli]])
+        qubit_op = id_op - b_p
+        final_coeff = 0.5
+
+    qubit_op.scaling_coeff(final_coeff * h1_pq)
+    qubit_op.zeros_coeff_elimination()
+    return qubit_op
+
+
+def two_body(edge_matrix_indices, p, q, r, s, h2_pqrs):
+    """
+    Map the term a^\dagger_p a^\dagger_q a_r a_s + h.c. to QubitOperator.
+
+    The definitions for various operators will be covered in a paper soon.
+
+    Args:
+        edge_matrix_indices (numpy array): specifying the edges
+        p, q, r and s (int): specifying the two body term.
+
+    Return:
+        An instance of QubitOperator()
+    """
+
+    # Handle case of four unique indices.
+    v = np.zeros(edge_matrix_indices.shape[1])
+    id_op = Operator(paulis=[[1, Pauli(v, v)]])
+    final_coeff = 1.0
+
+    if len(set([p, q, r, s])) == 4:
+        b_p = edge_operator_bi(edge_matrix_indices, p)
+        b_q = edge_operator_bi(edge_matrix_indices, q)
+        b_r = edge_operator_bi(edge_matrix_indices, r)
+        b_s = edge_operator_bi(edge_matrix_indices, s)
+        a_pq = edge_operator_aij(edge_matrix_indices, p, q)
+        a_rs = edge_operator_aij(edge_matrix_indices, r, s)
+        a_pq = -a_pq if q < p else a_pq
+        a_rs = -a_rs if s < r else a_rs
+
+        qubit_op = (a_pq * a_rs) * (-id_op - b_p * b_q + b_p * b_r +
+                                    b_p * b_s + b_q * b_r + b_q * b_s -
+                                    b_r * b_s + b_p * b_q * b_r * b_s)
+        final_coeff = 0.125
+
+    # Handle case of three unique indices.
+    elif len(set([p, q, r, s])) == 3:
+        b_p = edge_operator_bi(edge_matrix_indices, p)
+        b_q = edge_operator_bi(edge_matrix_indices, q)
+        if p == r:
+            b_s = edge_operator_bi(edge_matrix_indices, s)
+            a_qs = edge_operator_aij(edge_matrix_indices, q, s)
+            a_qs = -a_qs if s < q else a_qs
+            qubit_op = (a_qs * b_s + b_q * a_qs) * (id_op - b_p)
+            final_coeff = 1j * 0.25
+        elif p == s:
+            b_r = edge_operator_bi(edge_matrix_indices, r)
+            a_qr = edge_operator_aij(edge_matrix_indices, q, r)
+            a_qr = -a_qr if r < q else a_qr
+            qubit_op = (a_qr * b_r + b_q * a_qr) * (id_op - b_p)
+            final_coeff = 1j * -0.25
+        elif q == r:
+            b_s = edge_operator_bi(edge_matrix_indices, s)
+            a_ps = edge_operator_aij(edge_matrix_indices, p, s)
+            a_ps = -a_ps if s < p else a_ps
+            qubit_op = (a_ps * b_s + b_p * a_ps) * (id_op - b_q)
+            final_coeff = 1j * -0.25
+        elif q == s:
+            b_r = edge_operator_bi(edge_matrix_indices, r)
+            a_pr = edge_operator_aij(edge_matrix_indices, p, r)
+            a_pr = -a_pr if r < p else a_pr
+            qubit_op = (a_pr * b_r + b_p * a_pr) * (id_op - b_q)
+            final_coeff = 1j * 0.25
+        else:
+            pass
+
+    # Handle case of two unique indices.
+    elif len(set([p, q, r, s])) == 2:
+        b_p = edge_operator_bi(edge_matrix_indices, p)
+        b_q = edge_operator_bi(edge_matrix_indices, q)
+        qubit_op = (id_op - b_p) * (id_op - b_q)
+        if p == s:
+            final_coeff = 0.25
+        else:
+            final_coeff = -0.25
+    else:
+        pass
+
+    qubit_op.scaling_coeff(final_coeff * h2_pqrs)
+    qubit_op.zeros_coeff_elimination()
+    return qubit_op
+
+
+def bravyi_kitaev_fast_edge_list(fer_op):
+    """
+    Construct edge matrix required for the algorithm for bksf
+
+    Edge matrix contains the information about the edges between vertices.
+    Edge matrix is required to build the operators in the bksf mode.
+
+    Args:
+        fer_op (FeriomicOperator):
+
+    Returns:
+        numpy.ndarray: edge_list, a 2xE matrix, each stores the indices of nonzeros
+    """
+    h1 = fer_op.h1
+    h2 = fer_op.h2
+    modes = fer_op.modes
+    edge_matrix = np.zeros((modes, modes), dtype=np.bool)
+
+    for p, q in itertools.product(range(modes), repeat=2):
+
+        if h1[p, q] != 0.0 and p >= q:
+            edge_matrix[p, q] = True
+
+        for r, s in itertools.product(range(modes), repeat=2):
+            if h2[p, q, r, s] == 0.0:  # skip zero terms
+                continue
+
+            # Identify and skip one of the complex conjugates.
+            if [p, q, r, s] != [s, r, q, p]:
+                if len(set([p, q, r, s])) == 4:
+                    if min(r, s) < min(p, q):
+                        continue
+                elif p != r and q < p:
+                    continue
+
+            # Handle case of four unique indices.
+            if len(set([p, q, r, s])) == 4:
+                if p >= q:
+                    edge_matrix[p, q] = True
+                    a, b = sorted([r, s])
+                    edge_matrix[b, a] = True
+
+            # Handle case of three unique indices.
+            elif len(set([p, q, r, s])) == 3:
+                # Identify equal tensor factors.
+                if p == r:
+                    a, b = sorted([q, s])
+                elif p == s:
+                    a, b = sorted([q, r])
+                elif q == r:
+                    a, b = sorted([p, s])
+                elif q == s:
+                    a, b = sorted([p, r])
+                else:
+                    continue
+                edge_matrix[b, a] = True
+
+    edge_list = np.asarray(np.nonzero(np.triu(edge_matrix.T) ^ np.diag(np.diag(edge_matrix.T))))
+    return edge_list
+
+
+def edge_operator_aij(edge_list, i, j):
+    """Calculate the edge operator A_ij. The definitions used here are
+    consistent with arXiv:quant-ph/0003137
+
+    Args:
+        edge_list(numpy.ndarray): edge list, a 2xE array, where E is the number of edges
+        i (int): specifying the edge operator A
+        j (int): specifying the edge operator A
+
+    Returns:
+        Pauli: An instance of QubitOperator
+    """
+
+    v = np.zeros(edge_list.shape[1])
+    w = np.zeros(edge_list.shape[1])
+
+    # operator = tuple()
+    position_ij = -1
+
+    qubit_position_i = np.asarray(np.where(edge_list == i))
+
+    for edge_index in range(edge_list.shape[1]):
+        # does the order of number matters?
+        if set((i, j)) == set(edge_list[:, edge_index]):
+            position_ij = edge_index
+            # can we break?
+            break
+
+    w[position_ij] = 1
+
+    for edge_index in range(qubit_position_i.shape[1]):
+        ii, jj = qubit_position_i[:, edge_index]
+        ii = 1 if ii == 0 else 0  # int(not(ii))
+        if edge_list[ii][jj] < j:
+            v[jj] = 1
+
+    qubit_position_j = np.asarray(np.where(edge_list == j))
+    for edge_index in range(qubit_position_j.shape[1]):
+        ii, jj = qubit_position_j[:, edge_index]
+        ii = 1 if ii == 0 else 0  # int(not(ii))
+        if edge_list[ii][jj] < i:
+            v[jj] = 1
+
+    qubit_op = Operator(paulis=[[1.0, Pauli(v, w)]])
+    return qubit_op
+
+
+def edge_operator_bi(edge_list, i):
+    """Calculate the edge operator B_i.
+
+    The definitions used here are consistent with arXiv:quant-ph/0003137
+
+    Args:
+        edge_list (numpy.ndarray): 2xE array, where E is the number of edges.
+        i (int): index for specifying the edge operator B.
+
+    Returns:
+        Pauli: an instance of QubitOperator
+    """
+
+    qubit_position_matrix = np.asarray(np.where(edge_list == i))
+    qubit_position = qubit_position_matrix[1]
+    # qubit_position = np.sort(qubit_position)
+    v = np.zeros(edge_list.shape[1])
+    w = np.zeros(edge_list.shape[1])
+    v[qubit_position] = 1
+    qubit_op = Operator(paulis=[[1.0, Pauli(v, w)]])
+    return qubit_op
+
+
+def bksf_mapping(fer_op):
+    """
+    Transform from InteractionOpeator to QubitOperator for Bravyi-Kitaev fast
+    algorithm.
+
+    The electronic Hamiltonian is represented in terms of creation and
+    annihilation operators. These creation and annihilation operators could be
+    used to define Majorana modes as follows:
+        c_{2i} = a_i + a^{\dagger}_i,
+        c_{2i+1} = (a_i - a^{\dagger}_{i})/(1j)
+    These Majorana modes can be used to define edge operators B_i and A_{ij}:
+        B_i=c_{2i}c_{2i+1},
+        A_{ij}=c_{2i}c_{2j}
+    using these edge operators the fermionic algebra can be generated and
+    hence all the terms in the electronic Hamiltonian can be expressed in
+    terms of edge operators. The terms in electronic Hamiltonian can be
+    divided into five types (arXiv 1208.5986). We can find the edge operator
+    expression for each of those five types. For example, the excitation
+    operator term in Hamiltonian when represented in terms of edge operators
+    becomes:
+        a_i^{\dagger}a_j+a_j^{\dagger}a_i = (-1j/2)*(A_ij*B_i+B_j*A_ij)
+    For the sake of brevity the reader is encouraged to look up the
+    expressions of other terms from the code below. The variables for edge
+    operators are chosen according to the nomenclature defined above
+    (B_i and A_ij). A detailed description of these operators and the terms
+    of the electronic Hamiltonian are provided in (arXiv 1712.00446).
+
+    Args:
+        iop (Interaction Operator):
+        n_qubit (int): Number of qubits
+
+    Returns:
+        qubit_operator: An instance of the QubitOperator class.
+    """
+
+    # convert to interleaved spins and negate the values of h2
+    fer_op = copy.deepcopy(fer_op)
+    fer_op._convert_to_interleaved_spins()
+    fer_op.h2 = fer_op.h2 * -1.0
+    # for i,j,k,m in itertools.product(range(fer_op.modes), repeat=4):
+    #     if len(list(set([i,j,k,m]))) == 1:
+    #         fer_op.h2[i,j,k,m] = 0.0
+    modes = fer_op.modes
+    # Initialize qubit operator as constant.
+    qubit_op = Operator(paulis=[])
+    edge_list = bravyi_kitaev_fast_edge_list(fer_op)
+    # Loop through all indices.
+    for p in range(modes):
+        for q in range(modes):
+            # Handle one-body terms.
+            h1_pq = fer_op.h1[p, q]
+
+            if h1_pq != 0.0 and p >= q:
+                qubit_op += one_body(edge_list, p, q, h1_pq)
+
+            # Keep looping for the two-body terms.
+            for r in range(modes):
+                for s in range(modes):
+                    h2_pqrs = fer_op.h2[p, q, r, s]
+
+                    # Skip zero terms.
+                    if (h2_pqrs == 0.0) or (p == q) or (r == s):
+                        continue
+
+                    # Identify and skip one of the complex conjugates.
+                    if [p, q, r, s] != [s, r, q, p]:
+                        if len(set([p, q, r, s])) == 4:
+                            if min(r, s) < min(p, q):
+                                continue
+                        # Handle case of 3 unique indices
+                        elif len(set([p, q, r, s])) == 3:
+                            qubit_op += two_body(edge_list, p, q, r, s, 0.5 * h2_pqrs)
+                            continue
+                        elif p != r and q < p:
+                            continue
+
+                    qubit_op += two_body(edge_list, p, q, r, s, h2_pqrs)
+
+    qubit_op.zeros_coeff_elimination()
+    return qubit_op
+
+
+def coeff_operator(num_qubits, coeff=1.0):
+    v = np.zeros(num_qubits)
+    id_op = Operator(paulis=[[coeff, Pauli(v, v)]])
+    return id_op
+
+
+def vacuum_operator(edge_list):
+    """Use the stabilizers to find the vacuum state in bravyi_kitaev_fast.
+
+    Args:
+        edge_list(numpy.ndarray): specifying the edges, 2xE matrix, where E is the number of edges.
+
+    Return:
+        Operator: the qubit operator
+
+    """
+    # Initialize qubit operator.
+    num_qubits = edge_list.shape[1]
+    vac_operator = Operator(paulis=[[1.0, label_to_pauli('I' * num_qubits)]])
+
+    g = networkx.Graph()
+    g.add_edges_from(tuple(edge_list.transpose()))
+    stabs = np.asarray(networkx.cycle_basis(g))
+    print('Stabilizers\n')
+    for stab in stabs:
+        a = Operator(paulis=[[1.0, label_to_pauli('I' * num_qubits)]])
+        # coeff_operator(num_qubits)
+        # A = self.coeff_operator(edge_list, 1)
+        stab = np.asarray(stab)
+        print(stab)
+        print('\n')
+        for i in range(np.size(stab)):
+            a = a * edge_operator_aij(edge_list, stab[i], stab[(i + 1) % np.size(stab)])
+            a.scaling_coeff(1j)
+            # if i == (np.size(stab) - 1):
+            #     a = a * edge_operator_aij(edge_list, stab[i], stab[0])
+            # else:
+            #     a = a * edge_operator_aij(edge_list, stab[i], stab[i+1])
+        a += Operator(paulis=[[1.0, label_to_pauli('I' * num_qubits)]])
+        vac_operator = vac_operator * a
+        # vac_operator = vac_operator * (coeff_operator(num_qubits, 1) + a)
+        vac_operator.scaling_coeff(np.sqrt(2))
+        print(a)
+        print('\n')
+
+    return vac_operator
+
+
+def number_operator(fer_op, mode_number=None):
+    """Find the qubit operator for the number operator in bravyi_kitaev_fast
+    representation
+
+    Args:
+        iop (InteractionOperator):
+        mode_number: index mode_number corresponding to the mode
+            for which number operator is required.
+
+    Return:
+        A QubitOperator
+
+   """
+    modes = fer_op.h1.modes
+    edge_list = bravyi_kitaev_fast_edge_list(fer_op)
+    num_qubits = edge_list.shape[1]
+    num_operator = Operator(paulis=[[1.0, label_to_pauli('I' * num_qubits)]])
+
+    if mode_number is None:
+        for i in range(modes):
+            # num_operator += (coeff_operator(num_qubits, 1) - edge_operator_b(edge_list, i))
+            num_operator -= edge_operator_bi(edge_list, i)
+        num_operator += Operator(paulis=[[1.0 * modes, label_to_pauli('I' * num_qubits)]])
+    else:
+        num_operator += (Operator(paulis=[[1.0, label_to_pauli('I' * num_qubits)]]
+                                  ) - edge_operator_bi(edge_list, mode_number))
+
+    num_operator.scaling_coeff(0.5)
+
+    return num_operator
+
+
+def generate_fermions(fer_op, i, j):
+    """The QubitOperator for generating fermions in bravyi_kitaev_fast
+    representation
+
+    Args:
+        edge_list(numpy.ndarray): specifying the edges
+
+    Return:
+        A QubitOperator
+    """
+    edge_list = bravyi_kitaev_fast_edge_list(fer_op)
+    # Id_op = coeff_operator(edge_list, -1j/2)
+    gen_fer_operator = edge_operator_aij(edge_list, i, j) * edge_operator_bi(edge_list, j) \
+        - edge_operator_bi(edge_list, i) * edge_operator_aij(edge_list, i, j)
+
+    gen_fer_operator.scaling_coeff(-1j * 0.5)
+    return gen_fer_operator
+
+
+# if __name__ == '__main__':
+#     from collections import OrderedDict
+
+#     from qiskit_aqua_chemistry.drivers import ConfigurationManager
+#     from qiskit_aqua_chemistry.core import get_chemistry_operator_instance
+#     from qiskit_aqua_chemistry import FermionicOperator
+
+#     from qiskit_aqua import run_algorithm
+#     from qiskit_aqua.input import get_input_instance
+
+#     from qiskit_aqua._logging import build_logging_config, set_logging_config
+#     import logging
+#     from scipy.sparse import linalg as scialg
+
+#     set_logging_config(build_logging_config(logging.DEBUG))
+
+#     cfg_mgr = ConfigurationManager()
+#     pyscf_cfg = OrderedDict([
+#         ('atom', 'Li .0 .0 .0; H .0 .0 0.7414'),
+#         ('unit', 'Angstrom'),
+#         ('charge', 0),
+#         ('spin', 0),
+#         ('basis', 'sto3g')
+#     ])
+#     section = {'properties': pyscf_cfg}
+#     driver = cfg_mgr.get_driver_instance('PYSCF')
+#     qmolecule = driver.run(section)
+
+#     fer_op = FermionicOperator(h1=qmolecule._one_body_integrals, h2=qmolecule._two_body_integrals)
+#     fer_op._convert_to_interleaved_spins()
+#     fer_op.h2 = -fer_op.h2
+#     # print(bravyi_kitaev_fast_edge_list(fer_op))
+
+#     qubit_op = bksf_mapping(fer_op)
+#     print(qubit_op.print_operators())
+#     qubit_op.to_matrix()
+#     print(scialg.eigs(qubit_op.matrix, k=1))
+#     # print(fer_op.h1)
+#     # print(fer_op.h2[1,2,2,1])
+
+#     # test_edge_operator_bi()
