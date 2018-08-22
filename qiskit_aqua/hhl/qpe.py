@@ -136,6 +136,7 @@ class QPE():
         self._ancilla_phase_coef = 0
         self._circuit = None
         self._inverse = None
+        self._state_circuit_length = 0
         self._ret = {}
         self._matrix_dim = True
         self._hermitian_matrix = True
@@ -256,6 +257,7 @@ class QPE():
 
         # initialize state_in
         qc += self._state_in.construct_circuit('circuit', q)
+        self._initial_circuit_length = len(qc.data)
 
         # Put all ancillae in uniform superposition
         qc.u2(0, np.pi, a)
@@ -297,7 +299,7 @@ class QPE():
         if self._inverse == None:
             self._inverse = QuantumCircuit(*self._circuit.get_qregs().values())
             self._inverse.data = reversed(list(map(lambda x:
-                x.inverse(),self._circuit.data)))
+                x.inverse(),self._circuit.data)))[:-self._initial_circuit_length]
         return self._inverse
 
 
