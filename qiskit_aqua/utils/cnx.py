@@ -20,7 +20,7 @@ CNX gate. N Controlled-Not Gate.
 """
 
 from math import pi, ceil
-from qiskit import QuantumCircuit, CompositeGate
+from qiskit import QuantumCircuit, CompositeGate, QuantumRegister
 
 
 class CNXGate(CompositeGate):
@@ -202,18 +202,36 @@ def cnx(self, q_controls, q_target, q_ancilla, mode='advanced'):
     elif len(q_controls) == 2:  # ccx
         self.ccx(q_controls[0], q_controls[1], q_target)
     else:
-        temp = []
-        if q_ancilla:
-            all_qubits = q_controls + q_ancilla
+
+        # check controls
+        if isinstance(q_controls, QuantumRegister):
+            control_qubits = [qb for qb in q_controls]
+        elif isinstance(q_controls, list):
+            control_qubits = q_controls
         else:
-            all_qubits = q_controls
+            raise ValueError('CNX gate needs a list of qubits or a quantum register for controls.')
+
+        # check target
+        if isinstance(q_target, tuple):
+            target_qubit = q_target
+        else:
+            raise ValueError('CNX gate needs a single qubit as target.')
+
+        # check ancilla
+        if q_ancilla is None:
+            ancillary_qubits = []
+        elif isinstance(q_ancilla, QuantumRegister):
+            ancillary_qubits = [qb for qb in q_ancilla]
+        elif isinstance(q_ancilla, list):
+            ancillary_qubits = q_ancilla
+        else:
+            raise ValueError('CNX gate needs None or a list of qubits or a quantum register for ancilla.')
+
+        all_qubits = control_qubits + [target_qubit] + ancillary_qubits
         for qubit in all_qubits:
             self._check_qubit(qubit)
-            temp.append(qubit)
-        self._check_qubit(q_target)
-        temp.append(q_target)
-        self._check_dups(temp)
-        return self._attach(CNXGate(q_controls, q_ancilla, q_target, self, mode=mode))
+        self._check_dups(all_qubits)
+        return self._attach(CNXGate(control_qubits, target_qubit, ancillary_qubits, self, mode=mode))
 
 
 QuantumCircuit.cnx = cnx
