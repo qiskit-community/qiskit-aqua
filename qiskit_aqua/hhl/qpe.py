@@ -298,9 +298,10 @@ class QPE():
 
     def _construct_inverse(self):
         if self._inverse == None:
-            self._inverse = QuantumCircuit(*self._circuit.get_qregs().values())
-            self._inverse.data = list(reversed(list(map(lambda x: deepcopy(x).inverse(), 
-		self._circuit.data))))[:-self._initial_circuit_length]
+            self._inverse = QuantumCircuit()
+            self._inverse.regs = self._circuit.regs
+            self._inverse.data = list(reversed(deepcopy(self._circuit.data)))[:-self._initial_circuit_length]
+            self._inverse.data = list(map(lambda x: x.inverse(), self._inverse.data))
         return self._inverse
 
 
