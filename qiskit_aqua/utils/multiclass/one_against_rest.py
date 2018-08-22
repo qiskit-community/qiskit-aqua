@@ -14,74 +14,69 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+import logging
 
-
-from sklearn.preprocessing import LabelBinarizer
-from sklearn import datasets
-from sklearn.decomposition import PCA
-from sklearn import datasets
-from sklearn.cross_validation import train_test_split
-from qiskit_aqua.multiclass.dimension_reduction import reduce_dim_to
 import numpy as np
-from sklearn.svm import LinearSVC
 from sklearn.utils.validation import _num_samples
+from sklearn.preprocessing import LabelBinarizer
 
+logger = logging.getLogger(__name__)
 
-class OneAgainstRest: # binary: 1 and 0
+class OneAgainstRest:
+    """
+      the multiclass extension based on the one-against-rest algorithm.
+    """
+
     def __init__(self, estimator_cls, params=None):
         self.estimator_cls = estimator_cls
         self.params = params
 
-    # def balance(self, X, Y, num_of_classes):
-    #     cond = (Y==1)
-    #     indcond = np.arange(Y.shape[0])[cond]
-    #     X_filtered = X[indcond]
-    #     Y_filtered = Y[indcond]
-    #
-    #     for i in range(num_of_classes-2):
-    #         Y = np.concatenate((Y,Y_filtered))
-    #         X = np.concatenate((X,X_filtered))
-    #
-    #     return X, Y
-
-    def train(self, X_train, y_train):
+    def train(self, X, y):
+        """
+        training multiple estimators each for distinguishing a pair of classes.
+        Args:
+            X (numpy.ndarray): input points
+            y (numpy.ndarray): input labels
+        """
         self.label_binarizer_ = LabelBinarizer(neg_label=-1)
-        Y = self.label_binarizer_.fit_transform(y_train)
-        # Y = Y.tocsc()
+        Y = self.label_binarizer_.fit_transform(y)
         self.classes = self.label_binarizer_.classes_
-        num_of_classes = len(self.classes)
-
         columns = (np.ravel(col) for col in Y.T)
         self.estimators = []
         for i, column in enumerate(columns):
-            # print(i, column) #X, column
             unique_y = np.unique(column)
             if len(unique_y) == 1:
                 raise Exception("given all data points are assigned to the same class, the prediction would be boring.")
-            if self.params == None:
+            if self.params is None:
                 estimator = self.estimator_cls()
             else:
                 estimator = self.estimator_cls(*self.params)
-
-            # X_train_balanced, column_balanced = self.balance(X_train, column, num_of_classes)
-            # estimator.fit(X_train_balanced, column_balanced)
-            estimator.fit(X_train, column)
+            estimator.fit(X, column)
             self.estimators.append(estimator)
 
-
     def test(self, X, y):
+        """
+        testing multiple estimators each for distinguishing a pair of classes.
+        Args:
+            X (numpy.ndarray): input points
+            y (numpy.ndarray): input labels
+        """
         A = self.predict(X)
         B = y
         l = len(A)
         diff = 0
         for i in range(0, l):
             if A[i] != B[i]:
-                diff = diff + 1
-        print("%d out of %d are wrong" %(diff, l))
-        return 1-(diff*1.0/l)
-
+                diff += 1
+        logger.debug("%d out of %d are wrong" % (diff, l))
+        return 1 - (diff * 1.0 / l)
 
     def predict(self, X):
+        """
+        applying multiple estimators for prediction
+        Args:
+            X (numpy.ndarray): input points
+        """
         n_samples = _num_samples(X)
         maxima = np.empty(n_samples, dtype=float)
         maxima.fill(-np.inf)
@@ -91,8 +86,3 @@ class OneAgainstRest: # binary: 1 and 0
             np.maximum(maxima, pred, out=maxima)
             argmaxima[maxima == pred] = i
         return self.classes[np.array(argmaxima.T)]
-
-
-
-
-
