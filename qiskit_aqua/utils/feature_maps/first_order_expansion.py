@@ -21,7 +21,7 @@ feature map. Several types of commonly used approaches.
 
 
 import numpy as np
-from qiskit import QuantumCircuit, QuantumRegister, CompositeGate
+from qiskit import CompositeGate, QuantumCircuit, QuantumRegister
 from qiskit.extensions.standard.u1 import U1Gate
 from qiskit.extensions.standard.u2 import U2Gate
 
@@ -61,7 +61,8 @@ class FirstOrderExpansion(FeatureMap):
         self._depth = depth
 
     def _build_composite_gate(self, x, qr):
-        composite_gate = CompositeGate("first_order_expansion", [], [qr[i] for i in range(self._num_qubits)])
+        composite_gate = CompositeGate("first_order_expansion",
+                                       [], [qr[i] for i in range(self._num_qubits)])
 
         for _ in range(self._depth):
             for i in range(x.shape[0]):
@@ -94,6 +95,6 @@ class FirstOrderExpansion(FeatureMap):
             QuantumRegister(self._num_qubits, 'q')
         qc = QuantumCircuit(qr)
         composite_gate = self._build_composite_gate(x, qr)
-        qc._attach(composite_gate if inverse == False else composite_gate.inverse())
+        qc._attach(composite_gate if not inverse else composite_gate.inverse())
 
         return qc

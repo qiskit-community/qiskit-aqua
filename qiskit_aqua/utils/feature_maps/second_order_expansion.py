@@ -21,11 +21,10 @@ feature map. Several types of commonly used approaches.
 
 
 import numpy as np
-from qiskit import QuantumCircuit, QuantumRegister, CompositeGate
+from qiskit import CompositeGate, QuantumCircuit, QuantumRegister
 from qiskit.extensions.standard.cx import CnotGate
 from qiskit.extensions.standard.u1 import U1Gate
 from qiskit.extensions.standard.u2 import U2Gate
-from qiskit.extensions.standard.u3 import U3Gate
 
 from qiskit_aqua.utils.feature_maps import FeatureMap
 
@@ -78,7 +77,8 @@ class SecondOrderExpansion(FeatureMap):
             self._entangler_map = self.validate_entangler_map(entangler_map, num_qubits)
 
     def _build_composite_gate(self, x, qr):
-        composite_gate = CompositeGate("second_order_expansion", [], [qr[i] for i in range(self._num_qubits)])
+        composite_gate = CompositeGate("second_order_expansion",
+                                       [], [qr[i] for i in range(self._num_qubits)])
 
         for _ in range(self._depth):
             for i in range(x.shape[0]):
@@ -87,7 +87,9 @@ class SecondOrderExpansion(FeatureMap):
             for src, targs in self._entangler_map.items():
                 for targ in targs:
                     composite_gate._attach(CnotGate(qr[src], qr[targ]))
-                    composite_gate._attach(U1Gate(2 * (np.pi - x[src]) * (np.pi - x[targ]), qr[targ]))
+                    # TODO, it might not need pi - x
+                    composite_gate._attach(U1Gate(2 * (np.pi - x[src]) * (np.pi - x[targ]),
+                                                  qr[targ]))
                     composite_gate._attach(CnotGate(qr[src], qr[targ]))
 
         return composite_gate
@@ -116,6 +118,6 @@ class SecondOrderExpansion(FeatureMap):
             QuantumRegister(self._num_qubits, 'q')
         qc = QuantumCircuit(qr)
         composite_gate = self._build_composite_gate(x, qr)
-        qc._attach(composite_gate if inverse == False else composite_gate.inverse())
+        qc._attach(composite_gate if not inverse else composite_gate.inverse())
 
         return qc
