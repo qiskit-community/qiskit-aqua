@@ -18,12 +18,8 @@
 import itertools
 import operator
 import logging
-
 from qiskit import QuantumRegister, QuantumCircuit
-
 from qiskit_aqua.utils.oracles import Oracle
-import qiskit_aqua.grover.cnx
-
 
 logger = logging.getLogger(__name__)
 
@@ -137,6 +133,13 @@ class SAT(Oracle):
         for conj_index, conj_expr in reversed(list(enumerate(self._cnf))):
             self._logic_or(qc, conj_expr, conj_index)
         return qc
+
+    def evaluate_classically(self, assignment):
+        assignment_set = set(assignment)
+        for clause in self._cnf:
+            if assignment_set.isdisjoint(clause):
+                return False
+        return True
 
     def interpret_measurement(self, measurement, *args, **kwargs):
         top_measurement = max(measurement.items(), key=operator.itemgetter(1))[0]
