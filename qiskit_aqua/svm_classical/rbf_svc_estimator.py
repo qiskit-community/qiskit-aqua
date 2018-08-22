@@ -15,16 +15,30 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit_aqua.multiclass.estimator import Estimator
-from sklearn.svm import LinearSVC
+from sklearn.svm import SVC
 
-class LinearSVC_Estimator(Estimator):
+from qiskit_aqua.utils.multiclass.estimator import Estimator
+
+
+class RBF_SVC_Estimator(Estimator):
+    """The estimator that uses the RBF Kernel."""
+
     def __init__(self):
-        self._estimator = LinearSVC(random_state=0)
+        self._estimator = SVC(kernel='rbf')
 
     def fit(self, X, y):
+        """
+        fit values for the points and the labels
+        Args:
+            X (numpy.ndarray): input points
+            y (numpy.ndarray): input labels
+        """
         self._estimator.fit(X, y)
 
     def decision_function(self, X):
+        """
+        predicted values for the points which account for both the labels and the confidence
+        Args:
+            X (numpy.ndarray): input points
+        """
         return self._estimator.decision_function(X)
-
