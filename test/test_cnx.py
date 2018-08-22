@@ -30,15 +30,15 @@ from test.common import QiskitAquaTestCase
 
 class TestCNX(QiskitAquaTestCase):
     @parameterized.expand([
-        [1, 1],
-        [2, 1],
-        [3, 1],
-        [4, 2],
-        [5, 3],
-        [6, 4],
-        [7, 5],
+        [1],
+        [2],
+        [3],
+        [4],
+        [5],
+        [6],
+        [7],
     ])
-    def test_cnx(self, num_controls, num_ancillae):
+    def test_cnx(self, num_controls):
         c = QuantumRegister(num_controls, name='c')
         o = QuantumRegister(1, name='o')
         allsubsets = list(chain(*[combinations(range(num_controls), ni) for ni in range(num_controls + 1)]))
@@ -48,6 +48,8 @@ class TestCNX(QiskitAquaTestCase):
                 if mode == 'basic':
                     if num_controls <= 2:
                         num_ancillae = 0
+                    else:
+                        num_ancillae = num_controls - 2
                 else:
                     if num_controls <= 4:
                         num_ancillae = 0
