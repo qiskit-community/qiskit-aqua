@@ -292,7 +292,7 @@ class QPE():
         self._iqft.construct_circuit('circuit', a, qc)
         if measure:
             qc.measure(a, c)
-        qc.optimize_gates()
+        #qc.optimize_gates()
         self._circuit = qc
         return qc
 
