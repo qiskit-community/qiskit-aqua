@@ -107,7 +107,7 @@ class SAT(Oracle):
         tgt_bits = self._qr_clause[conj_index]
         for idx in [v for v in conj_expr if v > 0]:
             circuit.x(self._qr_variable[idx - 1])
-        circuit.cnx(ctl_bits, anc_bits, tgt_bits)
+        circuit.cnx(ctl_bits, tgt_bits, anc_bits)
         for idx in [v for v in conj_expr if v > 0]:
             circuit.x(self._qr_variable[idx - 1])
 
@@ -126,8 +126,8 @@ class SAT(Oracle):
         # keep results
         qc.cnx(
             [self._qr_clause[i] for i in range(len(self._qr_clause))],
-            [self._qr_ancilla[i] for i in range(len(self._qr_ancilla))] if self._qr_ancilla else [],
-            self._qr_outcome[0]
+            self._qr_outcome[0],
+            [self._qr_ancilla[i] for i in range(len(self._qr_ancilla))] if self._qr_ancilla else []
         )
         # reverse, de-entanglement
         for conj_index, conj_expr in reversed(list(enumerate(self._cnf))):

@@ -60,8 +60,8 @@ class TestCNX(QiskitAquaTestCase):
                     qc.x(c[idx])
                 qc.cnx(
                     [c[i] for i in range(num_controls)],
-                    [a[i] for i in range(num_ancillae)],
                     o[0],
+                    [a[i] for i in range(num_ancillae)],
                     mode=mode
                 )
                 for idx in subset:

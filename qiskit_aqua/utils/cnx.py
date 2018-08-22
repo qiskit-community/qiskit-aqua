@@ -192,10 +192,10 @@ class CNXGate(CompositeGate):
         ctl_bits = [x for x in self.arg[:self.param[0]]]
         anc_bits = [x for x in self.arg[self.param[0]:self.param[0]+self.param[1]]]
         tgt_bits = self.arg[-1]
-        self._modifiers(circ.cnx(ctl_bits, anc_bits, tgt_bits))
+        self._modifiers(circ.cnx(ctl_bits, tgt_bits, anc_bits))
 
 
-def cnx(self, q_controls, q_ancilla, q_target, mode='advanced'):
+def cnx(self, q_controls, q_target, q_ancilla, mode='advanced'):
     """Apply CNX to circuit."""
     if len(q_controls) == 1:  # cx
         self.cx(q_controls[0], q_target)

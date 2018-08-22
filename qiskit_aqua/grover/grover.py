@@ -130,14 +130,14 @@ class Grover(QuantumAlgorithm):
         if self._oracle.ancillary_register():
             qc_amplitude_amplification.cnx(
                 [self._oracle.variable_register()[i] for i in range(len(self._oracle.variable_register()))],
+                self._oracle.outcome_register()[0],
                 [self._oracle.ancillary_register()[i] for i in range(len(self._oracle.ancillary_register()))],
-                self._oracle.outcome_register()[0]
             )
         else:
             qc_amplitude_amplification.cnx(
                 [self._oracle.variable_register()[i] for i in range(len(self._oracle.variable_register()))],
-                [],
-                self._oracle.outcome_register()[0]
+                self._oracle.outcome_register()[0],
+                []
             )
         qc_amplitude_amplification.h(self._oracle.outcome_register())
         qc_amplitude_amplification.x(self._oracle.variable_register())
