@@ -15,17 +15,17 @@
 # limitations under the License.
 # =============================================================================
 
-from functools import partial
 import logging
 import operator
 
 import numpy as np
+
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 
 from qiskit_aqua import (QuantumAlgorithm, AlgorithmError,
                          get_optimizer_instance, get_feature_map_instance,
                          get_variational_form_instance)
-from qiskit_aqua.svm import (cost_estimate_sigmoid, return_probabilities)
+from qiskit_aqua.svm_variational.cost_helpers import (cost_estimate_sigmoid, return_probabilities)
 
 logger = logging.getLogger(__name__)
 
