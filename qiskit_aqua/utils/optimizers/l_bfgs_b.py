@@ -50,6 +50,10 @@ class L_BFGS_B(Optimizer):
                 'iprint': {
                     'type': 'integer',
                     'default': -1
+                },
+                'epsilon': {
+                    'type': 'number',
+                    'default': 1e-08
                 }
             },
             'additionalProperties': False
@@ -59,7 +63,7 @@ class L_BFGS_B(Optimizer):
             'bounds': Optimizer.SupportLevel.supported,
             'initial_point': Optimizer.SupportLevel.required
         },
-        'options': ['maxfun', 'factr', 'iprint'],
+        'options': ['maxfun', 'factr', 'iprint', 'epsilon'],
         'optimizer': ['local']
     }
 

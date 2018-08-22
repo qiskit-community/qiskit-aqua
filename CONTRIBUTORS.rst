@@ -14,6 +14,7 @@ levels:
 - `Antonio Córcoles-Gonzalez <https://researcher.watson.ibm.com/researcher/view.php?person=us-adcorcol>`__
 - `Jay Gambetta <https://researcher.watson.ibm.com/researcher/view.php?person=us-jay.gambetta>`__
 - Jennifer Glick
+- Donny Greenberg
 - Tanvi Gujarati
 - `Shaohan Hu <https://researcher.watson.ibm.com/researcher/view.php?person=ibm-Shaohan.Hu>`__
 - `Takashi Imamichi <https://researcher.watson.ibm.com/researcher/view.php?person=jp-IMAMICHI>`__
