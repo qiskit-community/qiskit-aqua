@@ -16,6 +16,7 @@
 # =============================================================================
 
 import unittest
+
 from scipy.optimize import rosen
 import numpy as np
 

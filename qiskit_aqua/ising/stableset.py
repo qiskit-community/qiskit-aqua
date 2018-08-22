@@ -60,7 +60,7 @@ def random_graph(n, edge_prob = 0.5, savefile=None):
             for i in range(n):
                 for j in range(i+1, n):
                     if w[i, j] != 0:
-                        outfile.write('{} {} {}\n'.format(i + 1, j + 1, t))
+                        outfile.write('{} {} {}\n'.format(i + 1, j + 1, w[i, j]))
     return w
 
 
