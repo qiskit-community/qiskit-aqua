@@ -19,7 +19,6 @@ from collections import Counter
 
 import numpy as np
 
-
 def assign_label(key, class_labels):
     # If odd number of qubits and two labels we use majority vote
     if len(class_labels) == 2 and int(len(list(key)) % 2) != 0:
@@ -62,14 +61,11 @@ def assign_label(key, class_labels):
 
 
 def cost_estimate_sigmoid(shots, probs, expected_category):
-
     p = probs.get(expected_category)
-
     if p < 0:
         p = 0
     elif p > 1:
         p = 1
-
     probs_without_measured_expectation = [v for key, v in probs.items() if key != expected_category]
 
     number_of_classes = len(probs)
@@ -102,7 +98,6 @@ def return_probabilities(counts, class_labels):
 
     result = {class_labels[p]: 0 for p in range(len(class_labels))}
     for (key, item) in counts.items():
-        # The different measurement transforms into a class result happens in assign_label
         hw = assign_label(key, class_labels)
         result[hw] += counts[key]/hits
 

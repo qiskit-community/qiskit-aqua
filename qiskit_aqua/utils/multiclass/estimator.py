@@ -20,9 +20,8 @@ from abc import ABC, abstractmethod
 class Estimator(ABC):
     @abstractmethod
     def fit(self, X, y):
-        raise NotImplementedError( "Should have implemented this" )
+        raise NotImplementedError("Should have implemented this")
 
     @abstractmethod
     def decision_function(self, X):
-        raise NotImplementedError( "Should have implemented this" )
-
+        raise NotImplementedError("Should have implemented this")
