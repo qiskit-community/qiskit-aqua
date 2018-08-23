@@ -30,6 +30,7 @@ class TestGrover(QiskitAquaTestCase):
         ['test_grover_no_solution.cnf', True, None],
     ])
     def test_grover(self, input_file, incremental=True, num_iterations=1):
+        input_file = self._get_resource_path(input_file)
         if incremental:
             self.log.debug('Testing incremental Grover search on SAT problem instance: \n{}'.format(
                 open(input_file).read(),
