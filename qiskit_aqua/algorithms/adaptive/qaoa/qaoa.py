@@ -66,7 +66,7 @@ class QAOA(VQE):
             },
             'additionalProperties': False
         },
-        'problems': ['cplex'],
+        'problems': ['ising'],
         'depends': ['optimizer'],
         'defaults': {
             'optimizer': {

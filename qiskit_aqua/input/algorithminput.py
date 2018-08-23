@@ -23,7 +23,7 @@ from qiskit_aqua import AlgorithmError
 
 class AlgorithmInput(ABC):
 
-    _PROBLEM_SET = ['energy', 'excited_states', 'eoh', 'search', 'svm_classification', 'cplex']
+    _PROBLEM_SET = ['energy', 'excited_states', 'eoh', 'search', 'svm_classification', 'ising']
 
     @abstractmethod
     def __init__(self, configuration=None):
