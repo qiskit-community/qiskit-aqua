@@ -17,7 +17,8 @@ from functools import reduce
 logger = logging.getLogger(__name__)
 
 
-
+#@TODO replace the creation routine for m-controlled not gates to not use ancillar qubits
+#@TODO information in literature survey
 def create_cn_x_gate(n,c,t):
     """Create a gate that takes the first n quibits of register c as control
     quibits and t as the target of the not operation"""
@@ -41,7 +42,7 @@ class C_ROT():
             'type': 'object',
             'properties': {
                 PROP_PREV_CIRCUIT: {
-                    #@TODO double-check
+                    #@TODO double-check if class name or arbitrary descr.
                     'type': 'QuantumCircuit',
                     'default': None
                 },
@@ -143,7 +144,6 @@ class C_ROT():
             qregs_dict = self._circuit.get_qregs()
             try:
                 inputregister = qregs_dict['eigenvalue_reg']
-                #@TODO: allow different precision for inverse
                 n = len(inputregister)
                 print("length of register for eigenvalues:",n)
             #@TODO: better Error catching
@@ -159,13 +159,15 @@ class C_ROT():
         else:
             raise RuntimeError('Quantum circuit passed to C_Rot instance not understood')
         flagbit = QuantumRegister(1, name="flagbit_reg")
-        outputregister = QuantumRegister(n, name="inv_eigenvalue_reg")
-        anc = QuantumRegister(n - 1, name="anc_reg_crot")
+        # plus 1 for 2**0
+        outputregister = QuantumRegister(n+1, name="inv_eigenvalue_reg")
+
+        anc = QuantumRegister(n-1, name="anc_reg_crot")
 
         if measure:
             classreg1 = ClassicalRegister(n)
             classreg2 = ClassicalRegister(1)
-            classreg3 = ClassicalRegister(n)
+            classreg3 = ClassicalRegister(n+1)
 
         # add registers to existing circuit
         if isinstance(self._circuit, QuantumCircuit):
@@ -181,62 +183,83 @@ class C_ROT():
 
 
         # initialize state_in if starting from scratch
-        if self._circuit is None:
-            qc += self._state_in.construct_circuit('circuit', inputregister)  # @TODO: need rename here?
+        if self._circuit is None and self._state_in is not None:
+            qc += self._state_in.construct_circuit('circuit', inputregister)
             qc.barrier(inputregister)
+
+        # Starting from the highest qbit, the circuit checks if only this qbit is 1
+        # and sets the inverse. If there are smaller qbits at 1, the next highest power
+        # is taken so that 2**p-1 <= Eigenvalue <= 2**p and the inverse is taken as 2**-p
+
         if not self._negative_evals:
-            qc.cx(inputregister[0], flagbit)
-            qc.cx(inputregister[0], outputregister[n - 1])
-
-            for i in range(1, n):
-                qc.x(flagbit[0])
-                qc.ccx(inputregister[i], flagbit[0], outputregister[n - 1 - i])
+            for _ in range(0,n-1):
+                qc.x(inputregister[_+1])
+                qc.ccx(inputregister[_], inputregister[_+1], anc[0])
+                qc.x(inputregister[_+1])
+                for i in range(2+_, n):
+                    qc.x(inputregister[i])
+                    qc.ccx(inputregister[i], anc[i - 2-_], anc[i - 1 - _])
+                    qc.x(inputregister[i])
+                # copy
                 qc.x(flagbit)
-                qc.cx(outputregister[n - 1 - i], flagbit)
+                qc.ccx(flagbit[0],anc[n - 2-_], outputregister[n - 1 - _])
+                qc.x(flagbit)
+                # uncompute
+                for i in range(n - 1 , 1+_, -1):
+                    qc.x(inputregister[i])
+                    qc.ccx(inputregister[i], anc[i - 2 - _], anc[i - 1 - _])
+                    qc.x(inputregister[i])
+                qc.x(inputregister[_+1])
+                qc.ccx(inputregister[_], inputregister[_+1], anc[0])
+                qc.x(inputregister[_+1])
+                qc.cx(outputregister[n - 1 - _], flagbit)
+                qc.x(flagbit)
+                qc.ccx(inputregister[_], flagbit[0], outputregister[n - _])
+                qc.x(flagbit)
 
-            # several control registers for the not gate of the flagbit at the end
-            qc.ccx(outputregister[0], outputregister[1], anc[0])
-            for i in range(2, n):
-                qc.ccx(outputregister[i], anc[i - 2], anc[i - 1])
+                qc.cx(outputregister[n - _], flagbit)
 
-            # copy
-            qc.cx(anc[n - 2], flagbit)
-
-            # uncompute
-            for i in range(n - 1, 1, -1):
-                qc.ccx(outputregister[i], anc[i - 2], anc[i - 1])
-            qc.ccx(outputregister[0], outputregister[1], anc[0])
-
-            qc.x(flagbit)
+            qc.x(flagbit[0])
+            qc.ccx(inputregister[n-1], flagbit[0], outputregister[0])
+            qc.x(flagbit[0])
+            #@TODO need to uncompute flagbit?
         else:
-            ##copy sign bit
-            qc.cx(inputregister[0], outputregister[0])
+            # for negative EV, the sign qbit is copied to the new register and the circuit for finding
+            # 2**p is run on the other qbits
 
-            ## following routine implements first step of the Newton iteration
-            qc.cx(inputregister[1], flagbit)
-            qc.cx(inputregister[1], outputregister[n - 1])
-
-            for i in range(2, n):
-                qc.x(flagbit[0])
-                qc.ccx(inputregister[i], flagbit[0], outputregister[n - i])
+            #copy sign bit
+            qc.cx(inputregister[0],outputregister[0])
+            for _ in range(1,n-1):
+                qc.x(inputregister[_+1])
+                qc.ccx(inputregister[_], inputregister[_+1], anc[0])
+                qc.x(inputregister[_+1])
+                for i in range(2+_, n):
+                    qc.x(inputregister[i])
+                    qc.ccx(inputregister[i], anc[i - 2-_], anc[i - 1 - _])
+                    qc.x(inputregister[i])
+                # copy
                 qc.x(flagbit)
-                qc.cx(outputregister[n - i], flagbit)
+                qc.ccx(flagbit[0],anc[n - 2-_], outputregister[n - _])
+                qc.x(flagbit)
+                # uncompute
+                for i in range(n - 1 , 1+_, -1):
+                    qc.x(inputregister[i])
+                    qc.ccx(inputregister[i], anc[i - 2 - _], anc[i - 1 - _])
+                    qc.x(inputregister[i])
+                qc.x(inputregister[_+1])
+                qc.ccx(inputregister[_], inputregister[_+1], anc[0])
+                qc.x(inputregister[_+1])
+                qc.cx(outputregister[n  - _], flagbit)
+                qc.x(flagbit)
+                qc.ccx(inputregister[_], flagbit[0], outputregister[n + 1 - _])
+                qc.x(flagbit)
 
-            # several control registers for the not gate of the flagbit at the end
-            qc.ccx(outputregister[1], outputregister[2], anc[0])
-            for i in range(3, n):
-                qc.ccx(outputregister[i], anc[i - 3], anc[i - 2])
+                qc.cx(outputregister[n +1 - _], flagbit)
 
-            # copy
-            qc.cx(anc[n - 3], flagbit)
-
-            # uncompute
-            for i in range(n - 1, 2, -1):
-                qc.ccx(outputregister[i], anc[i - 3], anc[i - 2])
-            qc.ccx(outputregister[1], outputregister[2], anc[0])
-
-            #@TODO: Why x gate
-            qc.x(flagbit)
+            qc.x(flagbit[0])
+            qc.ccx(inputregister[n-1], flagbit[0], outputregister[1])
+            qc.x(flagbit[0])
+            #@TODO need to uncompute flagbit?
 
 
         if measure:
@@ -271,15 +294,12 @@ class C_ROT():
         counts = result.get_counts(self._circuit)
 
         rd = result.get_counts(self._circuit)
-        print(rd)
         rets = sorted([[rd[k], k, k] for k in rd])[::-1]
 
         for d in rets:
-            #print(d)
             d[0] /= shots
             #split registers which are white space seperated and decode
             c1,c2,c3 = d[2].split()
-            #@TODO
             if self._negative_evals and c1[-1] == "1":
                 c1_ = -(sum([2**(len(c1[:-1])-i-1) for i, e in enumerate(reversed(c1[:-1])) if e ==
                     "1"]))
@@ -304,10 +324,6 @@ class C_ROT():
 
 
         self._ret['measurements'] = rets
-
-        # print(results._result)
-        # print(results.get_counts(qc))
-
 
     def run(self):
         self._compute_inverse_eigenvalue()

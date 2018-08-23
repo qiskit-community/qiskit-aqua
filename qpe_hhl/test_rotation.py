@@ -14,11 +14,11 @@ from rotation import C_ROT
 
 results_x = []
 results_y = []
-qbits = 5
-nege = True
+qbits =5
+nege = 1#False#True
+draw = 0#False#True
 for i in range(2**qbits):
     state_vector = np.zeros(2**qbits)
-    # state_vector[15] = 1
     state_vector[i] = 1
 
     params = {
@@ -28,27 +28,28 @@ for i in range(2**qbits):
                 'negative_evals': nege,
                 'previous_circuit': None,
                 'backend' : "local_qasm_simulator",
-                #'evo_time': 2*np.pi/4,
-                #'use_basis_gates': False,
+
         },
         #for running the rotation seperately, supply input
         "initial_state": {
             "name": "CUSTOM",
-            "state_vector": state_vector
+            "state_vector": state_vector if not draw else []
         }
     }
 
     crot = C_ROT()
     crot.init_params(params)
-    #qc = crot._setup_crot(measure=True)
-    #drawer(qc, filename="firstnewton.png")
-
+    if draw:
+        qc = crot._setup_crot(measure=True)
+        drawer(qc, filename="firstnewton.png")
+        break
     results = crot.run()['measurements']
-    print(results)
+
     results_x.append(float(results[0][2].split()[-1]))
     results_y.append(float(results[0][2].split()[0]))
-    #drawer(qc, filename="firstnewton.png")
-    #plt.show()
+    if float(results[0][2].split()[-1])!= 0:
+        print(results, "Better: {}".format(int(np.round(1/float(results[0][2].split()[-1])))))
+
 
 
 def theory(qbits,sign_flag =False):
@@ -78,10 +79,12 @@ def theory(qbits,sign_flag =False):
             else:
                 y.append(0)
     return x,y
-x,y = theory(qbits,nege)
-plt.scatter(results_x,results_y)
-plt.scatter(x,y)
-dx = np.linspace(np.min(results_x),np.max(results_x),1000)
-plt.plot(dx,1/dx)
-plt.ylim([-32,32])
-plt.show()
+if not draw:
+    x,y = theory(qbits,nege)
+    plt.scatter(results_x,results_y)
+    #plt.scatter(results_x, 1/np.array(results_x))
+    #plt.scatter(x,y)
+    dx = np.linspace(np.min(results_x),np.max(results_x),1000)
+    plt.plot(dx,1/dx)
+    plt.ylim([-32,32])
+    plt.show()#"""

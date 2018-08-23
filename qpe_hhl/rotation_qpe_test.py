@@ -16,7 +16,7 @@ n = 2
 k = 5
 nege = False
 #np.random.seed(10)
-matrix = gen_matrix(n, eigrange=[2, 5], sparsity=0.6)
+matrix = gen_matrix(n, eigrange=[0.1, 5], sparsity=0.6)
 #matrix = np.diag([-1.5, 1])
 #np.save("mat.npy", matrix)
 #matrix = np.load("mat.npy")
@@ -32,7 +32,7 @@ params = {
     'algorithm': {
             'name': 'QPE',
             'num_ancillae': k,
-            'num_time_slices': 5,
+            'num_time_slices': 2,
             'expansion_mode': 'suzuki',
             'expansion_order': 2,
             'hermitian_matrix': True,
