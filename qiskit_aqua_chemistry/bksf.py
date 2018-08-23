@@ -354,17 +354,16 @@ def bksf_mapping(fer_op):
     return qubit_op
 
 
-def vacuum_operator(edge_list):
+def vacuum_operator(fer_op):
     """Use the stabilizers to find the vacuum state in bravyi_kitaev_fast.
 
     Args:
-        edge_list (numpy.ndarray): a 2xE matrix, where E is total number of edge
-                                    and each pair denotes (from, to)
+        fer_op (FermionicOperator): the fermionic operator in the second quanitzed form
 
     Returns:
         Operator: the qubit operator
     """
-    # Initialize qubit operator.
+    edge_list = bravyi_kitaev_fast_edge_list(fer_op)
     num_qubits = edge_list.shape[1]
     vac_operator = Operator(paulis=[[1.0, label_to_pauli('I' * num_qubits)]])
 
@@ -390,7 +389,7 @@ def number_operator(fer_op, mode_number=None):
 
     Args:
         fer_op (FermionicOperator): the fermionic operator in the second quanitzed form
-        mode_number: index, it corresponding to the mode for which number operator is required.
+        mode_number (int): index, it corresponds to the mode for which number operator is required.
 
     Returns:
         Operator: the qubit operator
@@ -402,7 +401,6 @@ def number_operator(fer_op, mode_number=None):
 
     if mode_number is None:
         for i in range(modes):
-            # num_operator += (coeff_operator(num_qubits, 1) - edge_operator_b(edge_list, i))
             num_operator -= edge_operator_bi(edge_list, i)
         num_operator += Operator(paulis=[[1.0 * modes, label_to_pauli('I' * num_qubits)]])
     else:
@@ -418,8 +416,7 @@ def generate_fermions(fer_op, i, j):
     """The qubit operator for generating fermions in bravyi_kitaev_fast representation
 
     Args:
-        edge_list (numpy.ndarray): a 2xE matrix, where E is total number of edge
-                                    and each pair denotes (from, to)
+        fer_op (FermionicOperator): the fermionic operator in the second quanitzed form
         i (int): index of fermions
         j (int): index of fermions
 
@@ -427,7 +424,6 @@ def generate_fermions(fer_op, i, j):
         Operator: the qubit operator
     """
     edge_list = bravyi_kitaev_fast_edge_list(fer_op)
-    # Id_op = coeff_operator(edge_list, -1j/2)
     gen_fer_operator = edge_operator_aij(edge_list, i, j) * edge_operator_bi(edge_list, j) \
         - edge_operator_bi(edge_list, i) * edge_operator_aij(edge_list, i, j)
 
