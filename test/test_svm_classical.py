@@ -90,7 +90,7 @@ class TestSVMClassical(QiskitAquaTestCase):
         params = {
             'problem': {'name': 'svm_classification'},
             'algorithm': {
-                'name': 'SVM_Classical',
+                'name': 'SVM',
             }
         }
 
@@ -202,7 +202,7 @@ class TestSVMClassical(QiskitAquaTestCase):
         params = {
             'problem': {'name': 'svm_classification'},
             'algorithm': {
-                'name': 'SVM_Classical',
+                'name': 'SVM',
                 'multiclass_alg': 'one_against_all'
             }
         }
@@ -315,7 +315,7 @@ class TestSVMClassical(QiskitAquaTestCase):
         params = {
             'problem': {'name': 'svm_classification'},
             'algorithm': {
-                'name': 'SVM_Classical',
+                'name': 'SVM',
                 'multiclass_alg': 'all_pairs'
             }
         }
@@ -428,7 +428,7 @@ class TestSVMClassical(QiskitAquaTestCase):
         params = {
             'problem': {'name': 'svm_classification'},
             'algorithm': {
-                'name': 'SVM_Classical',
+                'name': 'SVM',
                 'multiclass_alg': 'error_correcting_code'
             }
         }

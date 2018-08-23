@@ -31,7 +31,7 @@ class SVM_Classical(QuantumAlgorithm):
     """
 
     SVM_Classical_CONFIGURATION = {
-        'name': 'SVM_Classical',
+        'name': 'SVM',
         'description': 'SVM_Classical Algorithm',
         'classical': True,
         'input_schema': {
