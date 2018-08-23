@@ -586,7 +586,7 @@ class FermionicOperator(object):
         h1 = np.zeros((num_modes, num_modes))
         h2 = np.zeros((num_modes, num_modes, num_modes, num_modes))
 
-        for p, q in itertools.product(range(num_modes), repeat=2):
+        for p, q in itertools.product(range(num_modes_2), repeat=2):
             if p != q:
                 h2[p, p + num_modes_2, q, q + num_modes_2] += 1.0
                 h2[p + num_modes_2, p, q, q + num_modes_2] += 1.0
@@ -617,7 +617,7 @@ class FermionicOperator(object):
         h1 = np.zeros((num_modes, num_modes))
         h2 = np.zeros((num_modes, num_modes, num_modes, num_modes))
 
-        for p, q in itertools.product(range(num_modes), repeat=2):
+        for p, q in itertools.product(range(num_modes_2), repeat=2):
             if p != q:
                 h2[p, p + num_modes_2, q, q + num_modes_2] -= 1.0
                 h2[p + num_modes_2, p, q, q + num_modes_2] += 1.0
@@ -648,7 +648,7 @@ class FermionicOperator(object):
         h1 = np.zeros((num_modes, num_modes))
         h2 = np.zeros((num_modes, num_modes, num_modes, num_modes))
 
-        for p, q in itertools.product(range(num_modes), repeat=2):
+        for p, q in itertools.product(range(num_modes_2), repeat=2):
             if p != q:
                 h2[p, p, q, q] += 1.0
                 h2[p + num_modes_2, p + num_modes_2, q, q] -= 1.0
