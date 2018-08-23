@@ -62,7 +62,7 @@ class VQE(QuantumAlgorithm):
             },
             'additionalProperties': False
         },
-        'problems': ['energy', 'cplex'],
+        'problems': ['energy', 'ising'],
         'depends': ['optimizer', 'variational_form', 'initial_state'],
         'defaults': {
             'optimizer': {
