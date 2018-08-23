@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 class CPLEX(QuantumAlgorithm):
     CPLEX_CONFIGURATION = {
-        'name': 'CPLEX',
+        'name': 'CPLEX.Ising',
         'description': 'CPLEX backend for Ising Hamiltonian',
         'classical': True,
         'input_schema': {
@@ -60,7 +60,7 @@ class CPLEX(QuantumAlgorithm):
             },
             'additionalProperties': False
         },
-        'problems': ['cplex']
+        'problems': ['ising']
     }
 
     def __init__(self, configuration=None):
