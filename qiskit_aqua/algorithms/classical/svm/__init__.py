@@ -14,3 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+
+from .svm_classical_abc import SVM_Classical_ABC
+
+__all__ = ['SVM_Classical_ABC']
