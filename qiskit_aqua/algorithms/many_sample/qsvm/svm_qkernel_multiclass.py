@@ -17,7 +17,7 @@
 
 import logging
 
-from qiskit_aqua.algorithms.many_sample.qsvm import QKernalSVM_Estimator
+from qiskit_aqua.algorithms.many_sample.qsvm.qkernel_svm_estimator import QKernalSVM_Estimator
 from qiskit_aqua.algorithms.components.multiclass import ErrorCorrectingCode
 from qiskit_aqua.algorithms.components.multiclass import AllPairs
 from qiskit_aqua.algorithms.components.multiclass import OneAgainstRest

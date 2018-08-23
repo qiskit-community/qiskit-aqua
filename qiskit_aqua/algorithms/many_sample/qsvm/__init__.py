@@ -19,6 +19,7 @@ from .data_preprocess import get_points_and_labels, get_points
 from .qpsolver import optimize_SVM
 from .quantum_circuit_kernel import (entangler_map_creator, inner_prod_circuit_ML,
                                      get_zero_string, kernel_join)
+from .svm_qkernel_abc import SVM_QKernel_ABC
 
 __all__ = ['get_points_and_labels',
            'get_points',
@@ -26,5 +27,6 @@ __all__ = ['get_points_and_labels',
            'entangler_map_creator',
            'inner_prod_circuit_ML',
            'get_zero_string',
-           'kernel_join'
+           'kernel_join',
+           'SVM_QKernel_ABC'
            ]

@@ -19,8 +19,8 @@ import numpy as np
 
 import logging
 
-from qiskit_aqua.algorithms.many_sample.qsvm import (get_points_and_labels, optimize_SVM, kernel_join)
 from qiskit_aqua.algorithms.many_sample.qsvm import SVM_QKernel_ABC
+from qiskit_aqua.algorithms.many_sample.qsvm import (get_points_and_labels, optimize_SVM, kernel_join)
 
 logger = logging.getLogger(__name__)
 

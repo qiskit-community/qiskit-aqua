@@ -16,8 +16,8 @@
 # =============================================================================
 
 from qiskit_aqua import QuantumAlgorithm
-from qiskit_aqua.algorithms.many_sample.qsvm import SVM_QKernel_Binary
-from qiskit_aqua.algorithms.many_sample.qsvm import SVM_QKernel_Multiclass
+from qiskit_aqua.algorithms.many_sample.qsvm.svm_qkernel_binary import SVM_QKernel_Binary
+from qiskit_aqua.algorithms.many_sample.qsvm.svm_qkernel_multiclass import SVM_QKernel_Multiclass
 
 
 class SVM_QKernel(QuantumAlgorithm):
