@@ -15,12 +15,8 @@
 # limitations under the License.
 # =============================================================================
 
-import numpy as np
-
 from test.common import QiskitAquaTestCase
 
-from qiskit_aqua.utils.multiclass.data_preprocess import *
-from qiskit_aqua.svm_qkernel.data_preprocess import *
 from qiskit_aqua import run_algorithm, get_algorithm_instance
 from qiskit_aqua.input import get_input_instance
 
@@ -88,7 +84,7 @@ class TestSVMQKernel(QiskitAquaTestCase):
             'backend': {'name': 'local_qasm_simulator', 'shots': 1000},
 
             'algorithm': {
-                'name': 'SVM_QKernel'
+                'name': 'QSVM.Kernel'
             }
         }
 
@@ -124,7 +120,7 @@ class TestSVMQKernel(QiskitAquaTestCase):
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
             'algorithm': {
-                'name': 'SVM_QKernel',
+                'name': 'QSVM.Kernel',
                 'multiclass_alg':'one_against_all'
             },
             'backend': {'name': 'local_qasm_simulator_py', 'shots': 1024}
@@ -164,7 +160,7 @@ class TestSVMQKernel(QiskitAquaTestCase):
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
             'algorithm': {
-                'name': 'SVM_QKernel',
+                'name': 'QSVM.Kernel',
                 'multiclass_alg':'all_pairs'
             },
             'backend': {'name': 'local_qasm_simulator_py', 'shots': 1024}
@@ -203,7 +199,7 @@ class TestSVMQKernel(QiskitAquaTestCase):
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
             'algorithm': {
-                'name': 'SVM_QKernel',
+                'name': 'QSVM.Kernel',
                 'multiclass_alg':'error_correcting_code'
             },
             'backend': {'name': 'local_qasm_simulator_py', 'shots': 1024}
@@ -223,7 +219,7 @@ class TestSVMQKernel(QiskitAquaTestCase):
 
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
-            'algorithm': {'name': 'SVM_QKernel'},
+            'algorithm': {'name': 'QSVM.Kernel'},
             'backend': {'name': 'local_qasm_simulator_py', 'shots': 1024}
         }
         result = run_algorithm(params, self.svm_input)
@@ -243,13 +239,13 @@ class TestSVMQKernel(QiskitAquaTestCase):
         self.assertEqual(result['test_success_ratio'], 0.0)
 
     def test_svm_qkernel_directly(self):
-        svm = get_algorithm_instance("SVM_QKernel")
+        svm = get_algorithm_instance("QSVM.Kernel")
         svm.setup_quantum_backend(backend='local_qasm_simulator_py', shots=1024)
         svm.random_seed = self.random_seed
 
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
-            'algorithm': {'name': 'SVM_QKernel'},
+            'algorithm': {'name': 'QSVM.Kernel'},
             'backend': {'name': 'local_qasm_simulator_py', 'shots': 1024}
         }
 

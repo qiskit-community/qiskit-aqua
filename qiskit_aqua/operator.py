@@ -1329,7 +1329,7 @@ class Operator(object):
     def evolve(self, state_in, evo_time, evo_mode, num_time_slices, quantum_registers=None,
                paulis_grouping='random', expansion_mode='trotter', expansion_order=1):
         """
-        Carry out the dynamics evolution for the operator under supplied specifications.
+        Carry out the eoh evolution for the operator under supplied specifications.
 
         Args:
             state_in: The initial state for the evolution

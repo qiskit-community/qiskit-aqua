@@ -15,11 +15,7 @@
 # limitations under the License.
 # =============================================================================
 
-import numpy as np
-
-from qiskit_aqua.utils.multiclass.data_preprocess import *
-from qiskit_aqua.svm_qkernel.data_preprocess import *
-from qiskit_aqua import run_algorithm, get_algorithm_instance
+from qiskit_aqua import run_algorithm
 from qiskit_aqua.input import get_input_instance
 from test.common import QiskitAquaTestCase
 

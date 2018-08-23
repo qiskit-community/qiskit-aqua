@@ -49,7 +49,7 @@ class TestSVMVariational(QiskitAquaTestCase):
         np.random.seed(self.random_seed)
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
-            'algorithm': {'name': 'SVM_Variational'},
+            'algorithm': {'name': 'QSVM.Variational'},
             'backend': {'name': 'local_qasm_simulator', 'shots': 1024},
             'optimizer': {'name': 'SPSA', 'max_trials': 10, 'save_steps': 1},
             'variational_form': {'name': 'RYRZ', 'depth': 3},
@@ -64,7 +64,7 @@ class TestSVMVariational(QiskitAquaTestCase):
 
     def test_svm_variational_directly(self):
         np.random.seed(self.random_seed)
-        svm = get_algorithm_instance("SVM_Variational")
+        svm = get_algorithm_instance("QSVM.Variational")
         svm.random_seed = self.random_seed
         svm.setup_quantum_backend(backend='local_qasm_simulator', shots=1024)
 
