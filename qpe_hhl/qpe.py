@@ -320,6 +320,8 @@ class QPE():
         if self._circuit is None:
             self._setup_qpe(measure=True)
         result = execute(self._circuit, backend=self._backend, shots=shots).result()
+        print(result)
+        print(result._result)
         counts = result.get_counts(self._circuit)
 
         rd = result.get_counts(self._circuit)
