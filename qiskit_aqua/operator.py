@@ -86,9 +86,6 @@ class Operator(object):
         Returns:
             Operator: the operator.
         """
-        result_paulis = None
-        result_grouped_paulis = None
-        result_matrix = None
 
         if mode == 'inplace':
             lhs = self
@@ -103,17 +100,15 @@ class Operator(object):
                     lhs._paulis[idx][0] = operation(lhs._paulis[idx][0], pauli[0])
                 else:
                     lhs._paulis_table[pauli_label] = len(lhs._paulis)
+                    pauli[0] = operation(0.0, pauli[0])
                     lhs._paulis.append(pauli)
-            result_paulis = lhs._paulis
         elif lhs._grouped_paulis is not None and rhs._grouped_paulis is not None:
             lhs._grouped_paulis_to_paulis()
             rhs._grouped_paulis_to_paulis()
-            lhs = lhs + rhs
+            lhs = operation(lhs, rhs)
             lhs._paulis_to_grouped_paulis()
-            result_grouped_paulis = lhs._grouped_paulis
         elif lhs._matrix is not None and rhs._matrix is not None:
-            lhs._matrix = lhs._matrix + rhs._matrix
-            result_matrix = lhs._matrix
+            lhs._matrix = operation(lhs._matrix, rhs._matrix)
         else:
             raise TypeError("the representations of two Operators should be the same. ({}, {})".format(
                 lhs.representations, rhs.representations))
@@ -136,6 +131,12 @@ class Operator(object):
         """Overload -= operation"""
         return self._extend_or_combine(rhs, 'inplace', op_isub)
 
+    def __neg__(self):
+        """Overload unary - """
+        ret = copy.deepcopy(self)
+        ret.scaling_coeff(-1.0)
+        return ret
+
     def __eq__(self, rhs):
         """Overload == operation"""
         if self._matrix is not None and rhs._matrix is not None:
@@ -156,6 +157,7 @@ class Operator(object):
                 if coeff != rhs_coeff:
                     return False
             return True
+
         if self._grouped_paulis is not None and rhs._grouped_paulis is not None:
             self._grouped_paulis_to_paulis()
             rhs._grouped_paulis_to_paulis()
@@ -181,7 +183,8 @@ class Operator(object):
             curr_repr = 'matrix'
             length = "{}x{}".format(2 ** self.num_qubits, 2 ** self.num_qubits)
 
-        ret = "Representation: {}, qubits: {}, size: {}{}".format(curr_repr, self.num_qubits, length, "" if group is None else " {}".format(group))
+        ret = "Representation: {}, qubits: {}, size: {}{}".format(
+            curr_repr, self.num_qubits, length, "" if group is None else " {}".format(group))
 
         return ret
 
@@ -600,11 +603,11 @@ class Operator(object):
                 circuit = QuantumCircuit(q)
                 for qubit_idx in range(n_qubits):
                     if pauli[1].v[qubit_idx] == 0 and pauli[1].w[qubit_idx] == 1:
-                        circuit.u3(np.pi, 0.0, np.pi, q[qubit_idx]) #x
+                        circuit.u3(np.pi, 0.0, np.pi, q[qubit_idx])  # x
                     elif pauli[1].v[qubit_idx] == 1 and pauli[1].w[qubit_idx] == 0:
-                        circuit.u1(np.pi, q[qubit_idx]) #z
+                        circuit.u1(np.pi, q[qubit_idx])  # z
                     elif pauli[1].v[qubit_idx] == 1 and pauli[1].w[qubit_idx] == 1:
-                        circuit.u3(np.pi, np.pi/2, np.pi/2, q[qubit_idx]) #y
+                        circuit.u3(np.pi, np.pi/2, np.pi/2, q[qubit_idx])  # y
 
                 all_circuits.append(circuit)
                 if len(circuit) != 0:
@@ -671,11 +674,11 @@ class Operator(object):
                 for qubit_idx in range(n_qubits):
                     # Measure X
                     if pauli[1].v[qubit_idx] == 0 and pauli[1].w[qubit_idx] == 1:
-                        circuit.u2(0.0, np.pi, q[qubit_idx]) #h
+                        circuit.u2(0.0, np.pi, q[qubit_idx])  # h
                     # Measure Y
                     elif pauli[1].v[qubit_idx] == 1 and pauli[1].w[qubit_idx] == 1:
-                        circuit.u1(np.pi/2, q[qubit_idx]).inverse() #s
-                        circuit.u2(0.0, np.pi, q[qubit_idx]) #h
+                        circuit.u1(np.pi/2, q[qubit_idx]).inverse()  # s
+                        circuit.u2(0.0, np.pi, q[qubit_idx])  # h
                     circuit.measure(q[qubit_idx], c[qubit_idx])
 
                 circuits.append(circuit)
@@ -712,11 +715,11 @@ class Operator(object):
                 for qubit_idx in range(n_qubits):
                     # Measure X
                     if tpb_set[0][1].v[qubit_idx] == 0 and tpb_set[0][1].w[qubit_idx] == 1:
-                        circuit.u2(0.0, np.pi, q[qubit_idx]) #h
+                        circuit.u2(0.0, np.pi, q[qubit_idx])  # h
                     # Measure Y
                     elif tpb_set[0][1].v[qubit_idx] == 1 and tpb_set[0][1].w[qubit_idx] == 1:
-                        circuit.u1(np.pi/2, q[qubit_idx]).inverse() #s
-                        circuit.u2(0.0, np.pi, q[qubit_idx]) #h
+                        circuit.u1(np.pi/2, q[qubit_idx]).inverse()  # s
+                        circuit.u2(0.0, np.pi, q[qubit_idx])  # h
                     circuit.measure(q[qubit_idx], c[qubit_idx])
                 circuits.append(circuit)
 
@@ -797,8 +800,18 @@ class Operator(object):
                 avg = self._eval_with_statevector(operator_mode, input_circuit, backend, execute_config)
                 std_dev = 0.0
             else:
-                avg, std_dev = self._eval_multiple_shots(operator_mode, input_circuit, backend, execute_config, qjob_config)
+                avg, std_dev = self._eval_multiple_shots(
+                    operator_mode, input_circuit, backend, execute_config, qjob_config)
         return avg, std_dev
+
+    def to_paulis(self):
+        self._check_representation('paulis')
+
+    def to_grouped_paulis(self):
+        self._check_representation('grouped_paulis')
+
+    def to_matrix(self):
+        self._check_representation('matrix')
 
     def convert(self, input_format, output_format, force=False):
         """
@@ -972,6 +985,8 @@ class Operator(object):
             p = self._paulis[idx]
             hamiltonian += p[0] * p[1].to_spmatrix()
         self._matrix = hamiltonian
+        # print(self._matrix)
+        # print(self._matrix.shape)
         self._to_dia_matrix(mode='matrix')
         self._paulis = None
         self._grouped_paulis = None
@@ -1318,7 +1333,7 @@ class Operator(object):
     def evolve(self, state_in, evo_time, evo_mode, num_time_slices, quantum_registers=None,
                paulis_grouping='random', expansion_mode='trotter', expansion_order=1):
         """
-        Carry out the dynamics evolution for the operator under supplied specifications.
+        Carry out the eoh evolution for the operator under supplied specifications.
 
         Args:
             state_in: The initial state for the evolution
@@ -1410,8 +1425,8 @@ class Operator(object):
             bool: is empty?
         """
         if self._matrix is None and self._dia_matrix is None \
-            and (self._paulis == [] or self._paulis is None) \
-            and (self._grouped_paulis == [] or self._grouped_paulis is None):
+                and (self._paulis == [] or self._paulis is None) \
+                and (self._grouped_paulis == [] or self._grouped_paulis is None):
 
             return True
         else:
@@ -1469,10 +1484,10 @@ class Operator(object):
         finite field
 
         Args:
-            matrix_in (np.ndarray): binary matrix
+            matrix_in (numpy.ndarray): binary matrix
 
         Returns:
-            np.ndarray : matrix_in in Echelon row form
+            numpy.ndarray : matrix_in in Echelon row form
         """
 
         size = matrix_in.shape
@@ -1508,10 +1523,10 @@ class Operator(object):
         Computes the kernel of a binary matrix on the binary finite field
 
         Args:
-            matrix_in (np.ndarray): binary matrix
+            matrix_in (numpy.ndarray): binary matrix
 
         Returns:
-            [np.ndarray]: the list of kernel vectors
+            [numpy.ndarray]: the list of kernel vectors
         """
 
         size = matrix_in.shape
@@ -1521,7 +1536,7 @@ class Operator(object):
 
         for col in range(size[1]):
             if (np.array_equal(matrix_in_id_ech[0:size[0], col], np.zeros(size[0])) and not
-            np.array_equal(matrix_in_id_ech[size[0]:, col], np.zeros(size[1]))) :
+                    np.array_equal(matrix_in_id_ech[size[0]:, col], np.zeros(size[1]))):
                 kernel.append(matrix_in_id_ech[size[0]:, col])
 
         return kernel
@@ -1554,7 +1569,7 @@ class Operator(object):
         for row in range(symm_shape[0]):
 
             Pauli_symmetries.append(Pauli(stacked_symmetries[row, : symm_shape[1] // 2],
-                                          stacked_symmetries[row, symm_shape[1] // 2 : ]))
+                                          stacked_symmetries[row, symm_shape[1] // 2:]))
 
             stacked_symm_del = np.delete(stacked_symmetries, (row), axis=0)
             for col in range(symm_shape[1] // 2):
@@ -1565,10 +1580,10 @@ class Operator(object):
                     if not (stacked_symm_del[symm_idx, col] == 0
                             and stacked_symm_del[symm_idx, col + symm_shape[1] // 2] in (0, 1)):
                         Z_or_I = False
-                if Z_or_I == True:
+                if Z_or_I:
                     if ((stacked_symmetries[row, col] == 1 and
                          stacked_symmetries[row, col + symm_shape[1] // 2] == 0) or
-                         (stacked_symmetries[row, col] == 1 and
+                        (stacked_symmetries[row, col] == 1 and
                          stacked_symmetries[row, col + symm_shape[1] // 2] == 1)):
                         sq_paulis.append(Pauli(np.zeros(symm_shape[1] // 2),
                                                np.zeros(symm_shape[1] // 2)))
@@ -1583,11 +1598,11 @@ class Operator(object):
                     if not (stacked_symm_del[symm_idx, col] in (0, 1) and
                             stacked_symm_del[symm_idx, col + symm_shape[1] // 2] == 0):
                         X_or_I = False
-                if X_or_I == True:
-                    if ( (stacked_symmetries[row, col] == 0 and
-                          stacked_symmetries[row, col + symm_shape[1] // 2] == 1) or
-                         (stacked_symmetries[row, col] == 1 and
-                          stacked_symmetries[row, col + symm_shape[1] // 2] == 1) ):
+                if X_or_I:
+                    if ((stacked_symmetries[row, col] == 0 and
+                         stacked_symmetries[row, col + symm_shape[1] // 2] == 1) or
+                        (stacked_symmetries[row, col] == 1 and
+                         stacked_symmetries[row, col + symm_shape[1] // 2] == 1)):
                         sq_paulis.append(Pauli(np.zeros(symm_shape[1] // 2), np.zeros(symm_shape[1] // 2)))
                         sq_paulis[row].v[col] = 1
                         sq_paulis[row].w[col] = 0
@@ -1597,16 +1612,16 @@ class Operator(object):
                 # case symmetries other than one at (row)  have Y or I on col qubit
                 Y_or_I = True
                 for symm_idx in range(symm_shape[0] - 1):
-                    if not ( (stacked_symm_del[symm_idx, col] == 1 and
-                              stacked_symm_del[symm_idx, col + symm_shape[1] // 2] == 1)
-                        or   (stacked_symm_del[symm_idx, col] == 0 and
-                              stacked_symm_del[symm_idx, col + symm_shape[1] // 2] == 0) ):
+                    if not ((stacked_symm_del[symm_idx, col] == 1 and
+                             stacked_symm_del[symm_idx, col + symm_shape[1] // 2] == 1)
+                            or (stacked_symm_del[symm_idx, col] == 0 and
+                                stacked_symm_del[symm_idx, col + symm_shape[1] // 2] == 0)):
                         Y_or_I = False
-                if Y_or_I == True:
-                    if ( (stacked_symmetries[row, col] == 0 and
-                          stacked_symmetries[row, col + symm_shape[1] // 2] == 1) or
-                         (stacked_symmetries[row, col] == 1 and
-                          stacked_symmetries[row, col + symm_shape[1] // 2] == 0) ):
+                if Y_or_I:
+                    if ((stacked_symmetries[row, col] == 0 and
+                         stacked_symmetries[row, col + symm_shape[1] // 2] == 1) or
+                        (stacked_symmetries[row, col] == 1 and
+                         stacked_symmetries[row, col + symm_shape[1] // 2] == 0)):
                         sq_paulis.append(Pauli(np.zeros(symm_shape[1] // 2), np.zeros(symm_shape[1] // 2)))
                         sq_paulis[row].v[col] = 1
                         sq_paulis[row].w[col] = 1
@@ -1684,7 +1699,6 @@ class Operator(object):
             self._paulis_to_grouped_paulis()
             self._paulis = None
 
-
     def scaling_coeff(self, scaling_factor):
         """
         Constant scale the coefficient in an operator.
@@ -1705,5 +1719,3 @@ class Operator(object):
             self._matrix *= scaling_factor
             if self._dia_matrix is not None:
                 self._dia_matrix *= scaling_factor
-
-

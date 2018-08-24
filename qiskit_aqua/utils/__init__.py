@@ -17,11 +17,13 @@
 
 from .tensorproduct import tensorproduct
 from .pauligraph import PauliGraph
-from .jsonutils import convert_dict_to_json,convert_json_to_dict
+from .jsonutils import convert_dict_to_json, convert_json_to_dict
 from .random_matrix_generator import random_unitary, random_h2_body, random_h1_body
 from .decimal_to_binary import decimal_to_binary
 from .summarize_circuits import summarize_circuits
+from .cnx import cnx
 from .entangler_map import get_entangler_map, validate_entangler_map
+
 
 __all__ = ['tensorproduct',
            'PauliGraph',
@@ -32,5 +34,6 @@ __all__ = ['tensorproduct',
            'random_h1_body',
            'decimal_to_binary',
            'summarize_circuits',
+           'cnx',
            'get_entangler_map',
            'validate_entangler_map']
