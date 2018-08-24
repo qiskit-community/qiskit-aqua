@@ -16,6 +16,8 @@ k = 9
 nege = True
 
 matrix = gen_matrix(n, eigrange=[-5, 5], sparsity=0.6)
+matrix = np.array([[2.34824, 2.49119],
+      [2.49119, 5.406  ]])
 #matrix = np.diag([-1.5, 1])
 #np.save("mat.npy", matrix)
 #matrix = np.load("mat.npy")

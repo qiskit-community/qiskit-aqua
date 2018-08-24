@@ -339,8 +339,7 @@ class QPE():
         if self._circuit is None:
             self._setup_qpe(measure=True)
         result = execute(self._circuit, backend=self._backend, shots=shots).result()
-        counts = result.get_counts(self._circuit)
-
+        #print(result._result)
         rd = result.get_counts(self._circuit)
         rets = sorted([[rd[k], k, k] for k in rd])[::-1]
 
@@ -355,6 +354,7 @@ class QPE():
 
         self._ret['measurements'] = rets
         self._ret['evo_time'] = self._evo_time
+        return self._ret
 
 
     def run(self):
