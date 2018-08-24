@@ -47,6 +47,7 @@ class FermionicOperator(object):
         Chemistry, 115(19):1431–1441 (2015). \
     - S. Bravyi, J. M. Gambetta, A. Mezzacapo, and K. Temme, \
         arXiv e-print arXiv:1701.08213 (2017). \
+    - K. Setia, J. D. Whitfield, arXiv:1712.00446 (2017)
     """
 
     def __init__(self, h1, h2=None, ph_trans_shift=None):
@@ -102,12 +103,14 @@ class FermionicOperator(object):
         return not self.__eq__(other)
 
     def transform(self, unitary_matrix):
+        """Transform the one and two body term based on unitary_matrix"""
         self._h1_transform(unitary_matrix)
         self._h2_transform(unitary_matrix)
 
     def _h1_transform(self, unitary_matrix):
         """
         Transform h1 based on unitry matrix, and overwrite original property.
+
         Args:
             unitary_matrix (numpy.ndarray): A 2-D unitary matrix for h1 transformation.
         """
@@ -327,8 +330,8 @@ class FermionicOperator(object):
         elif map_type == 'bravyi_kitaev_sf':
             return bksf_mapping(self)
         else:
-            raise AquaChemistryError('Please specify the supported modes: \
-                                        jordan_wigner, parity, bravyi_kitaev, bravyi_kitaev_sf')
+            raise AquaChemistryError('Please specify the supported modes: '
+                                     'jordan_wigner, parity, bravyi_kitaev, bravyi_kitaev_sf')
         """
         ####################################################################
         ############    BUILDING THE MAPPED HAMILTONIAN     ################
