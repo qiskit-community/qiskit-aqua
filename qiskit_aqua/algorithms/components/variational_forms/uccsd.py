@@ -31,9 +31,9 @@ from qiskit_aqua.algorithms.components.variational_forms import VariationalForm
 try:
     from qiskit_aqua_chemistry.fermionic_operator import FermionicOperator
 except ImportError:
-    raise ImportWarning('UCCSD can be only used with qiskit_aqua_chemistry lib. \
-        If you would like to use it for other purposes, \
-        please install qiskit_aqua_chemistry first.')
+    raise ImportWarning('UCCSD can be only used with qiskit_aqua_chemistry lib." \
+        "If you would like to use it for other purposes," \
+        "please install qiskit_aqua_chemistry first."')
 
 logger = logging.getLogger(__name__)
 
@@ -152,7 +152,8 @@ class VarFormUCCSD(VariationalForm):
         self._num_qubits = num_orbitals if not two_qubit_reduction else num_orbitals - 2
         self._num_qubits = self._num_qubits if not self._qubit_tapering else self._num_qubits - len(sq_list)
         if self._num_qubits != num_qubits:
-            raise ValueError('Computed num qubits {} does not match actual {}'.format(self._num_qubits, num_qubits))
+            raise ValueError('Computed num qubits {} does not match actual {}'
+                             .format(self._num_qubits, num_qubits))
         self._num_orbitals = num_orbitals
         self._depth = depth
         self._num_particles = num_particles
@@ -286,8 +287,8 @@ class VarFormUCCSD(VariationalForm):
                 return None
 
     @staticmethod
-    def compute_excitation_lists(num_particles, num_orbitals,
-                                 active_occ_list=None, active_unocc_list=None, same_spin_doubles=True):
+    def compute_excitation_lists(num_particles, num_orbitals, active_occ_list=None,
+                                 active_unocc_list=None, same_spin_doubles=True):
         """
         Computes single and double excitation lists
 
@@ -314,13 +315,15 @@ class VarFormUCCSD(VariationalForm):
             active_occ_list = [i if i >= 0 else i + num_particles // 2 for i in active_occ_list]
             for i in active_occ_list:
                 if i >= num_particles // 2:
-                    raise ValueError('Invalid index {} in active active_occ_list {}'.format(i, active_occ_list))
+                    raise ValueError('Invalid index {} in active active_occ_list {}'
+                                     .format(i, active_occ_list))
         if active_unocc_list is not None:
             active_unocc_list = [i + num_particles // 2 if i >=
                                  0 else i + num_orbitals // 2 for i in active_unocc_list]
             for i in active_unocc_list:
                 if i < 0 or i >= num_orbitals // 2:
-                    raise ValueError('Invalid index {} in active active_unocc_list {}'.format(i, active_unocc_list))
+                    raise ValueError('Invalid index {} in active active_unocc_list {}'
+                                     .format(i, active_unocc_list))
 
         if active_occ_list is None or len(active_occ_list) <= 0:
             active_occ_list = [i for i in range(0, num_particles // 2)]
