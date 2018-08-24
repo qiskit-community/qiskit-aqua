@@ -15,9 +15,15 @@
 # limitations under the License.
 # =============================================================================
 
-from .estimator import Estimator
 from .allpairs import AllPairs
+from .data_preprocess import multiclass_get_points_and_labels
 from .error_correcting_code import ErrorCorrectingCode
+from .estimator import Estimator
 from .one_against_rest import OneAgainstRest
 
-__all__ = ['Estimator','AllPairs','ErrorCorrectingCode','OneAgainstRest']
+
+__all__ = ['Estimator',
+           'AllPairs',
+           'ErrorCorrectingCode',
+           'OneAgainstRest',
+           'multiclass_get_points_and_labels']

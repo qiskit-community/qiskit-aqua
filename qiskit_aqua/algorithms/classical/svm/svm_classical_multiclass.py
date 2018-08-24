@@ -17,13 +17,16 @@
 
 import logging
 
-from qiskit_aqua.algorithms.components.multiclass import AllPairs
-from qiskit_aqua.algorithms.components.multiclass import ErrorCorrectingCode
-from qiskit_aqua.algorithms.components.multiclass import OneAgainstRest
+from qiskit_aqua.algorithms.components.multiclass import (AllPairs,
+                                                          ErrorCorrectingCode,
+                                                          OneAgainstRest,
+                                                          multiclass_get_points_and_labels)
 from qiskit_aqua.algorithms.classical.svm.rbf_svc_estimator import RBF_SVC_Estimator
 from qiskit_aqua.algorithms.classical.svm import SVM_Classical_ABC
 
+
 logger = logging.getLogger(__name__)
+
 
 class SVM_Classical_Multiclass(SVM_Classical_ABC):
     """
@@ -52,8 +55,7 @@ class SVM_Classical_Multiclass(SVM_Classical_ABC):
         elif self.multiclass_alg == "error_correcting_code":
             multiclass_classifier = ErrorCorrectingCode(RBF_SVC_Estimator, code_size=4)
         else:
-            self.ret[
-                'error'] = 'the multiclass alg should be one of {"all_pairs", "one_against_all", "error_correcting_code"}. You did not specify it correctly!'
+            self.ret['error'] = 'the multiclass alg should be one of {"all_pairs", "one_against_all", "error_correcting_code"}. You did not specify it correctly!'
             return self.ret
 
         logger.debug("You are using the multiclass alg: " + self.multiclass_alg)
