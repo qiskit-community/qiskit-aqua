@@ -15,17 +15,19 @@
 # limitations under the License.
 # =============================================================================
 
-import concurrent.futures
-import multiprocessing
 import itertools
 import logging
+import multiprocessing
+import concurrent.futures
 
 import numpy as np
-from qiskit.tools.qi.pauli import Pauli, sgn_prod, label_to_pauli
-
+from qiskit.tools.qi.pauli import Pauli, label_to_pauli, sgn_prod
 from qiskit_aqua import Operator
+
 from qiskit_aqua_chemistry import AquaChemistryError
+from qiskit_aqua_chemistry.bksf import bksf_mapping
 from qiskit_aqua_chemistry.particle_hole import particle_hole_transformation
+
 
 logger = logging.getLogger(__name__)
 
@@ -45,12 +47,15 @@ class FermionicOperator(object):
         Chemistry, 115(19):1431–1441 (2015). \
     - S. Bravyi, J. M. Gambetta, A. Mezzacapo, and K. Temme, \
         arXiv e-print arXiv:1701.08213 (2017). \
+    - K. Setia, J. D. Whitfield, arXiv:1712.00446 (2017)
     """
+
     def __init__(self, h1, h2=None, ph_trans_shift=None):
         """
         Args:
             h1 (numpy.ndarray): second-quantized fermionic one-body operator, a 2-D (NxN) tensor
-            h2 (numpy.ndarray): second-quantized fermionic two-body operator, a 4-D (NxNxNxN) tensor
+            h2 (numpy.ndarray): second-quantized fermionic two-body operator,
+                                a 4-D (NxNxNxN) tensor
             ph_trans_shift (float): energy shift caused by particle hole transformation
         """
         self._h1 = h1
@@ -58,6 +63,12 @@ class FermionicOperator(object):
             h2 = np.zeros((h1.shape[0], h1.shape[0], h1.shape[0], h1.shape[0]), dtype=h1.dtype)
         self._h2 = h2
         self._ph_trans_shift = ph_trans_shift
+        self._modes = self._h1.shape[0]
+        self._map_type = None
+
+    @property
+    def modes(self):
+        return self._modes
 
     @property
     def h1(self):
@@ -79,13 +90,27 @@ class FermionicOperator(object):
         """Setter of two body integral tensor"""
         self._h2 = new_h2
 
+    def __eq__(self, other):
+        """Overload == """
+        ret = np.all(self._h1 == other._h1)
+        if not ret:
+            return ret
+        ret = np.all(self._h2 == other._h2)
+        return ret
+
+    def __ne__(self, other):
+        """Overload != """
+        return not self.__eq__(other)
+
     def transform(self, unitary_matrix):
+        """Transform the one and two body term based on unitary_matrix"""
         self._h1_transform(unitary_matrix)
         self._h2_transform(unitary_matrix)
 
     def _h1_transform(self, unitary_matrix):
         """
         Transform h1 based on unitry matrix, and overwrite original property.
+
         Args:
             unitary_matrix (numpy.ndarray): A 2-D unitary matrix for h1 transformation.
         """
@@ -99,7 +124,8 @@ class FermionicOperator(object):
             unitary_matrix (numpy.ndarray): A 2-D unitary matrix for h1 transformation.
         """
         num_modes = unitary_matrix.shape[0]
-        temp_ret = np.zeros((num_modes, num_modes, num_modes, num_modes), dtype=unitary_matrix.dtype)
+        temp_ret = np.zeros((num_modes, num_modes, num_modes, num_modes),
+                            dtype=unitary_matrix.dtype)
         unitary_matrix_dagger = np.conjugate(unitary_matrix)
 
         # option 3: temp1 is a 3-D tensor, temp2 and temp3 are 2-D tensors
@@ -121,10 +147,10 @@ class FermionicOperator(object):
         """
         a = []
         for i in range(n):
-            xv = np.asarray([1] * i + [0] + [0] * (n-i-1))
-            xw = np.asarray([0] * i + [1] + [0] * (n-i-1))
-            yv = np.asarray([1] * i + [1] + [0] * (n-i-1))
-            yw = np.asarray([0] * i + [1] + [0] * (n-i-1))
+            xv = np.asarray([1] * i + [0] + [0] * (n - i - 1))
+            xw = np.asarray([0] * i + [1] + [0] * (n - i - 1))
+            yv = np.asarray([1] * i + [1] + [0] * (n - i - 1))
+            yw = np.asarray([0] * i + [1] + [0] * (n - i - 1))
             a.append((Pauli(xv, xw), Pauli(yv, yw)))
         return a
 
@@ -137,15 +163,15 @@ class FermionicOperator(object):
         """
         a = []
         for i in range(n):
-            Xv = [0] * (i-1) + [1] if i > 0 else []
-            Xw = [0] * (i-1) + [0] if i > 0 else []
-            Yv = [0] * (i-1) + [0] if i > 0 else []
-            Yw = [0] * (i-1) + [0] if i > 0 else []
-            Xv = np.asarray(Xv + [0] + [0] * (n-i-1))
-            Xw = np.asarray(Xw + [1] + [1] * (n-i-1))
-            Yv = np.asarray(Yv + [1] + [0] * (n-i-1))
-            Yw = np.asarray(Yw + [1] + [1] * (n-i-1))
-            a.append((Pauli(Xv, Xw), Pauli(Yv, Yw)))
+            x_v = [0] * (i - 1) + [1] if i > 0 else []
+            x_w = [0] * (i - 1) + [0] if i > 0 else []
+            y_v = [0] * (i - 1) + [0] if i > 0 else []
+            y_w = [0] * (i - 1) + [0] if i > 0 else []
+            x_v = np.asarray(x_v + [0] + [0] * (n - i - 1))
+            x_w = np.asarray(x_w + [1] + [1] * (n - i - 1))
+            y_v = np.asarray(y_v + [1] + [0] * (n - i - 1))
+            y_w = np.asarray(y_w + [1] + [1] * (n - i - 1))
+            a.append((Pauli(x_v, x_w), Pauli(y_v, y_w)))
         return a
 
     def _bravyi_kitaev_mode(self, n):
@@ -275,7 +301,8 @@ class FermionicOperator(object):
         observed when h2 is a non-sparse matrix.
 
         Args:
-            map_type (str): case-insensitive mapping type. "jordan_wigner", "parity", "bravyi_kitaev"
+            map_type (str): case-insensitive mapping type.
+                            "jordan_wigner", "parity", "bravyi_kitaev", "bravyi_kitaev_sf"
             threshold (float): threshold for Pauli simplification
             num_workers (int): number of processes used to map.
 
@@ -291,7 +318,8 @@ class FermionicOperator(object):
         ############   DEFINING MAPPED FERMIONIC OPERATORS    ##############
         ####################################################################
         """
-        n = self._h1.shape[0]  # number of fermionic modes / qubits
+        self._map_type = map_type
+        n = self._modes  # number of fermionic modes / qubits
         map_type = map_type.lower()
         if map_type == 'jordan_wigner':
             a = self._jordan_wigner_mode(n)
@@ -299,8 +327,11 @@ class FermionicOperator(object):
             a = self._parity_mode(n)
         elif map_type == 'bravyi_kitaev':
             a = self._bravyi_kitaev_mode(n)
+        elif map_type == 'bravyi_kitaev_sf':
+            return bksf_mapping(self)
         else:
-            raise AquaChemistryError('Please specify the supported modes: jordan_wigner, parity, bravyi_kitaev')
+            raise AquaChemistryError('Please specify the supported modes: '
+                                     'jordan_wigner, parity, bravyi_kitaev, bravyi_kitaev_sf')
         """
         ####################################################################
         ############    BUILDING THE MAPPED HAMILTONIAN     ################
@@ -309,25 +340,28 @@ class FermionicOperator(object):
         max_workers = min(num_workers, multiprocessing.cpu_count())
         pauli_list = Operator(paulis=[])
         with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
-            #######################    One-body    #############################
-            futures = [executor.submit(FermionicOperator._one_body_mapping, self._h1[i, j], a[i], a[j], threshold)
+            # One-body
+            futures = [executor.submit(FermionicOperator._one_body_mapping,
+                                       self._h1[i, j], a[i], a[j], threshold)
                        for i, j in itertools.product(range(n), repeat=2) if self._h1[i, j] != 0]
             for future in concurrent.futures.as_completed(futures):
                 result = future.result()
                 pauli_list += result
             pauli_list.chop(threshold=threshold)
 
-            #######################    Two-body    #############################
+            # Two-body
             futures = [executor.submit(FermionicOperator._two_body_mapping,
                                        self._h2[i, j, k, m], a[i], a[j], a[k], a[m], threshold)
-                       for i, j, k, m in itertools.product(range(n), repeat=4) if self._h2[i, j, k, m] != 0]
+                       for i, j, k, m in itertools.product(range(n), repeat=4)
+                       if self._h2[i, j, k, m] != 0]
             for future in concurrent.futures.as_completed(futures):
                 result = future.result()
                 pauli_list += result
             pauli_list.chop(threshold=threshold)
 
         if self._ph_trans_shift is not None:
-            pauli_list += Operator(paulis=[[self._ph_trans_shift, label_to_pauli('I' * self._h1.shape[0])]])
+            pauli_term = [self._ph_trans_shift, label_to_pauli('I' * self._modes)]
+            pauli_list += Operator(paulis=[pauli_term])
 
         return pauli_list
 
@@ -393,10 +427,10 @@ class FermionicOperator(object):
                                     to up-down-up-down-up-down-up-down
         """
         matrix = np.zeros((self._h1.shape), self._h1.dtype)
-        N = matrix.shape[0]
-        j = np.arange(N//2)
-        matrix[j, 2*j] = 1.0
-        matrix[j + N // 2, 2*j + 1] = 1.0
+        n = matrix.shape[0]
+        j = np.arange(n // 2)
+        matrix[j, 2 * j] = 1.0
+        matrix[j + n // 2, 2 * j + 1] = 1.0
         self.transform(matrix)
 
     def _convert_to_block_spins(self):
@@ -405,10 +439,10 @@ class FermionicOperator(object):
                                     to up-up-up-up-down-down-down-down
         """
         matrix = np.zeros((self._h1.shape), self._h1.dtype)
-        N = matrix.shape[0]
-        j = np.arange(N//2)
-        matrix[2*j, j] = 1.0
-        matrix[2*j+1, N//2+j] = 1.0
+        n = matrix.shape[0]
+        j = np.arange(n // 2)
+        matrix[2 * j, j] = 1.0
+        matrix[2 * j + 1, n // 2 + j] = 1.0
         self.transform(matrix)
 
     def particle_hole_transformation(self, num_particles):
@@ -426,10 +460,11 @@ class FermionicOperator(object):
             num_particles (int): number of particles
         """
         self._convert_to_interleaved_spins()
-        h1, h2, energy_shift = particle_hole_transformation(self._h1.shape[0], num_particles, self._h1, self._h2)
-        new_ferOp = FermionicOperator(h1=h1, h2=h2, ph_trans_shift=energy_shift)
-        new_ferOp._convert_to_block_spins()
-        return new_ferOp, energy_shift
+        h1, h2, energy_shift = particle_hole_transformation(self._modes, num_particles,
+                                                            self._h1, self._h2)
+        new_fer_op = FermionicOperator(h1=h1, h2=h2, ph_trans_shift=energy_shift)
+        new_fer_op._convert_to_block_spins()
+        return new_fer_op, energy_shift
 
     def fermion_mode_elimination(self, fermion_mode_array):
         """
@@ -442,14 +477,14 @@ class FermionicOperator(object):
             FermionicOperator: Fermionic Hamiltonian
         """
         fermion_mode_array = np.sort(fermion_mode_array)
-        n_modes_old = self._h1.shape[0]
+        n_modes_old = self._modes
         n_modes_new = n_modes_old - fermion_mode_array.size
         mode_set_diff = np.setdiff1d(np.arange(n_modes_old), fermion_mode_array)
         h1_id_i, h1_id_j = np.meshgrid(mode_set_diff, mode_set_diff, indexing='ij')
         h1_new = self._h1[h1_id_i, h1_id_j].copy()
         if np.count_nonzero(self._h2) > 0:
             h2_id_i, h2_id_j, h2_id_k, h2_id_l = np.meshgrid(
-                mode_set_diff, mode_set_diff, mode_set_diff, mode_set_diff,  indexing='ij')
+                mode_set_diff, mode_set_diff, mode_set_diff, mode_set_diff, indexing='ij')
             h2_new = self._h2[h2_id_i, h2_id_j, h2_id_k, h2_id_l].copy()
         else:
             h2_new = np.zeros((n_modes_new, n_modes_new, n_modes_new, n_modes_new))
@@ -467,7 +502,7 @@ class FermionicOperator(object):
             FermionicOperator: Fermionic Hamiltonian
         """
         fermion_mode_array = np.sort(fermion_mode_array)
-        n_modes_old = self._h1.shape[0]
+        n_modes_old = self._modes
         n_modes_new = n_modes_old - fermion_mode_array.size
         mode_set_diff = np.setdiff1d(np.arange(n_modes_old), fermion_mode_array)
 
@@ -481,9 +516,9 @@ class FermionicOperator(object):
                 # Untouched terms
                 h2_ijlk = self._h2[i, j, l, k]
                 if h2_ijlk == 0.0:
-                        continue
-                if (i in mode_set_diff and j in mode_set_diff
-                        and l in mode_set_diff and k in mode_set_diff):
+                    continue
+                if (i in mode_set_diff and j in mode_set_diff and
+                        l in mode_set_diff and k in mode_set_diff):
                     h2_new[i - np.where(fermion_mode_array < i)[0].size,
                            j - np.where(fermion_mode_array < j)[0].size,
                            l - np.where(fermion_mode_array < l)[0].size,
@@ -522,9 +557,9 @@ class FermionicOperator(object):
             FermionicOperator: Fermionic Hamiltonian
         """
 
-        size = self._h1.shape[0]
-        h1 = np.eye(size, dtype=np.complex)
-        h2 = np.zeros((size, size, size, size))
+        modes = self._modes
+        h1 = np.eye(modes, dtype=np.complex)
+        h2 = np.zeros((modes, modes, modes, modes))
         return FermionicOperator(h1, h2)
 
     def total_magnetization(self):
@@ -536,95 +571,98 @@ class FermionicOperator(object):
             FermionicOperator: Fermionic Hamiltonian
         """
 
-        size = self._h1.shape[0]
-        h1 = np.eye(size, dtype=np.complex) * 0.5
-        h1[size // 2:, size // 2:] *= -1.0
-        h2 = np.zeros((size, size, size, size))
+        modes = self._modes
+        h1 = np.eye(modes, dtype=np.complex) * 0.5
+        h1[modes // 2:, modes // 2:] *= -1.0
+        h2 = np.zeros((modes, modes, modes, modes))
         return FermionicOperator(h1, h2)
 
-    def _S_x_squared(self):
+    def _s_x_squared(self):
         """
 
         Returns:
             FermionicOperator: Fermionic Hamiltonian
         """
 
-        num_modes = self._h1.shape[0] // 2
-        h1 = np.zeros((num_modes * 2, num_modes * 2))
-        h2 = np.zeros((num_modes * 2, num_modes * 2, num_modes * 2, num_modes * 2))
+        num_modes = self._modes
+        num_modes_2 = num_modes // 2
+        h1 = np.zeros((num_modes, num_modes))
+        h2 = np.zeros((num_modes, num_modes, num_modes, num_modes))
 
-        for p, q in itertools.product(range(num_modes), repeat=2):
+        for p, q in itertools.product(range(num_modes_2), repeat=2):
             if p != q:
-                h2[p, p + num_modes, q, q + num_modes] += 1.0
-                h2[p + num_modes, p, q, q + num_modes] += 1.0
-                h2[p, p + num_modes, q + num_modes, q] += 1.0
-                h2[p + num_modes, p, q + num_modes, q] += 1.0
+                h2[p, p + num_modes_2, q, q + num_modes_2] += 1.0
+                h2[p + num_modes_2, p, q, q + num_modes_2] += 1.0
+                h2[p, p + num_modes_2, q + num_modes_2, q] += 1.0
+                h2[p + num_modes_2, p, q + num_modes_2, q] += 1.0
             else:
-                h2[p, p + num_modes, p, p + num_modes] -= 1.0
-                h2[p + num_modes, p, p + num_modes, p] -= 1.0
-                h2[p, p, p + num_modes, p + num_modes] -= 1.0
-                h2[p + num_modes, p + num_modes, p, p] -= 1.0
+                h2[p, p + num_modes_2, p, p + num_modes_2] -= 1.0
+                h2[p + num_modes_2, p, p + num_modes_2, p] -= 1.0
+                h2[p, p, p + num_modes_2, p + num_modes_2] -= 1.0
+                h2[p + num_modes_2, p + num_modes_2, p, p] -= 1.0
 
                 h1[p, p] += 1.0
-                h1[p + num_modes, p + num_modes] += 1.0
+                h1[p + num_modes_2, p + num_modes_2] += 1.0
 
         h1 *= 0.25
         h2 *= 0.25
         return h1, h2
 
-    def _S_y_squared(self):
+    def _s_y_squared(self):
         """
 
         Returns:
             FermionicOperator: Fermionic Hamiltonian
         """
 
-        num_modes = self._h1.shape[0] // 2
-        h1 = np.zeros((num_modes * 2, num_modes * 2))
-        h2 = np.zeros((num_modes * 2, num_modes * 2, num_modes * 2, num_modes * 2))
+        num_modes = self._modes
+        num_modes_2 = num_modes // 2
+        h1 = np.zeros((num_modes, num_modes))
+        h2 = np.zeros((num_modes, num_modes, num_modes, num_modes))
 
-        for p, q in itertools.product(range(num_modes), repeat=2):
+        for p, q in itertools.product(range(num_modes_2), repeat=2):
             if p != q:
-                h2[p, p + num_modes, q, q + num_modes] -= 1.0
-                h2[p + num_modes, p, q, q + num_modes] += 1.0
-                h2[p, p + num_modes, q + num_modes, q] += 1.0
-                h2[p + num_modes, p, q + num_modes, q] -= 1.0
+                h2[p, p + num_modes_2, q, q + num_modes_2] -= 1.0
+                h2[p + num_modes_2, p, q, q + num_modes_2] += 1.0
+                h2[p, p + num_modes_2, q + num_modes_2, q] += 1.0
+                h2[p + num_modes_2, p, q + num_modes_2, q] -= 1.0
             else:
-                h2[p, p + num_modes, p, p + num_modes] += 1.0
-                h2[p + num_modes, p, p + num_modes, p] += 1.0
-                h2[p, p, p + num_modes, p + num_modes] -= 1.0
-                h2[p + num_modes, p + num_modes, p, p] -= 1.0
+                h2[p, p + num_modes_2, p, p + num_modes_2] += 1.0
+                h2[p + num_modes_2, p, p + num_modes_2, p] += 1.0
+                h2[p, p, p + num_modes_2, p + num_modes_2] -= 1.0
+                h2[p + num_modes_2, p + num_modes_2, p, p] -= 1.0
 
                 h1[p, p] += 1.0
-                h1[p + num_modes, p + num_modes] += 1.0
+                h1[p + num_modes_2, p + num_modes_2] += 1.0
 
         h1 *= 0.25
         h2 *= 0.25
         return h1, h2
 
-    def _S_z_squared(self):
+    def _s_z_squared(self):
         """
 
         Returns:
             FermionicOperator: Fermionic Hamiltonian
         """
 
-        num_modes = self._h1.shape[0] // 2
-        h1 = np.zeros((num_modes * 2, num_modes * 2))
-        h2 = np.zeros((num_modes * 2, num_modes * 2, num_modes * 2, num_modes * 2))
+        num_modes = self._modes
+        num_modes_2 = num_modes // 2
+        h1 = np.zeros((num_modes, num_modes))
+        h2 = np.zeros((num_modes, num_modes, num_modes, num_modes))
 
-        for p, q in itertools.product(range(num_modes), repeat=2):
+        for p, q in itertools.product(range(num_modes_2), repeat=2):
             if p != q:
                 h2[p, p, q, q] += 1.0
-                h2[p + num_modes, p + num_modes, q, q] -= 1.0
-                h2[p, p, q + num_modes, q + num_modes] -= 1.0
-                h2[p + num_modes, p + num_modes, q + num_modes, q + num_modes] += 1.0
+                h2[p + num_modes_2, p + num_modes_2, q, q] -= 1.0
+                h2[p, p, q + num_modes_2, q + num_modes_2] -= 1.0
+                h2[p + num_modes_2, p + num_modes_2, q + num_modes_2, q + num_modes_2] += 1.0
             else:
-                h2[p, p + num_modes, p + num_modes, p] += 1.0
-                h2[p + num_modes, p, p, p + num_modes] += 1.0
+                h2[p, p + num_modes_2, p + num_modes_2, p] += 1.0
+                h2[p + num_modes_2, p, p, p + num_modes_2] += 1.0
 
                 h1[p, p] += 1.0
-                h1[p + num_modes, p + num_modes] += 1.0
+                h1[p + num_modes_2, p + num_modes_2] += 1.0
 
         h1 *= 0.25
         h2 *= 0.25
@@ -639,9 +677,9 @@ class FermionicOperator(object):
             FermionicOperator: Fermionic Hamiltonian
         """
 
-        x_h1, x_h2 = self._S_x_squared()
-        y_h1, y_h2 = self._S_y_squared()
-        z_h1, z_h2 = self._S_z_squared()
+        x_h1, x_h2 = self._s_x_squared()
+        y_h1, y_h2 = self._s_y_squared()
+        z_h1, z_h2 = self._s_z_squared()
         h1 = x_h1 + y_h1 + z_h1
         h2 = x_h2 + y_h2 + z_h2
 
