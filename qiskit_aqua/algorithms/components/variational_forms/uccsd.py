@@ -25,13 +25,15 @@ import logging
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 
+from qiskit_aqua import Operator
 from qiskit_aqua.algorithms.components.variational_forms import VariationalForm
 
 try:
     from qiskit_aqua_chemistry.fermionic_operator import FermionicOperator
 except ImportError:
-    raise ImportWarning('UCCSD can be only used with qiskit_aqua_chemistry lib. \
-        If you would like to use it for other purposes, please install qiskit_aqua_chemistry first.')
+    raise ImportWarning('UCCSD can be only used with qiskit_aqua_chemistry lib." \
+        "If you would like to use it for other purposes," \
+        "please install qiskit_aqua_chemistry first."')
 
 logger = logging.getLogger(__name__)
 
@@ -109,25 +111,49 @@ class VarFormUCCSD(VariationalForm):
         self._num_time_slices = 1
         self._num_parameters = 0
         self._bounds = None
+        self._cliffords = None
+        self._sq_list = None
+        self._tapering_values = None
+        self._symmetries = None
 
     def init_args(self, num_qubits, depth, num_orbitals, num_particles,
                   active_occupied=None, active_unoccupied=None, initial_state=None,
-                  qubit_mapping='parity', two_qubit_reduction=False, num_time_slices=1):
+                  qubit_mapping='parity', two_qubit_reduction=False, num_time_slices=1,
+                  cliffords=None, sq_list=None, tapering_values=None, symmetries=None):
         """
         Args:
-            - num_orbitals (int): number of spin orbitals
-            - depth (int): number of replica of basic module
-            - num_particles (int): number of particles
-            - active_occupied (list): list of occupied orbitals to consider as active space
-            - active_unoccupied (list): list of unoccupied orbitals to consider as active space
-            - initial_state (InitialState): An initial state object.
-            - qubit_mapping (str): qubit mapping type.
-            - two_qubit_reduction (bool): two qubit reduction is applied or not.
-            - num_time_slices (int): parameters for eoh.
+            num_orbitals (int): number of spin orbitals
+            depth (int): number of replica of basic module
+            num_particles (int): number of particles
+            active_occupied (list): list of occupied orbitals to consider as active space
+            active_unoccupied (list): list of unoccupied orbitals to consider as active space
+            initial_state (InitialState): An initial state object.
+            qubit_mapping (str): qubit mapping type.
+            two_qubit_reduction (bool): two qubit reduction is applied or not.
+            num_time_slices (int): parameters for dynamics.
+            cliffords ([Operator]): list of unitary Clifford transformation
+            sq_list ([int]): position of the single-qubit operators that anticommute
+                            with the cliffords
+            tapering_values ([int]): array of +/- 1 used to select the subspace. Length
+                                    has to be equal to the length of cliffords and sq_list
+            symmetries ([Pauli]): represent the Z2 symmetries
         """
+        self._cliffords = cliffords
+        self._sq_list = sq_list
+        self._tapering_values = tapering_values
+        self._symmetries = symmetries
+
+        if self._cliffords is not None and self._sq_list is not None and \
+                self._tapering_values is not None and self._symmetries is not None:
+            self._qubit_tapering = True
+        else:
+            self._qubit_tapering = False
+
         self._num_qubits = num_orbitals if not two_qubit_reduction else num_orbitals - 2
+        self._num_qubits = self._num_qubits if not self._qubit_tapering else self._num_qubits - len(sq_list)
         if self._num_qubits != num_qubits:
-            raise ValueError('Computed num qubits {} does not match actual {}'.format(self._num_qubits, num_qubits))
+            raise ValueError('Computed num qubits {} does not match actual {}'
+                             .format(self._num_qubits, num_qubits))
         self._num_orbitals = num_orbitals
         self._depth = depth
         self._num_particles = num_particles
@@ -138,7 +164,8 @@ class VarFormUCCSD(VariationalForm):
         self._num_time_slices = num_time_slices
 
         self._single_excitations, self._double_excitations = \
-            VarFormUCCSD.compute_excitation_lists(num_particles, num_orbitals, active_occupied, active_unoccupied)
+            VarFormUCCSD.compute_excitation_lists(num_particles, num_orbitals,
+                                                  active_occupied, active_unoccupied)
 
         self._num_parameters = (len(self._single_excitations) + len(self._double_excitations)) * self._depth
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
@@ -172,6 +199,12 @@ class VarFormUCCSD(VariationalForm):
         four_d_zeros = np.zeros((self._num_orbitals, self._num_orbitals,
                                  self._num_orbitals, self._num_orbitals))
         dummpy_fer_op = FermionicOperator(h1=two_d_zeros, h2=four_d_zeros)
+
+        def check_commutativity(op_1, op_2):
+            com = op_1 * op_2 - op_2 * op_1
+            com.zeros_coeff_elimination()
+            return True if com.is_empty() else False
+
         for d in range(self._depth):
             for s_e_qubits in self._single_excitations:
                 h1 = two_d_zeros.copy()
@@ -181,11 +214,27 @@ class VarFormUCCSD(VariationalForm):
                 dummpy_fer_op.h1 = h1
                 dummpy_fer_op.h2 = h2
 
-                qubitOp = dummpy_fer_op.mapping(self._qubit_mapping)
-                qubitOp = qubitOp.two_qubit_reduced_operator(
-                    self._num_particles) if self._two_qubit_reduction else qubitOp
-                circuit.extend(qubitOp.evolve(
-                    None, parameters[param_idx] * -1j, 'circuit', self._num_time_slices, q))
+                qubit_op = dummpy_fer_op.mapping(self._qubit_mapping)
+                qubit_op = qubit_op.two_qubit_reduced_operator(
+                    self._num_particles) if self._two_qubit_reduction else qubit_op
+
+                symm_commuting = False
+                if self._qubit_tapering:
+                    for symmetry in self._symmetries:
+                        symmetry_op = Operator(paulis=[[1.0, symmetry]])
+                        symm_commuting = check_commutativity(symmetry_op, qubit_op)
+                        if not symm_commuting:
+                            break
+
+                if self._qubit_tapering:
+                    if symm_commuting:
+                        qubit_op = Operator.qubit_tapering(qubit_op, self._cliffords,
+                                                           self._sq_list, self._tapering_values)
+                        circuit.extend(qubit_op.evolve(None, parameters[param_idx] * -1j,
+                                                       'circuit', self._num_time_slices, q))
+                else:
+                    circuit.extend(qubit_op.evolve(
+                        None, parameters[param_idx] * -1j, 'circuit', self._num_time_slices, q))
                 param_idx += 1
 
             for d_e_qubits in self._double_excitations:
@@ -196,11 +245,31 @@ class VarFormUCCSD(VariationalForm):
                 dummpy_fer_op.h1 = h1
                 dummpy_fer_op.h2 = h2
 
-                qubitOp = dummpy_fer_op.mapping(self._qubit_mapping)
-                qubitOp = qubitOp.two_qubit_reduced_operator(
-                    self._num_particles) if self._two_qubit_reduction else qubitOp
-                circuit.extend(qubitOp.evolve(
-                    None, parameters[param_idx] * -1j, 'circuit', self._num_time_slices, q))
+                qubit_op = dummpy_fer_op.mapping(self._qubit_mapping)
+                qubit_op = qubit_op.two_qubit_reduced_operator(
+                    self._num_particles) if self._two_qubit_reduction else qubit_op
+
+                symm_commuting = False
+                if self._qubit_tapering:
+                    for symmetry in self._symmetries:
+                        symmetry_op = Operator(paulis=[[1.0, symmetry]])
+                        symm_commuting = check_commutativity(symmetry_op, qubit_op)
+                        if not symm_commuting:
+                            break
+
+                if self._qubit_tapering:
+                    if symm_commuting:
+                        qubit_op = Operator.qubit_tapering(qubit_op, self._cliffords,
+                                                           self._sq_list, self._tapering_values)
+                        circuit.extend(qubit_op.evolve(None, parameters[param_idx] * -1j,
+                                                       'circuit', self._num_time_slices, q))
+                    else:
+                        continue
+                else:
+                    circuit.extend(qubit_op.evolve(
+                        None, parameters[param_idx] * -1j, 'circuit', self._num_time_slices, q))
+                # circuit.extend(qubit_op.evolve(
+                #     None, parameters[param_idx] * -1j, 'circuit', self._num_time_slices, q))
                 param_idx += 1
 
         return circuit
@@ -218,11 +287,11 @@ class VarFormUCCSD(VariationalForm):
                 return None
 
     @staticmethod
-    def compute_excitation_lists(num_particles, num_orbitals,
-                                 active_occ_list=None, active_unocc_list=None, same_spin_doubles=True):
+    def compute_excitation_lists(num_particles, num_orbitals, active_occ_list=None,
+                                 active_unocc_list=None, same_spin_doubles=True):
         """
         Computes single and double excitation lists
-        
+
         Args:
             num_particles: Total number of particles
             num_orbitals:  Total number of spin orbitals
@@ -246,13 +315,15 @@ class VarFormUCCSD(VariationalForm):
             active_occ_list = [i if i >= 0 else i + num_particles // 2 for i in active_occ_list]
             for i in active_occ_list:
                 if i >= num_particles // 2:
-                    raise ValueError('Invalid index {} in active active_occ_list {}'.format(i, active_occ_list))
+                    raise ValueError('Invalid index {} in active active_occ_list {}'
+                                     .format(i, active_occ_list))
         if active_unocc_list is not None:
             active_unocc_list = [i + num_particles // 2 if i >=
                                  0 else i + num_orbitals // 2 for i in active_unocc_list]
             for i in active_unocc_list:
                 if i < 0 or i >= num_orbitals // 2:
-                    raise ValueError('Invalid index {} in active active_unocc_list {}'.format(i, active_unocc_list))
+                    raise ValueError('Invalid index {} in active active_unocc_list {}'
+                                     .format(i, active_unocc_list))
 
         if active_occ_list is None or len(active_occ_list) <= 0:
             active_occ_list = [i for i in range(0, num_particles // 2)]
@@ -284,17 +355,19 @@ class VarFormUCCSD(VariationalForm):
         if same_spin_doubles and len(active_occ_list) > 1 and len(active_unocc_list) > 1:
             for i, occ_alpha in enumerate(active_occ_list[:-1]):
                 for j, unocc_alpha in enumerate(active_unocc_list[:-1]):
-                    for occ_alpha_1 in active_occ_list[i+1:]:
-                        for unocc_alpha_1 in active_unocc_list[j+1:]:
-                            double_excitations.append([occ_alpha, unocc_alpha, occ_alpha_1, unocc_alpha_1])
+                    for occ_alpha_1 in active_occ_list[i + 1:]:
+                        for unocc_alpha_1 in active_unocc_list[j + 1:]:
+                            double_excitations.append([occ_alpha, unocc_alpha,
+                                                       occ_alpha_1, unocc_alpha_1])
 
             up_active_occ_list = [i + beta_idx for i in active_occ_list]
             up_active_unocc_list = [i + beta_idx for i in active_unocc_list]
             for i, occ_beta in enumerate(up_active_occ_list[:-1]):
                 for j, unocc_beta in enumerate(up_active_unocc_list[:-1]):
-                    for occ_beta_1 in up_active_occ_list[i+1:]:
-                        for unocc_beta_1 in up_active_unocc_list[j+1:]:
-                            double_excitations.append([occ_beta, unocc_beta, occ_beta_1, unocc_beta_1])
+                    for occ_beta_1 in up_active_occ_list[i + 1:]:
+                        for unocc_beta_1 in up_active_unocc_list[j + 1:]:
+                            double_excitations.append([occ_beta, unocc_beta,
+                                                       occ_beta_1, unocc_beta_1])
 
         logger.debug('single_excitations {}'.format(single_excitations))
         logger.debug('double_excitations {}'.format(double_excitations))

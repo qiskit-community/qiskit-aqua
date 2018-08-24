@@ -15,9 +15,12 @@
 # limitations under the License.
 # =============================================================================
 
+import numpy as np
+
 from qiskit_aqua import run_algorithm
 from qiskit_aqua.input import get_input_instance
 from test.common import QiskitAquaTestCase
+
 
 class TestSVMClassical(QiskitAquaTestCase):
     def setUp(self):
