@@ -54,6 +54,10 @@ class CG(Optimizer):
                 'tol': {
                     'type': ['number', 'null'],
                     'default': None
+                },
+                'eps': {
+                    'type': 'number',
+                    'default': 1.4901161193847656e-08
                 }
             },
             'additionalProperties': False
@@ -63,7 +67,7 @@ class CG(Optimizer):
             'bounds': Optimizer.SupportLevel.ignored,
             'initial_point': Optimizer.SupportLevel.required
         },
-        'options': ['maxiter', 'disp', 'gtol'],
+        'options': ['maxiter', 'disp', 'gtol', 'eps'],
         'optimizer': ['local']
     }
 
