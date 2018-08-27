@@ -99,7 +99,7 @@ qpe.init_params(params, matrix)
 
 
 
-res, test_results = qpe.run()
+res = qpe.run()
 
 print(res["measurements"][:10])
 print(2*np.pi/res["evo_time"])
