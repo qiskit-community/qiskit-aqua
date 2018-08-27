@@ -115,6 +115,7 @@ class VarFormUCCSD(VariationalForm):
         self._sq_list = None
         self._tapering_values = None
         self._symmetries = None
+        self._hopping_ops = {}
 
     def init_args(self, num_qubits, depth, num_orbitals, num_particles,
                   active_occupied=None, active_unoccupied=None, initial_state=None,
@@ -167,8 +168,71 @@ class VarFormUCCSD(VariationalForm):
             VarFormUCCSD.compute_excitation_lists(num_particles, num_orbitals,
                                                   active_occupied, active_unoccupied)
 
-        self._num_parameters = (len(self._single_excitations) + len(self._double_excitations)) * self._depth
+        self._hopping_ops, self._num_parameters = self._build_hopping_operators()
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
+
+    def _build_hopping_operators(self):
+
+        hopping_ops = {}
+        for s_e_qubits in self._single_excitations:
+            qubit_op = self._build_hopping_operator(s_e_qubits)
+            hopping_ops['_'.join([str(x) for x in s_e_qubits])] = qubit_op
+
+        for d_e_qubits in self._double_excitations:
+            qubit_op = self._build_hopping_operator(d_e_qubits)
+            hopping_ops['_'.join([str(x) for x in d_e_qubits])] = qubit_op
+
+        # count the number of parameters
+        num_parmaeters = len([1 for k, v in hopping_ops.items() if v is not None]) * self._depth
+        return hopping_ops, num_parmaeters
+
+    def _build_hopping_operator(self, index):
+
+        def check_commutativity(op_1, op_2):
+            com = op_1 * op_2 - op_2 * op_1
+            com.zeros_coeff_elimination()
+            return True if com.is_empty() else False
+
+        two_d_zeros = np.zeros((self._num_orbitals, self._num_orbitals))
+        four_d_zeros = np.zeros((self._num_orbitals, self._num_orbitals,
+                                 self._num_orbitals, self._num_orbitals))
+
+        dummpy_fer_op = FermionicOperator(h1=two_d_zeros, h2=four_d_zeros)
+        h1 = two_d_zeros.copy()
+        h2 = four_d_zeros.copy()
+        if len(index) == 2:
+            i, j = index
+            h1[i, j] = 1.0
+            h1[j, i] = -1.0
+        elif len(index) == 4:
+            i, j, k, m = index
+            h2[i, j, k, m] = 1.0
+            h2[m, k, j, i] = -1.0
+        dummpy_fer_op.h1 = h1
+        dummpy_fer_op.h2 = h2
+
+        qubit_op = dummpy_fer_op.mapping(self._qubit_mapping)
+        qubit_op = qubit_op.two_qubit_reduced_operator(
+            self._num_particles) if self._two_qubit_reduction else qubit_op
+
+        if self._qubit_tapering:
+            for symmetry in self._symmetries:
+                symmetry_op = Operator(paulis=[[1.0, symmetry]])
+                symm_commuting = check_commutativity(symmetry_op, qubit_op)
+                if not symm_commuting:
+                    break
+
+        if self._qubit_tapering:
+            if symm_commuting:
+                qubit_op = Operator.qubit_tapering(qubit_op, self._cliffords,
+                                                   self._sq_list, self._tapering_values)
+            else:
+                qubit_op = None
+
+        if qubit_op is None:
+            logger.debug('excitation ({}) is skipped since it is not commuted '
+                         'with cliffords'.format(','.join([str(x) for x in index])))
+        return qubit_op
 
     def construct_circuit(self, parameters, q=None):
         """
@@ -195,82 +259,21 @@ class VarFormUCCSD(VariationalForm):
             circuit = QuantumCircuit(q)
 
         param_idx = 0
-        two_d_zeros = np.zeros((self._num_orbitals, self._num_orbitals))
-        four_d_zeros = np.zeros((self._num_orbitals, self._num_orbitals,
-                                 self._num_orbitals, self._num_orbitals))
-        dummpy_fer_op = FermionicOperator(h1=two_d_zeros, h2=four_d_zeros)
-
-        def check_commutativity(op_1, op_2):
-            com = op_1 * op_2 - op_2 * op_1
-            com.zeros_coeff_elimination()
-            return True if com.is_empty() else False
 
         for d in range(self._depth):
             for s_e_qubits in self._single_excitations:
-                h1 = two_d_zeros.copy()
-                h2 = four_d_zeros.copy()
-                h1[s_e_qubits[0], s_e_qubits[1]] = 1.0
-                h1[s_e_qubits[1], s_e_qubits[0]] = -1.0
-                dummpy_fer_op.h1 = h1
-                dummpy_fer_op.h2 = h2
-
-                qubit_op = dummpy_fer_op.mapping(self._qubit_mapping)
-                qubit_op = qubit_op.two_qubit_reduced_operator(
-                    self._num_particles) if self._two_qubit_reduction else qubit_op
-
-                symm_commuting = False
-                if self._qubit_tapering:
-                    for symmetry in self._symmetries:
-                        symmetry_op = Operator(paulis=[[1.0, symmetry]])
-                        symm_commuting = check_commutativity(symmetry_op, qubit_op)
-                        if not symm_commuting:
-                            break
-
-                if self._qubit_tapering:
-                    if symm_commuting:
-                        qubit_op = Operator.qubit_tapering(qubit_op, self._cliffords,
-                                                           self._sq_list, self._tapering_values)
-                        circuit.extend(qubit_op.evolve(None, parameters[param_idx] * -1j,
-                                                       'circuit', self._num_time_slices, q))
-                else:
-                    circuit.extend(qubit_op.evolve(
-                        None, parameters[param_idx] * -1j, 'circuit', self._num_time_slices, q))
-                param_idx += 1
+                qubit_op = self._hopping_ops['_'.join([str(x) for x in s_e_qubits])]
+                if qubit_op is not None:
+                    circuit.extend(qubit_op.evolve(None, parameters[param_idx] * -1j,
+                                                   'circuit', self._num_time_slices, q))
+                    param_idx += 1
 
             for d_e_qubits in self._double_excitations:
-                h1 = two_d_zeros.copy()
-                h2 = four_d_zeros.copy()
-                h2[d_e_qubits[0], d_e_qubits[1], d_e_qubits[2], d_e_qubits[3]] = 1.0
-                h2[d_e_qubits[3], d_e_qubits[2], d_e_qubits[1], d_e_qubits[0]] = -1.0
-                dummpy_fer_op.h1 = h1
-                dummpy_fer_op.h2 = h2
-
-                qubit_op = dummpy_fer_op.mapping(self._qubit_mapping)
-                qubit_op = qubit_op.two_qubit_reduced_operator(
-                    self._num_particles) if self._two_qubit_reduction else qubit_op
-
-                symm_commuting = False
-                if self._qubit_tapering:
-                    for symmetry in self._symmetries:
-                        symmetry_op = Operator(paulis=[[1.0, symmetry]])
-                        symm_commuting = check_commutativity(symmetry_op, qubit_op)
-                        if not symm_commuting:
-                            break
-
-                if self._qubit_tapering:
-                    if symm_commuting:
-                        qubit_op = Operator.qubit_tapering(qubit_op, self._cliffords,
-                                                           self._sq_list, self._tapering_values)
-                        circuit.extend(qubit_op.evolve(None, parameters[param_idx] * -1j,
-                                                       'circuit', self._num_time_slices, q))
-                    else:
-                        continue
-                else:
-                    circuit.extend(qubit_op.evolve(
-                        None, parameters[param_idx] * -1j, 'circuit', self._num_time_slices, q))
-                # circuit.extend(qubit_op.evolve(
-                #     None, parameters[param_idx] * -1j, 'circuit', self._num_time_slices, q))
-                param_idx += 1
+                qubit_op = self._hopping_ops['_'.join([str(x) for x in d_e_qubits])]
+                if qubit_op is not None:
+                    circuit.extend(qubit_op.evolve(None, parameters[param_idx] * -1j,
+                                                   'circuit', self._num_time_slices, q))
+                    param_idx += 1
 
         return circuit
 
