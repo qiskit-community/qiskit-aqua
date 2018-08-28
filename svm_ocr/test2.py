@@ -36,7 +36,7 @@ n = 2
 params = {
         "algorithm": {
             "num_ancillae": n,
-            "num_time_slices": 5,
+            "num_time_slices": 1,
             "evo_time": 2*np.pi
             },
         "initial_state": {
@@ -57,8 +57,8 @@ def create_circuit(b="Z"):
     qpe.init_params(params, matrix) 
     qc = qpe._setup_qpe()
     print(2*np.pi/qpe._evo_time)
-    a = qc.regs["a"]
-    q = qc.regs["q"]
+    a = qc.regs["eigs"]
+    q = qc.regs["comp"]
     x = QuantumRegister(1)
     qc.add(x)
 
@@ -92,25 +92,31 @@ def create_circuit(b="Z"):
     
     bas = [0.072/0.997, 0.941/0.338]
     
-    t0 = 2*np.arctan(bas[1])
+    t0 = 2*np.arctan(bas[0])
     print(t0)
+
+    qc.h(a[1])
     
     qc.x(q[0])
-    ccry(t1, x[0], q[0], a[0], qc)
+    ccry(t1, a[1], q[0], a[0], qc)
     qc.x(q[0])
-    ccry(t2, x[0], q[0], a[0], qc)
+    ccry(t2, a[1], q[0], a[0], qc)
     
-    cry(-t0, x[0], a[0], qc)
-    qc.ch(x[0], q[0])
-    #
+    qc.x(a[1])
+    cry(t0, a[1], a[0], qc)
+    qc.x(a[1])
+    qc.h(a[1])
+
+    #plot_circuit(qc)
+    
 
     xcr = ClassicalRegister(1)
     qcr = ClassicalRegister(1)
     acr = ClassicalRegister(1)
     qc.add(xcr, qcr, acr)
     qc.measure(x[0], xcr[0])
-    qc.measure(q[0], qcr[0])
-    qc.measure(a[0], acr[0])
+    #qc.measure(q[0], qcr[0])
+    qc.measure(a[1], acr[0])
     res = execute(qc, "local_qasm_simulator", shots=1024).result()
     print(res)
     print(res._result)

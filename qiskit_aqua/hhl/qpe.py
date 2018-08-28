@@ -250,8 +250,8 @@ class QPE():
     def _construct_phase_estimation_circuit(self, measure=False):
         """Implement the Quantum Phase Estimation algorithm"""
 
-        a = QuantumRegister(self._num_ancillae, name='a')
-        q = QuantumRegister(self._operator.num_qubits, name='q')
+        a = QuantumRegister(self._num_ancillae, name='eigs')
+        q = QuantumRegister(self._operator.num_qubits, name='comp')
         qc = QuantumCircuit(a, q)
         if measure:
             c = ClassicalRegister(self._num_ancillae, name='c')
