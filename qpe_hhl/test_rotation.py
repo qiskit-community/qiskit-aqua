@@ -11,20 +11,43 @@ import matplotlib.pyplot as plt
 import itertools
 
 from rotation import C_ROT
+#worked fir qbits = 5,
+"""params = {
+        'algorithm': {
+                'name': 'C_ROT',
+                'tot_num_qbits_ev': qbits +3,
+                'num_qbits_precision_ev': 3,
+                'num_qbits_decimals_ev': 3,
+                'negative_evals': nege,
+                'previous_circuit': None,
+                'backend' : "local_qasm_simulator",
 
+        },
+        #for running the rotation seperately, supply input
+        "initial_state": {
+            "name": "CUSTOM",
+            "state_vector": state_vector if not draw else []
+        }
+    }"""
 results_x = []
 results_y = []
 qbits =5
-nege = 1#False#True
-draw = 0#False#True
-for i in range(2**qbits):
+nege = 0#False#True
+draw =0#False#True
+for __,i in enumerate(range(2**qbits)):
     state_vector = np.zeros(2**qbits)
     state_vector[i] = 1
 
+    #if __ != 10:# != 20:# and __ != 1:
+
+    #    continue
+    #print(state_vector)
     params = {
         'algorithm': {
                 'name': 'C_ROT',
-                'num_qbits_precision_ev': qbits,
+                'tot_num_qbits_ev': qbits +3,
+                'num_qbits_precision_ev':2,
+                'num_qbits_decimals_ev': 3,
                 'negative_evals': nege,
                 'previous_circuit': None,
                 'backend' : "local_qasm_simulator",
@@ -48,7 +71,7 @@ for i in range(2**qbits):
     results_x.append(float(results[0][2].split()[-1]))
     results_y.append(float(results[0][2].split()[0]))
     if float(results[0][2].split()[-1])!= 0:
-        print(results, "Better: {}".format(int(np.round(1/float(results[0][2].split()[-1])))))
+        print(__,":    ",results, "Better:",(1/float(results[0][2].split()[-1])))#"Better: {}".format(int(np.round(1/float(results[0][2].split()[-1])))))
 
 
 
@@ -86,5 +109,5 @@ if not draw:
     #plt.scatter(x,y)
     dx = np.linspace(np.min(results_x),np.max(results_x),1000)
     plt.plot(dx,1/dx)
-    plt.ylim([-32,32])
+    plt.ylim([-32,50])
     plt.show()#"""

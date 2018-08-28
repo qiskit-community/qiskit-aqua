@@ -12,7 +12,7 @@ import logging
 
 from functools import reduce
 
-
+from correcting import design_correction_circuit
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +28,9 @@ def create_cn_x_gate(n,c,t):
 class C_ROT():
     """Perform controlled rotation to invert matrix in HHL"""
     PROP_PREV_CIRCUIT = 'previous_circuit'
-    PROP_INV_EIG_PRECISION = 'num_qbits_precision_ev'
+    PROP_INV_EIG_TOTAL_QBITS = 'tot_num_qbits_ev' #@TODO: rename
+    PROP_INV_EIG_PRECISION = 'num_qbits_precision_ev'  # @TODO: rename
+    PROP_INV_EIG_DECIMALS = 'num_qbits_decimals_ev'
     PROP_USE_BASIS_GATES = 'use_basis_gates'
     PROP_NEGATIVE_EVALS = 'negative_evals'
     PROP_BACKEND = 'backend'
@@ -47,9 +49,19 @@ class C_ROT():
                     'default': None
                 },
 
+                PROP_INV_EIG_DECIMALS: {
+                    'type': 'int',
+                    'default': 3
+                },
+
                 PROP_INV_EIG_PRECISION: {
                     'type' : 'int',
-                    'default': 5
+                    'default': 3
+                },
+
+                PROP_INV_EIG_TOTAL_QBITS: {
+                    'type': 'int',
+                    'default': 8
                 },
 
                 PROP_NEGATIVE_EVALS: {
@@ -99,18 +111,21 @@ class C_ROT():
                 rot_params[k] = p.get("default")
 
         qc = rot_params.get(C_ROT.PROP_PREV_CIRCUIT)
-        num_quibits_inv_ev = rot_params.get(C_ROT.PROP_INV_EIG_PRECISION)
+        num_qbits_inv_ev = rot_params.get(C_ROT.PROP_INV_EIG_TOTAL_QBITS)
+        num_prec_qbits_inv_ev = rot_params.get(C_ROT.PROP_INV_EIG_PRECISION)
+        num_decimals_inv_ev = rot_params.get(C_ROT.PROP_INV_EIG_DECIMALS)
+        print("Number of quibits:",num_qbits_inv_ev,"Number of decimals",num_decimals_inv_ev)
         negative_evals = rot_params.get(C_ROT.PROP_NEGATIVE_EVALS)
 
         use_basis_gates = rot_params.get(C_ROT.PROP_USE_BASIS_GATES)
         backend = rot_params.get(C_ROT.PROP_BACKEND)
 
 
-        self.init_args(qc,init_state,num_quibits_inv_ev
-                       ,use_basis_gates,
+        self.init_args(qc,init_state,num_qbits_inv_ev,num_prec_qbits_inv_ev,
+                        num_decimals_inv_ev,use_basis_gates,
                        negative_evals=negative_evals, backend=backend)
 
-    def init_args(self,quantum_circuit, state_in = None,num_quibits_inv_ev=5,use_basis_gates=True,
+    def init_args(self,quantum_circuit, state_in = None,num_qbits_inv_ev=5,num_prec_qbits_inv_ev=3,num_decimals_inv_ev=3,use_basis_gates=True,
                   negative_evals=False,  backend='local_qasm_simulator'):
         if isinstance(quantum_circuit,QuantumCircuit):
             logger.info('C_Rot circuit is added to existing circuit')
@@ -123,7 +138,9 @@ class C_ROT():
             self._circuit = None
             self._standalone = True
         self._state_in = state_in
-        self._num_quibits_inv_ev = num_quibits_inv_ev
+        self._num_qbits_inv_ev = num_qbits_inv_ev
+        self._num_prec_qbits_inv_ev = num_prec_qbits_inv_ev
+        self._num_decimals_inv_ev = num_decimals_inv_ev
         self._use_basis_gates = use_basis_gates
         self._negative_evals = negative_evals
 
@@ -152,7 +169,7 @@ class C_ROT():
                                    '\'eigenvalue_reg\''
                                    )
         elif self._circuit is None:
-            n = self._num_quibits_inv_ev
+            n = self._num_qbits_inv_ev - self._num_decimals_inv_ev
             print("Number of quibits:",n)
             inputregister = QuantumRegister(n, name="eigenvalue_reg")
 
@@ -160,14 +177,14 @@ class C_ROT():
             raise RuntimeError('Quantum circuit passed to C_Rot instance not understood')
         flagbit = QuantumRegister(1, name="flagbit_reg")
         # plus 1 for 2**0
-        outputregister = QuantumRegister(n+1, name="inv_eigenvalue_reg")
+        outputregister = QuantumRegister(self._num_qbits_inv_ev+1, name="inv_eigenvalue_reg")
 
         anc = QuantumRegister(n-1, name="anc_reg_crot")
 
         if measure:
             classreg1 = ClassicalRegister(n)
             classreg2 = ClassicalRegister(1)
-            classreg3 = ClassicalRegister(n+1)
+            classreg3 = ClassicalRegister(self._num_qbits_inv_ev+1)
 
         # add registers to existing circuit
         if isinstance(self._circuit, QuantumCircuit):
@@ -192,37 +209,8 @@ class C_ROT():
         # is taken so that 2**p-1 <= Eigenvalue <= 2**p and the inverse is taken as 2**-p
 
         if not self._negative_evals:
-            for _ in range(0,n-1):
-                qc.x(inputregister[_+1])
-                qc.ccx(inputregister[_], inputregister[_+1], anc[0])
-                qc.x(inputregister[_+1])
-                for i in range(2+_, n):
-                    qc.x(inputregister[i])
-                    qc.ccx(inputregister[i], anc[i - 2-_], anc[i - 1 - _])
-                    qc.x(inputregister[i])
-                # copy
-                qc.x(flagbit)
-                qc.ccx(flagbit[0],anc[n - 2-_], outputregister[n - 1 - _])
-                qc.x(flagbit)
-                # uncompute
-                for i in range(n - 1 , 1+_, -1):
-                    qc.x(inputregister[i])
-                    qc.ccx(inputregister[i], anc[i - 2 - _], anc[i - 1 - _])
-                    qc.x(inputregister[i])
-                qc.x(inputregister[_+1])
-                qc.ccx(inputregister[_], inputregister[_+1], anc[0])
-                qc.x(inputregister[_+1])
-                qc.cx(outputregister[n - 1 - _], flagbit)
-                qc.x(flagbit)
-                qc.ccx(inputregister[_], flagbit[0], outputregister[n - _])
-                qc.x(flagbit)
-
-                qc.cx(outputregister[n - _], flagbit)
-
-            qc.x(flagbit[0])
-            qc.ccx(inputregister[n-1], flagbit[0], outputregister[0])
-            qc.x(flagbit[0])
-            #@TODO need to uncompute flagbit?
+            print("Initializing",n)
+            design_correction_circuit(n,self._num_decimals_inv_ev,self._num_prec_qbits_inv_ev,qc)
         else:
             # for negative EV, the sign qbit is copied to the new register and the circuit for finding
             # 2**p is run on the other qbits
@@ -305,10 +293,10 @@ class C_ROT():
                     "1"]))
             else:
                 if self._negative_evals:
-                    c1_ = sum([2 ** (i) for i, e in enumerate((c1[:-1])) if e ==
+                    c1_ = sum([2 ** (i-self._num_decimals_inv_ev) for i, e in enumerate((c1[:-1])) if e ==
                                "1"])
                 else:
-                    c1_ = sum([2 **(i) for i, e in enumerate((c1)) if e ==
+                    c1_ = sum([2 **(i-self._num_decimals_inv_ev) for i, e in enumerate((c1)) if e ==
                                "1"])
             if self._negative_evals and c3[-1] == "1":
                 c3_ = -(sum([2**-(i+1) for i, e in enumerate(reversed(c3[:-1])) if e ==
