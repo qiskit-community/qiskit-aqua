@@ -1,4 +1,4 @@
-cd#!/usr/bin/env python -W ignore::DeprecationWarning
+#!/usr/bin/env python -W ignore::DeprecationWarning
 # -*- coding: utf-8 -*-
 
 # Copyright 2018 IBM.
