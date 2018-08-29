@@ -28,14 +28,15 @@ class CNXGate(CompositeGate):
 
     def __init__(self, control_qubits, target_qubit, ancillary_qubits, circ=None, mode='basic'):
         """Create new CNX gate."""
+        self._mode = mode
         qubits = control_qubits + ancillary_qubits + [target_qubit]
         super(CNXGate, self).__init__("cnx", (len(control_qubits), len(ancillary_qubits)), qubits, circ)
-        if mode == 'basic':
+        if self._mode == 'basic':
             self.ccx_v_chain(control_qubits, target_qubit, ancillary_qubits)
-        elif mode == 'advanced':
+        elif self._mode == 'advanced':
             self.multicx([*control_qubits, target_qubit], ancillary_qubits[0] if ancillary_qubits else None)
         else:
-            raise ValueError('Unrecognized mode for building cnx gate: {}.'.format(mode))
+            raise ValueError('Unrecognized mode for building cnx gate: {}.'.format(self._mode))
 
     def ccx_v_chain(self, control_qubits, target_qubit, ancillary_qubits):
         """Create new CNX gate by chaining ccx gates into a V shape."""
@@ -192,10 +193,10 @@ class CNXGate(CompositeGate):
         ctl_bits = [x for x in self.arg[:self.param[0]]]
         anc_bits = [x for x in self.arg[self.param[0]:self.param[0]+self.param[1]]]
         tgt_bits = self.arg[-1]
-        self._modifiers(circ.cnx(ctl_bits, tgt_bits, anc_bits))
+        self._modifiers(circ.cnx(ctl_bits, tgt_bits, anc_bits, mode=self._mode))
 
 
-def cnx(self, q_controls, q_target, q_ancilla, mode='advanced'):
+def cnx(self, q_controls, q_target, q_ancilla, mode='basic'):
     """Apply CNX to circuit."""
     if len(q_controls) == 1:  # cx
         self.cx(q_controls[0], q_target)

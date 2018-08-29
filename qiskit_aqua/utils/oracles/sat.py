@@ -36,6 +36,9 @@ class SAT(Oracle):
                 'cnf': {
                     'type': 'string',
                 },
+                'cnx_mode': {
+                    'type': 'string'
+                }
             },
             'additionalProperties': False
         }
@@ -44,12 +47,13 @@ class SAT(Oracle):
     def __init__(self, configuration=None):
         super().__init__(configuration or self.SAT_CONFIGURATION.copy())
         self._cnf = None
+        self._cnx_mode = 'basic'
         self._qr_ancilla = None
         self._qr_clause = None
         self._qr_outcome = None
         self._qr_variable = None
 
-    def init_args(self, cnf):
+    def init_args(self, cnf, cnx_mode='basic'):
         ls = [
             l.strip() for l in cnf.split('\n')
             if len(l) > 0 and not l.strip()[0] == 'c'
@@ -87,9 +91,15 @@ class SAT(Oracle):
         self._qr_outcome = QuantumRegister(1, name='o')
         self._qr_variable = QuantumRegister(nv, name='v')
         self._qr_clause = QuantumRegister(nc, name='c')
-        num_ancillae = max(max(nc, nv) - 2, 0)
-        if num_ancillae > 0:
-            self._qr_ancilla = QuantumRegister(num_ancillae, name='a')
+
+        self._cnx_mode = cnx_mode
+        max_num_ancillae = max(max(nc, nv) - 2, 0)
+        if self._cnx_mode == 'basic':
+            if max_num_ancillae > 0:
+                self._qr_ancilla = QuantumRegister(max_num_ancillae, name='a')
+        elif self._cnx_mode == 'advanced':
+            if max_num_ancillae >= 3:
+                self._qr_ancilla = QuantumRegister(1, name='a')
 
     def variable_register(self):
         return self._qr_variable
@@ -107,7 +117,7 @@ class SAT(Oracle):
         tgt_bits = self._qr_clause[conj_index]
         for idx in [v for v in conj_expr if v > 0]:
             circuit.x(self._qr_variable[idx - 1])
-        circuit.cnx(ctl_bits, tgt_bits, anc_bits)
+        circuit.cnx(ctl_bits, tgt_bits, anc_bits, mode=self._cnx_mode)
         for idx in [v for v in conj_expr if v > 0]:
             circuit.x(self._qr_variable[idx - 1])
 
@@ -127,7 +137,8 @@ class SAT(Oracle):
         qc.cnx(
             [self._qr_clause[i] for i in range(len(self._qr_clause))],
             self._qr_outcome[0],
-            [self._qr_ancilla[i] for i in range(len(self._qr_ancilla))] if self._qr_ancilla else []
+            [self._qr_ancilla[i] for i in range(len(self._qr_ancilla))] if self._qr_ancilla else [],
+            mode=self._cnx_mode
         )
         # reverse, de-entanglement
         for conj_index, conj_expr in reversed(list(enumerate(self._cnf))):

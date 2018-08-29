@@ -31,6 +31,7 @@ class Grover(QuantumAlgorithm):
 
     PROP_INCREMENTAL = 'incremental'
     PROP_NUM_ITERATIONS = 'num_iterations'
+    PROP_CNX_MODE = 'cnx_mode'
 
     GROVER_CONFIGURATION = {
         'name': 'Grover',
@@ -48,7 +49,18 @@ class Grover(QuantumAlgorithm):
                     'type': 'integer',
                     'default': 1,
                     'minimum': 1
-                }
+                },
+                PROP_CNX_MODE: {
+                    'type': 'string',
+                    'default': 'basic',
+                    'oneOf': [
+                        {'enum': [
+                            'basic',
+                            'advanced'
+                        ]}
+                    ]
+                },
+
             },
             'additionalProperties': False
         },
@@ -65,6 +77,7 @@ class Grover(QuantumAlgorithm):
         super().__init__(configuration or self.GROVER_CONFIGURATION.copy())
         self._incremental = False
         self._num_iterations = 1
+        self._cnx_mode = 'basic'
         self._oracle = None
         self._ret = {}
 
@@ -81,19 +94,21 @@ class Grover(QuantumAlgorithm):
         grover_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
         incremental = grover_params.get(Grover.PROP_INCREMENTAL)
         num_iterations = grover_params.get(Grover.PROP_NUM_ITERATIONS)
+        cnx_mode = grover_params.get(Grover.PROP_CNX_MODE)
 
         oracle_params = params.get(QuantumAlgorithm.SECTION_KEY_ORACLE)
         oracle = get_oracle_instance(oracle_params['name'])
         oracle.init_params(oracle_params)
-        self.init_args(oracle, incremental=incremental, num_iterations=num_iterations)
+        self.init_args(oracle, incremental=incremental, num_iterations=num_iterations, cnx_mode=cnx_mode)
 
-    def init_args(self, oracle, incremental=False, num_iterations=1):
+    def init_args(self, oracle, incremental=False, num_iterations=1, cnx_mode='basic'):
         if 'statevector' in self._backend:
             raise ValueError('Selected backend  "{}" does not support measurements.'.format(self._backend))
         self._oracle = oracle
         self._max_num_iterations = 2 ** (len(self._oracle.variable_register()) / 2)
         self._incremental = incremental
         self._num_iterations = num_iterations
+        self._cnx_mode = cnx_mode
         if incremental:
             logger.debug('Incremental mode specified, ignoring "num_iterations".')
         else:
@@ -132,12 +147,14 @@ class Grover(QuantumAlgorithm):
                 [self._oracle.variable_register()[i] for i in range(len(self._oracle.variable_register()))],
                 self._oracle.outcome_register()[0],
                 [self._oracle.ancillary_register()[i] for i in range(len(self._oracle.ancillary_register()))],
+                mode=self._cnx_mode
             )
         else:
             qc_amplitude_amplification.cnx(
                 [self._oracle.variable_register()[i] for i in range(len(self._oracle.variable_register()))],
                 self._oracle.outcome_register()[0],
-                []
+                [],
+                mode=self._cnx_mode
             )
         qc_amplitude_amplification.h(self._oracle.outcome_register())
         qc_amplitude_amplification.x(self._oracle.variable_register())
