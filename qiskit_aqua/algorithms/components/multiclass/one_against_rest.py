@@ -20,16 +20,42 @@ import numpy as np
 from sklearn.utils.validation import _num_samples
 from sklearn.preprocessing import LabelBinarizer
 
+from qiskit_aqua.algorithms.components.multiclass.multiclass_extension import MulticlassExtension
+
 logger = logging.getLogger(__name__)
 
-class OneAgainstRest:
+class OneAgainstRest(MulticlassExtension):
     """
       the multiclass extension based on the one-against-rest algorithm.
     """
+    OneAgainstRest_CONFIGURATION = {
+        'name': 'OneAgainstRest',
+        'description': 'OneAgainstRest extension',
+        'input_schema': {
+            '$schema': 'http://json-schema.org/schema#',
+            'id': 'one_against_rest_schema',
+            'type': 'object',
+            'properties': {
+                'estimator_class_name': {
+                    'type': 'string',
+                    'default': 'RBF_SVC_Estimator',
+                    'oneOf': [
+                        {'enum': ['RBF_SVC_Estimator', 'QKernalSVM_Estimator']}
+                    ]
+                },
+                'params': {
+                    'type': ['array', 'null'],
+                    'default': None
+                }
+            },
+            'additionalProperties': False
+        }
+    }
 
-    def __init__(self, estimator_cls, params=None):
-        self.estimator_cls = estimator_cls
-        self.params = params
+    def __init__(self, configuration=None):
+        super().__init__(configuration or self.OneAgainstRest_CONFIGURATION.copy())
+        self.estimator_cls = None
+        self.params = None
 
     def train(self, X, y):
         """

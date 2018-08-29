@@ -20,15 +20,43 @@ import logging
 import numpy as np
 from sklearn.utils.multiclass import _ovr_decision_function
 
+from qiskit_aqua.algorithms.components.multiclass.multiclass_extension import MulticlassExtension
+
 logger = logging.getLogger(__name__)
 
-class AllPairs:
+class AllPairs(MulticlassExtension):
     """
       the multiclass extension based on the all-pairs algorithm.
     """
-    def __init__(self, estimator_cls, params=None):
-        self.estimator_cls = estimator_cls
-        self.params = params
+    AllPairs_CONFIGURATION = {
+        'name': 'AllPairs',
+        'description': 'AllPairs extension',
+        'input_schema': {
+            '$schema': 'http://json-schema.org/schema#',
+            'id': 'allpairs_schema',
+            'type': 'object',
+            'properties': {
+                'estimator_class_name': {
+                    'type': 'string',
+                    'default': 'RBF_SVC_Estimator',
+                    'oneOf': [
+                        {'enum': ['RBF_SVC_Estimator', 'QKernalSVM_Estimator']}
+                    ]
+                },
+                'params': {
+                    'type': ['array', 'null'],
+                    'default': None
+                }
+            },
+            'additionalProperties': False
+        }
+    }
+
+    def __init__(self, configuration=None):
+        super().__init__(configuration or self.AllPairs_CONFIGURATION.copy())
+        self.estimator_cls = None
+        self.params = None
+
 
     def train(self, X, y):
         """
@@ -102,7 +130,6 @@ class AllPairs:
         Y = _ovr_decision_function(predictions,
                                    confidences, len(self.classes_))
         return self.classes_[Y.argmax(axis=1)]
-
 
 
 

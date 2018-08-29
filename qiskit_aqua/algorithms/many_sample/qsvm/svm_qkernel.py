@@ -15,10 +15,9 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit_aqua import QuantumAlgorithm
 from qiskit_aqua.algorithms.many_sample.qsvm.svm_qkernel_binary import SVM_QKernel_Binary
 from qiskit_aqua.algorithms.many_sample.qsvm.svm_qkernel_multiclass import SVM_QKernel_Multiclass
-
+from qiskit_aqua import (QuantumAlgorithm, get_multiclass_extension_instance)
 
 class SVM_QKernel(QuantumAlgorithm):
     """
@@ -34,14 +33,18 @@ class SVM_QKernel(QuantumAlgorithm):
             'id': 'SVM_QKernel_schema',
             'type': 'object',
             'properties': {
-                'multiclass_alg': {
-                    'type': 'string',
-                    'default': 'all_pairs'
-                }
             },
             'additionalProperties': False
         },
-        'problems': ['svm_classification']
+        'depends': ['multiclass_extension'],
+        'problems': ['svm_classification'],
+        'defaults': {
+            'multiclass_extension': {
+                'name': 'AllPairs',
+                'estimator_class_name': 'RBF_SVC_Estimator',
+                'code_size': 4
+            }
+        }
     }
 
     def __init__(self, configuration=None):
@@ -50,9 +53,15 @@ class SVM_QKernel(QuantumAlgorithm):
 
     def init_params(self, params, algo_input):
         SVMQK_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
+
+        multiclass_extension_params = params.get(QuantumAlgorithm.SECTION_KEY_MULTICLASS_EXTENSION)
+        multiclass_extension = get_multiclass_extension_instance(multiclass_extension_params['name'])
+        multiclass_extension_params['params'] = [self._backend, self._execute_config['shots'], self._random_seed]
+        multiclass_extension.init_params(multiclass_extension_params) # we need to set this explicitly for quantum version
+
         is_multiclass = (len(algo_input.training_dataset.keys()) > 2)
         if is_multiclass:
-            self.instance = SVM_QKernel_Multiclass()
+            self.instance = SVM_QKernel_Multiclass(multiclass_extension)
         else:
             self.instance = SVM_QKernel_Binary()
         self.instance.init_args(algo_input.training_dataset, algo_input.test_dataset, algo_input.datapoints, SVMQK_params.get('multiclass_alg'), self._backend, self._execute_config['shots'], self._random_seed)

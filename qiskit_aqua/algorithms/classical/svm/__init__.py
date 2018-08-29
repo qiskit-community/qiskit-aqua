@@ -16,5 +16,6 @@
 # =============================================================================
 
 from .svm_classical_abc import SVM_Classical_ABC
+from .rbf_svc_estimator import RBF_SVC_Estimator
 
-__all__ = ['SVM_Classical_ABC']
+__all__ = ['SVM_Classical_ABC', 'RBF_SVC_Estimator']
