@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+import unittest
 
 import numpy as np
 
@@ -205,9 +206,9 @@ class TestSVMClassical(QiskitAquaTestCase):
         params = {
             'problem': {'name': 'svm_classification'},
             'algorithm': {
-                'name': 'SVM',
-                'multiclass_alg': 'one_against_all'
-            }
+                'name': 'SVM'
+            },
+            'multiclass_extension': {'name': 'OneAgainstRest', 'estimator': 'RBF_SVC_Estimator'}
         }
 
         algo_input = get_input_instance('SVMInput')
@@ -318,9 +319,10 @@ class TestSVMClassical(QiskitAquaTestCase):
         params = {
             'problem': {'name': 'svm_classification'},
             'algorithm': {
-                'name': 'SVM',
-                'multiclass_alg': 'all_pairs'
-            }
+                'name': 'SVM'
+            },
+            'multiclass_extension': {'name': 'AllPairs', 'estimator': 'RBF_SVC_Estimator'}
+
         }
 
         algo_input = get_input_instance('SVMInput')
@@ -432,8 +434,8 @@ class TestSVMClassical(QiskitAquaTestCase):
             'problem': {'name': 'svm_classification'},
             'algorithm': {
                 'name': 'SVM',
-                'multiclass_alg': 'error_correcting_code'
-            }
+            },
+            'multiclass_extension': {'name': 'ErrorCorrectingCode', 'estimator': 'RBF_SVC_Estimator', 'code_size': 5},
         }
 
         algo_input = get_input_instance('SVMInput')

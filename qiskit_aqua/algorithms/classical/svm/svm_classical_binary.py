@@ -25,6 +25,7 @@ from qiskit_aqua.algorithms.classical.svm import SVM_Classical_ABC
 
 logger = logging.getLogger(__name__)
 
+
 class SVM_Classical_Binary(SVM_Classical_ABC):
     """
     the binary classifier

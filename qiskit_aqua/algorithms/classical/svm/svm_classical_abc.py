@@ -15,7 +15,6 @@
 # limitations under the License.
 # =============================================================================
 
-
 from abc import ABC, abstractmethod
 
 
@@ -24,12 +23,11 @@ class SVM_Classical_ABC(ABC):
     abstract base class for the binary classifier and the multiclass classifier
     """
 
-    def init_args(self, training_dataset, test_dataset, datapoints, multiclass_alg, gamma=None):
+    def init_args(self, training_dataset, test_dataset, datapoints, gamma=None):
         self.training_dataset = training_dataset
         self.test_dataset = test_dataset
         self.datapoints = datapoints
         self.class_labels = list(self.training_dataset.keys())
-        self.multiclass_alg = multiclass_alg
         self.gamma = gamma
 
     @abstractmethod
