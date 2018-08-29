@@ -55,12 +55,12 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         algo.init_args(self.algo_input.qubit_op, 'paulis', var_form, optimizer)
         result = algo.run()
 
-        print(result)
+        self.log.debug(result)
 
         self.ref_eigenval = -1.85727503
 
 
-        num_time_slices = 100
+        num_time_slices = 200
         num_iterations = 12
 
         iqpe = get_algorithm_instance('IQPE')
@@ -80,19 +80,19 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         )
 
         result = iqpe.run()
-        # self.log.debug('operator paulis:\n{}'.format(self.qubitOp.print_operators('paulis')))
+        # self.log.debug('operator paulis:\n{}'.format(self.qubitOp.self.log.debug()_operators('paulis')))
         # self.log.debug('qpe circuit:\n\n{}'.format(result['circuit']['complete'].qasm()))
 
-        print('top result str label:         {}'.format(result['top_measurement_label']))
-        print('top result in decimal:        {}'.format(result['top_measurement_decimal']))
-        print('stretch:                      {}'.format(result['stretch']))
-        print('translation:                  {}'.format(result['translation']))
-        print('final eigenvalue from QPE:    {}'.format(result['energy']))
-        print('reference eigenvalue:         {}'.format(self.ref_eigenval))
-        print('ref eigenvalue (transformed): {}'.format(
+        self.log.debug('top result str label:         {}'.format(result['top_measurement_label']))
+        self.log.debug('top result in decimal:        {}'.format(result['top_measurement_decimal']))
+        self.log.debug('stretch:                      {}'.format(result['stretch']))
+        self.log.debug('translation:                  {}'.format(result['translation']))
+        self.log.debug('final eigenvalue from QPE:    {}'.format(result['energy']))
+        self.log.debug('reference eigenvalue:         {}'.format(self.ref_eigenval))
+        self.log.debug('ref eigenvalue (transformed): {}'.format(
             (self.ref_eigenval + result['translation']) * result['stretch'])
         )
-        print('reference binary str label:   {}'.format(decimal_to_binary(
+        self.log.debug('reference binary str label:   {}'.format(decimal_to_binary(
             (self.ref_eigenval + result['translation']) * result['stretch'],
             max_num_digits=num_iterations + 3,
             fractional_part_only=True
