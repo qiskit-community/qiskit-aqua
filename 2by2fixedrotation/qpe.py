@@ -1,4 +1,4 @@
-#!/usr/bin/env python -W ignore::DeprecationWarning
+# !/usr/bin/env python -W ignore::DeprecationWarning
 # -*- coding: utf-8 -*-
 
 # Copyright 2018 IBM.
@@ -28,10 +28,12 @@ from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit, execute
 from qiskit.tools.qi.pauli import Pauli
 from qiskit_aqua import Operator, QuantumAlgorithm, AlgorithmError
 from qiskit_aqua import get_initial_state_instance, get_iqft_instance
+from copy import deepcopy
 
-from qiskit.tools.visualization._circuit_visualization import matplotlib_circuit_drawer
+# from qiskit.tools.visualization._circuit_visualization import matplotlib_circuit_drawer
 
 logger = logging.getLogger(__name__)
+
 
 class QPE():
     """The Quantum Phase Estimation subroutine modified for HHL needs"""
@@ -43,7 +45,7 @@ class QPE():
     PROP_NUM_ANCILLAE = 'num_ancillae'
     PROP_EVO_TIME = 'evo_time'
     PROP_USE_BASIS_GATES = 'use_basis_gates'
-    PROP_HERMITIAN_MATRIX ='hermitian_matrix'
+    PROP_HERMITIAN_MATRIX = 'hermitian_matrix'
     PROP_NEGATIVE_EVALS = 'negative_evals'
     PROP_BACKEND = 'backend'
 
@@ -72,7 +74,7 @@ class QPE():
                 },
                 PROP_EXPANSION_MODE: {
                     'type': 'string',
-                    'default': 'suzuki',
+                    'default': 'trotter',
                     'oneOf': [
                         {'enum': [
                             'suzuki',
@@ -92,18 +94,18 @@ class QPE():
                 },
                 PROP_EVO_TIME: {
                     'type': 'float',
-                    'minimum': 1.0
+                    'minimum': 1.0,
                 },
                 PROP_USE_BASIS_GATES: {
-                    'type': 'boolean',
+                    'type': 'bool',
                     'default': True,
                 },
                 PROP_HERMITIAN_MATRIX: {
-                    'type': 'boolean',
+                    'type': 'bool',
                     'default': True
                 },
                 PROP_NEGATIVE_EVALS: {
-                    'type': 'boolean',
+                    'type': 'bool',
                     'default': False
                 },
                 PROP_BACKEND: {
@@ -113,7 +115,6 @@ class QPE():
             },
             'additionalProperties': False
         },
-        'problems': ['energy'],
         'depends': ['initial_state', 'iqft'],
         'defaults': {
             'initial_state': {
@@ -136,6 +137,9 @@ class QPE():
         self._num_ancillae = 0
         self._ancilla_phase_coef = 0
         self._circuit = None
+        self._circuit_data = None
+        self._inverse = None
+        self._state_circuit_length = 0
         self._ret = {}
         self._matrix_dim = True
         self._hermitian_matrix = True
@@ -152,11 +156,14 @@ class QPE():
         if matrix is None:
             raise AlgorithmError("Operator instance is required.")
 
-
-        qpe_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
+        qpe_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM) or {}
         for k, p in self._configuration.get("input_schema").get("properties").items():
             if qpe_params.get(k) == None:
                 qpe_params[k] = p.get("default")
+
+        for k, p in self._configuration.get("defaults").items():
+            if k not in params:
+                params[k] = p
 
         num_time_slices = qpe_params.get(QPE.PROP_NUM_TIME_SLICES)
         paulis_grouping = qpe_params.get(QPE.PROP_PAULIS_GROUPING)
@@ -173,32 +180,34 @@ class QPE():
         if np.log2(matrix.shape[0]) % 1 != 0:
             matrix_dim = True
             next_higher = np.ceil(np.log2(matrix.shape[0]))
-            new_matrix = np.identity(2**next_higher)
-            new_matrix = np.array(new_matrix, dtype = complex)
-            new_matrix[:matrix.shape[0], :matrix.shape[0]] = matrix[:,:]
+            new_matrix = np.identity(2 ** next_higher)
+            new_matrix = np.array(new_matrix, dtype=complex)
+            new_matrix[:matrix.shape[0], :matrix.shape[0]] = matrix[:, :]
             matrix = new_matrix
 
         # If operator matrix is not hermitian, extending it to B = ((0, A), (A⁺, 0)), which is hermitian
         if not hermitian_matrix:
-            new_matrix = np.zeros((2*matrix.shape[0], 2*matrix.shape[0]), dtype=complex)
-            new_matrix[matrix.shape[0]:,:matrix.shape[0]] = np.matrix.getH(matrix)[:,:]
-            new_matrix[:matrix.shape[0],matrix.shape[0]:] = matrix[:,:]
+            negative_evals = True
+            new_matrix = np.zeros((2 * matrix.shape[0], 2 * matrix.shape[0]), dtype=complex)
+            new_matrix[matrix.shape[0]:, :matrix.shape[0]] = np.matrix.getH(matrix)[:, :]
+            new_matrix[:matrix.shape[0], matrix.shape[0]:] = matrix[:, :]
             matrix = new_matrix
-        #print(matrix.shape)
+        # print(matrix.shape)
         qubit_op = Operator(matrix=matrix)
         operator = qubit_op
 
         # Set up initial state, we need to add computed num qubits to params, check the length of the vector
         init_state_params = params.get(QuantumAlgorithm.SECTION_KEY_INITIAL_STATE)
-        vector = init_state_params['state_vector']
-        if len(vector) < matrix.shape[0] and hermitian_matrix:
-            vector = np.append(vector, (matrix.shape[0] - len(vector)) * [0])
-        if not hermitian_matrix:
-            help_vector = np.zeros(matrix.shape[0] - len(vector))
-            vector = np.append(help_vector, vector)
-            #print(vector)
+        if init_state_params.get("name") == "CUSTOM":
+            vector = init_state_params['state_vector']
+            if len(vector) < matrix.shape[0] and hermitian_matrix:
+                vector = np.append(vector, (matrix.shape[0] - len(vector)) * [0])
+            if not hermitian_matrix:
+                help_vector = np.zeros(matrix.shape[0] - len(vector))
+                vector = np.append(help_vector, vector)
+                # print(vector)
+            init_state_params['state_vector'] = vector
         init_state_params['num_qubits'] = operator.num_qubits
-        init_state_params['state_vector'] = vector
         init_state = get_initial_state_instance(init_state_params['name'])
 
         # Set up iqft, we need to add num qubits to params which is our num_ancillae bits here
@@ -220,7 +229,7 @@ class QPE():
             paulis_grouping='random', expansion_mode='trotter', expansion_order=1,
             evo_time=None, use_basis_gates=True, hermitian_matrix=True,
             negative_evals=False, backend='local_qasm_simulator'):
-        #if self._backend.find('statevector') >= 0:
+        # if self._backend.find('statevector') >= 0:
         #     raise ValueError('Selected backend does not support measurements.')
         self._operator = operator
         self._state_in = state_in
@@ -240,16 +249,20 @@ class QPE():
     def _construct_phase_estimation_circuit(self, measure=False):
         """Implement the Quantum Phase Estimation algorithm"""
 
-        a = QuantumRegister(self._num_ancillae, name='eigenvalue_reg')
-        q = QuantumRegister(self._operator.num_qubits, name='statevector_reg')
-        qc = QuantumCircuit(a, q)
+        a = QuantumRegister(self._num_ancillae, name='eigs')
+        q = QuantumRegister(self._operator.num_qubits, name='comp')
+        control_qbit = QuantumRegister(1, 'control')
+        c1 = ClassicalRegister(1, name='controlbit')
+        c2 = ClassicalRegister(self._operator.num_qubits, name='solution_vector')
+        qc = QuantumCircuit(a, q,control_qbit,c1,c2)
         if measure:
-            c = ClassicalRegister(self._num_ancillae, name='classical_reg_qpe')
+            c = ClassicalRegister(self._num_ancillae, name='c')
             qc.add(c)
 
+
         # initialize state_in
-        qc += self._state_in.construct_circuit('circuit', q) #@TODO: need rename here?
-        qc.barrier(q)
+        qc += self._state_in.construct_circuit('circuit', q)
+        self._initial_circuit_length = len(qc.data)
 
         # Put all ancillae in uniform superposition
         qc.u2(0, np.pi, a)
@@ -278,15 +291,23 @@ class QPE():
             if self._ancilla_phase_coef != 0:
                 qc.u1(self._evo_time * self._ancilla_phase_coef * (2 ** i), a[i])
 
-        #matplotlib_circuit_drawer(qc, style={"plotbarrier": True})
+        # matplotlib_circuit_drawer(qc, style={"plotbarrier": True})
         # inverse qft on ancillae
         self._iqft.construct_circuit('circuit', a, qc)
         if measure:
             qc.measure(a, c)
-        qc.optimize_gates()
+        # qc.optimize_gates()
         self._circuit = qc
+        self._circuit_data = deepcopy(qc.data)
         return qc
 
+    def _construct_inverse(self):
+        if self._inverse == None:
+            self._inverse = QuantumCircuit()
+            self._inverse.regs = self._circuit.regs
+            self._inverse.data = list(reversed(self._circuit_data))[:-self._initial_circuit_length]
+            self._inverse.data = list(map(lambda x: x.inverse(), self._inverse.data))
+        return self._inverse
 
     def _setup_qpe(self, measure=False):
         self._operator._check_representation('paulis')
@@ -294,9 +315,9 @@ class QPE():
         if self._evo_time == None:
             lmax = sum([abs(p[0]) for p in self._operator.paulis])
             if not self._negative_evals:
-                self._evo_time = (1-2**-self._num_ancillae)*2*np.pi/lmax
+                self._evo_time = (1 - 2 ** -self._num_ancillae) * 2 * np.pi / lmax
             else:
-                self._evo_time = (1/2-2**-self._num_ancillae)*2*np.pi/lmax
+                self._evo_time = (1 / 2 - 2 ** -self._num_ancillae) * 2 * np.pi / lmax
 
         # check for identify paulis to get its coef for applying global phase shift on ancillae later
         num_identities = 0
@@ -320,24 +341,22 @@ class QPE():
         if self._circuit is None:
             self._setup_qpe(measure=True)
         result = execute(self._circuit, backend=self._backend, shots=shots).result()
-        counts = result.get_counts(self._circuit)
-
+        # print(result._result)
         rd = result.get_counts(self._circuit)
         rets = sorted([[rd[k], k, k] for k in rd])[::-1]
 
         for d in rets:
-            print(d)
             d[0] /= shots
             if d[1][-1] == "1" and self._negative_evals:
-                d[2] = -(1-sum([2**-(i+1) for i, e in enumerate(reversed(d[2])) if e ==
-                "1"]))*2*np.pi/self._evo_time
+                d[2] = -(1 - sum([2 ** -(i + 1) for i, e in enumerate(reversed(d[2])) if e ==
+                                  "1"])) * 2 * np.pi / self._evo_time
             else:
-                d[2] = sum([2**-(i+1) for i, e in enumerate(reversed(d[2])) if e ==
-                "1"])*2*np.pi/self._evo_time
+                d[2] = sum([2 ** -(i + 1) for i, e in enumerate(reversed(d[2])) if e ==
+                            "1"]) * 2 * np.pi / self._evo_time
 
         self._ret['measurements'] = rets
         self._ret['evo_time'] = self._evo_time
-
+        return self._ret
 
     def run(self):
         self._compute_eigenvalue()
