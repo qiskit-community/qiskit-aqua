@@ -66,7 +66,7 @@ class SVM_QKernel(QuantumAlgorithm):
             multiclass_extension.init_params(multiclass_extension_params)
             # checking the options:
             estimator = multiclass_extension_params.get('estimator', None)
-            if estimator == None:
+            if estimator is None:
                 logger.debug("You did not provide the estimator, which is however required!")
             if estimator not in ["QKernalSVM_Estimator"]:
                 logger.debug("You should use one of the qkernel estimators")

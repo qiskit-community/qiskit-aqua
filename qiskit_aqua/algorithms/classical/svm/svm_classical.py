@@ -74,7 +74,7 @@ class SVM_Classical(QuantumAlgorithm):
             multiclass_extension.init_params(multiclass_extension_params)
             #checking the options:
             estimator = multiclass_extension_params.get('estimator', None)
-            if estimator == None:
+            if estimator is None:
                 logger.debug("You did not provide the estimator, which is however required!")
             if estimator not in ["RBF_SVC_Estimator"]:
                 logger.debug("You should use one of the classical estimators")
