@@ -24,6 +24,7 @@ from qiskit_aqua.algorithms.components.multiclass.multiclass_extension import Mu
 
 logger = logging.getLogger(__name__)
 
+
 class OneAgainstRest(MulticlassExtension):
     """
       the multiclass extension based on the one-against-rest algorithm.
@@ -36,17 +37,13 @@ class OneAgainstRest(MulticlassExtension):
             'id': 'one_against_rest_schema',
             'type': 'object',
             'properties': {
-                'estimator_class_name': {
+                'estimator': {
                     'type': 'string',
                     'default': 'RBF_SVC_Estimator',
                     'oneOf': [
                         {'enum': ['RBF_SVC_Estimator', 'QKernalSVM_Estimator']}
                     ]
                 },
-                'params': {
-                    'type': ['array', 'null'],
-                    'default': None
-                }
             },
             'additionalProperties': False
         }

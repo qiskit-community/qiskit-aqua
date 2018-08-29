@@ -22,6 +22,7 @@ from abc import ABC, abstractmethod
 from qiskit_aqua.algorithms.classical.svm import RBF_SVC_Estimator
 from qiskit_aqua.algorithms.many_sample.qsvm.qkernel_svm_estimator import QKernalSVM_Estimator
 
+
 class MulticlassExtension(ABC):
     """
         Base class for multiclass extension.
@@ -48,21 +49,16 @@ class MulticlassExtension(ABC):
         self.init_args(**args)
 
     def init_args(self, **args):
-        if 'estimator_class_name' in args:
-            estimator_class_name = args['estimator_class_name']
+        if 'estimator' in args:
+            estimator_class_name = args['estimator']
             if estimator_class_name == 'RBF_SVC_Estimator':
                 self.estimator_cls = RBF_SVC_Estimator
             elif estimator_class_name == 'QKernalSVM_Estimator':
                 self.estimator_cls = QKernalSVM_Estimator
             else:
-                raise Exception("unknown option")
-        if 'code_size' in args:
-            code_size = args['code_size']
-            self.code_size = code_size
-        if 'params' in args:
-            params = args['params']
-            if params != None:
-                self.params = params
+                raise ValueError("We do not understand your input of the estimator")
+        self.code_size = args.get('code_size', None)
+        self.params = args.get('params', None)
 
     @abstractmethod
     def train(self, X, y):

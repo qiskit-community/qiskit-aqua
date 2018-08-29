@@ -21,6 +21,7 @@ from qiskit_aqua.algorithms.components.multiclass.estimator import Estimator
 from qiskit_aqua.algorithms.many_sample.qsvm import (optimize_SVM,
                                                      kernel_join, entangler_map_creator)
 
+
 class QKernalSVM_Estimator(Estimator):
     """The estimator that uses the quantum kernel."""
 

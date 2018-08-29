@@ -124,7 +124,7 @@ class TestSVMQKernel(QiskitAquaTestCase):
                 'name': 'QSVM.Kernel',
             },
             'backend': {'name': 'local_qasm_simulator_py', 'shots': 1024},
-            'multiclass_extension': {'name': 'OneAgainstRest', 'estimator_class_name': 'QKernalSVM_Estimator'}
+            'multiclass_extension': {'name': 'OneAgainstRest', 'estimator': 'QKernalSVM_Estimator'}
         }
 
         algo_input = get_input_instance('SVMInput')
@@ -162,7 +162,7 @@ class TestSVMQKernel(QiskitAquaTestCase):
                 'name': 'QSVM.Kernel',
             },
             'backend': {'name': 'local_qasm_simulator_py', 'shots': 1024},
-            'multiclass_extension': {'name': 'AllPairs', 'estimator_class_name': 'QKernalSVM_Estimator'}
+            'multiclass_extension': {'name': 'AllPairs', 'estimator': 'QKernalSVM_Estimator'}
         }
 
         algo_input = get_input_instance('SVMInput')
@@ -199,7 +199,7 @@ class TestSVMQKernel(QiskitAquaTestCase):
                 'name': 'QSVM.Kernel',
             },
             'backend': {'name': 'local_qasm_simulator_py', 'shots': 1024},
-            'multiclass_extension': {'name': 'ErrorCorrectingCode', 'estimator_class_name': 'QKernalSVM_Estimator', 'code_size': 5},
+            'multiclass_extension': {'name': 'ErrorCorrectingCode', 'estimator': 'QKernalSVM_Estimator', 'code_size': 5},
 
 
         }
@@ -245,7 +245,7 @@ class TestSVMQKernel(QiskitAquaTestCase):
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
             'algorithm': {'name': 'QSVM.Kernel'},
             'backend': {'name': 'local_qasm_simulator_py', 'shots': 1024},
-            'multiclass_extension': {'name': 'AllPairs', 'estimator_class_name': 'QKernalSVM_Estimator'},
+            'multiclass_extension': {'name': 'AllPairs', 'estimator': 'QKernalSVM_Estimator'},
         }
 
         svm.init_params(params, self.svm_input)

@@ -25,6 +25,7 @@ from qiskit_aqua.algorithms.components.multiclass.multiclass_extension import Mu
 
 logger = logging.getLogger(__name__)
 
+
 class ErrorCorrectingCode(MulticlassExtension):
     """
       the multiclass extension based on the error-correcting-code algorithm.
@@ -37,7 +38,7 @@ class ErrorCorrectingCode(MulticlassExtension):
             'id': 'error_correcting_code_schema',
             'type': 'object',
             'properties': {
-                'estimator_class_name': {
+                'estimator': {
                     'type': 'string',
                     'default': 'RBF_SVC_Estimator',
                     'oneOf': [
@@ -46,12 +47,9 @@ class ErrorCorrectingCode(MulticlassExtension):
                 },
                 'code_size': {
                     'type': 'integer',
-                    'default': 4
+                    'default': 4,
+                    'minimum': 1
                 },
-                'params': {
-                    'type': ['array', 'null'],
-                    'default': None
-                }
             },
             'additionalProperties': False
         }

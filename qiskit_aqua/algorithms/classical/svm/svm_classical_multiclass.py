@@ -20,7 +20,6 @@ import logging
 from qiskit_aqua.algorithms.components.multiclass import multiclass_get_points_and_labels
 from qiskit_aqua.algorithms.classical.svm import SVM_Classical_ABC
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -44,17 +43,6 @@ class SVM_Classical_Multiclass(SVM_Classical_ABC):
 
         X_train, y_train, label_to_class = multiclass_get_points_and_labels(self.training_dataset, self.class_labels)
         X_test, y_test, label_to_class = multiclass_get_points_and_labels(self.test_dataset, self.class_labels)
-
-        # if self.multiclass_alg == "all_pairs":
-        #     multiclass_classifier = AllPairs(RBF_SVC_Estimator)
-        # elif self.multiclass_alg == "one_against_all":
-        #     multiclass_classifier = OneAgainstRest(RBF_SVC_Estimator)
-        # elif self.multiclass_alg == "error_correcting_code":
-        #     multiclass_classifier = ErrorCorrectingCode(RBF_SVC_Estimator, code_size=4)
-        # else:
-        #     self.ret['error'] = 'the multiclass alg should be one of {"all_pairs", "one_against_all", "error_correcting_code"}. You did not specify it correctly!'
-        #     return self.ret
-
 
         self.multiclass_classifier.train(X_train, y_train)
 

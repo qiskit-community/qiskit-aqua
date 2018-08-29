@@ -24,7 +24,7 @@ from .one_against_rest import OneAgainstRest
 
 
 __all__ = ['MulticlassExtension',
-            'Estimator',
+           'Estimator',
            'AllPairs',
            'ErrorCorrectingCode',
            'OneAgainstRest',

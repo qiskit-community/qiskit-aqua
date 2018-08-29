@@ -24,6 +24,7 @@ from qiskit_aqua.algorithms.components.multiclass.multiclass_extension import Mu
 
 logger = logging.getLogger(__name__)
 
+
 class AllPairs(MulticlassExtension):
     """
       the multiclass extension based on the all-pairs algorithm.
@@ -36,17 +37,13 @@ class AllPairs(MulticlassExtension):
             'id': 'allpairs_schema',
             'type': 'object',
             'properties': {
-                'estimator_class_name': {
+                'estimator': {
                     'type': 'string',
                     'default': 'RBF_SVC_Estimator',
                     'oneOf': [
                         {'enum': ['RBF_SVC_Estimator', 'QKernalSVM_Estimator']}
                     ]
                 },
-                'params': {
-                    'type': ['array', 'null'],
-                    'default': None
-                }
             },
             'additionalProperties': False
         }
