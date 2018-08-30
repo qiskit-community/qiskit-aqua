@@ -257,3 +257,7 @@ class QuantumAlgorithm(ABC):
     @abstractmethod
     def run(self):
         pass
+
+    @property
+    def backend(self):
+        return self._backend
