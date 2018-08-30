@@ -1,3 +1,11 @@
+## For Extreme Blue
+
+To use included image data execute
+```
+install.sh
+```
+in `svm_ocr` directory. 
+
 # Qiskit Aqua
 
 This README file presents a quick overview of Qiskit Aqua, with brief installation, setup and execution
