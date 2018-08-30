@@ -1,4 +1,4 @@
-from qpe import QPE
+from qiskit_aqua.hhl import QPE
 from qiskit_aqua import Operator
 import scipy
 from qiskit import register
