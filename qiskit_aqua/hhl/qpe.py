@@ -330,9 +330,9 @@ class QPE():
         logger.info('QPE circuit qasm length is roughly {}.'.format(
             len(self._circuit.qasm().split('\n'))
         ))
-        print('QPE circuit qasm length is roughly {}.'.format(
-            len(self._circuit.qasm().split('\n'))
-        ))
+        # print('QPE circuit qasm length is roughly {}.'.format(
+        #    len(self._circuit.qasm().split('\n'))
+        # ))
         return self._circuit
 
     def _compute_eigenvalue(self, shots=1024):

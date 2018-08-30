@@ -7,6 +7,8 @@ import qiskit.tools.qcvv.tomography as tomo
 
 import numpy as np
 
+MODE = 1
+
 def _construct_density_matrix2x2(training_data, backend="local_qasm_simulator",
         shots=1024):
     ts = [2*np.arctan(v[0][1]/v[0][0]) for v in training_data]
@@ -28,6 +30,9 @@ def _construct_density_matrix2x2(training_data, backend="local_qasm_simulator",
 
     tomo_circuit_names = tomo.create_tomography_circuits(qp, 'density_matrix',
             q, c, tomo_set)
+    
+    plot_circuit(qp.get_circuit(tomo_circuit_names[0]))
+
     result = qp.execute(tomo_circuit_names, backend=backend, shots=shots)
     data = tomo.tomography_data(result, 'density_matrix', tomo_set)
     
@@ -56,7 +61,7 @@ def ncry(theta, ctls, tgt, qc, beg=True, end=True):
     if end: qc.rx(-np.pi/2, tgt)
     
 
-def rotation(qc, evo_time, n):
+def rotation(qc, n):
     a = QuantumRegister(1, name="anc")
     qc.add(a)
     e = qc.regs["eigs"]
@@ -68,8 +73,8 @@ def rotation(qc, evo_time, n):
             for i in range(n):
                 if s[i] == "0":
                     qc.x(e[i])
-            t = 2*np.pi/evo_time
-            ncry(2*np.arcsin(1/(k*t)), e, a, qc, beg=k==1, end=k==2**n-1)
+            #t = 2*np.pi/evo_time
+            ncry(2*np.arcsin(1/(k)), e, a, qc, beg=k==1, end=k==2**n-1)
             for i in range(n):
                 if s[i] == "0":
                     qc.x(e[i])
@@ -102,15 +107,22 @@ def _construct_hhl(matrix, num_time_slices=1, num_ancilla=2, evo_time=None,
 
     qc = qpe._setup_qpe()
 
-    evo_time = evo_time or qpe._evo_time
-    print(evo_time)
+    #evo_time = evo_time or qpe._evo_time
 
-    rotation(qc, evo_time, num_ancilla)
+    rotation(qc, num_ancilla)
 
     qc += qpe._construct_inverse()
     return qc
 
-def _construct_svm_expectation_value2x2(qc, training_data, testvec):
+def _construct_svm_expectation_value2x2(qc, training_data, testvec, mode=None):
+    if mode == None:
+        mode = MODE
+    if mode == 1:
+        _construct_svm_expectation_value2x2_1(qc, training_data, testvec)
+    else:
+        _construct_svm_expectation_value2x2_2(qc, training_data, testvec)
+
+def _construct_svm_expectation_value2x2_1(qc, training_data, testvec):
     ts = [2*np.arctan(v[0][1]/v[0][0]) for v in training_data]
     t = 2*np.arctan(testvec[1]/testvec[0])
 
@@ -128,17 +140,57 @@ def _construct_svm_expectation_value2x2(qc, training_data, testvec):
     ncry(ts[0], [a[1], b[0]], a[0], qc, end=False)
     qc.x(b[0])
     ncry(ts[1], [a[1], b[0]], a[0], qc, beg=False)
+
+
     ncry(t, [a[1]], a[0], qc)
     
     qc.h(a[1])
+
+    qc.barrier()
 
     qc.measure(a[1], c[0])
     qc.measure(x, cx)
 
     return qc
 
+def _construct_svm_expectation_value2x2_2(qc, training_data, testvec):
+    ts = [2*np.arctan(v[0][1]/v[0][0]) for v in training_data]
+    t = 2*np.arctan(testvec[1]/testvec[0])
+
+    a = qc.regs["eigs"]
+    b = qc.regs["comp"]
+    x = qc.regs["anc"]
+    
+    m = QuantumRegister(1, name="measure")
+
+    c = ClassicalRegister(1, name="expv")
+    ca = ClassicalRegister(2, name="ceigs")
+    cx = ClassicalRegister(1, name="canc")
+    qc.add(c, ca,  cx)
+
+    qc.h(a[1])
+    qc.x(b[0])
+    ncry(ts[0], [b[0]], a[0], qc, end=False)
+    qc.x(b[0])
+    ncry(ts[1], [b[0]], a[0], qc, beg=False)
+
+    ncry(-t, [a[1]], a[0], qc)
+    qc.ch(a[1], b[0])
+    
+    qc.h(a[1])
+    
+    qc.barrier()
+
+    qc.measure(a[1], c[0])
+    qc.measure(a[0], ca[0])
+    qc.measure(b[0], ca[1])
+    qc.measure(x, cx)
+
+    return qc
+
 def construct_full_svms(training_data, test_data, matrix=None, evo_time=None,
-        time_slices=1, expansion_order=1, backend="local_qasm_simulator"):
+        time_slices=1, expansion_order=1, backend="local_qasm_simulator",
+        mode=None):
     '''
     creates svm circuits for a set of test_data vectors.
     '''
@@ -150,7 +202,8 @@ def construct_full_svms(training_data, test_data, matrix=None, evo_time=None,
         qc = _construct_hhl(matrix, evo_time=evo_time, invec=invec,
                 num_time_slices=time_slices, expansion_order=expansion_order,
                 backend=backend)
-        _construct_svm_expectation_value2x2(qc, training_data, testvec)
+        _construct_svm_expectation_value2x2(qc, training_data, testvec,
+                mode=mode)
         qcs.append(qc)
     return qcs
 
@@ -161,7 +214,7 @@ def classify_results(result, qcs, test_data, debug=False):
         if debug: print(vec, counts)
         t = 0
         for k, v in counts.items():
-            if k[0] == "1":
+            if k[0] == "1" and (len(k)==3 or k[2:4] == "00"):
                 t += v*(-1 if k[-1] == "1" else 1)
         if t == 0:
             t = 1
@@ -170,11 +223,49 @@ def classify_results(result, qcs, test_data, debug=False):
 
 def classify(training_data, test_data, matrix=None, evo_time=None,
         time_slices=1, expansion_order=1, backend="local_qasm_simulator",
-        shots=1024, debug=False):
+        shots=1024, debug=False, plot=False, mode=None):
     qcs = construct_full_svms(training_data, test_data, matrix=matrix,
-            evo_time=evo_time)
+            evo_time=evo_time,  mode=mode)
     res = execute(qcs, backend, shots=shots).result()
+    if plot: plot_counts(res, qcs) 
     return classify_results(res, qcs, test_data, debug=debug)
+
+def classify_classically(training_data, test_data, matrix):
+    mat = np.linalg.inv(matrix)
+    invec = np.array([x[1] for x in training_data])
+    alpha = mat.dot(invec)
+    final = sum([a*np.array(v[0]) for a, v in zip(alpha, training_data)])
+    ret = []
+    for test in test_data:
+        x = final.dot(np.array(test))
+        #print(x)
+        ret.append((test, int(x/abs(x))))
+    return ret
+
+def plot_counts(result, qcs, size=2):
+    import matplotlib.pyplot as plt
+    n = len(qcs)
+    fig, axes = plt.subplots(1, n, figsize=(size*n, size*1.5))
+    if n == 1:
+        axes = [axes]
+    for qc, ax in zip(qcs, axes):
+        counts = result.get_counts(qc)
+        l = np.zeros(3) #plus1, minus1, failed
+        for k, v in counts.items():
+            if k[0] == "0" or (len(k)==6 and k[2:4] != "00"):
+                l[-1] += v
+            else:
+                if k[-1] == "0":
+                    l[0] += v
+                else:
+                    l[1] += v
+        l = l/sum(l)
+        ax.set_ylabel("percentage")
+        ax.set_xticks([0, 1, 2])
+        ax.set_xticklabels(["+1", "-1", "failed"])
+        ax.bar([0, 1, 2], l)
+    plt.subplots_adjust(wspace=1)
+    plt.show()
 
 def normalize(vec):
     vec = np.array(vec)
@@ -186,7 +277,8 @@ if __name__ == "__main__":
     #register(Qconfig.APItoken)
     matrix = np.array([[0.49997724, 0.2491572 ], [0.2491572,  0.50002276]])
     x1 = [0.997, 0.159]
-    x2 = [0.354, 0.935]
+    x2 = [0.234, 0.935]
     training_data = [(x1, 1), (x2, -1)]
     test_data = [(0.997, -0.072), (0.338, 0.941)]
-    print(classify(training_data, test_data, matrix=matrix, evo_time=2*np.pi))
+    print(classify(training_data, test_data, matrix=matrix, mode=2, shots=5000))
+    print(classify_classically(training_data, test_data, matrix))
