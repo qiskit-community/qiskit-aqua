@@ -7,6 +7,7 @@ from qiskit.tools.visualization import matplotlib_circuit_drawer as drawer
 import matplotlib.pyplot as plt
 import itertools
 from collections import OrderedDict
+from IPython.display import display, Markdown, Latex
 
 def get_float_from_bin(bin,exp_range):
     num = 0
@@ -140,6 +141,34 @@ def generate_matrix():
 
     # print(matrix)
     return matrix
+
+
+def print_linsystem(A, k, b):
+    out_mat = '$\\begin{pmatrix}' + r'\\'.join(
+        ['&'.join([str(A[0, i]), str(A[1, i])]) for i in range(A.shape[1])]) + '\\end{pmatrix}$'
+    sol_vec = '$\\begin{pmatrix}a_0' + r'\\' + '{}a_0'.format(np.round(1 / k, 1)) + '\\end{pmatrix}$'
+    right_side = '$= \\begin{pmatrix}' + str(b[0]) + r'\\' + str(b[1]) + '\\end{pmatrix}$'
+
+    display(Markdown('## ' + out_mat + sol_vec + right_side))
+    equiv = '\n ## '.join(
+        ['$a_0 = ' + '{}'.format(b[i] / (A[0, i] + np.round(A[1, i] / k, 1))) + '$' for i in range(A.shape[1])])
+    # print(equiv)
+    display(Markdown('## ' + equiv))
+
+    solutions = []
+    for i in range(A.shape[1]):
+        x0 = b[i] / (A[0, i] + np.round(A[1, i] / k, 1))
+        if np.isfinite(x0):
+            solutions.append(x0)
+        display(Markdown("## Equation {} ".format(i) + "gave a result of $\\begin{pmatrix}" + r'\\'.join([str(x0),str(1/k*x0)]) + "\\end{pmatrix}$"))
+
+    correct = np.linalg.solve(A,b)
+    if isinstance(correct,np.ndarray):
+        display(Markdown("## Correct $\\begin{pmatrix}" + r'\\'.join([str(correct[i]) for i in range(A.shape[1])]) + "\\end{pmatrix}$"))
+    else:
+        display(Markdown("## No solution could be estimated classically"))
+
+
 """
 n = 4
 reg = QuantumRegister(n,'a')
@@ -149,3 +178,8 @@ qc = QuantumCircuit(reg,anc,rotqbit)
 qc = add_eigenvalue_inversion(qc,reg,anc,rotqbit)
 drawer(qc)
 plt.show()"""
+
+"""The following routine will generate a matrix by adding multiple Pauli matrices.
+We restrict our linear system to be real valued (i.e. not complex) and make use of the Pauli matrices $\sigma_{I}=\begin{pmatrix}1 & 0 \\ 0 & 1 \end{pmatrix}$, 
+$\sigma_{x}=\begin{pmatrix}0 & 1 \\ 1 & 0 \end{pmatrix}$, $\sigma_{z}=\begin{pmatrix}1 & 0 \\ 0 & -1 \end{pmatrix}$
+Now we have a matrix $A=\sum_i \alpha_{i} \sigma_{l_{i}}\ l_{i}\in \{I,x,z\}$ that is going to specify our linear system!"""
