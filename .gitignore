@@ -14,6 +14,9 @@ Qconfig.py
 .vscode/
 .idea/
 
+#image data files
+svm_ocr/img/data/
+
 # Standard python ignores follow
 
 # Byte-compiled / optimized / DLL files
