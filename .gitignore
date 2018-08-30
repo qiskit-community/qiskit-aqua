@@ -15,6 +15,10 @@ Qconfig.py
 .idea/
 
 # Standard python ignores follow
+*.swp
+
+# ignore data
+svm_ocr/img/data/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
