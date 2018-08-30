@@ -18,8 +18,6 @@
 import logging
 import operator
 
-import numpy as np
-
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 
 from qiskit_aqua import (QuantumAlgorithm, AlgorithmError,
@@ -40,6 +38,10 @@ class SVM_Variational(QuantumAlgorithm):
             'id': 'SVM_Variational_schema',
             'type': 'object',
             'properties': {
+                'override_SPSA_params': {
+                    'type': 'boolean',
+                    'default': True
+                }
             },
             'additionalProperties': False
         },
@@ -65,12 +67,20 @@ class SVM_Variational(QuantumAlgorithm):
         self._ret = {}
 
     def init_params(self, params, algo_input):
+        algo_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
+        override_spsa_params = algo_params.get('override_SPSA_params')
+
         # Set up optimizer
         opt_params = params.get(QuantumAlgorithm.SECTION_KEY_OPTIMIZER)
         optimizer = get_optimizer_instance(opt_params['name'])
-        # hard-coded params if SPSA is used.
-        if opt_params['name'] == 'SPSA' and opt_params['parameters'] is None:
-            opt_params['parameters'] = np.asarray([4.0, 0.1, 0.602, 0.101, 0.0])
+        # If SPSA then override SPSA params as reqd to our predetermined values
+        if opt_params['name'] == 'SPSA' and override_spsa_params:
+            opt_params['c0'] = 4.0
+            opt_params['c1'] = 0.1
+            opt_params['c2'] = 0.602
+            opt_params['c3'] = 0.101
+            opt_params['c4'] = 0.0
+            opt_params['skip_calibration'] = True
         optimizer.init_params(opt_params)
 
         # Set up variational form
@@ -207,7 +217,6 @@ class SVM_Variational(QuantumAlgorithm):
         self._ret['opt_params'] = theta_best
         self._ret['training_loss'] = cost_final
 
-
     def test(self, data):
         data_samples = []
         labels = []
@@ -238,4 +247,3 @@ class SVM_Variational(QuantumAlgorithm):
             self._ret['predicted_labels'] = predicted_labels
 
         return self._ret
-
