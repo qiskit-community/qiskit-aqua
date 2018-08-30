@@ -38,9 +38,11 @@ def add_eigenvalue_inversion(qc):
     rotation_dict = OrderedDict() # store number with corr. rotation
     for n, i in enumerate(map(''.join, itertools.product('01', repeat=reg_len))):
         #@TODO: maybe inverse binary_pattern
-        binary_pattern = [int(_) for _ in i]
+        #if i not in ['11','01']:
+        #    continue
+        binary_pattern = [int(_) for _ in i]#list(reversed([int(_) for _ in i])) #
         float_num = get_float_from_bin(binary_pattern,np.arange(-reg_len,0))
-        print(binary_pattern,float_num)
+        #print(binary_pattern,float_num)
         #exclude 0
         if 1 in binary_pattern:
             rotation_dict.update({float_num:binary_pattern})
@@ -49,9 +51,8 @@ def add_eigenvalue_inversion(qc):
 
     #update dict with corresponding angles
     for key in rotation_dict.keys():
-        rotation_dict[key] = [rotation_dict[key],np.arcsin(minimal_ev / key)] # @TODO maybe round here?
+        rotation_dict[key] = [rotation_dict[key], 2 *  np.arcsin(minimal_ev / key)] # @TODO maybe round here?
 
-    #print(rotation_dict.values())
 
 
 
@@ -110,14 +111,35 @@ def add_measurement_gates(qc):
     cregs = qc.get_cregs()
     control_qbit = qregs['control']
     sv = qregs['comp']
-
+    #c_ = ClassicalRegister(2,'test')
+    #qc.add(c_)
     c1 = cregs['controlbit']
     c2 = cregs['solution_vector']
 
     qc.barrier()
-    qc.measure(control_qbit,c1)
-    qc.measure(sv,c2)
+    qc.measure(sv, c2)
+    qc.measure(control_qbit[0],c1[0])
+
+    #qc.measure(qregs['eigs'],c_)
     return
+
+
+def generate_matrix():
+    """Generate 2x2 matrix with commuting Pauli matrices"""
+
+    X = np.array([[0, 1],
+                  [1, 0]])
+    Z = np.array([[1, 0],
+                  [0, -1]])
+    I = np.array([[1, 0],
+                  [0, 1]])
+
+    pauli = X  # if np.random.choice(['X','Z'],1) == 'X' else Z
+
+    matrix = 2 * I - 1 * pauli
+
+    # print(matrix)
+    return matrix
 """
 n = 4
 reg = QuantumRegister(n,'a')
