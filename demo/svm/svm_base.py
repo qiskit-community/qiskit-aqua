@@ -1,7 +1,7 @@
 from qiskit import QuantumProgram, QuantumCircuit, QuantumRegister, ClassicalRegister, execute
 from qiskit.tools.visualization import plot_circuit
 
-from qiskit_aqua.hhl import QPE
+from qiskit_aqua.algorithms.single_sample.hhl import QPE
 
 import qiskit.tools.qcvv.tomography as tomo
 
