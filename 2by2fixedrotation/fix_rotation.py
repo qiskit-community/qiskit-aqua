@@ -126,13 +126,14 @@ def add_measurement_gates(qc):
     sv = qregs['comp']
     #c_ = ClassicalRegister(2,'test')
     #qc.add(c_)
+    c = cregs['c']
     c1 = cregs['controlbit']
     c2 = cregs['solution_vector']
 
     qc.barrier()
     qc.measure(sv, c2)
     qc.measure(control_qbit[0],c1[0])
-
+    qc.measure(qregs['eigs'],c)
     #qc.measure(qregs['eigs'],c_)
     return
 
@@ -182,17 +183,3 @@ def print_linsystem(A, k, b):
         display(Markdown("## No solution could be estimated classically"))
 
 
-"""
-n = 4
-reg = QuantumRegister(n,'a')
-anc = QuantumRegister(n-1,'b')
-rotqbit = QuantumRegister(1,'c')
-qc = QuantumCircuit(reg,anc,rotqbit)
-qc = add_eigenvalue_inversion(qc,reg,anc,rotqbit)
-drawer(qc)
-plt.show()"""
-
-"""The following routine will generate a matrix by adding multiple Pauli matrices.
-We restrict our linear system to be real valued (i.e. not complex) and make use of the Pauli matrices $\sigma_{I}=\begin{pmatrix}1 & 0 \\ 0 & 1 \end{pmatrix}$, 
-$\sigma_{x}=\begin{pmatrix}0 & 1 \\ 1 & 0 \end{pmatrix}$, $\sigma_{z}=\begin{pmatrix}1 & 0 \\ 0 & -1 \end{pmatrix}$
-Now we have a matrix $A=\sum_i \alpha_{i} \sigma_{l_{i}}\ l_{i}\in \{I,x,z\}$ that is going to specify our linear system!"""
