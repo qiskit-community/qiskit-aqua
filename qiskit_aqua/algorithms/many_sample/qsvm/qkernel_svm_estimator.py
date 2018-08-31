@@ -17,7 +17,7 @@
 
 import numpy as np
 
-from qiskit_aqua.algorithms.components.multiclass import Estimator
+from qiskit_aqua.algorithms.components.multiclass.estimator import Estimator
 from qiskit_aqua.algorithms.many_sample.qsvm import (optimize_SVM,
                                                      kernel_join, entangler_map_creator)
 

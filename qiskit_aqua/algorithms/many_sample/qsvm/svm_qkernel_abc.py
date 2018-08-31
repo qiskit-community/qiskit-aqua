@@ -25,7 +25,6 @@ class SVM_QKernel_ABC(ABC):
     """
     abstract base class for the binary classifier and the multiclass classifier
     """
-
     def auto_detect_qubitnum(self, training_dataset):
         auto_detected_size = -1
         for key in training_dataset:

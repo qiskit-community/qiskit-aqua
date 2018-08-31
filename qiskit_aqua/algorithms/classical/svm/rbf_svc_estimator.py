@@ -17,7 +17,7 @@
 
 from sklearn.svm import SVC
 
-from qiskit_aqua.algorithms.components.multiclass import Estimator
+from qiskit_aqua.algorithms.components.multiclass.estimator import Estimator
 
 
 class RBF_SVC_Estimator(Estimator):
