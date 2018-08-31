@@ -1,10 +1,16 @@
 ## For Extreme Blue
 
+Install this repositpory locally using
+```
+pip install -e qiskit-aqua-hhl
+```
+where it is located.
+
 To use included image data execute
 ```
 install.sh
 ```
-in `svm_ocr` directory. 
+in `demo/svm` directory. 
 
 # Qiskit Aqua
 
