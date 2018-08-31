@@ -79,7 +79,7 @@ def initiate_q_backend():
 
 def Efr(res):
     Eigs = np.array(res['measurements'])[:2,2]
-    Eigs = Eigs.astype(float).round()
+    Eigs = Eigs.astype(float)
     return Eigs
 
 
