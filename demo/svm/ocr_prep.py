@@ -4,6 +4,8 @@ import scipy.sparse as sparse
 import numpy as np
 import os
 
+BASE_PATH = "~/.demo/svm/data/"
+
 def normalize(v):
     v = np.array(v)
     return v/np.sqrt(v.dot(v.conj()))
@@ -69,10 +71,10 @@ def show(path):
     plt.imshow(im)
     plt.show()
 
-def get_random_set(n=8, path="img/data/", typ="easy"):
+def get_random_set(n=8, typ="easy"):
     n6 = round(min(max(0.2*np.random.randn()+0.5, 0), 1)*n)
-    l6 = np.array([path+typ+"/6/"+name for name in os.listdir(path+typ+"/6/")])
-    l9 = np.array([path+typ+"/9/"+name for name in os.listdir(path+typ+"/9/")])
+    l6 = np.array([os.path.join(BASE_PATH, typ, "6", name) for name in os.listdir(path+typ+"/6/")])
+    l9 = np.array([os.path.join(BASE_PATH, typ, "9", name) for name in os.listdir(path+typ+"/9/")])
     ret = np.concatenate([np.random.choice(l6, n6),
         np.random.choice(l9, n-n6)])
     np.random.shuffle(ret)
@@ -95,42 +97,29 @@ def display_images(paths, size=2, title=True):
     plt.show()
     return fig, axes
 
-def bulk_ratio(x="6", path = "img/data/easy/"): 
-    idx = 0 if x == "9" else 1
-
-    #r = get_ratio_from_image("train6.png")
-    #print(r)
-    #r = get_ratio_from_image("train9.png")
-    #print(r)
-
-    for name in os.listdir(path):
-        #show("mnist_png/training/6/%s" % path)
-        r = get_ratio_from_image(path + name)
-        print(r)
-
-def create_data(x="6", in_path="mnist_png/", out_path="img/data/",
-        typ="easy", subs=["training", "testing"]):
-    idx = 0 if x == "9" else 1
-    typedef = {"easy": 0.96, "medium": 0.9, "hard": 0.8, "bad": 0}
-    def typemax(typ):
-        k = [1]+sorted(list(typedef.values()), reverse=True)[:-1]
-        d = {key: val for key, val in zip(list(typedef.keys()), k)}
-        return d[typ]
-    if not os.path.exists(out_path+typ):
-        os.mkdir(out_path+typ)
-    if not os.path.exists(out_path+typ+"/"+x):
-        os.mkdir(out_path+typ+"/"+x)
-    else:
-        os.system("rm -rf " + out_path+typ+"/"+x+"/*")
-    c = 0
-    for sub in subs:
-        for name in os.listdir(in_path+sub+"/"+x):
-            r = get_ratio_from_image(in_path+sub+"/"+x+"/" + name)
-            if r[idx] > typedef[typ] and r[idx] < typemax(typ):
-                os.system("cp " + in_path+sub+"/"+x+"/"+name
-                        + " " + out_path+typ+"/"+x+"/")
-                c+=1
-    print("created data", x, typ, c)
+# def create_data(x="6", in_path="mnist_png/", out_path="img/data/",
+#         typ="easy", subs=["training", "testing"]):
+#     idx = 0 if x == "9" else 1
+#     typedef = {"easy": 0.96, "medium": 0.9, "hard": 0.8, "bad": 0}
+#     def typemax(typ):
+#         k = [1]+sorted(list(typedef.values()), reverse=True)[:-1]
+#         d = {key: val for key, val in zip(list(typedef.keys()), k)}
+#         return d[typ]
+#     if not os.path.exists(out_path+typ):
+#         os.mkdir(out_path+typ)
+#     if not os.path.exists(out_path+typ+"/"+x):
+#         os.mkdir(out_path+typ+"/"+x)
+#     else:
+#         os.system("rm -rf " + out_path+typ+"/"+x+"/*")
+#     c = 0
+#     for sub in subs:
+#         for name in os.listdir(in_path+sub+"/"+x):
+#             r = get_ratio_from_image(in_path+sub+"/"+x+"/" + name)
+#             if r[idx] > typedef[typ] and r[idx] < typemax(typ):
+#                 os.system("cp " + in_path+sub+"/"+x+"/"+name
+#                         + " " + out_path+typ+"/"+x+"/")
+#                 c+=1
+#     print("created data", x, typ, c)
             
 if __name__ == "__main__":
     print(get_random_set())
