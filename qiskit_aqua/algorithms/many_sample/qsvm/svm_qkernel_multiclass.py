@@ -17,39 +17,36 @@
 
 import logging
 
-# from qiskit_aqua.algorithms.components.multiclass import multiclass_get_points_and_labels
 from qiskit_aqua.algorithms.many_sample.qsvm import SVM_QKernel_ABC
+from qiskit_aqua.utils import map_label_to_class_name
 
 logger = logging.getLogger(__name__)
+
 
 class SVM_QKernel_Multiclass(SVM_QKernel_ABC):
     """
     the multiclass classifier
-    the classifier is built by wrapping the estimator (for binary classification) with the multiclass extensions
+    the classifier is built by wrapping the estimator
+    (for binary classification) with the multiclass extensions
     """
 
     def __init__(self, multiclass_classifier):
-        # self.ret = {}
         super().__init__()
         self.multiclass_classifier = multiclass_classifier
 
     def train(self, data, labels):
-        # x_train, y_train, label_to_class = multiclass_get_points_and_labels(training_dataset, class_labels)
         self.multiclass_classifier.train(data, labels)
 
     def test(self, data, labels):
-        # x_test, y_test, label_to_class = multiclass_get_points_and_labels(test_dataset, class_labels)
-        success_ratio = self.multiclass_classifier.test(data, labels)
-        self._ret['testing_accuracy'] = success_ratio
-        self._ret['test_success_ratio'] = success_ratio
+        accuracy = self.multiclass_classifier.test(data, labels)
+        self._ret['testing_accuracy'] = accuracy
+        self._ret['test_success_ratio'] = accuracy
+        return accuracy
 
     def predict(self, data):
         predicted_labels = self.multiclass_classifier.predict(data)
-        predicted_classes = self.label_to_class_name(predicted_labels)
-        # predicted_labelclasses = [label_to_class[x] for x in predicted_labels]
-        self._ret['predicted_labels'] = predicted_classes
-
-        return predicted_classes
+        self._ret['predicted_labels'] = predicted_labels
+        return predicted_labels
 
     def run(self):
         """
@@ -59,6 +56,8 @@ class SVM_QKernel_Multiclass(SVM_QKernel_ABC):
         if self.test_dataset is not None:
             self.test(self.test_dataset[0], self.test_dataset[1])
         if self.datapoints is not None:
-            self.predict(self.datapoints)
+            predicted_labels = self.predict(self.datapoints)
+            predicted_classes = map_label_to_class_name(predicted_labels, self.label_to_class)
+            self._ret['predicted_classes'] = predicted_classes
 
         return self._ret

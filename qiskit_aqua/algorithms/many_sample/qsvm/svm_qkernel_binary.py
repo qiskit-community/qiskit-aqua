@@ -20,7 +20,8 @@ import logging
 import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 
-from qiskit_aqua.algorithms.many_sample.qsvm import SVM_QKernel_ABC, optimize_SVM
+from qiskit_aqua.algorithms.many_sample.qsvm import SVM_QKernel_ABC
+from qiskit_aqua.utils import map_label_to_class_name, optimize_svm
 
 logger = logging.getLogger(__name__)
 
@@ -54,9 +55,6 @@ class SVM_QKernel_Binary(SVM_QKernel_ABC):
         qc += self.feature_map.construct_circuit(x2, q, inverse=True)
         if measurement:
             qc.measure(q, c)
-        # print(x1, x2)
-        # print(qc.qasm())
-        # exit(0)
         return qc
 
     def construct_kernel_matrix(self, x1_vec, x2_vec=None):
@@ -89,41 +87,45 @@ class SVM_QKernel_Binary(SVM_QKernel_ABC):
                 circuit = None if np.all(x1 == x2) else self.inner_product(x1, x2,
                                                                            not is_statevector_sim)
                 circuits["{}:{}".format(i, j)] = circuit
-
         results = self.qalgo.execute(list(circuits.values()))
 
         # element on the diagonal is always 1: point*point=|point|^2
-        mat = np.eye(x1_vec.shape[0], x2_vec.shape[0])
+        if is_symmetric:
+            mat = np.eye(x1_vec.shape[0])
+        else:
+            mat = np.zeros((x1_vec.shape[0], x2_vec.shape[0]))
         for idx, circuit in circuits.items():
             i, j = [int(x) for x in idx.split(":")]
             if circuit is None:
                 kernel_value = 1.0
             else:
                 if is_statevector_sim:
-                    kernel_value = np.asarray(results.get_statevector(circuit))[0]
+                    temp = np.asarray(results.get_statevector(circuit))[0]
+                    #  |<0|Psi^daggar(y) x Psi(x)|0>|^2,
+                    kernel_value = np.dot(temp.T.conj(), temp).real
                 else:
                     result = results.get_counts(circuit)
-                    kernel_value = result.get(measurement_basis, 0) / self.qalgo._execute_config['shots']
+                    kernel_value = result.get(measurement_basis, 0) / \
+                        self.qalgo._execute_config['shots']
             mat[i, j] = kernel_value
             if is_symmetric:
                 mat[j, i] = mat[i, j]
 
         return mat
 
-    def _get_prediction(self, data, return_kernel_matrix=False):
+    def get_predictied_confidence(self, data, return_kernel_matrix=False):
         """
         Args:
             data (numpy.ndarray): NxD array, where N is the number of data,
                                   D is the feature dimension.
         Returns:
-            numpy.ndarray: Nx1 array, prediction confidence
+            numpy.ndarray: Nx1 array, predicted confidence
             numpy.ndarray: the kernel matrix, NxN1, where N1 is the number of support vectors.
         """
         alphas = self._ret['svm']['alphas']
         bias = self._ret['svm']['bias']
         svms = self._ret['svm']['support_vectors']
         yin = self._ret['svm']['yin']
-
         kernel_matrix = self.construct_kernel_matrix(data, svms)
 
         confidence = np.sum(yin * alphas * kernel_matrix, axis=1) + bias
@@ -137,15 +139,16 @@ class SVM_QKernel_Binary(SVM_QKernel_ABC):
         """
         train the svm
         Args:
-            data (numpy.ndarray):
-            labels (numpy.ndarray):
+            data (numpy.ndarray): NxD array, where N is the number of data,
+                                  D is the feature dimension.
+            labels (numpy.ndarray): Nx1 array, where N is the number of data
         """
         scaling = 1.0 if 'statevector' in self.qalgo.backend else None
         kernel_matrix = self.construct_kernel_matrix(data)
         labels = labels * 2 - 1  # map label from 0 --> -1 and 1 --> 1
         labels = labels.astype(np.float)
-        [alpha, b, support] = optimize_SVM(kernel_matrix, labels, scaling=scaling)
-        support_index = np.where(support == True)
+        [alpha, b, support] = optimize_svm(kernel_matrix, labels, scaling=scaling)
+        support_index = np.where(support)
         alphas = alpha[support_index]
         svms = data[support_index]
         yin = labels[support_index]
@@ -161,10 +164,14 @@ class SVM_QKernel_Binary(SVM_QKernel_ABC):
         """
         test the svm
         Args:
-            data (numpy.ndarray):
-            labels (numpy.ndarray):
+            data (numpy.ndarray): NxD array, where N is the number of data,
+                                  D is the feature dimension.
+            labels (numpy.ndarray): Nx1 array, where N is the number of data
+
+        Returns:
+            float: accuracy
         """
-        predicted_confidence, kernel_matrix = self._get_prediction(data, True)
+        predicted_confidence, kernel_matrix = self.get_predictied_confidence(data, True)
         binarized_predictions = (np.sign(predicted_confidence) + 1) / 2  # remap -1 --> 0, 1 --> 1
         predicted_labels = binarized_predictions.astype(int)
         accuracy = np.sum(predicted_labels == labels.astype(int)) / labels.shape[0]
@@ -179,9 +186,12 @@ class SVM_QKernel_Binary(SVM_QKernel_ABC):
         """
         predict using the svm
         Args:
-            data (numpy.ndarray): the points
+            data (numpy.ndarray): NxD array, where N is the number of data,
+                                  D is the feature dimension.
+        Returns:
+            numpy.ndarray: predicted labels, Nx1 array
         """
-        predicted_confidence = self._get_prediction(data)
+        predicted_confidence = self.get_predictied_confidence(data)
         binarized_predictions = (np.sign(predicted_confidence) + 1) / 2  # remap -1 --> 0, 1 --> 1
         predicted_labels = binarized_predictions.astype(int)
         return predicted_labels
@@ -195,7 +205,7 @@ class SVM_QKernel_Binary(SVM_QKernel_ABC):
             self.test(self.test_dataset[0], self.test_dataset[1])
         if self.datapoints is not None:
             predicted_labels = self.predict(self.datapoints)
-            predicted_classes = self.label_to_class_name(predicted_labels)
+            predicted_classes = map_label_to_class_name(predicted_labels, self.label_to_class)
             self._ret['predicted_labels'] = predicted_labels
             self._ret['predicted_classes'] = predicted_classes
 

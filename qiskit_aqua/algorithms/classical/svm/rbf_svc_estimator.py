@@ -17,7 +17,7 @@
 
 from sklearn.svm import SVC
 
-from qiskit_aqua.algorithms.components.multiclass.estimator import Estimator
+from qiskit_aqua.algorithms.components.multiclass import Estimator
 
 
 class RBF_SVC_Estimator(Estimator):
@@ -26,19 +26,19 @@ class RBF_SVC_Estimator(Estimator):
     def __init__(self):
         self._estimator = SVC(kernel='rbf')
 
-    def fit(self, X, y):
+    def fit(self, x, y):
         """
         fit values for the points and the labels
         Args:
-            X (numpy.ndarray): input points
+            x (numpy.ndarray): input points
             y (numpy.ndarray): input labels
         """
-        self._estimator.fit(X, y)
+        self._estimator.fit(x, y)
 
-    def decision_function(self, X):
+    def decision_function(self, x):
         """
         predicted values for the points which account for both the labels and the confidence
         Args:
-            X (numpy.ndarray): input points
+            x (numpy.ndarray): input points
         """
-        return self._estimator.decision_function(X)
+        return self._estimator.decision_function(x)

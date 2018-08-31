@@ -16,6 +16,11 @@
 # =============================================================================
 
 from .svm_classical_abc import SVM_Classical_ABC
+from .svm_classical_binary import SVM_Classical_Binary
+from .svm_classical_multiclass import SVM_Classical_Multiclass
 from .rbf_svc_estimator import RBF_SVC_Estimator
 
-__all__ = ['SVM_Classical_ABC', 'RBF_SVC_Estimator']
+__all__ = ['SVM_Classical_ABC',
+           'SVM_Classical_Binary',
+           'SVM_Classical_Multiclass'
+           'RBF_SVC_Estimator']

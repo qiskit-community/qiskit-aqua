@@ -17,11 +17,11 @@
 
 import logging
 
-import numpy as np
-
+from qiskit_aqua import (QuantumAlgorithm, get_feature_map_instance,
+                         get_multiclass_extension_instance)
 from qiskit_aqua.algorithms.many_sample.qsvm import SVM_QKernel_Binary, SVM_QKernel_Multiclass
-from qiskit_aqua import (QuantumAlgorithm, get_multiclass_extension_instance,
-                         get_feature_map_instance)
+from qiskit_aqua.utils.dataset_helper import get_feature_dimension, get_num_classes
+
 
 logger = logging.getLogger(__name__)
 
@@ -61,64 +61,32 @@ class SVM_QKernel(QuantumAlgorithm):
         super().__init__(configuration or self.SVM_QKERNEL_CONFIGURATION.copy())
         self._ret = {}
 
-    @staticmethod
-    def _check_num_classes(dataset):
-        """Check number of classes in a given dataset
-
-        Args:
-            dataset(dict): key is the class name and value is the data.
-
-        Returns:
-            int: number of classes
-        """
-        return len(list(dataset.keys()))
-
-    @staticmethod
-    def _check_feature_dim(dataset):
-        """Check number of classes in a given dataset
-
-        Args:
-            dataset(dict): key is the class name and value is the data.
-
-        Returns:
-            int: number of classes
-        """
-        for v in dataset.values():
-            if not isinstance(v, np.ndarray):
-                v = np.asarray(v)
-            return v.shape[1]
-
     def init_params(self, params, algo_input):
-        svmqk_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
-
         fea_map_params = params.get(QuantumAlgorithm.SECTION_KEY_FEATURE_MAP)
         feature_map = get_feature_map_instance(fea_map_params['name'])
-        num_qubits = self._check_feature_dim(algo_input.training_dataset)
+        num_qubits = get_feature_dimension(algo_input.training_dataset)
         fea_map_params['num_qubits'] = num_qubits
         feature_map.init_params(fea_map_params)
 
-        is_multiclass = self._check_num_classes(algo_input.training_dataset) > 2
+        is_multiclass = get_num_classes(algo_input.training_dataset) > 2
 
         if is_multiclass:
-            multiclass_extension_params = params.get(QuantumAlgorithm.SECTION_KEY_MULTICLASS_EXTENSION)
-            multiclass_extension = get_multiclass_extension_instance(multiclass_extension_params['name'])
+            multicls_ext_params = params.get(QuantumAlgorithm.SECTION_KEY_MULTICLASS_EXTENSION)
+            multiclass_extension = get_multiclass_extension_instance(multicls_ext_params['name'])
             # we need to set this explicitly for quantum version
-            multiclass_extension_params['params'] = [self._backend, self._execute_config['shots'], self._random_seed]
-            multiclass_extension.init_params(multiclass_extension_params)
+            multicls_ext_params['params'] = [feature_map, self]
+            multiclass_extension.init_params(multicls_ext_params)
             # checking the options:
-            estimator = multiclass_extension_params.get('estimator', None)
+            estimator = multicls_ext_params.get('estimator', None)
             if estimator is None:
                 logger.warning("You did not provide the estimator, which is however required!")
             if estimator not in ["QKernalSVM_Estimator"]:
                 logger.warning("You should use one of the qkernel estimators")
-            logger.info("We will apply the multiclass classifcation:" + multiclass_extension_params['name'])
-
-            # self.instance = SVM_QKernel_Multiclass(multiclass_extension)
+            logger.info("Multiclass classifcation algo:" + multicls_ext_params['name'])
         else:
-            logger.warning("Only two classes in the dataset, we will apply the binary classifcation"
+            logger.warning("Only two classes in the dataset, use binary classifer"
                            " and ignore all options related to the multiclass")
             multiclass_extension = None
-            # self.instance = SVM_QKernel_Binary()
 
         self.init_args(algo_input.training_dataset, algo_input.test_dataset,
                        algo_input.datapoints, feature_map, multiclass_extension)

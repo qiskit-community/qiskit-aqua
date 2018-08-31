@@ -61,7 +61,7 @@ class OneAgainstRest(MulticlassExtension):
             X (numpy.ndarray): input points
             y (numpy.ndarray): input labels
         """
-        self.label_binarizer_ = LabelBinarizer(neg_label=-1)
+        self.label_binarizer_ = LabelBinarizer(neg_label=0)
         Y = self.label_binarizer_.fit_transform(y)
         self.classes = self.label_binarizer_.classes_
         columns = (np.ravel(col) for col in Y.T)
@@ -77,35 +77,36 @@ class OneAgainstRest(MulticlassExtension):
             estimator.fit(X, column)
             self.estimators.append(estimator)
 
-    def test(self, X, y):
+    def test(self, x, y):
         """
         testing multiple estimators each for distinguishing a pair of classes.
         Args:
-            X (numpy.ndarray): input points
+            x (numpy.ndarray): input points
             y (numpy.ndarray): input labels
+        Returns:
+            float: accuracy
         """
-        A = self.predict(X)
+        A = self.predict(x)
         B = y
         l = len(A)
-        diff = 0
-        for i in range(0, l):
-            if A[i] != B[i]:
-                diff += 1
+        diff = np.sum(A != B)
         logger.debug("%d out of %d are wrong" % (diff, l))
         return 1 - (diff * 1.0 / l)
 
-    def predict(self, X):
+    def predict(self, x):
         """
         applying multiple estimators for prediction
         Args:
-            X (numpy.ndarray): input points
+            x (numpy.ndarray): NxD array
+        Returns:
+            numpy.ndarray: predicted labels, Nx1 array
         """
-        n_samples = _num_samples(X)
+        n_samples = _num_samples(x)
         maxima = np.empty(n_samples, dtype=float)
         maxima.fill(-np.inf)
         argmaxima = np.zeros(n_samples, dtype=int)
         for i, e in enumerate(self.estimators):
-            pred = np.ravel(e.decision_function(X))
+            pred = np.ravel(e.decision_function(x))
             np.maximum(maxima, pred, out=maxima)
             argmaxima[maxima == pred] = i
         return self.classes[np.array(argmaxima.T)]
