@@ -97,5 +97,47 @@ class SVM_Classical(QuantumAlgorithm):
         svm_instance.init_args(training_dataset, test_dataset, datapoints, gamma)
         self.instance = svm_instance
 
+    def train(self, data, labels):
+        """
+        train the svm
+        Args:
+            data (numpy.ndarray): NxD array, where N is the number of data,
+                                  D is the feature dimension.
+            labels (numpy.ndarray): Nx1 array, where N is the number of data
+        """
+        self.instance.train(data, labels)
+
+    def test(self, data, labels):
+        """
+        test the svm
+        Args:
+            data (numpy.ndarray): NxD array, where N is the number of data,
+                                  D is the feature dimension.
+            labels (numpy.ndarray): Nx1 array, where N is the number of data
+
+        Returns:
+            float: accuracy
+        """
+        return self.instance.test(data, labels)
+
+    def predict(self, data):
+        """
+        predict using the svm
+        Args:
+            data (numpy.ndarray): NxD array, where N is the number of data,
+                                  D is the feature dimension.
+        Returns:
+            numpy.ndarray: predicted labels, Nx1 array
+        """
+        return self.instance.predict(data)
+
     def run(self):
         return self.instance.run()
+
+    @property
+    def label_to_class(self):
+        return self.instance.label_to_class
+
+    @property
+    def class_to_label(self):
+        return self.instance.class_to_label
