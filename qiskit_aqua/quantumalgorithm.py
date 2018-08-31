@@ -51,7 +51,8 @@ class QuantumAlgorithm(ABC):
     SECTION_KEY_INITIAL_STATE = 'initial_state'
     SECTION_KEY_IQFT = 'iqft'
     SECTION_KEY_ORACLE = 'oracle'
-    SECTION_KEY_FEATURE_EXTRACTION = 'feature_extraction'
+    SECTION_KEY_FEATURE_MAP = 'feature_map'
+    SECTION_KEY_MULTICLASS_EXTENSION = 'multiclass_extension'
 
     MAX_CIRCUITS_PER_JOB = 300
 

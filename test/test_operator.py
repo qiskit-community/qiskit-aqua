@@ -155,7 +155,7 @@ class TestOperator(QiskitAquaTestCase):
         self.assertEqual(-0.25, newOP.paulis[0][0])
         self.assertEqual('ZZYY', newOP.paulis[0][1].to_label())
 
-    def test_addition_inplace(self):
+    def test_addition_paulis_inplace(self):
         """
             test addition
         """
@@ -179,7 +179,71 @@ class TestOperator(QiskitAquaTestCase):
         self.assertEqual(2, len(opA.paulis))
         self.assertEqual(0.75, opA.paulis[0][0])
 
-    def test_addition_noninplace(self):
+    def test_addition_matrix(self):
+        """
+            test addition in the matrix mode
+        """
+        pauli_a = 'IX'
+        pauli_b = 'ZY'
+        coeff_a = 0.5
+        coeff_b = 0.5
+        pauli_term_a = [coeff_a, label_to_pauli(pauli_a)]
+        pauli_term_b = [coeff_b, label_to_pauli(pauli_b)]
+        opA = Operator(paulis=[pauli_term_a])
+        opB = Operator(paulis=[pauli_term_b])
+        opA.to_matrix()
+        opB.to_matrix()
+        opA += opB
+        opA.to_paulis()
+        self.assertEqual(2, len(opA.paulis))
+        self.assertEqual(0.5, opA.paulis[0][0])
+        self.assertEqual(0.5, opA.paulis[1][0])
+
+        pauli_c = 'IX'
+        coeff_c = 0.25
+        pauli_term_c = [coeff_c, label_to_pauli(pauli_c)]
+        op_c = Operator(paulis=[pauli_term_c])
+        op_c.to_matrix()
+        opA.to_matrix()
+        opA += op_c
+
+        opA.to_paulis()
+        self.assertEqual(2, len(opA.paulis))
+        self.assertEqual(0.75, opA.paulis[0][0])
+
+    def test_subtraction_matrix(self):
+        """
+            test subtraction in the matrix mode
+        """
+        pauli_a = 'IX'
+        pauli_b = 'ZY'
+        coeff_a = 0.5
+        coeff_b = 0.5
+        pauli_term_a = [coeff_a, label_to_pauli(pauli_a)]
+        pauli_term_b = [coeff_b, label_to_pauli(pauli_b)]
+        opA = Operator(paulis=[pauli_term_a])
+        opB = Operator(paulis=[pauli_term_b])
+        opA.to_matrix()
+        opB.to_matrix()
+        opA -= opB
+        opA.to_paulis()
+        self.assertEqual(2, len(opA.paulis))
+        self.assertEqual(0.5, opA.paulis[0][0])
+        self.assertEqual(-0.5, opA.paulis[1][0])
+
+        pauli_c = 'IX'
+        coeff_c = 0.25
+        pauli_term_c = [coeff_c, label_to_pauli(pauli_c)]
+        op_c = Operator(paulis=[pauli_term_c])
+        op_c.to_matrix()
+        opA.to_matrix()
+        opA -= op_c
+
+        opA.to_paulis()
+        self.assertEqual(2, len(opA.paulis))
+        self.assertEqual(0.25, opA.paulis[0][0])
+
+    def test_addition_paulis_noninplace(self):
         """
             test addition
         """
@@ -222,6 +286,8 @@ class TestOperator(QiskitAquaTestCase):
 
         self.assertEqual(copy_opA, opA)
         self.assertEqual(2, len(newOP.paulis))
+        self.assertEqual(0.5, newOP.paulis[0][0])
+        self.assertEqual(-0.5, newOP.paulis[1][0])
 
         pauli_c = 'IXYZ'
         coeff_c = 0.25
