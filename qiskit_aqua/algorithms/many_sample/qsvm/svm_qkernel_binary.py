@@ -113,7 +113,7 @@ class SVM_QKernel_Binary(SVM_QKernel_ABC):
 
         return mat
 
-    def get_predictied_confidence(self, data, return_kernel_matrix=False):
+    def get_predicted_confidence(self, data, return_kernel_matrix=False):
         """
         Args:
             data (numpy.ndarray): NxD array, where N is the number of data,
@@ -171,7 +171,7 @@ class SVM_QKernel_Binary(SVM_QKernel_ABC):
         Returns:
             float: accuracy
         """
-        predicted_confidence, kernel_matrix = self.get_predictied_confidence(data, True)
+        predicted_confidence, kernel_matrix = self.get_predicted_confidence(data, True)
         binarized_predictions = (np.sign(predicted_confidence) + 1) / 2  # remap -1 --> 0, 1 --> 1
         predicted_labels = binarized_predictions.astype(int)
         accuracy = np.sum(predicted_labels == labels.astype(int)) / labels.shape[0]
@@ -191,7 +191,7 @@ class SVM_QKernel_Binary(SVM_QKernel_ABC):
         Returns:
             numpy.ndarray: predicted labels, Nx1 array
         """
-        predicted_confidence = self.get_predictied_confidence(data)
+        predicted_confidence = self.get_predicted_confidence(data)
         binarized_predictions = (np.sign(predicted_confidence) + 1) / 2  # remap -1 --> 0, 1 --> 1
         predicted_labels = binarized_predictions.astype(int)
         return predicted_labels

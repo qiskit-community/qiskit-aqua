@@ -18,24 +18,23 @@
 import logging
 
 import numpy as np
-from sklearn.metrics.pairwise import euclidean_distances
-from sklearn.multiclass import _ConstantPredictor
+from sklearn.utils.multiclass import _ovr_decision_function
 
-from qiskit_aqua.algorithms.components.multiclass_extension import MulticlassExtension
+from qiskit_aqua.algorithms.components.multiclass_extensions import MulticlassExtension
 
 logger = logging.getLogger(__name__)
 
 
-class ErrorCorrectingCode(MulticlassExtension):
+class AllPairs(MulticlassExtension):
     """
-      the multiclass extension based on the error-correcting-code algorithm.
+      the multiclass extension based on the all-pairs algorithm.
     """
-    ErrorCorrectingCode_CONFIGURATION = {
-        'name': 'ErrorCorrectingCode',
-        'description': 'ErrorCorrectingCode extension',
+    AllPairs_CONFIGURATION = {
+        'name': 'AllPairs',
+        'description': 'AllPairs extension',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
-            'id': 'error_correcting_code_schema',
+            'id': 'allpairs_schema',
             'type': 'object',
             'properties': {
                 'estimator': {
@@ -45,55 +44,45 @@ class ErrorCorrectingCode(MulticlassExtension):
                         {'enum': ['RBF_SVC_Estimator', 'QKernalSVM_Estimator']}
                     ]
                 },
-                'code_size': {
-                    'type': 'integer',
-                    'default': 4,
-                    'minimum': 1
-                },
             },
             'additionalProperties': False
         }
     }
 
     def __init__(self, configuration=None):
-        super().__init__(configuration or self.ErrorCorrectingCode_CONFIGURATION.copy())
+        super().__init__(configuration or self.AllPairs_CONFIGURATION.copy())
         self.estimator_cls = None
         self.params = None
-        # May we re-use the seed from quantum algorithm?
-        self.rand = np.random.RandomState(0)
 
     def train(self, x, y):
         """
         training multiple estimators each for distinguishing a pair of classes.
         Args:
-            X (numpy.ndarray): input points
+            x (numpy.ndarray): input points
             y (numpy.ndarray): input labels
         """
-        self.estimators = []
-        self.classes = np.unique(y)
-        n_classes = self.classes.shape[0]
-        code_size = int(n_classes * self.code_size)
-        self.codebook = self.rand.random_sample((n_classes, code_size))
-        self.codebook[self.codebook > 0.5] = 1
-        self.codebook[self.codebook != 1] = 0
-        classes_index = dict((c, i) for i, c in enumerate(self.classes))
-        Y = np.array([self.codebook[classes_index[y[i]]]
-                      for i in range(x.shape[0])], dtype=np.int)
-        logger.info("Require {} estimators.".format(Y.shape[1]))
-        for i in range(Y.shape[1]):
-            y_bit = Y[:, i]
-            unique_y = np.unique(y_bit)
-            if len(unique_y) == 1:
-                estimator = _ConstantPredictor()
-                estimator.fit(x, unique_y)
-            else:
+        self.classes_ = np.unique(y)
+        if len(self.classes_) == 1:
+            raise ValueError(" can not be fit when only one class is present.")
+        n_classes = self.classes_.shape[0]
+        self.estimators = {}
+        logger.info("Require {} estimators.".format(n_classes * (n_classes - 1) / 2))
+        for i in range(n_classes):
+            estimators_from_i = {}
+            for j in range(i + 1, n_classes):
                 if self.params is None:
                     estimator = self.estimator_cls()
                 else:
                     estimator = self.estimator_cls(*self.params)
-
-                estimator.fit(x, y_bit)
-            self.estimators.append(estimator)
+                cond = np.logical_or(y == i, y == j)
+                indcond = np.arange(x.shape[0])[cond]
+                x_filtered = x[indcond]
+                y_filtered = y[indcond]
+                y_filtered[y_filtered == i] = 0
+                y_filtered[y_filtered == j] = 1
+                estimator.fit(x_filtered, y_filtered)
+                estimators_from_i[j] = estimator
+            self.estimators[i] = estimators_from_i
 
     def test(self, x, y):
         """
@@ -101,6 +90,7 @@ class ErrorCorrectingCode(MulticlassExtension):
         Args:
             X (numpy.ndarray): input points
             y (numpy.ndarray): input labels
+
         Returns:
             float: accuracy
         """
@@ -109,7 +99,7 @@ class ErrorCorrectingCode(MulticlassExtension):
         l = len(A)
         diff = np.sum(A != B)
         logger.debug("%d out of %d are wrong" % (diff, l))
-        return 1 - (diff * 1.0 / l)
+        return 1. - (diff * 1.0 / l)
 
     def predict(self, x):
         """
@@ -119,10 +109,22 @@ class ErrorCorrectingCode(MulticlassExtension):
         Returns:
             numpy.ndarray: predicted labels, Nx1 array
         """
+        predictions = []
         confidences = []
-        for e in self.estimators:
-            confidence = np.ravel(e.decision_function(x))
-            confidences.append(confidence)
-        y = np.array(confidences).T
-        pred = euclidean_distances(y, self.codebook).argmin(axis=1)
-        return self.classes[pred]
+        for i in self.estimators:
+            estimators_from_i = self.estimators[i]
+            for j in estimators_from_i:
+                estimator = estimators_from_i[j]
+                confidence = np.ravel(estimator.decision_function(x))
+
+                indices = (confidence > 0).astype(np.int)
+                prediction = self.classes_[indices]
+
+                predictions.append(prediction.reshape(-1, 1))
+                confidences.append(confidence.reshape(-1, 1))
+
+        predictions = np.hstack(predictions)
+        confidences = np.hstack(confidences)
+        y = _ovr_decision_function(predictions,
+                                   confidences, len(self.classes_))
+        return self.classes_[y.argmax(axis=1)]

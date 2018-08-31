@@ -15,7 +15,7 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit_aqua.algorithms.components.multiclass_extension import Estimator
+from qiskit_aqua.algorithms.components.multiclass_extensions import Estimator
 from qiskit_aqua.algorithms.many_sample.qsvm import SVM_QKernel_Binary
 
 
@@ -46,7 +46,7 @@ class QKernalSVM_Estimator(Estimator):
         Returns:
             numpy.ndarray: predicted confidence, Nx1 array
         """
-        confidence = self.qsvm_binary.get_predictied_confidence(x)
+        confidence = self.qsvm_binary.get_predicted_confidence(x)
         return confidence
 
     @property
