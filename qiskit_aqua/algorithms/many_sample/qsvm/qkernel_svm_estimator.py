@@ -15,7 +15,7 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit_aqua.algorithms.components.multiclass import Estimator
+from qiskit_aqua.algorithms.components.multiclass_extension import Estimator
 from qiskit_aqua.algorithms.many_sample.qsvm import SVM_QKernel_Binary
 
 

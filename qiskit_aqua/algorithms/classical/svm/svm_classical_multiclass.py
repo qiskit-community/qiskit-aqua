@@ -18,6 +18,7 @@
 import logging
 
 from qiskit_aqua.algorithms.classical.svm import SVM_Classical_ABC
+from qiskit_aqua.utils import map_label_to_class_name
 
 logger = logging.getLogger(__name__)
 

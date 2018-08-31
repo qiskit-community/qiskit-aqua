@@ -106,7 +106,7 @@ class TestSVMClassical(QiskitAquaTestCase):
         algo_input.datapoints = total_array
 
         result = run_algorithm(params, algo_input)
-        self.assertEqual(result['test_accuracy'], 1.0)
+        self.assertEqual(result['testing_accuracy'], 1.0)
         self.assertEqual(result['predicted_classes'],
                          ['A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A',
                           'B', 'B', 'B', 'B', 'B', 'B', 'B', 'B', 'B', 'B'])

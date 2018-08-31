@@ -36,7 +36,7 @@ from qiskit_aqua.algorithms.components.initial_states import InitialState
 from qiskit_aqua.algorithms.components.iqfts import IQFT
 from qiskit_aqua.algorithms.components.oracles import Oracle
 from qiskit_aqua.algorithms.components.feature_maps import FeatureMap
-from qiskit_aqua.algorithms.components.multiclass import MulticlassExtension
+from qiskit_aqua.algorithms.components.multiclass_extension import MulticlassExtension
 
 
 logger = logging.getLogger(__name__)

@@ -20,7 +20,7 @@ import logging
 import numpy as np
 from sklearn.utils.multiclass import _ovr_decision_function
 
-from qiskit_aqua.algorithms.components.multiclass.multiclass_extension import MulticlassExtension
+from qiskit_aqua.algorithms.components.multiclass_extension import MulticlassExtension
 
 logger = logging.getLogger(__name__)
 

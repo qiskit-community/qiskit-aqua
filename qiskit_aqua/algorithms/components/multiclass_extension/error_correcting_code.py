@@ -14,27 +14,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+
 import logging
 
 import numpy as np
-from sklearn.utils.validation import _num_samples
-from sklearn.preprocessing import LabelBinarizer
+from sklearn.metrics.pairwise import euclidean_distances
+from sklearn.multiclass import _ConstantPredictor
 
-from qiskit_aqua.algorithms.components.multiclass.multiclass_extension import MulticlassExtension
+from qiskit_aqua.algorithms.components.multiclass_extension import MulticlassExtension
 
 logger = logging.getLogger(__name__)
 
 
-class OneAgainstRest(MulticlassExtension):
+class ErrorCorrectingCode(MulticlassExtension):
     """
-      the multiclass extension based on the one-against-rest algorithm.
+      the multiclass extension based on the error-correcting-code algorithm.
     """
-    OneAgainstRest_CONFIGURATION = {
-        'name': 'OneAgainstRest',
-        'description': 'OneAgainstRest extension',
+    ErrorCorrectingCode_CONFIGURATION = {
+        'name': 'ErrorCorrectingCode',
+        'description': 'ErrorCorrectingCode extension',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
-            'id': 'one_against_rest_schema',
+            'id': 'error_correcting_code_schema',
             'type': 'object',
             'properties': {
                 'estimator': {
@@ -44,44 +45,61 @@ class OneAgainstRest(MulticlassExtension):
                         {'enum': ['RBF_SVC_Estimator', 'QKernalSVM_Estimator']}
                     ]
                 },
+                'code_size': {
+                    'type': 'integer',
+                    'default': 4,
+                    'minimum': 1
+                },
             },
             'additionalProperties': False
         }
     }
 
     def __init__(self, configuration=None):
-        super().__init__(configuration or self.OneAgainstRest_CONFIGURATION.copy())
+        super().__init__(configuration or self.ErrorCorrectingCode_CONFIGURATION.copy())
         self.estimator_cls = None
         self.params = None
+        # May we re-use the seed from quantum algorithm?
+        self.rand = np.random.RandomState(0)
 
-    def train(self, X, y):
+    def train(self, x, y):
         """
         training multiple estimators each for distinguishing a pair of classes.
         Args:
             X (numpy.ndarray): input points
             y (numpy.ndarray): input labels
         """
-        self.label_binarizer_ = LabelBinarizer(neg_label=0)
-        Y = self.label_binarizer_.fit_transform(y)
-        self.classes = self.label_binarizer_.classes_
-        columns = (np.ravel(col) for col in Y.T)
         self.estimators = []
-        for i, column in enumerate(columns):
-            unique_y = np.unique(column)
+        self.classes = np.unique(y)
+        n_classes = self.classes.shape[0]
+        code_size = int(n_classes * self.code_size)
+        self.codebook = self.rand.random_sample((n_classes, code_size))
+        self.codebook[self.codebook > 0.5] = 1
+        self.codebook[self.codebook != 1] = 0
+        classes_index = dict((c, i) for i, c in enumerate(self.classes))
+        Y = np.array([self.codebook[classes_index[y[i]]]
+                      for i in range(x.shape[0])], dtype=np.int)
+        logger.info("Require {} estimators.".format(Y.shape[1]))
+        for i in range(Y.shape[1]):
+            y_bit = Y[:, i]
+            unique_y = np.unique(y_bit)
             if len(unique_y) == 1:
-                raise Exception("given all data points are assigned to the same class, the prediction would be boring.")
-            if self.params is None:
-                estimator = self.estimator_cls()
+                estimator = _ConstantPredictor()
+                estimator.fit(x, unique_y)
             else:
-                estimator = self.estimator_cls(*self.params)
-            estimator.fit(X, column)
+                if self.params is None:
+                    estimator = self.estimator_cls()
+                else:
+                    estimator = self.estimator_cls(*self.params)
+
+                estimator.fit(x, y_bit)
             self.estimators.append(estimator)
 
     def test(self, x, y):
         """
         testing multiple estimators each for distinguishing a pair of classes.
         Args:
-            x (numpy.ndarray): input points
+            X (numpy.ndarray): input points
             y (numpy.ndarray): input labels
         Returns:
             float: accuracy
@@ -101,12 +119,10 @@ class OneAgainstRest(MulticlassExtension):
         Returns:
             numpy.ndarray: predicted labels, Nx1 array
         """
-        n_samples = _num_samples(x)
-        maxima = np.empty(n_samples, dtype=float)
-        maxima.fill(-np.inf)
-        argmaxima = np.zeros(n_samples, dtype=int)
-        for i, e in enumerate(self.estimators):
-            pred = np.ravel(e.decision_function(x))
-            np.maximum(maxima, pred, out=maxima)
-            argmaxima[maxima == pred] = i
-        return self.classes[np.array(argmaxima.T)]
+        confidences = []
+        for e in self.estimators:
+            confidence = np.ravel(e.decision_function(x))
+            confidences.append(confidence)
+        y = np.array(confidences).T
+        pred = euclidean_distances(y, self.codebook).argmin(axis=1)
+        return self.classes[pred]
