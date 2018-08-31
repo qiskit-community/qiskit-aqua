@@ -19,7 +19,19 @@ def get_float_from_bin(bin,exp_range):
         else:
             num = num + 1/ 2 ** abs(e) if b else num
     return num
+def add_eigenvalue_inversion_q(qc):
+    regs = qc.get_qregs()
+    qr = regs['eigs']
 
+    control_qbit = QuantumRegister(1, 'control')
+    qc.add(control_qbit)
+    # R（lamda^-1） Rotation
+    qc.x(qr[0])
+    qc.cu3(np.pi / 16, 0, 0, qr[1], control_qbit[0])
+    qc.cu3(np.pi / 8, 0, 0, qr[0], control_qbit[0])
+
+    # Uncomputation
+    qc.x(qr[0])
 
 def add_eigenvalue_inversion(qc):
     """add controlled rotations for all possible states of the ev_register
@@ -151,16 +163,17 @@ def print_linsystem(A, k, b):
 
     display(Markdown('## ' + out_mat + sol_vec + right_side))
     equiv = '\n ## '.join(
-        ['$a_0 = ' + '{}'.format(b[i] / (A[0, i] + np.round(A[1, i] / k, 1))) + '$' for i in range(A.shape[1])])
+        ['$a_0 = ' + '{}'.format(b[i] / (A[0, i] + np.round(A[1, i] / k, 1))) + '$' for i in range(A.shape[1]) if b[i] != 0])
     # print(equiv)
     display(Markdown('## ' + equiv))
 
     solutions = []
     for i in range(A.shape[1]):
-        x0 = b[i] / (A[0, i] + np.round(A[1, i] / k, 1))
-        if np.isfinite(x0):
-            solutions.append(x0)
-        display(Markdown("## Equation {} ".format(i) + "gave a result of $\\begin{pmatrix}" + r'\\'.join([str(x0),str(1/k*x0)]) + "\\end{pmatrix}$"))
+        if b[i] != 0:
+            x0 = b[i] / (A[0, i] + np.round(A[1, i] / k, 1))
+            if np.isfinite(x0):
+                solutions.append(x0)
+            display(Markdown("## Equation {} ".format(i) + "gave a result of $\\begin{pmatrix}" + r'\\'.join([str(x0),str(1/k*x0)]) + "\\end{pmatrix}$"))
 
     correct = np.linalg.solve(A,b)
     if isinstance(correct,np.ndarray):
