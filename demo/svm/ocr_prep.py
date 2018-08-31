@@ -4,7 +4,7 @@ import scipy.sparse as sparse
 import numpy as np
 import os
 
-BASE_PATH = "~/.demo/svm/data/"
+BASE_PATH = os.path.join(os.path.expanduser("~"), ".demo/svm/data/")
 
 def normalize(v):
     v = np.array(v)
@@ -73,8 +73,10 @@ def show(path):
 
 def get_random_set(n=8, typ="easy"):
     n6 = round(min(max(0.2*np.random.randn()+0.5, 0), 1)*n)
-    l6 = np.array([os.path.join(BASE_PATH, typ, "6", name) for name in os.listdir(path+typ+"/6/")])
-    l9 = np.array([os.path.join(BASE_PATH, typ, "9", name) for name in os.listdir(path+typ+"/9/")])
+    l6 = np.array([os.path.join(BASE_PATH, typ, "6", name) for name in
+        os.listdir(os.path.join(BASE_PATH, typ, "6"))])
+    l9 = np.array([os.path.join(BASE_PATH, typ, "9", name) for name in
+        os.listdir(os.path.join(BASE_PATH, typ, "9"))])
     ret = np.concatenate([np.random.choice(l6, n6),
         np.random.choice(l9, n-n6)])
     np.random.shuffle(ret)

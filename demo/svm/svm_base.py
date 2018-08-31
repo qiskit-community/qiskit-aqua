@@ -31,7 +31,7 @@ def _construct_density_matrix2x2(training_data, backend="local_qasm_simulator",
     tomo_circuit_names = tomo.create_tomography_circuits(qp, 'density_matrix',
             q, c, tomo_set)
     
-    plot_circuit(qp.get_circuit(tomo_circuit_names[0]))
+    # plot_circuit(qp.get_circuit(tomo_circuit_names[0]))
 
     result = qp.execute(tomo_circuit_names, backend=backend, shots=shots)
     data = tomo.tomography_data(result, 'density_matrix', tomo_set)
@@ -218,7 +218,7 @@ def classify_results(result, qcs, test_data, debug=False):
                 t += v*(-1 if k[-1] == "1" else 1)
         if t == 0:
             t = 1
-        classes.append(int(t/abs(t)))
+        classes.append(round(t/abs(t)))
     return list(zip(test_data, classes))
 
 def classify(training_data, test_data, matrix=None, evo_time=None,
@@ -239,7 +239,7 @@ def classify_classically(training_data, test_data, matrix):
     for test in test_data:
         x = final.dot(np.array(test))
         #print(x)
-        ret.append((test, int(x/abs(x))))
+        ret.append((test, int(round(x/abs(x)))))
     return ret
 
 def plot_counts(result, qcs, size=2):
