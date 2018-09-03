@@ -68,9 +68,6 @@ class QSVMVariational(QuantumAlgorithm):
         if algo_input.training_dataset is None:
             raise AlgorithmError('Training dataset is missing! please provide it')
 
-        if 'statevector' in self._backend:
-            raise ValueError('Selected backend  "{}" is not supported.'.format(self._backend))
-
         # Set up optimizer
         opt_params = params.get(QuantumAlgorithm.SECTION_KEY_OPTIMIZER)
         optimizer = get_optimizer_instance(opt_params['name'])
@@ -108,6 +105,9 @@ class QSVMVariational(QuantumAlgorithm):
         Notes:
             We used `label` denotes numeric results and `class` means the name of that class (str).
         """
+
+        if 'statevector' in self._backend:
+            raise ValueError('Selected backend  "{}" is not supported.'.format(self._backend))
 
         self._training_dataset, self._class_to_label = split_dataset_to_data_and_labels(
             training_dataset)
