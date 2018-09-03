@@ -21,7 +21,7 @@ import numpy as np
 from sklearn.metrics.pairwise import euclidean_distances
 from sklearn.multiclass import _ConstantPredictor
 
-from qiskit_aqua.algorithms.components.multiclass.multiclass_extension import MulticlassExtension
+from qiskit_aqua.algorithms.components.multiclass_extensions import MulticlassExtension
 
 logger = logging.getLogger(__name__)
 
@@ -59,9 +59,10 @@ class ErrorCorrectingCode(MulticlassExtension):
         super().__init__(configuration or self.ErrorCorrectingCode_CONFIGURATION.copy())
         self.estimator_cls = None
         self.params = None
+        # May we re-use the seed from quantum algorithm?
         self.rand = np.random.RandomState(0)
 
-    def train(self, X, y):
+    def train(self, x, y):
         """
         training multiple estimators each for distinguishing a pair of classes.
         Args:
@@ -74,52 +75,54 @@ class ErrorCorrectingCode(MulticlassExtension):
         code_size = int(n_classes * self.code_size)
         self.codebook = self.rand.random_sample((n_classes, code_size))
         self.codebook[self.codebook > 0.5] = 1
-        self.codebook[self.codebook != 1] = -1
+        self.codebook[self.codebook != 1] = 0
         classes_index = dict((c, i) for i, c in enumerate(self.classes))
         Y = np.array([self.codebook[classes_index[y[i]]]
-                      for i in range(X.shape[0])], dtype=np.int)
+                      for i in range(x.shape[0])], dtype=np.int)
+        logger.info("Require {} estimators.".format(Y.shape[1]))
         for i in range(Y.shape[1]):
-            Ybit = Y[:, i]
-            unique_y = np.unique(Ybit)
+            y_bit = Y[:, i]
+            unique_y = np.unique(y_bit)
             if len(unique_y) == 1:
                 estimator = _ConstantPredictor()
-                estimator.fit(X, unique_y)
+                estimator.fit(x, unique_y)
             else:
                 if self.params is None:
                     estimator = self.estimator_cls()
                 else:
                     estimator = self.estimator_cls(*self.params)
 
-                estimator.fit(X, Ybit)
+                estimator.fit(x, y_bit)
             self.estimators.append(estimator)
 
-    def test(self, X, y):
+    def test(self, x, y):
         """
         testing multiple estimators each for distinguishing a pair of classes.
         Args:
             X (numpy.ndarray): input points
             y (numpy.ndarray): input labels
+        Returns:
+            float: accuracy
         """
-        A = self.predict(X)
+        A = self.predict(x)
         B = y
         l = len(A)
-        diff = 0
-        for i in range(0, l):
-            if A[i] != B[i]:
-                diff += 1
+        diff = np.sum(A != B)
         logger.debug("%d out of %d are wrong" % (diff, l))
         return 1 - (diff * 1.0 / l)
 
-    def predict(self, X):
+    def predict(self, x):
         """
         applying multiple estimators for prediction
         Args:
-            X (numpy.ndarray): input points
+            x (numpy.ndarray): NxD array
+        Returns:
+            numpy.ndarray: predicted labels, Nx1 array
         """
         confidences = []
         for e in self.estimators:
-            confidence = np.ravel(e.decision_function(X))
+            confidence = np.ravel(e.decision_function(x))
             confidences.append(confidence)
-        Y = np.array(confidences).T
-        pred = euclidean_distances(Y, self.codebook).argmin(axis=1)
+        y = np.array(confidences).T
+        pred = euclidean_distances(y, self.codebook).argmin(axis=1)
         return self.classes[pred]

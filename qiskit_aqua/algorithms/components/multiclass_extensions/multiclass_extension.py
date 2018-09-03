@@ -14,13 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-"""
-This module contains the definition of a base class for Oracle.
-"""
+
 from abc import ABC, abstractmethod
 
 from qiskit_aqua.algorithms.classical.svm import RBF_SVC_Estimator
-from qiskit_aqua.algorithms.many_sample.qsvm.qkernel_svm_estimator import QKernalSVM_Estimator
+from qiskit_aqua.algorithms.many_sample.qsvm import QKernalSVM_Estimator
 
 
 class MulticlassExtension(ABC):
@@ -28,8 +26,7 @@ class MulticlassExtension(ABC):
         Base class for multiclass extension.
 
         This method should initialize the module and its configuration, and
-        use an exception if a component of the module is
-        available.
+        use an exception if a component of the module is available.
 
         Args:
             configuration (dict): configuration dictionary
@@ -49,42 +46,41 @@ class MulticlassExtension(ABC):
         self.init_args(**args)
 
     def init_args(self, **args):
-        if 'estimator' in args:
-            estimator_class_name = args['estimator']
-            if estimator_class_name == 'RBF_SVC_Estimator':
-                self.estimator_cls = RBF_SVC_Estimator
-            elif estimator_class_name == 'QKernalSVM_Estimator':
-                self.estimator_cls = QKernalSVM_Estimator
-            else:
-                raise ValueError("We do not understand your input of the estimator")
+        estimator_class_name = args.get('estimator', None)
+        if estimator_class_name == 'RBF_SVC_Estimator':
+            self.estimator_cls = RBF_SVC_Estimator
+        elif estimator_class_name == 'QKernalSVM_Estimator':
+            self.estimator_cls = QKernalSVM_Estimator
+        else:
+            raise ValueError("We do not understand your input of the estimator.")
         self.code_size = args.get('code_size', None)
         self.params = args.get('params', None)
 
     @abstractmethod
-    def train(self, X, y):
+    def train(self, x, y):
         """
         training multiple estimators each for distinguishing a pair of classes.
         Args:
-            X (numpy.ndarray): input points
+            x (numpy.ndarray): input points
             y (numpy.ndarray): input labels
         """
         raise NotImplementedError()
 
     @abstractmethod
-    def test(self, X, y):
+    def test(self, x, y):
         """
         testing multiple estimators each for distinguishing a pair of classes.
         Args:
-            X (numpy.ndarray): input points
+            x (numpy.ndarray): input points
             y (numpy.ndarray): input labels
         """
         raise NotImplementedError()
 
     @abstractmethod
-    def predict(self, X):
+    def predict(self, x):
         """
         applying multiple estimators for prediction
         Args:
-            X (numpy.ndarray): input points
+            x (numpy.ndarray): input points
         """
         raise NotImplementedError()

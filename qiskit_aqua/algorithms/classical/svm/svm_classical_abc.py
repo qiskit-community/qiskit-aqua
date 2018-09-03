@@ -17,19 +17,39 @@
 
 from abc import ABC, abstractmethod
 
+from qiskit_aqua.utils import split_dataset_to_data_and_labels
+
 
 class SVM_Classical_ABC(ABC):
     """
     abstract base class for the binary classifier and the multiclass classifier
     """
 
+    def __init__(self):
+        self._ret = {}
+
     def init_args(self, training_dataset, test_dataset, datapoints, gamma=None):
-        self.training_dataset = training_dataset
-        self.test_dataset = test_dataset
+
+        if training_dataset is None:
+            raise ValueError('training dataset is missing! please provide it')
+
+        self.training_dataset, self.class_to_label = split_dataset_to_data_and_labels(
+            training_dataset)
+        if test_dataset is not None:
+            self.test_dataset = split_dataset_to_data_and_labels(test_dataset,
+                                                                 self.class_to_label)
+
+        self.label_to_class = {label: class_name for class_name, label
+                               in self.class_to_label.items()}
+        self.num_classes = len(list(self.class_to_label.keys()))
+
         self.datapoints = datapoints
-        self.class_labels = list(self.training_dataset.keys())
         self.gamma = gamma
 
     @abstractmethod
     def run(self):
         raise NotImplementedError("Should have implemented this")
+
+    @property
+    def ret(self):
+        return self._ret

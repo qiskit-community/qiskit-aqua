@@ -20,7 +20,7 @@ import logging
 import numpy as np
 from sklearn.utils.multiclass import _ovr_decision_function
 
-from qiskit_aqua.algorithms.components.multiclass.multiclass_extension import MulticlassExtension
+from qiskit_aqua.algorithms.components.multiclass_extensions import MulticlassExtension
 
 logger = logging.getLogger(__name__)
 
@@ -54,20 +54,19 @@ class AllPairs(MulticlassExtension):
         self.estimator_cls = None
         self.params = None
 
-
-    def train(self, X, y):
+    def train(self, x, y):
         """
         training multiple estimators each for distinguishing a pair of classes.
         Args:
-            X (numpy.ndarray): input points
+            x (numpy.ndarray): input points
             y (numpy.ndarray): input labels
         """
         self.classes_ = np.unique(y)
         if len(self.classes_) == 1:
-            raise ValueError(" can not be fit when only one"
-                             " class is present.")
+            raise ValueError(" can not be fit when only one class is present.")
         n_classes = self.classes_.shape[0]
         self.estimators = {}
+        logger.info("Require {} estimators.".format(n_classes * (n_classes - 1) / 2))
         for i in range(n_classes):
             estimators_from_i = {}
             for j in range(i + 1, n_classes):
@@ -76,37 +75,39 @@ class AllPairs(MulticlassExtension):
                 else:
                     estimator = self.estimator_cls(*self.params)
                 cond = np.logical_or(y == i, y == j)
-                indcond = np.arange(X.shape[0])[cond]
-                X_filtered = X[indcond]
+                indcond = np.arange(x.shape[0])[cond]
+                x_filtered = x[indcond]
                 y_filtered = y[indcond]
-                y_filtered[y_filtered == i] = -1
+                y_filtered[y_filtered == i] = 0
                 y_filtered[y_filtered == j] = 1
-                estimator.fit(X_filtered, y_filtered)
+                estimator.fit(x_filtered, y_filtered)
                 estimators_from_i[j] = estimator
             self.estimators[i] = estimators_from_i
 
-    def test(self, X, y):
+    def test(self, x, y):
         """
         testing multiple estimators each for distinguishing a pair of classes.
         Args:
             X (numpy.ndarray): input points
             y (numpy.ndarray): input labels
+
+        Returns:
+            float: accuracy
         """
-        A = self.predict(X)
+        A = self.predict(x)
         B = y
         l = len(A)
-        diff = 0
-        for i in range(0, l):
-            if A[i] != B[i]:
-                diff += 1
-        logger.debug("%d out of %d are wrong" %(diff, l))
-        return 1-(diff*1.0/l)
+        diff = np.sum(A != B)
+        logger.debug("%d out of %d are wrong" % (diff, l))
+        return 1. - (diff * 1.0 / l)
 
-    def predict(self, X):
+    def predict(self, x):
         """
         applying multiple estimators for prediction
         Args:
-            X (numpy.ndarray): input points
+            x (numpy.ndarray): NxD array
+        Returns:
+            numpy.ndarray: predicted labels, Nx1 array
         """
         predictions = []
         confidences = []
@@ -114,20 +115,16 @@ class AllPairs(MulticlassExtension):
             estimators_from_i = self.estimators[i]
             for j in estimators_from_i:
                 estimator = estimators_from_i[j]
-                confidence = np.ravel(estimator.decision_function(X))
+                confidence = np.ravel(estimator.decision_function(x))
 
                 indices = (confidence > 0).astype(np.int)
                 prediction = self.classes_[indices]
 
-                predictions.append(prediction.reshape(-1,1))
-                confidences.append(confidence.reshape(-1,1))
+                predictions.append(prediction.reshape(-1, 1))
+                confidences.append(confidence.reshape(-1, 1))
 
         predictions = np.hstack(predictions)
         confidences = np.hstack(confidences)
-        Y = _ovr_decision_function(predictions,
+        y = _ovr_decision_function(predictions,
                                    confidences, len(self.classes_))
-        return self.classes_[Y.argmax(axis=1)]
-
-
-
-
+        return self.classes_[y.argmax(axis=1)]

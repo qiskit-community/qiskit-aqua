@@ -17,9 +17,11 @@
 
 import logging
 
-from qiskit_aqua.algorithms.many_sample.qsvm.svm_qkernel_binary import SVM_QKernel_Binary
-from qiskit_aqua.algorithms.many_sample.qsvm.svm_qkernel_multiclass import SVM_QKernel_Multiclass
-from qiskit_aqua import (QuantumAlgorithm, get_multiclass_extension_instance)
+from qiskit_aqua import (QuantumAlgorithm, get_feature_map_instance,
+                         get_multiclass_extension_instance)
+from qiskit_aqua.algorithms.many_sample.qsvm import SVM_QKernel_Binary, SVM_QKernel_Multiclass
+from qiskit_aqua.utils.dataset_helper import get_feature_dimension, get_num_classes
+
 
 logger = logging.getLogger(__name__)
 
@@ -41,12 +43,16 @@ class SVM_QKernel(QuantumAlgorithm):
             },
             'additionalProperties': False
         },
-        'depends': ['multiclass_extension'],
+        'depends': ['multiclass_extension', 'feature_map'],
         'problems': ['svm_classification'],
         'defaults': {
             'multiclass_extension': {
                 'name': 'AllPairs',
-                'estimator': 'RBF_SVC_Estimator'
+                'estimator': 'QKernalSVM_Estimator'
+            },
+            'feature_map': {
+                'name': 'SecondOrderExpansion',
+                'depth': 2
             }
         }
     }
@@ -56,28 +62,86 @@ class SVM_QKernel(QuantumAlgorithm):
         self._ret = {}
 
     def init_params(self, params, algo_input):
-        SVMQK_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
+        fea_map_params = params.get(QuantumAlgorithm.SECTION_KEY_FEATURE_MAP)
+        feature_map = get_feature_map_instance(fea_map_params['name'])
+        num_qubits = get_feature_dimension(algo_input.training_dataset)
+        fea_map_params['num_qubits'] = num_qubits
+        feature_map.init_params(fea_map_params)
 
-        is_multiclass = (len(algo_input.training_dataset.keys()) > 2)
+        is_multiclass = get_num_classes(algo_input.training_dataset) > 2
+
         if is_multiclass:
-            multiclass_extension_params = params.get(QuantumAlgorithm.SECTION_KEY_MULTICLASS_EXTENSION)
-            multiclass_extension = get_multiclass_extension_instance(multiclass_extension_params['name'])
-            multiclass_extension_params['params'] = [self._backend, self._execute_config['shots'], self._random_seed] # we need to set this explicitly for quantum version
-            multiclass_extension.init_params(multiclass_extension_params)
+            multicls_ext_params = params.get(QuantumAlgorithm.SECTION_KEY_MULTICLASS_EXTENSION)
+            multiclass_extension = get_multiclass_extension_instance(multicls_ext_params['name'])
+            # we need to set this explicitly for quantum version
+            multicls_ext_params['params'] = [feature_map, self]
+            multiclass_extension.init_params(multicls_ext_params)
             # checking the options:
-            estimator = multiclass_extension_params.get('estimator', None)
+            estimator = multicls_ext_params.get('estimator', None)
             if estimator is None:
-                logger.debug("You did not provide the estimator, which is however required!")
+                logger.warning("You did not provide the estimator, which is however required!")
             if estimator not in ["QKernalSVM_Estimator"]:
-                logger.debug("You should use one of the qkernel estimators")
-            logger.debug("We will apply the multiclass classifcation:" + multiclass_extension_params['name'])
-
-            self.instance = SVM_QKernel_Multiclass(multiclass_extension)
+                logger.warning("You should use one of the qkernel estimators")
+            logger.info("Multiclass classifcation algo:" + multicls_ext_params['name'])
         else:
-            logger.debug("We will apply the binary classifcation and ignore all options related to the multiclass")
-            self.instance = SVM_QKernel_Binary()
-        self.instance.init_args(algo_input.training_dataset, algo_input.test_dataset, algo_input.datapoints, SVMQK_params.get('multiclass_alg'), self._backend, self._execute_config['shots'], self._random_seed)
+            logger.warning("Only two classes in the dataset, use binary classifer"
+                           " and ignore all options related to the multiclass")
+            multiclass_extension = None
+
+        self.init_args(algo_input.training_dataset, algo_input.test_dataset,
+                       algo_input.datapoints, feature_map, multiclass_extension)
+
+    def init_args(self, training_dataset, test_dataset, datapoints,
+                  feature_map, multiclass_extension=None):
+
+        if multiclass_extension is None:
+            qsvm_instance = SVM_QKernel_Binary()
+        else:
+            qsvm_instance = SVM_QKernel_Multiclass(multiclass_extension)
+        qsvm_instance.init_args(training_dataset, test_dataset, datapoints, feature_map, self)
+        self.instance = qsvm_instance
+
+    def train(self, data, labels):
+        """
+        train the svm
+        Args:
+            data (numpy.ndarray): NxD array, where N is the number of data,
+                                  D is the feature dimension.
+            labels (numpy.ndarray): Nx1 array, where N is the number of data
+        """
+        self.instance.train(data, labels)
+
+    def test(self, data, labels):
+        """
+        test the svm
+        Args:
+            data (numpy.ndarray): NxD array, where N is the number of data,
+                                  D is the feature dimension.
+            labels (numpy.ndarray): Nx1 array, where N is the number of data
+
+        Returns:
+            float: accuracy
+        """
+        return self.instance.test(data, labels)
+
+    def predict(self, data):
+        """
+        predict using the svm
+        Args:
+            data (numpy.ndarray): NxD array, where N is the number of data,
+                                  D is the feature dimension.
+        Returns:
+            numpy.ndarray: predicted labels, Nx1 array
+        """
+        return self.instance.predict(data)
 
     def run(self):
-        self.instance.run()
-        return self.instance.ret
+        return self.instance.run()
+
+    @property
+    def label_to_class(self):
+        return self.instance.label_to_class
+
+    @property
+    def class_to_label(self):
+        return self.instance.class_to_label

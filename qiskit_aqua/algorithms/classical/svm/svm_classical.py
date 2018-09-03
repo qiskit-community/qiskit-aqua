@@ -15,13 +15,12 @@
 # limitations under the License.
 # =============================================================================
 
-import logging
 import copy
+import logging
 
-from qiskit_aqua.algorithms.classical.svm.svm_classical_binary import SVM_Classical_Binary
-from qiskit_aqua.algorithms.classical.svm.svm_classical_multiclass import SVM_Classical_Multiclass
-
-from qiskit_aqua import (QuantumAlgorithm, get_multiclass_extension_instance)
+from qiskit_aqua import QuantumAlgorithm, get_multiclass_extension_instance
+from qiskit_aqua.algorithms.classical.svm import SVM_Classical_Binary, SVM_Classical_Multiclass
+from qiskit_aqua.utils import get_num_classes
 
 logger = logging.getLogger(__name__)
 
@@ -65,27 +64,80 @@ class SVM_Classical(QuantumAlgorithm):
         self.instance = None
 
     def init_params(self, params, algo_input):
-        SVM_Classical_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
+        svm_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
 
-        is_multiclass = (len(algo_input.training_dataset.keys()) > 2)
+        is_multiclass = get_num_classes(algo_input.training_dataset) > 2
         if is_multiclass:
             multiclass_extension_params = params.get(QuantumAlgorithm.SECTION_KEY_MULTICLASS_EXTENSION)
             multiclass_extension = get_multiclass_extension_instance(multiclass_extension_params['name'])
             multiclass_extension.init_params(multiclass_extension_params)
-            #checking the options:
+            # checking the options:
             estimator = multiclass_extension_params.get('estimator', None)
             if estimator is None:
                 logger.debug("You did not provide the estimator, which is however required!")
             if estimator not in ["RBF_SVC_Estimator"]:
                 logger.debug("You should use one of the classical estimators")
-            logger.debug("We will apply the multiclass classifcation:" + multiclass_extension_params['name'])
-
-            self.instance = SVM_Classical_Multiclass(multiclass_extension)
+            logger.info("Multiclass classifcation algo:" + multiclass_extension_params['name'])
         else:
-            logger.debug("We will apply the binary classifcation and ignore all options related to the multiclass")
-            self.instance = SVM_Classical_Binary()
-        self.instance.init_args(algo_input.training_dataset, algo_input.test_dataset, algo_input.datapoints, SVM_Classical_params.get('gamma'))
+            logger.warning("We will apply the binary classifcation and"
+                           "ignore all options related to the multiclass")
+            multiclass_extension = None
+
+        self.init_args(algo_input.training_dataset, algo_input.test_dataset,
+                       algo_input.datapoints, svm_params.get('gamma'), multiclass_extension)
+
+    def init_args(self, training_dataset, test_dataset, datapoints, gamma,
+                  multiclass_extension=None):
+
+        if multiclass_extension is None:
+            svm_instance = SVM_Classical_Binary()
+        else:
+            svm_instance = SVM_Classical_Multiclass(multiclass_extension)
+
+        svm_instance.init_args(training_dataset, test_dataset, datapoints, gamma)
+        self.instance = svm_instance
+
+    def train(self, data, labels):
+        """
+        train the svm
+        Args:
+            data (numpy.ndarray): NxD array, where N is the number of data,
+                                  D is the feature dimension.
+            labels (numpy.ndarray): Nx1 array, where N is the number of data
+        """
+        self.instance.train(data, labels)
+
+    def test(self, data, labels):
+        """
+        test the svm
+        Args:
+            data (numpy.ndarray): NxD array, where N is the number of data,
+                                  D is the feature dimension.
+            labels (numpy.ndarray): Nx1 array, where N is the number of data
+
+        Returns:
+            float: accuracy
+        """
+        return self.instance.test(data, labels)
+
+    def predict(self, data):
+        """
+        predict using the svm
+        Args:
+            data (numpy.ndarray): NxD array, where N is the number of data,
+                                  D is the feature dimension.
+        Returns:
+            numpy.ndarray: predicted labels, Nx1 array
+        """
+        return self.instance.predict(data)
 
     def run(self):
-        self.instance.run()
-        return self.instance.ret
+        return self.instance.run()
+
+    @property
+    def label_to_class(self):
+        return self.instance.label_to_class
+
+    @property
+    def class_to_label(self):
+        return self.instance.class_to_label

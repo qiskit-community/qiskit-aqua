@@ -15,9 +15,8 @@
 # limitations under the License.
 # =============================================================================
 
-from sklearn.decomposition import PCA
+from .estimator import Estimator
+from .multiclass_extension import MulticlassExtension
 
-
-def reduce_dim_to(X, dim):
-    X_reduced = PCA(n_components=dim).fit_transform(X)
-    return X_reduced
+__all__ = ['MulticlassExtension',
+           'Estimator']
