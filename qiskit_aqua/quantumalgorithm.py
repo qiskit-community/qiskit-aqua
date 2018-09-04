@@ -84,6 +84,7 @@ class QuantumAlgorithm(ABC):
         self._qjob_config = {}
         self._random_seed = None
         self._random = None
+        self._show_circuit_summary = False
 
     @property
     def configuration(self):
@@ -123,6 +124,11 @@ class QuantumAlgorithm(ABC):
                 self._random = np.random.RandomState(self._random_seed)
         return self._random
 
+    def enable_circuit_summary(self):
+        self._show_circuit_summary = True
+
+    def disable_circuit_summary(self):
+        self._show_circuit_summary = False
 
     def setup_quantum_backend(self, backend='local_statevector_simulator', shots=1024, skip_transpiler=False,
                               noise_params=None, coupling_map=None, initial_layout=None, hpc_params=None,
@@ -203,11 +209,14 @@ class QuantumAlgorithm(ABC):
         jobs = []
         chunks = int(np.ceil(len(circuits) / self.MAX_CIRCUITS_PER_JOB))
         for i in range(chunks):
-            sub_circuits = circuits[i*self.MAX_CIRCUITS_PER_JOB:(i+1)*self.MAX_CIRCUITS_PER_JOB]
+            sub_circuits = circuits[i * self.MAX_CIRCUITS_PER_JOB:(i + 1) * self.MAX_CIRCUITS_PER_JOB]
             jobs.append(q_execute(sub_circuits, self._backend, **self._execute_config))
 
-        if logger.isEnabledFor(logging.DEBUG):
+        if logger.isEnabledFor(logging.DEBUG) and self._show_circuit_summary:
             logger.debug(summarize_circuits(circuits))
+
+        if self._show_circuit_summary:
+            self.disable_circuit_summary()
 
         results = []
         for job in jobs:
