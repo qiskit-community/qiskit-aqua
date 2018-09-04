@@ -145,3 +145,7 @@ class SVM_QKernel(QuantumAlgorithm):
     @property
     def class_to_label(self):
         return self.instance.class_to_label
+
+    @property
+    def ret(self):
+        return self.instance.ret
