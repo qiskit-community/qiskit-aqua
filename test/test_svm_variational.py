@@ -73,10 +73,10 @@ class TestSVMVariational(QiskitAquaTestCase):
         num_qubits = 2
 
         feature_map = get_feature_map_instance('SecondOrderExpansion')
-        feature_map.init_args(num_qubits=num_qubits, depth=2, entanglement='full')
+        feature_map.init_args(num_qubits=num_qubits, depth=2)
 
         var_form = get_variational_form_instance('RYRZ')
-        var_form.init_args(num_qubits=num_qubits, depth=3, entanglement='full')
+        var_form.init_args(num_qubits=num_qubits, depth=3)
 
         svm.init_args(self.training_data, self.testing_data, None, optimizer, feature_map, var_form)
         result = svm.run()
