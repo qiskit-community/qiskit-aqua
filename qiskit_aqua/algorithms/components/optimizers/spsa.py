@@ -48,9 +48,29 @@ class SPSA(Optimizer):
                     'default': 1,
                     'minimum': 1
                 },
-                'parameters': {
-                    'type': ['array', 'null'],
-                    'default': None
+                'c0': {
+                    'type': 'number',
+                    'default': 0.62831853071796
+                },
+                'c1': {
+                    'type': 'number',
+                    'default': 0.1
+                },
+                'c2': {
+                    'type': 'number',
+                    'default': 0.602
+                },
+                'c3': {
+                    'type': 'number',
+                    'default': 0.101
+                },
+                'c4': {
+                    'type': 'number',
+                    'default': 0
+                },
+                'skip_calibration': {
+                    'type': 'boolean',
+                    'default': False
                 }
             },
             'additionalProperties': False
@@ -68,10 +88,12 @@ class SPSA(Optimizer):
         super().__init__(configuration or self.SPSA_CONFIGURATION.copy())
         self._max_trials = None
         self._parameters = None
+        self._skip_calibration = False
 
-    def init_args(self, max_trials=1000, parameters=None):
+    def init_args(self, max_trials=1000, c0=2*np.pi*0.1, c1=0.1, c2=0.602, c3=0.101, c4=0, skip_calibration=False):
         self._max_trials = max_trials
-        self._parameters = parameters
+        self._parameters = np.array([c0, c1, c2, c3, c4])
+        self._skip_calibration = skip_calibration
 
     def optimize(self, num_vars, objective_function, gradient_function=None, variable_bounds=None, initial_point=None):
 
@@ -80,13 +102,14 @@ class SPSA(Optimizer):
 
         super().optimize(num_vars, objective_function, gradient_function, variable_bounds, initial_point)
 
-        initial_c = 0.1
-        target_update = 2*np.pi*0.1
-        if self._parameters is None: # at least one calibration, at most 25 calibrations
+        logger.debug('Parameters: {}'.format(self._parameters))
+        if not self._skip_calibration:
+            # at least one calibration, at most 25 calibrations
             num_steps_calibration = min(25, max(1, self._max_trials // 5))
-            self._calibration(objective_function, initial_point, initial_c, target_update, num_steps_calibration)
+            self._calibration(objective_function, initial_point, num_steps_calibration)
         else:
-            logger.debug('SPSA parameters is manually set, skip calibration.')
+            logger.debug('Skipping calibration, parameters used as provided.')
+
         opt, sol, cplus, cminus, tplus, tminus = self._optimization(objective_function, initial_point,
                                                                     max_trials=self._max_trials, **self._options)
         return sol, opt, None
@@ -160,25 +183,26 @@ class SPSA(Optimizer):
         return [cost_final, theta_best, cost_plus_save, cost_minus_save,
                 theta_plus_save, theta_minus_save]
 
-    def _calibration(self, obj_fun, initial_theta, initial_c, target_update, stat):
+    def _calibration(self, obj_fun, initial_theta, stat):
         """Calibrates and stores the SPSA parameters back.
+
+        SPSA parameters are c0 through c5 stored in parameters array
+
+        c0 on input is target_update and is the aimed update of variables on the first trial step.
+        Following calibration c0 will be updated.
+
+        c1 is initial_c and is first perturbation of initial_theta.
 
         Args:
             obj_fun (callable): the function to minimize.
             initial_theta (numpy.array): initial value for the variables of
                 obj_fun.
-            initial_c (float) : first perturbation of initial_theta.
-            target_update (float) : the aimed update of variables on the first
-                trial step.
             stat (int) : number of random gradient directions to average on in
                 the calibration.
         """
 
-        SPSA_parameters = np.zeros((5))
-        SPSA_parameters[1] = initial_c
-        SPSA_parameters[2] = 0.602
-        SPSA_parameters[3] = 0.101
-        SPSA_parameters[4] = 0
+        target_update = self._parameters[0]
+        initial_c = self._parameters[1]
         delta_obj = 0
         logger.debug("Calibration...")
         for i in range(stat):
@@ -189,8 +213,7 @@ class SPSA(Optimizer):
             obj_minus = obj_fun(initial_theta - initial_c * delta)
             delta_obj += np.absolute(obj_plus - obj_minus) / stat
 
-        SPSA_parameters[0] = target_update * 2 / delta_obj \
-            * SPSA_parameters[1] * (SPSA_parameters[4] + 1)
+        self._parameters[0] = target_update * 2 / delta_obj \
+            * self._parameters[1] * (self._parameters[4] + 1)
 
-        logger.debug('Calibrated SPSA_parameters[0] is %.7f' % SPSA_parameters[0])
-        self._parameters = SPSA_parameters
+        logger.debug('Calibrated SPSA parameter c0 is %.7f' % self._parameters[0])
