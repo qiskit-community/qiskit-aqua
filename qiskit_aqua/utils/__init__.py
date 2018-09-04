@@ -23,6 +23,10 @@ from .decimal_to_binary import decimal_to_binary
 from .summarize_circuits import summarize_circuits
 from .cnx import cnx
 from .entangler_map import get_entangler_map, validate_entangler_map
+from .dataset_helper import (get_feature_dimension, get_num_classes,
+                             split_dataset_to_data_and_labels, map_label_to_class_name,
+                             reduce_dim_to_via_pca)
+from .qpsolver import optimize_svm
 
 
 __all__ = ['tensorproduct',
@@ -36,4 +40,10 @@ __all__ = ['tensorproduct',
            'summarize_circuits',
            'cnx',
            'get_entangler_map',
-           'validate_entangler_map']
+           'validate_entangler_map',
+           'get_feature_dimension',
+           'get_num_classes',
+           'split_dataset_to_data_and_labels',
+           'map_label_to_class_name',
+           'reduce_dim_to_via_pca',
+           'optimize_svm']

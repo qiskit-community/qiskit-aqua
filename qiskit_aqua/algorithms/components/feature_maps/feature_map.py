@@ -73,3 +73,8 @@ class FeatureMap(ABC):
     @staticmethod
     def validate_entangler_map(entangler_map, num_qubits):
         return validate_entangler_map(entangler_map, num_qubits)
+
+    @property
+    def num_qubits(self):
+        return self._num_qubits
+

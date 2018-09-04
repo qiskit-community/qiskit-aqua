@@ -16,23 +16,25 @@
 # =============================================================================
 
 import logging
-import operator
 
-from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
+import numpy as np
+from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 
-from qiskit_aqua import (QuantumAlgorithm, AlgorithmError,
-                         get_optimizer_instance, get_feature_map_instance,
+from qiskit_aqua import (AlgorithmError, QuantumAlgorithm,
+                         get_feature_map_instance, get_optimizer_instance,
                          get_variational_form_instance)
-from qiskit_aqua.algorithms.adaptive.qsvm.cost_helpers import (cost_estimate_sigmoid, return_probabilities)
+from qiskit_aqua.algorithms.adaptive.qsvm import (cost_estimate_sigmoid, return_probabilities)
+from qiskit_aqua.utils import (get_feature_dimension, map_label_to_class_name,
+                               split_dataset_to_data_and_labels)
 
 logger = logging.getLogger(__name__)
 
 
-class SVM_Variational(QuantumAlgorithm):
+class QSVMVariational(QuantumAlgorithm):
 
-    SVM_VARIATIONAL_CONFIGURATION = {
+    QSVM_VARIATIONAL_CONFIGURATION = {
         'name': 'QSVM.Variational',
-        'description': 'SVM_Variational Algorithm',
+        'description': 'QSVM_Variational Algorithm',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
             'id': 'SVM_Variational_schema',
@@ -63,12 +65,15 @@ class SVM_Variational(QuantumAlgorithm):
     }
 
     def __init__(self, configuration=None):
-        super().__init__(configuration or self.SVM_VARIATIONAL_CONFIGURATION.copy())
+        super().__init__(configuration or self.QSVM_VARIATIONAL_CONFIGURATION.copy())
         self._ret = {}
 
     def init_params(self, params, algo_input):
         algo_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
         override_spsa_params = algo_params.get('override_SPSA_params')
+        
+        if algo_input.training_dataset is None:
+            raise AlgorithmError('Training dataset is missing! please provide it')
 
         # Set up optimizer
         opt_params = params.get(QuantumAlgorithm.SECTION_KEY_OPTIMIZER)
@@ -85,7 +90,7 @@ class SVM_Variational(QuantumAlgorithm):
 
         # Set up variational form
         fea_map_params = params.get(QuantumAlgorithm.SECTION_KEY_FEATURE_MAP)
-        num_qubits = self._auto_detect_qubitnum(algo_input.training_dataset)
+        num_qubits = get_feature_dimension(algo_input.training_dataset)
         fea_map_params['num_qubits'] = num_qubits
         feature_map = get_feature_map_instance(fea_map_params['name'])
         feature_map.init_params(fea_map_params)
@@ -101,83 +106,68 @@ class SVM_Variational(QuantumAlgorithm):
 
     def init_args(self, training_dataset, test_dataset, datapoints, optimizer,
                   feature_map, var_form):
+        """Initialize the object
+        Args:
+            training_dataset (dict): {'A': numpy.ndarray, 'B': numpy.ndarray, ...}
+            test_dataset (dict): the same format as `training_dataset`
+            datapoints (numpy.ndarray): NxD array, N is the number of data and D is data dimension
+            optimizer (Optimizer): Optimizer instance
+            feature_map (FeatureMap): FeatureMap instance
+            var_form (VariationalForm): VariationalForm instance
+        Notes:
+            We used `label` denotes numeric results and `class` means the name of that class (str).
+        """
 
         if 'statevector' in self._backend:
-            raise ValueError('Selected backend  "{}" does not support measurements.'.format(self._backend))
+            raise ValueError('Selected backend  "{}" is not supported.'.format(self._backend))
 
-        if training_dataset is None:
-            raise ValueError('training dataset is missing! please provide it')
+        self._training_dataset, self._class_to_label = split_dataset_to_data_and_labels(
+            training_dataset)
+        if test_dataset is not None:
+            self._test_dataset = split_dataset_to_data_and_labels(test_dataset,
+                                                                  self._class_to_label)
 
-        self.training_dataset = training_dataset
-        self.test_dataset = test_dataset
-        self.datapoints = datapoints
-        self.class_labels = list(self.training_dataset.keys())
-        self.class_to_label = {name: idx for idx, name in enumerate(self.class_labels)}
+        self._label_to_class = {label: class_name for class_name, label
+                                in self._class_to_label.items()}
+        self._num_classes = len(list(self._class_to_label.keys()))
 
-        self.optimizer = optimizer
-        self.feature_map = feature_map
-        self.var_form = var_form
-
-        self.num_qubits = self._auto_detect_qubitnum(training_dataset)
-
-    def _auto_detect_qubitnum(self, training_dataset):
-        auto_detected_size = -1
-        for key, val in training_dataset.items():
-            for item in val:
-                auto_detected_size = len(item)
-                break
-        if auto_detected_size == -1:
-            raise AlgorithmError('Something wrong in detecting required qubits, please check your data set.')
-        if auto_detected_size != 2 and auto_detected_size != 3:
-            raise AlgorithmError('You should lower the feature dimension to 2 or 3 first!')
-        return auto_detected_size
+        self._datapoints = datapoints
+        self._optimizer = optimizer
+        self._feature_map = feature_map
+        self._var_form = var_form
+        self._num_qubits = self._feature_map.num_qubits
 
     def _construct_circuit(self, x, theta):
-        qr = QuantumRegister(self.num_qubits, name='q')
-        cr = ClassicalRegister(self.num_qubits, name='c')
+        qr = QuantumRegister(self._num_qubits, name='q')
+        cr = ClassicalRegister(self._num_qubits, name='c')
         qc = QuantumCircuit(qr, cr)
-        qc += self.feature_map.construct_circuit(x, qr)
-        qc += self.var_form.construct_circuit(theta, qr)
+        qc += self._feature_map.construct_circuit(x, qr)
+        qc += self._var_form.construct_circuit(theta, qr)
         qc.measure(qr, cr)
-
         return qc
 
     def _cost_function(self, predicted_probs, labels):
         """
         Calculate cost of predicted probability of ground truth label based on sigmoid function,
         and the accuracy
-
+        Args:
+            predicted_probs (numpy.ndarray): NxK array
+            labels (numpy.ndarray): Nx1 array
         Returns:
             float: cost
-            float: accuracy
         """
-        loss = 0.0
-        accuracy = 0.0
-        for idx, gt_label in enumerate(labels):
-            prob = predicted_probs[idx]
-            predicted_class = max(prob.items(), key=operator.itemgetter(1))[0]
-            expected_class = self.class_labels[gt_label]
-            loss += cost_estimate_sigmoid(self._execute_config['shots'], prob, expected_class)
-
-            if predicted_class == expected_class:
-                accuracy += 1.0
-
-        accuracy = accuracy / len(labels)
-        total_loss = loss / len(labels)
-
-        return total_loss, accuracy
+        total_loss = cost_estimate_sigmoid(self._execute_config['shots'], predicted_probs, labels)
+        return total_loss
 
     def _get_prediction(self, data, theta):
         """
         Make prediction on data based the theta.
-
         Args:
             data (numpy.ndarray): 2-D array, NxD, N data points, each with D dimension
             theta (numpy.ndarray): 1-D array, parameters for variational form
-
         Returns:
-            [dict]: for each data point, generates the predicted probability for each class
-            list: for each data point, generates the predicted label, which with the highest prob
+            numpy.ndarray: NxK array
+            numpy.ndarray: Nx1 array
         """
         predicted_probs = []
         predicted_labels = []
@@ -188,62 +178,84 @@ class SVM_Variational(QuantumAlgorithm):
 
         results = self.execute(list(circuits.values()))
 
+        counts = []
         for c_id, result in enumerate(results):
-            counts = results.get_counts(circuits[c_id])
-            prob = return_probabilities(counts, self.class_labels)
-            predicted_probs.append(prob)
-            predicted_labels.append(max(prob.items(), key=operator.itemgetter(1))[0])
+            counts.append(results.get_counts(circuits[c_id]))
+        predicted_probs = return_probabilities(counts, self._num_classes)
+        predicted_labels = np.argmax(predicted_probs, axis=1)
 
         return predicted_probs, predicted_labels
 
-    def train(self, data):
-        data_samples = []
-        labels = []
-        for key, values in data.items():
-            for value in values:
-                data_samples.append(value)
-                labels.append(self.class_to_label[key])
-
+    def train(self, data, labels):
+        """Train the models, and save results
+        Args:
+            data (numpy.ndarray): NxD array, N is number of data and D is dimension
+            labels (numpy.ndarray): Nx1 array, N is number of data
+        """
         def cost_function_wrapper(theta):
-            predicted_probs, predicted_labels = self._get_prediction(data_samples, theta)
-            total_cost, accuracy = self._cost_function(predicted_probs, labels)
+            predicted_probs, predicted_labels = self._get_prediction(data, theta)
+            total_cost = self._cost_function(predicted_probs, labels)
             return total_cost
 
-        initial_theta = self.random.randn(self.var_form.num_parameters)
+        initial_theta = self.random.randn(self._var_form.num_parameters)
 
-        theta_best, cost_final, _ = self.optimizer.optimize(
+        theta_best, cost_final, _ = self._optimizer.optimize(
             initial_theta.shape[0], cost_function_wrapper, initial_point=initial_theta)
 
         self._ret['opt_params'] = theta_best
         self._ret['training_loss'] = cost_final
 
-    def test(self, data):
-        data_samples = []
-        labels = []
-        for key, values in data.items():
-            for value in values:
-                data_samples.append(value)
-                labels.append(self.class_to_label[key])
-
-        predicted_probs, predicted_labels = self._get_prediction(data_samples, self._ret['opt_params'])
-        total_cost, accuracy = self._cost_function(predicted_probs, labels)
-        logger.debug('Classification success for this set is  {:.2f}%  \n'.format(accuracy * 100.0))
-        self._ret['accuracy'] = accuracy
+    def test(self, data, labels):
+        """Predict the labels for the data, and test against with ground truth labels
+        Args:
+            data (numpy.ndarray): NxD array, N is number of data and D is data dimension
+            labels (numpy.ndarray): Nx1 array, N is number of data
+        Returns:
+            float: classification accuracy
+        """
+        predicted_probs, predicted_labels = self._get_prediction(data, self._ret['opt_params'])
+        total_cost = self._cost_function(predicted_probs, labels)
+        accuracy = np.sum((np.argmax(predicted_probs, axis=1) == labels)) / labels.shape[0]
+        logger.debug('Accuracy is {:.2f}%  \n'.format(accuracy * 100.0))
+        self._ret['testing_accuracy'] = accuracy
+        self._ret['test_success_ratio'] = accuracy
+        self._ret['testing_loss'] = total_cost
         return accuracy
 
     def predict(self, data):
+        """Predict the labels for the data
+        Args:
+            data (numpy.ndarray): NxD array, N is number of data, D is data dimension
+        Returns:
+            [dict]: for each data point, generates the predicted probability for each class
+            list: for each data point, generates the predicted label, which with the highest prob
+        """
         predicted_probs, predicted_labels = self._get_prediction(data, self._ret['opt_params'])
-        return predicted_labels
+        self._ret['predicted_probs'] = predicted_probs
+        self._ret['predicted_labels'] = predicted_labels
+        return predicted_probs, predicted_labels
 
     def run(self):
-        self.train(self.training_dataset)
+        self.train(self._training_dataset[0], self._training_dataset[1])
 
-        if self.test_dataset is not None:
-            accuracy = self.test(self.test_dataset)
-            self._ret['test_success_ratio'] = accuracy
+        if self._test_dataset is not None:
+            self.test(self._test_dataset[0], self._test_dataset[1])
 
-        if self.datapoints is not None:
-            predicted_labels = self.predict(self.datapoints)
-            self._ret['predicted_labels'] = predicted_labels
+        if self._datapoints is not None:
+            predicted_probs, predicted_labels = self.predict(self._datapoints)
+            self._ret['predicted_classes'] = map_label_to_class_name(predicted_labels,
+                                                                     self._label_to_class)
 
         return self._ret
+
+    @property
+    def ret(self):
+        return self._ret
+
+    @property
+    def label_to_class(self):
+        return self._label_to_class
+
+    @property
+    def class_to_label(self):
+        return self._class_to_label

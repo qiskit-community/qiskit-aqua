@@ -23,17 +23,36 @@ from cvxopt import matrix, solvers
 logger = logging.getLogger(__name__)
 
 
-def optimize_SVM(K, y, scaling=None, max_iters=500, show_progress=False):
+def optimize_svm(kernel_matrix, y, scaling=None, max_iters=500, show_progress=False):
+    """
+    Solving quadratic programming problem for SVM; thus, some constraints are fixed.
+
+    The notation is follows the equation here:
+    http://cvxopt.org/userguide/coneprog.html#quadratic-programming
+
+    Args:
+        kernel_matrix (numpy.ndarray): NxN array
+        y (numpy.ndarray): Nx1 array
+        scaling (float): the scaling factor to renormalize the `y`, if it is None,
+                            use L2-norm of `y` for normalization
+        max_iters (int): number of iterations for QP solver
+        show_progress (bool): showing the progress of QP solver
+
+    Returns:
+        numpy.ndarray: Sx1 array, where S is the number of supports
+        numpy.ndarray: Sx1 array, where S is the number of supports
+        numpy.ndarray: Sx1 array, where S is the number of supports
+    """
     if y.ndim == 1:
         y = y[:, np.newaxis]
-    H = np.outer(y, y) * K
+    H = np.outer(y, y) * kernel_matrix
     f = -np.ones(y.shape)
     if scaling is None:
         scaling = np.sum(np.sqrt(f * f))
     f /= scaling
 
     tolerance = 1e-2
-    n = K.shape[1]
+    n = kernel_matrix.shape[1]
 
     P = matrix(H)
     q = matrix(f)
@@ -47,7 +66,7 @@ def optimize_SVM(K, y, scaling=None, max_iters=500, show_progress=False):
     ret = solvers.qp(P, q, G, h, A, b, kktsolver='ldl')
     alpha = np.asarray(ret['x']) * scaling
     avg_y = np.sum(y)
-    avg_mat = (alpha * y).T.dot(K.dot(np.ones(y.shape)))
+    avg_mat = (alpha * y).T.dot(kernel_matrix.dot(np.ones(y.shape)))
     b = (avg_y - avg_mat) / n
 
     support = alpha > tolerance
