@@ -24,8 +24,8 @@ from qiskit.tools.qi.pauli import Pauli, label_to_pauli
 from qiskit_aqua import Operator
 
 
-def one_body(edge_list, p, q, h1_pq):
-    """
+def _one_body(edge_list, p, q, h1_pq):
+    r"""
     Map the term a^\dagger_p a_q + a^\dagger_q a_p to qubit operator.
 
     Args:
@@ -63,8 +63,8 @@ def one_body(edge_list, p, q, h1_pq):
     return qubit_op
 
 
-def two_body(edge_list, p, q, r, s, h2_pqrs):
-    """
+def _two_body(edge_list, p, q, r, s, h2_pqrs):
+    r"""
     Map the term a^\dagger_p a^\dagger_q a_r a_s + h.c. to qubit operator.
 
     Args:
@@ -78,7 +78,6 @@ def two_body(edge_list, p, q, r, s, h2_pqrs):
     Returns:
         Operator: mapped qubit operator
     """
-
     # Handle case of four unique indices.
     v = np.zeros(edge_list.shape[1])
     id_op = Operator(paulis=[[1, Pauli(v, v)]])
@@ -147,9 +146,9 @@ def two_body(edge_list, p, q, r, s, h2_pqrs):
     return qubit_op
 
 
-def bravyi_kitaev_sf_edge_list(fer_op):
+def bksf_edge_list(fer_op):
     """
-    Construct edge list required for the bksf algorithm
+    Construct edge list required for the bksf algorithm.
 
     Args:
         fer_op (FeriomicOperator): the fermionic operator in the second quantized form
@@ -208,6 +207,7 @@ def bravyi_kitaev_sf_edge_list(fer_op):
 
 def edge_operator_aij(edge_list, i, j):
     """Calculate the edge operator A_ij.
+
     The definitions used here are consistent with arXiv:quant-ph/0003137
 
     Args:
@@ -272,9 +272,8 @@ def edge_operator_bi(edge_list, i):
 
 
 def bksf_mapping(fer_op):
-    """
-    Transform from InteractionOpeator to QubitOperator for Bravyi-Kitaev
-    superfast algorithm.
+    r"""
+    Transform from FermionOpeator to QubitOperator for Bravyi-Kitaev superfast algorithm.
 
     The electronic Hamiltonian is represented in terms of creation and
     annihilation operators. These creation and annihilation operators could be
@@ -304,7 +303,6 @@ def bksf_mapping(fer_op):
     Returns:
         Operator: mapped qubit operator
     """
-
     # convert to interleaved spins and negate the values of h2
     fer_op = copy.deepcopy(fer_op)
     fer_op._convert_to_interleaved_spins()
@@ -315,7 +313,7 @@ def bksf_mapping(fer_op):
     modes = fer_op.modes
     # Initialize qubit operator as constant.
     qubit_op = Operator(paulis=[])
-    edge_list = bravyi_kitaev_sf_edge_list(fer_op)
+    edge_list = bksf_edge_list(fer_op)
     # Loop through all indices.
     for p in range(modes):
         for q in range(modes):
@@ -323,7 +321,7 @@ def bksf_mapping(fer_op):
             h1_pq = fer_op.h1[p, q]
 
             if h1_pq != 0.0 and p >= q:
-                qubit_op += one_body(edge_list, p, q, h1_pq)
+                qubit_op += _one_body(edge_list, p, q, h1_pq)
 
             # Keep looping for the two-body terms.
             for r in range(modes):
@@ -341,22 +339,22 @@ def bksf_mapping(fer_op):
                                 continue
                         # Handle case of 3 unique indices
                         elif len(set([p, q, r, s])) == 3:
-                            qubit_op += two_body(edge_list, p, q, r, s, 0.5 * h2_pqrs)
+                            qubit_op += _two_body(edge_list, p, q, r, s, 0.5 * h2_pqrs)
                             continue
                         elif p != r and q < p:
                             continue
 
-                    qubit_op += two_body(edge_list, p, q, r, s, h2_pqrs)
+                    qubit_op += _two_body(edge_list, p, q, r, s, h2_pqrs)
 
     qubit_op.zeros_coeff_elimination()
     return qubit_op
 
 
 def vacuum_operator(fer_op):
-    """Use the stabilizers to find the vacuum state in bravyi_kitaev_sf.
+    """Use the stabilizers to find the vacuum state in BKSF.
 
     This operator can be used to generate the vaccum state for
-    bravyi_kitaev_sf mapping.
+    BKSF mapping.
     Upon having this operator, operate it on `orignal` vaccum state |000...>,
     and resulted state is the vacuum state for bksf mapping.
 
@@ -366,7 +364,7 @@ def vacuum_operator(fer_op):
     Returns:
         Operator: the qubit operator
     """
-    edge_list = bravyi_kitaev_sf_edge_list(fer_op)
+    edge_list = bksf_edge_list(fer_op)
     num_qubits = edge_list.shape[1]
     vac_operator = Operator(paulis=[[1.0, label_to_pauli('I' * num_qubits)]])
 
@@ -388,7 +386,7 @@ def vacuum_operator(fer_op):
 
 
 def number_operator(fer_op, mode_number=None):
-    """Find the number operator in bravyi_kitaev_sf representation
+    """Find the number operator in BKSF representation.
 
     This operator can be used to examine the number of particle in
     a given eigenstate.
@@ -404,7 +402,7 @@ def number_operator(fer_op, mode_number=None):
         Operator: the qubit operator
    """
     modes = fer_op.h1.modes
-    edge_list = bravyi_kitaev_sf_edge_list(fer_op)
+    edge_list = bksf_edge_list(fer_op)
     num_qubits = edge_list.shape[1]
     num_operator = Operator(paulis=[[1.0, label_to_pauli('I' * num_qubits)]])
 
@@ -422,7 +420,7 @@ def number_operator(fer_op, mode_number=None):
 
 
 def generate_fermions(fer_op, i, j):
-    """The qubit operator for generating fermions in bravyi_kitaev_sf representation
+    """The qubit operator for generating fermions in BKSF representation.
 
     This function is used to generate the state you want; however, you need
     to prepare vacuum state first and then use this operator to fill
@@ -434,7 +432,7 @@ def generate_fermions(fer_op, i, j):
     |0000> --> |1111>, call function twice sequentially, (i=0, j=2), (i=1, j=3)
 
     Note:
-        since bravyi_kitaev_sf only model the even particle sector, the number of
+        since BKSF only model the even particle sector, the number of
         particles must be an even number.
 
     Args:
@@ -445,7 +443,7 @@ def generate_fermions(fer_op, i, j):
     Returns:
         Operator: the qubit operator
     """
-    edge_list = bravyi_kitaev_sf_edge_list(fer_op)
+    edge_list = bksf_edge_list(fer_op)
     gen_fer_operator = edge_operator_aij(edge_list, i, j) * edge_operator_bi(edge_list, j) \
         - edge_operator_bi(edge_list, i) * edge_operator_aij(edge_list, i, j)
 

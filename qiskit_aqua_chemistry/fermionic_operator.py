@@ -33,10 +33,10 @@ logger = logging.getLogger(__name__)
 
 
 class FermionicOperator(object):
-    """
-    A set of functions to map fermionic Hamiltonians to qubit Hamiltonians. \
+    r"""
+    A set of functions to map fermionic Hamiltonians to qubit Hamiltonians.
 
-    References: \
+    References:
     - E. Wigner and P. Jordan., Über das Paulische Äguivalenzverbot, \
         Z. Phys., 47:631 (1928). \
     - S. Bravyi and A. Kitaev. Fermionic quantum computation, \
@@ -49,9 +49,9 @@ class FermionicOperator(object):
         arXiv e-print arXiv:1701.08213 (2017). \
     - K. Setia, J. D. Whitfield, arXiv:1712.00446 (2017)
     """
-
     def __init__(self, h1, h2=None, ph_trans_shift=None):
-        """
+        """Constructor.
+
         Args:
             h1 (numpy.ndarray): second-quantized fermionic one-body operator, a 2-D (NxN) tensor
             h2 (numpy.ndarray): second-quantized fermionic two-body operator,
@@ -72,26 +72,26 @@ class FermionicOperator(object):
 
     @property
     def h1(self):
-        """Getter of one body integral tensor"""
+        """Getter of one body integral tensor."""
         return self._h1
 
     @h1.setter
     def h1(self, new_h1):
-        """Setter of one body integral tensor"""
+        """Setter of one body integral tensor."""
         self._h1 = new_h1
 
     @property
     def h2(self):
-        """Getter of two body integral tensor"""
+        """Getter of two body integral tensor."""
         return self._h2
 
     @h2.setter
     def h2(self, new_h2):
-        """Setter of two body integral tensor"""
+        """Setter of two body integral tensor."""
         self._h2 = new_h2
 
     def __eq__(self, other):
-        """Overload == """
+        """Overload == ."""
         ret = np.all(self._h1 == other._h1)
         if not ret:
             return ret
@@ -99,11 +99,11 @@ class FermionicOperator(object):
         return ret
 
     def __ne__(self, other):
-        """Overload != """
+        """Overload != ."""
         return not self.__eq__(other)
 
     def transform(self, unitary_matrix):
-        """Transform the one and two body term based on unitary_matrix"""
+        """Transform the one and two body term based on unitary_matrix."""
         self._h1_transform(unitary_matrix)
         self._h2_transform(unitary_matrix)
 
@@ -176,13 +176,13 @@ class FermionicOperator(object):
 
     def _bravyi_kitaev_mode(self, n):
         """
-        Bravyi-Kitaev mode
+        Bravyi-Kitaev mode.
 
         Args:
             n (int): number of modes
         """
         def parity_set(j, n):
-            """Computes the parity set of the j-th orbital in n modes
+            """Computes the parity set of the j-th orbital in n modes.
 
             Args:
                 j (int) : the orbital index
@@ -203,7 +203,7 @@ class FermionicOperator(object):
             return indexes
 
         def update_set(j, n):
-            """Computes the update set of the j-th orbital in n modes
+            """Computes the update set of the j-th orbital in n modes.
 
             Args:
                 j (int) : the orbital index
@@ -224,7 +224,7 @@ class FermionicOperator(object):
             return indexes
 
         def flip_set(j, n):
-            """Computes the flip set of the j-th orbital in n modes
+            """Computes the flip set of the j-th orbital in n modes.
 
             Args:
                 j (int) : the orbital index
@@ -232,7 +232,6 @@ class FermionicOperator(object):
 
             Returns:
                 numpy.ndarray: Array of mode indexes
-
             """
             indexes = np.array([])
             if n % 2 != 0:
@@ -302,7 +301,7 @@ class FermionicOperator(object):
 
         Args:
             map_type (str): case-insensitive mapping type.
-                            "jordan_wigner", "parity", "bravyi_kitaev", "bravyi_kitaev_sf"
+                            "jordan_wigner", "parity", "bravyi_kitaev", "bksf"
             threshold (float): threshold for Pauli simplification
             num_workers (int): number of processes used to map.
 
@@ -327,11 +326,11 @@ class FermionicOperator(object):
             a = self._parity_mode(n)
         elif map_type == 'bravyi_kitaev':
             a = self._bravyi_kitaev_mode(n)
-        elif map_type == 'bravyi_kitaev_sf':
+        elif map_type == 'bksf':
             return bksf_mapping(self)
         else:
             raise AquaChemistryError('Please specify the supported modes: '
-                                     'jordan_wigner, parity, bravyi_kitaev, bravyi_kitaev_sf')
+                                     'jordan_wigner, parity, bravyi_kitaev, bksf')
         """
         ####################################################################
         ############    BUILDING THE MAPPED HAMILTONIAN     ################
