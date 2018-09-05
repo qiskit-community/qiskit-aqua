@@ -34,16 +34,15 @@ class TestSVMVariational(QiskitAquaTestCase):
         self.testing_data = {'A': np.asarray([[3.83274304, 2.45044227]]),
                              'B': np.asarray([[3.89557489, 0.31415927]])}
 
-        self.ref_opt_params = np.asarray([ 2.93868096,  0.76735399,  4.21845289,  4.28731786, -4.64804051,
-       -4.0103384 ,  3.62083309, -3.1466139 ,  3.36741576,  0.07314989,
-       -1.92529824, -1.31781337,  2.2547051 ,  7.29971351,  3.74421673,
-       -3.74280352])
+        self.ref_opt_params = np.asarray([2.93868096, 0.76735399, 4.21845289, 4.28731786,
+                                          -4.64804051, -4.0103384, 3.62083309, -3.1466139,
+                                          3.36741576, 0.07314989, -1.92529824, -1.31781337,
+                                          2.2547051, 7.29971351, 3.74421673, -3.74280352])
         self.ref_train_loss = 0.4999339230552529
 
         self.svm_input = get_input_instance('SVMInput')
         self.svm_input.training_dataset = self.training_data
         self.svm_input.test_dataset = self.testing_data
-
 
     def test_svm_variational_via_run_algorithm(self):
         np.random.seed(self.random_seed)
@@ -69,9 +68,8 @@ class TestSVMVariational(QiskitAquaTestCase):
         svm.setup_quantum_backend(backend='local_qasm_simulator', shots=1024)
 
         optimizer = get_optimizer_instance('SPSA')
-        optimizer.init_args(max_trials=10, parameters=np.asarray([4.0, 0.1, 0.602, 0.101, 0.0]))
+        optimizer.init_args(max_trials=10, c0=4.0, skip_calibration=True)
         optimizer.set_options(save_steps=1)
-
         num_qubits = 2
 
         feature_map = get_feature_map_instance('SecondOrderExpansion')
@@ -87,4 +85,3 @@ class TestSVMVariational(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(result['training_loss'], self.ref_train_loss, decimal=8)
 
         self.assertEqual(result['testing_accuracy'], 0.5)
-

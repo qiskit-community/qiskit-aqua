@@ -57,8 +57,9 @@ def split_dataset_to_data_and_labels(dataset, class_names=None):
         class_names (dict): class name of dataset, {label: class_name}
 
     Returns:
-        numpy.ndarray: data, NxD array
-        numpy.ndarray: labels, Nx1 array, value is ranged from 0 to K-1, K is the number of classes
+        [numpy.ndarray, numpy.ndarray]: idx 0 is data, NxD array,
+                    idx 1 is labels, Nx1 array, value is ranged
+                    from 0 to K-1, K is the number of classes
         dict: {int: str}, map of label to class name
     """
     data = []
