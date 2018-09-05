@@ -112,15 +112,12 @@ class QuantumAlgorithm(ABC):
                 self._random = np.random.RandomState(self._random_seed)
         return self._random
 
-<<<<<<< HEAD
-=======
     def enable_circuit_summary(self):
         self._show_circuit_summary = True
 
     def disable_circuit_summary(self):
         self._show_circuit_summary = False
 
->>>>>>> master
     def setup_quantum_backend(self, backend='local_statevector_simulator', shots=1024, skip_transpiler=False,
                               noise_params=None, coupling_map=None, initial_layout=None, hpc_params=None,
                               basis_gates=None, max_credits=10, timeout=None, wait=5):
