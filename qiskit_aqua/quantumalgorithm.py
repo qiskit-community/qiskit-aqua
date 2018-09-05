@@ -90,7 +90,7 @@ class QuantumAlgorithm(ABC):
     @property
     def configuration(self):
         """Return algorithm configuration"""
-        return self._configuratio
+        return self._configuration
 
     @property
     def random_seed(self):
