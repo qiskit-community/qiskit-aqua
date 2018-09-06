@@ -243,7 +243,7 @@ class QuantumAlgorithm(ABC):
                     "Provider '{}' registered with Qiskit successfully.".format(provider_class))
             except Exception as e:
                 logger.debug(
-                    "Failed to register provider 'IBMQProvider' with Qiskit: {}".format(str(e)))
+                    "Failed to register provider '{}' with Qiskit: {}".format(provider_class,str(e)))
 
         backends = available_backends()
         backends = [
