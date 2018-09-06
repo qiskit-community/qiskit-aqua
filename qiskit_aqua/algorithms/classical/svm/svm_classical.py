@@ -18,7 +18,7 @@
 import copy
 import logging
 
-from qiskit_aqua import QuantumAlgorithm, get_multiclass_extension_instance
+from qiskit_aqua import (AlgorithmError, QuantumAlgorithm, get_multiclass_extension_instance)
 from qiskit_aqua.algorithms.classical.svm import (SVM_Classical_Binary, SVM_Classical_Multiclass,
                                                   RBF_SVC_Estimator)
 from qiskit_aqua.utils import get_num_classes
@@ -66,6 +66,9 @@ class SVM_Classical(QuantumAlgorithm):
     def init_params(self, params, algo_input):
         svm_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
 
+        if algo_input.training_dataset is None:
+            raise AlgorithmError('Training dataset is required! please provide it')
+
         is_multiclass = get_num_classes(algo_input.training_dataset) > 2
         if is_multiclass:
             multiclass_extension_params = params.get(QuantumAlgorithm.SECTION_KEY_MULTICLASS_EXTENSION)
@@ -74,8 +77,8 @@ class SVM_Classical(QuantumAlgorithm):
             multiclass_extension.init_params(multiclass_extension_params)
             logger.info("Multiclass classifcation algo:" + multiclass_extension_params['name'])
         else:
-            logger.warning("We will apply the binary classifcation and"
-                           "ignore all options related to the multiclass")
+            logger.warning("Only two classes in the dataset, use binary classifer"
+                           " and ignore all options of multiclass_extension")
             multiclass_extension = None
 
         self.init_args(algo_input.training_dataset, algo_input.test_dataset,

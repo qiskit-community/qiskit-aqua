@@ -71,9 +71,9 @@ class QSVMVariational(QuantumAlgorithm):
     def init_params(self, params, algo_input):
         algo_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
         override_spsa_params = algo_params.get('override_SPSA_params')
-        
+
         if algo_input.training_dataset is None:
-            raise AlgorithmError('Training dataset is missing! please provide it')
+            raise AlgorithmError('Training dataset is required! please provide it')
 
         # Set up optimizer
         opt_params = params.get(QuantumAlgorithm.SECTION_KEY_OPTIMIZER)

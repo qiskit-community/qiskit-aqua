@@ -67,7 +67,6 @@ class SVM_QKernel(QuantumAlgorithm):
 
         if algo_input.training_dataset is None:
             raise AlgorithmError("Training dataset is required.")
-
         fea_map_params = params.get(QuantumAlgorithm.SECTION_KEY_FEATURE_MAP)
         feature_map = get_feature_map_instance(fea_map_params['name'])
         num_qubits = get_feature_dimension(algo_input.training_dataset)
@@ -86,7 +85,7 @@ class SVM_QKernel(QuantumAlgorithm):
             logger.info("Multiclass classifcation algo:" + multicls_ext_params['name'])
         else:
             logger.warning("Only two classes in the dataset, use binary classifer"
-                           " and ignore all options related to the multiclass")
+                           " and ignore all options of multiclass_extension")
             multiclass_extension = None
 
         self.init_args(algo_input.training_dataset, algo_input.test_dataset,
