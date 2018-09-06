@@ -149,8 +149,8 @@ class QuantumAlgorithm(ABC):
         """
         operational_backends = self.register_and_get_operational_backends()
         if self.EQUIVALENT_BACKENDS.get(backend, backend) not in operational_backends:
-            raise AlgorithmError("This backend '{}' is not operational for the quantum algorithm\
-                , please check your Qconfig.py, or select any one below: {}".format(backend, operational_backends))
+            raise AlgorithmError("This backend '{}' is not operational for the quantum algorithm, \
+                                 select any one below: {}".format(backend, operational_backends))
 
         self._backend = backend
         self._qjob_config = {'timeout': timeout,
