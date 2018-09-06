@@ -101,7 +101,7 @@ class QuantumAlgorithm(ABC):
 
     @qconfig.setter
     def qconfig(self, new_qconfig):
-        """Sets Qconfig configuration"""
+        """Set Qconfig configuration"""
         self._qconfig = new_qconfig
 
     @property
@@ -111,7 +111,7 @@ class QuantumAlgorithm(ABC):
 
     @random_seed.setter
     def random_seed(self, seed):
-        """Sets random seed"""
+        """Set random seed"""
         self._random_seed = seed
 
     @property
@@ -124,10 +124,17 @@ class QuantumAlgorithm(ABC):
                 self._random = np.random.RandomState(self._random_seed)
         return self._random
 
+    @property
+    def backend(self):
+        """Return backend"""
+        return self._backend
+
     def enable_circuit_summary(self):
+        """Enable showing the summary of circuits"""
         self._show_circuit_summary = True
 
     def disable_circuit_summary(self):
+        """Disable showing the summary of circuits"""
         self._show_circuit_summary = False
 
     def setup_quantum_backend(self, backend='local_statevector_simulator', shots=1024, skip_transpiler=False,
@@ -171,9 +178,9 @@ class QuantumAlgorithm(ABC):
         my_backend = get_backend(backend)
 
         if coupling_map is None:
-            coupling_map = my_backend.configuration['coupling_map']
+            coupling_map = my_backend.configuration()['coupling_map']
         if basis_gates is None:
-            basis_gates = my_backend.configuration['basis_gates']
+            basis_gates = my_backend.configuration()['basis_gates']
 
         self._execute_config = {'shots': shots,
                                 'skip_transpiler': skip_transpiler,
@@ -187,7 +194,7 @@ class QuantumAlgorithm(ABC):
                                 'hpc': hpc_params}
 
         info = "Algorithm: '{}' setup with backend '{}', with following setting:\n {}\n{}".format(
-            self._configuration['name'], my_backend.configuration['name'], self._execute_config, self._qjob_config)
+            self._configuration['name'], my_backend.configuration()['name'], self._execute_config, self._qjob_config)
 
         logger.info('Qiskit Terra version {}'.format(qiskit_version))
         logger.info(info)
@@ -229,7 +236,7 @@ class QuantumAlgorithm(ABC):
     def register_and_get_operational_backends(qconfig):
         try:
             for provider in q_registered_providers():
-                if isinstance(provider,IBMQProvider):
+                if isinstance(provider, IBMQProvider):
                     q_unregister(provider)
                     logger.debug("Provider 'IBMQProvider' unregistered with Qiskit successfully.")
                     break
@@ -266,7 +273,3 @@ class QuantumAlgorithm(ABC):
     @abstractmethod
     def run(self):
         pass
-
-    @property
-    def backend(self):
-        return self._backend
