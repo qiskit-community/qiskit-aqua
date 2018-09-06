@@ -19,7 +19,8 @@ import copy
 import logging
 
 from qiskit_aqua import QuantumAlgorithm, get_multiclass_extension_instance
-from qiskit_aqua.algorithms.classical.svm import SVM_Classical_Binary, SVM_Classical_Multiclass
+from qiskit_aqua.algorithms.classical.svm import (SVM_Classical_Binary, SVM_Classical_Multiclass,
+                                                  RBF_SVC_Estimator)
 from qiskit_aqua.utils import get_num_classes
 
 logger = logging.getLogger(__name__)
@@ -52,8 +53,7 @@ class SVM_Classical(QuantumAlgorithm):
         'problems': ['svm_classification'],
         'defaults': {
             'multiclass_extension': {
-                'name': 'AllPairs',
-                'estimator': 'RBF_SVC_Estimator',
+                'name': 'AllPairs'
             }
         }
     }
@@ -70,13 +70,8 @@ class SVM_Classical(QuantumAlgorithm):
         if is_multiclass:
             multiclass_extension_params = params.get(QuantumAlgorithm.SECTION_KEY_MULTICLASS_EXTENSION)
             multiclass_extension = get_multiclass_extension_instance(multiclass_extension_params['name'])
+            multiclass_extension_params['estimator_cls'] = RBF_SVC_Estimator
             multiclass_extension.init_params(multiclass_extension_params)
-            # checking the options:
-            estimator = multiclass_extension_params.get('estimator', None)
-            if estimator is None:
-                logger.debug("You did not provide the estimator, which is however required!")
-            if estimator not in ["RBF_SVC_Estimator"]:
-                logger.debug("You should use one of the classical estimators")
             logger.info("Multiclass classifcation algo:" + multiclass_extension_params['name'])
         else:
             logger.warning("We will apply the binary classifcation and"

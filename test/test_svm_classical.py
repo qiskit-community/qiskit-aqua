@@ -212,7 +212,7 @@ class TestSVMClassical(QiskitAquaTestCase):
             'algorithm': {
                 'name': 'SVM'
             },
-            'multiclass_extension': {'name': 'OneAgainstRest', 'estimator': 'RBF_SVC_Estimator'}
+            'multiclass_extension': {'name': 'OneAgainstRest'}
         }
 
         algo_input = get_input_instance('SVMInput')
@@ -327,7 +327,7 @@ class TestSVMClassical(QiskitAquaTestCase):
             'algorithm': {
                 'name': 'SVM'
             },
-            'multiclass_extension': {'name': 'AllPairs', 'estimator': 'RBF_SVC_Estimator'}
+            'multiclass_extension': {'name': 'AllPairs'}
 
         }
 
@@ -444,8 +444,7 @@ class TestSVMClassical(QiskitAquaTestCase):
             'algorithm': {
                 'name': 'SVM',
             },
-            'multiclass_extension': {'name': 'ErrorCorrectingCode',
-                                     'estimator': 'RBF_SVC_Estimator', 'code_size': 5},
+            'multiclass_extension': {'name': 'ErrorCorrectingCode', 'code_size': 5},
         }
 
         algo_input = get_input_instance('SVMInput')

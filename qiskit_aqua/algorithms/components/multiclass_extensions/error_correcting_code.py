@@ -38,13 +38,6 @@ class ErrorCorrectingCode(MulticlassExtension):
             'id': 'error_correcting_code_schema',
             'type': 'object',
             'properties': {
-                'estimator': {
-                    'type': 'string',
-                    'default': 'RBF_SVC_Estimator',
-                    'oneOf': [
-                        {'enum': ['RBF_SVC_Estimator', 'QKernalSVM_Estimator']}
-                    ]
-                },
                 'code_size': {
                     'type': 'integer',
                     'default': 4,
@@ -59,6 +52,7 @@ class ErrorCorrectingCode(MulticlassExtension):
         super().__init__(configuration or self.ErrorCorrectingCode_CONFIGURATION.copy())
         self.estimator_cls = None
         self.params = None
+        self.code_size = None
         # May we re-use the seed from quantum algorithm?
         self.rand = np.random.RandomState(0)
 

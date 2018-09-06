@@ -17,9 +17,12 @@
 
 import logging
 
-from qiskit_aqua import (QuantumAlgorithm, get_feature_map_instance,
+import numpy as np
+
+from qiskit_aqua import (AlgorithmError, QuantumAlgorithm, get_feature_map_instance,
                          get_multiclass_extension_instance)
-from qiskit_aqua.algorithms.many_sample.qsvm import SVM_QKernel_Binary, SVM_QKernel_Multiclass
+from qiskit_aqua.algorithms.many_sample.qsvm import (SVM_QKernel_Binary, SVM_QKernel_Multiclass,
+                                                     QKernalSVM_Estimator)
 from qiskit_aqua.utils.dataset_helper import get_feature_dimension, get_num_classes
 
 
@@ -47,8 +50,7 @@ class SVM_QKernel(QuantumAlgorithm):
         'problems': ['svm_classification'],
         'defaults': {
             'multiclass_extension': {
-                'name': 'AllPairs',
-                'estimator': 'QKernalSVM_Estimator'
+                'name': 'AllPairs'
             },
             'feature_map': {
                 'name': 'SecondOrderExpansion',
@@ -62,6 +64,10 @@ class SVM_QKernel(QuantumAlgorithm):
         self._ret = {}
 
     def init_params(self, params, algo_input):
+
+        if algo_input.training_dataset is None:
+            raise AlgorithmError("Training dataset is required.")
+
         fea_map_params = params.get(QuantumAlgorithm.SECTION_KEY_FEATURE_MAP)
         feature_map = get_feature_map_instance(fea_map_params['name'])
         num_qubits = get_feature_dimension(algo_input.training_dataset)
@@ -75,13 +81,8 @@ class SVM_QKernel(QuantumAlgorithm):
             multiclass_extension = get_multiclass_extension_instance(multicls_ext_params['name'])
             # we need to set this explicitly for quantum version
             multicls_ext_params['params'] = [feature_map, self]
+            multicls_ext_params['estimator_cls'] = QKernalSVM_Estimator
             multiclass_extension.init_params(multicls_ext_params)
-            # checking the options:
-            estimator = multicls_ext_params.get('estimator', None)
-            if estimator is None:
-                logger.warning("You did not provide the estimator, which is however required!")
-            if estimator not in ["QKernalSVM_Estimator"]:
-                logger.warning("You should use one of the qkernel estimators")
             logger.info("Multiclass classifcation algo:" + multicls_ext_params['name'])
         else:
             logger.warning("Only two classes in the dataset, use binary classifer"
@@ -98,6 +99,11 @@ class SVM_QKernel(QuantumAlgorithm):
             qsvm_instance = SVM_QKernel_Binary()
         else:
             qsvm_instance = SVM_QKernel_Multiclass(multiclass_extension)
+
+        if datapoints is not None:
+            if not isinstance(datapoints, np.ndarray):
+                datapoints = np.asarray(datapoints)
+
         qsvm_instance.init_args(training_dataset, test_dataset, datapoints, feature_map, self)
         self.instance = qsvm_instance
 
