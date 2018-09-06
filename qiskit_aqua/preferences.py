@@ -19,7 +19,7 @@ import os
 import json
 import copy
 import qiskit
-from qiskit.wrapper.credentials import read_credentials_from_qiskitrc
+from qiskit.wrapper.credentials import get_account_name, discover_credentials
 from qiskit.backends.ibmq import IBMQProvider
 
 
@@ -41,12 +41,10 @@ class Preferences(object):
         self._url = Preferences.URL
         self._proxy_urls = None
 
-        credentials = read_credentials_from_qiskitrc()
+        credentials = discover_credentials()
         if credentials is not None:
-            credentials_key = '.'.join(
-                [IBMQProvider.__module__, IBMQProvider.__name__])
-            if credentials_key in credentials:
-                credentials = credentials[credentials_key]
+            credentials = credentials.get(get_account_name(IBMQProvider))
+            if credentials is not None:
                 if 'token' in credentials:
                     self._token = credentials['token']
                 if 'url' in credentials:
