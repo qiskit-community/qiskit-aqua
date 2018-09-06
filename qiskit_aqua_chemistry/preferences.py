@@ -18,7 +18,6 @@
 import os
 import json
 import copy
-from qiskit_aqua import Preferences as AquaPreferences
 from qiskit_aqua_chemistry import AquaChemistryError
 
 
@@ -28,8 +27,6 @@ class Preferences(object):
     PACKAGE_TYPE_CHEMISTRY = 'chemistry'
     _FILENAME = '.qiskit_aqua_chemistry'
     _VERSION = '1.0'
-    URL = AquaPreferences.URL
-    VERIFY = AquaPreferences.VERIFY
 
     def __init__(self):
         """Create Preferences object."""
@@ -38,7 +35,6 @@ class Preferences(object):
         }
         self._packages_changed = False
         self._logging_config_changed = False
-        self._aqua_preferences = AquaPreferences()
 
         home = os.path.expanduser("~")
         self._filepath = os.path.join(home, Preferences._FILENAME)
@@ -49,8 +45,6 @@ class Preferences(object):
             pass
 
     def save(self):
-        self._aqua_preferences.save()
-
         if self._logging_config_changed or self._packages_changed:
             with open(self._filepath, 'w') as fp:
                 json.dump(self._preferences, fp, sort_keys=True, indent=4)
@@ -62,30 +56,6 @@ class Preferences(object):
             return self._preferences['version']
 
         return None
-
-    def get_token(self, default_value=None):
-        return self._aqua_preferences.get_token(default_value)
-
-    def set_token(self, token):
-        self._aqua_preferences.set_token(token)
-
-    def get_url(self, default_value=None):
-        return self._aqua_preferences.get_url(default_value)
-
-    def set_url(self, url):
-        self._aqua_preferences.set_url(url)
-
-    def get_verify(self, default_value=None):
-        return self._aqua_preferences.get_verify(default_value)
-
-    def set_verify(self, verify):
-        self._aqua_preferences.set_verify(verify)
-
-    def get_proxy_urls(self, default_value=None):
-        return self._aqua_preferences.get_proxy_urls(default_value)
-
-    def set_proxy_urls(self, proxy_urls):
-        self._aqua_preferences.set_proxy_urls(proxy_urls)
 
     def get_packages(self, package_type, default_value=None):
         if package_type is not None and isinstance(package_type, str) and \

@@ -22,10 +22,11 @@ from qiskit_aqua_chemistry.ui._dialog import Dialog
 from collections import OrderedDict
 from qiskit_aqua_chemistry.core import refresh_operators
 from qiskit_aqua_chemistry.drivers import ConfigurationManager
-from qiskit_aqua_chemistry.ui._credentialsview import CredentialsView
+from qiskit_aqua.ui.run import CredentialsView
 from qiskit_aqua_chemistry.ui._toolbarview import ToolbarView
 from qiskit_aqua_chemistry.ui._customwidgets import EntryCustom
 from qiskit_aqua_chemistry.preferences import Preferences
+from qiskit_aqua import Preferences as AquaPreferences
 from qiskit_aqua_chemistry.ui._uipreferences import UIPreferences
 from qiskit_aqua_chemistry._logging import (get_logging_level,
                                             build_logging_config,
@@ -147,8 +148,10 @@ class PreferencesDialog(Dialog):
             ) if value == level_name]
             loglevel = levels[0]
 
-            preferences = Preferences()
+            preferences = AquaPreferences()
             self._credentialsview.apply(preferences)
+            preferences.save()
+            preferences = Preferences()
             self._packagesPage.apply(preferences)
             preferences.save()
 

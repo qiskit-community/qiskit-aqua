@@ -20,7 +20,7 @@ import copy
 import logging
 from logging.config import dictConfig
 from collections import OrderedDict
-from  qiskit_aqua import Preferences as AquaPreferences
+from qiskit_aqua import Preferences as AquaPreferences
 from qiskit_aqua_chemistry import Preferences as ChemistryPreferences
 
 _AQUA_CHEMISTRY_LOGGING_CONFIG = {
@@ -39,27 +39,31 @@ _AQUA_CHEMISTRY_LOGGING_CONFIG = {
     },
     'loggers': {}
 }
-        
+
+
 def _get_logging_names():
     names = OrderedDict()
     names['qiskit_aqua_chemistry'] = None
     preferences = ChemistryPreferences()
-    packages = preferences.get_packages(ChemistryPreferences.PACKAGE_TYPE_DRIVERS,[])
+    packages = preferences.get_packages(
+        ChemistryPreferences.PACKAGE_TYPE_DRIVERS, [])
     for package in packages:
         names[package] = None
-        
-    packages = preferences.get_packages(ChemistryPreferences.PACKAGE_TYPE_CHEMISTRY,[])
+
+    packages = preferences.get_packages(
+        ChemistryPreferences.PACKAGE_TYPE_CHEMISTRY, [])
     for package in packages:
         names[package] = None
-        
+
     names['qiskit_aqua'] = None
     preferences = AquaPreferences()
     packages = preferences.get_packages([])
     for package in packages:
         names[package] = None
-        
+
     return list(names.keys())
-        
+
+
 def build_logging_config(level):
     """
      Creates a the configuration dict of the named loggers using the default SDK
@@ -70,17 +74,19 @@ def build_logging_config(level):
     * set logger level to level parameter.
     """
     dict = copy.deepcopy(_AQUA_CHEMISTRY_LOGGING_CONFIG)
-    for name in _get_logging_names(): 
-        dict['loggers'][name] = {   
-                    'handlers' : ['h'],
-                    'propagate' : False,
-                    'level' : level
+    for name in _get_logging_names():
+        dict['loggers'][name] = {
+            'handlers': ['h'],
+            'propagate': False,
+            'level': level
         }
     return dict
 
+
 def get_logging_level():
-    """get level for the named logger."""   
+    """get level for the named logger."""
     return logging.getLogger('qiskit_aqua_chemistry').getEffectiveLevel()
+
 
 def set_logging_config(logging_config):
     """Update logger configurations using a SDK default one.
