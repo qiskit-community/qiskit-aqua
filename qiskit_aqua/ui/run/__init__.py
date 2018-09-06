@@ -14,3 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+
+from ._credentialsview import CredentialsView
+
+__all__ = ['CredentialsView']

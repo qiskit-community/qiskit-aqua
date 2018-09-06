@@ -159,9 +159,9 @@ class QuantumAlgorithm(ABC):
         my_backend = get_backend(backend)
 
         if coupling_map is None:
-            coupling_map = my_backend.configuration['coupling_map']
+            coupling_map = my_backend.configuration()['coupling_map']
         if basis_gates is None:
-            basis_gates = my_backend.configuration['basis_gates']
+            basis_gates = my_backend.configuration()['basis_gates']
 
         self._execute_config = {'shots': shots,
                                 'skip_transpiler': skip_transpiler,
@@ -175,7 +175,7 @@ class QuantumAlgorithm(ABC):
                                 'hpc': hpc_params}
 
         info = "Algorithm: '{}' setup with backend '{}', with following setting:\n {}\n{}".format(
-            self._configuration['name'], my_backend.configuration['name'], self._execute_config, self._qjob_config)
+            self._configuration['name'], my_backend.configuration()['name'], self._execute_config, self._qjob_config)
 
         logger.info('Qiskit Terra version {}'.format(qiskit_version))
         logger.info(info)
@@ -197,8 +197,10 @@ class QuantumAlgorithm(ABC):
         jobs = []
         chunks = int(np.ceil(len(circuits) / self.MAX_CIRCUITS_PER_JOB))
         for i in range(chunks):
-            sub_circuits = circuits[i * self.MAX_CIRCUITS_PER_JOB:(i + 1) * self.MAX_CIRCUITS_PER_JOB]
-            jobs.append(q_execute(sub_circuits, self._backend, **self._execute_config))
+            sub_circuits = circuits[i *
+                                    self.MAX_CIRCUITS_PER_JOB:(i + 1) * self.MAX_CIRCUITS_PER_JOB]
+            jobs.append(q_execute(sub_circuits, self._backend,
+                                  **self._execute_config))
 
         if logger.isEnabledFor(logging.DEBUG) and self._show_circuit_summary:
             logger.debug(summarize_circuits(circuits))

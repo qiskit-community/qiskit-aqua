@@ -142,21 +142,21 @@ class MainPage(ttk.Frame):
         ttk.Label(self,
                   text="Token:",
                   borderwidth=0,
-                  anchor=tk.E).grid(row=0, column=0, sticky='nsew')
+                  anchor=tk.E).grid(row=0, column=0, pady=5, sticky='nsew')
         self._apiTokenEntry = EntryCustom(self,
                                           textvariable=self._apiToken,
                                           width=120,
                                           state=tk.NORMAL)
-        self._apiTokenEntry.grid(row=0, column=1, sticky='nsew')
+        self._apiTokenEntry.grid(row=0, column=1, pady=5, sticky='nsew')
         ttk.Label(self,
                   text="URL:",
                   borderwidth=0,
-                  anchor=tk.E).grid(row=1, column=0, sticky='nsew')
+                  anchor=tk.E).grid(row=1, column=0, pady=5, sticky='nsew')
         self._urlEntry = EntryCustom(self,
                                      textvariable=self._url,
                                      width=60,
                                      state=tk.NORMAL)
-        self._urlEntry.grid(row=1, column=1, sticky='nsw')
+        self._urlEntry.grid(row=1, column=1, pady=5, sticky='nsw')
 
         ttk.Label(self,
                   text="Verify:",
