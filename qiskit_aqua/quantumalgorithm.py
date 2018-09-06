@@ -99,7 +99,7 @@ class QuantumAlgorithm(ABC):
 
     @random_seed.setter
     def random_seed(self, seed):
-        """Sets random seed"""
+        """Set random seed"""
         self._random_seed = seed
 
     @property
@@ -112,10 +112,17 @@ class QuantumAlgorithm(ABC):
                 self._random = np.random.RandomState(self._random_seed)
         return self._random
 
+    @property
+    def backend(self):
+        """Return backend"""
+        return self._backend
+
     def enable_circuit_summary(self):
+        """Enable showing the summary of circuits"""
         self._show_circuit_summary = True
 
     def disable_circuit_summary(self):
+        """Disable showing the summary of circuits"""
         self._show_circuit_summary = False
 
     def setup_quantum_backend(self, backend='local_statevector_simulator', shots=1024, skip_transpiler=False,
@@ -250,7 +257,3 @@ class QuantumAlgorithm(ABC):
     @abstractmethod
     def run(self):
         pass
-
-    @property
-    def backend(self):
-        return self._backend
