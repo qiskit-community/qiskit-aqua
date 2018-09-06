@@ -36,8 +36,9 @@ from qiskit import execute as q_execute
 from qiskit import available_backends, get_backend
 from qiskit.backends.ibmq import IBMQProvider
 
-from qiskit_aqua import get_qconfig, AlgorithmError
+from qiskit_aqua import AlgorithmError
 from qiskit_aqua.utils import summarize_circuits
+from qiskit_aqua import Preferences
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +57,8 @@ class QuantumAlgorithm(ABC):
 
     MAX_CIRCUITS_PER_JOB = 300
 
-    UNSUPPORTED_BACKENDS = ['local_unitary_simulator', 'local_clifford_simulator']
+    UNSUPPORTED_BACKENDS = [
+        'local_unitary_simulator', 'local_clifford_simulator']
 
     EQUIVALENT_BACKENDS = {'local_statevector_simulator_py': 'local_statevector_simulator',
                            'local_statevector_simulator_cpp': 'local_statevector_simulator',
@@ -78,7 +80,6 @@ class QuantumAlgorithm(ABC):
     @abstractmethod
     def __init__(self, configuration=None):
         self._configuration = configuration
-        self._qconfig = None
         self._backend = None
         self._execute_config = {}
         self._qjob_config = {}
@@ -90,19 +91,6 @@ class QuantumAlgorithm(ABC):
     def configuration(self):
         """Return algorithm configuration"""
         return self._configuration
-
-    @property
-    def qconfig(self):
-        """Return Qconfig configuration"""
-        if self._qconfig is None:
-            self._qconfig = get_qconfig()
-
-        return self._qconfig
-
-    @qconfig.setter
-    def qconfig(self, new_qconfig):
-        """Set Qconfig configuration"""
-        self._qconfig = new_qconfig
 
     @property
     def random_seed(self):
@@ -159,10 +147,10 @@ class QuantumAlgorithm(ABC):
         Raises:
             AlgorithmError: set backend with invalid Qconfig
         """
-        operational_backends = self.register_and_get_operational_backends(self.qconfig)
+        operational_backends = self.register_and_get_operational_backends()
         if self.EQUIVALENT_BACKENDS.get(backend, backend) not in operational_backends:
-            raise AlgorithmError("This backend '{}' is not operational for the quantum algorithm\
-                , please check your Qconfig.py, or select any one below: {}".format(backend, operational_backends))
+            raise AlgorithmError("This backend '{}' is not operational for the quantum algorithm, \
+                                 select any one below: {}".format(backend, operational_backends))
 
         self._backend = backend
         self._qjob_config = {'timeout': timeout,
@@ -216,8 +204,10 @@ class QuantumAlgorithm(ABC):
         jobs = []
         chunks = int(np.ceil(len(circuits) / self.MAX_CIRCUITS_PER_JOB))
         for i in range(chunks):
-            sub_circuits = circuits[i * self.MAX_CIRCUITS_PER_JOB:(i + 1) * self.MAX_CIRCUITS_PER_JOB]
-            jobs.append(q_execute(sub_circuits, self._backend, **self._execute_config))
+            sub_circuits = circuits[i *
+                                    self.MAX_CIRCUITS_PER_JOB:(i + 1) * self.MAX_CIRCUITS_PER_JOB]
+            jobs.append(q_execute(sub_circuits, self._backend,
+                                  **self._execute_config))
 
         if logger.isEnabledFor(logging.DEBUG) and self._show_circuit_summary:
             logger.debug(summarize_circuits(circuits))
@@ -233,37 +223,31 @@ class QuantumAlgorithm(ABC):
         return result
 
     @staticmethod
-    def register_and_get_operational_backends(qconfig):
+    def register_and_get_operational_backends(*args, provider_class=IBMQProvider, **kwargs):
         try:
             for provider in q_registered_providers():
-                if isinstance(provider, IBMQProvider):
+                if isinstance(provider, provider_class):
                     q_unregister(provider)
-                    logger.debug("Provider 'IBMQProvider' unregistered with Qiskit successfully.")
+                    logger.debug(
+                        "Provider '{}' unregistered with Qiskit successfully.".format(provider_class))
                     break
         except Exception as e:
-                logger.debug("Failed to unregister provider 'IBMQProvider' with Qiskit: {}".format(str(e)))
+            logger.debug(
+                "Failed to unregister provider '{}' with Qiskit: {}".format(provider_class,str(e)))
 
-        if qconfig is not None:
-            hub = qconfig.config.get('hub', None)
-            group = qconfig.config.get('group', None)
-            project = qconfig.config.get('project', None)
-            proxies = qconfig.config.get('proxies', None)
-            verify = qconfig.config.get('verify', True)
+        preferences = Preferences()
+        if preferences.get_token() is not None:
             try:
-                q_register(qconfig.APItoken,
-                           provider_class=IBMQProvider,
-                           url=qconfig.config["url"],
-                           hub=hub,
-                           group=group,
-                           project=project,
-                           proxies=proxies,
-                           verify=verify)
-                logger.debug("Provider 'IBMQProvider' registered with Qiskit successfully.")
+                q_register(*args, provider_class=provider_class, **kwargs)
+                logger.debug(
+                    "Provider '{}' registered with Qiskit successfully.".format(provider_class))
             except Exception as e:
-                logger.debug("Failed to register provider 'IBMQProvider' with Qiskit: {}".format(str(e)))
+                logger.debug(
+                    "Failed to register provider '{}' with Qiskit: {}".format(provider_class,str(e)))
 
         backends = available_backends()
-        backends = [x for x in backends if x not in QuantumAlgorithm.UNSUPPORTED_BACKENDS]
+        backends = [
+            x for x in backends if x not in QuantumAlgorithm.UNSUPPORTED_BACKENDS]
         return backends
 
     @abstractmethod

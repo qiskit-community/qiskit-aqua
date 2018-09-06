@@ -54,7 +54,6 @@ _PLUGGABLES = {
 
 _NAMES_TO_EXCLUDE = [
     '__main__',
-    '_discover_qconfig',
     '_discover',
     '_logging',
     'algomethods',
@@ -73,13 +72,15 @@ _NAMES_TO_EXCLUDE = [
     'multiclass_extension'
 ]
 
-_FOLDERS_TO_EXCLUDE = ['__pycache__','input','ui','parser']
+_FOLDERS_TO_EXCLUDE = ['__pycache__', 'input', 'ui', 'parser']
 
-RegisteredPluggable = namedtuple('RegisteredPluggable', ['name', 'cls', 'configuration'])
+RegisteredPluggable = namedtuple(
+    'RegisteredPluggable', ['name', 'cls', 'configuration'])
 
 _REGISTERED_PLUGGABLES = {}
 
 _DISCOVERED = False
+
 
 def refresh_pluggables():
     """
@@ -93,7 +94,9 @@ def refresh_pluggables():
     discover_preferences_pluggables()
     if logger.isEnabledFor(logging.DEBUG):
         for ptype in local_pluggables_types():
-            logger.debug("Found: '{}' has pluggables {} ".format(ptype, local_pluggables(ptype)))
+            logger.debug("Found: '{}' has pluggables {} ".format(
+                ptype, local_pluggables(ptype)))
+
 
 def _discover_on_demand():
     """
@@ -106,7 +109,8 @@ def _discover_on_demand():
         discover_preferences_pluggables()
         if logger.isEnabledFor(logging.DEBUG):
             for ptype in local_pluggables_types():
-                logger.debug("Found: '{}' has pluggables {} ".format(ptype, local_pluggables(ptype)))
+                logger.debug("Found: '{}' has pluggables {} ".format(
+                    ptype, local_pluggables(ptype)))
 
 
 def discover_preferences_pluggables():
@@ -123,55 +127,61 @@ def discover_preferences_pluggables():
                 _discover_local_pluggables(os.path.dirname(mod.__file__),
                                            mod.__name__,
                                            names_to_exclude=['__main__'],
-                                           folders_to_exclude= ['__pycache__'])
+                                           folders_to_exclude=['__pycache__'])
             else:
                 # Ignore package that could not be initialized.
                 logger.debug('Failed to import package {}'.format(package))
         except Exception as e:
             # Ignore package that could not be initialized.
-            logger.debug('Failed to load package {} error {}'.format(package, str(e)))
+            logger.debug(
+                'Failed to load package {} error {}'.format(package, str(e)))
+
 
 def _discover_local_pluggables(directory,
                                parentname,
                                names_to_exclude=_NAMES_TO_EXCLUDE,
                                folders_to_exclude=_FOLDERS_TO_EXCLUDE):
-        for _, name, ispackage in pkgutil.iter_modules([directory]):
-            if ispackage:
-                continue
+    for _, name, ispackage in pkgutil.iter_modules([directory]):
+        if ispackage:
+            continue
 
-            # Iterate through the modules
-            if name not in names_to_exclude:  # skip those modules
-                try:
-                    fullname = parentname + '.' + name
-                    modspec = importlib.util.find_spec(fullname)
-                    mod = importlib.util.module_from_spec(modspec)
-                    modspec.loader.exec_module(mod)
-                    for _, cls in inspect.getmembers(mod, inspect.isclass):
-                        # Iterate through the classes defined on the module.
-                        try:
-                            if cls.__module__ == modspec.name:
-                                for pluggable_type,c in _PLUGGABLES.items():
-                                    if issubclass(cls, c):
-                                        _register_pluggable(pluggable_type,cls)
-                                        importlib.import_module(fullname)
-                                        break
-                        except Exception as e:
-                            # Ignore pluggables that could not be initialized.
-                            logger.debug('Failed to load {} error {}'.format(fullname, str(e)))
+        # Iterate through the modules
+        if name not in names_to_exclude:  # skip those modules
+            try:
+                fullname = parentname + '.' + name
+                modspec = importlib.util.find_spec(fullname)
+                mod = importlib.util.module_from_spec(modspec)
+                modspec.loader.exec_module(mod)
+                for _, cls in inspect.getmembers(mod, inspect.isclass):
+                    # Iterate through the classes defined on the module.
+                    try:
+                        if cls.__module__ == modspec.name:
+                            for pluggable_type, c in _PLUGGABLES.items():
+                                if issubclass(cls, c):
+                                    _register_pluggable(pluggable_type, cls)
+                                    importlib.import_module(fullname)
+                                    break
+                    except Exception as e:
+                        # Ignore pluggables that could not be initialized.
+                        logger.debug(
+                            'Failed to load {} error {}'.format(fullname, str(e)))
 
-                except Exception as e:
-                    # Ignore pluggables that could not be initialized.
-                    logger.debug('Failed to load {} error {}'.format(fullname, str(e)))
+            except Exception as e:
+                # Ignore pluggables that could not be initialized.
+                logger.debug(
+                    'Failed to load {} error {}'.format(fullname, str(e)))
 
-        for item  in os.listdir(directory):
-            fullpath = os.path.join(directory,item)
-            if item not in folders_to_exclude and not item.endswith('dSYM') and os.path.isdir(fullpath):
-                _discover_local_pluggables(fullpath,parentname + '.' + item,names_to_exclude,folders_to_exclude)
+    for item in os.listdir(directory):
+        fullpath = os.path.join(directory, item)
+        if item not in folders_to_exclude and not item.endswith('dSYM') and os.path.isdir(fullpath):
+            _discover_local_pluggables(
+                fullpath, parentname + '.' + item, names_to_exclude, folders_to_exclude)
+
 
 def discover_local_pluggables(directory=os.path.dirname(__file__),
-                           parentname=os.path.splitext(__name__)[0],
-                           names_to_exclude=_NAMES_TO_EXCLUDE,
-                           folders_to_exclude=_FOLDERS_TO_EXCLUDE):
+                              parentname=os.path.splitext(__name__)[0],
+                              names_to_exclude=_NAMES_TO_EXCLUDE,
+                              folders_to_exclude=_FOLDERS_TO_EXCLUDE):
     """
     Discovers the pluggable modules on the directory and subdirectories of the current module
     and attempts to register them. Pluggable modules should subclass Pluggable Base classes.
@@ -183,8 +193,8 @@ def discover_local_pluggables(directory=os.path.dirname(__file__),
 
     def _get_sys_path(directory):
         syspath = [os.path.abspath(directory)]
-        for item  in os.listdir(directory):
-            fullpath = os.path.join(directory,item)
+        for item in os.listdir(directory):
+            fullpath = os.path.join(directory, item)
             if item != '__pycache__' and not item.endswith('dSYM') and os.path.isdir(fullpath):
                 syspath += _get_sys_path(fullpath)
 
@@ -193,9 +203,10 @@ def discover_local_pluggables(directory=os.path.dirname(__file__),
     syspath_save = sys.path
     sys.path = _get_sys_path(directory) + sys.path
     try:
-        _discover_local_pluggables(directory,parentname)
+        _discover_local_pluggables(directory, parentname)
     finally:
         sys.path = syspath_save
+
 
 def register_pluggable(cls, configuration=None):
     """
@@ -208,15 +219,17 @@ def register_pluggable(cls, configuration=None):
     """
     _discover_on_demand()
     pluggable_type = None
-    for type,c in _PLUGGABLES.items():
+    for type, c in _PLUGGABLES.items():
         if issubclass(cls, c):
             pluggable_type = type
             break
 
     if pluggable_type is None:
-        raise AlgorithmError('Could not register class {} is not subclass of any known pluggable'.format(cls))
+        raise AlgorithmError(
+            'Could not register class {} is not subclass of any known pluggable'.format(cls))
 
-    return _register_pluggable(pluggable_type,cls,configuration)
+    return _register_pluggable(pluggable_type, cls, configuration)
+
 
 def _register_pluggable(pluggable_type, cls, configuration=None):
     """
@@ -236,28 +249,33 @@ def _register_pluggable(pluggable_type, cls, configuration=None):
     # Verify that the pluggable is not already registered.
     registered_classes = _REGISTERED_PLUGGABLES[pluggable_type]
     if cls in [pluggable.cls for pluggable in registered_classes.values()]:
-        raise AlgorithmError('Could not register class {} is already registered'.format(cls))
+        raise AlgorithmError(
+            'Could not register class {} is already registered'.format(cls))
 
     try:
         pluggable_instance = cls(configuration=configuration)
     except Exception as err:
-        raise AlgorithmError('Could not register puggable:{} could not be instantiated: {}'.format(cls, str(err)))
+        raise AlgorithmError(
+            'Could not register puggable:{} could not be instantiated: {}'.format(cls, str(err)))
 
     # Verify that it has a minimal valid configuration.
     try:
         pluggable_name = pluggable_instance.configuration['name']
     except (LookupError, TypeError):
-        raise AlgorithmError('Could not register pluggable: invalid configuration')
+        raise AlgorithmError(
+            'Could not register pluggable: invalid configuration')
 
     if pluggable_name in _REGISTERED_PLUGGABLES[pluggable_type]:
         raise AlgorithmError('Could not register class {}. Name {} {} is already registered'.format(cls,
-                             pluggable_name,_REGISTERED_PLUGGABLES[pluggable_type][pluggable_name].cls))
+                             pluggable_name, _REGISTERED_PLUGGABLES[pluggable_type][pluggable_name].cls))
 
     # Append the pluggable to the `registered_classes` dict.
-    _REGISTERED_PLUGGABLES[pluggable_type][pluggable_name] = RegisteredPluggable(pluggable_name, cls, pluggable_instance.configuration)
+    _REGISTERED_PLUGGABLES[pluggable_type][pluggable_name] = RegisteredPluggable(
+        pluggable_name, cls, pluggable_instance.configuration)
     return pluggable_name
 
-def deregister_pluggable(pluggable_type,pluggable_name):
+
+def deregister_pluggable(pluggable_type, pluggable_name):
     """
     Deregisters a pluggable class
     Args:
@@ -269,14 +287,17 @@ def deregister_pluggable(pluggable_type,pluggable_name):
     _discover_on_demand()
 
     if pluggable_type not in _REGISTERED_PLUGGABLES:
-        raise AlgorithmError('Could not deregister {} {} not registered'.format(pluggable_type,pluggable_name))
+        raise AlgorithmError('Could not deregister {} {} not registered'.format(
+            pluggable_type, pluggable_name))
 
     if pluggable_name not in _REGISTERED_PLUGGABLES[pluggable_type]:
-        raise AlgorithmError('Could not deregister {} {} not registered'.format(pluggable_type,pluggable_name))
+        raise AlgorithmError('Could not deregister {} {} not registered'.format(
+            pluggable_type, pluggable_name))
 
     _REGISTERED_PLUGGABLES[pluggable_type].pop(pluggable_name)
 
-def get_pluggable_class(pluggable_type,pluggable_name):
+
+def get_pluggable_class(pluggable_type, pluggable_name):
     """
     Accesses pluggable class
     Args:
@@ -290,14 +311,17 @@ def get_pluggable_class(pluggable_type,pluggable_name):
     _discover_on_demand()
 
     if pluggable_type not in _REGISTERED_PLUGGABLES:
-        raise AlgorithmError('{} {} not registered'.format(pluggable_type,pluggable_name))
+        raise AlgorithmError('{} {} not registered'.format(
+            pluggable_type, pluggable_name))
 
     if pluggable_name not in _REGISTERED_PLUGGABLES[pluggable_type]:
-        raise AlgorithmError('{} {} not registered'.format(pluggable_type,pluggable_name))
+        raise AlgorithmError('{} {} not registered'.format(
+            pluggable_type, pluggable_name))
 
     return _REGISTERED_PLUGGABLES[pluggable_type][pluggable_name].cls
 
-def get_pluggable_instance(pluggable_type,pluggable_name):
+
+def get_pluggable_instance(pluggable_type, pluggable_name):
     """
     Instantiates a pluggable class
     Args:
@@ -309,15 +333,18 @@ def get_pluggable_instance(pluggable_type,pluggable_name):
     _discover_on_demand()
 
     if pluggable_type not in _REGISTERED_PLUGGABLES:
-        raise AlgorithmError('{} {} not registered'.format(pluggable_type,pluggable_name))
+        raise AlgorithmError('{} {} not registered'.format(
+            pluggable_type, pluggable_name))
 
     if pluggable_name not in _REGISTERED_PLUGGABLES[pluggable_type]:
-        raise AlgorithmError('{} {} not registered'.format(pluggable_type,pluggable_name))
+        raise AlgorithmError('{} {} not registered'.format(
+            pluggable_type, pluggable_name))
 
     return _REGISTERED_PLUGGABLES[pluggable_type][pluggable_name].cls(
-            configuration=_REGISTERED_PLUGGABLES[pluggable_type][pluggable_name].configuration)
+        configuration=_REGISTERED_PLUGGABLES[pluggable_type][pluggable_name].configuration)
 
-def get_pluggable_configuration(pluggable_type,pluggable_name):
+
+def get_pluggable_configuration(pluggable_type, pluggable_name):
     """
     Accesses pluggable configuration
     Args:
@@ -331,12 +358,15 @@ def get_pluggable_configuration(pluggable_type,pluggable_name):
     _discover_on_demand()
 
     if pluggable_type not in _REGISTERED_PLUGGABLES:
-        raise AlgorithmError('{} {} not registered'.format(pluggable_type,pluggable_name))
+        raise AlgorithmError('{} {} not registered'.format(
+            pluggable_type, pluggable_name))
 
     if pluggable_name not in _REGISTERED_PLUGGABLES[pluggable_type]:
-        raise AlgorithmError('{} {} not registered'.format(pluggable_type,pluggable_name))
+        raise AlgorithmError('{} {} not registered'.format(
+            pluggable_type, pluggable_name))
 
     return _REGISTERED_PLUGGABLES[pluggable_type][pluggable_name].configuration
+
 
 def local_pluggables_types():
     """
@@ -346,6 +376,7 @@ def local_pluggables_types():
     """
     _discover_on_demand()
     return list(_REGISTERED_PLUGGABLES.keys())
+
 
 def local_pluggables(pluggable_type):
     """
@@ -363,16 +394,23 @@ def local_pluggables(pluggable_type):
 
     return [pluggable.name for pluggable in _REGISTERED_PLUGGABLES[pluggable_type].values()]
 
+
 for pluggable_type in _PLUGGABLES.keys():
-    method = 'def register_{}(cls, configuration=None): return register_pluggable(cls,configuration)'.format(pluggable_type)
+    method = 'def register_{}(cls, configuration=None): return register_pluggable(cls,configuration)'.format(
+        pluggable_type)
     exec(method)
-    method = "def deregister_{}(name): deregister_pluggable('{}',name)".format(pluggable_type,pluggable_type)
+    method = "def deregister_{}(name): deregister_pluggable('{}',name)".format(
+        pluggable_type, pluggable_type)
     exec(method)
-    method = "def get_{}_class(name): return get_pluggable_class('{}',name)".format(pluggable_type,pluggable_type)
+    method = "def get_{}_class(name): return get_pluggable_class('{}',name)".format(
+        pluggable_type, pluggable_type)
     exec(method)
-    method = "def get_{}_instance(name): return get_pluggable_instance('{}',name)".format(pluggable_type,pluggable_type)
+    method = "def get_{}_instance(name): return get_pluggable_instance('{}',name)".format(
+        pluggable_type, pluggable_type)
     exec(method)
-    method = "def get_{}_configuration(name): return get_pluggable_configuration('{}',name)".format(pluggable_type,pluggable_type)
+    method = "def get_{}_configuration(name): return get_pluggable_configuration('{}',name)".format(
+        pluggable_type, pluggable_type)
     exec(method)
-    method = "def local_{}s(): return local_pluggables('{}')".format(pluggable_type,pluggable_type)
+    method = "def local_{}s(): return local_pluggables('{}')".format(
+        pluggable_type, pluggable_type)
     exec(method)
