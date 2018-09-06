@@ -236,7 +236,7 @@ class QuantumAlgorithm(ABC):
                 "Failed to unregister provider '{}' with Qiskit: {}".format(provider_class,str(e)))
 
         preferences = Preferences()
-        if preferences.get_token() is not None:
+        if args or kwargs or preferences.get_token() is not None:
             try:
                 q_register(*args, provider_class=provider_class, **kwargs)
                 logger.debug(
