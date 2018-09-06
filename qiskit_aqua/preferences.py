@@ -28,7 +28,6 @@ class Preferences(object):
     _FILENAME = '.qiskit_aqua'
     _VERSION = '1.0'
     URL = 'https://quantumexperience.ng.bluemix.net/api'
-    VERIFY = True
 
     def __init__(self):
         """Create Preferences object."""
@@ -40,7 +39,6 @@ class Preferences(object):
         self._logging_config_changed = False
         self._token = None
         self._url = Preferences.URL
-        self._verify = Preferences.VERIFY
         self._proxy_urls = None
 
         credentials = read_credentials_from_qiskitrc()
@@ -53,8 +51,6 @@ class Preferences(object):
                     self._token = credentials['token']
                 if 'url' in credentials:
                     self._url = credentials['url']
-                if 'verify' in credentials:
-                    self._verify = credentials['verify']
                 if 'proxies' in credentials and isinstance(credentials['proxies'], dict) and 'urls' in credentials['proxies']:
                     self._proxy_urls = credentials['proxies']['urls']
 
@@ -73,7 +69,6 @@ class Preferences(object):
             qiskit.wrapper.store_credentials(self._token,
                                              url=self._url,
                                              proxies=proxies,
-                                             verify=self._verify,
                                              overwrite=True)
             self._credentials_changed = False
 
@@ -110,17 +105,6 @@ class Preferences(object):
         if self._url != url:
             self._credentials_changed = True
             self._url = url
-
-    def get_verify(self, default_value=None):
-        if self._verify is not None:
-            return self._verify
-
-        return default_value
-
-    def set_verify(self, verify):
-        if self._verify != verify:
-            self._credentials_changed = True
-            self._verify = verify
 
     def get_proxy_urls(self, default_value=None):
         if self._proxy_urls is not None:

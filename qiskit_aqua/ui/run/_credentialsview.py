@@ -131,13 +131,11 @@ class MainPage(ttk.Frame):
         self._apiToken = tk.StringVar()
         self._urlEntry = None
         self._url = tk.StringVar()
-        self._verifyEntry = None
 
         self.pack(fill=tk.BOTH, expand=tk.TRUE)
 
         self._apiToken.set(preferences.get_token(''))
         self._url.set(preferences.get_url(Preferences.URL))
-        self._verify = preferences.get_verify(Preferences.VERIFY)
 
         ttk.Label(self,
                   text="Token:",
@@ -154,22 +152,9 @@ class MainPage(ttk.Frame):
                   anchor=tk.E).grid(row=1, column=0, pady=5, sticky='nsew')
         self._urlEntry = EntryCustom(self,
                                      textvariable=self._url,
-                                     width=60,
+                                     width=80,
                                      state=tk.NORMAL)
         self._urlEntry.grid(row=1, column=1, pady=5, sticky='nsw')
-
-        ttk.Label(self,
-                  text="Verify:",
-                  borderwidth=0,
-                  anchor=tk.E).grid(row=2, column=0, sticky='nsew')
-        values = ['True', 'False']
-        self._verifyEntry = ttk.Combobox(self,
-                                         exportselection=0,
-                                         state='readonly',
-                                         values=values,
-                                         width=6)
-        self._verifyEntry.current(values.index(str(self._verify)))
-        self._verifyEntry.grid(row=2, column=1, sticky='nsw')
 
         self.initial_focus = self._apiTokenEntry
 
@@ -187,11 +172,9 @@ class MainPage(ttk.Frame):
     def apply(self, preferences):
         token = self._apiToken.get().strip()
         url = self._url.get().strip()
-        verify = self._verifyEntry.get().lower() == 'true'
 
         preferences.set_token(token if len(token) > 0 else None)
         preferences.set_url(url if len(url) > 0 else None)
-        preferences.set_verify(verify)
 
 
 class ProxiesPage(ToolbarView):
