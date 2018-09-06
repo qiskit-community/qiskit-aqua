@@ -223,24 +223,24 @@ class QuantumAlgorithm(ABC):
         return result
 
     @staticmethod
-    def register_and_get_operational_backends():
+    def register_and_get_operational_backends(*args, provider_class=IBMQProvider, **kwargs):
         try:
             for provider in q_registered_providers():
-                if isinstance(provider, IBMQProvider):
+                if isinstance(provider, provider_class):
                     q_unregister(provider)
                     logger.debug(
-                        "Provider 'IBMQProvider' unregistered with Qiskit successfully.")
+                        "Provider '{}' unregistered with Qiskit successfully.".format(provider_class))
                     break
         except Exception as e:
             logger.debug(
-                "Failed to unregister provider 'IBMQProvider' with Qiskit: {}".format(str(e)))
+                "Failed to unregister provider '{}' with Qiskit: {}".format(provider_class,str(e)))
 
         preferences = Preferences()
         if preferences.get_token() is not None:
             try:
-                q_register(provider_class=IBMQProvider)
+                q_register(*args, provider_class=provider_class, **kwargs)
                 logger.debug(
-                    "Provider 'IBMQProvider' registered with Qiskit successfully.")
+                    "Provider '{}' registered with Qiskit successfully.".format(provider_class))
             except Exception as e:
                 logger.debug(
                     "Failed to register provider 'IBMQProvider' with Qiskit: {}".format(str(e)))
