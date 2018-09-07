@@ -37,13 +37,6 @@ class OneAgainstRest(MulticlassExtension):
             'id': 'one_against_rest_schema',
             'type': 'object',
             'properties': {
-                'estimator': {
-                    'type': 'string',
-                    'default': 'RBF_SVC_Estimator',
-                    'oneOf': [
-                        {'enum': ['RBF_SVC_Estimator', 'QKernalSVM_Estimator']}
-                    ]
-                },
             },
             'additionalProperties': False
         }

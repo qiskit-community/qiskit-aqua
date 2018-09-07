@@ -32,18 +32,24 @@ def get_num_classes(dataset):
 
 
 def get_feature_dimension(dataset):
-    """Check number of classes in a given dataset
+    """Check feature dimension of a given dataset
 
     Args:
         dataset(dict): key is the class name and value is the data.
 
     Returns:
-        int: number of classes
+        int: feature dimension, -1 denotes no data in the dataset.
     """
+    if not isinstance(dataset, dict):
+        raise TypeError("Dataset is not formatted as a dict. Please check it.")
+
+    feature_dim = -1
     for v in dataset.values():
         if not isinstance(v, np.ndarray):
             v = np.asarray(v)
         return v.shape[1]
+
+    return feature_dim
 
 
 def split_dataset_to_data_and_labels(dataset, class_names=None):

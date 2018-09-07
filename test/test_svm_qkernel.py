@@ -158,8 +158,7 @@ class TestSVMQKernel(QiskitAquaTestCase):
                 'name': 'QSVM.Kernel',
             },
             'backend': {'name': 'local_qasm_simulator_cpp', 'shots': self.shots},
-            'multiclass_extension': {'name': 'OneAgainstRest',
-                                     'estimator': 'QKernalSVM_Estimator'},
+            'multiclass_extension': {'name': 'OneAgainstRest'},
             'feature_map': {'name': 'SecondOrderExpansion', 'depth': 2, 'entangler_map': {0: [1]}}
         }
 
@@ -199,7 +198,7 @@ class TestSVMQKernel(QiskitAquaTestCase):
                 'name': 'QSVM.Kernel',
             },
             'backend': {'name': 'local_qasm_simulator_cpp', 'shots': self.shots},
-            'multiclass_extension': {'name': 'AllPairs', 'estimator': 'QKernalSVM_Estimator'},
+            'multiclass_extension': {'name': 'AllPairs'},
             'feature_map': {'name': 'SecondOrderExpansion', 'depth': 2, 'entangler_map': {0: [1]}}
         }
 
@@ -237,8 +236,7 @@ class TestSVMQKernel(QiskitAquaTestCase):
                 'name': 'QSVM.Kernel',
             },
             'backend': {'name': 'local_qasm_simulator_cpp', 'shots': 8192},
-            'multiclass_extension': {'name': 'ErrorCorrectingCode', 'estimator':
-                                     'QKernalSVM_Estimator', 'code_size': 5},
+            'multiclass_extension': {'name': 'ErrorCorrectingCode', 'code_size': 5},
             'feature_map': {'name': 'SecondOrderExpansion', 'depth': 2, 'entangler_map': {0: [1]}}
         }
 

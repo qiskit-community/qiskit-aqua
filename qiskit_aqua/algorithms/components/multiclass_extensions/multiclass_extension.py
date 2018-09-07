@@ -45,16 +45,10 @@ class MulticlassExtension(ABC):
         args = {k: v for k, v in params.items() if k != 'name'}
         self.init_args(**args)
 
-    def init_args(self, **args):
-        estimator_class_name = args.get('estimator', None)
-        if estimator_class_name == 'RBF_SVC_Estimator':
-            self.estimator_cls = RBF_SVC_Estimator
-        elif estimator_class_name == 'QKernalSVM_Estimator':
-            self.estimator_cls = QKernalSVM_Estimator
-        else:
-            raise ValueError("We do not understand your input of the estimator.")
-        self.code_size = args.get('code_size', None)
-        self.params = args.get('params', None)
+    def init_args(self, estimator_cls, code_size=None, params=None):
+        self.estimator_cls = estimator_cls
+        self.code_size = code_size
+        self.params = params
 
     @abstractmethod
     def train(self, x, y):
