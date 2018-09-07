@@ -115,7 +115,7 @@ class SecondOrderExpansion(FeatureMap):
             raise ValueError("number of qubits and data dimension must be the same.")
 
         if qr is None:
-            QuantumRegister(self._num_qubits, 'q')
+            qr = QuantumRegister(self._num_qubits, 'q')
         qc = QuantumCircuit(qr)
         composite_gate = self._build_composite_gate(x, qr)
         qc._attach(composite_gate if not inverse else composite_gate.inverse())
