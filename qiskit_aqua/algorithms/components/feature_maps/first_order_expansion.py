@@ -56,7 +56,7 @@ class FirstOrderExpansion(FeatureMap):
         super().__init__(configuration or self.FIRST_ORDER_EXPANSION_CONFIGURATION.copy())
         self._ret = {}
 
-    def init_args(self, num_qubits, depth, entangler_map=None, entanglement='full'):
+    def init_args(self, num_qubits, depth):
         self._num_qubits = num_qubits
         self._depth = depth
 
@@ -92,7 +92,7 @@ class FirstOrderExpansion(FeatureMap):
             raise ValueError("number of qubits and data dimension must be the same.")
 
         if qr is None:
-            QuantumRegister(self._num_qubits, 'q')
+            qr = QuantumRegister(self._num_qubits, 'q')
         qc = QuantumCircuit(qr)
         composite_gate = self._build_composite_gate(x, qr)
         qc._attach(composite_gate if not inverse else composite_gate.inverse())
