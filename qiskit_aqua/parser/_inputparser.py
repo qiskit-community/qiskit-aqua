@@ -16,7 +16,6 @@
 # =============================================================================
 
 from qiskit_aqua.algorithmerror import AlgorithmError
-import ast
 import json
 from collections import OrderedDict
 import logging
@@ -503,10 +502,9 @@ class InputParser(object):
         pluggable_defaults = {} if 'defaults' not in config else config['defaults']
         pluggable_types = local_pluggables_types()
         for pluggable_type in pluggable_types:
-            if pluggable_type != JSONSchema.ALGORITHM and pluggable_type not in pluggable_dependencies:
-                # remove pluggables from input that are not in the dependencies
-                if pluggable_type in self._sections:
-                   del self._sections[pluggable_type] 
+            # remove pluggables from input that are not in the dependencies
+            if pluggable_type != JSONSchema.ALGORITHM and pluggable_type not in pluggable_dependencies and pluggable_type in self._sections:
+                del self._sections[pluggable_type] 
        
         for pluggable_type in pluggable_dependencies:
             pluggable_name = None
@@ -516,6 +514,8 @@ class InputParser(object):
            
             if pluggable_name is not None and pluggable_type not in self._sections:
                 self.set_section_property(pluggable_type,JSONSchema.NAME,pluggable_name)
+                # update default values for new dependency pluggable types
+                self.set_section_properties(pluggable_type,self.get_section_default_properties(pluggable_type))
                
         # update backend based on classical
         if classical:
@@ -524,6 +524,9 @@ class InputParser(object):
         else:
             if JSONSchema.BACKEND not in self._sections:
                 self._sections[JSONSchema.BACKEND] = self.get_section_default_properties(JSONSchema.BACKEND)
+                
+        #reorder sections
+        self._sections = self._order_sections(self._sections)
                     
     @staticmethod
     def _set_section_property(sections, section_name, property_name, value, types):

@@ -43,7 +43,7 @@ quantum algorithms:
     Along with any supporting  module, for immediate dynamic discovery, the new algorithm class
     can simply be installed under its own folder in the ``qiskit_aqua`` directory, just like the
     existing algorithms.  Aqua also allows for
-    :ref:`aqua-dynamically-discovered-components`: new algorithms can register themselves
+    :ref:`aqua-dynamically-discovered-components`: new components can register themselves
     as Aqua extensions and be dynamically discovered at run time independent of their
     location in the file system.
     This is done in order to encourage researchers and
@@ -418,6 +418,31 @@ format <http://www.satcompetition.org/2009/format-benchmarks2009.html>`__
 and constructs the corresponding quantum circuit.  Oracles are treated as pluggable components
 in Aqua; researchers interested in :ref:`aqua-extending` can design and implement new
 oracles and extend Aqua's oracle library.
+
+Grover is configured with the following parameter settings:
+
+-  Number of iterations:
+
+   .. code:: python
+
+       num_iterations = 1 | 2 | ...
+
+   For the conventional Grover's search algorithm, the parameter ``num_iterations`` is used to specify
+   how many times the marking and reflection phase sub-circuit is repeated to amplify the amplitude(s) of the target(s).
+   A positive ``int`` value is expected. The default value is ``1``.
+
+-  Incremental mode flag:
+
+   .. code:: python
+
+       Incremental = False | True
+
+   When run in ``incremental`` mode, the search task will be carried out by using successive circuits built using incrementally higher
+   number of iterations for the repetition of the amplitude amplification until a target is found
+   or the maximal number :math:`\log N` (:math:`N` being the total number of elements in the set from the oracle used) of iterations is reached.
+   This is a boolean flag defaulted to ``False``;
+   when set ``True``, the other parameter ``num_iterations`` will be ignored.
+
 
 .. topic:: Declarative Name
 

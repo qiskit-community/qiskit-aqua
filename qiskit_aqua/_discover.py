@@ -30,12 +30,14 @@ from collections import namedtuple
 from .quantumalgorithm import QuantumAlgorithm
 from qiskit_aqua import AlgorithmError
 from qiskit_aqua.preferences import Preferences
-from qiskit_aqua.utils.optimizers import Optimizer
-from qiskit_aqua.utils.variational_forms import VariationalForm
-from qiskit_aqua.utils.initial_states import InitialState
-from qiskit_aqua.utils.iqfts import IQFT
-from qiskit_aqua.utils.oracles import Oracle
-from qiskit_aqua.utils.feature_extractions import FeatureExtraction
+from qiskit_aqua.algorithms.components.optimizers import Optimizer
+from qiskit_aqua.algorithms.components.variational_forms import VariationalForm
+from qiskit_aqua.algorithms.components.initial_states import InitialState
+from qiskit_aqua.algorithms.components.iqfts import IQFT
+from qiskit_aqua.algorithms.components.oracles import Oracle
+from qiskit_aqua.algorithms.components.feature_maps import FeatureMap
+from qiskit_aqua.algorithms.components.multiclass import MulticlassExtension
+
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +48,8 @@ _PLUGGABLES = {
     'initial_state': InitialState,
     'iqft': IQFT,
     'oracle': Oracle,
-    'feature_extraction': FeatureExtraction
+    'feature_map': FeatureMap,
+    'multiclass_extension': MulticlassExtension
 }
 
 _NAMES_TO_EXCLUDE = [
@@ -66,7 +69,8 @@ _NAMES_TO_EXCLUDE = [
     'initial_state',
     'iqft',
     'oracle',
-    'feature_extraction'
+    'feature_map',
+    'multiclass_extension'
 ]
 
 _FOLDERS_TO_EXCLUDE = ['__pycache__','input','ui','parser']
