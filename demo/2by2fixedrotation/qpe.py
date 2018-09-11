@@ -251,10 +251,8 @@ class QPE():
 
         a = QuantumRegister(self._num_ancillae, name='eigs')
         q = QuantumRegister(self._operator.num_qubits, name='comp')
-        #control_qbit = QuantumRegister(1, 'control')
-        #c1 = ClassicalRegister(1, name='controlbit')
-        #c2 = ClassicalRegister(self._operator.num_qubits, name='solution_vector')
-        qc = QuantumCircuit(a, q)#,control_qbit,c1,c2)
+
+        qc = QuantumCircuit(a, q)
         if measure:
             c = ClassicalRegister(self._num_ancillae, name='c')
             qc.add(c)
