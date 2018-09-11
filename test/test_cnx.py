@@ -16,13 +16,12 @@
 # =============================================================================
 
 import unittest
+import numpy as np
 from itertools import combinations, chain
 from parameterized import parameterized
-from test.common import QiskitAquaTestCase
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.wrapper import execute as q_execute
-import numpy as np
-import qiskit_aqua.grover.cnx
+from test.common import QiskitAquaTestCase
 
 
 class TestCNX(QiskitAquaTestCase):
@@ -36,9 +35,9 @@ class TestCNX(QiskitAquaTestCase):
         c = QuantumRegister(num_controls, name='c')
         o = QuantumRegister(1, name='o')
         a = QuantumRegister(num_ancillae, name='a')
-        qc = QuantumCircuit(o, c, a)
         allsubsets = list(chain(*[combinations(range(num_controls), ni) for ni in range(num_controls + 1)]))
         for subset in allsubsets:
+            qc = QuantumCircuit(o, c, a)
             for idx in subset:
                 qc.x(c[idx])
             qc.cnx(
@@ -48,7 +47,6 @@ class TestCNX(QiskitAquaTestCase):
             )
             for idx in subset:
                 qc.x(c[idx])
-            # print(qc.qasm())
             vec = np.asarray(q_execute(qc, 'local_statevector_simulator').result().get_statevector(qc))
             vec_o = [0, 1] if len(subset) == num_controls else [1, 0]
             np.testing.assert_almost_equal(

@@ -16,12 +16,14 @@
 # =============================================================================
 
 import unittest
+
+import numpy as np
 from parameterized import parameterized
+from scipy.linalg import expm
+
+from test.common import QiskitAquaTestCase
 from qiskit_aqua import get_algorithm_instance, get_initial_state_instance, Operator
 from qiskit_aqua.utils import decimal_to_binary
-import numpy as np
-from scipy.linalg import expm
-from test.common import QiskitAquaTestCase
 
 
 pauli_dict = {
@@ -42,9 +44,9 @@ class TestIQPE(QiskitAquaTestCase):
     @parameterized.expand([
         [qubitOp_h2_with_2_qubit_reduction],
     ])
-    def test_qpe(self, qubitOp):
+    def test_iqpe(self, qubitOp):
         self.algorithm = 'QPE'
-        self.log.debug('Testing QPE')
+        self.log.debug('Testing IQPE')
 
         self.qubitOp = qubitOp
 

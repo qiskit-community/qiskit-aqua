@@ -16,11 +16,13 @@
 # =============================================================================
 
 import unittest
-from parameterized import parameterized
-from qiskit_aqua import get_algorithm_instance, get_optimizer_instance
-from test.common import QiskitAquaTestCase
-from qiskit_aqua.ising import maxcut
+
 import numpy as np
+from parameterized import parameterized
+
+from test.common import QiskitAquaTestCase
+from qiskit_aqua import get_algorithm_instance, get_optimizer_instance
+from qiskit_aqua.algorithms.classical.cplex import maxcut
 
 w1 = np.array([
     [0, 1, 0, 1],
@@ -53,7 +55,7 @@ class TestQAOA(QiskitAquaTestCase):
         np.random.seed(0)
         optimizer = get_optimizer_instance('COBYLA')
         qubitOp, offset = maxcut.get_maxcut_qubitops(w)
-        qaoa = get_algorithm_instance('QAOA')
+        qaoa = get_algorithm_instance('QAOA.Variational')
         qaoa.init_args(qubitOp, 'matrix', p, optimizer)
         qaoa.setup_quantum_backend(backend='local_statevector_simulator', shots=100)
 

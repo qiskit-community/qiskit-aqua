@@ -3,13 +3,12 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-=========================
+#########################
 Qiskit Aqua Documentation
-=========================
-
-Qiskit Aqua
+#########################
 
 
+=================
 Table of Contents
 =================
 
@@ -18,9 +17,11 @@ Table of Contents
    
    Qiskit Aqua <aqua>
 
+==============
 Python Modules
 ==============
 
+------------
 Main Modules
 ------------
 
@@ -28,10 +29,8 @@ Main Modules
    :nosignatures:
 
    qiskit_aqua
+   qiskit_aqua_chemistry
 
 :ref:`modindex`
 
-
-Authors (alphabetical)
-======================
-Panagiotis Barkoutsos, Sergey Bravyi, Chun-Fu (Richard) Chen, Antonio Córcoles-Gonzalez, Jay Gambetta, Shaohan Hu, Takashi Imamichi, Tal Kachman, Peng Liu, Manoel Marques, Antonio Mezzacapo, Nikolaj Moll, Giacomo Nannicini, Marco Pistoia, Julia Rice, Raymond Harry Putra Rudy, Ivano Tavernelli, Stephen Wood
+.. include:: ../CONTRIBUTORS.RST
