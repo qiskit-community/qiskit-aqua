@@ -146,13 +146,13 @@ def generate_matrix():
 def print_linsystem(A, k, b):
     out_mat = '$\\begin{pmatrix}' + r'\\'.join(
         ['&'.join([str(A[0, i]), str(A[1, i])]) for i in range(A.shape[1])]) + '\\end{pmatrix}$'
-    sol_vec = '$\\begin{pmatrix}a_0' + r'\\' + '{}a_0'.format(np.round(1 / k, 1)) + '\\end{pmatrix}$'
+    sol_vec = '$\\begin{pmatrix}a_0' + r'\\' + '{}a_0'.format(np.round(1 / k, 5)) + '\\end{pmatrix}$'
     right_side = '$= \\begin{pmatrix}' + str(b[0]) + r'\\' + str(b[1]) + '\\end{pmatrix}$'
 
     display(Markdown('## ' + out_mat + sol_vec + right_side))
     equiv = '\n ## '.join(
-        ['$a_0 = ' + '{}'.format(b[i] / (A[0, i] + np.round(A[1, i] / k, 1))) + '$' for i in range(A.shape[1])])
-    # print(equiv)
+        ['$a_0 = ' + '{}'.format(b[i] / (A[0, i] + (A[1, i] / k))) + '$' for i in range(A.shape[1])])
+    print(equiv)
     display(Markdown('## ' + equiv))
 
     solutions = []
