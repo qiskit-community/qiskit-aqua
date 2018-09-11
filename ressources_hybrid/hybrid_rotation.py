@@ -244,16 +244,21 @@ class hybrid_rot(object):
             qc.add(self.c_ev)
             qc.add(self.c_anc)
         qc.measure(self.anc, self.c_anc)
+
         qc.measure(self.ev,self.c_ev)
 
+    def _uncompute_msbreg(self,max_msb):
+        while max_msb >= 0:
+            self.set_msb(self.msb,self.ev,int(max_msb))
+            max_msb -= 1
     def _construct_initial_state(self):
         qc = self._circuit
 
         self._state_in = get_initial_state_instance('CUSTOM')
         self._state_in.init_params(self.initial_params)
-        #qc += self._state_in.construct_circuit('circuit', self.ev)
+        qc += self._state_in.construct_circuit('circuit', self.ev)
         #qc.x(self.ev[0])
-        qc.x(self.ev[2])
+        #qc.x(self.ev[2])
     def set_up_and_execute_circuit(self,k,n):
         if len(self.initial_params['state_vector'])!=0:
             self._construct_initial_state()
@@ -277,16 +282,18 @@ class hybrid_rot(object):
             #break
             #self._circuit.ry(2*np.arcsin(0.5),self.anc[0])
             self.n_controlled_rotation(self.ev, self.msb, self.workq, self.anc, pattern_ar[_], theta, int(msb))
-
+        self._uncompute_msbreg(msb)
+        
         if self.measure:
             self._set_measurement()
             #self.draw()
+            print('Circuit length is roughly: {}'.format(len(self._circuit.qasm().split('\n'))))
             return self._execute_rotation()
         if len(self.initial_params['state_vector']) == 0:
             self.draw()
 
     def _execute_rotation(self):
-        shots = 1024
+        shots = 8000
         result = execute(self._circuit, backend='local_qasm_simulator', shots=shots).result()
         counts = result.get_counts(self._circuit)
         #print(np.argmax(np.square(result.get_statevector())),np.max(np.square(result.get_statevector())))
@@ -315,16 +322,3 @@ class hybrid_rot(object):
         drawer(self._circuit)
         plt.show()
 #print(classic_approx(3,1))
-k = 3
-n = 2
-draw = False
-state_vector = np.zeros(2**k)
-state_vector[4] = 1
-initial_params = {
-            "name": "CUSTOM",
-            "num_qubits" : k,
-            "state_vector": state_vector if not draw else []
-}
-print(state_vector)
-obj= hybrid_rot(k,n,initial_params,measure=True)
-print(obj.set_up_and_execute_circuit(k,n))
