@@ -4,6 +4,11 @@ import matplotlib.pyplot as plt
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit, execute
 from qiskit.tools.visualization import matplotlib_circuit_drawer as drawer
 from qiskit_aqua import get_initial_state_instance
+from qiskit_addon_jku import JKUProvider
+from qiskit.wrapper._wrapper import _DEFAULT_PROVIDER
+
+_DEFAULT_PROVIDER.add_provider(JKUProvider())
+
 def bin_to_num(binary):
     num = np.sum([2 ** -(n + 1) for n, i in enumerate(reversed(binary)) if i == '1'])
     return num
@@ -144,7 +149,7 @@ class hybrid_rot(object):
         self.k = int(k)
         self.n = int(n)
         self.anc = QuantumRegister(1,'anc')
-        self.workq = QuantumRegister(n,'workq')
+        self.workq = QuantumRegister(n-1,'workq')
         self.msb = QuantumRegister(k-n+1,'msb')
         self.ev = QuantumRegister(k,'ev')
         self._circuit = QuantumCircuit(self.ev,self.workq,self.msb,self.anc)
@@ -173,8 +178,10 @@ class hybrid_rot(object):
         #print(len(bitpat))
         try:
             assert len(bitpat) >= msb_num+1+len(pattern), "Not enough qubits in the EV register to map the bit pattern"
+            return
             last_iteration = False
         except:
+            #return
             last_iteration = True
             msb_num -=1
         qc = self._circuit
@@ -187,11 +194,11 @@ class hybrid_rot(object):
             if pattern[idx] == '0': qc.x(bitpat[idx+msb_num+1])
             qc.ccx(bitpat[idx+msb_num+1],workq[idx-2],workq[idx-1])
 
-        qc.ccx(msb[msb_num if not last_iteration else msb_num+1],workq[idx-1],workq[idx])
+        #qc.ccx(msb[msb_num if not last_iteration else msb_num+1],workq[idx-1],workq[idx])
 
-        qc.cu3(theta,0,0,workq[idx],anc[0])
-        qc.ccx(msb[msb_num if not last_iteration else msb_num+1], workq[idx -  1], workq[idx])
-        #ccry(theta,workq[idx-1],msb[msb_num if not last_iteration else msb_num+1],anc[0],qc)
+        #qc.cu3(theta,0,0,workq[idx],anc[0])
+        #qc.ccx(msb[msb_num if not last_iteration else msb_num+1], workq[idx -  1], workq[idx])
+        ccry(theta,workq[idx-1],msb[msb_num if not last_iteration else msb_num+1],anc[0],qc)
 
         for idx in range(len(pattern)-1,1,-1):
             qc.ccx(bitpat[idx + msb_num+1], workq[idx - 2], workq[idx - 1])
@@ -294,7 +301,9 @@ class hybrid_rot(object):
 
     def _execute_rotation(self):
         shots = 8000
-        result = execute(self._circuit, backend='local_qasm_simulator', shots=shots).result()
+        from qiskit import available_backends
+        print(available_backends())
+        result = execute(self._circuit, backend='local_statevector_simulator_jku', shots=shots).result()
         counts = result.get_counts(self._circuit)
         #print(np.argmax(np.square(result.get_statevector())),np.max(np.square(result.get_statevector())))
         rd = result.get_counts(self._circuit)

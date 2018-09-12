@@ -23,7 +23,7 @@ def test_valuerange(k,n):
     res_dict = {}
     for pattern in itertools.product('01',repeat=k):
         state_vector = get_statevector_representation(list(pattern))
-        draw = False
+        draw = True
         #state_vector = np.zeros(2**k)
         #state_vector[4] = 1
         initial_params = {
@@ -46,7 +46,7 @@ def test_valuerange(k,n):
     plt.plot(np.linspace(np.min(vals),np.max(vals),1000),1/np.linspace(np.min(vals),np.max(vals),1000))
     plt.show()
 
-test_valuerange(5,2)
+test_valuerange(4,2)
 #state_vector = get_statevector_representation(['1','1','0','0','1','0'])#,'1','0'])
 
 #k = 6
