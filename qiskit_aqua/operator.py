@@ -31,7 +31,7 @@ from qiskit import execute as q_execute
 from qiskit.tools.qi.pauli import Pauli, label_to_pauli, sgn_prod
 from qiskit.qasm import pi
 
-from qiskit_aqua import AlgorithmError
+from qiskit_aqua import AlgorithmError, QuantumAlgorithm
 from qiskit_aqua.utils import PauliGraph, summarize_circuits
 
 logger = logging.getLogger(__name__)
