@@ -32,9 +32,10 @@ from qiskit import __version__ as qiskit_version
 from qiskit import register as q_register
 from qiskit import unregister as q_unregister
 from qiskit import registered_providers as q_registered_providers
-from qiskit import execute as q_execute
+from qiskit import execute as q_execute, compile as q_compile
 from qiskit import available_backends, get_backend
 from qiskit.backends.ibmq import IBMQProvider
+from qiskit.backends.jobstatus import JobStatus
 
 from qiskit_aqua import AlgorithmError
 from qiskit_aqua.utils import summarize_circuits
@@ -223,6 +224,68 @@ class QuantumAlgorithm(ABC):
         return result
 
     @staticmethod
+    def execute_with_autorecover(circuits, backend, execute_config,
+                                 qjob_config={}, max_circuits_per_job=300,
+                                 show_circuit_summary=False):
+
+        if not isinstance(circuits, list):
+            circuits = [circuits]
+
+        my_backend = get_backend(backend)
+        qobjs = []
+        jobs = []
+        chunks = int(np.ceil(len(circuits) / max_circuits_per_job))
+
+        for i in range(chunks):
+            sub_circuits = circuits[i * max_circuits_per_job:(i + 1) * max_circuits_per_job]
+            qobj = q_compile(sub_circuits, my_backend, **execute_config)
+            job = my_backend.run(qobj)
+            jobs.append(job)
+            qobjs.append(qobj)
+
+        logger.info("There are {} circuits and they are chunked into {} chunks, each with {} circutis.".format(
+            len(circuits), chunks, max_circuits_per_job))
+
+        if logger.isEnabledFor(logging.DEBUG) and show_circuit_summary:
+            logger.debug(summarize_circuits(circuits))
+
+        results = []
+        for idx in range(len(jobs)):
+            job = jobs[idx]
+            logger.info("Running {}-th chunk circuits, job id: {}".format(idx, job.id()))
+            while True:
+                try:
+                    result = job.result(**qjob_config)
+                    if result.status == 'COMPLETED':
+                        results.append(result)
+                        logger.info("COMPLETED the {}-th chunk of circuits, job id: {}".format(idx, job.id()))
+                        break
+                    else:
+                        logger.warning(
+                            "FAILURE: the {}-th chunk of circuits, job id: {}, status: {}".format(idx, job.id(), job.status()))
+                except Exception as e:
+                    # if terra raise any error, which means something wrong, re-run it
+                    logger.warning(
+                        "FAILURE: the {}-th chunk of circuits, job id: {}, status: {}, Terra error: {} ".format(idx, job.id(), job.status(), e))
+                # when reach here, it means the job fails. let's check what kinds of failure it is.
+                if job.status() == JobStatus.DONE:
+                    logger.info("Job ({}) is completed anyway, retrieve result from backend.".format(job.id()))
+                    job = my_backend.retrieve_job(job.id())
+                elif job.status() == JobStatus.RUNNING or job.status() == JobStatus.QUEUED:
+                    logger.info("Job ({}) is {}, but encounter an exception, recover it from backend.".format(
+                        job.id(), job.status()))
+                    job = my_backend.retrieve_job(job.id())
+                else:
+                    logger.info("Fail to run Job ({}), resubmit it.".format(job.id()))
+                    qobj = qobjs[idx]
+                    job = my_backend.run(qobj)
+
+        if len(results) != 0:
+            result = functools.reduce(lambda x, y: x + y, results)
+
+        return result
+
+    @staticmethod
     def register_and_get_operational_backends(*args, provider_class=IBMQProvider, **kwargs):
         try:
             for provider in q_registered_providers():
@@ -233,7 +296,7 @@ class QuantumAlgorithm(ABC):
                     break
         except Exception as e:
             logger.debug(
-                "Failed to unregister provider '{}' with Qiskit: {}".format(provider_class,str(e)))
+                "Failed to unregister provider '{}' with Qiskit: {}".format(provider_class, str(e)))
 
         preferences = Preferences()
         if args or kwargs or preferences.get_token() is not None:
@@ -243,7 +306,7 @@ class QuantumAlgorithm(ABC):
                     "Provider '{}' registered with Qiskit successfully.".format(provider_class))
             except Exception as e:
                 logger.debug(
-                    "Failed to register provider '{}' with Qiskit: {}".format(provider_class,str(e)))
+                    "Failed to register provider '{}' with Qiskit: {}".format(provider_class, str(e)))
 
         backends = available_backends()
         backends = [
