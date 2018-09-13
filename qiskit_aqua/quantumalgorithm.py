@@ -196,40 +196,42 @@ class QuantumAlgorithm(ABC):
             circuits (QuantumCircuit or list[QuantumCircuit]): circuits to execute
 
         Returns:
-            Result or [Result]: Result objects it will be a list if number of circuits
-            exceed the maximum number (300)
+            Result: Result object
         """
-
-        if not isinstance(circuits, list):
-            circuits = [circuits]
-        jobs = []
-        chunks = int(np.ceil(len(circuits) / self.MAX_CIRCUITS_PER_JOB))
-        for i in range(chunks):
-            sub_circuits = circuits[i *
-                                    self.MAX_CIRCUITS_PER_JOB:(i + 1) * self.MAX_CIRCUITS_PER_JOB]
-            jobs.append(q_execute(sub_circuits, self._backend,
-                                  **self._execute_config))
-
-        if logger.isEnabledFor(logging.DEBUG) and self._show_circuit_summary:
-            logger.debug(summarize_circuits(circuits))
-
+        result = self.execute_with_autorecover(circuits, self._backend, self._execute_config,
+                                               self._qjob_config, max_circuits_per_job=self.MAX_CIRCUITS_PER_JOB,
+                                               show_circuit_summary=self._show_circuit_summary)
         if self._show_circuit_summary:
             self.disable_circuit_summary()
 
-        results = []
-        for job in jobs:
-            results.append(job.result(**self._qjob_config))
-
-        result = functools.reduce(lambda x, y: x + y, results)
         return result
 
     @staticmethod
-    def execute_with_autorecover(circuits, backend, execute_config,
-                                 qjob_config={}, max_circuits_per_job=300,
-                                 show_circuit_summary=False):
+    def execute_with_maybe_autorecover(circuits, backend, execute_config, qjob_config={},
+                                       max_circuits_per_job=sys.maxsize, show_circuit_summary=False):
+        """
+        An execution wrapper with qiskit-terra, with auto recover capability.
 
+        By default, simulator backend will not use autorecover feature.
+
+        Args:
+            circuits (QuantumCircuit or list[QuantumCircuit]): circuits to execute
+            backend (str): name of backend
+            execute_config (dict): settings for qiskit execute (or compile)
+            qjob_config (dict): settings for job object, like timeout and wait
+            max_circuits_per_job (int): the maximum number of job, default is unlimited but 300 is limited if you
+                                        submit to a remote backend
+            show_circuit_summary (bool): showing the summary of submitted circuits.
+
+        Returns:
+            Result: Result object
+        """
+
+        # max_circuits_per_job = QuantumAlgorithm.MAX_CIRCUITS_PER_JOB
         if not isinstance(circuits, list):
             circuits = [circuits]
+
+        with_autorecover = False if my_backend.configuration()['simulator'] else True
 
         my_backend = get_backend(backend)
         qobjs = []
@@ -250,35 +252,41 @@ class QuantumAlgorithm(ABC):
             logger.debug(summarize_circuits(circuits))
 
         results = []
-        for idx in range(len(jobs)):
-            job = jobs[idx]
-            logger.info("Running {}-th chunk circuits, job id: {}".format(idx, job.id()))
-            while True:
-                try:
-                    result = job.result(**qjob_config)
-                    if result.status == 'COMPLETED':
-                        results.append(result)
-                        logger.info("COMPLETED the {}-th chunk of circuits, job id: {}".format(idx, job.id()))
-                        break
-                    else:
+
+        if with_autorecover:
+            for idx in range(len(jobs)):
+                job = jobs[idx]
+                logger.info("Running {}-th chunk circuits, job id: {}".format(idx, job.id()))
+                while True:
+                    try:
+                        result = job.result(**qjob_config)
+                        if result.status == 'COMPLETED':
+                            results.append(result)
+                            logger.info("COMPLETED the {}-th chunk of circuits, job id: {}".format(idx, job.id()))
+                            break
+                        else:
+                            logger.warning(
+                                "FAILURE: the {}-th chunk of circuits, job id: {}, status: {}".format(idx, job.id(), job.status()))
+                    except Exception as e:
+                        # if terra raise any error, which means something wrong, re-run it
                         logger.warning(
-                            "FAILURE: the {}-th chunk of circuits, job id: {}, status: {}".format(idx, job.id(), job.status()))
-                except Exception as e:
-                    # if terra raise any error, which means something wrong, re-run it
-                    logger.warning(
-                        "FAILURE: the {}-th chunk of circuits, job id: {}, status: {}, Terra error: {} ".format(idx, job.id(), job.status(), e))
-                # when reach here, it means the job fails. let's check what kinds of failure it is.
-                if job.status() == JobStatus.DONE:
-                    logger.info("Job ({}) is completed anyway, retrieve result from backend.".format(job.id()))
-                    job = my_backend.retrieve_job(job.id())
-                elif job.status() == JobStatus.RUNNING or job.status() == JobStatus.QUEUED:
-                    logger.info("Job ({}) is {}, but encounter an exception, recover it from backend.".format(
-                        job.id(), job.status()))
-                    job = my_backend.retrieve_job(job.id())
-                else:
-                    logger.info("Fail to run Job ({}), resubmit it.".format(job.id()))
-                    qobj = qobjs[idx]
-                    job = my_backend.run(qobj)
+                            "FAILURE: the {}-th chunk of circuits, job id: {}, status: {}, Terra error: {} ".format(idx, job.id(), job.status(), e))
+                    # when reach here, it means the job fails. let's check what kinds of failure it is.
+                    if job.status() == JobStatus.DONE:
+                        logger.info("Job ({}) is completed anyway, retrieve result from backend.".format(job.id()))
+                        job = my_backend.retrieve_job(job.id())
+                    elif job.status() == JobStatus.RUNNING or job.status() == JobStatus.QUEUED:
+                        logger.info("Job ({}) is {}, but encounter an exception, recover it from backend.".format(
+                            job.id(), job.status()))
+                        job = my_backend.retrieve_job(job.id())
+                    else:
+                        logger.info("Fail to run Job ({}), resubmit it.".format(job.id()))
+                        qobj = qobjs[idx]
+                        job = my_backend.run(qobj)
+        else:
+            results = []
+            for job in jobs:
+                results.append(job.result(**qjob_config))
 
         if len(results) != 0:
             result = functools.reduce(lambda x, y: x + y, results)
