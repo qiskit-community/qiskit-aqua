@@ -75,13 +75,13 @@ def test_stat_error(k,n):
 
 
 
-#test_stat_error(5,4)
+#test_stat_error(5,3)
 test_valuerange(5,4)
 """
-state_vector = get_statevector_representation(['0','1','1','1','1'])#,'1','0'])
+state_vector = get_statevector_representation(['0','1','0','0'])#,'1','0'])
 
-k = 5
-n = 4
+k = 4
+n = 3
 draw = False
 #state_vector = np.zeros(2**k)
 #state_vector[4] = 1
@@ -93,5 +93,6 @@ initial_params = {
 print(state_vector)
 obj= hybrid_rot(k,n,initial_params,measure=True)
 print(obj.set_up_and_execute_circuit(k,n))
+
 
 """

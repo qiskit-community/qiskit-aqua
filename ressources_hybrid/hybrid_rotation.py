@@ -376,6 +376,159 @@ class hybrid_rot(object):
         if pattern[1] == '0': qc.x(bitpat[msb_num + 2])
         if pattern[0] == '0': qc.x(bitpat[msb_num + 1])
 
+    def num_controlled_rot(self,ctl,tgt,number,float):
+        '''Check ctl register for fixed point repr. of number and perform rotation on target
+
+        Args:
+        ctl : QRegister storing number
+        number (int): number mapped to rotation
+        tgt : Qubit that is rotated
+        theta (float) : rotation angles theta, lambda, phi'''
+
+        def generate_bit_string(number,size):
+            bitstring = "{:b}".format(number)
+            #enlong with 0s 
+            bitstring = (number-len(bitstring))*'0' + bitstring
+            return list(reversed(bitstring))
+
+        def ccry(theta,control1,control2,target,qc):
+            '''Implement ccRy gate using no additional ancillar qubits'''
+            theta_half = theta / 2
+            qc.cu3(theta_half,0,0,control2,target)
+            qc.cx(control1,control2)
+            qc.cu3(- theta_half, 0, 0, control2, target)
+            qc.cx(control1, control2)
+            qc.cu3(theta_half, 0, 0, control1, target)
+        
+        #generate bitstring of length len(tgt)
+        bitstring = generate_bit_string(number,len(ctl))
+
+        qc = self._circuit
+        for count,_ in enumerate(bitstring):
+            if _ == '0':
+                qc.x(ctl[count])
+
+        n = len(ctl)
+        
+        #assert n>=3,"This method works only for more than 2 control bits"
+        if n >= 3:
+            # use n controlled U gate
+            from sympy.combinatorics.graycode import GrayCode
+            gray_code = list(GrayCode(n).generate_gray())
+            last_pattern = None
+            qc = self._circuit
+            #angle to construct nth square root of Ry(Theta)
+            #via u3(theta_angle,0,0)
+            theta_angle = theta/(2**(n-1))
+            #transform to eigenvector basis of pauli X
+            qc.h(tgt[0])
+            for pattern in gray_code:
+            
+                if not '1' in pattern:
+                    continue
+                if last_pattern is None:
+                    last_pattern = pattern
+                #find left most set bit
+                lm_pos = list(pattern).index('1')
+
+                #find changed bit
+                comp = [i!=j for i,j in zip(pattern,last_pattern)]
+                if True in comp:
+                    pos = comp.index(True)
+                else:
+                    pos = None
+                    if pos is not None:
+                        if pos != lm_pos:
+                            qc.cx(ctl[offset+pos],ctl[offset+lm_pos])
+                        else:
+                            indices = [i for i, x in enumerate(pattern) if x == '1']
+                            for idx in indices[1:]:
+                                qc.cx(ctl[offset+idx],ctl[offset+lm_pos])
+                #check parity
+                if pattern.count('1') % 2 == 0:
+                    #inverse
+                    qc.cu3(-theta_angle,0,0,ctl[offset+lm_pos],tgt[count])
+                else:
+                    qc.cu3(theta_angle,0,ctl[offset+lm_pos],tgt[count])
+                last_pattern = pattern
+            qc.h(tgt[0])
+        
+        elif n == 2:
+            qc.ccry(theta,ctl[0],ctl[1],tgt[0])
+
+        else:
+            raise ValueError("Register size storing MSB must be of size > 1")
+    for count,_ in enumerate(bitstring):
+        if _ == '0':
+            qc.x(ctl[count])
+
+        
+    def set_num(self,ctl,tgt,number,ctl_nums):
+        '''Write a number encoded as a binary string to the tgt register
+        
+        Args:
+        ctl : QRegister with controlqubits
+        tgt : QRegister that number is written to
+        number (int): number to encode
+        ctl_nums (array): range of integers that spec. idx of ctl qubits'''
+        def generate_bit_string(number,size):
+            bitstring = "{:b}".format(number)
+            #enlong with 0s 
+            bitstring = (number-len(bitstring))*'0' + bitstring
+            return list(reversed(bitstring))
+        #generate bitstring of length len(tgt)
+        bitstring = generate_bit_string(number,len(tgt))
+        n = np.max(ctl_nums)-np.min(ctl_nums)
+        offset = np.min(ctl_nums)
+        assert n>=3,"This method works only for more than 2 control bits"
+        
+        from sympy.combinatorics.graycode import GrayCode
+        gray_code = list(GrayCode(n).generate_gray())
+        last_pattern = None
+        qc = self._circuit
+
+        #angle to construct nth square root of diagonlized pauli x matrix
+        #via u3(0,lam_angle,0)
+        lam_angle = np.pi/(2**(n-1))
+        #transform to eigenvector basis of pauli X
+        qc.h(tgt[0])
+        for pattern in gray_code:
+            
+            if not '1' in pattern:
+                continue
+            if last_pattern is None:
+                last_pattern = pattern
+            #find left most set bit
+            lm_pos = list(pattern).index('1')
+
+            #find changed bit
+            comp = [i!=j for i,j in zip(pattern,last_pattern)]
+            if True in comp:
+                pos = comp.index(True)
+            else:
+                pos = None
+            if pos is not None:
+                if pos != lm_pos:
+                    qc.cx(ctl[offset+pos],ctl[offset+lm_pos])
+                else:
+                    indices = [i for i, x in enumerate(pattern) if x == '1']
+                    for idx in indices[1:]:
+                        qc.cx(ctl[offset+idx],ctl[offset+lm_pos])
+            #check parity
+            if pattern.count('1') % 2 == 0:
+                #inverse
+                for count,_ in enumerate(bitstring):
+                    if _ == '1':
+                        qc.cu3(0,-lam_angle,0,ctl[offset+lm_pos],tgt[count])
+            else:
+                for count,_ in enumerate(bitstring):
+                    if _ == '1':
+                        qc.cu3(0,lam_angle,0,ctl[offset+lm_pos],tgt[count])
+            last_pattern = pattern
+        qc.h(tgt[0])
+        
+        
+
     def set_msb(self,msb,ev,msb_num,last_iteration=False):
         #print("MSB ",msb_num)
         qc = self._circuit
@@ -391,24 +544,30 @@ class hybrid_rot(object):
                 qc.x(ev[1])
                 qc.x(ev[0])
             elif msb_num > 2:
-                qc.x(ev[0])
-                qc.x(ev[1])
-                qc.ccx(ev[0],ev[1], msb[0])
-                idx = 1
-                for idx in range(2, msb_num):
-
+                for idx in range(msb_num):
                     qc.x(ev[idx])
-                    qc.ccx(ev[idx], msb[idx - 2], msb[idx - 1]) 
-                qc.cx(msb[idx- 1], msb[msb_num])
-
-
-                for idx in range(msb_num-1, 1, -1):
-                    qc.ccx(ev[idx ], msb[idx - 2], msb[idx - 1])
+                self.nc_toffoli(ev,msb[msb_num],int(msb_num),0)
+                for idx in range(msb_num):
                     qc.x(ev[idx])
 
-                qc.ccx(ev[0], ev[1], msb[0])
-                qc.x(ev[1])
-                qc.x(ev[0])
+                #qc.x(ev[0])
+                #qc.x(ev[1])
+                #qc.ccx(ev[0],ev[1], msb[0])
+                #idx = 1
+                #for idx in range(2, msb_num):
+
+                #    qc.x(ev[idx])
+                #    qc.ccx(ev[idx], msb[idx - 2], msb[idx - 1]) 
+                #qc.cx(msb[idx- 1], msb[msb_num])
+
+
+                #for idx in range(msb_num-1, 1, -1):
+                #    qc.ccx(ev[idx ], msb[idx - 2], msb[idx - 1])
+                #    qc.x(ev[idx])
+
+                #qc.ccx(ev[0], ev[1], msb[0])
+                #qc.x(ev[1])
+                #qc.x(ev[0])
     
         elif msb_num == 0: qc.cx(ev[0],msb[0])
         elif msb_num == 1:
@@ -417,29 +576,35 @@ class hybrid_rot(object):
             qc.x(ev[0])
 
         elif msb_num > 1:
-            qc.x(ev[0])
-            qc.x(ev[1])
-            qc.ccx(ev[0],ev[1], msb[0])
-            idx = 1
-            for idx in range(2, msb_num):
-
+            for idx in range(msb_num):
                 qc.x(ev[idx])
-                qc.ccx(ev[idx], msb[idx - 2], msb[idx - 1])
-
-            print(idx,msb_num)
-            print(ev[2])
-            print(msb[idx- 1])
-            print(msb[idx])
-            qc.ccx(ev[msb_num],msb[idx- 1], msb[msb_num])
-
-
-            for idx in range(msb_num-1, 1, -1):
-                qc.ccx(ev[idx ], msb[idx - 2], msb[idx - 1])
+            self.nc_toffoli(ev,msb[msb_num],int(msb_num+1),0)
+            for idx in range(msb_num):
                 qc.x(ev[idx])
 
-            qc.ccx(ev[0], ev[1], msb[0])
-            qc.x(ev[1])
-            qc.x(ev[0])
+            #qc.x(ev[0])
+            #qc.x(ev[1])
+            #qc.ccx(ev[0],ev[1], msb[0])
+            #idx = 1
+            #for idx in range(2, msb_num):
+            #
+            #    qc.x(ev[idx])
+            #    qc.ccx(ev[idx], msb[idx - 2], msb[idx - 1])
+
+            #print(idx,msb_num)
+            #print(ev[2])
+            #print(msb[idx- 1])
+            #print(msb[idx])
+            #qc.ccx(ev[msb_num],msb[idx- 1], msb[msb_num])
+
+
+            #for idx in range(msb_num-1, 1, -1):
+            #    qc.ccx(ev[idx ], msb[idx - 2], msb[idx - 1])
+            #    qc.x(ev[idx])
+
+            #qc.ccx(ev[0], ev[1], msb[0])
+            #qc.x(ev[1])
+            #qc.x(ev[0])
     def _set_measurement(self):
         qc = self._circuit
         try:
@@ -497,7 +662,7 @@ class hybrid_rot(object):
         if self.measure:
             self._set_measurement()
             #self.draw()
-            ##print('Circuit length is roughly: {}'.format(len(self._circuit.qasm().split('\n'))))
+            print('Circuit length is roughly: {}'.format(len(self._circuit.qasm().split('\n'))))
             return self._execute_rotation()
         if len(self.initial_params['state_vector']) == 0:
             self.draw()
