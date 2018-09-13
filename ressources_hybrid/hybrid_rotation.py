@@ -115,7 +115,7 @@ def classic_approx(k, n):
                 pattern = list(pattern) + ['0']*(n_-len(pattern))
             #pattern_array.append(pattern)
             pattern_array.append(list(reversed(list(pattern))))
-            print(vec,get_est_lamb(vec.copy(), msb, n))
+            #print(vec,get_est_lamb(vec.copy(), msb, n))
     vec = ['0'] * k
 
     #last iterations
@@ -131,7 +131,7 @@ def classic_approx(k, n):
         if len(pattern) < n_:
             pattern = list(pattern) + ['0'] * (n_ - len(pattern))
         pattern_array.append(list(reversed(list(pattern))))#pattern)
-        print(vec,pattern, get_est_lamb(vec.copy(), msb, n))
+        #print(vec,pattern, get_est_lamb(vec.copy(), msb, n))
     # print("finished here")
     return pattern_array,np.array(lambda_array), k-np.array(msb_array)-1
 
@@ -149,10 +149,10 @@ class hybrid_rot(object):
         self.k = int(k)
         self.n = int(n)
         self.anc = QuantumRegister(1,'anc')
-        self.workq = QuantumRegister(n-1,'workq')
+        #self.workq = QuantumRegister(n-2,'workq')
         self.msb = QuantumRegister(k-n+1,'msb')
         self.ev = QuantumRegister(k,'ev')
-        self._circuit = QuantumCircuit(self.ev,self.workq,self.msb,self.anc)
+        self._circuit = QuantumCircuit(self.ev,self.msb,self.anc)#,self.workq,self.msb,self.anc)
         self.initial_params = initial_params
         self.measure = measure
         msb_num = 3
@@ -160,6 +160,174 @@ class hybrid_rot(object):
         #self.n_controlled_rotation(self.ev,self.msb,self.workq,self.anc,['0']*n,0.5,msb_num)
         #self.draw()
         #self.set_up_circuit(k,n)
+        
+
+    def nc_toffoli(self,ctl,tgt,n,offset):
+        '''Implement n+1-bit toffoli using the approach in Elementary gates'''
+        
+        assert n>=3,"This method works only for more than 2 control bits"
+        
+        from sympy.combinatorics.graycode import GrayCode
+        gray_code = list(GrayCode(n).generate_gray())
+        last_pattern = None
+        qc = self._circuit
+
+        #angle to construct nth square root of diagonlized pauli x matrix
+        #via u3(0,lam_angle,0)
+        lam_angle = np.pi/(2**(self.n-1))
+        #transform to eigenvector basis of pauli X
+        qc.h(tgt[0])
+        for pattern in gray_code:
+            
+            if not '1' in pattern:
+                continue
+            if last_pattern is None:
+                last_pattern = pattern
+            #find left most set bit
+            lm_pos = list(pattern).index('1')
+
+            #find changed bit
+            comp = [i!=j for i,j in zip(pattern,last_pattern)]
+            if True in comp:
+                pos = comp.index(True)
+            else:
+                pos = None
+            if pos is not None:
+                if pos != lm_pos:
+                    qc.cx(ctl[offset+pos],ctl[offset+lm_pos])
+                else:
+                    indices = [i for i, x in enumerate(pattern) if x == '1']
+                    for idx in indices[1:]:
+                        qc.cx(ctl[offset+idx],ctl[offset+lm_pos])
+            #check parity
+            if pattern.count('1') % 2 == 0:
+                #inverse
+                qc.cu3(0,-lam_angle,0,ctl[offset+lm_pos],tgt)
+            else:
+                qc.cu3(0,lam_angle,0,ctl[offset+lm_pos],tgt)
+            last_pattern = pattern
+        qc.h(tgt[0])
+        
+    def n_controlled_rotation_optimized(self,bitpat,msb,anc,pattern,theta,msb_num):
+        '''Construct a n_controlled rotation where the bit pattern fitting to the n-1 bitpat qubits perform
+        a rotation by an angle theta dependent on the msb being set.
+
+        This implementation requires 1 qubit less than the n_controlled_rotation function.
+
+        Args:
+            bitpat : Subset of register storing the n-1 long bit pattern
+            msb : Qubit storing most-significant-bit
+            workq : register with n-1 qubits that are used to construct the gate
+            anc : qubit on which rotation is performed
+            pattern (list) : bit pattern
+            theta (float) : angle
+            '''
+        #assert len(bitpat)==len(pattern), "The specified bit sequence does not fit with the number of qubits provided"
+        assert len(pattern) >= 2, "Only n >= 2 supported, use normal Toffoli gate instead"
+        #print(len(bitpat))
+        try:
+            assert len(bitpat) >= msb_num+1+len(pattern), "Not enough qubits in the EV register to map the bit pattern"
+            #return
+            last_iteration = False
+        except:
+            #return
+            last_iteration = True
+            msb_num -=1
+        qc = self._circuit
+
+        #if pattern[0] == '0': qc.x(bitpat[msb_num + 1])
+        #if pattern[1] == '0': qc.x(bitpat[msb_num + 2])
+        #qc.ccx(bitpat[msb_num+1],bitpat[msb_num+2],workq[0])
+        #idx = 1
+        #for idx in range(2,len(pattern)-1):
+        #    if pattern[idx] == '0': qc.x(bitpat[idx+msb_num+1])
+        #    qc.ccx(bitpat[idx+msb_num+1],workq[idx-2],workq[idx-1])
+        for n,_ in enumerate(pattern):
+            if _ == '0':
+                qc.x(bitpat[msb_num+n+1])
+        if 1:# idx > 1:
+            qc.cu3(theta/2,0,0,msb[msb_num if not last_iteration else msb_num+1],anc[0])
+            #if pattern[idx+1] == '0': qc.x(bitpat[idx+msb_num+2])
+            #qc.ccx(bitpat[idx+msb_num+2],workq[idx-1],anc[0])
+            self.nc_toffoli(self.ev,self.anc[0],self.n,msb_num+1)
+            qc.cu3(-theta/2,0,0,msb[msb_num if not last_iteration else msb_num+1],anc[0])
+
+            self.nc_toffoli(self.ev,self.anc[0],self.n,msb_num+1)
+            #qc.ccx(bitpat[idx+msb_num+2],workq[idx-1],anc[0])
+            #if pattern[idx+1] == '0': qc.x(bitpat[idx+msb_num+2])
+        for n,_ in enumerate(pattern):
+            if _ == '0':
+                qc.x(bitpat[msb_num+n+1])
+       
+            
+        #qc.cu3(theta,0,0,workq[idx],anc[0])
+        #qc.ccx(msb[msb_num if not last_iteration else msb_num+1], workq[idx -  1], workq[idx])
+        #ccry(theta,workq[idx-1],msb[msb_num if not last_iteration else msb_num+1],anc[0],qc)
+
+        #for idx in range(len(pattern)-2,1,-1):
+        #    qc.ccx(bitpat[idx + msb_num+1], workq[idx - 2], workq[idx - 1])
+        #    if pattern[idx] == '0': qc.x(bitpat[idx + msb_num + 1])
+
+        #qc.ccx(bitpat[msb_num + 1], bitpat[msb_num + 2], workq[0])
+        #if pattern[1] == '0': qc.x(bitpat[msb_num + 2])
+        #if pattern[0] == '0': qc.x(bitpat[msb_num + 1])
+                
+
+    def n_controlled_rotation_(self,bitpat,msb,workq,anc,pattern,theta,msb_num):
+        '''Construct a n_controlled rotation where the bit pattern fitting to the n-1 bitpat qubits perform
+        a rotation by an angle theta dependent on the msb being set.
+
+        This implementation requires 1 qubit less than the n_controlled_rotation function.
+
+        Args:
+            bitpat : Subset of register storing the n-1 long bit pattern
+            msb : Qubit storing most-significant-bit
+            workq : register with n-1 qubits that are used to construct the gate
+            anc : qubit on which rotation is performed
+            pattern (list) : bit pattern
+            theta (float) : angle
+            '''
+        #assert len(bitpat)==len(pattern), "The specified bit sequence does not fit with the number of qubits provided"
+        assert len(pattern) >= 2, "Only n >= 2 supported, use normal Toffoli gate instead"
+        #print(len(bitpat))
+        try:
+            assert len(bitpat) >= msb_num+1+len(pattern), "Not enough qubits in the EV register to map the bit pattern"
+            #return
+            last_iteration = False
+        except:
+            #return
+            last_iteration = True
+            msb_num -=1
+        qc = self._circuit
+
+        if pattern[0] == '0': qc.x(bitpat[msb_num + 1])
+        if pattern[1] == '0': qc.x(bitpat[msb_num + 2])
+        qc.ccx(bitpat[msb_num+1],bitpat[msb_num+2],workq[0])
+        idx = 1
+        for idx in range(2,len(pattern)-1):
+            if pattern[idx] == '0': qc.x(bitpat[idx+msb_num+1])
+            qc.ccx(bitpat[idx+msb_num+1],workq[idx-2],workq[idx-1])
+        if 1:# idx > 1:
+            qc.cu3(theta/2,0,0,msb[msb_num if not last_iteration else msb_num+1],anc[0])
+            if pattern[idx+1] == '0': qc.x(bitpat[idx+msb_num+2])
+            qc.ccx(bitpat[idx+msb_num+2],workq[idx-1],anc[0])
+            qc.cu3(-theta/2,0,0,msb[msb_num if not last_iteration else msb_num+1],anc[0])
+            qc.ccx(bitpat[idx+msb_num+2],workq[idx-1],anc[0])
+            if pattern[idx+1] == '0': qc.x(bitpat[idx+msb_num+2])
+        
+            
+        #qc.cu3(theta,0,0,workq[idx],anc[0])
+        #qc.ccx(msb[msb_num if not last_iteration else msb_num+1], workq[idx -  1], workq[idx])
+        #ccry(theta,workq[idx-1],msb[msb_num if not last_iteration else msb_num+1],anc[0],qc)
+
+        for idx in range(len(pattern)-2,1,-1):
+            qc.ccx(bitpat[idx + msb_num+1], workq[idx - 2], workq[idx - 1])
+            if pattern[idx] == '0': qc.x(bitpat[idx + msb_num + 1])
+
+        qc.ccx(bitpat[msb_num + 1], bitpat[msb_num + 2], workq[0])
+        if pattern[1] == '0': qc.x(bitpat[msb_num + 2])
+        if pattern[0] == '0': qc.x(bitpat[msb_num + 1])
+        
 
     def n_controlled_rotation(self,bitpat,msb,workq,anc,pattern,theta,msb_num):
         '''Construct a n_controlled rotation where the bit pattern fitting to the n-1 bitpat qubits perform
@@ -178,7 +346,7 @@ class hybrid_rot(object):
         #print(len(bitpat))
         try:
             assert len(bitpat) >= msb_num+1+len(pattern), "Not enough qubits in the EV register to map the bit pattern"
-            return
+            #return
             last_iteration = False
         except:
             #return
@@ -208,16 +376,47 @@ class hybrid_rot(object):
         if pattern[1] == '0': qc.x(bitpat[msb_num + 2])
         if pattern[0] == '0': qc.x(bitpat[msb_num + 1])
 
-    def set_msb(self,msb,ev,msb_num):
-        print("MSB ",msb_num)
+    def set_msb(self,msb,ev,msb_num,last_iteration=False):
+        #print("MSB ",msb_num)
         qc = self._circuit
-        if msb_num == 0: qc.cx(ev[0],msb[0])
+        if last_iteration:
+            if msb_num == 1:
+                qc.x(ev[0])
+                qc.cx(ev[0],msb[1])
+                qc.x(ev[0])
+            elif msb_num == 2:
+                qc.x(ev[0])
+                qc.x(ev[1])
+                qc.ccx(ev[0],ev[1],msb[2])
+                qc.x(ev[1])
+                qc.x(ev[0])
+            elif msb_num > 2:
+                qc.x(ev[0])
+                qc.x(ev[1])
+                qc.ccx(ev[0],ev[1], msb[0])
+                idx = 1
+                for idx in range(2, msb_num):
+
+                    qc.x(ev[idx])
+                    qc.ccx(ev[idx], msb[idx - 2], msb[idx - 1]) 
+                qc.cx(msb[idx- 1], msb[msb_num])
+
+
+                for idx in range(msb_num-1, 1, -1):
+                    qc.ccx(ev[idx ], msb[idx - 2], msb[idx - 1])
+                    qc.x(ev[idx])
+
+                qc.ccx(ev[0], ev[1], msb[0])
+                qc.x(ev[1])
+                qc.x(ev[0])
+    
+        elif msb_num == 0: qc.cx(ev[0],msb[0])
         elif msb_num == 1:
             qc.x(ev[0])
             qc.ccx(ev[0],ev[1],msb[1])
             qc.x(ev[0])
 
-        else:
+        elif msb_num > 1:
             qc.x(ev[0])
             qc.x(ev[1])
             qc.ccx(ev[0],ev[1], msb[0])
@@ -271,53 +470,57 @@ class hybrid_rot(object):
             self._construct_initial_state()
         pattern_ar,lambda_ar,msb_ar = classic_approx(k, n)
         old_msb = None
+        
         for _,msb in enumerate(msb_ar):
             #if k-msb < 2:
             #    break
             if old_msb != msb:
                 if old_msb != None:
-                    1
+                    self.set_msb(self.msb,self.ev,int(old_msb))
                     #self.set_msb(self.msb, self.ev, int(old_msb))
                     #break
                 old_msb = msb
-
-                self.set_msb(self.msb,self.ev,int(msb))
+                if msb+self.n == self.k:
+                    self.set_msb(self.msb,self.ev,int(msb),last_iteration=True)
+                else:
+                    self.set_msb(self.msb,self.ev,int(msb),last_iteration=False)
             theta = 2*np.arcsin(np.min(lambda_ar)/lambda_ar[_])
-            print("Pattern",pattern_ar[_],"Theta:",theta,"###",np.sin(theta/2),"lambda:",lambda_ar[_],"Minimal:",np.min(lambda_ar))
+            #print("Pattern",pattern_ar[_],"Theta:",theta,"###",np.sin(theta/2),"lambda:",lambda_ar[_],"Minimal:",np.min(lambda_ar))
             #if lambda_ar[_] != 0.625:
             #    continue
-            #break
+           
             #self._circuit.ry(2*np.arcsin(0.5),self.anc[0])
-            self.n_controlled_rotation(self.ev, self.msb, self.workq, self.anc, pattern_ar[_], theta, int(msb))
-        self._uncompute_msbreg(msb)
+            self.n_controlled_rotation_optimized(self.ev, self.msb, self.anc, pattern_ar[_], theta, int(msb))
+            #if _ == 0: break
+        self.set_msb(self.msb,self.ev,int(msb),last_iteration=True)
         
         if self.measure:
             self._set_measurement()
             #self.draw()
-            print('Circuit length is roughly: {}'.format(len(self._circuit.qasm().split('\n'))))
+            ##print('Circuit length is roughly: {}'.format(len(self._circuit.qasm().split('\n'))))
             return self._execute_rotation()
         if len(self.initial_params['state_vector']) == 0:
             self.draw()
 
     def _execute_rotation(self):
-        shots = 8000
+        shots = 16000
         from qiskit import available_backends
-        print(available_backends())
-        result = execute(self._circuit, backend='local_statevector_simulator_jku', shots=shots).result()
+        ##print(available_backends())
+        result = execute(self._circuit, backend='local_qasm_simulator', shots=shots).result()
         counts = result.get_counts(self._circuit)
-        #print(np.argmax(np.square(result.get_statevector())),np.max(np.square(result.get_statevector())))
+        ##print(np.argmax(np.square(result.get_statevector())),np.max(np.square(result.get_statevector())))
         rd = result.get_counts(self._circuit)
         rets = sorted([[rd[k], k, k] for k in rd])[::-1]
 
         for d in rets:
-            print(d)
+            #print(d)
             d[0] /= shots
             d[0] = np.sqrt(d[0])
             # split registers which are white space separated and decode
             c1, c2 = d[2].split()
-            print(c1,c2)
+            ##print(c1,c2)
             c2_ = sum([2**-(i+1) for i, e in enumerate(reversed(c2)) if e =="1"])
-            print(c2_)
+            ##print(c2_)
 
 
             d[2] = ' '.join([c1, str(c2_)])
@@ -330,4 +533,4 @@ class hybrid_rot(object):
     def draw(self):
         drawer(self._circuit)
         plt.show()
-#print(classic_approx(3,1))
+##print(classic_approx(3,1))

@@ -23,7 +23,7 @@ def test_valuerange(k,n):
     res_dict = {}
     for pattern in itertools.product('01',repeat=k):
         state_vector = get_statevector_representation(list(pattern))
-        draw = True
+        draw = False#True
         #state_vector = np.zeros(2**k)
         #state_vector[4] = 1
         initial_params = {
@@ -32,12 +32,14 @@ def test_valuerange(k,n):
             "state_vector": state_vector if not draw else []
         }
         print(state_vector)
+        print("Next pattern:",pattern)
         obj= hybrid_rot(k,n,initial_params,measure=True)
         res = (obj.set_up_and_execute_circuit(k,n))
-        
+        #break
         for d in res:
             if d[1][0] == '1':
                 res_dict.update({float(d[2].split()[-1]):d[0]})
+                
     vals = list(res_dict.keys())
     inverse = [res_dict[_] for _ in vals]
     vals = np.array(vals)
@@ -45,20 +47,51 @@ def test_valuerange(k,n):
     plt.scatter(vals,inverse/2**(-len(res[0][1].split()[-1])))
     plt.plot(np.linspace(np.min(vals),np.max(vals),1000),1/np.linspace(np.min(vals),np.max(vals),1000))
     plt.show()
+    return
 
-test_valuerange(4,2)
-#state_vector = get_statevector_representation(['1','1','0','0','1','0'])#,'1','0'])
+def test_stat_error(k,n):
+    counts = []
+    pattern = ['1'] * k
+    state_vector = get_statevector_representation(list(pattern))
+    draw = False#True
+    #state_vector = np.zeros(2**k)
+    #state_vector[4] = 1
+    initial_params = {
+            "name": "CUSTOM",
+            "num_qubits" : k,
+            "state_vector": state_vector if not draw else []
+        }
+    print(state_vector)
+        
+    for i in range(100):
+        obj= hybrid_rot(k,n,initial_params,measure=True)
+        res = (obj.set_up_and_execute_circuit(k,n))
+        #break
+        for d in res:
+            if d[1][0] == '1':
+                counts.append(d[0])
+    plt.hist(counts)
+    plt.show()
 
-#k = 6
-#n = 4
-#draw = False
+
+
+#test_stat_error(5,4)
+test_valuerange(5,4)
+"""
+state_vector = get_statevector_representation(['0','1','1','1','1'])#,'1','0'])
+
+k = 5
+n = 4
+draw = False
 #state_vector = np.zeros(2**k)
 #state_vector[4] = 1
-#initial_params = {
-#            "name": "CUSTOM",
-#            "num_qubits" : k,
-#            "state_vector": state_vector if not draw else []
-#}
-#print(state_vector)
-#obj= hybrid_rot(k,n,initial_params,measure=True)
-#print(obj.set_up_and_execute_circuit(k,n))
+initial_params = {
+            "name": "CUSTOM",
+            "num_qubits" : k,
+            "state_vector": state_vector if not draw else []
+}
+print(state_vector)
+obj= hybrid_rot(k,n,initial_params,measure=True)
+print(obj.set_up_and_execute_circuit(k,n))
+
+"""
