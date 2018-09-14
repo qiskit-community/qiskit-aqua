@@ -232,9 +232,9 @@ class QuantumAlgorithm(ABC):
         if not isinstance(circuits, list):
             circuits = [circuits]
 
+        my_backend = get_backend(backend)
         with_autorecover = False if my_backend.configuration()['simulator'] else True
 
-        my_backend = get_backend(backend)
         qobjs = []
         jobs = []
         chunks = int(np.ceil(len(circuits) / max_circuits_per_job))
