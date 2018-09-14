@@ -199,9 +199,9 @@ class QuantumAlgorithm(ABC):
         Returns:
             Result: Result object
         """
-        result = self.execute_with_autorecover(circuits, self._backend, self._execute_config,
-                                               self._qjob_config, max_circuits_per_job=self.MAX_CIRCUITS_PER_JOB,
-                                               show_circuit_summary=self._show_circuit_summary)
+        result = self.execute_with_maybe_autorecover(circuits, self._backend, self._execute_config,
+                                                     self._qjob_config, max_circuits_per_job=self.MAX_CIRCUITS_PER_JOB,
+                                                     show_circuit_summary=self._show_circuit_summary)
         if self._show_circuit_summary:
             self.disable_circuit_summary()
 
@@ -253,7 +253,6 @@ class QuantumAlgorithm(ABC):
             logger.debug(summarize_circuits(circuits))
 
         results = []
-
         if with_autorecover:
             for idx in range(len(jobs)):
                 job = jobs[idx]
@@ -271,7 +270,8 @@ class QuantumAlgorithm(ABC):
 
                     except Exception as e:
                         # if terra raise any error, which means something wrong, re-run it
-                        logger.warning("FAILURE: the {}-th chunk of circuits, job id: {}, Terra error: {} ".format(idx, job_id, e))
+                        logger.warning(
+                            "FAILURE: the {}-th chunk of circuits, job id: {}, Terra error: {} ".format(idx, job_id, e))
 
                     # keep querying the status until it is okay.
                     while True:
@@ -303,7 +303,8 @@ class QuantumAlgorithm(ABC):
 
         if len(results) != 0:
             result = functools.reduce(lambda x, y: x + y, results)
-
+        else:
+            result = None
         return result
 
     @staticmethod
