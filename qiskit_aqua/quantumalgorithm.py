@@ -26,6 +26,7 @@ from abc import ABC, abstractmethod
 import logging
 import sys
 import functools
+import time
 
 import numpy as np
 from qiskit import __version__ as qiskit_version
@@ -256,31 +257,43 @@ class QuantumAlgorithm(ABC):
         if with_autorecover:
             for idx in range(len(jobs)):
                 job = jobs[idx]
-                logger.info("Running {}-th chunk circuits, job id: {}".format(idx, job.id()))
+                job_id = job.id()
+                logger.info("Running {}-th chunk circuits, job id: {}".format(idx, job_id))
                 while True:
                     try:
                         result = job.result(**qjob_config)
                         if result.status == 'COMPLETED':
                             results.append(result)
-                            logger.info("COMPLETED the {}-th chunk of circuits, job id: {}".format(idx, job.id()))
+                            logger.info("COMPLETED the {}-th chunk of circuits, job id: {}".format(idx, job_id))
                             break
                         else:
-                            logger.warning(
-                                "FAILURE: the {}-th chunk of circuits, job id: {}, status: {}".format(idx, job.id(), job.status()))
+                            logger.warning("FAILURE: the {}-th chunk of circuits, job id: {}".format(idx, job_id))
+
                     except Exception as e:
                         # if terra raise any error, which means something wrong, re-run it
-                        logger.warning(
-                            "FAILURE: the {}-th chunk of circuits, job id: {}, status: {}, Terra error: {} ".format(idx, job.id(), job.status(), e))
+                        logger.warning("FAILURE: the {}-th chunk of circuits, job id: {}, Terra error: {} ".format(idx, job_id, e))
+
+                    # keep querying the status until it is okay.
+                    while True:
+                        try:
+                            job_status = job.status()
+                            break
+                        except Exception as e:
+                            logger.warning(
+                                "FAILURE: job id: {}, status: 'FAIL_TO_GET_STATUS' ({})".format(job_id, e))
+                            time.sleep(5)
+
+                    logger.info("Job status: {}".format(job_status))
                     # when reach here, it means the job fails. let's check what kinds of failure it is.
-                    if job.status() == JobStatus.DONE:
-                        logger.info("Job ({}) is completed anyway, retrieve result from backend.".format(job.id()))
-                        job = my_backend.retrieve_job(job.id())
-                    elif job.status() == JobStatus.RUNNING or job.status() == JobStatus.QUEUED:
+                    if job_status == JobStatus.DONE:
+                        logger.info("Job ({}) is completed anyway, retrieve result from backend.".format(job_id))
+                        job = my_backend.retrieve_job(job_id)
+                    elif job_status == JobStatus.RUNNING or job_status == JobStatus.QUEUED:
                         logger.info("Job ({}) is {}, but encounter an exception, recover it from backend.".format(
-                            job.id(), job.status()))
-                        job = my_backend.retrieve_job(job.id())
+                            job_id, job_status))
+                        job = my_backend.retrieve_job(job_id)
                     else:
-                        logger.info("Fail to run Job ({}), resubmit it.".format(job.id()))
+                        logger.info("Fail to run Job ({}), resubmit it.".format(job_id))
                         qobj = qobjs[idx]
                         job = my_backend.run(qobj)
         else:
