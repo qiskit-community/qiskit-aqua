@@ -538,7 +538,7 @@ requires setting the following parameters too:
 
    .. code:: python
 
-        "timeout" : float
+        "timeout" : float or None
 
    This parameter applies, in particular to any real quantum device.
    The default value is ``None``.
@@ -551,5 +551,5 @@ requires setting the following parameters too:
         "wait" : float
 
    This parameter applies, in particular to any real quantum device.
-   The default value is ``5``.
+   The default value is ``5.0``.
 
