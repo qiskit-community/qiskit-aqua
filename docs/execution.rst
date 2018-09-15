@@ -471,3 +471,85 @@ requires setting the following parameters too:
        The `Terra documentation on noise parameters
        <https://github.com/Qiskit/qiskit-terra/tree/master/src/qasm-simulator-cpp#noise-parameters>`__
        provides more details on the configuration of the noise model for the backend.
+
+
+-  An optional list can be supplied to setup the backend's coupling map:
+
+   .. code:: python
+
+       "coupling_map" : list
+
+   This is a Python list consisting of the directed edges, each edge ([A, B]) points qubit A can connect to qubit B.  Configuring it is optional; the default value is ``None``.
+   The following is an example of such a list that can be used:
+
+   .. code:: python
+
+      "coupling_map": [[0, 1], [0, 2], [1, 2], [3, 2], [3, 4], [4, 2]]
+
+
+-  An optional dictionary can be supplied to assign the qubit mapping:
+
+   .. code:: python
+
+       "initial_layout" : dictionary
+
+   This is a Python dictionary consisting of the mapping qubits from the codes to
+   the backend. Configuring it is optional; the default value is ``None``.
+   The following is an example of such a dictionary that can be used:
+
+   .. code:: python
+
+      "initial_layout": {('qr', 0): ('q', 1), ('qr', 1): ('q', 0)}
+
+
+-  An optional dictionary can be supplied to setup hpc simulation:
+
+   .. code:: python
+
+       "hpc_params" : dictionary
+
+   This is a Python dictionary consisting of key/value pairs.  Configuring it is optional; the default value is ``None``.
+
+
+-  An optional string can be supplied to the basis gates:
+
+   .. code:: python
+
+       "basis_gates" : string
+
+   This is a Python string consisting of basis gates, where are separated by comma.  Configuring it is optional; the default value is ``None``.
+   ``None`` denotes using the basis gates in the selected backend. The following is an example of such a dictionary that can be used:
+
+   .. code:: python
+
+      "basis_gates": "u1,u2,u3,cx,id"
+
+-  The maximum number of credits used per quantum job:
+
+   .. code:: python
+
+        "max_credits" : int
+
+   This parameter applies, in particular to any real quantum device.
+   The default value is ``10``.
+
+
+-  The waiting time of a result submitted to any real quantum device:
+
+   .. code:: python
+
+        "timeout" : float
+
+   This parameter applies, in particular to any real quantum device.
+   The default value is ``None``.
+
+
+-  The query period of the job submitted to any real quantum device:
+
+   .. code:: python
+
+        "wait" : float
+
+   This parameter applies, in particular to any real quantum device.
+   The default value is ``5``.
+
