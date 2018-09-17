@@ -99,7 +99,6 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
                     logger.warning("FAILURE: the {}-th chunk of circuits, job id: {}, "
                                    "Terra job error: {} ".format(idx, job_id, e))
                 except Exception as e:
-                    # if terra raise any error, which means something wrong, re-run it
                     raise AlgorithmError("FAILURE: the {}-th chunk of circuits, job id: {}, "
                                          "Terra unknown error: {} ".format(idx, job_id, e)) from e
 
