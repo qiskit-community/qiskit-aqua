@@ -25,21 +25,17 @@ Doing so requires that the required algorithm interface is implemented.
 from abc import ABC, abstractmethod
 import logging
 import sys
-import functools
-import time
 
 import numpy as np
 from qiskit import __version__ as qiskit_version
 from qiskit import register as q_register
 from qiskit import unregister as q_unregister
 from qiskit import registered_providers as q_registered_providers
-from qiskit import execute as q_execute, compile as q_compile
 from qiskit import available_backends, get_backend
 from qiskit.backends.ibmq import IBMQProvider
-from qiskit.backends.jobstatus import JobStatus
 
 from qiskit_aqua import AlgorithmError
-from qiskit_aqua.utils import summarize_circuits
+from qiskit_aqua.utils import run_circuits
 from qiskit_aqua import Preferences
 
 logger = logging.getLogger(__name__)
@@ -199,113 +195,15 @@ class QuantumAlgorithm(ABC):
         Returns:
             Result: Result object
         """
-        result = self.execute_with_maybe_autorecover(circuits, self._backend, self._execute_config,
-                                                     self._qjob_config, max_circuits_per_job=self.MAX_CIRCUITS_PER_JOB,
-                                                     show_circuit_summary=self._show_circuit_summary)
+        result = run_circuits(circuits, self._backend, self._execute_config,
+                              self._qjob_config, max_circuits_per_job=self.MAX_CIRCUITS_PER_JOB,
+                              show_circuit_summary=self._show_circuit_summary)
         if self._show_circuit_summary:
             self.disable_circuit_summary()
 
         return result
 
     @staticmethod
-    def execute_with_maybe_autorecover(circuits, backend, execute_config, qjob_config={},
-                                       max_circuits_per_job=sys.maxsize, show_circuit_summary=False):
-        """
-        An execution wrapper with qiskit-terra, with auto recover capability.
-
-        By default, simulator backend will not use autorecover feature.
-
-        Args:
-            circuits (QuantumCircuit or list[QuantumCircuit]): circuits to execute
-            backend (str): name of backend
-            execute_config (dict): settings for qiskit execute (or compile)
-            qjob_config (dict): settings for job object, like timeout and wait
-            max_circuits_per_job (int): the maximum number of job, default is unlimited but 300 is limited if you
-                                        submit to a remote backend
-            show_circuit_summary (bool): showing the summary of submitted circuits.
-
-        Returns:
-            Result: Result object
-        """
-
-        # max_circuits_per_job = QuantumAlgorithm.MAX_CIRCUITS_PER_JOB
-        if not isinstance(circuits, list):
-            circuits = [circuits]
-
-        my_backend = get_backend(backend)
-        with_autorecover = False if my_backend.configuration()['simulator'] else True
-
-        qobjs = []
-        jobs = []
-        chunks = int(np.ceil(len(circuits) / max_circuits_per_job))
-
-        for i in range(chunks):
-            sub_circuits = circuits[i * max_circuits_per_job:(i + 1) * max_circuits_per_job]
-            qobj = q_compile(sub_circuits, my_backend, **execute_config)
-            job = my_backend.run(qobj)
-            jobs.append(job)
-            qobjs.append(qobj)
-
-        logger.info("There are {} circuits and they are chunked into {} chunks, each with {} circutis.".format(
-            len(circuits), chunks, max_circuits_per_job))
-
-        if logger.isEnabledFor(logging.DEBUG) and show_circuit_summary:
-            logger.debug(summarize_circuits(circuits))
-
-        results = []
-        if with_autorecover:
-            for idx in range(len(jobs)):
-                job = jobs[idx]
-                job_id = job.id()
-                logger.info("Running {}-th chunk circuits, job id: {}".format(idx, job_id))
-                while True:
-                    try:
-                        result = job.result(**qjob_config)
-                        if result.status == 'COMPLETED':
-                            results.append(result)
-                            logger.info("COMPLETED the {}-th chunk of circuits, job id: {}".format(idx, job_id))
-                            break
-                        else:
-                            logger.warning("FAILURE: the {}-th chunk of circuits, job id: {}".format(idx, job_id))
-
-                    except Exception as e:
-                        # if terra raise any error, which means something wrong, re-run it
-                        logger.warning(
-                            "FAILURE: the {}-th chunk of circuits, job id: {}, Terra error: {} ".format(idx, job_id, e))
-
-                    # keep querying the status until it is okay.
-                    while True:
-                        try:
-                            job_status = job.status()
-                            break
-                        except Exception as e:
-                            logger.warning(
-                                "FAILURE: job id: {}, status: 'FAIL_TO_GET_STATUS' ({})".format(job_id, e))
-                            time.sleep(5)
-
-                    logger.info("Job status: {}".format(job_status))
-                    # when reach here, it means the job fails. let's check what kinds of failure it is.
-                    if job_status == JobStatus.DONE:
-                        logger.info("Job ({}) is completed anyway, retrieve result from backend.".format(job_id))
-                        job = my_backend.retrieve_job(job_id)
-                    elif job_status == JobStatus.RUNNING or job_status == JobStatus.QUEUED:
-                        logger.info("Job ({}) is {}, but encounter an exception, recover it from backend.".format(
-                            job_id, job_status))
-                        job = my_backend.retrieve_job(job_id)
-                    else:
-                        logger.info("Fail to run Job ({}), resubmit it.".format(job_id))
-                        qobj = qobjs[idx]
-                        job = my_backend.run(qobj)
-        else:
-            results = []
-            for job in jobs:
-                results.append(job.result(**qjob_config))
-
-        if len(results) != 0:
-            result = functools.reduce(lambda x, y: x + y, results)
-        else:
-            result = None
-        return result
 
     @staticmethod
     def register_and_get_operational_backends(*args, provider_class=IBMQProvider, **kwargs):

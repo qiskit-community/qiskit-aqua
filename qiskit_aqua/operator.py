@@ -30,8 +30,8 @@ from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.tools.qi.pauli import Pauli, label_to_pauli, sgn_prod
 from qiskit.qasm import pi
 
-from qiskit_aqua import AlgorithmError, QuantumAlgorithm
-from qiskit_aqua.utils import PauliGraph, summarize_circuits
+from qiskit_aqua import AlgorithmError
+from qiskit_aqua.utils import PauliGraph, summarize_circuits, run_circuits
 
 logger = logging.getLogger(__name__)
 
@@ -563,10 +563,9 @@ class Operator(object):
             if self._dia_matrix is None:
                 self._to_dia_matrix(mode='matrix')
 
-            result = QuantumAlgorithm.execute_with_maybe_autorecover(input_circuit, backend=backend,
-                                                                     execute_config=execute_config,
-                                                                     max_circuits_per_job=self.MAX_CIRCUITS_PER_JOB,
-                                                                     show_circuit_summary=self._summarize_circuits)
+            result = run_circuits(input_circuit, backend=backend, execute_config=execute_config,
+                                  max_circuits_per_job=self.MAX_CIRCUITS_PER_JOB,
+                                  show_circuit_summary=self._summarize_circuits)
             quantum_state = np.asarray(result.get_statevector(input_circuit))
 
             if self._dia_matrix is not None:
@@ -578,10 +577,9 @@ class Operator(object):
             self._check_representation("paulis")
             n_qubits = self.num_qubits
 
-            result = QuantumAlgorithm.execute_with_maybe_autorecover(input_circuit, backend=backend,
-                                                                     execute_config=execute_config,
-                                                                     max_circuits_per_job=self.MAX_CIRCUITS_PER_JOB,
-                                                                     show_circuit_summary=self._summarize_circuits)
+            result = run_circuits(input_circuit, backend=backend, execute_config=execute_config,
+                                  max_circuits_per_job=self.MAX_CIRCUITS_PER_JOB,
+                                  show_circuit_summary=self._summarize_circuits)
             simulator_initial_state = np.asarray(result.get_statevector(input_circuit))
 
             temp_config = copy.deepcopy(execute_config)
@@ -613,10 +611,9 @@ class Operator(object):
                 if len(circuit) != 0:
                     circuits_to_simulate.append(circuit)
 
-            result = QuantumAlgorithm.execute_with_maybe_autorecover(circuits_to_simulate, backend=backend,
-                                                                     execute_config=temp_config,
-                                                                     max_circuits_per_job=self.MAX_CIRCUITS_PER_JOB,
-                                                                     show_circuit_summary=self._summarize_circuits)
+            result = run_circuits(circuits_to_simulate, backend=backend, execute_config=temp_config,
+                                  max_circuits_per_job=self.MAX_CIRCUITS_PER_JOB,
+                                  show_circuit_summary=self._summarize_circuits)
 
             for idx, pauli in enumerate(self._paulis):
                 circuit = all_circuits[idx]
@@ -674,11 +671,9 @@ class Operator(object):
 
                 circuits.append(circuit)
 
-            result = QuantumAlgorithm.execute_with_maybe_autorecover(circuits, backend=backend,
-                                                                     execute_config=execute_config,
-                                                                     qjob_config=qjob_config,
-                                                                     max_circuits_per_job=self.MAX_CIRCUITS_PER_JOB,
-                                                                     show_circuit_summary=self._summarize_circuits)
+            result = run_circuits(circuits, backend=backend, execute_config=execute_config,
+                                  qjob_config=qjob_config, max_circuits_per_job=self.MAX_CIRCUITS_PER_JOB,
+                                  show_circuit_summary=self._summarize_circuits)
 
             avg_paulis = []
             for idx, pauli in enumerate(self._paulis):
@@ -707,11 +702,9 @@ class Operator(object):
                 circuits.append(circuit)
 
             # Execute all the stacked quantum circuits - one for each TPB set
-            result = QuantumAlgorithm.execute_with_maybe_autorecover(circuits, backend=backend,
-                                                                     execute_config=execute_config,
-                                                                     qjob_config=qjob_config,
-                                                                     max_circuits_per_job=self.MAX_CIRCUITS_PER_JOB,
-                                                                     show_circuit_summary=self._summarize_circuits)
+            result = run_circuits(circuits, backend=backend, execute_config=execute_config,
+                                  qjob_config=qjob_config, max_circuits_per_job=self.MAX_CIRCUITS_PER_JOB,
+                                  show_circuit_summary=self._summarize_circuits)
 
             for tpb_idx, tpb_set in enumerate(self._grouped_paulis):
                 avg_paulis = []
