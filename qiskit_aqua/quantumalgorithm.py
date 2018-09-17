@@ -204,8 +204,6 @@ class QuantumAlgorithm(ABC):
         return result
 
     @staticmethod
-
-    @staticmethod
     def register_and_get_operational_backends(*args, provider_class=IBMQProvider, **kwargs):
         try:
             for provider in q_registered_providers():
