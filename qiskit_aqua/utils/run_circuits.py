@@ -72,14 +72,15 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
         jobs.append(job)
         qobjs.append(qobj)
 
-    logger.info("There are {} circuits and they are chunked into"
-                "{} chunks, each with {} circutis.".format(len(circuits), chunks, max_circuits_per_job))
-
     if logger.isEnabledFor(logging.DEBUG) and show_circuit_summary:
         logger.debug(summarize_circuits(circuits))
 
     results = []
     if with_autorecover:
+
+        logger.info("There are {} circuits and they are chunked into "
+                "{} chunks, each with {} circutis.".format(len(circuits), chunks, max_circuits_per_job))
+
         for idx in range(len(jobs)):
             job = jobs[idx]
             job_id = job.id()
@@ -95,11 +96,11 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
                         logger.warning("FAILURE: the {}-th chunk of circuits, job id: {}".format(idx, job_id))
                 except JobError as e:
                     # if terra raise any error, which means something wrong, re-run it
-                    logger.warning("FAILURE: the {}-th chunk of circuits, job id: {},"
+                    logger.warning("FAILURE: the {}-th chunk of circuits, job id: {}, "
                                    "Terra job error: {} ".format(idx, job_id, e))
                 except Exception as e:
                     # if terra raise any error, which means something wrong, re-run it
-                    raise AlgorithmError("FAILURE: the {}-th chunk of circuits, job id: {}"
+                    raise AlgorithmError("FAILURE: the {}-th chunk of circuits, job id: {}, "
                                          "Terra unknown error: {} ".format(idx, job_id, e)) from e
 
                 # keep querying the status until it is okay.
@@ -108,11 +109,11 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
                         job_status = job.status()
                         break
                     except JobError as e:
-                        logger.warning("FAILURE: job id: {},"
+                        logger.warning("FAILURE: job id: {}, "
                                        "status: 'FAIL_TO_GET_STATUS' Terra job error: {}".format(job_id, e))
                         time.sleep(5)
                     except Exception as e:
-                        raise AlgorithmError("FAILURE: job id: {},"
+                        raise AlgorithmError("FAILURE: job id: {}, "
                                              "status: 'FAIL_TO_GET_STATUS' ({})".format(job_id, e)) from e
 
                 logger.info("Job status: {}".format(job_status))
@@ -121,7 +122,7 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
                     logger.info("Job ({}) is completed anyway, retrieve result from backend.".format(job_id))
                     job = my_backend.retrieve_job(job_id)
                 elif job_status == JobStatus.RUNNING or job_status == JobStatus.QUEUED:
-                    logger.info("Job ({}) is {}, but encounter an exception,"
+                    logger.info("Job ({}) is {}, but encounter an exception, "
                                 "recover it from backend.".format(job_id, job_status))
                     job = my_backend.retrieve_job(job_id)
                 else:
