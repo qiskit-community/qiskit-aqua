@@ -25,19 +25,17 @@ Doing so requires that the required algorithm interface is implemented.
 from abc import ABC, abstractmethod
 import logging
 import sys
-import functools
 
 import numpy as np
 from qiskit import __version__ as qiskit_version
 from qiskit import register as q_register
 from qiskit import unregister as q_unregister
 from qiskit import registered_providers as q_registered_providers
-from qiskit import execute as q_execute
 from qiskit import available_backends, get_backend
 from qiskit.backends.ibmq import IBMQProvider
 
 from qiskit_aqua import AlgorithmError
-from qiskit_aqua.utils import summarize_circuits
+from qiskit_aqua.utils import run_circuits
 from qiskit_aqua import Preferences
 
 logger = logging.getLogger(__name__)
@@ -195,31 +193,14 @@ class QuantumAlgorithm(ABC):
             circuits (QuantumCircuit or list[QuantumCircuit]): circuits to execute
 
         Returns:
-            Result or [Result]: Result objects it will be a list if number of circuits
-            exceed the maximum number (300)
+            Result: Result object
         """
-
-        if not isinstance(circuits, list):
-            circuits = [circuits]
-        jobs = []
-        chunks = int(np.ceil(len(circuits) / self.MAX_CIRCUITS_PER_JOB))
-        for i in range(chunks):
-            sub_circuits = circuits[i *
-                                    self.MAX_CIRCUITS_PER_JOB:(i + 1) * self.MAX_CIRCUITS_PER_JOB]
-            jobs.append(q_execute(sub_circuits, self._backend,
-                                  **self._execute_config))
-
-        if logger.isEnabledFor(logging.DEBUG) and self._show_circuit_summary:
-            logger.debug(summarize_circuits(circuits))
-
+        result = run_circuits(circuits, self._backend, self._execute_config,
+                              self._qjob_config, max_circuits_per_job=self.MAX_CIRCUITS_PER_JOB,
+                              show_circuit_summary=self._show_circuit_summary)
         if self._show_circuit_summary:
             self.disable_circuit_summary()
 
-        results = []
-        for job in jobs:
-            results.append(job.result(**self._qjob_config))
-
-        result = functools.reduce(lambda x, y: x + y, results)
         return result
 
     @staticmethod
@@ -233,7 +214,7 @@ class QuantumAlgorithm(ABC):
                     break
         except Exception as e:
             logger.debug(
-                "Failed to unregister provider '{}' with Qiskit: {}".format(provider_class,str(e)))
+                "Failed to unregister provider '{}' with Qiskit: {}".format(provider_class, str(e)))
 
         preferences = Preferences()
         if args or kwargs or preferences.get_token() is not None:
@@ -243,7 +224,7 @@ class QuantumAlgorithm(ABC):
                     "Provider '{}' registered with Qiskit successfully.".format(provider_class))
             except Exception as e:
                 logger.debug(
-                    "Failed to register provider '{}' with Qiskit: {}".format(provider_class,str(e)))
+                    "Failed to register provider '{}' with Qiskit: {}".format(provider_class, str(e)))
 
         backends = available_backends()
         backends = [

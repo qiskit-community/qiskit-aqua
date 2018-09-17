@@ -27,7 +27,7 @@ from .dataset_helper import (get_feature_dimension, get_num_classes,
                              split_dataset_to_data_and_labels, map_label_to_class_name,
                              reduce_dim_to_via_pca)
 from .qpsolver import optimize_svm
-
+from .run_circuits import run_circuits
 
 __all__ = ['tensorproduct',
            'PauliGraph',
@@ -46,4 +46,5 @@ __all__ = ['tensorproduct',
            'split_dataset_to_data_and_labels',
            'map_label_to_class_name',
            'reduce_dim_to_via_pca',
-           'optimize_svm']
+           'optimize_svm',
+           'run_circuits']
