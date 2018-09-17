@@ -143,6 +143,8 @@ def read_make_circuit(n, qr1, qr2, meas1, meas2, qc):
             else:
                 qc.x(qr1[j])
 
+    return(qc, qr1, qr2, meas1, meas2)
+
 def measure(qc, n, qr1, qr2, meas1, meas2):
     qc.measure(qr1, meas1)
     qc.measure(qr2, meas2)
