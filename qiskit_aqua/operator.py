@@ -279,8 +279,9 @@ class Operator(object):
                 for pauli in rhs._paulis:
                     basis, sign = sgn_prod(existed_pauli[1], pauli[1])
                     coeff = existed_pauli[0] * pauli[0] * sign
-                    pauli_term = [coeff, basis]
-                    ret_pauli += Operator(paulis=[pauli_term])
+                    if abs(coeff) > 1e-15:
+                        pauli_term = [coeff, basis]
+                        ret_pauli += Operator(paulis=[pauli_term])
             return ret_pauli
 
         elif self._grouped_paulis is not None and rhs._grouped_paulis is not None:
@@ -1527,6 +1528,10 @@ class Operator(object):
 
         stacked_paulis = []
 
+        if self.is_empty():
+            logger.info("Operator is empty.")
+            return [], [], [], []
+
         self._check_representation("paulis")
 
         for pauli in self._paulis:
@@ -1659,6 +1664,7 @@ class Operator(object):
             pauli_term_out = [coeff_out, Pauli(np.array(v_temp), np.array(w_temp))]
             operator_out += Operator(paulis=[pauli_term_out])
 
+        operator_out.zeros_coeff_elimination()
         return operator_out
 
     def zeros_coeff_elimination(self):
