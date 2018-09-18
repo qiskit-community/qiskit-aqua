@@ -1630,7 +1630,7 @@ class Operator(object):
             has to be equal to the length of cliffords and sq_list
 
         Returns:
-            Operator : the tapered operator
+            Operator : the tapered operator, or empty operator if the `operator` is empty.
         """
 
         if len(cliffords) == 0 or len(sq_list) == 0 or len(tapering_values) == 0:
@@ -1642,6 +1642,10 @@ class Operator(object):
         if len(sq_list) != len(tapering_values):
             raise ValueError('number of Clifford unitaries has to be the same as length of single'
                              'qubit list and tapering values.')
+
+        if operator.is_empty():
+            logger.warning("The operator is empty, return the empty operator directly.")
+            return operator
 
         operator.to_paulis()
 
