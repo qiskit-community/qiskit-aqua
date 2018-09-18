@@ -1,0 +1,99 @@
+# This file has been generated using RevKit 2.3 (www.revkit.org)
+.version 2.0
+.numvars 14
+.variables x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13
+.inputs x1 x2 x3 x4 x5 x6 x7 0 0 0 0 0 0 0
+.outputs -- -- -- -- -- -- -- y1 y2 y3 y4 y5 y6 y7
+.constants -------0000000
+.garbage 1111111-------
+.begin
+t1 x7
+t2 x7 x8
+t2 -x6 x7
+t2 x7 x8
+t3 -x4 -x6 x7
+t4 x4 -x5 -x6 x9
+t2 x7 x10
+t2 x7 x8
+t4 x3 -x5 -x6 x7
+t2 x7 x8
+t2 x7 x10
+t2 x7 x10
+t5 x3 x4 -x5 -x6 x7
+t2 x7 x10
+t5 x2 x3 -x4 -x6 x7
+t2 x7 x8
+t5 -x1 -x4 -x5 -x6 x7
+t2 x7 x8
+t6 -x1 -x2 x4 -x5 -x6 x7
+t2 x8 x9
+t7 -x1 -x2 x3 -x4 -x5 -x6 x8
+t2 x8 x9
+t7 -x1 x2 -x3 -x4 -x5 -x6 x12
+t2 x7 x12
+t2 x7 x10
+t6 x1 -x3 -x4 -x5 -x6 x7
+t2 x7 x10
+t2 x7 x12
+t2 x7 x8
+t6 x1 x2 -x3 -x5 -x6 x7
+t2 x7 x8
+t2 x7 x10
+t2 x7 x9
+t2 x7 x8
+t7 -x0 -x2 -x3 x4 -x5 -x6 x7
+t2 x7 x8
+t2 x7 x9
+t2 x7 x10
+t2 x7 x11
+t2 x7 x10
+t2 x7 x9
+t7 -x0 -x2 x3 -x4 -x5 -x6 x7
+t2 x7 x9
+t2 x7 x10
+t2 x7 x11
+t2 x7 x8
+t8 -x0 -x1 -x2 -x3 -x4 -x5 x6 x7
+t2 x7 x8
+t2 x7 x9
+t2 x7 x8
+t8 -x0 -x1 -x2 -x3 -x4 x5 -x6 x7
+t2 x7 x8
+t2 x7 x9
+t2 x7 x13
+t2 x7 x12
+t2 x7 x11
+t2 x7 x10
+t2 x7 x9
+t7 -x0 x1 -x3 -x4 -x5 -x6 x7
+t2 x7 x9
+t2 x7 x10
+t2 x7 x11
+t2 x7 x12
+t2 x7 x13
+t2 x7 x11
+t2 x7 x10
+t7 -x0 x1 -x2 -x4 -x5 -x6 x7
+t2 x7 x10
+t2 x7 x11
+t2 x8 x10
+t2 x8 x9
+t7 -x0 x1 -x2 -x3 -x5 -x6 x8
+t2 x8 x9
+t2 x8 x10
+t2 x7 x13
+t8 -x0 x1 x2 -x3 -x4 -x5 -x6 x7
+t2 x7 x13
+t2 x7 x8
+t6 x0 x3 -x4 -x5 -x6 x7
+t2 x7 x8
+t2 x7 x12
+t2 x7 x11
+t2 x7 x10
+t7 x0 x2 -x3 -x4 -x5 -x6 x7
+t2 x7 x10
+t2 x7 x11
+t2 x7 x12
+t8 x0 x1 -x2 x3 -x4 x5 -x6 x7
+t7 x0 x1 x2 -x4 -x5 -x6 x8
+.end
