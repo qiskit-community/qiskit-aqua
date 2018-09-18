@@ -3,6 +3,7 @@ import itertools
 
 from fixed_rotation_working import hybrid_rot
 import matplotlib.pyplot as plt
+
 def get_statevector_representation(bitpattern):
     '''Using the tensorproduct of the qubits representing the bitpattern, estimate
     the input state vector to the rotation routine
