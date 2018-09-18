@@ -1,7 +1,7 @@
 import numpy as np
 import itertools
 
-from hybrid_rotation import hybrid_rot
+from fixed_rotation_working import hybrid_rot
 import matplotlib.pyplot as plt
 def get_statevector_representation(bitpattern):
     '''Using the tensorproduct of the qubits representing the bitpattern, estimate
@@ -21,7 +21,10 @@ def get_statevector_representation(bitpattern):
 
 def test_valuerange(k,n):
     res_dict = {}
+    counter = 0
     for pattern in itertools.product('01',repeat=k):
+        if not '1' in pattern:
+            continue
         state_vector = get_statevector_representation(list(pattern))
         draw = False#True
         #state_vector = np.zeros(2**k)
@@ -34,18 +37,20 @@ def test_valuerange(k,n):
         print(state_vector)
         print("Next pattern:",pattern)
         obj= hybrid_rot(k,n,initial_params,measure=True)
-        res = (obj.set_up_and_execute_circuit(k,n))
+        res = (obj.set_up_and_execute_optimized_circuit(k,n))
         #break
         for d in res:
             if d[1][0] == '1':
                 res_dict.update({float(d[2].split()[-1]):d[0]})
-                
+        counter += 1
+        #if counter == 4:
+        #    break
     vals = list(res_dict.keys())
     inverse = [res_dict[_] for _ in vals]
     vals = np.array(vals)
     inverse = np.array(inverse)
     plt.scatter(vals,inverse/2**(-len(res[0][1].split()[-1])))
-    plt.plot(np.linspace(np.min(vals),np.max(vals),1000),1/np.linspace(np.min(vals),np.max(vals),1000))
+    plt.plot(np.linspace(2**-k,1,1000),1/np.linspace(2**-k,1,1000))
     plt.show()
     return
 
@@ -61,11 +66,11 @@ def test_stat_error(k,n):
             "num_qubits" : k,
             "state_vector": state_vector if not draw else []
         }
-    print(state_vector)
+    #print(state_vector)
         
     for i in range(100):
         obj= hybrid_rot(k,n,initial_params,measure=True)
-        res = (obj.set_up_and_execute_circuit(k,n))
+        res = (obj.set_up_and_execute_optimized_circuit(k,n))
         #break
         for d in res:
             if d[1][0] == '1':
@@ -76,13 +81,13 @@ def test_stat_error(k,n):
 
 
 #test_stat_error(5,3)
-test_valuerange(5,4)
-"""
-state_vector = get_statevector_representation(['0','1','0','0'])#,'1','0'])
+#test_valuerange(6,4)
+#"""
+state_vector = get_statevector_representation(['1','0','0','1','1','1'])#,'1','0'])
 
-k = 4
-n = 3
-draw = False
+k = 6#4
+n = 4
+draw = 0#True
 #state_vector = np.zeros(2**k)
 #state_vector[4] = 1
 initial_params = {
@@ -92,7 +97,7 @@ initial_params = {
 }
 print(state_vector)
 obj= hybrid_rot(k,n,initial_params,measure=True)
-print(obj.set_up_and_execute_circuit(k,n))
+print(obj.set_up_and_execute_optimized_circuit(k,n))
 
 
-"""
+#"""

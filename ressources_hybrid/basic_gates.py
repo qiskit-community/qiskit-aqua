@@ -11,7 +11,7 @@ def num_basic_gates(k,n):
     print("Setting MSB register:", frac_c_reg)
     print("X gates to store bit patterns:",frac_x_gates)
     return frac_bit_pat+frac_c_reg+frac_x_gates
-
+"""
 def num_qbits(k,n):
     return 2 * k + 1
 k_ = np.arange(6,15)
@@ -34,3 +34,40 @@ plt.show()
 #print(num_qbits(5,3))
 
 print(num_basic_gates(7,4))
+"""
+
+
+def nc_u(n,num):
+    '''Cost to produce a n controlled operation of some operator whose 2**(n-1) root can be
+    calculated with num operations'''
+    return (2**(n)-1)*num + (2**n-2)
+
+def num_basic_gates(k,n,m):
+    return (k-n+1)*2**(n+1) * (nc_u(n,4) + nc_u(int(np.ceil(np.log2(k-n+2))),4))
+
+def improved_basic_gates(k,n,m):
+    return (k-n+1)*2**(m) * (2*nc_u(m,4) + 2**(n-m+1)*( nc_u(int(np.ceil(np.log2(k-n+2))),4)+nc_u(int(n-m+1),4) ))
+
+def outlook_improved_basic_gates(k,n,m):
+    return 2**(m) * (2*nc_u(m,4) + (k-n+1)* 2**(n-m+1)*( nc_u(int(np.ceil(np.log2(k-n+2))),4)+nc_u(int(n-m+1),4) ))
+
+
+def msb_estimate(k,n):
+    return 2 * ((2**(k-n)-1)*int(np.ceil(np.log2(k-n+2)))/2 * 4 + 2**(k-n)-2)
+
+print(nc_u(5,4))
+for k in range(6,10):
+    n = 5
+    m = np.arange(0,n+1)
+    res = [num_basic_gates(k,n,_)+msb_estimate(k,n) for _ in m]
+    res_im = [improved_basic_gates(k,n,_)+msb_estimate(k,n) for _ in m]
+    plt.plot(m,res,label='{}'.format(k))
+    plt.plot(m,res_im,label='{} improved'.format(k))
+plt.legend(loc='best')
+plt.show()
+
+plt.scatter(8,outlook_improved_basic_gates(8,5,3),label='improved')
+plt.scatter(8,improved_basic_gates(8,5,3),label='normal')
+plt.legend(loc='best')
+plt.show()
+    
