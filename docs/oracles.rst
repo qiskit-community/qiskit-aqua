@@ -52,7 +52,7 @@ box.
 Currently, Aqua provides the SATisfiability (SAT) oracle
 implementation, which takes as input an SAT problem
 specified as a formula in
-`Conjunctive Normal Form (CNF) <https://en.wikipedia.org/wiki/Conjunctive_normal_form>__
+`Conjunctive Normal Form (CNF) <https://en.wikipedia.org/wiki/Conjunctive_normal_form>`__
 and searches for solutions to that problem.
 Essentially, a CNF is a conjunction of one or more clauses, where a clause is a disjunction of
 one or more literals:
