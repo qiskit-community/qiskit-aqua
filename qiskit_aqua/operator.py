@@ -27,12 +27,11 @@ import numpy as np
 from scipy import sparse as scisparse
 from scipy import linalg as scila
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
-from qiskit import execute as q_execute
 from qiskit.tools.qi.pauli import Pauli, label_to_pauli, sgn_prod
 from qiskit.qasm import pi
 
 from qiskit_aqua import AlgorithmError
-from qiskit_aqua.utils import PauliGraph, summarize_circuits
+from qiskit_aqua.utils import PauliGraph, summarize_circuits, run_circuits
 
 logger = logging.getLogger(__name__)
 
@@ -564,12 +563,9 @@ class Operator(object):
             if self._dia_matrix is None:
                 self._to_dia_matrix(mode='matrix')
 
-            job = q_execute(input_circuit, backend=backend, **execute_config)
-
-            if self._summarize_circuits and logger.isEnabledFor(logging.DEBUG):
-                logger.debug(summarize_circuits(input_circuit))
-
-            result = job.result()
+            result = run_circuits(input_circuit, backend=backend, execute_config=execute_config,
+                                  max_circuits_per_job=self.MAX_CIRCUITS_PER_JOB,
+                                  show_circuit_summary=self._summarize_circuits)
             quantum_state = np.asarray(result.get_statevector(input_circuit))
 
             if self._dia_matrix is not None:
@@ -581,8 +577,10 @@ class Operator(object):
             self._check_representation("paulis")
             n_qubits = self.num_qubits
 
-            input_job = q_execute(input_circuit, backend=backend, **execute_config)
-            simulator_initial_state = np.asarray(input_job.result().get_statevector(input_circuit))
+            result = run_circuits(input_circuit, backend=backend, execute_config=execute_config,
+                                  max_circuits_per_job=self.MAX_CIRCUITS_PER_JOB,
+                                  show_circuit_summary=self._summarize_circuits)
+            simulator_initial_state = np.asarray(result.get_statevector(input_circuit))
 
             temp_config = copy.deepcopy(execute_config)
 
@@ -613,20 +611,9 @@ class Operator(object):
                 if len(circuit) != 0:
                     circuits_to_simulate.append(circuit)
 
-            jobs = []
-            chunks = int(np.ceil(len(circuits_to_simulate) / self.MAX_CIRCUITS_PER_JOB))
-            for i in range(chunks):
-                sub_circuits = circuits_to_simulate[i*self.MAX_CIRCUITS_PER_JOB:(i+1)*self.MAX_CIRCUITS_PER_JOB]
-                jobs.append(q_execute(sub_circuits, backend=backend, **temp_config))
-
-            if self._summarize_circuits and logger.isEnabledFor(logging.DEBUG):
-                logger.debug(summarize_circuits(circuits_to_simulate))
-
-            results = []
-            for job in jobs:
-                results.append(job.result())
-            if len(results) != 0:
-                result = reduce(lambda x, y: x + y, results)
+            result = run_circuits(circuits_to_simulate, backend=backend, execute_config=temp_config,
+                                  max_circuits_per_job=self.MAX_CIRCUITS_PER_JOB,
+                                  show_circuit_summary=self._summarize_circuits)
 
             for idx, pauli in enumerate(self._paulis):
                 circuit = all_circuits[idx]
@@ -654,6 +641,7 @@ class Operator(object):
         Returns:
             float, float: mean and standard deviation of evaluation results
         """
+
         num_shots = execute_config.get("shots", 1)
         avg, std_dev, variance = 0.0, 0.0, 0.0
         n_qubits = self.num_qubits
@@ -683,19 +671,9 @@ class Operator(object):
 
                 circuits.append(circuit)
 
-            jobs = []
-            chunks = int(np.ceil(len(circuits) / self.MAX_CIRCUITS_PER_JOB))
-            for i in range(chunks):
-                sub_circuits = circuits[i*self.MAX_CIRCUITS_PER_JOB:(i+1)*self.MAX_CIRCUITS_PER_JOB]
-                jobs.append(q_execute(sub_circuits, backend=backend, **execute_config))
-
-            if self._summarize_circuits and logger.isEnabledFor(logging.DEBUG):
-                logger.debug(summarize_circuits(circuits))
-
-            results = []
-            for job in jobs:
-                results.append(job.result(**qjob_config))
-            result = reduce(lambda x, y: x + y, results)
+            result = run_circuits(circuits, backend=backend, execute_config=execute_config,
+                                  qjob_config=qjob_config, max_circuits_per_job=self.MAX_CIRCUITS_PER_JOB,
+                                  show_circuit_summary=self._summarize_circuits)
 
             avg_paulis = []
             for idx, pauli in enumerate(self._paulis):
@@ -724,19 +702,9 @@ class Operator(object):
                 circuits.append(circuit)
 
             # Execute all the stacked quantum circuits - one for each TPB set
-            jobs = []
-            chunks = int(np.ceil(len(circuits) / self.MAX_CIRCUITS_PER_JOB))
-            for i in range(chunks):
-                sub_circuits = circuits[i*self.MAX_CIRCUITS_PER_JOB:(i+1)*self.MAX_CIRCUITS_PER_JOB]
-                jobs.append(q_execute(sub_circuits, backend=backend, **execute_config))
-
-            if self._summarize_circuits and logger.isEnabledFor(logging.DEBUG):
-                logger.debug(summarize_circuits(circuits))
-
-            results = []
-            for job in jobs:
-                results.append(job.result(**qjob_config))
-            result = reduce(lambda x, y: x + y, results)
+            result = run_circuits(circuits, backend=backend, execute_config=execute_config,
+                                  qjob_config=qjob_config, max_circuits_per_job=self.MAX_CIRCUITS_PER_JOB,
+                                  show_circuit_summary=self._summarize_circuits)
 
             for tpb_idx, tpb_set in enumerate(self._grouped_paulis):
                 avg_paulis = []
@@ -1558,11 +1526,19 @@ class Operator(object):
         sq_list = []
 
         stacked_paulis = []
+
+        self._check_representation("paulis")
+
         for pauli in self._paulis:
             stacked_paulis.append(np.concatenate((pauli[1].w, pauli[1].v), axis=0))
 
         stacked_matrix = np.array(np.stack(stacked_paulis))
         symmetries = Operator.kernel_F2(stacked_matrix)
+
+        if len(symmetries) == 0:
+            logger.info("No symmetry is found.")
+            return [], [], [], []
+
         stacked_symmetries = np.stack(symmetries)
         symm_shape = stacked_symmetries.shape
 
@@ -1573,7 +1549,6 @@ class Operator(object):
 
             stacked_symm_del = np.delete(stacked_symmetries, (row), axis=0)
             for col in range(symm_shape[1] // 2):
-
                 # case symmetries other than one at (row) have Z or I on col qubit
                 Z_or_I = True
                 for symm_idx in range(symm_shape[0] - 1):
@@ -1629,7 +1604,7 @@ class Operator(object):
                         break
 
         for symm_idx, Pauli_symm in enumerate(Pauli_symmetries):
-            cliffords.append(Operator([[1/np.sqrt(2), Pauli_symm], [1/np.sqrt(2), sq_paulis[symm_idx]]]))
+            cliffords.append(Operator([[1 / np.sqrt(2), Pauli_symm], [1 / np.sqrt(2), sq_paulis[symm_idx]]]))
 
         return Pauli_symmetries, sq_paulis, cliffords, sq_list
 
@@ -1653,12 +1628,17 @@ class Operator(object):
             Operator : the tapered operator
         """
 
+        if len(cliffords) == 0 or len(sq_list) == 0 or len(tapering_values) == 0:
+            raise ValueError('Cliffords, single qubit list and tapering values cannot be empty.')
+
         if len(cliffords) != len(sq_list):
-            raise ValueError('number of Clifford unitaries has to be the same as lenght of single\
-            qubit list and tapering values')
+            raise ValueError('number of Clifford unitaries has to be the same as length of single'
+                             'qubit list and tapering values.')
         if len(sq_list) != len(tapering_values):
-            raise ValueError('number of Clifford unitaries has to be the same as lenght of single\
-            qubit list and tapering values')
+            raise ValueError('number of Clifford unitaries has to be the same as length of single'
+                             'qubit list and tapering values.')
+
+        operator.to_paulis()
 
         for clifford in cliffords:
             operator = clifford * operator * clifford
