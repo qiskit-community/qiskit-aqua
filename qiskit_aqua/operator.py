@@ -279,7 +279,7 @@ class Operator(object):
                 for pauli in rhs._paulis:
                     basis, sign = sgn_prod(existed_pauli[1], pauli[1])
                     coeff = existed_pauli[0] * pauli[0] * sign
-                    if abs(coeff) > 1E-12:
+                    if abs(coeff) > 1e-15:
                         pauli_term = [coeff, basis]
                         ret_pauli += Operator(paulis=[pauli_term])
             return ret_pauli
