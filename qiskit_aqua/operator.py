@@ -86,9 +86,6 @@ class Operator(object):
         Returns:
             Operator: the operator.
         """
-        result_paulis = None
-        result_grouped_paulis = None
-        result_matrix = None
 
         if mode == 'inplace':
             lhs = self
@@ -103,17 +100,15 @@ class Operator(object):
                     lhs._paulis[idx][0] = operation(lhs._paulis[idx][0], pauli[0])
                 else:
                     lhs._paulis_table[pauli_label] = len(lhs._paulis)
+                    pauli[0] = operation(0.0, pauli[0])
                     lhs._paulis.append(pauli)
-            result_paulis = lhs._paulis
         elif lhs._grouped_paulis is not None and rhs._grouped_paulis is not None:
             lhs._grouped_paulis_to_paulis()
             rhs._grouped_paulis_to_paulis()
-            lhs = lhs + rhs
+            lhs = operation(lhs, rhs)
             lhs._paulis_to_grouped_paulis()
-            result_grouped_paulis = lhs._grouped_paulis
         elif lhs._matrix is not None and rhs._matrix is not None:
-            lhs._matrix = lhs._matrix + rhs._matrix
-            result_matrix = lhs._matrix
+            lhs._matrix = operation(lhs._matrix, rhs._matrix)
         else:
             raise TypeError("the representations of two Operators should be the same. ({}, {})".format(
                 lhs.representations, rhs.representations))
@@ -809,6 +804,15 @@ class Operator(object):
                     operator_mode, input_circuit, backend, execute_config, qjob_config)
         return avg, std_dev
 
+    def to_paulis(self):
+        self._check_representation('paulis')
+
+    def to_grouped_paulis(self):
+        self._check_representation('grouped_paulis')
+
+    def to_matrix(self):
+        self._check_representation('matrix')
+
     def convert(self, input_format, output_format, force=False):
         """
         A wrapper for conversion among all representations.
@@ -1329,7 +1333,7 @@ class Operator(object):
     def evolve(self, state_in, evo_time, evo_mode, num_time_slices, quantum_registers=None,
                paulis_grouping='random', expansion_mode='trotter', expansion_order=1):
         """
-        Carry out the dynamics evolution for the operator under supplied specifications.
+        Carry out the eoh evolution for the operator under supplied specifications.
 
         Args:
             state_in: The initial state for the evolution
