@@ -1526,11 +1526,19 @@ class Operator(object):
         sq_list = []
 
         stacked_paulis = []
+
+        self._check_representation("paulis")
+
         for pauli in self._paulis:
             stacked_paulis.append(np.concatenate((pauli[1].w, pauli[1].v), axis=0))
 
         stacked_matrix = np.array(np.stack(stacked_paulis))
         symmetries = Operator.kernel_F2(stacked_matrix)
+
+        if len(symmetries) == 0:
+            logger.info("No symmetry is found.")
+            return [], [], [], []
+
         stacked_symmetries = np.stack(symmetries)
         symm_shape = stacked_symmetries.shape
 
@@ -1541,7 +1549,6 @@ class Operator(object):
 
             stacked_symm_del = np.delete(stacked_symmetries, (row), axis=0)
             for col in range(symm_shape[1] // 2):
-
                 # case symmetries other than one at (row) have Z or I on col qubit
                 Z_or_I = True
                 for symm_idx in range(symm_shape[0] - 1):
@@ -1597,7 +1604,7 @@ class Operator(object):
                         break
 
         for symm_idx, Pauli_symm in enumerate(Pauli_symmetries):
-            cliffords.append(Operator([[1/np.sqrt(2), Pauli_symm], [1/np.sqrt(2), sq_paulis[symm_idx]]]))
+            cliffords.append(Operator([[1 / np.sqrt(2), Pauli_symm], [1 / np.sqrt(2), sq_paulis[symm_idx]]]))
 
         return Pauli_symmetries, sq_paulis, cliffords, sq_list
 
@@ -1621,12 +1628,17 @@ class Operator(object):
             Operator : the tapered operator
         """
 
+        if len(cliffords) == 0 or len(sq_list) == 0 or len(tapering_values) == 0:
+            raise ValueError('Cliffords, single qubit list and tapering values cannot be empty.')
+
         if len(cliffords) != len(sq_list):
-            raise ValueError('number of Clifford unitaries has to be the same as lenght of single\
-            qubit list and tapering values')
+            raise ValueError('number of Clifford unitaries has to be the same as length of single'
+                             'qubit list and tapering values.')
         if len(sq_list) != len(tapering_values):
-            raise ValueError('number of Clifford unitaries has to be the same as lenght of single\
-            qubit list and tapering values')
+            raise ValueError('number of Clifford unitaries has to be the same as length of single'
+                             'qubit list and tapering values.')
+
+        operator.to_paulis()
 
         for clifford in cliffords:
             operator = clifford * operator * clifford
