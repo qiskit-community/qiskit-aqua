@@ -70,7 +70,6 @@ def cleanup_ket(ket):
     return ret
        
 def get_x_angle(cket):
-    print(cket)
     if cket != None:
         a = cket["0"]
         b = cket["1"]
@@ -158,13 +157,36 @@ if __name__ == "__main__":
     q = QuantumRegister(1)
     qc = QuantumCircuit(ar, q)
 
-    input_par(qc, [0.1, 0.2], ar, q[0])
-    input_gearbox(qc, [0.1, 0.2], ar, q[0])
+    input_par(qc, [0.1], ar, q[0])
+    #input_gearbox(qc, [0.6, 0.2], ar, q[0])
+
+    qc.snapshot("-1")
 
     res = execute(qc, "local_qasm_simulator", config={"data":
         ["hide_statevector", "quantum_state_ket"]}, shots=20).result()
 
     qc.data = list(filter(lambda x: not isinstance(x, Snapshot), qc.data))
-    #plot_circuit(qc)
-    print(res.get_snapshot("1").get("quantum_state_ket"))
+
+    l = [res.get_snapshot(slot).get("quantum_state_ket") for slot in
+            slots+["-1"]]
+    
+    statevectors = []
+    for measurements in zip(*l):
+        meas_ok = True
+        for meas in measurements[:-1]:
+            if list(meas.keys())[0][-2:] != "00":
+                meas_ok = False
+                break
+        if meas_ok:
+            statevectors.append(measurements[-1])
+    avg = sum(list(map(lambda x: np.array([x["0 00"], x["1 00"]]),
+        statevectors)))/len(statevectors)
+    ket = {str(x): y for x, y in enumerate(avg.dot(np.array([1, 1j])))}
+    print(get_x_angle(ket))
+        
+
+        
+
+
+
 
