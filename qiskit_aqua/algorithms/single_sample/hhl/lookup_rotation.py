@@ -8,6 +8,7 @@ from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit, execute
 from qiskit_aqua import QuantumAlgorithm
 from qiskit.tools.visualization import matplotlib_circuit_drawer as drawer
 from qiskit_aqua import get_initial_state_instance
+from qiskit.extensions.simulator import snapshot
 
 logger = logging.getLogger(__name__)
 
@@ -117,11 +118,12 @@ class LUP_ROTATION(object):
             init_state_params['num_qubits'] = reg_size
             assert (len(vector)==2**reg_size,
                     "The supplied init vector does not fit with the register size")
-
+            #print("called with vector",vector)
             init_state = get_initial_state_instance(init_state_params['name'])
         else:
             init_state = None
-
+        #print(init_state)
+        init_state.init_params(init_state_params)
         # Set up inclusion of existing circuit
         init_circuit_params = params.get('qpe_hhl')
         if init_circuit_params.get("name") == "STANDARD":
@@ -144,6 +146,7 @@ class LUP_ROTATION(object):
         self._ev = ev_register
         self._circuit = circuit
         self._state_in = state_in
+        #print(self._state_in)
         self._reg_size = reg_size
         self._pat_length = pat_length
         self._subpat_length = subpat_length
@@ -193,8 +196,7 @@ class LUP_ROTATION(object):
                 for appendpat in itertools.product('10', repeat=n - m):
                     pattern = pattern_ + appendpat
                     # print(pattern)
-                    if not '1' in pattern:
-                        continue
+                    
                     vec[msb - n:msb] = pattern
                     e_l = get_est_lamb(vec.copy(), msb, n)
                     #l = bin_to_num(vec)
@@ -209,7 +211,8 @@ class LUP_ROTATION(object):
                 msb_num = k-msb-1
                 output.update(
                     {msb_num: prev_res + [(list(reversed(list(pattern_))), app_pattern_array, lambda_array)]})
-
+        print(output)
+        print("-----------")
         vec = ['0'] * k
 
         # last iterations
@@ -287,6 +290,7 @@ class LUP_ROTATION(object):
         qc.h(tgt[0])
 
     def _set_msb(self, msb, ev, msb_num, last_iteration=False):
+        print("called")
         qc = self._circuit
         if last_iteration:
             if msb_num == 1:
@@ -306,7 +310,9 @@ class LUP_ROTATION(object):
                 for idx in range(msb_num):
                     qc.x(ev[idx])
             else:
-                raise ValueError()
+
+                qc.x(msb[0])
+               
         elif msb_num == 0:
             qc.cx(ev[0], msb)
         elif msb_num == 1:
@@ -345,6 +351,7 @@ class LUP_ROTATION(object):
                 qc.x(self._ev[int(c + offset)])
 
         if len(pattern) > 2 or (len(pattern)==2 and sign_bit):
+            #raise ValueError()
             if not sign_bit:
                 self.nc_toffoli(self._ev, tgt, len(pattern), int(offset))
             else:
@@ -384,73 +391,124 @@ class LUP_ROTATION(object):
         self._workq = QuantumRegister(1, 'work')
         self._msb = QuantumRegister(1, 'msb')
         self._anc = QuantumRegister(1, 'anc')
-        self._circuit.add(self._anc)
-        self._circuit.add(self._msb)
-        self._circuit.add(self._workq)
+        self._circuit += (QuantumCircuit(self._anc))
+        self._circuit +=(QuantumCircuit(self._msb))
+        self._circuit+=(QuantumCircuit(self._workq))
 
         qc = self._circuit
-        if self._state_in is not None:
-            qc += self._state_in.construct_circuit('circuit', self._ev)
-            print("initilizing register")
-        m = self._subpat_length
+        #print(len(qc.data),self._ev,qc.regs)
+        #if self._state_in is not None:
+        #    qc += self._state_in.construct_circuit('circuit', self._ev)
+        #    #print("initializing register")
+        #print(len(qc.data))
+        m = 2#self._subpat_length
         n = self._pat_length
         k = self._reg_size
+        print(m)
         approx_dict = LUP_ROTATION.classic_approx(k, n, m,negative_evals=self._negative_evals)
-
+        #print(self._negative_evals,k,m,n)
         old_msb = None
+        ev = [self._ev[i] for i in range(len(self._ev))]
+        
         for _, msb in enumerate(list(approx_dict.keys())):  # enumerate(list(reversed(list(approx_dict.keys())))):
             pattern_map = approx_dict[msb]
 
             if self._negative_evals:
-                qc.cu3(2*np.pi,0,0,self._ev[0],self._anc[0])
-            if old_msb != msb:
-                if old_msb != None:
-                    self._set_msb(self._msb, self._ev, int(old_msb))
-                old_msb = msb
-                if msb + n == k:
-                    self._set_msb(self._msb, self._ev, int(msb), last_iteration=True)
-                else:
-                    self._set_msb(self._msb, self._ev, int(msb), last_iteration=False)
+                
+                if old_msb != msb:
+                    if old_msb != None:
+                        self._set_msb(self._msb, ev[1:], int(old_msb-1))
+                    old_msb = msb
+                    if msb + n == k:
+                        self._set_msb(self._msb, ev[1:], int(msb-1), last_iteration=True)
+                    else:
+                        self._set_msb(self._msb, ev[1:], int(msb-1), last_iteration=False)
+            
+            else:
+                if old_msb != msb:
+                    if old_msb != None:
+                        self._set_msb(self._msb, self._ev, int(old_msb))
+                    old_msb = msb
+                    if msb + n == k:
+                        self._set_msb(self._msb, self._ev, int(msb), last_iteration=True)
+                    else:
+                        self._set_msb(self._msb, self._ev, int(msb), last_iteration=False)
             offset_mpat = msb + (n - m) if msb < k - n else msb + n - m - 1
 
             for mainpat, subpat, lambda_ar in pattern_map:
                 self._set_bit_pattern(mainpat, self._workq[0], offset_mpat + 1)
                 for subpattern, lambda_ in zip(subpat, lambda_ar):
-                    theta = np.arcsin(2 ** int(-k) / lambda_)
+                    #if lambda_ == 0.5: raise ValueError(str(msb))
+                    theta =  np.arcsin(2 ** int(-k) / lambda_)# if self._negative_evals else
+                    #          np.arcsin(2 ** int(-k) / lambda_))
                     offset = msb + 1 if msb < k - n else msb
-
+                
+                 
                     self.ccry(theta / 2, self._workq[0], self._msb[0], self._anc[0])
                     #check if all 0's which corresponds to -0.5 for negative ev
-                    if '1' not in mainpat and '1' not in subpattern and self._negative_evals:
-                        self._set_bit_pattern(subpattern, self._anc[0], offset,sign_bit=True)
-                    else:
-                        self._set_bit_pattern(subpattern, self._anc[0], offset,sign_bit=False)
+                    #if 0:# msb==k-n and '1' not in mainpat and '1' not in subpattern and self._negative_evals:
+                    #    self._set_bit_pattern(subpattern, self._anc[0], offset,sign_bit=True)
+                    #else:
+                    self._set_bit_pattern(subpattern, self._anc[0], offset,sign_bit=False)
 
                     self.ccry(-theta / 2, self._workq[0], self._msb[0], self._anc[0])
 
-                    if '1' not in mainpat and '1' not in subpattern and self._negative_evals:
-                        self._set_bit_pattern(subpattern, self._anc[0], offset,sign_bit=True)
-                    else:
-                        self._set_bit_pattern(subpattern, self._anc[0], offset,sign_bit=False)
+                    #if 0:# msb==k-n and '1' not in mainpat and '1' not in subpattern and self._negative_evals:
+                    #    self._set_bit_pattern(subpattern, self._anc[0], offset,sign_bit=True)
+                    #else:
+                    self._set_bit_pattern(subpattern, self._anc[0], offset,sign_bit=False)
 
                     vec = [0] * k
                     if k != n + msb:
                         vec[msb] = 1
                     vec[offset:offset + (n - m)] = subpattern
                     vec[offset_mpat:offset_mpat + len(mainpat)] = mainpat
+                    break
                 self._set_bit_pattern(mainpat, self._workq[0], offset_mpat + 1)
-
-        self._set_msb(self._msb, self._ev, int(msb), last_iteration=True)
+                break
+            break
+        if self._negative_evals:
+            self._set_msb(self._msb, ev[1:], int(msb-1), last_iteration=True)
+        else:
+            self._set_msb(self._msb, self._ev, int(msb), last_iteration=True)
+        if self._negative_evals: qc.cu3(2*np.pi,0,0,self._ev[0],self._anc[0])
         return qc
 
     def _execute_rotation(self):
 
         self._construct_rotation_circuit()
-        shots = 8000
+        self.draw()
+        shots = 1#8000
         backend = self._backend
-        if backend == "local_qasm_simulator":
+        if backend=="local_qasm_simulator" and shots==1:
+            self._circuit.snapshot("1")
+            result = execute(self._circuit, backend=backend, shots=shots,config={"data":["hide_statevector","quantum_state_ket"]}).result()
+            sv = result.get_data()["snapshots"]["1"]["quantum_state_ket"][0]
+            res_dict = {}
+            for d in sv.keys():
+                if d.split()[2] == '1':
+                    if self._negative_evals:
+                        num = sum([2 ** -(i + 2) for i, e in enumerate(reversed(d.split()[-1][:-1])) if e == "1"])
+                        
+                        if d.split()[-1][-1] == '1':
+                            num *= -1
+                            if not '1' in d.split()[-1][:-1]:
+                                num = -0.5
+                    else:
+                        num = sum([2 ** -(i + 1) for i, e in enumerate(reversed(d.split()[-1])) if e == "1"])
+                    res_dict[num] = sv[d][0]
+                else:
+                    print(sv.keys())
+            self._ret = res_dict
+            print(res_dict)
+            return res_dict
+        elif backend == "local_qasm_simulator":
             self._set_measurement()
-            result = execute(self._circuit, "local_qasm_simulator", backend=backend, shots=shots).result()
+            ####
+            #self.draw()
+            #return
+            ####
+            result = execute(self._circuit, backend=backend, shots=shots).result()
 
             counts = result.get_counts(self._circuit)
             rd = result.get_counts(self._circuit)
@@ -471,12 +529,15 @@ class LUP_ROTATION(object):
             sv = result.result().get_data()["statevector"]
             self._ret = sv
             return sv
+
+
+        
         else:
             raise RuntimeError("Backend not implemented yet")
     def run(self):
         self._execute_rotation()
         return self._ret
-    def _draw(self):
+    def draw(self):
         drawer(self._circuit)
         plt.show()
 
@@ -493,7 +554,7 @@ class LUP_ROTATION(object):
                 state_vector = vec
                 continue
             state_vector = np.tensordot(state_vector, vec, axes=0)
-        print(state_vector.flatten().shape)
+        #print(state_vector.flatten().shape)
 
         return (state_vector.flatten())
 
@@ -510,7 +571,7 @@ class LUP_ROTATION(object):
                 continue
             state_vector = np.tensordot(state_vector, vec, axes=0)
         #ancillar qubit
-        vec = np.array([np.sqrt(1-(2**-(len(bitpattern))/num)**2),len(bitpattern)/num])
+        vec = np.array([np.sqrt(1-(2**-(len(bitpattern))/num)**2),2**-len(bitpattern)/num])
         state_vector = np.tensordot(state_vector, vec, axes=0)
         #uncomputed garbage qubits
         state_vector = np.tensordot(state_vector, np.array([1,0]), axes=0)
@@ -521,8 +582,8 @@ class LUP_ROTATION(object):
 
     @staticmethod
     def test_value_range(k,n):
-        backend = 'local_statevector_simulator'
-        negative_evals = False#True
+        backend = 'local_qasm_simulator'#'local_statevector_simulator'
+        negative_evals = True
         params = {
             'algorithm': {
                 'reg_size':k,
@@ -544,16 +605,24 @@ class LUP_ROTATION(object):
         for pattern in itertools.product('01', repeat=k):
             if not '1' in pattern:
                 continue
+            ####
+            t = ['0']*k
+            t[-2] = '1'
+            t[-1] = '1'
+            #if pattern !=tuple(t):
+            #    continue
+            print(pattern)
+            ####
             state_vector = LUP_ROTATION.get_initial_statevector_representation(list(pattern))
             if negative_evals:
 
-                num = np.sum([2 ** -(n + 2) for n, i in enumerate((pattern[:-1])) if i == '1'])
+                num = np.sum([2 ** -(n + 2) for n, i in enumerate(reversed(pattern[:-1])) if i == '1'])
                 if pattern[-1] == '1':
                     num *= -1
                 if pattern[-1] and not '1' in pattern[:-1]:
                     num = -0.5
             else:
-                num = np.sum([2 ** -(n + 1) for n, i in enumerate((pattern)) if i == '1'])
+                num = np.sum([2 ** -(n + 1) for n, i in enumerate(reversed(pattern)) if i == '1'])
 
             params["initial_state"]["state_vector"] = state_vector
             # state_vector = np.zeros(2**k)
@@ -565,15 +634,9 @@ class LUP_ROTATION(object):
             obj.init_params(params)
             res = obj.run()
             # break
-            if backend == 'local_statevector_simulator':
-                #print(res)
-                theory = LUP_ROTATION.get_complete_statevector_representation(pattern,num)
-                fidelity = abs(res.dot(theory.conj())) ** 2
-                print(fidelity,theory[0])
-                plt.scatter(np.arange(len(theory)),theory,label='theory')
-                plt.scatter(np.arange(len(theory)),np.abs(res),label='result')
-                plt.legend(loc='best')
-                plt.show()
+            
+            if backend == 'local_statevector_simulator' or 1:
+                res_dict.update(res)
                 continue
             for d in res:
                 if d[1][0] == '1':
@@ -583,8 +646,14 @@ class LUP_ROTATION(object):
             inverse = [res_dict[_] for _ in vals]
             vals = np.array(vals)
             inverse = np.array(inverse)
-            plt.scatter(vals, inverse / 2 ** (-len(res[0][1].split()[-1])))
-            plt.plot(np.linspace(2 ** -k, 1, 1000), 1 / np.linspace(2 ** -k, 1, 1000))
+            plt.scatter(vals, inverse / 2 ** -k)
+            if negative_evals:
+                x = np.linspace(-0.5, -2**-k, 1000)
+                plt.plot(x, 1 / x)
+                x = np.linspace(2**-k, 0.5, 1000)
+                plt.plot(x,1/x)
+            else:
+                plt.plot(np.linspace(2 ** -k, 1, 1000), 1 / np.linspace(2 ** -k, 1, 1000))
             plt.show()
 
     @staticmethod
