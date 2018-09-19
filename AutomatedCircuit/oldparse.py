@@ -55,7 +55,7 @@ def nc_toffoli(qc, qr, ctl,tgt,n,offset):
         last_pattern = pattern
     qc.h(tgt)
 
-n = 6
+n = 5
 with open("intdiv-esop0-rec{}.txt" .format(n), "r") as f:
 #with open("testdouble.txt", "r") as f:
     data = f.readlines()
@@ -66,8 +66,9 @@ print(len(data))
 qr = QuantumRegister(2*n)
 meas = ClassicalRegister(2*n)
 qc = QuantumCircuit(qr, meas)
-qc.x(qr[1])
-qc.x(qr[3])
+qc.x(qr[0])
+qc.x(qr[2])
+qc.x(qr[4])
 for i in range(len(data)):
     ctl = []
     xgate = []
