@@ -22,6 +22,8 @@ from .random_matrix_generator import random_unitary, random_h2_body, random_h1_b
 from .decimal_to_binary import decimal_to_binary
 from .summarize_circuits import summarize_circuits
 from .cnx import cnx
+from .cnu1 import cnu1
+from .cnx_no_anc import cnx_na
 from .entangler_map import get_entangler_map, validate_entangler_map
 
 
@@ -35,5 +37,7 @@ __all__ = ['tensorproduct',
            'decimal_to_binary',
            'summarize_circuits',
            'cnx',
+           'cnu1',
+           'cnx_na',
            'get_entangler_map',
            'validate_entangler_map']
