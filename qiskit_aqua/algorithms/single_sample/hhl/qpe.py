@@ -356,7 +356,6 @@ class QPE():
         self._ret['evo_time'] = self._evo_time
         return self._ret
 
-
     def run(self):
         self._compute_eigenvalue()
         return self._ret
