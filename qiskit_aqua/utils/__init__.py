@@ -19,6 +19,7 @@ from .tensorproduct import tensorproduct
 from .pauligraph import PauliGraph
 from .jsonutils import convert_dict_to_json, convert_json_to_dict
 from .random_matrix_generator import random_unitary, random_h2_body, random_h1_body
+from .random_matrix_generator import random_hermitian, random_non_hermitian
 from .decimal_to_binary import decimal_to_binary
 from .summarize_circuits import summarize_circuits
 from .cnx import cnx
@@ -34,6 +35,8 @@ __all__ = ['tensorproduct',
            'random_unitary',
            'random_h2_body',
            'random_h1_body',
+           'random_hermitian',
+           'random_non_hermitian',
            'decimal_to_binary',
            'summarize_circuits',
            'cnx',
