@@ -1,9 +1,0 @@
-{
-    "algorithm": {
-        "name": "VQE",
-        "operator_mode": "matrix"
-    },
-    "backend": {
-        "name": "local_statevector_simulator"
-    }
-}

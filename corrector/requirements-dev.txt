@@ -1,3 +1,0 @@
-discover
-parameterized
-sphinxcontrib-fulltoc

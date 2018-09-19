@@ -1,9 +1,0 @@
-qiskit>=0.5.6
-scipy>=0.19,<1.2
-numpy>=1.13,<1.15
-psutil
-jsonschema
-scikit-learn
-cvxopt
-pyobjc-core; sys_platform == 'darwin'
-pyobjc-framework-Cocoa; sys_platform == 'darwin'
