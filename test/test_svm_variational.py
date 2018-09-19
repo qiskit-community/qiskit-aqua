@@ -22,7 +22,7 @@ import numpy as np
 from test.common import QiskitAquaTestCase
 from qiskit_aqua.input import get_input_instance
 from qiskit_aqua import (run_algorithm, get_algorithm_instance, get_optimizer_instance,
-                         get_feature_extraction_instance, get_variational_form_instance)
+                         get_feature_map_instance, get_variational_form_instance)
 
 
 class TestSVMVariational(QiskitAquaTestCase):
@@ -49,11 +49,11 @@ class TestSVMVariational(QiskitAquaTestCase):
         np.random.seed(self.random_seed)
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
-            'algorithm': {'name': 'SVM_Variational'},
+            'algorithm': {'name': 'QSVM.Variational'},
             'backend': {'name': 'local_qasm_simulator', 'shots': 1024},
             'optimizer': {'name': 'SPSA', 'max_trials': 10, 'save_steps': 1},
             'variational_form': {'name': 'RYRZ', 'depth': 3},
-            'feature_extraction': {'name': 'SecondOrderExpansion', 'depth': 2}
+            'feature_map': {'name': 'SecondOrderExpansion', 'depth': 2}
         }
         result = run_algorithm(params, self.svm_input)
 
@@ -64,7 +64,7 @@ class TestSVMVariational(QiskitAquaTestCase):
 
     def test_svm_variational_directly(self):
         np.random.seed(self.random_seed)
-        svm = get_algorithm_instance("SVM_Variational")
+        svm = get_algorithm_instance("QSVM.Variational")
         svm.random_seed = self.random_seed
         svm.setup_quantum_backend(backend='local_qasm_simulator', shots=1024)
 
@@ -74,13 +74,13 @@ class TestSVMVariational(QiskitAquaTestCase):
 
         num_qubits = 2
 
-        feature_extraction = get_feature_extraction_instance('SecondOrderExpansion')
-        feature_extraction.init_args(num_qubits=num_qubits, depth=2)
+        feature_map = get_feature_map_instance('SecondOrderExpansion')
+        feature_map.init_args(num_qubits=num_qubits, depth=2)
 
         var_form = get_variational_form_instance('RYRZ')
         var_form.init_args(num_qubits=num_qubits, depth=3)
 
-        svm.init_args(self.training_data, self.testing_data, None, optimizer, feature_extraction, var_form)
+        svm.init_args(self.training_data, self.testing_data, None, optimizer, feature_map, var_form)
         result = svm.run()
 
         np.testing.assert_array_almost_equal(result['opt_params'], self.ref_opt_params, decimal=4)
