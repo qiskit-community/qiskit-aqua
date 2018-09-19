@@ -218,8 +218,8 @@ def limit_paulis(mat, n=5, sparsity=None):
             mat += paulis[idx][0]*paulis[idx][1].to_spmatrix()
             idx += 1
         n = idx
+    mat = mat.toarray()
     if np.log2(l) % 1 != 0:
-        mat = mat.toarray()
         mat = mat[:-(k-l), :-(k-l)]
     return mat
 
