@@ -194,8 +194,8 @@ def limit_paulis(mat, n=5, sparsity=None):
     if np.log2(l) % 1 != 0:
         k = int(2**np.ceil(np.log2(l)))
         m = np.zeros([k, k], dtype=np.complex128)
-        m[:-(k-l),:-(k-l)] = mat
-        m[(l):,(l):] = np.identity(k-l)
+        m[:l,:l] = mat
+        m[l:,l:] = np.identity(k-l)
         mat = m
 
     # Getting paulis
@@ -214,14 +214,13 @@ def limit_paulis(mat, n=5, sparsity=None):
             mat += pa[0]*pa[1].to_spmatrix()
     else:
         idx = 0
-        while mat.nnz/g**2 < sparsity:
+        while mat[:l,:l].nnz/l**2 < sparsity:
+            print(mat[:l, :l].nnz/l**2)
             mat += paulis[idx][0]*paulis[idx][1].to_spmatrix()
             idx += 1
         n = idx
     mat = mat.toarray()
-    if np.log2(l) % 1 != 0:
-        mat = mat[:-(k-l), :-(k-l)]
-    return mat
+    return mat[:l, :l]
 
 
 def random_hermitian(N, eigs=None, K=None, eigrange=[0, 1], sparsity=None,
