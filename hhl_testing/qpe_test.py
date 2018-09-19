@@ -13,8 +13,8 @@ n = 2
 k = 6
 nege = True
 
-matrix = random_hermitian(n, eigrange=[-5, 5], sparsity=0.6)
-#matrix = np.diag([-1.5, 1])
+#matrix = random_hermitian(n, eigrange=[-5, 5], sparsity=0.6)
+matrix = np.diag([-1.5, 1.7])
 #np.save("mat.npy", matrix)
 #matrix = np.load("mat.npy")
 print(matrix)
@@ -29,9 +29,9 @@ params = {
     'algorithm': {
             'name': 'QPE',
             'num_ancillae': k,
-            'num_time_slices': 50,
-            'expansion_mode': 'suzuki',
-            'expansion_order': 2,
+            'num_time_slices': 1,
+            'expansion_mode': 'trotter',
+            'expansion_order': 1,
             'hermitian_matrix': True,
             'negative_evals': nege,
             'backend' : "local_qasm_simulator",
@@ -72,7 +72,7 @@ def plot_res_and_theory(res):
 
     ty = np.arange(0, 2**k, 1)
     data = theory(ty, w.real, k, n, res["evo_time"])
-
+    
     if nege:
         tx = np.arange(0, 2**k, 1)/2**k
         tx[2**(k-1):] = -(1-tx[2**(k-1):])

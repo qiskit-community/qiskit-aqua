@@ -21,16 +21,14 @@ The Quantum Phase Estimation Subroutine.
 
 import logging
 
-from functools import reduce
 import numpy as np
-from math import log
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit, execute
 from qiskit.tools.qi.pauli import Pauli
 from qiskit_aqua import Operator, QuantumAlgorithm, AlgorithmError
-from qiskit_aqua import get_initial_state_instance, get_iqft_instance
+from qiskit_aqua import get_initial_state_instance, get_iqft_instance, get_qft_instance
 from copy import deepcopy
 
-#from qiskit.tools.visualization._circuit_visualization import matplotlib_circuit_drawer
+from qiskit.tools.visualization import plot_circuit
 
 logger = logging.getLogger(__name__)
 
@@ -125,6 +123,8 @@ class QPE():
         }
     }
 
+
+
     def __init__(self, configuration=None):
         self._configuration = configuration or self.QPE_CONFIGURATION.copy()
         self._operator = None
@@ -143,7 +143,9 @@ class QPE():
         self._matrix_dim = True
         self._hermitian_matrix = True
         self._negative_evals = True
+        self._ne_qfts = [None, None]
         self._backend = None
+
 
     def init_params(self, params, matrix):
         """
@@ -164,7 +166,6 @@ class QPE():
         for k, p in self._configuration.get("defaults").items():
             if k not in params:
                 params[k] = p
-
 
         num_time_slices = qpe_params.get(QPE.PROP_NUM_TIME_SLICES)
         paulis_grouping = qpe_params.get(QPE.PROP_PAULIS_GROUPING)
@@ -210,26 +211,38 @@ class QPE():
             init_state_params['state_vector'] = vector
         init_state_params['num_qubits'] = operator.num_qubits
         init_state = get_initial_state_instance(init_state_params['name'])
+        init_state.init_params(init_state_params)
 
         # Set up iqft, we need to add num qubits to params which is our num_ancillae bits here
         iqft_params = params.get(QuantumAlgorithm.SECTION_KEY_IQFT)
         iqft_params['num_qubits'] = num_ancillae
         iqft = get_iqft_instance(iqft_params['name'])
         iqft.init_params(iqft_params)
-        init_state.init_params(init_state_params)
+        
+        # For converting the encoding of the negative eigenvalues, we need two
+        # additional QFTs
+        if negative_evals:
+            ne_qft_params = iqft_params
+            ne_qft_params['num_qubits'] -= 1
+            ne_qfts = [ get_qft_instance(ne_qft_params['name']),
+                    get_iqft_instance(ne_qft_params['name'])]
+            ne_qfts[0].init_params(ne_qft_params)
+            ne_qfts[1].init_params(ne_qft_params)
+
 
         self.init_args(
             operator, init_state, iqft, num_time_slices, num_ancillae,
             paulis_grouping=paulis_grouping, expansion_mode=expansion_mode,
             expansion_order=expansion_order, evo_time=evo_time,
             use_basis_gates=use_basis_gates, hermitian_matrix=hermitian_matrix,
-            negative_evals=negative_evals, backend=backend)
+            negative_evals=negative_evals, ne_qfts=ne_qfts, backend=backend)
+
 
     def init_args(
             self, operator, state_in, iqft, num_time_slices, num_ancillae,
             paulis_grouping='random', expansion_mode='trotter', expansion_order=1,
             evo_time=None, use_basis_gates=True, hermitian_matrix=True,
-            negative_evals=False, backend='local_qasm_simulator'):
+            negative_evals=False, ne_qfts=[None, None], backend='local_qasm_simulator'):
         #if self._backend.find('statevector') >= 0:
         #     raise ValueError('Selected backend does not support measurements.')
         self._operator = operator
@@ -244,8 +257,10 @@ class QPE():
         self._use_basis_gates = use_basis_gates
         self._hermitian_matrix = hermitian_matrix
         self._negative_evals = negative_evals
+        self._ne_qfts = ne_qfts
         self._backend = backend
         self._ret = {}
+
 
     def _construct_phase_estimation_circuit(self, measure=False):
         """Implement the Quantum Phase Estimation algorithm"""
@@ -288,15 +303,31 @@ class QPE():
             if self._ancilla_phase_coef != 0:
                 qc.u1(self._evo_time * self._ancilla_phase_coef * (2 ** i), a[i])
 
-        #matplotlib_circuit_drawer(qc, style={"plotbarrier": True})
         # inverse qft on ancillae
         self._iqft.construct_circuit('circuit', a, qc)
+
+        # handle negative eigenvalues
+        if self._negative_evals:
+            self._handle_negative_evals(qc, a)
+
         if measure:
             qc.measure(a, c)
-        #qc.optimize_gates()
         self._circuit = qc
         self._circuit_data = deepcopy(qc.data)
-        return qc
+
+        return self._circuit
+
+
+    def _handle_negative_evals(self, qc, q):
+        sgn = q[0]
+        qs = [q[i] for i in range(1, len(q))]
+        for qi in qs:
+            qc.cx(sgn, qi)
+        self._ne_qfts[0].construct_circuit('circuit', qs, qc)
+        for i, qi in enumerate(reversed(qs)):
+            qc.cu1(2*np.pi/2**(i+1), sgn, qi)
+        self._ne_qfts[1].construct_circuit('circuit', qs, qc)
+
 
     def _construct_inverse(self):
         if self._inverse == None:
@@ -330,10 +361,8 @@ class QPE():
         logger.info('QPE circuit qasm length is roughly {}.'.format(
             len(self._circuit.qasm().split('\n'))
         ))
-        # print('QPE circuit qasm length is roughly {}.'.format(
-        #    len(self._circuit.qasm().split('\n'))
-        # ))
         return self._circuit
+
 
     def _compute_eigenvalue(self, shots=1024):
         if self._circuit is None:
@@ -345,16 +374,19 @@ class QPE():
 
         for d in rets:
             d[0] /= shots
-            if d[1][-1] == "1" and self._negative_evals:
-                d[2] = -(1-sum([2**-(i+1) for i, e in enumerate(reversed(d[2])) if e ==
-                "1"]))*2*np.pi/self._evo_time
-            else:
-                d[2] = sum([2**-(i+1) for i, e in enumerate(reversed(d[2])) if e ==
+            offset = 1
+            sgn = 1
+            if self._negative_evals:
+                sgn = -1 if d[2][-1] == "1" else 1
+                d[2] = d[2][:-1]
+                offset = 2
+            d[2] = sgn*sum([2**-(i+offset) for i, e in enumerate(reversed(d[2])) if e ==
                 "1"])*2*np.pi/self._evo_time
 
         self._ret['measurements'] = rets
         self._ret['evo_time'] = self._evo_time
         return self._ret
+
 
     def run(self):
         self._compute_eigenvalue()
