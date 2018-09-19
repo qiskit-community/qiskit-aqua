@@ -1,27 +1,25 @@
-from qpe import QPE
+from qiskit_aqua.algorithms.single_sample.hhl import QPE
 from qiskit_aqua import Operator
+from qiskit_aqua.utils import random_hermitian
 import scipy
 from qiskit import register
 import numpy as np
 from qiskit import available_backends
-import sys
-sys.path.append("..")
-from matrix_gen import gen_matrix
 
 import matplotlib.pyplot as plt
 
 qpe = QPE()
 n = 2
-k = 15
+k = 6
 nege = True
 
-matrix = gen_matrix(n, eigrange=[-5, 5], sparsity=0.6)
+matrix = random_hermitian(n, eigrange=[-5, 5], sparsity=0.6)
 #matrix = np.diag([-1.5, 1])
 #np.save("mat.npy", matrix)
 #matrix = np.load("mat.npy")
-w, v = np.linalg.eigh(matrix) 
-
 print(matrix)
+
+w, v = np.linalg.eigh(matrix) 
 print("Eigenvalues:", w)
 
 invec = sum([v[:,i] for i in range(n)])
