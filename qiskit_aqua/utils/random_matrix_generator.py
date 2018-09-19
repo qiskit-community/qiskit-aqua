@@ -221,7 +221,7 @@ def limit_paulis(mat, n=5, sparsity=None):
     if np.log2(l) % 1 != 0:
         mat = mat.toarray()
         mat = mat[:-(k-l), :-(k-l)]
-    return scipy.sparse.csr_matrix(mat)
+    return mat
 
 
 def random_hermitian(N, eigs=None, K=None, eigrange=[0, 1], sparsity=None,
@@ -244,7 +244,7 @@ def random_hermitian(N, eigs=None, K=None, eigrange=[0, 1], sparsity=None,
         trunc (int): limit of pauli matices. 
         sparsity (float): sparsity of matrix. Overrides trunc. 
     Returns:
-        np.ndarray or scipy.sparse.csr_matrix: hermitian matrix
+        np.ndarray: hermitian matrix
     """
     u = scipy.stats.unitary_group.rvs(N)
     d = random_diag(N, eigs, K, eigrange)
@@ -294,7 +294,7 @@ def random_non_hermitian(N, M=None, sings=None, K=None, srange=[0, 1],
         trunc (int): limit of pauli matices. 
         sparsity (float): sparsity of matrix. Overrides trunc. 
     Returns:
-        np.ndarray or scipy.sparse.csr_matrix: random matrix
+        np.ndarray: random matrix
     """
     if M == None:
         M = N
@@ -311,5 +311,5 @@ def random_non_hermitian(N, M=None, sings=None, K=None, srange=[0, 1],
         s = d
     ret = u.dot(s).dot(v.T.conj())
     if sparsity or trunc:
-        ret = limit_entries(ret, trunc, sparsity)
+        ret = limit_entries(ret, trunc, sparsity).toarray()
     return ret
