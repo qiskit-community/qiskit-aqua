@@ -164,7 +164,7 @@ def random_diag(N, eigs=None, K=None, eigrange=[0, 1]):
                     sgs = np.random.random(N)-0.5
                     eigs = eigs*(sgs/abs(sgs))
             elif isinstance(eigrange, (tuple, list, np.ndarray)) and len(eigrange) == 2:
-                eigs = np.random.random(N)*(eigrange[1]-eigrange[0])-eigrange[0] 
+                eigs = np.random.random(N)*(eigrange[1]-eigrange[0])+eigrange[0] 
             else:
                 raise ValueError("Wrong input data: either 'eigs', 'K' or"
                 "'eigrange' needed to be set correctly.")
@@ -194,8 +194,8 @@ def limit_paulis(mat, n=5, sparsity=None):
     if np.log2(l) % 1 != 0:
         k = int(2**np.ceil(np.log2(l)))
         m = np.zeros([k, k], dtype=np.complex128)
-        m[:-(k-l),:-(k-l)] = mat
-        m[(l):,(l):] = np.identity(k-l)
+        m[:l,:l] = mat
+        m[l:,l:] = np.identity(k-l)
         mat = m
 
     # Getting paulis
@@ -214,14 +214,12 @@ def limit_paulis(mat, n=5, sparsity=None):
             mat += pa[0]*pa[1].to_spmatrix()
     else:
         idx = 0
-        while mat.nnz/g**2 < sparsity:
+        while mat[:l,:l].nnz/l**2 < sparsity:
             mat += paulis[idx][0]*paulis[idx][1].to_spmatrix()
             idx += 1
         n = idx
     mat = mat.toarray()
-    if np.log2(l) % 1 != 0:
-        mat = mat[:-(k-l), :-(k-l)]
-    return mat
+    return mat[:l, :l]
 
 
 def random_hermitian(N, eigs=None, K=None, eigrange=[0, 1], sparsity=None,
@@ -285,12 +283,10 @@ def random_non_hermitian(N, M=None, sings=None, K=None, srange=[0, 1],
         sings (list, tuple, np.ndarray): list of N singular values. Overrides K,
                                          eigrange
         K (float, list, tuple): condition number. Either use only condition
-                                number K or list/tuple of (K, lmin) or (K, lmin,
-                                sgn). Where lmin is the smallest singular value and
-                                sign +/- 1 specifies if singular values can be
-                                negative.
+                                number K or list/tuple of (K, lmin). Where lmin
+                                specifies the smallest singular value
         eigrange (list, tuple, nd.ndarray): [min, max] list for singular value
-                                            range. (default=[0, 1])
+                                            range, min >= 0. (default=[0, 1])
         trunc (int): limit of pauli matices. 
         sparsity (float): sparsity of matrix. Overrides trunc. 
     Returns:
