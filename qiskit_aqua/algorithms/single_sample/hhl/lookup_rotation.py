@@ -283,9 +283,9 @@ class LUP_ROTATION(object):
             # check parity
             if pattern.count('1') % 2 == 0:
                 # inverse
-                qc.cu3(0, -lam_angle, 0, ctl[offset + lm_pos], tgt)
+                qc.cu1(-lam_angle, ctl[offset + lm_pos], tgt)
             else:
-                qc.cu3(0, lam_angle, 0, ctl[offset + lm_pos], tgt)
+                qc.cu1(lam_angle, ctl[offset + lm_pos], tgt)
             last_pattern = pattern
         qc.h(tgt[0])
 
@@ -345,6 +345,7 @@ class LUP_ROTATION(object):
         qc.measure(self._ev, self.c_ev)
 
     def _set_bit_pattern(self, pattern, tgt, offset,sign_bit=False):
+        sign_bit = False
         qc = self._circuit
         for c, i in enumerate(pattern):
             if i == '0':
@@ -397,11 +398,11 @@ class LUP_ROTATION(object):
 
         qc = self._circuit
         #print(len(qc.data),self._ev,qc.regs)
-        #if self._state_in is not None:
-        #    qc += self._state_in.construct_circuit('circuit', self._ev)
+        if self._state_in is not None:
+            qc += self._state_in.construct_circuit('circuit', self._ev)
         #    #print("initializing register")
         #print(len(qc.data))
-        m = 2#self._subpat_length
+        m = self._subpat_length
         n = self._pat_length
         k = self._reg_size
         print(m)
@@ -434,7 +435,7 @@ class LUP_ROTATION(object):
                     else:
                         self._set_msb(self._msb, self._ev, int(msb), last_iteration=False)
             offset_mpat = msb + (n - m) if msb < k - n else msb + n - m - 1
-
+            print("offset",offset_mpat)
             for mainpat, subpat, lambda_ar in pattern_map:
                 self._set_bit_pattern(mainpat, self._workq[0], offset_mpat + 1)
                 for subpattern, lambda_ in zip(subpat, lambda_ar):
@@ -463,10 +464,10 @@ class LUP_ROTATION(object):
                         vec[msb] = 1
                     vec[offset:offset + (n - m)] = subpattern
                     vec[offset_mpat:offset_mpat + len(mainpat)] = mainpat
-                    break
+                    #break
                 self._set_bit_pattern(mainpat, self._workq[0], offset_mpat + 1)
-                break
-            break
+                #break
+            #break
         if self._negative_evals:
             self._set_msb(self._msb, ev[1:], int(msb-1), last_iteration=True)
         else:
@@ -477,7 +478,7 @@ class LUP_ROTATION(object):
     def _execute_rotation(self):
 
         self._construct_rotation_circuit()
-        self.draw()
+        #self.draw()
         shots = 1#8000
         backend = self._backend
         if backend=="local_qasm_simulator" and shots==1:
@@ -504,10 +505,6 @@ class LUP_ROTATION(object):
             return res_dict
         elif backend == "local_qasm_simulator":
             self._set_measurement()
-            ####
-            #self.draw()
-            #return
-            ####
             result = execute(self._circuit, backend=backend, shots=shots).result()
 
             counts = result.get_counts(self._circuit)
@@ -614,6 +611,8 @@ class LUP_ROTATION(object):
             print(pattern)
             ####
             state_vector = LUP_ROTATION.get_initial_statevector_representation(list(pattern))
+            #state_vector = np.zeros(2**k)
+            #state_vector[-1] = 1
             if negative_evals:
 
                 num = np.sum([2 ** -(n + 2) for n, i in enumerate(reversed(pattern[:-1])) if i == '1'])
@@ -633,7 +632,7 @@ class LUP_ROTATION(object):
             obj = LUP_ROTATION()
             obj.init_params(params)
             res = obj.run()
-            # break
+            #break
             
             if backend == 'local_statevector_simulator' or 1:
                 res_dict.update(res)
