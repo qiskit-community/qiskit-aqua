@@ -29,9 +29,9 @@ params = {
     'algorithm': {
             'name': 'QPE',
             'num_ancillae': k,
-            'num_time_slices': 250,
+            'num_time_slices': 50,
             'expansion_mode': 'suzuki',
-            'expansion_order': 4,
+            'expansion_order': 2,
             'hermitian_matrix': True,
             'negative_evals': nege,
             'backend' : "local_qasm_simulator",
@@ -43,7 +43,7 @@ params = {
     },
     "initial_state": {
         "name": "CUSTOM",
-        "state_vector": invec#[1/2**0.5,1/2**0.5]
+        "state_vector": invec
     }
 }
 
