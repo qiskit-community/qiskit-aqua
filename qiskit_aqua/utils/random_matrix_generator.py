@@ -164,7 +164,7 @@ def random_diag(N, eigs=None, K=None, eigrange=[0, 1]):
                     sgs = np.random.random(N)-0.5
                     eigs = eigs*(sgs/abs(sgs))
             elif isinstance(eigrange, (tuple, list, np.ndarray)) and len(eigrange) == 2:
-                eigs = np.random.random(N)*(eigrange[1]-eigrange[0])-eigrange[0] 
+                eigs = np.random.random(N)*(eigrange[1]-eigrange[0])+eigrange[0] 
             else:
                 raise ValueError("Wrong input data: either 'eigs', 'K' or"
                 "'eigrange' needed to be set correctly.")
