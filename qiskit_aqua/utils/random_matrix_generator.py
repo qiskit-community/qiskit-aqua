@@ -215,7 +215,6 @@ def limit_paulis(mat, n=5, sparsity=None):
     else:
         idx = 0
         while mat[:l,:l].nnz/l**2 < sparsity:
-            print(mat[:l, :l].nnz/l**2)
             mat += paulis[idx][0]*paulis[idx][1].to_spmatrix()
             idx += 1
         n = idx
@@ -284,12 +283,10 @@ def random_non_hermitian(N, M=None, sings=None, K=None, srange=[0, 1],
         sings (list, tuple, np.ndarray): list of N singular values. Overrides K,
                                          eigrange
         K (float, list, tuple): condition number. Either use only condition
-                                number K or list/tuple of (K, lmin) or (K, lmin,
-                                sgn). Where lmin is the smallest singular value and
-                                sign +/- 1 specifies if singular values can be
-                                negative.
+                                number K or list/tuple of (K, lmin). Where lmin
+                                specifies the smallest singular value
         eigrange (list, tuple, nd.ndarray): [min, max] list for singular value
-                                            range. (default=[0, 1])
+                                            range, min >= 0. (default=[0, 1])
         trunc (int): limit of pauli matices. 
         sparsity (float): sparsity of matrix. Overrides trunc. 
     Returns:
