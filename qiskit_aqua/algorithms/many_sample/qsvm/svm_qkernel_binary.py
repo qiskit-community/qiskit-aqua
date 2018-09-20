@@ -80,6 +80,7 @@ class SVM_QKernel_Binary(SVM_QKernel_ABC):
 
         measurement_basis = '0' * self.num_qubits
         circuits = {}
+        to_be_simulated_circuits = []
         for i in np.arange(0, x1_vec.shape[0]):
             for j in np.arange(i + 1 if is_symmetric else 0, x2_vec.shape[0]):
                 x1 = x1_vec[i]
@@ -87,7 +88,10 @@ class SVM_QKernel_Binary(SVM_QKernel_ABC):
                 circuit = None if np.all(x1 == x2) else self.inner_product(x1, x2,
                                                                            not is_statevector_sim)
                 circuits["{}:{}".format(i, j)] = circuit
-        results = self.qalgo.execute(list(circuits.values()))
+                if circuit is not None:
+                    to_be_simulated_circuits.append(circuit)
+
+        results = self.qalgo.execute(to_be_simulated_circuits)
 
         # element on the diagonal is always 1: point*point=|point|^2
         if is_symmetric:
