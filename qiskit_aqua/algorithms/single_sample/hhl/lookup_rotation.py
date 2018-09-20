@@ -9,6 +9,7 @@ from qiskit_aqua import QuantumAlgorithm
 from qiskit.tools.visualization import matplotlib_circuit_drawer as drawer
 from qiskit_aqua import get_initial_state_instance
 from qiskit.extensions.simulator import snapshot
+from qiskit_aqua.utils import cnx_na
 
 logger = logging.getLogger(__name__)
 
@@ -118,18 +119,20 @@ class LUP_ROTATION(object):
             init_state_params['num_qubits'] = reg_size
             assert (len(vector)==2**reg_size,
                     "The supplied init vector does not fit with the register size")
-            #print("called with vector",vector)
             init_state = get_initial_state_instance(init_state_params['name'])
+            init_state.init_params(init_state_params)
         else:
             init_state = None
         #print(init_state)
-        init_state.init_params(init_state_params)
+       
         # Set up inclusion of existing circuit
         init_circuit_params = params.get('qpe_hhl')
         if init_circuit_params.get("name") == "STANDARD":
             circuit = init_circuit_params['circuit']
             ev_register = init_circuit_params['ev_register']
-            assert ev_register in circuit.qregs, "The EV register is not found in the circuit"
+            
+            assert (ev_register in list(circuit.regs.values()),
+            "The EV register is not found in the circuit")
 
         else:
             ev_register = None
@@ -153,13 +156,14 @@ class LUP_ROTATION(object):
         self._negative_evals = negative_evals
         self._backend = backend
 
-
     @staticmethod
-    def classic_approx(k, n, m,negative_evals=False):
-        '''Calculate error of arcsin rotation using k bits fixed point numbers and n bit accuracy'''
+    def classic_approx(k, n, m, negative_evals=False):
+        '''Calculate error of arcsin rotation using k bits fixed
+        point numbers and n bit accuracy'''
 
         def bin_to_num(binary):
-            num = np.sum([2 ** -(n + 1) for n, i in enumerate(reversed(binary)) if i == '1'])
+            num = np.sum([2 ** -(n + 1)
+                for n, i in enumerate(reversed(binary)) if i == '1'])
             return num
 
         def max_sign_bit(binary):
@@ -176,18 +180,13 @@ class LUP_ROTATION(object):
             else:
                 return bin_to_num(pattern)
 
-        pattern_array = []
         from collections import OrderedDict
         output = OrderedDict()
-        #msb = k-2 if negative_evals else None
-        #if negative_evals:
-        #    k-=1
-        #    print(k,msb)
         for msb in range(k - 1, n - 1, -1):
+            #skip first bit if negative ev are used
             if negative_evals and msb==k-1 : continue
             vec = ['0'] * k
             vec[msb] = '1'
-
             for pattern_ in itertools.product('10', repeat=m):
                 app_pattern_array = []
                 lambda_array = []
@@ -195,41 +194,38 @@ class LUP_ROTATION(object):
 
                 for appendpat in itertools.product('10', repeat=n - m):
                     pattern = pattern_ + appendpat
-                    # print(pattern)
-                    
                     vec[msb - n:msb] = pattern
                     e_l = get_est_lamb(vec.copy(), msb, n)
-                    #l = bin_to_num(vec)
                     lambda_array.append(e_l)
                     msb_array.append(msb)
                     app_pattern_array.append(list(reversed(appendpat)))
-                try:
-                    prev_res = output[k - msb - 1]
-                except:
-                    prev_res = []
 
+                #rewrite MSB to correct index in QuantumRegister
                 msb_num = k-msb-1
+                if msb_num in list(output.keys()):
+                    prev_res = output[msb_num]
+                else:
+                    prev_res = []
+                
                 output.update(
-                    {msb_num: prev_res + [(list(reversed(list(pattern_))), app_pattern_array, lambda_array)]})
-        print(output)
-        print("-----------")
-        vec = ['0'] * k
+                    {msb_num: prev_res + [(list(reversed(pattern_)),
+                                app_pattern_array, lambda_array)]})
 
         # last iterations
+        vec = ['0'] * k
         for pattern_ in itertools.product('10', repeat=m):
             app_pattern_array = []
             lambda_array = []
             msb_array = []
             for appendpat in itertools.product('10', repeat=n - m):
                 pattern = list(pattern_ + appendpat).copy()
-                if not '1' in pattern and not negative_evals:
+                if '1' not in pattern and ( not negative_evals ):
                     continue
-                elif not '1' in pattern and negative_evals:
+                elif '1' not in pattern and negative_evals:
                     e_l = 0.5
                 else:
                     vec[msb - n:msb] = list(pattern)
                     e_l = get_est_lamb(vec.copy(), msb, n)
-                #l = bin_to_num(vec)
                 lambda_array.append(e_l)
                 msb_array.append(msb - 1)
                 app_pattern_array.append(list(reversed(appendpat)))
@@ -239,59 +235,14 @@ class LUP_ROTATION(object):
                 prev_res = []
 
             msb_num = k-msb
-            output.update({msb_num: prev_res + [(list(reversed(list(pattern_))), app_pattern_array, lambda_array)]})
+            output.update({msb_num: prev_res + [(list(reversed(pattern_)),
+                    app_pattern_array, lambda_array)]})
 
         return output
 
-    def nc_toffoli(self, ctl, tgt, n, offset):
-        '''Implement n+1-bit toffoli using the approach in Elementary gates'''
-
-        assert n >= 3, "This method works only for more than 2 control bits"
-
-        from sympy.combinatorics.graycode import GrayCode
-        gray_code = list(GrayCode(n).generate_gray())
-        last_pattern = None
-        qc = self._circuit
-
-        # angle to construct nth square root of diagonlized pauli x matrix
-        # via u3(0,lam_angle,0)
-        lam_angle = np.pi / (2 ** (n - 1))
-        # transform to eigenvector basis of pauli X
-        qc.h(tgt[0])
-        for pattern in gray_code:
-
-            if not '1' in pattern:
-                continue
-            if last_pattern is None:
-                last_pattern = pattern
-            # find left most set bit
-            lm_pos = list(pattern).index('1')
-
-            # find changed bit
-            comp = [i != j for i, j in zip(pattern, last_pattern)]
-            if True in comp:
-                pos = comp.index(True)
-            else:
-                pos = None
-            if pos is not None:
-                if pos != lm_pos:
-                    qc.cx(ctl[offset + pos], ctl[offset + lm_pos])
-                else:
-                    indices = [i for i, x in enumerate(pattern) if x == '1']
-                    for idx in indices[1:]:
-                        qc.cx(ctl[offset + idx], ctl[offset + lm_pos])
-            # check parity
-            if pattern.count('1') % 2 == 0:
-                # inverse
-                qc.cu1(-lam_angle, ctl[offset + lm_pos], tgt)
-            else:
-                qc.cu1(lam_angle, ctl[offset + lm_pos], tgt)
-            last_pattern = pattern
-        qc.h(tgt[0])
-
     def _set_msb(self, msb, ev, msb_num, last_iteration=False):
-        print("called")
         qc = self._circuit
+        #last_iteration = no MSB set, only the n-bit long pattern
         if last_iteration:
             if msb_num == 1:
                 qc.x(ev[0])
@@ -310,65 +261,53 @@ class LUP_ROTATION(object):
                 for idx in range(msb_num):
                     qc.x(ev[idx])
             else:
-
-                qc.x(msb[0])
-               
+                qc.x(msb[0]) 
         elif msb_num == 0:
             qc.cx(ev[0], msb)
         elif msb_num == 1:
             qc.x(ev[0])
             qc.ccx(ev[0], ev[1], msb[0])
             qc.x(ev[0])
-
         elif msb_num > 1:
             for idx in range(msb_num):
                 qc.x(ev[idx])
             self.nc_toffoli(ev, msb[0], int(msb_num + 1), 0)
             for idx in range(msb_num):
                 qc.x(ev[idx])
+        else:
+            raise RuntimeError("MSB register index < 0")
 
     def _set_measurement(self):
         qc = self._circuit
         try:
-            qc['c_ev']
+            qc['c_ev']      
         except:
             self.c_ev = ClassicalRegister(self._reg_size, 'c_ev')
-            # self.c_msb = ClassicalRegister(int(np.ceil(np.log2(self.k-self.n+2))),'c_msb')
             self.c_anc = ClassicalRegister(1, 'c_anc')
 
             qc.add(self.c_ev)
             qc.add(self.c_anc)
-            # qc.add(self.c_msb)
-        # qc.measure(self._msb,self.c_msb)
+            
         qc.measure(self._anc, self.c_anc)
-
         qc.measure(self._ev, self.c_ev)
 
-    def _set_bit_pattern(self, pattern, tgt, offset,sign_bit=False):
-        sign_bit = False
+    def _set_bit_pattern(self, pattern, tgt, offset):
+        
         qc = self._circuit
         for c, i in enumerate(pattern):
             if i == '0':
                 qc.x(self._ev[int(c + offset)])
-
-        if len(pattern) > 2 or (len(pattern)==2 and sign_bit):
-            #raise ValueError()
-            if not sign_bit:
-                self.nc_toffoli(self._ev, tgt, len(pattern), int(offset))
-            else:
-                _ = [self._ev[0]] + [self._ev[i] for i in range(offset,offset+len(pattern))]
-                self.nc_toffoli(_, tgt, len(pattern)+1, 0)
-        elif len(pattern) == 2 or (len(pattern)==1 and sign_bit):
-            if not sign_bit:
-                qc.ccx(self._ev[offset], self._ev[offset + 1], tgt)
-            else:
-                qc.ccx(self._ev[0],self._ev[offset],tgt)
-        elif len(pattern) == 1 or (len(pattern)==0 and sign_bit):
-            if not sign_bit:
-                qc.cx(self._ev[offset], tgt)
-            else:
-                qc.cx(self._ev[0],tgt)
-
+        if len(pattern) > 2:
+            
+            #deprecated
+            #self.nc_toffoli(self._ev, tgt, len(pattern), int(offset))
+            
+            temp_reg = [ self._ev[i] for i in range(offset, offset+len(pattern)) ]
+            qc.cnx_na(temp_reg, tgt)
+        elif len(pattern) == 2:
+            qc.ccx(self._ev[offset], self._ev[offset + 1], tgt)
+        elif len(pattern) == 1:
+            qc.cx(self._ev[offset], tgt)
         for c, i in enumerate(pattern):
             if i == '0':
                 qc.x(self._ev[int(c + offset)])
@@ -386,6 +325,7 @@ class LUP_ROTATION(object):
         qc.cu3(theta_half, 0, 0, control1, target)
 
     def _construct_rotation_circuit(self):
+        #initialize circuit
         if self._circuit is None:
             self._ev = QuantumRegister(self._reg_size,'ev')
             self._circuit = QuantumCircuit(self._ev)
@@ -393,29 +333,31 @@ class LUP_ROTATION(object):
         self._msb = QuantumRegister(1, 'msb')
         self._anc = QuantumRegister(1, 'anc')
         self._circuit += (QuantumCircuit(self._anc))
-        self._circuit +=(QuantumCircuit(self._msb))
-        self._circuit+=(QuantumCircuit(self._workq))
+        self._circuit += (QuantumCircuit(self._msb))
+        self._circuit += (QuantumCircuit(self._workq))
 
         qc = self._circuit
-        #print(len(qc.data),self._ev,qc.regs)
+        
+        #only executed on standalone rotation w/ QPE
         if self._state_in is not None:
             qc += self._state_in.construct_circuit('circuit', self._ev)
-        #    #print("initializing register")
-        #print(len(qc.data))
+      
         m = self._subpat_length
         n = self._pat_length
         k = self._reg_size
-        print(m)
+        
+        #get classically precomputed eigenvalue binning
         approx_dict = LUP_ROTATION.classic_approx(k, n, m,negative_evals=self._negative_evals)
-        #print(self._negative_evals,k,m,n)
+        
         old_msb = None
+        # for negative EV, we pass a pseudo register ev[1:] ign. sign bit
         ev = [self._ev[i] for i in range(len(self._ev))]
         
-        for _, msb in enumerate(list(approx_dict.keys())):  # enumerate(list(reversed(list(approx_dict.keys())))):
+        for _, msb in enumerate(list(approx_dict.keys())):
+            #read m-bit and (n-m) bit patterns for current MSB and corr. Lambdas
             pattern_map = approx_dict[msb]
-
+            #set most-significant-bit register and uncompute previous
             if self._negative_evals:
-                
                 if old_msb != msb:
                     if old_msb != None:
                         self._set_msb(self._msb, ev[1:], int(old_msb-1))
@@ -434,57 +376,48 @@ class LUP_ROTATION(object):
                         self._set_msb(self._msb, self._ev, int(msb), last_iteration=True)
                     else:
                         self._set_msb(self._msb, self._ev, int(msb), last_iteration=False)
+            #offset for ncx gate setting and unsetting m-nit long bitstring
             offset_mpat = msb + (n - m) if msb < k - n else msb + n - m - 1
-            print("offset",offset_mpat)
             for mainpat, subpat, lambda_ar in pattern_map:
                 self._set_bit_pattern(mainpat, self._workq[0], offset_mpat + 1)
                 for subpattern, lambda_ in zip(subpat, lambda_ar):
-                    #if lambda_ == 0.5: raise ValueError(str(msb))
-                    theta =  np.arcsin(2 ** int(-k) / lambda_)# if self._negative_evals else
-                    #          np.arcsin(2 ** int(-k) / lambda_))
+                    
+                    #calculate rotation angle
+                    theta =  np.arcsin(2 ** int(-k) / lambda_)
+                    #offset for ncx gate checking subpattern
                     offset = msb + 1 if msb < k - n else msb
                 
-                 
+                    #rotation is happening here
+                    #1. rotate by halfangle
                     self.ccry(theta / 2, self._workq[0], self._msb[0], self._anc[0])
-                    #check if all 0's which corresponds to -0.5 for negative ev
-                    #if 0:# msb==k-n and '1' not in mainpat and '1' not in subpattern and self._negative_evals:
-                    #    self._set_bit_pattern(subpattern, self._anc[0], offset,sign_bit=True)
-                    #else:
-                    self._set_bit_pattern(subpattern, self._anc[0], offset,sign_bit=False)
-
+                    #2. cnx gate to reverse rotation direction
+                    self._set_bit_pattern(subpattern, self._anc[0], offset)
+                    #3. rotate by inverse of halfangle to uncompute / complete 
                     self.ccry(-theta / 2, self._workq[0], self._msb[0], self._anc[0])
-
-                    #if 0:# msb==k-n and '1' not in mainpat and '1' not in subpattern and self._negative_evals:
-                    #    self._set_bit_pattern(subpattern, self._anc[0], offset,sign_bit=True)
-                    #else:
-                    self._set_bit_pattern(subpattern, self._anc[0], offset,sign_bit=False)
-
-                    vec = [0] * k
-                    if k != n + msb:
-                        vec[msb] = 1
-                    vec[offset:offset + (n - m)] = subpattern
-                    vec[offset_mpat:offset_mpat + len(mainpat)] = mainpat
-                    #break
+                    #4. cnx gate to uncompute first cnx gate
+                    self._set_bit_pattern(subpattern, self._anc[0], offset)
+                   
                 self._set_bit_pattern(mainpat, self._workq[0], offset_mpat + 1)
-                #break
-            #break
         if self._negative_evals:
             self._set_msb(self._msb, ev[1:], int(msb-1), last_iteration=True)
         else:
             self._set_msb(self._msb, self._ev, int(msb), last_iteration=True)
+        #rotate by pi to fix sign for negative evals
         if self._negative_evals: qc.cu3(2*np.pi,0,0,self._ev[0],self._anc[0])
         return qc
 
-    def _execute_rotation(self):
+    def _execute_rotation(self,shots):
 
         self._construct_rotation_circuit()
-        #self.draw()
-        shots = 1#8000
+        shots = shots
         backend = self._backend
         if backend=="local_qasm_simulator" and shots==1:
             self._circuit.snapshot("1")
-            result = execute(self._circuit, backend=backend, shots=shots,config={"data":["hide_statevector","quantum_state_ket"]}).result()
+            result = execute(self._circuit, backend=backend,
+                             shots=shots,config={
+                                 "data":["hide_statevector","quantum_state_ket"]}).result()
             sv = result.get_data()["snapshots"]["1"]["quantum_state_ket"][0]
+            print(result.get_data()["snapshots"]["1"]["quantum_state_ket"])
             res_dict = {}
             for d in sv.keys():
                 if d.split()[2] == '1':
@@ -499,7 +432,8 @@ class LUP_ROTATION(object):
                         num = sum([2 ** -(i + 1) for i, e in enumerate(reversed(d.split()[-1])) if e == "1"])
                     res_dict[num] = sv[d][0]
                 else:
-                    print(sv.keys())
+                    pass
+            print([(i,sv[i]) for i in sv.keys()])
             self._ret = res_dict
             print(res_dict)
             return res_dict
@@ -531,8 +465,8 @@ class LUP_ROTATION(object):
         
         else:
             raise RuntimeError("Backend not implemented yet")
-    def run(self):
-        self._execute_rotation()
+    def run(self,shots=1024):
+        self._execute_rotation(shots)
         return self._ret
     def draw(self):
         drawer(self._circuit)

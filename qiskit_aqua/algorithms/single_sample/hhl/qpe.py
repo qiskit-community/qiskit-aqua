@@ -228,7 +228,8 @@ class QPE():
                     get_iqft_instance(ne_qft_params['name'])]
             ne_qfts[0].init_params(ne_qft_params)
             ne_qfts[1].init_params(ne_qft_params)
-
+        else:
+            ne_qfts = None
 
         self.init_args(
             operator, init_state, iqft, num_time_slices, num_ancillae,
