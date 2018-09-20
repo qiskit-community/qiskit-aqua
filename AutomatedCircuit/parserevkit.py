@@ -10,7 +10,7 @@ def nc_toffoli(qc, qr1, qr2, ctl,tgt,ctlnumber,offset, n):
     '''Implement n+1-bit toffoli using the approach in Elementary gates'''
         
     assert ctlnumber>=3 #"This method works only for more than 2 control bits"
-        
+    w = n-1
     from sympy.combinatorics.graycode import GrayCode
     gray_code = list(GrayCode(ctlnumber).generate_gray())
     last_pattern = None
@@ -39,41 +39,41 @@ def nc_toffoli(qc, qr1, qr2, ctl,tgt,ctlnumber,offset, n):
                 if ctl[offset+pos] >= n and ctl[offset+lm_pos] >= n:
                     qc.cx(qr2[ctl[offset+pos]-n], qr2[ctl[offset+lm_pos]-n])
                 elif ctl[offset+pos]<n and ctl[offset+lm_pos] <n:
-                    qc.cx(qr1[ctl[offset+pos]], qr1[ctl[offset+lm_pos]])
+                    qc.cx(qr1[w-ctl[offset+pos]], qr1[w-ctl[offset+lm_pos]])
                 elif ctl[offset+pos]<n and ctl[offset+lm_pos] >= n:
-                    qc.cx(qr1[ctl[offset+pos]], qr2[ctl[offset+lm_pos]-n])
+                    qc.cx(qr1[w-ctl[offset+pos]], qr2[ctl[offset+lm_pos]-n])
                 else:
-                    qc.cx(qr2[ctl[offset+pos]-n], qr1[ctl[offset+lm_pos]])
+                    qc.cx(qr2[ctl[offset+pos]-n], qr1[w-ctl[offset+lm_pos]])
             else:
                 indices = [i for i, x in enumerate(pattern) if x == '1']
                 for idx in indices[1:]:
                     if ctl[offset+idx] >= n and ctl[offset+lm_pos] >= n:
                         qc.cx(qr2[ctl[offset+idx]-n], qr2[ctl[offset+lm_pos]-n])
                     elif ctl[offset+idx]<n and ctl[offset+lm_pos] <n:
-                        qc.cx(qr1[ctl[offset+idx]], qr1[ctl[offset+lm_pos]])
+                        qc.cx(qr1[w-ctl[offset+idx]], qr1[w-ctl[offset+lm_pos]])
                     elif ctl[offset+idx]<n and ctl[offset+lm_pos] >= n:
-                        qc.cx(qr1[ctl[offset+idx]], qr2[ctl[offset+lm_pos]-n])
+                        qc.cx(qr1[w-ctl[offset+idx]], qr2[ctl[offset+lm_pos]-n])
                     else:
-                        qc.cx(qr2[ctl[offset+idx]-n], qr1[ctl[offset+lm_pos]])
+                        qc.cx(qr2[ctl[offset+idx]-n], qr1[w-ctl[offset+lm_pos]])
             #check parity
         if pattern.count('1') % 2 == 0:
                 #inverse
             if ctl[offset+lm_pos] < n:
-                qc.cu3(0,-lam_angle,0,qr1[ctl[offset+lm_pos]],tgt)
+                qc.cu1(-lam_angle,qr1[w-ctl[offset+lm_pos]],tgt)
             else:
-                qc.cu3(0,-lam_angle,0,qr2[ctl[offset+lm_pos]-n],tgt)
+                qc.cu1(-lam_angle,qr2[ctl[offset+lm_pos]-n],tgt)
         else:
             if ctl[offset+lm_pos] < n:
-                qc.cu3(0,lam_angle,0,qr1[ctl[offset+lm_pos]],tgt)
+                qc.cu1(lam_angle,qr1[w-ctl[offset+lm_pos]],tgt)
             else:
-                qc.cu3(0,lam_angle,0,qr2[ctl[offset+lm_pos]-n],tgt)
+                qc.cu1(lam_angle,qr2[ctl[offset+lm_pos]-n],tgt)
         last_pattern = pattern
     qc.h(tgt)
 
 def read_make_circuit(n, qr1, qr2, meas1, meas2, qc):
     with open("intdiv-esop0-rec{}.txt" .format(n), "r") as f:
         data = f.readlines()
-
+    w = n-1
     for i in range(len(data)):
         ctl = []
         xgate = []
@@ -85,12 +85,12 @@ def read_make_circuit(n, qr1, qr2, meas1, meas2, qc):
         if int(data[i][-2]) >= n:
             tgt = qr2[int(data[i][-2]) - n]
         else:
-            tgt = qr1[int(data[i][-2])]
+            tgt = qr1[w-int(data[i][-2])]
         if data[i][-3].isdigit():
             if int(data[i][-3] + data[i][-2]) >= n:
                 tgt = qr2[int(data[i][-3] + data[i][-2]) - n]
             else:
-                tgt = qr1[int(data[i][-3] + data[i][-2])]           
+                tgt = qr1[w-int(data[i][-3] + data[i][-2])]           
         for j in range(len(data[i])):
             if data[i][j] == str(" "):
                 doubledigit = False
@@ -103,7 +103,7 @@ def read_make_circuit(n, qr1, qr2, meas1, meas2, qc):
                     if int(data[i][j]) >= n:
                         qc.x(qr2[int(data[i][j]) - n])
                     else:
-                        qc.x(qr1[int(data[i][j])])
+                        qc.x(qr1[w-int(data[i][j])])
                     sign1 = False
             elif data[i][j].isdigit() and data[i][j+1].isdigit():
                 ctl.append(int(data[i][j] + data[i][j+1]))
@@ -113,36 +113,35 @@ def read_make_circuit(n, qr1, qr2, meas1, meas2, qc):
                     if int(data[i][j]+ data[i][j+1]) >= n:
                         qc.x(qr2[int(data[i][j] + data[i][j+1]) - n])
                     else:
-                        qc.x(qr1[int(data[i][j] + data[i][j+1])])               
+                        qc.x(qr1[w-int(data[i][j] + data[i][j+1])])               
                     sign1 = False
         ctl.pop(0)
         ctl.pop(-1)
-        #print("i ", i)
-        #print("ctl = ", ctl)
         if ctlnumber == 0: #single not gate
             qc.x(tgt)
         elif ctlnumber == 1: #cnot gate
             if ctl[0] >= n:
                 qc.cx(qr2[ctl[0] - n], tgt)
             else:
-                qc.cx(qr1[ctl[0]], tgt)
+                qc.cx(qr1[w-ctl[0]], tgt)
         elif ctlnumber == 2: #toffoli gate
             if ctl[0] >= n and ctl[1] >= n:
                 qc.ccx(qr2[ctl[0]-n], qr2[ctl[1]-n], tgt)
             elif ctl[0]<n and ctl[1] <n:
-                qc.ccx(qr1[ctl[0]], qr1[ctl[1]], tgt)
+                qc.ccx(qr1[w-ctl[0]], qr1[w-ctl[1]], tgt)
             elif ctl[0]<n and ctl[1] >= n:
-                qc.ccx(qr1[ctl[0]], qr2[ctl[1]-n], tgt)
+                qc.ccx(qr1[w-ctl[0]], qr2[ctl[1]-n], tgt)
             else:
-                qc.ccx(qr2[ctl[0]-n], qr1[ctl[1]], tgt)
+                qc.ccx(qr2[ctl[0]-n], qr1[w-ctl[1]], tgt)
         else: #not gates controlled with more than 2 qubits
             nc_toffoli(qc, qr1, qr2, ctl, tgt, ctlnumber, 0, n)
         for j in xgate:
             if j >= n:
                 qc.x(qr2[j-n])
             else:
-                qc.x(qr1[j])
-
+                qc.x(qr1[w-j])
+    #drawer(qc)
+    #plt.show()
     return(qc, qr1, qr2, meas1, meas2)
 
 def measure(qc, n, qr1, qr2, meas1, meas2):
