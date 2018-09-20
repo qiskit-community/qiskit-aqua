@@ -80,6 +80,7 @@ class QuantumAlgorithm(ABC):
         self._random_seed = None
         self._random = None
         self._show_circuit_summary = False
+        self._circuit_caching = False
 
     @property
     def configuration(self):
@@ -179,6 +180,10 @@ class QuantumAlgorithm(ABC):
 
         info = "Algorithm: '{}' setup with backend '{}', with following setting:\n {}\n{}".format(
             self._configuration['name'], my_backend.configuration()['name'], self._execute_config, self._qjob_config)
+        if self._circuit_caching:
+            run_circuits.circuit_cache = {'qobjs': [], 'mappings': [], 'misses': 0}
+        else:
+            run_circuits.circuit_cache = None
 
         logger.info('Qiskit Terra version {}'.format(qiskit_version))
         logger.info(info)

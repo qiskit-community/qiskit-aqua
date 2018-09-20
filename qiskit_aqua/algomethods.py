@@ -67,6 +67,8 @@ def run_algorithm(params, algo_input=None, json_output=False):
 
     algorithm = get_algorithm_instance(algo_name)
     algorithm.random_seed = inputparser.get_section_property(JSONSchema.PROBLEM, 'random_seed')
+    algorithm._circuit_caching = inputparser.get_section_property(JSONSchema.PROBLEM, 'circuit_caching')
+
     if backend_cfg is not None:
         algorithm.setup_quantum_backend(**backend_cfg)
 

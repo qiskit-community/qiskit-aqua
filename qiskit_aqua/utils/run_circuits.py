@@ -31,9 +31,9 @@ from qiskit_aqua.utils import summarize_circuits
 
 logger = logging.getLogger(__name__)
 
-qobj_cache = {'qobjs':[], 'mappings':[]}
+circuit_cache = {'qobjs': [], 'mappings': [], 'misses': 0}
 
-def cache_qobj(qobj, circuits, chunk):
+def cache_circuit(qobj, circuits, chunk):
     """
     A helper method for caching compiled qobjs by storing the compiled qobj
     and constructing a mapping array from the uncompiled operations in the circuit
@@ -41,17 +41,20 @@ def cache_qobj(qobj, circuits, chunk):
     list of the cached chunks, each element of which contains a single qobj with as
     many experiments as is allowed by the execution backend. E.g. if the backend allows
     300 experiments per job and the user wants to run 500 circuits,
-    len(qobj_cache['qobjs']) == 2,
-    len(qobj_cache['qobjs'][0].experiments) == 300, and
-    len(qobj_cache['qobjs'][1].experiments) == 200.
+    len(circuit_cache['qobjs']) == 2,
+    len(circuit_cache['qobjs'][0].experiments) == 300, and
+    len(circuit_cache['qobjs'][1].experiments) == 200.
 
-    This feature is only applied if 'use_qobj_caching' is True in the 'problem' Aqua
-    dictionary section and 'skip_transpiler' is True in the 'backend' section.
+    This feature is only applied if 'circuit_caching' is True in the 'problem' Aqua
+    dictionary section and 'skip_transpiler' is True in the 'backend' section. Note that
+    the global circuit_cache is defined inside algomethods.py.
 
     Args:
         #TODO
     """
-    qobj_cache['mappings'].insert(chunk, [[] for i in range(len(circuits))])
+
+    circuit_cache['qobjs'].insert(chunk, qobj)
+    circuit_cache['mappings'].insert(chunk, [[] for i in range(len(circuits))])
     for circ_num, input_circuit in enumerate(circuits):
         op_graph = {}
         for i, uncompiled_gate in enumerate(input_circuit.data):
@@ -61,37 +64,35 @@ def cache_qobj(qobj, circuits, chunk):
             op_graph[type_and_qubits] = \
                 op_graph.get(type_and_qubits, []) + [i]
         mapping = []
-        for i, compiled_gate in enumerate(qobj.experiments[circ_num].instructions):
-            if compiled_gate.name == 'snapshot': continue
+        for compiled_gate_index, compiled_gate in enumerate(qobj.experiments[circ_num].instructions):
+            # if compiled_gate.name == 'snapshot': continue
             type_and_qubits = compiled_gate.name + compiled_gate.qubits.__str__()
             if len(op_graph[type_and_qubits]) > 0:
                 uncompiled_gate_index = op_graph[type_and_qubits].pop(0)
                 uncompiled_gate = input_circuit.data[uncompiled_gate_index]
                 if (compiled_gate.name == uncompiled_gate.name) and (compiled_gate.qubits.__str__() ==
                                                                      uncompiled_gate._qubit_coupling.__str__()):
-                    mapping.insert(i, uncompiled_gate_index)
+                    mapping.insert(compiled_gate_index, uncompiled_gate_index)
             else: raise Exception("Circuit shape does not match qobj, found extra {} instruction in qobj".format(
                 type_and_qubits))
-        # if circ_num not in qobj_cache['mappings'][chunk][circ_num]
-        qobj_cache['mappings'][chunk].append(mapping)
-        qobj_cache['qobjs'].insert(chunk, qobj)
+        circuit_cache['mappings'][chunk][circ_num] = mapping
         for type_and_qubits, ops in op_graph.items():
             if len(ops) > 0:
                 raise Exception("Circuit shape does not match qobj, found extra {} in circuit".format(type_and_qubits))
         # check if op_graph is empty to confirm correct circuit shape
 
 # Note that this function overwrites the previous cached qobj for speed
-def load_qobj_from_cache(circuits, cached_qobj_chunk):
-    for i, input_circuit in enumerate(circuits):
-        cached_qobj_chunk.experiments[i].header.name = input_circuit.name
-        for i, compiled_gate in enumerate(cached_qobj_chunk.experiments[i].instructions):
+def load_qobj_from_cache(circuits, cached_qobj_chunk, chunk):
+    for circ_num, input_circuit in enumerate(circuits):
+        cached_qobj_chunk.experiments[circ_num].header.name = input_circuit.name
+        for gate_num, compiled_gate in enumerate(cached_qobj_chunk.experiments[circ_num].instructions):
             if compiled_gate.name == 'snapshot': continue
-            uncompiled_gate = input_circuit.data[self.mapping[i]]
+            uncompiled_gate = input_circuit.data[circuit_cache['mappings'][chunk][circ_num][gate_num]]
             compiled_gate.params = np.array(uncompiled_gate.param, dtype=float).tolist()
     return cached_qobj_chunk
 
 def run_circuits(circuits, backend, execute_config, qjob_config={},
-                 max_circuits_per_job=sys.maxsize, show_circuit_summary=False, use_qobj_caching=True):
+                 max_circuits_per_job=sys.maxsize, show_circuit_summary=False, circuit_caching=False):
     """
     An execution wrapper with Qiskit-Terra, with job auto recover capability.
 
@@ -137,12 +138,25 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
         qobj = q_compile(sub_circuits, my_backend, **execute_config)
 =======
         sub_circuits = circuits[i * max_circuits_per_job:(i + 1) * max_circuits_per_job]
-        if i not in qobj_cache['qobjs'] or not use_qobj_caching:
+        if circuit_cache is not None and circuit_cache['misses'] < 5:
+            try:
+                qobj = load_qobj_from_cache(sub_circuits, circuit_cache['qobjs'][i], i)
+            except: #cache miss, fail gracefully
+                #TODO be more specific about exceptions caught
+                circuit_cache['qobjs'] = []
+                qobj = q_compile(sub_circuits, my_backend, **execute_config)
+                cache_circuit(qobj, circuits, i)
+                circuit_cache['misses'] += 1
+                logger.debug('Circuit cache miss, recompiling')
+        else:
             qobj = q_compile(sub_circuits, my_backend, **execute_config)
+<<<<<<< HEAD
             if use_qobj_caching: cache_qobj(qobj, circuits, i)
         elif use_qobj_caching:
             qobj = load_qobj_from_cache(sub_circuits, qobj_cache['qobjs'][i])
 >>>>>>> Working caching and loading from cache
+=======
+>>>>>>> Working global caching and loading from global cache, but json validation breaking and running N2 after h2 breaking.
         job = my_backend.run(qobj)
         jobs.append(job)
         qobjs.append(qobj)
