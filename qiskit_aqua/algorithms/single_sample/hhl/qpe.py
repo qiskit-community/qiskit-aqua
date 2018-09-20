@@ -1,4 +1,3 @@
-#!/usr/bin/env python -W ignore::DeprecationWarning
 # -*- coding: utf-8 -*-
 
 # Copyright 2018 IBM.
@@ -228,6 +227,8 @@ class QPE():
                     get_iqft_instance(ne_qft_params['name'])]
             ne_qfts[0].init_params(ne_qft_params)
             ne_qfts[1].init_params(ne_qft_params)
+        else:
+            ne_qfts = [None, None]
 
 
         self.init_args(
