@@ -16,7 +16,7 @@
 # =============================================================================
 
 
-from qiskit_aqua.utils.initial_states import InitialState
+from .initial_state import InitialState
 
 
 class VarForm:

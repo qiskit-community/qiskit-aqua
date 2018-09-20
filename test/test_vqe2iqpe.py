@@ -17,13 +17,11 @@
 
 import unittest
 import numpy as np
-from parameterized import parameterized
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import Operator, run_algorithm
+from qiskit_aqua import Operator
 from qiskit_aqua.input import get_input_instance
-from qiskit_aqua import get_algorithm_instance, get_initial_state_instance, \
-                         get_variational_form_instance, get_optimizer_instance
+from qiskit_aqua import get_algorithm_instance, get_variational_form_instance, get_optimizer_instance
 from qiskit_aqua.utils import decimal_to_binary
 
 
@@ -66,7 +64,7 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         iqpe = get_algorithm_instance('IQPE')
         iqpe.setup_quantum_backend(backend='local_qasm_simulator', shots=100, skip_transpiler=True)
 
-        from qiskit_aqua.utils.initial_states.varform import VarForm
+        from qiskit_aqua.algorithms.components.initial_states.varform import VarForm
 
         # state_in = get_initial_state_instance('VarForm')
         state_in = VarForm()
