@@ -34,8 +34,11 @@ from qiskit_aqua.algorithms.components.optimizers import Optimizer
 from qiskit_aqua.algorithms.components.variational_forms import VariationalForm
 from qiskit_aqua.algorithms.components.initial_states import InitialState
 from qiskit_aqua.algorithms.components.iqfts import IQFT
+from qiskit_aqua.algorithms.components.qfts import QFT
 from qiskit_aqua.algorithms.components.oracles import Oracle
 from qiskit_aqua.algorithms.components.feature_maps import FeatureMap
+from qiskit_aqua.algorithms.components.multiclass import MulticlassExtension
+
 
 logger = logging.getLogger(__name__)
 
@@ -45,8 +48,10 @@ _PLUGGABLES = {
     'variational_form': VariationalForm,
     'initial_state': InitialState,
     'iqft': IQFT,
+    'qft': QFT,
     'oracle': Oracle,
-    'feature_map': FeatureMap
+    'feature_map': FeatureMap,
+    'multiclass_extension': MulticlassExtension
 }
 
 _NAMES_TO_EXCLUDE = [
@@ -65,8 +70,10 @@ _NAMES_TO_EXCLUDE = [
     'variational_form',
     'initial_state',
     'iqft',
+    'qft',
     'oracle',
-    'feature_map'
+    'feature_map',
+    'multiclass_extension'
 ]
 
 _FOLDERS_TO_EXCLUDE = ['__pycache__','input','ui','parser']

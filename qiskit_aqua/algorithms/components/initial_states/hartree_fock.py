@@ -67,7 +67,8 @@ class HartreeFock(InitialState):
         self._num_orbitals = 1
         self._bitstr = None
 
-    def init_args(self, num_qubits, num_orbitals, qubit_mapping, two_qubit_reduction, num_particles):
+    def init_args(self, num_qubits, num_orbitals, qubit_mapping, two_qubit_reduction,
+                  num_particles, sq_list=None):
         """
 
         Args:
@@ -76,14 +77,21 @@ class HartreeFock(InitialState):
             qubit_mapping (str): mapping type for qubit operator
             two_qubit_reduction (bool): flag indicating whether or not two qubit is reduced
             num_particles (int): number of particles
+            sq_list ([int]): position of the single-qubit operators that anticommute
+                        with the cliffords
         """
+        self._sq_list = sq_list
+        self._qubit_tapering = False if self._sq_list is None else True
+
         self._qubit_mapping = qubit_mapping.lower()
         self._two_qubit_reduction = two_qubit_reduction
         if self._qubit_mapping != 'parity':
             self._two_qubit_reduction = False
         self._num_orbitals = num_orbitals
         self._num_particles = num_particles
+
         self._num_qubits = num_orbitals - 2 if self._two_qubit_reduction else self._num_orbitals
+        self._num_qubits = self._num_qubits if not self._qubit_tapering else self._num_qubits - len(sq_list)
         if self._num_qubits != num_qubits:
             raise ValueError('Computed num qubits {} does not match actual {}'.format(self._num_qubits, num_qubits))
 
@@ -92,16 +100,18 @@ class HartreeFock(InitialState):
         if self._num_particles > self._num_orbitals:
             raise ValueError('# of particles must be less than or equal to # of orbitals.')
 
+        half_orbitals = self._num_orbitals // 2
         bitstr = np.zeros(self._num_orbitals, np.bool)
         bitstr[:int(np.ceil(self._num_particles / 2))] = True
-        bitstr[self._num_orbitals // 2:self._num_orbitals // 2 + int(np.floor(self._num_particles / 2))] = True
+        bitstr[half_orbitals:half_orbitals + int(np.floor(self._num_particles / 2))] = True
 
         if self._qubit_mapping == 'parity':
             new_bitstr = bitstr.copy()
-            for new_k in range(1, new_bitstr.size):
-                new_bitstr[new_k] = np.logical_xor(new_bitstr[new_k-1], bitstr[new_k])
 
-            bitstr = np.append(new_bitstr[:self._num_orbitals//2-1], new_bitstr[self._num_orbitals//2:-1]) \
+            for new_k in range(1, new_bitstr.size):
+                new_bitstr[new_k] = np.logical_xor(new_bitstr[new_k - 1], bitstr[new_k])
+
+            bitstr = np.append(new_bitstr[:half_orbitals - 1], new_bitstr[half_orbitals:-1]) \
                 if self._two_qubit_reduction else new_bitstr
 
         elif self._qubit_mapping == 'bravyi_kitaev':
@@ -115,6 +125,10 @@ class HartreeFock(InitialState):
             beta = beta[:self._num_orbitals, :self._num_orbitals]
             new_bitstr = beta.dot(bitstr.astype(int)) % 2
             bitstr = new_bitstr.astype(np.bool)
+
+        if self._qubit_tapering:
+            sq_list = np.asarray(self._sq_list)
+            bitstr = np.delete(bitstr, sq_list)
 
         self._bitstr = bitstr
 
