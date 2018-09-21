@@ -1243,7 +1243,7 @@ class Operator(object):
 
         Args:
             pauli_list (list): The operator's complete list of pauli terms for the suzuki expansion
-            lam (float): The parameter lambda as defined in said paper
+            lam (complex): The parameter lambda as defined in said paper
             expansion_order (int): The order for the suzuki expansion
 
         Returns:
