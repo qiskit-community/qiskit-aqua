@@ -54,6 +54,7 @@ class QuantumAlgorithm(ABC):
     SECTION_KEY_FEATURE_MAP = 'feature_map'
     SECTION_KEY_MULTICLASS_EXTENSION = 'multiclass_extension'
     SECTION_KEY_EIGS = 'eigs'
+    SECTION_KEY_RECIPROCAL = 'reciprocal'
 
     MAX_CIRCUITS_PER_JOB = 300
 
@@ -186,7 +187,6 @@ class QuantumAlgorithm(ABC):
 
         logger.info('Qiskit Terra version {}'.format(qiskit_version))
         logger.info(info)
-
     def execute(self, circuits):
         """
         A wrapper for all algorithms to interface with quantum backend.

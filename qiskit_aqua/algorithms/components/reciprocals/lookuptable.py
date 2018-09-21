@@ -60,5 +60,6 @@ class LookupTable(Reciprocal):
         elif mode == 'circuit':
             q = eigenvalue_register
             a = QuantumRegister(1)
+            self._ancilla_register = a
             qc = QuantumCircuit(eigenvalue_register)
             return qc
