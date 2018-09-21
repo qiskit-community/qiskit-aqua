@@ -69,6 +69,12 @@ def run_algorithm(params, algo_input=None, json_output=False):
     algorithm.random_seed = inputparser.get_section_property(JSONSchema.PROBLEM, 'random_seed')
     algorithm._circuit_caching = inputparser.get_section_property(JSONSchema.PROBLEM, 'circuit_caching')
     algorithm._caching_naughty_mode = inputparser.get_section_property(JSONSchema.PROBLEM, 'caching_naughty_mode')
+    if algorithm._caching_naughty_mode and not backend.startswith('local'):
+        raise AlgorithmError("Caching naughty mode can only be used with local backends, but {} backend specified."
+                             .format(backend))
+    if algorithm._circuit_caching and not backend_cfg['skip_transpiler']:
+        raise AlgorithmError("Circuit caching cannot be used with transpiler on. Set skip_transpiler to True to use "
+                             "caching.")
     if not algorithm._circuit_caching and algorithm._caching_naughty_mode :
         logging.warning("You should not use caching naughty mode if caching is disabled.")
 

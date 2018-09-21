@@ -15,6 +15,22 @@
 # limitations under the License.
 # =============================================================================
 
+""" A utility for caching and reparameterizing circuits, rather than compiling from scratch
+with each iteration. This is a singleton style module, with only a single instance per pytbon
+runtime. Each time an algorithm begins, the cache is wiped. Note that caching only works when
+transpilation is off (aqua_dict['backend']['skip_transpiler'] = True).
+
+Caching is controlled via the aqua_dict['problem']['circuit_caching'] parameter. Caching naughty
+mode bypasses qobj validation before compiling and reuses the same qobj object over and over to
+avoid deepcopying. It is controlled via the aqua_dict['problem']['caching_naughty_mode'] parameter.
+Note that naughty mode only works for local simulation.
+
+You may also specify a filename into which to store the cache as a pickle file, for molecules which
+are expensive to compile even the first time. The filename is set in aqua_dict['problem']['circuit_cache_file'].
+If a filename is present, the system will attempt to load from the file. In the event of an error, the system
+will fail gracefully, compile from scratch, and cache the new compiled qobj and mapping in the file location in pickled
+form."""
+
 import numpy as np
 import copy
 from qiskit.backends.local import LocalJob
@@ -57,7 +73,7 @@ def cache_circuit(qobj, circuits, chunk):
 
     mappings.insert(chunk, [[] for i in range(len(circuits))])
     for circ_num, input_circuit in enumerate(circuits):
-        # Delete qasm text, because it will be incorrect and break validation
+        # Delete qasm text, because it will be incorrect
         del qobjs[chunk].experiments[circ_num].header.compiled_circuit_qasm
         op_graph = {}
         for i, uncompiled_gate in enumerate(input_circuit.data):
@@ -69,7 +85,6 @@ def cache_circuit(qobj, circuits, chunk):
                 op_graph.get(type_and_qubits, []) + [i]
         mapping = []
         for compiled_gate_index, compiled_gate in enumerate(qobjs[chunk].experiments[circ_num].instructions):
-            # if compiled_gate.name == 'snapshot': continue
             type_and_qubits = compiled_gate.name + compiled_gate.qubits.__str__()
             if len(op_graph[type_and_qubits]) > 0:
                 uncompiled_gate_index = op_graph[type_and_qubits].pop(0)
