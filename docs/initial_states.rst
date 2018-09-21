@@ -9,7 +9,7 @@ and a trial state to be evolved by the :ref:`qpe` algorithm.
 An initial state allows the user to define a state, either declaratively or programmatically, and
 then provides a circuit that can take the starting point of all zero qubits to the defined state. 
 
-.. topic:: Extending the Initial State Library
+.. topic:: Extending the Initial States Library
 
     Consistent with its unique  design, Aqua has a modular and
     extensible architecture. Algorithms and their supporting objects, such as initial states for
