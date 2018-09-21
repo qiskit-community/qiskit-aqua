@@ -71,6 +71,7 @@ class EigenvalueEstimation(QuantumAlgorithm):
         self._circuit = None
         self._shots = 0
         self._matrix = None
+        self._invec = None
         self._ret = {}
 
     def init_params(self, params, matrix):
@@ -80,47 +81,34 @@ class EigenvalueEstimation(QuantumAlgorithm):
         if not isinstance(matrix, np.ndarray):
             matrix = np.array(matrix)
 
-        # Extending the operator matrix, if the dimension is not in 2**n
-        if np.log2(matrix.shape[0]) % 1 != 0:
-            matrix_dim = True
-            next_higher = int(np.ceil(np.log2(matrix.shape[0])))
-            new_matrix = np.identity(2**next_higher)
-            new_matrix = np.array(new_matrix, dtype = complex)
-            new_matrix[:matrix.shape[0], :matrix.shape[0]] = matrix[:,:]
-            matrix = new_matrix
-        num_q = int(np.log2(matrix.shape[0]))
-
         qpe_params = params.get(QuantumAlgorithm.SECTION_KEY_EIGS) or {}
         qpe = get_eigs_instance(qpe_params["name"])
         qpe.init_params(qpe_params, matrix)
 
-        hermitian_matrix = qpe._hermitian_matrix
-        
+        num_q = qpe._operator.num_qubits
+ 
         init_state_params = params.get(QuantumAlgorithm.SECTION_KEY_INITIAL_STATE) or {}
         
-        # Fix invector for nonhermitian/non 2**n size matrices
+        # Fix ininvec for nonhermitian/non 2**n size matrices
+        invec = init_state_params['state_vector']
         if init_state_params.get("name") == "CUSTOM":
-            vector = init_state_params['state_vector']
-            if len(vector) < matrix.shape[0] and hermitian_matrix:
-                vector = np.append(vector, (matrix.shape[0] - len(vector)) * [0])
-            if not hermitian_matrix:
-                help_vector = np.zeros(matrix.shape[0] - len(vector))
-                vector = np.append(help_vector, vector)
-            init_state_params['state_vector'] = vector
+            tmpvec = np.append(invec, (2**num_q - len(invec)) * [0])
+            init_state_params['state_vector'] = tmpvec
         init_state_params["num_qubits"] = num_q
         state_in = get_initial_state_instance(init_state_params["name"])
         state_in.init_params(init_state_params)
 
         shots = params.get("backend").get("shots")
         
-        self.init_args(qpe, state_in, num_q, shots, matrix)
+        self.init_args(qpe, state_in, num_q, shots, matrix, invec)
 
-    def init_args(self, qpe, state_in, num_q, shots, matrix):
+    def init_args(self, qpe, state_in, num_q, shots, matrix, invec):
         self._qpe = qpe
         self._state_in = state_in
         self._num_q = num_q
         self._shots = shots
         self._matrix = matrix
+        self._invec = invec
 
     def _construct_circuit(self):
         q = QuantumRegister(self._num_q)
@@ -137,24 +125,35 @@ class EigenvalueEstimation(QuantumAlgorithm):
         qc.measure(a, c)
         self._circuit = qc
 
-    def visualization(self, res):
+    def visualization(self, rets, evo_time):
         from numpy.linalg import eig
         import matplotlib.pyplot as plt
         w, v = eig(self._matrix)
-        
-        print(dir(self._state_in))
-        print(self._state_in._state)
-        vt = v.T.conj().dot(vec)
-        print(vt)
-        print(v.dot(vt))
+        vt = v.T.conj().dot(self._invec)
+         
+        rets = np.array(rets)
+        y = np.array(rets[:, 0], dtype=float)
+        x = np.array(rets[:, 2], dtype=float)
 
-        x = []
-        y = []
-        for c, _, l in res["measurements"]:
-            x.append(l)
-            y.append(c)
+        ty = np.arange(0, 2**self._num_a)
+        tmp = 1j*(2**self._num_a*np.outer(w, np.ones(len(ty)))*evo_time - 
+                2*np.pi*np.outer(np.ones(len(w)), ty))
+        tmp[tmp == 0] = 2j*np.pi/evo_time/2**self._num_a
+        ty = np.abs(vt.dot((1-np.exp(tmp))/(1-np.exp(tmp/2**self._num_a))
+                * 2**-self._num_a))**2
+        tx = np.arange(0, 2**self._num_a)/2**self._num_a*2*np.pi/evo_time
+        ty /= sum(ty)
 
-        return w, v
+        h = int(len(tx)/2)
+        tx1 = tx[:h]
+        tx2 = tx[h:]
+        if self._qpe._negative_evals:
+            tx2 -= 2*tx2[0]
+
+        plt.bar(x, y, width=2*np.pi/evo_time/2**self._num_a)
+        plt.plot(tx1, ty[:h], "r")
+        plt.plot(tx2, ty[h:], "r")
+        plt.show()
 
     def _compute_eigenvalue(self):
         if self._circuit is None:
@@ -177,7 +176,8 @@ class EigenvalueEstimation(QuantumAlgorithm):
 
         self._ret['measurements'] = rets
         self._ret['evo_time'] = self._qpe._evo_time
-        self._ret['visualization'] = lambda: self.visualization(rets)
+        self._ret['visualization'] = lambda: self.visualization(rets,
+                self._qpe._evo_time)
 
     def run(self):
         self._compute_eigenvalue()

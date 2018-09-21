@@ -159,7 +159,7 @@ class QPE(Eigenvalues):
         # Extending the operator matrix, if the dimension is not in 2**n
         if np.log2(matrix.shape[0]) % 1 != 0:
             matrix_dim = True
-            next_higher = np.ceil(np.log2(matrix.shape[0]))
+            next_higher = int(np.ceil(np.log2(matrix.shape[0])))
             new_matrix = np.identity(2**next_higher)
             new_matrix = np.array(new_matrix, dtype = complex)
             new_matrix[:matrix.shape[0], :matrix.shape[0]] = matrix[:,:]
