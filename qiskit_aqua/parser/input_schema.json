@@ -21,6 +21,10 @@
                 "caching_naughty_mode": {
                     "type": "boolean",
                     "default": false
+                },
+                "circuit_cache_file": {
+                    "type": "string",
+                    "default": null
                 }
             },
             "required": ["name"],

@@ -69,6 +69,7 @@ def run_algorithm(params, algo_input=None, json_output=False):
     algorithm.random_seed = inputparser.get_section_property(JSONSchema.PROBLEM, 'random_seed')
     algorithm._circuit_caching = inputparser.get_section_property(JSONSchema.PROBLEM, 'circuit_caching')
     algorithm._caching_naughty_mode = inputparser.get_section_property(JSONSchema.PROBLEM, 'caching_naughty_mode')
+    algorithm._cache_file = inputparser.get_section_property(JSONSchema.PROBLEM, 'circuit_cache_file')
     if algorithm._caching_naughty_mode and not backend.startswith('local'):
         raise AlgorithmError("Caching naughty mode can only be used with local backends, but {} backend specified."
                              .format(backend))

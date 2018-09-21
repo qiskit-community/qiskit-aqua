@@ -33,6 +33,7 @@ from .circuit_cache import load_qobj_from_cache
 from .circuit_cache import clear_cache
 from .circuit_cache import naughty_mode
 from .circuit_cache import naughty_run
+from .circuit_cache import cache_file
 
 __all__ = ['tensorproduct',
            'PauliGraph',
@@ -57,5 +58,6 @@ __all__ = ['tensorproduct',
            'load_qobj_from_cache',
            'clear_cache',
            'naughty_mode',
-           'naughty_run'
+           'naughty_run',
+           'cache_file'
            ]

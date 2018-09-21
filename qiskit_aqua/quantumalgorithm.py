@@ -83,6 +83,7 @@ class QuantumAlgorithm(ABC):
         self._show_circuit_summary = False
         self._circuit_caching = False
         self._caching_naughty_mode = False
+        self._cache_file = None
 
     @property
     def configuration(self):
@@ -184,10 +185,8 @@ class QuantumAlgorithm(ABC):
             self._configuration['name'], my_backend.configuration()['name'], self._execute_config, self._qjob_config)
         circuit_cache.use_caching = self._circuit_caching
         circuit_cache.naughty_mode = self._caching_naughty_mode
+        circuit_cache.cache_file = self._cache_file
         circuit_cache.clear_cache()
-        #     self._circuit_cache = {'qobjs': [], 'mappings': [], 'misses': 0}
-        # else:
-        #     self._circuit_cache = None
 
         logger.info('Qiskit Terra version {}'.format(qiskit_version))
         logger.info(info)

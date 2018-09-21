@@ -83,7 +83,7 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
         if circuit_cache.use_caching and circuit_cache.misses < 5:
             try:
                 qobj = circuit_cache.load_qobj_from_cache(sub_circuits, i)
-            except (TypeError, IndexError): #cache miss, fail gracefully
+            except (TypeError, IndexError, FileNotFoundError, EOFError): #cache miss, fail gracefully
                 circuit_cache.clear_cache()
                 qobj = q_compile(sub_circuits, my_backend, **execute_config)
                 circuit_cache.cache_circuit(qobj, circuits, i)

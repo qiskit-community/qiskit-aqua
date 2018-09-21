@@ -35,12 +35,19 @@ import numpy as np
 import copy
 from qiskit.backends.local import LocalJob
 from qiskit.backends import JobError
+import pickle
+import logging
+from qiskit.qobj import Qobj
+from qiskit.backends.local.qasm_simulator_cpp import QASMSimulatorDecoder
+
+logger = logging.getLogger(__name__)
 
 qobjs = None
 mappings = None
 misses = 0
 use_caching = False
 naughty_mode = False
+cache_file = None
 
 def cache_circuit(qobj, circuits, chunk):
     """
@@ -64,6 +71,7 @@ def cache_circuit(qobj, circuits, chunk):
     global qobjs
     global mappings
     global misses
+    global cache_file
 
     if qobjs is None: qobjs = []
     if mappings is None: mappings = []
@@ -100,13 +108,27 @@ def cache_circuit(qobj, circuits, chunk):
         for type_and_qubits, ops in op_graph.items():
             if len(ops) > 0:
                 raise Exception("Circuit shape does not match qobj, found extra {} in circuit".format(type_and_qubits))
-        # check if op_graph is empty to confirm correct circuit shape
+    if len(cache_file) > 0:
+        cache_handler = open(cache_file, 'wb')
+        qobj_dicts = [qob.as_dict() for qob in qobjs]
+        pickle.dump({'qobjs':qobj_dicts, 'mappings':mappings}, cache_handler, protocol=pickle.HIGHEST_PROTOCOL)
+        cache_handler.close()
+        logger.debug("Circuit cache saved successfully.")
 
 # Note that this function overwrites the previous cached qobj for speed
 def load_qobj_from_cache(circuits, chunk):
     global qobjs
     global mappings
     global misses
+    global cache_file
+
+    if qobjs is None and use_caching:
+        cache_handler = open(cache_file, "rb")
+        cache = pickle.load(cache_handler, encoding="utf-8")
+        cache_handler.close()
+        qobjs = [Qobj.from_dict(QASMSimulatorDecoder, qob) for qob in cache['qobjs']]
+        mappings = cache['mappings']
+        logger.debug("Circuit cache loaded successfully.")
 
     for circ_num, input_circuit in enumerate(circuits):
         qobjs[chunk].experiments[circ_num].header.name = input_circuit.name
