@@ -12,23 +12,45 @@ from qiskit_aqua.utils import random_matrix_generator as rmg
 #sys.path.append('afs/bb/u/isabel-h/drive/qiskit-aqua-hhl/matrix-gen/')
 #import afs.bb/u/isabel-h/drive/qiskit-aqua-hhl/matrix-gen/matrix_gen
 
-n = 6
+def testing(dicta, dictb, n, evo_time):
+    statevec = [k for k in dicta[0]]
+    element = [k for k in dictb[0]]
+    real = []
+    realprob = []
+    inverse = []
+    prob = []
+    calc = []
+    for i in range(len(statevec)):
+        real.append(sum([2**(n-1-a) for a, e in enumerate(reversed(statevec[i])) if e == "1" and a < n])*(2*np.pi/evo_time)/2**n)
+        realprob.append(np.sqrt(dicta[0][statevec[i]][0]**2+dicta[0][statevec[i]][1]**2))
+    for i in range(len(element)):
+        if element[i][0] == "1":
+            inverse2 = sum([2**(-(a-1)) for a, e in enumerate(element[i]) if e == "1" and a > 1 and a <= n+1])*(2**n)/(2*np.pi)*evo_time
+            inverse.append(inverse2)
+            prob.append(np.sqrt(dictb[0][element[i]][0]**2+dictb[0][element[i]][1]**2))
+    inverse = np.array(inverse)
+    prob = np.absolute(np.array(prob))
+    return(inverse, prob, real, realprob)
+
+n = 5
 shots = 10000
 z = 1
-mean = {}
-realdict = {}
-inversedict = {}
-realprob = {}
+#mean = {}
+#realdict = {}
+#inversedict = {}
+#realprob = {}
 qpe = QPE()
 hermitian_matrix = True
 backend = 'local_qasm_simulator'
 matrix = [[1, 0, 0, 0],[0,2,0,0],[0,0,3,0],[0,0,0,3]]
 #matrix = [[3, -1],[-1,3]]
-matrix = rmg.random_hermitian(4, eigrange = [0, 10])
+matrix = rmg.random_hermitian(4, eigrange = [1, 4], sparsity = 0.5)
 matrix = np.array(matrix)
 w,v = np.linalg.eig(matrix)
-invec = v[0]
-
+print(w[1])
+print("inverse = ", 1./ w[1])
+invec = v[1]
+print(v[1])
 params = {
 'algorithm': {
         'name': 'QPE',
@@ -37,8 +59,8 @@ params = {
         'expansion_mode': 'suzuki',
         'expansion_order': 2,
         'hermitian_matrix': hermitian_matrix,
-        'backend' : backend,
-        'evo_time' : (1-2**-n)*2*np.pi/10.
+        'backend' : backend
+        #'evo_time' : (1-2**-n)*2*np.pi/10.
 },
 "iqft": {
     "name": "STANDARD"
@@ -54,8 +76,7 @@ qpe.init_params(params, matrix)
 #qc = qpe._compute_eigenvalue()
 #res = qpe._ret
 qc, qr1 = qpe._setup_qpe()
-
-
+qc.snapshot("1")
 #print(res)
 #qr1 = QuantumRegister(n)
 evo_time = qpe._evo_time
@@ -84,27 +105,20 @@ qc += qpe._construct_inverse()
 qc.snapshot("2")
 
 res = execute(qc,backend="local_qasm_simulator",config={"data":["quantum_state_ket"]},shots=1)
-res_ = res.result().get_data()["snapshots"]["2"]["quantum_state_ket"]
-element = [k for k in res_[0]]
-inverse = []
-prob = []
-calc = []
-#probs = [rd[k] for k in rd]
-for i in range(len(element)):
-    if element[i][0] == "1" and sum([int(e) for i, e in enumerate(reversed(element[i])) if i < n]) == 0:
-        inverse2 = sum([2**(-(a-1)) for a, e in enumerate(element[i]) if e == "1" and a > 1 and a <= n+1])*(2**n)/(2*np.pi)*evo_time
-        inverse.append(inverse2)
-        prob.append(res_[0][element[i]][0]*2**n/(2*np.pi)*evo_time)
-        calc.append(inverse2*0.5*c)
-        print(element[i])
-        #print(inverse2*0.5*c)
-        #print(prob*2**n/(2*np.pi)*evo_time)
-print(inverse)
-print(prob)
-print(calc)
-plt.plot(inverse, calc, "go")
-plt.plot(inverse, prob, "ro")
+res1 = res.result().get_data()["snapshots"]["1"]["quantum_state_ket"]
 
+res_ = res.result().get_data()["snapshots"]["2"]["quantum_state_ket"]
+inverse, prob, real, realprob = testing(res1, reas_, n, evo_time)
+idx = np.argmax(prob)
+print("inverse = ", inverse[idx], " Prop = ", prob[idx], " Calc = ", calc[idx])
+#plt.plot(inverse, calc, "go")
+plt.subplot(121)
+plt.plot(inverse, prob, "ro")
+plt.title("Inverse")
+plt.subplot(122)
+plt.plot(real, realprob, "go")
+plt.title("Real")
+plt.show()
 plt.savefig("rottest.png") 
 """for l in range(z):
     print(l)

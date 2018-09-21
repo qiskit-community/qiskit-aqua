@@ -81,7 +81,7 @@ def read_make_circuit(n, qr1, qr2, meas1, meas2, qc):
         sign1 = False
         ctlnumber = int(data[i][0])-1
         if data[i][1].isdigit():
-            ctlnumber = int(data[i][0] + data[i][1])
+            ctlnumber = int(data[i][0] + data[i][1])-1
         if int(data[i][-2]) >= n:
             tgt = qr2[int(data[i][-2]) - n]
         else:
