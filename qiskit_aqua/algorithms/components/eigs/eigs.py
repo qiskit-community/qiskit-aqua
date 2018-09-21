@@ -35,6 +35,8 @@ class Eigenvalues(ABC):
     @abstractmethod
     def __init__(self, configuration=None):
         self._configuration = configuration
+        self._negative_evals = False
+        self._output_register = None
 
     @property
     def configuration(self):
@@ -47,6 +49,14 @@ class Eigenvalues(ABC):
 
     @abstractmethod
     def init_args(self, **args):
+        raise NotImplementedError()
+    
+    @abstractmethod
+    def get_register_sizes(self):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get_scaling(self):
         raise NotImplementedError()
 
     @abstractmethod
@@ -67,6 +77,6 @@ class Eigenvalues(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def construct_inverse(self):
+    def construct_inverse(self, mode):
         """ Construct the inverse to construct_circuit """
 

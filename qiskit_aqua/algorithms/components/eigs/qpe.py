@@ -121,7 +121,7 @@ class QPE(Eigenvalues):
         self._expansion_order = None
         self._num_ancillae = 0
         self._ancilla_phase_coef = 0
-        self._output_register = None
+        self._input_register = None
         self._circuit = None
         self._circuit_data = None
         self._inverse = None
@@ -129,7 +129,6 @@ class QPE(Eigenvalues):
         self._ret = {}
         self._matrix_dim = True
         self._hermitian_matrix = True
-        self._negative_evals = True
         self._ne_qfts = [None, None]
 
     def init_params(self, params, matrix):
@@ -222,6 +221,12 @@ class QPE(Eigenvalues):
         self._ne_qfts = ne_qfts
         self._ret = {}
 
+    def get_register_sizes(self):
+        return self._operator.num_qubits, self._num_ancillae
+
+    def get_scaling(self):
+        return self._evo_time
+
     def construct_circuit(self, mode, register):
         """Implement the Quantum Phase Estimation algorithm"""
 
@@ -271,6 +276,7 @@ class QPE(Eigenvalues):
 
         self._circuit = qc
         self._output_register = a
+        self._input_register = q
         self._circuit_data = deepcopy(qc.data)
         return self._circuit
 
@@ -304,10 +310,8 @@ class QPE(Eigenvalues):
             qc.cu1(2*np.pi/2**(i+1), sgn, qi)
         self._ne_qfts[1].construct_circuit('circuit', qs, qc)
 
-    def construct_inverse(self):
-        if self._inverse == None:
-            self._inverse = QuantumCircuit()
-            self._inverse.regs = self._circuit.regs
-            self._inverse.data = list(reversed(self._circuit_data))[:-self._initial_circuit_length]
-            self._inverse.data = list(map(lambda x: x.inverse(), self._inverse.data))
-        return self._inverse
+    def construct_inverse(self, mode):
+        if mode == "vector":
+            raise NotImplementedError("Mode vector not supported for construct_inverse")
+        elif mode == "circuit":
+            return QuantumCircuit(self._input_register, self._output_register)
