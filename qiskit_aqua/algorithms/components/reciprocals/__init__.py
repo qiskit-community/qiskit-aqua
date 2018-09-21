@@ -15,7 +15,7 @@
 # limitations under the License.
 # =============================================================================
 
-# for core development
-# from .hhl import HHL
+from .reciprocal import Reciprocal
+from .lookuptable import LookupTable
 
-from .qpe import QPE
+__all__ = ['LookupTable', 'Reciprocal']

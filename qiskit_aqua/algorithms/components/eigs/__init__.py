@@ -15,7 +15,7 @@
 # limitations under the License.
 # =============================================================================
 
-# for core development
-# from .hhl import HHL
-
+from .eigs import Eigenvalues
 from .qpe import QPE
+
+__all__ = ['QPE', 'Eigenvalues']
