@@ -15,15 +15,15 @@
 # limitations under the License.
 # =============================================================================
 """
-This module contains the definition of a base class for inverse quantum
-fourier transforms.
+This module contains the definition of a base class for computing reciprocals
+into an amplitue.
 """
 from abc import ABC, abstractmethod
 
 
-class IQFT(ABC):
+class Reciprocal(ABC):
 
-    """Base class for Inverse QFT.
+    """Base class for Reciprocal.
 
         This method should initialize the module and its configuration, and
         use an exception if a component of the module is
