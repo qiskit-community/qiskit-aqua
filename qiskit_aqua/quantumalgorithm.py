@@ -82,6 +82,7 @@ class QuantumAlgorithm(ABC):
         self._random = None
         self._show_circuit_summary = False
         self._circuit_caching = False
+        self._caching_naughty_mode = False
 
     @property
     def configuration(self):
@@ -182,6 +183,7 @@ class QuantumAlgorithm(ABC):
         info = "Algorithm: '{}' setup with backend '{}', with following setting:\n {}\n{}".format(
             self._configuration['name'], my_backend.configuration()['name'], self._execute_config, self._qjob_config)
         circuit_cache.use_caching = self._circuit_caching
+        circuit_cache.naughty_mode = self._caching_naughty_mode
         circuit_cache.clear_cache()
         #     self._circuit_cache = {'qobjs': [], 'mappings': [], 'misses': 0}
         # else:

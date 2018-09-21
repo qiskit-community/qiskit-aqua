@@ -17,6 +17,10 @@
                 "circuit_caching": {
                     "type": "boolean",
                     "default": false
+                },
+                "caching_naughty_mode": {
+                    "type": "boolean",
+                    "default": false
                 }
             },
             "required": ["name"],

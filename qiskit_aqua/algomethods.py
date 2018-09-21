@@ -68,6 +68,9 @@ def run_algorithm(params, algo_input=None, json_output=False):
     algorithm = get_algorithm_instance(algo_name)
     algorithm.random_seed = inputparser.get_section_property(JSONSchema.PROBLEM, 'random_seed')
     algorithm._circuit_caching = inputparser.get_section_property(JSONSchema.PROBLEM, 'circuit_caching')
+    algorithm._caching_naughty_mode = inputparser.get_section_property(JSONSchema.PROBLEM, 'caching_naughty_mode')
+    if not algorithm._circuit_caching and algorithm._caching_naughty_mode :
+        logging.warning("You should not use caching naughty mode if caching is disabled.")
 
     if backend_cfg is not None:
         algorithm.setup_quantum_backend(**backend_cfg)

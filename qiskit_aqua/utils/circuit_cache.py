@@ -16,11 +16,15 @@
 # =============================================================================
 
 import numpy as np
+import copy
+from qiskit.backends.local import LocalJob
+from qiskit.backends import JobError
 
 qobjs = None
 mappings = None
 misses = 0
 use_caching = False
+naughty_mode = False
 
 def cache_circuit(qobj, circuits, chunk):
     """
@@ -49,25 +53,31 @@ def cache_circuit(qobj, circuits, chunk):
     if mappings is None: mappings = []
     if misses is None: misses = 0
 
-    qobjs.insert(chunk, qobj)
+    qobjs.insert(chunk, copy.deepcopy(qobj))
+
     mappings.insert(chunk, [[] for i in range(len(circuits))])
     for circ_num, input_circuit in enumerate(circuits):
+        # Delete qasm text, because it will be incorrect and break validation
+        del qobjs[chunk].experiments[circ_num].header.compiled_circuit_qasm
         op_graph = {}
         for i, uncompiled_gate in enumerate(input_circuit.data):
-            qubits = uncompiled_gate._qubit_coupling
+            if uncompiled_gate.name == 'measure' : qubits = [uncompiled_gate.arg[0][1]]
+            else: qubits = uncompiled_gate._qubit_coupling
             gate_type = uncompiled_gate.name
             type_and_qubits = gate_type + qubits.__str__()
             op_graph[type_and_qubits] = \
                 op_graph.get(type_and_qubits, []) + [i]
         mapping = []
-        for compiled_gate_index, compiled_gate in enumerate(qobj.experiments[circ_num].instructions):
+        for compiled_gate_index, compiled_gate in enumerate(qobjs[chunk].experiments[circ_num].instructions):
             # if compiled_gate.name == 'snapshot': continue
             type_and_qubits = compiled_gate.name + compiled_gate.qubits.__str__()
             if len(op_graph[type_and_qubits]) > 0:
                 uncompiled_gate_index = op_graph[type_and_qubits].pop(0)
                 uncompiled_gate = input_circuit.data[uncompiled_gate_index]
+                if uncompiled_gate.name == 'measure': qubits = [uncompiled_gate.arg[0][1]]
+                else: qubits = uncompiled_gate._qubit_coupling
                 if (compiled_gate.name == uncompiled_gate.name) and (compiled_gate.qubits.__str__() ==
-                                                                     uncompiled_gate._qubit_coupling.__str__()):
+                                                                     qubits.__str__()):
                     mapping.insert(compiled_gate_index, uncompiled_gate_index)
             else: raise Exception("Circuit shape does not match qobj, found extra {} instruction in qobj".format(
                 type_and_qubits))
@@ -89,15 +99,15 @@ def load_qobj_from_cache(circuits, chunk):
             if compiled_gate.name == 'snapshot': continue
             uncompiled_gate = input_circuit.data[mappings[chunk][circ_num][gate_num]]
             compiled_gate.params = np.array(uncompiled_gate.param, dtype=float).tolist()
-    return qobjs[chunk]
+    if naughty_mode: return qobjs[chunk]
+    else: return copy.deepcopy(qobjs[chunk])
 
-def set_caching(use):
-    global use_caching
-    use_caching = use
-
-def get_caching():
-    global use_caching
-    return use_caching
+def naughty_run(backend, qobj):
+    local_job = LocalJob(backend._run_job, qobj)
+    if local_job._future is not None:
+        raise JobError("We have already submitted the job!")
+    local_job._future = local_job._executor.submit(local_job._fn, local_job._qobj)
+    return local_job
 
 def clear_cache():
     global qobjs
