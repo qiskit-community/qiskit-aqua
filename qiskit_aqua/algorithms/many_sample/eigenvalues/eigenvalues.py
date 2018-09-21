@@ -75,7 +75,6 @@ class EigenvalueEstimation(QuantumAlgorithm):
         self._ret = {}
 
     def init_params(self, params, matrix):
-
         if matrix is None:
             raise ValueError("Matrix needed")
         if not isinstance(matrix, np.ndarray):
@@ -89,6 +88,8 @@ class EigenvalueEstimation(QuantumAlgorithm):
  
         init_state_params = params.get(QuantumAlgorithm.SECTION_KEY_INITIAL_STATE) or {}
         
+        assert matrix.shape[0] == len(init_state_params['state_vector']), "Check input vector size!"
+
         # Fix ininvec for nonhermitian/non 2**n size matrices
         invec = init_state_params['state_vector']
         if init_state_params.get("name") == "CUSTOM":
