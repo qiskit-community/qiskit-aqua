@@ -93,11 +93,13 @@ class EigenvalueEstimation(QuantumAlgorithm):
         # Fix ininvec for nonhermitian/non 2**n size matrices
         invec = init_state_params['state_vector']
         if init_state_params.get("name") == "CUSTOM":
-            tmpvec = np.append(invec, (2**num_q - len(invec)) * [0])
+            tmpvec = invec + (2**num_q - len(invec))*[0]
             init_state_params['state_vector'] = tmpvec
         init_state_params["num_qubits"] = num_q
         state_in = get_initial_state_instance(init_state_params["name"])
         state_in.init_params(init_state_params)
+        invec = np.array(list(map(lambda x: x[0]+1j*x[1] if isinstance(x, list)
+            else x, invec)))
 
         shots = params.get("backend").get("shots")
         
