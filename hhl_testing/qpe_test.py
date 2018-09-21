@@ -6,7 +6,7 @@ from qiskit_aqua.utils import random_hermitian, random_non_hermitian
 
 import numpy as np
 
-matrix = random_hermitian(2, eigrange=(-1, 5))
+matrix = random_hermitian(2, eigrange=(-5, 5))
 
 if np.allclose(matrix, matrix.T.conj()):
     w, v = np.linalg.eigh(matrix)
@@ -20,11 +20,8 @@ else:
     invec = matrix.shape[0]*[1]
 
 invec /= np.sqrt(invec.dot(invec.conj()))
-print(invec.dtype)
-if True:
+if invec.dtype == np.complex128:
     invec = list(map(lambda x: [x.real, x.imag], invec))
-
-invec = [[0, 1], [0, 0]]
 
 params = {
     'algorithm': {'name': 'EigenvalueEstimation'},

@@ -86,16 +86,13 @@ class Custom(InitialState):
             else:
                 raise ValueError('Unknown state {}'.format(self._state))
         else:
-            print(state_vector)
             if len(state_vector) != np.power(2, self._num_qubits):
                 raise ValueError('State vector length {} incompatible with num qubits {}'
                                  .format(len(state_vector), self._num_qubits))
             state_vector = list(map(lambda x: x[0]+1j*x[1] if isinstance(x, list) else x,
                 state_vector))
             self._state_vector = Custom._normalize(state_vector)
-            print(state_vector)
             self._state = None
-        print("initial")
 
     @staticmethod
     def _normalize(vector):
