@@ -298,7 +298,7 @@ class LUP_ROTATION(object):
                 qc.x(self._ev[int(c + offset)])
         if len(pattern) > 2:
             temp_reg = [self._ev[i] for i in range(offset, offset+len(pattern))]
-            qc.cnx_na(temp_reg, tgt)
+            qc.cnx(temp_reg, tgt)
         elif len(pattern) == 2:
             qc.ccx(self._ev[offset], self._ev[offset + 1], tgt)
         elif len(pattern) == 1:
@@ -432,9 +432,9 @@ class LUP_ROTATION(object):
                     if self._evo_time is not None:
                         num *= 2*np.pi/self._evo_time
                     if d.split()[2] == '1':
-                        res_dict.append(("Anc 1",num, sv[d][0]))
+                        res_dict.append(("Anc 1",num, sv[d][0],d))
                     else:
-                       res_dict.append(("Anc 0",num, sv[d][0]))
+                        res_dict.append(("Anc 0",num, sv[d][0],d))
             self._ret = res_dict
             return res_dict
         elif backend == "local_qasm_simulator":

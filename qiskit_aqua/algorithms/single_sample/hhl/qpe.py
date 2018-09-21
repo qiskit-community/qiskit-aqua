@@ -21,12 +21,13 @@ The Quantum Phase Estimation Subroutine.
 
 import logging
 
+import pickle
 import numpy as np
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit, execute
 from qiskit.tools.qi.pauli import Pauli
 from qiskit_aqua import Operator, QuantumAlgorithm, AlgorithmError
 from qiskit_aqua import get_initial_state_instance, get_iqft_instance, get_qft_instance
-from copy import deepcopy
+
 
 from qiskit.tools.visualization import plot_circuit
 
@@ -138,7 +139,7 @@ class QPE():
         self._circuit = None
         self._circuit_data = None
         self._inverse = None
-        self._state_circuit_length = 0
+        self._final_circuit_length = 0
         self._ret = {}
         self._matrix_dim = True
         self._hermitian_matrix = True
@@ -182,7 +183,7 @@ class QPE():
         if np.log2(matrix.shape[0]) % 1 != 0:
             matrix_dim = True
             next_higher = np.ceil(np.log2(matrix.shape[0]))
-            new_matrix = np.identity(2**next_higher)
+            new_matrix = np.identity(int(2**next_higher))
             new_matrix = np.array(new_matrix, dtype = complex)
             new_matrix[:matrix.shape[0], :matrix.shape[0]] = matrix[:,:]
             matrix = new_matrix
@@ -314,8 +315,7 @@ class QPE():
         if measure:
             qc.measure(a, c)
         self._circuit = qc
-        self._circuit_data = deepcopy(qc.data)
-
+        self._final_circuit_length = len(qc.data)
         return self._circuit
 
 
@@ -334,8 +334,11 @@ class QPE():
         if self._inverse == None:
             self._inverse = QuantumCircuit()
             self._inverse.regs = self._circuit.regs
-            self._inverse.data = list(reversed(self._circuit_data))[:-self._initial_circuit_length]
-            self._inverse.data = list(map(lambda x: x.inverse(), self._inverse.data))
+            for gate in list(reversed(
+                    self._circuit.data[self._initial_circuit_length:
+                                       self._final_circuit_length])):
+                gate.reapply(self._inverse)
+                self._inverse.data[-1].inverse()
         return self._inverse
 
 
