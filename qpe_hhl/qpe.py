@@ -307,11 +307,7 @@ class QPE():
     def _compute_eigenvalue(self, backend="local_qasm_simulator"):
         if self._circuit is None:
             self._setup_qpe(measure=True)
-<<<<<<< HEAD
-        result = execute(self._circuit, backend=backend).result()
-=======
         result = execute(self._circuit, backend=self._backend).result()
->>>>>>> isabel/sparse
         print(result)
         counts = result.get_counts(self._circuit)
 
