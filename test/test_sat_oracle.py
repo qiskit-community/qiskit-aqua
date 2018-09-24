@@ -23,7 +23,7 @@ from qiskit import execute as q_execute
 from qiskit import QuantumCircuit, ClassicalRegister
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua.utils.oracles.sat import SAT
+from qiskit_aqua.algorithms.components.oracles import SAT
 
 
 cnf_str_1 = '''

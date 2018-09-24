@@ -117,8 +117,8 @@ def read_make_circuit(n, qr1, qr2, meas1, meas2, qc):
                     sign1 = False
         ctl.pop(0)
         ctl.pop(-1)
-        print("i ", i)
-        print("ctl = ", ctl)
+        #print("i ", i)
+        #print("ctl = ", ctl)
         if ctlnumber == 0: #single not gate
             qc.x(tgt)
         elif ctlnumber == 1: #cnot gate

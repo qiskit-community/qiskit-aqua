@@ -31,7 +31,7 @@ available for use by quantum variational algorithms.
     New variational forms for quantum variational algorithms are typically installed in the ``qiskit_aqua/utils/variational_forms``
     folder and derive from the ``VariationalForm`` class.
     Aqua also allows for
-    :ref:`aqua-dynamically-discovered-components`: new algorithms can register themselves
+    :ref:`aqua-dynamically-discovered-components`: new components can register themselves
     as Aqua extensions and be dynamically discovered at run time independent of their
     location in the file system.
     This is done in order to encourage researchers and
@@ -99,7 +99,7 @@ creates and uses is given by :math:`q \times (d + 1)`, where :math:`q` is the to
 
 The following allows a specific form to be configured in the
 ``variational_form`` section of the Aqua
-:ref:`aqua-input-file` when the ``name `` field
+:ref:`aqua-input-file` when the ``name`` field
 is set to ``RY``:
 
 - The depth of the circuit:
@@ -274,13 +274,13 @@ The following parameters allow a specific form to be configured:
    above are supported, but new qubit mappings can easily be plugged in.
    Specifically:
 
-   1. ``"jordan_wigner"`` corresponds to the :ref:`jordan-wigner` transformation.
-   2. ``"parity"``, the default value for the ``qubit_mapping`` parameter, corresponds to the
+   1. ``jordan_wigner`` corresponds to the :ref:`jordan-wigner` transformation.
+   2. ``parity``, the default value for the ``qubit_mapping`` parameter, corresponds to the
       :ref:`parity` mapping transformation. When this mapping is selected,
       it is possible to reduce by 2 the number of qubits required by the computation
       without loss of precision by setting the ``two_qubit_reduction`` parameter to ``True``,
       as explained next.
-   3. ``"bravyi_kitaev"`` corresponds to the :ref:`bravyi-kitaev` transformation,
+   3. ``bravyi_kitaev`` corresponds to the :ref:`bravyi-kitaev` transformation,
       also known as *binary-tree-based qubit mapping*.     
 
 -  A Boolean flag specifying whether or not to apply the precision-preserving two-qubit reduction

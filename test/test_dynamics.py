@@ -44,7 +44,7 @@ class TestEvolution(QiskitAquaTestCase):
         evo_time = 1
         num_time_slices = 100
 
-        dynamics = get_algorithm_instance('Dynamics')
+        dynamics = get_algorithm_instance('EOH')
         dynamics.setup_quantum_backend(skip_transpiler=True)
         # self.log.debug('state_out:\n\n')
 
