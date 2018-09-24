@@ -20,7 +20,7 @@
 from qiskit import QuantumRegister, QuantumCircuit
 
 from qiskit_aqua.algorithms.components.reciprocals import Reciprocal
-from qiskit_aqua.utils import cnx_na
+from qiskit_aqua.utils import cnx_na, cnu3
 
 import numpy as np
 import itertools
@@ -227,18 +227,6 @@ class LookupRotation(Reciprocal):
             if i == '0':
                 qc.x(self._ev[int(c + offset)])
 
-    def ccry(self, theta, control1, control2, target):
-        '''Implement ccRy gate using no additional ancilla qubits'''
-        # double angle because the rotation is defined with theta/2
-        theta = 2 * theta
-        qc = self._circuit
-        theta_half = theta / 2
-        qc.cu3(theta_half, 0, 0, control2, target)
-        qc.cx(control1, control2)
-        qc.cu3(- theta_half, 0, 0, control2, target)
-        qc.cx(control1, control2)
-        qc.cu3(theta_half, 0, 0, control1, target)
-
     def construct_circuit(self, mode, inreg):
         #initialize circuit
         if mode == "vector":
@@ -299,16 +287,16 @@ class LookupRotation(Reciprocal):
                     #calculate rotation angle
                     theta =  np.arcsin(min(1, 2 ** int(-k) * self._scale
                         / lambda_))
-                    #offset for ncx gate checking subpattern
+                    #offset for cx gate checking subpattern
                     offset = msb + 1 if msb < k - n else msb
                 
                     #rotation is happening here
                     #1. rotate by half angle
-                    self.ccry(theta / 2, self._workq[0], self._msb[0], self._anc[0])
+                    self.cnu3(theta / 2, 0, 0, [self._workq[0], self._msb[0]], self._anc[0])
                     #2. cnx gate to reverse rotation direction
                     self._set_bit_pattern(subpattern, self._anc[0], offset)
                     #3. rotate by inverse of halfangle to uncompute / complete 
-                    self.ccry(-theta / 2, self._workq[0], self._msb[0], self._anc[0])
+                    self.cnu3(-theta / 2, 0, 0, [self._workq[0], self._msb[0]], self._anc[0])
                     #4. cnx gate to uncompute first cnx gate
                     self._set_bit_pattern(subpattern, self._anc[0], offset)
                 #uncompute m-bit pattern
@@ -325,61 +313,3 @@ class LookupRotation(Reciprocal):
             qc.cu3(2*np.pi,0,0,self._ev[0],self._anc[0])
         self._circuit = qc
         return self._circuit
-
-    #
-    # def _execute_rotation(self,shots):
-    #     self._construct_rotation_circuit()
-    #     shots = shots
-    #     backend = self._backend
-    #     if backend == "local_qasm_simulator" and shots == 1:
-    #         self._circuit.snapshot("1")
-    #         result = execute(self._circuit, backend=backend,
-    #                          shots=shots,config={
-    #                              "data":["hide_statevector","quantum_state_ket"]}).result()
-    #         sv = result.get_data()["snapshots"]["1"]["quantum_state_ket"][0]
-    #         res_dict = []
-    #         for d in sv.keys():
-    #                 if self._negative_evals:
-    #                     num = sum([2 ** -(i + 2)
-    #                         for i, e in enumerate(reversed(d.split()[-1][:-1])) if e == "1"])
-    #                     if d.split()[-1][-1] == '1':
-    #                         num *= -1
-    #                         if '1' not in d.split()[-1][:-1]:
-    #                             num = -0.5
-    #                 else:
-    #                     num = sum([2 ** -(i + 1)
-    #                         for i, e in enumerate(reversed(d.split()[-1])) if e == "1"])
-    #                 if self._evo_time is not None:
-    #                     num *= 2*np.pi/self._evo_time
-    #                 if d.split()[0] == '1':
-    #                     res_dict.append(("Anc 1",num, sv[d][0],d))
-    #                 else:
-    #                     res_dict.append(("Anc 0",num, sv[d][0],d))
-    #         self._ret = res_dict
-    #         return res_dict
-    #     elif backend == "local_qasm_simulator":
-    #         self._set_measurement()
-    #         result = execute(self._circuit,
-    #                          backend=backend, shots=shots).result()
-    #
-    #         rd = result.get_counts(self._circuit)
-    #         rets = sorted([[rd[k], k, k] for k in rd])[::-1]
-    #         # return rets
-    #         for d in rets:
-    #             print(d)
-    #             d[0] /= shots
-    #             d[0] = np.sqrt(d[0])
-    #             # split registers which are white space separated and decode
-    #             c1, c2 = d[2].split()
-    #             c2_ = sum([2 ** -(i + 1)
-    #                        for i, e in enumerate(reversed(c2)) if e == "1"])
-    #             d[2] = ' '.join([c1, str(c2_)])
-    #         self._ret = rets
-    #         return rets
-    #     elif backend == "local_statevector_simulator":
-    #         result = execute(self._circuit, "local_statevector_simulator")
-    #         sv = result.result().get_data()["statevector"]
-    #         self._ret = sv
-    #         return sv
-    #     else:
-    #         raise RuntimeError("Backend not implemented yet") 
