@@ -184,7 +184,6 @@ class QPE(Eigenvalues):
         else:
             ne_qfts = [None, None]
 
-
         self.init_args(
             operator, iqft, num_time_slices, num_ancillae,
             paulis_grouping=paulis_grouping, expansion_mode=expansion_mode,
@@ -211,6 +210,28 @@ class QPE(Eigenvalues):
         self._ne_qfts = ne_qfts
         self._ret = {}
 
+        self._init_constants()
+
+    def _init_constants(self):
+        # estimate evolution time
+        self._operator._check_representation('paulis')
+        paulis = self._operator.paulis
+        if self._evo_time == None:
+            lmax = sum([abs(p[0]) for p in self._operator.paulis])
+            if not self._negative_evals:
+                self._evo_time = (1-2**-self._num_ancillae)*2*np.pi/lmax
+            else:
+                self._evo_time = (1/2-2**-self._num_ancillae)*2*np.pi/lmax
+
+        # check for identify paulis to get its coef for applying global phase shift on ancillae later
+        num_identities = 0
+        for p in self._operator.paulis:
+            if np.all(p[1].v == 0) and np.all(p[1].w == 0):
+                num_identities += 1
+                if num_identities > 1:
+                    raise RuntimeError('Multiple identity pauli terms are present.')
+                self._ancilla_phase_coef = p[0].real if isinstance(p[0], complex) else p[0]
+
     def get_register_sizes(self):
         return self._operator.num_qubits, self._num_ancillae
 
@@ -227,8 +248,6 @@ class QPE(Eigenvalues):
         q = register
 
         qc = QuantumCircuit(a, q)
-
-        self._setup_constants()
 
         # Put all ancillae in uniform superposition
         qc.u2(0, np.pi, a)
@@ -268,26 +287,6 @@ class QPE(Eigenvalues):
         self._output_register = a
         self._input_register = q
         return self._circuit
-
-    def _setup_constants(self):
-        # estimate evolution time
-        self._operator._check_representation('paulis')
-        paulis = self._operator.paulis
-        if self._evo_time == None:
-            lmax = sum([abs(p[0]) for p in self._operator.paulis])
-            if not self._negative_evals:
-                self._evo_time = (1-2**-self._num_ancillae)*2*np.pi/lmax
-            else:
-                self._evo_time = (1/2-2**-self._num_ancillae)*2*np.pi/lmax
-
-        # check for identify paulis to get its coef for applying global phase shift on ancillae later
-        num_identities = 0
-        for p in self._operator.paulis:
-            if np.all(p[1].v == 0) and np.all(p[1].w == 0):
-                num_identities += 1
-                if num_identities > 1:
-                    raise RuntimeError('Multiple identity pauli terms are present.')
-                self._ancilla_phase_coef = p[0].real if isinstance(p[0], complex) else p[0]
 
     def _handle_negative_evals(self, qc, q):
         sgn = q[0]

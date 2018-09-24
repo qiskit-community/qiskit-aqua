@@ -16,6 +16,7 @@
 # =============================================================================
 
 from .reciprocal import Reciprocal
-from .lookuptable import LookupTable
+# from .lookuptable import LookupTable
+from .lookup_rotation import LookupRotation
 
-__all__ = ['LookupTable', 'Reciprocal']
+__all__ = ['LookupRotation', 'Reciprocal']

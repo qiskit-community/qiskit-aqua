@@ -1,42 +1,91 @@
-from qiskit_aqua import run_algorithm
-from qiskit_aqua.input import get_input_instance
-from qiskit_aqua import get_eigs_instance
-
-from qiskit_aqua.utils import random_hermitian, random_non_hermitian
-
+from qiskit_aqua.algorithms.single_sample.hhl import QPE
+from qiskit_aqua import Operator
+from qiskit_aqua.utils import random_hermitian
+import scipy
+from qiskit import register
 import numpy as np
+from qiskit import available_backends
 
-matrix = random_hermitian(2, eigrange=(-5, 5))
+import matplotlib.pyplot as plt
 
-if np.allclose(matrix, matrix.T.conj()):
-    w, v = np.linalg.eigh(matrix)
-    negative_evals = min(w) < 0
-    hermitian_matrix = True
-    invec = sum([v[:,i] for i in range(len(w))])
-else:
-    u, s, v = np.linalg.svd(matrix)
-    negative_evals = True
-    hermitian_matrix = False
-    invec = matrix.shape[0]*[1]
+qpe = QPE()
+n = 2
+k = 6
+nege = True
 
+#matrix = random_hermitian(n, eigrange=[-5, 5], sparsity=0.6)
+matrix = np.diag([-1.5, 1.7])
+#np.save("mat.npy", matrix)
+#matrix = np.load("mat.npy")
+print(matrix)
+
+w, v = np.linalg.eigh(matrix) 
+print("Eigenvalues:", w)
+
+invec = sum([v[:,i] for i in range(n)])
 invec /= np.sqrt(invec.dot(invec.conj()))
-if invec.dtype == np.complex128:
-    invec = list(map(lambda x: [x.real, x.imag], invec))
 
 params = {
-    'algorithm': {'name': 'EigenvalueEstimation'},
-    'eigs': {
-        'name': 'QPE', 
-        'num_ancillae': 6, 
-        'negative_evals': negative_evals,
-        'hermitian_matrix': hermitian_matrix,
-        'num_time_slices': 100,
-        'expansion_mode': 'trotter',
-        'expansion_order': '1'
+    'algorithm': {
+            'name': 'QPE',
+            'num_ancillae': k,
+            'num_time_slices': 1,
+            'expansion_mode': 'trotter',
+            'expansion_order': 1,
+            'hermitian_matrix': True,
+            'negative_evals': nege,
+            'backend' : "local_qasm_simulator",
+            #'evo_time': 2*np.pi/4,
+            #'use_basis_gates': False,
     },
-    'initial_state': {'name': 'CUSTOM', 'state_vector': invec},
-    'backend': {'name': 'local_qasm_simulator'}
+    "iqft": {
+        "name": "STANDARD"
+    },
+    "initial_state": {
+        "name": "CUSTOM",
+        "state_vector": invec
+    }
 }
 
-result = run_algorithm(params, matrix)
-result["visualization"]()
+qpe.init_params(params, matrix)
+
+qc = qpe._compute_eigenvalue()
+res = qpe._ret
+
+print("Results:", res["measurements"][:10])
+print("Evolution time 2Pi/t:", 2*np.pi/res["evo_time"])
+
+def plot_res_and_theory(res):
+    def theory(y, w, k, n, t):
+        r = np.abs(sum([(1-np.exp(1j*(2**k*wi*t-2*np.pi*y)))/
+            (1-np.exp(1j*(wi*t-2*np.pi*y/2**k))) for wi in w]))
+        r[np.isnan(r)] = 2**k
+        r = 2**(-2*k-n)*r**2
+        r/=sum(r)
+        return r
+
+    x = []
+    y = []
+    for c, _, l in res["measurements"]:
+        x += [l]
+        y += [c]
+
+    ty = np.arange(0, 2**k, 1)
+    data = theory(ty, w.real, k, n, res["evo_time"])
+    
+    if nege:
+        tx = np.arange(0, 2**k, 1)/2**k
+        tx[2**(k-1):] = -(1-tx[2**(k-1):])
+        tx *= 2*np.pi/res["evo_time"]
+        tx =   np.concatenate((tx[2**(k-1):], tx[:2**(k-1)])) 
+        data = np.concatenate((data[2**(k-1):], data[:2**(k-1)])) 
+    else:
+        tx = np.arange(0, 2**k, 1)/2**k
+        tx *= 2*np.pi/res["evo_time"]
+
+    plt.bar(x, y, width=2*np.pi/res["evo_time"]/2**k)
+    plt.plot(tx, data, "r")
+
+    plt.show()
+
+plot_res_and_theory(res)
