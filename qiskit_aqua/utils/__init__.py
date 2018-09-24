@@ -24,6 +24,7 @@ from .decimal_to_binary import decimal_to_binary
 from .summarize_circuits import summarize_circuits
 from .cnx import cnx
 from .cnu1 import cnu1
+from .cnu3 import cnu3
 from .cnx_no_anc import cnx_na
 from .entangler_map import get_entangler_map, validate_entangler_map
 
@@ -41,6 +42,7 @@ __all__ = ['tensorproduct',
            'summarize_circuits',
            'cnx',
            'cnu1',
+           'cnu3',
            'cnx_na',
            'get_entangler_map',
            'validate_entangler_map']
