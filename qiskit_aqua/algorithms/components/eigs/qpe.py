@@ -113,7 +113,7 @@ class QPE(Eigenvalues):
     }
 
     def __init__(self, configuration=None):
-        self._configuration = configuration or self.QPE_CONFIGURATION.copy()
+        super().__init__(configuration or self.QPE_CONFIGURATION.copy())
         self._operator = None
         self._num_time_slices = 0
         self._paulis_grouping = None
@@ -121,15 +121,9 @@ class QPE(Eigenvalues):
         self._expansion_order = None
         self._num_ancillae = 0
         self._ancilla_phase_coef = 0
-        self._input_register = None
-        self._circuit = None
-        self._circuit_data = None
-        self._inverse = None
-        self._state_circuit_length = 0
-        self._ret = {}
-        self._matrix_dim = True
         self._hermitian_matrix = True
         self._ne_qfts = [None, None]
+        self._ret = {}
 
     def init_params(self, params, matrix):
         """
@@ -155,12 +149,8 @@ class QPE(Eigenvalues):
         negative_evals = params.get(QPE.PROP_NEGATIVE_EVALS)
         iqft_params = params.get(QPE.PROP_IQFT)
 
-        if hermitian_matrix:
-            negative_evals = True
-
         # Extending the operator matrix, if the dimension is not in 2**n
         if np.log2(matrix.shape[0]) % 1 != 0:
-            matrix_dim = True
             next_higher = int(np.ceil(np.log2(matrix.shape[0])))
             new_matrix = np.identity(2**next_higher)
             new_matrix = np.array(new_matrix, dtype = complex)
@@ -277,7 +267,6 @@ class QPE(Eigenvalues):
         self._circuit = qc
         self._output_register = a
         self._input_register = q
-        self._circuit_data = deepcopy(qc.data)
         return self._circuit
 
     def _setup_constants(self):
@@ -309,9 +298,3 @@ class QPE(Eigenvalues):
         for i, qi in enumerate(reversed(qs)):
             qc.cu1(2*np.pi/2**(i+1), sgn, qi)
         self._ne_qfts[1].construct_circuit('circuit', qs, qc)
-
-    def construct_inverse(self, mode):
-        if mode == "vector":
-            raise NotImplementedError("Mode vector not supported for construct_inverse")
-        elif mode == "circuit":
-            return QuantumCircuit(self._input_register, self._output_register)

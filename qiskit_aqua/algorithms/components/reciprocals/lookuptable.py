@@ -22,7 +22,7 @@ from qiskit_aqua.algorithms.components.reciprocals import Reciprocal
 class LookupTable(Reciprocal):
     """An approximated lookup table method for calculating the reciprocal."""
 
-    STANDARD_CONFIGURATION = {
+    LOOKUP_CONFIGURATION = {
         'name': 'LOOKUP',
         'description': 'Approximate LookupTable',
         'input_schema': {
@@ -44,7 +44,7 @@ class LookupTable(Reciprocal):
     }
 
     def __init__(self, configuration=None):
-        super().__init__(configuration or self.STANDARD_CONFIGURATION.copy())
+        super().__init__(configuration or self.LOOKUP_CONFIGURATION.copy())
         self._error = None
         self._C = None
         self._ancilla_register = None

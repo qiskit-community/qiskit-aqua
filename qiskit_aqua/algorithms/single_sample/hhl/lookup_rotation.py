@@ -88,6 +88,7 @@ class LUP_ROTATION(object):
         self._subpat_length = 0
         self._negative_evals = True
         self._backend = None
+        self._number_basic_gates = 0
 
     def init_params(self, params):
         """
@@ -242,8 +243,9 @@ class LUP_ROTATION(object):
 
         return output
 
-    def _set_msb(self, msb, ev, msb_num, last_iteration=False):
+    def _set_msb(self, msb, ev_reg, msb_num, last_iteration=False):
         qc = self._circuit
+        ev = [ev_reg[i] for i in range(len(ev_reg))]
         #last_iteration = no MSB set, only the n-bit long pattern
         if last_iteration:
             if msb_num == 1:
@@ -259,7 +261,7 @@ class LUP_ROTATION(object):
             elif msb_num > 2:
                 for idx in range(msb_num):
                     qc.x(ev[idx])
-                self.nc_toffoli(ev, msb[0], int(msb_num), 0)
+                qc.cnx(ev[:msb_num], msb[0])
                 for idx in range(msb_num):
                     qc.x(ev[idx])
             else:
@@ -273,7 +275,7 @@ class LUP_ROTATION(object):
         elif msb_num > 1:
             for idx in range(msb_num):
                 qc.x(ev[idx])
-            self.nc_toffoli(ev, msb[0], int(msb_num + 1), 0)
+            qc.cnx(ev[:msb_num+1], msb[0])
             for idx in range(msb_num):
                 qc.x(ev[idx])
         else:
@@ -327,15 +329,16 @@ class LUP_ROTATION(object):
         self._workq = QuantumRegister(1, 'work')
         self._msb = QuantumRegister(1, 'msb')
         self._anc = QuantumRegister(1, 'anc')
-        self._circuit += (QuantumCircuit(self._anc))
         self._circuit += (QuantumCircuit(self._msb))
         self._circuit += (QuantumCircuit(self._workq))
+        self._circuit += (QuantumCircuit(self._anc))
 
         qc = self._circuit
         
         #only executed on standalone rotation w/ QPE
         if self._state_in is not None:
             qc += self._state_in.construct_circuit('circuit', self._ev)
+        number_init_basic_gates = qc.number_atomic_gates()
       
         m = self._subpat_length
         n = self._pat_length
@@ -404,7 +407,7 @@ class LUP_ROTATION(object):
             
         #rotate by pi to fix sign for negative evals
         if self._negative_evals: qc.cu3(2*np.pi,0,0,self._ev[0],self._anc[0])
-        
+        self._number_basic_gates = qc.number_atomic_gates()-number_init_basic_gates
         return qc
 
     def _execute_rotation(self,shots):
@@ -431,7 +434,7 @@ class LUP_ROTATION(object):
                             for i, e in enumerate(reversed(d.split()[-1])) if e == "1"])
                     if self._evo_time is not None:
                         num *= 2*np.pi/self._evo_time
-                    if d.split()[2] == '1':
+                    if d.split()[0] == '1':
                         res_dict.append(("Anc 1",num, sv[d][0],d))
                     else:
                         res_dict.append(("Anc 0",num, sv[d][0],d))
