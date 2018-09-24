@@ -5,53 +5,53 @@ from qiskit_aqua import Operator, run_algorithm
 from qiskit_aqua.input import get_input_instance
 from qiskit_aqua import get_eigs_instance, get_reciprocal_instance
 
-from qiskit_aqua.algorithms.single_sample.hhl.hhl import HHL
-
 from qiskit_aqua.utils import random_hermitian, random_non_hermitian
 
 from qiskit.tools.visualization import plot_circuit
 
+import numpy as np
+
 # from qiskit_aqua.algorithms.components.reciprocals.lookup_rotation import LookupRotation
 
 params = {
-    "evo_time": 1,
-    "reg_size": 4,
-    "pat_length": 3,
-    "subpat_length": 2
+    "algorithm": {
+        "name": "HHL"
+    },
+    "eigs": {
+        "name": "QPE",
+        "num_time_slices": 1,
+        "expansion_mode": "trotter",
+        "negative_evals": False,
+        "num_ancillae": 8,
+    },
+    "initial_state": {
+        "name": "CUSTOM",
+        "state_vector": [1, 1]
+    },
+    "reciprocal": {
+        "name": "LOOKUP",
+        "scale": 2**6
+    }
 }
 
-def init_int(num, qc, q):
-    s = "{:b}".format(num).rjust(len(q), "0")
-    for i, b in enumerate(reversed(s)):
-        if b == "1":
-            qc.x(q[i])
+matrix = random_hermitian(2, eigrange=(1, 4), trunc=2)
+print(np.linalg.eig(matrix))
+# matrix = np.array([[1, 0], [0, 3]])
 
-for i in range(1, 2**params["reg_size"]):
-    rp = get_reciprocal_instance("LOOKUP_ROT")
-    rp.init_params(params)
-    q = QuantumRegister(params["reg_size"])
-    qc = QuantumCircuit(q)
-    init_int(i, qc, q)
-    qc += rp.construct_circuit("circuit", q)
-    qc.snapshot("1")
+qc = run_algorithm(params, matrix)
+# plot_circuit(qc)
+qc.snapshot("-1")
 
-    res = execute(qc, "local_qasm_simulator", config={"data":
-        ["quantum_state_ket"]}, shots=1).result()
-    print(res.get_snapshot("1").get("quantum_state_ket"))
+res = execute(qc, "local_qasm_simulator", config={"data":
+    ["quantum_state_ket"]}, shots=100).result()
+# print(res.get_snapshot("1").get("quantum_state_ket"))
+# print()
+qsks = res.get_snapshot("-1").get("quantum_state_ket")
+qsk = next(e for e in qsks if list(e.keys())[0][0] == "1")
+qsk = {k[-1]: v[0]+1j*v[1] for k, v in qsk.items()}
+v = np.array([qsk['0'], qsk['1']])
+print(matrix)
+print(np.linalg.inv(matrix).dot(np.array([1, 1])))
+print(v, matrix.dot(v))
 
-# params = {
-#     "algorithm": {
-#         "name": "HHL"
-#     },
-#     "eigs": {
-#         "name": "QPE",
-#         "num_time_slices": 1,
-#         "expansion_mode": "trotter",
-#         "negative_evals": False,
-#         "num_ancillae": 3,
-#     }
-# }
-#
-# matrix = random_hermitian(2, trunc=2)
-#
-# qc = run_algorithm(params, matrix)
+

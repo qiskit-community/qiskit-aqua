@@ -34,42 +34,35 @@ logger = logging.getLogger(__name__)
 class LookupRotation(Reciprocal):
     """Partial table lookup to rotate ancilla qubit"""
 
-    PROP_EVO_TIME = 'evo_time'
-    PROP_REG_SIZE = 'reg_size'
     PROP_PAT_LENGTH = 'pat_length'
     PROP_SUBPAT_LENGTH = 'subpat_length'
     PROP_NEGATIVE_EVALS = 'negative_evals'
+    PROP_SCALE = 'scale'
 
     LOOKUP_CONFIGURATION = {
-        'name': 'LOOKUP_ROT',
+        'name': 'LOOKUP',
         'description': 'approximate inversion for HHL based on table lookup',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
             'id': 'reciprocal_lookup_schema',
             'type': 'object',
             'properties': {
-                PROP_EVO_TIME: {
-                    'type': 'number',
-                },
-                PROP_REG_SIZE: {
-                    'type': 'integer',
-                    'default': 2,
-                    'minimum': 2
-                },
                 PROP_PAT_LENGTH: {
-                    'type': 'integer',
-                    'default': 4,
-                    'minimum': 0
+                    'type': ['integer', 'null'],
+                    'default': None,
                 },
                 PROP_SUBPAT_LENGTH: {
-                    'type': 'integer',
-                    'default': 3,
-                    'minimum': 0
+                    'type': ['integer', 'null'],
+                    'default': None,
                 },
                 PROP_NEGATIVE_EVALS: {
-                    'type': 'bool',
+                    'type': 'boolean',
                     'default': False
                 },
+                PROP_SCALE: {
+                    'type': 'number',
+                    'default': 1,
+                }
             },
             'additionalProperties': False
         },
@@ -85,16 +78,15 @@ class LookupRotation(Reciprocal):
         self._reg_size = 0
         self._pat_length = 0
         self._subpat_length = 0
-        self._evo_time = 0
         self._negative_evals = False
+        self._scale = 0
 
-    def init_args(self, evo_time, reg_size=0, pat_length=0, subpat_length=0, 
+    def init_args(self, pat_length=0, subpat_length=0, scale=0,
             negative_evals=False):
-        self._evo_time = evo_time
-        self._reg_size = reg_size
         self._pat_length = pat_length
         self._subpat_length = subpat_length
         self._negative_evals = negative_evals
+        self._scale = scale
 
     @staticmethod
     def classic_approx(k, n, m, negative_evals=False):
@@ -219,18 +211,6 @@ class LookupRotation(Reciprocal):
         else:
             raise RuntimeError("MSB register index < 0")
 
-    def _set_measurement(self):
-        qc = self._circuit
-        if 'c_ev' not in list(qc.regs.keys()):
-            self.c_ev = ClassicalRegister(self._reg_size, 'c_ev')
-            qc.add(self.c_ev)
-        if 'c_anc' not in list(qc.regs.keys()):
-            self.c_anc = ClassicalRegister(1, 'c_anc')
-            qc.add(self.c_anc)
-            
-        qc.measure(self._anc, self.c_anc)
-        qc.measure(self._ev, self.c_ev)
-
     def _set_bit_pattern(self, pattern, tgt, offset):
         qc = self._circuit
         for c, i in enumerate(pattern):
@@ -270,6 +250,11 @@ class LookupRotation(Reciprocal):
         qc = QuantumCircuit(self._ev, self._workq, self._msb, self._anc)
         self._circuit = qc
  
+        self._reg_size = len(inreg)
+        if self._pat_length is None:
+            self._pat_length = self._reg_size - (2 if self._negative_evals else 1)
+        if self._subpat_length is None:
+            self._subpat_length = int(np.ceil(self._pat_length/2))
         m = self._subpat_length
         n = self._pat_length
         k = self._reg_size
@@ -312,7 +297,8 @@ class LookupRotation(Reciprocal):
                 for subpattern, lambda_ in zip(subpat, lambda_ar):
                     
                     #calculate rotation angle
-                    theta =  np.arcsin(2 ** int(-k) / lambda_)
+                    theta =  np.arcsin(min(1, 2 ** int(-k) * self._scale
+                        / lambda_))
                     #offset for ncx gate checking subpattern
                     offset = msb + 1 if msb < k - n else msb
                 

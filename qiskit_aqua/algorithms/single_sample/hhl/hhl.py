@@ -26,6 +26,8 @@ from qiskit_aqua import QuantumAlgorithm
 from qiskit_aqua import get_eigs_instance, get_reciprocal_instance, get_initial_state_instance
 import numpy as np
 
+import qiskit.extensions.simulator
+
 logger = logging.getLogger(__name__)
 
 
@@ -139,6 +141,8 @@ class HHL(QuantumAlgorithm):
 
        
     def _construct_circuit(self):
+        snap = True
+
         q = QuantumRegister(self._num_q)
         c = ClassicalRegister(1)
         qc = QuantumCircuit(q, c)
@@ -146,18 +150,25 @@ class HHL(QuantumAlgorithm):
         # InitialState
         qc += self._init_state.construct_circuit("circuit", q)
 
+        if snap: qc.snapshot("0")
+
         # EigenvalueEstimation (QPE)
         qc += self._eigs.construct_circuit("circuit", q)
         a = self._eigs._output_register
 
+        if snap: qc.snapshot("1")
+
         # Reciprocal calculation with rotation
-        qc += self._reciprocal.construct_circuit("circuit", a,
-                self._eigs.get_scaling())
-        s = self._reciprocal._ancilla_register
+        qc += self._reciprocal.construct_circuit("circuit", a)
+        s = self._reciprocal._anc
+
+        if snap: qc.snapshot("2")
 
         # Inverse EigenvalueEstimation
         qc += self._eigs.construct_inverse("circuit")
         
+        if snap: qc.snapshot("3")
+
         # Measurement of the ancilla qubit
         qc.measure(s, c)
 
