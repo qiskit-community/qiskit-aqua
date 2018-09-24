@@ -113,7 +113,7 @@ class QPE(Eigenvalues):
     }
 
     def __init__(self, configuration=None):
-        self._configuration = configuration or self.QPE_CONFIGURATION.copy()
+        super().__init__(configuration or self.QPE_CONFIGURATION.copy())
         self._operator = None
         self._num_time_slices = 0
         self._paulis_grouping = None
@@ -121,16 +121,9 @@ class QPE(Eigenvalues):
         self._expansion_order = None
         self._num_ancillae = 0
         self._ancilla_phase_coef = 0
-        self._output_register = None
-        self._circuit = None
-        self._circuit_data = None
-        self._inverse = None
-        self._state_circuit_length = 0
-        self._ret = {}
-        self._matrix_dim = True
         self._hermitian_matrix = True
-        self._negative_evals = True
         self._ne_qfts = [None, None]
+        self._ret = {}
 
     def init_params(self, params, matrix):
         """
@@ -156,12 +149,8 @@ class QPE(Eigenvalues):
         negative_evals = params.get(QPE.PROP_NEGATIVE_EVALS)
         iqft_params = params.get(QPE.PROP_IQFT)
 
-        if hermitian_matrix:
-            negative_evals = True
-
         # Extending the operator matrix, if the dimension is not in 2**n
         if np.log2(matrix.shape[0]) % 1 != 0:
-            matrix_dim = True
             next_higher = int(np.ceil(np.log2(matrix.shape[0])))
             new_matrix = np.identity(2**next_higher)
             new_matrix = np.array(new_matrix, dtype = complex)
@@ -195,7 +184,6 @@ class QPE(Eigenvalues):
         else:
             ne_qfts = [None, None]
 
-
         self.init_args(
             operator, iqft, num_time_slices, num_ancillae,
             paulis_grouping=paulis_grouping, expansion_mode=expansion_mode,
@@ -222,6 +210,34 @@ class QPE(Eigenvalues):
         self._ne_qfts = ne_qfts
         self._ret = {}
 
+        self._init_constants()
+
+    def _init_constants(self):
+        # estimate evolution time
+        self._operator._check_representation('paulis')
+        paulis = self._operator.paulis
+        if self._evo_time == None:
+            lmax = sum([abs(p[0]) for p in self._operator.paulis])
+            if not self._negative_evals:
+                self._evo_time = (1-2**-self._num_ancillae)*2*np.pi/lmax
+            else:
+                self._evo_time = (1/2-2**-self._num_ancillae)*2*np.pi/lmax
+
+        # check for identify paulis to get its coef for applying global phase shift on ancillae later
+        num_identities = 0
+        for p in self._operator.paulis:
+            if np.all(p[1].v == 0) and np.all(p[1].w == 0):
+                num_identities += 1
+                if num_identities > 1:
+                    raise RuntimeError('Multiple identity pauli terms are present.')
+                self._ancilla_phase_coef = p[0].real if isinstance(p[0], complex) else p[0]
+
+    def get_register_sizes(self):
+        return self._operator.num_qubits, self._num_ancillae
+
+    def get_scaling(self):
+        return self._evo_time
+
     def construct_circuit(self, mode, register):
         """Implement the Quantum Phase Estimation algorithm"""
 
@@ -232,8 +248,6 @@ class QPE(Eigenvalues):
         q = register
 
         qc = QuantumCircuit(a, q)
-
-        self._setup_constants()
 
         # Put all ancillae in uniform superposition
         qc.u2(0, np.pi, a)
@@ -271,28 +285,8 @@ class QPE(Eigenvalues):
 
         self._circuit = qc
         self._output_register = a
-        self._circuit_data = deepcopy(qc.data)
+        self._input_register = q
         return self._circuit
-
-    def _setup_constants(self):
-        # estimate evolution time
-        self._operator._check_representation('paulis')
-        paulis = self._operator.paulis
-        if self._evo_time == None:
-            lmax = sum([abs(p[0]) for p in self._operator.paulis])
-            if not self._negative_evals:
-                self._evo_time = (1-2**-self._num_ancillae)*2*np.pi/lmax
-            else:
-                self._evo_time = (1/2-2**-self._num_ancillae)*2*np.pi/lmax
-
-        # check for identify paulis to get its coef for applying global phase shift on ancillae later
-        num_identities = 0
-        for p in self._operator.paulis:
-            if np.all(p[1].v == 0) and np.all(p[1].w == 0):
-                num_identities += 1
-                if num_identities > 1:
-                    raise RuntimeError('Multiple identity pauli terms are present.')
-                self._ancilla_phase_coef = p[0].real if isinstance(p[0], complex) else p[0]
 
     def _handle_negative_evals(self, qc, q):
         sgn = q[0]
@@ -303,11 +297,3 @@ class QPE(Eigenvalues):
         for i, qi in enumerate(reversed(qs)):
             qc.cu1(2*np.pi/2**(i+1), sgn, qi)
         self._ne_qfts[1].construct_circuit('circuit', qs, qc)
-
-    def construct_inverse(self):
-        if self._inverse == None:
-            self._inverse = QuantumCircuit()
-            self._inverse.regs = self._circuit.regs
-            self._inverse.data = list(reversed(self._circuit_data))[:-self._initial_circuit_length]
-            self._inverse.data = list(map(lambda x: x.inverse(), self._inverse.data))
-        return self._inverse

@@ -19,6 +19,7 @@ This module contains the definition of a base class for eigenvalue estimators.
 """
 from abc import ABC, abstractmethod
 
+from qiskit import QuantumCircuit
 
 class Eigenvalues(ABC):
 
@@ -31,11 +32,16 @@ class Eigenvalues(ABC):
         Args:
             configuration (dict): configuration dictionary
     """
-
+    
     @abstractmethod
     def __init__(self, configuration=None):
         self._configuration = configuration
-
+        self._negative_evals = False
+        self._output_register = None
+        self._input_register = None
+        self._circuit = None
+        self._inverse = None
+    
     @property
     def configuration(self):
         """Return configuration"""
@@ -47,6 +53,14 @@ class Eigenvalues(ABC):
 
     @abstractmethod
     def init_args(self, **args):
+        raise NotImplementedError()
+    
+    @abstractmethod
+    def get_register_sizes(self):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get_scaling(self):
         raise NotImplementedError()
 
     @abstractmethod
@@ -66,7 +80,20 @@ class Eigenvalues(ABC):
         """
         raise NotImplementedError()
 
-    @abstractmethod
-    def construct_inverse(self):
+    def construct_inverse(self, mode):
         """ Construct the inverse to construct_circuit """
+        if mode == "vector":
+            raise NotImplementedError("Mode vector not supported by"
+                    "construct_inverse.")
+        if self._inverse is None:
+            if self._circuit is None:
+                raise ValueError("Circuit was not constructed beforehand.")
+            qc = QuantumCircuit(self._input_register, self._output_register)
+            for gate in reversed(self._circuit.data):
+                gate.reapply(qc)
+                qc.data[-1].inverse()
+            self._inverse = qc
+        return self._inverse
+            
+
 

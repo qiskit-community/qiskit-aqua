@@ -27,7 +27,7 @@ class CNXGate(CompositeGate):
 
     def reapply(self, circ):
         """Reapply this gate to corresponding qubits in circ."""
-        ctl_bits = [x for x in self.arg[:self.param]]
+        ctl_bits = [x for x in self.arg[:self.param[0]]]
         tgt_bits = self.arg[-1]
         self._modifiers(circ.cnx(ctl_bits, tgt_bits))
 
