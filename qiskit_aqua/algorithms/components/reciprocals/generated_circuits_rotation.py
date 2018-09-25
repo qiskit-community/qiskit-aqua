@@ -22,6 +22,7 @@ from qiskit_aqua.utils import cnx_na, cnu3
 
 import numpy as np
 import math
+import os
 
 import logging
 
@@ -85,7 +86,9 @@ class GeneratedCircuit(Reciprocal):
         ev_reg = self._ev
         rec_reg = self._rec
         offset = self._offset
-        with open("../AutomatedCircuit/intdiv-esop0-rec{}.txt" .format(n), "r") as f:
+        import os 
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        with open(dir_path+"/GenCirc/intdiv-esop0-rec{}.txt" .format(n), "r") as f:
             data = f.readlines()
 
         #for negative eigenvalues, we ignore the first bit in the eigenvalue register
