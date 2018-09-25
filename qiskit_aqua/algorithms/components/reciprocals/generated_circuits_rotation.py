@@ -1,6 +1,24 @@
+# -*- coding: utf-8 -*-
+
+# Copyright 2018 IBM.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# =============================================================================
+
 from qiskit import QuantumRegister, QuantumCircuit
 
 from qiskit_aqua.algorithms.components.reciprocals import Reciprocal
+from qiskit_aqua.utils import cnx_na, cnu3
 
 import numpy as np
 import math
@@ -33,8 +51,8 @@ class GeneratedCircuit(Reciprocal):
                     'default': False
                 },
                 PROP_SCALE:{
-                    'type': 'number'
-                    'default': 1,    
+                    'type': 'number',
+                    'default':1,
                 }
             },
             'additionalProperties': False
@@ -59,83 +77,19 @@ class GeneratedCircuit(Reciprocal):
         self._negative_evals = negative_evals
         self._scale = scale
 
-
-    @staticmethod
-    def _nc_toffoli(qc, ev_reg, rec_reg, ctl,tgt,ctlnumber, n):
-    '''Implement n+1-bit toffoli using the approach in Elementary gates'''
-        
-        assert ctlnumber>=3 #"This method works only for more than 2 control bits"
-        w = n-1
-        from sympy.combinatorics.graycode import GrayCode
-        gray_code = list(GrayCode(ctlnumber).generate_gray())
-        last_pattern = None
-            #angle to construct nth square root of diagonlized pauli x matrix
-            #via u1(lam_angle)
-        lam_angle = np.pi/(2**(ctlnumber-1))
-            #transform to eigenvector basis of pauli X
-        qc.h(tgt)
-        for pattern in gray_code:
-            
-            if not '1' in pattern:
-                continue
-            if last_pattern is None:
-                last_pattern = pattern
-                #find left most set bit
-            lm_pos = list(pattern).index('1')
-            #find changed bit
-            comp = [i!=j for i,j in zip(pattern,last_pattern)]
-            if True in comp:
-                pos = comp.index(True)
-            else:
-                pos = None
-            if pos is not None:
-                if pos != lm_pos:
-                    if ctl[pos] >= n and ctl[lm_pos] >= n:
-                        qc.cx(rec_reg[ctl[pos]-n], rec_reg[ctl[lm_pos]-n])
-                    elif ctl[pos]<n and ctl[lm_pos] <n:
-                        qc.cx(ev_reg[w-ctl[pos]], ev_reg[w-ctl[lm_pos]])
-                    elif ctl[pos]<n and ctl[lm_pos] >= n:
-                        qc.cx(ev_reg[w-ctl[pos]], rec_reg[ctl[lm_pos]-n])
-                    else:
-                        qc.cx(rec_reg[ctl[pos]-n], ev_reg[w-ctl[lm_pos]])
-                else:
-                    indices = [i for i, x in enumerate(pattern) if x == '1']
-                    for idx in indices[1:]:
-                        if ctl[idx] >= n and ctl[lm_pos] >= n:
-                            qc.cx(rec_reg[ctl[idx]-n], rec_reg[ctl[lm_pos]-n])
-                        elif ctl[idx]<n and ctl[lm_pos] <n:
-                            qc.cx(ev_reg[w-ctl[idx]], ev_reg[w-ctl[lm_pos]])
-                        elif ctl[idx]<n and ctl[lm_pos] >= n:
-                            qc.cx(ev_reg[w-ctl[idx]], rec_reg[ctl[lm_pos]-n])
-                        else:
-                            qc.cx(rec_reg[ctl[idx]-n], ev_reg[w-ctl[lm_pos]])
-                #check parity
-            if pattern.count('1') % 2 == 0:
-                #inverse
-                if ctl[lm_pos] < n:
-                    qc.cu1(-lam_angle,ev_reg[w-ctl[lm_pos]],tgt)
-                else:
-                    qc.cu1(-lam_angle,rec_reg[ctl[lm_pos]-n],tgt)
-            else:
-                if ctl[lm_pos] < n:
-                    qc.cu1(lam_angle,ev_reg[w-ctl[lm_pos]],tgt)
-                else:
-                    qc.cu1(lam_angle,rec_reg[ctl[lm_pos]-n],tgt)
-            last_pattern = pattern
-        qc.h(tgt)
-
     def _parse_circuit(self):
         # Parse the pre-generated circuit with specified number of qubits
 
         n = self._num_ancillae
         qc = self._circuit
-        ev_reg = self._ev[self._offset:]
+        ev_reg = self._ev
         rec_reg = self._rec
-
-        with open("intdiv-esop0-rec{}.txt" .format(n), "r") as f:
+        offset = self._offset
+        with open("../AutomatedCircuit/intdiv-esop0-rec{}.txt" .format(n), "r") as f:
             data = f.readlines()
 
-        w = n-1
+        #for negative eigenvalues, we ignore the first bit in the eigenvalue register
+        w = n-1+offset
         for i in range(len(data)):
             ctl = []
             xgate = []
@@ -180,24 +134,19 @@ class GeneratedCircuit(Reciprocal):
                         sign = False
             ctl.pop(0)
             ctl.pop(-1)
+            for i in range(len(ctl)):
+                if ctl[i] < n:
+                    ctl[i] = ev_reg[w-ctl[i]]
+                else:
+                    ctl[i] = rec_reg[ctl[i] - n]
             if ctlnumber == 0: #single not gate
                 qc.x(tgt)
             elif ctlnumber == 1: #cnot gate
-                if ctl[0] >= n:
-                    qc.cx(rec_reg[ctl[0] - n], tgt)
-                else:
-                    qc.cx(ev_reg[w-ctl[0]], tgt)
+                qc.cx(ctl[0], tgt)
             elif ctlnumber == 2: #toffoli gate
-                if ctl[0] >= n and ctl[1] >= n:
-                    qc.ccx(rec_reg[ctl[0]-n], rec_reg[ctl[1]-n], tgt)
-                elif ctl[0]<n and ctl[1] <n:
-                    qc.ccx(ev_reg[w-ctl[0]], ev_reg[w-ctl[1]], tgt)
-                elif ctl[0]<n and ctl[1] >= n:
-                    qc.ccx(ev_reg[w-ctl[0]], rec_reg[ctl[1]-n], tgt)
-                else:
-                    qc.ccx(rec_reg[ctl[0]-n], ev_reg[w-ctl[1]], tgt)
+                qc.ccx(ctl[0], ctl[1], tgt)
             else: #not gates controlled with more than 2 qubits
-                nc_toffoli(qc, ev_reg, rec_reg, ctl, tgt, ctlnumber, n)
+                qc.cnx(ctl, tgt)
             for j in xgate:
                 if j >= n:
                     qc.x(rec_reg[j-n])
@@ -217,25 +166,32 @@ class GeneratedCircuit(Reciprocal):
         if self._negative_evals:
             for i in range(1, n+1):
 	            qc.cu3(self._scale*2**(-i), 0, 0, rec_reg[n-i], ancilla)
-            qc.cu3(2*np.pi,0,0,self._ev[0], ancilla)
+            qc.cu3(2*np.pi,0,0,self._ev[0], ancilla) #correcting the sign
         else:
             for i in range(1, n+1):
 	            qc.cu3(self._scale*2**(-i), 0, 0, rec_reg[n-i], ancilla)
 
         self._circuit = qc
-        self._rec = reg_rec
+        self._rec = rec_reg
         self._anc = ancilla
 
         
-    def construct_circuit(self, inreg):
+    def construct_circuit(self, mode, inreg):
         #initialize circuit
+        if mode == "vector":
+            raise NotImplementedError("mode vector not supported")
         self._ev = inreg
+        if self._negative_evals:
+            self._offset = 1        
+        self._num_ancillae = len(self._ev) - self._offset
+        if self._num_ancillae < 5:
+            raise NotImplementedError("eigenvalue register has to contain at least 5 bits")
         self._rec = QuantumRegister(self._num_ancillae, 'reciprocal')
         self._anc = QuantumRegister(1, 'anc')
         qc = QuantumCircuit(self._ev, self._rec, self._anc)
         self._circuit = qc
-        if self._negative_evals:
-            self._offset = 1
+        
+
         self._parse_circuit()
         self._rotation()
 
