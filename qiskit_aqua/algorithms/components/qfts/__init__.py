@@ -14,3 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+
+from .qft import QFT
+from .standard import Standard
+from .approximate import Approximate
+
+__all__ = ['Standard', 'Approximate', 'qft']

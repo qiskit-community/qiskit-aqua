@@ -21,20 +21,45 @@ import numpy as np
 from sklearn.metrics.pairwise import euclidean_distances
 from sklearn.multiclass import _ConstantPredictor
 
+from qiskit_aqua.algorithms.components.multiclass.multiclass_extension import MulticlassExtension
+
 logger = logging.getLogger(__name__)
 
-class ErrorCorrectingCode:
+
+class ErrorCorrectingCode(MulticlassExtension):
     """
       the multiclass extension based on the error-correcting-code algorithm.
     """
+    ErrorCorrectingCode_CONFIGURATION = {
+        'name': 'ErrorCorrectingCode',
+        'description': 'ErrorCorrectingCode extension',
+        'input_schema': {
+            '$schema': 'http://json-schema.org/schema#',
+            'id': 'error_correcting_code_schema',
+            'type': 'object',
+            'properties': {
+                'estimator': {
+                    'type': 'string',
+                    'default': 'RBF_SVC_Estimator',
+                    'oneOf': [
+                        {'enum': ['RBF_SVC_Estimator', 'QKernalSVM_Estimator']}
+                    ]
+                },
+                'code_size': {
+                    'type': 'integer',
+                    'default': 4,
+                    'minimum': 1
+                },
+            },
+            'additionalProperties': False
+        }
+    }
 
-    def __init__(self, estimator_cls, code_size=4, params=None):
-        self.estimator_cls = estimator_cls
-
-        self.code_size = code_size
+    def __init__(self, configuration=None):
+        super().__init__(configuration or self.ErrorCorrectingCode_CONFIGURATION.copy())
+        self.estimator_cls = None
+        self.params = None
         self.rand = np.random.RandomState(0)
-
-        self.params = params
 
     def train(self, X, y):
         """

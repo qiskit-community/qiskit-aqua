@@ -24,6 +24,7 @@ from qiskit_aqua.algorithms.many_sample.qsvm import (get_points_and_labels, opti
 
 logger = logging.getLogger(__name__)
 
+
 class SVM_QKernel_Binary(SVM_QKernel_ABC):
     """
     the binary classifier
@@ -96,8 +97,6 @@ class SVM_QKernel_Binary(SVM_QKernel_ABC):
                 Ltot += L
 
             Lsign[tin] = np.sign(Ltot + bias)
-
-
 
             logger.debug("\n=============================================")
             logger.debug('classifying' + str(test_points[tin]))

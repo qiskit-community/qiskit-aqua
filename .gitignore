@@ -14,7 +14,13 @@ Qconfig.py
 .vscode/
 .idea/
 
+#image data files
+svm_ocr/img/data/
+demo/svm/img/data/
+
 # Standard python ignores follow
+*.swp
+.ipynb_checkpoints/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

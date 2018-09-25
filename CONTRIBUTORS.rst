@@ -27,6 +27,7 @@ levels:
 - `Marco Pistoia <https://researcher.watson.ibm.com/researcher/view.php?person=us-pistoia>`__
 - `Julia Rice <https://researcher.watson.ibm.com/researcher/view.php?person=us-jrice>`__
 - `Raymond Harry Putra Rudy <https://researcher.watson.ibm.com/researcher/view.php?person=jp-RUDYHAR>`__
+- `Kanav Setia <https://physics.dartmouth.edu/people/kanav-setia>`__
 - `Ivano Tavernelli <https://researcher.watson.ibm.com/researcher/view.php?person=zurich-ITA>`__
 - `Stephen Wood <https://researcher.watson.ibm.com/researcher/view.php?person=us-woodsp>`__
 - `Stefan Wörner <https://researcher.watson.ibm.com/researcher/view.php?person=zurich-wor>`__

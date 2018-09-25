@@ -14,9 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+import unittest
+
+import numpy as np
 
 from test.common import QiskitAquaTestCase
-
 from qiskit_aqua import run_algorithm, get_algorithm_instance
 from qiskit_aqua.input import get_input_instance
 
@@ -113,7 +115,6 @@ class TestSVMQKernel(QiskitAquaTestCase):
        [-0.69942965,  0.11885162],
        [-0.66489165,  0.1181712 ]])}
 
-
         temp = [test_input[k] for k in test_input]
         total_array = np.concatenate(temp)
 
@@ -121,9 +122,9 @@ class TestSVMQKernel(QiskitAquaTestCase):
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
             'algorithm': {
                 'name': 'QSVM.Kernel',
-                'multiclass_alg':'one_against_all'
             },
-            'backend': {'name': 'local_qasm_simulator_py', 'shots': 1024}
+            'backend': {'name': 'local_qasm_simulator_py', 'shots': 1024},
+            'multiclass_extension': {'name': 'OneAgainstRest', 'estimator': 'QKernalSVM_Estimator'}
         }
 
         algo_input = get_input_instance('SVMInput')
@@ -134,7 +135,6 @@ class TestSVMQKernel(QiskitAquaTestCase):
         result = run_algorithm(params, algo_input)
         self.assertEqual(result['test_success_ratio'], 0.4444444444444444)
         self.assertEqual(result['predicted_labels'], ['A', 'A', 'C', 'A', 'A', 'A', 'A', 'C', 'C'])
-
 
     def test_classical_multiclass_all_pairs(self):
         training_input = {'A': np.asarray([[ 0.6560706 ,  0.17605998],
@@ -153,7 +153,6 @@ class TestSVMQKernel(QiskitAquaTestCase):
        [-0.69942965,  0.11885162],
        [-0.66489165,  0.1181712 ]])}
 
-
         temp = [test_input[k] for k in test_input]
         total_array = np.concatenate(temp)
 
@@ -161,9 +160,9 @@ class TestSVMQKernel(QiskitAquaTestCase):
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
             'algorithm': {
                 'name': 'QSVM.Kernel',
-                'multiclass_alg':'all_pairs'
             },
-            'backend': {'name': 'local_qasm_simulator_py', 'shots': 1024}
+            'backend': {'name': 'local_qasm_simulator_py', 'shots': 1024},
+            'multiclass_extension': {'name': 'AllPairs', 'estimator': 'QKernalSVM_Estimator'}
         }
 
         algo_input = get_input_instance('SVMInput')
@@ -173,7 +172,6 @@ class TestSVMQKernel(QiskitAquaTestCase):
         result = run_algorithm(params, algo_input)
         self.assertEqual(result['test_success_ratio'], 0.33333333333333337)
         self.assertEqual(result['predicted_labels'], ['A', 'A', 'C', 'A', 'A', 'A', 'A', 'B', 'C'])
-
 
     def test_classical_multiclass_error_correcting_code(self):
         training_input = {'A': np.asarray([[ 0.6560706 ,  0.17605998],
@@ -192,7 +190,6 @@ class TestSVMQKernel(QiskitAquaTestCase):
        [-0.69942965,  0.11885162],
        [-0.66489165,  0.1181712 ]])}
 
-
         temp = [test_input[k] for k in test_input]
         total_array = np.concatenate(temp)
 
@@ -200,9 +197,10 @@ class TestSVMQKernel(QiskitAquaTestCase):
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
             'algorithm': {
                 'name': 'QSVM.Kernel',
-                'multiclass_alg':'error_correcting_code'
             },
-            'backend': {'name': 'local_qasm_simulator_py', 'shots': 1024}
+            'backend': {'name': 'local_qasm_simulator_py', 'shots': 1024},
+            'multiclass_extension': {'name': 'ErrorCorrectingCode', 'estimator': 'QKernalSVM_Estimator', 'code_size': 5},
+
 
         }
 
@@ -246,7 +244,8 @@ class TestSVMQKernel(QiskitAquaTestCase):
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
             'algorithm': {'name': 'QSVM.Kernel'},
-            'backend': {'name': 'local_qasm_simulator_py', 'shots': 1024}
+            'backend': {'name': 'local_qasm_simulator_py', 'shots': 1024},
+            'multiclass_extension': {'name': 'AllPairs', 'estimator': 'QKernalSVM_Estimator'},
         }
 
         svm.init_params(params, self.svm_input)
@@ -266,6 +265,3 @@ class TestSVMQKernel(QiskitAquaTestCase):
 
 
         self.assertEqual(result['test_success_ratio'], 0.0)
-
-
-
