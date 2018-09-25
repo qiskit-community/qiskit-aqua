@@ -72,9 +72,6 @@ class QSVMVariational(QuantumAlgorithm):
         algo_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
         override_spsa_params = algo_params.get('override_SPSA_params')
 
-        if algo_input.training_dataset is None:
-            raise AlgorithmError('Training dataset is required! please provide it')
-
         # Set up optimizer
         opt_params = params.get(QuantumAlgorithm.SECTION_KEY_OPTIMIZER)
         optimizer = get_optimizer_instance(opt_params['name'])
@@ -120,6 +117,9 @@ class QSVMVariational(QuantumAlgorithm):
 
         if 'statevector' in self._backend:
             raise ValueError('Selected backend  "{}" is not supported.'.format(self._backend))
+
+        if training_dataset is None:
+            raise AlgorithmError('Training dataset must be provided')
 
         self._training_dataset, self._class_to_label = split_dataset_to_data_and_labels(
             training_dataset)
