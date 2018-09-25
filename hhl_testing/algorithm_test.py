@@ -12,10 +12,12 @@ from qiskit.tools.visualization import plot_circuit
 import numpy as np
 
 # from qiskit_aqua.algorithms.components.reciprocals.lookup_rotation import LookupRotation
+# from qiskit_aqua.algorithms.single_sample.hhl.hhl import HHL
 
 params = {
     "algorithm": {
-        "name": "HHL"
+        "name": "HHL",
+        "mode": "circuit"
     },
     "eigs": {
         "name": "QPE",
@@ -26,32 +28,27 @@ params = {
     },
     "initial_state": {
         "name": "CUSTOM",
-        "state_vector": [1, 1]
+        "state_vector": [1, 0]
     },
     "reciprocal": {
         "name": "LOOKUP",
-        "scale": 2**6
-    }
+        "scale": 4
+    },
 }
 
-matrix = random_hermitian(2, eigrange=(1, 4), trunc=2)
-print(np.linalg.eig(matrix))
-# matrix = np.array([[1, 0], [0, 3]])
+# matrix = random_hermitian(2, eigrange=(1, 4), trunc=2)
+matrix = np.array([[2, -1.1], [-1.1, 2]])
 
-qc = run_algorithm(params, matrix)
-# plot_circuit(qc)
+ret = run_algorithm(params, matrix)
+qc = ret["circuit"]
 qc.snapshot("-1")
 
 res = execute(qc, "local_qasm_simulator", config={"data":
     ["quantum_state_ket"]}, shots=100).result()
-# print(res.get_snapshot("1").get("quantum_state_ket"))
-# print()
 qsks = res.get_snapshot("-1").get("quantum_state_ket")
 qsk = next(e for e in qsks if list(e.keys())[0][0] == "1")
 qsk = {k[-1]: v[0]+1j*v[1] for k, v in qsk.items()}
 v = np.array([qsk['0'], qsk['1']])
-print(matrix)
-print(np.linalg.inv(matrix).dot(np.array([1, 1])))
 print(v, matrix.dot(v))
 
 
