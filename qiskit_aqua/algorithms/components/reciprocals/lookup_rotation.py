@@ -285,18 +285,18 @@ class LookupRotation(Reciprocal):
                 for subpattern, lambda_ in zip(subpat, lambda_ar):
                     
                     #calculate rotation angle
-                    theta =  np.arcsin(min(1, 2 ** int(-k) * self._scale
+                    theta =  2*np.arcsin(min(1, 2 ** int(-k) * self._scale
                         / lambda_))
-                    #offset for cx gate checking subpattern
+                    #offset for ncx gate checking subpattern
                     offset = msb + 1 if msb < k - n else msb
                 
                     #rotation is happening here
                     #1. rotate by half angle
-                    self.cnu3(theta / 2, 0, 0, [self._workq[0], self._msb[0]], self._anc[0])
+                    qc.cnu3(theta/2, 0, 0, [self._workq[0], self._msb[0]], self._anc[0])
                     #2. cnx gate to reverse rotation direction
                     self._set_bit_pattern(subpattern, self._anc[0], offset)
                     #3. rotate by inverse of halfangle to uncompute / complete 
-                    self.cnu3(-theta / 2, 0, 0, [self._workq[0], self._msb[0]], self._anc[0])
+                    qc.cnu3(-theta/2, 0, 0, [self._workq[0], self._msb[0]], self._anc[0])
                     #4. cnx gate to uncompute first cnx gate
                     self._set_bit_pattern(subpattern, self._anc[0], offset)
                 #uncompute m-bit pattern

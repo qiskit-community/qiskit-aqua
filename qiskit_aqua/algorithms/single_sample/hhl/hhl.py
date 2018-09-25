@@ -34,6 +34,8 @@ logger = logging.getLogger(__name__)
 class HHL(QuantumAlgorithm):
     """The HHL algorithm."""
 
+    PROP_MODE = 'mode'
+
     HHL_CONFIGURATION = {
         'name': 'HHL',
         'description': 'The HHL Algorithm for Solving Linear Systems of equations',
@@ -42,6 +44,17 @@ class HHL(QuantumAlgorithm):
             'id': 'hhl_schema',
             'type': 'object',
             'properties': {
+                PROP_MODE: {
+                    'type': 'string',
+                    'oneOf': [
+                        {'enum': [
+                            'circuit', 
+                            'exact_simulation',
+                            'state_tomography'
+                        ]}
+                    ],
+                    'default': 'circuit'
+                }
             },
             'additionalProperties': False
         },
@@ -83,6 +96,8 @@ class HHL(QuantumAlgorithm):
         self._num_q = 0
         self._num_a = 0
 
+        self._mode = None
+
         self._ret = {}
 
 
@@ -97,6 +112,16 @@ class HHL(QuantumAlgorithm):
             raise AlgorithmError("Matrix instance is required.")
         if not isinstance(matrix, np.ndarray):
             matrix = np.array(matrix)
+
+        hhl_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM) or {}
+        mode = hhl_params.get(HHL.PROP_MODE)
+
+        if mode == "exact_simulation":
+            if self._backend != "local_statevector_simulator":
+                raise AlgorithmError("statevector simulator required for exact_simulation")
+        elif mode == "state_tomography":
+            raise NotImplementedError()
+
     
         eigs_params = params.get(QuantumAlgorithm.SECTION_KEY_EIGS) or {}
         eigs = get_eigs_instance(eigs_params["name"])
@@ -127,10 +152,10 @@ class HHL(QuantumAlgorithm):
         reci = get_reciprocal_instance(reciprocal_params["name"])
         reci.init_params(reciprocal_params)
 
-        self.init_args(matrix, invec, eigs, init_state, reci, num_q, num_a)
+        self.init_args(matrix, invec, eigs, init_state, reci, mode, num_q, num_a)
 
 
-    def init_args(self, matrix, invec, eigs, init_state, reciprocal, num_q, num_a):
+    def init_args(self, matrix, invec, eigs, init_state, reciprocal, mode, num_q, num_a):
         self._matrix = matrix
         self._invec = invec
         self._eigs = eigs
@@ -138,47 +163,77 @@ class HHL(QuantumAlgorithm):
         self._reciprocal = reciprocal
         self._num_q = num_q
         self._num_a = num_a
+        self._mode = mode
 
        
     def _construct_circuit(self):
-        snap = True
-
-        q = QuantumRegister(self._num_q)
-        c = ClassicalRegister(1)
-        qc = QuantumCircuit(q, c)
+        q = QuantumRegister(self._num_q, name="io")
+        qc = QuantumCircuit(q)
 
         # InitialState
         qc += self._init_state.construct_circuit("circuit", q)
-
-        if snap: qc.snapshot("0")
 
         # EigenvalueEstimation (QPE)
         qc += self._eigs.construct_circuit("circuit", q)
         a = self._eigs._output_register
 
-        if snap: qc.snapshot("1")
-
         # Reciprocal calculation with rotation
         qc += self._reciprocal.construct_circuit("circuit", a)
         s = self._reciprocal._anc
 
-        if snap: qc.snapshot("2")
-
         # Inverse EigenvalueEstimation
         qc += self._eigs.construct_inverse("circuit")
-        
-        if snap: qc.snapshot("3")
 
         # Measurement of the ancilla qubit
-        qc.measure(s, c)
+        if self._mode != "exact_simulation":
+            c = ClassicalRegister(1)
+            qc.add(c)
+            qc.measure(s, c)
+            self._success_bit = c
 
         self._io_register = q
         self._eigenvalue_register = a
         self._ancilla_register = s
-        self._success_bit = c
         self._circuit = qc
+
+    
+    def _exact_simulation(self):
+        res = self.execute(self._circuit)
+        sv = res.get_statevector()
+        qregs = self._circuit.get_qregs()
+        num = 0
+        for name, qreg in qregs.items():
+            num += len(qreg)
+        idxs = np.where(np.logical_not(np.isclose(sv, 0, 1e-10)))[0]
+        vals = sv[idxs]
+        correct = idxs >= 2**(num-1)
+        p = np.sum(np.abs(vals[correct])**2)
+        idxs = idxs[correct]
+        vals = vals[correct]
+        vals = vals/np.linalg.norm(vals)
+        d = {np.binary_repr(idx, width=num)[-self._num_q:]: val.real for idx, val in
+                zip(idxs, vals)}
+        print(d)
+        
+            
+
+    def _state_tomography(self):
+        pass
 
 
     def run(self):
         self._construct_circuit()
-        return self._circuit
+        if self._mode == "circuit":
+            self._ret["circuit"] = self._circuit
+            regs = {
+                "io_register": self._io_register, 
+                "eigenvalue_register": self._eigenvalue_register,
+                "ancilla_register": self._ancilla_register,
+                "self._success_bit": self._success_bit
+            }
+            self._ret["regs"] = regs
+        elif self._mode == "exact_simulation":
+            self._exact_simulation()
+        elif self._mode == "state_tomography":
+            self._state_tomography()
+        return self._ret

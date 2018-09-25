@@ -19,7 +19,7 @@ class CNU3Gate(CompositeGate):
         if n_c == 1: # cx
             self.cu3(theta, phi, lam, ctls[0], tgt)
         else:
-            self.apply_cnu3(theta, ctls, tgt)
+            self.apply_cnu3(theta, phi, lam, ctls, tgt)
 
     def reapply(self, circ):
         """Reapply this gate to corresponding qubits in circ."""
@@ -30,7 +30,7 @@ class CNU3Gate(CompositeGate):
         lam = self.param[2]
         self._modifiers(circ.cnu3(theta, phi, lam, ctl_bits, tgt_bits))
 
-    def apply_cnu3(self, theta, ctls, tgt):
+    def apply_cnu3(self, theta, phi, lam, ctls, tgt):
         """Apply n-controlled u1 gate from ctls to tgt with angle theta."""
         
         n = len(ctls)
