@@ -15,6 +15,8 @@
 # limitations under the License.
 # =============================================================================
 
-# for core development
-# from .hhl import HHL
+from .reciprocal import Reciprocal
+# from .lookuptable import LookupTable
+from .lookup_rotation import LookupRotation
 
+__all__ = ['LookupRotation', 'Reciprocal']

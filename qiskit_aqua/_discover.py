@@ -38,7 +38,8 @@ from qiskit_aqua.algorithms.components.qfts import QFT
 from qiskit_aqua.algorithms.components.oracles import Oracle
 from qiskit_aqua.algorithms.components.feature_maps import FeatureMap
 from qiskit_aqua.algorithms.components.multiclass import MulticlassExtension
-
+from qiskit_aqua.algorithms.components.eigs import Eigenvalues
+from qiskit_aqua.algorithms.components.reciprocals import Reciprocal
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +52,9 @@ _PLUGGABLES = {
     'qft': QFT,
     'oracle': Oracle,
     'feature_map': FeatureMap,
-    'multiclass_extension': MulticlassExtension
+    'multiclass_extension': MulticlassExtension,
+    'eigs': Eigenvalues,
+    'reciprocal': Reciprocal
 }
 
 _NAMES_TO_EXCLUDE = [
@@ -73,7 +76,9 @@ _NAMES_TO_EXCLUDE = [
     'qft',
     'oracle',
     'feature_map',
-    'multiclass_extension'
+    'multiclass_extension',
+    'eigs',
+    'reciprocal'
 ]
 
 _FOLDERS_TO_EXCLUDE = ['__pycache__','input','ui','parser']

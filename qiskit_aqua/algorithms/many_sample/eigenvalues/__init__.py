@@ -16,5 +16,4 @@
 # =============================================================================
 
 # for core development
-# from .hhl import HHL
-
+# from .eigenvalues import EigenvalueEstimation
