@@ -37,8 +37,7 @@ from qiskit.backends.local import LocalJob
 from qiskit.backends import JobError
 import pickle
 import logging
-from qiskit.qobj import Qobj
-from qiskit.backends.local.qasm_simulator_cpp import QASMSimulatorDecoder
+from qiskit.qobj import qobj_to_dict, Qobj
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +91,7 @@ def cache_circuit(qobj, circuits, chunk):
             op_graph[type_and_qubits] = \
                 op_graph.get(type_and_qubits, []) + [i]
         mapping = []
-        for compiled_gate_index, compiled_gate in enumerate(qobjs[chunk].experiments[circ_num].instructions):
+        for compiled_gate_index, compiled_gate in enumerate(qobj.experiments[circ_num].instructions):
             type_and_qubits = compiled_gate.name + compiled_gate.qubits.__str__()
             if len(op_graph[type_and_qubits]) > 0:
                 uncompiled_gate_index = op_graph[type_and_qubits].pop(0)
@@ -110,7 +109,8 @@ def cache_circuit(qobj, circuits, chunk):
                 raise Exception("Circuit shape does not match qobj, found extra {} in circuit".format(type_and_qubits))
     if len(cache_file) > 0:
         cache_handler = open(cache_file, 'wb')
-        qobj_dicts = [qob.as_dict() for qob in qobjs]
+        # qobj_jsons = [json.dumps(qobj_to_dict(qob)) for qob in qobjs]
+        qobj_dicts = [qobj_to_dict(qob) for qob in qobjs]
         pickle.dump({'qobjs':qobj_dicts, 'mappings':mappings}, cache_handler, protocol=pickle.HIGHEST_PROTOCOL)
         cache_handler.close()
         logger.debug("Circuit cache saved successfully.")
@@ -122,11 +122,11 @@ def load_qobj_from_cache(circuits, chunk):
     global misses
     global cache_file
 
-    if qobjs is None and use_caching:
+    if qobjs is None and len(cache_file) > 0:
         cache_handler = open(cache_file, "rb")
-        cache = pickle.load(cache_handler, encoding="utf-8")
+        cache = pickle.load(cache_handler, encoding="ASCII")
         cache_handler.close()
-        qobjs = [Qobj.from_dict(QASMSimulatorDecoder, qob) for qob in cache['qobjs']]
+        qobjs = [Qobj.from_dict(qob) for qob in cache['qobjs']]
         mappings = cache['mappings']
         logger.debug("Circuit cache loaded successfully.")
 
