@@ -275,7 +275,6 @@ class InputParser(object):
                 self.set_section(section_name)
 
             new_properties = self.get_section_default_properties(section_name)
-            print('hello scetion', section_name, new_properties)
             if new_properties is not None:
                 if self.section_is_text(section_name):
                     text = self.get_section_text(section_name)
