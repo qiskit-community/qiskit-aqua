@@ -86,7 +86,7 @@ class GeneratedCircuit(Reciprocal):
         self._evo_time = None
         self._offset = 0
 
-    def init_args(self, num_ancillae=0, scale=0,
+    def init_args(self, num_ancillae=0, scale=0, evo_time = None, lambda_min = None,
             negative_evals=False):
         self._num_ancillae = num_ancillae
         self._negative_evals = negative_evals
