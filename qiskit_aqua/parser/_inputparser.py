@@ -219,7 +219,6 @@ class InputParser(object):
 
         section_names = self.get_section_names()
         for pluggable_type in pluggable_dependencies:
-            print(pluggable_type)
             pluggable_name = None
             new_properties = {}
             if pluggable_type in pluggable_defaults:
