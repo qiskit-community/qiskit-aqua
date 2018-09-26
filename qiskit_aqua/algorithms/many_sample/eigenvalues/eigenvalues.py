@@ -35,6 +35,7 @@ class EigenvalueEstimation(QuantumAlgorithm):
     The Eigenvalue Estimation algorithm.
     """
     
+
     EIGENVALUE_ESTIMATION_CONFIGURATION = {
         'name': 'EigenvalueEstimation',
         'description': 'Eigenvalue Estimation algorithm',
@@ -62,6 +63,7 @@ class EigenvalueEstimation(QuantumAlgorithm):
         }
     }
 
+
     def __init__(self, configuration=None):
         super().__init__(configuration or self.EIGENVALUE_ESTIMATION_CONFIGURATION.copy())
         self._qpe = None
@@ -73,6 +75,7 @@ class EigenvalueEstimation(QuantumAlgorithm):
         self._matrix = None
         self._invec = None
         self._ret = {}
+
 
     def init_params(self, params, matrix):
         if matrix is None:
@@ -105,6 +108,7 @@ class EigenvalueEstimation(QuantumAlgorithm):
         
         self.init_args(qpe, state_in, num_q, shots, matrix, invec)
 
+
     def init_args(self, qpe, state_in, num_q, shots, matrix, invec):
         self._qpe = qpe
         self._state_in = state_in
@@ -112,6 +116,7 @@ class EigenvalueEstimation(QuantumAlgorithm):
         self._shots = shots
         self._matrix = matrix
         self._invec = invec
+
 
     def _construct_circuit(self):
         q = QuantumRegister(self._num_q)
@@ -127,6 +132,7 @@ class EigenvalueEstimation(QuantumAlgorithm):
         qc.add(c)
         qc.measure(a, c)
         self._circuit = qc
+
 
     def visualization(self, rets, evo_time):
         from numpy.linalg import eig
@@ -158,6 +164,7 @@ class EigenvalueEstimation(QuantumAlgorithm):
         plt.plot(tx2, ty[h:], "r")
         plt.show()
 
+
     def _compute_eigenvalue(self):
         if self._circuit is None:
             self._construct_circuit()
@@ -181,6 +188,7 @@ class EigenvalueEstimation(QuantumAlgorithm):
         self._ret['evo_time'] = self._qpe._evo_time
         self._ret['visualization'] = lambda: self.visualization(rets,
                 self._qpe._evo_time)
+
 
     def run(self):
         self._compute_eigenvalue()

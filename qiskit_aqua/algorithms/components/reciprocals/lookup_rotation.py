@@ -38,6 +38,8 @@ class LookupRotation(Reciprocal):
     PROP_SUBPAT_LENGTH = 'subpat_length'
     PROP_NEGATIVE_EVALS = 'negative_evals'
     PROP_SCALE = 'scale'
+    PROP_EVO_TIME = 'evo_time'
+    PROP_LAMBDA_MIN = 'lambda_min'
 
     LOOKUP_CONFIGURATION = {
         'name': 'LOOKUP',
@@ -61,7 +63,17 @@ class LookupRotation(Reciprocal):
                 },
                 PROP_SCALE: {
                     'type': 'number',
-                    'default': 1,
+                    'default': 0,
+                    'minimum': 0,
+                    'maximum': 1,
+                },
+                PROP_EVO_TIME: {
+                    'type': ['number', 'null'],
+                    'default': None
+                },
+                PROP_LAMBDA_MIN: {
+                    'type': ['number', 'null'],
+                    'default': None
                 }
             },
             'additionalProperties': False
@@ -80,13 +92,17 @@ class LookupRotation(Reciprocal):
         self._subpat_length = 0
         self._negative_evals = False
         self._scale = 0
+        self._evo_time = None
+        self._lambda_min = None
 
     def init_args(self, pat_length=0, subpat_length=0, scale=0,
-            negative_evals=False):
+            negative_evals=False, evo_time=None, lambda_min=None):
         self._pat_length = pat_length
         self._subpat_length = subpat_length
         self._negative_evals = negative_evals
         self._scale = scale
+        self._evo_time = evo_time
+        self._lambda_min = lambda_min
 
     @staticmethod
     def classic_approx(k, n, m, negative_evals=False):
@@ -231,6 +247,10 @@ class LookupRotation(Reciprocal):
         #initialize circuit
         if mode == "vector":
             raise NotImplementedError("mode vector not supported")
+        if self._lambda_min:
+            self._scale = self._lambda_min/2/np.pi*self._evo_time
+        if self._scale == 0:
+            self._scale = 2**-len(inreg)
         self._ev = inreg
         self._workq = QuantumRegister(1, 'work')
         self._msb = QuantumRegister(1, 'msb')
@@ -285,8 +305,7 @@ class LookupRotation(Reciprocal):
                 for subpattern, lambda_ in zip(subpat, lambda_ar):
                     
                     #calculate rotation angle
-                    theta =  2*np.arcsin(min(1, 2 ** int(-k) * self._scale
-                        / lambda_))
+                    theta =  2*np.arcsin(min(1, self._scale / lambda_))
                     #offset for ncx gate checking subpattern
                     offset = msb + 1 if msb < k - n else msb
                 
