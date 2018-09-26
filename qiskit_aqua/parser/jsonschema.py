@@ -357,8 +357,6 @@ class JSONSchema(object):
             default_name = pluggable_name
             pluggable_name = input_parser.get_section_property(
                 pluggable_type, JSONSchema.NAME, pluggable_name)
-            if pluggable_name is None:
-                continue
 
             # update dependency schema
             self._update_pluggable_input_schema(
@@ -370,15 +368,19 @@ class JSONSchema(object):
     def _update_pluggable_input_schema(self, pluggable_type, pluggable_name, default_name):
         config = {}
         try:
-            config = get_pluggable_configuration(
-                pluggable_type, pluggable_name)
+            if pluggable_type is not None and pluggable_name is not None:
+                config = get_pluggable_configuration(
+                    pluggable_type, pluggable_name)
         except:
             pass
 
-        input_schema = config['input_schema'] if 'input_schema' in config else {}
-        properties = input_schema['properties'] if 'properties' in input_schema else {}
+        input_schema = config['input_schema'] if 'input_schema' in config else {
+        }
+        properties = input_schema['properties'] if 'properties' in input_schema else {
+        }
         properties[JSONSchema.NAME] = {'type': 'string'}
-        required = input_schema['required'] if 'required' in input_schema else []
+        required = input_schema['required'] if 'required' in input_schema else [
+        ]
         additionalProperties = input_schema['additionalProperties'] if 'additionalProperties' in input_schema else True
         if default_name is not None:
             properties[JSONSchema.NAME]['default'] = default_name
