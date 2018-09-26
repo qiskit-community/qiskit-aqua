@@ -36,9 +36,9 @@ def transform_result(sv,negative_evals):
                         res_list.append(("Anc 0",num, np.complex(sv[d][0],sv[d][1]),d))
     return res_list
 
-def test_value_range(k,n):
+def test_value_range(k,reci_type='LOOKUP'):
         backend = 'local_qasm_simulator'
-        negative_evals = True
+        negative_evals = False
         params = {
             # for running the rotation seperately, supply input
             "initial_state": {
@@ -46,14 +46,17 @@ def test_value_range(k,n):
                 "state_vector": []
             },
             "reciprocal": {
-                "name": "LOOKUP",
-                'pat_length':n,
-                'subpat_length':int(np.ceil(n/2)),
+                "name": reci_type,
                 'negative_evals':negative_evals,
-                'scale':1,
+               
             }
         }
-        
+        if reci_type=='LOOKUP':
+            n = min(k-1,5)
+            params['reciprocal']['pat_length'] = n
+            params['reciprocal']['subpat_length']=int(np.ceil(n/2))
+        elif reci_type=='GENCIRCUITS':
+            params['reciprocal']['scale'] = 2
         x = []
         y = []
             
@@ -86,7 +89,9 @@ def test_value_range(k,n):
             inreg = QuantumRegister(k,'io')
             qc = QuantumCircuit(inreg)
             qc += init_state.construct_circuit("circuit",inreg)
+            st_len = qc.number_atomic_gates()
             qc += reci.construct_circuit("circuit",inreg)
+            tot_len = qc.number_atomic_gates()-st_len
             qc.snapshot("0")
             
             data = execute(qc,backend=backend,shots=1,config={
@@ -95,8 +100,7 @@ def test_value_range(k,n):
                 data.get_data()["snapshots"]["0"]["quantum_state_ket"][0],negative_evals)
             anc_1 = [(d[1],d[2]) for d in res if d[0]=='Anc 1']
             for i in anc_1:
-                x.append(i[0])
-                
+                x.append(i[0]) 
                 y.append(i[1]*2**k)
         if negative_evals:
             x_ = np.append(np.linspace(-0.5,-2**-k,500),np.linspace(2**-k,0.5,500))
@@ -105,10 +109,10 @@ def test_value_range(k,n):
         plt.scatter(x,y)
         plt.plot(x_[:int(len(x_)/2)],1/x_[:int(len(x_)/2)],c='r')
         plt.plot(x_[int(len(x_)/2):],1/x_[int(len(x_)/2):],c='r')
+        plt.title("Circuit length: {}".format(tot_len))
         plt.show()
         return
 
 if __name__=='__main__':
-    k=6
-    n=4
-    test_value_range(k,n)
+    k=8
+    test_value_range(k,'LOOKUP')
