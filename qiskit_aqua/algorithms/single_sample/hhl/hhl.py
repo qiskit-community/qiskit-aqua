@@ -50,7 +50,8 @@ class HHL(QuantumAlgorithm):
                         {'enum': [
                             'circuit', 
                             'state_tomography',
-                            'debug'
+                            'debug',
+                            'swap_test'
                         ]}
                     ],
                     'default': 'circuit'
@@ -59,7 +60,7 @@ class HHL(QuantumAlgorithm):
             'additionalProperties': False
         },
         'problems': ['energy'],
-        'depends': ['eigs', 'initial_state', 'reciprocal'],
+        'depends': ['eigs', 'reciprocal'],
         'defaults': {
             'eigs': {
                 'name': 'QPE',
@@ -69,12 +70,9 @@ class HHL(QuantumAlgorithm):
                 'expansion_order': 2,
                 'qft': {'name': 'STANDARD'}
             },
-            'initial_state': {
-                'name': 'ZERO'
-            },
             'reciprocal': {
                 'name': 'LOOKUP'
-            }
+            },
         }
     }
 
@@ -102,17 +100,22 @@ class HHL(QuantumAlgorithm):
         self._ret = {}
 
 
-    def init_params(self, params, matrix):
+    def init_params(self, params, algo_input):
         """
         Initialize via parameters dictionary and algorithm input instance
         Args:
             params: parameters dictionary
             algo_input: list or np.array instance
         """
-        if matrix is None:
-            raise AlgorithmError("Matrix instance is required.")
+        if algo_input is None:
+            raise AlgorithmError("Matrix, Vector instance is required.")
+        if not isinstance(algo_input, (list, tuple)):
+            raise AlgorithmError("(matrix, vector) pair is required.")
+        matrix, invec = algo_input
         if not isinstance(matrix, np.ndarray):
             matrix = np.array(matrix)
+        if not isinstance(invec, np.ndarray):
+            invec = np.array(invec)
 
         hhl_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM) or {}
         mode = hhl_params.get(HHL.PROP_MODE)
@@ -125,19 +128,22 @@ class HHL(QuantumAlgorithm):
             except FileNotFoundError:
                 cpp = False
         
+        exact = False
         if mode == 'state_tomography':
             if ((self._backend == "local_statevector_simulator" or 
                     (self._backend == "local_qasm_simulator" and cpp)) and
                     self._execute_config.get("shots") == 1):
                 exact = True
-        else:
-            exact = False
 
         if mode == 'debug':
             if self._backend != 'local_qasm_simulator' and not cpp:
                 raise AlgorithmError("Debug mode only possible with"
                         "C++ local_qasm_simulator.")
             import qiskit.extensions.simulator
+
+        if mode == 'swap_test':
+            if self._backend == 'local_statevector_simulator':
+                raise AlgorithmError("Measurement requred")
     
         eigs_params = params.get(QuantumAlgorithm.SECTION_KEY_EIGS) or {}
         eigs = get_eigs_instance(eigs_params["name"])
@@ -145,23 +151,17 @@ class HHL(QuantumAlgorithm):
 
         num_q, num_a = eigs.get_register_sizes()
 
-        init_state_params = params.get(QuantumAlgorithm.SECTION_KEY_INITIAL_STATE) or {}
-        
 
         # Fix invec for nonhermitian/non 2**n size matrices
-        if init_state_params.get("name") == "CUSTOM":
-            invec = init_state_params['state_vector']
-            assert(matrix.shape[0] == len(init_state_params['state_vector']), 
-                    "Check input vector size!")
-            tmpvec = invec + (2**num_q - len(invec))*[0]
-            init_state_params['state_vector'] = tmpvec
-        else:
-            invec = [1, 0]
+        assert(matrix.shape[0] == len(invec), "Check input vector size!")
+
+        tmpvec = np.append(invec, (2**num_q - len(invec))*[0])
+        init_state_params = {"name": "CUSTOM"}
         init_state_params["num_qubits"] = num_q
+        init_state_params["state_vector"] = tmpvec
         init_state = get_initial_state_instance(init_state_params["name"])
         init_state.init_params(init_state_params)
-        invec = np.array(list(map(lambda x: x[0]+1j*x[1] if isinstance(x, list)
-            else x, invec)))
+
         
         reciprocal_params = params.get(QuantumAlgorithm.SECTION_KEY_RECIPROCAL) or {}
         reciprocal_params["negative_evals"] = eigs._negative_evals
@@ -240,13 +240,95 @@ class HHL(QuantumAlgorithm):
         self._ret["probability"] = vec.dot(vec.conj())
         vec = vec/np.linalg.norm(vec)
         self._ret["result"] = vec
-        f = self._invec[0]/self._matrix[0].dot(vec)
-        self._ret["soulution"] = f*vec
+        self._ret["fidelity"] = abs(vec.dot(self._invec / np.linalg.norm(self._invec)))**2
+        tmp_vec = self._matrix.dot(vec)
+        f1 = np.linalg.norm(self._invec)/np.linalg.norm(tmp_vec)
+        f2 = sum(np.angle(self._invec*tmp_vec.conj()))/self._num_q
+        self._ret["solution"] = f1*vec*np.exp(-1j*f2)
 
     
     def _state_tomography(self):
-        raise NotImplementedError()
-        
+        import qiskit.tools.qcvv.tomography as tomo
+        from qiskit import QuantumProgram
+        c = ClassicalRegister(self._num_q)
+        self._circuit.add(c)
+        qp = QuantumProgram()
+        qp.add_circuit("master", self._circuit)
+        tomo_set = tomo.state_tomography_set(list(range(self._num_q)))
+        tomo_names = tomo.create_tomography_circuits(qp, "master",
+                self._io_register, c, tomo_set)
+        config = {k: v for k, v in self._execute_config.items() if k != "qobj_id"}
+        res = qp.execute(tomo_names, backend=self._backend, **config)
+        probs = []
+        for circ in res._result.get("result"):
+            counts = circ.get("data").get("counts")
+            new_counts = {}
+            s, f = 0, 0
+            for k, v in counts.items():
+                if k[-1] == "1":
+                    new_counts[k[:-2]] = v
+                    s += v
+                else:
+                    f += v
+            probs.append(s/(f+s))
+            circ["data"]["counts"] = new_counts
+        tomo_data = tomo.tomography_data(res, 'master', tomo_set)
+        rho_fit = tomo.fit_tomography_data(tomo_data)
+        vec = rho_fit[:, 0]/np.sqrt(rho_fit[0, 0])
+
+        self._ret["probability"] = sum(probs)/len(probs)
+        self._ret["result"] = vec
+        self._ret["fidelity"] = abs(vec.dot(self._invec / np.linalg.norm(self._invec)))**2
+        f1 = np.sqrt(np.linalg.norm(self._invec))
+        f2 = sum(np.angle(self._invec*vec.conj()))/self._num_q
+        self._ret["solution"] = f1*vec*np.exp(-1j*f2)
+
+
+    def _swap_test(self):
+        c = ClassicalRegister(1)
+        self._circuit.add(c)
+
+        if (self._num_q + 1) > self._num_a:
+            qx = QuantumRegister(self._num_q+1-self._num_a)
+            self._circuit.add(qx)
+            qubits = [qi for qi in self._eigenvalue_register] + [qi for qi in qx]
+        else:
+            qubits = [self._eigenvalue_register[i] for i in
+                    range(self._num_q + 1)]
+        test_bit = qubits[0]
+        x_state = qubits[1:]
+
+        init_state = get_initial_state_instance("CUSTOM")
+        sol = list(np.linalg.solve(self._matrix, self._invec))
+        init_state.init_params({"num_qubits": self._num_q, "state_vector": sol})
+
+        qc = self._circuit
+        qc += init_state.construct_circuit('circuit', x_state)
+
+        qc.h(test_bit)
+        for i in range(self._num_q):
+            qc.cswap(test_bit, self._io_register[i], x_state[i])
+        qc.h(test_bit)
+
+        qc.measure(test_bit, c[0])
+
+        res = self.execute(self._circuit)
+        counts = res.get_counts()
+        failed = 0
+        probs = [0, 0]
+        for key, val in counts.items():
+            if key[-1] == "1":
+                probs[int(key[0])] = val
+            else:
+                failed += val
+        self._ret["probability"] = sum(probs)/(sum(probs)+failed)
+        probs = np.array(probs)/sum(probs)
+        self._ret["fidelity"] = probs[0]*2-1
+        self._ret["probs"] = probs
+        self._ret["solution"] = sol
+        self._ret["counts"] = res.get_counts()
+
+
     def __filter(self, qsk, reg=None, qubits=None):
         qregs = list(self._circuit.get_qregs().values())
         if reg:
@@ -402,4 +484,7 @@ class HHL(QuantumAlgorithm):
                 self._state_tomography()
         elif self._mode == "debug":
             self._debug()
+        elif self._mode == "swap_test":
+            self._swap_test()
+        self._ret["gate_count"] = self._circuit.number_atomic_gates()
         return self._ret
