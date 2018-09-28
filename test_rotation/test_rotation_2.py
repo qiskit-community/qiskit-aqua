@@ -20,7 +20,7 @@ def neg_pos():
         yield el
 
 def sparsity_():
-    t = np.arange(10**-1,1,0.1).tolist()
+    t = [1]#np.arange(10**-1,1,0.1).tolist()
     for el in itertools.cycle(t):
         yield el
         
@@ -35,7 +35,7 @@ def matrix_generator(N):
     matrix = None
     ev_range = [0,0]
     
-    ev_range = np.random.randint(1,10,size=2)*np.random.random(size=2)
+    ev_range = np.random.randint(1,100,size=2)*np.random.random(size=2)
     if negative_evals:
         ev_range *= np.random.choice([-1,1],size=2)
     
@@ -50,7 +50,8 @@ def matrix_generator(N):
             else:
                 matrix[idx,idx] = ev_range[0]
     elif mat_t=='hermitian':
-        matrix = random_hermitian(N,eigrange=ev_range.tolist(),sparsity=spars)
+        matrix = random_hermitian(N,eigrange=ev_range.tolist())
+        print(matrix)
     return matrix,mat_t,ev_range,spars,negative_evals
 
 def transform_result(sv,negative_evals):
@@ -224,27 +225,38 @@ def test_with_QPE(config):
             y_res.append(np.abs(i[1]))
         x_n = np.arange(0,2**k)
         x_theo,y_theo = superpose_QPE_kets(x_n,w,k,0,evo_time,v,negative_evals)
+        y_qpe = y_theo.copy()
         for idx in range(len(x_theo)):
             y_theo[idx] *= 2**-k/x_theo[idx]/evo_time*2*np.pi
         x_theo = x_theo[y_theo!=0]
+        y_qpe = y_qpe[y_theo!=0]
+        y_qpe = np.abs(y_qpe)/np.max(np.abs(y_qpe))
         y_theo = y_theo[y_theo!=0]
         plt.close()
-        plt.scatter(x_res,y_res,label='result',s=50,c='r')
-        plt.scatter(x_theo,np.abs(y_theo),label='theory',s=30,c=(0,0,1,0.7))
-        plt.ylabel('abs. of ket amplitude')
+        fig,axs = plt.subplots(2,1)
+        axs[0].scatter(x_res,y_res,label='result',s=50,c='r')
+        axs[0].scatter(x_theo,np.abs(y_theo),label='theory',s=30,c=(0,0,1,0.7))
+        axs[0].set_ylabel('abs. of ket amplitude')
+        axs[0].set_title("Eigenvalues {}, type:{}".format(w,mat_t))
         plt.legend(loc='best')
-        plt.title("Eigenvalues {}, EV range {}, type:{}".format(w,ev_range,mat_t))
+        axs[1].scatter(x_theo,np.log10(np.abs(y_qpe)),label='qpe theory')
+        #axs[1].set_yscale('log')
+        axs[1].set_ylabel('log10 abs. of ket amplitude')
+        #axs[1].set_ylim([np.min(np.log2(np.abs(y_qpe[y_qpe!=0]))),np.max(np.log2(np.abs(y_qpe[y_qpe!=0])))])
+        plt.legend(loc='best')
+        axs[1].set_title("QPE only. Normed to highest absolute value")
+        plt.tight_layout()
         plt.show()
 
         return
 
 def run_rotation_test(reci_type):
-    k = 6
+    k = 8
     
     qpe_params = {
         'name': 'QPE',
         'num_ancillae': k,
-        'num_time_slices': 30,
+        'num_time_slices': 20,
         'expansion_mode': 'suzuki',
         'expansion_order': 2,
         'hermitian_matrix': True,
@@ -282,7 +294,7 @@ def run_rotation_test(reci_type):
     
    
     test_with_QPE(config)
-np.random.seed(0)
+#np.random.seed(10)
 if __name__=='__main__':
     for i in range(10):
-        run_rotation_test('GENCIRCUITS')
+        run_rotation_test('LOOKUP')

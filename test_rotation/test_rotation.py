@@ -92,6 +92,7 @@ def test_value_range(k,reci_type='LOOKUP'):
             st_len = qc.number_atomic_gates()
             qc += reci.construct_circuit("circuit",inreg)
             tot_len = qc.number_atomic_gates()-st_len
+            print("Length of rotation circuit:",tot_len)
             qc.snapshot("0")
             
             data = execute(qc,backend=backend,shots=1,config={
@@ -106,6 +107,7 @@ def test_value_range(k,reci_type='LOOKUP'):
             x_ = np.append(np.linspace(-0.5,-2**-k,500),np.linspace(2**-k,0.5,500))
         else:
             x_ = np.linspace(0,1,1000)
+
         plt.scatter(x,y)
         plt.plot(x_[:int(len(x_)/2)],1/x_[:int(len(x_)/2)],c='r')
         plt.plot(x_[int(len(x_)/2):],1/x_[int(len(x_)/2):],c='r')
