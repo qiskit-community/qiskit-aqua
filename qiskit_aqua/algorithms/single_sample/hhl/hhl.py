@@ -134,6 +134,7 @@ class HHL(QuantumAlgorithm):
                     (self._backend == "local_qasm_simulator" and cpp)) and
                     self._execute_config.get("shots") == 1):
                 exact = True
+                import qiskit.extensions.simulator
 
         if mode == 'debug':
             if self._backend != 'local_qasm_simulator' and not cpp:
@@ -198,7 +199,7 @@ class HHL(QuantumAlgorithm):
         qc += self._eigs.construct_circuit("circuit", q)
         a = self._eigs._output_register
 
-        if self._mode == 'debug': qc.snapshot("1")
+        if self._mode == 'debug' or self._exact: qc.snapshot("1")
 
         # Reciprocal calculation with rotation
         qc += self._reciprocal.construct_circuit("circuit", a)
@@ -233,8 +234,9 @@ class HHL(QuantumAlgorithm):
         elif self._backend == "local_qasm_simulator":
             import qiskit.extensions.simulator
             self._circuit.snapshot("-1")
+            self._execute_config["config"]["data"] = ["quantum_state_ket"]
             res = self.execute(self._circuit)
-            sv = res.get_snapshot("-1")
+            sv = res.get_snapshot("-1").get("statevector")[0]
         half = int(len(sv)/2)
         vec = sv[half:half+2**self._num_q]
         self._ret["probability"] = vec.dot(vec.conj())
@@ -245,6 +247,36 @@ class HHL(QuantumAlgorithm):
         f1 = np.linalg.norm(self._invec)/np.linalg.norm(tmp_vec)
         f2 = sum(np.angle(self._invec*tmp_vec.conj()))/self._num_q
         self._ret["solution"] = f1*vec*np.exp(-1j*f2)
+
+        eigs = res.get_snapshot("1").get("quantum_state_ket")[0]
+        eigs = self.__filter(eigs, reg=self._eigenvalue_register)
+        nums = np.array(list(map(lambda x: int(x, 2), eigs.keys())))
+        nums = nums/2**self._num_a*2*np.pi/self._eigs._evo_time
+        vals = np.array(list(eigs.values()))
+        self._ret["eigs_snap"] = [nums, vals]
+
+        # Theoretical eigenvalues
+        w, v = np.linalg.eig(self._matrix)
+        vt = v.T.conj().dot(self._invec)
+         
+        ty = np.arange(0, 2**self._num_a)
+        tmp = 1j*(2**self._num_a*np.outer(w, np.ones(len(ty)))*self._eigs._evo_time - 
+                2*np.pi*np.outer(np.ones(len(w)), ty))
+        tmp[tmp == 0] = 2j*np.pi/self._eigs._evo_time/2**self._num_a
+        ty = np.abs(vt.dot((1-np.exp(tmp))/(1-np.exp(tmp/2**self._num_a))
+                * 2**-self._num_a))**2
+        tx = np.arange(0, 2**self._num_a)/2**self._num_a*2*np.pi/self._eigs._evo_time
+        ty /= sum(ty)
+
+        if self._eigs._negative_evals:
+            h = int(len(tx)/2)
+            tx1 = tx[:h]
+            tx2 = tx[h:]
+            tx2 -= 2*tx2[0]
+            tx = np.concatenate(tx2, tx1)
+            ty = np.concatenate(ty[h:], ty[:h])
+
+        self._ret["eigs_snap"] = [tx, ty]
 
     
     def _state_tomography(self):
@@ -385,7 +417,6 @@ class HHL(QuantumAlgorithm):
 
         # Plot eigenvalues
         eigs = res.get_snapshot("1").get("quantum_state_ket")[0]
-        np.save("statevector.npy", res.get_snapshot("1").get("statevector")[0])
         eigs = self.__filter(eigs, reg=self._eigenvalue_register)
         nums = np.array(list(map(lambda x: int(x, 2), eigs.keys())))
         nums = nums/2**self._num_a*2*np.pi/self._eigs._evo_time
@@ -406,14 +437,15 @@ class HHL(QuantumAlgorithm):
         tx = np.arange(0, 2**self._num_a)/2**self._num_a*2*np.pi/self._eigs._evo_time
         ty /= sum(ty)
 
-        h = int(len(tx)/2)
-        tx1 = tx[:h]
-        tx2 = tx[h:]
         if self._eigs._negative_evals:
+            h = int(len(tx)/2)
+            tx1 = tx[:h]
+            tx2 = tx[h:]
             tx2 -= 2*tx2[0]
+            tx = np.concatenate(tx2, tx1)
+            ty = np.concatenate(ty[h:], ty[:h])
 
-        ax_eig.plot(tx1, ty[:h], "r")
-        ax_eig.plot(tx2, ty[h:], "r")
+        ax_eig.plot(tx, ty, "r")
         
         # Plot reciprocals
         rec = res.get_snapshot("2").get("quantum_state_ket")[0]
@@ -487,4 +519,7 @@ class HHL(QuantumAlgorithm):
         elif self._mode == "swap_test":
             self._swap_test()
         self._ret["gate_count"] = self._circuit.number_atomic_gates()
+        self._ret["matrix"] = self._matrix
+        self._ret["invec"] = self._invec
+        self._ret["eigenvalues"] = np.linalg.eig(self._matrix)[0]
         return self._ret
