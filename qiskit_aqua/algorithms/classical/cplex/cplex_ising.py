@@ -15,7 +15,7 @@
 # limitations under the License.
 # =============================================================================
 
-"""CPLEX algorithm; uses IBM CPLEX backend for Ising Hamiltonian solution"""
+"""CPLEX Ising algorithm; uses IBM CPLEX backend for Ising Hamiltonian solution"""
 
 import csv
 import logging
@@ -31,7 +31,7 @@ from qiskit_aqua.algorithms.classical.cplex.simple_cplex import SimpleCPLEX
 logger = logging.getLogger(__name__)
 
 
-class CPLEX(QuantumAlgorithm):
+class CPLEX_Ising(QuantumAlgorithm):
     CPLEX_CONFIGURATION = {
         'name': 'CPLEX.Ising',
         'description': 'CPLEX backend for Ising Hamiltonian',
@@ -64,7 +64,7 @@ class CPLEX(QuantumAlgorithm):
     }
 
     def __init__(self, configuration=None):
-        super().__init__(configuration or copy.deepcopy(CPLEX.CPLEX_CONFIGURATION))
+        super().__init__(configuration or copy.deepcopy(CPLEX_Ising.CPLEX_CONFIGURATION))
         self._ins = IsingInstance()
         self._sol = None
         self._params = None
