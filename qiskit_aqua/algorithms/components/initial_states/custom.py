@@ -120,8 +120,15 @@ class Custom(InitialState):
             return self._state_vector
         elif mode == 'circuit':
             if register is None:
-                register = QuantumRegister(self._num_qubits, name='q')
-            circuit = QuantumCircuit(register)
+                registers = [QuantumRegister(self._num_qubits, name='q')]
+            elif not isinstance(register, QuantumRegister):
+                registers = []
+                for qubit in register:
+                    if not qubit[0] in registers:
+                        registers.append(qubit[0])
+            else:
+                registers = [register]
+            circuit = QuantumCircuit(*registers)
 
             if self._state is None or self._state == 'random':
                 circuit.initialize(self._state_vector, [register[i] for i in range(self._num_qubits)])
