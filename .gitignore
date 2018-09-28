@@ -22,8 +22,9 @@ demo/svm/img/data/
 *.swp
 .ipynb_checkpoints/
 
-# Numpy files
+# Test files
 *.npy
+hhl_testing/data
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
