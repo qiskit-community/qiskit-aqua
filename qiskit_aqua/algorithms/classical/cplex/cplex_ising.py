@@ -67,24 +67,27 @@ class CPLEX_Ising(QuantumAlgorithm):
         super().__init__(configuration or copy.deepcopy(CPLEX_Ising.CPLEX_CONFIGURATION))
         self._ins = IsingInstance()
         self._sol = None
-        self._params = None
+        self._timelimit = 600
+        self._thread = 1
+        self._display = 2
 
     def init_params(self, params, algo_input):
         if algo_input is None:
             raise AlgorithmError("EnergyInput instance is required.")
-        self._ins.parse(algo_input.qubit_op.save_to_dict()['paulis'])
-        self._params = params
+        algo_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
+        timelimit = algo_params['timelimit']
+        thread = algo_params['thread']
+        display = algo_params['display']
+        self.init_args(algo_input.qubit_op, timelimit, thread, display)
+
+    def init_args(self, operator,  timelimit=600, thread=1, display=2):
+        self._ins.parse(operator.save_to_dict()['paulis'])
+        self._timelimit = timelimit
+        self._thread = thread
+        self._display = display
 
     def run(self):
-        if self._params:
-            timelimit = self._params['algorithm']['timelimit']
-            thread = self._params['algorithm']['thread']
-            display = self._params['algorithm']['display']
-        else:
-            timelimit = 600
-            thread = 1
-            display = 2
-        model = IsingModel(self._ins, timelimit=timelimit, thread=thread, display=display)
+        model = IsingModel(self._ins, timelimit=self._timelimit, thread=self._thread, display=self._display)
         self._sol = model.solve()
         return {'energy': self._sol.objective, 'eval_time': self._sol.time,
                 'x_sol': self._sol.x_sol, 'z_sol': self._sol.z_sol,
