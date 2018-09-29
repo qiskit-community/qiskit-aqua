@@ -18,7 +18,8 @@
 """
 This module implements the abstract base class for algorithm modules.
 
-To create add-on algorithm modules subclass the QuantumAlgorithm class in this module.
+To create add-on algorithm modules subclass the QuantumAlgorithm
+class in this module.
 Doing so requires that the required algorithm interface is implemented.
 """
 
@@ -27,13 +28,10 @@ import logging
 import sys
 
 import numpy as np
+import qiskit
 from qiskit import __version__ as qiskit_version
-from qiskit import register as q_register
-from qiskit import unregister as q_unregister
-from qiskit import registered_providers as q_registered_providers
-from qiskit import available_backends, get_backend
-from qiskit.backends.ibmq import IBMQProvider
-
+from qiskit.backends.ibmq.credentials import Credentials
+from qiskit.backends.ibmq.ibmqsingleprovider import IBMQSingleProvider
 from qiskit_aqua import AlgorithmError
 from qiskit_aqua.utils import run_circuits
 from qiskit_aqua import Preferences
@@ -58,13 +56,13 @@ class QuantumAlgorithm(ABC):
     UNSUPPORTED_BACKENDS = [
         'local_unitary_simulator', 'local_clifford_simulator']
 
-    EQUIVALENT_BACKENDS = {'local_statevector_simulator_py': 'local_statevector_simulator',
-                           'local_statevector_simulator_cpp': 'local_statevector_simulator',
-                           'local_statevector_simulator_sympy': 'local_statevector_simulator',
-                           'local_statevector_simulator_projectq': 'local_statevector_simulator',
-                           'local_qasm_simulator_py': 'local_qasm_simulator',
-                           'local_qasm_simulator_cpp': 'local_qasm_simulator',
-                           'local_qasm_simulator_projectq': 'local_qasm_simulator'
+    EQUIVALENT_BACKENDS = {'local_statevector_simulator_py': 'local_statevector_simulator_py',
+                           'local_statevector_simulator_cpp': 'local_statevector_simulator_py',
+                           'local_statevector_simulator_sympy': 'local_statevector_simulator_py',
+                           'local_statevector_simulator_projectq': 'local_statevector_simulator_py',
+                           'local_qasm_simulator_py': 'local_qasm_simulator_py',
+                           'local_qasm_simulator_cpp': 'local_qasm_simulator_py',
+                           'local_qasm_simulator_projectq': 'local_qasm_simulator_py'
                            }
     """
     Base class for Algorithms.
@@ -123,7 +121,7 @@ class QuantumAlgorithm(ABC):
         """Disable showing the summary of circuits"""
         self._show_circuit_summary = False
 
-    def setup_quantum_backend(self, backend='local_statevector_simulator', shots=1024, skip_transpiler=False,
+    def setup_quantum_backend(self, backend='local_statevector_simulator_py', shots=1024, skip_transpiler=False,
                               noise_params=None, coupling_map=None, initial_layout=None, hpc_params=None,
                               basis_gates=None, max_credits=10, timeout=None, wait=5):
         """
@@ -161,7 +159,11 @@ class QuantumAlgorithm(ABC):
             self._qjob_config.pop('wait', None)
             self.MAX_CIRCUITS_PER_JOB = sys.maxsize
 
-        my_backend = get_backend(backend)
+        my_backend = None
+        try:
+            my_backend = qiskit.Aer.get_backend(backend)
+        except KeyError:
+            my_backend = qiskit.IBMQ.get_backend(backend)
 
         if coupling_map is None:
             coupling_map = my_backend.configuration()['coupling_map']
@@ -204,31 +206,33 @@ class QuantumAlgorithm(ABC):
         return result
 
     @staticmethod
-    def register_and_get_operational_backends(*args, provider_class=IBMQProvider, **kwargs):
+    def register_and_get_operational_backends(token=None, url=None, **kwargs):
+        # update registration info using internal methods because:
+        # at this point I don't want to save to or removecredentials from disk
+        # I want to update url, proxies etc without removing token and
+        # re-adding in 2 methods
+
         try:
-            for provider in q_registered_providers():
-                if isinstance(provider, provider_class):
-                    q_unregister(provider)
-                    logger.debug(
-                        "Provider '{}' unregistered with Qiskit successfully.".format(provider_class))
-                    break
+            credentials = None
+            if token is not None:
+                credentials = Credentials(token, url, **kwargs)
+            else:
+                preferences = Preferences()
+                if preferences.get_token() is not None:
+                    credentials = Credentials(preferences.get_token(),
+                                              preferences.get_url(),
+                                              proxies=preferences.get_proxies({}))
+            if credentials is not None:
+                qiskit.IBMQ._accounts[credentials.unique_id()] = IBMQSingleProvider(
+                    credentials, qiskit.IBMQ)
+                logger.debug("Registered with Qiskit successfully.")
         except Exception as e:
             logger.debug(
-                "Failed to unregister provider '{}' with Qiskit: {}".format(provider_class, str(e)))
+                "Failed to register with Qiskit: {}".format(str(e)))
 
-        preferences = Preferences()
-        if args or kwargs or preferences.get_token() is not None:
-            try:
-                q_register(*args, provider_class=provider_class, **kwargs)
-                logger.debug(
-                    "Provider '{}' registered with Qiskit successfully.".format(provider_class))
-            except Exception as e:
-                logger.debug(
-                    "Failed to register provider '{}' with Qiskit: {}".format(provider_class, str(e)))
-
-        backends = available_backends()
+        backends = qiskit.Aer.backends() + qiskit.IBMQ.backends()
         backends = [
-            x for x in backends if x not in QuantumAlgorithm.UNSUPPORTED_BACKENDS]
+            x.name() for x in backends if x.name() not in QuantumAlgorithm.UNSUPPORTED_BACKENDS]
         return backends
 
     @abstractmethod

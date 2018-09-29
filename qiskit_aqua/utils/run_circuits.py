@@ -21,7 +21,8 @@ import time
 import functools
 
 import numpy as np
-from qiskit import get_backend, compile as q_compile
+import qiskit
+from qiskit import compile as q_compile
 from qiskit.backends.jobstatus import JobStatus
 from qiskit.backends import JobError
 
@@ -58,15 +59,22 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
     if not isinstance(circuits, list):
         circuits = [circuits]
 
-    my_backend = get_backend(backend)
-    with_autorecover = False if my_backend.configuration()['simulator'] else True
+    my_backend = None
+    try:
+        my_backend = qiskit.Aer.get_backend(backend)
+    except KeyError:
+        my_backend = qiskit.IBMQ.get_backend(backend)
+
+    with_autorecover = False if my_backend.configuration()[
+        'simulator'] else True
 
     qobjs = []
     jobs = []
     chunks = int(np.ceil(len(circuits) / max_circuits_per_job))
 
     for i in range(chunks):
-        sub_circuits = circuits[i * max_circuits_per_job:(i + 1) * max_circuits_per_job]
+        sub_circuits = circuits[i *
+                                max_circuits_per_job:(i + 1) * max_circuits_per_job]
         qobj = q_compile(sub_circuits, my_backend, **execute_config)
         job = my_backend.run(qobj)
         jobs.append(job)
@@ -79,21 +87,24 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
     if with_autorecover:
 
         logger.info("There are {} circuits and they are chunked into "
-                "{} chunks, each with {} circutis.".format(len(circuits), chunks, max_circuits_per_job))
+                    "{} chunks, each with {} circutis.".format(len(circuits), chunks, max_circuits_per_job))
 
         for idx in range(len(jobs)):
             job = jobs[idx]
             job_id = job.id()
-            logger.info("Running {}-th chunk circuits, job id: {}".format(idx, job_id))
+            logger.info(
+                "Running {}-th chunk circuits, job id: {}".format(idx, job_id))
             while True:
                 try:
                     result = job.result(**qjob_config)
                     if result.status == 'COMPLETED':
                         results.append(result)
-                        logger.info("COMPLETED the {}-th chunk of circuits, job id: {}".format(idx, job_id))
+                        logger.info(
+                            "COMPLETED the {}-th chunk of circuits, job id: {}".format(idx, job_id))
                         break
                     else:
-                        logger.warning("FAILURE: the {}-th chunk of circuits, job id: {}".format(idx, job_id))
+                        logger.warning(
+                            "FAILURE: the {}-th chunk of circuits, job id: {}".format(idx, job_id))
                 except JobError as e:
                     # if terra raise any error, which means something wrong, re-run it
                     logger.warning("FAILURE: the {}-th chunk of circuits, job id: {}, "
@@ -118,14 +129,16 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
                 logger.info("Job status: {}".format(job_status))
                 # when reach here, it means the job fails. let's check what kinds of failure it is.
                 if job_status == JobStatus.DONE:
-                    logger.info("Job ({}) is completed anyway, retrieve result from backend.".format(job_id))
+                    logger.info(
+                        "Job ({}) is completed anyway, retrieve result from backend.".format(job_id))
                     job = my_backend.retrieve_job(job_id)
                 elif job_status == JobStatus.RUNNING or job_status == JobStatus.QUEUED:
                     logger.info("Job ({}) is {}, but encounter an exception, "
                                 "recover it from backend.".format(job_id, job_status))
                     job = my_backend.retrieve_job(job_id)
                 else:
-                    logger.info("Fail to run Job ({}), resubmit it.".format(job_id))
+                    logger.info(
+                        "Fail to run Job ({}), resubmit it.".format(job_id))
                     qobj = qobjs[idx]
                     job = my_backend.run(qobj)
     else:
