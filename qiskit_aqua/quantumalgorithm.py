@@ -56,13 +56,13 @@ class QuantumAlgorithm(ABC):
     UNSUPPORTED_BACKENDS = [
         'local_unitary_simulator', 'local_clifford_simulator']
 
-    EQUIVALENT_BACKENDS = {'local_statevector_simulator_py': 'local_statevector_simulator_py',
-                           'local_statevector_simulator_cpp': 'local_statevector_simulator_py',
-                           'local_statevector_simulator_sympy': 'local_statevector_simulator_py',
-                           'local_statevector_simulator_projectq': 'local_statevector_simulator_py',
-                           'local_qasm_simulator_py': 'local_qasm_simulator_py',
-                           'local_qasm_simulator_cpp': 'local_qasm_simulator_py',
-                           'local_qasm_simulator_projectq': 'local_qasm_simulator_py'
+    EQUIVALENT_BACKENDS = {'local_statevector_simulator_py': 'local_statevector_simulator',
+                           'local_statevector_simulator_cpp': 'local_statevector_simulator',
+                           'local_statevector_simulator_sympy': 'local_statevector_simulator',
+                           'local_statevector_simulator_projectq': 'local_statevector_simulator',
+                           'local_qasm_simulator_py': 'local_qasm_simulator',
+                           'local_qasm_simulator_cpp': 'local_qasm_simulator',
+                           'local_qasm_simulator_projectq': 'local_qasm_simulator'
                            }
     """
     Base class for Algorithms.
@@ -121,7 +121,7 @@ class QuantumAlgorithm(ABC):
         """Disable showing the summary of circuits"""
         self._show_circuit_summary = False
 
-    def setup_quantum_backend(self, backend='local_statevector_simulator_py', shots=1024, skip_transpiler=False,
+    def setup_quantum_backend(self, backend='local_statevector_simulator', shots=1024, skip_transpiler=False,
                               noise_params=None, coupling_map=None, initial_layout=None, hpc_params=None,
                               basis_gates=None, max_credits=10, timeout=None, wait=5):
         """
@@ -144,7 +144,7 @@ class QuantumAlgorithm(ABC):
             AlgorithmError: set backend with invalid Qconfig
         """
         operational_backends = self.register_and_get_operational_backends()
-        if self.EQUIVALENT_BACKENDS.get(backend, backend) not in operational_backends:
+        if QuantumAlgorithm.EQUIVALENT_BACKENDS.get(backend, backend) not in operational_backends:
             raise AlgorithmError("This backend '{}' is not operational for the quantum algorithm, \
                                  select any one below: {}".format(backend, operational_backends))
 
@@ -230,9 +230,26 @@ class QuantumAlgorithm(ABC):
             logger.debug(
                 "Failed to register with Qiskit: {}".format(str(e)))
 
-        backends = qiskit.Aer.backends() + qiskit.IBMQ.backends()
-        backends = [
-            x.name() for x in backends if x.name() not in QuantumAlgorithm.UNSUPPORTED_BACKENDS]
+        backends = []
+        full_backends = [x.name() for x in qiskit.Aer.backends()] + \
+            [x.name() for x in qiskit.IBMQ.backends()]
+        for full_backend in full_backends:
+            backend = None
+            for group_name, names in qiskit.Aer.grouped_backend_names().items():
+                if full_backend in names:
+                    backend = group_name
+                    break
+            if backend is None:
+                for group_name, names in qiskit.Aer.deprecated_backend_names().items():
+                    if full_backend in names:
+                        backend = group_name
+                        break
+            if backend is None:
+                backend = full_backend
+
+            if backend not in QuantumAlgorithm.UNSUPPORTED_BACKENDS:
+                backends.append(backend)
+
         return backends
 
     @abstractmethod
