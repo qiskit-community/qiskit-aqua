@@ -160,10 +160,12 @@ class QuantumAlgorithm(ABC):
             self.MAX_CIRCUITS_PER_JOB = sys.maxsize
 
         my_backend = None
+        new_backend = backend[len('local_'):] if backend.startswith(
+            'local_') else backend
         try:
-            my_backend = qiskit.Aer.get_backend(backend)
+            my_backend = qiskit.Aer.get_backend(new_backend)
         except KeyError:
-            my_backend = qiskit.IBMQ.get_backend(backend)
+            my_backend = qiskit.IBMQ.get_backend(new_backend)
 
         if coupling_map is None:
             coupling_map = my_backend.configuration()['coupling_map']
@@ -230,27 +232,28 @@ class QuantumAlgorithm(ABC):
             logger.debug(
                 "Failed to register with Qiskit: {}".format(str(e)))
 
-        backends = []
-        full_backends = [x.name() for x in qiskit.Aer.backends()] + \
-            [x.name() for x in qiskit.IBMQ.backends()]
-        for full_backend in full_backends:
+        backends = set()
+        local_backends = [x.name() for x in qiskit.Aer.backends()]
+        for local_backend in local_backends:
             backend = None
-            for group_name, names in qiskit.Aer.grouped_backend_names().items():
-                if full_backend in names:
-                    backend = group_name
+            for group_name, names in qiskit.Aer.deprecated_backend_names().items():
+                if local_backend in names:
+                    backend = QuantumAlgorithm.EQUIVALENT_BACKENDS.get(
+                        group_name, group_name)
                     break
             if backend is None:
-                for group_name, names in qiskit.Aer.deprecated_backend_names().items():
-                    if full_backend in names:
-                        backend = group_name
-                        break
-            if backend is None:
-                backend = full_backend
+                backend = local_backend
 
-            if backend not in QuantumAlgorithm.UNSUPPORTED_BACKENDS:
-                backends.append(backend)
+            supported = True
+            for unsupported_backend in QuantumAlgorithm.UNSUPPORTED_BACKENDS:
+                if backend.startswith(unsupported_backend):
+                    supported = False
+                    break
 
-        return backends
+            if supported:
+                backends.add(backend)
+
+        return list(backends) + [x.name() for x in qiskit.IBMQ.backends()]
 
     @abstractmethod
     def init_params(self, params, algo_input):
