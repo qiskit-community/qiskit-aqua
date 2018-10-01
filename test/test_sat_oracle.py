@@ -19,6 +19,7 @@ import itertools
 import unittest
 
 from parameterized import parameterized
+import qiskit
 from qiskit import execute as q_execute
 from qiskit import QuantumCircuit, ClassicalRegister
 
@@ -73,7 +74,8 @@ class TestSATOracle(QiskitAquaTestCase):
                     qc.x(sat.variable_register()[idx])
             qc += sat_circuit
             qc.measure(sat._qr_outcome, m)
-            counts = q_execute(qc, 'local_qasm_simulator', shots=num_shots).result().get_counts(qc)
+            counts = q_execute(qc, qiskit.Aer.get_backend(
+                'qasm_simulator'), shots=num_shots).result().get_counts(qc)
             if assignment in sols:
                 assert(counts['1'] == num_shots)
             else:
