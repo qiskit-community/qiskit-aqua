@@ -18,9 +18,9 @@
 import os
 import json
 import copy
-import qiskit
-from qiskit.wrapper.credentials import get_account_name, discover_credentials
-from qiskit.backends.ibmq import IBMQProvider
+from qiskit.backends.ibmq.credentials import (discover_credentials,
+                                              store_credentials,
+                                              Credentials)
 
 
 class Preferences(object):
@@ -43,14 +43,13 @@ class Preferences(object):
 
         credentials = discover_credentials()
         if credentials is not None:
-            credentials = credentials.get(get_account_name(IBMQProvider))
-            if credentials is not None:
-                if 'token' in credentials:
-                    self._token = credentials['token']
-                if 'url' in credentials:
-                    self._url = credentials['url']
-                if 'proxies' in credentials and isinstance(credentials['proxies'], dict) and 'urls' in credentials['proxies']:
-                    self._proxy_urls = credentials['proxies']['urls']
+            credentials = list(credentials.values())
+            if len(credentials) > 0:
+                credentials = credentials[0]
+                self._token = credentials.token
+                self._url = credentials.url
+                if 'urls' in credentials.proxies:
+                    self._proxy_urls = credentials.proxies['urls']
 
         home = os.path.expanduser("~")
         self._filepath = os.path.join(home, Preferences._FILENAME)
@@ -62,12 +61,8 @@ class Preferences(object):
 
     def save(self):
         if self._credentials_changed:
-            proxies = {
-                'urls': self._proxy_urls} if self._proxy_urls is not None else {}
-            qiskit.wrapper.store_credentials(self._token,
-                                             url=self._url,
-                                             proxies=proxies,
-                                             overwrite=True)
+            store_credentials(Credentials(
+                self._token, self._url, proxies=self.get_proxies({})), overwrite=True)
             self._credentials_changed = False
 
         if self._logging_config_changed or self._packages_changed:
@@ -103,6 +98,13 @@ class Preferences(object):
         if self._url != url:
             self._credentials_changed = True
             self._url = url
+
+    def get_proxies(self, default_value=None):
+        proxies = self.get_proxy_urls()
+        if proxies is None:
+            return default_value
+
+        return {'urls': proxies}
 
     def get_proxy_urls(self, default_value=None):
         if self._proxy_urls is not None:

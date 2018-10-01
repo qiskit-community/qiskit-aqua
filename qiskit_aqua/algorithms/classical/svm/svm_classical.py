@@ -50,12 +50,7 @@ class SVM_Classical(QuantumAlgorithm):
             'additionalProperties': False
         },
         'depends': ['multiclass_extension'],
-        'problems': ['svm_classification'],
-        'defaults': {
-            'multiclass_extension': {
-                'name': 'AllPairs'
-            }
-        }
+        'problems': ['svm_classification']
     }
 
     def __init__(self, configuration=None):
@@ -66,26 +61,29 @@ class SVM_Classical(QuantumAlgorithm):
     def init_params(self, params, algo_input):
         svm_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
 
-        if algo_input.training_dataset is None:
-            raise AlgorithmError('Training dataset is required! please provide it')
-
-        is_multiclass = get_num_classes(algo_input.training_dataset) > 2
-        if is_multiclass:
-            multiclass_extension_params = params.get(QuantumAlgorithm.SECTION_KEY_MULTICLASS_EXTENSION)
+        multiclass_extension = None
+        multiclass_extension_params = params.get(QuantumAlgorithm.SECTION_KEY_MULTICLASS_EXTENSION)
+        if multiclass_extension_params is not None:
             multiclass_extension = get_multiclass_extension_instance(multiclass_extension_params['name'])
             multiclass_extension_params['estimator_cls'] = RBF_SVC_Estimator
             multiclass_extension.init_params(multiclass_extension_params)
-            logger.info("Multiclass classifcation algo:" + multiclass_extension_params['name'])
-        else:
-            logger.warning("Only two classes in the dataset, use binary classifer"
-                           " and ignore all options of multiclass_extension")
-            multiclass_extension = None
+            logger.info("Multiclass dataset with extension: {}".format(multiclass_extension_params['name']))
 
         self.init_args(algo_input.training_dataset, algo_input.test_dataset,
                        algo_input.datapoints, svm_params.get('gamma'), multiclass_extension)
 
-    def init_args(self, training_dataset, test_dataset, datapoints, gamma,
-                  multiclass_extension=None):
+    def init_args(self, training_dataset, test_dataset, datapoints, gamma, multiclass_extension=None):
+
+        if training_dataset is None:
+            raise AlgorithmError('Training dataset must be provided')
+
+        is_multiclass = get_num_classes(training_dataset) > 2
+        if is_multiclass:
+            if multiclass_extension is None:
+                raise AlgorithmError('Dataset has more than two classes. A multiclass extension must be provided.')
+        else:
+            if multiclass_extension is not None:
+                logger.warning("Dataset has just two classes. Supplied multiclass extension will be ignored")
 
         if multiclass_extension is None:
             svm_instance = SVM_Classical_Binary()

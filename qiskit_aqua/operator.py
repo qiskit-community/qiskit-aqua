@@ -279,8 +279,9 @@ class Operator(object):
                 for pauli in rhs._paulis:
                     basis, sign = sgn_prod(existed_pauli[1], pauli[1])
                     coeff = existed_pauli[0] * pauli[0] * sign
-                    pauli_term = [coeff, basis]
-                    ret_pauli += Operator(paulis=[pauli_term])
+                    if abs(coeff) > 1e-15:
+                        pauli_term = [coeff, basis]
+                        ret_pauli += Operator(paulis=[pauli_term])
             return ret_pauli
 
         elif self._grouped_paulis is not None and rhs._grouped_paulis is not None:
@@ -1242,7 +1243,7 @@ class Operator(object):
 
         Args:
             pauli_list (list): The operator's complete list of pauli terms for the suzuki expansion
-            lam (float): The parameter lambda as defined in said paper
+            lam (complex): The parameter lambda as defined in said paper
             expansion_order (int): The order for the suzuki expansion
 
         Returns:
@@ -1527,6 +1528,10 @@ class Operator(object):
 
         stacked_paulis = []
 
+        if self.is_empty():
+            logger.info("Operator is empty.")
+            return [], [], [], []
+
         self._check_representation("paulis")
 
         for pauli in self._paulis:
@@ -1625,7 +1630,7 @@ class Operator(object):
             has to be equal to the length of cliffords and sq_list
 
         Returns:
-            Operator : the tapered operator
+            Operator : the tapered operator, or empty operator if the `operator` is empty.
         """
 
         if len(cliffords) == 0 or len(sq_list) == 0 or len(tapering_values) == 0:
@@ -1637,6 +1642,10 @@ class Operator(object):
         if len(sq_list) != len(tapering_values):
             raise ValueError('number of Clifford unitaries has to be the same as length of single'
                              'qubit list and tapering values.')
+
+        if operator.is_empty():
+            logger.warning("The operator is empty, return the empty operator directly.")
+            return operator
 
         operator.to_paulis()
 
@@ -1659,6 +1668,7 @@ class Operator(object):
             pauli_term_out = [coeff_out, Pauli(np.array(v_temp), np.array(w_temp))]
             operator_out += Operator(paulis=[pauli_term_out])
 
+        operator_out.zeros_coeff_elimination()
         return operator_out
 
     def zeros_coeff_elimination(self):

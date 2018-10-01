@@ -88,7 +88,7 @@ def get_stableset_qubitops(w):
                 pauli_list.append([1.0, Pauli(vp, wp)])
                 shift += 1
     for i in range(num_nodes):
-        degree = sum(w[i, :])
+        degree = np.sum(w[i, :])
         wp = np.zeros(num_nodes)
         vp = np.zeros(num_nodes)
         vp[i] = 1

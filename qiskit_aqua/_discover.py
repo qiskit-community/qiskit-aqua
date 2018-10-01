@@ -201,7 +201,7 @@ def discover_local_pluggables(directory=os.path.dirname(__file__),
         return syspath
 
     syspath_save = sys.path
-    sys.path = _get_sys_path(directory) + sys.path
+    sys.path = sys.path + _get_sys_path(directory)
     try:
         _discover_local_pluggables(directory, parentname)
     finally:

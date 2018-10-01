@@ -131,7 +131,7 @@ class Controller(object):
             return
 
         self._backendsthread = threading.Thread(target=self._get_available_backends,
-                                                name='Chemistry remote backends')
+                                                name='Aqua remote backends')
         self._backendsthread.daemon = True
         self._backendsthread.start()
 
@@ -509,7 +509,7 @@ class Controller(object):
         if self._thread is not None:
             stopthread = threading.Thread(target=Controller._stop,
                                           args=(self._thread,),
-                                          name='Chemistry stop thread')
+                                          name='Aqua stop thread')
             stopthread.daemon = True
             stopthread.start()
             self._outputView.clear_buffer()

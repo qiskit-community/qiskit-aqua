@@ -22,7 +22,7 @@ from parameterized import parameterized
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import get_algorithm_instance, get_optimizer_instance
-from qiskit_aqua.algorithms.classical.cplex import maxcut
+from qiskit_aqua.translators.ising import maxcut
 
 w1 = np.array([
     [0, 1, 0, 1],

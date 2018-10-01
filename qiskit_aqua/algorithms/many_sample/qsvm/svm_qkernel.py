@@ -49,9 +49,6 @@ class SVM_QKernel(QuantumAlgorithm):
         'depends': ['multiclass_extension', 'feature_map'],
         'problems': ['svm_classification'],
         'defaults': {
-            'multiclass_extension': {
-                'name': 'AllPairs'
-            },
             'feature_map': {
                 'name': 'SecondOrderExpansion',
                 'depth': 2
@@ -62,37 +59,41 @@ class SVM_QKernel(QuantumAlgorithm):
     def __init__(self, configuration=None):
         super().__init__(configuration or self.SVM_QKERNEL_CONFIGURATION.copy())
         self._ret = {}
+        self.instance = None
 
     def init_params(self, params, algo_input):
 
-        if algo_input.training_dataset is None:
-            raise AlgorithmError("Training dataset is required.")
         fea_map_params = params.get(QuantumAlgorithm.SECTION_KEY_FEATURE_MAP)
         feature_map = get_feature_map_instance(fea_map_params['name'])
         num_qubits = get_feature_dimension(algo_input.training_dataset)
         fea_map_params['num_qubits'] = num_qubits
         feature_map.init_params(fea_map_params)
 
-        is_multiclass = get_num_classes(algo_input.training_dataset) > 2
-
-        if is_multiclass:
-            multicls_ext_params = params.get(QuantumAlgorithm.SECTION_KEY_MULTICLASS_EXTENSION)
-            multiclass_extension = get_multiclass_extension_instance(multicls_ext_params['name'])
-            # we need to set this explicitly for quantum version
-            multicls_ext_params['params'] = [feature_map, self]
-            multicls_ext_params['estimator_cls'] = QKernalSVM_Estimator
-            multiclass_extension.init_params(multicls_ext_params)
-            logger.info("Multiclass classifcation algo:" + multicls_ext_params['name'])
-        else:
-            logger.warning("Only two classes in the dataset, use binary classifer"
-                           " and ignore all options of multiclass_extension")
-            multiclass_extension = None
+        multiclass_extension = None
+        multiclass_extension_params = params.get(QuantumAlgorithm.SECTION_KEY_MULTICLASS_EXTENSION)
+        if multiclass_extension_params is not None:
+            multiclass_extension = get_multiclass_extension_instance(multiclass_extension_params['name'])
+            multiclass_extension_params['params'] = [feature_map, self]
+            multiclass_extension_params['estimator_cls'] = QKernalSVM_Estimator
+            multiclass_extension.init_params(multiclass_extension_params)
+            logger.info("Multiclass dataset with extension: {}".format(multiclass_extension_params['name']))
 
         self.init_args(algo_input.training_dataset, algo_input.test_dataset,
                        algo_input.datapoints, feature_map, multiclass_extension)
 
     def init_args(self, training_dataset, test_dataset, datapoints,
                   feature_map, multiclass_extension=None):
+
+        if training_dataset is None:
+            raise AlgorithmError('Training dataset must be provided')
+
+        is_multiclass = get_num_classes(training_dataset) > 2
+        if is_multiclass:
+            if multiclass_extension is None:
+                raise AlgorithmError('Dataset has more than two classes. A multiclass extension must be provided.')
+        else:
+            if multiclass_extension is not None:
+                logger.warning("Dataset has just two classes. Supplied multiclass extension will be ignored")
 
         if multiclass_extension is None:
             qsvm_instance = SVM_QKernel_Binary()

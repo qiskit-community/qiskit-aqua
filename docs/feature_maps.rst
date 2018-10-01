@@ -52,18 +52,18 @@ above, while still describing the data with sufficient accuracy.
     is the total number of qubits.  The following Python dictionary shows a possible entangler map: ``{0: [1, 2], 1: [3]}``.
 
 
-Currently, Aqua supplies the following variational forms:
+Currently, Aqua supplies the following feature maps:
 
-- :ref:`FirstOrderExpansion`
-- :ref:`SecondOrderExpansion`
+- :ref:`first-order-expansion`
+- :ref:`second-order-expansion`
 
-.. _firstorderexpansion:
+---------------------
+First Order Expansion
+---------------------
 
---
-FirstOrderExpansion
---
-
-The FirstOrderExpansion transform the data :math:`\vec{x} \in \mathbb{R}^n` with the following equation and then duplicate the same circuit with depth :math:`d` times.
+The First Order Expansion feature map transform the data :math:`\vec{x} \in \mathbb{R}^n`
+according to the following equation, and then concatenates the same circuit :math:`d` times,
+where :math:`d` is the depth of the circuit:
 
   ..math::
     U_{\Phi(\vec{x})} = \exp\left(i \sum_{S \subseteq [n]} \phi_S(\vec{x}) \prod_{i \in S} Z_i\right)
@@ -85,14 +85,14 @@ is set to ``FirstOrderExpansion``:
 
 .. topic:: Declarative Name
 
-   When referring to FirstOrderExpansion declaratively inside Aqua, its code ``name``, by which Aqua dynamically discovers and loads it,
+   When referring to the First Order Expansion feature map declaratively inside Aqua, its code ``name``, by which Aqua dynamically discovers and loads it,
    is ``declaratively``.
 
 .. _secondorderexpansion:
 
---
-SecondOrderExpansion
---
+----------------------
+Second Order Expansion
+----------------------
 
 The SecondOrderExpansion transform the data :math:`\vec{x} \in \mathbb{R}^n` with the following equation and then duplicate the same circuit with depth :math:`d` times.
 
