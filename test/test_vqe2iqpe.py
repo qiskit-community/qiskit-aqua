@@ -23,7 +23,7 @@ from qiskit_aqua import Operator
 from qiskit_aqua.input import get_input_instance
 from qiskit_aqua import get_algorithm_instance, get_variational_form_instance, get_optimizer_instance
 from qiskit_aqua.utils import decimal_to_binary
-from qiskit_aqua.algorithms.components.initial_states.varform import VarForm
+from qiskit_aqua.algorithms.components.initial_states.varformbased import VarFormBased
 
 
 class TestVQE2IQPE(QiskitAquaTestCase):
@@ -61,7 +61,7 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         num_time_slices = 50
         num_iterations = 11
 
-        state_in = VarForm()
+        state_in = VarFormBased()
         state_in.init_args(var_form, result['opt_params'])
 
         iqpe = get_algorithm_instance('IQPE')
