@@ -31,18 +31,19 @@ class TestGrover(QiskitAquaTestCase):
     ])
     def test_grover(self, input_file, incremental=True, num_iterations=1):
         input_file = self._get_resource_path(input_file)
+        # get ground-truth
+        with open(input_file) as f:
+            buf = f.read()
         if incremental:
             self.log.debug('Testing incremental Grover search on SAT problem instance: \n{}'.format(
-                open(input_file).read(),
+                buf,
             ))
         else:
             self.log.debug('Testing Grover search with {} iteration(s) on SAT problem instance: \n{}'.format(
-                num_iterations, open(input_file).read(),
+                num_iterations, buf,
             ))
-        # get ground-truth
-        with open(input_file) as f:
-            header = f.readline()
-            self.assertGreaterEqual(header.find('solution'), 0, 'Ground-truth info missing.')
+        header = buf.split('\n')[0]
+        self.assertGreaterEqual(header.find('solution'), 0, 'Ground-truth info missing.')
         self.groundtruth = [
             ''.join([
                 '1' if i > 0 else '0'
@@ -51,8 +52,7 @@ class TestGrover(QiskitAquaTestCase):
             for s in header.split('solutions:' if header.find('solutions:') >= 0 else 'solution:')[-1].split(',')
         ]
         sat_oracle = get_oracle_instance('SAT')
-        with open(input_file) as f:
-            sat_oracle.init_args(f.read())
+        sat_oracle.init_args(buf)
 
         grover = get_algorithm_instance('Grover')
         grover.setup_quantum_backend(backend='local_qasm_simulator', shots=100)
