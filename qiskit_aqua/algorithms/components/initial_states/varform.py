@@ -16,26 +16,27 @@
 # =============================================================================
 
 
-from .initial_state import InitialState
-
-
 class VarForm:
     """An initial state derived from a variational form."""
 
-    VAR_FORM_CONFIGURATION = {
-        'name': 'VarForm',
-        'description': 'var form initial state',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
-            'id': 'vf_state_schema',
-            'type': 'object',
-            'depends': ['variational_form'],
-            'additionalProperties': False
-        }
-    }
+    # VAR_FORM_CONFIGURATION = {
+    #     'name': 'VarForm',
+    #     'description': 'var form initial state',
+    #     'input_schema': {
+    #         '$schema': 'http://json-schema.org/schema#',
+    #         'id': 'vf_state_schema',
+    #         'type': 'object',
+    #         'depends': ['variational_form'],
+    #         'additionalProperties': False
+    #     }
+    # }
+    #
+    # def __init__(self, configuration=None):
+    #     # super().__init__(configuration or self.VAR_FORM_CONFIGURATION.copy())
+    #     self._var_form = None
+    #     self._var_form_params = None
 
-    def __init__(self, configuration=None):
-        # super().__init__(configuration or self.VAR_FORM_CONFIGURATION.copy())
+    def __init__(self):
         self._var_form = None
         self._var_form_params = None
 

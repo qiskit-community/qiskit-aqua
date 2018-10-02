@@ -23,6 +23,7 @@ from qiskit_aqua import Operator
 from qiskit_aqua.input import get_input_instance
 from qiskit_aqua import get_algorithm_instance, get_variational_form_instance, get_optimizer_instance
 from qiskit_aqua.utils import decimal_to_binary
+from qiskit_aqua.algorithms.components.initial_states.varform import VarForm
 
 
 class TestVQE2IQPE(QiskitAquaTestCase):
@@ -53,23 +54,18 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         algo.init_args(self.algo_input.qubit_op, 'paulis', var_form, optimizer)
         result = algo.run()
 
-        self.log.debug(result)
+        self.log.debug('VQE result: {}.'.format(result))
 
         self.ref_eigenval = -1.85727503
 
-
         num_time_slices = 50
-        num_iterations = 12
+        num_iterations = 11
 
-        iqpe = get_algorithm_instance('IQPE')
-        iqpe.setup_quantum_backend(backend='local_qasm_simulator', shots=100, skip_transpiler=True)
-
-        from qiskit_aqua.algorithms.components.initial_states.varform import VarForm
-
-        # state_in = get_initial_state_instance('VarForm')
         state_in = VarForm()
         state_in.init_args(var_form, result['opt_params'])
 
+        iqpe = get_algorithm_instance('IQPE')
+        iqpe.setup_quantum_backend(backend='local_qasm_simulator', shots=100, skip_transpiler=True)
         iqpe.init_args(
             self.algo_input.qubit_op, state_in, num_time_slices, num_iterations,
             paulis_grouping='random',
@@ -78,8 +74,6 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         )
 
         result = iqpe.run()
-        # self.log.debug('operator paulis:\n{}'.format(self.qubitOp.self.log.debug()_operators('paulis')))
-        # self.log.debug('qpe circuit:\n\n{}'.format(result['circuit']['complete'].qasm()))
 
         self.log.debug('top result str label:         {}'.format(result['top_measurement_label']))
         self.log.debug('top result in decimal:        {}'.format(result['top_measurement_decimal']))
@@ -97,7 +91,6 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         )))
 
         np.testing.assert_approx_equal(self.ref_eigenval, result['energy'], significant=2)
-
 
 
 if __name__ == '__main__':
