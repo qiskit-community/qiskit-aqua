@@ -20,6 +20,7 @@ import unittest
 import numpy as np
 from parameterized import parameterized
 from scipy.linalg import expm
+from scipy import sparse
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import get_algorithm_instance, get_initial_state_instance, Operator
@@ -63,7 +64,7 @@ class TestIQPE(QiskitAquaTestCase):
             w[0] * v[0]
         )
         np.testing.assert_almost_equal(
-            expm(-1.j * self.qubitOp.matrix) @ v[0],
+            expm(-1.j * sparse.csc_matrix(self.qubitOp.matrix)) @ v[0],
             np.exp(-1.j * w[0]) * v[0]
         )
 
@@ -102,12 +103,12 @@ class TestIQPE(QiskitAquaTestCase):
             (self.ref_eigenval + result['translation']) * result['stretch'])
         )
         self.log.debug('reference binary str label:   {}'.format(decimal_to_binary(
-            (self.ref_eigenval + result['translation']) * result['stretch'],
+            (self.ref_eigenval.real + result['translation']) * result['stretch'],
             max_num_digits=num_iterations + 3,
             fractional_part_only=True
         )))
 
-        np.testing.assert_approx_equal(self.ref_eigenval, result['energy'], significant=2)
+        np.testing.assert_approx_equal(self.ref_eigenval.real, result['energy'], significant=2)
 
 
 if __name__ == '__main__':
