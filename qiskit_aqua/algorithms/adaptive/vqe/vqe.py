@@ -200,7 +200,6 @@ class VQE(QuantumAlgorithm):
             ret = self.execute(qc)
             self._ret['eigvecs'] = np.asarray([ret.get_counts(qc)])
 
-
     def _get_ground_state_energy(self):
         if 'eigvals' not in self._ret:
             self._solve()
@@ -253,11 +252,11 @@ class VQE(QuantumAlgorithm):
         """
         input_circuit = self._var_form.construct_circuit(parameters)
         mean_energy, std_energy = self._operator.eval(self._operator_mode, input_circuit,
-                                                     self._backend, self._execute_config, self._qjob_config)
+                                                      self._backend, self._execute_config, self._qjob_config)
         self._eval_count += 1
 
         self._operator.disable_summarize_circuits()
-        logger.debug('Energy evaluation {} returned {}'.format(self._eval_count, np.real(mean_energy)))
+        logger.info('Energy evaluation {} returned {}'.format(self._eval_count, np.real(mean_energy)))
         return np.real(mean_energy)
 
     def find_minimum_eigenvalue(self, initial_point=None):
