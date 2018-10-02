@@ -16,15 +16,15 @@
 # =============================================================================
 
 from qiskit_aqua.algorithms.components.multiclass_extensions import Estimator
-from qiskit_aqua.algorithms.many_sample.qsvm import SVM_QKernel_Binary
+from qiskit_aqua.algorithms.many_sample.qsvm import QSVM_Kernel_Binary
 
 
-class QKernalSVM_Estimator(Estimator):
+class QSVM_Kernel_Estimator(Estimator):
     """The estimator that uses the quantum kernel."""
 
     def __init__(self, feature_map, qalgo):
-        super(QKernalSVM_Estimator, self).__init__()
-        self.qsvm_binary = SVM_QKernel_Binary()
+        super(QSVM_Kernel_Estimator, self).__init__()
+        self.qsvm_binary = QSVM_Kernel_Binary()
         self.qsvm_binary.init_args({}, {}, [], feature_map, qalgo)
         self._ret = {}
 

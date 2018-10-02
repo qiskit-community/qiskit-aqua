@@ -25,7 +25,7 @@ from qiskit_aqua import (run_algorithm, get_algorithm_instance, get_optimizer_in
                          get_feature_map_instance, get_variational_form_instance)
 
 
-class TestSVMVariational(QiskitAquaTestCase):
+class TestQSVMVariational(QiskitAquaTestCase):
 
     def setUp(self):
         self.random_seed = 10598
@@ -44,7 +44,7 @@ class TestSVMVariational(QiskitAquaTestCase):
         self.svm_input.training_dataset = self.training_data
         self.svm_input.test_dataset = self.testing_data
 
-    def test_svm_variational_via_run_algorithm(self):
+    def test_qsvm_variational_via_run_algorithm(self):
         np.random.seed(self.random_seed)
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
@@ -61,7 +61,7 @@ class TestSVMVariational(QiskitAquaTestCase):
 
         self.assertEqual(result['testing_accuracy'], 0.5)
 
-    def test_svm_variational_directly(self):
+    def test_qsvm_variational_directly(self):
         np.random.seed(self.random_seed)
         svm = get_algorithm_instance("QSVM.Variational")
         svm.random_seed = self.random_seed

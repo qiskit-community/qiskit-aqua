@@ -20,13 +20,13 @@ import logging
 import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 
-from qiskit_aqua.algorithms.many_sample.qsvm import SVM_QKernel_ABC
+from qiskit_aqua.algorithms.many_sample.qsvm import QSVM_Kernel_ABC
 from qiskit_aqua.utils import map_label_to_class_name, optimize_svm
 
 logger = logging.getLogger(__name__)
 
 
-class SVM_QKernel_Binary(SVM_QKernel_ABC):
+class QSVM_Kernel_Binary(QSVM_Kernel_ABC):
     """
     the binary classifier
     """

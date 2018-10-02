@@ -20,7 +20,7 @@ from abc import ABC, abstractmethod
 from qiskit_aqua.utils import split_dataset_to_data_and_labels
 
 
-class SVM_QKernel_ABC(ABC):
+class QSVM_Kernel_ABC(ABC):
     """
     abstract base class for the binary classifier and the multiclass classifier
     """

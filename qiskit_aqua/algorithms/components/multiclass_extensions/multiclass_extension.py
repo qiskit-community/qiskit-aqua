@@ -17,9 +17,6 @@
 
 from abc import ABC, abstractmethod
 
-from qiskit_aqua.algorithms.classical.svm import RBF_SVC_Estimator
-from qiskit_aqua.algorithms.many_sample.qsvm import QKernalSVM_Estimator
-
 
 class MulticlassExtension(ABC):
     """
