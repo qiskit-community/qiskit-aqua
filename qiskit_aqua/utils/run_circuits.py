@@ -60,10 +60,12 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
         circuits = [circuits]
 
     my_backend = None
+    new_backend = backend[len('local_'):] if backend.startswith(
+            'local_') else backend
     try:
-        my_backend = qiskit.Aer.get_backend(backend)
+        my_backend = qiskit.Aer.get_backend(new_backend)
     except KeyError:
-        my_backend = qiskit.IBMQ.get_backend(backend)
+        my_backend = qiskit.IBMQ.get_backend(new_backend)
 
     with_autorecover = False if my_backend.configuration()[
         'simulator'] else True
