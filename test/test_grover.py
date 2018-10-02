@@ -31,17 +31,18 @@ class TestGrover(QiskitAquaTestCase):
     ])
     def test_grover(self, input_file, incremental=True, num_iterations=1):
         input_file = self._get_resource_path(input_file)
-        if incremental:
-            self.log.debug('Testing incremental Grover search on SAT problem instance: \n{}'.format(
-                open(input_file).read(),
-            ))
-        else:
-            self.log.debug('Testing Grover search with {} iteration(s) on SAT problem instance: \n{}'.format(
-                num_iterations, open(input_file).read(),
-            ))
         # get ground-truth
         with open(input_file) as f:
-            header = f.readline()
+            buf = f.read()
+            if incremental:
+                self.log.debug('Testing incremental Grover search on SAT problem instance: \n{}'.format(
+                    buf,
+                ))
+            else:
+                self.log.debug('Testing Grover search with {} iteration(s) on SAT problem instance: \n{}'.format(
+                    num_iterations, buf,
+                ))
+            header = buf.split('\n')[0]
             self.assertGreaterEqual(header.find('solution'), 0, 'Ground-truth info missing.')
         self.groundtruth = [
             ''.join([
