@@ -58,7 +58,7 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         self.ref_eigenval = -1.85727503
 
 
-        num_time_slices = 200
+        num_time_slices = 50
         num_iterations = 12
 
         iqpe = get_algorithm_instance('IQPE')
