@@ -21,26 +21,26 @@ import numpy as np
 
 from qiskit_aqua import (AlgorithmError, QuantumAlgorithm, get_feature_map_instance,
                          get_multiclass_extension_instance)
-from qiskit_aqua.algorithms.many_sample.qsvm import (SVM_QKernel_Binary, SVM_QKernel_Multiclass,
-                                                     QKernalSVM_Estimator)
+from qiskit_aqua.algorithms.many_sample.qsvm import (QSVM_Kernel_Binary, QSVM_Kernel_Multiclass,
+                                                     QSVM_Kernel_Estimator)
 from qiskit_aqua.utils.dataset_helper import get_feature_dimension, get_num_classes
 
 
 logger = logging.getLogger(__name__)
 
 
-class SVM_QKernel(QuantumAlgorithm):
+class QSVM_Kernel(QuantumAlgorithm):
     """
     The qkernel interface.
     Internally, it will run the binary classification or multiclass classification
     based on how many classes the data have.
     """
-    SVM_QKERNEL_CONFIGURATION = {
+    QSVM_KERNEL_CONFIGURATION = {
         'name': 'QSVM.Kernel',
-        'description': 'SVM_QKernel Algorithm',
+        'description': 'QSVM_Kernel Algorithm',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
-            'id': 'SVM_QKernel_schema',
+            'id': 'QSVM_Kernel_schema',
             'type': 'object',
             'properties': {
             },
@@ -57,7 +57,7 @@ class SVM_QKernel(QuantumAlgorithm):
     }
 
     def __init__(self, configuration=None):
-        super().__init__(configuration or self.SVM_QKERNEL_CONFIGURATION.copy())
+        super().__init__(configuration or self.QSVM_KERNEL_CONFIGURATION.copy())
         self._ret = {}
         self.instance = None
 
@@ -74,7 +74,7 @@ class SVM_QKernel(QuantumAlgorithm):
         if multiclass_extension_params is not None:
             multiclass_extension = get_multiclass_extension_instance(multiclass_extension_params['name'])
             multiclass_extension_params['params'] = [feature_map, self]
-            multiclass_extension_params['estimator_cls'] = QKernalSVM_Estimator
+            multiclass_extension_params['estimator_cls'] = QSVM_Kernel_Estimator
             multiclass_extension.init_params(multiclass_extension_params)
             logger.info("Multiclass dataset with extension: {}".format(multiclass_extension_params['name']))
 
@@ -96,9 +96,9 @@ class SVM_QKernel(QuantumAlgorithm):
                 logger.warning("Dataset has just two classes. Supplied multiclass extension will be ignored")
 
         if multiclass_extension is None:
-            qsvm_instance = SVM_QKernel_Binary()
+            qsvm_instance = QSVM_Kernel_Binary()
         else:
-            qsvm_instance = SVM_QKernel_Multiclass(multiclass_extension)
+            qsvm_instance = QSVM_Kernel_Multiclass(multiclass_extension)
 
         if datapoints is not None:
             if not isinstance(datapoints, np.ndarray):

@@ -24,10 +24,10 @@ from qiskit_aqua.operator import Operator
 from qiskit_aqua import get_algorithm_instance, get_initial_state_instance
 
 
-class TestEvolution(QiskitAquaTestCase):
+class TestEOH(QiskitAquaTestCase):
     """Evolution tests."""
 
-    def test_evolution(self):
+    def test_eoh(self):
         SIZE = 2
 
         temp = np.random.random((2 ** SIZE, 2 ** SIZE))
@@ -44,12 +44,12 @@ class TestEvolution(QiskitAquaTestCase):
         evo_time = 1
         num_time_slices = 100
 
-        dynamics = get_algorithm_instance('EOH')
-        dynamics.setup_quantum_backend(skip_transpiler=True)
+        eoh = get_algorithm_instance('EOH')
+        eoh.setup_quantum_backend(skip_transpiler=True)
         # self.log.debug('state_out:\n\n')
 
-        dynamics.init_args(qubitOp, 'paulis', state_in, evoOp, evo_time, num_time_slices)
-        ret = dynamics.run()
+        eoh.init_args(qubitOp, 'paulis', state_in, evoOp, evo_time, num_time_slices)
+        ret = eoh.run()
         self.log.debug('Evaluation result: {}'.format(ret))
 
 

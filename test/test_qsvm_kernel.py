@@ -16,6 +16,7 @@
 # =============================================================================
 import unittest
 
+import sys
 import numpy as np
 
 from test.common import QiskitAquaTestCase
@@ -23,7 +24,7 @@ from qiskit_aqua import run_algorithm, get_algorithm_instance, get_feature_map_i
 from qiskit_aqua.input import get_input_instance
 
 
-class TestSVMQKernel(QiskitAquaTestCase):
+class TestQSVMKernel(QiskitAquaTestCase):
 
     def setUp(self):
         self.random_seed = 10598
@@ -56,7 +57,7 @@ class TestSVMQKernel(QiskitAquaTestCase):
         self.svm_input.training_dataset = self.training_data
         self.svm_input.test_dataset = self.testing_data
 
-    def test_svm_qkernel_binary_via_run_algorithm(self):
+    def test_qsvm_kernel_binary_via_run_algorithm(self):
         training_input = {'A': np.asarray([[0.6560706, 0.17605998], [0.14154948, 0.06201424],
                                            [0.80202323, 0.40582692], [0.46779595, 0.39946754],
                                            [0.57660199, 0.21821317]]),
@@ -91,7 +92,7 @@ class TestSVMQKernel(QiskitAquaTestCase):
         self.assertEqual(result['predicted_classes'], ['A', 'A', 'A', 'A', 'A',
                                                        'A', 'B', 'A', 'A', 'A'])
 
-    def test_svm_qkernel_binary_directly(self):
+    def test_qsvm_kernel_binary_directly(self):
         svm = get_algorithm_instance("QSVM.Kernel")
         svm.random_seed = self.random_seed
         svm.setup_quantum_backend(backend='local_qasm_simulator_py', shots=self.shots)
@@ -116,7 +117,7 @@ class TestSVMQKernel(QiskitAquaTestCase):
 
         self.assertEqual(result['testing_accuracy'], 0.5)
 
-    def test_svm_qkernel_binary_directly_statevector(self):
+    def test_qsvm_kernel_binary_directly_statevector(self):
         svm = get_algorithm_instance("QSVM.Kernel")
         svm.random_seed = self.random_seed
         svm.setup_quantum_backend(backend='local_statevector_simulator')
@@ -134,7 +135,7 @@ class TestSVMQKernel(QiskitAquaTestCase):
 
         self.assertEqual(result['testing_accuracy'], 0.5)
 
-    def test_svm_qkernel_multiclass_one_against_all(self):
+    def test_qsvm_kernel_multiclass_one_against_all(self):
         training_input = {'A': np.asarray([[0.6560706, 0.17605998], [0.25776033, 0.47628296],
                                            [0.8690704, 0.70847635]]),
                           'B': np.asarray([[0.38857596, -0.33775802], [0.49946978, -0.48727951],
@@ -157,7 +158,7 @@ class TestSVMQKernel(QiskitAquaTestCase):
             'algorithm': {
                 'name': 'QSVM.Kernel',
             },
-            'backend': {'name': 'local_qasm_simulator_cpp', 'shots': self.shots},
+            'backend': {'name': 'local_qasm_simulator', 'shots': self.shots},
             'multiclass_extension': {'name': 'OneAgainstRest'},
             'feature_map': {'name': 'SecondOrderExpansion', 'depth': 2, 'entangler_map': {0: [1]}}
         }
@@ -169,12 +170,15 @@ class TestSVMQKernel(QiskitAquaTestCase):
 
         result = run_algorithm(params, algo_input)
 
-        self.assertAlmostEqual(result['testing_accuracy'], 0.444444444, places=4,
-                               msg='Please be assure you are using c++ simulator')
-        self.assertEqual(result['predicted_classes'], ['A', 'A', 'C', 'A',
-                                                       'A', 'A', 'A', 'C', 'C'])
+        # Note: Result here is dependent on platform with the C++ simulator
+        expected_accuracy = 0.555555555 if sys.platform.startswith('linux') else 0.444444444
+        expected_classes = ['A', 'A', 'A', 'A', 'A', 'A', 'A', 'C', 'C'] if sys.platform.startswith('linux') else \
+                           ['A', 'A', 'C', 'A', 'A', 'A', 'A', 'C', 'C']
+        self.assertAlmostEqual(result['testing_accuracy'], expected_accuracy, places=4,
+                               msg='Please ensure you are using c++ simulator')
+        self.assertEqual(result['predicted_classes'], expected_classes)
 
-    def test_svm_qkernel_multiclass_all_pairs(self):
+    def test_qsvm_kernel_multiclass_all_pairs(self):
         training_input = {'A': np.asarray([[0.6560706, 0.17605998], [0.25776033, 0.47628296],
                                            [0.8690704, 0.70847635]]),
                           'B': np.asarray([[0.38857596, -0.33775802], [0.49946978, -0.48727951],
@@ -197,7 +201,7 @@ class TestSVMQKernel(QiskitAquaTestCase):
             'algorithm': {
                 'name': 'QSVM.Kernel',
             },
-            'backend': {'name': 'local_qasm_simulator_cpp', 'shots': self.shots},
+            'backend': {'name': 'local_qasm_simulator', 'shots': self.shots},
             'multiclass_extension': {'name': 'AllPairs'},
             'feature_map': {'name': 'SecondOrderExpansion', 'depth': 2, 'entangler_map': {0: [1]}}
         }
@@ -208,11 +212,11 @@ class TestSVMQKernel(QiskitAquaTestCase):
         algo_input.datapoints = total_array
         result = run_algorithm(params, algo_input)
         self.assertAlmostEqual(result['testing_accuracy'], 0.444444444, places=4,
-                               msg='Please be assure you are using c++ simulator')
+                               msg='Please ensure you are using c++ simulator')
         self.assertEqual(result['predicted_classes'], ['A', 'A', 'C', 'A',
                                                        'A', 'A', 'A', 'C', 'C'])
 
-    def test_svm_qkernel_multiclass_error_correcting_code(self):
+    def test_qsvm_kernel_multiclass_error_correcting_code(self):
         training_input = {'A': np.asarray([[0.6560706, 0.17605998], [0.25776033, 0.47628296],
                                            [0.8690704, 0.70847635]]),
                           'B': np.asarray([[0.38857596, -0.33775802], [0.49946978, -0.48727951],
@@ -235,7 +239,7 @@ class TestSVMQKernel(QiskitAquaTestCase):
             'algorithm': {
                 'name': 'QSVM.Kernel',
             },
-            'backend': {'name': 'local_qasm_simulator_cpp', 'shots': 8192},
+            'backend': {'name': 'local_qasm_simulator', 'shots': 8192},
             'multiclass_extension': {'name': 'ErrorCorrectingCode', 'code_size': 5},
             'feature_map': {'name': 'SecondOrderExpansion', 'depth': 2, 'entangler_map': {0: [1]}}
         }
@@ -247,6 +251,6 @@ class TestSVMQKernel(QiskitAquaTestCase):
 
         result = run_algorithm(params, algo_input)
         self.assertAlmostEqual(result['testing_accuracy'], 0.55555555, places=4,
-                               msg='Please be assure you are using c++ simulator')
+                               msg='Please ensure you are using c++ simulator')
         self.assertEqual(result['predicted_classes'], ['A', 'A', 'C', 'A',
                                                        'A', 'A', 'C', 'C', 'C'])

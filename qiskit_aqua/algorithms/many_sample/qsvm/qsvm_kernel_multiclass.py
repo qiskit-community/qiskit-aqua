@@ -17,13 +17,13 @@
 
 import logging
 
-from qiskit_aqua.algorithms.many_sample.qsvm import SVM_QKernel_ABC
+from qiskit_aqua.algorithms.many_sample.qsvm import QSVM_Kernel_ABC
 from qiskit_aqua.utils import map_label_to_class_name
 
 logger = logging.getLogger(__name__)
 
 
-class SVM_QKernel_Multiclass(SVM_QKernel_ABC):
+class QSVM_Kernel_Multiclass(QSVM_Kernel_ABC):
     """
     the multiclass classifier
     the classifier is built by wrapping the estimator

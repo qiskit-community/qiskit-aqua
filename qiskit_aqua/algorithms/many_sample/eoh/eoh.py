@@ -28,9 +28,9 @@ from qiskit_aqua import get_initial_state_instance
 logger = logging.getLogger(__name__)
 
 
-class Dynamics(QuantumAlgorithm):
+class EOH(QuantumAlgorithm):
     """
-    The Quantum Dynamics algorithm.
+    The Quantum EOH (Evolution of Hamiltonian) algorithm.
     """
 
     PROP_OPERATOR_MODE = 'operator_mode'
@@ -42,10 +42,10 @@ class Dynamics(QuantumAlgorithm):
 
     DYNAMICS_CONFIGURATION = {
         'name': 'EOH',
-        'description': 'Dynamics for Quantum Systems',
+        'description': 'Evolution of Hamiltonian for Quantum Systems',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
-            'id': 'Dynamics_schema',
+            'id': 'EOH_schema',
             'type': 'object',
             'properties': {
                 PROP_OPERATOR_MODE: {
@@ -139,12 +139,12 @@ class Dynamics(QuantumAlgorithm):
             raise AlgorithmError("EnergyInput, invalid aux op.")
 
         dynamics_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
-        operator_mode = dynamics_params.get(Dynamics.PROP_OPERATOR_MODE)
-        evo_time = dynamics_params.get(Dynamics.PROP_EVO_TIME)
-        num_time_slices = dynamics_params.get(Dynamics.PROP_NUM_TIME_SLICES)
-        paulis_grouping = dynamics_params.get(Dynamics.PROP_PAULIS_GROUPING)
-        expansion_mode = dynamics_params.get(Dynamics.PROP_EXPANSION_MODE)
-        expansion_order = dynamics_params.get(Dynamics.PROP_EXPANSION_ORDER)
+        operator_mode = dynamics_params.get(EOH.PROP_OPERATOR_MODE)
+        evo_time = dynamics_params.get(EOH.PROP_EVO_TIME)
+        num_time_slices = dynamics_params.get(EOH.PROP_NUM_TIME_SLICES)
+        paulis_grouping = dynamics_params.get(EOH.PROP_PAULIS_GROUPING)
+        expansion_mode = dynamics_params.get(EOH.PROP_EXPANSION_MODE)
+        expansion_order = dynamics_params.get(EOH.PROP_EXPANSION_ORDER)
 
         # Set up initial state, we need to add computed num qubits to params
         initial_state_params = params.get(QuantumAlgorithm.SECTION_KEY_INITIAL_STATE)
