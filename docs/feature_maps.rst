@@ -47,7 +47,8 @@ above, while still describing the data with sufficient accuracy.
     A feature map is associated with an entangler map, which specifies the entanglement of the qubits.
     An entangler map can be envisioned (and that is also how it is implemented in Aqua)
     as a dictionary :math:`D` such that each entry in the dictionary has a source qubit
-    index as the key :math:`k`, with the corresponding value :math:`D(k) = v` being a list of target qubit indexes to which qubit
+    index as the key :math:`k`, with the corresponding value :math:`D(k) = v` being a list of target qubit
+    indexes to which qubit
     :math:`k` is entangled.  Indexes are non-negative integer values from :math:`0` to :math:`q - 1`, where :math:`q`
     is the total number of qubits.  The following Python dictionary shows a possible entangler map: ``{0: [1, 2], 1: [3]}``.
 
@@ -85,8 +86,9 @@ is set to ``FirstOrderExpansion``:
 
 .. topic:: Declarative Name
 
-   When referring to the First Order Expansion feature map declaratively inside Aqua, its code ``name``, by which Aqua dynamically discovers and loads it,
-   is ``declaratively``.
+   When referring to the First Order Expansion feature map declaratively inside Aqua, its code ``name``, by which Aqua 
+   dynamically discovers and loads it,
+   is ``FirstOrderExpansion``.
 
 .. _secondorderexpansion:
 
@@ -122,8 +124,10 @@ is set to ``SecondOrderExpansion``:
       entanglement = "full" | "linear"
 
   Only two ``str`` values are supported: ``"full"`` and ``"linear"``, corresponding to the *full* (or *all-to-all*) and
-  *linear* (or *next-neighbor coupling*) entangler maps, respectively.  With full entanglement, each qubit is entangled with all the
-  others; with linear entanglement, qubit :math:`i` is entangled with qubit :math:`i + 1`, for all :math:`i \in \{0, 1, ... , q - 2\}`,
+  *linear* (or *next-neighbor coupling*) entangler maps, respectively.  With full entanglement, each qubit is entangled with 
+  all the
+  others; with linear entanglement, qubit :math:`i` is entangled with qubit :math:`i + 1`, for all :math:`i \in \{0, 1, ... , 
+  q - 2\}`,
   where :math:`q` is the total number of qubits.
 
 - A dictionary of lists of non-negative ``int`` values specifying the entangler map:
@@ -151,9 +155,11 @@ is set to ``SecondOrderExpansion``:
      qubit :math:`i` cannot be in the list `:math:D(i)` of qubits mapped to qubit :math:`i` itself.
 
      Furthermore, by default, if
-     the ``entangler_map`` parameter specifies that :math:`j \in D(i)`, where :math:`i,j \in \{0, 1, q-1\}, i \neq j`, then it cannot also specify
+     the ``entangler_map`` parameter specifies that :math:`j \in D(i)`, where :math:`i,j \in \{0, 1, q-1\}, i \neq j`, then it 
+     cannot also specify
      :math:`j \in D(i)`.  A run-time error will be generated if double entanglement is configured.  This
-     restriction can be lifted programmatically by setting the ``allow_double_entanglement`` boolean flag to ``True`` inside the
+     restriction can be lifted programmatically by setting the ``allow_double_entanglement`` boolean flag to ``True`` inside 
+     the
      ``validate_entangler_map`` method in the ``entangler_map`` Application Programming Interface (API).
 
   .. warning::
@@ -162,7 +168,8 @@ is set to ``SecondOrderExpansion``:
      Aqua and its domain specific applications
      (:ref:`aqua-chemistry`, :ref:`aqua-ai`, and :ref:`aqua-optimization`) do not expose a configuration parameter in
      a ``FeatureMap`` object to set
-     the number of qubits that will be used in an experiment.  This is because, when it is used as a tool to execute experiments,
+     the number of qubits that will be used in an experiment.  This is because, when it is used as a tool to execute 
+     experiments,
      Aqua is working at a higher, more abstract level.  In such cases, the number of qubits
      is computed internally at run time based on the particular experiment, and passed programmatically to
      the ``init_args`` initialization method of the ``FeatureMap`` object.
@@ -175,6 +182,7 @@ is set to ``SecondOrderExpansion``:
 
 .. topic:: Declarative Name
 
-   When referring to SecondOrderExpansion declaratively inside Aqua, its code ``name``, by which Aqua dynamically discovers and loads it,
-   is ``declaratively``.
+   When referring to SecondOrderExpansion declaratively inside Aqua, its code ``name``, by which Aqua dynamically discovers 
+   and loads it,
+   is ``SecondOrderExpansion``.
 
