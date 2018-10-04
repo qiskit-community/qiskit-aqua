@@ -77,7 +77,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
 
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
-            'backend': {'name': 'local_qasm_simulator', 'shots': self.shots},
+            'backend': {'name': 'qasm_simulator', 'shots': self.shots},
             'algorithm': {
                 'name': 'QSVM.Kernel'
             }
@@ -95,7 +95,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
     def test_qsvm_kernel_binary_directly(self):
         svm = get_algorithm_instance("QSVM.Kernel")
         svm.random_seed = self.random_seed
-        svm.setup_quantum_backend(backend='local_qasm_simulator_py', shots=self.shots)
+        svm.setup_quantum_backend(backend='qasm_simulator_py', shots=self.shots)
 
         num_qubits = 2
         feature_map = get_feature_map_instance('SecondOrderExpansion')
@@ -120,7 +120,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
     def test_qsvm_kernel_binary_directly_statevector(self):
         svm = get_algorithm_instance("QSVM.Kernel")
         svm.random_seed = self.random_seed
-        svm.setup_quantum_backend(backend='local_statevector_simulator')
+        svm.setup_quantum_backend(backend='statevector_simulator')
 
         num_qubits = 2
         feature_map = get_feature_map_instance('SecondOrderExpansion')
@@ -158,7 +158,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
             'algorithm': {
                 'name': 'QSVM.Kernel',
             },
-            'backend': {'name': 'local_qasm_simulator', 'shots': self.shots},
+            'backend': {'name': 'qasm_simulator', 'shots': self.shots},
             'multiclass_extension': {'name': 'OneAgainstRest'},
             'feature_map': {'name': 'SecondOrderExpansion', 'depth': 2, 'entangler_map': {0: [1]}}
         }
@@ -201,7 +201,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
             'algorithm': {
                 'name': 'QSVM.Kernel',
             },
-            'backend': {'name': 'local_qasm_simulator', 'shots': self.shots},
+            'backend': {'name': 'qasm_simulator', 'shots': self.shots},
             'multiclass_extension': {'name': 'AllPairs'},
             'feature_map': {'name': 'SecondOrderExpansion', 'depth': 2, 'entangler_map': {0: [1]}}
         }
@@ -239,7 +239,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
             'algorithm': {
                 'name': 'QSVM.Kernel',
             },
-            'backend': {'name': 'local_qasm_simulator', 'shots': 8192},
+            'backend': {'name': 'qasm_simulator', 'shots': 8192},
             'multiclass_extension': {'name': 'ErrorCorrectingCode', 'code_size': 5},
             'feature_map': {'name': 'SecondOrderExpansion', 'depth': 2, 'entangler_map': {0: [1]}}
         }

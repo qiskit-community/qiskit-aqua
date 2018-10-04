@@ -57,7 +57,7 @@ class TestQAOA(QiskitAquaTestCase):
         qubitOp, offset = maxcut.get_maxcut_qubitops(w)
         qaoa = get_algorithm_instance('QAOA.Variational')
         qaoa.init_args(qubitOp, 'matrix', p, optimizer)
-        qaoa.setup_quantum_backend(backend='local_statevector_simulator', shots=100)
+        qaoa.setup_quantum_backend(backend='statevector_simulator', shots=100)
 
         result = qaoa.run()
         x = maxcut.sample_most_likely(result['eigvecs'][0])

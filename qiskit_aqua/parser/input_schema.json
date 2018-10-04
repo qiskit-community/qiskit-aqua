@@ -34,7 +34,7 @@
             "properties": {
                 "name": {
                     "type": "string",
-                    "default": "local_statevector_simulator"
+                    "default": "statevector_simulator"
                 },
                 "shots": {
                     "type": "integer",

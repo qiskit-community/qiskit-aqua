@@ -50,7 +50,7 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         optimizer.init_args(max_trials=10)
         # optimizer.set_options(**{'max_trials': 500})
         algo = get_algorithm_instance('VQE')
-        algo.setup_quantum_backend(backend='local_qasm_simulator')
+        algo.setup_quantum_backend(backend='qasm_simulator')
         algo.init_args(self.algo_input.qubit_op, 'paulis', var_form, optimizer)
         result = algo.run()
 
@@ -65,7 +65,7 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         state_in.init_args(var_form, result['opt_params'])
 
         iqpe = get_algorithm_instance('IQPE')
-        iqpe.setup_quantum_backend(backend='local_qasm_simulator', shots=100, skip_transpiler=True)
+        iqpe.setup_quantum_backend(backend='qasm_simulator', shots=100, skip_transpiler=True)
         iqpe.init_args(
             self.algo_input.qubit_op, state_in, num_time_slices, num_iterations,
             paulis_grouping='random',
