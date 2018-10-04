@@ -247,8 +247,6 @@ class HHL(QuantumAlgorithm):
         theo = np.linalg.solve(self._matrix, self._invec)
         theo = theo/np.linalg.norm(theo)
         self._ret["fidelity"] = abs(theo.dot(vec.conj()))**2
-        print(theo, vec)
-        print(abs(theo.dot(vec.conj()))**2)
         tmp_vec = self._matrix.dot(vec)
         f1 = np.linalg.norm(self._invec)/np.linalg.norm(tmp_vec)
         f2 = sum(np.angle(self._invec*tmp_vec.conj()))/self._num_q

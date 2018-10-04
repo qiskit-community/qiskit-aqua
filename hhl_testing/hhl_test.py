@@ -190,7 +190,7 @@ if __name__ == "__main__":
 
     print(sol, sol/np.linalg.norm(sol))
 
-    res = run_tests(params, status=lambda res: res["fidelity"])
+    res = run_tests(params, status=lambda res: print(res["fidelity"]))
     data = [get_for({"eigs num_ancillae": i}, res, "fidelity") for i in params["eigs"]["num_ancillae"]]
 
     plt.imshow(data, cmap='hot')
