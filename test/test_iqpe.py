@@ -40,7 +40,7 @@ qubitOp_h2_with_2_qubit_reduction = Operator.load_from_dict(pauli_dict)
 
 
 class TestIQPE(QiskitAquaTestCase):
-    """QPE tests."""
+    """IQPE tests."""
 
     @parameterized.expand([
         [qubitOp_h2_with_2_qubit_reduction],
@@ -90,14 +90,12 @@ class TestIQPE(QiskitAquaTestCase):
         )
 
         result = iqpe.run()
-        # self.log.debug('operator paulis:\n{}'.format(self.qubitOp.print_operators('paulis')))
-        # self.log.debug('qpe circuit:\n\n{}'.format(result['circuit']['complete'].qasm()))
 
         self.log.debug('top result str label:         {}'.format(result['top_measurement_label']))
         self.log.debug('top result in decimal:        {}'.format(result['top_measurement_decimal']))
         self.log.debug('stretch:                      {}'.format(result['stretch']))
         self.log.debug('translation:                  {}'.format(result['translation']))
-        self.log.debug('final eigenvalue from QPE:    {}'.format(result['energy']))
+        self.log.debug('final eigenvalue from IQPE:   {}'.format(result['energy']))
         self.log.debug('reference eigenvalue:         {}'.format(self.ref_eigenval))
         self.log.debug('ref eigenvalue (transformed): {}'.format(
             (self.ref_eigenval + result['translation']) * result['stretch'])
