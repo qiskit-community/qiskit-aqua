@@ -54,15 +54,15 @@ class QuantumAlgorithm(ABC):
     MAX_CIRCUITS_PER_JOB = 300
 
     UNSUPPORTED_BACKENDS = [
-        'local_unitary_simulator', 'local_clifford_simulator']
+        'unitary_simulator', 'clifford_simulator']
 
-    EQUIVALENT_BACKENDS = {'local_statevector_simulator_py': 'local_statevector_simulator',
-                           'local_statevector_simulator_cpp': 'local_statevector_simulator',
-                           'local_statevector_simulator_sympy': 'local_statevector_simulator',
-                           'local_statevector_simulator_projectq': 'local_statevector_simulator',
-                           'local_qasm_simulator_py': 'local_qasm_simulator',
-                           'local_qasm_simulator_cpp': 'local_qasm_simulator',
-                           'local_qasm_simulator_projectq': 'local_qasm_simulator'
+    EQUIVALENT_BACKENDS = {'statevector_simulator_py': 'statevector_simulator',
+                           'statevector_simulator_cpp': 'statevector_simulator',
+                           'statevector_simulator_sympy': 'statevector_simulator',
+                           'statevector_simulator_projectq': 'statevector_simulator',
+                           'qasm_simulator_py': 'qasm_simulator',
+                           'qasm_simulator_cpp': 'qasm_simulator',
+                           'qasm_simulator_projectq': 'qasm_simulator'
                            }
     """
     Base class for Algorithms.
@@ -121,7 +121,7 @@ class QuantumAlgorithm(ABC):
         """Disable showing the summary of circuits"""
         self._show_circuit_summary = False
 
-    def setup_quantum_backend(self, backend='local_statevector_simulator', shots=1024, skip_transpiler=False,
+    def setup_quantum_backend(self, backend='statevector_simulator', shots=1024, skip_transpiler=False,
                               noise_params=None, coupling_map=None, initial_layout=None, hpc_params=None,
                               basis_gates=None, max_credits=10, timeout=None, wait=5):
         """
@@ -155,17 +155,13 @@ class QuantumAlgorithm(ABC):
         shots = 1 if 'statevector' in backend else shots
         noise_params = noise_params if 'simulator' in backend else None
 
-        if backend.startswith('local'):
+        my_backend = None
+        try:
+            my_backend = qiskit.Aer.get_backend(backend)
             self._qjob_config.pop('wait', None)
             self.MAX_CIRCUITS_PER_JOB = sys.maxsize
-
-        my_backend = None
-        new_backend = backend[len('local_'):] if backend.startswith(
-            'local_') else backend
-        try:
-            my_backend = qiskit.Aer.get_backend(new_backend)
         except KeyError:
-            my_backend = qiskit.IBMQ.get_backend(new_backend)
+            my_backend = qiskit.IBMQ.get_backend(backend)
 
         if coupling_map is None:
             coupling_map = my_backend.configuration()['coupling_map']
@@ -236,10 +232,9 @@ class QuantumAlgorithm(ABC):
         local_backends = [x.name() for x in qiskit.Aer.backends()]
         for local_backend in local_backends:
             backend = None
-            for group_name, names in qiskit.Aer.deprecated_backend_names().items():
+            for group_name, names in qiskit.Aer.grouped_backend_names().items():
                 if local_backend in names:
-                    backend = QuantumAlgorithm.EQUIVALENT_BACKENDS.get(
-                        group_name, group_name)
+                    backend = group_name
                     break
             if backend is None:
                 backend = local_backend

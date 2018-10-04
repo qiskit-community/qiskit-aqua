@@ -55,7 +55,7 @@ class TestGrover(QiskitAquaTestCase):
         sat_oracle.init_args(buf)
 
         grover = get_algorithm_instance('Grover')
-        grover.setup_quantum_backend(backend='local_qasm_simulator', shots=100)
+        grover.setup_quantum_backend(backend='qasm_simulator', shots=100)
         grover.init_args(sat_oracle, num_iterations=num_iterations, incremental=incremental)
 
         ret = grover.run()

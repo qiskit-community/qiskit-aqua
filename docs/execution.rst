@@ -391,8 +391,8 @@ quantum computer or a quantum simulator.
 Terra comes
 with two predefined quantum device simulators: the *local state vector simulator* and
 the *local QASM simulator*, corresponding to the following two
-values for the ``"name"`` parameter: ``"local_statevector_simulator"`` (which
-is the default value for the ``"name"`` parameter) and ``"local_qasm_simulator"``, respectively.
+values for the ``"name"`` parameter: ``"statevector_simulator"`` (which
+is the default value for the ``"name"`` parameter) and ``"qasm_simulator"``, respectively.
 However, any suitable quantum backend can be selected, including
 a real quantum hardware device. The ``QConfig.py`` file
 needs to be setup for QISKit to access remote devices.  For this, it is sufficient to follow the
