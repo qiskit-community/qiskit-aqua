@@ -95,7 +95,8 @@ class HHL(QuantumAlgorithm):
         self._num_a = 0
 
         self._mode = None
-        self._exact = None
+        self._exact = False
+        self._debug = False
 
         self._ret = {}
 
@@ -141,6 +142,7 @@ class HHL(QuantumAlgorithm):
                 raise AlgorithmError("Debug mode only possible with"
                         "C++ local_qasm_simulator.")
             import qiskit.extensions.simulator
+            self._debug = True
 
         if mode == 'swap_test':
             if self._backend == 'local_statevector_simulator':
@@ -193,24 +195,24 @@ class HHL(QuantumAlgorithm):
         # InitialState
         qc += self._init_state.construct_circuit("circuit", q)
 
-        if self._mode == 'debug': qc.snapshot("0")
+        if self._debug: qc.snapshot("0")
 
         # EigenvalueEstimation (QPE)
         qc += self._eigs.construct_circuit("circuit", q)
         a = self._eigs._output_register
 
-        if self._mode == 'debug' or self._exact: qc.snapshot("1")
+        if self._debug: qc.snapshot("1")
 
         # Reciprocal calculation with rotation
         qc += self._reciprocal.construct_circuit("circuit", a)
         s = self._reciprocal._anc
 
-        if self._mode == 'debug': qc.snapshot("2")
+        if self._debug: qc.snapshot("2")
 
         # Inverse EigenvalueEstimation
         qc += self._eigs.construct_inverse("circuit")
 
-        if self._mode == 'debug': qc.snapshot("3")
+        if self._debug: qc.snapshot("3")
 
         # Measurement of the ancilla qubit
         if not self._exact:
@@ -219,7 +221,7 @@ class HHL(QuantumAlgorithm):
             qc.measure(s, c)
             self._success_bit = c
 
-        if self._mode == 'debug': qc.snapshot("-1")
+        if self._debug: qc.snapshot("-1")
 
         self._io_register = q
         self._eigenvalue_register = a
@@ -242,41 +244,15 @@ class HHL(QuantumAlgorithm):
         self._ret["probability"] = vec.dot(vec.conj())
         vec = vec/np.linalg.norm(vec)
         self._ret["result"] = vec
-        self._ret["fidelity"] = abs(vec.dot(self._invec / np.linalg.norm(self._invec)))**2
+        theo = np.linalg.solve(self._matrix, self._invec)
+        theo = theo/np.linalg.norm(theo)
+        self._ret["fidelity"] = abs(theo.dot(vec.conj()))**2
+        print(theo, vec)
+        print(abs(theo.dot(vec.conj()))**2)
         tmp_vec = self._matrix.dot(vec)
         f1 = np.linalg.norm(self._invec)/np.linalg.norm(tmp_vec)
         f2 = sum(np.angle(self._invec*tmp_vec.conj()))/self._num_q
         self._ret["solution"] = f1*vec*np.exp(-1j*f2)
-
-        eigs = res.get_snapshot("1").get("quantum_state_ket")[0]
-        eigs = self.__filter(eigs, reg=self._eigenvalue_register)
-        nums = np.array(list(map(lambda x: int(x, 2), eigs.keys())))
-        nums = nums/2**self._num_a*2*np.pi/self._eigs._evo_time
-        vals = np.array(list(eigs.values()))
-        self._ret["eigs_snap"] = [nums, vals]
-
-        # Theoretical eigenvalues
-        w, v = np.linalg.eig(self._matrix)
-        vt = v.T.conj().dot(self._invec)
-         
-        ty = np.arange(0, 2**self._num_a)
-        tmp = 1j*(2**self._num_a*np.outer(w, np.ones(len(ty)))*self._eigs._evo_time - 
-                2*np.pi*np.outer(np.ones(len(w)), ty))
-        tmp[tmp == 0] = 2j*np.pi/self._eigs._evo_time/2**self._num_a
-        ty = np.abs(vt.dot((1-np.exp(tmp))/(1-np.exp(tmp/2**self._num_a))
-                * 2**-self._num_a))**2
-        tx = np.arange(0, 2**self._num_a)/2**self._num_a*2*np.pi/self._eigs._evo_time
-        ty /= sum(ty)
-
-        if self._eigs._negative_evals:
-            h = int(len(tx)/2)
-            tx1 = tx[:h]
-            tx2 = tx[h:]
-            tx2 -= 2*tx2[0]
-            tx = np.concatenate(tx2, tx1)
-            ty = np.concatenate(ty[h:], ty[:h])
-
-        self._ret["eigs_snap"] = [tx, ty]
 
     
     def _state_tomography(self):
@@ -308,11 +284,13 @@ class HHL(QuantumAlgorithm):
         rho_fit = tomo.fit_tomography_data(tomo_data)
         vec = rho_fit[:, 0]/np.sqrt(rho_fit[0, 0])
 
-        self._ret["probability"] = sum(probs)/len(probs)
         self._ret["result"] = vec
-        self._ret["fidelity"] = abs(vec.dot(self._invec / np.linalg.norm(self._invec)))**2
-        f1 = np.sqrt(np.linalg.norm(self._invec))
-        f2 = sum(np.angle(self._invec*vec.conj()))/self._num_q
+        theo = np.linalg.solve(self._matrix, self._invec)
+        theo = theo/np.linalg.norm(theo)
+        self._ret["fidelity"] = abs(theo.dot(vec.conj()))**2
+        tmp_vec = self._matrix.dot(vec)
+        f1 = np.linalg.norm(self._invec)/np.linalg.norm(tmp_vec)
+        f2 = sum(np.angle(self._invec*tmp_vec.conj()))/self._num_q
         self._ret["solution"] = f1*vec*np.exp(-1j*f2)
 
 
@@ -390,7 +368,7 @@ class HHL(QuantumAlgorithm):
         return ret
 
 
-    def _debug(self):
+    def _exec_debug(self):
         # WORK IN PROGRESS
         print(" HHL - Debug Mode ")
         print("##################\n")
@@ -472,9 +450,13 @@ class HHL(QuantumAlgorithm):
         vec = vec/np.linalg.norm(vec)
         self._ret["result"] = vec
         solution = np.linalg.solve(self._matrix, self._invec)
+        self._ret["fidelity"] = abs(vec.conj().dot(solution/np.linalg.norm(solution)))**2
+        print(self._ret["fidelity"])
         dev = np.abs(solution/np.linalg.norm(solution)-vec)**2
         ax_dev.barh(np.arange(len(dev)), dev)
-        print(solution, vec)
+        sa = solution/np.linalg.norm(solution)
+        print(sa, vec)
+        print(abs(sa[0]*vec[0].conj()+sa[1]*vec[1].conj())**2)
 
         # Decoration
         ax_eig.set_title("Eigenvalue results")
@@ -515,7 +497,7 @@ class HHL(QuantumAlgorithm):
             else:
                 self._state_tomography()
         elif self._mode == "debug":
-            self._debug()
+            self._exec_debug()
         elif self._mode == "swap_test":
             self._swap_test()
         self._ret["gate_count"] = self._circuit.number_atomic_gates()

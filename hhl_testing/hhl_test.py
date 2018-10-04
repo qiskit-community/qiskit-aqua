@@ -13,6 +13,7 @@ import json
 import hashlib
 import os
 import time
+import itertools
 
 test_object_matrices = None
 test_object_vectors = None
@@ -25,11 +26,12 @@ def clean_dict(params, matrix, invec):
     params["invec"] = list(map(decomplex, invec.tolist()))
 
 def get_hash(params, matrix, invec):
+    params = copy.deepcopy(params)
     clean_dict(params, matrix, invec)
     s = json.dumps(params, sort_keys=True)
     return hashlib.sha256(s.encode('utf-8')).hexdigest()
 
-def register_hash(params, matrix, invec):
+def register_hash(params, matrix, invec, force=False):
     if not os.path.exists("data"):
         os.mkdir("data")
     if not os.path.exists("data/index.json"):
@@ -37,7 +39,7 @@ def register_hash(params, matrix, invec):
     ha = get_hash(params, matrix, invec)
     with open("data/index.json", "r") as f:
         d = json.load(f)
-    if not ha in d:
+    if (not ha in d) or force:
         d[ha] = params
         with open("data/index.json", "w") as f:
             json.dump(d, f, sort_keys=True, indent=2)
@@ -54,8 +56,8 @@ def cleanup_index():
     with open("data/index.json", "w") as f:
         json.dump(r, f, sort_keys=True, indent=2)
 
-def save_data(params, matrix, invec, data):
-    ha = register_hash(params, matrix, invec)
+def save_data(params, matrix, invec, data, force=False):
+    ha = register_hash(params, matrix, invec, force)
     if ha:
         with open(os.path.join("data", ha), "wb") as f:
             pickle.dump(data, f)
@@ -72,6 +74,9 @@ def load_data(params, matrix, invec):
         pass
 
 def get_matrix(index, n=2, name="eigrange=(1,10)"):
+    if index < 0:
+        name = "K=(3,1)"
+        index = -index-1
     global test_object_matrices
     if test_object_matrices is None:
         test_object_matrices = pickle.load(
@@ -87,11 +92,72 @@ def get_vector(index, n=2):
     return test_object_vectors[index]
 
 
-# reciprocal, problem_size, negative_evals, num_ancillae, expansion_mode,
-# expansion_order, num_time_slices, matrix_type, vector, output
-def run_test(matrix, invec, reciprocal="LOOKUP", n=2, negative_evals=False, 
-        num_ancillae=6, expansion_mode="trotter", expansion_order=1,
-        num_time_slices=10, time_data=None):
+def run_test(params, force=False):
+    matrix = params["input"]["matrix"]
+    vector = params["input"]["vector"]
+    del params["input"]
+    if isinstance(matrix, int):
+        matrix = get_matrix(matrix)
+    if isinstance(vector, int):
+        vector = get_vector(vector)
+    data = load_data(params, matrix, vector)
+    if (not data) or force:
+        t = time.time()
+        data = run_algorithm(params, (matrix, vector))
+        data["time_elapsed"] = time.time() - t
+        save_data(params, matrix, vector, data, force)
+    return data
+
+
+def run_tests(params, force=False, status=None):
+    tests = {}
+    for module, param in params.items():
+        for key, value in param.items():
+            if isinstance(value, (list, tuple)):
+                tests[module + " " + key] = value
+    keys = list(tests.keys())
+    vals = list(map(lambda x: tests[x], keys))
+    l = 1
+    for val in vals:
+        l *= len(val)
+    ret = {"keys": keys, "values": [], "data": []}
+    c = 0
+    for items in itertools.product(*vals):
+        c += 1
+        print("%d/%d" % (c, l), *list(zip(keys, items)))
+        ret["values"].append(items)
+        p = copy.deepcopy(params)
+        for key, val in zip(keys, items):
+            k1, k2 = key.split(" ")
+            p[k1][k2] = val
+        ret["data"].append(run_test(p, force))
+        if status:
+            status(ret["data"][-1])
+        #ret["data"].append(p)
+    return ret
+
+
+def get_for(params, data, subs=None):
+    ret = {"vals": [], "data": []}
+    idxs = list(map(lambda x: data["keys"].index(x), params.keys()))
+    vals = list(map(lambda x: params[x], params.keys()))
+    ret["keys"] = [key for key in data["keys"] if key not in params]
+    for v, res in zip(data["values"], data["data"]):
+        cont = True
+        for x, y in zip(vals, [v[i] for i in idxs]):
+            if x != y:
+                cont = False
+                break
+        if cont:
+            ret["vals"].append([v[i] for i in range(len(v)) if i not in idxs])
+            if subs:
+                res = res[subs]
+            ret["data"].append(res)
+    if len(ret["keys"]) == 1:
+        return ret["data"]
+    return ret
+        
+if __name__ == "__main__":
     params = {
         "algorithm": {
             "name": "HHL",
@@ -99,119 +165,37 @@ def run_test(matrix, invec, reciprocal="LOOKUP", n=2, negative_evals=False,
         },
         "eigs": {
             "name": "QPE",
-            "num_time_slices": num_time_slices,
-            "expansion_mode": expansion_mode,
-            "expansion_order": expansion_order,
-            "negative_evals": negative_evals,
-            "num_ancillae": num_ancillae,
+            "num_time_slices": list(range(10, 110, 20)),
+            "expansion_mode": "suzuki",
+            "expansion_order": 2,
+            "negative_evals": False,
+            "num_ancillae": (4, 6, 8),
         },
         "reciprocal": {
-            "name": reciprocal,
+            "name": "LOOKUP",
             "lambda_min": 1,
         },
         "backend": {
             "name": "local_qasm_simulator",
             "shots": 1
-        }
-    }
-    data = load_data(params.copy(), matrix, invec)
-    if not data:
-        t = time.time()
-        res = run_algorithm(params, (matrix, invec))
-        res["time_elapsed"] = time.time() - t
-        if time_data is not None:
-            time_data.append(res["time_elapsed"])
-        data = save_data(params, matrix, invec, res)
-    return data
-
-
-def run_all(limit_inputs=5):
-    input_files = os.listdir("test_objects")
-    input_dict = {}
-    for name in input_files:
-        with open(os.path.join("test_objects", name), "rb") as f:
-            input_dict[name[:-4]] = pickle.load(f)
-
-    vectors = {2: input_dict["vectors_100_n=2"][:limit_inputs],
-            4: input_dict["vectors_100_n=4"][:limit_inputs]}
-
-    matrices = {
-        2: {
-    #        "fixed_condition": input_dict["matrices_100_n=2_K=(3,1)"][:limit_inputs],
-            "eigrange": input_dict["matrices_100_n=2_eigrange=(1,10)"][:limit_inputs],
-            "negative_evals": input_dict["matrices_100_n=2_eigrange=(-10,10)"][:limit_inputs],
         },
-        4: {
-    #        "fixed_condition": input_dict["matrices_100_n=4_K=(3,1)"][:limit_inputs],
-            "eigrange": input_dict["matrices_100_n=4_eigrange=(1,10)"][:limit_inputs],
-            "negative_evals": input_dict["matrices_100_n=4_eigrange=(-10,10)"][:limit_inputs],
+        "input": {
+            "matrix": 4,
+            "vector": 7,
         }
     }
+    
+    sol = np.linalg.solve(get_matrix(params["input"]["matrix"]),
+            get_vector(params["input"]["vector"]))
 
-    problem_size = [2, 4]
-    negative_evals = [False, True]
+    print(sol, sol/np.linalg.norm(sol))
 
-    num_ancillae = np.arange(4, 10)
+    res = run_tests(params, status=lambda res: res["fidelity"])
+    data = [get_for({"eigs num_ancillae": i}, res, "fidelity") for i in params["eigs"]["num_ancillae"]]
 
-    expansion_mode = ["trotter", "suzuki"]
-
-    num_time_slices = {}
-    num_time_slices["trotter"] = np.arange(10, 400, 20)
-    num_time_slices["suzuki"] = np.arange(10, 100, 10)
-
-    expansion_order = {}
-    expansion_order["trotter"] = [1]
-    expansion_order["suzuki"] = [1, 2, 3]
-
-    reciprocals = ["LOOKUP"]
-
-    total_simulatiations = (len(reciprocals) * len(problem_size)
-        * len(num_ancillae) * (limit_inputs**2) * (len(expansion_order["trotter"])
-            * len(num_time_slices["trotter"]) + len(expansion_order["suzuki"])
-            * len(num_time_slices["suzuki"])) * 2)
-    c = 1
-    time_data = []
-    for r in reciprocals:
-        for n in problem_size:
-            for ne in negative_evals:
-                for na in num_ancillae:
-                    for em in expansion_mode:
-                        for eo in expansion_order[em]:
-                            for nts in num_time_slices[em]:
-                                for mtype, mats in matrices[n].items():
-                                    if ne == (mtype == "negative_evals"):
-                                        for matrix in mats:
-                                            for invec in vectors[n]:
-                                                run_test(matrix, invec, 
-                                                        r, n, ne, na, em, eo, nts,
-                                                        time_data=time_data)
-                                                print("%d/%d"%(c,
-                                                    total_simulatiations))
-                                                if len(time_data) > 0:
-                                                    avg = sum(time_data)/len(time_data)
-                                                    est = avg*(total_simulatiations-c)
-                                                    print("took %.3fs | avg %.3fs"
-                                                            "| estimated %.3fs"
-                                                            % (time_data[-1], avg, est))
-                                                c += 1
-
-
-run_all(5)
-
-# matrix = get_matrix(0)
-# invec = get_vector(0)
-#
-# num_time_slices = np.arange(10, 50, 10)
-#
-# y = []
-#
-# c = 0
-# for nts in num_time_slices:
-#     c += 1
-#     print("%d/%d"%(c, len(num_time_slices)))
-#     y.append(run_test(matrix, invec, expansion_mode="suzuki", expansion_order="2",
-#         num_time_slices=nts)["fidelity"])
-#
-# plt.plot(num_time_slices, y)
-# plt.show()
-
+    plt.imshow(data, cmap='hot')
+    plt.show()
+    
+    for i in range(len(data)):
+        plt.plot(params["eigs"]["num_time_slices"], data[i])
+    plt.show()
