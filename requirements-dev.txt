@@ -1,2 +1,4 @@
 discover
 parameterized
+Sphinx>=1.7,<1.8
+sphinxcontrib-fulltoc==1.2.0

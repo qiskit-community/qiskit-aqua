@@ -1,9 +1,9 @@
-qiskit-aqua>=0.2.0
-qiskit>=0.5.6
-numpy>=1.13,<1.15
+qiskit-aqua>=0.3.0
+qiskit>=0.6.0
+numpy>=1.13
 h5py
-psutil
-jsonschema
+psutil>=5
+jsonschema>=2.6,<2.7
 pyobjc-core; sys_platform == 'darwin'
 pyobjc-framework-Cocoa; sys_platform == 'darwin'
 networkx

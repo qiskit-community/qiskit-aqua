@@ -23,6 +23,6 @@ from .qmolecule import QMolecule
 from .aqua_chemistry import AquaChemistry
 from .fermionic_operator import FermionicOperator
 
-__version__ = '0.2.0'
+__version__ = '0.3.0'
 
 __all__ = ['AquaChemistryError','Preferences','QMolecule', 'AquaChemistry', 'FermionicOperator']
