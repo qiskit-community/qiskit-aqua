@@ -46,7 +46,7 @@ class TestIQPE(QiskitAquaTestCase):
         [qubitOp_h2_with_2_qubit_reduction],
     ])
     def test_iqpe(self, qubitOp):
-        self.algorithm = 'QPE'
+        self.algorithm = 'IQPE'
         self.log.debug('Testing IQPE')
 
         self.qubitOp = qubitOp
