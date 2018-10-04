@@ -54,10 +54,10 @@ class TestEnd2End(QiskitAquaChemistryTestCase):
         self.reference_energy = -1.857275027031588
 
     @parameterized.expand([
-        ['COBYLA_M', 'COBYLA', 'local_statevector_simulator', 'matrix', 1],
-        ['COBYLA_P', 'COBYLA', 'local_statevector_simulator', 'paulis', 1],
-        # ['SPSA_P', 'SPSA', 'local_qasm_simulator', 'paulis', 1024],
-        # ['SPSA_GP', 'SPSA', 'local_qasm_simulator', 'grouped_paulis', 1024]
+        ['COBYLA_M', 'COBYLA', 'statevector_simulator', 'matrix', 1],
+        ['COBYLA_P', 'COBYLA', 'statevector_simulator', 'paulis', 1],
+        # ['SPSA_P', 'SPSA', 'qasm_simulator', 'paulis', 1024],
+        # ['SPSA_GP', 'SPSA', 'qasm_simulator', 'grouped_paulis', 1024]
     ])
     def test_end2end_H2(self, name, optimizer, backend, mode, shots):
 

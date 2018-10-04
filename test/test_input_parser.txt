@@ -57,7 +57,7 @@ H2 molecule experiment
 &end
 
 &backend
-   name=local_statevector_simulator
+   name=statevector_simulator
    shots=1024
    skip_transpiler=False
 &end
