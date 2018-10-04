@@ -133,7 +133,7 @@ class TestFermionicOperator(QiskitAquaChemistryTestCase):
         fer_op = FermionicOperator(h1=molecule._one_body_integrals,
                                    h2=molecule._two_body_integrals)
         jw_op = fer_op.mapping('jordan_wigner')
-        bksf_op = fer_op.mapping('bravyi_kitaev_sf')
+        bksf_op = fer_op.mapping('bksf')
         jw_op.to_matrix()
         bksf_op.to_matrix()
         jw_eigs = np.linalg.eigvals(jw_op.matrix.toarray())
