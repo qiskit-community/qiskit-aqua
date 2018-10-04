@@ -57,11 +57,9 @@ class QuantumAlgorithm(ABC):
         'unitary_simulator', 'clifford_simulator']
 
     EQUIVALENT_BACKENDS = {'statevector_simulator_py': 'statevector_simulator',
-                           'statevector_simulator_cpp': 'statevector_simulator',
                            'statevector_simulator_sympy': 'statevector_simulator',
                            'statevector_simulator_projectq': 'statevector_simulator',
                            'qasm_simulator_py': 'qasm_simulator',
-                           'qasm_simulator_cpp': 'qasm_simulator',
                            'qasm_simulator_projectq': 'qasm_simulator'
                            }
     """
