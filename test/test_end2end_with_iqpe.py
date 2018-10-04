@@ -71,7 +71,7 @@ class TestIQPE(QiskitAquaChemistryTestCase):
         num_iterations = 12
 
         iqpe = get_algorithm_instance('IQPE')
-        iqpe.setup_quantum_backend(backend='local_qasm_simulator', shots=100, skip_transpiler=True)
+        iqpe.setup_quantum_backend(backend='qasm_simulator', shots=100, skip_transpiler=True)
 
         state_in = get_initial_state_instance('HartreeFock')
         state_in.init_args(self.qubitOp.num_qubits, num_orbitals, qubit_mapping, two_qubit_reduction, num_particles)
