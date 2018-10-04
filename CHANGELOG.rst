@@ -18,6 +18,34 @@ The format is based on `Keep a Changelog`_.
 `UNRELEASED`_
 =============
 
+`0.3.0`_ - 2018-10-05
+=====================
+
+Added
+-----
+
+- Updated for 0.6 Terra
+- Enhanced backend settings
+- Pluggable multiclass classifier extensions
+   - AllPairs
+   - OneAgainstAll
+   - ErrorCorrectingCode
+- Pluggable Feature Maps for QSVM algos
+- Pluggable Variation Forms for QSVM.Variational
+- SPSA calibration and control variables all configurable
+- Step size configurable for optimizers with numerical approximation of the jacobian 
+- Z2 Symmetry tapering
+   - Operator
+   - HartreeFock InitialState
+   - UCCSD
+- UCCSD performance improvements
+- Remote device/simulator job auto-recovery
+- Algorithm concatenation: VQE->(I)QPE
+- Operator improvements
+   - Subtraction
+   - Negation
+   - Scaling
+
 `0.2.0`_ - 2018-07-27
 =====================
 
@@ -97,7 +125,8 @@ Changed
 - Updated qiskit minimum version in setup.py.
 - Fixed links in readme.me.
 
-.. _UNRELEASED: https://github.com/Qiskit/aqua/compare/0.2.0...HEAD
+.. _UNRELEASED: https://github.com/Qiskit/aqua/compare/0.3.0...HEAD
+.. _0.3.0: https://github.com/Qiskit/aqua/compare/0.2.0...0.3.0
 .. _0.2.0: https://github.com/Qiskit/aqua/compare/0.1.2...0.2.0
 .. _0.1.2: https://github.com/Qiskit/aqua/compare/0.1.1...0.1.2
 .. _0.1.1: https://github.com/Qiskit/aqua/compare/0.1.0...0.1.1
