@@ -26,6 +26,7 @@ from operator import iadd as op_iadd, isub as op_isub
 import numpy as np
 from scipy import sparse as scisparse
 from scipy import linalg as scila
+import qiskit
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.tools.qi.pauli import Pauli, label_to_pauli, sgn_prod
 from qiskit.qasm import pi
@@ -762,8 +763,12 @@ class Operator(object):
             avg = self._eval_directly(input_circuit)
             std_dev = 0.0
         else:
-            if backend.startswith('local'):
+            try:
+                qiskit.Aer.get_backend(backend)
                 self.MAX_CIRCUITS_PER_JOB = sys.maxsize
+            except KeyError:
+                pass
+           
             if "statevector" in backend:
                 execute_config['shots'] = 1
                 avg = self._eval_with_statevector(operator_mode, input_circuit, backend, execute_config)
