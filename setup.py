@@ -24,7 +24,7 @@ long_description="""<a href="https://qiskit.org/aqua/chemistry" rel=nofollow>Qis
 
 requirements = [
     "qiskit-aqua>=0.3.0",
-    "qiskit>=0.6.0",
+    "qiskit>=0.6.1,<0.7",
     "numpy>=1.13",
     "h5py",
     "psutil>=5",
