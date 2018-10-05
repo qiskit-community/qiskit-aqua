@@ -51,7 +51,7 @@ pip install qiskit-aqua
 
 pip will handle all dependencies automatically and you will always install the latest (and well-tested) release version.
 
-If, however, your goal is not to use Aqua has a tool, but rather to contribute new components to Aqua, then we recommend 
+If, however, your goal is not to use Aqua as a tool, but rather to contribute new components to Aqua, then we recommend 
 cloning this repository.  This will give you a more direct access to the code.  In any case, we recommend using Python virtual 
 environments to improve your experience.
 
