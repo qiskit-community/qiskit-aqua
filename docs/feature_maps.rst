@@ -59,20 +59,22 @@ above, while still describing the data with sufficient accuracy.
 
 Currently, Aqua supplies the following feature maps:
 
-- :ref:`first-order-expansion`
-- :ref:`second-order-expansion`
+- :ref:`firstorderexpansion`
+- :ref:`secondorderexpansion`
+
+.. _firstorderexpansion:
 
 ---------------------
 First Order Expansion
 ---------------------
 
-The First Order Expansion feature map transform the data :math:`\vec{x} \in \mathbb{R}^n`
+The First Order Expansion feature map transform data :math:`\vec{x} \in \mathbb{R}^n`
 according to the following equation, and then concatenates the same circuit :math:`d` times,
 where :math:`d` is the depth of the circuit:
 
-  ..math::
-    U_{\Phi(\vec{x})} = \exp\left(i \sum_{S \subseteq [n]} \phi_S(\vec{x}) \prod_{i \in S} Z_i\right)
-    where S \in {0, 1, ..., n-1}, \phi_{i}(\vec{x}) = x_i
+  :math:`U_{\Phi(\vec{x})} = \exp\left(i \sum_{S \subseteq [n]} \phi_S(\vec{x}) \prod_{i \in S} Z_i\right)`
+
+where :math:`S \in {0, 1, ..., n-1}, \phi_{i}(\vec{x}) = x_i`.
 
 
 The following allows a specific form to be configured in the
@@ -100,14 +102,13 @@ is set to ``FirstOrderExpansion``:
 Second Order Expansion
 ----------------------
 
-The Second Order Expansion feature map transform the data :math:`\vec{x} \in \mathbb{R}^n`
+The Second Order Expansion feature map transform data :math:`\vec{x} \in \mathbb{R}^n`
 according to the following equation, and then duplicate the same circuit with depth :math:`d` times,
 where :math:`d` is the depth of the circuit:
 
-  ..math::
-    U_{\Phi(\vec{x})} = \exp\left(i \sum_{S \subseteq [n]} \phi_S(\vec{x}) \prod_{i \in S} Z_i\right) \\
-    where S \in {0, 1, ..., n-1, (0, 1), (0, 2), ..., (n-2, n-1)}, \\
-    \phi_{i}(\vec{x}) = x_i, \phi_{(i,j)}(\vec{x}) = (\pi - x_0) * (\pi - x_1)
+  :math:`U_{\Phi(\vec{x})} = \exp\left(i \sum_{S \subseteq [n]} \phi_S(\vec{x}) \prod_{i \in S} Z_i\right)`
+
+where :math:`S \in {0, 1, ..., n-1, (0, 1), (0, 2), ..., (n-2, n-1)}, \phi_{i}(\vec{x}) = x_i, \phi_{(i,j)}(\vec{x}) = (\pi - x_0) * (\pi - x_1)`.
 
 
 The following allows a specific form to be configured in the
@@ -172,7 +173,8 @@ is set to ``SecondOrderExpansion``:
 
      When configured declaratively,
      Aqua and its domain specific applications
-     (:ref:`aqua-chemistry`, :ref:`aqua-ai`, and :ref:`aqua-optimization`) do not expose a configuration parameter in
+     (:ref:`aqua-chemistry`, :ref:`aqua-ai`, :ref:`aqua-optimization` and :ref:`aqua-finance`)
+     do not expose a configuration parameter in
      a ``FeatureMap`` object to set
      the number of qubits that will be used in an experiment.  This is because, when it is used as a tool to execute 
      experiments,

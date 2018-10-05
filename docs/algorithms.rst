@@ -78,8 +78,8 @@ Variational Quantum Eigensolver (VQE)
 
 `VQE <https://arxiv.org/abs/1304.3061>`__ is a hybrid algorithm that uses
 the variational approach and interleaves quantum and classical computations in order to find
-the minimum eigenvalue of a matrix :math:`H`.  When VQE is used for quantum simulations, :math:`H` is typically
-the Hamiltonian of a system.  An instance of VQE requires defining two algorithmic subcomponents:
+the minimum eigenvalue of the Hamiltonian :math:`H` of a given system.
+An instance of VQE requires defining two algorithmic subcomponents:
 a trial function from Aqua's :ref:`variational-forms` library, and a classical optimizer
 from Aqua's :ref:`optimizers` library.  An initial state from Aqua's
 :ref:`initial-states` library may be supplied too in order to
