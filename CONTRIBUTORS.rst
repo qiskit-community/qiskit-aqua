@@ -24,6 +24,7 @@ levels:
 - Antonio Mezzacapo
 - `Nikolaj Moll <https://researcher.watson.ibm.com/researcher/view.php?person=zurich-NIM>`__
 - `Giacomo Nannicini <https://researcher.watson.ibm.com/researcher/view.php?person=us-nannicini>`__
+- Pauline Ollitrault
 - `Marco Pistoia <https://researcher.watson.ibm.com/researcher/view.php?person=us-pistoia>`__
 - `Julia Rice <https://researcher.watson.ibm.com/researcher/view.php?person=us-jrice>`__
 - `Raymond Harry Putra Rudy <https://researcher.watson.ibm.com/researcher/view.php?person=jp-RUDYHAR>`__
