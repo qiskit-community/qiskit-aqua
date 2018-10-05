@@ -21,7 +21,7 @@ InputParser test.
 
 import unittest
 from test.common import QiskitAquaChemistryTestCase
-from qiskit_aqua_chemistry import AQUAChemistryError
+from qiskit_aqua import AlgorithmError
 from qiskit_aqua_chemistry.parser import InputParser
 import os
 import json
@@ -74,7 +74,7 @@ class TestInputParser(QiskitAquaChemistryTestCase):
             self.fail(str(e))
             
         p.set_section_property('optimizer','dummy',1002)
-        self.assertRaises(AQUAChemistryError, p.validate_merge_defaults)
+        self.assertRaises(AlgorithmError, p.validate_merge_defaults)
             
 if __name__ == '__main__':
     unittest.main()

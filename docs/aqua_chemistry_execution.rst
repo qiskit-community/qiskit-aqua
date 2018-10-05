@@ -1,44 +1,51 @@
+.. _aqua-execution:
+
+=====================================
 Configuring and Running an Experiment
 =====================================
 
-Qiskit Aqua Chemistry supports two types of users:
+Aqua Chemistry supports two types of users:
 
 1. *Chemistry practitioners*, who are merely interested in executing
-   Qiskit Aqua Chemistry as a tool to compute chemistry properties.
-   These users may not be interested in extending Qiskit Aqua Chemistry
+   Aqua Chemistry as a tool to compute chemistry properties.
+   These users may not be interested in extending Aqua Chemistry
    with additional capabilities.  In fact, they may not even be interested
    in learning the details of quantum computing, such as the notions of
    circuits, gates and qubits.  What these users expect
    from quantum computing is the gains in performance and accuracy, and
    the reduction in computational complexity.
 2. *Chemistry and quantum researchers*, who are interested in extending
-   Qiskit Aqua Chemistry with new computational chemistry software drivers,
+   Aqua Chemistry with new computational chemistry software drivers,
    new operators for classical-to-quantum
    input translation, and/or new quantum algorithms for more efficient
    and accurate computations.
 
 In this section, we cover the first class of users --- the chemistry practitioners.
-Specifically, this section describes how Qiskit Aqua Chemistry can be accessed as a
+Specifically, this section describes how Aqua Chemistry can be accessed as a
 tool for quantum-based chemistry computations.
 
-To see how you can extend Qiskit Aqua Chemistry with new components,
-please refer to `Section "Contributing to Qiskit Aqua Chemistry <./extending.html>`__.
+To see how you can extend Aqua Chemistry with new components,
+please refer to Section ":ref:`aqua-chemistry-extending`".
 
+---------------
 Execution Modes
 ---------------
 
-Qiskit Aqua Chemistry has both `Graphical User Interface (GUI) <#gui>`__ and `command
+Aqua Chemistry has both `Graphical User Interface (GUI) <#gui>`__ and `command
 line <#command-line>`__ tools, which may be used when solving chemistry
 problems. Both can load and run an `input
 file <#input-file>`__ specifying a molecule configuration and the quantum
 algorithm to be used for the computation, along with the algorithm configuration
 and various other options to
 customize the experiment.  If you are new to
-Qiskit Aqua Chemistry, we highly recommend getting started with the GUI.
-Finally, Qiskit Aqua Chemistry can also be accessed
+Aqua Chemistry, we highly recommend getting started with the GUI.
+Finally, Aqua Chemistry can also be accessed
 `programmatically <#programmable-interface>`__ by users interested
 in customizing the experiments beyond what the command line and GUI can offer.
 
+.. _aqua-chemistry-gui:
+
+~~~
 GUI
 ~~~
 
@@ -48,8 +55,8 @@ chemistry problem on a quantum machine.
 An input file is created,
 edited and saved with validation of parameter values.
 
-When `installing <./install.html>`__
-Qiskit Aqua Chemistry via the ``pip install`` command,
+During the
+Aqua Chemistry :ref:`aqua-chemistry-code-installation` via the ``pip install`` command,
 a script is created that allows you to start the GUI from the command line,
 as follows:
 
@@ -57,7 +64,7 @@ as follows:
 
    qiskit_aqua_chemistry_ui
 
-If you cloned Qiskit Aqua Chemistry directly from the
+If you cloned Aqua Chemistry directly from the
 `GitHub repository <https://github.com/Qiskit/aqua-chemistry>`__ instead of using ``pip
 install``, then the script above will not be present and the launching command should be instead:
 
@@ -65,31 +72,33 @@ install``, then the script above will not be present and the launching command s
 
    python qiskit_aqua_chemistry/ui
 
-This command must be launched from the root folder of the ``qiskit-aqua-chemistry`` repository
+This command must be launched from the root folder of the ``aqua-chemistry`` repository
 clone.
 
-When executing an Qiskit Aqua Chemistry problem using the GUI, the user can choose
+When executing an Aqua Chemistry problem using the GUI, the user can choose
 to specify a `JavaScript Object Notation (JSON) <http://json.org>`__
 output file name by selecting the **Generate Algorithm Input**
 checkbox.  When this is done,
-Qiskit Aqua Chemistry will not attempt to bring the chemistry experiment to completion; rather,
+Aqua Chemistry will not attempt to bring the chemistry experiment to completion; rather,
 it will stop the execution of the experiment right after forming the input for the
 quantum algorithm, before invoking that algorithm, and
 will serialize the input to the quantum algorithm in a
-`JSON file for direct algorithm invocation <#input-file-for-direct-algorithm-invocation>`__
-later on.
+JSON :ref:`input-file-for-direct-algorithm-invocation`.
 
+.. _aqua-chemistry-command-line:
+
+~~~~~~~~~~~~
 Command Line
 ~~~~~~~~~~~~
 
-Qiskit Aqua Chemistry, if `installed <./install.html>`__ via ``pip install``,
-comes with the following command-line tool:
+The Aqua Chemistry pip :ref:`aqua-chemistry-code-installation` process
+will automatically install the following command-line tool:
 
 .. code:: sh
 
    qiskit_aqua_chemistry_cmd
 
-If you cloned Qiskit Aqua Chemistry from its remote
+If you cloned Aqua Chemistry from its remote
 `GitHub repository <https://github.com/Qiskit/aqua-chemistry>`__
 instead of using ``pip install``, then the command-line interface can be executed as follows:
 
@@ -108,7 +117,7 @@ Here is a summary of the command-line options:
    Quantum Chemistry Program.
 
    positional arguments:
-     input            Qiskit Aqua Chemistry input file
+     input            Aqua Chemistry input file
 
    optional arguments:
      -h, --help       Show this help message and exit
@@ -119,23 +128,26 @@ As shown above, in addition to the mandatory input file name parameter, the user
 specify an output file name where the output of the chemistry problem
 will be saved (otherwise it will just be printed
 on the command screen) or, alternatively, a JSON output file name.  When the latter is specified,
-Qiskit Aqua Chemistry will not attempt to bring the chemistry experiment to completion; rather,
+Aqua Chemistry will not attempt to bring the chemistry experiment to completion; rather,
 it will stop its execution right after forming the input for the
 quantum algorithm specified in the input file, before invoking that algorithm, and
-will serialize the input to the quantum algorithm `JSON file for direct algorithm
-invocation <#input-file-for-direct-algorithm-invocation>`__
-later on.
+will serialize the quantum-algorithm to a JSON :ref:`input-file-for-direct-algorithm-invocation`.
 
+
+.. _aqua-chemistry-programmable-interface:
+
+~~~~~~~~~~~~~~~~~~~~~~
 Programmable Interface
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Qiskit Aqua Chemistry also offers Application Programming Interfaces (APIs)
+Aqua Chemistry also offers Application Programming Interfaces (APIs)
 to execute experiments programmatically. Numerous
 examples on how to do so
 can be found in the
-`chemistry folder of the Qiskit Aqua Tutorials GitHub repository
-<https://github.com/Qiskit/aqua-tutorials/tree/master/chemistry>`__.
+`chemistry folder of the Aqua Tutorials GitHub repository
+<https://github.com/Qiskit/Aqua-tutorials/tree/master/chemistry>`__.
 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Programming an Experiment Step by Step
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -143,24 +155,25 @@ It is very well possible to program an experiment step by step by invoking
 all the necessary APIs one by one to construct the flow that executes a
 classical computation software with a given molecular configuration,
 extracts from that execution the molecular structural data necessary to form
-the input to one of the Qiskit Aqua quantum algorithms, and finally invokes that algorithm
+the input to one of the Aqua quantum algorithms, and finally invokes that algorithm
 to build, compile and execute a circuit modeling the experiment on top of a quantum
 machine.  An example of this is available in the `PySCF_end2end tutorial
-<https://github.com/Qiskit/aqua-tutorials/blob/master/chemistry/PySCF_end2end.ipynb>`__.
+<https://github.com/Qiskit/Aqua-tutorials/blob/master/chemistry/PySCF_end2end.ipynb>`__.
 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Declarative Programming Interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-It should be noted, however, that Qiskit Aqua Chemistry is
+It should be noted, however, that Aqua Chemistry is
 designed to be programmed in a declarative way as well.  This was done in order
-to simplify the programmatic access to Qiskit Aqua Chemistry,
+to simplify the programmatic access to Aqua Chemistry,
 minimizing the chances for configuration errors, and addressing the needs of users
 who might be experts in chemistry but not interested in writing a lot of code or
 learning new Application Programming Interfaces (APIs).  Even though there is
-nothing preventing a user from accessing the Qiskit Aqua Chemistry APIs and
-programming an experiment step by step, Qiskit Aqua Chemistry lets you
-build a Python dictionary from an `input file <#input-file>`__.  This can be achieved via the
-`GUI <#gui>`__
+nothing preventing a user from accessing the Aqua Chemistry APIs and
+programming an experiment step by step, Aqua Chemistry lets you
+build a Python dictionary from an :ref:`aqua-chemistry-input-file`.  This can be achieved via the
+:ref:`aqua-chemistry-gui`
 by loading (or creating from scratch) the input file representing the 
 configuration of the desired experiment, and by then selecting **Export Dictionary**
 from the **File** menu.  Assuming that the programmer assigns the
@@ -172,33 +185,32 @@ experiment can be executed with the following two lines of code:
    solver = AQUAChemistry()
    result = solver.run(aqua_chemistry_dict)
 
-Executing the Python dictionary extracted from the `input file <#input-file>`__
+Executing the Python dictionary extracted from the :ref:`aqua-chemistry-input-file`
 via a call to the ``run`` method of an ``AQUAChemistry`` solver
-is essentially what the `command line <#command-line>`__ and `GUI <#gui>`__
+is essentially what the :ref:`aqua-chemistry-command-line` and :ref:`aqua-chemistry-gui`
 do too in order to execute an experiment.
 
 The advantage of this approach is that users can now programmatically customize the
 Python dictionary extracted from the GUI according to their needs.
 Since a Python dictionary can be updated programmatically, the programmable
-interface of Qiskit Aqua Chemistry makes it
+interface of Aqua Chemistry makes it
 possible to carry out experiments that are more complicated than those
 that can be executed via the command line or the GUI.
 
 The following example shows a simple programmatic use of two Python dictionaries extracted from
-the Qiskit Aqua Chemistry `GUI <#gui>`__ in order to compute the ground-state molecular
+the Aqua Chemistry :ref:`aqua-chemistry-gui` in order to compute the ground-state molecular
 energy of a hydrogen molecule computed via the
-`Quantum Phase Estimation (QPE)
-<https://qiskit.org/documentation/aqua/algorithms.html#quantum-phase-estimation-qpe>`__
+:ref:`qpe`
 algorithm and compare that result against the reference value computed via the
-`Exact Eigensolver <https://qiskit.org/documentation/aqua/algorithms.html#exact-eigensolver>`__
-classical algorithm.  A comparison with the Hartree-Fock energy is also offered.
+:ref:`exact-eigensolver`
+classical algorithm.  A comparison with the :ref:`Hartree-Fock` energy is also offered.
 
 .. code:: python
 
     distance = 0.735
     molecule = 'H .0 .0 0; H .0 .0 {}'.format(distance)
 
-    # Input dictionaries to configure Qiskit Aqua Chemistry using QPE and Exact Eigensolver
+    # Input dictionaries to configure Aqua Chemistry using QPE and Exact Eigensolver
     aqua_chemistry_qpe_dict = {
         'driver': {'name': 'PYSCF'},
         'PYSCF': {
@@ -215,7 +227,7 @@ classical algorithm.  A comparison with the Hartree-Fock energy is also offered.
         },
         'initial_state': {'name': 'HartreeFock'},
         'backend': {
-            'name': 'local_qasm_simulator',
+            'name': 'qasm_simulator',
             'shots': 100,
         }
     }
@@ -240,11 +252,12 @@ classical algorithm.  A comparison with the Hartree-Fock energy is also offered.
 
 More complex examples include
 `plotting the dissociation curve 
-<https://github.com/Qiskit/aqua-tutorials/blob/master/chemistry/lih_dissoc.ipynb>`__
+<https://github.com/Qiskit/Aqua-tutorials/blob/master/chemistry/lih_dissoc.ipynb>`__
 or `comparing results obtained via different algorithms 
-<https://github.com/Qiskit/aqua-tutorials/blob/master/chemistry/lih_uccsd.ipynb>`__.
+<https://github.com/Qiskit/Aqua-tutorials/blob/master/chemistry/lih_uccsd.ipynb>`__.
 
-Result dictionary
+^^^^^^^^^^^^^^^^^
+Result Dictionary
 ^^^^^^^^^^^^^^^^^
 
 As can be seen in the programmable-interface example above, the
@@ -261,7 +274,7 @@ The dictionary contains the following fields of note:
 
 -  ``nuclear_repulsion_energy``: the nuclear repulsion energy
 
--  ``hf_energy``: the Hartree-Fock ground-state molecular energy as computed by the driver
+-  ``hf_energy``: the :ref:`Hartree-Fock` ground-state molecular energy as computed by the driver
 
 -  ``nuclear_dipole_moment``, ``electronic_dipole_moment``, ``dipole_moment``:
    nuclear, electronic, and combined dipole moments for ``x``, ``y`` and ``z``
@@ -269,28 +282,31 @@ The dictionary contains the following fields of note:
 -  ``total_dipole_moment``: total dipole moment
 
 -  ``algorithm_retvals``:  The result dictionary of the
-   `algorithm <https://qiskit.org/documentation/aqua/algorithms.html>`__
-   that produced the values in the 
+   algorithm that produced the values in the experiment.
 
+.. _aqua-chemistry-input-file:
+
+----------
 Input File
 ----------
 
 An input file is used to define a chemistry problem,
 and includes both chemistry and quantum configuration information. It contains at a
 minimum the definition of a molecule and its associated configuration, such
-as a basis set, in order to compute the electronic structure using an
-external ab-initio `chemistry driver <./drivers.html>`__. Further configuration can also be supplied to
+as a basis set, in order to compute the electronic structure using one of the
+external *ab-initio* :ref:`drivers`. Further configuration can also be supplied to
 explicitly control the processing and the quantum algorithm, used for
 the computation, instead of using defaulted values when none are
 supplied.
 
 Several sample input files can be found in the `chemistry folder of
-the aqua-tutorials repository
-<https://github.com/Qiskit/aqua-tutorials/tree/master/chemistry/input_files>`__.
+the Aqua Tutorials GitHub repository
+<https://github.com/Qiskit/Aqua-tutorials/tree/master/chemistry/input_files>`__.
 
 An input file comprises the following main sections, although not all
 are mandatory:
 
+~~~~~~~~
 ``name``
 ~~~~~~~~
 
@@ -304,6 +320,7 @@ describe the problem solved by the input file. For example:
       Ground state energy computed via Variational Quantum Eigensolver
    &end
 
+~~~~~~~~~~
 ``driver``
 ~~~~~~~~~~
 
@@ -311,7 +328,7 @@ This is a mandatory section, which defines the molecule and
 associated configuration for the electronic-structure computation by the
 chosen driver via its external computational chemistry program. The exact
 form of the configuration depends on the specific driver being used since
-Qiskit Aqua Chemistry allows external drivers to be the system's front-ends,
+Aqua Chemistry allows external drivers to be the system's front-ends,
 without interposing any new programming language or API
 on top of existing drivers.
 
@@ -324,8 +341,8 @@ be defined, containing the molecular configuration written as a PSI4
 input file.  Users who have already collected input files for existing drivers
 can simply paste those files' contents into this section.
 
-The following is an example showing how to use the `PySCF
-driver <./drivers.html#pyscf>`__ for the configuration of a Lithium Hydride (LiH) molecule.  The
+The following is an example showing how to use the :ref:`pyscf` driver
+for the configuration of a Lithium Hydride (LiH) molecule.  The
 ``driver`` section names ``PYSCF`` as the driver and then a ``pyscf`` section,
 corresponding to the name of the chosen driver, must be provided in order to define,
 at a minimum, the geometrical coordinates of the molecule's atoms
@@ -346,7 +363,7 @@ electronic structure.
    &end
 
 Here is another example showing again how to configure the same LiH molecule as above,
-this time using the `PSI4 driver <./drivers.html#psi4>`__. Here, ``PSI4``
+this time using the :ref:`psi4` driver. Here, ``PSI4``
 is named as the driver to be used and the ``psi4`` section contains the
 molecule and basis set (or sets) directly in a form that PSI4 understands. The
 language in which the molecular configuration is input is 
@@ -370,18 +387,19 @@ its contents into the ``psi4`` section of the input file.
           }
        &end
 
-The Qiskit Aqua Chemistry `documentation on drivers <./drivers.html>`__
+The Aqua Chemistry documentation on :ref:`drivers`
 explains how to install and configure the drivers currently interfaced by
-Qiskit Aqua Chemistry.
+Aqua Chemistry.
 
-As shown above, Qiskit Aqua Chemistry allows input files from the classical driver
+As shown above, Aqua Chemistry allows input files from the classical driver
 libraries to be used directly, without any modification and without interposing
 any new programming language or API.  This has a clear advantage, not only in terms
 of usability, but also in terms of functionality, because any capability
 of any chemistry library chosen by the user is automatically integrated into
-Qiskit Aqua Chemistry, which would not have been possible if a new language or
+Aqua Chemistry, which would not have been possible if a new language or
 API had been interposed between the library and the user.
 
+~~~~~~~~~~~~
 ``operator``
 ~~~~~~~~~~~~
 
@@ -396,9 +414,9 @@ the algorithm. The following parameters may be set:
 
       name = hamiltonian
 
-  This parameter accepts a ``string`` value.  However, currently,
+  This parameter accepts a ``str`` value.  However, currently,
   ``hamiltonian`` is the only value allowed for ``name`` since there is only
-  one operator entity at present. The translation layer of Qiskit Aqua Chemistry
+  one operator entity at present. The translation layer of Aqua Chemistry
   is extensible and new translation operators can be plugged in.  Therefore,
   in the future, more operators may be supported.
 
@@ -408,60 +426,46 @@ the algorithm. The following parameters may be set:
 
        transformation = full | particle_hole
 
-   The ``transformation`` parameter takes a ``string`` value.  The only
+   The ``transformation`` parameter takes a ``str`` value.  The only
    two allowed values, currently, are ``full`` and ``particle_hole``,
    with ``full``, the default one, corresponding to the standard second
    quantized hamiltonian.  Setting the ``transformation`` parameter
    to ``particle_hole`` yields a transformation of the electronic structure
    Hamiltonian in the second quantization framework into the
-   particle-hole (p/h) picture, which offers
+   particle-hole picture, which offers
    a better starting point for the expansion of the trial wave function
    from the Hartree Fock reference state.
-   For trial wave functions in Qiskit Aqua, such as
-   `Unitary Coupled Cluster Singles and Doubles (UCCSD)
-   <https://qiskit.org/documentation/aqua/variational_forms.html#uccsd>`__, the
+   For trial wave functions in Aqua, such as :ref:`uccsd`, the
    p/h Hamiltonian can improve the speed of convergence of the
-   `Variational Quantum Eigensolver (VQE) algorithm
-   <https://qiskit.org/documentation/aqua/algorithms.html#variational-quantum-eigensolver-vqe>`__
-   in the calculation of the electronic ground state properties. 
-   More information on the p/h formalism can be found in
+   :ref:`vqe` algorithm in the calculation of the electronic ground state properties. 
+   More information on the particle-hole formalism can be found in
    `arXiv:1805.04340 <https://arxiv.org/abs/1805.04340>`__.
 
--  The desired mapping from fermion to qubit:
+   .. note::
+       For the reasons mentioned above, when the transformation type is set to be particle hole,
+       then the configuration of the initial qubit state offsetting the computation of the final result
+       should be set to be the :ref:`Hartree-Fock` energy of the molecule.  This can be done by setting the  ``name``
+       parameter in the ``initial_state`` section to ``Hartree-Fock``, as explained in the documentation
+       on :ref:`initial-states`.
+
+-  The desired :ref:`translators` from fermions to qubits:
 
    .. code:: python
 
        qubit_mapping = jordan_wigner | parity | bravyi_kitaev
 
-   This parameter takes a value of type ``string``.  Currently, only the three values
+   This parameter takes a value of type ``str``.  Currently, only the three values
    above are supported, but new qubit mappings can easily be plugged in.
    Specifically:
 
-   -  ``jordan_wigner`` corresponds to the
-      `Jordan-Wigner transformation <https://rd.springer.com/article/10.1007%2FBF01331938>`__,
-      which maps spin operators onto fermionic creation and annihilation operators.
-      It was proposed by Ernst Pascual Jordan and Eugene Paul Wigner
-      for one-dimensional lattice models,
-      but now two-dimensional analogues of the transformation have also been created.
-      The Jordan–Wigner transformation is often used to exactly solve 1D spin-chains
-      by transforming the spin operators to fermionic operators and then diagonalizing
-      in the fermionic basis.
-   -  ``parity``, the default value for the ``qubit_mapping`` parameter, corresponds to the
-      `parity-mapping transformation <https://arxiv.org/abs/1701.08213>`__.
-      This mapping optimizes encodings of fermionic many-body systems by qubits
-      in the presence of symmetries.
-      Such encodings eliminate redundant degrees of freedom in a way that preserves
-      a simple structure of the system Hamiltonian enabling quantum simulations with fewer qubits. 
-   -  ``bravyi_kitaev`` corresponds to the
-      `binary-tree-based qubit mapping
-      <https://www.sciencedirect.com/science/article/pii/S0003491602962548>`__,
-      which was proposed by Sergey B. Bravyi and Alexei Yu. Kitaev.
-      The Bravyi–Kitaev transformation is a method of mapping the occupation state of a
-      fermionic system onto qubits. This transformation maps the Hamiltonian of :math:`n`
-      interacting fermions to an O(log :math:`n`)‐local Hamiltonian of :math:`n` qubits.
-      This is an improvement in locality over the Jordan–Wigner transformation, which results
-      in an O(:math:`n`)‐local qubit Hamiltonian.
-     
+   1. ``jordan_wigner`` corresponds to the :ref:`jordan-wigner` transformation.
+   2. ``parity``, the default value for the ``qubit_mapping`` parameter, corresponds to the
+      :ref:`parity` mapping transformation. When this mapping is selected,
+      it is possible to reduce by 2 the number of qubits required by the computation
+      without loss of precision by setting the ``two_qubit_reduction`` parameter to ``True``,
+      as explained next.
+   3. ``bravyi_kitaev`` corresponds to the :ref:`bravyi-kitaev` transformation,
+      also known as *binary-tree-based qubit mapping*.     
 
 -  A Boolean flag specifying whether or not to apply the precision-preserving two-qubit reduction
    optimization:
@@ -470,10 +474,16 @@ the algorithm. The following parameters may be set:
 
        two_qubit_reduction : bool
 
-   When the parity mapping is selected, the operator can be reduced by two qubits without loss
-   of precision.  The default value for this parameter is ``False``.
+   The default value for this parameter is ``True``.
+   When the parity mapping is selected, and ``two_qubit_reduction`` is set to ``True``,
+   then the operator can be reduced by two qubits without loss
+   of precision.
 
--  The maximum number of workers used when forming the input to the Qiskit Aqua quantum algorithm:
+   .. warning::
+       If the mapping from fermionic to qubit is set to something other than
+       the parity mapping, the value assigned to ``two_qubit_reduction`` is ignored.
+
+-  The maximum number of workers used when forming the input to the Aqua quantum algorithm:
 
    .. code:: python   
 
@@ -495,23 +505,24 @@ the algorithm. The following parameters may be set:
    and improve computation efficiency, frozen
    core orbitals corresponding to the nearest noble gas can be removed
    from the subsequent computation performed by the
-   Qiskit Aqua algorithm, and a corresponding offset from this removal is added back
+   Aqua algorithm, and a corresponding offset from this removal is added back
    into the final computed result. This approximation may be combined with
    ``orbital_reduction`` setting below.  The default value for this parameter is ``False``.
 
--  A list of molecular orbital to remove from the computation:
+-  A list of molecular orbitals to remove from the computation:
 
    .. code:: python
 
-       orbital_reduction : [int]
+       orbital_reduction : [int, int, ... , int]
 
    The orbitals from the electronic structure can be simplified for the
-   subsequent computation.  With this parameter, you can specify a list of orbitals as
+   subsequent computation through the use of this parameter, which allows the user to specify a set of orbitals
+   to be removed from the computation as
    a list of ``int`` values, the default
    being an empty list.  Each value in the list corresponds to an orbital
    to be removed from the subsequent computation.
-   The list should be indices of the orbitals from ``0`` to :math:`n-1`, where the
-   electronic structure has :math:`n` orbitals.
+   The list should be indices of the orbitals from ``0`` to ``n - 1``, where the
+   electronic structure has ``n`` orbitals.
    
    For ease of referring to
    the higher orbitals, the list also supports negative values with ``-1``
@@ -524,102 +535,97 @@ the algorithm. The following parameters may be set:
    parameter:
 
    -  Any orbitals in the list that are *occupied orbitals* are frozen and an offset
-      is computed from their removal. This is the same procedure as that one that takes place
+      is computed from their removal. These orbitals are not taken into account while performing the
+      molecular energy computation, except for the fact that the offset is added back at the end
+      into the final computed result.
+      This is the same procedure as that one that takes place
       when ``freeze_core`` is set to ``True``, except that with ``orbital_reduction``
       you can specify exactly the
-      orbitals you want.
+      orbitals you want to freeze.
 
-   -  Any orbitals in the list that are *unoccupied virtual orbitals* are
-      simply eliminated entirely from the subsequent computation.
+   -  Any orbitals in the list that are *unoccupied orbitals* are
+      simply eliminated entirely from the subsequent computation.  No offset is computed or
+      added back into the final computed result for these orbitals.
 
-   When a list is specified along with ``freeze_core`` set to ``True``, the effective
-   orbitals being removed from the computation are those in the frozen core combined with
-   those specified in the ``orbital_reduction`` list.
+.. note::
 
-   Below is an example where, in addition to freezing the core orbitals,
-   a couple of other orbitals are listed for removal. We assume that there
-   are a total of ten orbitals, so the highest two unoccupied virtual orbitals will
-   be eliminated from the subsequent computation, in addition to the frozen-core
-   orbitals:
+    When a list is specified along with ``freeze_core`` set to ``True``, the effective
+    orbitals being removed from the computation are those in the frozen core combined with
+    those specified in the ``orbital_reduction`` list.
 
-   .. code:: python
+    Below is an example where, in addition to freezing the core orbitals,
+    a couple of other orbitals are listed for removal. We assume that there
+    are a total of ten orbitals, so the highest two unoccupied virtual orbitals will
+    be eliminated from the subsequent computation, in addition to the frozen-core
+    orbitals:
 
-       &operator
-          name=hamiltonian
-          qubit_mapping=jordan_wigner
-          freeze_core=true
-          orbital_reduction=[8, 9]
-       &end
+    .. code:: python
 
-   Alternatively, the above code could be specified via the following,
-   eqivalent way,
-   which simplifies
-   expressing the higher orbitals using the fact that the numbering is relative to the
-   highest orbital:
+        &operator
+           name=hamiltonian
+           qubit_mapping=jordan_wigner
+           freeze_core=True
+           orbital_reduction=[8, 9]
+        &end
 
-   .. code:: python
+    Alternatively, the above code could be specified via the following,
+    equivalent way,
+    which simplifies
+    expressing the higher orbitals using the fact that the numbering is relative to the
+    highest orbital:
 
-       &operator
-          name=hamiltonian
-          qubit_mapping=jordan_wigner
-          freeze_core=true
-          orbital_reduction=[-2, -1]
-       &end
+    .. code:: python
 
+        &operator
+           name=hamiltonian
+           qubit_mapping=jordan_wigner
+           freeze_core=True
+           orbital_reduction=[-2, -1]
+        &end
+
+~~~~~~~~~~~~~
 ``algorithm``
 ~~~~~~~~~~~~~
 
 This is an optional section that allows you to specify which
 algorithm will be used by the computation.
-`Quantum algorithms
-<https://qiskit.org/documentation/aqua/algorithms.html#quantum-algorithms>`__ are provided by
-`QISKIt
-Aqua <https://qiskit.org/documentation/aqua/qiskit-aqua.html>`__.
-To compute reference values, Qiskit Aqua also allows the use of
-`classical algorithms
-<https://qiskit.org/documentation/aqua/algorithms.html#classical-algorithms>`__.
+:ref:`quantum-algorithms` are provided by
+:ref:`aqua-library`.
+To compute reference values, Aqua also allows the use of
+:ref:`classical-reference-algorithms`.
 In the ``algorithm`` section, algorithms are disambiguated using the
-`declarative names <https://qiskit.org/documentation/aqua/algorithms.html>`__
-by which Qiskit Aqua recognizes them, based on the JSON schema
-each algorithm must provide according to the Qiskit Aqua ``QuantumAlgorithm`` API.
+declarative names
+by which Aqua recognizes them, based on the JSON schema
+each algorithm must provide according to the Aqua ``QuantumAlgorithm`` API,
+as explained in the documentation on both 
+quantum and classical reference algorithms.
 The declarative name is specified as the ``name`` parameter in the ``algorithm`` section.
 The default value for the ``name`` parameter is ``VQE``, corresponding
-to the `Variational Quantum Eigensolver (VQE)
-<https://qiskit.org/documentation/aqua/algorithms.html#variational-quantum-eigensolver-vqe>`__
+to the :ref:`vqe`
 algorithm.
 
 An algorithm typically comes with a set of configuration parameters.
 For each of them, a default value is provided according to the
-``QuantumAlgorithm`` API of Qiskit Aqua.
+``QuantumAlgorithm`` API of Aqua.
 
 Furthermore, according to each algorithm, additional sections
 may become relevant to optionally
 configure that algorithm's components.  For example, variational algorithms,
-such as `VQE
-<https://qiskit.org/documentation/aqua/algorithms.html#variational-quantum-eigensolver-vqe>`__,
-allow the user to choose and configure an
-`optimizer <https://qiskit.org/documentation/aqua/optimizers.html>`__ and a
-`variational form <https://qiskit.org/documentation/aqua/variational_forms.html>`__,
-whereas `Quantum Phase Estimation (QPE)
-<https://qiskit.org/documentation/aqua/algorithms.html#quantum-phase-estimation-qpe>`__
-allows the user to configure which `Inverse Quantum Fourier Transform (IQFT)
-<https://qiskit.org/documentation/aqua/iqfts.html>`__ to use.
+such as :ref:`vqe`,
+allow the user to choose and configure an optimizer and a variational form
+from the :ref:`optimizers` and :ref:`variational-forms` libraries, respectively,
+whereas :ref:`qpe`
+allows the user to configure which Inverse Quantum Fourier Transform (IQFT) from the
+:ref:`iqfts` library to use.
 
-The `Qiskit Aqua documentation <https://qiskit.org/documentation/aqua/index.html>`__
-explains how to configure each algorithm and any of the pluggable entities it may use,
-such as `optimizers <https://qiskit.org/documentation/aqua/optimizers.html>`__,
-`variational forms <https://qiskit.org/documentation/aqua/variational_forms.html>`__,
-`initial states <https://qiskit.org/documentation/aqua/initial_states.html>`__,
-`oracles <https://qiskit.org/documentation/aqua/oracles.html>`__, and
-`Inverse Quantum Fourier Transforms (IQFTs)
-<https://qiskit.org/documentation/aqua/iqfts.html>`__.
+The documentation of :ref:`aqua-library`
+explains how to configure :ref:`quantum-algorithms` and any of the pluggable entities they may use,
+such as :ref:`optimizers`, :ref:`variational-forms`, :ref:`oracles`, :ref:`iqfts`, and
+:ref:`initial-states`.
 
-Here is an example in which the algorithm `VQE
-<https://qiskit.org/documentation/aqua/algorithms.html#variational-quantum-eigensolver-vqe>`__
-is selected along with the `Limited-memory Broyden-Fletcher-Goldfarb-Shanno Bound (L-BFGS-B)
-<https://qiskit.org/documentation/aqua/optimizers.html#limited-memory-broyden-fletcher-goldfarb-shanno-bound-l-bfgs-b>`__
-optimizer and the
-`RYRZ <https://qiskit.org/documentation/aqua/variational_forms.html#ryrz>`__ variational form:
+Here is an example in which the :ref:`vqe` algorithm
+is selected along with the :ref:`l-bfgs-b` optimizer and the
+:ref:`ryrz` variational form:
 
 .. code:: python
 
@@ -639,14 +645,15 @@ optimizer and the
       entangler_map={0: [1]}
    &end
 
+~~~~~~~~~~~
 ``backend``
 ~~~~~~~~~~~
 
-Qiskit Aqua allows for configuring the *backend*, which is the quantum machine
+Aqua allows for configuring the *backend*, which is the quantum machine
 on which a quantum experiment will be run.
 This configuration requires specifying 
-the `Qiskit <https://www.qiskit.org/>`__ quantum computational
-backend to be used for computation, which is done by assigning a ``string`` value to
+the `Qiskit Terra <https://qiskit.org/Terra>`__ quantum computational
+backend to be used for computation, which is done by assigning a ``str`` value to
 the ``name`` parameter of the ``backend`` section:
 
 .. code:: python
@@ -655,35 +662,32 @@ the ``name`` parameter of the ``backend`` section:
 
 The value of the ``name`` parameter indicates either a real-hardware
 quantum computer or a quantum simulator.
-The underlying Qiskit core used by Qiskit Aqua comes
+The underlying Qiskit core used by Aqua comes
 with two predefined quantum device simulators: the *local state vector simulator* and
 the *local QASM simulator*, corresponding to the following two
-values for the ``name`` parameter: ``"local_statevector_simulator"`` (which
-is the default value for the ``name`` parameter) and ``"local_qasm_simulator"``, respectively.
+values for the ``name`` parameter: ``"statevector_simulator"`` (which
+is the default value for the ``name`` parameter) and ``"qasm_simulator"``, respectively.
 However, any suitable quantum backend can be selected, including
 a real quantum hardware device. The ``QConfig.py`` file
 needs to be setup for Qiskit to access remote devices.  For this, it is sufficient to follow the
-`Qiskit installation instructions <https://qiskit.org/documentation/install.html#installation>`__.
-The Qiskit Aqua Chemistry `GUI <#gui>` greatly simplifies the
+`Qiskit Terra installation instructions <https://Qiskit.org/documentation/install.html#installation>`__.
+The Aqua Chemistry :ref:`aqua-chemistry-gui` greatly simplifies the
 configuration of ``QConfig.py`` via a user friendly interface,
 accessible through the **Preferences...** menu item.
 
-.. topic:: Backend Configuration: Quantum vs. Classical Algorithms
-    Although Qiskit Aqua is mostly a library of `quantum algorithms
-    <https://qiskit.org/documentation/aqua/algorithms.html#quantum-algorithms>`__,
-    it also includes a number of `classical algorithms
-    <https://qiskit.org/documentation/aqua/algorithms.html#classical-algorithms>`__,
+.. topic:: Backend Configuration --- Quantum vs. Classical Algorithms:
+    Although Aqua is mostly a library of :ref:`quantum-algorithms`,
+    it also includes a number of :ref:`classical-reference-algorithms`,
     which can be selected to generate reference values
     and compare and contrast results in quantum research experimentation.
     Since a classical algorithm runs on a classical computer,
     no backend should be configured when a classical algorithm
     is selected in the ``algorithm`` section.
-    Accordingly, the Qiskit Aqua Chemistry `GUI <#gui>` will automatically
+    Accordingly, the Aqua Chemistry :ref:`aqua-chemistry-gui` will automatically
     disable the ``backend`` configuration section
     whenever a non-quantum algorithm is selected. 
 
-Configuring the backend to use by a `quantum algorithm
-<https://qiskit.org/documentation/aqua/algorithms.html#quantum-algorithms>`__
+Configuring the backend to use by an algorithm in the :ref:`quantum-algorithms` library
 requires setting the following parameters too:
 
 -  The number of repetitions of each circuit to be used for sampling:
@@ -702,13 +706,12 @@ requires setting the following parameters too:
         skip_transpiler : bool
 
    The default value is ``False``.  If ``skip_transpiler`` is set to ``True``, then
-   Qiskit will not perform circuit translation. If Qiskit Aqua Chemistry has been configured
+   Qiskit will not perform circuit translation. If Aqua Chemistry has been configured
    to run an experiment with a quantum algorithm that uses only basis gates,
    then no translation of the circuit into basis gates is required.
    Only in such cases is it safe to skip circuit translation.
    Skipping the translation phase when only basis gates are used may improve overall performance,
-   especially when many circuits are used repeatedly, as it is the case with the `VQE 
-   <https://qiskit.org/documentation/aqua/algorithms.html#variational-quantum-eigensolver-vqe>`__
+   especially when many circuits are used repeatedly, as it is the case with the :ref:`vqe`
    algorithm.
 
    .. note::
@@ -717,8 +720,8 @@ requires setting the following parameters too:
        gates supported by the backend, then the circuit will fail to run.
 
 -  An optional dictionary can be supplied to control the backend's noise model (see
-   the documentation on `noise parameters
-   <https://github.com/Qiskit/qiskit-sdk-py/tree/master/src/qasm-simulator-cpp#noise-parameters>`__
+   the Terra documentation on `noise parameters
+   <https://github.com/Qiskit/Qiskit-sdk-py/tree/master/src/qasm-simulator-cpp#noise-parameters>`__
    for more details):
 
    .. code:: python
@@ -740,20 +743,22 @@ requires setting the following parameters too:
                           }
                     }
 
+~~~~~~~~~~~
 ``problem``
 ~~~~~~~~~~~
 
-In Qiskit Aqua,
+In Aqua,
 a *problem* specifies the type of experiment being run.  Configuring the problem is essential
 because it determines which algorithms are suitable for the specific experiment.
 
+^^^^^^^^^^^^^^^^^^
 Problem Categories
 ^^^^^^^^^^^^^^^^^^
-Qiskit Aqua comes with a set of predefined problems.
+Aqua comes with a set of predefined problems.
 This set is extensible: new problems can be added,
 just like new algorithms can be plugged in to solve existing problems in a different way,
 or to solve new problems.
-Currently, a problem can be configured by assigning a ``string`` value to the ``name`` parameter
+Currently, a problem can be configured by assigning a ``str`` value to the ``name`` parameter
 of the ``problem`` section of the input file:
 
 .. code:: python
@@ -762,25 +767,26 @@ of the ``problem`` section of the input file:
 
 As shown above, ``energy``, ``excited_states``, ``ising``, ``dynamics``,
 ``search``, and ``svm_classification`` are currently
-the only values accepted for ``name`` in Qiskit Aqua, corresponding to the computation of
+the only values accepted for ``name`` in Aqua, corresponding to the computation of
 *energy*, *excited states*, *Ising models*, *dynamics of evolution*, *search* and
 *Support Vector Machine (SVM) classification*, respectively.
 New problems, disambiguated by their
 ``name`` parameter, can be programmatically
-added to Qiskit Aqua via the
-``AlgorithmInput`` Application Programming Interface (API), and each quantum or classical
-`algorithm <./algorithms.html>`__
+added to Aqua via the
+``AlgorithmInput`` Application Programming Interface (API), and
+both :ref:`quantum-algorithms` and :ref:`classical reference algorithms` library
 should programmatically list the problems it is suitable for in its JSON schema, embedded into
 the class implementing the ``QuantumAlgorithm`` API.  Typical choices of problems
 in chemistry include energy and excited states.
 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Generating Repeatable Experiments
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Aspects of the computation may include use of random numbers. For instance, 
-`VQE <https://qiskit.org/documentation/aqua/algorithms.html#variational-quantum-eigensolver-vqe>`__
-is coded to use a random initial point if the
-`variational form <https://qiskit.org/documentation/aqua/variational_form.html>`__
+:ref:`vqe`
+is coded to use a random initial point if the variational form chosen from the 
+:ref:`variational-forms` library
 does not supply any
 preference based on the initial state and if the
 user does not explicitly supply an initial point. 
@@ -799,6 +805,7 @@ be generated every time the experiment is run:
 
 The default value for this parameter is ``None``.
 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Reconciling Chemistry and Quantum Configuration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 The configuration of a chemistry problem directly affects the configuration
@@ -819,39 +826,36 @@ qubits based on the numbers of particles and
 orbitals, as well as the qubit-reduction optimization
 and approximation techniques.  Any mistake in this manual computation
 may lead to misconfiguring the whole experiment.  For this reason,
-Qiskit Aqua Chemistry automatically computes the numbers of particles and orbitals,
+Aqua Chemistry automatically computes the numbers of particles and orbitals,
 infers the total number of qubits necessary to model the molecular system under analysis,
 and subtracts from that total number of qubits the number of qubits that are
 redundant based on the optimization and approximation techniques that the user
-may have chosen to apply.  In essence, Qiskit Aqua Chemistry automatically
+may have chosen to apply.  In essence, Aqua Chemistry automatically
 configures the quantum system.
 
 Things become more subtle when configuring the
-`initial state <https://qiskit.org/documentation/aqua/initial_states.html>`__ and
-`variational form <https://qiskit.org/documentation/aqua/variational_forms.html>`__
+:ref:`initial-states` and :ref:`variational-forms`
 used by a quantum algorithm.  These components are
 configured in sections ``initial_state`` and ``variational_form``, respectively,
-which only become enabled when the
-`algorithm <https://qiskit.org/documentation/aqua/algorithms.html>`__
+which only become enabled when the algorithm
 selected by the user supports them.
 For example, the ``variational_form`` section is enabled only
 if the user has chosen to execute the experiment using a variational algorithm, such as
-`VQE <https://qiskit.org/documentation/aqua/algorithms.html#variational-quantum-eigensolver-vqe>`__.
-The Qiskit Aqua Chemistry `GUI <#gui>`__ disables the ``variational_form``
+:ref:`vqe.
+The Aqua Chemistry :ref:`aqua-chemistry-gui` disables the ``variational_form``
 section for non-variational algorithms.
 The problem with the configuration of an initial state and a variational form is that
 the values of parameters ``qubit_mapping`` and ``two_qubit_reduction`` may require matching
 their settings across these two sections, as well as the settings applied to the
 identically named parameters in the ``operator``
-section.  This is the case, for example, for the `Unitary Coupled Cluster Singles and Doubles (UCCSD)
-<https://qiskit.org/documentation/aqua/variational_forms.html#uccsd>`__ variational form
-and the `Hartree-Fock <https://qiskit.org/documentation/aqua/initial_states.html#hartree-fock>`__
+section.  This is the case, for example, for the :ref:`uccsd` variational form
+and the :ref:`hartree-fock`
 initial state.  Furthermore, some variational forms and initial states may require setting
 the numbers of particles (``num_particles``) and orbitals (``num_orbitals``), which,
 as discussed above, can be complicated to compute, especially for large and complex molecules.
 
-Qiskit Aqua Chemistry inherits the problem configuration from Qiskit Aqua.
-However, *exclusive to Qiskit Aqua Chemistry*
+Aqua Chemistry inherits the problem configuration from Aqua.
+However, *exclusive to Aqua Chemistry*
 is a Boolean field inside the ``problem`` section which assists users with these
 complicated settings:
 
@@ -860,41 +864,49 @@ complicated settings:
     auto_substitutions : bool
 
 When this parameter is set to ``True``, which is the default, the values of parameters 
-``num_particles`` and ``num_orbitals`` in sections ``initial_state`` and
-``variational_form`` are automatically computed by Qiskit Aqua Chemistry.  As such,
-their configuration is disabled; the user will not be required to assign values to
-these two parameters.  This is also reflected in the `GUI <#gui>`__, where
-these parameters are grayed out.  Furthermore, Qiskit Aqua Chemistry automatically sets
+``num_particles`` and ``num_orbitals`` are automatically computed by Aqua Chemistry
+for sections ``initial_state`` and
+``variational_form`` when ``UCCSD`` and ``Hartree-Fock`` are selected, respectively.  As such,
+the configuration of these two parameters is disabled; the user will not be required, or even allowed,
+to assign values to
+these two parameters.  This is also reflected in the :ref:`aqua-chemistry-gui`, where
+these two parameters will be grayed out and uneditable when ``auto_substitutions`` is set to ``True``.
+Furthermore, Aqua Chemistry automatically sets
 parameters ``qubit_mapping`` and ``two_qubit_reduction`` in sections ``initial_state`` and
-``variational_form`` to the values the user assigned to them in the ``operator`` section
+``variational_form`` when ``UCCSD`` and ``Hartree-Fock`` are selected, respectively.
+Specifically, Aqua Chemistry sets ``qubit_mapping`` and ``two_qubit_reduction``
+to the values the user assigned to them in the ``operator`` section
 of the input file in order to enforce parameter-value matching across these three different
 sections.  As a result, the user will only have to configure ``qubit_mapping``
 and ``two_qubit_reduction`` in the ``operator`` section; the configuration of these two
 parameters in sections ``initial_state`` and ``variational_form`` is disabled,
-as reflected also in the `GUI <#gui>`__, where the values of these two parameters are only
+as reflected also in the :ref:`aqua-chemistry-gui`, where the values of these two parameters are only
 editable in the ``operator`` section, while the parameters themselves are grayed out in the
 ``initial_state`` and ``variational_form`` sections.
 
 On the other hand, if ``auto_substitutions`` is set to ``False``,
 then the end user has the full responsibility for the entire
-configuration.  Setting ``auto_substitutions`` to ``False``, while
-made possible for experimental purposes, should only
-be done with extreme care, since it could easily lead to misconfiguring
-the entire experiment and producing imprecise results.
+configuration.
 
+.. warning::
+    Setting ``auto_substitutions`` to ``False``, while
+    made possible for experimental purposes, should only
+    be done with extreme care, since it could easily lead to misconfiguring
+    the entire experiment and producing imprecise results.
+
+.. _input-file-for-direct-algorithm-invocation:
+
+------------------------------------------
 Input File for Direct Algorithm Invocation
 ------------------------------------------
 
-Qiskit Aqua allows for its
-`algorithms <https://qiskit.org/documentation/aqua/algorithms.html>`__,
-whether they are
-`quantum <https://qiskit.org/documentation/aqua/algorithms.html#quantum-algorithms>`__
-or `classical <https://qiskit.org/documentation/aqua/algorithms.html#classical-algorithms>`__
+Aqua allows for its
+:ref:`quantum-algorithms` and :ref:`classical-reference-algorithms`,
 to be invoked directly, without necessarily
-having to go through the execution of a domain-specific application.  Qiskit Aqua
-Chemistry supports accessing the Qiskit Aqua algorithm-level entry point in the following way:
+having to go through the execution of a domain-specific application.  Aqua
+Chemistry supports accessing the Aqua algorithm-level entry point in the following way:
 after the translation process terminates with the creation of the input to a quantum
-algorithm, in the form of a qubit operator, Qiskit Aqua Chemistry allows for that
+algorithm, in the form of a qubit operator, Aqua Chemistry allows for that
 input to be serialized as a `JavaScript Object Notation (JSON) <http://json.org/>`__
 file.
 

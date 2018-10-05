@@ -266,7 +266,7 @@ class QMolecule(object):
         except OSError:
             pass
 
-    # Utility functions to convert integrals into the form expected by AQUAChemistry stack
+    # Utility functions to convert integrals into the form expected by AquaChemistry stack
 
     @staticmethod
     def oneeints2mo(ints, moc):

@@ -47,7 +47,10 @@ class TestIQPE(QiskitAquaChemistryTestCase):
         ])
         section = {}
         section['properties'] = pyscf_cfg
-        driver = cfg_mgr.get_driver_instance('PYSCF')
+        try:
+            driver = cfg_mgr.get_driver_instance('PYSCF')
+        except ModuleNotFoundError:
+            self.skipTest('PYSCF driver does not appear to be installed')
         self.molecule = driver.run(section)
 
         ferOp = FermionicOperator(h1=self.molecule._one_body_integrals, h2=self.molecule._two_body_integrals)
@@ -68,7 +71,7 @@ class TestIQPE(QiskitAquaChemistryTestCase):
         num_iterations = 12
 
         iqpe = get_algorithm_instance('IQPE')
-        iqpe.setup_quantum_backend(backend='local_qasm_simulator', shots=100, skip_transpiler=True)
+        iqpe.setup_quantum_backend(backend='qasm_simulator', shots=100, skip_transpiler=True)
 
         state_in = get_initial_state_instance('HartreeFock')
         state_in.init_args(self.qubitOp.num_qubits, num_orbitals, qubit_mapping, two_qubit_reduction, num_particles)

@@ -23,19 +23,19 @@ long_description="""<a href="https://qiskit.org/aqua/chemistry" rel=nofollow>Qis
     
 
 requirements = [
-    "qiskit-aqua>=0.2.0",
-    "qiskit>=0.5.6",
-    "numpy>=1.13,<1.15",
+    "qiskit-aqua>=0.3.0",
+    "qiskit>=0.6.1,<0.7",
+    "numpy>=1.13",
     "h5py",
-    "psutil",
-    "jsonschema",
+    "psutil>=5",
+    "jsonschema>=2.6,<2.7",
     "pyobjc-core; sys_platform == 'darwin'",
     "pyobjc-framework-Cocoa; sys_platform == 'darwin'"
 ]
 
 setuptools.setup(
     name='qiskit-aqua-chemistry',
-    version="0.2.0",  # this should match __init__.__version__
+    version="0.3.0",  # this should match __init__.__version__
     description='Qiskit Aqua Chemistry: Experiment with chemistry applications on a quantum machine',
     long_description=long_description,
     long_description_content_type="text/markdown",

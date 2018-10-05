@@ -3,29 +3,32 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-====================
-Qiskit Aqua Chemistry Documentation
-====================
+############################
+Aqua Chemistry Documentation
+############################
 
-Qiskit Aqua Chemistry
+Aqua Chemistry
 
-
+=================
 Table of Contents
 =================
 
 .. toctree::
    :maxdepth: 2
    
-   Qiskit Aqua Chemistry Overview <qiskit-aqua-chemistry>
-   Installation and Setup <install>
-   Chemistry Drivers <drivers>
-   Configuring and Running an Experiment <config_run>
-   Extending Qiskit Aqua Chemistry <extending>
-   SDK reference <qiskit_aqua_chemistry>
+   Overview <aqua_chemistry_overview>
+   Installation and Setup <aqua_chemistry_installation>
+   Drivers <aqua_chemistry_drivers>
+   Running an Experiment <aqua_chemistry_execution>
+   Contributing to Aqua Chemistry <aqua_chemistry_extending>
+   Translators <aqua_chemistry_translators>
+   Aqua Chemistry SDK Reference <qiskit_aqua_chemistry>
 
+==============
 Python Modules
 ==============
 
+------------
 Main Modules
 ------------
 
@@ -36,8 +39,4 @@ Main Modules
 
 :ref:`modindex`
 
-
-Authors (alphabetical)
-======================
-Panagiotis Barkoutsos, Chun-Fu (Richard) Chen, Jay Gambetta, Shaohan Hu, Peng Liu, Manoel Marques, Antonio Mezzacapo,
-Nikolaj Moll, Giacomo Nannicini, Marco Pistoia, Julia Rice, Raymond Harry Putra Rudy, Ivano Tavernelli, Stephen Wood
+.. include:: ../../aqua/CONTRIBUTORS.rst

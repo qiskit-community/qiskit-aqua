@@ -30,7 +30,7 @@ from qiskit_aqua_chemistry.ui._threadsafeoutputview import ThreadSafeOutputView
 from qiskit_aqua_chemistry.ui._emptyview import EmptyView
 from qiskit_aqua_chemistry.ui._preferencesdialog import PreferencesDialog
 from qiskit_aqua_chemistry.ui._uipreferences import UIPreferences
-from qiskit_aqua_chemistry._logging import set_logger_config
+from qiskit_aqua_chemistry._logging import set_logging_config
 from qiskit_aqua_chemistry.preferences import Preferences
 from qiskit_aqua_chemistry import __version__
 import os
@@ -260,7 +260,7 @@ class MainView(ttk.Frame):
         preferences = Preferences()
         config = preferences.get_logging_config()
         if config is not None:
-            set_logger_config(config)
+            set_logging_config(config)
             
         self.update_idletasks()
         self._controller._sectionsView.show_add_button(False)

@@ -23,7 +23,7 @@ import tempfile
 import numpy as np
 
 from qiskit_aqua_chemistry import QMolecule
-from qiskit_aqua_chemistry import AQUAChemistryError
+from qiskit_aqua_chemistry import AquaChemistryError
 from qiskit_aqua_chemistry.drivers import BaseDriver
 
 logger = logging.getLogger(__name__)
@@ -33,15 +33,15 @@ GAUSSIAN_16_DESC = 'Gaussian 16'
 
 g16prog = which(GAUSSIAN_16)
 if g16prog is None:
-    raise AQUAChemistryError("Could not locate {} executable '{}'. Please check that it is installed correctly."
-                              .format(GAUSSIAN_16_DESC, GAUSSIAN_16))
+    raise AquaChemistryError("Could not locate {} executable '{}'. Please check that it is installed correctly."
+                             .format(GAUSSIAN_16_DESC, GAUSSIAN_16))
 
 try:
     from .gauopen.QCMatEl import MatEl
 except ModuleNotFoundError as mnfe:
     if mnfe.name == 'qcmatrixio':
         err_msg = "qcmatrixio extension not found. See Gaussian driver readme to build qcmatrixio.F using f2py"
-        raise AQUAChemistryError(err_msg) from mnfe
+        raise AquaChemistryError(err_msg) from mnfe
     raise mnfe
 
 
@@ -65,7 +65,7 @@ class GaussianDriver(BaseDriver):
     def run(self, section):
         cfg = section['data']
         if cfg is None or not isinstance(cfg,str):
-            raise AQUAChemistryError("Gaussian user supplied configuration invalid: '{}'".format(cfg))
+            raise AquaChemistryError("Gaussian user supplied configuration invalid: '{}'".format(cfg))
             
         while not cfg.endswith('\n\n'):
             cfg += '\n'
@@ -112,7 +112,7 @@ class GaussianDriver(BaseDriver):
                         while not added:
                             line = inf.readline()
                             if not line:
-                                raise AQUAChemistryError('Unexpected end of Gaussian input')
+                                raise AquaChemistryError('Unexpected end of Gaussian input')
                             if len(line.strip()) == 0:
                                 outf.write('# Window=Full Int=NoRaff Symm=(NoInt,None) output=(matrix,i4labels,mo2el) tran=full\n')
                                 added = True
@@ -130,7 +130,7 @@ class GaussianDriver(BaseDriver):
                 while not added:
                     line = inf.readline()
                     if not line:
-                        raise AQUAChemistryError('Unexpected end of Gaussian input')
+                        raise AquaChemistryError('Unexpected end of Gaussian input')
                     if len(line.strip()) == 0:
                         blank = True
                         if section_count == 2:
@@ -246,7 +246,7 @@ class GaussianDriver(BaseDriver):
             if process is not None:
                 process.kill()
 
-            raise AQUAChemistryError('{} run has failed'.format(GAUSSIAN_16_DESC))
+            raise AquaChemistryError('{} run has failed'.format(GAUSSIAN_16_DESC))
 
         if process.returncode != 0:
             errmsg = ""
@@ -258,7 +258,7 @@ class GaussianDriver(BaseDriver):
                 for i in range(start, len(lines)):
                     logger.error(lines[i])
                     errmsg += lines[i]+"\n"
-            raise AQUAChemistryError('{} process return code {}\n{}'.format(GAUSSIAN_16_DESC, process.returncode, errmsg))
+            raise AquaChemistryError('{} process return code {}\n{}'.format(GAUSSIAN_16_DESC, process.returncode, errmsg))
         else:
             if logger.isEnabledFor(logging.DEBUG):
                 alltext = ""

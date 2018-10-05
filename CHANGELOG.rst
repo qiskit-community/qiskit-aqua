@@ -18,6 +18,15 @@ The format is based on `Keep a Changelog`_.
 `UNRELEASED`_
 =============
 
+`0.3.0`_ - 2018-10-05
+=====================
+
+Added
+-----
+
+- BKSF Mapping
+- Operator tapering example
+
 `0.2.0`_ - 2018-07-27
 =====================
 
@@ -72,7 +81,8 @@ Changed
 - Changed description and change package name to dashes in setup.py.
 - Update description and fixed links in readme
 
-.. _UNRELEASED: https://github.com/Qiskit/aqua-chemistry/compare/0.2.0...HEAD
+.. _UNRELEASED: https://github.com/Qiskit/aqua-chemistry/compare/0.3.0...HEAD
+.. _0.3.0: https://github.com/Qiskit/aqua-chemistry/compare/0.2.0...0.3.0
 .. _0.2.0: https://github.com/Qiskit/aqua-chemistry/compare/0.1.1...0.2.0
 .. _0.1.1: https://github.com/Qiskit/aqua-chemistry/compare/0.1.0...0.1.1
 

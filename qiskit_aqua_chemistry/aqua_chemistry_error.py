@@ -15,15 +15,15 @@
 # limitations under the License.
 # =============================================================================
 
-"""Exception for errors raised by the AQUAChemistry SDK."""
+"""Exception for errors raised by the AquaChemistry SDK."""
 
 
-class AQUAChemistryError(Exception):
-    """Base class for errors raised by the AQUAChemistry SDK."""
+class AquaChemistryError(Exception):
+    """Base class for errors raised by the AquaChemistry SDK."""
 
     def __init__(self, *message):
         """Set the error message."""
-        super(AQUAChemistryError, self).__init__(' '.join(message))
+        super(AquaChemistryError, self).__init__(' '.join(message))
         self.message = ' '.join(message)
 
     def __str__(self):

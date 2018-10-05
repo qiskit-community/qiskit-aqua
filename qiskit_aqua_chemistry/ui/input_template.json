@@ -4,7 +4,7 @@
         "operator_mode": "matrix"
     },
     "backend": {
-        "name": "local_statevector_simulator"
+        "name": "statevector_simulator"
     },
     "driver": {
         "name": "HDF5"
