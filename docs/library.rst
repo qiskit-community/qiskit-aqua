@@ -21,5 +21,6 @@ real quantum device).
    Oracles <oracles>
    Inverse Quantum Fourier Transforms <iqfts>
    Initial States <initial_states>
-   Feature Extractions <feature_extractions>
+   Feature Maps <feature_maps>
+   Binary-to-multiclass Classifier Extensions <multiclass-extensions>
    Aqua SDK Reference <qiskit_aqua>
