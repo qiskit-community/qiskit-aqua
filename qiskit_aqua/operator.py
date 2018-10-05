@@ -768,7 +768,7 @@ class Operator(object):
                 self.MAX_CIRCUITS_PER_JOB = sys.maxsize
             except KeyError:
                 pass
-           
+
             if "statevector" in backend:
                 execute_config['shots'] = 1
                 avg = self._eval_with_statevector(operator_mode, input_circuit, backend, execute_config)
@@ -1122,7 +1122,8 @@ class Operator(object):
         else:
             raise ValueError('Unrecognized grouping {}.'.format(grouping))
 
-    def construct_evolution_circuit(self, slice_pauli_list, evo_time, num_time_slices, state_registers,
+    @staticmethod
+    def construct_evolution_circuit(slice_pauli_list, evo_time, num_time_slices, state_registers,
                                     ancillary_registers=None, ctl_idx=0, unitary_power=None, use_basis_gates=True):
         """
         Construct the evolution circuit according to the supplied specification.
@@ -1144,7 +1145,6 @@ class Operator(object):
         if state_registers is None:
             raise ValueError('Quantum state registers are required.')
 
-        n_qubits = self.num_qubits
         qc = QuantumCircuit(state_registers)
         if ancillary_registers is not None:
             qc.add(ancillary_registers)
@@ -1155,6 +1155,7 @@ class Operator(object):
         top_XYZ_pauli_indices = [-1] * len(slice_pauli_list)
 
         for pauli_idx, pauli in enumerate(reversed(slice_pauli_list)):
+            n_qubits = pauli[1].numberofqubits
             # changes bases if necessary
             nontrivial_pauli_indices = []
             for qubit_idx in range(n_qubits):
