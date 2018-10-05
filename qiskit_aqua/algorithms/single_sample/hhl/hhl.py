@@ -136,6 +136,9 @@ class HHL(QuantumAlgorithm):
                     (self._backend == "local_qasm_simulator" and cpp)) and
                     self._execute_config.get("shots") == 1):
                 exact = True
+                ############### not always
+                self._debug = True
+                ###############
                 import qiskit.extensions.simulator
 
         if mode == 'debug':
@@ -257,7 +260,7 @@ class HHL(QuantumAlgorithm):
         vec = vec/np.linalg.norm(vec)
         self._ret["result"] = vec
 
-        # Calculating the fidelity ,,,,,,,,,,,
+        # Calculating the fidelity
         theo = np.linalg.solve(self._matrix, self._invec)
         theo = theo/np.linalg.norm(theo)
         self._ret["fidelity"] = abs(theo.dot(vec.conj()))**2
@@ -265,6 +268,8 @@ class HHL(QuantumAlgorithm):
         f1 = np.linalg.norm(self._invec)/np.linalg.norm(tmp_vec)
         f2 = sum(np.angle(self._invec*tmp_vec.conj()))/self._num_q
         self._ret["solution"] = f1*vec*np.exp(-1j*f2)
+
+        self._ret["return"] = res
 
     
     def _state_tomography(self):

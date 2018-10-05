@@ -1,4 +1,4 @@
-from hhl_test_suite import run_tests, get_matrix, get_vector, get_for
+from hhl_test_suite import run_test, run_tests, get_matrix, get_vector, get_for
 import numpy as np
 import matplotlib.pyplot as plt 
 
@@ -9,14 +9,14 @@ params = {
     },
     "eigs": {
         "name": "QPE",
-        "num_time_slices": list(range(10, 110, 20)),
+        "num_time_slices": 1,
         "expansion_mode": "suzuki",
         "expansion_order": 2,
-        "negative_evals": False,
-        "num_ancillae": (4, 6, 8),
+        "negative_evals": True,
+        "num_ancillae": 5,
     },
     "reciprocal": {
-        "name": "LOOKUP",
+        "name": "GENCIRCUITS",
         "lambda_min": 1,
     },
     "backend": {
@@ -30,10 +30,10 @@ params = {
     }
 }
 
-res = run_tests(params, status=lambda res: print(res["fidelity"]))
-
-for i in params["eigs"]["num_ancillae"]:
-    data = np.array(get_for({"eigs num_ancillae": i}, res, "fidelity"))
-    plt.plot(params["eigs"]["num_time_slices"], 1-data)
-plt.yscale('log')
-plt.show()
+res = run_test(params)
+sol = np.linalg.solve(res["matrix"], res["invec"]) 
+sol = sol/np.linalg.norm(sol)
+invec = res["invec"]
+r = res["matrix"].dot(res["result"])
+print(invec[0]/r[0]*r)
+print(invec)
