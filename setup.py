@@ -25,7 +25,7 @@ long_description="""<a href="https://qiskit.org/aqua" rel=nofollow>Qiskit Aqua</
  Qiskit Aqua Artificial Intelligence, and Qiskit Aqua Optimization to experiment with real-world applications to quantum computing."""
     
 requirements = [
-    "qiskit>=0.6.0",
+    "qiskit>=0.6.1,<0.7",
     "scipy>=0.19,!=0.19.1",
     "numpy>=1.13",
     "psutil>=5",
