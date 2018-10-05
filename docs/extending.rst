@@ -17,18 +17,14 @@ framework.
     Any user who would like to contribute to Aqua should follow the Aqua `contribution
     guidelines <https://github.com/QISKit/aqua/blob/master/.github/CONTRIBUTING.rst>`__.
 
---------------
-Extending Aqua
---------------
-
 Aqua exposes numerous extension points. Researchers and developers can contribute to Aqua
 by providing new components, which will be automatically discovered and loaded by Aqua at run time.
 
 .. _aqua-dynamically-discovered-components:
 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------------
 Dynamically Discovered Components
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------------
 
 Each component should derive from the corresponding base class, as explained below.  There are three
 ways for a component to be dynamically discovered and loaded by Aqua at run time:
@@ -130,18 +126,18 @@ ways for a component to be dynamically discovered and loaded by Aqua at run time
     All the classes implementing the algorithms and the supporting components listed below
     should embed a configuration dictionary including ``name``, ``description`` and ``input_schema`` properties.
 
-^^^^^^^^^^^^^^^^^^^^^
+---------------------
 Aqua Extension Points
-^^^^^^^^^^^^^^^^^^^^^
+---------------------
 
 This section details the algorithm and algorithm components that researchers and developers
 interested in quantum algorithms can contribute to Aqua.
 
 .. _extending-algorithms:
 
-^^^^^^^^^^
+~~~~~~~~~~
 Algorithms
-^^^^^^^^^^
+~~~~~~~~~~
 
 New :ref:`quantum-algorithms` may be developed according to the specific API provided by Aqua.
 By simply adding the code of an algorithm to the collection of existing algorithms, that new algorithm
@@ -154,9 +150,9 @@ folder in the file system.
 
 .. _extending-optimizers:
 
-^^^^^^^^^^
+~~~~~~~~~~
 Optimizers
-^^^^^^^^^^
+~~~~~~~~~~
 
 New `optimizers <#optimizers>`__ for quantum variational algorithms
 should and derive from
@@ -168,9 +164,9 @@ folder in the file system.
 
 .. _extending-variational-forms:
 
-^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~
 Variational Forms
-^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~
 
 `Trial wave functions <#variational_forms>`__ for quantum variational algorithms, such as
 `VQE <#variational-quantum-eigensolver-vqe>`__ must derive from the ``VariationalForm`` class.
@@ -181,9 +177,9 @@ folder in the file system.
 
 .. _extending-oracles:
 
-^^^^^^^
+~~~~~~~
 Oracles
-^^^^^^^
+~~~~~~~
 
 `Oracles <#oracles>`__, for use with algorithms such as `Grover's search <#quantum-grover-search>`__,
 should derive from the ``Oracle`` class.  They should also go under the
@@ -194,9 +190,9 @@ folder in the file system.
 
 .. _extending-iqfts:
 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Inverse Quantum Fourier Transforms (IQFTs)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 `IQFTs <#iqfts>`__, for use for example for `QPE <#quantum-phase-estimation-qpe>`__, must derive from the ``IQFT`` class.
 They should also be installed  under the ``qiskit_aqua/algorithms/components/iqfts`` folder,
@@ -206,9 +202,9 @@ folder in the file system.
 
 .. _extending-initial-states:
 
-^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~
 Initial States
-^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~
 
 `Initial states <#initial_states>`__, for algorithms such as `VQE <#variational-quantum-eigensolver-vqe>`__,
 `QPE <#quantum-phase-estimation-qpe>`__

@@ -25,5 +25,5 @@ and then the domain-specific applications of Aqua: Chemistry, AI and Optimizatio
    Aqua Chemistry <aqua_chemistry>
    Aqua Artificial Intelligence <aqua_ai>
    Aqua Optimization <aqua_optimization>
-   Aqua Finance <aqua-finance>
+   Aqua Finance <aqua_finance>
    Aqua Tutorials <aqua_tutorials>

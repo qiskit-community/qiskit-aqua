@@ -76,10 +76,14 @@ In this section, we describe the quantum algorithms currently available in Aqua.
 Variational Quantum Eigensolver (VQE)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`VQE <https://arxiv.org/abs/1304.3061>`__ uses a variational approach
-to find the minimum eigenvalue of a Hamiltonian energy problem. It is
-configured with a trial wave function, supplied by a variational
-form and an optimizer. An initial state may be supplied too.
+`VQE <https://arxiv.org/abs/1304.3061>`__ is a hybrid algorithm that uses
+the variational approach and interleaves quantum and classical computations in order to find
+the minimum eigenvalue of a matrix :math:`H`.  When VQE is used for quantum simulations, :math:`H` is typically
+the Hamiltonian of a system.  An instance of VQE requires defining two algorithmic subcomponents:
+a trial function from Aqua's :ref:`variational-forms` library, and a classical optimizer
+from Aqua's :ref:`optimizers` library.  An initial state from Aqua's
+:ref:`initial-states` library may be supplied too in order to
+define the starting state for the trial function.
 
 .. seealso::
 
@@ -142,7 +146,6 @@ QAOA uses its own fine-tuned variational form, which comprises :math:`p` paramet
 As a result, unlike VQE, QAOA does not need to have a variational form specified as an input parameter,
 and is configured mainly by a single integer parameter, ``p``,
 which dictates the depth of the variational form, and thus affects the approximation quality.
-Similar to VQE, an optimizer may also be specified.
 
 .. seealso::
 
@@ -176,6 +179,7 @@ In summary, QAOA can be configured with the following parameters:
    (as identically named in the original `QAOA paper <https://arxiv.org/abs/1411.4028>`__) for the QAOA variational form.
    If such list is not provided, QAOA will simply start with the all-zero vector.
 
+Similar to VQE, an optimizer may also be specified.
 
 .. topic:: Declarative Name
 
