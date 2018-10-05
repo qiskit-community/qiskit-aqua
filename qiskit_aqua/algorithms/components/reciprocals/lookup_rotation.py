@@ -260,7 +260,10 @@ class LookupRotation(Reciprocal):
  
         self._reg_size = len(inreg)
         if self._pat_length is None:
-            self._pat_length = self._reg_size - (2 if self._negative_evals else 1)
+            if self._reg_size <= 6:
+                self._pat_length = self._reg_size - (2 if self._negative_evals else 1)
+            else:
+                self._pat_length = 5
         if self._subpat_length is None:
             self._subpat_length = int(np.ceil(self._pat_length/2))
         m = self._subpat_length

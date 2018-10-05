@@ -106,7 +106,7 @@ class HHL(QuantumAlgorithm):
         Initialize via parameters dictionary and algorithm input instance
         Args:
             params: parameters dictionary
-            algo_input: list or np.array instance
+            algo_input: list or tuple of np.ndarray (matrix, vector)
         """
         if algo_input is None:
             raise AlgorithmError("Matrix, Vector instance is required.")
@@ -121,6 +121,7 @@ class HHL(QuantumAlgorithm):
         hhl_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM) or {}
         mode = hhl_params.get(HHL.PROP_MODE)
 
+        # Handle different modes
         if self._backend == "local_qasm_simulator":
             from qiskit.backends.local import QasmSimulatorCpp
             try:
@@ -148,6 +149,7 @@ class HHL(QuantumAlgorithm):
             if self._backend == 'local_statevector_simulator':
                 raise AlgorithmError("Measurement requred")
     
+        # Initialize eigenvalue finding module
         eigs_params = params.get(QuantumAlgorithm.SECTION_KEY_EIGS) or {}
         eigs = get_eigs_instance(eigs_params["name"])
         eigs.init_params(eigs_params, matrix)
@@ -165,13 +167,14 @@ class HHL(QuantumAlgorithm):
         init_state = get_initial_state_instance(init_state_params["name"])
         init_state.init_params(init_state_params)
 
-        
+        # Initialize reciprocal rotation module
         reciprocal_params = params.get(QuantumAlgorithm.SECTION_KEY_RECIPROCAL) or {}
         reciprocal_params["negative_evals"] = eigs._negative_evals
         reciprocal_params["evo_time"] = eigs._evo_time
         reci = get_reciprocal_instance(reciprocal_params["name"])
         reci.init_params(reciprocal_params)
 
+        # Initialize self
         self.init_args(matrix, invec, eigs, init_state, reci, mode, exact, num_q, num_a)
 
 
@@ -189,6 +192,8 @@ class HHL(QuantumAlgorithm):
 
        
     def _construct_circuit(self):
+        """ Constructing the HHL circuit """
+
         q = QuantumRegister(self._num_q, name="io")
         qc = QuantumCircuit(q)
 
@@ -230,6 +235,11 @@ class HHL(QuantumAlgorithm):
 
     
     def _exact_simulation(self):
+        """ 
+        The exact simulation mode: The result of the HHL gets extracted from
+        the statevector. Only possible with statevector simulators
+        """
+        # Handle different backends
         if self._backend == "local_statevector_simulator":
             res = self.execute(self._circuit)
             sv = res.get_statevector()
@@ -239,11 +249,15 @@ class HHL(QuantumAlgorithm):
             self._execute_config["config"]["data"] = ["quantum_state_ket"]
             res = self.execute(self._circuit)
             sv = res.get_snapshot("-1").get("statevector")[0]
+
+        # Extract output vector
         half = int(len(sv)/2)
         vec = sv[half:half+2**self._num_q]
         self._ret["probability"] = vec.dot(vec.conj())
         vec = vec/np.linalg.norm(vec)
         self._ret["result"] = vec
+
+        # Calculating the fidelity ,,,,,,,,,,,
         theo = np.linalg.solve(self._matrix, self._invec)
         theo = theo/np.linalg.norm(theo)
         self._ret["fidelity"] = abs(theo.dot(vec.conj()))**2
@@ -254,6 +268,11 @@ class HHL(QuantumAlgorithm):
 
     
     def _state_tomography(self):
+        """
+        Extracting the solution vector information via state tomography.
+        Inefficient, uses 3**n*shots executions of the circuit.
+        """
+        # Preparing the state tomography circuits
         import qiskit.tools.qcvv.tomography as tomo
         from qiskit import QuantumProgram
         c = ClassicalRegister(self._num_q)
@@ -264,6 +283,8 @@ class HHL(QuantumAlgorithm):
         tomo_names = tomo.create_tomography_circuits(qp, "master",
                 self._io_register, c, tomo_set)
         config = {k: v for k, v in self._execute_config.items() if k != "qobj_id"}
+
+        # Handling the results
         res = qp.execute(tomo_names, backend=self._backend, **config)
         probs = []
         for circ in res._result.get("result"):
@@ -278,14 +299,19 @@ class HHL(QuantumAlgorithm):
                     f += v
             probs.append(s/(f+s))
             circ["data"]["counts"] = new_counts
+
+        # Fitting the tomography data
         tomo_data = tomo.tomography_data(res, 'master', tomo_set)
         rho_fit = tomo.fit_tomography_data(tomo_data)
         vec = rho_fit[:, 0]/np.sqrt(rho_fit[0, 0])
-
         self._ret["result"] = vec
+
+        # Calculating the fidelity with the classical solution
         theo = np.linalg.solve(self._matrix, self._invec)
         theo = theo/np.linalg.norm(theo)
         self._ret["fidelity"] = abs(theo.dot(vec.conj()))**2
+
+        # Rescaling the output vector to the real solution vector
         tmp_vec = self._matrix.dot(vec)
         f1 = np.linalg.norm(self._invec)/np.linalg.norm(tmp_vec)
         f2 = sum(np.angle(self._invec*tmp_vec.conj()))/self._num_q
@@ -293,9 +319,15 @@ class HHL(QuantumAlgorithm):
 
 
     def _swap_test(self):
+        """
+        Making a swap test calculating the fidelity between the HHL and
+        classical result (normalized).
+        """
+        # Preparing the circuit
         c = ClassicalRegister(1)
         self._circuit.add(c)
 
+        # using free qubits
         if (self._num_q + 1) > self._num_a:
             qx = QuantumRegister(self._num_q+1-self._num_a)
             self._circuit.add(qx)
@@ -306,6 +338,7 @@ class HHL(QuantumAlgorithm):
         test_bit = qubits[0]
         x_state = qubits[1:]
 
+        # Initializeing the solution state vector
         init_state = get_initial_state_instance("CUSTOM")
         sol = list(np.linalg.solve(self._matrix, self._invec))
         init_state.init_params({"num_qubits": self._num_q, "state_vector": sol})
@@ -313,13 +346,15 @@ class HHL(QuantumAlgorithm):
         qc = self._circuit
         qc += init_state.construct_circuit('circuit', x_state)
 
+        # Making a swap test
         qc.h(test_bit)
         for i in range(self._num_q):
             qc.cswap(test_bit, self._io_register[i], x_state[i])
         qc.h(test_bit)
 
         qc.measure(test_bit, c[0])
-
+        
+        # Execution and calculation of the fidelity
         res = self.execute(self._circuit)
         counts = res.get_counts()
         failed = 0
@@ -338,6 +373,7 @@ class HHL(QuantumAlgorithm):
 
 
     def __filter(self, qsk, reg=None, qubits=None):
+        # WORK IN PROGRESS
         qregs = list(self._circuit.get_qregs().values())
         if reg:
             idx = qregs.index(reg)
@@ -480,6 +516,7 @@ class HHL(QuantumAlgorithm):
 
     def run(self):
         self._construct_circuit()
+        # Handling the modes
         if self._mode == "circuit":
             self._ret["circuit"] = self._circuit
             regs = {
@@ -498,6 +535,8 @@ class HHL(QuantumAlgorithm):
             self._exec_debug()
         elif self._mode == "swap_test":
             self._swap_test()
+
+        # Adding few general informations
         self._ret["gate_count"] = self._circuit.number_atomic_gates()
         self._ret["matrix"] = self._matrix
         self._ret["invec"] = self._invec

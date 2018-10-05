@@ -221,6 +221,3 @@ def get_for(params, data, subs=None):
     if len(ret["keys"]) == 1:
         return ret["data"]
     return ret
-        
-
-if __name__ == "__main__":
