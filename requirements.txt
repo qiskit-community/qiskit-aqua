@@ -1,8 +1,8 @@
-qiskit>=0.5.6
-scipy>=0.19,<1.2
-numpy>=1.13,<1.15
-psutil
-jsonschema
+qiskit>=0.6.1,<0.7
+scipy>=0.19,!=0.19.1
+numpy>=1.13
+psutil>=5
+jsonschema>=2.6,<2.7
 scikit-learn
 cvxopt
 pyobjc-core; sys_platform == 'darwin'

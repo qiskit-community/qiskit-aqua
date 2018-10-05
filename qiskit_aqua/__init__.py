@@ -17,31 +17,29 @@
 
 """Algorithm discovery methods, Error and Base classes"""
 
-from ._discover_qconfig import (get_qconfig,
-                                set_qconfig,
-                                load_qconfig,
-                                discover_qconfig)
+from .utils import cnx
 from .algorithmerror import AlgorithmError
 from .operator import Operator
+from .preferences import Preferences
 from .quantumalgorithm import QuantumAlgorithm
 from ._discover import (refresh_pluggables,
                         local_pluggables_types,
                         local_pluggables,
                         get_pluggable_configuration)
 
-__version__ = '0.2.0'
 
-__all__ = [ 'get_qconfig',
-            'set_qconfig',
-            'load_qconfig',
-            'discover_qconfig',
-            'AlgorithmError',
-            'Operator',
-            'QuantumAlgorithm',
-            'refresh_pluggables',
-            'local_pluggables_types',
-            'local_pluggables',
-            'get_pluggable_configuration']
+__version__ = '0.3.0'
+
+__all__ = ['AlgorithmError',
+           'Operator',
+           'Preferences',
+           'QuantumAlgorithm',
+           'refresh_pluggables',
+           'local_pluggables_types',
+           'local_pluggables',
+           'get_pluggable_configuration',
+           'run_algorithm',
+           'run_algorithm_to_json']
 
 from ._discover import _PLUGGABLES
 
@@ -65,10 +63,5 @@ for pluggable_type in _PLUGGABLES.keys():
     method = 'local_{}s'.format(pluggable_type)
     exec(prefix + method)
     __all__.append(method)
-    
-from .algomethods import run_algorithm
-__all__.append('run_algorithm')
-from .algomethods import run_algorithm_to_json
-__all__.append('run_algorithm_to_json')
-from .operator import Operator
-__all__.append('Operator')
+
+from .algomethods import run_algorithm, run_algorithm_to_json

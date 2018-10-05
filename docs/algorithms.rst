@@ -1,68 +1,98 @@
+.. _algorithms:
+
+==========
 Algorithms
 ==========
 
-Qiskit Algorithms for QUantum Applications (Qiskit Aqua)
-is an extensible collection of algorithms and utilities for use with quantum computers to
+Aqua is an extensible collection of algorithms and utilities for use with quantum computers to
 carry out research and investigate how to solve problems using near-term
 quantum applications on short depth circuits. The applications can span
-different domains  Qiskit Aqua uses
-`Qiskit <https://www.qiskit.org/>`__ for its quantum computation.
+different domains. Aqua uses
+`Terra <https://www.qiskit.org/terra>`__ for the generation, compilation and execution
+of the quantum circuits modeling the specific problems.
 
-The following `quantum algorithms <#quantum-algorithms>`__ are part of Qiskit Aqua:
+The following `quantum algorithms <#quantum-algorithms>`__ are part of Aqua:
 
 -  :ref:`Variational Quantum Eigensolver (VQE)`
 -  :ref:`Quantum Approximate Optimization Algorithm (QAOA)`
--  :ref:`Quantum Dynamics`
+-  :ref:`Evolution of Hamiltonian (EOH)`
 -  :ref:`Quantum Phase Estimation (QPE)`
 -  :ref:`Iterative Quantum Phase Estimation (IQPE)`
 -  :ref:`Quantum Grover Search`
--  :ref:`Support Vector Machine Quantum Kernel (SVM Q Kernel)`
--  :ref:`Support Vector Machine Variational (SVM Variational)`
+-  :ref:`Support Vector Machine Quantum Kernel (QSVM Kernel)`
+-  :ref:`Support Vector Machine Variational (QSVM Variational)`
 
-Qiskit Aqua includes  also some `classical algorithms <#classical-algorithms>`__, which may be
-useful to compare and contrast results in the near term while experimenting with, developing and testing
+Aqua includes  also some `classical algorithms <#classical-reference-algorithms>`__
+for generating reference values. This feature of Aqua may be
+useful to quantum algorithm researchers interested in generating, comparing and contrasting
+results in the near term while experimenting with, developing and testing
 quantum algorithms:
 
 -  :ref:`Exact Eigensolver`
--  :ref:`CPLEX`
--  :ref:`Support Vector Machine Radial Basis Function Kernel (SVM RBF Kernel)`
+-  :ref:`CPLEX Ising`
+-  :ref:`Support Vector Machine Radial Basis Function Kernel (SVM Classical)`
 
 .. topic:: Extending the Algorithm Library
 
-    Algorithms and many of the components they used have been designed to be
-    pluggable. A new algorithm may be developed according to the specific API
-    provided by Qiskit Aqua, and by simply adding its code to the collection of existing
-    algorithms, that new algorithm  will be immediately recognized via dynamic lookup, and made available for use
-    within the framework of Qiskit Aqua.
+    Algorithms and many of the components they use have been designed to be
+    pluggable. A new algorithm may be developed according to the specific Application Programming Interface (API)
+    provided by Aqua, and by simply adding its code to the collection of existing
+    algorithms, that new algorithm  will be immediately recognized via dynamic lookup,
+    and made available for use within the framework of Aqua.
+    Specifically, to develop and deploy any new algorithm, the new algorithm class should derive from the ``QuantumAlgorithm`` class.
+    Along with any supporting  module, for immediate dynamic discovery, the new algorithm class
+    can simply be placed in an appropriate folder in the ``qiskit_aqua\algorithms`` directory, just like the
+    existing algorithms.  Aqua also allows for
+    :ref:`aqua-dynamically-discovered-components`: new components can register themselves
+    as Aqua extensions and be dynamically discovered at run time independent of their
+    location in the file system.
+    This is done in order to encourage researchers and
+    developers interested in
+    :ref:`aqua-extending` to extend the Aqua framework with their novel research contributions.
 
-    To develop and deploy any new algorithm, the new algorithm class should derive from the ``QuantumAlgorithm`` class.
-    Along with any supporting  module, the new algorithm class
-    should be installed under its own folder in the ``qiskit_aqua`` directory, just like  the
-    existing algorithms.
+.. seealso::
+
+    Section :ref:`aqua-extending` provides more
+    details on how to extend Aqua with new components.
 
 
+.. _quantum-algorithms:
 
+------------------
 Quantum Algorithms
 ------------------
-In this section, we describe the quantum algorithms currently available in Qiskit Aqua.
+
+In this section, we describe the quantum algorithms currently available in Aqua.
 
 .. note::
-    Qiskit Aqua requires associating a quantum device or simulator to any experiment that uses a quantum
-    algorithm.  This is done by configuring the ``backend`` section of the experiment to be run.
 
+    Aqua requires associating a quantum device or simulator to any experiment that uses a quantum
+    algorithm.  This is done by configuring the ``"backend"`` section of the experiment to be run.
+    Consult the documentation on the :ref:`aqua-input-file` for more details.
+
+.. _vqe:
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Variational Quantum Eigensolver (VQE)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`VQE <https://arxiv.org/abs/1304.3061>`__ uses a variational approach
-to find the minimum eigenvalue of a Hamiltonian energy problem. It is
-configured with a trial wavefunction, supplied by a `variational
-form <./variational_forms.html>`__, and an
-`optimizer <./optimizers.html>`__. An `initial
-state <./initial_states.html>`__ may be supplied too.
+`VQE <https://arxiv.org/abs/1304.3061>`__ is a hybrid algorithm that uses
+the variational approach and interleaves quantum and classical computations in order to find
+the minimum eigenvalue of the Hamiltonian :math:`H` of a given system.
+An instance of VQE requires defining two algorithmic subcomponents:
+a trial function from Aqua's :ref:`variational-forms` library, and a classical optimizer
+from Aqua's :ref:`optimizers` library.  An initial state from Aqua's
+:ref:`initial-states` library may be supplied too in order to
+define the starting state for the trial function.
+
+.. seealso::
+
+    Refer to the documentation of :ref:`variational-forms`, :ref:`optimizers`
+    and :ref:`initial-states` for more details.
 
 Additionally, VQE can be configured with the following parameters:
 
--  A ``string`` indicating the mode used by the ``Operator`` class for the computation:
+-  A ``str`` value indicating the mode used by the ``Operator`` class for the computation:
 
    .. code:: python
 
@@ -76,41 +106,54 @@ Additionally, VQE can be configured with the following parameters:
 
        initial_point : [float, float, ... , float]
 
-   An optional list of ``float`` values  may be provided as the starting point
-   for the variational form.
-   The length of this list must match the number of the parameters expected by the variational form being used.
-   If such list is not provided, VQE will create a random starting point for the
-   optimizer, with values randomly chosen to lie within the
-   bounds of the variational form. If the variational form provides no lower bound, the VQE
-   will default it to :math:`-2\pi`; if the upper bound is missing, the default value is :math:`2\pi`.
+   An optional list of ``float`` values  may be provided as the starting point for the search of the minimum eigenvalue.
+   This feature is particularly useful when there are reasons to believe that the
+   solution point is close to a particular point, which can then be provided as the preferred initial point.  As an example,
+   when building the dissociation profile of a molecule, it is likely that
+   using the previous computed optimal solution as the starting initial point for the next interatomic distance is going
+   to reduce the number of iterations necessary for the variational algorithm to converge.  Aqua provides
+   `a tutorial detailing this use case <https://github.com/Qiskit/aqua-tutorials/blob/master/chemistry/h2_vqe_initial_point.ipynb>`__.
+    
+   The length of the ``initial_point`` list value must match the number of the parameters expected by the variational form being used.
+   If the user does not supply a preferred initial point, then VQE will look to the variational form for a preferred value.
+   If the variational form returns ``None``,
+   then a random point will be generated within the parameter bounds set, as per above.
+   If the variational form provides ``None`` as the lower bound, then VQE
+   will default it to :math:`-2\pi`; similarly, if the variational form returns ``None`` as the upper bound, the default value will be :math:`2\pi`.
 
 
 .. topic:: Declarative Name
 
-   When referring to VQE declaratively inside Qiskit Aqua, its code ``name``, by which Qiskit Aqua dynamically discovers and loads it,
+   When referring to VQE declaratively inside Aqua, its code ``name``, by which Aqua dynamically discovers and loads it,
    is ``VQE``.
 
 .. topic:: Problems Supported
 
-   In Qiskit Aqua, VQE supports the ``energy`` and ``ising`` problems.
+   In Aqua, VQE supports the ``energy`` and ``ising`` problems.
 
+.. _qaoa:
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Quantum Approximate Optimization Algorithm (QAOA)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-QAOA is a well-known algorithm for finding approximate solutions to
+`QAOA <https://arxiv.org/abs/1411.4028>`__ is a well-known algorithm for finding approximate solutions to
 combinatorial-optimization problems.
-The QAOA implementation in Qiskit Aqua directly uses `VQE <#variational-quantum-eigensolver-vqe>`__ for its general hybrid optimization structure.
+The QAOA implementation in Aqua directly uses `VQE <#variational-quantum-eigensolver-vqe>`__ for its general hybrid optimization structure.
 However, unlike VQE, which can be configured with arbitrary variational forms,
-QAOA uses its own fine-tuned variational form, which comprises :math:`p` parameterized global :math:`X` rotations and 
+QAOA uses its own fine-tuned variational form, which comprises :math:`p` parameterized global :math:`x` rotations and 
 :math:`p` different parameterizations of the problem hamiltonian.
 As a result, unlike VQE, QAOA does not need to have a variational form specified as an input parameter,
-and is configured mainly by a single integer parameter, :math:`p`,
+and is configured mainly by a single integer parameter, ``p``,
 which dictates the depth of the variational form, and thus affects the approximation quality.
-Similar to VQE, an `optimizer <./optimizers.html>`__ may also be specified.
+
+.. seealso::
+
+    Consult the documentation on :ref:`optimizers` for more details.
 
 In summary, QAOA can be configured with the following parameters:
 
--  A ``string`` indicating the mode used by the ``Operator`` class for the computation:
+-  A ``str`` value indicating the mode used by the ``Operator`` class for the computation:
 
    .. code:: python
 
@@ -118,7 +161,7 @@ In summary, QAOA can be configured with the following parameters:
 
    If no value for ``operator_mode`` is specified, the default is ``"matrix"``.
 
--  A positive ``integer`` configuring QAOA's particular variational form as discussed above:
+-  A positive ``int`` value configuring the QAOA variational form depth, as discussed above:
 
    .. code:: python
 
@@ -133,34 +176,39 @@ In summary, QAOA can be configured with the following parameters:
        initial_point : [float, float, ... , float]
 
    An optional list of :math:`2p` ``float`` values  may be provided as the starting ``beta`` and ``gamma`` parameters
-   (as identically named in the `original QAOA paper <https://arxiv.org/abs/1411.4028>`__) for the QAOA variational form.
+   (as identically named in the original `QAOA paper <https://arxiv.org/abs/1411.4028>`__) for the QAOA variational form.
    If such list is not provided, QAOA will simply start with the all-zero vector.
 
+Similar to VQE, an optimizer may also be specified.
 
 .. topic:: Declarative Name
 
-   When referring to QAOA declaratively inside Qiskit Aqua, its code ``name``,
-   by which Qiskit Aqua dynamically discovers and loads it,
-   is ``QAOA``.
+   When referring to QAOA declaratively inside Aqua, its code ``name``,
+   by which Aqua dynamically discovers and loads it,
+   is ``QAOA.Variational``.
 
 .. topic:: Problems Supported
 
-   In Qiskit Aqua, QAOA supports the ``ising`` problem.
+   In Aqua, QAOA supports the ``ising`` problem.
 
-Quantum Dynamics
-~~~~~~~~~~~~~~~~
+.. _dynamics:
 
-Dynamics provides the lower-level building blocks for simulating
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Evolution of Hamiltonian (EOH)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+EOH provides the lower-level building blocks for simulating
 universal quantum systems. For any given quantum system that can be
-decomposed into local interactions (for example, a global hamiltonian *H* as
-the weighted sum of several pauli spin operators), the local
+decomposed into local interactions (for example, a global hamiltonian as
+the weighted sum of several Pauli spin operators), the local
 interactions can then be used to approximate the global quantum system
 via, for example, Lloyd’s method or Trotter-Suzuki decomposition.
 
-.. note::
-    This algorithm *only* supports the ``local_state_vector`` simulator.
+.. warning::
 
-Dynamics can be configured with the following parameter settings:
+    This algorithm only supports the local state vector simulator.
+
+EOH can be configured with the following parameter settings:
 
 -  Evolution time:
 
@@ -168,7 +216,7 @@ Dynamics can be configured with the following parameter settings:
 
        evo_time : float
 
-   A number is expected.  The minimum value is ``0.0``.  The default value is ``1.0``.
+   A ``float`` value is expected.  The minimum value is ``0.0``.  The default value is ``1.0``.
 
 -  The evolution mode of the computation:
 
@@ -176,7 +224,7 @@ Dynamics can be configured with the following parameter settings:
 
        evo_mode = "matrix" | "circuit"
 
-   Two ``string`` values are permitted: ``"matrix"`` or ``"circuit"``, with ``"circuit"`` being the default.
+   Two ``str`` values are permitted: ``"matrix"`` or ``"circuit"``, with ``"circuit"`` being the default.
 
 -  The number of time slices:
 
@@ -192,8 +240,8 @@ Dynamics can be configured with the following parameter settings:
 
        paulis_grouping = "default" | "random"
 
-   Two ``string`` values are permitted: ``"default"`` or ``"random"``, with ``"default"`` being the default and indicating
-   that the paulis should be grouped.
+   Two ``str`` values are permitted: ``"default"`` or ``"random"``, with ``"default"`` being the default and indicating
+   that the Paulis should be grouped.
 
 -  The expansion mode:
 
@@ -201,7 +249,7 @@ Dynamics can be configured with the following parameter settings:
 
        expansion_mode = "trotter" | "suzuki"
 
-   Two ``string`` values are permitted: ``"trotter"`` (Lloyd's method) or ``"suzuki"`` (for Trotter-Suzuki expansion),
+   Two ``str`` values are permitted: ``"trotter"`` (Lloyd's method) or ``"suzuki"`` (for Trotter-Suzuki expansion),
    with  ``"trotter"`` being the default one.
 
 -  The expansion order:
@@ -214,36 +262,45 @@ Dynamics can be configured with the following parameter settings:
 
 .. topic:: Declarative Name
 
-   When referring to Quantum Dynamics declaratively inside Qiskit Aqua, its code ``name``, by which
-   Qiskit Aqua dynamically discovers and loads it, is ``Dynamics``.
+   When referring to EOH declaratively inside Aqua, its code ``name``, by which
+   Aqua dynamically discovers and loads it, is ``EOH``.
 
 .. topic:: Problems Supported
 
-   In Qiskit Aqua, Quantum Dynamics supports the ``dynamics`` problem.
+   In Aqua, EOH supports the ``eoh`` problem.
 
+.. _qpe:
 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Quantum Phase Estimation (QPE)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 QPE (also sometimes abbreviated
-as PEA, for **Phase Estimation Algorithm**), takes two quantum registers, **control** and **target**, where the
+as PEA, for *Phase Estimation Algorithm*), takes two quantum registers, *control* and *target*, where the
 control consists of several qubits initially put in uniform
 superposition, and the target a set of qubits prepared in an eigenstate
 (or, oftentimes, a guess of the eigenstate) of the unitary operator of
 a quantum system. QPE then evolves the target under the control using
-:ref:`Dynamics` of the unitary operator. The information of the
+:ref:`Dynamics` on the unitary operator. The information of the
 corresponding eigenvalue is then *kicked-back* into the phases of the
-control register, which can then be deconvoluted by an `Inverse Quantum
-Fourier Transform (IQFT) <./iqfts.html>`__, and measured for read-out in binary decimal
-format.
+control register, which can then be deconvoluted by an Inverse Quantum
+Fourier Transform (IQFT), and measured for read-out in binary decimal
+format.  QPE also requires a reasonably good estimate of the eigen wave function
+to start the process. For example, when estimating molecular ground energies,
+the :ref:`Hartree-Fock` method could be used to provide such trial eigen wave
+functions.
 
-.. note::
-    This algorithm **does not** support the ``local_state_vector`` simulator.
+.. seealso::
 
-QPE is configured with an `initial
-state <initial_states.html>`__ and an `IQFT <./iqfts.html>`__.
+    Consult the documentation on :ref:`iqfts` and :ref:`initial-states`
+    for more details.
 
-QPE is also configured with the following parameter settings:
+.. warning::
+
+    This algorithm does not support the local state vector simulator.
+
+In addition to requiring an IQFT and an initial state as part of its
+configuration, QPE also exposes the following parameter settings:
 
 -  The number of time slices:
 
@@ -260,7 +317,7 @@ QPE is also configured with the following parameter settings:
        paulis_grouping = "default" | "random"
 
    Two string values are permitted: ``"default"`` or ``"random"``, with ``"default"``
-   being the default and indicating that the paulis should be grouped.
+   being the default and indicating that the Paulis should be grouped.
 
 -  The expansion mode:
 
@@ -268,7 +325,7 @@ QPE is also configured with the following parameter settings:
 
        expansion_mode = "trotter" | "suzuki"
 
-   Two ``string`` values are permitted: ``"trotter"`` (Lloyd's method) or ``"suzuki"`` (for Trotter-Suzuki expansion),
+   Two ``str`` values are permitted: ``"trotter"`` (Lloyd's method) or ``"suzuki"`` (for Trotter-Suzuki expansion),
    with  ``"trotter"`` being the default one.
 
 -  The expansion order:
@@ -290,63 +347,121 @@ QPE is also configured with the following parameter settings:
 
 .. topic:: Declarative Name
 
-   When referring to QPE declaratively inside Qiskit Aqua, its code ``name``, by which
-   Qiskit Aqua dynamically discovers and loads it, is ``QPE``.
+   When referring to QPE declaratively inside Aqua, its code ``name``, by which
+   Aqua dynamically discovers and loads it, is ``QPE``.
 
 .. topic:: Problems Supported
 
-   In Qiskit Aqua, QPE supports the ``energy`` problem.
+   In Aqua, QPE supports the ``energy`` problem.
 
+.. _iqpe:
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Iterative Quantum Phase Estimation (IQPE)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 IQPE, as its name
-suggests, iteratively computes the phase so as to require less qubits.
+suggests, iteratively computes the phase so as to require fewer qubits.
 It takes in the same set of parameters as `QPE <#quantum-phase-estimation-qpe>`__, except for the number of
 ancillary qubits ``num_ancillae``, which is replaced by
-``num_iterations`` (a positive ``int``, also defaulted to ``1``), and for the fact that an `IQFT <./iqfts.html>`__ is not
-used for IQPE.
+``num_iterations`` (a positive ``int``, also defaulted to ``1``), and for the fact that an
+Inverse Quantum Fourier Transform (IQFT) is not used for IQPE.
 
-.. note::
-    This algorithm **does not** support the ``local_state_vector`` simulator.
+.. warning::
 
-For more details, please see `arXiv:quant-ph/0610214 <https://arxiv.org/abs/quant-ph/0610214>`__.
+    This algorithm does not support the local state vector simulator.
+
+.. seealso::
+
+    For more details, please see `arXiv:quant-ph/0610214 <https://arxiv.org/abs/quant-ph/0610214>`__.
 
 .. topic:: Declarative Name
 
-   When referring to IQPE declaratively inside Qiskit Aqua, its code ``name``, by which
-   Qiskit Aqua dynamically discovers and loads it, is ``IQPE``.
+    When referring to IQPE declaratively inside Aqua, its code ``name``, by which
+    Aqua dynamically discovers and loads it, is ``IQPE``.
 
 .. topic:: Problems Supported
 
-   In Qiskit Aqua, IQPE supports the ``energy`` problem.
+    In Aqua, IQPE supports the ``energy`` problem.
 
 
+.. _grover:
+
+^^^^^^^^^^^^^^^^^^^^^
 Quantum Grover Search
-~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^
 
 Grover’s Search is a well known quantum algorithm for searching through
-unstructured collection of records for particular targets with quadratic
-speedups. All that is needed for carrying out a search is an `oracle <./oracles.html>`__ for
+unstructured collections of records for particular targets with quadratic
+speedups.
+
+Given a set :math:`X` of :math:`N` elements
+:math:`X=\{x_1,x_2,\ldots,x_N\}` and a boolean function :math:`f : X \rightarrow \{0,1\}`,
+the goal on an *unstructured-search problem* is to find an
+element :math:`x^* \in X` such that :math:`f(x^*)=1`.
+Unstructured  search  is  often  alternatively  formulated  as  a  database  search  problem, in
+which, given a database, the goal is to find in it an item that meets some specification.
+The search is called *unstructured* because there are no guarantees as to how the
+database is ordered.  On a sorted database, for instance, one could perform
+binary  search  to  find  an  element in :math:`\mathbb{O}(\log N)` worst-case time.
+Instead, in an unstructured-search problem, there is no  prior knowledge about the contents
+of the database.  With classical circuits, there is no alternative but
+to perform a linear number of queries to find the target element.
+Conversely, Grover’s Search algorithm allows to solve the unstructured-search problem
+on a quantum computer in :math:`\mathcal{O}(\sqrt{N})` queries. 
+
+All that is needed for carrying out a search is an oracle from Aqua's :ref:`oracles` library for
 specifying the search criterion, which basically indicates a hit or miss
-for any given record. Currently the satisfiability (SAT) oracle
-implementation is provided, which takes as input a SAT problem in
+for any given record.  More formally, an *oracle* :math:`O_f` is an object implementing a boolean function
+:math:`f` as specified above.  Given an input :math:`x \in X`, :math:`O_f` returns :math:`f(x)`.  The
+details of how :math:`O_f` works are unimportant; Grover's search algorithm treats an oracle as a black
+box.  Currently, Aqua provides the satisfiability (SAT) oracle
+implementation, which takes as input an SAT problem in
 `DIMACS CNF
 format <http://www.satcompetition.org/2009/format-benchmarks2009.html>`__
-and constructs the corresponding quantum circuit.
+and constructs the corresponding quantum circuit.  Oracles are treated as pluggable components
+in Aqua; researchers interested in :ref:`aqua-extending` can design and implement new
+oracles and extend Aqua's oracle library.
+
+Grover is configured with the following parameter settings:
+
+-  Number of iterations:
+
+   .. code:: python
+
+       num_iterations = 1 | 2 | ...
+
+   For the conventional Grover's search algorithm, the parameter ``num_iterations`` is used to specify
+   how many times the marking and reflection phase sub-circuit is repeated to amplify the amplitude(s) of the target(s).
+   A positive ``int`` value is expected. The default value is ``1``.
+
+-  Incremental mode flag:
+
+   .. code:: python
+
+       Incremental = False | True
+
+   When run in ``incremental`` mode, the search task will be carried out by using successive circuits built using incrementally higher
+   number of iterations for the repetition of the amplitude amplification until a target is found
+   or the maximal number :math:`\log N` (:math:`N` being the total number of elements in the set from the oracle used) of iterations is reached.
+   This is a boolean flag defaulted to ``False``;
+   when set ``True``, the other parameter ``num_iterations`` will be ignored.
+
 
 .. topic:: Declarative Name
 
-   When referring to Quantum Grover Search declaratively inside Qiskit Aqua, its code ``name``, by which
-   Qiskit Aqua dynamically discovers and loads it, is ``Grover``.
+   When referring to Quantum Grover Search declaratively inside Aqua, its code ``name``, by which
+   Aqua dynamically discovers and loads it, is ``Grover``.
 
 .. topic:: Problems Supported
 
-   In Qiskit Aqua, Grover supports the ``search`` problem.
+   In Aqua, Grover's Search algorithm supports the ``search`` problem.
 
+.. _svm-q-kernel:
 
-Support Vector Machine Quantum Kernel (SVM Q Kernel)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Support Vector Machine Quantum Kernel (QSVM Kernel)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Classification algorithms and methods for machine learning are essential
 for pattern recognition and data mining applications. Well known
@@ -373,18 +488,18 @@ collection of inner products is called the *kernel* and it is perfectly
 possible to have feature maps that are hard to compute but whose kernels
 are not.
 
-The SVM Q Kernel algorithm applies to classification problems that
+The QSVM Kernel algorithm applies to classification problems that
 require a feature map for which computing the kernel is not efficient
 classically. This means that the required computational resources are
 expected to scale exponentially with the size of the problem.
-SVM_QKernel uses a Quantum processor to solve this problem by a direct
+QSVM Kernel uses a Quantum processor to solve this problem by a direct
 estimation of the kernel in the feature space. The method used falls in
 the category of what is called *supervised learning*, consisting of a
 *training phase* (where the kernel is calculated and the support vectors
-obtained) and a *test or classification phase* (where new labeless data
+obtained) and a *test or classification phase* (where new labelless data
 is classified according to the solution found in the training phase).
 
-SVM Q Kernel can be configured with a Boolean parameter, indicating
+QSVM Kernel can be configured with a ``bool`` parameter, indicating
 whether or not to print additional information when the algorithm is running:
 
 .. code:: python
@@ -395,24 +510,27 @@ The default is ``False``.
 
 .. topic:: Declarative Name
 
-   When referring to SVM Q Kernel declaratively inside Qiskit Aqua, its code ``name``, by which
-   Qiskit Aqua dynamically discovers and loads it, is ``SVM_QKernel``.
+   When referring to QSVM Kernel declaratively inside Aqua, its code ``name``, by which
+   Aqua dynamically discovers and loads it, is ``QSVM.Kernel``.
 
 .. topic:: Problems Supported
 
-   In Qiskit Aqua, SVM Q Kernel  supports the ``svm_classification`` problem.
+   In Aqua, QSVM Kernel  supports the ``svm_classification`` problem.
 
-Support Vector Machine Variational (SVM Variational)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _svm-variational:
 
-Just like SVM_Kernel, the SVM_Variational algorithm applies to
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Support Vector Machine Variational (QSVM Variational)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Just like QSVM Kernel, the QSVM Variational algorithm applies to
 classification problems that require a feature map for which computing
-the kernel is not efficient classically. SVM_Variational solves such
-problems in a quantum processor by variational method that optimizes a
+the kernel is not efficient classically. QSVM Variational uses the variational method to solve such
+problems in a quantum processor.  Specifically, it optimizes a
 parameterized quantum circuit to provide a solution that cleanly
 separates the data.
 
-SVM_Variational can be configured with the following parameters:
+QSVM Variational can be configured with the following parameters:
 
 -  The depth of the variational circuit to be optimized:
 
@@ -428,37 +546,44 @@ SVM_Variational can be configured with the following parameters:
 
        print_info : bool
 
-   A Boolean value is expected.  The default is ``False``.
+   A ``bool`` value is expected.  The default is ``False``.
 
 .. topic:: Declarative Name
 
-   When referring to SVM Variational declaratively inside Qiskit Aqua, its code ``name``, by which
-   Qiskit Aqua dynamically discovers and loads it, is ``SVM_Variational``.
+   When referring to QSVM Variational declaratively inside Aqua, its code ``name``, by which
+   Aqua dynamically discovers and loads it, is ``QSVM.Variational``.
 
 .. topic:: Problems Supported
 
-   In Qiskit Aqua, SVM Variational  supports the ``svm_classification`` problem.
+   In Aqua, QSVM Variational  supports the ``svm_classification`` problem.
 
+.. _classical-reference-algorithms:
 
-Classical Algorithms
---------------------
-In this section, we describe the classical algorithms currently available in Qiskit Aqua.
-While these algorithm do not use a quantum device or simulator, and rely on
+------------------------------
+Classical Reference Algorithms
+------------------------------
+
+In this section, we describe the classical algorithms currently available in Aqua.
+While these algorithms do not use a quantum device or simulator, and rely on
 purely classical approaches, they may be useful in the
-near term while experimenting with, developing and testing quantum
+near term to generate reference values while experimenting with, developing and testing quantum
 algorithms.
 
-.. note::
-    Qiskit Aqua prevents associating a quantum device or simulator to any experiment that uses a classical
-    algorithm.  The ``backend`` section of an experiment to be conducted via a classical algorithm is
+.. warning::
+
+    Aqua prevents associating a quantum device or simulator to any experiment that uses a classical
+    algorithm.  The ``"backend"`` section of an experiment to be conducted via a classical algorithm is
     disabled.
 
-Exact Eigensolver
-~~~~~~~~~~~~~~~~~
+.. _exact-eigensolver:
 
-Exact Eigensolver computes up to the first ``k`` eigenvalues of a complex square matrix of dimension ``n x n``,
-with ``k`` :math:`leq` ``n``.
-It can be configured with an integer parameter indicating the number of eigenvalues to compute:
+^^^^^^^^^^^^^^^^^
+Exact Eigensolver
+^^^^^^^^^^^^^^^^^
+
+Exact Eigensolver computes up to the first :math:`k` eigenvalues of a complex square matrix of dimension
+:math:`n \times n`, with :math:`k \leq n`.
+It can be configured with an ``int`` parameter ``k`` indicating the number of eigenvalues to compute:
 
 .. code:: python
 
@@ -468,25 +593,27 @@ Specifically, the value of this parameter must be an ``int`` value ``k`` in the 
 
 .. topic:: Declarative Name
 
-   When referring to Exact Eigensolver declaratively inside Qiskit Aqua, its code ``name``, by which
-   Qiskit Aqua dynamically discovers and loads it, is ``ExactEigensolver``.
+   When referring to Exact Eigensolver declaratively inside Aqua, its code ``name``, by which
+   Aqua dynamically discovers and loads it, is ``ExactEigensolver``.
 
 .. topic:: Problems Supported
 
-   In Qiskit Aqua, Exact Eigensolver supports the ``energy``, ``ising`` and ``excited_states``  problems.
+   In Aqua, Exact Eigensolver supports the ``energy``, ``ising`` and ``excited_states``  problems.
 
+.. _cplex:
 
-CPLEX
-~~~~~
+^^^^^^^^^^^
+CPLEX Ising
+^^^^^^^^^^^
 
 This algorithm uses the `IBM ILOG CPLEX Optimization
-Studio <https://www.ibm.com/support/knowledgecenter/SSSA5P_12.8.0/ilog.odms.studio.help/Optimization_Studio/topics/COS_home.html>`__
-which should be installed along with its `Python
-API <https://www.ibm.com/support/knowledgecenter/SSSA5P_12.8.0/ilog.odms.cplex.help/CPLEX/GettingStarted/topics/set_up/Python_setup.html>`__
-setup, for this algorithm to be operational. This algorithm currently
+Studio <https://www.ibm.com/support/knowledgecenter/SSSA5P_12.8.0/ilog.odms.studio.help/Optimization_Studio/topics/COS_home.html>`__,
+which should be installed along with its `Python API
+<https://www.ibm.com/support/knowledgecenter/SSSA5P_12.8.0/ilog.odms.cplex.help/CPLEX/GettingStarted/topics/set_up/Python_setup.html>`__
+for this algorithm to be operational. This algorithm currently
 supports computing the energy of an Ising model Hamiltonian.
 
-CPLEX can be configured with the following parameters:
+CPLEX Ising can be configured with the following parameters:
 
 -  A time limit in seconds for the execution:
 
@@ -494,7 +621,7 @@ CPLEX can be configured with the following parameters:
 
        timelimit = 1 | 2 | ...
 
-   A positive ``int`` val;ue is expected.  The default value is `600`.
+   A positive ``int`` value is expected.  The default value is `600`.
 
 -  The number of threads that CPLEX uses:
 
@@ -518,20 +645,21 @@ CPLEX can be configured with the following parameters:
 
 .. topic:: Declarative Name
 
-   When referring to CPLEX declaratively inside Qiskit Aqua, its code ``name``, by which
-   Qiskit Aqua dynamically discovers and loads it, is ``CPLEX``.
+   When referring to CPLEX Ising declaratively inside Aqua, its code ``name``, by which
+   Aqua dynamically discovers and loads it, is ``CPLEX.Ising``.
 
 .. topic:: Problems Supported
 
-   In Qiskit Aqua, CPLEX supports the ``ising`` problem.
+   In Aqua, CPLEX supports the ``ising`` problem.
 
+.. _avm-rbf-kernel:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Support Vector Machine Radial Basis Function Kernel (SVM Classical)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Support Vector Machine Radial Basis Function Kernel (SVM RBF Kernel)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-This algorithm uses a classical approach to experiment with feature map classification
+SVM Classical uses a classical approach to experiment with feature map classification
 problems.
-SVM RBF Kernel can be configured with a Boolean parameter,
+SVM Classical can be configured with a ``bool`` parameter,
 indicating whether or not to print additional information when the algorithm is running:
 
 .. code:: python
@@ -542,9 +670,9 @@ The default value for this parameter is ``False``.
 
 .. topic:: Declarative Name
 
-   When referring to SVM RBF Kernel declaratively inside Qiskit Aqua, its code ``name``, by which
-   Qiskit Aqua dynamically discovers and loads it, is ``SVM_RBF_Kernel``.
+   When referring to SVM Classical declaratively inside Aqua, its code ``name``, by which
+   Aqua dynamically discovers and loads it, is ``SVM``.
 
 .. topic:: Problems Supported
 
-   In Qiskit Aqua, SVM RBF Kernel  supports the ``svm_classification`` problem.
+   In Aqua, SVM Classical supports the ``svm_classification`` problem.

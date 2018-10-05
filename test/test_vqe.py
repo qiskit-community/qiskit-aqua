@@ -16,6 +16,7 @@
 # =============================================================================
 
 import unittest
+
 import numpy as np
 from parameterized import parameterized
 
@@ -45,15 +46,15 @@ class TestVQE(QiskitAquaTestCase):
     def test_vqe_via_run_algorithm(self):
         params = {
             'algorithm': {'name': 'VQE'},
-            'backend': {'name': 'local_statevector_simulator'}
+            'backend': {'name': 'statevector_simulator'}
         }
         result = run_algorithm(params, self.algo_input)
         self.assertAlmostEqual(result['energy'], -1.85727503)
-        np.testing.assert_array_almost_equal(result['eigvals'], [-1.85727503])
+        np.testing.assert_array_almost_equal(result['eigvals'], [-1.85727503], 5)
         np.testing.assert_array_almost_equal(result['opt_params'], [-0.58294401, -1.86141794, -1.97209632, -0.54796022,
                                                                     -0.46945572, 2.60114794, -1.15637845,  1.40498879,
                                                                     1.14479635, -0.48416694, -0.66608349, -1.1367579 ,
-                                                                    -2.67097002,  3.10214631,  3.10000313, 0.37235089])
+                                                                    -2.67097002,  3.10214631,  3.10000313, 0.37235089], 5)
         self.assertIn('eval_count', result)
         self.assertIn('eval_time', result)
 
@@ -71,7 +72,7 @@ class TestVQE(QiskitAquaTestCase):
         params = {
             'algorithm': {'name': 'VQE'},
             'optimizer': {'name': name},
-            'backend': {'name': 'local_statevector_simulator'}
+            'backend': {'name': 'statevector_simulator'}
         }
         result = run_algorithm(params, self.algo_input)
         self.assertAlmostEqual(result['energy'], -1.85727503, places=places)
@@ -84,7 +85,7 @@ class TestVQE(QiskitAquaTestCase):
         params = {
             'algorithm': {'name': 'VQE'},
             'variational_form': {'name': name},
-            'backend': {'name': 'local_statevector_simulator'}
+            'backend': {'name': 'statevector_simulator'}
         }
         result = run_algorithm(params, self.algo_input)
         self.assertAlmostEqual(result['energy'], -1.85727503, places=places)
@@ -98,7 +99,7 @@ class TestVQE(QiskitAquaTestCase):
         optimizer = get_optimizer_instance('L_BFGS_B')
         optimizer.init_args()
         algo = get_algorithm_instance('VQE')
-        algo.setup_quantum_backend(backend='local_statevector_simulator')
+        algo.setup_quantum_backend(backend='statevector_simulator')
         algo.init_args(self.algo_input.qubit_op, 'matrix', var_form, optimizer)
         result = algo.run()
         self.assertAlmostEqual(result['energy'], -1.85727503)
