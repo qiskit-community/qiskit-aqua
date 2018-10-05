@@ -113,6 +113,7 @@ docs/*.rst
 !docs/aqua_ai.rst
 !docs/aqua_optimization.rst
 !docs/aqua_tutorials.rst
+!docs/aqua_finance.rst
 !docs/qiskit_aqua_chemistry.rst
 
 # PyBuilder
