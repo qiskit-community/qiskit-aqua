@@ -24,16 +24,15 @@ params = {
         "num_time_slices": 1,
         "expansion_mode": "trotter",
         "negative_evals": False,
-        "num_ancillae": 6,
-        "evo_time": np.pi/2,
+        "num_ancillae": 5,
     },
     "initial_state": {
         "name": "CUSTOM",
         "state_vector": [1, 1]
     },
     "reciprocal": {
-        "name": "LOOKUP",
-        "lambda_min": 1,
+        "name": "GENCIRCUITS",
+        "scale": 1
     },
     "backend": {
         "name": "local_qasm_simulator",
@@ -45,16 +44,23 @@ params = {
 matrix = np.array([[1, 0], [0, 3]])
 
 ret = run_algorithm(params, matrix)
-print(ret)
-# qc = ret["circuit"]
-# qc.snapshot("-1")
-#
-# res = execute(qc, "local_qasm_simulator", config={"data":
-#     ["quantum_state_ket"]}, shots=100).result()
-# qsks = res.get_snapshot("-1").get("quantum_state_ket")
-# qsk = next(e for e in qsks if list(e.keys())[0][0] == "1")
-# qsk = {k[-1]: v[0]+1j*v[1] for k, v in qsk.items()}
-# v = np.array([qsk['0'], qsk['1']])
-# print(v, matrix.dot(v))
+qc = ret["circuit"]
+qc.snapshot("-1")
+
+res = execute(qc, "local_qasm_simulator", config={"data":
+    ["quantum_state_ket"]}, shots=100).result()
+qsks = res.get_snapshot("1").get("quantum_state_ket")
+print(qsks)
+qsk = {}
+for i in range(len(qsks)):
+    for key in qsks[i]:
+        if key[0] == "1":
+            qsk[str(key[-1])] = qsks[i][str(key)][0] + 1j*qsks[i][str(key)][1]
+try:
+    v = np.array([qsk['0'], qsk['1']])
+    print(v, matrix.dot(v))
+except KeyError:
+    raise KeyError("rotation seems to have failed")
+
 
 

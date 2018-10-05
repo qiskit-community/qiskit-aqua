@@ -53,17 +53,17 @@ class GeneratedCircuit(Reciprocal):
                     'type': 'boolean',
                     'default': False
                 },
-                PROP_SCALE:{
+                PROP_SCALE: {
                     'type': 'number',
                     'default':0,
                     'minimum':0,
                     'maximum':1,
                 },
-                PROP_EVO_TIME:{
+                PROP_EVO_TIME: {
                     'type': ['number', 'null'],
                     'default': None
                 },
-                PROP_LAMBDA_MIN:{
+                PROP_LAMBDA_MIN: {
                     'type': ['number', 'null'],
                     'default': None
                 }

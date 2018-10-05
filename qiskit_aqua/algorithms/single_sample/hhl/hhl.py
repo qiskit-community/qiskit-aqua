@@ -209,10 +209,9 @@ class HHL(QuantumAlgorithm):
         # Inverse EigenvalueEstimation
         qc += self._eigs.construct_inverse("circuit")
 
-        if self._mode == 'debug': qc.snapshot("3")
-
+        qc.snapshot("1")
         # Measurement of the ancilla qubit
-        if not self._exact:
+        if self._mode != "exact_simulation":
             c = ClassicalRegister(1)
             qc.add(c)
             qc.measure(s, c)
