@@ -34,6 +34,8 @@ class GeneratedCircuit(Reciprocal):
     PROP_NUM_ANCILLAE = 'num_ancillae'
     PROP_NEGATIVE_EVALS = 'negative_evals'
     PROP_SCALE = 'scale'
+    PROP_EVO_TIME = 'evo_time'
+    PROP_LAMBDA_MIN = 'lambda_min'
 
     GENCIRCUITS_CONFIGURATION = {
         'name': 'GENCIRCUITS',
@@ -45,15 +47,25 @@ class GeneratedCircuit(Reciprocal):
             'properties': {
                 PROP_NUM_ANCILLAE: {
                     'type': ['integer', 'null'],
-                    'default': None,
+                    'default': None
                 },
                 PROP_NEGATIVE_EVALS: {
                     'type': 'boolean',
                     'default': False
                 },
-                PROP_SCALE:{
+                PROP_SCALE: {
                     'type': 'number',
-                    'default':1,
+                    'default':0,
+                    'minimum':0,
+                    'maximum':1,
+                },
+                PROP_EVO_TIME: {
+                    'type': ['number', 'null'],
+                    'default': None
+                },
+                PROP_LAMBDA_MIN: {
+                    'type': ['number', 'null'],
+                    'default': None
                 }
             },
             'additionalProperties': False
@@ -70,13 +82,17 @@ class GeneratedCircuit(Reciprocal):
         self._reg_size = 0
         self._negative_evals = False
         self._scale = 0
+        self._lambda_min = None
+        self._evo_time = None
         self._offset = 0
 
-    def init_args(self, num_ancillae=0, scale=0,
+    def init_args(self, num_ancillae=0, scale=0, evo_time = None, lambda_min = None,
             negative_evals=False):
         self._num_ancillae = num_ancillae
         self._negative_evals = negative_evals
         self._scale = scale
+        self._evo_time = evo_time
+        self._lambda_min = lambda_min
 
     def _parse_circuit(self):
         # Parse the pre-generated circuit with specified number of qubits
@@ -183,6 +199,10 @@ class GeneratedCircuit(Reciprocal):
         #initialize circuit
         if mode == "vector":
             raise NotImplementedError("mode vector not supported")
+        if self._lambda_min is not None:
+            self._scale = self._lambda_min/2/np.pi*self._evo_time
+        if self._scale == 0:
+            self._scale = 2**(-len(inreg))
         self._ev = inreg
         if self._negative_evals:
             self._offset = 1        
@@ -194,7 +214,6 @@ class GeneratedCircuit(Reciprocal):
         qc = QuantumCircuit(self._ev, self._rec, self._anc)
         self._circuit = qc
         
-
         self._parse_circuit()
         self._rotation()
 

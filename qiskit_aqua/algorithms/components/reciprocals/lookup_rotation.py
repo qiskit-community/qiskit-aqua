@@ -257,7 +257,6 @@ class LookupRotation(Reciprocal):
         self._anc = QuantumRegister(1, 'anc')
         qc = QuantumCircuit(self._ev, self._workq, self._msb, self._anc)
         self._circuit = qc
- 
         self._reg_size = len(inreg)
         if self._pat_length is None:
             if self._reg_size <= 6:
