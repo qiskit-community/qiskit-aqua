@@ -163,9 +163,9 @@ class PauliZExpansion(FeatureMap):
             return coeff
 
         if qr is None:
-            qr = QuantumRegister(self._num_qubits)
-
+            qr = QuantumRegister(self._num_qubits, name='q')
         qc = QuantumCircuit(qr)
+
         for i in range(self._num_qubits):
             qc.u2(0, np.pi, qr[i])
         for pauli in self._pauli_strings:
