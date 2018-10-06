@@ -157,9 +157,9 @@ class PauliZExpansion(FeatureMap):
 
         def get_coeff(paulis):
             # coeff for the rotation angle
-            where_z = np.where(np.asarray(list(paulis)) != 'I')[0]
-            coeff = x[where_z][0] if len(where_z) == 1 else \
-                functools.reduce(lambda m, n: (np.pi - m) * (np.pi - n), x[where_z])
+            where_non_i = np.where(np.asarray(list(paulis)) != 'I')[0]
+            coeff = x[where_non_i][0] if len(where_non_i) == 1 else \
+                functools.reduce(lambda m, n: (np.pi - m) * (np.pi - n), x[where_non_i])
             return coeff
 
         if qr is None:
