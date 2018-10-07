@@ -24,6 +24,7 @@ import numpy as np
 from qiskit import CompositeGate, QuantumCircuit, QuantumRegister
 from qiskit.extensions.standard.u1 import U1Gate
 from qiskit.extensions.standard.u2 import U2Gate
+from qiskit.qasm import pi
 
 from qiskit_aqua.algorithms.components.feature_maps import FeatureMap
 
@@ -53,10 +54,17 @@ class FirstOrderExpansion(FeatureMap):
     }
 
     def __init__(self, configuration=None):
+        """Constructor."""
         super().__init__(configuration or self.FIRST_ORDER_EXPANSION_CONFIGURATION.copy())
         self._ret = {}
 
     def init_args(self, num_qubits, depth):
+        """Initializer.
+
+        Args:
+            num_qubits (int): number of qubits
+            depth (int): the number of repeated circuits
+        """
         self._num_qubits = num_qubits
         self._depth = depth
 
@@ -66,7 +74,7 @@ class FirstOrderExpansion(FeatureMap):
 
         for _ in range(self._depth):
             for i in range(x.shape[0]):
-                composite_gate._attach(U2Gate(0, np.pi, qr[i]))
+                composite_gate._attach(U2Gate(0, pi, qr[i]))
                 composite_gate._attach(U1Gate(2 * x[i], qr[i]))
 
         return composite_gate

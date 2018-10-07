@@ -22,7 +22,6 @@ feature map. Several types of commonly used approaches.
 from collections import OrderedDict
 import copy
 import itertools
-import functools
 import logging
 
 import numpy as np
@@ -33,16 +32,9 @@ from sympy.core.numbers import NaN
 
 from qiskit_aqua import Operator
 from qiskit_aqua.algorithms.components.feature_maps import FeatureMap
+from qiskit_aqua.algorithms.components.feature_maps import self_product
 
 logger = logging.getLogger(__name__)
-
-
-def _data_map_func(pauli, x):
-    # coeff for the rotation angle
-    where_non_i = np.where(np.asarray(list(pauli)) != 'I')[0]
-    coeff = x[where_non_i][0] if len(where_non_i) == 1 else \
-        functools.reduce(lambda m, n: (np.pi - m) * (np.pi - n), x[where_non_i])
-    return coeff
 
 
 class PauliExpansion(FeatureMap):
@@ -90,15 +82,17 @@ class PauliExpansion(FeatureMap):
         self._ret = {}
 
     def init_args(self, num_qubits, depth, entangler_map=None,
-                  entanglement='full', paulis='Z,ZZ', data_map_func=_data_map_func):
+                  entanglement='full', paulis='Z,ZZ', data_map_func=self_product):
         """Initializer.
 
         Args:
             num_qubits (int): number of qubits
             depth (int): the number of repeated circuits
-            entangler_map (dict):
-            entanglement (str): ['full', 'linear']
+            entangler_map (dict): describe the connectivity of qubits
+            entanglement (str): ['full', 'linear'], generate the qubit connectivitiy by predefined
+                                topology
             paulis (str): a comma-seperated string for to-be-used paulis
+            data_map_func (Callable): a mapping function for data x
         """
         self._num_qubits = num_qubits
         self._depth = depth
@@ -115,7 +109,6 @@ class PauliExpansion(FeatureMap):
         self._circuit_template = self._build_circuit_template()
 
     def _build_circuit_template(self):
-
         x = np.asarray([self._magic_num] * self._num_qubits)
         qr = QuantumRegister(self._num_qubits, name='q')
         qc = self.construct_circuit(x, qr)
@@ -131,7 +124,6 @@ class PauliExpansion(FeatureMap):
         return qc
 
     def _build_subset_paulis_string(self, paulis):
-
         all_paulis = paulis.strip().split(",")
         # fill out the paulis to the number of qubits
         temp_paulis = []
@@ -162,18 +154,24 @@ class PauliExpansion(FeatureMap):
                 if is_valid:
                     final_paulis.append(pauli)
                 else:
-                    logger.warning("Due to the limited entangler_map, {} is skipped.".format(pauli))
+                    logger.warning("Due to the limited entangler_map,"
+                                   " {} is skipped.".format(pauli))
         logger.info("Pauli terms include: {}".format(final_paulis))
         return final_paulis
 
+    def _extract_data_for_rotation(self, pauli, x):
+        where_non_i = np.where(np.asarray(list(pauli)) != 'I')[0]
+        return x[where_non_i]
+
     def _construct_circuit_with_template(self, x):
-        coeffs = [self._data_map_func(pauli, x) for pauli in self._pauli_strings] * self._depth
+        coeffs = [self._data_map_func(self._extract_data_for_rotation(pauli, x))
+                  for pauli in self._pauli_strings] * self._depth
         qc = copy.deepcopy(self._circuit_template)
         data_idx = 0
         for key, value in self._param_pos.items():
             new_param = coeffs[data_idx]
             for pos in value:
-                qc.data[key].param[pos] = new_param
+                qc.data[key].param[pos] = 2 * new_param
             data_idx += 1
 
         return qc
@@ -205,7 +203,7 @@ class PauliExpansion(FeatureMap):
             for i in range(self._num_qubits):
                 qc.u2(0, pi, qr[i])
             for pauli in self._pauli_strings:
-                coeff = self._data_map_func(pauli, x)
+                coeff = self._data_map_func(self._extract_data_for_rotation(pauli, x))
                 p = label_to_pauli(pauli)
                 qc += Operator.construct_evolution_circuit([[coeff, p]], 1, 1, qr)
             qc.data *= self._depth
