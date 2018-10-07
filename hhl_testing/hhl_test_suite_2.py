@@ -194,6 +194,24 @@ def filter_interests(result, interest):
     """ filter for interests in return data """
     if interest == -1:
         return result
+    elif isinstance(interest, str):
+        return result[interest]
+    elif callable(interest):
+        return interest(result)
+    else:
+        ret = []
+        for inter in interest:
+            if isinstance(interest, str):
+                ret.append(result[interest])
+            elif callable(interest):
+                ret.append(interest(result))
+            else:
+                d = result
+                for i in inter:
+                    d = d[i]
+                ret.append(d)
+        return ret
+
 
 def run_tests(input_params, force=False, status=None, interest=None):
     """ run params with specified parameter grid """
