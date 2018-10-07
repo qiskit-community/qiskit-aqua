@@ -9,15 +9,16 @@ params = {
     },
     "eigs": {
         "name": "QPE",
-        "num_time_slices": 1,
+        "num_time_slices": (4, 10),
         "expansion_mode": "suzuki",
         "expansion_order": 2,
-        "negative_evals": True,
-        "num_ancillae": 5,
+        "negative_evals": False,
+        "num_ancillae": 4,
     },
     "reciprocal": {
-        "name": "GENCIRCUITS",
-        "lambda_min": 1,
+        "name": "LOOKUP",
+        "lambda_min": 0.9,
+        "pat_length": 4
     },
     "backend": {
         "name": "local_qasm_simulator",
@@ -35,5 +36,6 @@ sol = np.linalg.solve(res["matrix"], res["invec"])
 sol = sol/np.linalg.norm(sol)
 invec = res["invec"]
 r = res["matrix"].dot(res["result"])
+print(res["fidelity"])
 print(invec[0]/r[0]*r)
 print(invec)

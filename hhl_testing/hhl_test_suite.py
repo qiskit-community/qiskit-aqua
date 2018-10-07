@@ -137,6 +137,7 @@ def run_test(params, force=False):
     if isinstance(vector, int):
         vector = get_vector(vector, n=params["input"]["n"])
     del params["input"]
+    # return params, matrix, vector
     data = load_data(params, matrix, vector)
     if (not data) or force:
         t = time.time()
@@ -172,6 +173,7 @@ def run_tests(params, force=False, status=None):
                 tests[module + " " + key] = value
     keys = list(tests.keys())
     vals = list(map(lambda x: tests[x], keys))
+    
     l = 1
     for val in vals:
         l *= len(val)

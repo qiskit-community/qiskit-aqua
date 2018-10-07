@@ -108,6 +108,7 @@ class HHL(QuantumAlgorithm):
             params: parameters dictionary
             algo_input: list or tuple of np.ndarray (matrix, vector)
         """
+        print(params, algo_input)
         if algo_input is None:
             raise AlgorithmError("Matrix, Vector instance is required.")
         if not isinstance(algo_input, (list, tuple)):
@@ -251,6 +252,7 @@ class HHL(QuantumAlgorithm):
             self._circuit.snapshot("-1")
             self._execute_config["config"]["data"] = ["quantum_state_ket"]
             res = self.execute(self._circuit)
+            print(res._result)
             sv = res.get_snapshot("-1").get("statevector")[0]
 
         # Extract output vector
