@@ -271,7 +271,9 @@ class HHL(QuantumAlgorithm):
         f2 = sum(np.angle(self._invec*tmp_vec.conj()))/self._num_q
         self._ret["solution"] = f1*vec*np.exp(-1j*f2)
 
+        ########################
         self._ret["return"] = res
+        ########################
 
     
     def _state_tomography(self):
@@ -408,7 +410,7 @@ class HHL(QuantumAlgorithm):
         ret = {k: v/n for k, v in ret.items()}
         return ret
 
-
+    #####################################################
     def _exec_debug(self):
         # WORK IN PROGRESS
         print(" HHL - Debug Mode ")
@@ -519,7 +521,7 @@ class HHL(QuantumAlgorithm):
         ax_dev.set_xlim(0, lim)
 
         plt.show()
-
+    #################################### 
 
     def run(self):
         self._construct_circuit()
@@ -549,3 +551,37 @@ class HHL(QuantumAlgorithm):
         self._ret["invec"] = self._invec
         self._ret["eigenvalues"] = np.linalg.eig(self._matrix)[0]
         return self._ret
+
+    ############################################### 
+    def number_atomic_gates_2(self, qc=None):
+        from qiskit import CompositeGate,Gate
+        from qiskit.extensions.standard.ccx import ToffoliGate
+        from qiskit.extensions.standard.cu1 import Cu1Gate
+        from qiskit.extensions.standard.cu3 import Cu3Gate
+        from qiskit.extensions.standard.cswap import FredkinGate
+        from qiskit.extensions.standard.cy import CyGate
+        from qiskit.extensions.standard.cz import CzGate
+        from qiskit.extensions.standard.ch import CHGate
+        from qiskit.extensions.standard.crz import CrzGate
+
+        """Count the number of leaf gates. """
+        #worth 6 basic gates
+        gate_list=[Cu1Gate,Cu3Gate,FredkinGate,CyGate,CzGate,CHGate,CrzGate]
+        num = 0
+        if qc = None:
+            qc = self._circuit
+        for gate in qc.data:
+            if isinstance(gate, CompositeGate):
+                num += self.number_atomic_gates_2(gate)
+            else:
+                if isinstance(gate, Gate):
+                    if isinstance(gate,ToffoliGate):
+                        num+=15
+                    inlist = [isinstance(gate,i) for i in gate_list]
+                    if any(inlist):
+                        num+=5
+                    num += 1
+        return num
+    ##############################################
+
+
