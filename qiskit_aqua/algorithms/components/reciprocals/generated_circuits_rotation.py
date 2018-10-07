@@ -18,7 +18,6 @@
 from qiskit import QuantumRegister, QuantumCircuit
 
 from qiskit_aqua.algorithms.components.reciprocals import Reciprocal
-from qiskit_aqua.utils import cnx_na, cnu3
 
 import numpy as np
 import math
@@ -165,7 +164,7 @@ class GeneratedCircuit(Reciprocal):
             elif ctlnumber == 2: #toffoli gate
                 qc.ccx(ctl[0], ctl[1], tgt)
             else: #not gates controlled with more than 2 qubits
-                qc.cnx(ctl, tgt)
+                qc.cnx_na_na(ctl, tgt)
             for j in xgate:
                 if j >= n:
                     qc.x(rec_reg[j-n])

@@ -20,7 +20,6 @@
 from qiskit import QuantumRegister, QuantumCircuit
 
 from qiskit_aqua.algorithms.components.reciprocals import Reciprocal
-from qiskit_aqua.utils import cnx_na, cnu3
 
 import numpy as np
 import itertools
@@ -207,7 +206,7 @@ class LookupRotation(Reciprocal):
             elif msb_num > 2:
                 for idx in range(msb_num):
                     qc.x(ev[idx])
-                qc.cnx(ev[:msb_num], msb[0])
+                qc.cnx_na(ev[:msb_num], msb[0])
                 for idx in range(msb_num):
                     qc.x(ev[idx])
             else:
@@ -221,7 +220,7 @@ class LookupRotation(Reciprocal):
         elif msb_num > 1:
             for idx in range(msb_num):
                 qc.x(ev[idx])
-            qc.cnx(ev[:msb_num+1], msb[0])
+            qc.cnx_na(ev[:msb_num+1], msb[0])
             for idx in range(msb_num):
                 qc.x(ev[idx])
         else:
@@ -234,7 +233,7 @@ class LookupRotation(Reciprocal):
                 qc.x(self._ev[int(c + offset)])
         if len(pattern) > 2:
             temp_reg = [self._ev[i] for i in range(offset, offset+len(pattern))]
-            qc.cnx(temp_reg, tgt)
+            qc.cnx_na(temp_reg, tgt)
         elif len(pattern) == 2:
             qc.ccx(self._ev[offset], self._ev[offset + 1], tgt)
         elif len(pattern) == 1:
@@ -316,11 +315,11 @@ class LookupRotation(Reciprocal):
                     #rotation is happening here
                     #1. rotate by half angle
                     qc.cnu3(theta/2, 0, 0, [self._workq[0], self._msb[0]], self._anc[0])
-                    #2. cnx gate to reverse rotation direction
+                    #2. cnx_na gate to reverse rotation direction
                     self._set_bit_pattern(subpattern, self._anc[0], offset)
                     #3. rotate by inverse of halfangle to uncompute / complete 
                     qc.cnu3(-theta/2, 0, 0, [self._workq[0], self._msb[0]], self._anc[0])
-                    #4. cnx gate to uncompute first cnx gate
+                    #4. cnx_na gate to uncompute first cnx_na gate
                     self._set_bit_pattern(subpattern, self._anc[0], offset)
                 #uncompute m-bit pattern
                 self._set_bit_pattern(mainpat, self._workq[0], offset_mpat + 1)
