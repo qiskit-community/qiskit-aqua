@@ -164,7 +164,7 @@ class GeneratedCircuit(Reciprocal):
             elif ctlnumber == 2: #toffoli gate
                 qc.ccx(ctl[0], ctl[1], tgt)
             else: #not gates controlled with more than 2 qubits
-                qc.cnx_na_na(ctl, tgt)
+                qc.cnx_na(ctl, tgt)
             for j in xgate:
                 if j >= n:
                     qc.x(rec_reg[j-n])
