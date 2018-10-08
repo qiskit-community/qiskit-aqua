@@ -18,16 +18,14 @@
 import os
 import json
 import copy
-from qiskit.backends.ibmq.credentials import (discover_credentials,
-                                              store_credentials,
-                                              Credentials)
+from ._credentialspreferences import CredentialsPreferences
 
 
 class Preferences(object):
 
     _FILENAME = '.qiskit_aqua'
     _VERSION = '1.0'
-    URL = 'https://quantumexperience.ng.bluemix.net/api'
+    URL = CredentialsPreferences.URL
 
     def __init__(self):
         """Create Preferences object."""
@@ -35,21 +33,8 @@ class Preferences(object):
             'version': Preferences._VERSION
         }
         self._packages_changed = False
-        self._credentials_changed = False
         self._logging_config_changed = False
-        self._token = None
-        self._url = Preferences.URL
-        self._proxy_urls = None
-
-        credentials = discover_credentials()
-        if credentials is not None:
-            credentials = list(credentials.values())
-            if len(credentials) > 0:
-                credentials = credentials[0]
-                self._token = credentials.token
-                self._url = credentials.url
-                if 'urls' in credentials.proxies:
-                    self._proxy_urls = credentials.proxies['urls']
+        self._credentials_preferences = CredentialsPreferences()
 
         home = os.path.expanduser("~")
         self._filepath = os.path.join(home, Preferences._FILENAME)
@@ -60,10 +45,7 @@ class Preferences(object):
             pass
 
     def save(self):
-        if self._credentials_changed:
-            store_credentials(Credentials(
-                self._token, self._url, proxies=self.get_proxies({})), overwrite=True)
-            self._credentials_changed = False
+        self._credentials_preferences.save()
 
         if self._logging_config_changed or self._packages_changed:
             with open(self._filepath, 'w') as fp:
@@ -77,48 +59,26 @@ class Preferences(object):
 
         return None
 
+    @property
+    def credentials_preferences(self):
+        """Return credentials preferences"""
+        return self._credentials_preferences
+
     def get_token(self, default_value=None):
-        if self._token is not None:
-            return self._token
-
-        return default_value
-
-    def set_token(self, token):
-        if self._token != token:
-            self._credentials_changed = True
-            self._token = token
+        return self._credentials_preferences.get_token(default_value)
 
     def get_url(self, default_value=None):
-        if self._url is not None:
-            return self._url
-
-        return default_value
-
-    def set_url(self, url):
-        if self._url != url:
-            self._credentials_changed = True
-            self._url = url
+        return self._credentials_preferences.get_url(default_value)
 
     def get_proxies(self, default_value=None):
-        proxies = self.get_proxy_urls()
-        if proxies is None:
-            return default_value
-
-        return {'urls': proxies}
+        return self._credentials_preferences.get_proxies(default_value)
 
     def get_proxy_urls(self, default_value=None):
-        if self._proxy_urls is not None:
-            return copy.deepcopy(self._proxy_urls)
-
-        return default_value
-
-    def set_proxy_urls(self, proxy_urls):
-        if self._proxy_urls != proxy_urls:
-            self._credentials_changed = True
-            self._proxy_urls = proxy_urls
+        return self._credentials_preferences.get_proxy_urls(default_value)
 
     def get_packages(self, default_value=None):
-        if 'packages' in self._preferences and self._preferences['packages'] is not None:
+        if 'packages' in self._preferences and \
+           self._preferences['packages'] is not None:
             return copy.deepcopy(self._preferences['packages'])
 
         return default_value
