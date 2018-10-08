@@ -29,7 +29,7 @@ class CNXGate(CompositeGate):
         """Reapply this gate to corresponding qubits in circ."""
         ctl_bits = [x for x in self.arg[:self.param[0]]]
         tgt_bits = self.arg[-1]
-        self._modifiers(circ.cnx(ctl_bits, tgt_bits))
+        self._modifiers(circ.cnx_na(ctl_bits, tgt_bits))
 
 
 def cnx_na(self, control_qubits, target_qubit):
@@ -46,5 +46,5 @@ def cnx_na(self, control_qubits, target_qubit):
     return self._attach(CNXGate(control_qubits, target_qubit, self))
     
 
-QuantumCircuit.cnx = cnx_na
-CompositeGate.cnx = cnx_na
+QuantumCircuit.cnx_na = cnx_na
+CompositeGate.cnx_na = cnx_na
