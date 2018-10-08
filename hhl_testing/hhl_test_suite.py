@@ -9,7 +9,7 @@ import pickle
 import hashlib
 import json
 
-BASE_DIR = "data2"
+BASE_DIR = "data"
 
 RAW_DIR = "raw"
 INFO_DIR = "info"
