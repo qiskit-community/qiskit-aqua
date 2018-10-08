@@ -35,5 +35,5 @@ def self_product(x):
         double: the mapped value
     """
     coeff = x[0] if len(x) == 1 else \
-        functools.reduce(lambda m, n: (np.pi - m) * (np.pi - n), x)
+        functools.reduce(lambda m, n: m * n, np.pi - x)
     return coeff
