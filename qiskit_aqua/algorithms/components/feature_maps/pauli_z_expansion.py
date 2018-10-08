@@ -70,7 +70,7 @@ class PauliZExpansion(PauliExpansion):
         self._ret = {}
 
     def init_args(self, num_qubits, depth, entangler_map=None,
-                  entanglement='full', z_order=1, data_map_func=self_product):
+                  entanglement='full', z_order=2, data_map_func=self_product):
         """Initializer.
 
         Args:
