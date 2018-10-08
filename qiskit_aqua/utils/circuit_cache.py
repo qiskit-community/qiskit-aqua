@@ -33,7 +33,7 @@ form."""
 
 import numpy as np
 import copy
-from qiskit.backends.local import LocalJob
+from qiskit.backends.aer import AerJob
 from qiskit.backends import JobError
 import pickle
 import logging
@@ -140,11 +140,11 @@ def load_qobj_from_cache(circuits, chunk):
     else: return copy.deepcopy(qobjs[chunk])
 
 def naughty_run(backend, qobj):
-    local_job = LocalJob(backend._run_job, qobj)
-    if local_job._future is not None:
+    aer_job = AerJob(backend._run_job, qobj)
+    if aer_job._future is not None:
         raise JobError("We have already submitted the job!")
-    local_job._future = local_job._executor.submit(local_job._fn, local_job._qobj)
-    return local_job
+    aer_job._future = aer_job._executor.submit(aer_job._fn, aer_job._qobj)
+    return aer_job
 
 def clear_cache():
     global qobjs
