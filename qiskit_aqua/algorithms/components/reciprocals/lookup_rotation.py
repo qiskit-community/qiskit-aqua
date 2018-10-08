@@ -88,14 +88,14 @@ class LookupRotation(Reciprocal):
         self._ev = None
         self._circuit = None
         self._reg_size = 0
-        self._pat_length = 0
-        self._subpat_length = 0
+        self._pat_length = None
+        self._subpat_length = None
         self._negative_evals = False
         self._scale = 0
         self._evo_time = None
         self._lambda_min = None
 
-    def init_args(self, pat_length=0, subpat_length=0, scale=0,
+    def init_args(self, pat_length=None, subpat_length=None, scale=0,
             negative_evals=False, evo_time=None, lambda_min=None):
         self._pat_length = pat_length
         self._subpat_length = subpat_length

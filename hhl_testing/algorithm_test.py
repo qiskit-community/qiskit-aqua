@@ -17,14 +17,14 @@ from qiskit_aqua.algorithms.single_sample.hhl.hhl import HHL
 params = {
     "algorithm": {
         "name": "HHL",
-        "mode": "state_tomography"
+        "mode": "debug"
     },
     "eigs": {
         "name": "QPE",
         "num_time_slices": 1,
         "expansion_mode": "trotter",
         "negative_evals": False,
-        "num_ancillae": 8,
+        "num_ancillae": 6,
     },
     "reciprocal": {
         "name": "GENCIRCUITS",

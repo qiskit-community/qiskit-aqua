@@ -25,6 +25,8 @@ from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit_aqua import QuantumAlgorithm
 from qiskit_aqua import get_eigs_instance, get_reciprocal_instance, get_initial_state_instance
 import numpy as np
+from qiskit.tools.visualization import matplotlib_circuit_drawer as drawer
+
 
 import qiskit.extensions.simulator
 
@@ -209,7 +211,7 @@ class HHL(QuantumAlgorithm):
         # Inverse EigenvalueEstimation
         qc += self._eigs.construct_inverse("circuit")
 
-        qc.snapshot("1")
+        qc.snapshot("-1")
         # Measurement of the ancilla qubit
         if self._mode != "exact_simulation":
             c = ClassicalRegister(1)
@@ -217,7 +219,7 @@ class HHL(QuantumAlgorithm):
             qc.measure(s, c)
             self._success_bit = c
 
-        if self._mode == 'debug': qc.snapshot("-1")
+        if self._mode == 'debug': qc.snapshot("3")
 
         self._io_register = q
         self._eigenvalue_register = a
@@ -239,11 +241,15 @@ class HHL(QuantumAlgorithm):
         self._ret["probability"] = vec.dot(vec.conj())
         vec = vec/np.linalg.norm(vec)
         self._ret["result"] = vec
-        self._ret["fidelity"] = abs(vec.dot(self._invec / np.linalg.norm(self._invec)))**2
+        theo = np.linalg.solve(self._matrix, self._invec)
+        theo = theo/np.linalg.norm(theo)
+        self._ret["fidelity"] = abs(theo.dot(vec.conj()))**2
         tmp_vec = self._matrix.dot(vec)
         f1 = np.linalg.norm(self._invec)/np.linalg.norm(tmp_vec)
         f2 = sum(np.angle(self._invec*tmp_vec.conj()))/self._num_q
         self._ret["solution"] = f1*vec*np.exp(-1j*f2)
+
+        #self._ret["return"] = res
 
     
     def _state_tomography(self):
