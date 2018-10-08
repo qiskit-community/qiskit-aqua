@@ -33,6 +33,7 @@ form."""
 
 import numpy as np
 import copy
+import uuid
 from qiskit.backends.aer import AerJob
 from qiskit.backends import JobError
 import pickle
@@ -139,11 +140,13 @@ def load_qobj_from_cache(circuits, chunk):
     if naughty_mode: return qobjs[chunk]
     else: return copy.deepcopy(qobjs[chunk])
 
+# Does what backend.run and aerjob.submit do, but without qobj validation.
 def naughty_run(backend, qobj):
-    aer_job = AerJob(backend._run_job, qobj)
+    job_id = str(uuid.uuid4())
+    aer_job = AerJob(backend, job_id, backend._run_job, qobj)
     if aer_job._future is not None:
         raise JobError("We have already submitted the job!")
-    aer_job._future = aer_job._executor.submit(aer_job._fn, aer_job._qobj)
+    aer_job._future = aer_job._executor.submit(aer_job._fn, aer_job._job_id, aer_job._qobj)
     return aer_job
 
 def clear_cache():

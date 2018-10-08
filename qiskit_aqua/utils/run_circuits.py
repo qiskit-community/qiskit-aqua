@@ -74,11 +74,6 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
     chunks = int(np.ceil(len(circuits) / max_circuits_per_job))
 
     for i in range(chunks):
-<<<<<<< HEAD
-        sub_circuits = circuits[i *
-                                max_circuits_per_job:(i + 1) * max_circuits_per_job]
-        qobj = q_compile(sub_circuits, my_backend, **execute_config)
-=======
         sub_circuits = circuits[i * max_circuits_per_job:(i + 1) * max_circuits_per_job]
         if circuit_cache.use_caching and circuit_cache.misses < 5:
             try:
@@ -92,23 +87,12 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
                 circuit_cache.misses += 1
         else:
             qobj = q_compile(sub_circuits, my_backend, **execute_config)
-<<<<<<< HEAD
-<<<<<<< HEAD
-            if use_qobj_caching: cache_qobj(qobj, circuits, i)
-        elif use_qobj_caching:
-            qobj = load_qobj_from_cache(sub_circuits, qobj_cache['qobjs'][i])
->>>>>>> Working caching and loading from cache
-=======
->>>>>>> Working global caching and loading from global cache, but json validation breaking and running N2 after h2 breaking.
-        job = my_backend.run(qobj)
-=======
 
         if circuit_cache.naughty_mode:
             job = circuit_cache.naughty_run(my_backend, qobj)
         else:
             job = my_backend.run(qobj)
 
->>>>>>> Introduced naughty mode to bypass json validation. Seeing same energy over and over for pauli modes. Fixing gate replacement error for qasm mode.
         jobs.append(job)
         qobjs.append(qobj)
 
