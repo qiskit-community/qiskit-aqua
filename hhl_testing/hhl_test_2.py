@@ -8,7 +8,7 @@ import pickle
 import hashlib
 import json
 
-BASE_DIR = "data2"
+BASE_DIR = "data3"
 
 RAW_DIR = "raw"
 INFO_DIR = "info"
@@ -195,6 +195,8 @@ def run_tests(input_params, force=False, status=None, interest=None):
             print(status(result))
         if not interest is None:
             ret["data"].append(filter_interests(result, interest))
+        else:
+            del result
     return ret
 
 def run_tests_from_file(path, force=False, status=None, interest=-1):

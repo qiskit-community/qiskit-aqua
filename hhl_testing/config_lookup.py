@@ -9,7 +9,7 @@
         "expansion_mode": "suzuki",
         "expansion_order": 2,
         "negative_evals": (True, False),
-        "num_ancillae": (4, 5, 6, 7, 8, 9, 10)
+        "num_ancillae": (4, 5, 6, 7, 8)
     },
     "reciprocal": {
         "name": "LOOKUP",

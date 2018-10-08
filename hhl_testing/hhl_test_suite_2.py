@@ -1,5 +1,6 @@
 import numpy as np
 from qiskit_aqua import run_algorithm
+from generate_test_objects import generate_input, save_generated_inputs
 
 import os
 import itertools
@@ -8,7 +9,7 @@ import pickle
 import hashlib
 import json
 
-BASE_DIR = "data"
+BASE_DIR = "data2"
 
 RAW_DIR = "raw"
 INFO_DIR = "info"
@@ -48,10 +49,10 @@ def check_dirs():
     if not os.path.exists(os.path.join(BASE_DIR, RAW_DIR)):
         os.mkdir(os.path.join(BASE_DIR, RAW_DIR))
 
-def _gen_dict(keys, values):
+def _gen_dict(keys, values, static_keys, static_values):
     """ generate dict for conditional params sets """
     ret = {}
-    for key, val in zip(keys, values):
+    for key, val in zip(static_keys+keys, static_values+values):
         k1, k2 = key.split(" ")
         if k1 not in ret:
             ret[k1] = {}
@@ -66,10 +67,10 @@ def _tuple(obj):
     except TypeError:
         return (obj,)
 
-def product(grid_params, cond_grid_params):
+def product(grid_params, cond_grid_params, static_keys, static_values):
     """ cartesian product of parameter grid + conditional parameters """
     pars = lambda x: _gen_dict(list(grid_params.keys())
-            + list(cond_grid_params.keys()), x)
+            + list(cond_grid_params.keys()), x, static_keys, static_values)
     result = [[]]
     for pool in grid_params.values():
         result = [x+[y] for x in result for y in _tuple(pool)]
@@ -90,11 +91,16 @@ def cond_dict_values(value, p):
 
 def parse_input_dict(params):
     """ parse the parameters dict with specified grid """
-    if isinstance(params["input"], str):
-        with open(params["input"], "rb") as f:
-            params["input"] = pickle.load(f)
+    if "file" in params["input"]:
+        with open(params["input"]["file"], "rb") as f:
+            x = pickle.load(f)
+            params["input"]["matrix"] = x["matrix"]
+            params["input"]["vector"] = x["vector"]
+        del params["input"]["file"]
     grid_params = {}
     cond_grid_params = {}
+    static_keys = []
+    static_values = []
     for module, mod_params in params.items():
         for key, value in mod_params.items():
             if isinstance(value, dict):
@@ -103,7 +109,7 @@ def parse_input_dict(params):
                 continue
             try:
                 if isinstance(value, str):
-                    continue
+                    raise TypeError()
                 iter(value)
                 value = tuple(value) 
                 params[module][key] = value
@@ -111,9 +117,13 @@ def parse_input_dict(params):
             except TypeError:
                 if callable(value):
                     cond_grid_params[module + " " + key] = value
+                else:
+                    static_keys.append(module + " " + key)
+                    static_values.append(value)
     keys = list(grid_params.keys()) + list(cond_grid_params.keys())
     d = {"keys": keys, "vals": [], "data": []} 
-    for item in product(grid_params, cond_grid_params):
+    for item in product(grid_params, cond_grid_params, static_keys,
+            static_values):
         d["vals"].append(item)
         p = copy.deepcopy(params)
         for i, key in enumerate(keys):
@@ -158,6 +168,7 @@ def load_or_run(params, force=False):
         matrix = params["input"]["matrix"]
         vector = params["input"]["vector"]
         del params["input"]
+        save_generated_inputs()
         res = run_algorithm(params, (matrix, vector))
         with open(os.path.join(BASE_DIR, INFO_DIR, ha), "w") as f:
             f.write(json.dumps(cp, sort_keys=True, indent=2))
@@ -178,6 +189,8 @@ def run_test(params, force=False):
     if "n" in params["input"]:
         problem_size = params["input"]["n"]
         del params["input"]["n"]
+    if "type" in params["input"] and params["input"]["type"] == "generate":
+        params["input"] = generate_input(params)
     if isinstance(params["input"]["matrix"], int):
         matrix = get_matrix(params["input"]["matrix"], test_set)
     else:
@@ -201,17 +214,16 @@ def filter_interests(result, interest):
     else:
         ret = []
         for inter in interest:
-            if isinstance(interest, str):
-                ret.append(result[interest])
-            elif callable(interest):
-                ret.append(interest(result))
+            if isinstance(inter, str):
+                ret.append(result[inter])
+            elif callable(inter):
+                ret.append(inter(result))
             else:
                 d = result
                 for i in inter:
                     d = d[i]
                 ret.append(d)
         return ret
-
 
 def run_tests(input_params, force=False, status=None, interest=None):
     """ run params with specified parameter grid """
@@ -238,4 +250,34 @@ def run_tests_from_file(path, force=False, status=None, interest=-1):
     params = eval(d)
     return run_tests(params, force, status, interest)
 
-print(run_tests_from_file("config_lookup.py"))
+def get_for(params, data):
+    """
+    Extracts information for specifically set parameters from data dictionary
+    Args:
+        params: dictionary of wished parameters, e.g. {'eig num_ancillae': 4}
+        data: the data dictionary
+        subs: the argument for a result dictionary, e.g. 'fidelity'
+    Returns:
+        Stripped down data dictionary or list of result dictionarys if only one
+        free parameter left.
+    """
+    ret = {"vals": [], "data": []}
+    idxs = list(map(lambda x: data["keys"].index(x), params.keys()))
+    vals = list(map(lambda x: params[x], params.keys()))
+    ret["keys"] = [key for key in data["keys"] if key not in params]
+    for v, res in zip(data["vals"], data["data"]):
+        cont = True
+        for x, y in zip(vals, [v[i] for i in idxs]):
+            if isinstance(x, (tuple, list)):
+                x = tuple(x)
+            else:
+                x = (x,)
+            if not y in x:
+                cont = False
+                break
+        if cont:
+            ret["vals"].append([v[i] for i in range(len(v)) if i not in idxs])
+            ret["data"].append(res)
+    if len(ret["keys"]) == 1:
+        return ret["data"]
+    return ret
