@@ -329,7 +329,7 @@ class HHL(QuantumAlgorithm):
         self._ret["counts"] = res.get_counts()
 
 
-    def __filter(self, qsk, reg=None, qubits=None):
+    def __filter(self, qsk, reg=None, qubits=None, norm=True):
         qregs = list(self._circuit.get_qregs().values())
         if reg:
             idx = qregs.index(reg)
@@ -353,13 +353,80 @@ class HHL(QuantumAlgorithm):
                 ret[nkey] += complex(*val)
             else:
                 ret[nkey] = complex(*val)
-        n = np.linalg.norm(np.array(list(ret.values())))
-        ret = {k: v/n for k, v in ret.items()}
+        if norm:
+            n = np.linalg.norm(np.array(list(ret.values())))
+            ret = {k: v/n for k, v in ret.items()}
         return ret
 
 
     def _debug(self):
         # WORK IN PROGRESS
+        def QPE_norm(y,w,k,t):
+            #if only 1 eigenvalue present
+            if all([w[i]==w[0] for i in range(len(w))]):
+                return len(w)
+            r = np.abs(sum([(1-np.exp(1j*(2**k*wi*t-2*np.pi*y))) /
+                     (1-np.exp(1j*(wi*t-2*np.pi*y/2**k))) for wi in w]))
+            r[np.isnan(r)]=2**k
+            r = 2**(-2*k)*r**2
+            return sum(r)
+
+        def is_resolvable(num,evo_time,num_bits):
+            scale_num = evo_time*num/2/np.pi*2**num_bits
+            if int(scale_num)!=scale_num:
+                return False
+            else:
+                return True
+           
+        def QPE_theory_ket(y,w,k,t,vec,neg_evals=True):
+            #output: vector with ampl. of ket for each vector entry
+            def nearest_el(ar,val):
+                return np.argmin(np.abs(ar-val))
+            resolvable = is_resolvable(w,t,k)
+            x = None
+            if neg_evals:
+                y_ = np.arange(-2**(k-1),2**(k-1),1)
+            else:
+                y_ = y
+            x_ =y_/t*2.0*np.pi/2.0**k
+
+            if not resolvable:
+                qpe_fac = 1/2**(k)*( (1-np.exp(1j*(2**k*w*t-2*np.pi*y))) /
+                            (1-np.exp(1j*(w*t-2*np.pi*y/2**k))) )
+            else:
+                qpe_fac = np.array([0]*len(y))
+                idx = nearest_el(x_,w)
+                qpe_fac[idx] = 1
+                outvec = np.zeros((len(y),len(vec))).astype(complex)
+    
+    
+            for i,entr in enumerate(vec.tolist()):
+                outvec[:,i] =qpe_fac*entr
+                if x is None:
+                    x = x_
+                else:
+                    x = np.dstack((x,x_))
+            if neg_evals and not resolvable:
+                c = int(len(y)/2)
+                _  = outvec[c:,:].copy()
+                outvec[c:,:] = outvec[:c,:]
+                outvec[:c,:] = _
+            return x[0,:,:],outvec
+
+        def superpose_QPE_kets(x_in,w_ar,k,t,eig_vec_ar,invec,neg_evals=True):
+            #decompose invec into eigen vectors
+            eigvec_ampl = np.dot(np.linalg.inv(eig_vec_ar),invec)
+            output = np.zeros((len(x_in),len(eig_vec_ar[0,:]))).astype(complex)
+            norm = np.sqrt(QPE_norm(x_in,w_ar,k,t))
+            for idx in range(len(w_ar)):
+                w_i = w_ar[idx]
+                v_i = eig_vec_ar[:,idx]
+                x,res = QPE_theory_ket(x_in,w_i,k,t,v_i,neg_evals)
+                output += eigvec_ampl[idx]*res
+            output /= norm
+            return (x.flatten(),output.flatten())
+
+
         print(" HHL - Debug Mode ")
         print("##################\n")
         print("Matrix:\t", str(self._matrix).replace("\n", "\n\t "))
@@ -417,20 +484,36 @@ class HHL(QuantumAlgorithm):
         
         # Plot reciprocals
         rec = res.get_snapshot("2").get("quantum_state_ket")[0]
-        list(map(lambda x: print(x[0], x[1]), rec.items()))
+        #list(map(lambda x: print(x[0], x[1]), rec.items()))
         rec = self.__filter(rec, qubits=[qi for qi in self._eigenvalue_register]
-                + [self._ancilla_register[0]])
-        list(map(lambda x: print(x[0], x[1]), rec.items()))
-        getrec = lambda s: rec[s] if s in rec else 0
-        rec = [[getrec(key+"0"), getrec(key+"1")] for key in eigs.keys()]
-        y = [np.linalg.norm(i)**2 for i in rec]
-        x = [i[1]/np.linalg.norm(i) for i in rec]
+                + [qi for qi in self._io_register]
+                            + [self._ancilla_register[0]],norm=False)
+        #list(map(lambda x: print(x[0], x[1]), rec.items()))
+        getrec = lambda s: rec[s] if s[-1]=='1' else 0
+        rec_ = [getrec(key) for key in rec.keys()]
+        len_io = len(self._io_register)
+        nums = np.array(list(map(lambda x: int(x[:-int(len_io+1)], 2), rec.keys())))
+        nums = nums/2**self._num_a*2*np.pi/self._eigs._evo_time
+        y = [np.abs(i) for i in rec_]
+        x = nums
         ax_rec.scatter(x, y)
 
         # Plot theoretical reciprocals (dependend on QPE results)
-        tx = np.arange(0, 2**self._num_a)/2**self._num_a
-        tx = self._reciprocal._scale/tx
-        ax_rec.plot(tx, ty, "r")
+        tx = np.arange(0, 2**self._num_a)
+        tx,ty = superpose_QPE_kets(tx,w,self._num_a,
+                                           self._eigs._evo_time,v,self._invec,
+                                           self._eigs._negative_evals)
+        print(self._invec,v,np.dot(np.linalg.inv(v),self._invec))
+        print(tx,ty)
+        for idx in range(len(tx)):
+            ty[idx] *= self._reciprocal._scale/tx[idx]#/self._eigs._evo_time*2*np.pi
+        ty = np.abs(ty)
+        tx = tx[ty!=0]
+        ty = ty[ty!=0]
+        tx = tx[np.isfinite(ty)]
+        ty = ty[np.isfinite(ty)]
+        print(tx,ty)
+        ax_rec.scatter(tx, ty, c="r")
 
         # Solution deviation
         sv = res.get_snapshot("3").get("statevector")[0]
@@ -453,9 +536,9 @@ class HHL(QuantumAlgorithm):
                 color="g")
 
         ax_rec.set_title("Reciprocal results")
-        ax_rec.set_ylabel("Probability")
-        ax_rec.set_xlabel("$C/\lambda$")
-        ax_rec.set_xlim(0, 1)
+        ax_rec.set_ylabel("Abs ampl.")
+        ax_rec.set_xlabel("$\lambda$")
+        
 
         ax_dev.set_title("Deviation of Solution")
         ax_dev.set_xlabel("Amount")

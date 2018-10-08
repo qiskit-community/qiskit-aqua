@@ -252,7 +252,7 @@ def test_with_QPE(config):
 
 def run_rotation_test(reci_type):
     k = 8
-    
+    matrix = np.array([[1.34, 0.51], [0.51, 3]])
     qpe_params = {
         'name': 'QPE',
         'num_ancillae': k,
@@ -283,7 +283,9 @@ def run_rotation_test(reci_type):
     }
 
     matrix_params = {
-                'N':2,             
+        'matrix':matrix,
+        'negative_evals':False,
+                #'N':2,             
         }
     config = {'mode':'QPE_ROT',
               'initial_state':initial_state_params,
