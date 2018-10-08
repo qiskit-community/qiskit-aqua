@@ -6,10 +6,14 @@ Created on Thu Oct  4 15:27:04 2018
 @author: gawel
 """
 
-from qiskit import QuantumRegister, QuantumCircuit
+from qiskit import QuantumRegister, QuantumCircuit, ClassicalRegister
 
+import sys
+sys.path.append('../')
 from qiskit_aqua.algorithms.components.reciprocals import Reciprocal
 from qiskit_aqua.utils import cnx_na, cnu3
+from qiskit_aqua.utils.cnx_no_anc import CNXGate
+
 
 import numpy as np
 import math
@@ -69,28 +73,26 @@ class LongDivision(Reciprocal):
         self._neg_offset = 0
 
         self._precision = 0
+        self._offset =0
+        self._n = 0
         
         
-    def init_args(self, num_ancillae=0, scale=0,precision =0, 
+    def init_args(self, num_ancillae=0, scale=0,precision =0,
             negative_evals=False):
         self._num_ancillae = num_ancillae
         self._negative_evals = negative_evals
         self._scale = scale
-        
         self._precision = precision
         
-    def _long_reciprocal_circuit(self):
-        n = self._num_ancillae + 1
-        offset = n - 2
-        k = self._precision - offset
-        k_r = self._precision
         
+    def _ld_circuit(self):
+        #self._offset = self._n - 2
+        k_r = self._precision
         a = self._a 
         b = self._ev
         b0 = self._b0
         anc_s = self._anc_s
         anc = self._anc1
-        ANC = self._anc
         z = self._z
         c = self._c
         r = self._rec
@@ -112,49 +114,49 @@ class LongDivision(Reciprocal):
                     p.cx(c, a)
                     p.cx(a, b)
                     
-                for i in range(n):
+                for i in range(self._n):
                     qc.x(a[i])                
                 maj(qc, c[0], a[0], b[0])                     
-                for i in range(n-2):
+                for i in range(self._n-2):
                     maj(qc, b[i], a[i+1], b[i+1])                
-                maj(qc, b[n-2], a[n-1], b0[0])                 
-                qc.cx(a[n-1], z[0])             
-                uma(qc, b[n-2], a[n-1], b0[0])                    
-                for i in range(2, n-1):
-                    uma(qc, b[n-i-1], a[n-i], b[n-i])                  
+                maj(qc, b[self._n-2], a[self._n-1], b0[0])                 
+                qc.cx(a[self._n-1], z[0])             
+                uma(qc, b[self._n-2], a[self._n-1], b0[0])                    
+                for i in range(2, self._n-1):
+                    uma(qc, b[self._n-i-1], a[self._n-i], b[self._n-i])                  
                 uma(qc, c[0], a[0], b[0])          
-                for i in range(n):
+                for i in range(self._n):
                     qc.x(a[i])                
                 qc.x(z[0])             
                         
             def u_maj(p, a, b, c,r):
                 p.ccx(c, r, b)
                 p.ccx(c, r, a)
-                CNXGate.cnx_na(p, [r, a, b], c)
+                p.cnx([r, a, b], c)
                 
             def u_uma(p, a, b, c, r):
-                CNXGate.cnx_na(p, [r, a, b], c)
+                p.cnx([r, a, b], c)
                 p.ccx(c,r, a)
                 p.ccx(a, r, b)
             
             def unsubtract(qc2, a, b, b0, c ,z, r):       
-                for i in range(n):
+                for i in range(self._n):
                     qc2.cx(r, a[i])     
                 u_maj(qc2, c[0], a[0], b[0],r)                      
                 
-                for i in range(n-2):
+                for i in range(self._n-2):
                     u_maj(qc2, b[i], a[i+1], b[i+1], r)            
                 
-                u_maj(qc2, b[n-2], a[n-1], b0[0], r)        
-                qc2.ccx(a[n-1],r, z[0])            
-                u_uma(qc2, b[n-2], a[n-1], b0[0], r)
+                u_maj(qc2, b[self._n-2], a[self._n-1], b0[0], r)        
+                qc2.ccx(a[self._n-1],r, z[0])            
+                u_uma(qc2, b[self._n-2], a[self._n-1], b0[0], r)
                 
-                for i in range(2, n):
-                    u_uma(qc2, b[n-i-1], a[n-i], b[n-i], r)            
+                for i in range(2, self._n):
+                    u_uma(qc2, b[self._n-i-1], a[self._n-i], b[self._n-i], r)            
                 
                 u_uma(qc2, c[0], a[0], b[0], r)      
                 
-                for i in range(n):
+                for i in range(self._n):
                     qc2.cx(r, a[i]) 
                 
                 un_qc = qc2.reverse()        
@@ -162,9 +164,9 @@ class LongDivision(Reciprocal):
                 return un_qc
             
             subtract_in(qc, a, b,b0,  c ,z, r[rj])
-            qc.x(a[n-1])
-            qc.cx(a[n-1], r[rj])
-            qc.x(a[n-1])
+            qc.x(a[self._n-1])
+            qc.cx(a[self._n-1], r[rj])
+            qc.x(a[self._n-1])
             
             qc.x(r[rj])
             qc += unsubtract(qc2, a, b,b0,  c ,z, r[rj])
@@ -203,24 +205,16 @@ class LongDivision(Reciprocal):
             
             qc.ccx(ctrl, b[n-1], b0)
             return qc    
-        '''
-        def shift_one_rightc(qc,a, ctrl, n):   
-            for i in range(n-1):#range(n-1):  
-                i = int(i)
-                qc.ccx( ctrl, a[i+1], a[i])
-                qc.ccx( ctrl, a[i], a[i+1])                 
-            return qc          
-        '''
 
     
-        qc.x(a[n-2])               
-        shift_to_one(qc,b, anc, n) 
+        qc.x(a[self._n-2])               
+        shift_to_one(qc,b, anc, self._n) 
         
-        for rj in range(k+ offset):                
+        for rj in range(self._precision):                
             qc += subtract(a, b, b0, c, z,r, rj)                       
-            shift_one_left(qc, a, n)
+            shift_one_left(qc, a, self._n)
         
-        for ish in range(n-2):
+        for ish in range(self._n-2):
             shift_one_leftc(qc, r, anc_s[ish], anc[ish] , k_r)   
 
         self._circuit = qc    
@@ -231,24 +225,24 @@ class LongDivision(Reciprocal):
     def _rotation(self):
         #Make rotation on ancilla qubit
         qc = self._circuit
-        n = self._num_ancillae
         rec_reg = self._rec
         ancilla = self._anc
 
         if self._negative_evals:
-            for i in range(1, n+1):
-	            qc.cu3(self._scale*2**(-i), 0, 0, rec_reg[n-i], ancilla)
+            for i in range(1,self._n+1):
+	            qc.cu3(self._scale*2**(-i), 0, 0, rec_reg[self._n-i], ancilla)
             qc.cu3(2*np.pi,0,0,self._ev[0], ancilla) #correcting the sign
         else:
-            for i in range(1, n+1):
-	            qc.cu3(self._scale*2**(-i), 0, 0, rec_reg[n-i], ancilla)
+            for i in range(1, self._n+1):
+	            qc.cu3(self._scale*2**(-i), 0, 0, rec_reg[self._n-i], ancilla)
 
         self._circuit = qc
         self._rec = rec_reg
         self._anc = ancilla
 
         
-    def construct_circuit(self, mode, inreg):
+    def construct_circuit(self, mode, inreg, precision):
+        
         #initialize circuit
         if mode == "vector":
             raise NotImplementedError("mode vector not supported")
@@ -256,26 +250,28 @@ class LongDivision(Reciprocal):
         if self._negative_evals:
             self._neg_offset = 1        
         self._num_ancillae = len(self._ev) - self._neg_offset
+
+
+        self._n = self._num_ancillae + 1
+        self._offset = self._n - 2
+        self._precision = precision
         
-        #if self._num_ancillae < 5:
-        #    raise NotImplementedError("eigenvalue register has to contain at least 5 bits")
+        self._a = QuantumRegister(self._n, 'one')                       #register storing 1
+        self._b0 = QuantumRegister(1, 'b0')                             #extension of b - required by subtraction
+        self._anc_s = QuantumRegister(self._offset, 'shifting_ancilla') #ancilla for the result shifting
+        self._anc1 = QuantumRegister(self._offset, 'aligning_ancilla')  #ancilla for the initial shifting
+        self._z = QuantumRegister(1, 'z')                               #subtraction overflow
+        self._c = QuantumRegister(1, 'c')                               #carry
+        self._rec = QuantumRegister(self._precision, 'res')             #reciprocal result
+        self._anc = QuantumRegister(1, 'anc')                           #HHL ancilla bit
         
-        self._a = QuantumRegister(n, '1')             #storing 1
-        self._b0 = QuantumRegister(1, 'b0')           #extension of b to keep subtraction working
-        self._anc_s = QuantumRegister(offset, 'shifting_ancilla')#ancilla for result shifting
-        self._anc1 = QuantumRegister(offset, 'aligning_ancilla')    #ancilla for 1st shifting
-        self._z = QuantumRegister(1, 'z')                  #subtraction overflow
-        self._c = QuantumRegister(1, 'c')             #carry
-        self._rec = QuantumRegister(k + offset, 'res')  #result
-        self._anc = QuantumRegister(1, 'ANC')
         
         qc = QuantumCircuit(self._a, self._b0, self._ev, self._anc1, self._anc_s, self._c, 
                             self._z,self._rec, self._anc)
         
         self._circuit = qc
+        self._ld_circuit()
         
-
-        self._long_reciprocal_circuit()
         self._rotation()
 
         return self._circuit
