@@ -222,12 +222,8 @@ class HHL(QuantumAlgorithm):
         # Inverse EigenvalueEstimation
         qc += self._eigs.construct_inverse("circuit")
 
-<<<<<<< HEAD
-        qc.snapshot("-1")
-=======
         if self._debug: qc.snapshot("3")
 
->>>>>>> david/hhl-master
         # Measurement of the ancilla qubit
         if self._mode != "exact_simulation":
             c = ClassicalRegister(1)
@@ -235,11 +231,7 @@ class HHL(QuantumAlgorithm):
             qc.measure(s, c)
             self._success_bit = c
 
-<<<<<<< HEAD
-        if self._mode == 'debug': qc.snapshot("3")
-=======
         if self._debug: qc.snapshot("-1")
->>>>>>> david/hhl-master
 
         self._io_register = q
         self._eigenvalue_register = a
@@ -269,11 +261,8 @@ class HHL(QuantumAlgorithm):
         self._ret["probability"] = vec.dot(vec.conj())
         vec = vec/np.linalg.norm(vec)
         self._ret["result"] = vec
-<<<<<<< HEAD
-=======
 
         # Calculating the fidelity
->>>>>>> david/hhl-master
         theo = np.linalg.solve(self._matrix, self._invec)
         theo = theo/np.linalg.norm(theo)
         self._ret["fidelity"] = abs(theo.dot(vec.conj()))**2
@@ -282,13 +271,9 @@ class HHL(QuantumAlgorithm):
         f2 = sum(np.angle(self._invec*tmp_vec.conj()))/self._num_q
         self._ret["solution"] = f1*vec*np.exp(-1j*f2)
 
-<<<<<<< HEAD
+        ########################
         #self._ret["return"] = res
-=======
         ########################
-        self._ret["return"] = res
-        ########################
->>>>>>> david/hhl-master
 
     
     def _state_tomography(self):

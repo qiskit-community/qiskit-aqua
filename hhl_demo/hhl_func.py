@@ -29,15 +29,13 @@ class HHLDEMO():
         self._io_register = None
         self._eigenvalue_register = None
         self._ancilla_register = None
+        self._ne_qfts = [None, None]
 
         self._num_q = 0
         self._num_a = 0
 
         self._mode = None
-        self._exact = None
 
-        self._ret = {}
-    
     def getstate(self, name,invec):
         num_q = int(np.log2(len(invec)))
         self._num_q = num_q
@@ -57,13 +55,25 @@ class HHLDEMO():
         self._operator = Operator(matrix=self._matrix)
         return(self._operator)
 
-    def construct_qpe_circuit(self, num_time_slices, num_ancillae, expansion_mode, expansion_order):
+    def construct_qpe_circuit(self, num_time_slices, num_ancillae, expansion_mode, expansion_order, negative_evals):
         paulis_grouping = 'random'
+        self._negative_evals = negative_evals
+        if self._negative_evals:
+            num_ancillae += 1
         iqft_params = {}
         iqft_params['num_qubits'] = num_ancillae
         iqft_params['name'] = "STANDARD"
         iqft = get_iqft_instance(iqft_params['name'])
         iqft.init_params(iqft_params)
+        if self._negative_evals:
+            ne_qft_params = iqft_params
+            ne_qft_params['num_qubits'] -= 1
+            ne_qfts = [ get_qft_instance(ne_qft_params['name']),
+                    get_iqft_instance(ne_qft_params['name'])]
+            ne_qfts[0].init_params(ne_qft_params)
+            ne_qfts[1].init_params(ne_qft_params)
+        else:
+            ne_qfts = [None, None]
 
         self._operator._check_representation('paulis')
         paulis = self._operator.paulis
@@ -120,7 +130,14 @@ class HHLDEMO():
 
         # handle negative eigenvalues
         if self._negative_evals:
-            handle_negative_evals(qc, a)
+            sgn = a[0]
+            qs = [a[i] for i in range(1, len(a))]
+            for qi in qs:
+                qc.cx(sgn, qi)
+            ne_qfts[0].construct_circuit('circuit', qs, qc)
+            for i, qi in enumerate(reversed(qs)):
+                qc.cu1(2*np.pi/2**(i+1), sgn, qi)
+            ne_qfts[1].construct_circuit('circuit', qs, qc)
 
         circuit = qc
         output_register = a
@@ -174,4 +191,8 @@ class HHLDEMO():
         f1 = np.linalg.norm(self._invec)/np.linalg.norm(tmp_vec)
         f2 = sum(np.angle(self._invec*tmp_vec.conj()))/self._num_q
         ret["solution"] = f1*vec*np.exp(-1j*f2)
+        ret["gate_count"] = self._circuit.number_atomic_gates()
+        ret["matrix"] = self._matrix
+        ret["invec"] = self._invec
+        ret["eigenvalues"] = np.linalg.eig(self._matrix)[0]
         return ret, self._circuit
