@@ -12,7 +12,7 @@ import sys
 sys.path.append('../')
 from qiskit_aqua.algorithms.components.reciprocals import Reciprocal
 from qiskit_aqua.utils import cnx_na, cnu3
-from qiskit_aqua.utils.cnx_no_anc import CNXGate
+from qiskit_aqua.utils.cnx_no_anc import cnx_na
 
 
 import numpy as np
@@ -133,9 +133,11 @@ class LongDivision(Reciprocal):
                 p.ccx(c, r, b)
                 p.ccx(c, r, a)
                 p.cnx([r, a, b], c)
+                #cnx_na(p,[r, a, b], c)
                 
             def u_uma(p, a, b, c, r):
                 p.cnx([r, a, b], c)
+                #cnx_na(p,[r, a, b], c)
                 p.ccx(c,r, a)
                 p.ccx(a, r, b)
             
@@ -207,7 +209,7 @@ class LongDivision(Reciprocal):
             return qc    
 
     
-        qc.x(a[self._n-2])               
+        qc.x(a[self._n -2])               
         shift_to_one(qc,b, anc, self._n) 
         
         for rj in range(self._precision):                
@@ -264,14 +266,20 @@ class LongDivision(Reciprocal):
         self._c = QuantumRegister(1, 'c')                               #carry
         self._rec = QuantumRegister(self._precision, 'res')             #reciprocal result
         self._anc = QuantumRegister(1, 'anc')                           #HHL ancilla bit
-        
+        manc = ClassicalRegister(1)
+        mev = ClassicalRegister(self._num_ancillae)
+        mr = ClassicalRegister(self._precision)
         
         qc = QuantumCircuit(self._a, self._b0, self._ev, self._anc1, self._anc_s, self._c, 
-                            self._z,self._rec, self._anc)
+                            self._z,self._rec, self._anc, manc, mev, mr)
         
         self._circuit = qc
+
         self._ld_circuit()
+        self._circuit.measure(self._anc, manc)
+        self._circuit.measure(self._ev, mev)
+        self._circuit.measure(self._rec, mr)
         
-        self._rotation()
+        #self._rotation()
 
         return self._circuit
