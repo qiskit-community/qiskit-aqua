@@ -18,6 +18,9 @@ default_params = {
     "negative_evals": True
 }
 
+if not os.path.exists(TEST_BASE_DIR):
+    os.mkdir(TEST_BASE_DIR)
+
 def jsonify(params, dels=None):
     p = copy.deepcopy(params["input"])
     if dels:
