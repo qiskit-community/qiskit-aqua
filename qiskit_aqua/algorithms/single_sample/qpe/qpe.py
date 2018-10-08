@@ -191,7 +191,7 @@ class QPE(QuantumAlgorithm):
             else:
                 raise ValueError('Unrecognized expansion mode {}.'.format(self._expansion_mode))
         for i in range(self._num_ancillae):
-            qc.data += self._operator.construct_evolution_circuit(
+            qc.data += Operator.construct_evolution_circuit(
                 slice_pauli_list, -2 * np.pi, self._num_time_slices, q, a, ctl_idx=i
             ).data
             # global phase shift for the ancilla due to the identity pauli term

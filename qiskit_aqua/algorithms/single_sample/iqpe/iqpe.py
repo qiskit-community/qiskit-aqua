@@ -162,7 +162,7 @@ class IQPE(QuantumAlgorithm):
         # hadamard on a[0]
         qc.u2(0, np.pi, a[0])
         # controlled-U
-        qc.data += self._operator.construct_evolution_circuit(
+        qc.data += Operator.construct_evolution_circuit(
             slice_pauli_list, -2 * np.pi, self._num_time_slices, q, a, unitary_power=2 ** (k - 1)
         ).data
         # global phase due to identity pauli

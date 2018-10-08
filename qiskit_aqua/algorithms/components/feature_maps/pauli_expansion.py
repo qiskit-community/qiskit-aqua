@@ -28,7 +28,7 @@ import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.tools.qi.pauli import label_to_pauli
 from qiskit.qasm import pi
-from sympy.core.numbers import NaN
+from sympy.core.numbers import NaN, Float
 
 from qiskit_aqua import Operator
 from qiskit_aqua.algorithms.components.feature_maps import FeatureMap
@@ -68,8 +68,11 @@ class PauliExpansion(FeatureMap):
                     ]
                 },
                 'paulis': {
-                    'type': 'string',
-                    'default': 'Z,ZZ'
+                    'type': ['array'],
+                    "items": {
+                        "type": "string"
+                    },
+                    'default': ['Z', 'ZZ']
                 }
             },
             'additionalProperties': False
@@ -82,7 +85,7 @@ class PauliExpansion(FeatureMap):
         self._ret = {}
 
     def init_args(self, num_qubits, depth, entangler_map=None,
-                  entanglement='full', paulis='Z,ZZ', data_map_func=self_product):
+                  entanglement='full', paulis=['Z', 'ZZ'], data_map_func=self_product):
         """Initializer.
 
         Args:
@@ -108,26 +111,10 @@ class PauliExpansion(FeatureMap):
         self._param_pos = OrderedDict()
         self._circuit_template = self._build_circuit_template()
 
-    def _build_circuit_template(self):
-        x = np.asarray([self._magic_num] * self._num_qubits)
-        qr = QuantumRegister(self._num_qubits, name='q')
-        qc = self.construct_circuit(x, qr)
-
-        for index in range(len(qc.data)):
-            gate_param = qc.data[index].param
-            param_sub_pos = []
-            for x in range(len(gate_param)):
-                if isinstance(gate_param[x], NaN):
-                    param_sub_pos.append(x)
-            if param_sub_pos != []:
-                self._param_pos[index] = param_sub_pos
-        return qc
-
     def _build_subset_paulis_string(self, paulis):
-        all_paulis = paulis.strip().split(",")
         # fill out the paulis to the number of qubits
         temp_paulis = []
-        for pauli in all_paulis:
+        for pauli in paulis:
             len_pauli = len(pauli)
             for j in itertools.combinations(range(self._num_qubits), len_pauli):
                 string_temp = ['I'] * self._num_qubits
@@ -159,6 +146,21 @@ class PauliExpansion(FeatureMap):
         logger.info("Pauli terms include: {}".format(final_paulis))
         return final_paulis
 
+    def _build_circuit_template(self):
+        x = np.asarray([self._magic_num] * self._num_qubits)
+        qr = QuantumRegister(self._num_qubits, name='q')
+        qc = self.construct_circuit(x, qr)
+
+        for index in range(len(qc.data)):
+            gate_param = qc.data[index].param
+            param_sub_pos = []
+            for x in range(len(gate_param)):
+                if isinstance(gate_param[x], NaN):
+                    param_sub_pos.append(x)
+            if param_sub_pos != []:
+                self._param_pos[index] = param_sub_pos
+        return qc
+
     def _extract_data_for_rotation(self, pauli, x):
         where_non_i = np.where(np.asarray(list(pauli)) != 'I')[0]
         return x[where_non_i]
@@ -171,9 +173,8 @@ class PauliExpansion(FeatureMap):
         for key, value in self._param_pos.items():
             new_param = coeffs[data_idx]
             for pos in value:
-                qc.data[key].param[pos] = 2 * new_param
+                qc.data[key].param[pos] = Float(2. * new_param)  # rotation angle is 2x
             data_idx += 1
-
         return qc
 
     def construct_circuit(self, x, qr=None, inverse=False):
@@ -200,14 +201,15 @@ class PauliExpansion(FeatureMap):
             qc = self._construct_circuit_with_template(x)
         else:
             qc = QuantumCircuit(qr)
-            for i in range(self._num_qubits):
-                qc.u2(0, pi, qr[i])
-            for pauli in self._pauli_strings:
-                coeff = self._data_map_func(self._extract_data_for_rotation(pauli, x))
-                p = label_to_pauli(pauli)
-                qc += Operator.construct_evolution_circuit([[coeff, p]], 1, 1, qr)
-            qc.data *= self._depth
+            for _ in range(self._depth):
+                for i in range(self._num_qubits):
+                    qc.u2(0, pi, qr[i])
+                for pauli in self._pauli_strings:
+                    coeff = self._data_map_func(self._extract_data_for_rotation(pauli, x))
+                    p = label_to_pauli(pauli)
+                    qc += Operator.construct_evolution_circuit([[coeff, p]], 1, 1, qr)
 
         if inverse:
             qc.data = [gate.inverse() for gate in reversed(qc.data)]
+
         return qc

@@ -19,18 +19,11 @@ This module contains the definition of a base class for
 feature map. Several types of commonly used approaches.
 """
 
-
-import numpy as np
-from qiskit import CompositeGate, QuantumCircuit, QuantumRegister
-from qiskit.extensions.standard.cx import CnotGate
-from qiskit.extensions.standard.u1 import U1Gate
-from qiskit.extensions.standard.u2 import U2Gate
-from qiskit.qasm import pi
-
-from qiskit_aqua.algorithms.components.feature_maps import FeatureMap
+from qiskit_aqua.algorithms.components.feature_maps.pauli_expansion import PauliExpansion
+from qiskit_aqua.algorithms.components.feature_maps import self_product
 
 
-class SecondOrderExpansion(FeatureMap):
+class SecondOrderExpansion(PauliExpansion):
     """
     Mapping data with the second order expansion followed by entangling gates.
     Refer to https://arxiv.org/pdf/1804.11326.pdf for details.
@@ -70,7 +63,8 @@ class SecondOrderExpansion(FeatureMap):
         super().__init__(configuration or self.SECOND_ORDER_EXPANSION_CONFIGURATION.copy())
         self._ret = {}
 
-    def init_args(self, num_qubits, depth, entangler_map=None, entanglement='full'):
+    def init_args(self, num_qubits, depth, entangler_map=None,
+                  entanglement='full', data_map_func=self_product):
         """Initializer.
 
         Args:
@@ -79,56 +73,7 @@ class SecondOrderExpansion(FeatureMap):
             entangler_map (dict): describe the connectivity of qubits
             entanglement (str): ['full', 'linear'], generate the qubit connectivitiy by predefined
                                 topology
+            data_map_func (Callable): a mapping function for data x
         """
-        self._num_qubits = num_qubits
-        self._depth = depth
-        if entangler_map is None:
-            self._entangler_map = self.get_entangler_map(entanglement, num_qubits)
-        else:
-            self._entangler_map = self.validate_entangler_map(entangler_map, num_qubits)
-
-    def _build_composite_gate(self, x, qr):
-        composite_gate = CompositeGate("second_order_expansion",
-                                       [], [qr[i] for i in range(self._num_qubits)])
-
-        for _ in range(self._depth):
-            for i in range(x.shape[0]):
-                composite_gate._attach(U2Gate(0, pi, qr[i]))
-                composite_gate._attach(U1Gate(2 * x[i], qr[i]))
-            for src, targs in self._entangler_map.items():
-                for targ in targs:
-                    composite_gate._attach(CnotGate(qr[src], qr[targ]))
-                    # TODO, it might not need pi - x
-                    composite_gate._attach(U1Gate(2 * (np.pi - x[src]) * (np.pi - x[targ]),
-                                                  qr[targ]))
-                    composite_gate._attach(CnotGate(qr[src], qr[targ]))
-
-        return composite_gate
-
-    def construct_circuit(self, x, qr=None, inverse=False):
-        """
-        Construct the second order expansion based on given data.
-
-        Args:
-            x (numpy.ndarray): 1-D to-be-transformed data.
-            qr (QauntumRegister): the QuantumRegister object for the circuit, if None,
-                                  generate new registers with name q.
-            inverse (bool): whether or not inverse the circuit
-
-        Returns:
-            QuantumCircuit: a quantum circuit transform data x.
-        """
-        if not isinstance(x, np.ndarray):
-            raise TypeError("x must be numpy array.")
-        if x.ndim != 1:
-            raise ValueError("x must be 1-D array.")
-        if x.shape[0] != self._num_qubits:
-            raise ValueError("number of qubits and data dimension must be the same.")
-
-        if qr is None:
-            qr = QuantumRegister(self._num_qubits, 'q')
-        qc = QuantumCircuit(qr)
-        composite_gate = self._build_composite_gate(x, qr)
-        qc._attach(composite_gate if not inverse else composite_gate.inverse())
-
-        return qc
+        super().init_args(num_qubits, depth, entangler_map, entanglement,
+                          paulis=['Z', 'ZZ'], data_map_func=data_map_func)
