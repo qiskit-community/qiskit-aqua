@@ -51,8 +51,6 @@ class QuantumAlgorithm(ABC):
     SECTION_KEY_FEATURE_MAP = 'feature_map'
     SECTION_KEY_MULTICLASS_EXTENSION = 'multiclass_extension'
 
-    MAX_CIRCUITS_PER_JOB = 300
-
     UNSUPPORTED_BACKENDS = [
         'unitary_simulator', 'clifford_simulator']
 
@@ -157,7 +155,6 @@ class QuantumAlgorithm(ABC):
         try:
             my_backend = qiskit.Aer.get_backend(backend)
             self._qjob_config.pop('wait', None)
-            self.MAX_CIRCUITS_PER_JOB = sys.maxsize
         except KeyError:
             my_backend = qiskit.IBMQ.get_backend(backend)
 
@@ -194,8 +191,7 @@ class QuantumAlgorithm(ABC):
             Result: Result object
         """
         result = run_circuits(circuits, self._backend, self._execute_config,
-                              self._qjob_config, max_circuits_per_job=self.MAX_CIRCUITS_PER_JOB,
-                              show_circuit_summary=self._show_circuit_summary)
+                              self._qjob_config, show_circuit_summary=self._show_circuit_summary)
         if self._show_circuit_summary:
             self.disable_circuit_summary()
 
