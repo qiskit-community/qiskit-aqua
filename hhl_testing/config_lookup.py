@@ -8,8 +8,8 @@
         "num_time_slices": 50,
         "expansion_mode": "suzuki",
         "expansion_order": 2,
-        "negative_evals": (True, False),
-        "num_ancillae": (4, 5, 6, 7, 8, 9)
+        "negative_evals": False,
+        "num_ancillae": (6, 7, 8)
     },
     "reciprocal": {
         "name": "LOOKUP",
@@ -21,9 +21,10 @@
         "shots": 1
     },
     "input": {
-        "n": (2, 4),
+        "n": 2,
         "type": "generate",
         "test_set": "general_condition",
+        "repetition": range(10),
         "condition": range(10, 110, 10)
     }
 }
