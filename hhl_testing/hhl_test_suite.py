@@ -183,14 +183,14 @@ def run_test(params, force=False):
     """ run HHL with parameters params, needs additional input section """
     test_set = None
     problem_size = None
+    if "type" in params["input"] and params["input"]["type"] == "generate":
+        params["input"] = generate_input(params)
     if "test_set" in params["input"]:
         test_set = params["input"]["test_set"]
         del params["input"]["test_set"]
     if "n" in params["input"]:
         problem_size = params["input"]["n"]
         del params["input"]["n"]
-    if "type" in params["input"] and params["input"]["type"] == "generate":
-        params["input"] = generate_input(params)
     if isinstance(params["input"]["matrix"], int):
         matrix = get_matrix(params["input"]["matrix"], test_set)
     else:

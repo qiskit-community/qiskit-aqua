@@ -11,9 +11,9 @@ default_params = {
     "test_set": "specified",
     "condition": 2,
     "n": 2,
+    "vector": np.array([1, 1]),
     "lambda_min": 1,
     "repetition": 0,
-    "vector": np.array([1, 1]),
     "hermitian": True,
     "negative_evals": True
 }
@@ -27,7 +27,7 @@ def jsonify(params, dels=None):
         for d in dels:
             del p[d]
     if "vector" in p and isinstance(p["vector"], np.ndarray):
-        p["vector"] = p["vector"].tolist()
+        p["vector"] = p["vector"].astype(float).tolist()
     return json.dumps(p, sort_keys=True)
 
 def fillup(params):
@@ -37,6 +37,8 @@ def fillup(params):
                 params["input"][key] = params["eigs"][key]
             else:
                 params["input"][key] = default_params[key]
+    if not "vector" in params["input"]:
+        params["input"]["vector"] = np.ones(params["input"]["n"])
 
 def generate_matrix(params):
     p = params["input"]
