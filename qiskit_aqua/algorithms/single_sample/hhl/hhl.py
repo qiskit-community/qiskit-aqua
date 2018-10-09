@@ -25,6 +25,8 @@ from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit_aqua import QuantumAlgorithm, AlgorithmError
 from qiskit_aqua import get_eigs_instance, get_reciprocal_instance, get_initial_state_instance
 import numpy as np
+from qiskit.tools.visualization import matplotlib_circuit_drawer as drawer
+
 
 import qiskit.extensions.simulator
 
@@ -247,10 +249,10 @@ class HHL(QuantumAlgorithm):
             sv = res.get_statevector()
         elif self._backend == "local_qasm_simulator":
             import qiskit.extensions.simulator
-            self._circuit.snapshot("-1")
+            self._circuit.snapshot("5")
             self._execute_config["config"]["data"] = ["quantum_state_ket"]
             res = self.execute(self._circuit)
-            sv = res.get_snapshot("-1").get("statevector")[0]
+            sv = res.get_snapshot("5").get("statevector")[0]
 
         # Extract output vector
         half = int(len(sv)/2)
@@ -530,14 +532,13 @@ class HHL(QuantumAlgorithm):
             self._ret["regs"] = regs
         elif self._mode == "state_tomography":
             if self._exact:
-                self._exact_simulation()
+                sv = self._exact_simulation()
             else:
                 self._state_tomography()
         elif self._mode == "debug":
             self._exec_debug()
         elif self._mode == "swap_test":
             self._swap_test()
-
         # Adding few general informations
         self._ret["gate_count"] = self._circuit.number_atomic_gates()
         self._ret["matrix"] = self._matrix
