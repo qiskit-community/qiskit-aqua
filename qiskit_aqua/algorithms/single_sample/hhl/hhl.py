@@ -22,7 +22,7 @@ import logging
 
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 
-from qiskit_aqua import QuantumAlgorithm
+from qiskit_aqua import QuantumAlgorithm, AlgorithmError
 from qiskit_aqua import get_eigs_instance, get_reciprocal_instance, get_initial_state_instance
 import numpy as np
 
@@ -59,7 +59,7 @@ class HHL(QuantumAlgorithm):
             },
             'additionalProperties': False
         },
-        'problems': ['energy'],
+        'problems': ['linear_system'],
         'depends': ['eigs', 'reciprocal'],
         'defaults': {
             'eigs': {
@@ -79,7 +79,7 @@ class HHL(QuantumAlgorithm):
     def __init__(self, configuration=None):
         super().__init__(configuration or self.HHL_CONFIGURATION.copy())
         self._matrix = None
-        self._invec = None
+        self._vector = None
 
         self._eigs = None
         self._init_state = None
@@ -106,17 +106,16 @@ class HHL(QuantumAlgorithm):
         Initialize via parameters dictionary and algorithm input instance
         Args:
             params: parameters dictionary
-            algo_input: list or tuple of np.ndarray (matrix, vector)
+            algo_input: LinearSystemInput instance
         """
         if algo_input is None:
-            raise AlgorithmError("Matrix, Vector instance is required.")
-        if not isinstance(algo_input, (list, tuple)):
-            raise AlgorithmError("(matrix, vector) pair is required.")
-        matrix, invec = algo_input
+            raise AlgorithmError("LinearSystemInput instance is required.")
+        matrix = algo_input.matrix
+        vector = algo_input.vector
         if not isinstance(matrix, np.ndarray):
             matrix = np.array(matrix)
-        if not isinstance(invec, np.ndarray):
-            invec = np.array(invec)
+        if not isinstance(vector, np.ndarray):
+            vector = np.array(vector)
 
         hhl_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM) or {}
         mode = hhl_params.get(HHL.PROP_MODE)
@@ -160,10 +159,10 @@ class HHL(QuantumAlgorithm):
         num_q, num_a = eigs.get_register_sizes()
 
 
-        # Fix invec for nonhermitian/non 2**n size matrices
-        assert(matrix.shape[0] == len(invec), "Check input vector size!")
+        # Fix vector for nonhermitian/non 2**n size matrices
+        assert(matrix.shape[0] == len(vector), "Check input vector size!")
 
-        tmpvec = np.append(invec, (2**num_q - len(invec))*[0])
+        tmpvec = np.append(vector, (2**num_q - len(vector))*[0])
         init_state_params = {"name": "CUSTOM"}
         init_state_params["num_qubits"] = num_q
         init_state_params["state_vector"] = tmpvec
@@ -178,13 +177,13 @@ class HHL(QuantumAlgorithm):
         reci.init_params(reciprocal_params)
 
         # Initialize self
-        self.init_args(matrix, invec, eigs, init_state, reci, mode, exact, num_q, num_a)
+        self.init_args(matrix, vector, eigs, init_state, reci, mode, exact, num_q, num_a)
 
 
-    def init_args(self, matrix, invec, eigs, init_state, reciprocal, mode,
+    def init_args(self, matrix, vector, eigs, init_state, reciprocal, mode,
             exact, num_q, num_a):
         self._matrix = matrix
-        self._invec = invec
+        self._vector = vector
         self._eigs = eigs
         self._init_state = init_state
         self._reciprocal = reciprocal
@@ -261,12 +260,12 @@ class HHL(QuantumAlgorithm):
         self._ret["result"] = vec
 
         # Calculating the fidelity
-        theo = np.linalg.solve(self._matrix, self._invec)
+        theo = np.linalg.solve(self._matrix, self._vector)
         theo = theo/np.linalg.norm(theo)
         self._ret["fidelity"] = abs(theo.dot(vec.conj()))**2
         tmp_vec = self._matrix.dot(vec)
-        f1 = np.linalg.norm(self._invec)/np.linalg.norm(tmp_vec)
-        f2 = sum(np.angle(self._invec*tmp_vec.conj()))/self._num_q
+        f1 = np.linalg.norm(self._vector)/np.linalg.norm(tmp_vec)
+        f2 = sum(np.angle(self._vector*tmp_vec.conj()))/self._num_q
         self._ret["solution"] = f1*vec*np.exp(-1j*f2)
 
     
@@ -310,14 +309,14 @@ class HHL(QuantumAlgorithm):
         self._ret["result"] = vec
 
         # Calculating the fidelity with the classical solution
-        theo = np.linalg.solve(self._matrix, self._invec)
+        theo = np.linalg.solve(self._matrix, self._vector)
         theo = theo/np.linalg.norm(theo)
         self._ret["fidelity"] = abs(theo.dot(vec.conj()))**2
 
         # Rescaling the output vector to the real solution vector
         tmp_vec = self._matrix.dot(vec)
-        f1 = np.linalg.norm(self._invec)/np.linalg.norm(tmp_vec)
-        f2 = sum(np.angle(self._invec*tmp_vec.conj()))/self._num_q
+        f1 = np.linalg.norm(self._vector)/np.linalg.norm(tmp_vec)
+        f2 = sum(np.angle(self._vector*tmp_vec.conj()))/self._num_q
         self._ret["solution"] = f1*vec*np.exp(-1j*f2)
 
 
@@ -343,7 +342,7 @@ class HHL(QuantumAlgorithm):
 
         # Initializeing the solution state vector
         init_state = get_initial_state_instance("CUSTOM")
-        sol = list(np.linalg.solve(self._matrix, self._invec))
+        sol = list(np.linalg.solve(self._matrix, self._vector))
         init_state.init_params({"num_qubits": self._num_q, "state_vector": sol})
 
         qc = self._circuit
@@ -415,7 +414,7 @@ class HHL(QuantumAlgorithm):
         print("-> Eigenvectors", *v)
         print("-> Condition", np.linalg.cond(self._matrix))
 
-        print("Input:", self._invec)
+        print("Input:", self._vector)
 
         import matplotlib.pyplot as plt
         from matplotlib import gridspec
@@ -441,7 +440,7 @@ class HHL(QuantumAlgorithm):
 
         # Theoretical eigenvalues
         w, v = np.linalg.eig(self._matrix)
-        vt = v.T.conj().dot(self._invec)
+        vt = v.T.conj().dot(self._vector)
          
         ty = np.arange(0, 2**self._num_a)
         tmp = 1j*(2**self._num_a*np.outer(w, np.ones(len(ty)))*self._eigs._evo_time - 
@@ -486,7 +485,7 @@ class HHL(QuantumAlgorithm):
         self._ret["probability"] = vec.dot(vec.conj())
         vec = vec/np.linalg.norm(vec)
         self._ret["result"] = vec
-        solution = np.linalg.solve(self._matrix, self._invec)
+        solution = np.linalg.solve(self._matrix, self._vector)
         self._ret["fidelity"] = abs(vec.conj().dot(solution/np.linalg.norm(solution)))**2
         print(self._ret["fidelity"])
         dev = np.abs(solution/np.linalg.norm(solution)-vec)**2
@@ -542,7 +541,7 @@ class HHL(QuantumAlgorithm):
         # Adding few general informations
         self._ret["gate_count"] = self._circuit.number_atomic_gates()
         self._ret["matrix"] = self._matrix
-        self._ret["invec"] = self._invec
+        self._ret["vector"] = self._vector
         self._ret["eigenvalues"] = np.linalg.eig(self._matrix)[0]
         return self._ret
 
