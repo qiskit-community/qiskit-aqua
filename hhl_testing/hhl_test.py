@@ -22,7 +22,7 @@ params = {
         "num_ancillae": 5
     },
     "reciprocal": {
-        "name": "LOOKUP",
+        "name": "GENCIRCUITS",
         "lambda_min": 0.9,
     },
     "backend": {
