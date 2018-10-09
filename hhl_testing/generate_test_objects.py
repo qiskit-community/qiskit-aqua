@@ -17,10 +17,16 @@ default_params = {
     "negative_evals": True
 }
 
+# Create TEST_BASE_DIR if not exists
 if not os.path.exists(TEST_BASE_DIR):
     os.mkdir(TEST_BASE_DIR)
 
+
 def jsonify(params, dels=None):
+    """
+    Truns the params dict into a json string.
+    Refactor vector into python list if neccessary.
+    """
     p = copy.deepcopy(params["input"])
     if dels:
         for d in dels:
@@ -29,17 +35,26 @@ def jsonify(params, dels=None):
         p["vector"] = p["vector"].astype(float).tolist()
     return json.dumps(p, sort_keys=True)
 
+
 def fillup(params):
+    """
+    Merge the default parameters with the specified ones.
+    """
     for key in default_params:
         if not key in params["input"]:
             if key in ["negative_evals", "hermitian"] and key in params["eigs"]:
                 params["input"][key] = params["eigs"][key]
             else:
                 params["input"][key] = default_params[key]
+    # Create a equal eigenvector weight
     if not "vector" in params["input"]:
         params["input"]["vector"] = np.ones(params["input"]["n"])
 
+
 def generate_matrix(params):
+    """
+    Generate a random matrix with condition specified in params
+    """
     p = params["input"]
     matrix = random_hermitian if p["hermitian"] else random_non_hermitian
     mat = matrix(p["n"], K=(p["condition"], p["lambda_min"],
@@ -47,6 +62,10 @@ def generate_matrix(params):
     return mat
 
 def generate_vector(params, mat):
+    """
+    Generate a vector as superposition of eigenvectors of the matrix mat.
+    The weights of the superposition are specified in params.
+    """
     p = params["input"]
     if p["hermitian"]:
         w, v = np.linalg.eigh(mat)
@@ -55,10 +74,22 @@ def generate_vector(params, mat):
         NotImplementedError()
     return vec
 
+
 def generate_input(params):
+    """
+    Generate input dict for params
+    Args:
+        params: dict:
+            n (int): problem size (default: 2)
+            type (str): 'generate' used as breakeout from hhl_test_suite
+            test_set (str): some random test_set name (default: specified)
+            condition (int): condition number of matrix (default: 2)
+            
+    """
     fillup(params)
     test_set = params["input"]["test_set"]
 
+    # Check if test set is already loaded, otherwise create
     global test_objects
     if test_set not in test_objects:
         if os.path.exists(os.path.join(TEST_BASE_DIR, test_set + ".pkl")):
@@ -66,7 +97,7 @@ def generate_input(params):
                 test_objects[test_set] = pickle.load(f)
         else:
             test_objects[test_set] = {}
-    
+    # Check if mat, vec with params is in test_set, otherwise generate
     vec_key = jsonify(params)
     mat_key = jsonify(params, dels=["vector"])
     if not mat_key in test_objects[test_set]:
@@ -83,69 +114,9 @@ def generate_input(params):
     return {"n": params["input"]["n"], "matrix": mat, "vector": vec}
 
 def save_generated_inputs():
+    """
+    Save the test_set dict.
+    """
     for k, v in test_objects.items():
         with open(os.path.join(TEST_BASE_DIR, k+".pkl"), "wb") as f:
             pickle.dump(v, f)
-
-
-#
-#
-# cond = (2, 3, 5, 8, 10, 30, 50, 100)
-#
-# data = {}
-#
-# for ne in [True, False]:
-#     data[ne] = {}
-#     for n in [2, 4]:
-#         data[ne][n] = []
-#         for c in cond:
-#             v = []
-#             h = random_hermitian(n, K=(c, 1, -1 if ne else 1))
-#             data[ne][n].append((h, []))
-#             w = np.linalg.eigh(h)[1]
-#             v.append(w.dot(np.ones(n)))
-#             if n == 2:
-#                 v.append(w.dot(np.array([0.8, 0.2])))
-#                 v.append(w.dot(np.array([0.2, 0.8])))
-#             for vi in v:
-#                 data[ne][n][-1][1].append(vi)
-# print(data)
-# with open("test_objects/specified.pkl", "wb") as f:
-#     pickle.dump(data, f)
-
-if __name__ == "__main__":
-
-    params = {
-        "algorithm": {
-            "name": "HHL",
-            "mode": "state_tomography"
-        },
-        "eigs": {
-            "name": "QPE",
-            "num_time_slices": 4,
-            "expansion_mode": "suzuki",
-            "expansion_order": 2,
-            "negative_evals": False,
-            "num_ancillae": 4,
-        },
-        "reciprocal": {
-            "name": "LOOKUP",
-            "lambda_min": 0.9,
-            "pat_length": 4
-        },
-        "backend": {
-            "name": "local_qasm_simulator",
-            "shots": 1
-        },
-        "input": {
-            "type": "generate",
-            "n": 2,
-            "test_set": "specified",
-            "condition": 20,
-            "repetition": 1,
-            "vector": np.array([1, 3])
-        }
-    }
-
-    print(generate_input(params))
-    save_generated_inputs()

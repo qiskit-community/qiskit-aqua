@@ -35,6 +35,16 @@ params = {
     }
 }
 res = run_tests(params, interest="fidelity")
+
+for i in params["input"]["repetition"]:
+    x = linspace(0, 2*np.pi, 10, endpoint=False)
+    y = get_for({"input repetition": i}, res)
+    plt.plot(x, y)
+
+plt.show()
+
+
+
 #
 # x = np.arange(10, 110, 10)
 # for num_ancillae in (6, 7, 8):

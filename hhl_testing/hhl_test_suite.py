@@ -1,5 +1,6 @@
 import numpy as np
 from qiskit_aqua import run_algorithm
+from qiskit_aqua.input import get_input_instance
 from generate_test_objects import generate_input, save_generated_inputs
 
 import os
@@ -169,7 +170,12 @@ def load_or_run(params, force=False):
         vector = params["input"]["vector"]
         del params["input"]
         save_generated_inputs()
-        res = run_algorithm(params, (matrix, vector))
+        algo_input = get_input_instance("LinearSystemInput")
+        algo_input.matrix = matrix
+        algo_input.vector = vector
+        if "problem" not in params:
+            params["problem"] = {"name": "linear_system"}
+        res = run_algorithm(params, algo_input)
         with open(os.path.join(BASE_DIR, INFO_DIR, ha), "w") as f:
             f.write(json.dumps(cp, sort_keys=True, indent=2))
         with open(os.path.join(BASE_DIR, RAW_DIR, ha), "wb") as f:
