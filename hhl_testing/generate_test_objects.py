@@ -11,7 +11,6 @@ default_params = {
     "test_set": "specified",
     "condition": 2,
     "n": 2,
-    "vector": np.array([1, 1]),
     "lambda_min": 1,
     "repetition": 0,
     "hermitian": True,

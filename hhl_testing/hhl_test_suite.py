@@ -225,6 +225,21 @@ def filter_interests(result, interest):
                 ret.append(d)
         return ret
 
+def fmt(x, input_params):
+    t, v = x
+    if isinstance(v, np.ndarray):
+        k1, k2 = t.split(" ")
+        d = input_params[k1][k2]
+        i = 0
+        for dd in d:
+            if np.allclose(dd, v, 1e-10):
+                v = i
+                break
+            i += 1
+        v = i
+    s = "{:<25} {:>8}\n".format(t+":", str(v))
+    return s
+
 def run_tests(input_params, force=False, status=None, interest=None):
     """ run params with specified parameter grid """
     d = parse_input_dict(input_params)
@@ -235,7 +250,7 @@ def run_tests(input_params, force=False, status=None, interest=None):
     for vals, params in zip(d["vals"], d["data"]):
         c += 1
         print("Test Run %d/%d, Parameter:\n" % (c, l), 
-                *map(lambda x: "{:<25} {:>8}\n".format(x[0]+":", x[1]), zip(d["keys"], vals)))
+                *map(lambda x: fmt(x, input_params), zip(d["keys"], vals)))
         result = run_test(params, force)
         if status:
             print(status(result))

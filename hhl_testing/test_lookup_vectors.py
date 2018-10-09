@@ -1,4 +1,4 @@
-from hhl_test_suite import run_tests_from_file, get_for
+from hhl_test_suite import run_tests, get_for
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -9,16 +9,16 @@ params = {
     },
     "eigs": {
         "name": "QPE",
-        "num_time_slices": range(20, 150, 10),
+        "num_time_slices": 50,
         "expansion_mode": "suzuki",
         "expansion_order": 2,
         "negative_evals": False,
-        "num_ancillae": (8, 9)
+        "num_ancillae": 6
     },
     "reciprocal": {
         "name": "LOOKUP",
         "lambda_min": 0.9,
-        "pat_length": (4, 5)
+        "pat_length": 5
     },
     "backend": {
         "name": "local_qasm_simulator",
@@ -29,7 +29,9 @@ params = {
         "type": "generate",
         "test_set": "general_condition",
         "repetition": range(3),
-        "condition": 50
+        "condition": 50,
+        "vector": [np.array((np.sin(x), np.cos(x))) for x in np.linspace(0,
+            2*np.pi, 10, endpoint=False)]
     }
 }
 res = run_tests(params, interest="fidelity")

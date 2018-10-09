@@ -269,10 +269,6 @@ class HHL(QuantumAlgorithm):
         f2 = sum(np.angle(self._invec*tmp_vec.conj()))/self._num_q
         self._ret["solution"] = f1*vec*np.exp(-1j*f2)
 
-        ########################
-        self._ret["return"] = res
-        ########################
-
     
     def _state_tomography(self):
         """

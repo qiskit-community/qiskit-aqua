@@ -1,4 +1,4 @@
-from hhl_test_suite import run_tests_from_file, get_for
+from hhl_test_suite import run_tests, get_for
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -11,9 +11,9 @@ params = {
         "name": "QPE",
         "num_time_slices": range(20, 150, 10),
         "expansion_mode": "suzuki",
-        "expansion_order": 2,
+        "expansion_order": (2, 3),
         "negative_evals": False,
-        "num_ancillae": (8, 9)
+        "num_ancillae": (7, 8)
     },
     "reciprocal": {
         "name": "LOOKUP",
@@ -29,7 +29,7 @@ params = {
         "type": "generate",
         "test_set": "general_condition",
         "repetition": range(3),
-        "condition": 50
+        "condition": (10, 50, 100)
     }
 }
 res = run_tests(params, interest="fidelity")
