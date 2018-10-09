@@ -9,7 +9,7 @@ params = {
     },
     "eigs": {
         "name": "QPE",
-        "num_time_slices": range(20, 150, 10),
+        "num_time_slices": 50,
         "expansion_mode": "suzuki",
         "expansion_order": 2,
         "negative_evals": False,
