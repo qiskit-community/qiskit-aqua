@@ -36,3 +36,9 @@ All the changes done to the qiskit aqua module are documented here.
 
 * Added `hhl` quantum algorithm for solving linear equations. For details see
     documentation.
+
+## Input
+
+* Added `linearsysteminput.py` with `LinearSystemInput` containing a matrix and
+    a vector. Input for `linear_system` problem.
+* Added `linear_system` problem to `algorithminput.py`
