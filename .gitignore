@@ -24,7 +24,8 @@ demo/svm/img/data/
 
 # Test files
 *.npy
-hhl_testing/data
+hhl_testing/data*
+hhl_testing/test_objects*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
