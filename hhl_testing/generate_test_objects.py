@@ -79,7 +79,7 @@ def generate_input(params):
     """
     Generate input dict for params
     Args:
-        params: dict:
+        params["input"]: dict:
             n (int): problem size (default: 2)
             type (str): 'generate' used as breakeout from hhl_test_suite
             test_set (str): some random test_set name (default: specified)
