@@ -5,6 +5,7 @@ HHL
 ===
 
 The *HHL algorithm* (after the author's surnames Harrow-Hassidim-LLoyd) is a quantum algorithm to solve systems of linear equations.
+
 .. topic:: Basic concept
    Let Ax=b be the linear system that we want to solve. Using aquas'
    implementation of the Quantum Phase Estimation algorithm (QPE), the linear system
