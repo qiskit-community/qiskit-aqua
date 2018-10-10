@@ -4,7 +4,7 @@
 Eigs
 ====
 
-Aqua bundles methods to find Eigenvalue of a given matrix, such as :ref:`qpe_components` in the Eigs library.
+Aqua bundles methods to find Eigenvalues of a given matrix, such as :ref:`qpe_components` in the Eigs library.
 Rather than being used as a standalone algorithm, the members of the library are to be used in a larger algorithm such as :ref:`HHL`. The following methods are available 
 
 - :ref:`qpe_component`: Given a matrix and a linear combination of its eigenstates, *qpe* prepares the Eigenvalues on a specified output register. 
@@ -17,7 +17,7 @@ Rather than being used as a standalone algorithm, the members of the library are
     are pluggable modules in Aqua.
     New eigenvalue solver  are typically installed in the ``qiskit_aqua/algorithms/components/eigs`` folder and derive from
     the ``Eigenvalues`` class.  Aqua also allows for
-    :ref:`aqua-dynamically-discovered-components`: new optimizers can register themselves
+    :ref:`aqua-dynamically-discovered-components`: new Eigenvalue estimator can register themselves
     as Aqua extensions and be dynamically discovered at run time independent of their
     location in the file system.
     This is done in order to encourage researchers and
@@ -27,7 +27,7 @@ Rather than being used as a standalone algorithm, the members of the library are
 
 .. seealso::
 
-    `Section :ref:`aqua-extending` provides more
+    Section :ref:`aqua-extending` provides more
     details on how to extend Aqua with new components.
 
 .. _qpe_component:
@@ -35,14 +35,13 @@ Rather than being used as a standalone algorithm, the members of the library are
 ---
 QPE
 ---
-This Eigenvalue solver component is directly based on the QPE quantum algorithm in aqua :ref:`qpe`.
+This Eigenvalue solver component is directly based on the QPE quantum algorithm in Aqua :ref:`qpe`.
 Some changes have been made to support negative Eigenvalues and use it in a larger quantum algorithm (e.g. :ref:`hhl`).
 
 .. seealso::
 
-    `Section :ref:`qpe` provides more
+    Section :ref:`qpe` provides more
     details on the QPE algorithm.
-
 
 In addition to requiring an IQFT and an initial state as part of its
 configuration, QPE also exposes the following parameter settings:
@@ -62,7 +61,7 @@ configuration, QPE also exposes the following parameter settings:
        paulis_grouping = "default" | "random"
 
    Two string values are permitted: ``"default"`` or ``"random"``, with ``"random"``
-   being the default and indicating that ???.
+   being the default and indicating the order of the Pauli matrices used to decompose the input matrix.
 
 -  The expansion mode:
 
@@ -92,33 +91,33 @@ configuration, QPE also exposes the following parameter settings:
 
 - The evolution time:
 
-  .. code:: 
+  .. code:: python
 
      evo_time : float
 
-  This parameter scales the EV onto the range (0,1] ( (-0.5,0.5] for negativ EV ). If not provided, it is calculated internally by using an estimation of the highest EV present in the matrix. The default is ``None``.
+  This parameter scales the EV onto the range :math:`(0,1]` ( :math:`(-0.5,0.5]` for negativ EV ). If not provided, it is calculated internally by using an estimation of the highest EV present in the matrix. The default is ``None``.
 
 - Switch for negative Eigenvalues:
 
-  .. code::Python
+  .. code:: python
 
-     negative_evals = True | False
+     negative_evals : bool
 
   If known beforehand that only positive EV are present, one can set this switch to False and achieve a higher resolution in the output. The default is ``True``.
 
 - Switch for non-hermitian input:
 
-  .. code::python
+  .. code:: python
 
-     hermitian_matrix = True | False
+     hermitian_matrix : bool
 
   If non-hermitian is selected, a hermitian matrix of size 2 input size is used as an input and the result gives the singular values of the matrix. The default is ``True``.
 
 - Switch for the usage of basis gates:
 
-  .. code::python
+  .. code:: python
 
-     use_basis_gates = True | False
+     use_basis_gates : bool
 
   Passed to the construction routine of the evolution circuit used in QPE. The default is ``True``.
 
