@@ -1,17 +1,3 @@
-## For Extreme Blue
-
-Install this repositpory locally using
-```
-pip install -e qiskit-aqua-hhl
-```
-where it is located.
-
-To use included image data execute
-```
-install.sh
-```
-in `demo/svm` directory. 
-
 # Qiskit Aqua
 
 This README file presents a quick overview of Qiskit Aqua, with brief installation, setup and execution

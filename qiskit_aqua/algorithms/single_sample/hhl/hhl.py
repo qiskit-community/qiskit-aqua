@@ -253,9 +253,8 @@ class HHL(QuantumAlgorithm):
             self._circuit.snapshot("5")
             self._execute_config["config"]["data"] = ["quantum_state_ket"]
             res = self.execute(self._circuit)
-            test = res.get_snapshot("5").get("quantum_state_ket")
             sv = res.get_snapshot("5").get("statevector")[0]
-        print(test[0].keys())
+
         # Extract output vector
         half = int(len(sv)/2)
         vec = sv[half:half+2**self._num_q]
@@ -271,11 +270,6 @@ class HHL(QuantumAlgorithm):
         f1 = np.linalg.norm(self._invec)/np.linalg.norm(tmp_vec)
         f2 = sum(np.angle(self._invec*tmp_vec.conj()))/self._num_q
         self._ret["solution"] = f1*vec*np.exp(-1j*f2)
-
-        ########################
-        #self._ret["return"] = res
-        ########################
-        return(test)
 
     
     def _state_tomography(self):
@@ -551,7 +545,7 @@ class HHL(QuantumAlgorithm):
         self._ret["matrix"] = self._matrix
         self._ret["invec"] = self._invec
         self._ret["eigenvalues"] = np.linalg.eig(self._matrix)[0]
-        return self._ret, sv
+        return self._ret
 
     ############################################### 
     def number_atomic_gates_2(self, qc=None):
