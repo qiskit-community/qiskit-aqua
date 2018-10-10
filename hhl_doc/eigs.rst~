@@ -1,0 +1,36 @@
+.. _eigs:
+
+====
+Eigs
+====
+
+Aqua bundles methods to find Eigenvalue of a given matrix, such as :ref:`QPE` in the Eigs library.
+Rather than being used as a standalone algorithm, the members of the library are to be used in a larger algorithm such as :ref:`HHL`. The following methods are available 
+
+- :ref:`qpe`: Given a matrix and a linear combination of its eigenstates, *qpe* prepares the Eigenvalues on a specified output register. 
+
+
+.. topic:: Extending the Eigs Library
+
+    Consistent with its unique  design, Aqua has a modular and
+    extensible architecture. Algorithms and their supporting objects, such as optimizers for quantum variational algorithms,
+    are pluggable modules in Aqua.
+    New eigenvalue solver  are typically installed in the ``qiskit_aqua/algorithms/components/eigs`` folder and derive from
+    the ``Eigenvalues`` class.  Aqua also allows for
+    :ref:`aqua-dynamically-discovered-components`: new optimizers can register themselves
+    as Aqua extensions and be dynamically discovered at run time independent of their
+    location in the file system.
+    This is done in order to encourage researchers and
+    developers interested in
+    :ref:`aqua-extending` to extend the Aqua framework with their novel research contributions.
+
+
+.. seealso::
+
+    `Section :ref:`aqua-extending` provides more
+    details on how to extend Aqua with new components.
+
+.. _qpe:
+---
+QPE
+---
