@@ -65,12 +65,9 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
     except KeyError:
         my_backend = qiskit.IBMQ.get_backend(backend)
 
-    if my_backend.configuration()['simulator']:
-        with_autorecover = False
-        max_circuits_per_job = sys.maxsize
-    else:
-        with_autorecover = True
-        max_circuits_per_job = MAX_CIRCUITS_PER_JOB
+    with_autorecover = False if my_backend.configuration()['simulator'] else True
+    max_circuits_per_job = sys.maxsize if my_backend.configuration()['local'] \
+        else MAX_CIRCUITS_PER_JOB
 
     qobjs = []
     jobs = []
@@ -91,8 +88,8 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
     if with_autorecover:
 
         logger.debug("There are {} circuits and they are chunked into {} chunks, "
-                    "each with {} circutis.".format(len(circuits), chunks,
-                                                    max_circuits_per_job))
+                     "each with {} circutis.".format(len(circuits), chunks,
+                                                     max_circuits_per_job))
 
         for idx in range(len(jobs)):
             job = jobs[idx]
