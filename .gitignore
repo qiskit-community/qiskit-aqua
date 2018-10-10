@@ -125,6 +125,8 @@ docs/*.rst
 !docs/aqua_optimization.rst
 !docs/aqua_tutorials.rst
 !docs/qiskit_aqua_chemistry.rst
+!docs/eigs.rst
+!docs/reciprocals.rst
 
 # PyBuilder
 target/
