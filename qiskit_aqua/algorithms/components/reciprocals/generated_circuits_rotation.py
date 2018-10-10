@@ -215,9 +215,6 @@ class GeneratedCircuit(Reciprocal):
             cutoff = len(self._rec_circuit.data) - self._num_ancillae
         for gate in reversed(self._rec_circuit.data[:cutoff]):
             gate.reapply(qc)
-            qc.data[-1].inverse()
-        drawer(qc, filename="inversecircuit.png")
-        #self._circuit = qc
         return qc
 
 
@@ -225,11 +222,13 @@ class GeneratedCircuit(Reciprocal):
         #initialize circuit
         if mode == "vector":
             raise NotImplementedError("mode vector not supported")
+        #setting the scaling for the rotation - scale has to be proportional to smallest eigenvalue, if that is not known, smallest possible value is set
         if self._lambda_min is not None:
             self._scale = self._lambda_min/2/np.pi*self._evo_time
         if self._scale == 0:
             self._scale = 2**(-len(inreg))
         self._ev = inreg
+        #checking for negative eigenvalues and deleting first qubit out of eigenvalue register, if true
         if self._negative_evals:
             self._offset = 1        
         self._num_ancillae = len(self._ev) - self._offset
@@ -243,7 +242,5 @@ class GeneratedCircuit(Reciprocal):
         self._parse_circuit()
         self._rotation()
         self._circuit += self._reverse_parsing()
-        #drawer(self._circuit)
-        #plt.show()
 
         return self._circuit
