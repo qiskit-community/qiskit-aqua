@@ -34,12 +34,39 @@ params = {
             2*np.pi, 20, endpoint=False)]
     }
 }
-res = run_tests(params, interest="fidelity")
+res = run_tests(params, interest=["fidelity", "matrix", "probability"])
 
+data = []
+data_prob = []
+matrix = None
 for i in params["input"]["repetition"]:
-    x = np.linspace(0, 2*np.pi, 20, endpoint=False)
-    y = get_for({"input repetition": i}, res)
-    plt.plot(x, y)
+    dat = []
+    dat_prob = []
+    for x in get_for({"input repetition": i}, res):
+        dat.append(x[0])
+        dat_prob.append(x[2])
+        if matrix is None: matrix = x[1]
+    data.append(np.array(dat))
+    data_prob.append(np.array(dat_prob))
+data = np.array(data)
+data_prob = np.array(data_prob)
+x = np.linspace(0, 2*np.pi, 20, endpoint=False)
+
+mean = np.mean(data, axis=0)
+std = np.std(data, axis=0)
+
+mean_prob = np.mean(data_prob, axis=0)
+std_prob = np.std(data_prob, axis=0)
+
+# plt.plot(x, mean)
+fig, ax1 = plt.subplots()
+
+ax1.errorbar(x, mean, yerr=std, fmt="o", capsize=5)
+ax2 = ax1.twinx()
+ax2.errorbar(x, mean_prob, yerr=std_prob, fmt="or", capsize=5)
+
+ax1.grid()
+ax1.set_xticks([0, np.pi/2, np.pi, 3*np.pi/2], [0, "$\pi/2$", "$\pi$", "$3\pi/2$"])
 
 plt.show()
 
