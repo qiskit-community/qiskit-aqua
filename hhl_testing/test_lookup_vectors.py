@@ -28,16 +28,16 @@ params = {
         "n": 2,
         "type": "generate",
         "test_set": "general_condition",
-        "repetition": range(3),
+        "repetition": range(10),
         "condition": 50,
         "vector": [np.array((np.sin(x), np.cos(x))) for x in np.linspace(0,
-            2*np.pi, 10, endpoint=False)]
+            2*np.pi, 20, endpoint=False)]
     }
 }
 res = run_tests(params, interest="fidelity")
 
 for i in params["input"]["repetition"]:
-    x = linspace(0, 2*np.pi, 10, endpoint=False)
+    x = np.linspace(0, 2*np.pi, 20, endpoint=False)
     y = get_for({"input repetition": i}, res)
     plt.plot(x, y)
 
