@@ -21,5 +21,7 @@ real quantum device).
    Oracles <oracles>
    Inverse Quantum Fourier Transforms <iqfts>
    Initial States <initial_states>
+   Eigs <eigs>
+   Reciprocals <reciprocals>
    Feature Extractions <feature_extractions>
    Aqua SDK Reference <qiskit_aqua>
