@@ -1,7 +1,7 @@
 import numpy as np
 from qiskit_aqua import run_algorithm
 from qiskit_aqua.input import get_input_instance
-from generate_test_objects import generate_input, save_generated_inputs
+from generate_test_objects import generate_input
 
 import os
 import itertools
@@ -169,7 +169,6 @@ def load_or_run(params, force=False):
         matrix = params["input"]["matrix"]
         vector = params["input"]["vector"]
         del params["input"]
-        save_generated_inputs()
         algo_input = get_input_instance("LinearSystemInput")
         algo_input.matrix = matrix
         algo_input.vector = vector
