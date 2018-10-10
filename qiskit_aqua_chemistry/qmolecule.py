@@ -31,42 +31,38 @@ class QMolecule(object):
     """Molecule data class with driver information."""
 
     def __init__(self, filename=None):
-        if filename is None:
-            fd, self._filename = tempfile.mkstemp(suffix='.hdf5')
-            os.close(fd)
-        else:
-            self._filename = filename
+        self._filename = filename
 
         # Driver origin from which this QMolecule was created
-        self._origin_driver_name       = "?"
-        self._origin_driver_config     = "?"
+        self._origin_driver_name = "?"
+        self._origin_driver_config = "?"
 
         # Energies and orbits
-        self._hf_energy                = None
+        self._hf_energy = None
         self._nuclear_repulsion_energy = None
-        self._num_orbitals             = None
-        self._num_alpha                = None
-        self._num_beta                 = None
-        self._mo_coeff                 = None
-        self._orbital_energies         = None
+        self._num_orbitals = None
+        self._num_alpha = None
+        self._num_beta = None
+        self._mo_coeff = None
+        self._orbital_energies = None
 
         # Molecule geometry. xyz coords are in Bohr
-        self._molecular_charge         = None
-        self._multiplicity             = None
-        self._num_atoms                = None
-        self._atom_symbol              = None
-        self._atom_xyz                 = None
-        
+        self._molecular_charge = None
+        self._multiplicity = None
+        self._num_atoms = None
+        self._atom_symbol = None
+        self._atom_xyz = None
+
         # 1 and 2 electron integrals in MO basis
-        self._mo_onee_ints             = None
-        self._mo_eri_ints              = None
+        self._mo_onee_ints = None
+        self._mo_eri_ints = None
 
         # Dipole moment integrals in MO basis
-        self._x_dip_mo_ints            = None
-        self._y_dip_mo_ints            = None
-        self._z_dip_mo_ints            = None
-        self._nuclear_dipole_moment    = None
-        self._reverse_dipole_sign      = False
+        self._x_dip_mo_ints = None
+        self._y_dip_mo_ints = None
+        self._z_dip_mo_ints = None
+        self._nuclear_dipole_moment = None
+        self._reverse_dipole_sign = False
 
     @property
     def _one_body_integrals(self):
@@ -79,8 +75,8 @@ class QMolecule(object):
 
     def has_dipole_integrals(self):
         return self._x_dip_mo_ints is not None and \
-               self._y_dip_mo_ints is not None and \
-               self._z_dip_mo_ints is not None
+            self._y_dip_mo_ints is not None and \
+            self._z_dip_mo_ints is not None
 
     @property
     def _x_dipole_integrals(self):
@@ -104,34 +100,49 @@ class QMolecule(object):
         count = 0
         for i in range(self._num_atoms):
             Z = self.Z(i)
-            if Z > 2:  count += 1
-            if Z > 10: count += 4
-            if Z > 18: count += 4
-            if Z > 36: count += 9
-            if Z > 54: count += 9
-            if Z > 86: count += 16
+            if Z > 2:
+                count += 1
+            if Z > 10:
+                count += 4
+            if Z > 18:
+                count += 4
+            if Z > 36:
+                count += 9
+            if Z > 54:
+                count += 9
+            if Z > 86:
+                count += 16
         return list(range(count))
 
     @property
     def filename(self):
+        if self._filename is None:
+            fd, self._filename = tempfile.mkstemp(suffix='.hdf5')
+            os.close(fd)
+
         return self._filename
-    
+
     def load(self):
         """loads info saved."""
         try:
+            if self._filename is None:
+                return
+
             with h5py.File(self._filename, "r") as f:
                 # Origin driver info
                 data = f["origin_driver/name"][...]
                 self._origin_driver_name = data[...].tobytes().decode('utf-8')
                 data = f["origin_driver/config"][...]
-                self._origin_driver_config = data[...].tobytes().decode('utf-8')
+                self._origin_driver_config = data[...].tobytes().decode(
+                    'utf-8')
 
                 # Energies
                 data = f["energy/hf_energy"][...]
                 self._hf_energy = float(data) if data.dtype.num != 0 else None
                 data = f["energy/nuclear_repulsion_energy"][...]
-                self._nuclear_repulsion_energy = float(data) if data.dtype.num != 0 else None
-                
+                self._nuclear_repulsion_energy = float(
+                    data) if data.dtype.num != 0 else None
+
                 # Orbitals
                 data = f["orbitals/num_orbitals"][...]
                 self._num_orbitals = int(data) if data.dtype.num != 0 else None
@@ -144,7 +155,8 @@ class QMolecule(object):
 
                 # Molecule geometry
                 data = f["geometry/molecular_charge"][...]
-                self._molecular_charge = int(data) if data.dtype.num != 0 else None
+                self._molecular_charge = int(
+                    data) if data.dtype.num != 0 else None
                 data = f["geometry/multiplicity"][...]
                 self._multiplicity = int(data) if data.dtype.num != 0 else None
                 data = f["geometry/num_atoms"][...]
@@ -152,8 +164,8 @@ class QMolecule(object):
                 data = f["geometry/atom_symbol"][...]
                 self._atom_symbol = [a.decode('utf8') for a in data]
                 self._atom_xyz = f["geometry/atom_xyz"][...]
-               
-                # 1 and 2 electron integrals  
+
+                # 1 and 2 electron integrals
                 self._mo_onee_ints = f["integrals/mo_onee_ints"][...]
                 self._mo_eri_ints = f["integrals/mo_eri_ints"][...]
 
@@ -167,97 +179,97 @@ class QMolecule(object):
         except OSError:
             pass
 
-    def save(self,file_name=None):
+    def save(self, file_name=None):
         """Saves the info from the driver."""
         file = None
         if file_name is not None:
             self.remove_file(file_name)
             file = file_name
         else:
+            file = self.filename
             self.remove_file()
-            file = self._filename
-            
+
         with h5py.File(file, "w") as f:
             # Driver origin of molecule data
             g_driver = f.create_group("origin_driver")
             g_driver.create_dataset("name",
-                data=(numpy.string_(self._origin_driver_name)
-                      if self._origin_driver_name is not None else numpy.string_("?")))
+                                    data=(numpy.string_(self._origin_driver_name)
+                                          if self._origin_driver_name is not None else numpy.string_("?")))
             g_driver.create_dataset("config",
-                data=(numpy.string_(self._origin_driver_config)
-                      if self._origin_driver_config is not None else numpy.string_("?")))
+                                    data=(numpy.string_(self._origin_driver_config)
+                                          if self._origin_driver_config is not None else numpy.string_("?")))
 
             # Energies
             g_energy = f.create_group("energy")
-            g_energy.create_dataset("hf_energy", 
-                data=(self._hf_energy 
-                      if self._hf_energy is not None else False))
+            g_energy.create_dataset("hf_energy",
+                                    data=(self._hf_energy
+                                          if self._hf_energy is not None else False))
             g_energy.create_dataset("nuclear_repulsion_energy",
-                data=(self._nuclear_repulsion_energy 
-                      if self._nuclear_repulsion_energy is not None else False))
-        
+                                    data=(self._nuclear_repulsion_energy
+                                          if self._nuclear_repulsion_energy is not None else False))
+
             # Orbitals
             g_orbitals = f.create_group("orbitals")
-            g_orbitals.create_dataset("num_orbitals", 
-                data=(self._num_orbitals 
-                      if self._num_orbitals is not None else False))
-            g_orbitals.create_dataset("num_alpha", 
-                data=(self._num_alpha 
-                      if self._num_alpha is not None else False))
-            g_orbitals.create_dataset("num_beta", 
-                data=(self._num_beta 
-                      if self._num_beta is not None else False))
+            g_orbitals.create_dataset("num_orbitals",
+                                      data=(self._num_orbitals
+                                            if self._num_orbitals is not None else False))
+            g_orbitals.create_dataset("num_alpha",
+                                      data=(self._num_alpha
+                                            if self._num_alpha is not None else False))
+            g_orbitals.create_dataset("num_beta",
+                                      data=(self._num_beta
+                                            if self._num_beta is not None else False))
             g_orbitals.create_dataset("mo_coeff",
-                data=(self._mo_coeff
-                      if self._mo_coeff is not None else False))
+                                      data=(self._mo_coeff
+                                            if self._mo_coeff is not None else False))
             g_orbitals.create_dataset("orbital_energies",
-                data=(self._orbital_energies
-                      if self._orbital_energies is not None else False))
+                                      data=(self._orbital_energies
+                                            if self._orbital_energies is not None else False))
 
             # Molecule geometry
             g_geometry = f.create_group("geometry")
-            g_geometry.create_dataset("molecular_charge", 
-                data=(self._molecular_charge 
-                      if self._molecular_charge is not None else False))
-            g_geometry.create_dataset("multiplicity", 
-                data=(self._multiplicity 
-                      if self._multiplicity is not None else False))
-            g_geometry.create_dataset("num_atoms", 
-                data=(self._num_atoms 
-                      if self._num_atoms is not None else False))
-            g_geometry.create_dataset("atom_symbol", 
-                data=([a.encode('utf8') for a in self._atom_symbol]
-                      if self._atom_symbol is not None else False))
-            g_geometry.create_dataset("atom_xyz", 
-                data=(self._atom_xyz 
-                      if self._atom_xyz is not None else False))
-            
-            # 1 and 2 electron integrals  
+            g_geometry.create_dataset("molecular_charge",
+                                      data=(self._molecular_charge
+                                            if self._molecular_charge is not None else False))
+            g_geometry.create_dataset("multiplicity",
+                                      data=(self._multiplicity
+                                            if self._multiplicity is not None else False))
+            g_geometry.create_dataset("num_atoms",
+                                      data=(self._num_atoms
+                                            if self._num_atoms is not None else False))
+            g_geometry.create_dataset("atom_symbol",
+                                      data=([a.encode('utf8') for a in self._atom_symbol]
+                                            if self._atom_symbol is not None else False))
+            g_geometry.create_dataset("atom_xyz",
+                                      data=(self._atom_xyz
+                                            if self._atom_xyz is not None else False))
+
+            # 1 and 2 electron integrals
             g_integrals = f.create_group("integrals")
             g_integrals.create_dataset("mo_onee_ints",
-                data=(self._mo_onee_ints
-                      if self._mo_onee_ints is not None else False))
+                                       data=(self._mo_onee_ints
+                                             if self._mo_onee_ints is not None else False))
             g_integrals.create_dataset("mo_eri_ints",
-                data=(self._mo_eri_ints
-                      if self._mo_eri_ints is not None else False))
+                                       data=(self._mo_eri_ints
+                                             if self._mo_eri_ints is not None else False))
 
             # dipole integrals
             g_dipole = f.create_group("dipole")
             g_dipole.create_dataset("x_dip_mo_ints",
-                data=(self._x_dip_mo_ints
-                      if self._x_dip_mo_ints is not None else False))
+                                    data=(self._x_dip_mo_ints
+                                          if self._x_dip_mo_ints is not None else False))
             g_dipole.create_dataset("y_dip_mo_ints",
-                data=(self._y_dip_mo_ints
-                      if self._y_dip_mo_ints is not None else False))
+                                    data=(self._y_dip_mo_ints
+                                          if self._y_dip_mo_ints is not None else False))
             g_dipole.create_dataset("z_dip_mo_ints",
-                data=(self._z_dip_mo_ints
-                      if self._z_dip_mo_ints is not None else False))
+                                    data=(self._z_dip_mo_ints
+                                          if self._z_dip_mo_ints is not None else False))
             g_dipole.create_dataset("nuclear_dipole_moment",
-                data=(self._nuclear_dipole_moment
-                      if self._nuclear_dipole_moment is not None else False))
+                                    data=(self._nuclear_dipole_moment
+                                          if self._nuclear_dipole_moment is not None else False))
             g_dipole.create_dataset("reverse_dipole_sign",
-                data=(self._reverse_dipole_sign
-                      if self._reverse_dipole_sign is not None else False))
+                                    data=(self._reverse_dipole_sign
+                                          if self._reverse_dipole_sign is not None else False))
 
     def remove_file(self, file_name=None):
         try:
@@ -266,7 +278,8 @@ class QMolecule(object):
         except OSError:
             pass
 
-    # Utility functions to convert integrals into the form expected by AquaChemistry stack
+    # Utility functions to convert integrals into
+    # the form expected by AquaChemistry stack
 
     @staticmethod
     def oneeints2mo(ints, moc):
@@ -303,7 +316,8 @@ class QMolecule(object):
             for b in range(dim):
                 temp2 = numpy.einsum('j,j...->...', moc[:, b], temp1)
                 temp3 = numpy.einsum('kc,k...->...c', moc, temp2)
-                eri_mo[a, b, :, :] = numpy.einsum('ld,l...c->...cd', moc, temp3)
+                eri_mo[a, b, :, :] = numpy.einsum(
+                    'ld,l...c->...cd', moc, temp3)
 
         return eri_mo
 
@@ -371,7 +385,8 @@ class QMolecule(object):
         #            .
 
         # Two electron terms
-        moh2_qubit = numpy.zeros([nspin_orbs, nspin_orbs, nspin_orbs, nspin_orbs])
+        moh2_qubit = numpy.zeros(
+            [nspin_orbs, nspin_orbs, nspin_orbs, nspin_orbs])
         for p in range(nspin_orbs):
             for q in range(nspin_orbs):
                 for r in range(nspin_orbs):
@@ -389,7 +404,8 @@ class QMolecule(object):
                         orbr = int(r % norbs)
                         orbs = int(s % norbs)
                         if abs(mohijkl[orbp, orbq, orbr, orbs]) > threshold:
-                            moh2_qubit[p, q, r, s] = -0.5*mohijkl[orbp, orbq, orbr, orbs]
+                            moh2_qubit[p, q, r, s] = -0.5 * \
+                                mohijkl[orbp, orbq, orbr, orbs]
 
         return moh2_qubit
 
@@ -437,44 +453,60 @@ class QMolecule(object):
     def log(self):
         # Originating driver name & config if set
         if len(self._origin_driver_name) > 0 and self._origin_driver_name != "?":
-            logger.info("Originating driver name: {}".format(self._origin_driver_name))
-            logger.info("Originating driver config:\n{}".format(self._origin_driver_config[:-1]))
+            logger.info("Originating driver name: {}".format(
+                self._origin_driver_name))
+            logger.info("Originating driver config:\n{}".format(
+                self._origin_driver_config[:-1]))
 
         logger.info("Computed Hartree-Fock energy: {}".format(self._hf_energy))
-        logger.info("Nuclear repulsion energy: {}".format(self._nuclear_repulsion_energy))
-        logger.info("One and two electron Hartree-Fock energy: {}".format(self._hf_energy - self._nuclear_repulsion_energy))
+        logger.info("Nuclear repulsion energy: {}".format(
+            self._nuclear_repulsion_energy))
+        logger.info("One and two electron Hartree-Fock energy: {}".format(
+            self._hf_energy - self._nuclear_repulsion_energy))
         logger.info("Number of orbitals is {}".format(self._num_orbitals))
-        logger.info("{} alpha and {} beta electrons".format(self._num_alpha, self._num_beta))
-        logger.info("Molecule comprises {} atoms and in xyz format is ::".format(self._num_atoms))
-        logger.info("  {}, {}".format(self._molecular_charge, self._multiplicity))
+        logger.info("{} alpha and {} beta electrons".format(
+            self._num_alpha, self._num_beta))
+        logger.info(
+            "Molecule comprises {} atoms and in xyz format is ::".format(self._num_atoms))
+        logger.info("  {}, {}".format(
+            self._molecular_charge, self._multiplicity))
         if self._num_atoms is not None:
             for n in range(0, self._num_atoms):
                 logger.info("  {:2s}  {}, {}, {}".format(self._atom_symbol[n],
-                                                         self._atom_xyz[n][0] * QMolecule.BOHR,
-                                                         self._atom_xyz[n][1] * QMolecule.BOHR,
+                                                         self._atom_xyz[n][0] *
+                                                         QMolecule.BOHR,
+                                                         self._atom_xyz[n][1] *
+                                                         QMolecule.BOHR,
                                                          self._atom_xyz[n][2] * QMolecule.BOHR))
 
         if self._nuclear_dipole_moment is not None:
-            logger.info("Nuclear dipole moment: {}".format(self._nuclear_dipole_moment))
+            logger.info("Nuclear dipole moment: {}".format(
+                self._nuclear_dipole_moment))
         if self._reverse_dipole_sign is not None:
-            logger.info("Reversal of electronic dipole moment sign needed: {}".format(self._reverse_dipole_sign))
+            logger.info("Reversal of electronic dipole moment sign needed: {}".format(
+                self._reverse_dipole_sign))
 
         if self._mo_onee_ints is not None:
-            logger.info("One body MO integrals: {}".format(self._mo_onee_ints.shape))
+            logger.info("One body MO integrals: {}".format(
+                self._mo_onee_ints.shape))
             logger.debug(self._mo_onee_ints)
 
         if self._mo_eri_ints is not None:
-            logger.info("Two body ERI MO integrals: {}".format(self._mo_eri_ints.shape))
+            logger.info("Two body ERI MO integrals: {}".format(
+                self._mo_eri_ints.shape))
             logger.debug(self._mo_eri_ints)
 
         if self._x_dip_mo_ints is not None:
-            logger.info("x dipole MO integrals: {}".format(self._x_dip_mo_ints.shape))
+            logger.info("x dipole MO integrals: {}".format(
+                self._x_dip_mo_ints.shape))
             logger.debug(self._x_dip_mo_ints)
         if self._y_dip_mo_ints is not None:
-            logger.info("y dipole MO integrals: {}".format(self._y_dip_mo_ints.shape))
+            logger.info("y dipole MO integrals: {}".format(
+                self._y_dip_mo_ints.shape))
             logger.debug(self._y_dip_mo_ints)
         if self._z_dip_mo_ints is not None:
-            logger.info("z dipole MO integrals: {}".format(self._z_dip_mo_ints.shape))
+            logger.info("z dipole MO integrals: {}".format(
+                self._z_dip_mo_ints.shape))
             logger.debug(self._z_dip_mo_ints)
 
         if self._mo_coeff is not None:
