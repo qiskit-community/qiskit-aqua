@@ -158,13 +158,13 @@ class IQPE(QuantumAlgorithm):
         c = ClassicalRegister(1, name='c')
         q = QuantumRegister(self._operator.num_qubits, name='q')
         qc = QuantumCircuit(a, c, q)
-        qc.data += self._state_in.construct_circuit('circuit', q).data
+        qc += self._state_in.construct_circuit('circuit', q)
         # hadamard on a[0]
         qc.u2(0, np.pi, a[0])
         # controlled-U
-        qc.data += self._operator.construct_evolution_circuit(
+        qc += self._operator.construct_evolution_circuit(
             slice_pauli_list, -2 * np.pi, self._num_time_slices, q, a, unitary_power=2 ** (k - 1)
-        ).data
+        )
         # global phase due to identity pauli
         qc.u1(2 * np.pi * self._ancilla_phase_coef * (2 ** (k - 1)), a[0])
         # rz on a[0]
