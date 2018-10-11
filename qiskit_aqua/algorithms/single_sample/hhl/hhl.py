@@ -22,9 +22,11 @@ import logging
 
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 
-from qiskit_aqua import QuantumAlgorithm
+from qiskit_aqua import QuantumAlgorithm, AlgorithmError
 from qiskit_aqua import get_eigs_instance, get_reciprocal_instance, get_initial_state_instance
 import numpy as np
+from qiskit.tools.visualization import matplotlib_circuit_drawer as drawer
+
 
 import qiskit.extensions.simulator
 
@@ -59,7 +61,7 @@ class HHL(QuantumAlgorithm):
             },
             'additionalProperties': False
         },
-        'problems': ['energy'],
+        'problems': ['linear_system'],
         'depends': ['eigs', 'reciprocal'],
         'defaults': {
             'eigs': {
@@ -79,7 +81,7 @@ class HHL(QuantumAlgorithm):
     def __init__(self, configuration=None):
         super().__init__(configuration or self.HHL_CONFIGURATION.copy())
         self._matrix = None
-        self._invec = None
+        self._vector = None
 
         self._eigs = None
         self._init_state = None
@@ -95,7 +97,8 @@ class HHL(QuantumAlgorithm):
         self._num_a = 0
 
         self._mode = None
-        self._exact = None
+        self._exact = False
+        self._debug = False
 
         self._ret = {}
 
@@ -105,21 +108,21 @@ class HHL(QuantumAlgorithm):
         Initialize via parameters dictionary and algorithm input instance
         Args:
             params: parameters dictionary
-            algo_input: list or np.array instance
+            algo_input: LinearSystemInput instance
         """
         if algo_input is None:
-            raise AlgorithmError("Matrix, Vector instance is required.")
-        if not isinstance(algo_input, (list, tuple)):
-            raise AlgorithmError("(matrix, vector) pair is required.")
-        matrix, invec = algo_input
+            raise AlgorithmError("LinearSystemInput instance is required.")
+        matrix = algo_input.matrix
+        vector = algo_input.vector
         if not isinstance(matrix, np.ndarray):
             matrix = np.array(matrix)
-        if not isinstance(invec, np.ndarray):
-            invec = np.array(invec)
+        if not isinstance(vector, np.ndarray):
+            vector = np.array(vector)
 
         hhl_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM) or {}
         mode = hhl_params.get(HHL.PROP_MODE)
 
+        # Handle different modes
         if self._backend == "local_qasm_simulator":
             from qiskit.backends.local import QasmSimulatorCpp
             try:
@@ -134,17 +137,23 @@ class HHL(QuantumAlgorithm):
                     (self._backend == "local_qasm_simulator" and cpp)) and
                     self._execute_config.get("shots") == 1):
                 exact = True
+                ############### not always
+                self._debug = True
+                ###############
+                import qiskit.extensions.simulator
 
         if mode == 'debug':
             if self._backend != 'local_qasm_simulator' and not cpp:
                 raise AlgorithmError("Debug mode only possible with"
                         "C++ local_qasm_simulator.")
             import qiskit.extensions.simulator
+            self._debug = True
 
         if mode == 'swap_test':
             if self._backend == 'local_statevector_simulator':
                 raise AlgorithmError("Measurement requred")
     
+        # Initialize eigenvalue finding module
         eigs_params = params.get(QuantumAlgorithm.SECTION_KEY_EIGS) or {}
         eigs = get_eigs_instance(eigs_params["name"])
         eigs.init_params(eigs_params, matrix)
@@ -152,30 +161,31 @@ class HHL(QuantumAlgorithm):
         num_q, num_a = eigs.get_register_sizes()
 
 
-        # Fix invec for nonhermitian/non 2**n size matrices
-        assert(matrix.shape[0] == len(invec), "Check input vector size!")
+        # Fix vector for nonhermitian/non 2**n size matrices
+        assert(matrix.shape[0] == len(vector), "Check input vector size!")
 
-        tmpvec = np.append(invec, (2**num_q - len(invec))*[0])
+        tmpvec = np.append(vector, (2**num_q - len(vector))*[0])
         init_state_params = {"name": "CUSTOM"}
         init_state_params["num_qubits"] = num_q
         init_state_params["state_vector"] = tmpvec
         init_state = get_initial_state_instance(init_state_params["name"])
         init_state.init_params(init_state_params)
 
-        
+        # Initialize reciprocal rotation module
         reciprocal_params = params.get(QuantumAlgorithm.SECTION_KEY_RECIPROCAL) or {}
         reciprocal_params["negative_evals"] = eigs._negative_evals
         reciprocal_params["evo_time"] = eigs._evo_time
         reci = get_reciprocal_instance(reciprocal_params["name"])
         reci.init_params(reciprocal_params)
 
-        self.init_args(matrix, invec, eigs, init_state, reci, mode, exact, num_q, num_a)
+        # Initialize self
+        self.init_args(matrix, vector, eigs, init_state, reci, mode, exact, num_q, num_a)
 
 
-    def init_args(self, matrix, invec, eigs, init_state, reciprocal, mode,
+    def init_args(self, matrix, vector, eigs, init_state, reciprocal, mode,
             exact, num_q, num_a):
         self._matrix = matrix
-        self._invec = invec
+        self._vector = vector
         self._eigs = eigs
         self._init_state = init_state
         self._reciprocal = reciprocal
@@ -186,30 +196,32 @@ class HHL(QuantumAlgorithm):
 
        
     def _construct_circuit(self):
+        """ Constructing the HHL circuit """
+
         q = QuantumRegister(self._num_q, name="io")
         qc = QuantumCircuit(q)
 
         # InitialState
         qc += self._init_state.construct_circuit("circuit", q)
 
-        if self._mode == 'debug': qc.snapshot("0")
+        if self._debug: qc.snapshot("0")
 
         # EigenvalueEstimation (QPE)
         qc += self._eigs.construct_circuit("circuit", q)
         a = self._eigs._output_register
 
-        if self._mode == 'debug': qc.snapshot("1")
+        if self._debug: qc.snapshot("1")
 
         # Reciprocal calculation with rotation
         qc += self._reciprocal.construct_circuit("circuit", a)
         s = self._reciprocal._anc
 
-        if self._mode == 'debug': qc.snapshot("2")
+        if self._debug: qc.snapshot("2")
 
         # Inverse EigenvalueEstimation
         qc += self._eigs.construct_inverse("circuit")
 
-        if self._mode == 'debug': qc.snapshot("3")
+        if self._debug: qc.snapshot("3")
 
         # Measurement of the ancilla qubit
         if not self._exact:
@@ -218,7 +230,7 @@ class HHL(QuantumAlgorithm):
             qc.measure(s, c)
             self._success_bit = c
 
-        if self._mode == 'debug': qc.snapshot("-1")
+        if self._debug: qc.snapshot("-1")
 
         self._io_register = q
         self._eigenvalue_register = a
@@ -227,27 +239,44 @@ class HHL(QuantumAlgorithm):
 
     
     def _exact_simulation(self):
+        """ 
+        The exact simulation mode: The result of the HHL gets extracted from
+        the statevector. Only possible with statevector simulators
+        """
+        # Handle different backends
         if self._backend == "local_statevector_simulator":
             res = self.execute(self._circuit)
             sv = res.get_statevector()
         elif self._backend == "local_qasm_simulator":
             import qiskit.extensions.simulator
-            self._circuit.snapshot("-1")
+            self._circuit.snapshot("5")
+            self._execute_config["config"]["data"] = ["quantum_state_ket"]
             res = self.execute(self._circuit)
-            sv = res.get_snapshot("-1")
+            sv = res.get_snapshot("5").get("statevector")[0]
+
+        # Extract output vector
         half = int(len(sv)/2)
         vec = sv[half:half+2**self._num_q]
         self._ret["probability"] = vec.dot(vec.conj())
         vec = vec/np.linalg.norm(vec)
         self._ret["result"] = vec
-        self._ret["fidelity"] = abs(vec.dot(self._invec / np.linalg.norm(self._invec)))**2
+
+        # Calculating the fidelity
+        theo = np.linalg.solve(self._matrix, self._vector)
+        theo = theo/np.linalg.norm(theo)
+        self._ret["fidelity"] = abs(theo.dot(vec.conj()))**2
         tmp_vec = self._matrix.dot(vec)
-        f1 = np.linalg.norm(self._invec)/np.linalg.norm(tmp_vec)
-        f2 = sum(np.angle(self._invec*tmp_vec.conj()))/self._num_q
+        f1 = np.linalg.norm(self._vector)/np.linalg.norm(tmp_vec)
+        f2 = sum(np.angle(self._vector*tmp_vec.conj()))/self._num_q
         self._ret["solution"] = f1*vec*np.exp(-1j*f2)
 
     
     def _state_tomography(self):
+        """
+        Extracting the solution vector information via state tomography.
+        Inefficient, uses 3**n*shots executions of the circuit.
+        """
+        # Preparing the state tomography circuits
         import qiskit.tools.qcvv.tomography as tomo
         from qiskit import QuantumProgram
         c = ClassicalRegister(self._num_q)
@@ -258,6 +287,8 @@ class HHL(QuantumAlgorithm):
         tomo_names = tomo.create_tomography_circuits(qp, "master",
                 self._io_register, c, tomo_set)
         config = {k: v for k, v in self._execute_config.items() if k != "qobj_id"}
+
+        # Handling the results
         res = qp.execute(tomo_names, backend=self._backend, **config)
         probs = []
         for circ in res._result.get("result"):
@@ -272,22 +303,35 @@ class HHL(QuantumAlgorithm):
                     f += v
             probs.append(s/(f+s))
             circ["data"]["counts"] = new_counts
+
+        # Fitting the tomography data
         tomo_data = tomo.tomography_data(res, 'master', tomo_set)
         rho_fit = tomo.fit_tomography_data(tomo_data)
         vec = rho_fit[:, 0]/np.sqrt(rho_fit[0, 0])
-
-        self._ret["probability"] = sum(probs)/len(probs)
         self._ret["result"] = vec
-        self._ret["fidelity"] = abs(vec.dot(self._invec / np.linalg.norm(self._invec)))**2
-        f1 = np.sqrt(np.linalg.norm(self._invec))
-        f2 = sum(np.angle(self._invec*vec.conj()))/self._num_q
+
+        # Calculating the fidelity with the classical solution
+        theo = np.linalg.solve(self._matrix, self._vector)
+        theo = theo/np.linalg.norm(theo)
+        self._ret["fidelity"] = abs(theo.dot(vec.conj()))**2
+
+        # Rescaling the output vector to the real solution vector
+        tmp_vec = self._matrix.dot(vec)
+        f1 = np.linalg.norm(self._vector)/np.linalg.norm(tmp_vec)
+        f2 = sum(np.angle(self._vector*tmp_vec.conj()))/self._num_q
         self._ret["solution"] = f1*vec*np.exp(-1j*f2)
 
 
     def _swap_test(self):
+        """
+        Making a swap test calculating the fidelity between the HHL and
+        classical result (normalized).
+        """
+        # Preparing the circuit
         c = ClassicalRegister(1)
         self._circuit.add(c)
 
+        # using free qubits
         if (self._num_q + 1) > self._num_a:
             qx = QuantumRegister(self._num_q+1-self._num_a)
             self._circuit.add(qx)
@@ -298,20 +342,23 @@ class HHL(QuantumAlgorithm):
         test_bit = qubits[0]
         x_state = qubits[1:]
 
+        # Initializeing the solution state vector
         init_state = get_initial_state_instance("CUSTOM")
-        sol = list(np.linalg.solve(self._matrix, self._invec))
+        sol = list(np.linalg.solve(self._matrix, self._vector))
         init_state.init_params({"num_qubits": self._num_q, "state_vector": sol})
 
         qc = self._circuit
         qc += init_state.construct_circuit('circuit', x_state)
 
+        # Making a swap test
         qc.h(test_bit)
         for i in range(self._num_q):
             qc.cswap(test_bit, self._io_register[i], x_state[i])
         qc.h(test_bit)
 
         qc.measure(test_bit, c[0])
-
+        
+        # Execution and calculation of the fidelity
         res = self.execute(self._circuit)
         counts = res.get_counts()
         failed = 0
@@ -329,7 +376,8 @@ class HHL(QuantumAlgorithm):
         self._ret["counts"] = res.get_counts()
 
 
-    def __filter(self, qsk, reg=None, qubits=None, norm=True):
+    def __filter(self, qsk, reg=None, qubits=None):
+        # WORK IN PROGRESS
         qregs = list(self._circuit.get_qregs().values())
         if reg:
             idx = qregs.index(reg)
@@ -353,80 +401,13 @@ class HHL(QuantumAlgorithm):
                 ret[nkey] += complex(*val)
             else:
                 ret[nkey] = complex(*val)
-        if norm:
-            n = np.linalg.norm(np.array(list(ret.values())))
-            ret = {k: v/n for k, v in ret.items()}
+        n = np.linalg.norm(np.array(list(ret.values())))
+        ret = {k: v/n for k, v in ret.items()}
         return ret
 
-
-    def _debug(self):
+    #####################################################
+    def _exec_debug(self):
         # WORK IN PROGRESS
-        def QPE_norm(y,w,k,t):
-            #if only 1 eigenvalue present
-            if all([w[i]==w[0] for i in range(len(w))]):
-                return len(w)
-            r = np.abs(sum([(1-np.exp(1j*(2**k*wi*t-2*np.pi*y))) /
-                     (1-np.exp(1j*(wi*t-2*np.pi*y/2**k))) for wi in w]))
-            r[np.isnan(r)]=2**k
-            r = 2**(-2*k)*r**2
-            return sum(r)
-
-        def is_resolvable(num,evo_time,num_bits):
-            scale_num = evo_time*num/2/np.pi*2**num_bits
-            if int(scale_num)!=scale_num:
-                return False
-            else:
-                return True
-           
-        def QPE_theory_ket(y,w,k,t,vec,neg_evals=True):
-            #output: vector with ampl. of ket for each vector entry
-            def nearest_el(ar,val):
-                return np.argmin(np.abs(ar-val))
-            resolvable = is_resolvable(w,t,k)
-            x = None
-            if neg_evals:
-                y_ = np.arange(-2**(k-1),2**(k-1),1)
-            else:
-                y_ = y
-            x_ =y_/t*2.0*np.pi/2.0**k
-
-            if not resolvable:
-                qpe_fac = 1/2**(k)*( (1-np.exp(1j*(2**k*w*t-2*np.pi*y))) /
-                            (1-np.exp(1j*(w*t-2*np.pi*y/2**k))) )
-            else:
-                qpe_fac = np.array([0]*len(y))
-                idx = nearest_el(x_,w)
-                qpe_fac[idx] = 1
-                outvec = np.zeros((len(y),len(vec))).astype(complex)
-    
-    
-            for i,entr in enumerate(vec.tolist()):
-                outvec[:,i] =qpe_fac*entr
-                if x is None:
-                    x = x_
-                else:
-                    x = np.dstack((x,x_))
-            if neg_evals and not resolvable:
-                c = int(len(y)/2)
-                _  = outvec[c:,:].copy()
-                outvec[c:,:] = outvec[:c,:]
-                outvec[:c,:] = _
-            return x[0,:,:],outvec
-
-        def superpose_QPE_kets(x_in,w_ar,k,t,eig_vec_ar,invec,neg_evals=True):
-            #decompose invec into eigen vectors
-            eigvec_ampl = np.dot(np.linalg.inv(eig_vec_ar),invec)
-            output = np.zeros((len(x_in),len(eig_vec_ar[0,:]))).astype(complex)
-            norm = np.sqrt(QPE_norm(x_in,w_ar,k,t))
-            for idx in range(len(w_ar)):
-                w_i = w_ar[idx]
-                v_i = eig_vec_ar[:,idx]
-                x,res = QPE_theory_ket(x_in,w_i,k,t,v_i,neg_evals)
-                output += eigvec_ampl[idx]*res
-            output /= norm
-            return (x.flatten(),output.flatten())
-
-
         print(" HHL - Debug Mode ")
         print("##################\n")
         print("Matrix:\t", str(self._matrix).replace("\n", "\n\t "))
@@ -435,7 +416,7 @@ class HHL(QuantumAlgorithm):
         print("-> Eigenvectors", *v)
         print("-> Condition", np.linalg.cond(self._matrix))
 
-        print("Input:", self._invec)
+        print("Input:", self._vector)
 
         import matplotlib.pyplot as plt
         from matplotlib import gridspec
@@ -452,7 +433,6 @@ class HHL(QuantumAlgorithm):
 
         # Plot eigenvalues
         eigs = res.get_snapshot("1").get("quantum_state_ket")[0]
-        np.save("statevector.npy", res.get_snapshot("1").get("statevector")[0])
         eigs = self.__filter(eigs, reg=self._eigenvalue_register)
         nums = np.array(list(map(lambda x: int(x, 2), eigs.keys())))
         nums = nums/2**self._num_a*2*np.pi/self._eigs._evo_time
@@ -462,7 +442,7 @@ class HHL(QuantumAlgorithm):
 
         # Theoretical eigenvalues
         w, v = np.linalg.eig(self._matrix)
-        vt = v.T.conj().dot(self._invec)
+        vt = v.T.conj().dot(self._vector)
          
         ty = np.arange(0, 2**self._num_a)
         tmp = 1j*(2**self._num_a*np.outer(w, np.ones(len(ty)))*self._eigs._evo_time - 
@@ -473,47 +453,32 @@ class HHL(QuantumAlgorithm):
         tx = np.arange(0, 2**self._num_a)/2**self._num_a*2*np.pi/self._eigs._evo_time
         ty /= sum(ty)
 
-        h = int(len(tx)/2)
-        tx1 = tx[:h]
-        tx2 = tx[h:]
         if self._eigs._negative_evals:
+            h = int(len(tx)/2)
+            tx1 = tx[:h]
+            tx2 = tx[h:]
             tx2 -= 2*tx2[0]
+            tx = np.concatenate(tx2, tx1)
+            ty = np.concatenate(ty[h:], ty[:h])
 
-        ax_eig.plot(tx1, ty[:h], "r")
-        ax_eig.plot(tx2, ty[h:], "r")
+        ax_eig.plot(tx, ty, "r")
         
         # Plot reciprocals
         rec = res.get_snapshot("2").get("quantum_state_ket")[0]
-        #list(map(lambda x: print(x[0], x[1]), rec.items()))
+        list(map(lambda x: print(x[0], x[1]), rec.items()))
         rec = self.__filter(rec, qubits=[qi for qi in self._eigenvalue_register]
-                + [qi for qi in self._io_register]
-                            + [self._ancilla_register[0]],norm=False)
-        #list(map(lambda x: print(x[0], x[1]), rec.items()))
-        getrec = lambda s: rec[s] if s[-1]=='1' else 0
-        rec_ = [getrec(key) for key in rec.keys()]
-        len_io = len(self._io_register)
-        nums = np.array(list(map(lambda x: int(x[:-int(len_io+1)], 2), rec.keys())))
-        nums = nums/2**self._num_a*2*np.pi/self._eigs._evo_time
-        y = [np.abs(i) for i in rec_]
-        x = nums
+                + [self._ancilla_register[0]])
+        list(map(lambda x: print(x[0], x[1]), rec.items()))
+        getrec = lambda s: rec[s] if s in rec else 0
+        rec = [[getrec(key+"0"), getrec(key+"1")] for key in eigs.keys()]
+        y = [np.linalg.norm(i)**2 for i in rec]
+        x = [i[1]/np.linalg.norm(i) for i in rec]
         ax_rec.scatter(x, y)
 
         # Plot theoretical reciprocals (dependend on QPE results)
-        tx = np.arange(0, 2**self._num_a)
-        tx,ty = superpose_QPE_kets(tx,w,self._num_a,
-                                           self._eigs._evo_time,v,self._invec,
-                                           self._eigs._negative_evals)
-        print(self._invec,v,np.dot(np.linalg.inv(v),self._invec))
-        print(tx,ty)
-        for idx in range(len(tx)):
-            ty[idx] *= self._reciprocal._scale/tx[idx]#/self._eigs._evo_time*2*np.pi
-        ty = np.abs(ty)
-        tx = tx[ty!=0]
-        ty = ty[ty!=0]
-        tx = tx[np.isfinite(ty)]
-        ty = ty[np.isfinite(ty)]
-        print(tx,ty)
-        ax_rec.scatter(tx, ty, c="r")
+        tx = np.arange(0, 2**self._num_a)/2**self._num_a
+        tx = self._reciprocal._scale/tx
+        ax_rec.plot(tx, ty, "r")
 
         # Solution deviation
         sv = res.get_snapshot("3").get("statevector")[0]
@@ -522,10 +487,14 @@ class HHL(QuantumAlgorithm):
         self._ret["probability"] = vec.dot(vec.conj())
         vec = vec/np.linalg.norm(vec)
         self._ret["result"] = vec
-        solution = np.linalg.solve(self._matrix, self._invec)
+        solution = np.linalg.solve(self._matrix, self._vector)
+        self._ret["fidelity"] = abs(vec.conj().dot(solution/np.linalg.norm(solution)))**2
+        print(self._ret["fidelity"])
         dev = np.abs(solution/np.linalg.norm(solution)-vec)**2
         ax_dev.barh(np.arange(len(dev)), dev)
-        print(solution, vec)
+        sa = solution/np.linalg.norm(solution)
+        print(sa, vec)
+        print(abs(sa[0]*vec[0].conj()+sa[1]*vec[1].conj())**2)
 
         # Decoration
         ax_eig.set_title("Eigenvalue results")
@@ -536,9 +505,9 @@ class HHL(QuantumAlgorithm):
                 color="g")
 
         ax_rec.set_title("Reciprocal results")
-        ax_rec.set_ylabel("Abs ampl.")
-        ax_rec.set_xlabel("$\lambda$")
-        
+        ax_rec.set_ylabel("Probability")
+        ax_rec.set_xlabel("$C/\lambda$")
+        ax_rec.set_xlim(0, 1)
 
         ax_dev.set_title("Deviation of Solution")
         ax_dev.set_xlabel("Amount")
@@ -547,10 +516,11 @@ class HHL(QuantumAlgorithm):
         ax_dev.set_xlim(0, lim)
 
         plt.show()
-
+    #################################### 
 
     def run(self):
         self._construct_circuit()
+        # Handling the modes
         if self._mode == "circuit":
             self._ret["circuit"] = self._circuit
             regs = {
@@ -562,12 +532,50 @@ class HHL(QuantumAlgorithm):
             self._ret["regs"] = regs
         elif self._mode == "state_tomography":
             if self._exact:
-                self._exact_simulation()
+                sv = self._exact_simulation()
             else:
                 self._state_tomography()
         elif self._mode == "debug":
-            self._debug()
+            self._exec_debug()
         elif self._mode == "swap_test":
             self._swap_test()
+        # Adding few general informations
         self._ret["gate_count"] = self._circuit.number_atomic_gates()
+        self._ret["matrix"] = self._matrix
+        self._ret["vector"] = self._vector
+        self._ret["eigenvalues"] = np.linalg.eig(self._matrix)[0]
         return self._ret
+
+    ############################################### 
+    def number_atomic_gates_2(self, qc=None):
+        from qiskit import CompositeGate,Gate
+        from qiskit.extensions.standard.ccx import ToffoliGate
+        from qiskit.extensions.standard.cu1 import Cu1Gate
+        from qiskit.extensions.standard.cu3 import Cu3Gate
+        from qiskit.extensions.standard.cswap import FredkinGate
+        from qiskit.extensions.standard.cy import CyGate
+        from qiskit.extensions.standard.cz import CzGate
+        from qiskit.extensions.standard.ch import CHGate
+        from qiskit.extensions.standard.crz import CrzGate
+
+        """Count the number of leaf gates. """
+        #worth 6 basic gates
+        gate_list=[Cu1Gate,Cu3Gate,FredkinGate,CyGate,CzGate,CHGate,CrzGate]
+        num = 0
+        if qc == None:
+            qc = self._circuit
+        for gate in qc.data:
+            if isinstance(gate, CompositeGate):
+                num += self.number_atomic_gates_2(gate)
+            else:
+                if isinstance(gate, Gate):
+                    if isinstance(gate,ToffoliGate):
+                        num+=15
+                    inlist = [isinstance(gate,i) for i in gate_list]
+                    if any(inlist):
+                        num+=5
+                    num += 1
+        return num
+    ##############################################
+
+

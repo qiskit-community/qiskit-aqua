@@ -1,0 +1,123 @@
+{
+    "algorithm": {
+        "k": 1,
+        "name": "ExactEigensolver"
+    },
+    "input": {
+        "aux_ops": [],
+        "name": "EnergyInput",
+        "qubitop": {
+            "paulis": [
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.8105479862761009
+                    },
+                    "label": "IIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.1721839427308565
+                    },
+                    "label": "ZIII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.22575350251540538
+                    },
+                    "label": "IZII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.1721839427308564
+                    },
+                    "label": "IIZI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": -0.2257535025154054
+                    },
+                    "label": "IIIZ"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.12091263358560006
+                    },
+                    "label": "ZZII"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.16892754048859018
+                    },
+                    "label": "ZIZI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.045232799794893475
+                    },
+                    "label": "YYXX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.045232799794893475
+                    },
+                    "label": "YYYY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.045232799794893475
+                    },
+                    "label": "XXXX"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.045232799794893475
+                    },
+                    "label": "XXYY"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.16614543338049353
+                    },
+                    "label": "ZIIZ"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.16614543338049353
+                    },
+                    "label": "IZZI"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.174643431424422
+                    },
+                    "label": "IZIZ"
+                },
+                {
+                    "coeff": {
+                        "imag": 0.0,
+                        "real": 0.12091263358560006
+                    },
+                    "label": "IIZZ"
+                }
+            ]
+        }
+    },
+    "problem": {
+        "name": "energy",
+        "random_seed": null
+    }
+}

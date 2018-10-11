@@ -149,6 +149,10 @@ class QPE(Eigenvalues):
         negative_evals = params.get(QPE.PROP_NEGATIVE_EVALS)
         iqft_params = params.get(QPE.PROP_IQFT)
 
+        # Adding a automatic falg qubit for negative eigenvalues
+        if negative_evals:
+            num_ancillae += 1
+    
         # Extending the operator matrix, if the dimension is not in 2**n
         if np.log2(matrix.shape[0]) % 1 != 0:
             next_higher = int(np.ceil(np.log2(matrix.shape[0])))

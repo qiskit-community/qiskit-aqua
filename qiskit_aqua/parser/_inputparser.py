@@ -235,16 +235,15 @@ class InputParser(object):
         if JSONSchema.ALGORITHM in section_names:
             if JSONSchema.PROBLEM not in section_names:
                 self.set_section(JSONSchema.PROBLEM)
-                
+         
         self._json_schema.update_pluggable_input_schemas(self)
         self._update_algorithm_input_schema()
         self._merge_dependencies()
-      
+       
         section_names = set(self.get_section_names()) | set(self.get_default_section_names())
         for section_name in section_names:
             if section_name not in self._sections:
                 self.set_section(section_name)
-                
             new_properties = self.get_section_default_properties(section_name)
             if new_properties is not None:
                 if self.section_is_text(section_name):
