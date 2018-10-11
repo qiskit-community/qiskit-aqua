@@ -130,11 +130,11 @@ class LookupRotation(Reciprocal):
             '''Get maximum signifiacnt bit, i.e. first position of 1'''
             return len(binary) - list(reversed(binary)).index('1')
 
-        def get_est_lamb(pattern, msb, n):
+        def get_est_lamb(pattern, msb, n,k):
             '''Estimate the bin mid point and return the float value'''
             if msb - n > 0:
-                pattern[msb - n - 1] = '1'
-                return bin_to_num(pattern)
+                remainder = sum([2**-i for i in range(k-(msb-n-1),k+1)])
+                return bin_to_num(pattern)+remainder/2
             else:
                 return bin_to_num(pattern)
 
@@ -158,7 +158,7 @@ class LookupRotation(Reciprocal):
                     pattern = pattern_ + appendpat
                     vec[msb - n:msb] = pattern
                     #estimate bin mid point
-                    e_l = get_est_lamb(vec.copy(), msb, n)
+                    e_l = get_est_lamb(vec.copy(), msb, n, k)
                     lambda_array.append(e_l)
                     msb_array.append(msb)
                     app_pattern_array.append(list(reversed(appendpat)))
@@ -188,7 +188,7 @@ class LookupRotation(Reciprocal):
                     e_l = 0.5
                 else:
                     vec[msb - n:msb] = list(pattern)
-                    e_l = get_est_lamb(vec.copy(), msb, n)
+                    e_l = get_est_lamb(vec.copy(), msb, n, k)
                 lambda_array.append(e_l)
                 msb_array.append(msb - 1)
                 app_pattern_array.append(list(reversed(appendpat)))
