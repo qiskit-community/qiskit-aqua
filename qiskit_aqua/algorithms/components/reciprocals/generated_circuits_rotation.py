@@ -18,8 +18,8 @@
 from qiskit import QuantumRegister, QuantumCircuit
 
 from qiskit_aqua.algorithms.components.reciprocals import Reciprocal
-from qiskit_aqua.utils import cnx_na, cnu3
-
+from qiskit.tools.visualization import matplotlib_circuit_drawer as drawer
+import matplotlib.pyplot as plt
 import numpy as np
 import math
 import os
@@ -34,6 +34,8 @@ class GeneratedCircuit(Reciprocal):
     PROP_NUM_ANCILLAE = 'num_ancillae'
     PROP_NEGATIVE_EVALS = 'negative_evals'
     PROP_SCALE = 'scale'
+    PROP_EVO_TIME = 'evo_time'
+    PROP_LAMBDA_MIN = 'lambda_min'
 
     GENCIRCUITS_CONFIGURATION = {
         'name': 'GENCIRCUITS',
@@ -45,15 +47,25 @@ class GeneratedCircuit(Reciprocal):
             'properties': {
                 PROP_NUM_ANCILLAE: {
                     'type': ['integer', 'null'],
-                    'default': None,
+                    'default': None
                 },
                 PROP_NEGATIVE_EVALS: {
                     'type': 'boolean',
                     'default': False
                 },
-                PROP_SCALE:{
+                PROP_SCALE: {
                     'type': 'number',
-                    'default':1,
+                    'default':0,
+                    'minimum':0,
+                    'maximum':1,
+                },
+                PROP_EVO_TIME: {
+                    'type': ['number', 'null'],
+                    'default': None
+                },
+                PROP_LAMBDA_MIN: {
+                    'type': ['number', 'null'],
+                    'default': None
                 }
             },
             'additionalProperties': False
@@ -70,13 +82,19 @@ class GeneratedCircuit(Reciprocal):
         self._reg_size = 0
         self._negative_evals = False
         self._scale = 0
+        self._lambda_min = None
+        self._evo_time = None
         self._offset = 0
+        self._rec_circuit = None
+        self._inverse = None
 
-    def init_args(self, num_ancillae=0, scale=0,
+    def init_args(self, num_ancillae=0, scale=0, evo_time = None, lambda_min = None,
             negative_evals=False):
         self._num_ancillae = num_ancillae
         self._negative_evals = negative_evals
         self._scale = scale
+        self._evo_time = evo_time
+        self._lambda_min = lambda_min
 
     def _parse_circuit(self):
         # Parse the pre-generated circuit with specified number of qubits
@@ -86,6 +104,7 @@ class GeneratedCircuit(Reciprocal):
         ev_reg = self._ev
         rec_reg = self._rec
         offset = self._offset
+        #Getting the files of the pregenerated circuits
         import os 
         dir_path = os.path.dirname(os.path.realpath(__file__))
         with open(dir_path+"/GenCirc/intdiv-esop0-rec{}.txt" .format(n), "r") as f:
@@ -93,15 +112,18 @@ class GeneratedCircuit(Reciprocal):
 
         #for negative eigenvalues, we ignore the first bit in the eigenvalue register
         w = n-1+offset
+        #parsing the file; first number is number of qubits needed for gate; last number is controlled qubit; inbetween controlling qubits
         for i in range(len(data)):
             ctl = []
             xgate = []
             doubledigit = False
             sign = False
+            #setting number of control qubits, needed for gate type
             if data[i][1].isdigit():
                 ctlnumber = int(data[i][0] + data[i][1])-1
             else:
                 ctlnumber = int(data[i][0])-1
+            #setting target qubit, checking if number is > 10
             if int(data[i][-2]) >= n:
                 tgt = rec_reg[int(data[i][-2]) - n]
             else:
@@ -110,7 +132,8 @@ class GeneratedCircuit(Reciprocal):
                 if int(data[i][-3] + data[i][-2]) >= n:
                     tgt = rec_reg[int(data[i][-3] + data[i][-2]) - n]
                 else:
-                    tgt = ev_reg[w-int(data[i][-3] + data[i][-2])]           
+                    tgt = ev_reg[w-int(data[i][-3] + data[i][-2])]          
+            #saving control qubits, checking if they're double digits
             for j in range(len(data[i])):
                 if data[i][j] == str(" "):
                     doubledigit = False
@@ -135,8 +158,10 @@ class GeneratedCircuit(Reciprocal):
                         else:
                             qc.x(ev_reg[w-int(data[i][j] + data[i][j+1])])               
                         sign = False
+            #deleting entry for control number and target qubit
             ctl.pop(0)
             ctl.pop(-1)
+            #checking which qubit belongs in which register
             for i in range(len(ctl)):
                 if ctl[i] < n:
                     ctl[i] = ev_reg[w-ctl[i]]
@@ -149,13 +174,14 @@ class GeneratedCircuit(Reciprocal):
             elif ctlnumber == 2: #toffoli gate
                 qc.ccx(ctl[0], ctl[1], tgt)
             else: #not gates controlled with more than 2 qubits
-                qc.cnx(ctl, tgt)
+                qc.cnx_na(ctl, tgt)
             for j in xgate:
                 if j >= n:
                     qc.x(rec_reg[j-n])
                 else:
                     qc.x(ev_reg[w-j])
-
+        
+        self._rec_circuit = qc
         self._circuit = qc
         self._rec = rec_reg
         
@@ -179,11 +205,30 @@ class GeneratedCircuit(Reciprocal):
         self._anc = ancilla
 
         
+    def _reverse_parsing(self):
+    #reversing the reciprocal to make the circuit reversible
+        qc = QuantumCircuit(self._ev, self._rec, self._anc)
+        #deleting entries for rotation
+        if self._negative_evals:
+            cutoff = len(self._rec_circuit.data) - (self._num_ancillae + 1)
+        else: 
+            cutoff = len(self._rec_circuit.data) - self._num_ancillae
+        for gate in reversed(self._rec_circuit.data[:cutoff]):
+            gate.reapply(qc)
+        return qc
+
+
     def construct_circuit(self, mode, inreg):
         #initialize circuit
         if mode == "vector":
             raise NotImplementedError("mode vector not supported")
+        #setting the scaling for the rotation - scale has to be proportional to smallest eigenvalue, if that is not known, smallest possible value is set
+        if self._lambda_min is not None:
+            self._scale = self._lambda_min/2/np.pi*self._evo_time
+        if self._scale == 0:
+            self._scale = 2**(-len(inreg))
         self._ev = inreg
+        #checking for negative eigenvalues and deleting first qubit out of eigenvalue register, if true
         if self._negative_evals:
             self._offset = 1        
         self._num_ancillae = len(self._ev) - self._offset
@@ -194,8 +239,8 @@ class GeneratedCircuit(Reciprocal):
         qc = QuantumCircuit(self._ev, self._rec, self._anc)
         self._circuit = qc
         
-
         self._parse_circuit()
         self._rotation()
+        self._circuit += self._reverse_parsing()
 
         return self._circuit

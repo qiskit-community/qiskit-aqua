@@ -24,7 +24,8 @@ demo/svm/img/data/
 
 # Test files
 *.npy
-hhl_testing/data
+hhl_testing/data*
+hhl_testing/test_objects*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -124,6 +125,8 @@ docs/*.rst
 !docs/aqua_optimization.rst
 !docs/aqua_tutorials.rst
 !docs/qiskit_aqua_chemistry.rst
+!docs/eigs.rst
+!docs/reciprocals.rst
 
 # PyBuilder
 target/
@@ -162,3 +165,5 @@ venv.bak/
 # mypy
 .mypy_cache/
 qpe_hhl/arbitrarymatrix.py
+hhl_testing/qiskit-vscode-log.out
+qiskit-vscode-log.out
