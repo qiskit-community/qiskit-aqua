@@ -31,11 +31,7 @@ class QMolecule(object):
     """Molecule data class with driver information."""
 
     def __init__(self, filename=None):
-        if filename is None:
-            fd, self._filename = tempfile.mkstemp(suffix='.hdf5')
-            os.close(fd)
-        else:
-            self._filename = filename
+        self._filename = filename
 
         # Driver origin from which this QMolecule was created
         self._origin_driver_name       = "?"
@@ -114,11 +110,18 @@ class QMolecule(object):
 
     @property
     def filename(self):
+        if self._filename is None:
+            fd, self._filename = tempfile.mkstemp(suffix='.hdf5')
+            os.close(fd)
+            
         return self._filename
     
     def load(self):
         """loads info saved."""
         try:
+            if self._filename is None:
+                return
+            
             with h5py.File(self._filename, "r") as f:
                 # Origin driver info
                 data = f["origin_driver/name"][...]
@@ -174,8 +177,8 @@ class QMolecule(object):
             self.remove_file(file_name)
             file = file_name
         else:
+            file = self.filename
             self.remove_file()
-            file = self._filename
             
         with h5py.File(file, "w") as f:
             # Driver origin of molecule data
