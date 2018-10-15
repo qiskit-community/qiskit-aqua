@@ -18,5 +18,6 @@
 from .reciprocal import Reciprocal
 from .lookup_rotation import LookupRotation
 from .generated_circuits_rotation import GeneratedCircuit
+from .long_division import LongDivision
 
-__all__ = ['LookupRotation', 'Reciprocal', 'GeneratedCircuit']
+__all__ = ['LookupRotation', 'Reciprocal', 'GeneratedCircuit', 'LongDivision']
