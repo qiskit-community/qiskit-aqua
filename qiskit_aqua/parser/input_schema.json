@@ -13,6 +13,18 @@
                 "random_seed": {
                     "type": ["integer", "null"],
                     "default": null
+                },
+                "circuit_caching": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "caching_naughty_mode": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "circuit_cache_file": {
+                    "type": "string",
+                    "default": null
                 }
             },
             "required": ["name"],

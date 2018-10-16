@@ -28,9 +28,10 @@ from qiskit.backends import JobError
 
 from qiskit_aqua.algorithmerror import AlgorithmError
 from qiskit_aqua.utils import summarize_circuits
+from qiskit_aqua.utils import circuit_cache
+import copy
 
 logger = logging.getLogger(__name__)
-
 
 def run_circuits(circuits, backend, execute_config, qjob_config={},
                  max_circuits_per_job=sys.maxsize, show_circuit_summary=False):
@@ -73,10 +74,25 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
     chunks = int(np.ceil(len(circuits) / max_circuits_per_job))
 
     for i in range(chunks):
-        sub_circuits = circuits[i *
-                                max_circuits_per_job:(i + 1) * max_circuits_per_job]
-        qobj = q_compile(sub_circuits, my_backend, **execute_config)
-        job = my_backend.run(qobj)
+        sub_circuits = circuits[i * max_circuits_per_job:(i + 1) * max_circuits_per_job]
+        if circuit_cache.use_caching and circuit_cache.misses < 5:
+            try:
+                qobj = circuit_cache.load_qobj_from_cache(sub_circuits, i)
+            except (TypeError, IndexError, FileNotFoundError, EOFError) as e: #cache miss, fail gracefully
+                # logger.debug(repr(e))
+                circuit_cache.clear_cache()
+                logger.debug('Circuit cache miss, recompiling')
+                qobj = q_compile(sub_circuits, my_backend, **execute_config)
+                circuit_cache.cache_circuit(qobj, circuits, i)
+                circuit_cache.misses += 1
+        else:
+            qobj = q_compile(sub_circuits, my_backend, **execute_config)
+
+        if circuit_cache.naughty_mode:
+            job = circuit_cache.naughty_run(my_backend, qobj)
+        else:
+            job = my_backend.run(qobj)
+
         jobs.append(job)
         qobjs.append(qobj)
 

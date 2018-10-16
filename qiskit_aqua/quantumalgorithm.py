@@ -34,6 +34,7 @@ from qiskit.backends.ibmq.credentials import Credentials
 from qiskit.backends.ibmq.ibmqsingleprovider import IBMQSingleProvider
 from qiskit_aqua import AlgorithmError
 from qiskit_aqua.utils import run_circuits
+from qiskit_aqua.utils import circuit_cache
 from qiskit_aqua import Preferences
 
 logger = logging.getLogger(__name__)
@@ -80,6 +81,9 @@ class QuantumAlgorithm(ABC):
         self._random_seed = None
         self._random = None
         self._show_circuit_summary = False
+        self._circuit_caching = False
+        self._caching_naughty_mode = False
+        self._cache_file = None
 
     @property
     def configuration(self):
@@ -179,6 +183,10 @@ class QuantumAlgorithm(ABC):
 
         info = "Algorithm: '{}' setup with backend '{}', with following setting:\n {}\n{}".format(
             self._configuration['name'], my_backend.configuration()['name'], self._execute_config, self._qjob_config)
+        circuit_cache.use_caching = self._circuit_caching
+        circuit_cache.naughty_mode = self._caching_naughty_mode
+        circuit_cache.cache_file = self._cache_file
+        circuit_cache.clear_cache()
 
         logger.info('Qiskit Terra version {}'.format(qiskit_version))
         logger.info(info)
