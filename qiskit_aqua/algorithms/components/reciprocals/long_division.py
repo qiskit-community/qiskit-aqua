@@ -257,8 +257,12 @@ class LongDivision(Reciprocal):
         if self._negative_evals:
             self._neg_offset = 1 
             
+            
         self._num_ancillae = len(self._ev) - self._neg_offset
         self._n = self._num_ancillae + 1  
+        
+        if self._num_ancillae < 3:
+            raise NotImplementedError("Min. size of eigenregister is 3 for positive eigenvalues and 4 when negative eigenvalues are enabled")
         
         if self._precision is None:
             self._precision = self._num_ancillae 
