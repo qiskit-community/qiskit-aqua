@@ -39,8 +39,6 @@ logger = logging.getLogger(__name__)
 
 class Operator(object):
 
-    MAX_CIRCUITS_PER_JOB = 300
-
     """
     Operators relevant for quantum applications
 
@@ -566,7 +564,6 @@ class Operator(object):
                 self._to_dia_matrix(mode='matrix')
 
             result = run_circuits(input_circuit, backend=backend, execute_config=execute_config,
-                                  max_circuits_per_job=self.MAX_CIRCUITS_PER_JOB,
                                   show_circuit_summary=self._summarize_circuits)
             quantum_state = np.asarray(result.get_statevector(input_circuit))
 
@@ -580,7 +577,6 @@ class Operator(object):
             n_qubits = self.num_qubits
 
             result = run_circuits(input_circuit, backend=backend, execute_config=execute_config,
-                                  max_circuits_per_job=self.MAX_CIRCUITS_PER_JOB,
                                   show_circuit_summary=self._summarize_circuits)
             simulator_initial_state = np.asarray(result.get_statevector(input_circuit))
 
@@ -614,7 +610,6 @@ class Operator(object):
                     circuits_to_simulate.append(circuit)
 
             result = run_circuits(circuits_to_simulate, backend=backend, execute_config=temp_config,
-                                  max_circuits_per_job=self.MAX_CIRCUITS_PER_JOB,
                                   show_circuit_summary=self._summarize_circuits)
 
             for idx, pauli in enumerate(self._paulis):
@@ -674,8 +669,7 @@ class Operator(object):
                 circuits.append(circuit)
 
             result = run_circuits(circuits, backend=backend, execute_config=execute_config,
-                                  qjob_config=qjob_config, max_circuits_per_job=self.MAX_CIRCUITS_PER_JOB,
-                                  show_circuit_summary=self._summarize_circuits)
+                                  qjob_config=qjob_config, show_circuit_summary=self._summarize_circuits)
 
             avg_paulis = []
             for idx, pauli in enumerate(self._paulis):
@@ -705,8 +699,7 @@ class Operator(object):
 
             # Execute all the stacked quantum circuits - one for each TPB set
             result = run_circuits(circuits, backend=backend, execute_config=execute_config,
-                                  qjob_config=qjob_config, max_circuits_per_job=self.MAX_CIRCUITS_PER_JOB,
-                                  show_circuit_summary=self._summarize_circuits)
+                                  qjob_config=qjob_config, show_circuit_summary=self._summarize_circuits)
 
             for tpb_idx, tpb_set in enumerate(self._grouped_paulis):
                 avg_paulis = []
@@ -763,12 +756,6 @@ class Operator(object):
             avg = self._eval_directly(input_circuit)
             std_dev = 0.0
         else:
-            try:
-                qiskit.Aer.get_backend(backend)
-                self.MAX_CIRCUITS_PER_JOB = sys.maxsize
-            except KeyError:
-                pass
-
             if "statevector" in backend:
                 execute_config['shots'] = 1
                 avg = self._eval_with_statevector(operator_mode, input_circuit, backend, execute_config)
