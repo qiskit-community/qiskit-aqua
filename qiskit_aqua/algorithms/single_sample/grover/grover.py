@@ -162,10 +162,11 @@ class Grover(QuantumAlgorithm):
         return assignment, oracle_evaluation
 
     def run(self):
-        qc_prefix, qc_amplitude_amplification, qc_measurement = self._construct_circuit_components()
+        qc_prefix, qc_amplitude_amplification_single_iteration, qc_measurement = self._construct_circuit_components()
+        qc_amplitude_amplification = QuantumCircuit()
 
         if self._incremental:
-            qc_amplitude_amplification_single_iteration_data = qc_amplitude_amplification.data
+            qc_amplitude_amplification += qc_amplitude_amplification_single_iteration
             current_num_iterations = 1
             while current_num_iterations <= self._max_num_iterations:
                 assignment, oracle_evaluation = self._run_with_num_iterations(
@@ -174,9 +175,10 @@ class Grover(QuantumAlgorithm):
                 if oracle_evaluation:
                     break
                 current_num_iterations += 1
-                qc_amplitude_amplification.data += qc_amplitude_amplification_single_iteration_data
+                qc_amplitude_amplification += qc_amplitude_amplification_single_iteration
         else:
-            qc_amplitude_amplification.data *= self._num_iterations
+            for i in range(self._num_iterations):
+                qc_amplitude_amplification += qc_amplitude_amplification_single_iteration
             assignment, oracle_evaluation = self._run_with_num_iterations(
                 qc_prefix, qc_amplitude_amplification, qc_measurement
             )
