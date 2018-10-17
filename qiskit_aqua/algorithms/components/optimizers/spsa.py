@@ -158,8 +158,7 @@ class SPSA(Optimizer):
             theta_plus = theta + c_spsa * delta
             theta_minus = theta - c_spsa * delta
             # cost function for the two directions
-            cost_plus = obj_fun(theta_plus)
-            cost_minus = obj_fun(theta_minus)
+            cost_plus, cost_minus = obj_fun([theta_plus, theta_minus])
             # derivative estimate
             g_spsa = (cost_plus - cost_minus) * delta / (2.0 * c_spsa)
             # updated theta
@@ -209,8 +208,9 @@ class SPSA(Optimizer):
             if i % 5 == 0:
                 logger.debug('calibration step # {} of {}'.format(str(i), str(stat)))
             delta = 2 * np.random.randint(2, size=np.shape(initial_theta)[0]) - 1
-            obj_plus = obj_fun(initial_theta + initial_c * delta)
-            obj_minus = obj_fun(initial_theta - initial_c * delta)
+            theta_plus = initial_theta + initial_c * delta
+            theta_minus = initial_theta - initial_c * delta
+            obj_plus, obj_minus = obj_fun([theta_plus, theta_minus])
             delta_obj += np.absolute(obj_plus - obj_minus) / stat
 
         self._parameters[0] = target_update * 2 / delta_obj \

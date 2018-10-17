@@ -253,14 +253,37 @@ class VQE(QuantumAlgorithm):
         Returns:
             Energy of the hamiltonian.
         """
-        input_circuit = self._var_form.construct_circuit(parameters)
-        mean_energy, std_energy = self._operator.eval(self._operator_mode, input_circuit,
-                                                      self._backend, self._execute_config, self._qjob_config)
-        self._eval_count += 1
+        if isinstance(parameters, list):
+            circuits = []
+            for idx in range(len(parameters)):
+                parameter = parameters[idx]
+                input_circuit = self._var_form.construct_circuit(parameter)
+                circuit = self._operator.construct_evaluation_circuit(self._operator_mode,
+                                                                      input_circuit, self._backend)
+                circuits.append(circuit)
+            to_be_simulated_circuits = []
+            for circuit in circuits:
+                for x in circuit:
+                    to_be_simulated_circuits.append(x)
+            result = self.execute(to_be_simulated_circuits)
+            mean_energy = []
+            std_energy = []
+            for idx in range(len(parameters)):
+                mean, std = self._operator.evaluate_with_result(
+                    self._operator_mode, circuits[idx], self._backend, result)
+                mean_energy.append(np.real(mean))
+                std_energy.append(np.real(std))
+                self._eval_count += 1
+                logger.info('Energy evaluation {} returned {}'.format(self._eval_count, np.real(mean)))
+        else:
+            input_circuit = self._var_form.construct_circuit(parameters)
+            mean, std = self._operator.eval(self._operator_mode, input_circuit,
+                                            self._backend, self._execute_config, self._qjob_config)
+            mean_energy = np.real(mean)
+            self._eval_count += 1
 
         self._operator.disable_summarize_circuits()
-        logger.info('Energy evaluation {} returned {}'.format(self._eval_count, np.real(mean_energy)))
-        return np.real(mean_energy)
+        return mean_energy
 
     def find_minimum_eigenvalue(self, initial_point=None):
         """Determine minimum energy state.
