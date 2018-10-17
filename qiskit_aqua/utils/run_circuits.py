@@ -19,6 +19,7 @@ import sys
 import logging
 import time
 import functools
+import copy
 
 import numpy as np
 import qiskit
@@ -34,8 +35,37 @@ logger = logging.getLogger(__name__)
 MAX_CIRCUITS_PER_JOB = 300
 
 
+def _reuse_shared_circuits(circuits, backend, execute_config, qjob_config={}):
+    """
+    We assume the 0-th circuit is the shared_circuit, so we execute it first
+    and then use it as initial state for simulation.
+
+    Note that all circuits should have the exact the same shared parts.
+
+    TODO:
+        after subtraction, the circuits can not be empty.
+    """
+    shared_circuit = circuits[0]
+    shared_result = run_circuits(shared_circuit, backend, execute_config,
+                                 show_circuit_summary=True)
+
+    if len(circuits) == 1:
+        return shared_result
+    shared_quantum_state = np.asarray(shared_result.get_statevector(shared_circuit))
+    # extract different of circuits
+    for circuit in circuits[1:]:
+        circuit.data = circuit.data[len(shared_circuit):]
+
+    temp_execute_config = copy.deepcopy(execute_config)
+    if 'config' not in temp_execute_config:
+        temp_execute_config['config'] = dict()
+    temp_execute_config['config']['initial_state'] = shared_quantum_state
+    diff_result = run_circuits(circuits[1:], backend, temp_execute_config, qjob_config)
+    result = shared_result + diff_result
+    return result
+
 def run_circuits(circuits, backend, execute_config, qjob_config={},
-                 show_circuit_summary=False):
+                 show_circuit_summary=False, has_shared_circuits=False):
     """
     An execution wrapper with Qiskit-Terra, with job auto recover capability.
 
@@ -48,7 +78,7 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
         execute_config (dict): settings for qiskit execute (or compile)
         qjob_config (dict): settings for job object, like timeout and wait
         show_circuit_summary (bool): showing the summary of submitted circuits.
-
+        has_shared_circuits (bool): use the 0-th circuits as initial state for other circuits.
     Returns:
         Result: Result object
 
@@ -64,6 +94,9 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
         my_backend = qiskit.Aer.get_backend(backend)
     except KeyError:
         my_backend = qiskit.IBMQ.get_backend(backend)
+
+    if has_shared_circuits:
+        return _reuse_shared_circuits(circuits, backend, execute_config, qjob_config)
 
     with_autorecover = False if my_backend.configuration()['simulator'] else True
     max_circuits_per_job = sys.maxsize if my_backend.configuration()['local'] \
