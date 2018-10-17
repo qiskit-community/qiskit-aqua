@@ -910,13 +910,17 @@ class Operator(object):
         else:
             if "statevector" in backend:
                 execute_config['shots'] = 1
+                has_shared_circuits = True
 
-            if operator_mode == 'matrix':
+                if operator_mode == 'matrix':
+                    has_shared_circuits = False
+
+                if 'config' in execute_config:
+                    if 'noise_params' in execute_config['config']:
+                        has_shared_circuits = False
+            else:
                 has_shared_circuits = False
 
-            if 'config' in execute_config:
-                if 'noise_params' in execute_config['config']:
-                    has_shared_circuits = False
             circuits = self.construct_evaluation_circuit(operator_mode, input_circuit, backend)
             result = run_circuits(circuits, backend=backend, execute_config=execute_config,
                                   qjob_config=qjob_config, show_circuit_summary=self._summarize_circuits,
