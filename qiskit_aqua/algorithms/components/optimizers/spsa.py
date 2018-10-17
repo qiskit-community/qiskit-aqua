@@ -164,7 +164,7 @@ class SPSA(Optimizer):
             theta_minus = theta - c_spsa * delta
             # cost function for the two directions
             if self._batch_circuits:
-                cost_plus, cost_minus = obj_fun([theta_plus, theta_minus])
+                cost_plus, cost_minus = obj_fun(np.concatenate((theta_plus, theta_minus)))
             else:
                 cost_plus = obj_fun(theta_plus)
                 cost_minus = obj_fun(theta_minus)
@@ -220,7 +220,7 @@ class SPSA(Optimizer):
             theta_plus = initial_theta + initial_c * delta
             theta_minus = initial_theta - initial_c * delta
             if self._batch_circuits:
-                obj_plus, obj_minus = obj_fun([theta_plus, theta_minus])
+                obj_plus, obj_minus = obj_fun(np.concatenate((theta_plus, theta_minus)))
             else:
                 obj_plus = obj_fun(theta_plus)
                 obj_minus = obj_fun(theta_minus)
