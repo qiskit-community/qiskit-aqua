@@ -71,6 +71,10 @@ class SPSA(Optimizer):
                 'skip_calibration': {
                     'type': 'boolean',
                     'default': False
+                },
+                'batch_circuits': {
+                    'type': 'boolean',
+                    'default': False
                 }
             },
             'additionalProperties': False
@@ -90,10 +94,11 @@ class SPSA(Optimizer):
         self._parameters = None
         self._skip_calibration = False
 
-    def init_args(self, max_trials=1000, c0=2*np.pi*0.1, c1=0.1, c2=0.602, c3=0.101, c4=0, skip_calibration=False):
+    def init_args(self, max_trials=1000, c0=2*np.pi*0.1, c1=0.1, c2=0.602, c3=0.101, c4=0, skip_calibration=False, batch_circuits=False):
         self._max_trials = max_trials
         self._parameters = np.array([c0, c1, c2, c3, c4])
         self._skip_calibration = skip_calibration
+        self._batch_circuits = batch_circuits
 
     def optimize(self, num_vars, objective_function, gradient_function=None, variable_bounds=None, initial_point=None):
 
@@ -158,7 +163,11 @@ class SPSA(Optimizer):
             theta_plus = theta + c_spsa * delta
             theta_minus = theta - c_spsa * delta
             # cost function for the two directions
-            cost_plus, cost_minus = obj_fun([theta_plus, theta_minus])
+            if self._batch_circuits:
+                cost_plus, cost_minus = obj_fun([theta_plus, theta_minus])
+            else:
+                cost_plus = obj_fun(theta_plus)
+                cost_minus = obj_fun(theta_minus)
             # derivative estimate
             g_spsa = (cost_plus - cost_minus) * delta / (2.0 * c_spsa)
             # updated theta
@@ -210,7 +219,11 @@ class SPSA(Optimizer):
             delta = 2 * np.random.randint(2, size=np.shape(initial_theta)[0]) - 1
             theta_plus = initial_theta + initial_c * delta
             theta_minus = initial_theta - initial_c * delta
-            obj_plus, obj_minus = obj_fun([theta_plus, theta_minus])
+            if self._batch_circuits:
+                obj_plus, obj_minus = obj_fun([theta_plus, theta_minus])
+            else:
+                obj_plus = obj_fun(theta_plus)
+                obj_minus = obj_fun(theta_minus)
             delta_obj += np.absolute(obj_plus - obj_minus) / stat
 
         self._parameters[0] = target_update * 2 / delta_obj \
