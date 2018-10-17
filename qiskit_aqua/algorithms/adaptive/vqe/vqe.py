@@ -23,10 +23,11 @@ import time
 import logging
 
 import numpy as np
-from qiskit import QuantumCircuit, ClassicalRegister
+from qiskit import ClassicalRegister
 
 from qiskit_aqua import QuantumAlgorithm, AlgorithmError
-from qiskit_aqua import get_optimizer_instance, get_variational_form_instance, get_initial_state_instance
+from qiskit_aqua import (get_optimizer_instance, get_variational_form_instance,
+                         get_initial_state_instance)
 
 logger = logging.getLogger(__name__)
 
@@ -124,11 +125,6 @@ class VQE(QuantumAlgorithm):
         optimizer = get_optimizer_instance(opt_params['name'])
         optimizer.init_params(opt_params)
 
-        if 'statevector' not in self._backend and operator_mode == 'matrix':
-            logger.debug('Qasm simulation does not work on {} mode, changing \
-                            the operator_mode to paulis'.format(operator_mode))
-            operator_mode = 'paulis'
-
         self.init_args(operator, operator_mode, var_form, optimizer,
                        opt_init_point=initial_point, aux_operators=algo_input.aux_ops)
         logger.info(self.print_setting())
@@ -144,6 +140,12 @@ class VQE(QuantumAlgorithm):
             opt_init_point (numpy.ndarray) : optimizer initial point.
             aux_operators ([Operator]): Auxiliary operators to be evaluated at each eigenvalue
         """
+
+        if 'statevector' not in self._backend and operator_mode == 'matrix':
+            logger.warning('Qasm simulation does not work on {} mode, changing \
+                           the operator_mode to paulis'.format(operator_mode))
+            operator_mode = 'paulis'
+
         self._operator = operator
         self._operator_mode = operator_mode
         self._var_form = var_form
@@ -156,6 +158,7 @@ class VQE(QuantumAlgorithm):
 
     @property
     def setting(self):
+        """Prepare the setting of VQE as a string."""
         ret = "Algorithm: {}\n".format(self._configuration['name'])
         params = ""
         for key, value in self.__dict__.items():
@@ -225,7 +228,7 @@ class VQE(QuantumAlgorithm):
 
     def run(self):
         """
-        Runs the algorithm to compute the minimum eigenvalue
+        Runs the algorithm to compute the minimum eigenvalue.
 
         Returns:
             Dictionary of results
