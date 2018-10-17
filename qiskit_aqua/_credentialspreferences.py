@@ -18,8 +18,7 @@
 import copy
 from collections import OrderedDict
 from qiskit.backends.ibmq.ibmqprovider import QE_URL
-from qiskit.backends.ibmq.credentials import (discover_credentials,
-                                              store_credentials,
+from qiskit.backends.ibmq.credentials import (store_credentials,
                                               Credentials)
 from qiskit.backends.ibmq.credentials._configrc import (remove_credentials,
                                                         read_credentials_from_qiskitrc)
@@ -29,33 +28,59 @@ class CredentialsPreferences(object):
 
     URL = QE_URL
 
-    def __init__(self, selected_credentials=None):
+    def __init__(self):
         """Create CredentialsPreferences object."""
         self._credentials_changed = False
-        self._selected_credentials = selected_credentials
-        self._credentials = discover_credentials()
-        if self._credentials is None:
+        self._selected_credentials = None
+        try:
+            self._credentials = read_credentials_from_qiskitrc()
+            if self._credentials is None:
+                self._credentials = OrderedDict()
+        except:
             self._credentials = OrderedDict()
 
-        if self._selected_credentials is None:
-            credentials = list(self._credentials.values())
-            if len(credentials) > 0:
-                self._selected_credentials = credentials[0]
+        credentials = list(self._credentials.values())
+        if len(credentials) > 0:
+            self._selected_credentials = credentials[0]
 
     def save(self):
         if self._credentials_changed:
-            dict = read_credentials_from_qiskitrc()
-            if dict is not None:
-                for credentials in dict.values():
-                    remove_credentials(credentials)
+            try:
+                dict = read_credentials_from_qiskitrc()
+                if dict is not None:
+                    for credentials in dict.values():
+                        remove_credentials(credentials)
+            except:
+                self._credentials = OrderedDict()
 
             for credentials in self._credentials.values():
                 store_credentials(credentials, overwrite=True)
 
             self._credentials_changed = False
 
+    @property
+    def credentials_changed(self):
+        return self._credentials_changed
+
+    @property
+    def selected_credentials(self):
+        return self._selected_credentials
+
     def get_all_credentials(self):
         return list(self._credentials.values())
+
+    def get_credentials_with_same_key(self, url):
+        if url is not None:
+            credentials = Credentials('', url)
+            return self._credentials.get(credentials.unique_id())
+        return False
+
+    def get_credentials(self, url):
+        for credentials in self.get_all_credentials():
+            if credentials.url == url:
+                return credentials
+
+        return None
 
     def set_credentials(self, token, url, proxy_urls=None):
         if url is not None and token is not None:
