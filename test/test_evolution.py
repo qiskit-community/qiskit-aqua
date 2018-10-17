@@ -48,10 +48,6 @@ class TestEvolution(QiskitAquaTestCase):
         qubitOp = Operator(matrix=h1)
         # qubitOp_jw.chop_by_threshold(10 ** -10)
 
-        # self.log.debug('matrix:\n{}\n'.format(qubitOp.matrix))
-        # self.log.debug('paulis:')
-        # self.log.debug(qubitOp.print_operators('paulis'))
-
         if qubitOp.grouped_paulis is None:
             qubitOp._matrix_to_paulis()
             qubitOp._paulis_to_grouped_paulis()
@@ -65,14 +61,11 @@ class TestEvolution(QiskitAquaTestCase):
                             p2[1].to_matrix() @ p1[1].to_matrix()
                         )
 
-        flattened_grouped_paulis = [
-            pauli for group in qubitOp.grouped_paulis for pauli in group[1:]]
-
         state_in = get_initial_state_instance('CUSTOM')
         state_in.init_args(SIZE, state='random')
 
         evo_time = 1
-        num_time_slices = 1
+        num_time_slices = 3
 
         # announces params
         self.log.debug('evo time:        {}'.format(evo_time))
@@ -113,8 +106,7 @@ class TestEvolution(QiskitAquaTestCase):
                         expansion_mode=expansion_mode,
                         expansion_order=expansion_order,
                     )
-                    job = q_execute(qc, qiskit.Aer.get_backend(
-                        'statevector_simulator'), skip_transpiler=True)
+                    job = q_execute(qc, qiskit.Aer.get_backend('statevector_simulator'))
                     state_out_circuit = np.asarray(
                         job.result().get_statevector(qc))
 

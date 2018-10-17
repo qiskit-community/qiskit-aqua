@@ -148,7 +148,8 @@ class QPE(QuantumAlgorithm):
 
     def init_args(
             self, operator, state_in, iqft, num_time_slices, num_ancillae,
-            paulis_grouping='random', expansion_mode='trotter', expansion_order=1):
+            paulis_grouping='random', expansion_mode='trotter', expansion_order=1,
+            shallow_circuit_concat=False):
         if self._backend.find('statevector') >= 0:
             raise ValueError('Selected backend does not support measurements.')
         self._operator = operator
@@ -159,6 +160,7 @@ class QPE(QuantumAlgorithm):
         self._paulis_grouping = paulis_grouping
         self._expansion_mode = expansion_mode
         self._expansion_order = expansion_order
+        self._shallow_circuit_concat = shallow_circuit_concat
         self._ret = {}
 
     def _construct_qpe_evolution(self):
@@ -167,12 +169,12 @@ class QPE(QuantumAlgorithm):
         a = QuantumRegister(self._num_ancillae, name='a')
         c = ClassicalRegister(self._num_ancillae, name='c')
         q = QuantumRegister(self._operator.num_qubits, name='q')
-        qc = QuantumCircuit(a, q, c)
 
         # initialize state_in
-        qc.data += self._state_in.construct_circuit('circuit', q).data
+        qc = self._state_in.construct_circuit('circuit', q)
 
         # Put all ancillae in uniform superposition
+        qc.add(a)
         qc.u2(0, np.pi, a)
 
         # phase kickbacks via eoh
@@ -191,9 +193,14 @@ class QPE(QuantumAlgorithm):
             else:
                 raise ValueError('Unrecognized expansion mode {}.'.format(self._expansion_mode))
         for i in range(self._num_ancillae):
-            qc.data += self._operator.construct_evolution_circuit(
-                slice_pauli_list, -2 * np.pi, self._num_time_slices, q, a, ctl_idx=i
-            ).data
+            qc_evolutions = self._operator.construct_evolution_circuit(
+                slice_pauli_list, -2 * np.pi, self._num_time_slices, q, a, ctl_idx=i,
+                shallow_slicing=self._shallow_circuit_concat
+            )
+            if self._shallow_circuit_concat:
+                qc.data += qc_evolutions.data
+            else:
+                qc += qc_evolutions
             # global phase shift for the ancilla due to the identity pauli term
             qc.u1(2 * np.pi * self._ancilla_phase_coef * (2 ** i), a[i])
 
@@ -201,6 +208,7 @@ class QPE(QuantumAlgorithm):
         self._iqft.construct_circuit('circuit', a, qc)
 
         # measuring ancillae
+        qc.add(c)
         qc.measure(a, c)
 
         self._circuit = qc
