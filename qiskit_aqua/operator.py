@@ -1110,7 +1110,8 @@ class Operator(object):
             raise ValueError('Unrecognized grouping {}.'.format(grouping))
 
     def construct_evolution_circuit(self, slice_pauli_list, evo_time, num_time_slices, state_registers,
-                                    ancillary_registers=None, ctl_idx=0, unitary_power=None, use_basis_gates=True):
+                                    ancillary_registers=None, ctl_idx=0, unitary_power=None, use_basis_gates=True,
+                                    shallow_slicing=False):
         """
         Construct the evolution circuit according to the supplied specification.
 
@@ -1124,6 +1125,7 @@ class Operator(object):
             ctl_idx (int): The index of the qubit of the control ancillary_registers to use
             unitary_power (int): The power to which the unitary operator is to be raised
             use_basis_gates (bool): boolean flag for indicating only using basis gates when building circuit.
+            shallow_slicing (bool): boolean flag for indicating using shallow qc.data reference repetition for slicing
 
         Returns:
             QuantumCircuit: The Qiskit QuantumCircuit corresponding to specified evolution.
@@ -1223,11 +1225,17 @@ class Operator(object):
                             qc_slice.u3(-pi / 2, -pi / 2, pi / 2, state_registers[qubit_idx])
                         else:
                             qc_slice.rx(-pi / 2, state_registers[qubit_idx])
-        # repeat the slice
-        qc = QuantumCircuit()
-        for i in range(num_time_slices):
-            qc += qc_slice
 
+        # repeat the slice
+        if shallow_slicing:
+            logger.info('Under shallow slicing mode, the qc.data reference is repeated shallowly. '
+                        'Thus, changing gates of one slice of the output circuit might affect other slices.')
+            qc_slice.data *= num_time_slices
+            qc = qc_slice
+        else:
+            qc = QuantumCircuit()
+            for _ in range(num_time_slices):
+                qc += qc_slice
         return qc
 
     @staticmethod
