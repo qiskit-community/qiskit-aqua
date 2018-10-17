@@ -277,8 +277,11 @@ class VQE(QuantumAlgorithm):
                 logger.info('Energy evaluation {} returned {}'.format(self._eval_count, np.real(mean)))
         else:
             input_circuit = self._var_form.construct_circuit(parameters)
-            mean, std = self._operator.eval(self._operator_mode, input_circuit,
-                                            self._backend, self._execute_config, self._qjob_config)
+            circuit = self._operator.construct_evaluation_circuit(self._operator_mode,
+                                                                  input_circuit, self._backend)
+            result = self.execute(to_be_simulated_circuits)
+            mean, std = self._operator.evaluate_with_result(self._operator_mode, circuits[idx],
+                                                            self._backend, result)
             mean_energy = np.real(mean)
             self._eval_count += 1
 
