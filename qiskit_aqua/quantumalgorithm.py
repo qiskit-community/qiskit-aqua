@@ -25,7 +25,6 @@ Doing so requires that the required algorithm interface is implemented.
 
 from abc import ABC, abstractmethod
 import logging
-import sys
 
 import numpy as np
 import qiskit
@@ -156,7 +155,8 @@ class QuantumAlgorithm(ABC):
             my_backend = qiskit.Aer.get_backend(backend)
             self._qjob_config.pop('wait', None)
         except KeyError:
-            my_backend = qiskit.IBMQ.get_backend(backend)
+            preferences = Preferences()
+            my_backend = qiskit.IBMQ.get_backend(backend, token=preferences.get_token(''))
 
         if coupling_map is None:
             coupling_map = my_backend.configuration()['coupling_map']
@@ -204,34 +204,36 @@ class QuantumAlgorithm(ABC):
         # I want to update url, proxies etc without removing token and
         # re-adding in 2 methods
 
+        ibmq_backends = []
         try:
             credentials = None
-            if token is not None:
+            if token is not None and token != '':
                 credentials = Credentials(token, url, **kwargs)
             else:
                 preferences = Preferences()
-                if preferences.get_token() is not None:
-                    credentials = Credentials(preferences.get_token(),
+                token = preferences.get_token()
+                if token is not None and token != '':
+                    credentials = Credentials(token,
                                               preferences.get_url(),
                                               proxies=preferences.get_proxies({}))
             if credentials is not None:
-                qiskit.IBMQ._accounts[credentials.unique_id()] = IBMQSingleProvider(
-                    credentials, qiskit.IBMQ)
+                qiskit.IBMQ._accounts[credentials.unique_id()] = IBMQSingleProvider(credentials, qiskit.IBMQ)
                 logger.debug("Registered with Qiskit successfully.")
+                ibmq_backends = [x.name() for x in qiskit.IBMQ.backends(token=token)]
         except Exception as e:
             logger.debug(
                 "Failed to register with Qiskit: {}".format(str(e)))
 
         backends = set()
-        local_backends = [x.name() for x in qiskit.Aer.backends()]
-        for local_backend in local_backends:
+        aer_backends = [x.name() for x in qiskit.Aer.backends()]
+        for aer_backend in aer_backends:
             backend = None
             for group_name, names in qiskit.Aer.grouped_backend_names().items():
-                if local_backend in names:
+                if aer_backend in names:
                     backend = group_name
                     break
             if backend is None:
-                backend = local_backend
+                backend = aer_backend
 
             supported = True
             for unsupported_backend in QuantumAlgorithm.UNSUPPORTED_BACKENDS:
@@ -242,7 +244,7 @@ class QuantumAlgorithm(ABC):
             if supported:
                 backends.add(backend)
 
-        return list(backends) + [x.name() for x in qiskit.IBMQ.backends()]
+        return list(backends) + ibmq_backends
 
     @abstractmethod
     def init_params(self, params, algo_input):

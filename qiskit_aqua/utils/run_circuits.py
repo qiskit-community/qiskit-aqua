@@ -26,6 +26,7 @@ from qiskit import compile as q_compile
 from qiskit.backends.jobstatus import JobStatus
 from qiskit.backends import JobError
 
+from qiskit_aqua import Preferences
 from qiskit_aqua.algorithmerror import AlgorithmError
 from qiskit_aqua.utils import summarize_circuits
 
@@ -63,7 +64,8 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
     try:
         my_backend = qiskit.Aer.get_backend(backend)
     except KeyError:
-        my_backend = qiskit.IBMQ.get_backend(backend)
+        preferences = Preferences()
+        my_backend = qiskit.IBMQ.get_backend(backend, token=preferences.get_token(''))
 
     with_autorecover = False if my_backend.configuration()['simulator'] else True
     max_circuits_per_job = sys.maxsize if my_backend.configuration()['local'] \
