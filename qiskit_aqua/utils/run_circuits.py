@@ -21,12 +21,11 @@ import time
 import functools
 
 import numpy as np
-import qiskit
+from qiskit.backends import BaseBackend
 from qiskit import compile as q_compile
 from qiskit.backends.jobstatus import JobStatus
 from qiskit.backends import JobError
 
-from qiskit_aqua import Preferences
 from qiskit_aqua.algorithmerror import AlgorithmError
 from qiskit_aqua.utils import summarize_circuits
 
@@ -45,7 +44,7 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
 
     Args:
         circuits (QuantumCircuit or list[QuantumCircuit]): circuits to execute
-        backend (str): name of backend
+        backend (BaseBackend): backend instance
         execute_config (dict): settings for qiskit execute (or compile)
         qjob_config (dict): settings for job object, like timeout and wait
         show_circuit_summary (bool): showing the summary of submitted circuits.
@@ -56,16 +55,13 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
     Raises:
         AlgorithmError: Any error except for JobError raised by Qiskit Terra
     """
+    if backend is None or not isinstance(backend, BaseBackend):
+        raise AlgorithmError('Backend is missing or not an instance of BaseBackend')
 
     if not isinstance(circuits, list):
         circuits = [circuits]
 
-    my_backend = None
-    try:
-        my_backend = qiskit.Aer.get_backend(backend)
-    except KeyError:
-        preferences = Preferences()
-        my_backend = qiskit.IBMQ.get_backend(backend, token=preferences.get_token(''))
+    my_backend = backend
 
     with_autorecover = False if my_backend.configuration()['simulator'] else True
     max_circuits_per_job = sys.maxsize if my_backend.configuration()['local'] \

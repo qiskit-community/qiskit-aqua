@@ -20,8 +20,8 @@
 from .preferences import Preferences
 from .utils import cnx
 from .algorithmerror import AlgorithmError
-from .operator import Operator
 from .quantumalgorithm import QuantumAlgorithm
+from .operator import Operator
 from ._discover import (refresh_pluggables,
                         local_pluggables_types,
                         local_pluggables,

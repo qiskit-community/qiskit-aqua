@@ -141,7 +141,7 @@ class VQE(QuantumAlgorithm):
             aux_operators ([Operator]): Auxiliary operators to be evaluated at each eigenvalue
         """
 
-        if 'statevector' not in self._backend and operator_mode == 'matrix':
+        if not QuantumAlgorithm.is_statevector_backend(self.backend) and operator_mode == 'matrix':
             logger.warning('Qasm simulation does not work on {} mode, changing \
                            the operator_mode to paulis'.format(operator_mode))
             operator_mode = 'paulis'
@@ -192,7 +192,7 @@ class VQE(QuantumAlgorithm):
         self._ret['eigvals'] = np.asarray([opt_val])
         self._ret['opt_params'] = opt_params
         qc = self._var_form.construct_circuit(self._ret['opt_params'])
-        if 'statevector' in self._backend:
+        if QuantumAlgorithm.is_statevector_backend(self.backend):
             ret = self.execute(qc)
             self._ret['eigvecs'] = np.asarray([ret.get_statevector(qc)])
         else:

@@ -19,20 +19,18 @@ import copy
 import itertools
 from functools import reduce
 import logging
-import sys
 import json
 from operator import iadd as op_iadd, isub as op_isub
 
 import numpy as np
 from scipy import sparse as scisparse
 from scipy import linalg as scila
-import qiskit
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.tools.qi.pauli import Pauli, label_to_pauli, sgn_prod
 from qiskit.qasm import pi
 
-from qiskit_aqua import AlgorithmError
-from qiskit_aqua.utils import PauliGraph, summarize_circuits, run_circuits
+from qiskit_aqua import AlgorithmError, QuantumAlgorithm
+from qiskit_aqua.utils import PauliGraph, run_circuits
 
 logger = logging.getLogger(__name__)
 
@@ -150,7 +148,7 @@ class Operator(object):
                         found_pauli = True
                         rhs_coeff = coeff2
                         break
-                if found_pauli == False and rhs_coeff != 0.0:  # since we might have 0 weights of paulis.
+                if not found_pauli and rhs_coeff != 0.0:  # since we might have 0 weights of paulis.
                     return False
                 if coeff != rhs_coeff:
                     return False
@@ -544,7 +542,7 @@ class Operator(object):
         Args:
             operator_mode (str): representation of operator, including paulis, grouped_paulis and matrix
             input_circuit (QuantumCircuit): the quantum circuit.
-            backend (str): backend selection for quantum machine.
+            backend (BaseBackend): backend selection for quantum machine.
             execute_config (dict): execution setting to quautum backend, refer to qiskit.wrapper.execute for details.
 
         Returns:
@@ -553,9 +551,9 @@ class Operator(object):
         Raises:
             AlgorithmError: if it tries to use non-statevector simulator.
         """
-        if "statevector" not in backend:
+        if not QuantumAlgorithm.is_statevector_backend(backend):
             raise AlgorithmError(
-                "statevector can be only used in statevector simulator but {} is used".format(backend))
+                "statevector can be only used in statevector simulator but {} is used".format(QuantumAlgorithm.backend_name(backend)))
 
         avg = 0.0
         if operator_mode == "matrix":
@@ -631,7 +629,7 @@ class Operator(object):
         Args:
             operator_mode (str): representation of operator, including paulis, grouped_paulis and matrix
             input_circuit (QuantumCircuit): the quantum circuit.
-            backend (str): backend selection for quantum machine.
+            backend (BaseBackend): backend selection for quantum machine.
             execute_config (dict): execution setting to quautum backend, refer to qiskit.wrapper.execute for details.
             qjob_config (dict): the setting to retrieve results from quantum backend, including timeout and wait.
 
@@ -744,7 +742,7 @@ class Operator(object):
         Args:
             operator_mode (str): representation of operator, including paulis, grouped_paulis and matrix
             input_circuit (QuantumCircuit or numpy.ndarray): the quantum circuit.
-            backend (str): backend selection for quantum machine.
+            backend (BaseBackend): backend selection for quantum machine.
             execute_config (dict): execution setting to quautum backend, refer to qiskit.wrapper.execute for details.
             qjob_config (dict): the setting to retrieve results from quantum backend, including timeout and wait.
 
@@ -756,7 +754,7 @@ class Operator(object):
             avg = self._eval_directly(input_circuit)
             std_dev = 0.0
         else:
-            if "statevector" in backend:
+            if QuantumAlgorithm.is_statevector_backend(backend):
                 execute_config['shots'] = 1
                 avg = self._eval_with_statevector(operator_mode, input_circuit, backend, execute_config)
                 std_dev = 0.0
