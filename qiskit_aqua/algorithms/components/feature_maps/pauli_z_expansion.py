@@ -19,22 +19,23 @@ This module contains the definition of a base class for
 feature map. Several types of commonly used approaches.
 """
 
-from qiskit_aqua.algorithms.components.feature_maps.pauli_z_expansion import PauliZExpansion
+from qiskit_aqua.algorithms.components.feature_maps.pauli_expansion import PauliExpansion
 from qiskit_aqua.algorithms.components.feature_maps import self_product
 
 
-class SecondOrderExpansion(PauliZExpansion):
+class PauliZExpansion(PauliExpansion):
     """
     Mapping data with the second order expansion followed by entangling gates.
     Refer to https://arxiv.org/pdf/1804.11326.pdf for details.
+
     """
 
-    SECOND_ORDER_EXPANSION_CONFIGURATION = {
-        'name': 'SecondOrderExpansion',
-        'description': 'Second order expansion for feature map',
+    PAULI_Z_EXPANSION_CONFIGURATION = {
+        'name': 'PauliZExpansion',
+        'description': 'Pauli Z expansion for feature map (any order)',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
-            'id': 'Second_Order_Expansion_schema',
+            'id': 'Pauli_Z_Expansion_schema',
             'type': 'object',
             'properties': {
                 'depth': {
@@ -52,6 +53,11 @@ class SecondOrderExpansion(PauliZExpansion):
                     'oneOf': [
                         {'enum': ['full', 'linear']}
                     ]
+                },
+                'z_order': {
+                    'type': 'integer',
+                    'minimum': 1,
+                    'default': 2
                 }
             },
             'additionalProperties': False
@@ -60,11 +66,11 @@ class SecondOrderExpansion(PauliZExpansion):
 
     def __init__(self, configuration=None):
         """Constructor."""
-        super().__init__(configuration or self.SECOND_ORDER_EXPANSION_CONFIGURATION.copy())
+        super().__init__(configuration or self.PAULI_Z_EXPANSION_CONFIGURATION.copy())
         self._ret = {}
 
     def init_args(self, num_qubits, depth, entangler_map=None,
-                  entanglement='full', data_map_func=self_product):
+                  entanglement='full', z_order=2, data_map_func=self_product):
         """Initializer.
 
         Args:
@@ -73,7 +79,11 @@ class SecondOrderExpansion(PauliZExpansion):
             entangler_map (dict): describe the connectivity of qubits
             entanglement (str): ['full', 'linear'], generate the qubit connectivitiy by predefined
                                 topology
+            z_order (str): z order
             data_map_func (Callable): a mapping function for data x
         """
+        pauli_string = []
+        for i in range(1, z_order + 1):
+            pauli_string.append('Z' * i)
         super().init_args(num_qubits, depth, entangler_map, entanglement,
-                          z_order=2, data_map_func=data_map_func)
+                          pauli_string, data_map_func)

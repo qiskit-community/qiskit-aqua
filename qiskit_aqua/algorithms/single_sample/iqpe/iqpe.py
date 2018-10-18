@@ -164,7 +164,7 @@ class IQPE(QuantumAlgorithm):
         qc.add(a)
         qc.u2(0, np.pi, a[0])
         # controlled-U
-        qc_evolutions = self._operator.construct_evolution_circuit(
+        qc_evolutions = Operator.construct_evolution_circuit(
             slice_pauli_list, -2 * np.pi, self._num_time_slices, q, a, unitary_power=2 ** (k - 1),
             shallow_slicing=self._shallow_circuit_concat
         )

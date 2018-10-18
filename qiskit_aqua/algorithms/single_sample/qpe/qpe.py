@@ -193,7 +193,7 @@ class QPE(QuantumAlgorithm):
             else:
                 raise ValueError('Unrecognized expansion mode {}.'.format(self._expansion_mode))
         for i in range(self._num_ancillae):
-            qc_evolutions = self._operator.construct_evolution_circuit(
+            qc_evolutions = Operator.construct_evolution_circuit(
                 slice_pauli_list, -2 * np.pi, self._num_time_slices, q, a, ctl_idx=i,
                 shallow_slicing=self._shallow_circuit_concat
             )

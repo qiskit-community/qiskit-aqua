@@ -1107,7 +1107,8 @@ class Operator(object):
         else:
             raise ValueError('Unrecognized grouping {}.'.format(grouping))
 
-    def construct_evolution_circuit(self, slice_pauli_list, evo_time, num_time_slices, state_registers,
+    @staticmethod
+    def construct_evolution_circuit(slice_pauli_list, evo_time, num_time_slices, state_registers,
                                     ancillary_registers=None, ctl_idx=0, unitary_power=None, use_basis_gates=True,
                                     shallow_slicing=False):
         """
@@ -1131,7 +1132,6 @@ class Operator(object):
         if state_registers is None:
             raise ValueError('Quantum state registers are required.')
 
-        n_qubits = self.num_qubits
         qc_slice = QuantumCircuit(state_registers)
         if ancillary_registers is not None:
             qc_slice.add(ancillary_registers)
@@ -1142,6 +1142,7 @@ class Operator(object):
         top_XYZ_pauli_indices = [-1] * len(slice_pauli_list)
 
         for pauli_idx, pauli in enumerate(reversed(slice_pauli_list)):
+            n_qubits = pauli[1].numberofqubits
             # changes bases if necessary
             nontrivial_pauli_indices = []
             for qubit_idx in range(n_qubits):
