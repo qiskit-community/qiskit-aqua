@@ -14,18 +14,11 @@ Qconfig.py
 .vscode/
 .idea/
 
-#image data files
-svm_ocr/img/data/
-demo/svm/img/data/
 
 # Standard python ignores follow
 *.swp
 .ipynb_checkpoints/
 
-# Test files
-*.npy
-hhl_testing/data*
-hhl_testing/test_objects*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -131,8 +124,7 @@ docs/*.rst
 # PyBuilder
 target/
 
-# Jupyter Notebook
-.ipynb_checkpoints
+
 
 # pyenv
 .python-version
