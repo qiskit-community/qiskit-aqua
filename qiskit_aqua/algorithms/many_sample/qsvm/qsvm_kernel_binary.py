@@ -19,7 +19,7 @@ import logging
 
 import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
-from qiski_aqua import QuantumAlgorithm
+from qiskit_aqua import QuantumAlgorithm
 from qiskit_aqua.algorithms.many_sample.qsvm import QSVM_Kernel_ABC
 from qiskit_aqua.utils import map_label_to_class_name, optimize_svm
 
