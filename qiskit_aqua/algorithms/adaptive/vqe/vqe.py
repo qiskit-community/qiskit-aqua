@@ -241,7 +241,7 @@ class VQE(QuantumAlgorithm):
         Returns:
             Dictionary of results
         """
-        self._operator.enable_summarize_circuits()
+        self.enable_circuit_summary()
         self._eval_count = 0
         self._solve()
         self._get_ground_state_energy()
@@ -292,8 +292,8 @@ class VQE(QuantumAlgorithm):
                                                             self._backend, result)
             mean_energy = np.real(mean)
             self._eval_count += 1
+            logger.info('Energy evaluation {} returned {}'.format(self._eval_count, np.real(mean)))
 
-        self._operator.disable_summarize_circuits()
         return mean_energy
 
     def find_minimum_eigenvalue(self, initial_point=None):
