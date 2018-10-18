@@ -72,6 +72,7 @@ class Optimizer(ABC):
         self._bounds_support_level = self._configuration['support_level']['bounds']
         self._initial_point_support_level = self._configuration['support_level']['initial_point']
         self._options = {}
+        self._batch_mode = False
 
     @property
     def configuration(self):
@@ -221,3 +222,6 @@ class Optimizer(ABC):
         """Print algorithm-specific options."""
         for name in sorted(self._options):
             logger.debug('{:s} = {:s}'.format(name, str(self._options[name])))
+
+    def set_batch_mode(self, mode):
+        self._batch_mode = mode

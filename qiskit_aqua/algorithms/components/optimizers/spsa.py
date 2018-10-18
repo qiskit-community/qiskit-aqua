@@ -71,10 +71,6 @@ class SPSA(Optimizer):
                 'skip_calibration': {
                     'type': 'boolean',
                     'default': False
-                },
-                'batch_circuits': {
-                    'type': 'boolean',
-                    'default': False
                 }
             },
             'additionalProperties': False
@@ -94,11 +90,10 @@ class SPSA(Optimizer):
         self._parameters = None
         self._skip_calibration = False
 
-    def init_args(self, max_trials=1000, c0=2*np.pi*0.1, c1=0.1, c2=0.602, c3=0.101, c4=0, skip_calibration=False, batch_circuits=False):
+    def init_args(self, max_trials=1000, c0=2*np.pi*0.1, c1=0.1, c2=0.602, c3=0.101, c4=0, skip_calibration=False):
         self._max_trials = max_trials
         self._parameters = np.array([c0, c1, c2, c3, c4])
         self._skip_calibration = skip_calibration
-        self._batch_circuits = batch_circuits
 
     def optimize(self, num_vars, objective_function, gradient_function=None, variable_bounds=None, initial_point=None):
 
@@ -163,7 +158,7 @@ class SPSA(Optimizer):
             theta_plus = theta + c_spsa * delta
             theta_minus = theta - c_spsa * delta
             # cost function for the two directions
-            if self._batch_circuits:
+            if self._batch_mode:
                 cost_plus, cost_minus = obj_fun(np.concatenate((theta_plus, theta_minus)))
             else:
                 cost_plus = obj_fun(theta_plus)
@@ -219,7 +214,7 @@ class SPSA(Optimizer):
             delta = 2 * np.random.randint(2, size=np.shape(initial_theta)[0]) - 1
             theta_plus = initial_theta + initial_c * delta
             theta_minus = initial_theta - initial_c * delta
-            if self._batch_circuits:
+            if self._batch_mode:
                 obj_plus, obj_minus = obj_fun(np.concatenate((theta_plus, theta_minus)))
             else:
                 obj_plus = obj_fun(theta_plus)
