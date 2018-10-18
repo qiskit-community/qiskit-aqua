@@ -29,6 +29,7 @@ import logging
 import numpy as np
 import qiskit
 from qiskit import __version__ as qiskit_version
+from qiskit.backends import BaseBackend
 from qiskit.backends.ibmq.credentials import Credentials
 from qiskit.backends.ibmq.ibmqsingleprovider import IBMQSingleProvider
 from qiskit_aqua import AlgorithmError
@@ -105,7 +106,7 @@ class QuantumAlgorithm(ABC):
 
     @property
     def backend(self):
-        """Return backend"""
+        """Return BaseBackend backend object"""
         return self._backend
 
     def enable_circuit_summary(self):
@@ -123,7 +124,7 @@ class QuantumAlgorithm(ABC):
         Setup the quantum backend.
 
         Args:
-            backend (str): name of selected backend
+            backend (str or BaseBackend): name of or instance of selected backend
             shots (int): number of shots for the backend
             skip_transpiler (bool): skip most of the compile steps and produce qobj directly
             noise_params (dict): the noise setting for simulator
@@ -138,25 +139,39 @@ class QuantumAlgorithm(ABC):
         Raises:
             AlgorithmError: set backend with invalid Qconfig
         """
+        if backend is None:
+            raise AlgorithmError('Missing algorithm backend')
+
         operational_backends = self.register_and_get_operational_backends()
-        if QuantumAlgorithm.EQUIVALENT_BACKENDS.get(backend, backend) not in operational_backends:
+        if isinstance(backend, str) and QuantumAlgorithm.EQUIVALENT_BACKENDS.get(backend, backend) not in operational_backends:
             raise AlgorithmError("This backend '{}' is not operational for the quantum algorithm, \
                                  select any one below: {}".format(backend, operational_backends))
 
-        self._backend = backend
         self._qjob_config = {'timeout': timeout,
                              'wait': wait}
 
-        shots = 1 if 'statevector' in backend else shots
-        noise_params = noise_params if 'simulator' in backend else None
-
         my_backend = None
-        try:
-            my_backend = qiskit.Aer.get_backend(backend)
+        if isinstance(backend, BaseBackend):
+            my_backend = backend
+        else:
+            try:
+                my_backend = qiskit.Aer.get_backend(backend)
+            except KeyError:
+                preferences = Preferences()
+                my_backend = qiskit.IBMQ.get_backend(backend,
+                                                     url=preferences.get_url(''),
+                                                     token=preferences.get_token(''))
+
+            if my_backend is None:
+                raise AlgorithmError("Missing algorithm backend '{}'".format(backend))
+
+        self._backend = my_backend
+
+        shots = 1 if my_backend.configuration().get('name', '').startswith('statevector') else shots
+        noise_params = noise_params if my_backend.configuration().get('simulator', False) else None
+
+        if my_backend.configuration().get('local', False):
             self._qjob_config.pop('wait', None)
-        except KeyError:
-            preferences = Preferences()
-            my_backend = qiskit.IBMQ.get_backend(backend, token=preferences.get_token(''))
 
         if coupling_map is None:
             coupling_map = my_backend.configuration()['coupling_map']
@@ -198,7 +213,7 @@ class QuantumAlgorithm(ABC):
         return result
 
     @staticmethod
-    def register_and_get_operational_backends(token=None, url=None, **kwargs):
+    def register_and_get_operational_backends():
         # update registration info using internal methods because:
         # at this point I don't want to save to or removecredentials from disk
         # I want to update url, proxies etc without removing token and
@@ -207,19 +222,17 @@ class QuantumAlgorithm(ABC):
         ibmq_backends = []
         try:
             credentials = None
-            if token is not None and token != '':
-                credentials = Credentials(token, url, **kwargs)
-            else:
-                preferences = Preferences()
-                token = preferences.get_token()
-                if token is not None and token != '':
-                    credentials = Credentials(token,
-                                              preferences.get_url(),
-                                              proxies=preferences.get_proxies({}))
+            preferences = Preferences()
+            url = preferences.get_url()
+            token = preferences.get_token()
+            if url is not None and url != '' and token is not None and token != '':
+                credentials = Credentials(token,
+                                          url,
+                                          proxies=preferences.get_proxies({}))
             if credentials is not None:
                 qiskit.IBMQ._accounts[credentials.unique_id()] = IBMQSingleProvider(credentials, qiskit.IBMQ)
                 logger.debug("Registered with Qiskit successfully.")
-                ibmq_backends = [x.name() for x in qiskit.IBMQ.backends(token=token)]
+                ibmq_backends = [x.name() for x in qiskit.IBMQ.backends(url=url, token=token)]
         except Exception as e:
             logger.debug(
                 "Failed to register with Qiskit: {}".format(str(e)))
