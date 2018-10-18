@@ -47,7 +47,7 @@ class LongDivision(Reciprocal):
                     'default':1,                    
                 },
                 PROP_PRECISION:{
-                    'type': 'number',
+                    'type': 'integer',
                     'default': None,                    
                 },
                 PROP_EVO_TIME: {
@@ -267,7 +267,6 @@ class LongDivision(Reciprocal):
         if self._precision is None:
             self._precision = self._num_ancillae 
                   
-        print('precision:', self._precision)
         self._a = QuantumRegister(self._n, 'one')                             #register storing 1
         self._b0 = QuantumRegister(1, 'b0')                                   #extension of b - required by subtraction
         self._anc1 = QuantumRegister(self._num_ancillae-1, 'aligning_ancilla')#ancilla for the initial shifting

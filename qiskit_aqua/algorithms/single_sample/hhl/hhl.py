@@ -123,14 +123,14 @@ class HHL(QuantumAlgorithm):
         mode = hhl_params.get(HHL.PROP_MODE)
 
         # Handle different modes
-        if self._backend == "local_qasm_simulator":
-            from qiskit.backends.local import QasmSimulatorCpp
-            try:
-                QasmSimulatorCpp()
-                cpp = True
-            except FileNotFoundError:
-                cpp = False
-        
+              
+        from qiskit.backends.local import QasmSimulatorCpp
+        try:
+            QasmSimulatorCpp()
+            cpp = True
+        except FileNotFoundError:
+            cpp = False
+       
         exact = False
         if mode == 'state_tomography':
             if ((self._backend == "local_statevector_simulator" or 
