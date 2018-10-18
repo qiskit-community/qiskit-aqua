@@ -150,7 +150,7 @@ class QPE(QuantumAlgorithm):
             self, operator, state_in, iqft, num_time_slices, num_ancillae,
             paulis_grouping='random', expansion_mode='trotter', expansion_order=1,
             shallow_circuit_concat=False):
-        if self.backend.configuration().get('name', '').startswith('statevector'):
+        if QuantumAlgorithm.is_statevector_backend(self.backend):
             raise ValueError('Selected backend does not support measurements.')
         self._operator = operator
         self._state_in = state_in

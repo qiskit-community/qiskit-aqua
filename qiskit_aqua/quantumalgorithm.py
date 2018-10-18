@@ -109,6 +109,30 @@ class QuantumAlgorithm(ABC):
         """Return BaseBackend backend object"""
         return self._backend
 
+    @staticmethod
+    def is_statevector_backend(backend):
+        """
+        Returns True if backend object is statevector.
+
+        Args:
+            backend (BaseBackend): backend instance
+        Returns:
+            Result (Boolean): True is statevector
+        """
+        return backend.configuration().get('name', '').startswith('statevector') if backend is not None else False
+
+    @staticmethod
+    def backend_name(backend):
+        """
+        Returns backend name.
+
+        Args:
+            backend (BaseBackend):  backend instance
+        Returns:
+            Name (str): backend name
+        """
+        return backend.configuration().get('name', '') if backend is not None else ''
+
     def enable_circuit_summary(self):
         """Enable showing the summary of circuits"""
         self._show_circuit_summary = True
@@ -167,7 +191,7 @@ class QuantumAlgorithm(ABC):
 
         self._backend = my_backend
 
-        shots = 1 if my_backend.configuration().get('name', '').startswith('statevector') else shots
+        shots = 1 if QuantumAlgorithm.is_statevector_backend(my_backend) else shots
         noise_params = noise_params if my_backend.configuration().get('simulator', False) else None
 
         if my_backend.configuration().get('local', False):

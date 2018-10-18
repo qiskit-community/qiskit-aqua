@@ -29,7 +29,7 @@ from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.tools.qi.pauli import Pauli, label_to_pauli, sgn_prod
 from qiskit.qasm import pi
 
-from qiskit_aqua import AlgorithmError
+from qiskit_aqua import AlgorithmError, QuantumAlgorithm
 from qiskit_aqua.utils import PauliGraph, run_circuits
 
 logger = logging.getLogger(__name__)
@@ -551,9 +551,9 @@ class Operator(object):
         Raises:
             AlgorithmError: if it tries to use non-statevector simulator.
         """
-        if not backend.configuration().get('name', '').startswith('statevector'):
+        if not QuantumAlgorithm.is_statevector_backend(backend):
             raise AlgorithmError(
-                "statevector can be only used in statevector simulator but {} is used".format(backend.configuration().get('name', '')))
+                "statevector can be only used in statevector simulator but {} is used".format(QuantumAlgorithm.backend_name(backend)))
 
         avg = 0.0
         if operator_mode == "matrix":
@@ -754,7 +754,7 @@ class Operator(object):
             avg = self._eval_directly(input_circuit)
             std_dev = 0.0
         else:
-            if backend.configuration().get('name', '').startswith('statevector'):
+            if QuantumAlgorithm.is_statevector_backend(backend):
                 execute_config['shots'] = 1
                 avg = self._eval_with_statevector(operator_mode, input_circuit, backend, execute_config)
                 std_dev = 0.0

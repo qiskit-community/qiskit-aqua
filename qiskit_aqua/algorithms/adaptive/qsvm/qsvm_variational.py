@@ -115,7 +115,7 @@ class QSVMVariational(QuantumAlgorithm):
             We used `label` denotes numeric results and `class` means the name of that class (str).
         """
 
-        if self.backend.configuration().get('name', '').startswith('statevector'):
+        if QuantumAlgorithm.is_statevector_backend(self.backend):
             raise ValueError('Selected backend  "{}" is not supported.'.format(self.backend.configuration().get('name', '')))
 
         if training_dataset is None:

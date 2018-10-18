@@ -88,7 +88,7 @@ class Grover(QuantumAlgorithm):
         self.init_args(oracle, incremental=incremental, num_iterations=num_iterations)
 
     def init_args(self, oracle, incremental=False, num_iterations=1):
-        if self.backend.configuration().get('name', '').startswith('statevector'):
+        if QuantumAlgorithm.is_statevector_backend(self.backend):
             raise ValueError('Selected backend  "{}" does not support measurements.'.format(self.backend.configuration().get('name', '')))
         self._oracle = oracle
         self._max_num_iterations = 2 ** (len(self._oracle.variable_register()) / 2)

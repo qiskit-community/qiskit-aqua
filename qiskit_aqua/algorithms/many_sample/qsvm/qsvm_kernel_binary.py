@@ -19,7 +19,7 @@ import logging
 
 import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
-
+from qiski_aqua import QuantumAlgorithm
 from qiskit_aqua.algorithms.many_sample.qsvm import QSVM_Kernel_ABC
 from qiskit_aqua.utils import map_label_to_class_name, optimize_svm
 
@@ -76,7 +76,7 @@ class QSVM_Kernel_Binary(QSVM_Kernel_ABC):
         else:
             is_symmetric = False
 
-        is_statevector_sim = self.qalgo.backend.configuration().get('name', '').startswith('statevector')
+        is_statevector_sim = QuantumAlgorithm.is_statevector_backend(self.qalgo.backend)
 
         measurement_basis = '0' * self.num_qubits
         circuits = {}
@@ -147,7 +147,7 @@ class QSVM_Kernel_Binary(QSVM_Kernel_ABC):
                                   D is the feature dimension.
             labels (numpy.ndarray): Nx1 array, where N is the number of data
         """
-        scaling = 1.0 if self.qalgo.backend.configuration().get('name', '').startswith('statevector') else None
+        scaling = 1.0 if QuantumAlgorithm.is_statevector_backend(self.qalgo.backend) else None
         kernel_matrix = self.construct_kernel_matrix(data)
         labels = labels * 2 - 1  # map label from 0 --> -1 and 1 --> 1
         labels = labels.astype(np.float)

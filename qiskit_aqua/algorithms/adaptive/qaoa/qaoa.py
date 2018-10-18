@@ -102,7 +102,7 @@ class QAOA(VQE):
         optimizer = get_optimizer_instance(opt_params['name'])
         optimizer.init_params(opt_params)
 
-        if not self.backend.configuration().get('name', '').startswith('statevector') and operator_mode == 'matrix':
+        if not QuantumAlgorithm.is_statevector_backend(self.backend) and operator_mode == 'matrix':
             logger.debug('Qasm simulation does not work on {} mode, changing \
                             the operator_mode to paulis'.format(operator_mode))
             operator_mode = 'paulis'
