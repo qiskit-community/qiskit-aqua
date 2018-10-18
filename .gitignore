@@ -14,7 +14,11 @@ Qconfig.py
 .vscode/
 .idea/
 
+
 # Standard python ignores follow
+*.swp
+.ipynb_checkpoints/
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -114,12 +118,13 @@ docs/*.rst
 !docs/aqua_optimization.rst
 !docs/aqua_tutorials.rst
 !docs/qiskit_aqua_chemistry.rst
+!docs/eigs.rst
+!docs/reciprocals.rst
 
 # PyBuilder
 target/
 
-# Jupyter Notebook
-.ipynb_checkpoints
+
 
 # pyenv
 .python-version
@@ -151,3 +156,4 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+

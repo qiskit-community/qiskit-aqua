@@ -15,6 +15,8 @@
 # limitations under the License.
 # =============================================================================
 
-# for core development
-# from .hhl import HHL
+from .qft import QFT
+from .standard import Standard
+from .approximate import Approximate
 
+__all__ = ['Standard', 'Approximate', 'qft']

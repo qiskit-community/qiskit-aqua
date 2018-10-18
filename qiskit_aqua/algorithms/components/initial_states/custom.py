@@ -48,7 +48,10 @@ class Custom(InitialState):
                 'state_vector': {
                     'type': ['array', 'null'],
                     "items": {
-                        "type": "number"
+                        "type": ['array', 'number'],
+                        'items': {
+                            'type': 'number'
+                        }
                     },
                     'default': None
                 }
@@ -86,6 +89,8 @@ class Custom(InitialState):
             if len(state_vector) != np.power(2, self._num_qubits):
                 raise ValueError('State vector length {} incompatible with num qubits {}'
                                  .format(len(state_vector), self._num_qubits))
+            state_vector = list(map(lambda x: x[0]+1j*x[1] if isinstance(x, list) else x,
+                state_vector))
             self._state_vector = Custom._normalize(state_vector)
             self._state = None
 
@@ -115,8 +120,15 @@ class Custom(InitialState):
             return self._state_vector
         elif mode == 'circuit':
             if register is None:
-                register = QuantumRegister(self._num_qubits, name='q')
-            circuit = QuantumCircuit(register)
+                registers = [QuantumRegister(self._num_qubits, name='q')]
+            elif not isinstance(register, QuantumRegister):
+                registers = []
+                for qubit in register:
+                    if not qubit[0] in registers:
+                        registers.append(qubit[0])
+            else:
+                registers = [register]
+            circuit = QuantumCircuit(*registers)
 
             if self._state is None or self._state == 'random':
                 circuit.initialize(self._state_vector, [register[i] for i in range(self._num_qubits)])
