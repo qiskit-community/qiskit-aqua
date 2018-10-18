@@ -166,10 +166,11 @@ class QuantumAlgorithm(ABC):
         if backend is None:
             raise AlgorithmError('Missing algorithm backend')
 
-        operational_backends = self.register_and_get_operational_backends()
-        if isinstance(backend, str) and QuantumAlgorithm.EQUIVALENT_BACKENDS.get(backend, backend) not in operational_backends:
-            raise AlgorithmError("This backend '{}' is not operational for the quantum algorithm, \
-                                 select any one below: {}".format(backend, operational_backends))
+        if isinstance(backend, str):
+            operational_backends = self.register_and_get_operational_backends()
+            if QuantumAlgorithm.EQUIVALENT_BACKENDS.get(backend, backend) not in operational_backends:
+                raise AlgorithmError("This backend '{}' is not operational for the quantum algorithm, \
+                                     select any one below: {}".format(backend, operational_backends))
 
         self._qjob_config = {'timeout': timeout,
                              'wait': wait}
