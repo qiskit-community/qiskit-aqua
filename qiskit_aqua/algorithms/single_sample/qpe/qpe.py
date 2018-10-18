@@ -121,6 +121,8 @@ class QPE(QuantumAlgorithm):
             raise AlgorithmError("EnergyInput instance is required.")
 
         operator = algo_input.qubit_op
+        
+        print(params)
 
         qpe_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
         num_time_slices = qpe_params.get(QPE.PROP_NUM_TIME_SLICES)
