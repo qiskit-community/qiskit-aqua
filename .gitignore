@@ -164,6 +164,4 @@ venv.bak/
 
 # mypy
 .mypy_cache/
-qpe_hhl/arbitrarymatrix.py
-hhl_testing/qiskit-vscode-log.out
-qiskit-vscode-log.out
+
