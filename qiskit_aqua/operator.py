@@ -541,12 +541,12 @@ class Operator(object):
         Args:
             operator_mode (str): representation of operator, including paulis, grouped_paulis and matrix
             input_circuit (QuantumCircuit): the quantum circuit.
-            backend (str): backend selection for quantum machine.
+            backend (BaseBackend): backend selection for quantum machine.
 
         Returns:
             [QuantumCircuit]: the circuits for evaluation.
         """
-        if "statevector" in backend:
+        if QuantumAlgorithm.is_statevector_backend(backend):
             if operator_mode == 'matrix':
                 circuits = [input_circuit]
             else:
@@ -630,7 +630,7 @@ class Operator(object):
             float: the standard deviation
         """
         avg, std_dev, variance = 0.0, 0.0, 0.0
-        if 'statevector' in backend:
+        if QuantumAlgorithm.is_statevector_backend(backend):
             if operator_mode == "matrix":
                 self._check_representation("matrix")
                 if self._dia_matrix is None:
@@ -869,7 +869,6 @@ class Operator(object):
                                                  avg_paulis[pauli_1_idx], avg_paulis[pauli_2_idx])
 
         std_dev = np.sqrt(variance / num_shots)
-
         return avg, std_dev
 
     def _eval_directly(self, quantum_state):
