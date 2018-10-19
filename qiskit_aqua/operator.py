@@ -556,14 +556,16 @@ class Operator(object):
                 circuits = [input_circuit]
                 for idx, pauli in enumerate(self._paulis):
                     circuit = QuantumCircuit() + input_circuit
-                    if np.all(pauli[1].v == 0) and np.all(pauli[1].w == 0):  # all I
+                    p_v = pauli[1].v.astype(np.bool)
+                    p_w = pauli[1].w.astype(np.bool)
+                    if np.all(np.logical_not(p_v)) and np.all(np.logical_not(p_w)):  # all I
                         continue
                     for qubit_idx in range(n_qubits):
-                        if pauli[1].v[qubit_idx] == 0 and pauli[1].w[qubit_idx] == 1:
+                        if not p_v[qubit_idx] and p_w[qubit_idx]:
                             circuit.u3(np.pi, 0.0, np.pi, q[qubit_idx])  # x
-                        elif pauli[1].v[qubit_idx] == 1 and pauli[1].w[qubit_idx] == 0:
+                        elif p_v[qubit_idx] and not p_w[qubit_idx]:
                             circuit.u1(np.pi, q[qubit_idx])  # z
-                        elif pauli[1].v[qubit_idx] == 1 and pauli[1].w[qubit_idx] == 1:
+                        elif p_v[qubit_idx] and p_w[qubit_idx]:
                             circuit.u3(np.pi, np.pi/2, np.pi/2, q[qubit_idx])  # y
                     circuits.append(circuit)
         else:
@@ -584,17 +586,18 @@ class Operator(object):
                     circuit = QuantumCircuit() + base_circuit
                     q = circuit.get_qregs()['q']
                     c = circuit.get_cregs()['c']
-
+                    p_v = pauli[1].v.astype(np.bool)
+                    p_w = pauli[1].w.astype(np.bool)
                     for qubit_idx in range(n_qubits):
-                        # Measure X
-                        if pauli[1].v[qubit_idx] == 0 and pauli[1].w[qubit_idx] == 1:
-                            circuit.u2(0.0, np.pi, q[qubit_idx])  # h
-                        # Measure Y
-                        elif pauli[1].v[qubit_idx] == 1 and pauli[1].w[qubit_idx] == 1:
-                            circuit.u1(np.pi/2, q[qubit_idx]).inverse()  # s
-                            circuit.u2(0.0, np.pi, q[qubit_idx])  # h
-                        circuit.measure(q[qubit_idx], c[qubit_idx])
-
+                        if p_w[qubit_idx]:
+                            if p_v[qubit_idx]:
+                                # Measure Y
+                                circuit.u1(np.pi/2, q[qubit_idx]).inverse()  # s
+                                circuit.u2(0.0, np.pi, q[qubit_idx])  # h
+                            else:
+                                # Measure X
+                                circuit.u2(0.0, np.pi, q[qubit_idx])  # h
+                    circuit.measure(q, c)
                     circuits.append(circuit)
             else:
                 self._check_representation("grouped_paulis")
@@ -603,15 +606,18 @@ class Operator(object):
                     circuit = QuantumCircuit() + base_circuit
                     q = circuit.get_qregs()['q']
                     c = circuit.get_cregs()['c']
+                    p_v = tpb_set[0][1].v.astype(np.bool)
+                    p_w = tpb_set[0][1].w.astype(np.bool)
                     for qubit_idx in range(n_qubits):
-                        # Measure X
-                        if tpb_set[0][1].v[qubit_idx] == 0 and tpb_set[0][1].w[qubit_idx] == 1:
-                            circuit.u2(0.0, np.pi, q[qubit_idx])  # h
-                        # Measure Y
-                        elif tpb_set[0][1].v[qubit_idx] == 1 and tpb_set[0][1].w[qubit_idx] == 1:
-                            circuit.u1(np.pi/2, q[qubit_idx]).inverse()  # s
-                            circuit.u2(0.0, np.pi, q[qubit_idx])  # h
-                        circuit.measure(q[qubit_idx], c[qubit_idx])
+                        if p_w[qubit_idx]:
+                            if p_v[qubit_idx]:
+                                # Measure Y
+                                circuit.u1(np.pi/2, q[qubit_idx]).inverse()  # s
+                                circuit.u2(0.0, np.pi, q[qubit_idx])  # h
+                            else:
+                                # Measure X
+                                circuit.u2(0.0, np.pi, q[qubit_idx])  # h
+                    circuit.measure(q, c)
                     circuits.append(circuit)
         return circuits
 
@@ -671,17 +677,23 @@ class Operator(object):
                     measured_results = result.get_counts(circuits[tpb_idx])
                     # Compute the averages of each pauli in tpb_set
                     for pauli_idx, pauli in enumerate(tpb_set):
-                        avg_paulis.append(Operator._measure_pauli_z(measured_results, pauli[1]))
-                        avg += pauli[0] * avg_paulis[pauli_idx]
+                        if pauli_idx == 0:
+                            continue
+                        observable = Operator._measure_pauli_z(measured_results, pauli[1])
+                        avg_paulis.append(observable)
+                        avg += pauli[0] * observable
 
                     # Compute the covariance matrix elements of tpb_set
                     # and add up to the total standard deviation
                     # tpb_set = grouped_paulis, tensor product basis set
                     for pauli_1_idx, pauli_1 in enumerate(tpb_set):
                         for pauli_2_idx, pauli_2 in enumerate(tpb_set):
+                            if pauli_1_idx == 0 or pauli_2_idx == 0:
+                                continue
                             variance += pauli_1[0] * pauli_2[0] * \
                                 Operator._covariance(measured_results, pauli_1[1], pauli_2[1],
-                                                     avg_paulis[pauli_1_idx], avg_paulis[pauli_2_idx])
+                                                     avg_paulis[pauli_1_idx-1], avg_paulis[pauli_2_idx-1])
+
 
             std_dev = np.sqrt(variance / num_shots)
 
@@ -1147,16 +1159,16 @@ class Operator(object):
         Returns:
             float: Expected value of paulis given data
         """
-        observable = 0
-        tot = sum(data.values())
-        for key in data:
-            value = 1
-            for j in range(pauli.numberofqubits):
-                if ((pauli.v[j] == 1 or pauli.w[j] == 1) and
-                        key[pauli.numberofqubits - j - 1] == '1'):
-                    value = -value
-
-            observable = observable + value * data[key] / tot
+        observable = 0.0
+        num_shots = sum(data.values())
+        p_v = pauli.v.astype(np.bool)
+        p_w = pauli.w.astype(np.bool)
+        p_v_or_w = np.logical_or(p_v, p_w)
+        for key, value in data.items():
+            bitstr = np.asarray(list(key))[::-1].astype(np.bool)
+            sign = -1.0 if np.logical_xor.reduce(np.logical_and(bitstr, p_v_or_w)) else 1.0
+            observable += sign * value
+        observable /= num_shots
         return observable
 
     @staticmethod
@@ -1177,24 +1189,23 @@ class Operator(object):
             float: the element of the covariance matrix between two Paulis
         """
         cov = 0.0
-        shots = sum(data.values())
-        n_qub = pauli_1.numberofqubits
+        num_shots = sum(data.values())
 
-        if shots == 1:
+        if num_shots == 1:
             return cov
 
-        for key in data:
-            sign_1 = 1
-            sign_2 = 1
-            for j in range(n_qub):
-                if ((pauli_1.v[j] == 1 or pauli_1.w[j] == 1) and
-                        key[n_qub - j - 1] == '1'):
-                    sign_1 = -sign_1
-            for j in range(n_qub):
-                if ((pauli_2.v[j] == 1 or pauli_2.w[j] == 1) and
-                        key[n_qub - j - 1] == '1'):
-                    sign_2 = -sign_2
-            cov += (sign_1 - avg_1) * (sign_2 - avg_2) * data[key] / (shots - 1)
+        p1_v = pauli_1.v.astype(np.bool)
+        p1_w = pauli_1.w.astype(np.bool)
+        p2_v = pauli_2.v.astype(np.bool)
+        p2_w = pauli_2.w.astype(np.bool)
+        p1_v_or_w = np.logical_or(p1_v, p1_w)
+        p2_v_or_w = np.logical_or(p2_v, p2_w)
+        for key, value in data.items():
+            bitstr = np.asarray(list(key))[::-1].astype(np.bool)
+            sign_1 = -1.0 if np.logical_xor.reduce(np.logical_and(bitstr, p1_v_or_w)) else 1.0
+            sign_2 = -1.0 if np.logical_xor.reduce(np.logical_and(bitstr, p2_v_or_w)) else 1.0
+            cov += (sign_1 - avg_1) * (sign_2 - avg_2) * value
+        cov /= (num_shots - 1)
         return cov
 
     def two_qubit_reduced_operator(self, m, threshold=10**-13):
