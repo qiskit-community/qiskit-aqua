@@ -36,6 +36,7 @@ import copy
 import uuid
 from qiskit.backends.aer import AerJob
 from qiskit.backends import JobError
+from qiskit import QuantumRegister, ClassicalRegister
 import pickle
 import logging
 from qiskit.qobj import qobj_to_dict, Qobj
@@ -47,7 +48,7 @@ mappings = None
 misses = 0
 use_caching = False
 naughty_mode = False
-cache_file = None
+cache_file = ''
 
 def cache_circuit(qobj, circuits, chunk):
     """
@@ -83,10 +84,13 @@ def cache_circuit(qobj, circuits, chunk):
     for circ_num, input_circuit in enumerate(circuits):
         # Delete qasm text, because it will be incorrect
         del qobjs[chunk].experiments[circ_num].header.compiled_circuit_qasm
+
+        qreg_sizes = [reg.size for reg in input_circuit.regs.values() if isinstance(reg, QuantumRegister)]
+        qreg_indeces = {name: sum(qreg_sizes[0:i]) for i, name in enumerate(input_circuit.regs)}
         op_graph = {}
         for i, uncompiled_gate in enumerate(input_circuit.data):
-            if uncompiled_gate.name == 'measure' : qubits = [uncompiled_gate.arg[0][1]]
-            else: qubits = uncompiled_gate._qubit_coupling
+            regs = [(reg, qubit) for (reg, qubit) in uncompiled_gate.arg]
+            qubits = [qubit+qreg_indeces[reg.name] for reg, qubit in regs if isinstance(reg, QuantumRegister)]
             gate_type = uncompiled_gate.name
             type_and_qubits = gate_type + qubits.__str__()
             op_graph[type_and_qubits] = \
@@ -97,8 +101,8 @@ def cache_circuit(qobj, circuits, chunk):
             if len(op_graph[type_and_qubits]) > 0:
                 uncompiled_gate_index = op_graph[type_and_qubits].pop(0)
                 uncompiled_gate = input_circuit.data[uncompiled_gate_index]
-                if uncompiled_gate.name == 'measure': qubits = [uncompiled_gate.arg[0][1]]
-                else: qubits = uncompiled_gate._qubit_coupling
+                regs = [(reg, qubit) for (reg, qubit) in uncompiled_gate.arg]
+                qubits = [qubit + qreg_indeces[reg.name] for reg, qubit in regs if isinstance(reg, QuantumRegister)]
                 if (compiled_gate.name == uncompiled_gate.name) and (compiled_gate.qubits.__str__() ==
                                                                      qubits.__str__()):
                     mapping.insert(compiled_gate_index, uncompiled_gate_index)
