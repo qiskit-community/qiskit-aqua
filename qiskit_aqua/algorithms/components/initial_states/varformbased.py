@@ -35,6 +35,6 @@ class VarFormBased:
         if mode == 'vector':
             raise RuntimeError('Initial state based on variational form does not support vector mode.')
         elif mode == 'circuit':
-            return self._var_form.construct_circuit(self._var_form_params)
+            return self._var_form.construct_circuit(self._var_form_params, q=register)
         else:
             raise ValueError('Mode should be either "vector" or "circuit"')

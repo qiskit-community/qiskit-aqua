@@ -19,9 +19,10 @@ import sys
 import logging
 import time
 import functools
+import copy
 
 import numpy as np
-import qiskit
+from qiskit.backends import BaseBackend
 from qiskit import compile as q_compile
 from qiskit.backends.jobstatus import JobStatus
 from qiskit.backends import JobError
@@ -33,8 +34,40 @@ import copy
 
 logger = logging.getLogger(__name__)
 
+MAX_CIRCUITS_PER_JOB = 300
+
+
+def _reuse_shared_circuits(circuits, backend, execute_config, qjob_config={}):
+    """
+    We assume the 0-th circuit is the shared_circuit, so we execute it first
+    and then use it as initial state for simulation.
+
+    Note that all circuits should have the exact the same shared parts.
+
+    TODO:
+        after subtraction, the circuits can not be empty.
+    """
+    shared_circuit = circuits[0]
+    shared_result = run_circuits(shared_circuit, backend, execute_config,
+                                 show_circuit_summary=True)
+
+    if len(circuits) == 1:
+        return shared_result
+    shared_quantum_state = np.asarray(shared_result.get_statevector(shared_circuit))
+    # extract different of circuits
+    for circuit in circuits[1:]:
+        circuit.data = circuit.data[len(shared_circuit):]
+
+    temp_execute_config = copy.deepcopy(execute_config)
+    if 'config' not in temp_execute_config:
+        temp_execute_config['config'] = dict()
+    temp_execute_config['config']['initial_state'] = shared_quantum_state
+    diff_result = run_circuits(circuits[1:], backend, temp_execute_config, qjob_config)
+    result = shared_result + diff_result
+    return result
+
 def run_circuits(circuits, backend, execute_config, qjob_config={},
-                 max_circuits_per_job=sys.maxsize, show_circuit_summary=False):
+                 show_circuit_summary=False, has_shared_circuits=False):
     """
     An execution wrapper with Qiskit-Terra, with job auto recover capability.
 
@@ -43,31 +76,31 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
 
     Args:
         circuits (QuantumCircuit or list[QuantumCircuit]): circuits to execute
-        backend (str): name of backend
+        backend (BaseBackend): backend instance
         execute_config (dict): settings for qiskit execute (or compile)
         qjob_config (dict): settings for job object, like timeout and wait
-        max_circuits_per_job (int): the maximum number of job, default is unlimited but 300
-                is limited if you submit to a remote backend
         show_circuit_summary (bool): showing the summary of submitted circuits.
-
+        has_shared_circuits (bool): use the 0-th circuits as initial state for other circuits.
     Returns:
         Result: Result object
 
     Raises:
         AlgorithmError: Any error except for JobError raised by Qiskit Terra
     """
+    if backend is None or not isinstance(backend, BaseBackend):
+        raise AlgorithmError('Backend is missing or not an instance of BaseBackend')
 
     if not isinstance(circuits, list):
         circuits = [circuits]
 
-    my_backend = None
-    try:
-        my_backend = qiskit.Aer.get_backend(backend)
-    except KeyError:
-        my_backend = qiskit.IBMQ.get_backend(backend)
+    my_backend = backend
 
-    with_autorecover = False if my_backend.configuration()[
-        'simulator'] else True
+    if has_shared_circuits:
+        return _reuse_shared_circuits(circuits, backend, execute_config, qjob_config)
+
+    with_autorecover = False if my_backend.configuration()['simulator'] else True
+    max_circuits_per_job = sys.maxsize if my_backend.configuration()['local'] \
+        else MAX_CIRCUITS_PER_JOB
 
     qobjs = []
     jobs = []
@@ -102,25 +135,25 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
     results = []
     if with_autorecover:
 
-        logger.info("There are {} circuits and they are chunked into "
-                    "{} chunks, each with {} circutis.".format(len(circuits), chunks, max_circuits_per_job))
+        logger.debug("There are {} circuits and they are chunked into {} chunks, "
+                     "each with {} circutis.".format(len(circuits), chunks,
+                                                     max_circuits_per_job))
 
         for idx in range(len(jobs)):
             job = jobs[idx]
             job_id = job.id()
-            logger.info(
-                "Running {}-th chunk circuits, job id: {}".format(idx, job_id))
+            logger.info("Running {}-th chunk circuits, job id: {}".format(idx, job_id))
             while True:
                 try:
                     result = job.result(**qjob_config)
                     if result.status == 'COMPLETED':
                         results.append(result)
-                        logger.info(
-                            "COMPLETED the {}-th chunk of circuits, job id: {}".format(idx, job_id))
+                        logger.info("COMPLETED the {}-th chunk of circuits, "
+                                    "job id: {}".format(idx, job_id))
                         break
                     else:
-                        logger.warning(
-                            "FAILURE: the {}-th chunk of circuits, job id: {}".format(idx, job_id))
+                        logger.warning("FAILURE: the {}-th chunk of circuits, "
+                                       "job id: {}".format(idx, job_id))
                 except JobError as e:
                     # if terra raise any error, which means something wrong, re-run it
                     logger.warning("FAILURE: the {}-th chunk of circuits, job id: {}, "
@@ -136,25 +169,26 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
                         break
                     except JobError as e:
                         logger.warning("FAILURE: job id: {}, "
-                                       "status: 'FAIL_TO_GET_STATUS' Terra job error: {}".format(job_id, e))
+                                       "status: 'FAIL_TO_GET_STATUS' "
+                                       "Terra job error: {}".format(job_id, e))
                         time.sleep(5)
                     except Exception as e:
                         raise AlgorithmError("FAILURE: job id: {}, "
-                                             "status: 'FAIL_TO_GET_STATUS' ({})".format(job_id, e)) from e
+                                             "status: 'FAIL_TO_GET_STATUS' "
+                                             "({})".format(job_id, e)) from e
 
                 logger.info("Job status: {}".format(job_status))
                 # when reach here, it means the job fails. let's check what kinds of failure it is.
                 if job_status == JobStatus.DONE:
-                    logger.info(
-                        "Job ({}) is completed anyway, retrieve result from backend.".format(job_id))
+                    logger.info("Job ({}) is completed anyway, retrieve result "
+                                "from backend.".format(job_id))
                     job = my_backend.retrieve_job(job_id)
                 elif job_status == JobStatus.RUNNING or job_status == JobStatus.QUEUED:
                     logger.info("Job ({}) is {}, but encounter an exception, "
                                 "recover it from backend.".format(job_id, job_status))
                     job = my_backend.retrieve_job(job_id)
                 else:
-                    logger.info(
-                        "Fail to run Job ({}), resubmit it.".format(job_id))
+                    logger.info("Fail to run Job ({}), resubmit it.".format(job_id))
                     qobj = qobjs[idx]
                     job = my_backend.run(qobj)
     else:

@@ -98,7 +98,9 @@ class Custom(InitialState):
         if isinstance(gates, list):
             return [Custom._convert_to_basis_gates(gate) for gate in gates]
         elif isinstance(gates, CompositeGate):
-            gates.data = [Custom._convert_to_basis_gates(gate) for gate in gates.data]
+            gates_data = [Custom._convert_to_basis_gates(gate) for gate in gates.data]
+            gates = CompositeGate(gates.name, gates.param, gates.arg, circuit=gates.circuit)
+            gates.data = gates_data
             return gates
         else:
             if isinstance(gates, RYGate):
