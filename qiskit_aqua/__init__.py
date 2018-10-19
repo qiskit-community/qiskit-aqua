@@ -26,9 +26,9 @@ from ._discover import (refresh_pluggables,
                         local_pluggables_types,
                         local_pluggables,
                         get_pluggable_configuration)
-from qiskit_aqua._logging import (get_logging_level,
-                                  build_logging_config,
-                                  set_logging_config)
+from ._logging import (get_logging_level,
+                       build_logging_config,
+                       set_logging_config)
 from ._discover import _PLUGGABLES
 
 __version__ = '0.3.0'
