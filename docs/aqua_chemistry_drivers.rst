@@ -314,7 +314,13 @@ To use PySCF to configure a molecule on which to do a chemistry experiment with 
 set the ``name`` field in the ``driver`` section of the :ref:`aqua-chemistry-input-file` to ``PYSCF`` and
 then create a ``pyscf`` section in the input file as per the example below, which shows the configuration of a molecule of
 hydrogen, :math:`H_2`.  Here, the molecule, basis set and other options are specified as key/value pairs, according
-to the syntax expected by PySCF.  In PySCF, these arguments can be passed to the ``pyscf.gto.Mole`` class
+to the syntax expected by PySCF.  In PySCF, these are the arguments as passed to the ``pyscf.gto.Mole`` class
+
+The ``atom`` field can be in xyz format, as per the example below. Here each atom is identified by its symbol along
+with its position in the x, y, z coordinate space. Atoms are separated by the semicolon symbol.
+
+The ``atom`` field can also be in `ZMatrix <https://en.wikipedia.org/wiki/Z-matrix_(chemistry)>`__ format. Here again
+atoms are separate by semicolon. This is an example for H2O (water): "H; O 1 1.08; H 2 1.08 1 107.5"
 
 .. code:: python
 
@@ -364,6 +370,10 @@ hydrogen, :math:`H_2`.  Here, the molecule, basis set and other options are spec
 to the PyQuante control file, so the syntax specified by PyQuante should be followed.
 Specifically, a molecule is configured as a list of atoms.  Each atom's chemical symbol is followed by the atom's :math:`x, y, z`
 geometrical coordinates separated by a blank space.  Atom configurations are separated by semicolons.
+
+The molecule in the ``atoms`` field can also be in `ZMatrix <https://en.wikipedia.org/wiki/Z-matrix_(chemistry)>`__ format.
+Here again atoms are separated by semicolons; within an atom the symbol and positional information separated by spaces.
+This is an example for H2O (water): "H; O 1 1.08; H 2 1.08 1 107.5"
 
 .. code:: python
 
