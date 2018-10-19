@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 def compute_integrals(config):
     # Get config from input parameters
     # molecule is in PySCF atom string format e.g. "H .0 .0 .0; H .0 .0 0.2"
+    #          or in Z-Matrix format e.g. "H; O 1 1.08; H 2 1.08 1 107.5"
     # other parameters are as per PySCF got.Mole format
 
     if 'atom' not in config:
@@ -37,7 +38,7 @@ def compute_integrals(config):
     if val is None:
         raise AquaChemistryError('Atom value is missing')
 
-    atom = val
+    atom = _check_molecule_format(val)
     basis = config.get('basis', 'sto3g')
     unit = config.get('unit', 'Angstrom')
     charge = int(config.get('charge', '0'))
@@ -92,6 +93,23 @@ def compute_integrals(config):
     _q_._reverse_dipole_sign = True
 
     return _q_
+
+
+def _check_molecule_format(val):
+    """If it seems to be zmatrix rather than xyz format we convert before returning"""
+    atoms = [x.strip() for x in val.split(';')]
+    if atoms is None or len(atoms) < 1:
+        raise AquaChemistryError('Molecule format error: ' + val)
+
+    # Anx xyz format has 4 parts in each atom, if not then do zmatrix convert
+    parts = [x.strip() for x in atoms[0].split(' ')]
+    if len(parts) != 4:
+        try:
+            return gto.mole.from_zmatrix(val)
+        except Exception as exc:
+            raise AquaChemistryError('Failed to convert atom string: ' + val) from exc
+
+    return val
 
 
 def _calculate_integrals(mol, calc_type='rhf'):
