@@ -18,19 +18,20 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 
+
 class Dialog(tk.Toplevel):
 
-    def __init__(self, controller, parent, title = ''):
+    def __init__(self, controller, parent, title=''):
         super(Dialog, self).__init__(parent)
         self.transient(parent)
-        self.resizable(0,0)
+        self.resizable(0, 0)
         self.title(title)
         self._controller = controller
         self.result = None
-    
-    def do_init(self,cancel_side=tk.RIGHT,**options):
+
+    def do_init(self, cancel_side=tk.RIGHT, **options):
         body = ttk.Frame(self)
-        self.initial_focus = self.body(body,options)
+        self.initial_focus = self.body(body, options)
         body.pack(fill=tk.BOTH, expand=tk.TRUE)
 
         self._buttonbox(cancel_side)
@@ -44,20 +45,20 @@ class Dialog(tk.Toplevel):
 
         ws = self.master.winfo_reqwidth()
         hs = self.master.winfo_reqheight()
-        x = int(self.master.winfo_rootx() + ws/2 - self.winfo_reqwidth()/2)
-        y = int(self.master.winfo_rooty() + hs/2 - self.winfo_reqheight()/2)
+        x = int(self.master.winfo_rootx() + ws / 3 - self.winfo_reqwidth() / 2)
+        y = int(self.master.winfo_rooty() + hs / 3 - self.winfo_reqheight() / 2)
 
-        self.geometry('+{}+{}'.format(x,y))
-        
+        self.geometry('+{}+{}'.format(x, y))
+
     def do_modal(self):
         self.initial_focus.focus_set()
         self.wait_window(self)
-        
+
     @property
     def controller(self):
         return self._controller
 
-    def _buttonbox(self,cancel_side=tk.RIGHT):
+    def _buttonbox(self, cancel_side=tk.RIGHT):
         box = ttk.Frame(self)
 
         w = ttk.Button(box, text="OK", width=10, command=self._onok, default=tk.ACTIVE)
@@ -69,7 +70,6 @@ class Dialog(tk.Toplevel):
         self.bind("<Escape>", self._oncancel)
 
         box.pack(side=tk.BOTTOM, expand=tk.NO, fill=tk.X)
-
 
     def _onok(self, event=None):
         if not self.validate():
@@ -86,12 +86,12 @@ class Dialog(tk.Toplevel):
     def _oncancel(self, event=None):
         self.master.focus_set()
         self.destroy()
-        
+
     def body(self, parent):
         pass
 
     def validate(self):
-        return True # override
+        return True  # override
 
     def apply(self):
-        pass # override
+        pass  # override

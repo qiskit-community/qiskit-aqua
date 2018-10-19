@@ -175,7 +175,7 @@ class EOH(QuantumAlgorithm):
         quantum_registers = QuantumRegister(self._operator.num_qubits, name='q')
         qc = self._initial_state.construct_circuit('circuit', quantum_registers)
 
-        qc.data += self._evo_operator.evolve(
+        qc += self._evo_operator.evolve(
             None,
             self._evo_time,
             'circuit',
@@ -184,7 +184,7 @@ class EOH(QuantumAlgorithm):
             paulis_grouping=self._paulis_grouping,
             expansion_mode=self._expansion_mode,
             expansion_order=self._expansion_order,
-        ).data
+        )
 
         self._ret['avg'], self._ret['std_dev'] = self._operator.eval(self._operator_mode, qc, self._backend)
         return self._ret

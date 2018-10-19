@@ -21,12 +21,14 @@ See https://arxiv.org/abs/1304.3061
 
 import time
 import logging
+import functools
 
 import numpy as np
-from qiskit import QuantumCircuit, ClassicalRegister
+from qiskit import ClassicalRegister
 
 from qiskit_aqua import QuantumAlgorithm, AlgorithmError
-from qiskit_aqua import get_optimizer_instance, get_variational_form_instance, get_initial_state_instance
+from qiskit_aqua import (get_optimizer_instance, get_variational_form_instance,
+                         get_initial_state_instance)
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +60,10 @@ class VQE(QuantumAlgorithm):
                         "type": "number"
                     },
                     'default': None
+                },
+                'batch_mode': {
+                    'type': 'boolean',
+                    'default': False
                 }
             },
             'additionalProperties': False
@@ -105,6 +111,7 @@ class VQE(QuantumAlgorithm):
         vqe_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
         operator_mode = vqe_params.get('operator_mode')
         initial_point = vqe_params.get('initial_point')
+        batch_mode = vqe_params.get('batch_mode')
 
         # Set up initial state, we need to add computed num qubits to params
         init_state_params = params.get(QuantumAlgorithm.SECTION_KEY_INITIAL_STATE)
@@ -124,17 +131,13 @@ class VQE(QuantumAlgorithm):
         optimizer = get_optimizer_instance(opt_params['name'])
         optimizer.init_params(opt_params)
 
-        if 'statevector' not in self._backend and operator_mode == 'matrix':
-            logger.debug('Qasm simulation does not work on {} mode, changing \
-                            the operator_mode to paulis'.format(operator_mode))
-            operator_mode = 'paulis'
-
         self.init_args(operator, operator_mode, var_form, optimizer,
-                       opt_init_point=initial_point, aux_operators=algo_input.aux_ops)
+                       opt_init_point=initial_point, batch_mode=batch_mode,
+                       aux_operators=algo_input.aux_ops)
         logger.info(self.print_setting())
 
     def init_args(self, operator, operator_mode, var_form, optimizer,
-                  opt_init_point=None, aux_operators=[]):
+                  opt_init_point=None, batch_mode=False, aux_operators=[]):
         """
         Args:
             operator (Operator): Qubit operator
@@ -144,6 +147,12 @@ class VQE(QuantumAlgorithm):
             opt_init_point (numpy.ndarray) : optimizer initial point.
             aux_operators ([Operator]): Auxiliary operators to be evaluated at each eigenvalue
         """
+
+        if not QuantumAlgorithm.is_statevector_backend(self.backend) and operator_mode == 'matrix':
+            logger.warning('Qasm simulation does not work on {} mode, changing \
+                           the operator_mode to paulis'.format(operator_mode))
+            operator_mode = 'paulis'
+
         self._operator = operator
         self._operator_mode = operator_mode
         self._var_form = var_form
@@ -153,9 +162,11 @@ class VQE(QuantumAlgorithm):
         self._ret = {}
         if opt_init_point is None:
             self._opt_init_point = var_form.preferred_init_points
+        self._optimizer.set_batch_mode(batch_mode)
 
     @property
     def setting(self):
+        """Prepare the setting of VQE as a string."""
         ret = "Algorithm: {}\n".format(self._configuration['name'])
         params = ""
         for key, value in self.__dict__.items():
@@ -189,7 +200,7 @@ class VQE(QuantumAlgorithm):
         self._ret['eigvals'] = np.asarray([opt_val])
         self._ret['opt_params'] = opt_params
         qc = self._var_form.construct_circuit(self._ret['opt_params'])
-        if 'statevector' in self._backend:
+        if QuantumAlgorithm.is_statevector_backend(self.backend):
             ret = self.execute(qc)
             self._ret['eigvecs'] = np.asarray([ret.get_statevector(qc)])
         else:
@@ -225,12 +236,12 @@ class VQE(QuantumAlgorithm):
 
     def run(self):
         """
-        Runs the algorithm to compute the minimum eigenvalue
+        Runs the algorithm to compute the minimum eigenvalue.
 
         Returns:
             Dictionary of results
         """
-        self._operator.enable_summarize_circuits()
+        self.enable_circuit_summary()
         self._eval_count = 0
         self._solve()
         self._get_ground_state_energy()
@@ -245,19 +256,45 @@ class VQE(QuantumAlgorithm):
         Evaluate energy at given parameters for the variational form.
 
         Args:
-            parameters (numpy.ndarray) : parameters for variational form.
+            parameters (numpy.ndarray): parameters for variational form.
 
         Returns:
-            Energy of the hamiltonian.
+            float or [float]: energy of the hamiltonian of each parameter.
         """
-        input_circuit = self._var_form.construct_circuit(parameters)
-        mean_energy, std_energy = self._operator.eval(self._operator_mode, input_circuit,
-                                                      self._backend, self._execute_config, self._qjob_config)
-        self._eval_count += 1
+        num_parameter_sets = len(parameters) // self._var_form.num_parameters
+        if num_parameter_sets > 1:
+            circuits = []
+            parameter_sets = np.split(parameters, num_parameter_sets)
+            for idx in range(len(parameter_sets)):
+                parameter = parameter_sets[idx]
+                input_circuit = self._var_form.construct_circuit(parameter)
+                circuit = self._operator.construct_evaluation_circuit(self._operator_mode,
+                                                                      input_circuit, self._backend)
+                circuits.append(circuit)
 
-        self._operator.disable_summarize_circuits()
-        logger.info('Energy evaluation {} returned {}'.format(self._eval_count, np.real(mean_energy)))
-        return np.real(mean_energy)
+            to_be_simulated_circuits = functools.reduce(lambda x, y: x + y, circuits)
+            result = self.execute(to_be_simulated_circuits)
+            mean_energy = []
+            std_energy = []
+            for idx in range(len(parameter_sets)):
+                mean, std = self._operator.evaluate_with_result(
+                    self._operator_mode, circuits[idx], self._backend, result)
+                mean_energy.append(np.real(mean))
+                std_energy.append(np.real(std))
+                self._eval_count += 1
+                logger.info('Energy evaluation {} returned {}'.format(self._eval_count, np.real(mean)))
+        else:
+            input_circuit = self._var_form.construct_circuit(parameters)
+            circuits = self._operator.construct_evaluation_circuit(self._operator_mode,
+                                                                   input_circuit, self._backend)
+            result = self.execute(circuits)
+            mean, std = self._operator.evaluate_with_result(self._operator_mode, circuits,
+                                                            self._backend, result)
+            mean_energy = np.real(mean)
+            self._eval_count += 1
+            logger.info('Energy evaluation {} returned {}'.format(self._eval_count, np.real(mean)))
+
+        return mean_energy
 
     def find_minimum_eigenvalue(self, initial_point=None):
         """Determine minimum energy state.

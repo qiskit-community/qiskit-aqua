@@ -21,10 +21,11 @@ from qiskit_aqua.algorithmerror import AlgorithmError
 from qiskit_aqua._discover import (_discover_on_demand,
                                    local_algorithms,
                                    get_algorithm_instance)
-from qiskit_aqua.utils.jsonutils import convert_dict_to_json,convert_json_to_dict
+from qiskit_aqua.utils.jsonutils import convert_dict_to_json, convert_json_to_dict
 from qiskit_aqua.parser._inputparser import InputParser
 from qiskit_aqua.parser import JSONSchema
 from qiskit_aqua.input import get_input_instance
+from qiskit.backends import BaseBackend
 import logging
 import json
 import copy
@@ -32,7 +33,7 @@ import copy
 logger = logging.getLogger(__name__)
 
 
-def run_algorithm(params, algo_input=None, json_output=False):
+def run_algorithm(params, algo_input=None, json_output=False, backend=None):
     """
     Run algorithm as named in params, using params and algo_input as input data
     and returning a result dictionary
@@ -41,6 +42,7 @@ def run_algorithm(params, algo_input=None, json_output=False):
         params (dict): Dictionary of params for algo and dependent objects
         algo_input(algorithminput): Main input data for algorithm. Optional, an algo may run entirely from params
         json_output(bool): False for regular python dictionary return, True for json conversion
+        backend(BaseBackend): Backend object to be used in place of backend name
 
     Returns:
         Result dictionary containing result of algorithm computation
@@ -60,9 +62,15 @@ def run_algorithm(params, algo_input=None, json_output=False):
         raise AlgorithmError('Algorithm "{0}" missing in local algorithms'.format(algo_name))
 
     backend_cfg = None
-    backend = inputparser.get_section_property(JSONSchema.BACKEND, JSONSchema.NAME)
-    if backend is not None:
+    backend_name = inputparser.get_section_property(JSONSchema.BACKEND, JSONSchema.NAME)
+    if backend_name is not None:
         backend_cfg = {k: v for k, v in inputparser.get_section(JSONSchema.BACKEND).items() if k != 'name'}
+        backend_cfg['backend'] = backend_name
+
+    if backend is not None and isinstance(backend, BaseBackend):
+        if backend_cfg is None:
+            backend_cfg = {}
+
         backend_cfg['backend'] = backend
 
     algorithm = get_algorithm_instance(algo_name)
@@ -70,17 +78,18 @@ def run_algorithm(params, algo_input=None, json_output=False):
     algorithm._circuit_caching = inputparser.get_section_property(JSONSchema.PROBLEM, 'circuit_caching')
     algorithm._caching_naughty_mode = inputparser.get_section_property(JSONSchema.PROBLEM, 'caching_naughty_mode')
     algorithm._cache_file = inputparser.get_section_property(JSONSchema.PROBLEM, 'circuit_cache_file')
-    if algorithm._caching_naughty_mode and 'simulator' not in backend:
-        raise AlgorithmError("Caching naughty mode can only be used with local backends, but {} backend specified."
-                             .format(backend))
-    if algorithm._circuit_caching and not backend_cfg['skip_transpiler']:
-        raise AlgorithmError("Circuit caching cannot be used with transpiler on. Set skip_transpiler to True to use "
-                             "caching.")
     if not algorithm._circuit_caching and algorithm._caching_naughty_mode :
         logging.warning("You should not use caching naughty mode if caching is disabled.")
 
     if backend_cfg is not None:
         algorithm.setup_quantum_backend(**backend_cfg)
+
+    if algorithm._caching_naughty_mode and not algorithm.backend.configuration()['local']:
+        raise AlgorithmError("Caching naughty mode can only be used with local backends, but {} backend specified."
+                             .format(backend))
+    if algorithm._circuit_caching and not backend_cfg['skip_transpiler']:
+        raise AlgorithmError("Circuit caching cannot be used with transpiler on. Set skip_transpiler to True to use "
+                             "caching.")
 
     algo_params = copy.deepcopy(inputparser.get_sections())
 

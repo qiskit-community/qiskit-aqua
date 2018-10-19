@@ -19,27 +19,23 @@ import copy
 import itertools
 from functools import reduce
 import logging
-import sys
 import json
 from operator import iadd as op_iadd, isub as op_isub
 
 import numpy as np
 from scipy import sparse as scisparse
 from scipy import linalg as scila
-import qiskit
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.tools.qi.pauli import Pauli, label_to_pauli, sgn_prod
 from qiskit.qasm import pi
 
-from qiskit_aqua import AlgorithmError
-from qiskit_aqua.utils import PauliGraph, summarize_circuits, run_circuits
+from qiskit_aqua import AlgorithmError, QuantumAlgorithm
+from qiskit_aqua.utils import PauliGraph, run_circuits
 
 logger = logging.getLogger(__name__)
 
 
 class Operator(object):
-
-    MAX_CIRCUITS_PER_JOB = 300
 
     """
     Operators relevant for quantum applications
@@ -152,7 +148,7 @@ class Operator(object):
                         found_pauli = True
                         rhs_coeff = coeff2
                         break
-                if found_pauli == False and rhs_coeff != 0.0:  # since we might have 0 weights of paulis.
+                if not found_pauli and rhs_coeff != 0.0:  # since we might have 0 weights of paulis.
                     return False
                 if coeff != rhs_coeff:
                     return False
@@ -538,6 +534,159 @@ class Operator(object):
             raise ValueError('Mode should be one of "matrix", "paulis", "grouped_paulis"')
         return ret
 
+    def construct_evaluation_circuit(self, operator_mode, input_circuit, backend):
+        """
+        Construct the circuits for evaluation.
+
+        Args:
+            operator_mode (str): representation of operator, including paulis, grouped_paulis and matrix
+            input_circuit (QuantumCircuit): the quantum circuit.
+            backend (BaseBackend): backend selection for quantum machine.
+
+        Returns:
+            [QuantumCircuit]: the circuits for evaluation.
+        """
+        if QuantumAlgorithm.is_statevector_backend(backend):
+            if operator_mode == 'matrix':
+                circuits = [input_circuit]
+            else:
+                self._check_representation("paulis")
+                n_qubits = self.num_qubits
+                q = input_circuit.get_qregs()['q']
+                circuits = [input_circuit]
+                for idx, pauli in enumerate(self._paulis):
+                    circuit = QuantumCircuit() + input_circuit
+                    if np.all(pauli[1].v == 0) and np.all(pauli[1].w == 0):  # all I
+                        continue
+                    for qubit_idx in range(n_qubits):
+                        if pauli[1].v[qubit_idx] == 0 and pauli[1].w[qubit_idx] == 1:
+                            circuit.u3(np.pi, 0.0, np.pi, q[qubit_idx])  # x
+                        elif pauli[1].v[qubit_idx] == 1 and pauli[1].w[qubit_idx] == 0:
+                            circuit.u1(np.pi, q[qubit_idx])  # z
+                        elif pauli[1].v[qubit_idx] == 1 and pauli[1].w[qubit_idx] == 1:
+                            circuit.u3(np.pi, np.pi/2, np.pi/2, q[qubit_idx])  # y
+                    circuits.append(circuit)
+        else:
+            if operator_mode == 'matrix':
+                raise AlgorithmError("matrix mode can not be used with non-statevector simulator.")
+
+            n_qubits = self.num_qubits
+            circuits = []
+
+            base_circuit = QuantumCircuit() + input_circuit
+            c = base_circuit.get_cregs().get('c', ClassicalRegister(n_qubits, name='c'))
+            base_circuit.add(c)
+
+            if operator_mode == "paulis":
+                self._check_representation("paulis")
+
+                for idx, pauli in enumerate(self._paulis):
+                    circuit = QuantumCircuit() + base_circuit
+                    q = circuit.get_qregs()['q']
+                    c = circuit.get_cregs()['c']
+
+                    for qubit_idx in range(n_qubits):
+                        # Measure X
+                        if pauli[1].v[qubit_idx] == 0 and pauli[1].w[qubit_idx] == 1:
+                            circuit.u2(0.0, np.pi, q[qubit_idx])  # h
+                        # Measure Y
+                        elif pauli[1].v[qubit_idx] == 1 and pauli[1].w[qubit_idx] == 1:
+                            circuit.u1(np.pi/2, q[qubit_idx]).inverse()  # s
+                            circuit.u2(0.0, np.pi, q[qubit_idx])  # h
+                        circuit.measure(q[qubit_idx], c[qubit_idx])
+
+                    circuits.append(circuit)
+            else:
+                self._check_representation("grouped_paulis")
+
+                for idx, tpb_set in enumerate(self._grouped_paulis):
+                    circuit = QuantumCircuit() + base_circuit
+                    q = circuit.get_qregs()['q']
+                    c = circuit.get_cregs()['c']
+                    for qubit_idx in range(n_qubits):
+                        # Measure X
+                        if tpb_set[0][1].v[qubit_idx] == 0 and tpb_set[0][1].w[qubit_idx] == 1:
+                            circuit.u2(0.0, np.pi, q[qubit_idx])  # h
+                        # Measure Y
+                        elif tpb_set[0][1].v[qubit_idx] == 1 and tpb_set[0][1].w[qubit_idx] == 1:
+                            circuit.u1(np.pi/2, q[qubit_idx]).inverse()  # s
+                            circuit.u2(0.0, np.pi, q[qubit_idx])  # h
+                        circuit.measure(q[qubit_idx], c[qubit_idx])
+                    circuits.append(circuit)
+        return circuits
+
+    def evaluate_with_result(self, operator_mode, circuits, backend, result):
+        """
+        Use the executed result with operator to get the evaluated value.
+
+        Args:
+            operator_mode (str): representation of operator, including paulis, grouped_paulis and matrix
+            circuits ([QuantumCircuit]): the quantum circuits.
+            backend (str): backend selection for quantum machine.
+            result (Result): the result from the backend.
+
+        Returns:
+            float: the mean value
+            float: the standard deviation
+        """
+        avg, std_dev, variance = 0.0, 0.0, 0.0
+        if QuantumAlgorithm.is_statevector_backend(backend):
+            if operator_mode == "matrix":
+                self._check_representation("matrix")
+                if self._dia_matrix is None:
+                    self._to_dia_matrix(mode='matrix')
+                quantum_state = np.asarray(result.get_statevector(circuits[0]))
+                if self._dia_matrix is not None:
+                    avg = np.sum(self._dia_matrix * np.absolute(quantum_state) ** 2)
+                else:
+                    avg = np.vdot(quantum_state, self._matrix.dot(quantum_state))
+            else:
+                self._check_representation("paulis")
+                quantum_state = np.asarray(result.get_statevector(circuits[0]))
+                circuit_idx = 1
+                for idx, pauli in enumerate(self._paulis):
+                    if np.all(pauli[1].v == 0) and np.all(pauli[1].w == 0):
+                        avg += pauli[0]
+                    else:
+                        quantum_state_i = np.asarray(result.get_statevector(circuits[circuit_idx]))
+                        avg += pauli[0] * (np.vdot(quantum_state, quantum_state_i))
+                        circuit_idx += 1
+        else:
+            num_shots = sum(list(result.get_counts(circuits[0]).values()))
+            if operator_mode == "paulis":
+                self._check_representation("paulis")
+                avg_paulis = []
+                for idx, pauli in enumerate(self._paulis):
+                    measured_results = result.get_counts(circuits[idx])
+                    avg_paulis.append(Operator._measure_pauli_z(measured_results, pauli[1]))
+                    avg += pauli[0] * avg_paulis[idx]
+                    variance += (pauli[0] ** 2) * Operator._covariance(measured_results, pauli[1], pauli[1],
+                                                                       avg_paulis[idx], avg_paulis[idx])
+
+            else:
+                self._check_representation("grouped_paulis")
+
+                for tpb_idx, tpb_set in enumerate(self._grouped_paulis):
+                    avg_paulis = []
+                    measured_results = result.get_counts(circuits[tpb_idx])
+                    # Compute the averages of each pauli in tpb_set
+                    for pauli_idx, pauli in enumerate(tpb_set):
+                        avg_paulis.append(Operator._measure_pauli_z(measured_results, pauli[1]))
+                        avg += pauli[0] * avg_paulis[pauli_idx]
+
+                    # Compute the covariance matrix elements of tpb_set
+                    # and add up to the total standard deviation
+                    # tpb_set = grouped_paulis, tensor product basis set
+                    for pauli_1_idx, pauli_1 in enumerate(tpb_set):
+                        for pauli_2_idx, pauli_2 in enumerate(tpb_set):
+                            variance += pauli_1[0] * pauli_2[0] * \
+                                Operator._covariance(measured_results, pauli_1[1], pauli_2[1],
+                                                     avg_paulis[pauli_1_idx], avg_paulis[pauli_2_idx])
+
+            std_dev = np.sqrt(variance / num_shots)
+
+        return avg, std_dev
+
     def _eval_with_statevector(self, operator_mode, input_circuit, backend, execute_config):
         """
         Evaluate an Operator with the `input_circuit`.
@@ -546,7 +695,7 @@ class Operator(object):
         Args:
             operator_mode (str): representation of operator, including paulis, grouped_paulis and matrix
             input_circuit (QuantumCircuit): the quantum circuit.
-            backend (str): backend selection for quantum machine.
+            backend (BaseBackend): backend selection for quantum machine.
             execute_config (dict): execution setting to quautum backend, refer to qiskit.wrapper.execute for details.
 
         Returns:
@@ -555,9 +704,9 @@ class Operator(object):
         Raises:
             AlgorithmError: if it tries to use non-statevector simulator.
         """
-        if "statevector" not in backend:
+        if not QuantumAlgorithm.is_statevector_backend(backend):
             raise AlgorithmError(
-                "statevector can be only used in statevector simulator but {} is used".format(backend))
+                "statevector can be only used in statevector simulator but {} is used".format(QuantumAlgorithm.backend_name(backend)))
 
         avg = 0.0
         if operator_mode == "matrix":
@@ -566,7 +715,6 @@ class Operator(object):
                 self._to_dia_matrix(mode='matrix')
 
             result = run_circuits(input_circuit, backend=backend, execute_config=execute_config,
-                                  max_circuits_per_job=self.MAX_CIRCUITS_PER_JOB,
                                   show_circuit_summary=self._summarize_circuits)
             quantum_state = np.asarray(result.get_statevector(input_circuit))
 
@@ -580,10 +728,8 @@ class Operator(object):
             n_qubits = self.num_qubits
 
             result = run_circuits(input_circuit, backend=backend, execute_config=execute_config,
-                                  max_circuits_per_job=self.MAX_CIRCUITS_PER_JOB,
                                   show_circuit_summary=self._summarize_circuits)
             simulator_initial_state = np.asarray(result.get_statevector(input_circuit))
-
             temp_config = copy.deepcopy(execute_config)
 
             if 'config' not in temp_config:
@@ -614,7 +760,6 @@ class Operator(object):
                     circuits_to_simulate.append(circuit)
 
             result = run_circuits(circuits_to_simulate, backend=backend, execute_config=temp_config,
-                                  max_circuits_per_job=self.MAX_CIRCUITS_PER_JOB,
                                   show_circuit_summary=self._summarize_circuits)
 
             for idx, pauli in enumerate(self._paulis):
@@ -636,7 +781,7 @@ class Operator(object):
         Args:
             operator_mode (str): representation of operator, including paulis, grouped_paulis and matrix
             input_circuit (QuantumCircuit): the quantum circuit.
-            backend (str): backend selection for quantum machine.
+            backend (BaseBackend): backend selection for quantum machine.
             execute_config (dict): execution setting to quautum backend, refer to qiskit.wrapper.execute for details.
             qjob_config (dict): the setting to retrieve results from quantum backend, including timeout and wait.
 
@@ -674,8 +819,7 @@ class Operator(object):
                 circuits.append(circuit)
 
             result = run_circuits(circuits, backend=backend, execute_config=execute_config,
-                                  qjob_config=qjob_config, max_circuits_per_job=self.MAX_CIRCUITS_PER_JOB,
-                                  show_circuit_summary=self._summarize_circuits)
+                                  qjob_config=qjob_config, show_circuit_summary=self._summarize_circuits)
 
             avg_paulis = []
             for idx, pauli in enumerate(self._paulis):
@@ -705,8 +849,7 @@ class Operator(object):
 
             # Execute all the stacked quantum circuits - one for each TPB set
             result = run_circuits(circuits, backend=backend, execute_config=execute_config,
-                                  qjob_config=qjob_config, max_circuits_per_job=self.MAX_CIRCUITS_PER_JOB,
-                                  show_circuit_summary=self._summarize_circuits)
+                                  qjob_config=qjob_config, show_circuit_summary=self._summarize_circuits)
 
             for tpb_idx, tpb_set in enumerate(self._grouped_paulis):
                 avg_paulis = []
@@ -726,7 +869,6 @@ class Operator(object):
                                                  avg_paulis[pauli_1_idx], avg_paulis[pauli_2_idx])
 
         std_dev = np.sqrt(variance / num_shots)
-
         return avg, std_dev
 
     def _eval_directly(self, quantum_state):
@@ -751,7 +893,7 @@ class Operator(object):
         Args:
             operator_mode (str): representation of operator, including paulis, grouped_paulis and matrix
             input_circuit (QuantumCircuit or numpy.ndarray): the quantum circuit.
-            backend (str): backend selection for quantum machine.
+            backend (BaseBackend): backend selection for quantum machine.
             execute_config (dict): execution setting to quautum backend, refer to qiskit.wrapper.execute for details.
             qjob_config (dict): the setting to retrieve results from quantum backend, including timeout and wait.
 
@@ -763,19 +905,25 @@ class Operator(object):
             avg = self._eval_directly(input_circuit)
             std_dev = 0.0
         else:
-            try:
-                qiskit.Aer.get_backend(backend)
-                self.MAX_CIRCUITS_PER_JOB = sys.maxsize
-            except KeyError:
-                pass
-           
-            if "statevector" in backend:
+            if QuantumAlgorithm.is_statevector_backend(backend):
                 execute_config['shots'] = 1
-                avg = self._eval_with_statevector(operator_mode, input_circuit, backend, execute_config)
-                std_dev = 0.0
+                has_shared_circuits = True
+
+                if operator_mode == 'matrix':
+                    has_shared_circuits = False
+
+                if 'config' in execute_config:
+                    if 'noise_params' in execute_config['config']:
+                        has_shared_circuits = False
             else:
-                avg, std_dev = self._eval_multiple_shots(
-                    operator_mode, input_circuit, backend, execute_config, qjob_config)
+                has_shared_circuits = False
+
+            circuits = self.construct_evaluation_circuit(operator_mode, input_circuit, backend)
+            result = run_circuits(circuits, backend=backend, execute_config=execute_config,
+                                  qjob_config=qjob_config, show_circuit_summary=self._summarize_circuits,
+                                  has_shared_circuits=has_shared_circuits)
+            avg, std_dev = self.evaluate_with_result(operator_mode, circuits, backend, result)
+
         return avg, std_dev
 
     def to_paulis(self):
@@ -1122,8 +1270,10 @@ class Operator(object):
         else:
             raise ValueError('Unrecognized grouping {}.'.format(grouping))
 
-    def construct_evolution_circuit(self, slice_pauli_list, evo_time, num_time_slices, state_registers,
-                                    ancillary_registers=None, ctl_idx=0, unitary_power=None, use_basis_gates=True):
+    @staticmethod
+    def construct_evolution_circuit(slice_pauli_list, evo_time, num_time_slices, state_registers,
+                                    ancillary_registers=None, ctl_idx=0, unitary_power=None, use_basis_gates=True,
+                                    shallow_slicing=False):
         """
         Construct the evolution circuit according to the supplied specification.
 
@@ -1137,6 +1287,7 @@ class Operator(object):
             ctl_idx (int): The index of the qubit of the control ancillary_registers to use
             unitary_power (int): The power to which the unitary operator is to be raised
             use_basis_gates (bool): boolean flag for indicating only using basis gates when building circuit.
+            shallow_slicing (bool): boolean flag for indicating using shallow qc.data reference repetition for slicing
 
         Returns:
             QuantumCircuit: The Qiskit QuantumCircuit corresponding to specified evolution.
@@ -1144,10 +1295,9 @@ class Operator(object):
         if state_registers is None:
             raise ValueError('Quantum state registers are required.')
 
-        n_qubits = self.num_qubits
-        qc = QuantumCircuit(state_registers)
+        qc_slice = QuantumCircuit(state_registers)
         if ancillary_registers is not None:
-            qc.add(ancillary_registers)
+            qc_slice.add(ancillary_registers)
 
         # for each pauli [IXYZ]+, record the list of qubit pairs needing CX's
         cnot_qubit_pairs = [None] * len(slice_pauli_list)
@@ -1155,6 +1305,7 @@ class Operator(object):
         top_XYZ_pauli_indices = [-1] * len(slice_pauli_list)
 
         for pauli_idx, pauli in enumerate(reversed(slice_pauli_list)):
+            n_qubits = pauli[1].numberofqubits
             # changes bases if necessary
             nontrivial_pauli_indices = []
             for qubit_idx in range(n_qubits):
@@ -1169,15 +1320,15 @@ class Operator(object):
                     # pauli X
                     if pauli[1].v[qubit_idx] == 0:
                         if use_basis_gates:
-                            qc.u2(0.0, pi, state_registers[qubit_idx])
+                            qc_slice.u2(0.0, pi, state_registers[qubit_idx])
                         else:
-                            qc.h(state_registers[qubit_idx])
+                            qc_slice.h(state_registers[qubit_idx])
                     # pauli Y
                     elif pauli[1].v[qubit_idx] == 1:
                         if use_basis_gates:
-                            qc.u3(pi / 2, -pi / 2, pi / 2, state_registers[qubit_idx])
+                            qc_slice.u3(pi / 2, -pi / 2, pi / 2, state_registers[qubit_idx])
                         else:
-                            qc.rx(pi / 2, state_registers[qubit_idx])
+                            qc_slice.rx(pi / 2, state_registers[qubit_idx])
                 # pauli Z
                 elif pauli[1].v[qubit_idx] == 1 and pauli[1].w[qubit_idx] == 0:
                     pass
@@ -1195,31 +1346,32 @@ class Operator(object):
                 ))
 
             for pair in cnot_qubit_pairs[pauli_idx]:
-                qc.cx(state_registers[pair[0]], state_registers[pair[1]])
+                qc_slice.cx(state_registers[pair[0]], state_registers[pair[1]])
 
             # insert Rz gate
             if top_XYZ_pauli_indices[pauli_idx] >= 0:
                 if ancillary_registers is None:
                     lam = (2.0 * pauli[0] * evo_time / num_time_slices).real
                     if use_basis_gates:
-                        qc.u1(lam, state_registers[top_XYZ_pauli_indices[pauli_idx]])
+                        qc_slice.u1(lam, state_registers[top_XYZ_pauli_indices[pauli_idx]])
                     else:
-                        qc.rz(lam, state_registers[top_XYZ_pauli_indices[pauli_idx]])
+                        qc_slice.rz(lam, state_registers[top_XYZ_pauli_indices[pauli_idx]])
                 else:
                     unitary_power = (2 ** ctl_idx) if unitary_power is None else unitary_power
                     lam = (2.0 * pauli[0] * evo_time / num_time_slices * unitary_power).real
 
                     if use_basis_gates:
-                        qc.u1(lam / 2, state_registers[top_XYZ_pauli_indices[pauli_idx]])
-                        qc.cx(ancillary_registers[ctl_idx], state_registers[top_XYZ_pauli_indices[pauli_idx]])
-                        qc.u1(-lam / 2, state_registers[top_XYZ_pauli_indices[pauli_idx]])
-                        qc.cx(ancillary_registers[ctl_idx], state_registers[top_XYZ_pauli_indices[pauli_idx]])
+                        qc_slice.u1(lam / 2, state_registers[top_XYZ_pauli_indices[pauli_idx]])
+                        qc_slice.cx(ancillary_registers[ctl_idx], state_registers[top_XYZ_pauli_indices[pauli_idx]])
+                        qc_slice.u1(-lam / 2, state_registers[top_XYZ_pauli_indices[pauli_idx]])
+                        qc_slice.cx(ancillary_registers[ctl_idx], state_registers[top_XYZ_pauli_indices[pauli_idx]])
                     else:
-                        qc.crz(lam, ancillary_registers[ctl_idx], state_registers[top_XYZ_pauli_indices[pauli_idx]])
+                        qc_slice.crz(lam, ancillary_registers[ctl_idx],
+                                     state_registers[top_XYZ_pauli_indices[pauli_idx]])
 
             # insert rhs cnot gates
             for pair in reversed(cnot_qubit_pairs[pauli_idx]):
-                qc.cx(state_registers[pair[0]], state_registers[pair[1]])
+                qc_slice.cx(state_registers[pair[0]], state_registers[pair[1]])
 
             # revert bases if necessary
             for qubit_idx in range(n_qubits):
@@ -1227,17 +1379,26 @@ class Operator(object):
                     # pauli X
                     if pauli[1].v[qubit_idx] == 0:
                         if use_basis_gates:
-                            qc.u2(0.0, pi, state_registers[qubit_idx])
+                            qc_slice.u2(0.0, pi, state_registers[qubit_idx])
                         else:
-                            qc.h(state_registers[qubit_idx])
+                            qc_slice.h(state_registers[qubit_idx])
                     # pauli Y
                     elif pauli[1].v[qubit_idx] == 1:
                         if use_basis_gates:
-                            qc.u3(-pi / 2, -pi / 2, pi / 2, state_registers[qubit_idx])
+                            qc_slice.u3(-pi / 2, -pi / 2, pi / 2, state_registers[qubit_idx])
                         else:
-                            qc.rx(-pi / 2, state_registers[qubit_idx])
+                            qc_slice.rx(-pi / 2, state_registers[qubit_idx])
+
         # repeat the slice
-        qc.data *= num_time_slices
+        if shallow_slicing:
+            logger.info('Under shallow slicing mode, the qc.data reference is repeated shallowly. '
+                        'Thus, changing gates of one slice of the output circuit might affect other slices.')
+            qc_slice.data *= num_time_slices
+            qc = qc_slice
+        else:
+            qc = QuantumCircuit()
+            for _ in range(num_time_slices):
+                qc += qc_slice
         return qc
 
     @staticmethod

@@ -91,7 +91,6 @@ class QAOA(VQE):
 
         operator = algo_input.qubit_op
 
-
         qaoa_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
         operator_mode = qaoa_params.get(QAOA.PROP_OPERATOR_MODE)
         p = qaoa_params.get(QAOA.PROP_P)
@@ -101,11 +100,6 @@ class QAOA(VQE):
         opt_params = params.get(QuantumAlgorithm.SECTION_KEY_OPTIMIZER)
         optimizer = get_optimizer_instance(opt_params['name'])
         optimizer.init_params(opt_params)
-
-        if 'statevector' not in self._backend and operator_mode == 'matrix':
-            logger.debug('Qasm simulation does not work on {} mode, changing \
-                            the operator_mode to paulis'.format(operator_mode))
-            operator_mode = 'paulis'
 
         self.init_args(operator, operator_mode, p, optimizer,
                        opt_init_point=initial_point, aux_operators=algo_input.aux_ops)
