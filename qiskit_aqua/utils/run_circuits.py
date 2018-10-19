@@ -20,10 +20,12 @@ import logging
 import time
 import functools
 import copy
+from packaging import version
 
 import numpy as np
 from qiskit.backends import BaseBackend
 from qiskit import compile as q_compile
+import qiskit
 from qiskit.backends.jobstatus import JobStatus
 from qiskit.backends import JobError
 
@@ -44,6 +46,7 @@ def _reuse_shared_circuits(circuits, backend, execute_config, qjob_config={}):
 
     TODO:
         after subtraction, the circuits can not be empty.
+        it only works for terra 0.6.2+
     """
     shared_circuit = circuits[0]
     shared_result = run_circuits(shared_circuit, backend, execute_config,
@@ -93,7 +96,7 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
 
     my_backend = backend
 
-    if has_shared_circuits:
+    if has_shared_circuits and version.parse(qiskit.__version__) > version.parse('0.6.1'):
         return _reuse_shared_circuits(circuits, backend, execute_config, qjob_config)
 
     with_autorecover = False if my_backend.configuration()['simulator'] else True
