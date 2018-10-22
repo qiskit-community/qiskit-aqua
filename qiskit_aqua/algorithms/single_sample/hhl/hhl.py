@@ -123,10 +123,10 @@ class HHL(QuantumAlgorithm):
         mode = hhl_params.get(HHL.PROP_MODE)
 
         # Handle different modes
-              
-        from qiskit.backends.local import QasmSimulatorCpp
+
+        from qiskit.backends.aer.qasm_simulator import QasmSimulator
         try:
-            QasmSimulatorCpp()
+            QasmSimulator()
             cpp = True
         except FileNotFoundError:
             cpp = False
@@ -278,21 +278,22 @@ class HHL(QuantumAlgorithm):
         """
         # Preparing the state tomography circuits
         import qiskit.tools.qcvv.tomography as tomo
-        from qiskit import QuantumProgram
+        from qiskit import QuantumCircuit
+        from qiskit import execute
+
         c = ClassicalRegister(self._num_q)
         self._circuit.add(c)
-        qp = QuantumProgram()
-        qp.add_circuit("master", self._circuit)
+        qc = QuantumCircuit(c, name="master")
         tomo_set = tomo.state_tomography_set(list(range(self._num_q)))
-        tomo_names = tomo.create_tomography_circuits(qp, "master",
+        tomo_circuits = tomo.create_tomography_circuits(qc,
                 self._io_register, c, tomo_set)
         config = {k: v for k, v in self._execute_config.items() if k != "qobj_id"}
 
         # Handling the results
-        res = qp.execute(tomo_names, backend=self._backend, **config)
+        job = execute(tomo_circuits, backend=self._backend, **config)
         probs = []
-        for circ in res._result.get("result"):
-            counts = circ.get("data").get("counts")
+        for res in job.result():
+            counts = res.counts
             new_counts = {}
             s, f = 0, 0
             for k, v in counts.items():
@@ -302,10 +303,9 @@ class HHL(QuantumAlgorithm):
                 else:
                     f += v
             probs.append(s/(f+s))
-            circ["data"]["counts"] = new_counts
 
         # Fitting the tomography data
-        tomo_data = tomo.tomography_data(res, 'master', tomo_set)
+        tomo_data = tomo.tomography_data(job.result(), "master", tomo_set)
         rho_fit = tomo.fit_tomography_data(tomo_data)
         vec = rho_fit[:, 0]/np.sqrt(rho_fit[0, 0])
         self._ret["result"] = vec

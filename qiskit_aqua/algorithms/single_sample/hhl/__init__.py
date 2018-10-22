@@ -16,5 +16,5 @@
 # =============================================================================
 
 # for core development
-# from .hhl import HHL
+from .hhl import HHL
 
