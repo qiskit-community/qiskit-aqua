@@ -134,7 +134,8 @@ class HHL(QuantumAlgorithm):
         exact = False
         if mode == 'state_tomography':
             if (QuantumAlgorithm.is_statevector_backend(self._backend) or
-                    (self._backend == "qasm_simulator" and cpp)):
+                    (QuantumAlgorithm.backend_name(self._backend) ==
+                     "qasm_simulator" and cpp)):
                 exact = True
                 ############### not always
                 self._debug = True
@@ -142,9 +143,10 @@ class HHL(QuantumAlgorithm):
                 import qiskit.extensions.simulator
 
         if mode == 'debug':
-            if self._backend != 'qasm_simulator' and not cpp:
+            if QuantumAlgorithm.backend_name(self._backend) != \
+                    "qasm_simulator" or not cpp:
                 raise AlgorithmError("Debug mode only possible with"
-                        "C++ local_qasm_simulator.")
+                        "C++ qasm_simulator.")
             import qiskit.extensions.simulator
             self._debug = True
 
@@ -246,7 +248,7 @@ class HHL(QuantumAlgorithm):
         if QuantumAlgorithm.is_statevector_backend(self._backend):
             res = self.execute(self._circuit)
             sv = res.get_statevector()
-        elif self._backend == "qasm_simulator":
+        elif QuantumAlgorithm.backend_name(self._backend) == "qasm_simulator":
             import qiskit.extensions.simulator
             self._circuit.snapshot("5")
             self._execute_config["config"]["data"] = ["quantum_state_ket"]
