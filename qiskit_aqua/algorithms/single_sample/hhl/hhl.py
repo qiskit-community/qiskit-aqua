@@ -294,15 +294,14 @@ class HHL(QuantumAlgorithm):
         probs = []
         for res in job.result():
             counts = res.counts
-            new_counts = {}
             s, f = 0, 0
             for k, v in counts.items():
                 if k[-1] == "1":
-                    new_counts[k[:-2]] = v
                     s += v
                 else:
                     f += v
             probs.append(s/(f+s))
+        self._ret["probability"] = probs
 
         # Fitting the tomography data
         tomo_data = tomo.tomography_data(job.result(), "master", tomo_set)
