@@ -1830,19 +1830,14 @@ class Operator(object):
             operator = clifford * operator * clifford
 
         operator_out = Operator(paulis=[])
-        n = len(operator.paulis[0][1].v)
         for pauli_term in operator.paulis:
             coeff_out = pauli_term[0]
-            for qubit_idx, qubit in enumerate(sq_list):
-                if not (pauli_term[1].v[qubit] == 0 and pauli_term[1].w[qubit] == 0):
-                    coeff_out = tapering_values[qubit_idx] * coeff_out
-            v_temp = []
-            w_temp = []
-            for j in range(n):
-                if j not in sq_list:
-                    v_temp.append(pauli_term[1].v[j])
-                    w_temp.append(pauli_term[1].w[j])
-            pauli_term_out = [coeff_out, Pauli(np.array(v_temp), np.array(w_temp))]
+            for idx, qubit_idx in enumerate(sq_list):
+                if not (pauli_term[1].v[qubit_idx] == 0 and pauli_term[1].w[qubit_idx] == 0):
+                    coeff_out = tapering_values[idx] * coeff_out
+            v_temp = np.delete(pauli_term[1].v.copy(), np.asarray(sq_list))
+            w_temp = np.delete(pauli_term[1].w.copy(), np.asarray(sq_list))
+            pauli_term_out = [coeff_out, Pauli(v_temp, w_temp)]
             operator_out += Operator(paulis=[pauli_term_out])
 
         operator_out.zeros_coeff_elimination()
