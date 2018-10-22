@@ -111,10 +111,10 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
         if circuit_cache.use_caching and circuit_cache.misses < 5:
             try:
                 qobj = circuit_cache.load_qobj_from_cache(sub_circuits, i)
-            except (TypeError, IndexError, FileNotFoundError, EOFError) as e: #cache miss, fail gracefully
-                # logger.debug(repr(e))
+            except (TypeError, IndexError, FileNotFoundError, EOFError, AlgorithmError) as e: #cache miss, fail gracefully
                 circuit_cache.clear_cache()
-                logger.debug('Circuit cache miss, recompiling')
+                logger.debug('Circuit cache miss, recompiling. Cache miss reason:')
+                logger.debug(repr(e))
                 qobj = q_compile(sub_circuits, my_backend, **execute_config)
                 circuit_cache.cache_circuit(qobj, circuits, i)
                 circuit_cache.misses += 1

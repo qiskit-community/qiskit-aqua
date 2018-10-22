@@ -82,6 +82,7 @@ class QuantumAlgorithm(ABC):
         self._circuit_caching = False
         self._caching_naughty_mode = False
         self._cache_file = None
+        self._persist_cache = False
 
     @property
     def configuration(self):
@@ -223,7 +224,11 @@ class QuantumAlgorithm(ABC):
         circuit_cache.use_caching = self._circuit_caching
         circuit_cache.naughty_mode = self._caching_naughty_mode
         circuit_cache.cache_file = self._cache_file
-        circuit_cache.clear_cache()
+        circuit_cache.persist_cache = self._persist_cache
+        if self._persist_cache:
+            circuit_cache.misses = 0
+        else:
+            circuit_cache.clear_cache()
 
         logger.info('Qiskit Terra version {}'.format(qiskit_version))
         logger.info(info)
