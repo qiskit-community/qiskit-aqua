@@ -343,7 +343,8 @@ class FermionicOperator(object):
             futures = [executor.submit(FermionicOperator._one_body_mapping,
                                        self._h1[i, j], a[i], a[j], threshold)
                        for i, j in itertools.product(range(n), repeat=2) if self._h1[i, j] != 0]
-            for future in concurrent.futures.as_completed(futures):
+
+            for future in futures:
                 result = future.result()
                 pauli_list += result
             pauli_list.chop(threshold=threshold)
@@ -353,7 +354,7 @@ class FermionicOperator(object):
                                        self._h2[i, j, k, m], a[i], a[j], a[k], a[m], threshold)
                        for i, j, k, m in itertools.product(range(n), repeat=4)
                        if self._h2[i, j, k, m] != 0]
-            for future in concurrent.futures.as_completed(futures):
+            for future in futures:
                 result = future.result()
                 pauli_list += result
             pauli_list.chop(threshold=threshold)
