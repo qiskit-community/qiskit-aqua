@@ -65,7 +65,7 @@ class PreferencesDialog(Dialog):
         self._populateDefaults.set(1 if populate else 0)
 
         credentialsGroup = ttk.LabelFrame(parent,
-                                          text='Qiskit Credentials',
+                                          text='IBMQ Credentials',
                                           padding=(6, 6, 6, 6),
                                           borderwidth=4,
                                           relief=tk.GROOVE)
