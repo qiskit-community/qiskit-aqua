@@ -15,9 +15,25 @@
 # limitations under the License.
 # =============================================================================
 
-from .feature_map import FeatureMap
-from .data_mapping import self_product
+"""
+This module contains the definition of data mapping function for feature map.
+"""
+
+import functools
+
+import numpy as np
 
 
-__all__ = ['FeatureMap',
-           'self_product']
+def self_product(x):
+    """
+    Define a function map from R^n to R.
+
+    Args:
+        x (np.ndarray): data
+
+    Returns:
+        double: the mapped value
+    """
+    coeff = x[0] if len(x) == 1 else \
+        functools.reduce(lambda m, n: m * n, np.pi - x)
+    return coeff

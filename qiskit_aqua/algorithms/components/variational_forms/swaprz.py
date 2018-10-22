@@ -117,13 +117,13 @@ class VarFormSwapRZ(VariationalForm):
             for node in self._entangler_map:
                 for target in self._entangler_map[node]:
                     # XX
-                    circuit.h(q[node])
-                    circuit.h(q[target])
+                    circuit.u2(0, np.pi, q[node])
+                    circuit.u2(0, np.pi, q[target])
                     circuit.cx(q[node], q[target])
                     circuit.u1(parameters[param_idx], q[target])
                     circuit.cx(q[node], q[target])
-                    circuit.h(q[node])
-                    circuit.h(q[target])
+                    circuit.u2(0, np.pi, q[node])
+                    circuit.u2(0, np.pi, q[target])
                     # YY
                     circuit.u3(np.pi / 2, -np.pi / 2, np.pi / 2, q[node])
                     circuit.u3(np.pi / 2, -np.pi / 2, np.pi / 2, q[target])

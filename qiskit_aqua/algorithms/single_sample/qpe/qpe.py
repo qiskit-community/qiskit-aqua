@@ -152,7 +152,7 @@ class QPE(QuantumAlgorithm):
             self, operator, state_in, iqft, num_time_slices, num_ancillae,
             paulis_grouping='random', expansion_mode='trotter', expansion_order=1,
             shallow_circuit_concat=False):
-        if self._backend.find('statevector') >= 0:
+        if QuantumAlgorithm.is_statevector_backend(self.backend):
             raise ValueError('Selected backend does not support measurements.')
         self._operator = operator
         self._state_in = state_in
@@ -195,7 +195,7 @@ class QPE(QuantumAlgorithm):
             else:
                 raise ValueError('Unrecognized expansion mode {}.'.format(self._expansion_mode))
         for i in range(self._num_ancillae):
-            qc_evolutions = self._operator.construct_evolution_circuit(
+            qc_evolutions = Operator.construct_evolution_circuit(
                 slice_pauli_list, -2 * np.pi, self._num_time_slices, q, a, ctl_idx=i,
                 shallow_slicing=self._shallow_circuit_concat
             )

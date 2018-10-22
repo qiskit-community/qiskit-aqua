@@ -19,16 +19,11 @@ This module contains the definition of a base class for
 feature map. Several types of commonly used approaches.
 """
 
-
-import numpy as np
-from qiskit import CompositeGate, QuantumCircuit, QuantumRegister
-from qiskit.extensions.standard.u1 import U1Gate
-from qiskit.extensions.standard.u2 import U2Gate
-
-from qiskit_aqua.algorithms.components.feature_maps import FeatureMap
+from qiskit_aqua.algorithms.components.feature_maps.pauli_z_expansion import PauliZExpansion
+from qiskit_aqua.algorithms.components.feature_maps import self_product
 
 
-class FirstOrderExpansion(FeatureMap):
+class FirstOrderExpansion(PauliZExpansion):
     """
     Mapping data with the first order expansion without entangling gates.
     Refer to https://arxiv.org/pdf/1804.11326.pdf for details.
@@ -53,48 +48,16 @@ class FirstOrderExpansion(FeatureMap):
     }
 
     def __init__(self, configuration=None):
+        """Constructor."""
         super().__init__(configuration or self.FIRST_ORDER_EXPANSION_CONFIGURATION.copy())
         self._ret = {}
 
-    def init_args(self, num_qubits, depth):
-        self._num_qubits = num_qubits
-        self._depth = depth
-
-    def _build_composite_gate(self, x, qr):
-        composite_gate = CompositeGate("first_order_expansion",
-                                       [], [qr[i] for i in range(self._num_qubits)])
-
-        for _ in range(self._depth):
-            for i in range(x.shape[0]):
-                composite_gate._attach(U2Gate(0, np.pi, qr[i]))
-                composite_gate._attach(U1Gate(2 * x[i], qr[i]))
-
-        return composite_gate
-
-    def construct_circuit(self, x, qr=None, inverse=False):
-        """
-        Construct the first order expansion based on given data.
+    def init_args(self, num_qubits, depth, data_map_func=self_product):
+        """Initializer.
 
         Args:
-            x (numpy.ndarray): 1-D to-be-transformed data.
-            qr (QauntumRegister): the QuantumRegister object for the circuit, if None,
-                                  generate new registers with name q.
-            inverse (bool): whether or not inverse the circuit
-
-        Returns:
-            QuantumCircuit: a quantum circuit transform data x.
+            num_qubits (int): number of qubits
+            depth (int): the number of repeated circuits
+            data_map_func (Callable): a mapping function for data x
         """
-        if not isinstance(x, np.ndarray):
-            raise TypeError("x should be numpy array.")
-        if x.ndim != 1:
-            raise ValueError("x should be 1-D array.")
-        if x.shape[0] != self._num_qubits:
-            raise ValueError("number of qubits and data dimension must be the same.")
-
-        if qr is None:
-            qr = QuantumRegister(self._num_qubits, 'q')
-        qc = QuantumCircuit(qr)
-        composite_gate = self._build_composite_gate(x, qr)
-        qc._attach(composite_gate if not inverse else composite_gate.inverse())
-
-        return qc
+        super().init_args(num_qubits, depth, z_order=1, data_map_func=data_map_func)

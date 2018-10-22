@@ -142,7 +142,7 @@ class IQPE(QuantumAlgorithm):
     def init_args(self, operator, state_in, num_time_slices, num_iterations,
                   paulis_grouping='default', expansion_mode='trotter', expansion_order=1,
                   shallow_circuit_concat=False):
-        if self._backend.find('statevector') >= 0:
+        if QuantumAlgorithm.is_statevector_backend(self.backend):
             raise ValueError('Selected backend does not support measurements.')
         self._operator = operator
         self._state_in = state_in
@@ -164,7 +164,7 @@ class IQPE(QuantumAlgorithm):
         qc.add(a)
         qc.u2(0, np.pi, a[0])
         # controlled-U
-        qc_evolutions = self._operator.construct_evolution_circuit(
+        qc_evolutions = Operator.construct_evolution_circuit(
             slice_pauli_list, -2 * np.pi, self._num_time_slices, q, a, unitary_power=2 ** (k - 1),
             shallow_slicing=self._shallow_circuit_concat
         )
