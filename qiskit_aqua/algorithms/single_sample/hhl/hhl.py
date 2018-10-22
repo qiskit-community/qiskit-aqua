@@ -133,9 +133,8 @@ class HHL(QuantumAlgorithm):
        
         exact = False
         if mode == 'state_tomography':
-            if ((self._backend == "local_statevector_simulator" or 
-                    (self._backend == "local_qasm_simulator" and cpp)) and
-                    self._execute_config.get("shots") == 1):
+            if (QuantumAlgorithm.is_statevector_backend(self._backend) or
+                    (self._backend == "qasm_simulator" and cpp)):
                 exact = True
                 ############### not always
                 self._debug = True
@@ -143,14 +142,14 @@ class HHL(QuantumAlgorithm):
                 import qiskit.extensions.simulator
 
         if mode == 'debug':
-            if self._backend != 'local_qasm_simulator' and not cpp:
+            if self._backend != 'qasm_simulator' and not cpp:
                 raise AlgorithmError("Debug mode only possible with"
                         "C++ local_qasm_simulator.")
             import qiskit.extensions.simulator
             self._debug = True
 
         if mode == 'swap_test':
-            if self._backend == 'local_statevector_simulator':
+            if QuantumAlgorithm.is_statevector_backend(self._backend):
                 raise AlgorithmError("Measurement requred")
     
         # Initialize eigenvalue finding module
@@ -244,10 +243,10 @@ class HHL(QuantumAlgorithm):
         the statevector. Only possible with statevector simulators
         """
         # Handle different backends
-        if self._backend == "local_statevector_simulator":
+        if QuantumAlgorithm.is_statevector_backend(self._backend):
             res = self.execute(self._circuit)
             sv = res.get_statevector()
-        elif self._backend == "local_qasm_simulator":
+        elif self._backend == "qasm_simulator":
             import qiskit.extensions.simulator
             self._circuit.snapshot("5")
             self._execute_config["config"]["data"] = ["quantum_state_ket"]
