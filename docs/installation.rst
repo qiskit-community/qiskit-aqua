@@ -22,7 +22,7 @@ Aqua. In addition, `Jupyter
 Notebook <https://jupyter.readthedocs.io/en/latest/install.html>`__ is
 recommended for interacting with the tutorials. For this reason, we
 recommend installing the `Anaconda
-3 <https://www.continuum.io/downloads>`__ Python distribution, as it
+3 <https://www.anaconda.com/download/>`__ Python distribution, as it
 comes with all of these dependencies pre-installed.
 
 .. seealso::
