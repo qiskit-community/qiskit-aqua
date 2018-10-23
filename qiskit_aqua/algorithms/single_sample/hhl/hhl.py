@@ -258,18 +258,18 @@ class HHL(QuantumAlgorithm):
         # Extract output vector
         half = int(len(sv)/2)
         vec = sv[half:half+2**self._num_q]
-        self._ret["probability"] = vec.dot(vec.conj())
+        self._ret["probability_result"] = vec.dot(vec.conj())
         vec = vec/np.linalg.norm(vec)
-        self._ret["result"] = vec
+        self._ret["result_hhl"] = vec
 
         # Calculating the fidelity
         theo = np.linalg.solve(self._matrix, self._vector)
         theo = theo/np.linalg.norm(theo)
-        self._ret["fidelity"] = abs(theo.dot(vec.conj()))**2
+        self._ret["fidelity_hhl_to_classical"] = abs(theo.dot(vec.conj()))**2
         tmp_vec = self._matrix.dot(vec)
         f1 = np.linalg.norm(self._vector)/np.linalg.norm(tmp_vec)
         f2 = sum(np.angle(self._vector*tmp_vec.conj()))/self._num_q
-        self._ret["solution"] = f1*vec*np.exp(-1j*f2)
+        self._ret["solution_scaled"] = f1*vec*np.exp(-1j*f2)
 
     
     def _state_tomography(self):
@@ -302,24 +302,24 @@ class HHL(QuantumAlgorithm):
                 else:
                     f += v
             probs.append(s/(f+s))
-        self._ret["probability"] = probs
+        self._ret["probability_result"] = probs
 
         # Fitting the tomography data
         tomo_data = tomo.tomography_data(job.result(), "master", tomo_set)
         rho_fit = tomo.fit_tomography_data(tomo_data)
         vec = rho_fit[:, 0]/np.sqrt(rho_fit[0, 0])
-        self._ret["result"] = vec
+        self._ret["result_hhl"] = vec
 
         # Calculating the fidelity with the classical solution
         theo = np.linalg.solve(self._matrix, self._vector)
         theo = theo/np.linalg.norm(theo)
-        self._ret["fidelity"] = abs(theo.dot(vec.conj()))**2
+        self._ret["fidelity_hhl_to_classical"] = abs(theo.dot(vec.conj()))**2
 
         # Rescaling the output vector to the real solution vector
         tmp_vec = self._matrix.dot(vec)
         f1 = np.linalg.norm(self._vector)/np.linalg.norm(tmp_vec)
         f2 = sum(np.angle(self._vector*tmp_vec.conj()))/self._num_q
-        self._ret["solution"] = f1*vec*np.exp(-1j*f2)
+        self._ret["solution_scaled"] = f1*vec*np.exp(-1j*f2)
 
 
     def _swap_test(self):
@@ -368,12 +368,11 @@ class HHL(QuantumAlgorithm):
                 probs[int(key[0])] = val
             else:
                 failed += val
-        self._ret["probability"] = sum(probs)/(sum(probs)+failed)
+        self._ret["probability_result"] = sum(probs)/(sum(probs)+failed)
         probs = np.array(probs)/sum(probs)
-        self._ret["fidelity"] = probs[0]*2-1
-        self._ret["probs"] = probs
-        self._ret["solution"] = sol
-        self._ret["counts"] = res.get_counts()
+        self._ret["fidelity_hhl_to_classical"] = probs[0]*2-1
+        self._ret["solution_scaled"] = sol
+        self._ret["result_counts"] = res.get_counts()
 
 
     def __filter(self, qsk, reg=None, qubits=None):
@@ -484,12 +483,15 @@ class HHL(QuantumAlgorithm):
         sv = res.get_snapshot("3").get("statevector")[0]
         half = int(len(sv)/2)
         vec = sv[half:half+2**self._num_q]
-        self._ret["probability"] = vec.dot(vec.conj())
+        self._ret["probability_result"] = vec.dot(vec.conj())
         vec = vec/np.linalg.norm(vec)
-        self._ret["result"] = vec
+        self._ret["result_hhl"] = vec
         solution = np.linalg.solve(self._matrix, self._vector)
-        self._ret["fidelity"] = abs(vec.conj().dot(solution/np.linalg.norm(solution)))**2
-        print(self._ret["fidelity"])
+        self._ret["fidelity_hhl_to_classical"] = abs(vec.conj().dot(solution/np.linalg.norm(solution)))**2
+        tmp_vec = self._matrix.dot(vec)
+        f1 = np.linalg.norm(self._vector)/np.linalg.norm(tmp_vec)
+        f2 = sum(np.angle(self._vector*tmp_vec.conj()))/self._num_q
+        self._ret["solution_scaled"] = f1*vec*np.exp(-1j*f2)
         dev = np.abs(solution/np.linalg.norm(solution)-vec)**2
         ax_dev.barh(np.arange(len(dev)), dev)
         sa = solution/np.linalg.norm(solution)
@@ -540,10 +542,14 @@ class HHL(QuantumAlgorithm):
         elif self._mode == "swap_test":
             self._swap_test()
         # Adding few general informations
-        self._ret["gate_count"] = self._circuit.number_atomic_gates()
-        self._ret["matrix"] = self._matrix
-        self._ret["vector"] = self._vector
-        self._ret["eigenvalues"] = np.linalg.eig(self._matrix)[0]
+        self._ret["input_matrix"] = self._matrix
+        self._ret["input_vector"] = self._vector
+        self._ret["eigenvalues_calculated"] = np.linalg.eig(self._matrix)[0]
+        self._ret["qubits_used_total"] = self._io_register.size + \
+                                         self._eigenvalue_register.size + \
+                                         self._ancilla_register.size
+        self._ret["gate_count_total"] = self._circuit.number_atomic_gates()
+        # TODO print depth of worst qubit
         return self._ret
 
     ############################################### 
