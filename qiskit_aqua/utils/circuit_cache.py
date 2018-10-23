@@ -36,7 +36,8 @@ import copy
 import uuid
 from qiskit.backends.aer import AerJob
 from qiskit.backends import JobError
-from qiskit import QuantumRegister, ClassicalRegister
+from qiskit_aqua.algorithmerror import AlgorithmError
+from qiskit import QuantumRegister
 import pickle
 import logging
 from qiskit.qobj import qobj_to_dict, Qobj
@@ -49,6 +50,7 @@ misses = 0
 use_caching = False
 naughty_mode = False
 cache_file = ''
+persist_cache = False #persist cache across QuantumAlgorithm runs
 
 def cache_circuit(qobj, circuits, chunk):
     """
@@ -118,7 +120,7 @@ def cache_circuit(qobj, circuits, chunk):
         qobj_dicts = [qobj_to_dict(qob) for qob in qobjs]
         pickle.dump({'qobjs':qobj_dicts, 'mappings':mappings}, cache_handler, protocol=pickle.HIGHEST_PROTOCOL)
         cache_handler.close()
-        logger.debug("Circuit cache saved successfully.")
+        logger.debug("Circuit cache saved to file.")
 
 # Note that this function overwrites the previous cached qobj for speed
 def load_qobj_from_cache(circuits, chunk):
@@ -133,13 +135,20 @@ def load_qobj_from_cache(circuits, chunk):
         cache_handler.close()
         qobjs = [Qobj.from_dict(qob) for qob in cache['qobjs']]
         mappings = cache['mappings']
-        logger.debug("Circuit cache loaded successfully.")
+        logger.debug("Circuit cache loaded from file.")
 
     for circ_num, input_circuit in enumerate(circuits):
         qobjs[chunk].experiments[circ_num].header.name = input_circuit.name
         for gate_num, compiled_gate in enumerate(qobjs[chunk].experiments[circ_num].instructions):
             if compiled_gate.name == 'snapshot': continue
-            uncompiled_gate = input_circuit.data[mappings[chunk][circ_num][gate_num]]
+            cache_index = mappings[chunk][circ_num][gate_num]
+            uncompiled_gate = input_circuit.data[cache_index]
+            if not len(compiled_gate.params) == len(uncompiled_gate.param) or \
+                not compiled_gate.name == uncompiled_gate.name:
+                raise AlgorithmError('Gate mismatch at gate {0} ({1}, {2} params) of circuit against '
+                                     'gate {3} ({4}, {5} params) '
+                                     'of cached qobj'.format(cache_index, uncompiled_gate.name, len(uncompiled_gate.param),
+                                                             gate_num, compiled_gate.name, len(compiled_gate.params)))
             compiled_gate.params = np.array(uncompiled_gate.param, dtype=float).tolist()
     if naughty_mode: return qobjs[chunk]
     else: return copy.deepcopy(qobjs[chunk])
@@ -151,6 +160,9 @@ def naughty_run(backend, qobj):
     if aer_job._future is not None:
         raise JobError("We have already submitted the job!")
     aer_job._future = aer_job._executor.submit(aer_job._fn, aer_job._job_id, aer_job._qobj)
+    if 'statevector' in backend.configuration()['name']:
+        for exp in qobj.experiments:
+            if exp.instructions[-2].name == 'snapshot': exp.instructions.pop()
     return aer_job
 
 def clear_cache():

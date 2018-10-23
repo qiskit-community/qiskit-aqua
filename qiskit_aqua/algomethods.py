@@ -78,6 +78,7 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
     algorithm._circuit_caching = inputparser.get_section_property(JSONSchema.PROBLEM, 'circuit_caching')
     algorithm._caching_naughty_mode = inputparser.get_section_property(JSONSchema.PROBLEM, 'caching_naughty_mode')
     algorithm._cache_file = inputparser.get_section_property(JSONSchema.PROBLEM, 'circuit_cache_file')
+    algorithm._persist_cache = inputparser.get_section_property(JSONSchema.PROBLEM, 'persist_cache')
     if not algorithm._circuit_caching and algorithm._caching_naughty_mode :
         logging.warning("You should not use caching naughty mode if caching is disabled.")
 
