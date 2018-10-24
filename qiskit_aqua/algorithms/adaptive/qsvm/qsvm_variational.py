@@ -117,7 +117,6 @@ class QSVMVariational(QuantumAlgorithm):
             feature_map (FeatureMap): FeatureMap instance
             var_form (VariationalForm): VariationalForm instance
             batch_mode (boolean): Batch mode for circuit compilation and execution
-                                  (only works for SPSA)
         Notes:
             We used `label` denotes numeric results and `class` means the name of that class (str).
         """
