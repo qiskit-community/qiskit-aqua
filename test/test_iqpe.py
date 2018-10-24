@@ -24,7 +24,7 @@ from scipy import sparse
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import get_algorithm_instance, get_initial_state_instance, Operator
-from qiskit_aqua.utils import decimal_to_binary, circuit_cache
+from qiskit_aqua.utils import decimal_to_binary
 
 
 pauli_dict = {
@@ -78,9 +78,6 @@ class TestIQPE(QiskitAquaTestCase):
 
         iqpe = get_algorithm_instance('IQPE')
         iqpe.setup_quantum_backend(backend='qasm_simulator', shots=100, skip_transpiler=True)
-
-        circuit_cache.use_caching = True
-        circuit_cache.naughty_mode = True
 
         state_in = get_initial_state_instance('CUSTOM')
         state_in.init_args(self.qubitOp.num_qubits, state_vector=self.ref_eigenvec)
