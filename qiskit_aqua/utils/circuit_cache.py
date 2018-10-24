@@ -37,7 +37,7 @@ import uuid
 from qiskit.backends.aer import AerJob
 from qiskit.backends import JobError
 from qiskit_aqua.algorithmerror import AlgorithmError
-from qiskit import QuantumRegister
+from qiskit import QuantumRegister, CompositeGate
 import pickle
 import logging
 from qiskit.qobj import qobj_to_dict, Qobj
@@ -49,7 +49,7 @@ mappings = None
 misses = 0
 use_caching = False
 naughty_mode = False
-cache_file = ''
+cache_file = None
 persist_cache = False #persist cache across QuantumAlgorithm runs
 
 def cache_circuit(qobj, circuits, chunk):
@@ -90,7 +90,14 @@ def cache_circuit(qobj, circuits, chunk):
         qreg_sizes = [reg.size for reg in input_circuit.regs.values() if isinstance(reg, QuantumRegister)]
         qreg_indeces = {name: sum(qreg_sizes[0:i]) for i, name in enumerate(input_circuit.regs)}
         op_graph = {}
-        for i, uncompiled_gate in enumerate(input_circuit.data):
+
+        # Unroll circuit in case of composite gates
+        raw_gates = []
+        for gate in input_circuit.data:
+            if isinstance(gate, CompositeGate): raw_gates += gate.instruction_list()
+            else: raw_gates += [gate]
+
+        for i, uncompiled_gate in enumerate(raw_gates):
             regs = [(reg, qubit) for (reg, qubit) in uncompiled_gate.arg]
             qubits = [qubit+qreg_indeces[reg.name] for reg, qubit in regs if isinstance(reg, QuantumRegister)]
             gate_type = uncompiled_gate.name
@@ -102,7 +109,7 @@ def cache_circuit(qobj, circuits, chunk):
             type_and_qubits = compiled_gate.name + compiled_gate.qubits.__str__()
             if len(op_graph[type_and_qubits]) > 0:
                 uncompiled_gate_index = op_graph[type_and_qubits].pop(0)
-                uncompiled_gate = input_circuit.data[uncompiled_gate_index]
+                uncompiled_gate = raw_gates[uncompiled_gate_index]
                 regs = [(reg, qubit) for (reg, qubit) in uncompiled_gate.arg]
                 qubits = [qubit + qreg_indeces[reg.name] for reg, qubit in regs if isinstance(reg, QuantumRegister)]
                 if (compiled_gate.name == uncompiled_gate.name) and (compiled_gate.qubits.__str__() ==
@@ -114,9 +121,8 @@ def cache_circuit(qobj, circuits, chunk):
         for type_and_qubits, ops in op_graph.items():
             if len(ops) > 0:
                 raise Exception("Circuit shape does not match qobj, found extra {} in circuit".format(type_and_qubits))
-    if len(cache_file) > 0:
+    if cache_file is not None and len(cache_file) > 0:
         cache_handler = open(cache_file, 'wb')
-        # qobj_jsons = [json.dumps(qobj_to_dict(qob)) for qob in qobjs]
         qobj_dicts = [qobj_to_dict(qob) for qob in qobjs]
         pickle.dump({'qobjs':qobj_dicts, 'mappings':mappings}, cache_handler, protocol=pickle.HIGHEST_PROTOCOL)
         cache_handler.close()
@@ -129,7 +135,7 @@ def load_qobj_from_cache(circuits, chunk):
     global misses
     global cache_file
 
-    if qobjs is None and len(cache_file) > 0:
+    if qobjs is None and cache_file is not None and len(cache_file) > 0:
         cache_handler = open(cache_file, "rb")
         cache = pickle.load(cache_handler, encoding="ASCII")
         cache_handler.close()
@@ -138,12 +144,21 @@ def load_qobj_from_cache(circuits, chunk):
         logger.debug("Circuit cache loaded from file.")
 
     for circ_num, input_circuit in enumerate(circuits):
+
+        # Unroll circuit in case of composite gates
+        raw_gates = []
+        for gate in input_circuit.data:
+            if isinstance(gate, CompositeGate): raw_gates += gate.instruction_list()
+            else: raw_gates += [gate]
+
         qobjs[chunk].experiments[circ_num].header.name = input_circuit.name
         for gate_num, compiled_gate in enumerate(qobjs[chunk].experiments[circ_num].instructions):
             if compiled_gate.name == 'snapshot': continue
             cache_index = mappings[chunk][circ_num][gate_num]
-            uncompiled_gate = input_circuit.data[cache_index]
-            if not len(compiled_gate.params) == len(uncompiled_gate.param) or \
+            uncompiled_gate = raw_gates[cache_index]
+
+            # Need the 'getattr' wrapper because measure has no 'params' field and breaks this.
+            if not len(getattr(compiled_gate, 'params', [])) == len(getattr(uncompiled_gate, 'param', [])) or \
                 not compiled_gate.name == uncompiled_gate.name:
                 raise AlgorithmError('Gate mismatch at gate {0} ({1}, {2} params) of circuit against '
                                      'gate {3} ({4}, {5} params) '
@@ -160,9 +175,6 @@ def naughty_run(backend, qobj):
     if aer_job._future is not None:
         raise JobError("We have already submitted the job!")
     aer_job._future = aer_job._executor.submit(aer_job._fn, aer_job._job_id, aer_job._qobj)
-    if 'statevector' in backend.configuration()['name']:
-        for exp in qobj.experiments:
-            if exp.instructions[-2].name == 'snapshot': exp.instructions.pop()
     return aer_job
 
 def clear_cache():
