@@ -63,7 +63,7 @@ class VQE(QuantumAlgorithm):
                 },
                 'batch_mode': {
                     'type': 'boolean',
-                    'default': False
+                    'default': True
                 }
             },
             'additionalProperties': False
@@ -94,6 +94,9 @@ class VQE(QuantumAlgorithm):
         self._ret = {}
         self._eval_count = 0
         self._eval_time = 0
+
+        self.cache = []
+        self.last_params = None
 
     def init_params(self, params, algo_input):
         """
@@ -249,6 +252,71 @@ class VQE(QuantumAlgorithm):
         self._ret['eval_count'] = self._eval_count
         self._ret['eval_time'] = self._eval_time
         return self._ret
+
+
+
+    def cache_get_value(self, key):
+        for (k, v) in self.cache:
+            if np.array_equal(key, k): # last bits of float are not reliable
+            # if np.allclose(key, k, atol=1e-15): # last bits of float are not reliable
+                return v
+        return None
+
+    def value_copy(self, parameters):
+        self.last_params = parameters
+        # if self.last_params is None:
+        #     self.last_params = parameters.copy()
+        # else:
+        #     for i in range(len(parameters)): # memory efficiency
+        #         self.last_params[i] = parameters[i]
+
+
+
+    def _energy_evaluation_wrapper(self, parameters):
+        print(parameters)
+        # if self.last_params is not None:
+        #     delta = parameters - self.last_params
+        #     print("diff from previous", delta)
+
+        num_parameter_sets = len(parameters) // self._var_form.num_parameters
+        if num_parameter_sets > 1:
+            return self._energy_evaluation(parameters) # seems you have your own parallelization scheme, skip default scheme
+
+        cached_val = self.cache_get_value(parameters)
+        if cached_val is not None: # batch body enjoys the cache
+            print("hit")
+            self.value_copy(parameters)
+            return cached_val
+        else:
+            print("miss")
+            if self.last_params is not None:
+                delta = parameters - self.last_params
+                non_zeros = np.count_nonzero(delta)
+                if non_zeros == 1: # batch body detected, which includes all the variants
+                    nonzeroindex = delta.nonzero()
+                    # stepsize = delta[nonzeroindex]
+                    stepsize = 1e-8
+                    todos = []
+                    for i in range(len(parameters)): # index 0 has the 1st variant
+                        newParameters_i = self.last_params.copy()
+                        newParameters_i[i] = newParameters_i[i] + stepsize
+                        todos.append(newParameters_i)
+                    parallel_parameters = np.concatenate(todos)
+                    todos_results = self._energy_evaluation(parallel_parameters)
+
+                    self.cache = []
+                    for i in range(len(todos)):
+                        self.cache.append((todos[i], todos_results[i]))
+
+                    self.value_copy(parameters)
+                    return self.cache_get_value(parameters) # should be in the cache now
+
+            # either of the above if-checks fails, meaning we are at the head of a new batch, simply evaluate it.
+            self.cache.clear()
+            self.value_copy(parameters)
+            return self._energy_evaluation(parameters) # no point for caching this since it has been already computed
+
+
 
     # This is the objective function to be passed to the optimizer that is uses for evaluation
     def _energy_evaluation(self, parameters):
