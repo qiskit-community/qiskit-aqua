@@ -26,9 +26,33 @@ from ._discover import (refresh_pluggables,
                         local_pluggables_types,
                         local_pluggables,
                         get_pluggable_configuration)
-
+from ._logging import (get_logging_level,
+                       build_logging_config,
+                       set_logging_config)
+from ._discover import _PLUGGABLES
 
 __version__ = '0.3.0'
+
+
+def get_aqua_logging():
+    """
+    Returns the current Aqua logging level
+
+    Returns:
+        logging level
+    """
+    return get_logging_level()
+
+
+def set_aqua_logging(level):
+    """
+    Updates the Aqua logging with the appropriate logging level
+
+    Args:
+        level (number): logging level
+    """
+    set_logging_config(build_logging_config(level))
+
 
 __all__ = ['AlgorithmError',
            'Operator',
@@ -39,9 +63,9 @@ __all__ = ['AlgorithmError',
            'local_pluggables',
            'get_pluggable_configuration',
            'run_algorithm',
-           'run_algorithm_to_json']
-
-from ._discover import _PLUGGABLES
+           'run_algorithm_to_json',
+           'get_aqua_logging',
+           'set_aqua_logging']
 
 prefix = 'from ._discover import '
 for pluggable_type in _PLUGGABLES.keys():
