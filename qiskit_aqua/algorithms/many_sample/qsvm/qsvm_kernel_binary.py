@@ -54,6 +54,7 @@ class QSVM_Kernel_Binary(QSVM_Kernel_ABC):
         qc += self.feature_map.construct_circuit(x1, q)
         qc += self.feature_map.construct_circuit(x2, q, inverse=True)
         if measurement:
+            qc.barrier(q)
             qc.measure(q, c)
         return qc
 
