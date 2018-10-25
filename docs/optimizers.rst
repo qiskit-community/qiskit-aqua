@@ -292,6 +292,14 @@ The following parameters are supported:
    This parameter is optional.  If specified, the value of this parameter must be of type ``float``, otherwise, it is  ``None``.
    The default is ``None``.
 
+   .. code:: python
+
+       adaptive : bool
+
+   The default is ``False``.
+
+-  If true will adapt algorithm to dimensionality of problem.
+
 .. topic:: Declarative Name
 
    When referring to Nelder-Mead declaratively inside Aqua, its code ``name``, by which Aqua dynamically discovers and loads it,
