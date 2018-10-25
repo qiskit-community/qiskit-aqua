@@ -694,7 +694,6 @@ class Operator(object):
                                 Operator._covariance(measured_results, pauli_1[1], pauli_2[1],
                                                      avg_paulis[pauli_1_idx-1], avg_paulis[pauli_2_idx-1])
 
-
             std_dev = np.sqrt(variance / num_shots)
 
         return avg, std_dev
@@ -1811,14 +1810,20 @@ class Operator(object):
         """
 
         if len(cliffords) == 0 or len(sq_list) == 0 or len(tapering_values) == 0:
-            raise ValueError('Cliffords, single qubit list and tapering values cannot be empty.')
+            logger.warning("Cliffords, single qubit list and tapering values cannot be empty.\n"
+                           "Return the original operator instead.")
+            return operator
 
         if len(cliffords) != len(sq_list):
-            raise ValueError('number of Clifford unitaries has to be the same as length of single'
-                             'qubit list and tapering values.')
+            logger.warning("Number of Clifford unitaries has to be the same as length of single"
+                           "qubit list and tapering values.\n"
+                           "Return the original operator instead.")
+            return operator
         if len(sq_list) != len(tapering_values):
-            raise ValueError('number of Clifford unitaries has to be the same as length of single'
-                             'qubit list and tapering values.')
+            logger.warning("Number of Clifford unitaries has to be the same as length of single"
+                           "qubit list and tapering values.\n"
+                           "Return the original operator instead.")
+            return operator
 
         if operator.is_empty():
             logger.warning("The operator is empty, return the empty operator directly.")
