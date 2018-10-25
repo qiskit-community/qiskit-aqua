@@ -667,7 +667,7 @@ class Operator(object):
             if operator_mode == "paulis":
                 self._check_representation("paulis")
                 with concurrent.futures.ProcessPoolExecutor(max_workers=cpu_count) as executor:
-                    futures = [executor.submit(Operator._rountine_paulis_with_shots, pauli,
+                    futures = [executor.submit(Operator._routine_paulis_with_shots, pauli,
                                                result.get_counts(circuits[idx]))
                                for idx, pauli in enumerate(self._paulis)]
 
@@ -678,7 +678,7 @@ class Operator(object):
             else:
                 self._check_representation("grouped_paulis")
                 with concurrent.futures.ProcessPoolExecutor(max_workers=cpu_count) as executor:
-                    futures = [executor.submit(Operator._rountine_grouped_paulis_with_shots, tpb_set,
+                    futures = [executor.submit(Operator._routine_grouped_paulis_with_shots, tpb_set,
                                                result.get_counts(circuits[tpb_idx]))
                                for tpb_idx, tpb_set in enumerate(self._grouped_paulis)]
 
@@ -692,7 +692,7 @@ class Operator(object):
         return avg, std_dev
 
     @staticmethod
-    def _rountine_grouped_paulis_with_shots(tpb_set, measured_results):
+    def _routine_grouped_paulis_with_shots(tpb_set, measured_results):
         avg_paulis = []
         avg = 0.0
         variance = 0.0
@@ -716,7 +716,7 @@ class Operator(object):
         return avg, variance
 
     @staticmethod
-    def _rountine_paulis_with_shots(pauli, measured_results):
+    def _routine_paulis_with_shots(pauli, measured_results):
         curr_result = Operator._measure_pauli_z(measured_results, pauli[1])
         avg = pauli[0] * curr_result
         variance = (pauli[0] ** 2) * Operator._covariance(measured_results, pauli[1], pauli[1],
