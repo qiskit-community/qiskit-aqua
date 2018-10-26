@@ -107,7 +107,7 @@ class QSVMVariational(QuantumAlgorithm):
                        optimizer, feature_map, var_form, batch_mode)
 
     def init_args(self, training_dataset, test_dataset, datapoints, optimizer,
-                  feature_map, var_form, batch_mode):
+                  feature_map, var_form, batch_mode=False):
         """Initialize the object
         Args:
             training_dataset (dict): {'A': numpy.ndarray, 'B': numpy.ndarray, ...}
