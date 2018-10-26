@@ -207,6 +207,7 @@ class VQE(QuantumAlgorithm):
             c = ClassicalRegister(self._operator.num_qubits, name='c')
             q = qc.get_qregs()['q']
             qc.add(c)
+            qc.barrier(q)
             qc.measure(q, c)
             ret = self.execute(qc)
             self._ret['eigvecs'] = np.asarray([ret.get_counts(qc)])

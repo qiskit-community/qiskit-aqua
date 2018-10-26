@@ -150,6 +150,7 @@ class QSVMVariational(QuantumAlgorithm):
         qc = QuantumCircuit(qr, cr)
         qc += self._feature_map.construct_circuit(x, qr)
         qc += self._var_form.construct_circuit(theta, qr)
+        qc.barrier(qr)
         qc.measure(qr, cr)
         return qc
 
