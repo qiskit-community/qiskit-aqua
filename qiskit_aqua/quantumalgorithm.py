@@ -78,6 +78,7 @@ class QuantumAlgorithm(ABC):
         self._random_seed = None
         self._random = None
         self._show_circuit_summary = False
+        self._has_shared_circuits = False
 
     @property
     def configuration(self):
@@ -220,6 +221,14 @@ class QuantumAlgorithm(ABC):
         logger.info('Qiskit Terra version {}'.format(qiskit_version))
         logger.info(info)
 
+    @property
+    def has_shared_circuits(self):
+        return self._has_shared_circuits
+
+    @has_shared_circuits.setter
+    def has_shared_circuits(self, new_value):
+        self._has_shared_circuits = new_value
+
     def execute(self, circuits):
         """
         A wrapper for all algorithms to interface with quantum backend.
@@ -231,7 +240,8 @@ class QuantumAlgorithm(ABC):
             Result: Result object
         """
         result = run_circuits(circuits, self._backend, self._execute_config,
-                              self._qjob_config, show_circuit_summary=self._show_circuit_summary)
+                              self._qjob_config, show_circuit_summary=self._show_circuit_summary,
+                              has_shared_circuits=self._has_shared_circuits)
         if self._show_circuit_summary:
             self.disable_circuit_summary()
 
