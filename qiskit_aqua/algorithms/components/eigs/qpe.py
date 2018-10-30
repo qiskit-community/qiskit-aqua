@@ -152,15 +152,8 @@ class QPE(Eigenvalues):
         # Adding a automatic falg qubit for negative eigenvalues
         if negative_evals:
             num_ancillae += 1
-    
-        # Extending the operator matrix, if the dimension is not in 2**n
-        if np.log2(matrix.shape[0]) % 1 != 0:
-            next_higher = int(np.ceil(np.log2(matrix.shape[0])))
-            new_matrix = np.identity(2**next_higher)
-            new_matrix = np.array(new_matrix, dtype = complex)
-            new_matrix[:matrix.shape[0], :matrix.shape[0]] = matrix[:,:]
-            matrix = new_matrix
 
+  
         # If operator matrix is not hermitian, extending it to B = ((0, A), (A⁺, 0)), which is hermitian
         # In this case QPE will give singular values
         if not hermitian_matrix:
