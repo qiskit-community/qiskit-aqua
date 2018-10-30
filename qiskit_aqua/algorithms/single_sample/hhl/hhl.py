@@ -118,10 +118,22 @@ class HHL(QuantumAlgorithm):
             matrix = np.array(matrix)
         if not isinstance(vector, np.ndarray):
             vector = np.array(vector)
-
+            
+        #extending the matrix and the vector
+        if np.log2(matrix.shape[0]) % 1 != 0:
+            next_higher = int(np.ceil(np.log2(matrix.shape[0])))
+            new_matrix = np.identity(2**next_higher)
+            new_matrix = np.array(new_matrix, dtype = complex)
+            new_matrix[:matrix.shape[0], :matrix.shape[0]] = matrix[:,:]
+            matrix = new_matrix
+            
+            new_vector = np.ones((1,2**next_higher))
+            new_vector[0,:vector.shape[0]] = vector           
+            vector = new_vector.reshape(np.shape(new_vector)[1])
+            
         hhl_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM) or {}
         mode = hhl_params.get(HHL.PROP_MODE)
-
+           
         # Handle different modes
 
         from qiskit.backends.aer.qasm_simulator import QasmSimulator
@@ -165,7 +177,7 @@ class HHL(QuantumAlgorithm):
         # Fix vector for nonhermitian/non 2**n size matrices
         assert(matrix.shape[0] == len(vector), "Check input vector size!")
 
-        tmpvec = np.append(vector, (2**num_q - len(vector))*[0])
+        tmpvec = vector 
         init_state_params = {"name": "CUSTOM"}
         init_state_params["num_qubits"] = num_q
         init_state_params["state_vector"] = tmpvec
