@@ -231,7 +231,7 @@ class VarFormUCCSD(VariationalForm):
 
         if qubit_op is None:
             logger.debug('excitation ({}) is skipped since it is not commuted '
-                         'with cliffords'.format(','.join([str(x) for x in index])))
+                         'with symmetries'.format(','.join([str(x) for x in index])))
         return qubit_op
 
     def construct_circuit(self, parameters, q=None):
