@@ -207,6 +207,7 @@ class VQE(QuantumAlgorithm):
             c = ClassicalRegister(self._operator.num_qubits, name='c')
             q = qc.get_qregs()['q']
             qc.add(c)
+            qc.barrier(q)
             qc.measure(q, c)
             ret = self.execute(qc)
             self._ret['eigvecs'] = np.asarray([ret.get_counts(qc)])
@@ -224,8 +225,11 @@ class VQE(QuantumAlgorithm):
         for operator in self._aux_operators:
             mean, std = 0.0, 0.0
             if not operator.is_empty():
-                mean, std = operator.eval(self._operator_mode, wavefn_circuit,
-                                          self._backend, self._execute_config, self._qjob_config)
+                circuit = operator.construct_evaluation_circuit(self._operator_mode,
+                                                                wavefn_circuit, self._backend)
+                result = self.execute(circuit)
+                mean, std = self._operator.evaluate_with_result(self._operator_mode,
+                                                                circuit, self._backend, result)
                 mean = mean.real if abs(mean.real) > threshold else 0.0
                 std = std.real if abs(std.real) > threshold else 0.0
             values.append((mean, std))

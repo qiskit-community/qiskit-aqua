@@ -107,7 +107,7 @@ class QSVMVariational(QuantumAlgorithm):
                        optimizer, feature_map, var_form, batch_mode)
 
     def init_args(self, training_dataset, test_dataset, datapoints, optimizer,
-                  feature_map, var_form, batch_mode):
+                  feature_map, var_form, batch_mode=False):
         """Initialize the object
         Args:
             training_dataset (dict): {'A': numpy.ndarray, 'B': numpy.ndarray, ...}
@@ -150,6 +150,7 @@ class QSVMVariational(QuantumAlgorithm):
         qc = QuantumCircuit(qr, cr)
         qc += self._feature_map.construct_circuit(x, qr)
         qc += self._var_form.construct_circuit(theta, qr)
+        qc.barrier(qr)
         qc.measure(qr, cr)
         return qc
 
