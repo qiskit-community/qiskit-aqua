@@ -16,7 +16,7 @@
 # =============================================================================
 """
 This module contains the definition of a base class for computing reciprocals
-into an amplitue.
+into an amplitude.
 """
 from abc import ABC, abstractmethod
 
@@ -60,6 +60,6 @@ class Reciprocal(ABC):
             circuit (QuantumCircuit): circuit for construction.
 
         Returns:
-            The iqft circuit.
+            The reciprocal circuit.
         """
         raise NotImplementedError()

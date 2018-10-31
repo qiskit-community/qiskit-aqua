@@ -31,7 +31,7 @@ class LongDivision(Reciprocal):
         'description': 'reciprocal computation with long division and rotation of the ancilla qubit',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
-            'id': 'generated_circuits_reciprocal_schema',
+            'id': 'reciprocal_long_division_schema',
             'type': 'object',
             'properties': {
                 PROP_NUM_ANCILLAE: {
