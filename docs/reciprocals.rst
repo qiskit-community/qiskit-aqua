@@ -94,10 +94,6 @@ While no resolution of the result is lost for small values, towards larger value
 Long Division
 -------------
 
-.. topic:: Declarative Name
-
-   When referring to Long Division declaratively inside Aqua, its code ``name``, by which Aqua dynamically discovers and loads it, is ``LongDivision``.
-
 This method calculates inverse of eigenvalues using binary long division and performs the corresponnding rotation. Long division is implemented as a sequance of subtraction (utilizing ripple carry adder module) and bit shifting. The method allows for adjusting of the reciprocal precision by changing number of iterations. The method was optimized for register conventions used in HHL algorithm (i.e. eigenvalues rescaled to values between 0 and 1). 
 
 The rotation value is always scaled down additionally to the normal scale parameter by 0.5 to get the angle into the linear part of the arcsin(x). The following parameters are exposed:
