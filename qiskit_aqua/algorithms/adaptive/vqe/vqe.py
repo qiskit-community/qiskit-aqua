@@ -228,8 +228,8 @@ class VQE(QuantumAlgorithm):
                 circuit = operator.construct_evaluation_circuit(self._operator_mode,
                                                                 wavefn_circuit, self._backend)
                 result = self.execute(circuit)
-                mean, std = self._operator.evaluate_with_result(self._operator_mode,
-                                                                circuit, self._backend, result)
+                mean, std = operator.evaluate_with_result(self._operator_mode,
+                                                          circuit, self._backend, result)
                 mean = mean.real if abs(mean.real) > threshold else 0.0
                 std = std.real if abs(std.real) > threshold else 0.0
             values.append((mean, std))
