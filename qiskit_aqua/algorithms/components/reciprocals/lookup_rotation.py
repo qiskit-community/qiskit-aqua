@@ -26,12 +26,11 @@ import itertools
 
 import logging
 
-
 logger = logging.getLogger(__name__)
 
-
 class LookupRotation(Reciprocal):
-    """Partial table lookup of rot. angles to rotate an ancilla qubit by arcsin(C/Lambda).
+    """Partial table lookup of rotation angles to rotate an ancilla qubit by
+    arcsin(C/lambda).
     
     Note:
         Please refer to the HHL documentation for an explanation of this method.
@@ -45,7 +44,7 @@ class LookupRotation(Reciprocal):
     PROP_LAMBDA_MIN = 'lambda_min'
 
     LOOKUP_CONFIGURATION = {
-        'name': 'LOOKUP',
+        'name': 'Lookup',
         'description': 'approximate inversion for HHL based on table lookup',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
@@ -109,28 +108,30 @@ class LookupRotation(Reciprocal):
 
     @staticmethod
     def classic_approx(k, n, m, negative_evals=False):
-        '''Calculate error of arcsin rotation using k bits fixed
-        point numbers and n bit accuracy
+        """Approximate arcsin rotation classically.
 
-        Args:
-            k (int): register length
-            n (int): num bits following most-sign. bit taken into account
-            m (int): length of sub string of n-bit pattern
-            negative_evals (bool): use 1. bit for sign bit?
-'''
+            This method calculates the error of arcsin function using k bits
+            fixed point numbers and n bit accuracy.
+
+            Args:
+                k (int): register length
+                n (int): num bits following most-sign. bit taken into account
+                m (int): length of sub string of n-bit pattern
+                negative_evals (bool): flag for using first bit as sign bit
+        """
 
         def bin_to_num(binary):
-            '''convert to numeric'''
+            """Convert to numeric"""
             num = np.sum([2 ** -(n + 1)
                 for n, i in enumerate(reversed(binary)) if i == '1'])
             return num
 
         def max_sign_bit(binary):
-            '''Get maximum signifiacnt bit, i.e. first position of 1'''
+            """Get maximum significant bit, i.e. first position of 1 bit"""
             return len(binary) - list(reversed(binary)).index('1')
 
         def get_est_lamb(pattern, msb, n,k):
-            '''Estimate the bin mid point and return the float value'''
+            """Estimate the bin mid point and return the float value"""
             if msb - n > 0:
                 remainder = sum([2**-i for i in range(k-(msb-n-1),k+1)])
                 return bin_to_num(pattern)+remainder/2
@@ -140,29 +141,29 @@ class LookupRotation(Reciprocal):
         from collections import OrderedDict
         output = OrderedDict()
         for msb in range(k - 1, n - 1, -1):
-            #skip first bit if negative ev are used
+            # skip first bit if negative ev are used
             if negative_evals and msb==k-1 : continue
-            #init bit string
+            # init bit string
             vec = ['0'] * k
-            #set most significant bit
+            # set most significant bit
             vec[msb] = '1'
-            #iterate over all 2^m combinations = sub string in n-bit pattern
+            # iterate over all 2^m combinations = sub string in n-bit pattern
             for pattern_ in itertools.product('10', repeat=m):
                 app_pattern_array = []
                 lambda_array = []
                 msb_array = []
-                #iterate over all 2^(n-m) combinations
+                # iterate over all 2^(n-m) combinations
                 for appendpat in itertools.product('10', repeat=n - m):
-                    #combine both generated patterns
+                    # combine both generated patterns
                     pattern = pattern_ + appendpat
                     vec[msb - n:msb] = pattern
-                    #estimate bin mid point
+                    # estimate bin mid point
                     e_l = get_est_lamb(vec.copy(), msb, n, k)
                     lambda_array.append(e_l)
                     msb_array.append(msb)
                     app_pattern_array.append(list(reversed(appendpat)))
 
-                #rewrite MSB to correct index in QuantumRegister
+                # rewrite MSB to correct index in QuantumRegister
                 msb_num = k-msb-1
                 if msb_num in list(output.keys()):
                     prev_res = output[msb_num]
@@ -204,15 +205,16 @@ class LookupRotation(Reciprocal):
         return output
 
     def _set_msb(self, msb, ev_reg, msb_num, last_iteration=False):
-        '''Adds multi-controlled NOT gate to entangle |msb> qubit
+        """Adds multi-controlled NOT gate to entangle |msb> qubit
            with states having the correct most-significant bit
 
         Args:
-            msb : garbage qubit
-            ev_reg : Register storing Eigenvalues
+            msb: garbage qubit
+            ev_reg: register storing eigenvalues
             msb_num (int): index of most-significant bit
-            last_iteration (bool): switch; is set for numbers where only the
-                                     last n bits != 0 in the binary string'''
+            last_iteration (bool): switch; it is set for numbers where only the
+                        last n bits is different from 0 in the binary string
+        """
         qc = self._circuit
         ev = [ev_reg[i] for i in range(len(ev_reg))]
         #last_iteration = no MSB set, only the n-bit long pattern
@@ -251,12 +253,14 @@ class LookupRotation(Reciprocal):
             raise RuntimeError("MSB register index < 0")
 
     def _set_bit_pattern(self, pattern, tgt, offset):
-        '''Add multi-controlled NOT gate to circuit that has negated/normal controls
-            according to the pattern specified
+        """Add multi-controlled NOT gate to circuit that has negated/normal
+            controls according to the pattern specified
         Args:
-            pattern (list): List of strings giving a bit string that negates controls if '0'
-            tgt : target qubit
-            offset : start index for the control qubits'''
+            pattern (list): List of strings giving a bit string that negates
+                controls if '0'
+            tgt: target qubit
+            offset: start index for the control qubits
+        """
         qc = self._circuit
         for c, i in enumerate(pattern):
             if i == '0':
@@ -273,10 +277,11 @@ class LookupRotation(Reciprocal):
                 qc.x(self._ev[int(c + offset)])
 
     def construct_circuit(self, mode, inreg):
-        '''Construct LookUp circuit
+        """Construct Lookup circuit
         Args:
             mode (string): not yet implemented
-            inreg : input register, typically output register of QPE'''
+            inreg: input register, typically output register of QPE
+        """
         #initialize circuit
         if mode == "vector":
             raise NotImplementedError("mode vector not supported")
