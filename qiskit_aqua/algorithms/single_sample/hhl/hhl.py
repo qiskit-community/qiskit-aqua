@@ -73,7 +73,7 @@ class HHL(QuantumAlgorithm):
                 'qft': {'name': 'STANDARD'}
             },
             'reciprocal': {
-                'name': 'LOOKUP'
+                'name': 'Lookup'
             },
         }
     }

@@ -32,7 +32,7 @@ Rather than being used as a standalone algorithm, the members of the library are
 Partial Table Look Up
 ---------------------
 
-This method applies a variable sized binning to the values. Only a specified number of bits after the most-significant bit is taken into account when assigning rotation angles to the numbers prepared in the input register' states.
+This method applies a variable sized binning to the values. Only a specified number of bits after the most-significant bit is taken into account when assigning rotation angles to the numbers prepared as states in the input register.
 Using precomputed angles, the reciprocal is multiplied to the amplitude via controlled rotations.
 While no resolution of the result is lost for small values, towards larger values the bin size increases. The accuracy of the result is tuned by the parameters. The following parameters are exposed:
 
