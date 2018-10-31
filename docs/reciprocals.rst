@@ -9,8 +9,6 @@ Rather than being used as a standalone algorithm, the members of the library are
 
 - :ref:`lookup`
 
-- :ref:`gencircuit`
-
 - :ref:`longdivision`
 
 .. topic:: Extending the Reciprocals Library
@@ -88,64 +86,7 @@ While no resolution of the result is lost for small values, towards larger value
 
 .. topic:: Declarative Name
 
-   When referring to LookUp declaratively inside Aqua, its code ``name``, by which Aqua dynamically discovers and loads it, is ``LOOKUP``.
-
-.. _gencircuit:
-
---------------------------
-Generated Circuit Division
---------------------------
-
-This method parses pre-generated circuits for calculating the reciprocal of a number stored in an input register and afterwards carries out the corresponding rotation. The circuits were generated in an automatic synthesizing of reversible circuits to minimize the number of qubits and gates needed.
-
-.. seealso::
-   `The paper can be found on arxiv <https://arxiv.org/abs/1612.00631>`__
-
-Currently register sizes from 5 to 12 qubits are supported. The rotation value is always scaled down additionally to the normal scale parameter by 0.5 to get the angle into the linear part of the arcsin(x). The following parameters are exposed:
-
-- The scale factor of the values:
-
-  .. code:: python
-
-      scale : float
-
- This parameter is used to scale the reciprocals such that for a scale C, the rotation is performed by an angle :math:`\arcsin{\frac{C}{\lambda}}`. If neither the ``scale`` nor the ``evo_time`` and and ``min_lambda`` parameters are specified, the smallest resolvable Eigenvalue is used.  
-
--  The number of ancillae:
-
-   .. code:: python
-
-       num_ancillae = 5 | 6 | ...
-
- This parameter sets the number of ancillary qubits (the input register size).  A positive ``int`` value is expected. The default value is ``None`` and the minimum value ``5``. The default is ``0``.
-
-- Switch for negative values:
-
-  .. code:: python
-
-     negative_evals : bool
-
-  If known beforehand that only positive values are present, one can set this switch to False and achieve a higher resolution in the output. The default is ``True``.
-
-- The mimimum value present:
-
-  .. code:: python
-
-      lambda_min : float
-
-  If the minimum value is known beforehand, the optimal ``scale`` parameter can be calculated using the parameters ``lambda_min`` and ``evo_time``.
-
-- The evolution time:
-
-  .. code:: python
-
-     evo_time : float
-
-  This parameter scales the Eigenvalues in the :ref:`qpe_components` onto the range (0,1] ( (-0.5,0.5] for negativ EV ). If the Partial Table Look Up is used together with the QPE, the scale parameter can be estimated if the minimum EV and the evolution time are passed as parameters. The default is ``None``.
-
-.. topic:: Declarative Name
-
-   When referring to Generated Circuit Division declaratively inside Aqua, its code ``name``, by which Aqua dynamically discovers and loads it, is ``GENCIRCUITS``.
+   When referring to Look Up declaratively inside Aqua, its code ``name``, by which Aqua dynamically discovers and loads it, is ``Lookup``.
 
 .. _longdivision:
 
