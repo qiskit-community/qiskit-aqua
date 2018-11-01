@@ -98,7 +98,7 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
 
     my_backend = backend
 
-    if has_shared_circuits and version.parse(qiskit.__version__) > version.parse('0.6.1'):
+    if has_shared_circuits and version.parse(qiskit.__version__) > version.parse('0.6.1') and not circuit_cache.use_caching:
         return _reuse_shared_circuits(circuits, backend, execute_config, qjob_config)
 
     with_autorecover = False if my_backend.configuration()['simulator'] else True
