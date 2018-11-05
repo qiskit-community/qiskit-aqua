@@ -119,7 +119,7 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
                 logger.debug('Circuit cache miss, recompiling. Cache miss reason:')
                 logger.debug(repr(e))
                 qobj = q_compile(sub_circuits, my_backend, **execute_config)
-                circuit_cache.cache_circuit(qobj, circuits, i)
+                circuit_cache.cache_circuit(qobj, sub_circuits, i)
                 circuit_cache.misses += 1
         else:
             qobj = q_compile(sub_circuits, my_backend, **execute_config)
