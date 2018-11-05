@@ -11,7 +11,7 @@ install:
     - pip install -U -r requirements.txt
     - pip install -U -r requirements-dev.txt
 # Set this environment until Terra has parallel fixes in Pypi
-env: QISKIT_IN_PARALLEL="TRUE"
+env: QISKIT_IN_PARALLEL=TRUE
 script:
     pytest
 notifications:
