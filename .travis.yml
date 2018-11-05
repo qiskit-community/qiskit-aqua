@@ -11,7 +11,7 @@ install:
     - pip install -U -r requirements.txt
     - pip install -U -r requirements-dev.txt
 script:
-  pytest
+  travis_wait pytest
 notifications:
     on_success: change
     on_failure: always
