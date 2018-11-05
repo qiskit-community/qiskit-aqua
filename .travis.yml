@@ -13,7 +13,7 @@ install:
 # Set this environment until Terra has parallel fixes in Pypi
 env: QISKIT_IN_PARALLEL=TRUE
 script:
-    pytest
+    pytest -v
 notifications:
     on_success: change
     on_failure: always
