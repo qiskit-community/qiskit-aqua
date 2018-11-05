@@ -5,13 +5,10 @@
 
 language: python
 python:
-    - "3.5"
     - "3.6"
 install:
     - pip install -U -r requirements.txt
     - pip install -U -r requirements-dev.txt
-# Set this environment until Terra has parallel fixes in Pypi
-env: QISKIT_IN_PARALLEL=TRUE
 script:
     pytest -v
 notifications:
