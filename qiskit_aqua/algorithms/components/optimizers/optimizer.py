@@ -26,6 +26,38 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 
+import numpy
+def gradient_num_diff(x_center, f, epsilon):
+    """
+    See ``approx_fprime``.  An optional initial function value arg is added.
+
+    """
+    # import time
+    forig = f(*((x_center,)))
+    grad = numpy.zeros((len(x_center),), float)
+    ei = numpy.zeros((len(x_center),), float)
+    todos = []
+    # before = time.time()
+    for k in range(len(x_center)):
+        ei[k] = 1.0
+        d = epsilon * ei
+        # grad[k] = (f(*((xk + d,))) - forig) / d[k]
+        todos.append(x_center + d)
+        ei[k] = 0.0
+    parallel_parameters = numpy.concatenate(todos)
+    todos_results = f(parallel_parameters)
+    for k in range(len(x_center)):
+        grad[k] = (todos_results[k] - forig) / epsilon
+    # after = time.time()
+    # print("grad computation takes:", (after-before))
+    return grad
+
+def wrap_function(function, args):
+    def function_wrapper(*wrapper_args):
+        return function(*(wrapper_args + args))
+    return function_wrapper
+
+
 class Optimizer(ABC):
     """Base class for optimization algorithm."""
 
