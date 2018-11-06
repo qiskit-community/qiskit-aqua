@@ -59,5 +59,5 @@ __all__ = ['tensorproduct',
            'clear_cache',
            'naughty_mode',
            'naughty_run',
-           'cache_file'
-           ]
+           'cache_file',
+           'run_circuits']

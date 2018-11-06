@@ -209,7 +209,6 @@ class QPE(QuantumAlgorithm):
 
         # measuring ancillae
         qc.add(c)
-        qc.barrier(a)
         qc.measure(a, c)
 
         self._circuit = qc

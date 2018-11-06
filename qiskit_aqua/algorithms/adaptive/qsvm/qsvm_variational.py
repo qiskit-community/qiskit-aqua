@@ -43,10 +43,6 @@ class QSVMVariational(QuantumAlgorithm):
                 'override_SPSA_params': {
                     'type': 'boolean',
                     'default': True
-                },
-                'batch_mode': {
-                    'type': 'boolean',
-                    'default': False
                 }
             },
             'additionalProperties': False
@@ -75,7 +71,6 @@ class QSVMVariational(QuantumAlgorithm):
     def init_params(self, params, algo_input):
         algo_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
         override_spsa_params = algo_params.get('override_SPSA_params')
-        batch_mode = algo_params.get('batch_mode')
 
         # Set up optimizer
         opt_params = params.get(QuantumAlgorithm.SECTION_KEY_OPTIMIZER)
@@ -104,10 +99,10 @@ class QSVMVariational(QuantumAlgorithm):
         var_form.init_params(var_form_params)
 
         self.init_args(algo_input.training_dataset, algo_input.test_dataset, algo_input.datapoints,
-                       optimizer, feature_map, var_form, batch_mode)
+                       optimizer, feature_map, var_form)
 
     def init_args(self, training_dataset, test_dataset, datapoints, optimizer,
-                  feature_map, var_form, batch_mode=False):
+                  feature_map, var_form):
         """Initialize the object
         Args:
             training_dataset (dict): {'A': numpy.ndarray, 'B': numpy.ndarray, ...}
@@ -116,7 +111,6 @@ class QSVMVariational(QuantumAlgorithm):
             optimizer (Optimizer): Optimizer instance
             feature_map (FeatureMap): FeatureMap instance
             var_form (VariationalForm): VariationalForm instance
-            batch_mode (boolean): Batch mode for circuit compilation and execution
         Notes:
             We used `label` denotes numeric results and `class` means the name of that class (str).
         """
@@ -142,7 +136,6 @@ class QSVMVariational(QuantumAlgorithm):
         self._feature_map = feature_map
         self._var_form = var_form
         self._num_qubits = self._feature_map.num_qubits
-        self._optimizer.set_batch_mode(batch_mode)
 
     def _construct_circuit(self, x, theta):
         qr = QuantumRegister(self._num_qubits, name='q')
@@ -150,7 +143,6 @@ class QSVMVariational(QuantumAlgorithm):
         qc = QuantumCircuit(qr, cr)
         qc += self._feature_map.construct_circuit(x, qr)
         qc += self._var_form.construct_circuit(theta, qr)
-        qc.barrier(qr)
         qc.measure(qr, cr)
         return qc
 
@@ -169,46 +161,28 @@ class QSVMVariational(QuantumAlgorithm):
 
     def _get_prediction(self, data, theta):
         """
-        Make prediction on data based on each theta.
+        Make prediction on data based the theta.
         Args:
             data (numpy.ndarray): 2-D array, NxD, N data points, each with D dimension
-            theta ([numpy.ndarray]): list of 1-D array, parameters sets for variational form
+            theta (numpy.ndarray): 1-D array, parameters for variational form
         Returns:
-            numpy.ndarray or [numpy.ndarray]: list of NxK array
-            numpy.ndarray or [numpy.ndarray]: list of Nx1 array
+            numpy.ndarray: NxK array
+            numpy.ndarray: Nx1 array
         """
         predicted_probs = []
         predicted_labels = []
         circuits = {}
-        circuit_id = 0
-
-        num_theta_sets = len(theta) // self._var_form.num_parameters
-        theta_sets = np.split(theta, num_theta_sets)
-
-        for theta in theta_sets:
-            for datum in data:
-                circuit = self._construct_circuit(datum, theta)
-                circuits[circuit_id] = circuit
-                circuit_id += 1
+        for c_id, datum in enumerate(data):
+            circuit = self._construct_circuit(datum, theta)
+            circuits[c_id] = circuit
 
         results = self.execute(list(circuits.values()))
 
-        circuit_id = 0
-        predicted_probs = []
-        predicted_labels = []
-        for theta in theta_sets:
-            counts = []
-            for datum in data:
-                counts.append(results.get_counts(circuits[circuit_id]))
-                circuit_id += 1
-            probs = return_probabilities(counts, self._num_classes)
-            predicted_probs.append(probs)
-            predicted_labels.append(np.argmax(probs, axis=1))
-
-        if len(predicted_probs) == 1:
-            predicted_probs = predicted_probs[0]
-        if len(predicted_labels) == 1:
-            predicted_labels = predicted_labels[0]
+        counts = []
+        for c_id, result in enumerate(results):
+            counts.append(results.get_counts(circuits[c_id]))
+        predicted_probs = return_probabilities(counts, self._num_classes)
+        predicted_labels = np.argmax(predicted_probs, axis=1)
 
         return predicted_probs, predicted_labels
 
@@ -220,13 +194,8 @@ class QSVMVariational(QuantumAlgorithm):
         """
         def cost_function_wrapper(theta):
             predicted_probs, predicted_labels = self._get_prediction(data, theta)
-            total_cost = []
-            if isinstance(predicted_probs, list):
-                for predicted_prob in predicted_probs:
-                    total_cost.append(self._cost_function(predicted_prob, labels))
-            else:
-                total_cost.append(self._cost_function(predicted_probs, labels))
-            return total_cost if len(total_cost) > 1 else total_cost[0]
+            total_cost = self._cost_function(predicted_probs, labels)
+            return total_cost
 
         initial_theta = self.random.randn(self._var_form.num_parameters)
 

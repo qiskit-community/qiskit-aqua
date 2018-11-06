@@ -16,13 +16,11 @@
 # =============================================================================
 
 import copy
-import concurrent.futures
 import itertools
 from functools import reduce
 import logging
 import json
 from operator import iadd as op_iadd, isub as op_isub
-import psutil
 
 import numpy as np
 from scipy import sparse as scisparse
@@ -599,7 +597,6 @@ class Operator(object):
                             else:
                                 # Measure X
                                 circuit.u2(0.0, np.pi, q[qubit_idx])  # h
-                    circuit.barrier(q)
                     circuit.measure(q, c)
                     circuits.append(circuit)
             else:
@@ -620,7 +617,6 @@ class Operator(object):
                             else:
                                 # Measure X
                                 circuit.u2(0.0, np.pi, q[qubit_idx])  # h
-                    circuit.barrier(q)
                     circuit.measure(q, c)
                     circuits.append(circuit)
         return circuits
@@ -662,66 +658,230 @@ class Operator(object):
                         avg += pauli[0] * (np.vdot(quantum_state, quantum_state_i))
                         circuit_idx += 1
         else:
-            cpu_count = psutil.cpu_count()
             num_shots = sum(list(result.get_counts(circuits[0]).values()))
             if operator_mode == "paulis":
                 self._check_representation("paulis")
-                with concurrent.futures.ProcessPoolExecutor(max_workers=cpu_count) as executor:
-                    futures = [executor.submit(Operator._routine_paulis_with_shots, pauli,
-                                               result.get_counts(circuits[idx]))
-                               for idx, pauli in enumerate(self._paulis)]
+                avg_paulis = []
+                for idx, pauli in enumerate(self._paulis):
+                    measured_results = result.get_counts(circuits[idx])
+                    avg_paulis.append(Operator._measure_pauli_z(measured_results, pauli[1]))
+                    avg += pauli[0] * avg_paulis[idx]
+                    variance += (pauli[0] ** 2) * Operator._covariance(measured_results, pauli[1], pauli[1],
+                                                                       avg_paulis[idx], avg_paulis[idx])
 
-                    for future in concurrent.futures.as_completed(futures):
-                        result = future.result()
-                        avg += result[0]
-                        variance += result[1]
             else:
                 self._check_representation("grouped_paulis")
-                with concurrent.futures.ProcessPoolExecutor(max_workers=cpu_count) as executor:
-                    futures = [executor.submit(Operator._routine_grouped_paulis_with_shots, tpb_set,
-                                               result.get_counts(circuits[tpb_idx]))
-                               for tpb_idx, tpb_set in enumerate(self._grouped_paulis)]
 
-                    for future in concurrent.futures.as_completed(futures):
-                        result = future.result()
-                        avg += result[0]
-                        variance += result[1]
+                for tpb_idx, tpb_set in enumerate(self._grouped_paulis):
+                    avg_paulis = []
+                    measured_results = result.get_counts(circuits[tpb_idx])
+                    # Compute the averages of each pauli in tpb_set
+                    for pauli_idx, pauli in enumerate(tpb_set):
+                        if pauli_idx == 0:
+                            continue
+                        observable = Operator._measure_pauli_z(measured_results, pauli[1])
+                        avg_paulis.append(observable)
+                        avg += pauli[0] * observable
+
+                    # Compute the covariance matrix elements of tpb_set
+                    # and add up to the total standard deviation
+                    # tpb_set = grouped_paulis, tensor product basis set
+                    for pauli_1_idx, pauli_1 in enumerate(tpb_set):
+                        for pauli_2_idx, pauli_2 in enumerate(tpb_set):
+                            if pauli_1_idx == 0 or pauli_2_idx == 0:
+                                continue
+                            variance += pauli_1[0] * pauli_2[0] * \
+                                Operator._covariance(measured_results, pauli_1[1], pauli_2[1],
+                                                     avg_paulis[pauli_1_idx-1], avg_paulis[pauli_2_idx-1])
+
 
             std_dev = np.sqrt(variance / num_shots)
 
         return avg, std_dev
 
-    @staticmethod
-    def _routine_grouped_paulis_with_shots(tpb_set, measured_results):
-        avg_paulis = []
+    def _eval_with_statevector(self, operator_mode, input_circuit, backend, execute_config):
+        """
+        Evaluate an Operator with the `input_circuit`.
+        This mode interacts with the quantum state rather than the sampled results from the measurement.
+
+        Args:
+            operator_mode (str): representation of operator, including paulis, grouped_paulis and matrix
+            input_circuit (QuantumCircuit): the quantum circuit.
+            backend (BaseBackend): backend selection for quantum machine.
+            execute_config (dict): execution setting to quautum backend, refer to qiskit.wrapper.execute for details.
+
+        Returns:
+            float: average of evaluations
+
+        Raises:
+            AlgorithmError: if it tries to use non-statevector simulator.
+        """
+        if not QuantumAlgorithm.is_statevector_backend(backend):
+            raise AlgorithmError(
+                "statevector can be only used in statevector simulator but {} is used".format(QuantumAlgorithm.backend_name(backend)))
+
         avg = 0.0
-        variance = 0.0
-        for pauli_idx, pauli in enumerate(tpb_set):
-            if pauli_idx == 0:
-                continue
-            observable = Operator._measure_pauli_z(measured_results, pauli[1])
-            avg_paulis.append(observable)
-            avg += pauli[0] * observable
+        if operator_mode == "matrix":
+            self._check_representation("matrix")
+            if self._dia_matrix is None:
+                self._to_dia_matrix(mode='matrix')
 
-        # Compute the covariance matrix elements of tpb_set
-        # and add up to the total standard deviation
-        # tpb_set = grouped_paulis, tensor product basis set
-        for pauli_1_idx, pauli_1 in enumerate(tpb_set):
-            for pauli_2_idx, pauli_2 in enumerate(tpb_set):
-                if pauli_1_idx == 0 or pauli_2_idx == 0:
-                    continue
-                variance += pauli_1[0] * pauli_2[0] * \
-                    Operator._covariance(measured_results, pauli_1[1], pauli_2[1],
-                                         avg_paulis[pauli_1_idx-1], avg_paulis[pauli_2_idx-1])
-        return avg, variance
+            result = run_circuits(input_circuit, backend=backend, execute_config=execute_config,
+                                  show_circuit_summary=self._summarize_circuits)
+            quantum_state = np.asarray(result.get_statevector(input_circuit))
 
-    @staticmethod
-    def _routine_paulis_with_shots(pauli, measured_results):
-        curr_result = Operator._measure_pauli_z(measured_results, pauli[1])
-        avg = pauli[0] * curr_result
-        variance = (pauli[0] ** 2) * Operator._covariance(measured_results, pauli[1], pauli[1],
-                                                          curr_result, curr_result)
-        return avg, variance
+            if self._dia_matrix is not None:
+                avg = np.sum(self._dia_matrix * np.absolute(quantum_state) ** 2)
+            else:
+                avg = np.vdot(quantum_state, self._matrix.dot(quantum_state))
+
+        else:
+            self._check_representation("paulis")
+            n_qubits = self.num_qubits
+
+            result = run_circuits(input_circuit, backend=backend, execute_config=execute_config,
+                                  show_circuit_summary=self._summarize_circuits)
+            simulator_initial_state = np.asarray(result.get_statevector(input_circuit))
+            temp_config = copy.deepcopy(execute_config)
+
+            if 'config' not in temp_config:
+                temp_config['config'] = dict()
+
+            temp_config['config']['initial_state'] = simulator_initial_state
+
+            # Trial circuit w/o the final rotations
+            # Execute trial circuit with final rotations for each Pauli in
+            # hamiltonian and store from circuits[1] on
+
+            q = QuantumRegister(n_qubits, name='q')
+
+            circuits_to_simulate = []
+            all_circuits = []
+            for idx, pauli in enumerate(self._paulis):
+                circuit = QuantumCircuit(q)
+                for qubit_idx in range(n_qubits):
+                    if pauli[1].v[qubit_idx] == 0 and pauli[1].w[qubit_idx] == 1:
+                        circuit.u3(np.pi, 0.0, np.pi, q[qubit_idx])  # x
+                    elif pauli[1].v[qubit_idx] == 1 and pauli[1].w[qubit_idx] == 0:
+                        circuit.u1(np.pi, q[qubit_idx])  # z
+                    elif pauli[1].v[qubit_idx] == 1 and pauli[1].w[qubit_idx] == 1:
+                        circuit.u3(np.pi, np.pi/2, np.pi/2, q[qubit_idx])  # y
+
+                all_circuits.append(circuit)
+                if len(circuit) != 0:
+                    circuits_to_simulate.append(circuit)
+
+            result = run_circuits(circuits_to_simulate, backend=backend, execute_config=temp_config,
+                                  show_circuit_summary=self._summarize_circuits)
+
+            for idx, pauli in enumerate(self._paulis):
+                circuit = all_circuits[idx]
+                if len(circuit) == 0:
+                    avg += pauli[0]
+                else:
+                    quantum_state_i = np.asarray(result.get_statevector(circuit))
+                    # inner product with final rotations of (i)-th Pauli
+                    avg += pauli[0] * (np.vdot(simulator_initial_state, quantum_state_i))
+
+        return avg
+
+    def _eval_multiple_shots(self, operator_mode, input_circuit, backend, execute_config, qjob_config):
+        """
+        Evaluate an Operator with the `input_circuit`. This mode interacts with the quantum machine and uses
+        the statistic results.
+
+        Args:
+            operator_mode (str): representation of operator, including paulis, grouped_paulis and matrix
+            input_circuit (QuantumCircuit): the quantum circuit.
+            backend (BaseBackend): backend selection for quantum machine.
+            execute_config (dict): execution setting to quautum backend, refer to qiskit.wrapper.execute for details.
+            qjob_config (dict): the setting to retrieve results from quantum backend, including timeout and wait.
+
+        Returns:
+            float, float: mean and standard deviation of evaluation results
+        """
+
+        num_shots = execute_config.get("shots", 1)
+        avg, std_dev, variance = 0.0, 0.0, 0.0
+        n_qubits = self.num_qubits
+        circuits = []
+
+        base_circuit = QuantumCircuit() + input_circuit
+        c = base_circuit.get_cregs().get('c', ClassicalRegister(n_qubits, name='c'))
+        base_circuit.add(c)
+
+        if operator_mode == "paulis":
+            self._check_representation("paulis")
+
+            for idx, pauli in enumerate(self._paulis):
+                circuit = QuantumCircuit() + base_circuit
+                q = circuit.get_qregs()['q']
+                c = circuit.get_cregs()['c']
+
+                for qubit_idx in range(n_qubits):
+                    # Measure X
+                    if pauli[1].v[qubit_idx] == 0 and pauli[1].w[qubit_idx] == 1:
+                        circuit.u2(0.0, np.pi, q[qubit_idx])  # h
+                    # Measure Y
+                    elif pauli[1].v[qubit_idx] == 1 and pauli[1].w[qubit_idx] == 1:
+                        circuit.u1(np.pi/2, q[qubit_idx]).inverse()  # s
+                        circuit.u2(0.0, np.pi, q[qubit_idx])  # h
+                    circuit.measure(q[qubit_idx], c[qubit_idx])
+
+                circuits.append(circuit)
+
+            result = run_circuits(circuits, backend=backend, execute_config=execute_config,
+                                  qjob_config=qjob_config, show_circuit_summary=self._summarize_circuits)
+
+            avg_paulis = []
+            for idx, pauli in enumerate(self._paulis):
+                measured_results = result.get_counts(circuits[idx])
+                avg_paulis.append(Operator._measure_pauli_z(measured_results, pauli[1]))
+                avg += pauli[0] * avg_paulis[idx]
+                variance += (pauli[0] ** 2) * Operator._covariance(measured_results, pauli[1], pauli[1],
+                                                                   avg_paulis[idx], avg_paulis[idx])
+
+        elif operator_mode == 'grouped_paulis':
+            self._check_representation("grouped_paulis")
+
+            for idx, tpb_set in enumerate(self._grouped_paulis):
+                circuit = QuantumCircuit() + base_circuit
+                q = circuit.get_qregs()['q']
+                c = circuit.get_cregs()['c']
+                for qubit_idx in range(n_qubits):
+                    # Measure X
+                    if tpb_set[0][1].v[qubit_idx] == 0 and tpb_set[0][1].w[qubit_idx] == 1:
+                        circuit.u2(0.0, np.pi, q[qubit_idx])  # h
+                    # Measure Y
+                    elif tpb_set[0][1].v[qubit_idx] == 1 and tpb_set[0][1].w[qubit_idx] == 1:
+                        circuit.u1(np.pi/2, q[qubit_idx]).inverse()  # s
+                        circuit.u2(0.0, np.pi, q[qubit_idx])  # h
+                    circuit.measure(q[qubit_idx], c[qubit_idx])
+                circuits.append(circuit)
+
+            # Execute all the stacked quantum circuits - one for each TPB set
+            result = run_circuits(circuits, backend=backend, execute_config=execute_config,
+                                  qjob_config=qjob_config, show_circuit_summary=self._summarize_circuits)
+
+            for tpb_idx, tpb_set in enumerate(self._grouped_paulis):
+                avg_paulis = []
+                measured_results = result.get_counts(circuits[tpb_idx])
+                # Compute the averages of each pauli in tpb_set
+                for pauli_idx, pauli in enumerate(tpb_set):
+                    avg_paulis.append(Operator._measure_pauli_z(measured_results, pauli[1]))
+                    avg += pauli[0] * avg_paulis[pauli_idx]
+
+                # Compute the covariance matrix elements of tpb_set
+                # and add up to the total standard deviation
+                # tpb_set = grouped_paulis, tensor product basis set
+                for pauli_1_idx, pauli_1 in enumerate(tpb_set):
+                    for pauli_2_idx, pauli_2 in enumerate(tpb_set):
+                        variance += pauli_1[0] * pauli_2[0] * \
+                            Operator._covariance(measured_results, pauli_1[1], pauli_2[1],
+                                                 avg_paulis[pauli_1_idx], avg_paulis[pauli_2_idx])
+
+        std_dev = np.sqrt(variance / num_shots)
+        return avg, std_dev
 
     def _eval_directly(self, quantum_state):
         self._check_representation("matrix")
@@ -1651,20 +1811,14 @@ class Operator(object):
         """
 
         if len(cliffords) == 0 or len(sq_list) == 0 or len(tapering_values) == 0:
-            logger.warning("Cliffords, single qubit list and tapering values cannot be empty.\n"
-                           "Return the original operator instead.")
-            return operator
+            raise ValueError('Cliffords, single qubit list and tapering values cannot be empty.')
 
         if len(cliffords) != len(sq_list):
-            logger.warning("Number of Clifford unitaries has to be the same as length of single"
-                           "qubit list and tapering values.\n"
-                           "Return the original operator instead.")
-            return operator
+            raise ValueError('number of Clifford unitaries has to be the same as length of single'
+                             'qubit list and tapering values.')
         if len(sq_list) != len(tapering_values):
-            logger.warning("Number of Clifford unitaries has to be the same as length of single"
-                           "qubit list and tapering values.\n"
-                           "Return the original operator instead.")
-            return operator
+            raise ValueError('number of Clifford unitaries has to be the same as length of single'
+                             'qubit list and tapering values.')
 
         if operator.is_empty():
             logger.warning("The operator is empty, return the empty operator directly.")
@@ -1676,14 +1830,19 @@ class Operator(object):
             operator = clifford * operator * clifford
 
         operator_out = Operator(paulis=[])
+        n = len(operator.paulis[0][1].v)
         for pauli_term in operator.paulis:
             coeff_out = pauli_term[0]
-            for idx, qubit_idx in enumerate(sq_list):
-                if not (pauli_term[1].v[qubit_idx] == 0 and pauli_term[1].w[qubit_idx] == 0):
-                    coeff_out = tapering_values[idx] * coeff_out
-            v_temp = np.delete(pauli_term[1].v.copy(), np.asarray(sq_list))
-            w_temp = np.delete(pauli_term[1].w.copy(), np.asarray(sq_list))
-            pauli_term_out = [coeff_out, Pauli(v_temp, w_temp)]
+            for qubit_idx, qubit in enumerate(sq_list):
+                if not (pauli_term[1].v[qubit] == 0 and pauli_term[1].w[qubit] == 0):
+                    coeff_out = tapering_values[qubit_idx] * coeff_out
+            v_temp = []
+            w_temp = []
+            for j in range(n):
+                if j not in sq_list:
+                    v_temp.append(pauli_term[1].v[j])
+                    w_temp.append(pauli_term[1].w[j])
+            pauli_term_out = [coeff_out, Pauli(np.array(v_temp), np.array(w_temp))]
             operator_out += Operator(paulis=[pauli_term_out])
 
         operator_out.zeros_coeff_elimination()

@@ -63,7 +63,7 @@ class VQE(QuantumAlgorithm):
                 },
                 'batch_mode': {
                     'type': 'boolean',
-                    'default': True
+                    'default': False
                 }
             },
             'additionalProperties': False
@@ -94,9 +94,6 @@ class VQE(QuantumAlgorithm):
         self._ret = {}
         self._eval_count = 0
         self._eval_time = 0
-
-        self.cache = []
-        self.last_params = None
 
     def init_params(self, params, algo_input):
         """
@@ -210,7 +207,6 @@ class VQE(QuantumAlgorithm):
             c = ClassicalRegister(self._operator.num_qubits, name='c')
             q = qc.get_qregs()['q']
             qc.add(c)
-            qc.barrier(q)
             qc.measure(q, c)
             ret = self.execute(qc)
             self._ret['eigvecs'] = np.asarray([ret.get_counts(qc)])
@@ -228,11 +224,8 @@ class VQE(QuantumAlgorithm):
         for operator in self._aux_operators:
             mean, std = 0.0, 0.0
             if not operator.is_empty():
-                circuit = operator.construct_evaluation_circuit(self._operator_mode,
-                                                                wavefn_circuit, self._backend)
-                result = self.execute(circuit)
-                mean, std = operator.evaluate_with_result(self._operator_mode,
-                                                          circuit, self._backend, result)
+                mean, std = operator.eval(self._operator_mode, wavefn_circuit,
+                                          self._backend, self._execute_config, self._qjob_config)
                 mean = mean.real if abs(mean.real) > threshold else 0.0
                 std = std.real if abs(std.real) > threshold else 0.0
             values.append((mean, std))
@@ -257,71 +250,6 @@ class VQE(QuantumAlgorithm):
         self._ret['eval_time'] = self._eval_time
         return self._ret
 
-
-
-    def cache_get_value(self, key):
-        for (k, v) in self.cache:
-            if np.array_equal(key, k): # last bits of float are not reliable
-            # if np.allclose(key, k, atol=1e-15): # last bits of float are not reliable
-                return v
-        return None
-
-    def value_copy(self, parameters):
-        self.last_params = parameters
-        # if self.last_params is None:
-        #     self.last_params = parameters.copy()
-        # else:
-        #     for i in range(len(parameters)): # memory efficiency
-        #         self.last_params[i] = parameters[i]
-
-
-
-    def _energy_evaluation_wrapper(self, parameters):
-        print(parameters)
-        # if self.last_params is not None:
-        #     delta = parameters - self.last_params
-        #     print("diff from previous", delta)
-
-        num_parameter_sets = len(parameters) // self._var_form.num_parameters
-        if num_parameter_sets > 1:
-            return self._energy_evaluation(parameters) # seems you have your own parallelization scheme, skip default scheme
-
-        cached_val = self.cache_get_value(parameters)
-        if cached_val is not None: # batch body enjoys the cache
-            print("hit")
-            self.value_copy(parameters)
-            return cached_val
-        else:
-            print("miss")
-            if self.last_params is not None:
-                delta = parameters - self.last_params
-                non_zeros = np.count_nonzero(delta)
-                if non_zeros == 1: # batch body detected, which includes all the variants
-                    nonzeroindex = delta.nonzero()
-                    # stepsize = delta[nonzeroindex]
-                    stepsize = 1e-8
-                    todos = []
-                    for i in range(len(parameters)): # index 0 has the 1st variant
-                        newParameters_i = self.last_params.copy()
-                        newParameters_i[i] = newParameters_i[i] + stepsize
-                        todos.append(newParameters_i)
-                    parallel_parameters = np.concatenate(todos)
-                    todos_results = self._energy_evaluation(parallel_parameters)
-
-                    self.cache = []
-                    for i in range(len(todos)):
-                        self.cache.append((todos[i], todos_results[i]))
-
-                    self.value_copy(parameters)
-                    return self.cache_get_value(parameters) # should be in the cache now
-
-            # either of the above if-checks fails, meaning we are at the head of a new batch, simply evaluate it.
-            self.cache.clear()
-            self.value_copy(parameters)
-            return self._energy_evaluation(parameters) # no point for caching this since it has been already computed
-
-
-
     # This is the objective function to be passed to the optimizer that is uses for evaluation
     def _energy_evaluation(self, parameters):
         """
@@ -334,28 +262,39 @@ class VQE(QuantumAlgorithm):
             float or [float]: energy of the hamiltonian of each parameter.
         """
         num_parameter_sets = len(parameters) // self._var_form.num_parameters
-        circuits = []
-        parameter_sets = np.split(parameters, num_parameter_sets)
-        for idx in range(len(parameter_sets)):
-            parameter = parameter_sets[idx]
-            input_circuit = self._var_form.construct_circuit(parameter)
-            circuit = self._operator.construct_evaluation_circuit(self._operator_mode,
-                                                                  input_circuit, self._backend)
-            circuits.append(circuit)
+        if num_parameter_sets > 1:
+            circuits = []
+            parameter_sets = np.split(parameters, num_parameter_sets)
+            for idx in range(len(parameter_sets)):
+                parameter = parameter_sets[idx]
+                input_circuit = self._var_form.construct_circuit(parameter)
+                circuit = self._operator.construct_evaluation_circuit(self._operator_mode,
+                                                                      input_circuit, self._backend)
+                circuits.append(circuit)
 
-        to_be_simulated_circuits = functools.reduce(lambda x, y: x + y, circuits)
-        result = self.execute(to_be_simulated_circuits)
-        mean_energy = []
-        std_energy = []
-        for idx in range(len(parameter_sets)):
-            mean, std = self._operator.evaluate_with_result(
-                self._operator_mode, circuits[idx], self._backend, result)
-            mean_energy.append(np.real(mean))
-            std_energy.append(np.real(std))
+            to_be_simulated_circuits = functools.reduce(lambda x, y: x + y, circuits)
+            result = self.execute(to_be_simulated_circuits)
+            mean_energy = []
+            std_energy = []
+            for idx in range(len(parameter_sets)):
+                mean, std = self._operator.evaluate_with_result(
+                    self._operator_mode, circuits[idx], self._backend, result)
+                mean_energy.append(np.real(mean))
+                std_energy.append(np.real(std))
+                self._eval_count += 1
+                logger.info('Energy evaluation {} returned {}'.format(self._eval_count, np.real(mean)))
+        else:
+            input_circuit = self._var_form.construct_circuit(parameters)
+            circuits = self._operator.construct_evaluation_circuit(self._operator_mode,
+                                                                   input_circuit, self._backend)
+            result = self.execute(circuits)
+            mean, std = self._operator.evaluate_with_result(self._operator_mode, circuits,
+                                                            self._backend, result)
+            mean_energy = np.real(mean)
             self._eval_count += 1
             logger.info('Energy evaluation {} returned {}'.format(self._eval_count, np.real(mean)))
 
-        return mean_energy if len(mean_energy) > 1 else mean_energy[0]
+        return mean_energy
 
     def find_minimum_eigenvalue(self, initial_point=None):
         """Determine minimum energy state.
