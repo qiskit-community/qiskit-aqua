@@ -14,9 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-import unittest
 
-import sys
 import numpy as np
 
 from test.common import QiskitAquaTestCase
@@ -37,21 +35,21 @@ class TestQSVMKernel(QiskitAquaTestCase):
         self.testing_data = {'A': np.asarray([[3.83274304, 2.45044227]]),
                              'B': np.asarray([[3.89557489, 0.31415927]])}
 
-        self.ref_kernel_matrix_training = np.asarray([[1., 0.85632324, 0.1184082, 0.36523438],
-                                                      [0.85632324, 1., 0.11352539, 0.45068359],
-                                                      [0.1184082, 0.11352539, 1., 0.6730957],
-                                                      [0.36523438, 0.45068359, 0.6730957, 1.]])
+        self.ref_kernel_matrix_training = np.asarray([[1.,         0.84851074, 0.12390137, 0.36669922],
+                                                      [0.84851074, 1.,         0.11950684, 0.45507812],
+                                                      [0.12390137, 0.11950684, 1.,         0.67211914],
+                                                      [0.36669922, 0.45507812, 0.67211914, 1.]])
 
-        self.ref_kernel_matrix_testing = np.asarray([[0.14892578, 0.18115234, 0.47631836, 0.14709473],
-                                                     [0.33239746, 0.3782959, 0.02270508, 0.16418457]])
+        self.ref_kernel_matrix_testing = np.asarray([[0.14575195, 0.18237305, 0.47644043, 0.14587402],
+                                                     [0.33203125, 0.37573242, 0.0222168,  0.15698242]])
 
         self.ref_support_vectors = np.asarray([[2.95309709, 2.51327412],
                                                [3.14159265, 4.08407045],
                                                [4.08407045, 2.26194671],
                                                [4.46106157, 2.38761042]])
-        self.ref_alpha = np.asarray([0.38038017, 1.46000306, 0.02371895, 1.81666428])
+        self.ref_alpha = np.asarray([0.39755359, 1.46035009, 0.03446283, 1.82344085])
 
-        self.ref_bias = np.asarray([-0.03570662])
+        self.ref_bias = np.asarray([-0.03624927])
 
         self.svm_input = get_input_instance('SVMInput')
         self.svm_input.training_dataset = self.training_data
@@ -170,12 +168,10 @@ class TestQSVMKernel(QiskitAquaTestCase):
 
         result = run_algorithm(params, algo_input)
 
-        # Note: Result here is dependent on platform with the C++ simulator
-        expected_accuracy = 0.555555555 if sys.platform.startswith('linux') else 0.444444444
-        expected_classes = ['A', 'A', 'A', 'A', 'A', 'A', 'A', 'C', 'C'] if sys.platform.startswith('linux') else \
-                           ['A', 'A', 'C', 'A', 'A', 'A', 'A', 'C', 'C']
+        expected_accuracy = 0.444444444
+        expected_classes = ['A', 'A', 'C', 'A', 'A', 'A', 'A', 'C', 'C']
         self.assertAlmostEqual(result['testing_accuracy'], expected_accuracy, places=4,
-                               msg='Please ensure you are using c++ simulator')
+                               msg='Please ensure you are using C++ simulator')
         self.assertEqual(result['predicted_classes'], expected_classes)
 
     def test_qsvm_kernel_multiclass_all_pairs(self):
@@ -212,7 +208,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
         algo_input.datapoints = total_array
         result = run_algorithm(params, algo_input)
         self.assertAlmostEqual(result['testing_accuracy'], 0.444444444, places=4,
-                               msg='Please ensure you are using c++ simulator')
+                               msg='Please ensure you are using C++ simulator')
         self.assertEqual(result['predicted_classes'], ['A', 'A', 'C', 'A',
                                                        'A', 'A', 'A', 'C', 'C'])
 
@@ -251,6 +247,6 @@ class TestQSVMKernel(QiskitAquaTestCase):
 
         result = run_algorithm(params, algo_input)
         self.assertAlmostEqual(result['testing_accuracy'], 0.55555555, places=4,
-                               msg='Please ensure you are using c++ simulator')
+                               msg='Please ensure you are using C++ simulator')
         self.assertEqual(result['predicted_classes'], ['A', 'A', 'C', 'A',
                                                        'A', 'A', 'C', 'C', 'C'])

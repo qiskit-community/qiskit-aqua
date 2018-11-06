@@ -33,7 +33,8 @@ requirements = [
     "scikit-learn",
     "cvxopt",
     "pyobjc-core; sys_platform == 'darwin'",
-    "pyobjc-framework-Cocoa; sys_platform == 'darwin'"
+    "pyobjc-framework-Cocoa; sys_platform == 'darwin'",
+    "packaging"
 ]
 
 setuptools.setup(

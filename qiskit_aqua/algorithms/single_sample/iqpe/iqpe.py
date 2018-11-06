@@ -179,6 +179,7 @@ class IQPE(QuantumAlgorithm):
         # hadamard on a[0]
         qc.u2(0, np.pi, a[0])
         qc.add(c)
+        qc.barrier(a)
         qc.measure(a, c)
         return qc
 

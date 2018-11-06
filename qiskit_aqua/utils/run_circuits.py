@@ -39,8 +39,25 @@ logger = logging.getLogger(__name__)
 MAX_CIRCUITS_PER_JOB = 300
 
 
+def _avoid_empty_circuits(circuits):
+
+    new_circuits = []
+    for qc in circuits:
+        if len(qc) == 0:
+            tmp_q = None
+            for q_name, q in qc.get_qregs().items():
+                tmp_q = q
+                break
+            if tmp_q is None:
+                raise AlgorithmError("A QASM without any quantum register is invalid.")
+            qc.iden(tmp_q[0])
+        new_circuits.append(qc)
+    return new_circuits
+
+
 def _reuse_shared_circuits(circuits, backend, execute_config, qjob_config={}):
-    """
+    """Reuse the circuits with the shared head.
+
     We assume the 0-th circuit is the shared_circuit, so we execute it first
     and then use it as initial state for simulation.
 
@@ -96,13 +113,14 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
     if not isinstance(circuits, list):
         circuits = [circuits]
 
-    my_backend = backend
+    if backend.configuration().get('name', '').startswith('statevector'):
+        circuits = _avoid_empty_circuits(circuits)
 
     if has_shared_circuits and version.parse(qiskit.__version__) > version.parse('0.6.1'):
         return _reuse_shared_circuits(circuits, backend, execute_config, qjob_config)
 
-    with_autorecover = False if my_backend.configuration()['simulator'] else True
-    max_circuits_per_job = sys.maxsize if my_backend.configuration()['local'] \
+    with_autorecover = False if backend.configuration()['simulator'] else True
+    max_circuits_per_job = sys.maxsize if backend.configuration()['local'] \
         else MAX_CIRCUITS_PER_JOB
 
     qobjs = []
@@ -118,16 +136,16 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
                 circuit_cache.clear_cache()
                 logger.debug('Circuit cache miss, recompiling. Cache miss reason:')
                 logger.debug(repr(e))
-                qobj = q_compile(sub_circuits, my_backend, **execute_config)
+                qobj = q_compile(sub_circuits, backend, **execute_config)
                 circuit_cache.cache_circuit(qobj, sub_circuits, i)
                 circuit_cache.misses += 1
         else:
-            qobj = q_compile(sub_circuits, my_backend, **execute_config)
+            qobj = q_compile(sub_circuits, backend, **execute_config)
 
         if circuit_cache.naughty_mode:
-            job = circuit_cache.naughty_run(my_backend, qobj)
+            job = circuit_cache.naughty_run(backend, qobj)
         else:
-            job = my_backend.run(qobj)
+            job = backend.run(qobj)
 
         jobs.append(job)
         qobjs.append(qobj)
@@ -144,7 +162,7 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
 
         for idx in range(len(jobs)):
             job = jobs[idx]
-            job_id = job.id()
+            job_id = job.job_id()
             logger.info("Running {}-th chunk circuits, job id: {}".format(idx, job_id))
             while True:
                 try:
@@ -185,15 +203,15 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
                 if job_status == JobStatus.DONE:
                     logger.info("Job ({}) is completed anyway, retrieve result "
                                 "from backend.".format(job_id))
-                    job = my_backend.retrieve_job(job_id)
+                    job = backend.retrieve_job(job_id)
                 elif job_status == JobStatus.RUNNING or job_status == JobStatus.QUEUED:
                     logger.info("Job ({}) is {}, but encounter an exception, "
                                 "recover it from backend.".format(job_id, job_status))
-                    job = my_backend.retrieve_job(job_id)
+                    job = backend.retrieve_job(job_id)
                 else:
                     logger.info("Fail to run Job ({}), resubmit it.".format(job_id))
                     qobj = qobjs[idx]
-                    job = my_backend.run(qobj)
+                    job = backend.run(qobj)
     else:
         results = []
         for job in jobs:
