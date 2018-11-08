@@ -130,7 +130,7 @@ class LookupRotation(Reciprocal):
             """Get maximum significant bit, i.e. first position of 1 bit"""
             return len(binary) - list(reversed(binary)).index('1')
 
-        def get_est_lamb(pattern, msb, n,k):
+        def get_est_lamb(pattern, msb, n, k):
             """Estimate the bin mid point and return the float value"""
             if msb - n > 0:
                 remainder = sum([2**-i for i in range(k-(msb-n-1),k+1)])
@@ -142,7 +142,7 @@ class LookupRotation(Reciprocal):
         output = OrderedDict()
         for msb in range(k - 1, n - 1, -1):
             # skip first bit if negative ev are used
-            if negative_evals and msb==k-1 : continue
+            if negative_evals and msb == k - 1: continue
             # init bit string
             vec = ['0'] * k
             # set most significant bit
