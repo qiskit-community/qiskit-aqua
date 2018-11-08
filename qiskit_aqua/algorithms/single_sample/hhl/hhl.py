@@ -486,7 +486,7 @@ class HHL(QuantumAlgorithm):
         x = [i[1]/np.linalg.norm(i) for i in rec]
         ax_rec.scatter(x, y)
 
-        # Plot theoretical reciprocals (dependend on QPE results)
+        # Plot theoretical reciprocals (derived from QPE results)
         tx = np.arange(0, 2**self._num_a)/2**self._num_a
         tx = self._reciprocal._scale/tx
         ax_rec.plot(tx, ty, "r")
