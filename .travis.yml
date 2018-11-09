@@ -31,5 +31,7 @@ before_install:
 install:
     - pip install -U -r requirements.txt
     - pip install -U -r requirements-dev.txt
+    - pip install pyscf
 script:
-    pytest -v
+    # ignore test base class
+    pytest -v --ignore=tests/test_driver.py
