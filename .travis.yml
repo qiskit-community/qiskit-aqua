@@ -19,13 +19,13 @@ python:
 # Install Qiskit Aqua from master branch
 before_install:
     # download Qiskit Aqua master and unzip it
-    - wget https://codeload.github.com/Qiskit/qiskit-aqua/zip/master -O /tmp/qiskit-aqua-master.zip
-    - unzip /tmp/qiskit-aqua-master.zip -d /tmp/
+    - wget https://codeload.github.com/Qiskit/aqua/zip/master -O /tmp/aqua-master.zip
+    - unzip /tmp/aqua-master.zip -d /tmp/
     # Install Qiskit Aqua dependencies.
-    - pip install -U -r /tmp/qiskit-aqua-master/requirements.txt
-    - pip install -U -r /tmp/qiskit-aqua-master/requirements-dev.txt
-    # Install local Qiskit Terra
-    - pip install -e /tmp/qiskit-aqua-master
+    - pip install -U -r /tmp/aqua-master/requirements.txt
+    - pip install -U -r /tmp/aqua-master/requirements-dev.txt
+    # Install local Qiskit Aqua
+    - pip install -e /tmp/aqua-master
    
 # Test 
 install:
