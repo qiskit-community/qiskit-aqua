@@ -26,6 +26,13 @@ before_install:
     - pip install -U -r /tmp/aqua-master/requirements-dev.txt
     # Install local Qiskit Aqua
     - pip install -e /tmp/aqua-master
+    # download PyQuante master and unzip it
+    - wget https://codeload.github.com/rpmuller/pyquante2/zip/master -O /tmp/pyquante2-master.zip
+    - unzip /tmp/pyquante2-master.zip -d /tmp/
+    # Install pyQuante  dependencies.
+    - pip install -U -r /tmp/pyquante2-master/requirements.txt
+    # Install local PyQuante
+    - pip install -e /tmp/pyquante2-master
    
 # Test 
 install:
@@ -33,5 +40,4 @@ install:
     - pip install -U -r requirements-dev.txt
     - pip install pyscf
 script:
-    # ignore test base class
-    pytest -v --ignore=tests/test_driver.py
+    - python -m unittest discover -v test
