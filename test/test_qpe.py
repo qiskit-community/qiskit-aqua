@@ -67,7 +67,7 @@ class TestQPE(QiskitAquaTestCase):
         w = results['eigvals']
         v = results['eigvecs']
 
-        self.qubitOp._check_representation('matrix')
+        self.qubitOp.to_matrix()
         np.testing.assert_almost_equal(
             self.qubitOp.matrix @ v[0],
             w[0] * v[0]

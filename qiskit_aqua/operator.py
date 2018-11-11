@@ -28,7 +28,7 @@ import numpy as np
 from scipy import sparse as scisparse
 from scipy import linalg as scila
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
-from qiskit.tools.qi.pauli import Pauli, label_to_pauli, sgn_prod
+from qiskit.tools.qi.pauli import Pauli
 from qiskit.qasm import pi
 
 from qiskit_aqua import AlgorithmError, QuantumAlgorithm
@@ -276,7 +276,7 @@ class Operator(object):
             ret_pauli = Operator(paulis=[])
             for existed_pauli in self._paulis:
                 for pauli in rhs._paulis:
-                    basis, sign = sgn_prod(existed_pauli[1], pauli[1])
+                    basis, sign = Pauli.sgn_prod(existed_pauli[1], pauli[1])
                     coeff = existed_pauli[0] * pauli[0] * sign
                     if abs(coeff) > 1e-15:
                         pauli_term = [coeff, basis]
@@ -334,7 +334,7 @@ class Operator(object):
                 dia_matrix = 0.0
                 for idx in range(len(self._paulis)):
                     coeff, pauli = self._paulis[idx][0], self._paulis[idx][1]
-                    if not (np.all(pauli.w == 0)):
+                    if not (np.all(np.logical_not(pauli.x))):
                         valid_dia_matrix_flag = False
                         break
                     dia_matrix += coeff * pauli.to_spmatrix().diagonal()
@@ -396,11 +396,11 @@ class Operator(object):
         """
         if self._paulis is not None:
             if self._paulis != []:
-                return len(self._paulis[0][1].v)
+                return len(self._paulis[0][1])
             else:
                 return 0
         elif self._grouped_paulis is not None and self._grouped_paulis != []:
-            return len(self._grouped_paulis[0][0][1].v)
+            return len(self._grouped_paulis[0][0][1])
         else:
             return int(np.log2(self._matrix.shape[0]))
 
@@ -471,7 +471,7 @@ class Operator(object):
             if 'imag' in pauli_coeff:
                 coeff = complex(pauli_coeff['real'], pauli_coeff['imag'])
 
-            paulis.append([coeff, label_to_pauli(pauli_label)])
+            paulis.append([coeff, Pauli.from_label(pauli_label)])
 
         return Operator(paulis=paulis)
 
@@ -514,21 +514,21 @@ class Operator(object):
         if print_format == 'paulis':
             self._check_representation("paulis")
             for pauli in self._paulis:
-                ret += "{}\t{}\n".format(pauli[1].to_label(), pauli[0])
+                ret = ''.join([ret, "{}\t{}\n".format(pauli[1].to_label(), pauli[0])])
             if ret == "":
-                ret += "Pauli list is empty."
+                ret = ''.join([ret, "Pauli list is empty."])
         elif print_format == 'grouped_paulis':
             self._check_representation("grouped_paulis")
             for i in range(len(self._grouped_paulis)):
-                ret += 'Post Rotations of TPB set {} '.format(i)
-                ret += ': {} '.format(self._grouped_paulis[i][0][1].to_label())
-                ret += '\n'
+                ret = ''.join([ret, 'Post Rotations of TPB set {} '.format(i)])
+                ret = ''.join([ret, ': {} '.format(self._grouped_paulis[i][0][1].to_label())])
+                ret = ''.join([ret, '\n'])
                 for j in range(1, len(self._grouped_paulis[i])):
-                    ret += '{} '.format(self._grouped_paulis[i][j][1].to_label())
-                    ret += '{}\n'.format(self._grouped_paulis[i][j][0])
-                ret += '\n'
+                    ret = ''.join([ret, '{} '.format(self._grouped_paulis[i][j][1].to_label())])
+                    ret = ''.join([ret, '{}\n'.format(self._grouped_paulis[i][j][0])])
+                ret = ''.join([ret, '\n'])
             if ret == "":
-                ret += "Grouped pauli list is empty."
+                ret = ''.join([ret, "Grouped pauli list is empty."])
         elif print_format == 'matrix':
             self._check_representation("matrix")
             ret = str(self._matrix.toarray())
@@ -554,20 +554,18 @@ class Operator(object):
             else:
                 self._check_representation("paulis")
                 n_qubits = self.num_qubits
-                q = input_circuit.get_qregs()['q']
+                q = input_circuit.qregs['q']
                 circuits = [input_circuit]
                 for idx, pauli in enumerate(self._paulis):
                     circuit = QuantumCircuit() + input_circuit
-                    p_v = pauli[1].v.astype(np.bool)
-                    p_w = pauli[1].w.astype(np.bool)
-                    if np.all(np.logical_not(p_v)) and np.all(np.logical_not(p_w)):  # all I
+                    if np.all(np.logical_not(pauli[1].z)) and np.all(np.logical_not(pauli[1].x)):  # all I
                         continue
                     for qubit_idx in range(n_qubits):
-                        if not p_v[qubit_idx] and p_w[qubit_idx]:
+                        if not pauli[1].z[qubit_idx] and pauli[1].x[qubit_idx]:
                             circuit.u3(np.pi, 0.0, np.pi, q[qubit_idx])  # x
-                        elif p_v[qubit_idx] and not p_w[qubit_idx]:
+                        elif pauli[1].z[qubit_idx] and not pauli[1].x[qubit_idx]:
                             circuit.u1(np.pi, q[qubit_idx])  # z
-                        elif p_v[qubit_idx] and p_w[qubit_idx]:
+                        elif pauli[1].z[qubit_idx] and pauli[1].x[qubit_idx]:
                             circuit.u3(np.pi, np.pi/2, np.pi/2, q[qubit_idx])  # y
                     circuits.append(circuit)
         else:
@@ -578,7 +576,7 @@ class Operator(object):
             circuits = []
 
             base_circuit = QuantumCircuit() + input_circuit
-            c = base_circuit.get_cregs().get('c', ClassicalRegister(n_qubits, name='c'))
+            c = base_circuit.cregs.get('c', ClassicalRegister(n_qubits, name='c'))
             base_circuit.add(c)
 
             if operator_mode == "paulis":
@@ -586,13 +584,11 @@ class Operator(object):
 
                 for idx, pauli in enumerate(self._paulis):
                     circuit = QuantumCircuit() + base_circuit
-                    q = circuit.get_qregs()['q']
-                    c = circuit.get_cregs()['c']
-                    p_v = pauli[1].v.astype(np.bool)
-                    p_w = pauli[1].w.astype(np.bool)
+                    q = circuit.qregs['q']
+                    c = circuit.cregs['c']
                     for qubit_idx in range(n_qubits):
-                        if p_w[qubit_idx]:
-                            if p_v[qubit_idx]:
+                        if pauli[1].x[qubit_idx]:
+                            if pauli[1].z[qubit_idx]:
                                 # Measure Y
                                 circuit.u1(np.pi/2, q[qubit_idx]).inverse()  # s
                                 circuit.u2(0.0, np.pi, q[qubit_idx])  # h
@@ -607,13 +603,11 @@ class Operator(object):
 
                 for idx, tpb_set in enumerate(self._grouped_paulis):
                     circuit = QuantumCircuit() + base_circuit
-                    q = circuit.get_qregs()['q']
-                    c = circuit.get_cregs()['c']
-                    p_v = tpb_set[0][1].v.astype(np.bool)
-                    p_w = tpb_set[0][1].w.astype(np.bool)
+                    q = circuit.qregs['q']
+                    c = circuit.cregs['c']
                     for qubit_idx in range(n_qubits):
-                        if p_w[qubit_idx]:
-                            if p_v[qubit_idx]:
+                        if tpb_set[0][1].x[qubit_idx]:
+                            if tpb_set[0][1].z[qubit_idx]:
                                 # Measure Y
                                 circuit.u1(np.pi/2, q[qubit_idx]).inverse()  # s
                                 circuit.u2(0.0, np.pi, q[qubit_idx])  # h
@@ -655,7 +649,7 @@ class Operator(object):
                 quantum_state = np.asarray(result.get_statevector(circuits[0]))
                 circuit_idx = 1
                 for idx, pauli in enumerate(self._paulis):
-                    if np.all(pauli[1].v == 0) and np.all(pauli[1].w == 0):
+                    if np.all(np.logical_not(pauli[1].z)) and np.all(np.logical_not(pauli[1].x)):
                         avg += pauli[0]
                     else:
                         quantum_state_i = np.asarray(result.get_statevector(circuits[circuit_idx]))
@@ -746,7 +740,7 @@ class Operator(object):
             operator_mode (str): representation of operator, including paulis, grouped_paulis and matrix
             input_circuit (QuantumCircuit or numpy.ndarray): the quantum circuit.
             backend (BaseBackend): backend selection for quantum machine.
-            execute_config (dict): execution setting to quautum backend, refer to qiskit.wrapper.execute for details.
+            execute_config (dict): execution setting to quautum backend, refer to qiskit.execute for details.
             qjob_config (dict): the setting to retrieve results from quantum backend, including timeout and wait.
 
         Returns:
@@ -870,7 +864,7 @@ class Operator(object):
         paulis = []
         # generate all possible paulis basis
         for basis in itertools.product('IXYZ', repeat=num_qubits):
-            pauli_i = label_to_pauli(''.join(basis))
+            pauli_i = Pauli.from_label(''.join(basis))
             trace_value = np.sum(self._matrix.dot(pauli_i.to_spmatrix()).diagonal())
             alpha_i = trace_value * coeff
             if alpha_i != 0.0:
@@ -916,16 +910,16 @@ class Operator(object):
                             j = 0
                             for i in range(n):
                                 # p_2 is identity, p_1 is identity, p_1 and p_2 has same basis
-                                if not ((p_2[1].v[i] == 0 and p_2[1].w[i] == 0) or
-                                        (p_1[1].v[i] == 0 and p_1[1].w[i] == 0) or
-                                        (p_2[1].v[i] == p_1[1].v[i] and
-                                         p_2[1].w[i] == p_1[1].w[i])):
+                                if not ((not p_2[1].z[i] and not p_2[1].x[i]) or
+                                        (not p_1[1].z[i] and not p_1[1].x[i]) or
+                                        (p_2[1].z[i] == p_1[1].z[i] and
+                                         p_2[1].x[i] == p_1[1].x[i])):
                                     break
                                 else:
                                     # update master, if p_2 is not identity
-                                    if p_2[1].v[i] == 1 or p_2[1].w[i] == 1:
-                                        paulis_temp[0][1].v[i] = p_2[1].v[i]
-                                        paulis_temp[0][1].w[i] = p_2[1].w[i]
+                                    if p_2[1].z[i] or p_2[1].x[i]:
+                                        paulis_temp[0][1].update_z(p_2[1].z[i], i)
+                                        paulis_temp[0][1].update_x(p_2[1].x[i], i)
                                 j += 1
                             if j == n:
                                 paulis_temp.append(p_2)
@@ -1001,12 +995,10 @@ class Operator(object):
         """
         observable = 0.0
         num_shots = sum(data.values())
-        p_v = pauli.v.astype(np.bool)
-        p_w = pauli.w.astype(np.bool)
-        p_v_or_w = np.logical_or(p_v, p_w)
+        p_z_or_x = np.logical_or(pauli.z, pauli.x)
         for key, value in data.items():
             bitstr = np.asarray(list(key))[::-1].astype(np.bool)
-            sign = -1.0 if np.logical_xor.reduce(np.logical_and(bitstr, p_v_or_w)) else 1.0
+            sign = -1.0 if np.logical_xor.reduce(np.logical_and(bitstr, p_z_or_x)) else 1.0
             observable += sign * value
         observable /= num_shots
         return observable
@@ -1034,16 +1026,12 @@ class Operator(object):
         if num_shots == 1:
             return cov
 
-        p1_v = pauli_1.v.astype(np.bool)
-        p1_w = pauli_1.w.astype(np.bool)
-        p2_v = pauli_2.v.astype(np.bool)
-        p2_w = pauli_2.w.astype(np.bool)
-        p1_v_or_w = np.logical_or(p1_v, p1_w)
-        p2_v_or_w = np.logical_or(p2_v, p2_w)
+        p1_z_or_x = np.logical_or(pauli_1.z, pauli_1.x)
+        p2_z_or_x = np.logical_or(pauli_2.z, pauli_2.x)
         for key, value in data.items():
             bitstr = np.asarray(list(key))[::-1].astype(np.bool)
-            sign_1 = -1.0 if np.logical_xor.reduce(np.logical_and(bitstr, p1_v_or_w)) else 1.0
-            sign_2 = -1.0 if np.logical_xor.reduce(np.logical_and(bitstr, p2_v_or_w)) else 1.0
+            sign_1 = -1.0 if np.logical_xor.reduce(np.logical_and(bitstr, p1_z_or_x)) else 1.0
+            sign_2 = -1.0 if np.logical_xor.reduce(np.logical_and(bitstr, p2_z_or_x)) else 1.0
             cov += (sign_1 - avg_1) * (sign_2 - avg_2) * value
         cov /= (num_shots - 1)
         return cov
@@ -1073,26 +1061,26 @@ class Operator(object):
         par_1 = 1 if m % 2 == 0 else -1
         par_2 = 1 if m % 4 == 0 else -1
 
-        n = len(self._paulis[0][1].v)
+        n = self.num_qubits
         last_idx = n - 1
         mid_idx = n // 2 - 1
         for pauli_term in self._paulis:  # loop over Pauli terms
             coeff_out = pauli_term[0]
             # Z operator encountered at qubit n/2-1
-            if pauli_term[1].v[mid_idx] == 1 and pauli_term[1].w[mid_idx] == 0:
+            if pauli_term[1].z[mid_idx] and not pauli_term[1].x[mid_idx]:
                 coeff_out = par_2 * coeff_out
             # Z operator encountered at qubit n-1
-            if pauli_term[1].v[last_idx] == 1 and pauli_term[1].w[last_idx] == 0:
+            if pauli_term[1].z[last_idx] and not pauli_term[1].x[last_idx]:
                 coeff_out = par_1 * coeff_out
-            v_temp = []
-            w_temp = []
-            for j in range(n-1):
+
+            # TODO: can change to delete
+            z_temp = []
+            x_temp = []
+            for j in range(n - 1):
                 if j != mid_idx:
-                    # for j in range(n):
-                    #     if j != n // 2 - 1 and j != n - 1:
-                    v_temp.append(pauli_term[1].v[j])
-                    w_temp.append(pauli_term[1].w[j])
-            pauli_term_out = [coeff_out, Pauli(np.array(v_temp), np.array(w_temp))]
+                    z_temp.append(pauli_term[1].z[j])
+                    x_temp.append(pauli_term[1].x[j])
+            pauli_term_out = [coeff_out, Pauli(np.asarray(z_temp), np.asarray(x_temp))]
             if np.absolute(coeff_out) > threshold:
                 operator_out += Operator(paulis=[pauli_term_out])
         operator_out.chop(threshold=threshold)
@@ -1161,27 +1149,27 @@ class Operator(object):
             nontrivial_pauli_indices = []
             for qubit_idx in range(n_qubits):
                 # pauli I
-                if pauli[1].v[qubit_idx] == 0 and pauli[1].w[qubit_idx] == 0:
+                if not pauli[1].z[qubit_idx] and not pauli[1].x[qubit_idx]:
                     continue
 
                 if cnot_qubit_pairs[pauli_idx] is None:
                     nontrivial_pauli_indices.append(qubit_idx)
 
-                if pauli[1].w[qubit_idx] == 1:
+                if pauli[1].x[qubit_idx]:
                     # pauli X
-                    if pauli[1].v[qubit_idx] == 0:
+                    if not pauli[1].z[qubit_idx]:
                         if use_basis_gates:
                             qc_slice.u2(0.0, pi, state_registers[qubit_idx])
                         else:
                             qc_slice.h(state_registers[qubit_idx])
                     # pauli Y
-                    elif pauli[1].v[qubit_idx] == 1:
+                    elif pauli[1].z[qubit_idx]:
                         if use_basis_gates:
                             qc_slice.u3(pi / 2, -pi / 2, pi / 2, state_registers[qubit_idx])
                         else:
                             qc_slice.rx(pi / 2, state_registers[qubit_idx])
                 # pauli Z
-                elif pauli[1].v[qubit_idx] == 1 and pauli[1].w[qubit_idx] == 0:
+                elif pauli[1].z[qubit_idx] and not pauli[1].x[qubit_idx]:
                     pass
                 else:
                     raise ValueError('Unrecognized pauli: {}'.format(pauli[1]))
@@ -1226,15 +1214,15 @@ class Operator(object):
 
             # revert bases if necessary
             for qubit_idx in range(n_qubits):
-                if pauli[1].w[qubit_idx] == 1:
+                if pauli[1].x[qubit_idx]:
                     # pauli X
-                    if pauli[1].v[qubit_idx] == 0:
+                    if not pauli[1].z[qubit_idx]:
                         if use_basis_gates:
                             qc_slice.u2(0.0, pi, state_registers[qubit_idx])
                         else:
                             qc_slice.h(state_registers[qubit_idx])
                     # pauli Y
-                    elif pauli[1].v[qubit_idx] == 1:
+                    elif pauli[1].z[qubit_idx]:
                         if use_basis_gates:
                             qc_slice.u3(-pi / 2, -pi / 2, pi / 2, state_registers[qubit_idx])
                         else:
@@ -1552,7 +1540,7 @@ class Operator(object):
         self._check_representation("paulis")
 
         for pauli in self._paulis:
-            stacked_paulis.append(np.concatenate((pauli[1].w, pauli[1].v), axis=0))
+            stacked_paulis.append(np.concatenate((pauli[1].x, pauli[1].z).astype(np.int), axis=0))
 
         stacked_matrix = np.array(np.stack(stacked_paulis))
         symmetries = Operator.kernel_F2(stacked_matrix)
@@ -1584,8 +1572,8 @@ class Operator(object):
                          stacked_symmetries[row, col + symm_shape[1] // 2] == 1)):
                         sq_paulis.append(Pauli(np.zeros(symm_shape[1] // 2),
                                                np.zeros(symm_shape[1] // 2)))
-                        sq_paulis[row].v[col] = 0
-                        sq_paulis[row].w[col] = 1
+                        sq_paulis[row].z[col] = False
+                        sq_paulis[row].x[col] = True
                         sq_list.append(col)
                         break
 
@@ -1601,8 +1589,8 @@ class Operator(object):
                         (stacked_symmetries[row, col] == 1 and
                          stacked_symmetries[row, col + symm_shape[1] // 2] == 1)):
                         sq_paulis.append(Pauli(np.zeros(symm_shape[1] // 2), np.zeros(symm_shape[1] // 2)))
-                        sq_paulis[row].v[col] = 1
-                        sq_paulis[row].w[col] = 0
+                        sq_paulis[row].z[col] = True
+                        sq_paulis[row].x[col] = False
                         sq_list.append(col)
                         break
 
@@ -1620,8 +1608,8 @@ class Operator(object):
                         (stacked_symmetries[row, col] == 1 and
                          stacked_symmetries[row, col + symm_shape[1] // 2] == 0)):
                         sq_paulis.append(Pauli(np.zeros(symm_shape[1] // 2), np.zeros(symm_shape[1] // 2)))
-                        sq_paulis[row].v[col] = 1
-                        sq_paulis[row].w[col] = 1
+                        sq_paulis[row].z[col] = True
+                        sq_paulis[row].x[col] = True
                         sq_list.append(col)
                         break
 
@@ -1679,11 +1667,11 @@ class Operator(object):
         for pauli_term in operator.paulis:
             coeff_out = pauli_term[0]
             for idx, qubit_idx in enumerate(sq_list):
-                if not (pauli_term[1].v[qubit_idx] == 0 and pauli_term[1].w[qubit_idx] == 0):
+                if not (not pauli_term[1].z[qubit_idx] and not pauli_term[1].x[qubit_idx]):
                     coeff_out = tapering_values[idx] * coeff_out
-            v_temp = np.delete(pauli_term[1].v.copy(), np.asarray(sq_list))
-            w_temp = np.delete(pauli_term[1].w.copy(), np.asarray(sq_list))
-            pauli_term_out = [coeff_out, Pauli(v_temp, w_temp)]
+            z_temp = np.delete(pauli_term[1].z.copy(), np.asarray(sq_list))
+            x_temp = np.delete(pauli_term[1].x.copy(), np.asarray(sq_list))
+            pauli_term_out = [coeff_out, Pauli(z_temp, x_temp)]
             operator_out += Operator(paulis=[pauli_term_out])
 
         operator_out.zeros_coeff_elimination()

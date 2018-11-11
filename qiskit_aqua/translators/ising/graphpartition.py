@@ -97,22 +97,22 @@ def get_graphpartition_qubitops(weight_matrix):
 
     for i in range(num_nodes):
         for j in range(i):
-            if (weight_matrix[i,j] != 0):
-                wp = np.zeros(num_nodes)
-                vp = np.zeros(num_nodes)
-                vp[i] = 1
-                vp[j] = 1
-                pauli_list.append([-0.5, Pauli(vp, wp)])
+            if weight_matrix[i, j] != 0:
+                xp = np.zeros(num_nodes, dtype=np.bool)
+                zp = np.zeros(num_nodes, dtype=np.bool)
+                zp[i] = True
+                zp[j] = True
+                pauli_list.append([-0.5, Pauli(zp, xp)])
                 shift += 0.5
 
     for i in range(num_nodes):
         for j in range(num_nodes):
             if i != j:
-                wp = np.zeros(num_nodes)
-                vp = np.zeros(num_nodes)
-                vp[i] = 1
-                vp[j] = 1
-                pauli_list.append([1, Pauli(vp, wp)])
+                xp = np.zeros(num_nodes, dtype=np.bool)
+                zp = np.zeros(num_nodes, dtype=np.bool)
+                zp[i] = True
+                zp[j] = True
+                pauli_list.append([1, Pauli(zp, xp)])
             else:
                 shift += 1
     return Operator(paulis=pauli_list), shift

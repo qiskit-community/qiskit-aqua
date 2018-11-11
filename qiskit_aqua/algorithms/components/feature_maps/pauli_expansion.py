@@ -26,7 +26,7 @@ import logging
 
 import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister
-from qiskit.tools.qi.pauli import label_to_pauli
+from qiskit.tools.qi.pauli import Pauli
 from qiskit.qasm import pi
 from sympy.core.numbers import NaN, Float
 
@@ -116,16 +116,15 @@ class PauliExpansion(FeatureMap):
         temp_paulis = []
         for pauli in paulis:
             len_pauli = len(pauli)
-            for j in itertools.combinations(range(self._num_qubits), len_pauli):
+            for possible_pauli_idx in itertools.combinations(range(self._num_qubits), len_pauli):
                 string_temp = ['I'] * self._num_qubits
-                for idx in range(len(j)):
-                    string_temp[j[idx]] = pauli[idx]
+                for idx in range(len(possible_pauli_idx)):
+                    string_temp[-possible_pauli_idx[idx] - 1] = pauli[-idx - 1]
                 temp_paulis.append(''.join(string_temp))
-
         # clean up string that can not be entangled.
         final_paulis = []
         for pauli in temp_paulis:
-            where_z = np.where(np.asarray(list(pauli)) != 'I')[0]
+            where_z = np.where(np.asarray(list(pauli[::-1])) != 'I')[0]
             if len(where_z) == 1:
                 final_paulis.append(pauli)
             else:
@@ -162,7 +161,7 @@ class PauliExpansion(FeatureMap):
         return qc
 
     def _extract_data_for_rotation(self, pauli, x):
-        where_non_i = np.where(np.asarray(list(pauli)) != 'I')[0]
+        where_non_i = np.where(np.asarray(list(pauli[::-1])) != 'I')[0]
         return x[where_non_i]
 
     def _construct_circuit_with_template(self, x):
@@ -206,7 +205,7 @@ class PauliExpansion(FeatureMap):
                     qc.u2(0, pi, qr[i])
                 for pauli in self._pauli_strings:
                     coeff = self._data_map_func(self._extract_data_for_rotation(pauli, x))
-                    p = label_to_pauli(pauli)
+                    p = Pauli.from_label(pauli)
                     qc += Operator.construct_evolution_circuit([[coeff, p]], 1, 1, qr)
 
         if inverse:

@@ -23,8 +23,8 @@ from parameterized import parameterized
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import Operator, run_algorithm
 from qiskit_aqua.input import get_input_instance
-from qiskit_aqua import get_algorithm_instance, get_initial_state_instance, \
-                         get_variational_form_instance, get_optimizer_instance
+from qiskit_aqua import (get_algorithm_instance, get_initial_state_instance,
+                         get_variational_form_instance, get_optimizer_instance)
 
 
 class TestVQE(QiskitAquaTestCase):
@@ -33,8 +33,8 @@ class TestVQE(QiskitAquaTestCase):
         np.random.seed(50)
         pauli_dict = {
             'paulis': [{"coeff": {"imag": 0.0, "real": -1.052373245772859}, "label": "II"},
-                       {"coeff": {"imag": 0.0, "real": 0.39793742484318045}, "label": "ZI"},
-                       {"coeff": {"imag": 0.0, "real": -0.39793742484318045}, "label": "IZ"},
+                       {"coeff": {"imag": 0.0, "real": 0.39793742484318045}, "label": "IZ"},
+                       {"coeff": {"imag": 0.0, "real": -0.39793742484318045}, "label": "ZI"},
                        {"coeff": {"imag": 0.0, "real": -0.01128010425623538}, "label": "ZZ"},
                        {"coeff": {"imag": 0.0, "real": 0.18093119978423156}, "label": "XX"}
                        ]
