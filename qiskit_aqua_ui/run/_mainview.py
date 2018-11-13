@@ -22,17 +22,14 @@ import tkinter.ttk as ttk
 import tkinter.filedialog as tkfd
 from tkinter import font
 import webbrowser
-from qiskit_aqua.ui.run._controller import Controller
-from qiskit_aqua.ui.run._sectionsview import SectionsView
-from qiskit_aqua.ui.run._sectionpropertiesview import SectionPropertiesView
-from qiskit_aqua.ui.run._sectiontextview import SectionTextView
-from qiskit_aqua.ui.run._threadsafeoutputview import ThreadSafeOutputView
-from qiskit_aqua.ui.run._emptyview import EmptyView
-from qiskit_aqua.ui.run._preferencesdialog import PreferencesDialog
-from qiskit_aqua.ui._uipreferences import UIPreferences
-from qiskit_aqua._logging import set_logging_config
-from qiskit_aqua.preferences import Preferences
-from qiskit_aqua import __version__
+from ._controller import Controller
+from ._sectionsview import SectionsView
+from ._sectionpropertiesview import SectionPropertiesView
+from ._sectiontextview import SectionTextView
+from ._threadsafeoutputview import ThreadSafeOutputView
+from ._emptyview import EmptyView
+from ._preferencesdialog import PreferencesDialog
+from qiskit_aqua_ui._uipreferences import UIPreferences
 import os
 
 
@@ -51,6 +48,7 @@ class MainView(ttk.Frame):
             parent.protocol('WM_DELETE_WINDOW', self.quit)
 
     def _show_about_dialog(self):
+        from qiskit_aqua import __version__
         tkmb.showinfo(message='Qiskit Aqua {}'.format(__version__))
 
     def _show_preferences(self):
@@ -240,10 +238,7 @@ class MainView(ttk.Frame):
         sys.stdout = self._controller._outputView
         sys.stderr = self._controller._outputView
         # reupdate logging after redirect
-        preferences = Preferences()
-        config = preferences.get_logging_config()
-        if config is not None:
-            set_logging_config(config)
+        self.after(0, self._set_preferences_logging)
 
         self.update_idletasks()
         self._controller._sectionsView.show_add_button(False)
@@ -251,6 +246,14 @@ class MainView(ttk.Frame):
         self._controller._sectionsView.show_defaults_button(False)
         self._controller._emptyView.set_toolbar_size(
             self._controller._sectionsView.get_toolbar_size())
+
+    def _set_preferences_logging(self):
+        from qiskit_aqua.preferences import Preferences
+        from qiskit_aqua._logging import set_logging_config
+        preferences = Preferences()
+        config = preferences.get_logging_config()
+        if config is not None:
+            set_logging_config(config)
 
     def quit(self):
         if tkmb.askyesno('Verify quit', 'Are you sure you want to quit?'):
