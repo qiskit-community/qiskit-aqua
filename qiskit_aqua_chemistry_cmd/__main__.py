@@ -19,11 +19,9 @@ import sys
 import os
 
 qiskit_aqua_chemistry_directory = os.path.dirname(os.path.realpath(__file__))
-qiskit_aqua_chemistry_directory = os.path.join(qiskit_aqua_chemistry_directory,'..')
-sys.path.insert(0,qiskit_aqua_chemistry_directory)
+qiskit_aqua_chemistry_directory = os.path.join(qiskit_aqua_chemistry_directory, '..')
+sys.path.insert(0, qiskit_aqua_chemistry_directory)
 
-from qiskit_aqua_chemistry.command_line import main
+from qiskit_aqua_chemistry_cmd.command_line import main
 
 main()
-            
-
