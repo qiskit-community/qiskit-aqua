@@ -73,6 +73,7 @@ class TestSATOracle(QiskitAquaTestCase):
                 if tf:
                     qc.x(sat.variable_register()[idx])
             qc += sat_circuit
+            qc.barrier(sat._qr_outcome)
             qc.measure(sat._qr_outcome, m)
             counts = q_execute(qc, qiskit.Aer.get_backend(
                 'qasm_simulator'), shots=num_shots).result().get_counts(qc)

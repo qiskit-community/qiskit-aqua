@@ -58,10 +58,6 @@ class NELDER_MEAD(Optimizer):
                 'tol': {
                     'type': ['number', 'null'],
                     'default': None
-                },
-                'adaptive': {
-                    'type': 'boolean',
-                    'default': False
                 }
             },
             'additionalProperties': False
@@ -71,7 +67,7 @@ class NELDER_MEAD(Optimizer):
             'bounds': Optimizer.SupportLevel.ignored,
             'initial_point': Optimizer.SupportLevel.required
         },
-        'options': ['maxiter', 'maxfev', 'disp', 'xatol', 'adaptive'],
+        'options': ['maxiter', 'maxfev', 'disp', 'xatol'],
         'optimizer': ['local']
     }
 
