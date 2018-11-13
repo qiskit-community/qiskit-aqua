@@ -18,54 +18,44 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 
+
 class ScrollbarView(ttk.Frame):
 
-    def __init__(self, parent,**options):
+    def __init__(self, parent, **options):
         super(ScrollbarView, self).__init__(parent, **options)
         self._child = None
         self._hscrollbar = None
         self._vscrollbar = None
-      
-    def init_widgets(self, child):
-        if self._child is not None:
-            self._child.destroy()
-            
-        if self._hscrollbar is not None:
-            self._hscrollbar.destroy()
-            self._hscrollbar = None
-            
-        if self._vscrollbar is not None:
-            self._vscrollbar.destroy()
-            self._vscrollbar = None
-    
-        self._child = child    
-        self._hscrollbar = ttk.Scrollbar(self, orient = tk.HORIZONTAL)
-        self._vscrollbar = ttk.Scrollbar(self, orient = tk.VERTICAL)
-        self._child.config(yscrollcommand = self._vscrollbar.set)
-        self._child.config(xscrollcommand = self._hscrollbar.set)
-        self._vscrollbar.config(command = self._child.yview)
-        self._hscrollbar.config(command = self._child.xview)
 
-    def pack(self, **options):     
-        if self._hscrollbar is not None: 
+    def init_widgets(self, child):
+        self._child = child
+        self._hscrollbar = ttk.Scrollbar(self, orient=tk.HORIZONTAL)
+        self._vscrollbar = ttk.Scrollbar(self, orient=tk.VERTICAL)
+        self._child.config(yscrollcommand=self._vscrollbar.set)
+        self._child.config(xscrollcommand=self._hscrollbar.set)
+        self._vscrollbar.config(command=self._child.yview)
+        self._hscrollbar.config(command=self._child.xview)
+
+    def pack(self, **options):
+        if self._hscrollbar is not None:
             self._hscrollbar.pack(side=tk.BOTTOM, fill=tk.X, expand=tk.FALSE)
-        
+
         if self._vscrollbar is not None:
             self._vscrollbar.pack(side=tk.RIGHT, fill=tk.Y, expand=tk.FALSE)
-        
+
         if self._child is not None:
             self._child.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.TRUE)
-        
+
         ttk.Frame.pack(self, **options)
-        
-    def grid(self, **options):   
-        if self._hscrollbar is not None: 
+
+    def grid(self, **options):
+        if self._hscrollbar is not None:
             self._hscrollbar.pack(side=tk.BOTTOM, fill=tk.X, expand=tk.FALSE)
-            
+
         if self._vscrollbar is not None:
             self._vscrollbar.pack(side=tk.RIGHT, fill=tk.Y, expand=tk.FALSE)
-        
+
         if self._child is not None:
             self._child.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.TRUE)
-       
+
         ttk.Frame.grid(self, **options)

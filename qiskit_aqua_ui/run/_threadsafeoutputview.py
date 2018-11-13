@@ -16,22 +16,23 @@
 # =============================================================================
 
 import tkinter as tk
-from qiskit_aqua.ui.run._scrollbarview import ScrollbarView
-from qiskit_aqua.ui.run._customwidgets import TextCustom
+from ._scrollbarview import ScrollbarView
+from ._customwidgets import TextCustom
 import queue
 import string
 
+
 class ThreadSafeOutputView(ScrollbarView):
-    
+
     _DELAY = 50
-    
-    def __init__(self,parent,**options):
+
+    def __init__(self, parent, **options):
         super(ThreadSafeOutputView, self).__init__(parent, **options)
         self._queue = queue.Queue()
-        self._textWidget = TextCustom(self,wrap=tk.NONE,state=tk.DISABLED)
+        self._textWidget = TextCustom(self, wrap=tk.NONE, state=tk.DISABLED)
         self.init_widgets(self._textWidget)
         self._updateText()
-        
+
     def _updateText(self):
         try:
             iterations = 0
@@ -41,50 +42,50 @@ class ThreadSafeOutputView(ScrollbarView):
                 if line is None:
                     self._write()
                 else:
-                    self._write(str(line),False)
+                    self._write(str(line), False)
                 self.update_idletasks()
         except:
             pass
-        
-        self.after(ThreadSafeOutputView._DELAY,self._updateText)
-    
-    def write(self,text):
+
+        self.after(ThreadSafeOutputView._DELAY, self._updateText)
+
+    def write(self, text):
         if text is not None:
             text = str(text)
             if len(text) > 0:
                 # remove any non printable character that will cause the Text widgetto hang
                 text = ''.join([x if x in string.printable else '' for x in text])
-                if len(text) > 0: 
+                if len(text) > 0:
                     self._queue.put(text)
 
     def flush(self):
         pass
-    
+
     def buffer_empty(self):
         return self._queue.empty()
-    
+
     def clear_buffer(self):
         """
         Create another queue to ignore current queue output
         """
         self._queue = queue.Queue()
-        
-    def write_line(self,text):
+
+    def write_line(self, text):
         self.write(text + '\n')
-        
+
     def clear(self):
         self._queue.put(None)
-    
-    def _write(self,text=None,erase=True):
+
+    def _write(self, text=None, erase=True):
         self._textWidget.config(state=tk.NORMAL)
         if erase:
             self._textWidget.delete(1.0, tk.END)
-            
+
         if text is not None:
             self._textWidget.insert(tk.END, text)
             pos = self._vscrollbar.get()[1]
             # scrolls only when scroll bar is at the bottom
             if pos == 1.0:
                 self._textWidget.yview(tk.END)
-            
+
         self._textWidget.config(state=tk.DISABLED)
