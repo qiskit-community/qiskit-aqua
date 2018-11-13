@@ -19,7 +19,6 @@ import sys
 import logging
 import time
 import functools
-import copy
 from packaging import version
 
 import numpy as np
@@ -122,6 +121,18 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
     with_autorecover = False if backend.configuration()['simulator'] else True
     max_circuits_per_job = sys.maxsize if backend.configuration()['local'] \
         else MAX_CIRCUITS_PER_JOB
+    # if circuit_cache.use_caching: max_circuits_per_job = psutil.cpu_count() # option to limit the number of threads
+
+    if circuit_cache.use_caching and circuit_cache.try_reusing_qobjs:
+        # Check if all circuits are the same length. If not, don't try to use the same qobj.experiment for all of them.
+        if len(set([len(circ.data) for circ in circuits])) > 1: circuit_cache.try_reusing_qobjs = False
+        else: # Try setting up the reusable qobj
+            try: circuit_cache.try_loading_cache_from_file()
+            except (FileNotFoundError): pass
+            # Compile and cache first circuit if cache is empty. The load method to try to reuse it
+            if circuit_cache.try_reusing_qobjs and circuit_cache.qobjs is None:
+                qobj = q_compile([circuits[0]], backend, **execute_config)
+                circuit_cache.cache_circuit(qobj, [circuits[0]], 0)
 
     qobjs = []
     jobs = []
@@ -133,9 +144,9 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
             try:
                 qobj = circuit_cache.load_qobj_from_cache(sub_circuits, i)
             except (TypeError, IndexError, FileNotFoundError, EOFError, AlgorithmError) as e: #cache miss, fail gracefully
+                circuit_cache.try_reusing_qobjs = False  # Reusing Qobj didn't work
                 circuit_cache.clear_cache()
-                logger.debug('Circuit cache miss, recompiling. Cache miss reason:')
-                logger.debug(repr(e))
+                logger.debug('Circuit cache miss, recompiling. Cache miss reason:' + repr(e))
                 qobj = q_compile(sub_circuits, backend, **execute_config)
                 circuit_cache.cache_circuit(qobj, sub_circuits, i)
                 circuit_cache.misses += 1

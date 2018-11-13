@@ -47,6 +47,7 @@ logger = logging.getLogger(__name__)
 qobjs = None
 mappings = None
 misses = 0
+try_reusing_qobjs = True
 use_caching = False
 naughty_mode = False
 cache_file = None
@@ -97,6 +98,7 @@ def cache_circuit(qobj, circuits, chunk):
             if isinstance(gate, CompositeGate): raw_gates += gate.instruction_list()
             else: raw_gates += [gate]
 
+        #TODO: See if we can skip gates with no params
         for i, uncompiled_gate in enumerate(raw_gates):
             regs = [(reg, qubit) for (reg, qubit) in uncompiled_gate.arg]
             qubits = [qubit+qreg_indeces[reg.name] for reg, qubit in regs if isinstance(reg, QuantumRegister)]
@@ -128,11 +130,9 @@ def cache_circuit(qobj, circuits, chunk):
         cache_handler.close()
         logger.debug("Circuit cache saved to file.")
 
-# Note that this function overwrites the previous cached qobj for speed
-def load_qobj_from_cache(circuits, chunk):
+def try_loading_cache_from_file():
     global qobjs
     global mappings
-    global misses
     global cache_file
 
     if qobjs is None and cache_file is not None and len(cache_file) > 0:
@@ -143,14 +143,31 @@ def load_qobj_from_cache(circuits, chunk):
         mappings = cache['mappings']
         logger.debug("Circuit cache loaded from file.")
 
+# Note that this function overwrites the previous cached qobj for speed
+def load_qobj_from_cache(circuits, chunk):
+    global qobjs
+    global mappings
+    global misses
+
+    try_loading_cache_from_file()
+
+    if try_reusing_qobjs and qobjs is not None and len(qobjs) <= chunk:
+        mappings.insert(chunk, mappings[0])
+        qobjs.insert(chunk, copy.deepcopy(qobjs[0]))
+
     for circ_num, input_circuit in enumerate(circuits):
+
+        # If there are too few experiments in the cache, try reusing the first experiment.
+        # Only do this for the first chunk. Subsequent chunks should rely on these copies through the deepcopy above.
+        if try_reusing_qobjs and chunk == 0 and circ_num > 0 and len(qobjs[chunk].experiments) <= circ_num:
+            qobjs[0].experiments.insert(circ_num, copy.deepcopy(qobjs[0].experiments[0]))
+            mappings[0].insert(circ_num, mappings[0][0])
 
         # Unroll circuit in case of composite gates
         raw_gates = []
         for gate in input_circuit.data:
             if isinstance(gate, CompositeGate): raw_gates += gate.instruction_list()
             else: raw_gates += [gate]
-
         qobjs[chunk].experiments[circ_num].header.name = input_circuit.name
         for gate_num, compiled_gate in enumerate(qobjs[chunk].experiments[circ_num].instructions):
             if compiled_gate.name == 'snapshot': continue
@@ -165,8 +182,10 @@ def load_qobj_from_cache(circuits, chunk):
                                      'of cached qobj'.format(cache_index, uncompiled_gate.name, len(uncompiled_gate.param),
                                                              gate_num, compiled_gate.name, len(compiled_gate.params)))
             compiled_gate.params = np.array(uncompiled_gate.param, dtype=float).tolist()
-    if naughty_mode: return qobjs[chunk]
-    else: return copy.deepcopy(qobjs[chunk])
+    exec_qobj = copy.copy(qobjs[chunk])
+    if naughty_mode: exec_qobj.experiments = qobjs[chunk].experiments[0:len(circuits)]
+    else: exec_qobj = copy.deepcopy(qobjs[chunk].experiments[0:len(circuits)])
+    return exec_qobj
 
 # Does what backend.run and aerjob.submit do, but without qobj validation.
 def naughty_run(backend, qobj):
@@ -181,7 +200,9 @@ def clear_cache():
     global qobjs
     global mappings
     global misses
+    global try_reusing_qobjs
 
     qobjs = None
     mappings = None
     misses = 0
+    try_reusing_qobjs = True
