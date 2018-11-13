@@ -62,10 +62,10 @@ setuptools.setup(
     python_requires=">=3.5",
     entry_points = {
         'console_scripts': [
-                'qiskit_aqua_chemistry_cmd=qiskit_aqua_chemistry.command_line:main'
+                'qiskit_aqua_chemistry_cmd=qiskit_aqua_chemistry_cmd.command_line:main'
         ],
         'gui_scripts': [
-                'qiskit_aqua_chemistry_ui=qiskit_aqua_chemistry.ui.command_line:main'
+                'qiskit_aqua_chemistry_ui=qiskit_aqua_chemistry_ui.command_line:main'
         ]
     }
 )

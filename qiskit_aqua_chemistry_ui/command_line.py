@@ -18,10 +18,25 @@
 import sys
 import logging
 import tkinter as tk
-from qiskit_aqua_chemistry._logging import get_logging_level,build_logging_config,set_logging_config
-from qiskit_aqua_chemistry.ui._uipreferences import UIPreferences
-from qiskit_aqua_chemistry.preferences import Preferences
-from qiskit_aqua_chemistry.ui._mainview import MainView
+from ._uipreferences import UIPreferences
+from ._mainview import MainView
+
+
+def set_preferences_logging():
+    """
+    Update logging setting with latest external packages
+    """
+    from qiskit_aqua_chemistry._logging import get_logging_level, build_logging_config, set_logging_config
+    from qiskit_aqua_chemistry.preferences import Preferences
+    preferences = Preferences()
+    logging_level = logging.INFO
+    if preferences.get_logging_config() is not None:
+        set_logging_config(preferences.get_logging_config())
+        logging_level = get_logging_level()
+
+    preferences.set_logging_config(build_logging_config(logging_level))
+    preferences.save()
+
 
 def main():
     if sys.platform == 'darwin':
@@ -30,11 +45,11 @@ def main():
         if bundle:
             info = bundle.localizedInfoDictionary() or bundle.infoDictionary()
             info['CFBundleName'] = 'QISkit Aqua Chemistry'
-    
+
     root = tk.Tk()
     root.withdraw()
     root.update_idletasks()
-    
+
     preferences = UIPreferences()
     geometry = preferences.get_geometry()
     if geometry is None:
@@ -42,29 +57,15 @@ def main():
         hs = root.winfo_screenheight()
         w = int(ws / 1.3)
         h = int(hs / 1.3)
-        x = int(ws/2 - w/2)
-        y = int(hs/2 - h/2)
-        geometry = '{}x{}+{}+{}'.format(w,h,x,y)
+        x = int(ws / 2 - w / 2)
+        y = int(hs / 2 - h / 2)
+        geometry = '{}x{}+{}+{}'.format(w, h, x, y)
         preferences.set_geometry(geometry)
         preferences.save()
-    
+
     root.geometry(geometry)
-   
-    # update logging setting with latest external packages
-    preferences = Preferences()
-    logging_level = logging.INFO
-    if preferences.get_logging_config() is not None:
-        set_logging_config(preferences.get_logging_config())
-        logging_level = get_logging_level()
-        
-    preferences.set_logging_config(build_logging_config(logging_level))
-    preferences.save()
-    
-    set_logging_config(preferences.get_logging_config())
-   
+
     MainView(root)
     root.after(0, root.deiconify)
+    root.after(0, set_preferences_logging)
     root.mainloop()
-    
-                
-    

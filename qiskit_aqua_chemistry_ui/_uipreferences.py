@@ -18,96 +18,96 @@
 import os
 import json
 
+
 class UIPreferences(object):
-   
+
     _FILENAME = '.qiskit_aqua_chemistry_ui'
     _VERSION = '1.0'
-    
+
     def __init__(self):
         """Create UIPreferences object."""
-        self._preferences = { 
-                'version' : UIPreferences._VERSION
+        self._preferences = {
+            'version': UIPreferences._VERSION
         }
         home = os.path.expanduser("~")
-        self._filepath = os.path.join(home,UIPreferences._FILENAME)
+        self._filepath = os.path.join(home, UIPreferences._FILENAME)
         try:
             with open(self._filepath) as json_pref:
                 self._preferences = json.load(json_pref)
         except:
             pass
-            
+
     def save(self):
         with open(self._filepath, 'w') as fp:
-            json.dump(self._preferences, fp, sort_keys=True, indent=4) 
-        
+            json.dump(self._preferences, fp, sort_keys=True, indent=4)
+
     def get_version(self):
         if 'version' in self._preferences:
             return self._preferences['version']
-        
+
         return None
-            
-    def get_geometry(self,default_value=None):
+
+    def get_geometry(self, default_value=None):
         if 'geometry' in self._preferences:
             return self._preferences['geometry']
-        
+
         return default_value
-    
-    def set_geometry(self,geometry):
+
+    def set_geometry(self, geometry):
         self._preferences['geometry'] = geometry
-        
+
     def get_openfile_initialdir(self):
         if 'openfile_initialdir' in self._preferences:
             if not os.path.isdir(self._preferences['openfile_initialdir']):
                 self._preferences['openfile_initialdir'] = os.getcwd()
-                
+
             return self._preferences['openfile_initialdir']
-    
+
         return os.getcwd()
-    
-    def set_openfile_initialdir(self,initialdir):
+
+    def set_openfile_initialdir(self, initialdir):
         self._preferences['openfile_initialdir'] = initialdir
-        
+
     def get_savefile_initialdir(self):
         if 'savefile_initialdir' in self._preferences:
             if not os.path.isdir(self._preferences['savefile_initialdir']):
                 self._preferences['savefile_initialdir'] = os.getcwd()
-                
+
             return self._preferences['savefile_initialdir']
-        
+
         return os.getcwd()
-    
-    def set_savefile_initialdir(self,initialdir):
+
+    def set_savefile_initialdir(self, initialdir):
         self._preferences['savefile_initialdir'] = initialdir
-        
-    def get_populate_defaults(self,default_value=None):
+
+    def get_populate_defaults(self, default_value=None):
         if 'populate_defaults' in self._preferences:
             return self._preferences['populate_defaults']
-        
+
         return default_value
-    
-    def set_populate_defaults(self,populate_defaults):
+
+    def set_populate_defaults(self, populate_defaults):
         self._preferences['populate_defaults'] = populate_defaults
-        
+
     def get_recent_files(self):
         files = []
         if 'recent_files' in self._preferences:
             for file in self._preferences['recent_files']:
                 if os.path.isfile(file):
                     files.append(file)
-                    
+
             self._preferences['recent_files'] = files
-        
+
         return files
-    
-    def add_recent_file(self,file):
+
+    def add_recent_file(self, file):
         recent_files = self.get_recent_files()
         if file not in recent_files:
             recent_files.append(file)
             if len(recent_files) > 6:
                 recent_files = recent_files[1:]
         self._preferences['recent_files'] = recent_files
-        
+
     def clear_recent_files(self):
         if 'recent_files' in self._preferences:
             del self._preferences['recent_files']
-    
