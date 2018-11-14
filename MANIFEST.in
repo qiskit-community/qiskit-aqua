@@ -1,2 +1,2 @@
 recursive-include qiskit_aqua *.json
-include qiskit_aqua/Qconfig_template.txt
+recursive-include qiskit_aqua_ui *.json

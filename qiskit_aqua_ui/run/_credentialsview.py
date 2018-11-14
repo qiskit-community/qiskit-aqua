@@ -19,11 +19,9 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import font
 from tkinter import messagebox
-from qiskit_aqua.ui.run._customwidgets import EntryCustom
-from qiskit_aqua.ui.run._toolbarview import ToolbarView
-from qiskit_aqua.preferences import Preferences
-from qiskit_aqua._credentialspreferences import CredentialsPreferences
-from qiskit_aqua.ui.run._dialog import Dialog
+from ._customwidgets import EntryCustom
+from ._toolbarview import ToolbarView
+from ._dialog import Dialog
 import urllib
 
 
@@ -34,6 +32,7 @@ class CredentialsView(ttk.Frame):
 
         self.pack(fill=tk.BOTH, expand=tk.TRUE)
 
+        from qiskit_aqua.preferences import Preferences
         preferences = Preferences()
         self._credentials_preferences = preferences.credentials_preferences
 
@@ -102,6 +101,7 @@ class CredentialsView(ttk.Frame):
         urls = [credentials.url for credentials in self._credentials_preferences.get_all_credentials()]
         dialog = URLEntryDialog(self.master, self)
         dialog.do_init(tk.LEFT)
+        from qiskit_aqua._credentialspreferences import CredentialsPreferences
         if CredentialsPreferences.URL not in urls:
             dialog._url.insert(0, CredentialsPreferences.URL)
         dialog.do_modal()
