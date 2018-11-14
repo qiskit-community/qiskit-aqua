@@ -18,17 +18,12 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import font
-from qiskit_aqua.ui.run._dialog import Dialog
+from ._dialog import Dialog
 from collections import OrderedDict
-from qiskit_aqua.ui.run._credentialsview import CredentialsView
-from qiskit_aqua.ui.run._toolbarview import ToolbarView
-from qiskit_aqua.ui.run._customwidgets import EntryCustom
-from qiskit_aqua import Preferences
-from qiskit_aqua.ui._uipreferences import UIPreferences
-from qiskit_aqua import refresh_pluggables
-from qiskit_aqua._logging import (get_logging_level,
-                                  build_logging_config,
-                                  set_logging_config)
+from ._credentialsview import CredentialsView
+from ._toolbarview import ToolbarView
+from ._customwidgets import EntryCustom
+from qiskit_aqua_ui._uipreferences import UIPreferences
 import logging
 
 
@@ -53,6 +48,9 @@ class PreferencesDialog(Dialog):
         self._populateDefaults = tk.IntVar()
 
     def body(self, parent, options):
+        from qiskit_aqua._logging import (get_logging_level,
+                                          set_logging_config)
+        from qiskit_aqua import Preferences
         preferences = Preferences()
         logging_config = preferences.get_logging_config()
         if logging_config is not None:
@@ -140,6 +138,9 @@ class PreferencesDialog(Dialog):
         return True
 
     def apply(self):
+        from qiskit_aqua import Preferences
+        from qiskit_aqua._logging import (build_logging_config,
+                                          set_logging_config)
         try:
             level_name = self._levelCombo.get()
             levels = [key for key, value in PreferencesDialog._LOG_LEVELS.items(
@@ -240,6 +241,7 @@ class PackagesPage(ToolbarView):
         return True
 
     def apply(self, preferences):
+        from qiskit_aqua import refresh_pluggables
         if self._packages != preferences.get_packages([]):
             preferences.set_packages(
                 self._packages if len(self._packages) > 0 else None)
