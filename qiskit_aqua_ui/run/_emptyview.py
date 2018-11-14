@@ -15,14 +15,21 @@
 # limitations under the License.
 # =============================================================================
 
-import sys
-import os
+import tkinter as tk
+import tkinter.ttk as ttk
 
-algorithms_directory = os.path.dirname(os.path.realpath(__file__))
-algorithms_directory = os.path.join(algorithms_directory,'../../..')
-sys.path.insert(0,'qiskit_aqua')
-sys.path.insert(0,algorithms_directory)
 
-from qiskit_aqua.ui.run.command_line import main
+class EmptyView(ttk.Frame):
 
-main()
+    def __init__(self, parent, **options):
+        super(EmptyView, self).__init__(parent, **options)
+        self._child = tk.Frame(self, background='white')
+        self._toolbar = ttk.Frame(self)
+
+    def grid(self, **options):
+        self._toolbar.pack(side=tk.BOTTOM, fill=tk.X)
+        self._child.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.TRUE)
+        ttk.Frame.grid(self, **options)
+
+    def set_toolbar_size(self, size):
+        self._toolbar.configure(width=size[0], height=size[1])
