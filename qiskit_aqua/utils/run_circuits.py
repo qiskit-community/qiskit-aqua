@@ -43,7 +43,7 @@ def _avoid_empty_circuits(circuits):
     for qc in circuits:
         if len(qc) == 0:
             tmp_q = None
-            for q_name, q in qc.get_qregs().items():
+            for q_name, q in qc.qregs.items():
                 tmp_q = q
                 break
             if tmp_q is None:

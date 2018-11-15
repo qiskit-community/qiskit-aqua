@@ -205,7 +205,7 @@ class VQE(QuantumAlgorithm):
             self._ret['eigvecs'] = np.asarray([ret.get_statevector(qc)])
         else:
             c = ClassicalRegister(self._operator.num_qubits, name='c')
-            q = qc.get_qregs()['q']
+            q = qc.qregs['q']
             qc.add(c)
             qc.barrier(q)
             qc.measure(q, c)
