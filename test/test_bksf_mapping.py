@@ -18,7 +18,7 @@
 import unittest
 
 import numpy as np
-from qiskit.tools.qi.pauli import label_to_pauli
+from qiskit.tools.qi.pauli import Pauli
 from qiskit_aqua import Operator
 
 from test.common import QiskitAquaChemistryTestCase
@@ -36,10 +36,10 @@ class TestBKSFMapping(QiskitAquaChemistryTestCase):
         qterm_b2 = edge_operator_bi(edge_list, 2)
         qterm_b3 = edge_operator_bi(edge_list, 3)
 
-        ref_qterm_b0 = Operator(paulis=[[1.0, label_to_pauli('ZZZIII')]])
-        ref_qterm_b1 = Operator(paulis=[[1.0, label_to_pauli('ZIIZZI')]])
-        ref_qterm_b2 = Operator(paulis=[[1.0, label_to_pauli('IZIZIZ')]])
-        ref_qterm_b3 = Operator(paulis=[[1.0, label_to_pauli('IIZIZZ')]])
+        ref_qterm_b0 = Operator(paulis=[[1.0, Pauli.from_label('IIIZZZ')]])
+        ref_qterm_b1 = Operator(paulis=[[1.0, Pauli.from_label('IZZIIZ')]])
+        ref_qterm_b2 = Operator(paulis=[[1.0, Pauli.from_label('ZIZIZI')]])
+        ref_qterm_b3 = Operator(paulis=[[1.0, Pauli.from_label('ZZIZII')]])
 
         self.assertEqual(qterm_b0, ref_qterm_b0, "\n{} vs \n{}".format(
             qterm_b0.print_operators(), ref_qterm_b0.print_operators()))
@@ -61,12 +61,12 @@ class TestBKSFMapping(QiskitAquaChemistryTestCase):
         qterm_a13 = edge_operator_aij(edge_list, 1, 3)
         qterm_a23 = edge_operator_aij(edge_list, 2, 3)
 
-        ref_qterm_a01 = Operator(paulis=[[1.0, label_to_pauli('XIIIII')]])
-        ref_qterm_a02 = Operator(paulis=[[1.0, label_to_pauli('ZXIIII')]])
-        ref_qterm_a03 = Operator(paulis=[[1.0, label_to_pauli('ZZXIII')]])
-        ref_qterm_a12 = Operator(paulis=[[1.0, label_to_pauli('ZZIXII')]])
-        ref_qterm_a13 = Operator(paulis=[[1.0, label_to_pauli('ZIZZXI')]])
-        ref_qterm_a23 = Operator(paulis=[[1.0, label_to_pauli('IZZZZX')]])
+        ref_qterm_a01 = Operator(paulis=[[1.0, Pauli.from_label('IIIIIX')]])
+        ref_qterm_a02 = Operator(paulis=[[1.0, Pauli.from_label('IIIIXZ')]])
+        ref_qterm_a03 = Operator(paulis=[[1.0, Pauli.from_label('IIIXZZ')]])
+        ref_qterm_a12 = Operator(paulis=[[1.0, Pauli.from_label('IIXIZZ')]])
+        ref_qterm_a13 = Operator(paulis=[[1.0, Pauli.from_label('IXZZIZ')]])
+        ref_qterm_a23 = Operator(paulis=[[1.0, Pauli.from_label('XZZZZI')]])
 
         self.assertEqual(qterm_a01, ref_qterm_a01, "\n{} vs \n{}".format(
             qterm_a01.print_operators(), ref_qterm_a01.print_operators()))

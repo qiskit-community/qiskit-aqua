@@ -20,7 +20,7 @@ import itertools
 
 import networkx
 import numpy as np
-from qiskit.tools.qi.pauli import Pauli, label_to_pauli
+from qiskit.tools.qi.pauli import Pauli
 from qiskit_aqua import Operator
 
 
@@ -366,19 +366,19 @@ def vacuum_operator(fer_op):
     """
     edge_list = bksf_edge_list(fer_op)
     num_qubits = edge_list.shape[1]
-    vac_operator = Operator(paulis=[[1.0, label_to_pauli('I' * num_qubits)]])
+    vac_operator = Operator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
 
     g = networkx.Graph()
     g.add_edges_from(tuple(edge_list.transpose()))
     stabs = np.asarray(networkx.cycle_basis(g))
     for stab in stabs:
-        a = Operator(paulis=[[1.0, label_to_pauli('I' * num_qubits)]])
+        a = Operator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
         stab = np.asarray(stab)
         for i in range(np.size(stab)):
             a = a * edge_operator_aij(edge_list, stab[i], stab[(i + 1) % np.size(stab)])
             a.scaling_coeff(1j)
 
-        a += Operator(paulis=[[1.0, label_to_pauli('I' * num_qubits)]])
+        a += Operator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
         vac_operator = vac_operator * a
         vac_operator.scaling_coeff(np.sqrt(2))
 
@@ -404,14 +404,14 @@ def number_operator(fer_op, mode_number=None):
     modes = fer_op.h1.modes
     edge_list = bksf_edge_list(fer_op)
     num_qubits = edge_list.shape[1]
-    num_operator = Operator(paulis=[[1.0, label_to_pauli('I' * num_qubits)]])
+    num_operator = Operator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
 
     if mode_number is None:
         for i in range(modes):
             num_operator -= edge_operator_bi(edge_list, i)
-        num_operator += Operator(paulis=[[1.0 * modes, label_to_pauli('I' * num_qubits)]])
+        num_operator += Operator(paulis=[[1.0 * modes, Pauli.from_label('I' * num_qubits)]])
     else:
-        num_operator += (Operator(paulis=[[1.0, label_to_pauli('I' * num_qubits)]]
+        num_operator += (Operator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]]
                                   ) - edge_operator_bi(edge_list, mode_number))
 
     num_operator.scaling_coeff(0.5)

@@ -147,10 +147,10 @@ class FermionicOperator(object):
         """
         a = []
         for i in range(n):
-            a_z = np.asarray([1] * i + [0] + [0] * (n - i - 1)).astype(np.bool)
-            a_x = np.asarray([0] * i + [1] + [0] * (n - i - 1)).astype(np.bool)
-            b_z = np.asarray([1] * i + [1] + [0] * (n - i - 1)).astype(np.bool)
-            b_x = np.asarray([0] * i + [1] + [0] * (n - i - 1)).astype(np.bool)
+            a_z = np.asarray([1] * i + [0] + [0] * (n - i - 1), dtype=np.bool)
+            a_x = np.asarray([0] * i + [1] + [0] * (n - i - 1), dtype=np.bool)
+            b_z = np.asarray([1] * i + [1] + [0] * (n - i - 1), dtype=np.bool)
+            b_x = np.asarray([0] * i + [1] + [0] * (n - i - 1), dtype=np.bool)
             a.append((Pauli(a_z, a_x), Pauli(b_z, b_x)))
         return a
 
@@ -167,10 +167,10 @@ class FermionicOperator(object):
             a_x = [0] * (i - 1) + [0] if i > 0 else []
             b_z = [0] * (i - 1) + [0] if i > 0 else []
             b_x = [0] * (i - 1) + [0] if i > 0 else []
-            a_z = np.asarray(a_z + [0] + [0] * (n - i - 1)).astype(np.bool)
-            a_x = np.asarray(a_x + [1] + [1] * (n - i - 1)).astype(np.bool)
-            b_z = np.asarray(b_z + [1] + [0] * (n - i - 1)).astype(np.bool)
-            b_x = np.asarray(b_x + [1] + [1] * (n - i - 1)).astype(np.bool)
+            a_z = np.asarray(a_z + [0] + [0] * (n - i - 1), dtype=np.bool)
+            a_x = np.asarray(a_x + [1] + [1] * (n - i - 1), dtype=np.bool)
+            b_z = np.asarray(b_z + [1] + [0] * (n - i - 1), dtype=np.bool)
+            b_x = np.asarray(b_x + [1] + [1] * (n - i - 1), dtype=np.bool)
             a.append((Pauli(a_z, a_x), Pauli(b_z, b_x)))
         return a
 
@@ -273,9 +273,9 @@ class FermionicOperator(object):
 
             remainder_sets.append(np.setdiff1d(parity_sets[j], flip_sets[j]))
 
-            update_pauli.append(Pauli(np.zeros(n).astype(np.bool), np.zeros(n).astype(np.bool)))
-            parity_pauli.append(Pauli(np.zeros(n).astype(np.bool), np.zeros(n).astype(np.bool)))
-            remainder_pauli.append(Pauli(np.zeros(n), np.zeros(n)))
+            update_pauli.append(Pauli(np.zeros(n, dtype=np.bool), np.zeros(n, dtype=np.bool)))
+            parity_pauli.append(Pauli(np.zeros(n, dtype=np.bool), np.zeros(n, dtype=np.bool)))
+            remainder_pauli.append(Pauli(np.zeros(n, dtype=np.bool), np.zeros(n, dtype=np.bool)))
             for k in range(n):
                 if np.in1d(k, update_sets[j]):
                     update_pauli[j].update_x(True, k)
@@ -284,9 +284,9 @@ class FermionicOperator(object):
                 if np.in1d(k, remainder_sets[j]):
                     remainder_pauli[j].update_z(True, k)
 
-            x_j = Pauli(np.zeros(n).astype(np.bool), np.zeros(n)).astype(np.bool)
+            x_j = Pauli(np.zeros(n, dtype=np.bool), np.zeros(n, dtype=np.bool))
             x_j.update_x(True, j)
-            y_j = Pauli(np.zeros(n).astype(np.bool), np.zeros(n)).astype(np.bool)
+            y_j = Pauli(np.zeros(n, dtype=np.bool), np.zeros(n, dtype=np.bool))
             y_j.update_z(True, j)
             y_j.update_x(True, j)
             a.append((update_pauli[j] * x_j * parity_pauli[j],
@@ -359,7 +359,7 @@ class FermionicOperator(object):
             pauli_list.chop(threshold=threshold)
 
         if self._ph_trans_shift is not None:
-            pauli_term = [self._ph_trans_shift, Pauli.from_pauli('I' * self._modes)]
+            pauli_term = [self._ph_trans_shift, Pauli.from_label('I' * self._modes)]
             pauli_list += Operator(paulis=[pauli_term])
 
         return pauli_list
