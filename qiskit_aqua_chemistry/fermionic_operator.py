@@ -21,7 +21,7 @@ import multiprocessing
 import concurrent.futures
 
 import numpy as np
-from qiskit.tools.qi.pauli import Pauli
+from qiskit.quantum_info import Pauli
 from qiskit_aqua import Operator
 
 from qiskit_aqua_chemistry import AquaChemistryError

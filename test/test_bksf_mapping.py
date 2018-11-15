@@ -18,7 +18,7 @@
 import unittest
 
 import numpy as np
-from qiskit.tools.qi.pauli import Pauli
+from qiskit.quantum_info import Pauli
 from qiskit_aqua import Operator
 
 from test.common import QiskitAquaChemistryTestCase
