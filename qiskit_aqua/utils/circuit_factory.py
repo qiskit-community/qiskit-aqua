@@ -3,7 +3,7 @@ from qiskit import QuantumCircuit
 from qiskit_aqua import AlgorithmError
 
 #TODO: should come from qiskit_aqua
-from utils.controlledcircuit import get_controlled_circuit
+from qiskit_aqua.utils.controlledcircuit import get_controlled_circuit
 
 
 class CircuitFactory(ABC):
