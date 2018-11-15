@@ -19,8 +19,6 @@ The Quantum Phase Estimation Algorithm.
 """
 
 import logging
-
-from functools import reduce
 import numpy as np
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.tools.qi.pauli import Pauli
@@ -148,13 +146,11 @@ class QPE(QuantumAlgorithm):
 
     def init_args(
             self, operator, state_in, iqft, num_time_slices, num_ancillae,
-            paulis_grouping='random', expansion_mode='trotter', expansion_order=1, measure=True,
+            paulis_grouping='random', expansion_mode='trotter', expansion_order=1,
             state_in_circuit_factory=None,
             operator_circuit_factory=None,
             additional_params=None,
             shallow_circuit_concat=False):
-        if QuantumAlgorithm.is_statevector_backend(self.backend):
-            raise ValueError('Selected backend does not support measurements.')
         self._operator = operator
         self._operator_circuit_factory = operator_circuit_factory
         self._state_in = state_in
@@ -166,11 +162,10 @@ class QPE(QuantumAlgorithm):
         self._expansion_mode = expansion_mode
         self._expansion_order = expansion_order
         self._shallow_circuit_concat = shallow_circuit_concat
-        self._measure = measure
         self._additional_params=additional_params
         self._ret = {}
 
-    def _construct_qpe_evolution(self):
+    def _construct_circuit(self, measure=False):
         """Implement the Quantum Phase Estimation algorithm"""
 
         a = QuantumRegister(self._num_ancillae, name='a')
@@ -191,9 +186,6 @@ class QPE(QuantumAlgorithm):
         if num_aux_qubits > 0:
             aux = QuantumRegister(num_aux_qubits, name='aux')
             qc.add(aux)
-        if self._measure:
-            c = ClassicalRegister(self._num_ancillae, name='c')
-            qc.add(c)
 
         # initialize state_in
         if self._state_in is not None:
@@ -241,14 +233,16 @@ class QPE(QuantumAlgorithm):
         self._iqft.construct_circuit('circuit', a, qc)
 
         # measuring ancillae
-        if self._measure:
+        if measure:
+            c = ClassicalRegister(self._num_ancillae, name='c')
+            qc.add(c)
             qc.barrier(a)
             qc.measure(a, c)
 
         self._circuit = qc
         return qc
 
-    def _setup_qpe(self):
+    def _setup(self):
         self._operator._check_representation('paulis')
         self._ret['translation'] = sum([abs(p[0]) for p in self._operator.paulis])
         self._ret['stretch'] = 0.5 / self._ret['translation']
@@ -280,14 +274,15 @@ class QPE(QuantumAlgorithm):
                     raise RuntimeError('Multiple identity pauli terms are present.')
                 self._ancilla_phase_coef = p[0].real if isinstance(p[0], complex) else p[0]
 
-        self._construct_qpe_evolution()
-        logger.info('QPE circuit qasm length is roughly {}.'.format(
-            len(self._circuit.qasm().split('\n'))
-        ))
-
     def _compute_energy(self):
+        if QuantumAlgorithm.is_statevector_backend(self.backend):
+            raise ValueError('Selected backend does not support measurements.')
+
         if self._circuit is None:
-            self._setup_qpe()
+            if self._operator is not None:
+                self._setup()
+            self._construct_circuit(measure=True)
+
         result = self.execute(self._circuit)
 
         rd = result.get_counts(self._circuit)
@@ -302,6 +297,13 @@ class QPE(QuantumAlgorithm):
         self._ret['top_measurement_label'] = ret
         self._ret['top_measurement_decimal'] = retval
         self._ret['energy'] = retval / self._ret['stretch'] - self._ret['translation']
+
+    def get_circuit(self):
+        if self._circuit is None:
+            if self._operator is not None:
+                self._setup()
+            self._construct_circuit(measure=False)
+        return self._circuit
 
     def run(self):
         self._compute_energy()
