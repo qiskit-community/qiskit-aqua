@@ -17,11 +17,12 @@
 
 import tkinter as tk
 import tkinter.ttk as ttk
-from qiskit_aqua_chemistry.ui._scrollbarview import ScrollbarView
+from ._scrollbarview import ScrollbarView
+
 
 class ToolbarView(ScrollbarView):
 
-    def __init__(self, parent,**options):
+    def __init__(self, parent, **options):
         super(ScrollbarView, self).__init__(parent, **options)
         self._child = None
         self._toolbar = None
@@ -34,56 +35,56 @@ class ToolbarView(ScrollbarView):
         self._remove_button_shown = False
         self._defaults_button_shown = False
         self._makeToolBar()
-        
+
     def _makeToolBar(self):
         self._toolbar = ttk.Frame(self)
         self._add_button = ttk.Button(self._toolbar,
-                                       text='Add',
-                                       state='enable',
-                                       command=self.onadd)
+                                      text='Add',
+                                      state='enable',
+                                      command=self.onadd)
         self._remove_button = ttk.Button(self._toolbar,
-                                       text='Remove',
-                                       state='enable',
-                                       command=self.onremove)
+                                         text='Remove',
+                                         state='enable',
+                                         command=self.onremove)
         self._defaults_button = ttk.Button(self._toolbar,
-                                       text='Defaults',
-                                       state='enable',
-                                       command=self.ondefaults)
-        
+                                           text='Defaults',
+                                           state='enable',
+                                           command=self.ondefaults)
+
     def onadd(self):
         pass
-            
+
     def onremove(self):
         pass
-    
+
     def ondefaults(self):
         pass
-    
+
     def get_toolbar_size(self):
         if self._toolbar is None:
-            return (0,0)
-        
-        return (self._toolbar.winfo_width(),self._toolbar.winfo_height())
-    
+            return (0, 0)
+
+        return (self._toolbar.winfo_width(), self._toolbar.winfo_height())
+
     def pack(self, **options):
         if self._toolbar is not None:
-            self._toolbar.pack(side=tk.BOTTOM,fill=tk.X)
+            self._toolbar.pack(side=tk.BOTTOM, fill=tk.X)
             self._add_button.pack(side=tk.LEFT)
             self._remove_button.pack(side=tk.LEFT)
             self._defaults_button.pack(side=tk.RIGHT)
-            
-        ScrollbarView.pack(self,**options)
-        
+
+        ScrollbarView.pack(self, **options)
+
     def grid(self, **options):
         if self._toolbar is not None:
-            self._toolbar.pack(side=tk.BOTTOM,fill=tk.X)
+            self._toolbar.pack(side=tk.BOTTOM, fill=tk.X)
             self._add_button.pack(side=tk.LEFT)
             self._remove_button.pack(side=tk.LEFT)
             self._defaults_button.pack(side=tk.RIGHT)
-            
-        ScrollbarView.grid(self,**options)
-        
-    def show_add_button(self,show):
+
+        ScrollbarView.grid(self, **options)
+
+    def show_add_button(self, show):
         self._add_button_shown = show
         if show:
             if self._remove_button_shown:
@@ -93,18 +94,17 @@ class ToolbarView(ScrollbarView):
                 self._remove_button.pack(side=tk.LEFT)
         else:
             self._add_button.pack_forget()
-            
-    def show_remove_button(self,show):
+
+    def show_remove_button(self, show):
         self._remove_button_shown = show
         if show:
             self._remove_button.pack(side=tk.LEFT)
         else:
             self._remove_button.pack_forget()
-            
-    def show_defaults_button(self,show):
+
+    def show_defaults_button(self, show):
         self._defaults_button_shown = show
         if show:
             self._defaults_button.pack(side=tk.RIGHT)
         else:
             self._defaults_button.pack_forget()
-       
