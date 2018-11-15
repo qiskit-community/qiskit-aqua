@@ -116,18 +116,21 @@ def random_h2_body(N, M):
     for i in range(dim[0]):
         # recall that in the chemists notation H2BodyS(i,j,l,m) refers to
         # a^dag_i a^dag_l a_m a_j
-        H2BodyS[Htemp[i, 0] + N//2, Htemp[i, 1] + N//2, Htemp[i, 2] + N//2, Htemp[i, 3] + N//2] = val[i]
+        H2BodyS[Htemp[i, 0] + N//2, Htemp[i, 1] + N//2, Htemp[i, 2] + N//2,
+                Htemp[i, 3] + N//2] = val[i]
         H2BodyS[Htemp[i, 0] + N//2, Htemp[i, 1] + N//2, Htemp[i, 2],
                 Htemp[i, 3]] = val[i]  # shift i and j to their spin symmetrized
         H2BodyS[Htemp[i, 0], Htemp[i, 1], Htemp[i, 2] + N//2, Htemp[i, 3] +
                 N//2] = val[i]  # shift l and m to their spin symmetrized
     return H2BodyS
 
+
 """
 ###############################################################################
-Random matix generator for hermitian/sparse/non-hermitian matrices with given
+Random matrix generator for hermitian/sparse/non-hermitian matrices with given
 eigenvalues/condition number/eigenvalue range.
 """
+
 
 def random_diag(N, eigs=None, K=None, eigrange=[0, 1]):
     """
@@ -137,18 +140,18 @@ def random_diag(N, eigs=None, K=None, eigrange=[0, 1]):
         eigs (list, tuple, np.ndarray): list of N eigenvalues. Overrides K,
                                         eigrange.
         K (float, list, tuple): condition number. Either use only condition
-                                number K or list/tuple of (K, lmin) or (K, lmin,
-                                sgn). Where lmin is the smallest eigenvalue and
-                                sign +/- 1 specifies if eigenvalues can be
-                                negative.
+                                number K or list/tuple of (K, lmin) or (K,
+                                lmin, sgn). Where lmin is the smallest
+                                eigenvalue and sign +/- 1 specifies if
+                                eigenvalues can be negative.
         eigrange (list, tuple, nd.ndarray): [min, max] list for eigenvalue
                                             range. (default=[0, 1])
     Returns:
         np.ndarray: diagonal matrix
     """
     if not isinstance(eigs, np.ndarray):
-        if eigs == None:
-            if not isinstance(K, np.ndarray) and K != None:
+        if eigs is None:
+            if not isinstance(K, np.ndarray) and K is not None:
                 if isinstance(K, (int, float)):
                     k, lmin, sgn = K, 1, 1
                 elif len(K) == 2:
@@ -165,11 +168,13 @@ def random_diag(N, eigs=None, K=None, eigrange=[0, 1]):
                     while min(sgs) > 0 or max(sgs) < 0:
                         sgs = np.random.random(N)-0.5
                     eigs = eigs*(sgs/abs(sgs))
-            elif isinstance(eigrange, (tuple, list, np.ndarray)) and len(eigrange) == 2:
-                eigs = np.random.random(N)*(eigrange[1]-eigrange[0])+eigrange[0] 
+            elif isinstance(eigrange, (tuple, list, np.ndarray)) \
+                    and len(eigrange) == 2:
+                eigs = np.random.random(N) * \
+                       (eigrange[1]-eigrange[0])+eigrange[0]
             else:
                 raise ValueError("Wrong input data: either 'eigs', 'K' or"
-                "'eigrange' needed to be set correctly.")
+                                 "'eigrange' needed to be set correctly.")
         else:
             assert len(eigs) == N, "NxN matrix needs N eigenvalues."
             eigs = np.array(list(eigs))
@@ -180,43 +185,42 @@ def random_diag(N, eigs=None, K=None, eigrange=[0, 1]):
 
 def limit_paulis(mat, n=5, sparsity=None):
     """
-    Limits the number of pauli basis matrices of a hermitian matrix to the n
+    Limits the number of Pauli basis matrices of a hermitian matrix to the n
     highest magnitude ones.
     Args:
-        mat (np.ndarray): Input Matrix
-        n (int): number of surviving paulis (default=5)
+        mat (np.ndarray): Input matrix
+        n (int): number of surviving Pauli matrices (default=5)
         sparsity (float < 1): sparsity of matrix
 
     Returns:
         scipy.sparse.csr_matrix
     """
     from qiskit_aqua.operator import Operator
-    # Brining matrix into form 2**Nx2**N
+    # Bringing matrix into form 2**Nx2**N
     l = mat.shape[0]
     if np.log2(l) % 1 != 0:
         k = int(2**np.ceil(np.log2(l)))
         m = np.zeros([k, k], dtype=np.complex128)
-        m[:l,:l] = mat
-        m[l:,l:] = np.identity(k-l)
+        m[:l, :l] = mat
+        m[l:, l:] = np.identity(k-l)
         mat = m
 
-    # Getting paulis
+    # Getting Pauli matrices
     op = Operator(matrix=mat)
     op._check_representation("paulis")
     op._simplify_paulis()
-    paulis = op.paulis
-    p = len(paulis)
     paulis = sorted(op.paulis, key=lambda x: abs(x[0]), reverse=True)
     g = 2**op.num_qubits
-    mat = scipy.sparse.csr_matrix(([], ([], [])), shape=(g, g), dtype=np.complex128)
+    mat = scipy.sparse.csr_matrix(([], ([], [])), shape=(g, g),
+                                  dtype=np.complex128)
 
     # Truncation
-    if sparsity==None:
+    if sparsity is None:
         for pa in paulis[:n]:
             mat += pa[0]*pa[1].to_spmatrix()
     else:
         idx = 0
-        while mat[:l,:l].nnz/l**2 < sparsity:
+        while mat[:l, :l].nnz/l**2 < sparsity:
             mat += paulis[idx][0]*paulis[idx][1].to_spmatrix()
             idx += 1
         n = idx
@@ -225,7 +229,7 @@ def limit_paulis(mat, n=5, sparsity=None):
 
 
 def random_hermitian(N, eigs=None, K=None, eigrange=[0, 1], sparsity=None,
-        trunc=None):
+                     trunc=None):
     """
     Generate random hermitian (sparse) matix with given properties. Sparsity is
     achieved by truncting pauli matrices. Sparsity settings alternate the
@@ -235,14 +239,14 @@ def random_hermitian(N, eigs=None, K=None, eigrange=[0, 1], sparsity=None,
         eigs (list, tuple, np.ndarray): list of N eigenvalues. Overrides K,
                                         eigrange
         K (float, list, tuple): condition number. Either use only condition
-                                number K or list/tuple of (K, lmin) or (K, lmin,
-                                sgn). Where lmin is the smallest eigenvalue and
-                                sign +/- 1 specifies if eigenvalues can be
-                                negative.
+                                number K or list/tuple of (K, lmin) or (K,
+                                lmin, sgn). Where lmin is the smallest
+                                eigenvalue and sign +/- 1 specifies if
+                                eigenvalues can be negative.
         eigrange (list, tuple, nd.ndarray): [min, max] list for eigenvalue
                                             range. (default=[0, 1])
-        trunc (int): limit of pauli matices. 
-        sparsity (float): sparsity of matrix. Overrides trunc. 
+        trunc (int): limit of pauli matices.
+        sparsity (float): sparsity of matrix. Overrides trunc.
     Returns:
         np.ndarray: hermitian matrix
     """
@@ -266,45 +270,47 @@ def limit_entries(mat, n=5, sparsity=None):
         scipy.sparse.csr_matrix
     """
     ret = scipy.sparse.coo_matrix(mat)
-    entries = list(sorted(zip(ret.row, ret.col, ret.data), key=lambda x: abs(x[2]), reverse=True))
-    if sparsity != None:
+    entries = list(sorted(zip(ret.row, ret.col, ret.data),
+                          key=lambda x: abs(x[2]), reverse=True))
+    if sparsity is not None:
         n = int(sparsity*mat.shape[0]*mat.shape[1])
     entries = entries[:n]
     row, col, data = np.array(entries).T
-    return scipy.sparse.csr_matrix((data, (row.real.astype(int), col.real.astype(int))))
+    return scipy.sparse.csr_matrix(
+        (data, (row.real.astype(int), col.real.astype(int))))
 
 
 def random_non_hermitian(N, M=None, sings=None, K=None, srange=[0, 1],
-        sparsity=None, trunc=None):
+                         sparsity=None, trunc=None):
     """
-    Generate random (sparse) matix with given properties (singular values).
-    Sparsity is achieved by truncting pauli matrices. Sparsity settings
+    Generate random (sparse) matrix with given properties (singular values).
+    Sparsity is achieved by truncating Pauli matrices. Sparsity settings
     alternate the singular values due to truncation.
     Args:
         N (int): size of matrix
-        sings (list, tuple, np.ndarray): list of N singular values. Overrides K,
-                                         eigrange
+        sings (list, tuple, np.ndarray): list of N singular values.
+                                         Overrides K, srange.
         K (float, list, tuple): condition number. Either use only condition
                                 number K or list/tuple of (K, lmin). Where lmin
-                                specifies the smallest singular value
-        eigrange (list, tuple, nd.ndarray): [min, max] list for singular value
-                                            range, min >= 0. (default=[0, 1])
-        trunc (int): limit of pauli matices. 
-        sparsity (float): sparsity of matrix. Overrides trunc. 
+                                specifies the smallest singular value.
+        srange (list, tuple, nd.ndarray): [min, max] list for singular value
+                                          range, min >= 0. (default=[0, 1]).
+        trunc (int): limit of Pauli matrices.
+        sparsity (float): sparsity of matrix. Overrides trunc.
     Returns:
         np.ndarray: random matrix
     """
-    if M == None:
+    if M is None:
         M = N
     d = random_diag(min(N, M), sings, K, srange)
     u = scipy.stats.unitary_group.rvs(M)
     v = scipy.stats.unitary_group.rvs(N)
     if M > N:
         s = np.zeros([M, N])
-        s[:N,:] = d
+        s[:N, :] = d
     elif N > M:
         s = np.zeros([M, N])
-        s[:,:M] = d
+        s[:, :M] = d
     else:
         s = d
     ret = u.dot(s).dot(v.T.conj())
