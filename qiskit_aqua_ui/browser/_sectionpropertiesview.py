@@ -17,7 +17,8 @@
 
 import tkinter as tk
 import tkinter.ttk as ttk
-from qiskit_aqua.ui.browser._scrollbarview import ScrollbarView
+from ._scrollbarview import ScrollbarView
+
 
 class SectionPropertiesView(ScrollbarView):
 
@@ -25,30 +26,29 @@ class SectionPropertiesView(ScrollbarView):
         super(SectionPropertiesView, self).__init__(parent, **options)
         self._controller = controller
         self._tree = None
-        
+
     def clear(self):
         if self._tree is not None:
             for i in self._tree.get_children():
                 self._tree.delete([i])
-            
-    def populate(self,column_titles,properties):
+
+    def populate(self, column_titles, properties):
         self.clear()
-        ttk.Style().configure("BrowseSectionPropertiesView.Treeview.Heading", font=(None,12,'bold')) 
-        self._tree = ttk.Treeview(self,style='BrowseSectionPropertiesView.Treeview', selectmode=tk.BROWSE, columns=column_titles)
+        ttk.Style().configure("BrowseSectionPropertiesView.Treeview.Heading", font=(None, 12, 'bold'))
+        self._tree = ttk.Treeview(self, style='BrowseSectionPropertiesView.Treeview', selectmode=tk.BROWSE, columns=column_titles)
         self._tree.heading('#0', text='property')
         self.init_widgets(self._tree)
         for value in column_titles:
-            self._tree.heading(value,text=value)
-            
-        self._controller._propertiesView.grid(row=0,column=0,sticky='nsew')
-            
-        for name,props in properties.items():
+            self._tree.heading(value, text=value)
+
+        self._controller._propertiesView.grid(row=0, column=0, sticky='nsew')
+
+        for name, props in properties.items():
             values = [''] * len(column_titles)
-            for k,v in props.items():
+            for k, v in props.items():
                 index = column_titles.index(k)
-                if isinstance(v,list) and len(v) == 0:
+                if isinstance(v, list) and len(v) == 0:
                     v = str(v)
-                values[index] = ','.join(str(t) for t in v) if isinstance(v,list) else str(v)
-            
-            self._tree.insert('',tk.END, text=name, values=values)
-            
+                values[index] = ','.join(str(t) for t in v) if isinstance(v, list) else str(v)
+
+            self._tree.insert('', tk.END, text=name, values=values)

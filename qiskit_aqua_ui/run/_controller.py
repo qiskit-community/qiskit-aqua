@@ -15,11 +15,8 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit_aqua.ui.run._model import Model
-from qiskit_aqua import QuantumAlgorithm
-from qiskit_aqua.ui.run._customwidgets import (EntryPopup,
-                                               ComboboxPopup,
-                                               TextPopup)
+from ._model import Model
+from ._customwidgets import (EntryPopup, ComboboxPopup, TextPopup)
 import psutil
 import os
 import subprocess
@@ -28,8 +25,6 @@ import queue
 import tempfile
 import tkinter as tk
 from tkinter import messagebox
-from qiskit_aqua.parser import InputParser
-from qiskit_aqua.parser import JSONSchema
 import json
 import ast
 import sys
@@ -127,9 +122,11 @@ class Controller(object):
         return self._outputView
 
     def get_available_backends(self):
+        from qiskit_aqua.quantumalgorithm import QuantumAlgorithm
         if self._backendsthread is not None:
             return
 
+        self._quantumalgorithmcls = QuantumAlgorithm
         self._backendsthread = threading.Thread(target=self._get_available_backends,
                                                 name='Aqua remote backends')
         self._backendsthread.daemon = True
@@ -138,7 +135,7 @@ class Controller(object):
     def _get_available_backends(self):
         try:
             self._available_backends = []
-            self._available_backends = QuantumAlgorithm.register_and_get_operational_backends()
+            self._available_backends = self._quantumalgorithmcls.register_and_get_operational_backends()
         except Exception as e:
             logger.debug(str(e))
         finally:
@@ -254,8 +251,8 @@ class Controller(object):
             self._propertiesView.tkraise()
 
     def on_property_select(self, section_name, property_name):
-        self._propertiesView.show_remove_button(
-            property_name != JSONSchema.NAME)
+        from qiskit_aqua.parser import JSONSchema
+        self._propertiesView.show_remove_button(property_name != JSONSchema.NAME)
 
     def on_section_add(self, section_name):
         try:
@@ -337,8 +334,7 @@ class Controller(object):
 
     def on_property_add(self, section_name, property_name):
         try:
-            value = self._model.get_property_default_value(
-                section_name, property_name)
+            value = self._model.get_property_default_value(section_name, property_name)
             if value is None:
                 value = ''
 
@@ -349,9 +345,9 @@ class Controller(object):
         return False
 
     def on_property_set(self, section_name, property_name, value):
+        from qiskit_aqua.parser import JSONSchema
         try:
-            self._model.set_section_property(
-                section_name, property_name, value)
+            self._model.set_section_property(section_name, property_name, value)
         except Exception as e:
             messagebox.showerror("Error", str(e))
             return False
@@ -411,6 +407,8 @@ class Controller(object):
         return True
 
     def create_popup(self, section_name, property_name, parent, value):
+        from qiskit_aqua.parser import InputParser
+        from qiskit_aqua.parser import JSONSchema
         values = None
         types = ['string']
         if JSONSchema.NAME == property_name and InputParser.INPUT == section_name:
@@ -490,7 +488,7 @@ class Controller(object):
         try:
             if self._command is Controller._START:
                 self._outputView.clear()
-                self._thread = AlgoritthmThread(
+                self._thread = AlgorithmThread(
                     self._model, self._outputView, self._thread_queue)
                 self._thread.daemon = True
                 self._thread.start()
@@ -560,10 +558,10 @@ class Controller(object):
         self._view.after(100, self._process_thread_queue)
 
 
-class AlgoritthmThread(threading.Thread):
+class AlgorithmThread(threading.Thread):
 
     def __init__(self, model, output, queue):
-        super(AlgoritthmThread, self).__init__(name='Algorithm run thread')
+        super(AlgorithmThread, self).__init__(name='Algorithm run thread')
         self._model = model
         self._output = output
         self._thread_queue = queue
@@ -594,7 +592,7 @@ class AlgoritthmThread(threading.Thread):
         try:
             algorithms_directory = os.path.dirname(os.path.realpath(__file__))
             algorithms_directory = os.path.abspath(
-                os.path.join(algorithms_directory, '../..'))
+                os.path.join(algorithms_directory, '../../qiskit_aqua_cmd'))
             input_file = self._model.get_filename()
             if input_file is None or self._model.is_modified():
                 fd, input_file = tempfile.mkstemp(suffix='.in')

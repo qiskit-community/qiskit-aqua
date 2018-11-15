@@ -15,15 +15,13 @@
 # limitations under the License.
 # =============================================================================
 
-import tkinter as tk
-import tkinter.ttk as ttk
+import sys
+import os
 
-class EmptyView(ttk.Frame):
-     
-    def __init__(self, parent,**options):
-        super(EmptyView, self).__init__(parent, **options)
-        self._child = tk.Frame(self,background='white')
-        
-    def grid(self, **options):
-        self._child.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.TRUE)
-        ttk.Frame.grid(self, **options)
+algo_directory = os.path.dirname(os.path.realpath(__file__))
+algo_directory = os.path.join(algo_directory, '..')
+sys.path.insert(0, algo_directory)
+
+from qiskit_aqua_cmd.command_line import main
+
+main()

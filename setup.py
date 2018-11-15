@@ -33,7 +33,8 @@ requirements = [
     "scikit-learn",
     "cvxopt",
     "pyobjc-core; sys_platform == 'darwin'",
-    "pyobjc-framework-Cocoa; sys_platform == 'darwin'"
+    "pyobjc-framework-Cocoa; sys_platform == 'darwin'",
+    "packaging"
 ]
 
 setuptools.setup(
@@ -65,11 +66,11 @@ setuptools.setup(
     python_requires=">=3.5",
     entry_points = {
         'console_scripts': [
-                'qiskit_aqua_cmd=qiskit_aqua.command_line:main'
+                'qiskit_aqua_cmd=qiskit_aqua_cmd.command_line:main'
         ],
         'gui_scripts': [
-                'qiskit_aqua_ui=qiskit_aqua.ui.run.command_line:main',
-                'qiskit_aqua_browser=qiskit_aqua.ui.browser.command_line:main'
+                'qiskit_aqua_ui=qiskit_aqua_ui.run.command_line:main',
+                'qiskit_aqua_browser=qiskit_aqua_ui.browser.command_line:main'
         ]
     }
 )
