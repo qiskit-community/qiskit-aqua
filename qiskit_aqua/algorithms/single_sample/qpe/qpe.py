@@ -22,7 +22,7 @@ import logging
 
 import numpy as np
 from qiskit import QuantumRegister, ClassicalRegister
-from qiskit.tools.qi.pauli import Pauli
+from qiskit.quantum_info import Pauli
 from qiskit_aqua import Operator, QuantumAlgorithm, AlgorithmError
 from qiskit_aqua import get_initial_state_instance, get_iqft_instance
 

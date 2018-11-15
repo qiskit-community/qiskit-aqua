@@ -18,7 +18,7 @@
 import numpy as np
 from functools import reduce
 from qiskit import QuantumRegister, QuantumCircuit
-from qiskit.tools.qi.pauli import Pauli
+from qiskit.quantum_info import Pauli
 from qiskit_aqua.operator import Operator
 
 

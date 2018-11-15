@@ -26,7 +26,7 @@ import logging
 
 import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister
-from qiskit.tools.qi.pauli import Pauli
+from qiskit.quantum_info import Pauli
 from qiskit.qasm import pi
 from sympy.core.numbers import NaN, Float
 

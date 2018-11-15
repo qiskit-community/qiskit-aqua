@@ -26,7 +26,7 @@ from collections import OrderedDict
 
 import numpy as np
 import numpy.random as rand
-from qiskit.tools.qi.pauli import Pauli
+from qiskit.quantum_info import Pauli
 
 from qiskit_aqua import Operator
 

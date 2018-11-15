@@ -17,7 +17,7 @@
 
 import unittest
 
-from qiskit.tools.qi.pauli import pauli_group
+from qiskit.quantum_info import pauli_group
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua.operator import Operator
