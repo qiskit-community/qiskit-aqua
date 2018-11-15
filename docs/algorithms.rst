@@ -15,12 +15,12 @@ The following `quantum algorithms <#quantum-algorithms>`__ are part of Aqua:
 
 -  :ref:`Variational Quantum Eigensolver (VQE)`
 -  :ref:`Quantum Approximate Optimization Algorithm (QAOA)`
--  :ref:`Quantum Dynamics`
+-  :ref:`Evolution of Hamiltonian (EOH)`
 -  :ref:`Quantum Phase Estimation (QPE)`
 -  :ref:`Iterative Quantum Phase Estimation (IQPE)`
 -  :ref:`Quantum Grover Search`
--  :ref:`Support Vector Machine Quantum Kernel (SVM Q Kernel)`
--  :ref:`Support Vector Machine Variational (SVM Variational)`
+-  :ref:`Support Vector Machine Quantum Kernel (QSVM Kernel)`
+-  :ref:`Support Vector Machine Variational (QSVM Variational)`
 
 Aqua includes  also some `classical algorithms <#classical-reference-algorithms>`__
 for generating reference values. This feature of Aqua may be
@@ -29,8 +29,8 @@ results in the near term while experimenting with, developing and testing
 quantum algorithms:
 
 -  :ref:`Exact Eigensolver`
--  :ref:`CPLEX`
--  :ref:`Support Vector Machine Radial Basis Function Kernel (SVM RBF Kernel)`
+-  :ref:`CPLEX Ising`
+-  :ref:`Support Vector Machine Radial Basis Function Kernel (SVM Classical)`
 
 .. topic:: Extending the Algorithm Library
 
@@ -41,7 +41,7 @@ quantum algorithms:
     and made available for use within the framework of Aqua.
     Specifically, to develop and deploy any new algorithm, the new algorithm class should derive from the ``QuantumAlgorithm`` class.
     Along with any supporting  module, for immediate dynamic discovery, the new algorithm class
-    can simply be installed under its own folder in the ``qiskit_aqua`` directory, just like the
+    can simply be placed in an appropriate folder in the ``qiskit_aqua\algorithms`` directory, just like the
     existing algorithms.  Aqua also allows for
     :ref:`aqua-dynamically-discovered-components`: new components can register themselves
     as Aqua extensions and be dynamically discovered at run time independent of their
@@ -76,10 +76,14 @@ In this section, we describe the quantum algorithms currently available in Aqua.
 Variational Quantum Eigensolver (VQE)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`VQE <https://arxiv.org/abs/1304.3061>`__ uses a variational approach
-to find the minimum eigenvalue of a Hamiltonian energy problem. It is
-configured with a trial wave function, supplied by a variational
-form and an optimizer. An initial state may be supplied too.
+`VQE <https://arxiv.org/abs/1304.3061>`__ is a hybrid algorithm that uses
+the variational approach and interleaves quantum and classical computations in order to find
+the minimum eigenvalue of the Hamiltonian :math:`H` of a given system.
+An instance of VQE requires defining two algorithmic subcomponents:
+a trial function from Aqua's :ref:`variational-forms` library, and a classical optimizer
+from Aqua's :ref:`optimizers` library.  An initial state from Aqua's
+:ref:`initial-states` library may be supplied too in order to
+define the starting state for the trial function.
 
 .. seealso::
 
@@ -142,7 +146,6 @@ QAOA uses its own fine-tuned variational form, which comprises :math:`p` paramet
 As a result, unlike VQE, QAOA does not need to have a variational form specified as an input parameter,
 and is configured mainly by a single integer parameter, ``p``,
 which dictates the depth of the variational form, and thus affects the approximation quality.
-Similar to VQE, an optimizer may also be specified.
 
 .. seealso::
 
@@ -176,12 +179,13 @@ In summary, QAOA can be configured with the following parameters:
    (as identically named in the original `QAOA paper <https://arxiv.org/abs/1411.4028>`__) for the QAOA variational form.
    If such list is not provided, QAOA will simply start with the all-zero vector.
 
+Similar to VQE, an optimizer may also be specified.
 
 .. topic:: Declarative Name
 
    When referring to QAOA declaratively inside Aqua, its code ``name``,
    by which Aqua dynamically discovers and loads it,
-   is ``QAOA``.
+   is ``QAOA.Variational``.
 
 .. topic:: Problems Supported
 
@@ -189,11 +193,11 @@ In summary, QAOA can be configured with the following parameters:
 
 .. _dynamics:
 
-^^^^^^^^^^^^^^^^
-Quantum Dynamics
-^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Evolution of Hamiltonian (EOH)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Dynamics provides the lower-level building blocks for simulating
+EOH provides the lower-level building blocks for simulating
 universal quantum systems. For any given quantum system that can be
 decomposed into local interactions (for example, a global hamiltonian as
 the weighted sum of several Pauli spin operators), the local
@@ -204,7 +208,7 @@ via, for example, Lloyd’s method or Trotter-Suzuki decomposition.
 
     This algorithm only supports the local state vector simulator.
 
-Dynamics can be configured with the following parameter settings:
+EOH can be configured with the following parameter settings:
 
 -  Evolution time:
 
@@ -258,12 +262,12 @@ Dynamics can be configured with the following parameter settings:
 
 .. topic:: Declarative Name
 
-   When referring to Quantum Dynamics declaratively inside Aqua, its code ``name``, by which
-   Aqua dynamically discovers and loads it, is ``Dynamics``.
+   When referring to EOH declaratively inside Aqua, its code ``name``, by which
+   Aqua dynamically discovers and loads it, is ``EOH``.
 
 .. topic:: Problems Supported
 
-   In Aqua, Quantum Dynamics supports the ``dynamics`` problem.
+   In Aqua, EOH supports the ``eoh`` problem.
 
 .. _qpe:
 
@@ -419,6 +423,31 @@ and constructs the corresponding quantum circuit.  Oracles are treated as plugga
 in Aqua; researchers interested in :ref:`aqua-extending` can design and implement new
 oracles and extend Aqua's oracle library.
 
+Grover is configured with the following parameter settings:
+
+-  Number of iterations:
+
+   .. code:: python
+
+       num_iterations = 1 | 2 | ...
+
+   For the conventional Grover's search algorithm, the parameter ``num_iterations`` is used to specify
+   how many times the marking and reflection phase sub-circuit is repeated to amplify the amplitude(s) of the target(s).
+   A positive ``int`` value is expected. The default value is ``1``.
+
+-  Incremental mode flag:
+
+   .. code:: python
+
+       Incremental = False | True
+
+   When run in ``incremental`` mode, the search task will be carried out by using successive circuits built using incrementally higher
+   number of iterations for the repetition of the amplitude amplification until a target is found
+   or the maximal number :math:`\log N` (:math:`N` being the total number of elements in the set from the oracle used) of iterations is reached.
+   This is a boolean flag defaulted to ``False``;
+   when set ``True``, the other parameter ``num_iterations`` will be ignored.
+
+
 .. topic:: Declarative Name
 
    When referring to Quantum Grover Search declaratively inside Aqua, its code ``name``, by which
@@ -431,7 +460,7 @@ oracles and extend Aqua's oracle library.
 .. _svm-q-kernel:
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Support Vector Machine Quantum Kernel (SVM Q Kernel)
+Support Vector Machine Quantum Kernel (QSVM Kernel)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Classification algorithms and methods for machine learning are essential
@@ -459,18 +488,18 @@ collection of inner products is called the *kernel* and it is perfectly
 possible to have feature maps that are hard to compute but whose kernels
 are not.
 
-The SVM Q Kernel algorithm applies to classification problems that
+The QSVM Kernel algorithm applies to classification problems that
 require a feature map for which computing the kernel is not efficient
 classically. This means that the required computational resources are
 expected to scale exponentially with the size of the problem.
-SVM Q Kernel uses a Quantum processor to solve this problem by a direct
+QSVM Kernel uses a Quantum processor to solve this problem by a direct
 estimation of the kernel in the feature space. The method used falls in
 the category of what is called *supervised learning*, consisting of a
 *training phase* (where the kernel is calculated and the support vectors
 obtained) and a *test or classification phase* (where new labelless data
 is classified according to the solution found in the training phase).
 
-SVM Q Kernel can be configured with a ``bool`` parameter, indicating
+QSVM Kernel can be configured with a ``bool`` parameter, indicating
 whether or not to print additional information when the algorithm is running:
 
 .. code:: python
@@ -481,27 +510,27 @@ The default is ``False``.
 
 .. topic:: Declarative Name
 
-   When referring to SVM Q Kernel declaratively inside Aqua, its code ``name``, by which
-   Aqua dynamically discovers and loads it, is ``SVM_QKernel``.
+   When referring to QSVM Kernel declaratively inside Aqua, its code ``name``, by which
+   Aqua dynamically discovers and loads it, is ``QSVM.Kernel``.
 
 .. topic:: Problems Supported
 
-   In Aqua, SVM Q Kernel  supports the ``svm_classification`` problem.
+   In Aqua, QSVM Kernel  supports the ``svm_classification`` problem.
 
 .. _svm-variational:
 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Support Vector Machine Variational (SVM Variational)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Support Vector Machine Variational (QSVM Variational)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Just like SVM Q Kerne, the SVM Variational algorithm applies to
+Just like QSVM Kernel, the QSVM Variational algorithm applies to
 classification problems that require a feature map for which computing
-the kernel is not efficient classically. SVM Variational uses the variational method to solve such
+the kernel is not efficient classically. QSVM Variational uses the variational method to solve such
 problems in a quantum processor.  Specifically, it optimizes a
 parameterized quantum circuit to provide a solution that cleanly
 separates the data.
 
-SVM Variational can be configured with the following parameters:
+QSVM Variational can be configured with the following parameters:
 
 -  The depth of the variational circuit to be optimized:
 
@@ -521,12 +550,12 @@ SVM Variational can be configured with the following parameters:
 
 .. topic:: Declarative Name
 
-   When referring to SVM Variational declaratively inside Aqua, its code ``name``, by which
-   Aqua dynamically discovers and loads it, is ``SVM_Variational``.
+   When referring to QSVM Variational declaratively inside Aqua, its code ``name``, by which
+   Aqua dynamically discovers and loads it, is ``QSVM.Variational``.
 
 .. topic:: Problems Supported
 
-   In Aqua, SVM Variational  supports the ``svm_classification`` problem.
+   In Aqua, QSVM Variational  supports the ``svm_classification`` problem.
 
 .. _classical-reference-algorithms:
 
@@ -573,9 +602,9 @@ Specifically, the value of this parameter must be an ``int`` value ``k`` in the 
 
 .. _cplex:
 
-^^^^^
-CPLEX
-^^^^^
+^^^^^^^^^^^
+CPLEX Ising
+^^^^^^^^^^^
 
 This algorithm uses the `IBM ILOG CPLEX Optimization
 Studio <https://www.ibm.com/support/knowledgecenter/SSSA5P_12.8.0/ilog.odms.studio.help/Optimization_Studio/topics/COS_home.html>`__,
@@ -584,7 +613,7 @@ which should be installed along with its `Python API
 for this algorithm to be operational. This algorithm currently
 supports computing the energy of an Ising model Hamiltonian.
 
-CPLEX can be configured with the following parameters:
+CPLEX Ising can be configured with the following parameters:
 
 -  A time limit in seconds for the execution:
 
@@ -616,22 +645,21 @@ CPLEX can be configured with the following parameters:
 
 .. topic:: Declarative Name
 
-   When referring to CPLEX declaratively inside Aqua, its code ``name``, by which
-   Aqua dynamically discovers and loads it, is ``CPLEX``.
+   When referring to CPLEX Ising declaratively inside Aqua, its code ``name``, by which
+   Aqua dynamically discovers and loads it, is ``CPLEX.Ising``.
 
 .. topic:: Problems Supported
 
    In Aqua, CPLEX supports the ``ising`` problem.
 
 .. _avm-rbf-kernel:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Support Vector Machine Radial Basis Function Kernel (SVM Classical)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Support Vector Machine Radial Basis Function Kernel (SVM RBF Kernel)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-SVM RBF Kernel uses a classical approach to experiment with feature map classification
+SVM Classical uses a classical approach to experiment with feature map classification
 problems.
-SVM RBF Kernel can be configured with a ``bool`` parameter,
+SVM Classical can be configured with a ``bool`` parameter,
 indicating whether or not to print additional information when the algorithm is running:
 
 .. code:: python
@@ -642,9 +670,9 @@ The default value for this parameter is ``False``.
 
 .. topic:: Declarative Name
 
-   When referring to SVM RBF Kernel declaratively inside Aqua, its code ``name``, by which
-   Aqua dynamically discovers and loads it, is ``SVM_RBF_Kernel``.
+   When referring to SVM Classical declaratively inside Aqua, its code ``name``, by which
+   Aqua dynamically discovers and loads it, is ``SVM``.
 
 .. topic:: Problems Supported
 
-   In Aqua, SVM RBF Kernel  supports the ``svm_classification`` problem.
+   In Aqua, SVM Classical supports the ``svm_classification`` problem.

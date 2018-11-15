@@ -20,6 +20,7 @@ import unittest
 import numpy as np
 from parameterized import parameterized
 from scipy.linalg import expm
+from scipy import sparse
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import get_algorithm_instance, get_initial_state_instance, Operator
@@ -39,13 +40,13 @@ qubitOp_h2_with_2_qubit_reduction = Operator.load_from_dict(pauli_dict)
 
 
 class TestIQPE(QiskitAquaTestCase):
-    """QPE tests."""
+    """IQPE tests."""
 
     @parameterized.expand([
         [qubitOp_h2_with_2_qubit_reduction],
     ])
     def test_iqpe(self, qubitOp):
-        self.algorithm = 'QPE'
+        self.algorithm = 'IQPE'
         self.log.debug('Testing IQPE')
 
         self.qubitOp = qubitOp
@@ -63,7 +64,7 @@ class TestIQPE(QiskitAquaTestCase):
             w[0] * v[0]
         )
         np.testing.assert_almost_equal(
-            expm(-1.j * self.qubitOp.matrix) @ v[0],
+            expm(-1.j * sparse.csc_matrix(self.qubitOp.matrix)) @ v[0],
             np.exp(-1.j * w[0]) * v[0]
         )
 
@@ -76,7 +77,7 @@ class TestIQPE(QiskitAquaTestCase):
         num_iterations = 12
 
         iqpe = get_algorithm_instance('IQPE')
-        iqpe.setup_quantum_backend(backend='local_qasm_simulator', shots=100, skip_transpiler=True)
+        iqpe.setup_quantum_backend(backend='qasm_simulator', shots=100, skip_transpiler=True)
 
         state_in = get_initial_state_instance('CUSTOM')
         state_in.init_args(self.qubitOp.num_qubits, state_vector=self.ref_eigenvec)
@@ -89,25 +90,23 @@ class TestIQPE(QiskitAquaTestCase):
         )
 
         result = iqpe.run()
-        # self.log.debug('operator paulis:\n{}'.format(self.qubitOp.print_operators('paulis')))
-        # self.log.debug('qpe circuit:\n\n{}'.format(result['circuit']['complete'].qasm()))
 
         self.log.debug('top result str label:         {}'.format(result['top_measurement_label']))
         self.log.debug('top result in decimal:        {}'.format(result['top_measurement_decimal']))
         self.log.debug('stretch:                      {}'.format(result['stretch']))
         self.log.debug('translation:                  {}'.format(result['translation']))
-        self.log.debug('final eigenvalue from QPE:    {}'.format(result['energy']))
+        self.log.debug('final eigenvalue from IQPE:   {}'.format(result['energy']))
         self.log.debug('reference eigenvalue:         {}'.format(self.ref_eigenval))
         self.log.debug('ref eigenvalue (transformed): {}'.format(
             (self.ref_eigenval + result['translation']) * result['stretch'])
         )
         self.log.debug('reference binary str label:   {}'.format(decimal_to_binary(
-            (self.ref_eigenval + result['translation']) * result['stretch'],
+            (self.ref_eigenval.real + result['translation']) * result['stretch'],
             max_num_digits=num_iterations + 3,
             fractional_part_only=True
         )))
 
-        np.testing.assert_approx_equal(self.ref_eigenval, result['energy'], significant=2)
+        np.testing.assert_approx_equal(self.ref_eigenval.real, result['energy'], significant=2)
 
 
 if __name__ == '__main__':

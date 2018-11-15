@@ -76,7 +76,7 @@ The following parameters are supported:
 
 -  The maximum number of iterations to perform:
 
-   .. code:: pyton
+   .. code:: python
 
        maxiter = 1 | 2 | ...
 
@@ -107,6 +107,14 @@ The following parameters are supported:
 
    This parameter is optional.  If specified, the value of this parameter must be a ``float`` value,
    otherwise, it is set to ``None``.  The default is ``None``.
+
+-  Step size used for numerical approximation of the Jacobian.
+
+   .. code:: python
+
+        eps : float
+
+   The default value is ``1.4901161193847656e-08``.
 
 .. topic:: Declarative Name
 
@@ -206,6 +214,14 @@ The following parameters are supported:
 
    The default is ``-1``.
 
+-  Step size used if numerically calculating the gradient.
+
+   .. code:: python
+
+        epsilon : float
+
+   The default value is ``1e-08``.
+
 .. seealso::
     Further detailed information on ``factr`` and ``iprint`` may be found at
     `scipy.optimize.fmin_l_bfgs_b <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.fmin_l_bfgs_b.html>`__.
@@ -275,6 +291,14 @@ The following parameters are supported:
 
    This parameter is optional.  If specified, the value of this parameter must be of type ``float``, otherwise, it is  ``None``.
    The default is ``None``.
+
+   .. code:: python
+
+       adaptive : bool
+
+   The default is ``False``.
+
+-  If true will adapt algorithm to dimensionality of problem.
 
 .. topic:: Declarative Name
 
@@ -432,6 +456,14 @@ The following parameters are supported:
    This parameter is optional.  If specified, the value of this parameter must be a ``float``, otherwise, it is  ``None``.
    The default is ``None``.
 
+-  Step size used for numerical approximation of the Jacobian.
+
+   .. code:: python
+
+        eps : float
+
+   The default value is ``1e-08``.
+
 .. topic:: Declarative Name
 
    When referring to SLSQP declaratively inside Aqua, its code ``name``, by which Aqua dynamically discovers and loads it,
@@ -495,9 +527,14 @@ functional evaluations.  Overall, the following parameters are supported:
 
    .. code:: python
 
-       parameters : [float, float, float, float, float]
+       c0 : float; default value is 0.62831853071796 (which is 0.2*PI)
+       c1 : float; default value is 0.1
+       c2 : float; default value is 0.602
+       c3 : float; default value is 0.101
+       c4 : float; default value is 0
 
-   This is an optional parameter, consisting of a list of 5 ``float`` elements.  The default value is ``None``. 
+   These are the SPSA control parameters, consisting of 5 ``float`` values, and are used as described below.
+
    SPSA updates the parameters (``theta``)
    for the objective function (``J``) through the following equation at
    iteration ``k``:
@@ -514,6 +551,16 @@ functional evaluations.  Overall, the following parameters are supported:
    By default, ``c0`` is calibrated through a few evaluations on the
    objective function with the initial ``theta``. ``c1``, ``c2``, ``c3`` and ``c4`` are set as ``0.1``,
    ``0.602``, ``0.101``, ``0.0``, respectively.
+
+- Calibration step for SPSA.
+
+   .. code:: python
+
+       skip_calibration: bool
+
+   The default value is ``False``. When calibration is done, i.e. when ``skip_calibration`` is ``False`` (by default) the
+   control parameter ``c0`` as supplied is adjusted by the calibration step before optimization. If ``skip_calibration``
+   is ``True`` then the calibration step, which occurs ahead of optimization, is skipped and ``c0`` will be used unaltered.
 
 .. topic:: Declarative Name
 
@@ -590,6 +637,14 @@ The following parameters are supported:
 
    This parameter is optional.  If specified, the value of this parameter must be a ``float``, otherwise, it is  ``None``.
    The default is ``None``
+
+-  Step size used for numerical approximation of the Jacobian.
+
+   .. code:: python
+
+        eps : float
+
+   The default value is ``1.4901161193847656e-08``.
 
 .. topic:: Declarative Name
 

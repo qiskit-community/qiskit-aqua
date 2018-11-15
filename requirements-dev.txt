@@ -1,3 +1,5 @@
 discover
 parameterized
-sphinxcontrib-fulltoc
+Sphinx>=1.7.6,<1.8
+sphinxcontrib-fulltoc>=1.2.0
+sphinxcontrib-websupport>=1.1.0

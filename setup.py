@@ -25,20 +25,21 @@ long_description="""<a href="https://qiskit.org/aqua" rel=nofollow>Qiskit Aqua</
  Qiskit Aqua Artificial Intelligence, and Qiskit Aqua Optimization to experiment with real-world applications to quantum computing."""
     
 requirements = [
-    "qiskit>=0.5.6",
-    "scipy>=0.19,<1.2",
-    "numpy>=1.13,<1.15",
-    "psutil",
-    "jsonschema",
+    "qiskit>=0.6.1,<0.7",
+    "scipy>=0.19,!=0.19.1",
+    "numpy>=1.13",
+    "psutil>=5",
+    "jsonschema>=2.6,<2.7",
     "scikit-learn",
     "cvxopt",
     "pyobjc-core; sys_platform == 'darwin'",
-    "pyobjc-framework-Cocoa; sys_platform == 'darwin'"
+    "pyobjc-framework-Cocoa; sys_platform == 'darwin'",
+    "packaging"
 ]
 
 setuptools.setup(
     name='qiskit-aqua',
-    version="0.2.0",  # this should match __init__.__version__
+    version="0.3.0",  # this should match __init__.__version__
     description='Qiskit Aqua: An extensible library of quantum computing algorithms',
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -65,11 +66,11 @@ setuptools.setup(
     python_requires=">=3.5",
     entry_points = {
         'console_scripts': [
-                'qiskit_aqua_cmd=qiskit_aqua.command_line:main'
+                'qiskit_aqua_cmd=qiskit_aqua_cmd.command_line:main'
         ],
         'gui_scripts': [
-                'qiskit_aqua_ui=qiskit_aqua.ui.run.command_line:main',
-                'qiskit_aqua_browser=qiskit_aqua.ui.browser.command_line:main'
+                'qiskit_aqua_ui=qiskit_aqua_ui.run.command_line:main',
+                'qiskit_aqua_browser=qiskit_aqua_ui.browser.command_line:main'
         ]
     }
 )

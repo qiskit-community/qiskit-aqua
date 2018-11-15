@@ -18,7 +18,7 @@ installed via the ``git clone`` command.  This will allow the user to place its 
 convenient location in the file system, where it will be easier to browse the examples and
 execute the Jupyter Notebooks provided by Aqua Tutorials.
 
-A `Jupyter Notebook nbviewer <https://nbviewer.jupyter.org/github/QISKit/qiskit-acqua-tutorials/blob/master/index.ipynb>`__
+A `Jupyter Notebook nbviewer <https://nbviewer.jupyter.org/github/QISKit/aqua-tutorials/blob/master/index.ipynb>`__
 allows for a quick and intuitive way to browse through the various Jupyter Notebooks offered by
 Aqua Tutorials.
 

@@ -32,13 +32,16 @@ class SVMInput(AlgorithmInput):
             'type': 'object',
             'properties': {
                 'training_dataset':{
-                    'type': 'object'
+                    'type': ['object', 'null'],
+                    'default': None
                 },
                 'test_dataset':{
-                    'type': 'object'
+                    'type': ['object', 'null'],
+                    'default': None
                 },
                 'datapoints':{
-                    'type': 'array'
+                    'type': ['array', 'null'],
+                    'default': None
                 }
             },
             'additionalProperties': False
@@ -51,9 +54,6 @@ class SVMInput(AlgorithmInput):
         self.training_dataset = None
         self.test_dataset = None
         self.datapoints = None
-
-
-
 
     def to_params(self):
         params = {}

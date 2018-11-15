@@ -15,15 +15,16 @@
 # limitations under the License.
 # =============================================================================
 
-import unittest
 import itertools
+import unittest
 
 from parameterized import parameterized
+import qiskit
 from qiskit import execute as q_execute
 from qiskit import QuantumCircuit, ClassicalRegister
 
+from qiskit_aqua import get_oracle_instance
 from test.common import QiskitAquaTestCase
-from qiskit_aqua.utils.oracles.sat import SAT
 
 
 cnf_str_1 = '''
@@ -62,7 +63,7 @@ class TestSATOracle(QiskitAquaTestCase):
     ])
     def test_sat_oracle(self, cnf_str, sols):
         num_shots = 1024
-        sat = SAT()
+        sat = get_oracle_instance('SAT')
         sat.init_args(cnf_str)
         sat_circuit = sat.construct_circuit()
         m = ClassicalRegister(1, name='m')
@@ -72,8 +73,10 @@ class TestSATOracle(QiskitAquaTestCase):
                 if tf:
                     qc.x(sat.variable_register()[idx])
             qc += sat_circuit
+            qc.barrier(sat._qr_outcome)
             qc.measure(sat._qr_outcome, m)
-            counts = q_execute(qc, 'local_qasm_simulator', shots=num_shots).result().get_counts(qc)
+            counts = q_execute(qc, qiskit.Aer.get_backend(
+                'qasm_simulator'), shots=num_shots).result().get_counts(qc)
             if assignment in sols:
                 assert(counts['1'] == num_shots)
             else:

@@ -1,0 +1,16 @@
+# Copyright 2017, IBM.
+#
+# This source code is licensed under the Apache License, Version 2.0 found in
+# the LICENSE.txt file in the root directory of this source tree.
+
+language: python
+python:
+    - "3.6"
+install:
+    - pip install -U -r requirements.txt
+    - pip install -U -r requirements-dev.txt
+script:
+    pytest -v
+notifications:
+    on_success: change
+    on_failure: always

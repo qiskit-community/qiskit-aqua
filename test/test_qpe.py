@@ -20,6 +20,7 @@ import unittest
 import numpy as np
 from parameterized import parameterized
 from scipy.linalg import expm
+from scipy import sparse
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import get_algorithm_instance, get_initial_state_instance, get_iqft_instance, Operator
@@ -72,7 +73,7 @@ class TestQPE(QiskitAquaTestCase):
             w[0] * v[0]
         )
         np.testing.assert_almost_equal(
-            expm(-1.j * self.qubitOp.matrix) @ v[0],
+            expm(-1.j * sparse.csc_matrix(self.qubitOp.matrix)) @ v[0],
             np.exp(-1.j * w[0]) * v[0]
         )
 
@@ -85,7 +86,7 @@ class TestQPE(QiskitAquaTestCase):
         n_ancillae = 9
 
         qpe = get_algorithm_instance('QPE')
-        qpe.setup_quantum_backend(backend='local_qasm_simulator', shots=100, skip_transpiler=True)
+        qpe.setup_quantum_backend(backend='qasm_simulator', shots=100, skip_transpiler=True)
 
         state_in = get_initial_state_instance('CUSTOM')
         state_in.init_args(self.qubitOp.num_qubits, state_vector=self.ref_eigenvec)
@@ -116,12 +117,12 @@ class TestQPE(QiskitAquaTestCase):
             (self.ref_eigenval + result['translation']) * result['stretch'])
         )
         self.log.debug('reference binary str label:   {}'.format(decimal_to_binary(
-            (self.ref_eigenval + result['translation']) * result['stretch'],
+            (self.ref_eigenval.real + result['translation']) * result['stretch'],
             max_num_digits=n_ancillae + 3,
             fractional_part_only=True
         )))
 
-        np.testing.assert_approx_equal(self.ref_eigenval, result['energy'], significant=2)
+        np.testing.assert_approx_equal(self.ref_eigenval.real, result['energy'], significant=2)
 
 
 if __name__ == '__main__':
