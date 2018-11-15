@@ -280,7 +280,7 @@ class FermionicOperator(object):
                 if np.in1d(k, update_sets[j]):
                     update_pauli[j].update_x(True, k)
                 if np.in1d(k, parity_sets[j]):
-                    update_pauli[j].update_z(True, k)
+                    parity_pauli[j].update_z(True, k)
                 if np.in1d(k, remainder_sets[j]):
                     remainder_pauli[j].update_z(True, k)
 
