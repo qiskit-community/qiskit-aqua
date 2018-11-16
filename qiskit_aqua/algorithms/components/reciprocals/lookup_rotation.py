@@ -33,7 +33,8 @@ class LookupRotation(Reciprocal):
     arcsin(C/lambda).
     
     Note:
-        Please refer to the HHL documentation for an explanation of this method.
+        Please refer to the HHL documentation for an explanation of this
+        method.
     """
 
     PROP_PAT_LENGTH = 'pat_length'
@@ -86,7 +87,7 @@ class LookupRotation(Reciprocal):
         self._configuration = configuration or self.LOOKUP_CONFIGURATION.copy()
         self._anc = None
         self._workq = None
-        self._msb = None
+        self._msq = None
         self._ev = None
         self._circuit = None
         self._reg_size = 0
@@ -130,48 +131,48 @@ class LookupRotation(Reciprocal):
             """Get maximum significant bit, i.e. first position of 1 bit"""
             return len(binary) - list(reversed(binary)).index('1')
 
-        def get_est_lamb(pattern, msb, n, k):
+        def get_est_lamb(pattern, fo, n, k):
             """Estimate the bin mid point and return the float value"""
-            if msb - n > 0:
-                remainder = sum([2**-i for i in range(k-(msb-n-1),k+1)])
+            if fo - n > 0:
+                remainder = sum([2 ** -i for i in range(k - (fo - n - 1), k + 1)])
                 return bin_to_num(pattern)+remainder/2
             else:
                 return bin_to_num(pattern)
 
         from collections import OrderedDict
         output = OrderedDict()
-        for msb in range(k - 1, n - 1, -1):
+        for fo in range(k - 1, n - 1, -1):
             # skip first bit if negative ev are used
-            if negative_evals and msb == k - 1: continue
+            if negative_evals and fo == k - 1: continue
             # init bit string
             vec = ['0'] * k
             # set most significant bit
-            vec[msb] = '1'
+            vec[fo] = '1'
             # iterate over all 2^m combinations = sub string in n-bit pattern
             for pattern_ in itertools.product('10', repeat=m):
                 app_pattern_array = []
                 lambda_array = []
-                msb_array = []
+                fo_array = []
                 # iterate over all 2^(n-m) combinations
                 for appendpat in itertools.product('10', repeat=n - m):
                     # combine both generated patterns
                     pattern = pattern_ + appendpat
-                    vec[msb - n:msb] = pattern
+                    vec[fo - n:fo] = pattern
                     # estimate bin mid point
-                    e_l = get_est_lamb(vec.copy(), msb, n, k)
+                    e_l = get_est_lamb(vec.copy(), fo, n, k)
                     lambda_array.append(e_l)
-                    msb_array.append(msb)
+                    fo_array.append(fo)
                     app_pattern_array.append(list(reversed(appendpat)))
 
-                # rewrite MSB to correct index in QuantumRegister
-                msb_num = k-msb-1
-                if msb_num in list(output.keys()):
-                    prev_res = output[msb_num]
+                # rewrite first-one to correct index in QuantumRegister
+                fo_pos = k-fo-1
+                if fo_pos in list(output.keys()):
+                    prev_res = output[fo_pos]
                 else:
                     prev_res = []
                 
                 output.update(
-                    {msb_num: prev_res + [(list(reversed(pattern_)),
+                    {fo_pos: prev_res + [(list(reversed(pattern_)),
                                 app_pattern_array, lambda_array)]})
 
         # last iterations, only last n bits != 0
@@ -179,7 +180,7 @@ class LookupRotation(Reciprocal):
         for pattern_ in itertools.product('10', repeat=m):
             app_pattern_array = []
             lambda_array = []
-            msb_array = []
+            fo_array = []
             for appendpat in itertools.product('10', repeat=n - m):
                 pattern = list(pattern_ + appendpat).copy()
                 if '1' not in pattern and ( not negative_evals ):
@@ -187,70 +188,70 @@ class LookupRotation(Reciprocal):
                 elif '1' not in pattern and negative_evals:
                     e_l = 0.5
                 else:
-                    vec[msb - n:msb] = list(pattern)
-                    e_l = get_est_lamb(vec.copy(), msb, n, k)
+                    vec[fo - n:fo] = list(pattern)
+                    e_l = get_est_lamb(vec.copy(), fo, n, k)
                 lambda_array.append(e_l)
-                msb_array.append(msb - 1)
+                fo_array.append(fo - 1)
                 app_pattern_array.append(list(reversed(appendpat)))
                 
-            msb_num = k-msb
-            if msb_num in list(output.keys()):
-                prev_res = output[msb_num]
+            fo_pos = k-fo
+            if fo_pos in list(output.keys()):
+                prev_res = output[fo_pos]
             else:
                 prev_res = []
                 
-            output.update({msb_num: prev_res + [(list(reversed(pattern_)),
+            output.update({fo_pos: prev_res + [(list(reversed(pattern_)),
                     app_pattern_array, lambda_array)]})
 
         return output
 
-    def _set_msb(self, msb, ev_reg, msb_num, last_iteration=False):
-        """Adds multi-controlled NOT gate to entangle |msb> qubit
-           with states having the correct most-significant bit
+    def _set_msq(self, msq, ev_reg, fo_pos, last_iteration=False):
+        """Adds multi-controlled NOT gate to entangle |msq> qubit
+           with states having the correct first-one bit
 
         Args:
-            msb: garbage qubit
+            msq: most-significant qubit, this is a garbage qubit
             ev_reg: register storing eigenvalues
-            msb_num (int): index of most-significant bit
+            fo_pos (int): position of first-one bit
             last_iteration (bool): switch; it is set for numbers where only the
                         last n bits is different from 0 in the binary string
         """
         qc = self._circuit
         ev = [ev_reg[i] for i in range(len(ev_reg))]
-        #last_iteration = no MSB set, only the n-bit long pattern
+        #last_iteration = no MSQ set, only the n-bit long pattern
         if last_iteration:
-            if msb_num == 1:
+            if fo_pos == 1:
                 qc.x(ev[0])
-                qc.cx(ev[0], msb[0])
+                qc.cx(ev[0], msq[0])
                 qc.x(ev[0])
-            elif msb_num == 2:
+            elif fo_pos == 2:
                 qc.x(ev[0])
                 qc.x(ev[1])
-                qc.ccx(ev[0], ev[1], msb[0])
+                qc.ccx(ev[0], ev[1], msq[0])
                 qc.x(ev[1])
                 qc.x(ev[0])
-            elif msb_num > 2:
-                for idx in range(msb_num):
+            elif fo_pos > 2:
+                for idx in range(fo_pos):
                     qc.x(ev[idx])
-                qc.cnx_na(ev[:msb_num], msb[0])
-                for idx in range(msb_num):
+                qc.cnx_na(ev[:fo_pos], msq[0])
+                for idx in range(fo_pos):
                     qc.x(ev[idx])
             else:
-                qc.x(msb[0]) 
-        elif msb_num == 0:
-            qc.cx(ev[0], msb)
-        elif msb_num == 1:
+                qc.x(msq[0])
+        elif fo_pos == 0:
+            qc.cx(ev[0], msq)
+        elif fo_pos == 1:
             qc.x(ev[0])
-            qc.ccx(ev[0], ev[1], msb[0])
+            qc.ccx(ev[0], ev[1], msq[0])
             qc.x(ev[0])
-        elif msb_num > 1:
-            for idx in range(msb_num):
+        elif fo_pos > 1:
+            for idx in range(fo_pos):
                 qc.x(ev[idx])
-            qc.cnx_na(ev[:msb_num+1], msb[0])
-            for idx in range(msb_num):
+            qc.cnx_na(ev[:fo_pos + 1], msq[0])
+            for idx in range(fo_pos):
                 qc.x(ev[idx])
         else:
-            raise RuntimeError("MSB register index < 0")
+            raise RuntimeError("first-one register index < 0")
 
     def _set_bit_pattern(self, pattern, tgt, offset):
         """Add multi-controlled NOT gate to circuit that has negated/normal
@@ -291,9 +292,9 @@ class LookupRotation(Reciprocal):
             self._scale = 2**-len(inreg)
         self._ev = inreg
         self._workq = QuantumRegister(1, 'work')
-        self._msb = QuantumRegister(1, 'msb')
+        self._msq = QuantumRegister(1, 'msq')
         self._anc = QuantumRegister(1, 'anc')
-        qc = QuantumCircuit(self._ev, self._workq, self._msb, self._anc)
+        qc = QuantumCircuit(self._ev, self._workq, self._msq, self._anc)
         self._circuit = qc
         self._reg_size = len(inreg)
         if self._pat_length is None:
@@ -312,62 +313,63 @@ class LookupRotation(Reciprocal):
         #get classically precomputed eigenvalue binning
         approx_dict = LookupRotation.classic_approx(k, n, m, negative_evals=self._negative_evals)
         
-        old_msb = None
+        old_fo = None
         # for negative EV, we pass a pseudo register ev[1:] ign. sign bit
         ev = [self._ev[i] for i in range(len(self._ev))]
         
-        for _, msb in enumerate(list(approx_dict.keys())):
-            #read m-bit and (n-m) bit patterns for current MSB and corr. Lambdas
-            pattern_map = approx_dict[msb]
-            #set most-significant-bit register and uncompute previous
+        for _, fo in enumerate(list(approx_dict.keys())):
+            #read m-bit and (n-m) bit patterns for current first-one and
+            # correct Lambdas
+            pattern_map = approx_dict[fo]
+            #set most-significant-qbit register and uncompute previous
             if self._negative_evals:
-                if old_msb != msb:
-                    if old_msb is not None:
-                        self._set_msb(self._msb, ev[1:], int(old_msb-1))
-                    old_msb = msb
-                    if msb + n == k:
-                        self._set_msb(self._msb, ev[1:], int(msb-1), last_iteration=True)
+                if old_fo != fo:
+                    if old_fo is not None:
+                        self._set_msq(self._msq, ev[1:], int(old_fo - 1))
+                    old_fo = fo
+                    if fo + n == k:
+                        self._set_msq(self._msq, ev[1:], int(fo - 1), last_iteration=True)
                     else:
-                        self._set_msb(self._msb, ev[1:], int(msb-1), last_iteration=False)
+                        self._set_msq(self._msq, ev[1:], int(fo - 1), last_iteration=False)
             else:
-                if old_msb != msb:
-                    if old_msb is not None:
-                        self._set_msb(self._msb, self._ev, int(old_msb))
-                    old_msb = msb
-                    if msb + n == k:
-                        self._set_msb(self._msb, self._ev, int(msb), last_iteration=True)
+                if old_fo != fo:
+                    if old_fo is not None:
+                        self._set_msq(self._msq, self._ev, int(old_fo))
+                    old_fo = fo
+                    if fo + n == k:
+                        self._set_msq(self._msq, self._ev, int(fo), last_iteration=True)
                     else:
-                        self._set_msb(self._msb, self._ev, int(msb), last_iteration=False)
+                        self._set_msq(self._msq, self._ev, int(fo), last_iteration=False)
             #offset = start idx for ncx gate setting and unsetting m-nit long bitstring
-            offset_mpat = msb + (n - m) if msb < k - n else msb + n - m - 1
+            offset_mpat = fo + (n - m) if fo < k - n else fo + n - m - 1
             for mainpat, subpat, lambda_ar in pattern_map:
                 #set m-bit pattern in register workq
                 self._set_bit_pattern(mainpat, self._workq[0], offset_mpat + 1)
                 #iterate of all 2**(n-m) combinations for fixed m-bit
                 for subpattern, lambda_ in zip(subpat, lambda_ar):
-                    
+
                     #calculate rotation angle
                     theta =  2*np.arcsin(min(1, self._scale / lambda_))
                     #offset for ncx gate checking subpattern
-                    offset = msb + 1 if msb < k - n else msb
+                    offset = fo + 1 if fo < k - n else fo
                 
                     #rotation is happening here
                     #1. rotate by half angle
-                    qc.cnu3(theta/2, 0, 0, [self._workq[0], self._msb[0]], self._anc[0])
+                    qc.cnu3(theta / 2, 0, 0, [self._workq[0], self._msq[0]], self._anc[0])
                     #2. cnx_na gate to reverse rotation direction
                     self._set_bit_pattern(subpattern, self._anc[0], offset)
                     #3. rotate by inverse of halfangle to uncompute / complete 
-                    qc.cnu3(-theta/2, 0, 0, [self._workq[0], self._msb[0]], self._anc[0])
+                    qc.cnu3(-theta / 2, 0, 0, [self._workq[0], self._msq[0]], self._anc[0])
                     #4. cnx_na gate to uncompute first cnx_na gate
                     self._set_bit_pattern(subpattern, self._anc[0], offset)
                 #uncompute m-bit pattern
                 self._set_bit_pattern(mainpat, self._workq[0], offset_mpat + 1)
                 
-        # uncompute msb register
+        # uncompute msq register
         if self._negative_evals:
-            self._set_msb(self._msb, ev[1:], int(msb-1), last_iteration=True)
+            self._set_msq(self._msq, ev[1:], int(fo - 1), last_iteration=True)
         else:
-            self._set_msb(self._msb, self._ev, int(msb), last_iteration=True)
+            self._set_msq(self._msq, self._ev, int(fo), last_iteration=True)
             
         #rotate by pi to fix sign for negative evals
         if self._negative_evals:
