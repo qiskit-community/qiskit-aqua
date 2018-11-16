@@ -17,14 +17,11 @@
 
 """Controlled rotation for the HHL algorithm based on partial table lookup"""
 
-from qiskit import QuantumRegister, QuantumCircuit
-
-from qiskit_aqua.algorithms.components.reciprocals import Reciprocal
-
-import numpy as np
 import itertools
-
 import logging
+import numpy as np
+from qiskit import QuantumRegister, QuantumCircuit
+from qiskit_aqua.algorithms.components.reciprocals import Reciprocal
 
 logger = logging.getLogger(__name__)
 
@@ -176,6 +173,7 @@ class LookupRotation(Reciprocal):
                                 app_pattern_array, lambda_array)]})
 
         # last iterations, only last n bits != 0
+        last_fo = fo
         vec = ['0'] * k
         for pattern_ in itertools.product('10', repeat=m):
             app_pattern_array = []
@@ -188,13 +186,13 @@ class LookupRotation(Reciprocal):
                 elif '1' not in pattern and negative_evals:
                     e_l = 0.5
                 else:
-                    vec[fo - n:fo] = list(pattern)
-                    e_l = get_est_lamb(vec.copy(), fo, n, k)
+                    vec[last_fo - n:last_fo] = list(pattern)
+                    e_l = get_est_lamb(vec.copy(), last_fo, n, k)
                 lambda_array.append(e_l)
-                fo_array.append(fo - 1)
+                fo_array.append(last_fo - 1)
                 app_pattern_array.append(list(reversed(appendpat)))
                 
-            fo_pos = k-fo
+            fo_pos = k-last_fo
             if fo_pos in list(output.keys()):
                 prev_res = output[fo_pos]
             else:
