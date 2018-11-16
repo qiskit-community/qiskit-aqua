@@ -1,4 +1,4 @@
 recursive-include qiskit_aqua_chemistry *.json
-include qiskit_aqua_chemistry/Qconfig_template.txt
+recursive-include qiskit_aqua_chemistry_ui *.json
 graft qiskit_aqua_chemistry/drivers/gaussiand/gauopen
 global-exclude *.py[co] .DS_Store
