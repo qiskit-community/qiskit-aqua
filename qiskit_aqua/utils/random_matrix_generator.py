@@ -232,7 +232,7 @@ def random_hermitian(N, eigs=None, K=None, eigrange=[0, 1], sparsity=None,
                      trunc=None):
     """
     Generate random hermitian (sparse) matix with given properties. Sparsity is
-    achieved by truncting pauli matrices. Sparsity settings alternate the
+    achieved by truncating Pauli matrices. Sparsity settings alternate the
     eigenvalues due to truncation.
     Args:
         N (int): size of matrix
@@ -245,7 +245,7 @@ def random_hermitian(N, eigs=None, K=None, eigrange=[0, 1], sparsity=None,
                                 eigenvalues can be negative.
         eigrange (list, tuple, nd.ndarray): [min, max] list for eigenvalue
                                             range. (default=[0, 1])
-        trunc (int): limit of pauli matices.
+        trunc (int): limit for number of Pauli matrices.
         sparsity (float): sparsity of matrix. Overrides trunc.
     Returns:
         np.ndarray: hermitian matrix
