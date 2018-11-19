@@ -37,13 +37,34 @@ logger = logging.getLogger(__name__)
 MAX_CIRCUITS_PER_JOB = 300
 
 
+def find_regs_by_name(circuit, name, qreg=True):
+    """Find the registers in the circuits.
+
+    Args:
+        circuit (QuantumCircuit): the quantum circuit.
+        name (str): name of register
+        qreg (bool): quantum or classical register
+
+    Returns:
+        QuantumRegister or ClassicalRegister or None: if not found, return None.
+
+    """
+    found_reg = None
+    regs = circuit.qregs if qreg else circuit.cregs
+    for reg in regs:
+        if reg.name == name:
+            found_reg = reg
+            break
+    return found_reg
+
+
 def _avoid_empty_circuits(circuits):
 
     new_circuits = []
     for qc in circuits:
         if len(qc) == 0:
             tmp_q = None
-            for q_name, q in qc.get_qregs().items():
+            for q in qc.qregs:
                 tmp_q = q
                 break
             if tmp_q is None:
