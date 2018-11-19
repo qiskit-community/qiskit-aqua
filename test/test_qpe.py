@@ -23,7 +23,7 @@ from scipy.linalg import expm
 from scipy import sparse
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import PluggableType, get_pluggable_instance, Operator
+from qiskit_aqua import PluggableType, get_pluggable_class, Operator
 from qiskit_aqua.utils import decimal_to_binary
 
 
@@ -60,7 +60,8 @@ class TestQPE(QiskitAquaTestCase):
 
         self.qubitOp = qubitOp
 
-        exact_eigensolver = get_pluggable_instance(PluggableType.ALGORITHM,'ExactEigensolver')
+        exact_eigensolver = get_pluggable_class(PluggableType.ALGORITHM,'ExactEigensolver')
+        exact_eigensolver = exact_eigensolver()
         exact_eigensolver.init_args(self.qubitOp, k=1)
         results = exact_eigensolver.run()
 
@@ -85,13 +86,16 @@ class TestQPE(QiskitAquaTestCase):
         num_time_slices = 50
         n_ancillae = 9
 
-        qpe = get_pluggable_instance(PluggableType.ALGORITHM,'QPE')
+        qpe = get_pluggable_class(PluggableType.ALGORITHM,'QPE')
+        qpe = qpe()
         qpe.setup_quantum_backend(backend='qasm_simulator', shots=100, skip_transpiler=True)
 
-        state_in = get_pluggable_instance(PluggableType.INITIAL_STATE,'CUSTOM')
+        state_in = get_pluggable_class(PluggableType.INITIAL_STATE,'CUSTOM')
+        state_in = state_in()
         state_in.init_args(self.qubitOp.num_qubits, state_vector=self.ref_eigenvec)
 
-        iqft = get_pluggable_instance(PluggableType.IQFT,'STANDARD')
+        iqft = get_pluggable_class(PluggableType.IQFT,'STANDARD')
+        iqft = iqft()
         iqft.init_args(n_ancillae)
 
         qpe.init_args(

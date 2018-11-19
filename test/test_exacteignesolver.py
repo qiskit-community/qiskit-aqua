@@ -22,7 +22,7 @@ import numpy as np
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import Operator, run_algorithm
 from qiskit_aqua.input import get_input_instance
-from qiskit_aqua import (PluggableType,get_pluggable_instance)
+from qiskit_aqua import (PluggableType,get_pluggable_class)
 
 
 class TestExactEignesolver(QiskitAquaTestCase):
@@ -61,7 +61,8 @@ class TestExactEignesolver(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(result['energies'], [-1.85727503, -1.24458455, -0.88272215, -0.22491125])
 
     def test_ee_direct(self):
-        algo = get_pluggable_instance(PluggableType.ALGORITHM,'ExactEigensolver')
+        algo = get_pluggable_class(PluggableType.ALGORITHM,'ExactEigensolver')
+        algo = algo()
         algo.init_args(self.algo_input.qubit_op, k=1, aux_operators=[])
         result = algo.run()
         self.assertAlmostEqual(result['energy'], -1.85727503)
@@ -69,7 +70,8 @@ class TestExactEignesolver(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(result['eigvals'], [-1.85727503+0j])
 
     def test_ee_direct_k4(self):
-        algo = get_pluggable_instance(PluggableType.ALGORITHM,'ExactEigensolver')
+        algo = get_pluggable_class(PluggableType.ALGORITHM,'ExactEigensolver')
+        algo = algo()
         algo.init_args(self.algo_input.qubit_op, k=4, aux_operators=[])
         result = algo.run()
         self.assertAlmostEqual(result['energy'], -1.85727503)

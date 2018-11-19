@@ -18,7 +18,7 @@
 
 import logging
 
-from qiskit_aqua import QuantumAlgorithm, AlgorithmError, PluggableType, get_pluggable_instance
+from qiskit_aqua import QuantumAlgorithm, AlgorithmError, PluggableType, get_pluggable_class
 from qiskit_aqua.algorithms.adaptive.vqe.vqe import VQE
 from .varform import QAOAVarForm
 
@@ -98,7 +98,8 @@ class QAOA(VQE):
 
         # Set up optimizer
         opt_params = params.get(QuantumAlgorithm.SECTION_KEY_OPTIMIZER)
-        optimizer = get_pluggable_instance(PluggableType.OPTIMIZER,opt_params['name'])
+        optimizer = get_pluggable_class(PluggableType.OPTIMIZER,opt_params['name'])
+        optimizer = optimizer()
         optimizer.init_params(opt_params)
 
         self.init_args(operator, operator_mode, p, optimizer,

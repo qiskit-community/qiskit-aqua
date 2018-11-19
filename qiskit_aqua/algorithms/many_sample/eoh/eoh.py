@@ -23,7 +23,7 @@ import logging
 from qiskit import QuantumRegister
 
 from qiskit_aqua import QuantumAlgorithm, AlgorithmError
-from qiskit_aqua import PluggableType, get_pluggable_instance
+from qiskit_aqua import PluggableType, get_pluggable_class
 
 logger = logging.getLogger(__name__)
 
@@ -149,7 +149,8 @@ class EOH(QuantumAlgorithm):
         # Set up initial state, we need to add computed num qubits to params
         initial_state_params = params.get(QuantumAlgorithm.SECTION_KEY_INITIAL_STATE)
         initial_state_params['num_qubits'] = operator.num_qubits
-        initial_state = get_pluggable_instance(PluggableType.INITIAL_STATE,initial_state_params['name'])
+        initial_state = get_pluggable_class(PluggableType.INITIAL_STATE,initial_state_params['name'])
+        initial_state = initial_state()
         initial_state.init_params(initial_state_params)
 
         self.init_args(

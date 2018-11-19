@@ -26,7 +26,7 @@ from qiskit.quantum_info import state_fidelity
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua.operator import Operator
-from qiskit_aqua import PluggableType, get_pluggable_instance
+from qiskit_aqua import PluggableType, get_pluggable_class
 
 
 class TestEvolution(QiskitAquaTestCase):
@@ -61,7 +61,8 @@ class TestEvolution(QiskitAquaTestCase):
                             p2[1].to_matrix() @ p1[1].to_matrix()
                         )
 
-        state_in = get_pluggable_instance(PluggableType.INITIAL_STATE,'CUSTOM')
+        state_in = get_pluggable_class(PluggableType.INITIAL_STATE,'CUSTOM')
+        state_in = state_in()
         state_in.init_args(SIZE, state='random')
 
         evo_time = 1

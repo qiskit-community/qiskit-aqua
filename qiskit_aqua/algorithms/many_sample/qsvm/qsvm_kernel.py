@@ -19,7 +19,7 @@ import logging
 
 import numpy as np
 
-from qiskit_aqua import (AlgorithmError, QuantumAlgorithm, PluggableType, get_pluggable_instance)
+from qiskit_aqua import (AlgorithmError, QuantumAlgorithm, PluggableType, get_pluggable_class)
 from qiskit_aqua.algorithms.many_sample.qsvm import (QSVM_Kernel_Binary, QSVM_Kernel_Multiclass,
                                                      QSVM_Kernel_Estimator)
 from qiskit_aqua.utils.dataset_helper import get_feature_dimension, get_num_classes
@@ -63,7 +63,8 @@ class QSVM_Kernel(QuantumAlgorithm):
     def init_params(self, params, algo_input):
 
         fea_map_params = params.get(QuantumAlgorithm.SECTION_KEY_FEATURE_MAP)
-        feature_map = get_pluggable_instance(PluggableType.FEATURE_MAP,fea_map_params['name'])
+        feature_map = get_pluggable_class(PluggableType.FEATURE_MAP,fea_map_params['name'])
+        feature_map = feature_map()
         num_qubits = get_feature_dimension(algo_input.training_dataset)
         fea_map_params['num_qubits'] = num_qubits
         feature_map.init_params(fea_map_params)
@@ -71,7 +72,8 @@ class QSVM_Kernel(QuantumAlgorithm):
         multiclass_extension = None
         multiclass_extension_params = params.get(QuantumAlgorithm.SECTION_KEY_MULTICLASS_EXTENSION)
         if multiclass_extension_params is not None:
-            multiclass_extension = get_pluggable_instance(PluggableType.MULTICLASS_EXTENSION,multiclass_extension_params['name'])
+            multiclass_extension = get_pluggable_class(PluggableType.MULTICLASS_EXTENSION,multiclass_extension_params['name'])
+            multiclass_extension = multiclass_extension()
             multiclass_extension_params['params'] = [feature_map, self]
             multiclass_extension_params['estimator_cls'] = QSVM_Kernel_Estimator
             multiclass_extension.init_params(multiclass_extension_params)

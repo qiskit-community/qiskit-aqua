@@ -21,7 +21,7 @@ import numpy as np
 from parameterized import parameterized
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import PluggableType, get_pluggable_instance
+from qiskit_aqua import PluggableType, get_pluggable_class
 from qiskit_aqua.translators.ising import maxcut
 
 w1 = np.array([
@@ -53,9 +53,11 @@ class TestQAOA(QiskitAquaTestCase):
     def test_qaoa(self, w, p, solutions):
         self.log.debug('Testing {}-step QAOA with MaxCut on graph\n{}'.format(p, w))
         np.random.seed(0)
-        optimizer = get_pluggable_instance(PluggableType.OPTIMIZER,'COBYLA')
+        optimizer = get_pluggable_class(PluggableType.OPTIMIZER,'COBYLA')
+        optimizer = optimizer()
         qubitOp, offset = maxcut.get_maxcut_qubitops(w)
-        qaoa = get_pluggable_instance(PluggableType.ALGORITHM,'QAOA.Variational')
+        qaoa = get_pluggable_class(PluggableType.ALGORITHM,'QAOA.Variational')
+        qaoa = qaoa()
         qaoa.setup_quantum_backend(backend='statevector_simulator', shots=100)
         qaoa.init_args(qubitOp, 'matrix', p, optimizer)
 

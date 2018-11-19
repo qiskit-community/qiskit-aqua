@@ -319,30 +319,6 @@ def get_pluggable_class(pluggable_type, pluggable_name):
 
     return _REGISTERED_PLUGGABLES[pluggable_type][pluggable_name].cls
 
-
-def get_pluggable_instance(pluggable_type, pluggable_name):
-    """
-    Instantiates a pluggable class
-    Args:
-        pluggable_type(str): The pluggable type
-        pluggable_name (str): The pluggable name
-     Returns:
-        instance: pluggable instance
-    """
-    _discover_on_demand()
-
-    if pluggable_type not in _REGISTERED_PLUGGABLES:
-        raise AlgorithmError('{} {} not registered'.format(
-            pluggable_type, pluggable_name))
-
-    if pluggable_name not in _REGISTERED_PLUGGABLES[pluggable_type]:
-        raise AlgorithmError('{} {} not registered'.format(
-            pluggable_type, pluggable_name))
-
-    return _REGISTERED_PLUGGABLES[pluggable_type][pluggable_name].cls(
-        configuration=_REGISTERED_PLUGGABLES[pluggable_type][pluggable_name].configuration)
-
-
 def get_pluggable_configuration(pluggable_type, pluggable_name):
     """
     Accesses pluggable configuration
