@@ -43,7 +43,7 @@ class PauliExpansion(FeatureMap):
     Refer to https://arxiv.org/pdf/1804.11326.pdf for details.
     """
 
-    PAULI_EXPANSION_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'PauliExpansion',
         'description': 'Pauli expansion for feature map (any order)',
         'input_schema': {
@@ -79,9 +79,9 @@ class PauliExpansion(FeatureMap):
         }
     }
 
-    def __init__(self, configuration=None):
+    def __init__(self):
         """Constructor."""
-        super().__init__(configuration or self.PAULI_EXPANSION_CONFIGURATION.copy())
+        super().__init__(self.CONFIGURATION.copy())
         self._ret = {}
 
     def init_args(self, num_qubits, depth, entangler_map=None,

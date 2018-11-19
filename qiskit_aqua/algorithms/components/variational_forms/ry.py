@@ -24,7 +24,7 @@ from qiskit_aqua.algorithms.components.variational_forms import VariationalForm
 class VarFormRY(VariationalForm):
     """Layers of Y rotations followed by entangling gates."""
 
-    RY_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'RY',
         'description': 'RY Variational Form',
         'input_schema': {
@@ -53,8 +53,8 @@ class VarFormRY(VariationalForm):
         }
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.RY_CONFIGURATION.copy())
+    def __init__(self):
+        super().__init__(self.CONFIGURATION.copy())
         self._num_qubits = 0
         self._depth = 0
         self._entangler_map = None

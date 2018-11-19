@@ -35,7 +35,7 @@ class DIRECT_L_RAND(Optimizer):
     http://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#direct-and-direct-l
     """
 
-    DIRECT_L_RAND_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'DIRECT_L_RAND',
         'description': 'GN_DIRECT_L_RAND Optimizer',
         'input_schema': {
@@ -59,8 +59,8 @@ class DIRECT_L_RAND(Optimizer):
         'optimizer': ['global']
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.DIRECT_L_RAND_CONFIGURATION.copy())
+    def __init__(self):
+        super().__init__(self.CONFIGURATION.copy())
 
     def init_args(self):
         pass

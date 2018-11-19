@@ -27,7 +27,7 @@ from qiskit_aqua.algorithms.components.iqfts import IQFT
 class Approximate(IQFT):
     """An approximate IQFT."""
 
-    APPROXIMATE_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'APPROXIMATE',
         'description': 'Approximate inverse QFT',
         'input_schema': {
@@ -45,8 +45,8 @@ class Approximate(IQFT):
         }
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.APPROXIMATE_CONFIGURATION.copy())
+    def __init__(self):
+        super().__init__(self.CONFIGURATION.copy())
         self._num_qubits = 0
         self._degree = 0
 

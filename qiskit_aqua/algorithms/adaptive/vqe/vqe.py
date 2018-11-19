@@ -39,7 +39,7 @@ class VQE(QuantumAlgorithm):
     See https://arxiv.org/abs/1304.3061
     """
 
-    VQE_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'VQE',
         'description': 'VQE Algorithm',
         'input_schema': {
@@ -84,7 +84,7 @@ class VQE(QuantumAlgorithm):
     }
 
     def __init__(self, configuration=None):
-        super().__init__(configuration or self.VQE_CONFIGURATION.copy())
+        super().__init__(configuration or self.CONFIGURATION.copy())
         self._operator = None
         self._operator_mode = 'matrix'
         self._var_form = None

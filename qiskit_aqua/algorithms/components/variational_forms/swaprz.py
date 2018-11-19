@@ -24,7 +24,7 @@ from qiskit_aqua.algorithms.components.variational_forms import VariationalForm
 class VarFormSwapRZ(VariationalForm):
     """Layers of Swap+Z rotations followed by entangling gates."""
 
-    SWAPRZ_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'SWAPRZ',
         'description': 'SWAPRZ Variational Form',
         'input_schema': {
@@ -53,8 +53,8 @@ class VarFormSwapRZ(VariationalForm):
         }
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.SWAPRZ_CONFIGURATION.copy())
+    def __init__(self):
+        super().__init__(self.CONFIGURATION.copy())
         self._num_qubits = 0
         self._depth = 0
         self._entangler_map = None

@@ -25,6 +25,7 @@ import os
 import pkgutil
 import importlib
 import inspect
+import copy
 from collections import namedtuple
 from enum import Enum
 from .quantumalgorithm import QuantumAlgorithm
@@ -251,14 +252,9 @@ def _register_pluggable(pluggable_type, cls):
     if cls in [pluggable.cls for pluggable in registered_classes.values()]:
         raise AlgorithmError('Could not register class {} is already registered'.format(cls))
 
-    try:
-        pluggable_instance = cls()
-    except Exception as err:
-        raise AlgorithmError('Could not register puggable:{} could not be instantiated: {}'.format(cls, str(err)))
-
     # Verify that it has a minimal valid configuration.
     try:
-        pluggable_name = pluggable_instance.configuration['name']
+        pluggable_name = cls.CONFIGURATION['name']
     except (LookupError, TypeError):
         raise AlgorithmError('Could not register pluggable: invalid configuration')
 
@@ -268,7 +264,7 @@ def _register_pluggable(pluggable_type, cls):
 
     # Append the pluggable to the `registered_classes` dict.
     _REGISTERED_PLUGGABLES[pluggable_type][pluggable_name] = RegisteredPluggable(
-        pluggable_name, cls, pluggable_instance.configuration)
+        pluggable_name, cls, copy.deepcopy(cls.CONFIGURATION))
     return pluggable_name
 
 

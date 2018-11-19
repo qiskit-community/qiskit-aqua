@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 
 class CPLEX_Ising(QuantumAlgorithm):
-    CPLEX_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'CPLEX.Ising',
         'description': 'CPLEX backend for Ising Hamiltonian',
         'classical': True,
@@ -63,8 +63,8 @@ class CPLEX_Ising(QuantumAlgorithm):
         'problems': ['ising']
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or copy.deepcopy(CPLEX_Ising.CPLEX_CONFIGURATION))
+    def __init__(self):
+        super().__init__(copy.deepcopy(CPLEX_Ising.CONFIGURATION))
         self._ins = IsingInstance()
         self._sol = None
         self._timelimit = 600

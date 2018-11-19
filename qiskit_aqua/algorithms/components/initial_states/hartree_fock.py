@@ -24,7 +24,7 @@ from qiskit_aqua.algorithms.components.initial_states import InitialState
 class HartreeFock(InitialState):
     """A Hartree-Fock initial state."""
 
-    HARTREEFOCK_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'HartreeFock',
         'description': 'Hartree-Fock initial state',
         'input_schema': {
@@ -58,8 +58,8 @@ class HartreeFock(InitialState):
         }
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.HARTREEFOCK_CONFIGURATION.copy())
+    def __init__(self):
+        super().__init__(self.CONFIGURATION.copy())
         self._num_qubits = 0
         self._qubit_mapping = 'parity'
         self._two_qubit_reduction = True

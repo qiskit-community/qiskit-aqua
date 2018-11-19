@@ -29,7 +29,7 @@ class FirstOrderExpansion(PauliZExpansion):
     Refer to https://arxiv.org/pdf/1804.11326.pdf for details.
     """
 
-    FIRST_ORDER_EXPANSION_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'FirstOrderExpansion',
         'description': 'First order expansion for feature map',
         'input_schema': {
@@ -47,9 +47,9 @@ class FirstOrderExpansion(PauliZExpansion):
         }
     }
 
-    def __init__(self, configuration=None):
+    def __init__(self):
         """Constructor."""
-        super().__init__(configuration or self.FIRST_ORDER_EXPANSION_CONFIGURATION.copy())
+        super().__init__(self.CONFIGURATION.copy())
         self._ret = {}
 
     def init_args(self, num_qubits, depth, data_map_func=self_product):

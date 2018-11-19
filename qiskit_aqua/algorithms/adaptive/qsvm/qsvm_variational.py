@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 class QSVMVariational(QuantumAlgorithm):
 
-    QSVM_VARIATIONAL_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'QSVM.Variational',
         'description': 'QSVM_Variational Algorithm',
         'input_schema': {
@@ -68,7 +68,7 @@ class QSVMVariational(QuantumAlgorithm):
     }
 
     def __init__(self, configuration=None):
-        super().__init__(configuration or self.QSVM_VARIATIONAL_CONFIGURATION.copy())
+        super().__init__(configuration or self.CONFIGURATION.copy())
         self._ret = {}
 
     def init_params(self, params, algo_input):

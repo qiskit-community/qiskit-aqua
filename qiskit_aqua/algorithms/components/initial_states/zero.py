@@ -24,7 +24,7 @@ from qiskit_aqua.algorithms.components.initial_states import InitialState
 class Zero(InitialState):
     """A zero (null/vacuum) state."""
 
-    ZERO_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'ZERO',
         'description': 'Zero initial state',
         'input_schema': {
@@ -37,8 +37,8 @@ class Zero(InitialState):
         }
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.ZERO_CONFIGURATION.copy())
+    def __init__(self):
+        super().__init__(self.CONFIGURATION.copy())
         self._num_qubits = 0
 
     def init_args(self, num_qubits):

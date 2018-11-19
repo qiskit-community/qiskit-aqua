@@ -43,7 +43,7 @@ class IQPE(QuantumAlgorithm):
     PROP_EXPANSION_ORDER = 'expansion_order'
     PROP_NUM_ITERATIONS = 'num_iterations'
 
-    IQPE_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'IQPE',
         'description': 'Iterative Quantum Phase Estimation for Quantum Systems',
         'input_schema': {
@@ -98,8 +98,8 @@ class IQPE(QuantumAlgorithm):
         }
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.IQPE_CONFIGURATION.copy())
+    def __init__(self):
+        super().__init__(self.CONFIGURATION.copy())
         self._operator = None
         self._state_in = None
         self._num_time_slices = 0

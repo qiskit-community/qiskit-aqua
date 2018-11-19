@@ -29,7 +29,7 @@ class OneAgainstRest(MulticlassExtension):
     """
       the multiclass extension based on the one-against-rest algorithm.
     """
-    OneAgainstRest_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'OneAgainstRest',
         'description': 'OneAgainstRest extension',
         'input_schema': {
@@ -42,8 +42,8 @@ class OneAgainstRest(MulticlassExtension):
         }
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.OneAgainstRest_CONFIGURATION.copy())
+    def __init__(self):
+        super().__init__(self.CONFIGURATION.copy())
         self.estimator_cls = None
         self.params = None
 

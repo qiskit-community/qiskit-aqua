@@ -36,7 +36,7 @@ class CRS(Optimizer):
     https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#controlled-random-search-crs-with-local-mutation
     """
 
-    CRS_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'CRS',
         'description': 'GN_CRS2_LM Optimizer',
         'input_schema': {
@@ -60,8 +60,8 @@ class CRS(Optimizer):
         'optimizer': ['global']
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.CRS_CONFIGURATION.copy())
+    def __init__(self):
+        super().__init__(self.CONFIGURATION.copy())
 
     def init_args(self):
         pass

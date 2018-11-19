@@ -38,7 +38,7 @@ class QPE(QuantumAlgorithm):
     PROP_EXPANSION_ORDER = 'expansion_order'
     PROP_NUM_ANCILLAE = 'num_ancillae'
 
-    QPE_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'QPE',
         'description': 'Quantum Phase Estimation for Quantum Systems',
         'input_schema': {
@@ -97,7 +97,7 @@ class QPE(QuantumAlgorithm):
     }
 
     def __init__(self, configuration=None):
-        super().__init__(configuration or self.QPE_CONFIGURATION.copy())
+        super().__init__(configuration or self.CONFIGURATION.copy())
         self._operator = None
         self._state_in = None
         self._num_time_slices = 0

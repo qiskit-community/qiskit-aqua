@@ -25,7 +25,7 @@ from qiskit_aqua.algorithms.components.iqfts import IQFT
 class Standard(IQFT):
     """A normal standard IQFT."""
 
-    STANDARD_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'STANDARD',
         'description': 'Inverse QFT',
         'input_schema': {
@@ -38,8 +38,8 @@ class Standard(IQFT):
         }
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.STANDARD_CONFIGURATION.copy())
+    def __init__(self):
+        super().__init__(self.CONFIGURATION.copy())
         self._num_qubits = 0
 
     def init_args(self, num_qubits):

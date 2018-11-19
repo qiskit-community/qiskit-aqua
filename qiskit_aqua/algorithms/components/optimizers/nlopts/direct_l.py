@@ -36,7 +36,7 @@ class DIRECT_L(Optimizer):
     http://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#direct-and-direct-l
     """
 
-    DIRECT_L_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'DIRECT_L',
         'description': 'GN_DIRECT_L Optimizer',
         'input_schema': {
@@ -60,8 +60,8 @@ class DIRECT_L(Optimizer):
         'optimizer': ['global']
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.DIRECT_L_CONFIGURATION.copy())
+    def __init__(self):
+        super().__init__(self.CONFIGURATION.copy())
 
     def init_args(self):
         pass

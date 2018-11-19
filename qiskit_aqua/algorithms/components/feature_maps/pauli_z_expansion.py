@@ -30,7 +30,7 @@ class PauliZExpansion(PauliExpansion):
 
     """
 
-    PAULI_Z_EXPANSION_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'PauliZExpansion',
         'description': 'Pauli Z expansion for feature map (any order)',
         'input_schema': {
@@ -64,9 +64,9 @@ class PauliZExpansion(PauliExpansion):
         }
     }
 
-    def __init__(self, configuration=None):
+    def __init__(self):
         """Constructor."""
-        super().__init__(configuration or self.PAULI_Z_EXPANSION_CONFIGURATION.copy())
+        super().__init__(self.CONFIGURATION.copy())
         self._ret = {}
 
     def init_args(self, num_qubits, depth, entangler_map=None,

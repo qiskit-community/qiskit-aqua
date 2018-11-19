@@ -32,7 +32,7 @@ class ExactEigensolver(QuantumAlgorithm):
 
     PROP_K = 'k'
 
-    EXACTEIGENSOLVER_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'ExactEigensolver',
         'description': 'ExactEigensolver Algorithm',
         'classical': True,
@@ -52,8 +52,8 @@ class ExactEigensolver(QuantumAlgorithm):
         'problems': ['energy', 'excited_states', 'ising']
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or copy.deepcopy(ExactEigensolver.EXACTEIGENSOLVER_CONFIGURATION))
+    def __init__(self):
+        super().__init__(copy.deepcopy(ExactEigensolver.CONFIGURATION))
         self._operator = None
         self._aux_operators = None
         self._k = 1

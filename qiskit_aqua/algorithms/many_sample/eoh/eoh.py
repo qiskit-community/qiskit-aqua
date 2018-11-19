@@ -40,7 +40,7 @@ class EOH(QuantumAlgorithm):
     PROP_EXPANSION_MODE = 'expansion_mode'
     PROP_EXPANSION_ORDER = 'expansion_order'
 
-    DYNAMICS_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'EOH',
         'description': 'Evolution of Hamiltonian for Quantum Systems',
         'input_schema': {
@@ -107,7 +107,7 @@ class EOH(QuantumAlgorithm):
     }
 
     def __init__(self, configuration=None):
-        super().__init__(configuration or self.DYNAMICS_CONFIGURATION.copy())
+        super().__init__(configuration or self.CONFIGURATION.copy())
         self._operator = None
         self._operator_mode = None
         self._initial_state = None

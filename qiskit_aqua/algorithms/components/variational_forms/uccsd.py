@@ -45,7 +45,7 @@ class VarFormUCCSD(VariationalForm):
         For more information, see https://arxiv.org/abs/1805.04340
     """
 
-    UCCSD_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'UCCSD',
         'description': 'UCCSD Variational Form',
         'input_schema': {
@@ -97,8 +97,8 @@ class VarFormUCCSD(VariationalForm):
         }
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.UCCSD_CONFIGURATION.copy())
+    def __init__(self):
+        super().__init__(self.CONFIGURATION.copy())
         self._num_qubits = 0
         self._depth = 0
         self._num_orbitals = 0

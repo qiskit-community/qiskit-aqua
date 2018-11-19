@@ -32,7 +32,7 @@ class Grover(QuantumAlgorithm):
     PROP_INCREMENTAL = 'incremental'
     PROP_NUM_ITERATIONS = 'num_iterations'
 
-    GROVER_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'Grover',
         'description': 'Grover',
         'input_schema': {
@@ -61,8 +61,8 @@ class Grover(QuantumAlgorithm):
         }
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.GROVER_CONFIGURATION.copy())
+    def __init__(self):
+        super().__init__(self.CONFIGURATION.copy())
         self._incremental = False
         self._num_iterations = 1
         self._oracle = None

@@ -34,7 +34,7 @@ class ISRES(Optimizer):
     NLopt global optimizer, derivative-free
     http://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#isres-improved-stochastic-ranking-evolution-strategy
     """
-    ISRES_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'ISRES',
         'description': 'GN_ISRES Optimizer',
         'input_schema': {
@@ -58,8 +58,8 @@ class ISRES(Optimizer):
         'optimizer': ['global']
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.ISRES_CONFIGURATION.copy())
+    def __init__(self):
+        super().__init__(self.CONFIGURATION.copy())
 
     def init_args(self):
         pass

@@ -30,7 +30,7 @@ class ErrorCorrectingCode(MulticlassExtension):
     """
       the multiclass extension based on the error-correcting-code algorithm.
     """
-    ErrorCorrectingCode_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'ErrorCorrectingCode',
         'description': 'ErrorCorrectingCode extension',
         'input_schema': {
@@ -48,8 +48,8 @@ class ErrorCorrectingCode(MulticlassExtension):
         }
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.ErrorCorrectingCode_CONFIGURATION.copy())
+    def __init__(self):
+        super().__init__(self.CONFIGURATION.copy())
         self.estimator_cls = None
         self.params = None
         self.code_size = None

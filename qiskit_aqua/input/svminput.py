@@ -23,7 +23,7 @@ from qiskit_aqua.input import AlgorithmInput
 
 class SVMInput(AlgorithmInput):
 
-    SVM_INPUT_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'SVMInput',
         'description': 'SVM input',
         'input_schema': {
@@ -49,8 +49,8 @@ class SVMInput(AlgorithmInput):
         'problems': ['svm_classification']
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or copy.deepcopy(self.SVM_INPUT_CONFIGURATION))
+    def __init__(self):
+        super().__init__(copy.deepcopy(SVMInput.CONFIGURATION))
         self.training_dataset = None
         self.test_dataset = None
         self.datapoints = None

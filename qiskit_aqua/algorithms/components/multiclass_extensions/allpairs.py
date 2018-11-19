@@ -29,7 +29,7 @@ class AllPairs(MulticlassExtension):
     """
       the multiclass extension based on the all-pairs algorithm.
     """
-    AllPairs_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'AllPairs',
         'description': 'AllPairs extension',
         'input_schema': {
@@ -42,8 +42,8 @@ class AllPairs(MulticlassExtension):
         }
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.AllPairs_CONFIGURATION.copy())
+    def __init__(self):
+        super().__init__(self.CONFIGURATION.copy())
         self.estimator_cls = None
         self.params = None
 

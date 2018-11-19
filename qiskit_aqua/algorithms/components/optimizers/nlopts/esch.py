@@ -35,7 +35,7 @@ class ESCH(Optimizer):
     http://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#esch-evolutionary-algorithm
     """
 
-    ESCH_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'ESCH',
         'description': 'GN_ESCH Optimizer',
         'input_schema': {
@@ -59,8 +59,8 @@ class ESCH(Optimizer):
         'optimizer': ['global']
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.ESCH_CONFIGURATION.copy())
+    def __init__(self):
+        super().__init__(self.CONFIGURATION.copy())
 
     def init_args(self):
         pass

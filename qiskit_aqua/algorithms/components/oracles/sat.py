@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 class SAT(Oracle):
-    SAT_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'SAT',
         'description': 'Satisfiability Oracle',
         'input_schema': {
@@ -41,8 +41,8 @@ class SAT(Oracle):
         }
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.SAT_CONFIGURATION.copy())
+    def __init__(self):
+        super().__init__(self.CONFIGURATION.copy())
         self._cnf = None
         self._qr_ancilla = None
         self._qr_clause = None

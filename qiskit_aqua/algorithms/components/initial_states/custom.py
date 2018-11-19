@@ -30,7 +30,7 @@ from qiskit_aqua.algorithms.components.initial_states import InitialState
 class Custom(InitialState):
     """A custom initial state."""
 
-    CUSTOM_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'CUSTOM',
         'description': 'Custom initial state',
         'input_schema': {
@@ -57,8 +57,8 @@ class Custom(InitialState):
         }
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.CUSTOM_CONFIGURATION.copy())
+    def __init__(self):
+        super().__init__(self.CONFIGURATION.copy())
         self._num_qubits = 0
         self._state = 'zero'
         self._state_vector = None

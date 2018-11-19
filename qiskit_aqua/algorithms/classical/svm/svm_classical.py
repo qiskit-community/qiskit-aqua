@@ -33,7 +33,7 @@ class SVM_Classical(QuantumAlgorithm):
     based on how many classes the data have.
     """
 
-    SVM_Classical_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'SVM',
         'description': 'SVM_Classical Algorithm',
         'classical': True,
@@ -53,8 +53,8 @@ class SVM_Classical(QuantumAlgorithm):
         'problems': ['svm_classification']
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or copy.deepcopy(SVM_Classical.SVM_Classical_CONFIGURATION))
+    def __init__(self):
+        super().__init__(copy.deepcopy(SVM_Classical.CONFIGURATION))
         self._ret = {}
         self.instance = None
 

@@ -34,7 +34,7 @@ class QSVM_Kernel(QuantumAlgorithm):
     Internally, it will run the binary classification or multiclass classification
     based on how many classes the data have.
     """
-    QSVM_KERNEL_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'QSVM.Kernel',
         'description': 'QSVM_Kernel Algorithm',
         'input_schema': {
@@ -56,7 +56,7 @@ class QSVM_Kernel(QuantumAlgorithm):
     }
 
     def __init__(self, configuration=None):
-        super().__init__(configuration or self.QSVM_KERNEL_CONFIGURATION.copy())
+        super().__init__(configuration or self.CONFIGURATION.copy())
         self._ret = {}
         self.instance = None
 

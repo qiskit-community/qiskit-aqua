@@ -36,7 +36,7 @@ class QAOA(VQE):
     PROP_P = 'p'
     PROP_INIT_POINT = 'initial_point'
 
-    QAOA_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'QAOA.Variational',
         'description': 'Quantum Approximate Optimization Algorithm',
         'input_schema': {
@@ -76,7 +76,7 @@ class QAOA(VQE):
     }
 
     def __init__(self, configuration=None):
-        super().__init__(configuration or self.QAOA_CONFIGURATION.copy())
+        super().__init__(configuration or self.CONFIGURATION.copy())
 
     def init_params(self, params, algo_input):
         """

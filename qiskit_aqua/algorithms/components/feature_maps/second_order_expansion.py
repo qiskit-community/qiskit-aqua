@@ -29,7 +29,7 @@ class SecondOrderExpansion(PauliZExpansion):
     Refer to https://arxiv.org/pdf/1804.11326.pdf for details.
     """
 
-    SECOND_ORDER_EXPANSION_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'SecondOrderExpansion',
         'description': 'Second order expansion for feature map',
         'input_schema': {
@@ -58,9 +58,9 @@ class SecondOrderExpansion(PauliZExpansion):
         }
     }
 
-    def __init__(self, configuration=None):
+    def __init__(self):
         """Constructor."""
-        super().__init__(configuration or self.SECOND_ORDER_EXPANSION_CONFIGURATION.copy())
+        super().__init__(self.CONFIGURATION.copy())
         self._ret = {}
 
     def init_args(self, num_qubits, depth, entangler_map=None,
