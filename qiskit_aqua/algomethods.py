@@ -55,7 +55,7 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
     inputparser.validate_merge_defaults()
     logger.debug('Algorithm Input: {}'.format(json.dumps(inputparser.get_sections(), sort_keys=True, indent=4)))
 
-    algo_name = inputparser.get_section_property(JSONSchema.ALGORITHM, JSONSchema.NAME)
+    algo_name = inputparser.get_section_property(PluggableType.ALGORITHM.value, JSONSchema.NAME)
     if algo_name is None:
         raise AlgorithmError('Missing algorithm name')
 

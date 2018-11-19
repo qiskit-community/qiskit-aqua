@@ -231,7 +231,7 @@ class Model(object):
         if not Model.is_pluggable_section(section_name):
             return []
 
-        if JSONSchema.ALGORITHM == section_name:
+        if PluggableType.ALGORITHM.value == section_name:
             problem_name = None
             if self._parser is not None:
                 problem_name = self.get_section_property(JSONSchema.PROBLEM, JSONSchema.NAME)

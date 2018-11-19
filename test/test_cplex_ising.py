@@ -27,7 +27,7 @@ class TestCplexIsing(QiskitAquaTestCase):
     """Cplex Ising tests."""
 
     def setUp(self):
-        if 'CPLEX.Ising' not in local_pluggables('algorithm'):
+        if 'CPLEX.Ising' not in local_pluggables(PluggableType.ALGORITHM):
             self.skipTest('CPLEX.Ising algorithm not found - CPLEX not installed?')
 
         np.random.seed(8123179)

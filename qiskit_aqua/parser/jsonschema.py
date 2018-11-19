@@ -36,7 +36,6 @@ class JSONSchema(object):
 
     NAME = 'name'
     PROBLEM = 'problem'
-    ALGORITHM = 'algorithm'
     BACKEND = 'backend'
 
     def __init__(self, jsonfile):
@@ -311,15 +310,12 @@ class JSONSchema(object):
             input_parser (obj): input parser
         """
         # find alogorithm
-        default_algo_name = self.get_property_default_value(
-            JSONSchema.ALGORITHM, JSONSchema.NAME)
-        algo_name = input_parser.get_section_property(
-            JSONSchema.ALGORITHM, JSONSchema.NAME, default_algo_name)
+        default_algo_name = self.get_property_default_value(PluggableType.ALGORITHM.value, JSONSchema.NAME)
+        algo_name = input_parser.get_section_property(PluggableType.ALGORITHM.value, JSONSchema.NAME, default_algo_name)
 
         # update alogorithm scheme
         if algo_name is not None:
-            self._update_pluggable_input_schema(
-                JSONSchema.ALGORITHM, algo_name, default_algo_name)
+            self._update_pluggable_input_schema(PluggableType.ALGORITHM.value, algo_name, default_algo_name)
 
         # update alogorithm depoendencies scheme
         config = {} if algo_name is None else get_pluggable_configuration(PluggableType.ALGORITHM, algo_name)

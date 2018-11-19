@@ -52,7 +52,7 @@ class InputParser(object):
                 raise AlgorithmError("Invalid parser input type.")
 
         self._section_order = [JSONSchema.PROBLEM,
-                               InputParser.INPUT, JSONSchema.ALGORITHM]
+                               InputParser.INPUT, PluggableType.ALGORITHM.value]
         for pluggable_type in local_pluggables_types():
             if pluggable_type != PluggableType.ALGORITHM:
                 self._section_order.append(pluggable_type.value)
@@ -208,8 +208,7 @@ class InputParser(object):
         self._json_schema.schema['properties'][InputParser.INPUT]['additionalProperties'] = additionalProperties
 
     def _merge_dependencies(self):
-        algo_name = self.get_section_property(
-            JSONSchema.ALGORITHM, JSONSchema.NAME)
+        algo_name = self.get_section_property(PluggableType.ALGORITHM.value, JSONSchema.NAME)
         if algo_name is None:
             return
 
@@ -255,7 +254,7 @@ class InputParser(object):
 
     def _merge_default_values(self):
         section_names = self.get_section_names()
-        if JSONSchema.ALGORITHM in section_names:
+        if PluggableType.ALGORITHM.value in section_names:
             if JSONSchema.PROBLEM not in section_names:
                 self.set_section(JSONSchema.PROBLEM)
 
@@ -302,8 +301,7 @@ class InputParser(object):
         self._validate_input_problem()
 
     def _validate_algorithm_problem(self):
-        algo_name = self.get_section_property(
-            JSONSchema.ALGORITHM, JSONSchema.NAME)
+        algo_name = self.get_section_property(PluggableType.ALGORITHM.value, JSONSchema.NAME)
         if algo_name is None:
             return
 
@@ -499,7 +497,7 @@ class InputParser(object):
                             self.delete_section_property(
                                 section_name, property_name)
 
-                if section_name == JSONSchema.ALGORITHM:
+                if section_name == PluggableType.ALGORITHM.value:
                     self._update_dependency_sections()
 
         self._sections = self._order_sections(self._sections)
@@ -515,20 +513,18 @@ class InputParser(object):
             raise AlgorithmError(
                 "No algorithm 'problem' section found on input.")
 
-        algo_name = self.get_section_property(
-            JSONSchema.ALGORITHM, JSONSchema.NAME)
+        algo_name = self.get_section_property(PluggableType.ALGORITHM.value, JSONSchema.NAME)
         if algo_name is not None and problem_name in InputParser.get_algorithm_problems(algo_name):
             return
 
         for algo_name in local_pluggables(PluggableType.ALGORITHM):
             if problem_name in self.get_algorithm_problems(algo_name):
                 # set to the first algorithm to solve the problem
-                self.set_section_property(
-                    JSONSchema.ALGORITHM, JSONSchema.NAME, algo_name)
+                self.set_section_property(PluggableType.ALGORITHM.value, JSONSchema.NAME, algo_name)
                 return
 
         # no algorithm solve this problem, remove section
-        self.delete_section(JSONSchema.ALGORITHM)
+        self.delete_section(PluggableType.ALGORITHM.value)
 
     def _update_input_problem(self):
         problem_name = self.get_section_property(
@@ -557,8 +553,7 @@ class InputParser(object):
         self.delete_section(InputParser.INPUT)
 
     def _update_dependency_sections(self):
-        algo_name = self.get_section_property(
-            JSONSchema.ALGORITHM, JSONSchema.NAME)
+        algo_name = self.get_section_property(PluggableType.ALGORITHM.value, JSONSchema.NAME)
         config = {} if algo_name is None else get_pluggable_configuration(PluggableType.ALGORITHM, algo_name)
         classical = config['classical'] if 'classical' in config else False
         pluggable_dependencies = [] if 'depends' not in config else config['depends']
