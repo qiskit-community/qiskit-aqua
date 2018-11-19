@@ -173,9 +173,10 @@ class HHL(QuantumAlgorithm):
 
         num_q, num_a = eigs.get_register_sizes()
 
-
         # Fix vector for nonhermitian/non 2**n size matrices
-        assert(matrix.shape[0] == len(vector), "Check input vector size!")
+        if matrix.shape[0] != len(vector):
+            raise ValueError("Input vector dimension does not match input "
+                             "matrix dimension!")
 
         tmpvec = vector 
         init_state_params = {"name": "CUSTOM"}
