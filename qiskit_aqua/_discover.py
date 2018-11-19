@@ -211,12 +211,11 @@ def discover_local_pluggables(directory=os.path.dirname(__file__),
         sys.path = syspath_save
 
 
-def register_pluggable(cls, configuration=None):
+def register_pluggable(cls):
     """
     Registers a pluggable class
     Args:
         cls (object): Pluggable class.
-        configuration (object, optional): Pluggable configuration
      Returns:
         name: pluggable name
     """
@@ -230,16 +229,15 @@ def register_pluggable(cls, configuration=None):
     if pluggable_type is None:
         raise AlgorithmError('Could not register class {} is not subclass of any known pluggable'.format(cls))
 
-    return _register_pluggable(pluggable_type, cls, configuration)
+    return _register_pluggable(pluggable_type, cls)
 
 
-def _register_pluggable(pluggable_type, cls, configuration=None):
+def _register_pluggable(pluggable_type, cls):
     """
     Registers a pluggable class
     Args:
         pluggable_type(str): The pluggable type
         cls (object): Pluggable class.
-        configuration (object, optional): Pluggable configuration
      Returns:
         name: pluggable name
     Raises:
@@ -254,7 +252,7 @@ def _register_pluggable(pluggable_type, cls, configuration=None):
         raise AlgorithmError('Could not register class {} is already registered'.format(cls))
 
     try:
-        pluggable_instance = cls(configuration=configuration)
+        pluggable_instance = cls()
     except Exception as err:
         raise AlgorithmError('Could not register puggable:{} could not be instantiated: {}'.format(cls, str(err)))
 
