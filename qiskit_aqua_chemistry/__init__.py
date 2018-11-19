@@ -26,7 +26,7 @@ from ._logging import (get_logging_level,
                        build_logging_config,
                        set_logging_config)
 
-__version__ = '0.3.0'
+__version__ = '0.3.1'
 
 
 def get_aqua_chemistry_logging():

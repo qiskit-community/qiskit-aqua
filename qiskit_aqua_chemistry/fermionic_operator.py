@@ -21,7 +21,7 @@ import multiprocessing
 import concurrent.futures
 
 import numpy as np
-from qiskit.tools.qi.pauli import Pauli, label_to_pauli, sgn_prod
+from qiskit.quantum_info import Pauli
 from qiskit_aqua import Operator
 
 from qiskit_aqua_chemistry import AquaChemistryError
@@ -147,11 +147,11 @@ class FermionicOperator(object):
         """
         a = []
         for i in range(n):
-            xv = np.asarray([1] * i + [0] + [0] * (n - i - 1))
-            xw = np.asarray([0] * i + [1] + [0] * (n - i - 1))
-            yv = np.asarray([1] * i + [1] + [0] * (n - i - 1))
-            yw = np.asarray([0] * i + [1] + [0] * (n - i - 1))
-            a.append((Pauli(xv, xw), Pauli(yv, yw)))
+            a_z = np.asarray([1] * i + [0] + [0] * (n - i - 1), dtype=np.bool)
+            a_x = np.asarray([0] * i + [1] + [0] * (n - i - 1), dtype=np.bool)
+            b_z = np.asarray([1] * i + [1] + [0] * (n - i - 1), dtype=np.bool)
+            b_x = np.asarray([0] * i + [1] + [0] * (n - i - 1), dtype=np.bool)
+            a.append((Pauli(a_z, a_x), Pauli(b_z, b_x)))
         return a
 
     def _parity_mode(self, n):
@@ -163,15 +163,15 @@ class FermionicOperator(object):
         """
         a = []
         for i in range(n):
-            x_v = [0] * (i - 1) + [1] if i > 0 else []
-            x_w = [0] * (i - 1) + [0] if i > 0 else []
-            y_v = [0] * (i - 1) + [0] if i > 0 else []
-            y_w = [0] * (i - 1) + [0] if i > 0 else []
-            x_v = np.asarray(x_v + [0] + [0] * (n - i - 1))
-            x_w = np.asarray(x_w + [1] + [1] * (n - i - 1))
-            y_v = np.asarray(y_v + [1] + [0] * (n - i - 1))
-            y_w = np.asarray(y_w + [1] + [1] * (n - i - 1))
-            a.append((Pauli(x_v, x_w), Pauli(y_v, y_w)))
+            a_z = [0] * (i - 1) + [1] if i > 0 else []
+            a_x = [0] * (i - 1) + [0] if i > 0 else []
+            b_z = [0] * (i - 1) + [0] if i > 0 else []
+            b_x = [0] * (i - 1) + [0] if i > 0 else []
+            a_z = np.asarray(a_z + [0] + [0] * (n - i - 1), dtype=np.bool)
+            a_x = np.asarray(a_x + [1] + [1] * (n - i - 1), dtype=np.bool)
+            b_z = np.asarray(b_z + [1] + [0] * (n - i - 1), dtype=np.bool)
+            b_x = np.asarray(b_x + [1] + [1] * (n - i - 1), dtype=np.bool)
+            a.append((Pauli(a_z, a_x), Pauli(b_z, b_x)))
         return a
 
     def _bravyi_kitaev_mode(self, n):
@@ -211,7 +211,6 @@ class FermionicOperator(object):
 
             Returns:
                 numpy.ndarray: Array of mode indexes
-
             """
             indexes = np.array([])
             if n % 2 != 0:
@@ -274,22 +273,22 @@ class FermionicOperator(object):
 
             remainder_sets.append(np.setdiff1d(parity_sets[j], flip_sets[j]))
 
-            update_pauli.append(Pauli(np.zeros(n), np.zeros(n)))
-            parity_pauli.append(Pauli(np.zeros(n), np.zeros(n)))
-            remainder_pauli.append(Pauli(np.zeros(n), np.zeros(n)))
+            update_pauli.append(Pauli(np.zeros(n, dtype=np.bool), np.zeros(n, dtype=np.bool)))
+            parity_pauli.append(Pauli(np.zeros(n, dtype=np.bool), np.zeros(n, dtype=np.bool)))
+            remainder_pauli.append(Pauli(np.zeros(n, dtype=np.bool), np.zeros(n, dtype=np.bool)))
             for k in range(n):
                 if np.in1d(k, update_sets[j]):
-                    update_pauli[j].w[k] = 1
+                    update_pauli[j].update_x(True, k)
                 if np.in1d(k, parity_sets[j]):
-                    parity_pauli[j].v[k] = 1
+                    parity_pauli[j].update_z(True, k)
                 if np.in1d(k, remainder_sets[j]):
-                    remainder_pauli[j].v[k] = 1
+                    remainder_pauli[j].update_z(True, k)
 
-            x_j = Pauli(np.zeros(n), np.zeros(n))
-            x_j.w[j] = 1
-            y_j = Pauli(np.zeros(n), np.zeros(n))
-            y_j.v[j] = 1
-            y_j.w[j] = 1
+            x_j = Pauli(np.zeros(n, dtype=np.bool), np.zeros(n, dtype=np.bool))
+            x_j.update_x(True, j)
+            y_j = Pauli(np.zeros(n, dtype=np.bool), np.zeros(n, dtype=np.bool))
+            y_j.update_z(True, j)
+            y_j.update_x(True, j)
             a.append((update_pauli[j] * x_j * parity_pauli[j],
                       update_pauli[j] * y_j * remainder_pauli[j]))
         return a
@@ -360,7 +359,7 @@ class FermionicOperator(object):
             pauli_list.chop(threshold=threshold)
 
         if self._ph_trans_shift is not None:
-            pauli_term = [self._ph_trans_shift, label_to_pauli('I' * self._modes)]
+            pauli_term = [self._ph_trans_shift, Pauli.from_label('I' * self._modes)]
             pauli_list += Operator(paulis=[pauli_term])
 
         return pauli_list
@@ -382,7 +381,7 @@ class FermionicOperator(object):
         pauli_list = []
         for alpha in range(2):
             for beta in range(2):
-                pauli_prod = sgn_prod(a_i[alpha], a_j[beta])
+                pauli_prod = Pauli.sgn_prod(a_i[alpha], a_j[beta])
                 coeff = h1_ij / 4 * pauli_prod[1] * np.power(-1j, alpha) * np.power(1j, beta)
                 pauli_term = [coeff, pauli_prod[0]]
                 if np.absolute(pauli_term[0]) > threshold:
@@ -410,9 +409,9 @@ class FermionicOperator(object):
             for beta in range(2):
                 for gamma in range(2):
                     for delta in range(2):
-                        pauli_prod_1 = sgn_prod(a_i[alpha], a_k[beta])
-                        pauli_prod_2 = sgn_prod(pauli_prod_1[0], a_m[gamma])
-                        pauli_prod_3 = sgn_prod(pauli_prod_2[0], a_j[delta])
+                        pauli_prod_1 = Pauli.sgn_prod(a_i[alpha], a_k[beta])
+                        pauli_prod_2 = Pauli.sgn_prod(pauli_prod_1[0], a_m[gamma])
+                        pauli_prod_3 = Pauli.sgn_prod(pauli_prod_2[0], a_j[delta])
 
                         phase1 = pauli_prod_1[1] * pauli_prod_2[1] * pauli_prod_3[1]
                         phase2 = np.power(-1j, alpha + beta) * np.power(1j, gamma + delta)

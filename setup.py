@@ -23,8 +23,8 @@ long_description="""<a href="https://qiskit.org/aqua/chemistry" rel=nofollow>Qis
     
 
 requirements = [
-    "qiskit-aqua>=0.3.0",
-    "qiskit>=0.6.1,<0.7",
+    "qiskit-aqua>=0.3.1",
+    "qiskit>=0.7.0,<0.8",
     "numpy>=1.13",
     "h5py",
     "psutil>=5",
@@ -35,7 +35,7 @@ requirements = [
 
 setuptools.setup(
     name='qiskit-aqua-chemistry',
-    version="0.3.0",  # this should match __init__.__version__
+    version="0.3.1",  # this should match __init__.__version__
     description='Qiskit Aqua Chemistry: Experiment with chemistry applications on a quantum machine',
     long_description=long_description,
     long_description_content_type="text/markdown",
