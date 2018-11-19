@@ -32,7 +32,7 @@ from qiskit.quantum_info import Pauli
 from qiskit.qasm import pi
 
 from qiskit_aqua import AlgorithmError, QuantumAlgorithm
-from qiskit_aqua.utils import PauliGraph, run_circuits
+from qiskit_aqua.utils import PauliGraph, run_circuits, find_regs_by_name
 
 logger = logging.getLogger(__name__)
 
@@ -554,7 +554,7 @@ class Operator(object):
             else:
                 self._check_representation("paulis")
                 n_qubits = self.num_qubits
-                q = input_circuit.qregs['q']
+                q = find_regs_by_name(input_circuit, 'q')
                 circuits = [input_circuit]
                 for idx, pauli in enumerate(self._paulis):
                     circuit = QuantumCircuit() + input_circuit
@@ -576,16 +576,18 @@ class Operator(object):
             circuits = []
 
             base_circuit = QuantumCircuit() + input_circuit
-            c = base_circuit.cregs.get('c', ClassicalRegister(n_qubits, name='c'))
-            base_circuit.add(c)
+            c = find_regs_by_name(base_circuit, 'c', qreg=False)
+            if c is None:
+                c = ClassicalRegister(n_qubits, name='c')
+            base_circuit.add_register(c)
 
             if operator_mode == "paulis":
                 self._check_representation("paulis")
 
                 for idx, pauli in enumerate(self._paulis):
                     circuit = QuantumCircuit() + base_circuit
-                    q = circuit.qregs['q']
-                    c = circuit.cregs['c']
+                    q = find_regs_by_name(circuit, 'q')
+                    c = find_regs_by_name(circuit, 'c', qreg=False)
                     for qubit_idx in range(n_qubits):
                         if pauli[1].x[qubit_idx]:
                             if pauli[1].z[qubit_idx]:
@@ -595,16 +597,16 @@ class Operator(object):
                             else:
                                 # Measure X
                                 circuit.u2(0.0, np.pi, q[qubit_idx])  # h
-                    circuit.barrier(q)
-                    circuit.measure(q, c)
+                        circuit.barrier(q[qubit_idx])
+                        circuit.measure(q[qubit_idx], c[qubit_idx])
                     circuits.append(circuit)
             else:
                 self._check_representation("grouped_paulis")
 
                 for idx, tpb_set in enumerate(self._grouped_paulis):
                     circuit = QuantumCircuit() + base_circuit
-                    q = circuit.qregs['q']
-                    c = circuit.cregs['c']
+                    q = find_regs_by_name(circuit, 'q')
+                    c = find_regs_by_name(circuit, 'c', qreg=False)
                     for qubit_idx in range(n_qubits):
                         if tpb_set[0][1].x[qubit_idx]:
                             if tpb_set[0][1].z[qubit_idx]:
@@ -1136,7 +1138,7 @@ class Operator(object):
 
         qc_slice = QuantumCircuit(state_registers)
         if ancillary_registers is not None:
-            qc_slice.add(ancillary_registers)
+            qc_slice.add_register(ancillary_registers)
 
         # for each pauli [IXYZ]+, record the list of qubit pairs needing CX's
         cnot_qubit_pairs = [None] * len(slice_pauli_list)

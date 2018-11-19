@@ -173,7 +173,7 @@ class QPE(QuantumAlgorithm):
         qc = self._state_in.construct_circuit('circuit', q)
 
         # Put all ancillae in uniform superposition
-        qc.add(a)
+        qc.add_register(a)
         qc.u2(0, np.pi, a)
 
         # phase kickbacks via eoh
@@ -207,7 +207,7 @@ class QPE(QuantumAlgorithm):
         self._iqft.construct_circuit('circuit', a, qc)
 
         # measuring ancillae
-        qc.add(c)
+        qc.add_register(c)
         qc.barrier(a)
         qc.measure(a, c)
 

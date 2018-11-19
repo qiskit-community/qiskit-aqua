@@ -29,6 +29,7 @@ from qiskit import ClassicalRegister
 from qiskit_aqua import QuantumAlgorithm, AlgorithmError
 from qiskit_aqua import (get_optimizer_instance, get_variational_form_instance,
                          get_initial_state_instance)
+from qiskit_aqua.utils import find_regs_by_name
 
 logger = logging.getLogger(__name__)
 
@@ -205,8 +206,8 @@ class VQE(QuantumAlgorithm):
             self._ret['eigvecs'] = np.asarray([ret.get_statevector(qc)])
         else:
             c = ClassicalRegister(self._operator.num_qubits, name='c')
-            q = qc.qregs['q']
-            qc.add(c)
+            q = find_regs_by_name(qc, 'q')
+            qc.add_register(c)
             qc.barrier(q)
             qc.measure(q, c)
             ret = self.execute(qc)

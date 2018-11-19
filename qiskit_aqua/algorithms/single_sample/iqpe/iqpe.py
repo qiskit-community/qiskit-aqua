@@ -161,7 +161,7 @@ class IQPE(QuantumAlgorithm):
         q = QuantumRegister(self._operator.num_qubits, name='q')
         qc = self._state_in.construct_circuit('circuit', q)
         # hadamard on a[0]
-        qc.add(a)
+        qc.add_register(a)
         qc.u2(0, np.pi, a[0])
         # controlled-U
         qc_evolutions = Operator.construct_evolution_circuit(
@@ -178,7 +178,7 @@ class IQPE(QuantumAlgorithm):
         qc.u1(omega, a[0])
         # hadamard on a[0]
         qc.u2(0, np.pi, a[0])
-        qc.add(c)
+        qc.add_register(c)
         qc.barrier(a)
         qc.measure(a, c)
         return qc
