@@ -63,7 +63,7 @@ class TestSATOracle(QiskitAquaTestCase):
     ])
     def test_sat_oracle(self, cnf_str, sols):
         num_shots = 1024
-        sat = get_oracle_instance('SAT')
+        sat = get_pluggable_instance(PluggableType.ORACLE,'SAT')
         sat.init_args(cnf_str)
         sat_circuit = sat.construct_circuit()
         m = ClassicalRegister(1, name='m')

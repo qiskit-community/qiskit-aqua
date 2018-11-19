@@ -18,7 +18,7 @@
 import numpy as np
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import run_algorithm, get_algorithm_instance, get_feature_map_instance
+from qiskit_aqua import run_algorithm, PluggableType, get_pluggable_instance
 from qiskit_aqua.input import get_input_instance
 
 
@@ -91,12 +91,12 @@ class TestQSVMKernel(QiskitAquaTestCase):
                                                        'A', 'B', 'A', 'A', 'A'])
 
     def test_qsvm_kernel_binary_directly(self):
-        svm = get_algorithm_instance("QSVM.Kernel")
+        svm = get_pluggable_instance(PluggableType.ALGORITHM,"QSVM.Kernel")
         svm.random_seed = self.random_seed
         svm.setup_quantum_backend(backend='qasm_simulator_py', shots=self.shots)
 
         num_qubits = 2
-        feature_map = get_feature_map_instance('SecondOrderExpansion')
+        feature_map = get_pluggable_instance(PluggableType.FEATURE_MAP,'SecondOrderExpansion')
         feature_map.init_args(num_qubits=num_qubits, depth=2, entangler_map={0: [1]})
         svm.init_args(self.training_data, self.testing_data, None, feature_map, None)
 
@@ -116,12 +116,12 @@ class TestQSVMKernel(QiskitAquaTestCase):
         self.assertEqual(result['testing_accuracy'], 0.5)
 
     def test_qsvm_kernel_binary_directly_statevector(self):
-        svm = get_algorithm_instance("QSVM.Kernel")
+        svm = get_pluggable_instance(PluggableType.ALGORITHM,"QSVM.Kernel")
         svm.random_seed = self.random_seed
         svm.setup_quantum_backend(backend='statevector_simulator')
 
         num_qubits = 2
-        feature_map = get_feature_map_instance('SecondOrderExpansion')
+        feature_map = get_pluggable_instance(PluggableType.FEATURE_MAP,'SecondOrderExpansion')
         feature_map.init_args(num_qubits=num_qubits, depth=2, entangler_map={0: [1]})
         svm.init_args(self.training_data, self.testing_data, None, feature_map, None)
 

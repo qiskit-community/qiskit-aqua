@@ -21,7 +21,7 @@ import numpy as np
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua.operator import Operator
-from qiskit_aqua import get_algorithm_instance, get_initial_state_instance
+from qiskit_aqua import PluggableType, get_pluggable_instance
 
 
 class TestEOH(QiskitAquaTestCase):
@@ -38,13 +38,13 @@ class TestEOH(QiskitAquaTestCase):
         h1 = temp + temp.T
         evoOp = Operator(matrix=h1)
 
-        state_in = get_initial_state_instance('CUSTOM')
+        state_in = get_pluggable_instance(PluggableType.INITIAL_STATE,'CUSTOM')
         state_in.init_args(SIZE, state='random')
 
         evo_time = 1
         num_time_slices = 100
 
-        eoh = get_algorithm_instance('EOH')
+        eoh = get_pluggable_instance(PluggableType.ALGORITHM,'EOH')
         eoh.setup_quantum_backend(skip_transpiler=True)
         # self.log.debug('state_out:\n\n')
 

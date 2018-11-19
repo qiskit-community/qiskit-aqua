@@ -27,8 +27,7 @@ import numpy as np
 from qiskit import ClassicalRegister
 
 from qiskit_aqua import QuantumAlgorithm, AlgorithmError
-from qiskit_aqua import (get_optimizer_instance, get_variational_form_instance,
-                         get_initial_state_instance)
+from qiskit_aqua import (PluggableType, get_pluggable_instance)
 from qiskit_aqua.utils import find_regs_by_name
 
 logger = logging.getLogger(__name__)
@@ -117,19 +116,19 @@ class VQE(QuantumAlgorithm):
         # Set up initial state, we need to add computed num qubits to params
         init_state_params = params.get(QuantumAlgorithm.SECTION_KEY_INITIAL_STATE)
         init_state_params['num_qubits'] = operator.num_qubits
-        init_state = get_initial_state_instance(init_state_params['name'])
+        init_state = get_pluggable_instance(PluggableType.INITIAL_STATE,init_state_params['name'])
         init_state.init_params(init_state_params)
 
         # Set up variational form, we need to add computed num qubits, and initial state to params
         var_form_params = params.get(QuantumAlgorithm.SECTION_KEY_VAR_FORM)
         var_form_params['num_qubits'] = operator.num_qubits
         var_form_params['initial_state'] = init_state
-        var_form = get_variational_form_instance(var_form_params['name'])
+        var_form = get_pluggable_instance(PluggableType.VARIATIONAL_FORM,var_form_params['name'])
         var_form.init_params(var_form_params)
 
         # Set up optimizer
         opt_params = params.get(QuantumAlgorithm.SECTION_KEY_OPTIMIZER)
-        optimizer = get_optimizer_instance(opt_params['name'])
+        optimizer = get_pluggable_instance(PluggableType.OPTIMIZER,opt_params['name'])
         optimizer.init_params(opt_params)
 
         self.init_args(operator, operator_mode, var_form, optimizer,

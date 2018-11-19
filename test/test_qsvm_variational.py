@@ -15,14 +15,11 @@
 # limitations under the License.
 # =============================================================================
 
-import unittest
-
 import numpy as np
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua.input import get_input_instance
-from qiskit_aqua import (run_algorithm, get_algorithm_instance, get_optimizer_instance,
-                         get_feature_map_instance, get_variational_form_instance)
+from qiskit_aqua import (run_algorithm, PluggableType, get_pluggable_instance)
 
 
 class TestQSVMVariational(QiskitAquaTestCase):
@@ -63,19 +60,19 @@ class TestQSVMVariational(QiskitAquaTestCase):
 
     def test_qsvm_variational_directly(self):
         np.random.seed(self.random_seed)
-        svm = get_algorithm_instance("QSVM.Variational")
+        svm = get_pluggable_instance(PluggableType.ALGORITHM,"QSVM.Variational")
         svm.random_seed = self.random_seed
         svm.setup_quantum_backend(backend='qasm_simulator', shots=1024)
 
-        optimizer = get_optimizer_instance('SPSA')
+        optimizer = get_pluggable_instance(PluggableType.OPTIMIZER,'SPSA')
         optimizer.init_args(max_trials=10, c0=4.0, skip_calibration=True)
         optimizer.set_options(save_steps=1)
         num_qubits = 2
 
-        feature_map = get_feature_map_instance('SecondOrderExpansion')
+        feature_map = get_pluggable_instance(PluggableType.FEATURE_MAP,'SecondOrderExpansion')
         feature_map.init_args(num_qubits=num_qubits, depth=2)
 
-        var_form = get_variational_form_instance('RYRZ')
+        var_form = get_pluggable_instance(PluggableType.VARIATIONAL_FORM,'RYRZ')
         var_form.init_args(num_qubits=num_qubits, depth=3)
 
         svm.init_args(self.training_data, self.testing_data, None, optimizer, feature_map, var_form)

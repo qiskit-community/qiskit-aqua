@@ -15,12 +15,10 @@
 # limitations under the License.
 # =============================================================================
 
-import unittest
-
 import numpy as np
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import run_algorithm, get_algorithm_instance, local_pluggables
+from qiskit_aqua import run_algorithm, PluggableType,get_pluggable_instance, local_pluggables
 from qiskit_aqua.input import get_input_instance
 from qiskit_aqua.translators.ising import maxcut
 
@@ -51,7 +49,7 @@ class TestCplexIsing(QiskitAquaTestCase):
         self.assertEqual(maxcut.maxcut_value(x, self.w), 24)
 
     def test_cplex_ising_direct(self):
-        algo = get_algorithm_instance('CPLEX.Ising')
+        algo = get_pluggable_instance(PluggableType.ALGORITHM,'CPLEX.Ising')
         algo.init_args(self.algo_input.qubit_op, display=0)
         result = algo.run()
         self.assertEqual(result['energy'], -20.5)

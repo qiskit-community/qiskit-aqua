@@ -22,70 +22,37 @@ from .utils import cnx
 from .algorithmerror import AlgorithmError
 from .quantumalgorithm import QuantumAlgorithm
 from .operator import Operator
-from ._discover import (refresh_pluggables,
+from ._discover import (PluggableType,
+                        refresh_pluggables,
                         local_pluggables_types,
                         local_pluggables,
+                        get_pluggable_class,
+                        get_pluggable_instance,
                         get_pluggable_configuration)
+from .algomethods import run_algorithm, run_algorithm_to_json
 from ._logging import (get_logging_level,
                        build_logging_config,
-                       set_logging_config)
-from ._discover import _PLUGGABLES
+                       set_logging_config,
+                       get_aqua_logging,
+                       set_aqua_logging)
 
 __version__ = '0.3.1'
-
-
-def get_aqua_logging():
-    """
-    Returns the current Aqua logging level
-
-    Returns:
-        logging level
-    """
-    return get_logging_level()
-
-
-def set_aqua_logging(level):
-    """
-    Updates the Aqua logging with the appropriate logging level
-
-    Args:
-        level (number): logging level
-    """
-    set_logging_config(build_logging_config(level))
-
 
 __all__ = ['AlgorithmError',
            'Operator',
            'Preferences',
            'QuantumAlgorithm',
+           'PluggableType',
            'refresh_pluggables',
            'local_pluggables_types',
            'local_pluggables',
+           'get_pluggable_class',
+           'get_pluggable_instance',
            'get_pluggable_configuration',
            'run_algorithm',
            'run_algorithm_to_json',
+           'get_logging_level',
+           'build_logging_config',
+           'set_logging_config',
            'get_aqua_logging',
            'set_aqua_logging']
-
-prefix = 'from ._discover import '
-for pluggable_type in _PLUGGABLES.keys():
-    method = 'register_{}'.format(pluggable_type)
-    exec(prefix + method)
-    __all__.append(method)
-    method = 'deregister_{}'.format(pluggable_type)
-    exec(prefix + method)
-    __all__.append(method)
-    method = 'get_{}_class'.format(pluggable_type)
-    exec(prefix + method)
-    __all__.append(method)
-    method = 'get_{}_instance'.format(pluggable_type)
-    exec(prefix + method)
-    __all__.append(method)
-    method = 'get_{}_configuration'.format(pluggable_type)
-    exec(prefix + method)
-    __all__.append(method)
-    method = 'local_{}s'.format(pluggable_type)
-    exec(prefix + method)
-    __all__.append(method)
-
-from .algomethods import run_algorithm, run_algorithm_to_json

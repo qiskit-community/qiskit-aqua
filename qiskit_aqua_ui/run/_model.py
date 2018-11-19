@@ -20,7 +20,6 @@ import json
 from qiskit_aqua_ui._uipreferences import UIPreferences
 from collections import OrderedDict
 
-
 class Model(object):
 
     def __init__(self):
@@ -227,7 +226,7 @@ class Model(object):
 
     def get_pluggable_section_names(self, section_name):
         from qiskit_aqua.parser import InputParser
-        from qiskit_aqua import local_pluggables
+        from qiskit_aqua import PluggableType, local_pluggables
         from qiskit_aqua.parser import JSONSchema
         if not Model.is_pluggable_section(section_name):
             return []
@@ -240,17 +239,21 @@ class Model(object):
                 problem_name = self.get_property_default_value(JSONSchema.PROBLEM, JSONSchema.NAME)
 
             if problem_name is None:
-                return local_pluggables(JSONSchema.ALGORITHM)
+                return local_pluggables(PluggableType.ALGORITHM)
 
             algo_names = []
-            for algo_name in local_pluggables(JSONSchema.ALGORITHM):
+            for algo_name in local_pluggables(PluggableType.ALGORITHM):
                 problems = InputParser.get_algorithm_problems(algo_name)
                 if problem_name in problems:
                     algo_names.append(algo_name)
 
             return algo_names
-
-        return local_pluggables(section_name)
+        
+        for pluggable_type in PluggableType:
+            if pluggable_type.value == section_name:
+                return local_pluggables(pluggable_type)
+            
+        return []
 
     def delete_section(self, section_name):
         if self._parser is None:

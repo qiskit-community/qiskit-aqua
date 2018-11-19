@@ -23,8 +23,7 @@ from parameterized import parameterized
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import Operator, run_algorithm
 from qiskit_aqua.input import get_input_instance
-from qiskit_aqua import (get_algorithm_instance, get_initial_state_instance,
-                         get_variational_form_instance, get_optimizer_instance)
+from qiskit_aqua import (PluggableType, get_pluggable_instance)
 
 
 class TestVQE(QiskitAquaTestCase):
@@ -92,13 +91,13 @@ class TestVQE(QiskitAquaTestCase):
 
     def test_vqe_direct(self):
         num_qbits = self.algo_input.qubit_op.num_qubits
-        init_state = get_initial_state_instance('ZERO')
+        init_state = get_pluggable_instance(PluggableType.INITIAL_STATE,'ZERO')
         init_state.init_args(num_qbits)
-        var_form = get_variational_form_instance('RY')
+        var_form = get_pluggable_instance(PluggableType.VARIATIONAL_FORM,'RY')
         var_form.init_args(num_qbits, 3, initial_state=init_state)
-        optimizer = get_optimizer_instance('L_BFGS_B')
+        optimizer = get_pluggable_instance(PluggableType.OPTIMIZER,'L_BFGS_B')
         optimizer.init_args()
-        algo = get_algorithm_instance('VQE')
+        algo = get_pluggable_instance(PluggableType.ALGORITHM,'VQE')
         algo.setup_quantum_backend(backend='statevector_simulator')
         algo.init_args(self.algo_input.qubit_op, 'matrix', var_form, optimizer)
         result = algo.run()

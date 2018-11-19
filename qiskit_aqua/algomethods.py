@@ -19,8 +19,9 @@
 
 from qiskit_aqua.algorithmerror import AlgorithmError
 from qiskit_aqua._discover import (_discover_on_demand,
-                                   local_algorithms,
-                                   get_algorithm_instance)
+                                   local_pluggables,
+                                   PluggableType, 
+                                   get_pluggable_instance)
 from qiskit_aqua.utils.jsonutils import convert_dict_to_json, convert_json_to_dict
 from qiskit_aqua.parser._inputparser import InputParser
 from qiskit_aqua.parser import JSONSchema
@@ -58,7 +59,7 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
     if algo_name is None:
         raise AlgorithmError('Missing algorithm name')
 
-    if algo_name not in local_algorithms():
+    if algo_name not in local_pluggables(PluggableType.ALGORITHM):
         raise AlgorithmError('Algorithm "{0}" missing in local algorithms'.format(algo_name))
 
     backend_cfg = None
@@ -73,7 +74,7 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
 
         backend_cfg['backend'] = backend
 
-    algorithm = get_algorithm_instance(algo_name)
+    algorithm = get_pluggable_instance(PluggableType.ALGORITHM,algo_name)
     algorithm.random_seed = inputparser.get_section_property(JSONSchema.PROBLEM, 'random_seed')
     if backend_cfg is not None:
         algorithm.setup_quantum_backend(**backend_cfg)

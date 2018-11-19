@@ -21,7 +21,7 @@ The Grover Quantum algorithm.
 import logging
 from qiskit import ClassicalRegister, QuantumCircuit
 from qiskit_aqua import QuantumAlgorithm, AlgorithmError
-from qiskit_aqua import get_oracle_instance
+from qiskit_aqua import PluggableType, get_pluggable_instance
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +83,7 @@ class Grover(QuantumAlgorithm):
         num_iterations = grover_params.get(Grover.PROP_NUM_ITERATIONS)
 
         oracle_params = params.get(QuantumAlgorithm.SECTION_KEY_ORACLE)
-        oracle = get_oracle_instance(oracle_params['name'])
+        oracle = get_pluggable_instance(PluggableType.ORACLE,oracle_params['name'])
         oracle.init_params(oracle_params)
         self.init_args(oracle, incremental=incremental, num_iterations=num_iterations)
 

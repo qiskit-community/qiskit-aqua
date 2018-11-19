@@ -46,11 +46,11 @@ class Model(object):
             self._populate_section(Model._INPUT_NAME, input_name, config)
 
         for pluggable_type in local_pluggables_types():
-            self._sections[pluggable_type] = OrderedDict()
-            self._property_titles[pluggable_type] = OrderedDict()
+            self._sections[pluggable_type.value] = OrderedDict()
+            self._property_titles[pluggable_type.value] = OrderedDict()
             for pluggable_name in local_pluggables(pluggable_type):
                 config = copy.deepcopy(get_pluggable_configuration(pluggable_type, pluggable_name))
-                self._populate_section(pluggable_type, pluggable_name, config)
+                self._populate_section(pluggable_type.value, pluggable_name, config)
 
         self._data_loaded = True
 

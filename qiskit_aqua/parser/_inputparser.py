@@ -22,8 +22,9 @@ import logging
 import os
 import copy
 from qiskit_aqua import (local_pluggables_types,
-                         get_algorithm_configuration,
-                         local_algorithms)
+                         PluggableType,
+                         get_pluggable_configuration,
+                         local_pluggables)
 from qiskit_aqua.input import (local_inputs, get_input_configuration)
 from .jsonschema import JSONSchema
 
@@ -53,8 +54,8 @@ class InputParser(object):
         self._section_order = [JSONSchema.PROBLEM,
                                InputParser.INPUT, JSONSchema.ALGORITHM]
         for pluggable_type in local_pluggables_types():
-            if pluggable_type != JSONSchema.ALGORITHM:
-                self._section_order.append(pluggable_type)
+            if pluggable_type != PluggableType.ALGORITHM:
+                self._section_order.append(pluggable_type.value)
 
         self._section_order.extend([JSONSchema.BACKEND, InputParser._UNKNOWN])
 
@@ -100,7 +101,12 @@ class InputParser(object):
 
     @staticmethod
     def is_pluggable_section(section_name):
-        return JSONSchema.format_section_name(section_name) in local_pluggables_types()
+        section_name = JSONSchema.format_section_name(section_name)
+        for pluggable_type in local_pluggables_types():
+            if section_name == pluggable_type.value:
+                return True
+            
+        return False
 
     def get_section_types(self, section_name):
         return self._json_schema.get_section_types(section_name)
@@ -207,15 +213,15 @@ class InputParser(object):
         if algo_name is None:
             return
 
-        config = get_algorithm_configuration(algo_name)
+        config = get_pluggable_configuration(PluggableType.ALGORITHM, algo_name)
         pluggable_dependencies = [] if 'depends' not in config else config['depends']
         pluggable_defaults = {
         } if 'defaults' not in config else config['defaults']
         for pluggable_type in local_pluggables_types():
-            if pluggable_type != JSONSchema.ALGORITHM and pluggable_type not in pluggable_dependencies:
+            if pluggable_type != PluggableType.ALGORITHM and pluggable_type.value not in pluggable_dependencies:
                 # remove pluggables from input that are not in the dependencies
-                if pluggable_type in self._sections:
-                    del self._sections[pluggable_type]
+                if pluggable_type.value in self._sections:
+                    del self._sections[pluggable_type.value]
 
         section_names = self.get_section_names()
         for pluggable_type in pluggable_dependencies:
@@ -259,9 +265,9 @@ class InputParser(object):
 
         # do not merge any pluggable that doesn't have name default in schema
         default_section_names = []
-        pluggable_types = local_pluggables_types()
+        pluggable_type_names = [pluggable_type.value for  pluggable_type in local_pluggables_types()]
         for section_name in self.get_default_section_names():
-            if section_name in pluggable_types:
+            if section_name in pluggable_type_names:
                 if self.get_property_default_value(section_name, JSONSchema.NAME) is not None:
                     default_section_names.append(section_name)
             else:
@@ -514,7 +520,7 @@ class InputParser(object):
         if algo_name is not None and problem_name in InputParser.get_algorithm_problems(algo_name):
             return
 
-        for algo_name in local_algorithms():
+        for algo_name in local_pluggables(PluggableType.ALGORITHM):
             if problem_name in self.get_algorithm_problems(algo_name):
                 # set to the first algorithm to solve the problem
                 self.set_section_property(
@@ -553,8 +559,7 @@ class InputParser(object):
     def _update_dependency_sections(self):
         algo_name = self.get_section_property(
             JSONSchema.ALGORITHM, JSONSchema.NAME)
-        config = {} if algo_name is None else get_algorithm_configuration(
-            algo_name)
+        config = {} if algo_name is None else get_pluggable_configuration(PluggableType.ALGORITHM, algo_name)
         classical = config['classical'] if 'classical' in config else False
         pluggable_dependencies = [] if 'depends' not in config else config['depends']
         pluggable_defaults = {
@@ -562,7 +567,9 @@ class InputParser(object):
         pluggable_types = local_pluggables_types()
         for pluggable_type in pluggable_types:
             # remove pluggables from input that are not in the dependencies
-            if pluggable_type != JSONSchema.ALGORITHM and pluggable_type not in pluggable_dependencies and pluggable_type in self._sections:
+            if pluggable_type != PluggableType.ALGORITHM and \
+                pluggable_type.value not in pluggable_dependencies and \
+                pluggable_type.value in self._sections:
                 del self._sections[pluggable_type]
 
         for pluggable_type in pluggable_dependencies:

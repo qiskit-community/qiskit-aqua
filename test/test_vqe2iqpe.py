@@ -21,7 +21,7 @@ import numpy as np
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import Operator
 from qiskit_aqua.input import get_input_instance
-from qiskit_aqua import get_algorithm_instance, get_variational_form_instance, get_optimizer_instance
+from qiskit_aqua import PluggableType, get_pluggable_instance
 from qiskit_aqua.utils import decimal_to_binary
 from qiskit_aqua.algorithms.components.initial_states.varformbased import VarFormBased
 
@@ -44,12 +44,12 @@ class TestVQE2IQPE(QiskitAquaTestCase):
 
     def test_vqe_2_iqpe(self):
         num_qbits = self.algo_input.qubit_op.num_qubits
-        var_form = get_variational_form_instance('RYRZ')
+        var_form = get_pluggable_instance(PluggableType.VARIATIONAL_FORM,'RYRZ')
         var_form.init_args(num_qbits, 3)
-        optimizer = get_optimizer_instance('SPSA')
+        optimizer = get_pluggable_instance(PluggableType.OPTIMIZER,'SPSA')
         optimizer.init_args(max_trials=10)
         # optimizer.set_options(**{'max_trials': 500})
-        algo = get_algorithm_instance('VQE')
+        algo = get_pluggable_instance(PluggableType.ALGORITHM,'VQE')
         algo.setup_quantum_backend(backend='qasm_simulator')
         algo.init_args(self.algo_input.qubit_op, 'paulis', var_form, optimizer)
         result = algo.run()
@@ -64,7 +64,7 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         state_in = VarFormBased()
         state_in.init_args(var_form, result['opt_params'])
 
-        iqpe = get_algorithm_instance('IQPE')
+        iqpe = get_pluggable_instance(PluggableType.ALGORITHM,'IQPE')
         iqpe.setup_quantum_backend(backend='qasm_simulator', shots=100, skip_transpiler=True)
         iqpe.init_args(
             self.algo_input.qubit_op, state_in, num_time_slices, num_iterations,

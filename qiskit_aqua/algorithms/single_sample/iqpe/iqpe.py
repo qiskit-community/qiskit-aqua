@@ -26,7 +26,7 @@ from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.quantum_info import Pauli
 
 from qiskit_aqua import Operator, QuantumAlgorithm, AlgorithmError
-from qiskit_aqua import get_initial_state_instance
+from qiskit_aqua import PluggableType, get_pluggable_instance
 
 logger = logging.getLogger(__name__)
 
@@ -131,7 +131,7 @@ class IQPE(QuantumAlgorithm):
         # Set up initial state, we need to add computed num qubits to params
         init_state_params = params.get(QuantumAlgorithm.SECTION_KEY_INITIAL_STATE)
         init_state_params['num_qubits'] = operator.num_qubits
-        init_state = get_initial_state_instance(init_state_params['name'])
+        init_state = get_pluggable_instance(PluggableType.INITIAL_STATE, init_state_params['name'])
         init_state.init_params(init_state_params)
 
         self.init_args(

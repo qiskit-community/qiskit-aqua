@@ -24,9 +24,9 @@ from collections import OrderedDict
 import logging
 from qiskit_aqua import AlgorithmError
 from qiskit_aqua import (local_pluggables_types,
+                         PluggableType,
                          get_pluggable_configuration,
-                         get_algorithm_configuration,
-                         local_algorithms)
+                         local_pluggables)
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +72,7 @@ class JSONSchema(object):
     def populate_problem_names(self):
         """Populate enum list of problem names"""
         problems_dict = OrderedDict()
-        for algo_name in local_algorithms():
+        for algo_name in local_pluggables(PluggableType.ALGORITHM):
             problems = JSONSchema.get_algorithm_problems(algo_name)
             for problem in problems:
                 problems_dict[problem] = None
@@ -322,18 +322,17 @@ class JSONSchema(object):
                 JSONSchema.ALGORITHM, algo_name, default_algo_name)
 
         # update alogorithm depoendencies scheme
-        config = {} if algo_name is None else get_algorithm_configuration(
-            algo_name)
+        config = {} if algo_name is None else get_pluggable_configuration(PluggableType.ALGORITHM, algo_name)
         classical = config['classical'] if 'classical' in config else False
         pluggable_dependencies = [] if 'depends' not in config else config['depends']
         pluggable_defaults = {
         } if 'defaults' not in config else config['defaults']
         pluggable_types = local_pluggables_types()
         for pluggable_type in pluggable_types:
-            if pluggable_type != JSONSchema.ALGORITHM and pluggable_type not in pluggable_dependencies:
+            if pluggable_type != PluggableType.ALGORITHM and pluggable_type.value not in pluggable_dependencies:
                 # remove pluggables from schema that ate not in the dependencies
-                if pluggable_type in self._schema['properties']:
-                    del self._schema['properties'][pluggable_type]
+                if pluggable_type.value in self._schema['properties']:
+                    del self._schema['properties'][pluggable_type.value]
 
         # update algorithm backend from schema if it is classical or not
         if classical:
@@ -494,7 +493,7 @@ class JSONSchema(object):
         Returns:
             Returns list of problem names
         """
-        config = get_algorithm_configuration(algo_name)
+        config = get_pluggable_configuration(PluggableType.ALGORITHM,algo_name)
         if 'problems' in config:
             return config['problems']
 

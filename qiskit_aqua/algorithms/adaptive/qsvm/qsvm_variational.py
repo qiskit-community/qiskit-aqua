@@ -21,8 +21,7 @@ import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 
 from qiskit_aqua import (AlgorithmError, QuantumAlgorithm,
-                         get_feature_map_instance, get_optimizer_instance,
-                         get_variational_form_instance)
+                         PluggableType, get_pluggable_instance)
 from qiskit_aqua.algorithms.adaptive.qsvm import (cost_estimate_sigmoid, return_probabilities)
 from qiskit_aqua.utils import (get_feature_dimension, map_label_to_class_name,
                                split_dataset_to_data_and_labels)
@@ -79,7 +78,7 @@ class QSVMVariational(QuantumAlgorithm):
 
         # Set up optimizer
         opt_params = params.get(QuantumAlgorithm.SECTION_KEY_OPTIMIZER)
-        optimizer = get_optimizer_instance(opt_params['name'])
+        optimizer = get_pluggable_instance(PluggableType.OPTIMIZER,opt_params['name'])
         # If SPSA then override SPSA params as reqd to our predetermined values
         if opt_params['name'] == 'SPSA' and override_spsa_params:
             opt_params['c0'] = 4.0
@@ -94,13 +93,13 @@ class QSVMVariational(QuantumAlgorithm):
         fea_map_params = params.get(QuantumAlgorithm.SECTION_KEY_FEATURE_MAP)
         num_qubits = get_feature_dimension(algo_input.training_dataset)
         fea_map_params['num_qubits'] = num_qubits
-        feature_map = get_feature_map_instance(fea_map_params['name'])
+        feature_map = get_pluggable_instance(PluggableType.FEATURE_MAP,fea_map_params['name'])
         feature_map.init_params(fea_map_params)
 
         # Set up variational form
         var_form_params = params.get(QuantumAlgorithm.SECTION_KEY_VAR_FORM)
         var_form_params['num_qubits'] = num_qubits
-        var_form = get_variational_form_instance(var_form_params['name'])
+        var_form = get_pluggable_instance(PluggableType.VARIATIONAL_FORM,var_form_params['name'])
         var_form.init_params(var_form_params)
 
         self.init_args(algo_input.training_dataset, algo_input.test_dataset, algo_input.datapoints,

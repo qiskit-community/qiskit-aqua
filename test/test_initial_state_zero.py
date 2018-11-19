@@ -20,13 +20,13 @@ import unittest
 import numpy as np
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import get_initial_state_instance
+from qiskit_aqua import PluggableType, get_pluggable_instance
 
 
 class TestInitialStateZero(QiskitAquaTestCase):
 
     def setUp(self):
-        self.zero = get_initial_state_instance('ZERO')
+        self.zero = get_pluggable_instance(PluggableType.INITIAL_STATE,'ZERO')
 
     def test_qubits_2_vector(self):
         self.zero.init_args(2)

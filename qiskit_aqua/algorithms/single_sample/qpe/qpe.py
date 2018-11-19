@@ -24,7 +24,7 @@ import numpy as np
 from qiskit import QuantumRegister, ClassicalRegister
 from qiskit.quantum_info import Pauli
 from qiskit_aqua import Operator, QuantumAlgorithm, AlgorithmError
-from qiskit_aqua import get_initial_state_instance, get_iqft_instance
+from qiskit_aqua import PluggableType, get_pluggable_instance
 
 logger = logging.getLogger(__name__)
 
@@ -131,13 +131,13 @@ class QPE(QuantumAlgorithm):
         # Set up initial state, we need to add computed num qubits to params
         init_state_params = params.get(QuantumAlgorithm.SECTION_KEY_INITIAL_STATE)
         init_state_params['num_qubits'] = operator.num_qubits
-        init_state = get_initial_state_instance(init_state_params['name'])
+        init_state = get_pluggable_instance(PluggableType.INITIAL_STATE,init_state_params['name'])
         init_state.init_params(init_state_params)
 
         # Set up iqft, we need to add num qubits to params which is our num_ancillae bits here
         iqft_params = params.get(QuantumAlgorithm.SECTION_KEY_IQFT)
         iqft_params['num_qubits'] = num_ancillae
-        iqft = get_iqft_instance(iqft_params['name'])
+        iqft = get_pluggable_instance(PluggableType.IQFT,iqft_params['name'])
         iqft.init_params(iqft_params)
 
         self.init_args(

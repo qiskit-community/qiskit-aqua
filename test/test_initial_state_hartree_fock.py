@@ -20,13 +20,13 @@ import unittest
 import numpy as np
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import get_initial_state_instance
+from qiskit_aqua import (PluggableType,get_pluggable_instance)
 
 
 class TestInitialStateHartreeFock(QiskitAquaTestCase):
 
     def setUp(self):
-        self.hf = get_initial_state_instance('HartreeFock')
+        self.hf = get_pluggable_instance(PluggableType.INITIAL_STATE, 'HartreeFock')
 
     def test_qubits_4_jw_h2(self):
         self.hf.init_args(4, 4, 'jordan_wigner', False, 2)
