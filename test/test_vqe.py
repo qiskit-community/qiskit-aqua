@@ -67,7 +67,7 @@ class TestVQE(QiskitAquaTestCase):
         ['SPSA', 5],
         ['TNC', 2]
     ])
-    def test_vqe_optimzers(self, name, places):
+    def test_vqe_optimizers(self, name, places):
         params = {
             'algorithm': {'name': 'VQE'},
             'optimizer': {'name': name},
@@ -91,19 +91,11 @@ class TestVQE(QiskitAquaTestCase):
 
     def test_vqe_direct(self):
         num_qbits = self.algo_input.qubit_op.num_qubits
-        init_state = get_pluggable_class(PluggableType.INITIAL_STATE,'ZERO')
-        init_state = init_state()
-        init_state.init_args(num_qbits)
-        var_form = get_pluggable_class(PluggableType.VARIATIONAL_FORM,'RY')
-        var_form = var_form()
-        var_form.init_args(num_qbits, 3, initial_state=init_state)
-        optimizer = get_pluggable_class(PluggableType.OPTIMIZER,'L_BFGS_B')
-        optimizer = optimizer()
-        optimizer.init_args()
-        algo = get_pluggable_class(PluggableType.ALGORITHM,'VQE')
-        algo = algo()
+        init_state = get_pluggable_class(PluggableType.INITIAL_STATE,'ZERO')(num_qbits)
+        var_form = get_pluggable_class(PluggableType.VARIATIONAL_FORM,'RY')(num_qbits, 3, initial_state=init_state)
+        optimizer = get_pluggable_class(PluggableType.OPTIMIZER,'L_BFGS_B')()
+        algo = get_pluggable_class(PluggableType.ALGORITHM,'VQE')(self.algo_input.qubit_op, 'matrix', var_form, optimizer)
         algo.setup_quantum_backend(backend='statevector_simulator')
-        algo.init_args(self.algo_input.qubit_op, 'matrix', var_form, optimizer)
         result = algo.run()
         self.assertAlmostEqual(result['energy'], -1.85727503)
 
