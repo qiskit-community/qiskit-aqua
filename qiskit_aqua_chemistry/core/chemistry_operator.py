@@ -51,23 +51,6 @@ class ChemistryOperator(ABC):
     def configuration(self):
         return self._configuration
 
-    def init_params(self, params):
-        """Initialize with a params dictionary
-
-        A dictionary of config params as per the configuration object.
-
-        Args:
-            params (dict): configuration dict
-        """
-        args = {k: v for k, v in params.items() if k != 'name'}
-        logger.debug('init_args: {}'.format(args))
-        self.init_args(**args)
-
-    @abstractmethod
-    def init_args(self, **args):
-        """Initialize the optimizer with its parameters according to schema"""
-        raise NotImplementedError()
-
     @abstractmethod
     def run(self, qmolecule):
         """

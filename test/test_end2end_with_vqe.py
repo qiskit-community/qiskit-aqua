@@ -23,7 +23,7 @@ from test.common import QiskitAquaChemistryTestCase
 from qiskit_aqua import run_algorithm
 
 from qiskit_aqua_chemistry.drivers import ConfigurationManager
-from qiskit_aqua_chemistry.core import get_chemistry_operator_instance
+from qiskit_aqua_chemistry.core import get_chemistry_operator_class
 
 
 class TestEnd2End(QiskitAquaChemistryTestCase):
@@ -38,7 +38,7 @@ class TestEnd2End(QiskitAquaChemistryTestCase):
         driver = cfg_mgr.get_driver_instance('HDF5')
         self.qmolecule = driver.run(section)
 
-        core = get_chemistry_operator_instance('hamiltonian')
+        cls = get_chemistry_operator_class('hamiltonian')
         hamiltonian_cfg = OrderedDict([
             ('name', 'hamiltonian'),
             ('transformation', 'full'),
@@ -47,7 +47,7 @@ class TestEnd2End(QiskitAquaChemistryTestCase):
             ('freeze_core', False),
             ('orbital_reduction', [])
         ])
-        core.init_params(hamiltonian_cfg)
+        core = cls.init_params(hamiltonian_cfg)
         self.algo_input = core.run(self.qmolecule)
 
         self.reference_energy = -1.857275027031588

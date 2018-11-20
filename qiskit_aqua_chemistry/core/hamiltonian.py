@@ -48,7 +48,7 @@ class Hamiltonian(ChemistryOperator):
     QUBIT_MAPPING_PARITY = 'parity'
     QUBIT_MAPPING_BINARY_TREE = 'binary_tree'
 
-    HAMILTONIAN_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'hamiltonian',
         'description': 'Hamiltonian chemistry operator',
         'input_schema': {
@@ -96,14 +96,29 @@ class Hamiltonian(ChemistryOperator):
         'problems': ['energy', 'excited_states']
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.HAMILTONIAN_CONFIGURATION.copy())
-        self._transformation = 'full'
-        self._qubit_mapping = 'parity'
-        self._two_qubit_reduction = True
-        self._freeze_core = False
-        self._orbital_reduction = []
-        self._max_workers = 4
+    def __init__(self, transformation='full', 
+                 qubit_mapping='parity', 
+                 two_qubit_reduction=True,
+                 freeze_core=False, 
+                 orbital_reduction=[], 
+                 max_workers=999):
+        """
+        Initializer
+        Args:
+            transformation (str): full or particle_hole
+            qubit_mapping (str: jordan_wigner, parity or bravyi_kitaev
+            two_qubit_reduction (bool): Whether two qubit reduction should be used, when parity mapping only
+            freeze_core: Whether to freeze core orbitals when possible
+            orbital_reduction: Orbital list to be frozen or removed
+            max_workers: Max workers processes for transformation
+        """
+        super().__init__(Hamiltonian.CONFIGURATION.copy())
+        self._transformation = transformation
+        self._qubit_mapping = qubit_mapping
+        self._two_qubit_reduction = two_qubit_reduction
+        self._freeze_core = freeze_core
+        self._orbital_reduction = orbital_reduction
+        self._max_workers = max_workers
 
         # Store values that are computed by the classical logic in order
         # that later they may be combined with the quantum result
@@ -121,28 +136,26 @@ class Hamiltonian(ChemistryOperator):
         self._ph_x_dipole_shift = 0.0
         self._ph_y_dipole_shift = 0.0
         self._ph_z_dipole_shift = 0.0
-
-    def init_args(self, transformation='full', qubit_mapping='parity', two_qubit_reduction=True,
-                  freeze_core=False, orbital_reduction=[], max_workers=999):
+   
+     
+    @classmethod
+    def init_params(cls, params):
         """
-        Initial according to schema params
+        Initialize via parameters dictionary.
+
         Args:
-            transformation (str): full or particle_hole
-            qubit_mapping (str: jordan_wigner, parity or bravyi_kitaev
-            two_qubit_reduction (bool): Whether two qubit reduction should be used, when parity mapping only
-            freeze_core: Whether to freeze core orbitals when possible
-            orbital_reduction: Orbital list to be frozen or removed
-            max_workers: Max workers processes for transformation
-
+            params (dict): parameters dictionary
+          
         Returns:
-
+            Hamiltonian: hamiltonian object
         """
-        self._transformation = transformation
-        self._qubit_mapping = qubit_mapping
-        self._two_qubit_reduction = two_qubit_reduction
-        self._freeze_core = freeze_core
-        self._orbital_reduction = orbital_reduction
-        self._max_workers = max_workers
+       
+        return cls(params.get('transformation', 'full'),
+                   params.get('qubit_mapping', 'parity'),
+                   params.get('two_qubit_reduction', True), 
+                   params.get('freeze_core', False),
+                   params.get('orbital_reduction', []),
+                   params.get('max_workers', 999))
 
     def run(self, qmolecule):
         logger.debug('Processing started...')

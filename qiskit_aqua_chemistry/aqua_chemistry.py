@@ -26,7 +26,7 @@ import os
 import copy
 import pprint
 import logging
-from qiskit_aqua_chemistry.core import get_chemistry_operator_instance
+from qiskit_aqua_chemistry.core import get_chemistry_operator_class
 
 logger = logging.getLogger(__name__)
 
@@ -226,8 +226,8 @@ class AquaChemistry(object):
                 return AquaChemistry._DRIVER_RUN_TO_HDF5, text
 
         # Run the Hamiltonian to process the QMolecule and get an input for algorithms
-        self._core = get_chemistry_operator_instance(p.get_section_property(InputParser.OPERATOR, JSONSchema.NAME))
-        self._core.init_params(p.get_section_properties(InputParser.OPERATOR))
+        cls = get_chemistry_operator_class(p.get_section_property(InputParser.OPERATOR, JSONSchema.NAME))
+        self._core = cls.init_params(p.get_section_properties(InputParser.OPERATOR))
         input_object = self._core.run(molecule)
 
         logger.debug('Core computed substitution variables {}'.format(self._core.molecule_info))
