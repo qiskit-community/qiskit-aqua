@@ -81,7 +81,7 @@ class QSVMVariational(QuantumAlgorithm):
         Notes:
             We used `label` denotes numeric results and `class` means the name of that class (str).
         """
-        super().__init__(self.CONFIGURATION.copy())
+        super().__init__()
         if training_dataset is None:
             raise AlgorithmError('Training dataset must be provided')
 

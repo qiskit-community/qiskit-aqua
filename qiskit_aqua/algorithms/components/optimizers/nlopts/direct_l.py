@@ -60,7 +60,7 @@ class DIRECT_L(Optimizer):
     }
 
     def __init__(self):
-        super().__init__(self.CONFIGURATION.copy())
+        super().__init__()
 
     def optimize(self, num_vars, objective_function, gradient_function=None,
                  variable_bounds=None, initial_point=None):

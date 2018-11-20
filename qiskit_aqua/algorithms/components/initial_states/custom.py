@@ -65,7 +65,7 @@ class Custom(InitialState):
             state (str): `zero`, `uniform` or `random`
             state_vector: customized vector
         """
-        super().__init__(self.CONFIGURATION.copy())
+        super().__init__()
         self._num_qubits = num_qubits
         self._state = state
         size = np.power(2, self._num_qubits)

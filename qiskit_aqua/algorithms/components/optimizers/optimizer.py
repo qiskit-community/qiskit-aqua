@@ -55,7 +55,7 @@ class Optimizer(ABC):
     }
 
     @abstractmethod
-    def __init__(self, configuration=None):
+    def __init__(self):
         """Constructor.
 
         Initialize the optimization algorithm, setting the support
@@ -63,7 +63,7 @@ class Optimizer(ABC):
         _initial_point_support_level, and empty options.
 
         """
-        self._configuration = configuration or Optimizer.DEFAULT_CONFIGURATION
+        self._configuration = self.CONFIGURATION.copy()
         if 'support_level' not in self._configuration:
             self._configuration['support_level'] = self.DEFAULT_CONFIGURATION['support_level']
         if 'options' not in self._configuration:

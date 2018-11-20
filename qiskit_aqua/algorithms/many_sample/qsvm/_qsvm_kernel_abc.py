@@ -20,12 +20,10 @@ from abc import ABC, abstractmethod
 from qiskit_aqua.utils import split_dataset_to_data_and_labels
 
 
-class QSVM_Kernel_ABC(ABC):
-    """
-    abstract base class for the binary classifier and the multiclass classifier
-    """
+class _QSVM_Kernel_ABC(ABC):
+    """Abstract base class for the binary classifier and the multiclass classifier."""
 
-    def __init__(self, training_dataset, test_dataset, datapoints, feature_map, qalgo):
+    def __init__(self, feature_map, qalgo, training_dataset, test_dataset, datapoints):
 
         if training_dataset is None:
             raise ValueError('training dataset is missing! please provide it')
@@ -53,3 +51,7 @@ class QSVM_Kernel_ABC(ABC):
     @property
     def ret(self):
         return self._ret
+
+    @ret.setter
+    def ret(self, new_ret):
+        self._ret = new_ret

@@ -36,8 +36,8 @@ class FeatureMap(ABC):
     """
 
     @abstractmethod
-    def __init__(self, configuration=None):
-        self._configuration = configuration
+    def __init__(self):
+        self._configuration = self.CONFIGURATION.copy()
         pass
 
     @property

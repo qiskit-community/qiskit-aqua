@@ -71,7 +71,7 @@ class HartreeFock(InitialState):
             sq_list ([int]): position of the single-qubit operators that anticommute
                         with the cliffords
         """
-        super().__init__(self.CONFIGURATION.copy())
+        super().__init__()
         self._sq_list = sq_list
         self._qubit_tapering = False if self._sq_list is None else True
 

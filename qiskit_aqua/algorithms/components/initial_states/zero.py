@@ -43,7 +43,7 @@ class Zero(InitialState):
         Args:
             num_qubits (int): number of qubits.
         """
-        super().__init__(self.CONFIGURATION.copy())
+        super().__init__()
         self._num_qubits = num_qubits
 
     def construct_circuit(self, mode, register=None):

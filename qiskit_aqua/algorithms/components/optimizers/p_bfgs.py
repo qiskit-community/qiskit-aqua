@@ -72,7 +72,7 @@ class P_BFGS(Optimizer):
     }
 
     def __init__(self, max_processes=None):
-        super().__init__(self.CONFIGURATION.copy())
+        super().__init__()
         self._max_processes = max_processes
 
     def optimize(self, num_vars, objective_function, gradient_function=None, variable_bounds=None, initial_point=None):

@@ -27,8 +27,9 @@ logger = logging.getLogger(__name__)
 
 class AllPairs(MulticlassExtension):
     """
-      the multiclass extension based on the all-pairs algorithm.
+    The multiclass extension based on the all-pairs algorithm.
     """
+
     CONFIGURATION = {
         'name': 'AllPairs',
         'description': 'AllPairs extension',
@@ -43,7 +44,7 @@ class AllPairs(MulticlassExtension):
     }
 
     def __init__(self, estimator_cls, params=[]):
-        super().__init__(self.CONFIGURATION.copy())
+        super().__init__()
         self.estimator_cls = estimator_cls
         self.params = params
 

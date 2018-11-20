@@ -98,10 +98,7 @@ class TestSVMClassical(QiskitAquaTestCase):
             }
         }
 
-        algo_input = get_input_class('SVMInput')()
-        algo_input.training_dataset = training_input
-        algo_input.test_dataset = test_input
-        algo_input.datapoints = total_array
+        algo_input = get_input_class('SVMInput')(training_input, test_input, total_array)
 
         result = run_algorithm(params, algo_input)
         self.assertEqual(result['testing_accuracy'], 1.0)
@@ -213,10 +210,7 @@ class TestSVMClassical(QiskitAquaTestCase):
             'multiclass_extension': {'name': 'OneAgainstRest'}
         }
 
-        algo_input = get_input_class('SVMInput')()
-        algo_input.training_dataset = training_input
-        algo_input.test_dataset = test_input
-        algo_input.datapoints = total_array
+        algo_input = get_input_class('SVMInput')(training_input, test_input, total_array)
 
         result = run_algorithm(params, algo_input)
         self.assertEqual(result['testing_accuracy'], 1.0)
@@ -329,10 +323,7 @@ class TestSVMClassical(QiskitAquaTestCase):
 
         }
 
-        algo_input = get_input_class('SVMInput')()
-        algo_input.training_dataset = training_input
-        algo_input.test_dataset = test_input
-        algo_input.datapoints = total_array
+        algo_input = get_input_class('SVMInput')(training_input, test_input, total_array)
 
         result = run_algorithm(params, algo_input)
         self.assertEqual(result['testing_accuracy'], 1.0)
@@ -445,10 +436,7 @@ class TestSVMClassical(QiskitAquaTestCase):
             'multiclass_extension': {'name': 'ErrorCorrectingCode', 'code_size': 5},
         }
 
-        algo_input = get_input_class('SVMInput')()
-        algo_input.training_dataset = training_input
-        algo_input.test_dataset = test_input
-        algo_input.datapoints = total_array
+        algo_input = get_input_class('SVMInput')(training_input, test_input, total_array)
 
         result = run_algorithm(params, algo_input)
         self.assertEqual(result['testing_accuracy'], 1.0)

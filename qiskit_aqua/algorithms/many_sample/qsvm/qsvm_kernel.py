@@ -18,10 +18,10 @@
 import logging
 
 from qiskit_aqua import (AlgorithmError, QuantumAlgorithm, PluggableType, get_pluggable_class)
-from qiskit_aqua.algorithms.many_sample.qsvm import (QSVM_Kernel_Binary, QSVM_Kernel_Multiclass,
-                                                     QSVM_Kernel_Estimator)
+from qiskit_aqua.algorithms.many_sample.qsvm._qsvm_kernel_binary import _QSVM_Kernel_Binary
+from qiskit_aqua.algorithms.many_sample.qsvm._qsvm_kernel_multiclass import _QSVM_Kernel_Multiclass
+from qiskit_aqua.algorithms.many_sample.qsvm._qsvm_kernel_estimator import _QSVM_Kernel_Estimator
 from qiskit_aqua.utils.dataset_helper import get_feature_dimension, get_num_classes
-
 
 logger = logging.getLogger(__name__)
 
@@ -55,52 +55,22 @@ class QSVM_Kernel(QuantumAlgorithm):
         }
     }
 
-    def __init__(self):
-        super().__init__(self.CONFIGURATION.copy())
-        self._ret = {}
-        self.instance = None
-
-    def init_params(self, params, algo_input):
-
-        fea_map_params = params.get(QuantumAlgorithm.SECTION_KEY_FEATURE_MAP)
-        feature_map = get_pluggable_class(PluggableType.FEATURE_MAP,fea_map_params['name'])
-        feature_map = feature_map()
-        num_qubits = get_feature_dimension(algo_input.training_dataset)
-        fea_map_params['num_qubits'] = num_qubits
-        feature_map.init_params(fea_map_params)
-
-        multiclass_extension = None
-        multiclass_extension_params = params.get(QuantumAlgorithm.SECTION_KEY_MULTICLASS_EXTENSION)
-        if multiclass_extension_params is not None:
-            multiclass_extension = get_pluggable_class(PluggableType.MULTICLASS_EXTENSION,multiclass_extension_params['name'])
-            multiclass_extension = multiclass_extension()
-            multiclass_extension_params['params'] = [feature_map, self]
-            multiclass_extension_params['estimator_cls'] = QSVM_Kernel_Estimator
-            multiclass_extension.init_params(multiclass_extension_params)
-            logger.info("Multiclass dataset with extension: {}".format(multiclass_extension_params['name']))
-
-        self.init_args(algo_input.training_dataset, algo_input.test_dataset,
-                       algo_input.datapoints, feature_map, multiclass_extension)
-
-    def init_args(self, training_dataset, test_dataset, datapoints,
-                  feature_map, multiclass_extension=None):
-
-    def __init__(self, training_dataset, test_dataset=None, datapoints=None,
-                 feature_map=None, multiclass_extension=None):
+    def __init__(self, feature_map, training_dataset, test_dataset=None, datapoints=None,
+                 multiclass_extension=None):
         """Constructor.
 
         Args:
+            feature_map (FeatureMap)
             training_dataset (dict)
             test_dataset (dict)
             datapoints (numpy.ndarray)
-            feature_map (FeatureMap)
             multiclass_extension (MultiExtension)
 
         Raises:
             ValueError: if training_dataset is None
             AlgorithmError: use binary classifer for classes > 3
         """
-        super().__init__(self.CONFIGURATION.copy())
+        super().__init__()
         if training_dataset is None:
             raise ValueError('Training dataset must be provided')
 
@@ -113,41 +83,41 @@ class QSVM_Kernel(QuantumAlgorithm):
                 logger.warning("Dataset has just two classes. Supplied multiclass extension will be ignored")
 
         if multiclass_extension is None:
-            qsvm_instance = QSVM_Kernel_Binary()
+            qsvm_instance = _QSVM_Kernel_Binary(feature_map, self, training_dataset, test_dataset, datapoints)
         else:
-            qsvm_instance = QSVM_Kernel_Multiclass(multiclass_extension)
+            qsvm_instance = _QSVM_Kernel_Multiclass(feature_map, self, training_dataset, test_dataset, datapoints, multiclass_extension)
 
-        qsvm_instance.init_args(training_dataset, test_dataset, datapoints, feature_map, self)
         self.instance = qsvm_instance
         self._ret = {}
 
     @classmethod
     def init_params(cls, params, algo_input):
-
-        fea_map_params = params.get(QuantumAlgorithm.SECTION_KEY_FEATURE_MAP)
-        feature_map = get_pluggable_class(PluggableType.FEATURE_MAP, fea_map_params['name'])
-        feature_map = feature_map()
+        """
+        """
         num_qubits = get_feature_dimension(algo_input.training_dataset)
+        fea_map_params = params.get(QuantumAlgorithm.SECTION_KEY_FEATURE_MAP)
         fea_map_params['num_qubits'] = num_qubits
-        feature_map.init_params(fea_map_params)
+
+        feature_map = get_pluggable_class(PluggableType.FEATURE_MAP,
+                                          fea_map_params['name']).init_params(fea_map_params)
 
         multiclass_extension = None
-        multiclass_extension_params = params.get(QuantumAlgorithm.SECTION_KEY_MULTICLASS_EXTENSION)
+        multiclass_extension_params = params.get(QuantumAlgorithm.SECTION_KEY_MULTICLASS_EXTENSION, None)
         if multiclass_extension_params is not None:
-            multiclass_extension = get_pluggable_class(
-                PluggableType.MULTICLASS_EXTENSION, multiclass_extension_params['name'])
-            multiclass_extension = multiclass_extension()
-            multiclass_extension_params['params'] = [feature_map, self]
-            multiclass_extension_params['estimator_cls'] = QSVM_Kernel_Estimator
-            multiclass_extension.init_params(multiclass_extension_params)
-            logger.info("Multiclass dataset with extension: {}".format(multiclass_extension_params['name']))
+            multiclass_extension_params['params'] = [feature_map]
+            multiclass_extension_params['estimator_cls'] = _QSVM_Kernel_Estimator
 
-        return cls(algo_input.training_dataset, algo_input.test_dataset,
-                   algo_input.datapoints, feature_map, multiclass_extension)
+            multiclass_extension = get_pluggable_class(PluggableType.MULTICLASS_EXTENSION,
+                                                       multiclass_extension_params['name']).init_params(multiclass_extension_params)
+            logger.info("Multiclass classifier based on {}".format(multiclass_extension_params['name']))
+
+        return cls(feature_map, algo_input.training_dataset, algo_input.test_dataset,
+                   algo_input.datapoints, multiclass_extension)
 
     def train(self, data, labels):
         """
-        train the svm
+        Train the svm.
+
         Args:
             data (numpy.ndarray): NxD array, where N is the number of data,
                                   D is the feature dimension.
@@ -157,7 +127,8 @@ class QSVM_Kernel(QuantumAlgorithm):
 
     def test(self, data, labels):
         """
-        test the svm
+        Test the svm.
+
         Args:
             data (numpy.ndarray): NxD array, where N is the number of data,
                                   D is the feature dimension.
@@ -170,7 +141,8 @@ class QSVM_Kernel(QuantumAlgorithm):
 
     def predict(self, data):
         """
-        predict using the svm
+        Predict using the svm.
+
         Args:
             data (numpy.ndarray): NxD array, where N is the number of data,
                                   D is the feature dimension.
@@ -193,3 +165,7 @@ class QSVM_Kernel(QuantumAlgorithm):
     @property
     def ret(self):
         return self.instance.ret
+
+    @ret.setter
+    def ret(self, new_ret):
+        self.instance.ret = new_ret

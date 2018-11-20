@@ -43,7 +43,7 @@ class OneAgainstRest(MulticlassExtension):
     }
 
     def __init__(self, estimator_cls, params=[]):
-        super().__init__(self.CONFIGURATION.copy())
+        super().__init__()
         self.estimator_cls = estimator_cls
         self.params = params
 

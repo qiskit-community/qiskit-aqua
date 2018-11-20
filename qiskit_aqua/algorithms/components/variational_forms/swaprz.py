@@ -66,7 +66,7 @@ class SwapRZ(VariationalForm):
             entanglement (str): 'full' or 'linear'
             initial_state (InitialState): an initial state object
         """
-        super().__init__(self.CONFIGURATION.copy())
+        super().__init__()
         self._num_qubits = num_qubits
         self._depth = depth
         if entangler_map is None:
