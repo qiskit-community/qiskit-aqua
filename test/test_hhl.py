@@ -64,7 +64,7 @@ class TestHHL(QiskitAquaTestCase):
             }
         }
 
-    def test_hhl_simple(self):
+    def test_hhl_diagonal(self):
         self.log.debug('Testing HHL simple test')
 
         matrix = [[1, 0], [0, 3]]
@@ -90,6 +90,8 @@ class TestHHL(QiskitAquaTestCase):
         self.log.debug('HHL solution vector:        {}'.format(hhl_solution))
         self.log.debug('algebraic solution vector:  {}'.format(linalg_solution))
         self.log.debug('fidelity HHL to algebraic:  {}'.format(fidelity))
+        self.log.debug('probability of result:      {}'.
+                       format(result["probability_result"]))
 
     def test_hhl_negative_eigs(self):
         self.log.debug('Testing HHL with matrix with negative eigenvalues')
@@ -122,6 +124,8 @@ class TestHHL(QiskitAquaTestCase):
         self.log.debug('HHL solution vector:        {}'.format(hhl_solution))
         self.log.debug('algebraic solution vector:  {}'.format(linalg_solution))
         self.log.debug('fidelity HHL to algebraic:  {}'.format(fidelity))
+        self.log.debug('probability of result:      {}'.
+                       format(result["probability_result"]))
 
     def test_hhl_random_hermitian(self):
         self.log.debug('Testing HHL with random hermitian matrix')
@@ -152,6 +156,8 @@ class TestHHL(QiskitAquaTestCase):
         self.log.debug('HHL solution vector:        {}'.format(hhl_solution))
         self.log.debug('algebraic solution vector:  {}'.format(linalg_solution))
         self.log.debug('fidelity HHL to algebraic:  {}'.format(fidelity))
+        self.log.debug('probability of result:      {}'.
+                       format(result["probability_result"]))
 
 
 if __name__ == '__main__':
