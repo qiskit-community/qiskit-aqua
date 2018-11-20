@@ -15,8 +15,6 @@
 # limitations under the License.
 # =============================================================================
 
-import copy
-
 from qiskit_aqua import AlgorithmError, Operator
 from qiskit_aqua.input import AlgorithmInput
 
@@ -49,7 +47,7 @@ class EnergyInput(AlgorithmInput):
     }
 
     def __init__(self, qubit_op, aux_ops=[]):
-        super().__init__(copy.deepcopy(EnergyInput.CONFIGURATION))
+        super().__init__()
         self._qubit_op = qubit_op
         self._aux_ops = aux_ops
 

@@ -96,20 +96,26 @@ class QPE(QuantumAlgorithm):
         }
     }
 
-    def __init__(self):
-        super().__init__(self.CONFIGURATION.copy())
-        self._operator = None
-        self._state_in = None
-        self._num_time_slices = 0
-        self._paulis_grouping = None
-        self._expansion_mode = None
-        self._expansion_order = None
-        self._num_ancillae = 0
+    def __init__(self, operator, state_in, iqft, num_time_slices=1, num_ancillae=1,
+                 paulis_grouping='random', expansion_mode='trotter', expansion_order=1,
+                 shallow_circuit_concat=False):
+
+        super().__init__()
+        self._operator = operator
+        self._state_in = state_in
+        self._iqft = iqft
+        self._num_time_slices = num_time_slices
+        self._num_ancillae = num_ancillae
+        self._paulis_grouping = paulis_grouping
+        self._expansion_mode = expansion_mode
+        self._expansion_order = expansion_order
+        self._shallow_circuit_concat = shallow_circuit_concat
         self._ancilla_phase_coef = 1
         self._circuit = None
         self._ret = {}
 
-    def init_params(self, params, algo_input):
+    @classmethod
+    def init_params(cls, params, algo_input):
         """
         Initialize via parameters dictionary and algorithm input instance
         Args:
@@ -131,36 +137,17 @@ class QPE(QuantumAlgorithm):
         # Set up initial state, we need to add computed num qubits to params
         init_state_params = params.get(QuantumAlgorithm.SECTION_KEY_INITIAL_STATE)
         init_state_params['num_qubits'] = operator.num_qubits
-        init_state = get_pluggable_class(PluggableType.INITIAL_STATE,init_state_params['name'])(init_state_params)
-      
+        init_state = get_pluggable_class(PluggableType.INITIAL_STATE,
+                                         init_state_params['name']).init_params(init_state_params)
+
         # Set up iqft, we need to add num qubits to params which is our num_ancillae bits here
         iqft_params = params.get(QuantumAlgorithm.SECTION_KEY_IQFT)
         iqft_params['num_qubits'] = num_ancillae
-        iqft = get_pluggable_class(PluggableType.IQFT,iqft_params['name'])
-        iqft = iqft()
-        iqft.init_params(iqft_params)
+        iqft = get_pluggable_class(PluggableType.IQFT, iqft_params['name']).init_params(iqft_params)
 
-        self.init_args(
-            operator, init_state, iqft, num_time_slices, num_ancillae,
-            paulis_grouping=paulis_grouping, expansion_mode=expansion_mode,
-            expansion_order=expansion_order)
-
-    def init_args(
-            self, operator, state_in, iqft, num_time_slices, num_ancillae,
-            paulis_grouping='random', expansion_mode='trotter', expansion_order=1,
-            shallow_circuit_concat=False):
-        if QuantumAlgorithm.is_statevector_backend(self.backend):
-            raise ValueError('Selected backend does not support measurements.')
-        self._operator = operator
-        self._state_in = state_in
-        self._iqft = iqft
-        self._num_time_slices = num_time_slices
-        self._num_ancillae = num_ancillae
-        self._paulis_grouping = paulis_grouping
-        self._expansion_mode = expansion_mode
-        self._expansion_order = expansion_order
-        self._shallow_circuit_concat = shallow_circuit_concat
-        self._ret = {}
+        return cls(operator, init_state, iqft, num_time_slices, num_ancillae,
+                   paulis_grouping=paulis_grouping, expansion_mode=expansion_mode,
+                   expansion_order=expansion_order)
 
     def _construct_qpe_evolution(self):
         """Implement the Quantum Phase Estimation algorithm"""
@@ -253,6 +240,10 @@ class QPE(QuantumAlgorithm):
     def _compute_energy(self):
         if self._circuit is None:
             self._setup_qpe()
+
+        if QuantumAlgorithm.is_statevector_backend(self.backend):
+            raise ValueError('Selected backend does not support measurements.')
+
         result = self.execute(self._circuit)
 
         rd = result.get_counts(self._circuit)

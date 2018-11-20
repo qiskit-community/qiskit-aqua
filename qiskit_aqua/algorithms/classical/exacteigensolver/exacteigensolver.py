@@ -87,7 +87,7 @@ class ExactEigensolver(QuantumAlgorithm):
     def _solve(self):
         if self._operator.matrix.ndim == 2:
             if self._k >= self._operator.matrix.shape[0] - 1:
-                logger.warning("Scipy doesn't support to get all eigenvalues, using numpy instead.")
+                logger.debug("Scipy doesn't support to get all eigenvalues, using numpy instead.")
                 eigval, eigvec = np.linalg.eig(self._operator.matrix.toarray())
             else:
                 eigval, eigvec = scisparse.linalg.eigs(self._operator.matrix, k=self._k, which='SR')

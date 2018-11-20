@@ -23,8 +23,11 @@ from scipy.linalg import expm
 from scipy import sparse
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import PluggableType, get_pluggable_class, Operator
+from qiskit_aqua import Operator
 from qiskit_aqua.utils import decimal_to_binary
+from qiskit_aqua.algorithms.single_sample import IQPE
+from qiskit_aqua.algorithms.classical import ExactEigensolver
+from qiskit_aqua.algorithms.components.initial_states import Custom
 
 
 pauli_dict = {
@@ -51,9 +54,7 @@ class TestIQPE(QiskitAquaTestCase):
 
         self.qubitOp = qubitOp
 
-        exact_eigensolver = get_pluggable_class(PluggableType.ALGORITHM,'ExactEigensolver')
-        exact_eigensolver = exact_eigensolver()
-        exact_eigensolver.init_args(self.qubitOp, k=1)
+        exact_eigensolver = ExactEigensolver(self.qubitOp, k=1)
         results = exact_eigensolver.run()
 
         w = results['eigvals']
@@ -76,19 +77,10 @@ class TestIQPE(QiskitAquaTestCase):
 
         num_time_slices = 50
         num_iterations = 12
-
-        iqpe = get_pluggable_class(PluggableType.ALGORITHM,'IQPE')
-        iqpe = iqpe()
+        state_in = Custom(self.qubitOp.num_qubits, state_vector=self.ref_eigenvec)
+        iqpe = IQPE(self.qubitOp, state_in, num_time_slices, num_iterations,
+                    paulis_grouping='random', expansion_mode='suzuki', expansion_order=2)
         iqpe.setup_quantum_backend(backend='qasm_simulator', shots=100, skip_transpiler=True)
-
-        state_in = get_pluggable_class(PluggableType.INITIAL_STATE,'CUSTOM')(self.qubitOp.num_qubits, state_vector=self.ref_eigenvec)
-        
-        iqpe.init_args(
-            self.qubitOp, state_in, num_time_slices, num_iterations,
-            paulis_grouping='random',
-            expansion_mode='suzuki',
-            expansion_order=2,
-        )
 
         result = iqpe.run()
 

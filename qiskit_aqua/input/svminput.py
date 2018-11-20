@@ -48,7 +48,7 @@ class SVMInput(AlgorithmInput):
     }
 
     def __init__(self, training_dataset, test_dataset=None, datapoints=None):
-        super().__init__(SVMInput.CONFIGURATION.copy())
+        super().__init__()
         self.training_dataset = training_dataset
         self.test_dataset = test_dataset
         self.datapoints = datapoints
