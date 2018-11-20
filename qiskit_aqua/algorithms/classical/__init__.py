@@ -16,9 +16,13 @@
 # =============================================================================
 
 from .exacteigensolver.exacteigensolver import ExactEigensolver
-# from .cplex.cplex_ising import CPLEX_Ising
 from .svm.svm_classical import SVM_Classical
 
 __all__ = ['ExactEigensolver',
-           # 'CPLEX_Ising',
            'SVM_Classical']
+
+try:
+    from .cplex.cplex_ising import CPLEX_Ising
+    __all__ += ['CPLEX_Ising']
+except ImportError:
+    raise ImportWarning('CPLEX is not installed. See https://www.ibm.com/support/knowledgecenter/SSSA5P_12.8.0/ilog.odms.studio.help/Optimization_Studio/topics/COS_home.html')

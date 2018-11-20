@@ -36,3 +36,13 @@ __all__ = ['Optimizer',
            'SLSQP',
            'SPSA',
            'TNC']
+
+try:
+    from .nlopts.crs import CRS
+    from .nlopts.direct_l import DIRECT_L
+    from .nlopts.direct_l_rand import DIRECT_L_RAND
+    from .nlopts.esch import ESCH
+    from .nlopts.isres import ISRES
+    __all__ += ['CRS', 'DIRECT_L', 'DIRECT_L_RAND', 'ESCH', 'ISRES']
+except ImportError:
+    raise ImportWarning('nlopt cannot be imported.')
