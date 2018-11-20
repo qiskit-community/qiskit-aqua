@@ -27,8 +27,9 @@ logger = logging.getLogger(__name__)
 
 class AllPairs(MulticlassExtension):
     """
-      the multiclass extension based on the all-pairs algorithm.
+    The multiclass extension based on the all-pairs algorithm.
     """
+
     CONFIGURATION = {
         'name': 'AllPairs',
         'description': 'AllPairs extension',
