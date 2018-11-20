@@ -26,9 +26,8 @@ from qiskit_aqua import PluggableType, get_pluggable_class
 class TestInitialStateZero(QiskitAquaTestCase):
 
     def setUp(self):
-        self.zero = get_pluggable_class(PluggableType.INITIAL_STATE,'ZERO')
-        self.zero = self.zero()
-
+        self.zero = get_pluggable_class(PluggableType.INITIAL_STATE,'ZERO')()
+      
     def test_qubits_2_vector(self):
         self.zero.init_args(2)
         cct = self.zero.construct_circuit('vector')

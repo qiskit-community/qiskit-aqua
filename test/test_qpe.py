@@ -90,10 +90,8 @@ class TestQPE(QiskitAquaTestCase):
         qpe = qpe()
         qpe.setup_quantum_backend(backend='qasm_simulator', shots=100, skip_transpiler=True)
 
-        state_in = get_pluggable_class(PluggableType.INITIAL_STATE,'CUSTOM')
-        state_in = state_in()
-        state_in.init_args(self.qubitOp.num_qubits, state_vector=self.ref_eigenvec)
-
+        state_in = get_pluggable_class(PluggableType.INITIAL_STATE,'CUSTOM')(self.qubitOp.num_qubits, state_vector=self.ref_eigenvec)
+        
         iqft = get_pluggable_class(PluggableType.IQFT,'STANDARD')
         iqft = iqft()
         iqft.init_args(n_ancillae)

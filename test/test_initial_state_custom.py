@@ -26,8 +26,7 @@ from qiskit_aqua import (PluggableType,get_pluggable_class)
 class TestInitialStateCustom(QiskitAquaTestCase):
 
     def setUp(self):
-        self.custom = get_pluggable_class(PluggableType.INITIAL_STATE, 'CUSTOM')
-        self.custom = self.custom()
+        self.custom = get_pluggable_class(PluggableType.INITIAL_STATE, 'CUSTOM')()
 
     def test_qubits_2_zero_vector(self):
         self.custom.init_args(2, state='zero')

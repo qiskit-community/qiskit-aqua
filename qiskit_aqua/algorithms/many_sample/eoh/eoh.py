@@ -149,10 +149,8 @@ class EOH(QuantumAlgorithm):
         # Set up initial state, we need to add computed num qubits to params
         initial_state_params = params.get(QuantumAlgorithm.SECTION_KEY_INITIAL_STATE)
         initial_state_params['num_qubits'] = operator.num_qubits
-        initial_state = get_pluggable_class(PluggableType.INITIAL_STATE,initial_state_params['name'])
-        initial_state = initial_state()
-        initial_state.init_params(initial_state_params)
-
+        initial_state = get_pluggable_class(PluggableType.INITIAL_STATE,initial_state_params['name'])(initial_state_params)
+        
         self.init_args(
             operator, operator_mode, initial_state, evo_operator, evo_time, num_time_slices,
             paulis_grouping=paulis_grouping, expansion_mode=expansion_mode, expansion_order=expansion_order

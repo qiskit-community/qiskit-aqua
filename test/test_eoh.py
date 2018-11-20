@@ -38,10 +38,8 @@ class TestEOH(QiskitAquaTestCase):
         h1 = temp + temp.T
         evoOp = Operator(matrix=h1)
 
-        state_in = get_pluggable_class(PluggableType.INITIAL_STATE,'CUSTOM')
-        state_in = state_in()
-        state_in.init_args(SIZE, state='random')
-
+        state_in = get_pluggable_class(PluggableType.INITIAL_STATE,'CUSTOM')(SIZE, state='random')
+        
         evo_time = 1
         num_time_slices = 100
 

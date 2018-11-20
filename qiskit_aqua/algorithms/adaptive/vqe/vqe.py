@@ -137,9 +137,8 @@ class VQE(QuantumAlgorithm):
         # Set up initial state, we need to add computed num qubits to params
         init_state_params = params.get(QuantumAlgorithm.SECTION_KEY_INITIAL_STATE)
         init_state_params['num_qubits'] = operator.num_qubits
-        init_state_cls = get_pluggable_class(PluggableType.INITIAL_STATE, init_state_params['name'])
-        init_state = init_state_cls.init_params(init_state_params)
-
+        init_state = get_pluggable_class(PluggableType.INITIAL_STATE, init_state_params['name'])(init_state_params)
+       
         # Set up variational form, we need to add computed num qubits, and initial state to params
         var_form_params = params.get(QuantumAlgorithm.SECTION_KEY_VAR_FORM)
         var_form_params['num_qubits'] = operator.num_qubits
