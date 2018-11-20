@@ -22,6 +22,7 @@ import numpy as np
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import (PluggableType,get_pluggable_class)
+from qiskit_aqua.algorithms.components.optimizers import *
 
 
 class TestOptimizers(QiskitAquaTestCase):
@@ -37,67 +38,50 @@ class TestOptimizers(QiskitAquaTestCase):
         return res
 
     def test_cg(self):
-        optimizer = get_pluggable_class(PluggableType.OPTIMIZER,'CG')
-        optimizer = optimizer()
+        optimizer = CG(tol=1e-06)
         optimizer.set_options(**{'maxiter': 1000})
-        optimizer.init_args(tol=1e-06)
         res = self._optimize(optimizer)
         self.assertLessEqual(res[2], 10000)
 
     def test_cobyla(self):
-        optimizer = get_pluggable_class(PluggableType.OPTIMIZER,'COBYLA')
-        optimizer = optimizer()
+        optimizer = COBYLA(tol=1e-06)
         optimizer.set_options(**{'maxiter': 100000})
-        optimizer.init_args(tol=1e-06)
         res = self._optimize(optimizer)
         self.assertLessEqual(res[2], 100000)
 
     def test_l_bfgs_b(self):
-        optimizer = get_pluggable_class(PluggableType.OPTIMIZER,'L_BFGS_B')
-        optimizer = optimizer()
+        optimizer = L_BFGS_B()
         optimizer.set_options(**{'maxfun': 1000})
-        optimizer.init_args()
         res = self._optimize(optimizer)
         self.assertLessEqual(res[2], 10000)
 
     def test_nelder_mead(self):
-        optimizer = get_pluggable_class(PluggableType.OPTIMIZER,'NELDER_MEAD')
-        optimizer = optimizer()
+        optimizer = NELDER_MEAD(tol=1e-06)
         optimizer.set_options(**{'maxfev': 10000})
-        optimizer.init_args(tol=1e-06)
         res = self._optimize(optimizer)
         self.assertLessEqual(res[2], 10000)
 
     def test_powell(self):
-        optimizer = get_pluggable_class(PluggableType.OPTIMIZER,'POWELL')
-        optimizer = optimizer()
+        optimizer = POWELL(tol=1e-06)
         optimizer.set_options(**{'maxfev': 10000})
-        optimizer.init_args(tol=1e-06)
         res = self._optimize(optimizer)
         self.assertLessEqual(res[2], 10000)
 
     def test_slsqp(self):
-        optimizer = get_pluggable_class(PluggableType.OPTIMIZER,'SLSQP')
-        optimizer = optimizer()
+        optimizer = SLSQP(tol=1e-06)
         optimizer.set_options(**{'maxiter': 1000})
-        optimizer.init_args(tol=1e-06)
         res = self._optimize(optimizer)
         self.assertLessEqual(res[2], 10000)
 
     @unittest.skip("Skipping SPSA as it does not do well on non-convex rozen")
     def test_spsa(self):
-        optimizer = get_pluggable_class(PluggableType.OPTIMIZER,'SPSA')
-        optimizer = optimizer()
-        optimizer.set_options(**{})
-        optimizer.init_args(max_trials=10000)
+        optimizer = SPSA(max_trials=10000)
         res = self._optimize(optimizer)
         self.assertLessEqual(res[2], 100000)
 
     def test_tnc(self):
-        optimizer = get_pluggable_class(PluggableType.OPTIMIZER,'TNC')
-        optimizer = optimizer()
+        optimizer = TNC(tol=1e-06)
         optimizer.set_options(**{'maxiter': 1000})
-        optimizer.init_args(tol=1e-06)
         res = self._optimize(optimizer)
         self.assertLessEqual(res[2], 10000)
 

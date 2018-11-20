@@ -25,7 +25,7 @@ from qiskit.quantum_info import Pauli
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import Operator
-from qiskit_aqua import (PluggableType,get_pluggable_class)
+from qiskit_aqua.algorithms.components.variational_forms import RYRZ
 
 
 class TestOperator(QiskitAquaTestCase):
@@ -41,9 +41,7 @@ class TestOperator(QiskitAquaTestCase):
 
     def test_real_eval(self):
         depth = 1
-        var_form = get_pluggable_class(PluggableType.VARIATIONAL_FORM,'RYRZ')
-        var_form = var_form()
-        var_form.init_args(self.qubitOp.num_qubits, depth)
+        var_form = RYRZ(self.qubitOp.num_qubits, depth)
         circuit = var_form.construct_circuit(np.array(np.random.randn(var_form.num_parameters)))
         # self.qubitOp.coloring = None
         execute_config_ref = {'shots': 1, 'skip_transpiler': False}
@@ -80,9 +78,7 @@ class TestOperator(QiskitAquaTestCase):
 
     def test_exact_eval(self):
         depth = 1
-        var_form = get_pluggable_class(PluggableType.VARIATIONAL_FORM,'RYRZ')
-        var_form = var_form()
-        var_form.init_args(self.qubitOp.num_qubits, depth)
+        var_form = RYRZ(self.qubitOp.num_qubits, depth)
         circuit = var_form.construct_circuit(np.array(np.random.randn(var_form.num_parameters)))
 
         execute_config = {'shots': 1, 'skip_transpiler': False}
@@ -106,9 +102,7 @@ class TestOperator(QiskitAquaTestCase):
             op = Operator(paulis=[pauli_term])
 
             depth = 1
-            var_form = get_pluggable_class(PluggableType.VARIATIONAL_FORM,'RYRZ')
-            var_form = var_form()
-            var_form.init_args(op.num_qubits, depth)
+            var_form = RYRZ(op.num_qubits, depth)
             circuit = var_form.construct_circuit(np.array(np.random.randn(var_form.num_parameters)))
             execute_config = {'shots': 1, 'skip_transpiler': False}
             backend = Aer.get_backend('statevector_simulator')
@@ -126,9 +120,7 @@ class TestOperator(QiskitAquaTestCase):
             op = Operator(matrix=matrix)
 
             depth = 1
-            var_form = get_pluggable_class(PluggableType.VARIATIONAL_FORM,'RYRZ')
-            var_form = var_form()
-            var_form.init_args(op.num_qubits, depth)
+            var_form = RYRZ(op.num_qubits, depth)
             circuit = var_form.construct_circuit(np.array(np.random.randn(var_form.num_parameters)))
             backend = Aer.get_backend('statevector_simulator')
             execute_config = {'shots': 1, 'skip_transpiler': False}
@@ -624,9 +616,7 @@ class TestOperator(QiskitAquaTestCase):
         op = Operator(paulis=pauli_term)
 
         depth = 1
-        var_form = get_pluggable_class(PluggableType.VARIATIONAL_FORM,'RYRZ')
-        var_form = var_form()
-        var_form.init_args(op.num_qubits, depth)
+        var_form = RYRZ(op.num_qubits, depth)
         circuit = var_form.construct_circuit(np.array(np.random.randn(var_form.num_parameters)))
         execute_config = {'shots': 1, 'skip_transpiler': False}
         backend = Aer.get_backend('statevector_simulator')

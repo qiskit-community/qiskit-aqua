@@ -23,8 +23,8 @@ import qiskit
 from qiskit import execute as q_execute
 from qiskit import QuantumCircuit, ClassicalRegister
 
-from qiskit_aqua import PluggableType, get_pluggable_class
 from test.common import QiskitAquaTestCase
+from qiskit_aqua.algorithms.components.oracles import SAT
 
 
 cnf_str_1 = '''
@@ -63,9 +63,7 @@ class TestSATOracle(QiskitAquaTestCase):
     ])
     def test_sat_oracle(self, cnf_str, sols):
         num_shots = 1024
-        sat = get_pluggable_class(PluggableType.ORACLE,'SAT')
-        sat = sat()
-        sat.init_args(cnf_str)
+        sat = SAT(cnf_str)
         sat_circuit = sat.construct_circuit()
         m = ClassicalRegister(1, name='m')
         for assignment in itertools.product([True, False], repeat=len(sat.variable_register())):
