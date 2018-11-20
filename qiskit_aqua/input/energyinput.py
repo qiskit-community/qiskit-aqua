@@ -49,7 +49,7 @@ class EnergyInput(AlgorithmInput):
     }
 
     def __init__(self, qubit_op, aux_ops=[]):
-        super().__init__(self.ENERGYINPUT_CONFIGURATION.copy())
+        super().__init__(copy.deepcopy(EnergyInput.CONFIGURATION))
         self._qubit_op = qubit_op
         self._aux_ops = aux_ops
 

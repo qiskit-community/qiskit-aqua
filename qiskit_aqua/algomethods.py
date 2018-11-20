@@ -80,11 +80,10 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
         input_name = inputparser.get_section_property('input', JSONSchema.NAME)
         if input_name is not None:
             algo_input_cls = get_input_class(input_name)
-            algo_input = algo_input_cls()
             input_params = copy.deepcopy(inputparser.get_section_properties('input'))
             del input_params[JSONSchema.NAME]
             convert_json_to_dict(input_params)
-            algo_input.from_params(input_params)
+            algo_input = algo_input_cls.from_params(input_params)
 
     algo_params = copy.deepcopy(inputparser.get_sections())
     algorithm = get_pluggable_class(PluggableType.ALGORITHM,
