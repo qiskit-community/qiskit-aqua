@@ -15,7 +15,24 @@
 # limitations under the License.
 # =============================================================================
 
-# for core development
 from .optimizer import Optimizer
+from .cg import CG
+from .cobyla import COBYLA
+from .l_bfgs_b import L_BFGS_B
+from .nelder_mead import NELDER_MEAD
+from .p_bfgs import P_BFGS
+from .powell import POWELL
+from .slsqp import SLSQP
+from .spsa import SPSA
+from .tnc import TNC
 
-__all__ =['Optimizer']
+__all__ = ['Optimizer',
+           'CG',
+           'COBYLA',
+           'L_BFGS_B',
+           'NELDER_MEAD',
+           'P_BFGS',
+           'POWELL',
+           'SLSQP',
+           'SPSA',
+           'TNC']

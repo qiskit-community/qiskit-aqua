@@ -57,19 +57,15 @@ class Custom(InitialState):
         }
     }
 
-    def __init__(self):
-        super().__init__(self.CONFIGURATION.copy())
-        self._num_qubits = 0
-        self._state = 'zero'
-        self._state_vector = None
+    def __init__(self, num_qubits, state="zero", state_vector=None):
+        """Constructor.
 
-    def init_args(self, num_qubits, state="zero", state_vector=None):
-        """
         Args:
             num_qubits (int): number of qubits
             state (str): `zero`, `uniform` or `random`
             state_vector: customized vector
         """
+        super().__init__(self.CONFIGURATION.copy())
         self._num_qubits = num_qubits
         self._state = state
         size = np.power(2, self._num_qubits)
@@ -113,6 +109,21 @@ class Custom(InitialState):
                 raise RuntimeError('Unexpected component {} from the initialization circuit.'.format(gates.qasm()))
 
     def construct_circuit(self, mode, register=None):
+        """
+        Construct the statevector of desired initial state.
+
+        Args:
+            mode (string): `vector` or `circuit`. The `vector` mode produces the vector.
+                            While the `circuit` constructs the quantum circuit corresponding that
+                            vector.
+            register (QuantumRegister): register for circuit construction.
+
+        Returns:
+            QuantumCircuit or numpy.ndarray: statevector.
+
+        Raises:
+            ValueError: when mode is not 'vector' or 'circuit'.
+        """
         if mode == 'vector':
             return self._state_vector
         elif mode == 'circuit':

@@ -43,24 +43,27 @@ class InitialState(ABC):
         """Return configuration"""
         return self._configuration
 
-    def init_params(self, params):
+    @classmethod
+    def init_params(cls, params):
         args = {k: v for k, v in params.items() if k != 'name'}
-        self.init_args(**args)
-
-    @abstractmethod
-    def init_args(self, **args):
-        raise NotImplementedError()
+        return cls(**args)
 
     @abstractmethod
     def construct_circuit(self, mode, register=None):
-        """Construct the initial state circuit.
+        """
+        Construct the statevector of desired initial state.
 
         Args:
-            mode (str): 'vector' or 'circuit'
+            mode (string): `vector` or `circuit`. The `vector` mode produces the vector.
+                            While the `circuit` constructs the quantum circuit corresponding that
+                            vector.
             register (QuantumRegister): register for circuit construction.
 
         Returns:
-            A quantum circuit.
+            QuantumCircuit or numpy.ndarray: statevector.
+
+        Raises:
+            ValueError: when mode is not 'vector' or 'circuit'.
         """
         raise NotImplementedError()
 

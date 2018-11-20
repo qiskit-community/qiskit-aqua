@@ -79,14 +79,9 @@ class PauliExpansion(FeatureMap):
         }
     }
 
-    def __init__(self):
-        """Constructor."""
-        super().__init__(self.CONFIGURATION.copy())
-        self._ret = {}
-
-    def init_args(self, num_qubits, depth, entangler_map=None,
-                  entanglement='full', paulis=['Z', 'ZZ'], data_map_func=self_product):
-        """Initializer.
+    def __init__(self, num_qubits, depth, entangler_map=None,
+                 entanglement='full', paulis=['Z', 'ZZ'], data_map_func=self_product):
+        """Constructor.
 
         Args:
             num_qubits (int): number of qubits
@@ -97,6 +92,7 @@ class PauliExpansion(FeatureMap):
             paulis (str): a comma-seperated string for to-be-used paulis
             data_map_func (Callable): a mapping function for data x
         """
+        super().__init__(self.CONFIGURATION.copy())
         self._num_qubits = num_qubits
         self._depth = depth
         if entangler_map is None:

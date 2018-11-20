@@ -47,7 +47,7 @@ class FirstOrderExpansion(PauliZExpansion):
         }
     }
 
-    def __init__(self):
+    def __init__(self, num_qubits, depth, data_map_func=self_product):
         """Constructor."""
         super().__init__(self.CONFIGURATION.copy())
         self._ret = {}

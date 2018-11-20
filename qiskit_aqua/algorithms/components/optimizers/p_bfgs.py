@@ -71,13 +71,9 @@ class P_BFGS(Optimizer):
         'optimizer': ['local', 'parallel']
     }
 
-    def __init__(self):
+    def __init__(self, max_processes=None):
         super().__init__(self.CONFIGURATION.copy())
-        self._max_processes = None
-
-    def init_args(self, max_processes=None):
         self._max_processes = max_processes
-        pass
 
     def optimize(self, num_vars, objective_function, gradient_function=None, variable_bounds=None, initial_point=None):
         num_procs = multiprocessing.cpu_count() - 1

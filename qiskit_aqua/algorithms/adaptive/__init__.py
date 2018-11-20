@@ -15,3 +15,10 @@
 # limitations under the License.
 # =============================================================================
 
+from .vqe.vqe import VQE
+from .qaoa.qaoa import QAOA
+from .qsvm.qsvm_variational import QSVMVariational
+
+__all__ = ['VQE',
+           'QAOA',
+           'QSVMVariational']

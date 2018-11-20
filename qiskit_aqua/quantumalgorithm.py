@@ -295,9 +295,5 @@ class QuantumAlgorithm(ABC):
         return list(backends) + ibmq_backends
 
     @abstractmethod
-    def init_params(self, params, algo_input):
-        pass
-
-    @abstractmethod
     def run(self):
         pass

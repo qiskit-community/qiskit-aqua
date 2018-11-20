@@ -20,7 +20,7 @@
 from qiskit_aqua.algorithmerror import AlgorithmError
 from qiskit_aqua._discover import (_discover_on_demand,
                                    local_pluggables,
-                                   PluggableType, 
+                                   PluggableType,
                                    get_pluggable_class)
 from qiskit_aqua.utils.jsonutils import convert_dict_to_json, convert_json_to_dict
 from qiskit_aqua.parser._inputparser import InputParser
@@ -74,13 +74,12 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
 
         backend_cfg['backend'] = backend
 
-    algorithm_cls = get_pluggable_class(PluggableType.ALGORITHM,algo_name)
-    algorithm = algorithm_cls()
+    algo_params = copy.deepcopy(inputparser.get_sections())
+    algorithm_cls = get_pluggable_class(PluggableType.ALGORITHM, algo_name)
+    algorithm = algorithm_cls.init_params(algo_params, algo_input)
     algorithm.random_seed = inputparser.get_section_property(JSONSchema.PROBLEM, 'random_seed')
     if backend_cfg is not None:
         algorithm.setup_quantum_backend(**backend_cfg)
-
-    algo_params = copy.deepcopy(inputparser.get_sections())
 
     if algo_input is None:
         input_name = inputparser.get_section_property('input', JSONSchema.NAME)
@@ -91,7 +90,6 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
             convert_json_to_dict(input_params)
             algo_input.from_params(input_params)
 
-    algorithm.init_params(algo_params, algo_input)
     value = algorithm.run()
     if isinstance(value, dict) and json_output:
         convert_dict_to_json(value)

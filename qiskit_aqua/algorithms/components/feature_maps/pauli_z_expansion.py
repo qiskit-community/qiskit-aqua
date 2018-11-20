@@ -19,15 +19,15 @@ This module contains the definition of a base class for
 feature map. Several types of commonly used approaches.
 """
 
-from qiskit_aqua.algorithms.components.feature_maps.pauli_expansion import PauliExpansion
+from qiskit_aqua.algorithms.components.feature_maps import FeatureMap, PauliExpansion
 from qiskit_aqua.algorithms.components.feature_maps import self_product
 
 
 class PauliZExpansion(PauliExpansion):
     """
     Mapping data with the second order expansion followed by entangling gates.
-    Refer to https://arxiv.org/pdf/1804.11326.pdf for details.
 
+    Refer to https://arxiv.org/pdf/1804.11326.pdf for details.
     """
 
     CONFIGURATION = {
@@ -64,26 +64,20 @@ class PauliZExpansion(PauliExpansion):
         }
     }
 
-    def __init__(self):
+    def __init__(self, num_qubits, depth, entangler_map=None,
+                 entanglement='full', z_order=2, data_map_func=self_product):
         """Constructor."""
         super().__init__(self.CONFIGURATION.copy())
-        self._ret = {}
-
-    def init_args(self, num_qubits, depth, entangler_map=None,
-                  entanglement='full', z_order=2, data_map_func=self_product):
-        """Initializer.
-
-        Args:
-            num_qubits (int): number of qubits
-            depth (int): the number of repeated circuits
-            entangler_map (dict): describe the connectivity of qubits
-            entanglement (str): ['full', 'linear'], generate the qubit connectivitiy by predefined
-                                topology
-            z_order (str): z order
-            data_map_func (Callable): a mapping function for data x
-        """
         pauli_string = []
         for i in range(1, z_order + 1):
             pauli_string.append('Z' * i)
-        super().init_args(num_qubits, depth, entangler_map, entanglement,
-                          pauli_string, data_map_func)
+        super(PauliExpansion, self).init_args(num_qubits, depth, entangler_map, entanglement,
+                                              pauli_string, data_map_func)
+
+if __name__ == '__main__':
+    a = PauliZExpansion(4, 2)
+
+    qc = a.construct_circuit()
+
+    print(qc)
+

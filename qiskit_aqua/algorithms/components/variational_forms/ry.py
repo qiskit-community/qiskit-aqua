@@ -53,16 +53,10 @@ class VarFormRY(VariationalForm):
         }
     }
 
-    def __init__(self):
-        super().__init__(self.CONFIGURATION.copy())
-        self._num_qubits = 0
-        self._depth = 0
-        self._entangler_map = None
-        self._initial_state = None
+    def __init__(self, num_qubits, depth, entangler_map=None,
+                 entanglement='full', initial_state=None):
+        """Constructor.
 
-    def init_args(self, num_qubits, depth, entangler_map=None,
-                  entanglement='full', initial_state=None):
-        """
         Args:
             num_qubits (int) : number of qubits
             depth (int) : number of rotation layers
@@ -72,6 +66,7 @@ class VarFormRY(VariationalForm):
             entanglement (str): 'full' or 'linear'
             initial_state (InitialState): an initial state object
         """
+        super().__init__(self.CONFIGURATION.copy())
         self._num_parameters = num_qubits * (depth + 1)
         self._bounds = [(-np.pi, np.pi)] * self._num_parameters
         self._num_qubits = num_qubits

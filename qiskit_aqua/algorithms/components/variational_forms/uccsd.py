@@ -97,31 +97,12 @@ class VarFormUCCSD(VariationalForm):
         }
     }
 
-    def __init__(self):
-        super().__init__(self.CONFIGURATION.copy())
-        self._num_qubits = 0
-        self._depth = 0
-        self._num_orbitals = 0
-        self._num_particles = 0
-        self._single_excitations = None
-        self._double_excitations = None
-        self._qubit_mapping = None
-        self._initial_state = None
-        self._two_qubit_reduction = False
-        self._num_time_slices = 1
-        self._num_parameters = 0
-        self._bounds = None
-        self._cliffords = None
-        self._sq_list = None
-        self._tapering_values = None
-        self._symmetries = None
-        self._hopping_ops = {}
+    def __init__(self, num_qubits, depth, num_orbitals, num_particles,
+                 active_occupied=None, active_unoccupied=None, initial_state=None,
+                 qubit_mapping='parity', two_qubit_reduction=False, num_time_slices=1,
+                 cliffords=None, sq_list=None, tapering_values=None, symmetries=None):
+        """Constructor.
 
-    def init_args(self, num_qubits, depth, num_orbitals, num_particles,
-                  active_occupied=None, active_unoccupied=None, initial_state=None,
-                  qubit_mapping='parity', two_qubit_reduction=False, num_time_slices=1,
-                  cliffords=None, sq_list=None, tapering_values=None, symmetries=None):
-        """
         Args:
             num_orbitals (int): number of spin orbitals
             depth (int): number of replica of basic module
@@ -139,6 +120,7 @@ class VarFormUCCSD(VariationalForm):
                                     has to be equal to the length of cliffords and sq_list
             symmetries ([Pauli]): represent the Z2 symmetries
         """
+        super().__init__(self.CONFIGURATION.copy())
         self._cliffords = cliffords
         self._sq_list = sq_list
         self._tapering_values = tapering_values

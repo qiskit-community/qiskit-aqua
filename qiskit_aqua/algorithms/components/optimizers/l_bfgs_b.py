@@ -70,9 +70,6 @@ class L_BFGS_B(Optimizer):
     def __init__(self):
         super().__init__(self.CONFIGURATION.copy())
 
-    def init_args(self):
-        pass
-
     def optimize(self, num_vars, objective_function, gradient_function=None, variable_bounds=None, initial_point=None):
         super().optimize(num_vars, objective_function, gradient_function, variable_bounds, initial_point)
 

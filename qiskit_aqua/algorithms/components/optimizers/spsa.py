@@ -84,13 +84,8 @@ class SPSA(Optimizer):
         'optimizer': ['local', 'noise']
     }
 
-    def __init__(self):
+    def __init__(self, max_trials=1000, c0=2*np.pi*0.1, c1=0.1, c2=0.602, c3=0.101, c4=0, skip_calibration=False):
         super().__init__(self.CONFIGURATION.copy())
-        self._max_trials = None
-        self._parameters = None
-        self._skip_calibration = False
-
-    def init_args(self, max_trials=1000, c0=2*np.pi*0.1, c1=0.1, c2=0.602, c3=0.101, c4=0, skip_calibration=False):
         self._max_trials = max_trials
         self._parameters = np.array([c0, c1, c2, c3, c4])
         self._skip_calibration = skip_calibration

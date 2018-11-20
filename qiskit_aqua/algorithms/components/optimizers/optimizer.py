@@ -79,7 +79,8 @@ class Optimizer(ABC):
         """Return optimizer configuration"""
         return self._configuration
 
-    def init_params(self, params):
+    @classmethod
+    def init_params(cls, params):
         """Initialize with a params dictionary
 
         A dictionary of config params as per the configuration object. Some of these params get
@@ -91,16 +92,12 @@ class Optimizer(ABC):
             params (dict): configuration dict
         """
         logger.debug('init_params: {}'.format(params))
-        opts = {k: v for k, v in params.items() if k in self._configuration['options']}
-        self.set_options(**opts)
-        args = {k: v for k, v in params.items() if k not in self._configuration['options'] and k != 'name'}
+        opts = {k: v for k, v in params.items() if k in cls.CONFIGURATION['options']}
+        args = {k: v for k, v in params.items() if k not in cls.CONFIGURATION['options'] and k != 'name'}
         logger.debug('init_args: {}'.format(args))
-        self.init_args(**args)
-
-    @abstractmethod
-    def init_args(self, **args):
-        """Initialize the optimizer with its parameters according to schema"""
-        raise NotImplementedError()
+        optimizer = cls(**args)
+        optimizer.set_options(**opts)
+        return optimizer
 
     def set_options(self, **kwargs):
         """Set an options dictionary that may be used by call to the optimizer

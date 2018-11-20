@@ -67,49 +67,8 @@ class QSVMVariational(QuantumAlgorithm):
         }
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.CONFIGURATION.copy())
-        self._ret = {}
-
-    def init_params(self, params, algo_input):
-        algo_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
-        override_spsa_params = algo_params.get('override_SPSA_params')
-        batch_mode = algo_params.get('batch_mode')
-
-        # Set up optimizer
-        opt_params = params.get(QuantumAlgorithm.SECTION_KEY_OPTIMIZER)
-        optimizer = get_pluggable_class(PluggableType.OPTIMIZER,opt_params['name'])
-        optimizer = optimizer()
-        # If SPSA then override SPSA params as reqd to our predetermined values
-        if opt_params['name'] == 'SPSA' and override_spsa_params:
-            opt_params['c0'] = 4.0
-            opt_params['c1'] = 0.1
-            opt_params['c2'] = 0.602
-            opt_params['c3'] = 0.101
-            opt_params['c4'] = 0.0
-            opt_params['skip_calibration'] = True
-        optimizer.init_params(opt_params)
-
-        # Set up variational form
-        fea_map_params = params.get(QuantumAlgorithm.SECTION_KEY_FEATURE_MAP)
-        num_qubits = get_feature_dimension(algo_input.training_dataset)
-        fea_map_params['num_qubits'] = num_qubits
-        feature_map = get_pluggable_class(PluggableType.FEATURE_MAP,fea_map_params['name'])
-        feature_map = feature_map()
-        feature_map.init_params(fea_map_params)
-
-        # Set up variational form
-        var_form_params = params.get(QuantumAlgorithm.SECTION_KEY_VAR_FORM)
-        var_form_params['num_qubits'] = num_qubits
-        var_form = get_pluggable_class(PluggableType.VARIATIONAL_FORM,var_form_params['name'])
-        var_form = var_form()
-        var_form.init_params(var_form_params)
-
-        self.init_args(algo_input.training_dataset, algo_input.test_dataset, algo_input.datapoints,
-                       optimizer, feature_map, var_form, batch_mode)
-
-    def init_args(self, training_dataset, test_dataset, datapoints, optimizer,
-                  feature_map, var_form, batch_mode=False):
+    def __init__(self, training_dataset, test_dataset, datapoints, optimizer,
+                 feature_map, var_form, batch_mode=False):
         """Initialize the object
         Args:
             training_dataset (dict): {'A': numpy.ndarray, 'B': numpy.ndarray, ...}
@@ -122,10 +81,7 @@ class QSVMVariational(QuantumAlgorithm):
         Notes:
             We used `label` denotes numeric results and `class` means the name of that class (str).
         """
-
-        if QuantumAlgorithm.is_statevector_backend(self.backend):
-            raise ValueError('Selected backend  "{}" is not supported.'.format(QuantumAlgorithm.backend_name(self.backend)))
-
+        super().__init__(self.CONFIGURATION.copy())
         if training_dataset is None:
             raise AlgorithmError('Training dataset must be provided')
 
@@ -145,6 +101,42 @@ class QSVMVariational(QuantumAlgorithm):
         self._var_form = var_form
         self._num_qubits = self._feature_map.num_qubits
         self._optimizer.set_batch_mode(batch_mode)
+        self._ret = {}
+
+    @classmethod
+    def init_params(cls, params, algo_input):
+        algo_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
+        override_spsa_params = algo_params.get('override_SPSA_params')
+        batch_mode = algo_params.get('batch_mode')
+
+        # Set up optimizer
+        opt_params = params.get(QuantumAlgorithm.SECTION_KEY_OPTIMIZER)
+        optimizer_cls = get_pluggable_class(PluggableType.OPTIMIZER, opt_params['name'])
+        # If SPSA then override SPSA params as reqd to our predetermined values
+        if opt_params['name'] == 'SPSA' and override_spsa_params:
+            opt_params['c0'] = 4.0
+            opt_params['c1'] = 0.1
+            opt_params['c2'] = 0.602
+            opt_params['c3'] = 0.101
+            opt_params['c4'] = 0.0
+            opt_params['skip_calibration'] = True
+        optimizer = optimizer_cls.init_params(opt_params)
+
+        # Set up variational form
+        fea_map_params = params.get(QuantumAlgorithm.SECTION_KEY_FEATURE_MAP)
+        num_qubits = get_feature_dimension(algo_input.training_dataset)
+        fea_map_params['num_qubits'] = num_qubits
+        feature_map_cls = get_pluggable_class(PluggableType.FEATURE_MAP, fea_map_params['name'])
+        feature_map = feature_map_cls.init_params(fea_map_params)
+
+        # Set up variational form
+        var_form_params = params.get(QuantumAlgorithm.SECTION_KEY_VAR_FORM)
+        var_form_params['num_qubits'] = num_qubits
+        var_form_cls = get_pluggable_class(PluggableType.VARIATIONAL_FORM, var_form_params['name'])
+        var_form = var_form_cls.init_params(var_form_params)
+
+        return cls(algo_input.training_dataset, algo_input.test_dataset, algo_input.datapoints,
+                   optimizer, feature_map, var_form, batch_mode)
 
     def _construct_circuit(self, x, theta):
         qr = QuantumRegister(self._num_qubits, name='q')
@@ -179,6 +171,11 @@ class QSVMVariational(QuantumAlgorithm):
             numpy.ndarray or [numpy.ndarray]: list of NxK array
             numpy.ndarray or [numpy.ndarray]: list of Nx1 array
         """
+
+        if QuantumAlgorithm.is_statevector_backend(self.backend):
+            raise ValueError('Selected backend  "{}" is not supported.'.format(
+                QuantumAlgorithm.backend_name(self.backend)))
+
         predicted_probs = []
         predicted_labels = []
         circuits = {}

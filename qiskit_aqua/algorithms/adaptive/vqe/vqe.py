@@ -83,25 +83,46 @@ class VQE(QuantumAlgorithm):
         }
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.CONFIGURATION.copy())
-        self._operator = None
-        self._operator_mode = 'matrix'
-        self._var_form = None
-        self._optimizer = None
-        self._opt_init_point = None
-        self._aux_operators = None
+    def __init__(self, operator, operator_mode, var_form, optimizer,
+                 initial_point=None, batch_mode=False, aux_operators=[]):
+        """
+        Args:
+            operator (Operator): Qubit operator
+            operator_mode (str): operator mode, used for eval of operator
+            var_form (VariationalForm) : parametrized variational form.
+            optimizer (Optimizer) : the classical optimization algorithm.
+            initial_point (numpy.ndarray) : optimizer initial point.
+            aux_operators ([Operator]): Auxiliary operators to be evaluated at each eigenvalue
+        """
+        super().__init__(self.CONFIGURATION.copy())
+        self._operator = operator
+        if operator_mode not in ['paulis', 'grouped_paulis', 'matrix']:
+            raise ValueError('operator_mode must be one of following {} '
+                             'but you have {}.'.format(['paulis', 'grouped_paulis', 'matrix'], operator_mode))
+        self._operator_mode = operator_mode
+        self._var_form = var_form
+        self._optimizer = optimizer
+        self._initial_point = initial_point
+        self._aux_operators = aux_operators
         self._ret = {}
+        if initial_point is None:
+            self._initial_point = var_form.preferred_init_points
+        self._optimizer.set_batch_mode(batch_mode)
         self._eval_count = 0
         self._eval_time = 0
+        logger.info(self.print_setting())
 
-    def init_params(self, params, algo_input):
+    @classmethod
+    def init_params(cls, params, algo_input):
         """
-        Initialize via parameters dictionary and algorithm input instance
+        Initialize via parameters dictionary and algorithm input instance.
 
         Args:
             params (dict): parameters dictionary
             algo_input (EnergyInput): EnergyInput instance
+
+        Returns:
+            VQE: vqe object
         """
         if algo_input is None:
             raise AlgorithmError("EnergyInput instance is required.")
@@ -116,56 +137,24 @@ class VQE(QuantumAlgorithm):
         # Set up initial state, we need to add computed num qubits to params
         init_state_params = params.get(QuantumAlgorithm.SECTION_KEY_INITIAL_STATE)
         init_state_params['num_qubits'] = operator.num_qubits
-        init_state = get_pluggable_class(PluggableType.INITIAL_STATE,init_state_params['name'])
-        init_state = init_state()
-        init_state.init_params(init_state_params)
+        init_state_cls = get_pluggable_class(PluggableType.INITIAL_STATE, init_state_params['name'])
+        init_state = init_state_cls.init_params(init_state_params)
 
         # Set up variational form, we need to add computed num qubits, and initial state to params
         var_form_params = params.get(QuantumAlgorithm.SECTION_KEY_VAR_FORM)
         var_form_params['num_qubits'] = operator.num_qubits
         var_form_params['initial_state'] = init_state
-        var_form = get_pluggable_class(PluggableType.VARIATIONAL_FORM,var_form_params['name'])
-        var_form = var_form()
-        var_form.init_params(var_form_params)
+        var_form_cls = get_pluggable_class(PluggableType.VARIATIONAL_FORM, var_form_params['name'])
+        var_form = var_form_cls.init_params(var_form_params)
 
         # Set up optimizer
         opt_params = params.get(QuantumAlgorithm.SECTION_KEY_OPTIMIZER)
-        optimizer = get_pluggable_class(PluggableType.OPTIMIZER,opt_params['name'])
-        optimizer = optimizer()
-        optimizer.init_params(opt_params)
+        optimizer_cls = get_pluggable_class(PluggableType.OPTIMIZER, opt_params['name'])
+        optimizer = optimizer_cls.init_params(opt_params)
 
-        self.init_args(operator, operator_mode, var_form, optimizer,
-                       opt_init_point=initial_point, batch_mode=batch_mode,
-                       aux_operators=algo_input.aux_ops)
-        logger.info(self.print_setting())
-
-    def init_args(self, operator, operator_mode, var_form, optimizer,
-                  opt_init_point=None, batch_mode=False, aux_operators=[]):
-        """
-        Args:
-            operator (Operator): Qubit operator
-            operator_mode (str): operator mode, used for eval of operator
-            var_form (VariationalForm) : parametrized variational form.
-            optimizer (Optimizer) : the classical optimization algorithm.
-            opt_init_point (numpy.ndarray) : optimizer initial point.
-            aux_operators ([Operator]): Auxiliary operators to be evaluated at each eigenvalue
-        """
-
-        if not QuantumAlgorithm.is_statevector_backend(self.backend) and operator_mode == 'matrix':
-            logger.warning('Qasm simulation does not work on {} mode, changing \
-                           the operator_mode to paulis'.format(operator_mode))
-            operator_mode = 'paulis'
-
-        self._operator = operator
-        self._operator_mode = operator_mode
-        self._var_form = var_form
-        self._optimizer = optimizer
-        self._opt_init_point = opt_init_point
-        self._aux_operators = aux_operators
-        self._ret = {}
-        if opt_init_point is None:
-            self._opt_init_point = var_form.preferred_init_points
-        self._optimizer.set_batch_mode(batch_mode)
+        return cls(operator, operator_mode, var_form, optimizer,
+                   initial_point=initial_point, batch_mode=batch_mode,
+                   aux_operators=algo_input.aux_ops)
 
     @property
     def setting(self):
@@ -174,7 +163,7 @@ class VQE(QuantumAlgorithm):
         params = ""
         for key, value in self.__dict__.items():
             if key != "_configuration" and key[0] == "_":
-                if "opt_init_point" in key and value is None:
+                if "initial_point" in key and value is None:
                     params += "-- {}: {}\n".format(key[1:], "Random seed")
                 else:
                     params += "-- {}: {}\n".format(key[1:], value)
@@ -248,6 +237,11 @@ class VQE(QuantumAlgorithm):
         Returns:
             Dictionary of results
         """
+        if not QuantumAlgorithm.is_statevector_backend(self.backend) and self._operator_mode == 'matrix':
+            logger.warning('Qasm simulation does not work on {} mode, changing '
+                           'the operator_mode to paulis'.format(self._operator_mode))
+            self._operator_mode = 'paulis'
+
         self.enable_circuit_summary()
         self._eval_count = 0
         self._solve()
@@ -306,7 +300,7 @@ class VQE(QuantumAlgorithm):
             ValueError:
 
         """
-        initial_point = initial_point if initial_point is not None else self._opt_init_point
+        initial_point = initial_point if initial_point is not None else self._initial_point
 
         nparms = self._var_form.num_parameters
         bounds = self._var_form.parameter_bounds

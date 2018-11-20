@@ -83,11 +83,8 @@ class TNC(Optimizer):
         'optimizer': ['local']
     }
 
-    def __init__(self):
+    def __init__(self, tol=None):
         super().__init__(self.CONFIGURATION.copy())
-        self._tol = None
-
-    def init_args(self, tol=None):
         self._tol = tol
 
     def optimize(self, num_vars, objective_function, gradient_function=None, variable_bounds=None, initial_point=None):

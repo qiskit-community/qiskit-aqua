@@ -37,14 +37,31 @@ class Zero(InitialState):
         }
     }
 
-    def __init__(self):
-        super().__init__(self.CONFIGURATION.copy())
-        self._num_qubits = 0
+    def __init__(self, num_qubits):
+        """Constructor.
 
-    def init_args(self, num_qubits):
+        Args:
+            num_qubits (int): number of qubits.
+        """
+        super().__init__(self.CONFIGURATION.copy())
         self._num_qubits = num_qubits
 
     def construct_circuit(self, mode, register=None):
+        """
+        Construct the statevector of desired initial state.
+
+        Args:
+            mode (string): `vector` or `circuit`. The `vector` mode produces the vector.
+                            While the `circuit` constructs the quantum circuit corresponding that
+                            vector.
+            register (QuantumRegister): register for circuit construction.
+
+        Returns:
+            QuantumCircuit or numpy.ndarray: statevector.
+
+        Raises:
+            ValueError: when mode is not 'vector' or 'circuit'.
+        """
         if mode == 'vector':
             return np.array([1.0] + [0.0] * (np.power(2, self._num_qubits) - 1))
         elif mode == 'circuit':
