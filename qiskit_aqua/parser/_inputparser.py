@@ -216,8 +216,7 @@ class InputParser(object):
         config = get_pluggable_configuration(
             PluggableType.ALGORITHM, algo_name)
         pluggable_dependencies = [] if 'depends' not in config else config['depends']
-        pluggable_defaults = {
-        } if 'defaults' not in config else config['defaults']
+        pluggable_defaults = {} if 'defaults' not in config else config['defaults']
         for pluggable_type in local_pluggables_types():
             if pluggable_type != PluggableType.ALGORITHM and pluggable_type.value not in pluggable_dependencies:
                 # remove pluggables from input that are not in the dependencies
@@ -266,8 +265,7 @@ class InputParser(object):
 
         # do not merge any pluggable that doesn't have name default in schema
         default_section_names = []
-        pluggable_type_names = [
-            pluggable_type.value for pluggable_type in local_pluggables_types()]
+        pluggable_type_names = [pluggable_type.value for pluggable_type in local_pluggables_types()]
         for section_name in self.get_default_section_names():
             if section_name in pluggable_type_names:
                 if self.get_property_default_value(section_name, JSONSchema.NAME) is not None:
