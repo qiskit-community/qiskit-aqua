@@ -26,9 +26,8 @@ from qiskit_aqua import (PluggableType,get_pluggable_class)
 class TestInitialStateHartreeFock(QiskitAquaTestCase):
 
     def setUp(self):
-        self.hf = get_pluggable_class(PluggableType.INITIAL_STATE, 'HartreeFock')
-        self.hf = self.hf()
-
+        self.hf = get_pluggable_class(PluggableType.INITIAL_STATE, 'HartreeFock')()
+       
     def test_qubits_4_jw_h2(self):
         self.hf.init_args(4, 4, 'jordan_wigner', False, 2)
         cct = self.hf.construct_circuit('vector')

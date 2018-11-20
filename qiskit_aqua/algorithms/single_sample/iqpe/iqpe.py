@@ -131,10 +131,8 @@ class IQPE(QuantumAlgorithm):
         # Set up initial state, we need to add computed num qubits to params
         init_state_params = params.get(QuantumAlgorithm.SECTION_KEY_INITIAL_STATE)
         init_state_params['num_qubits'] = operator.num_qubits
-        init_state = get_pluggable_class(PluggableType.INITIAL_STATE, init_state_params['name'])
-        init_state = init_state()
-        init_state.init_params(init_state_params)
-
+        init_state = get_pluggable_class(PluggableType.INITIAL_STATE, init_state_params['name'])(init_state_params)
+      
         self.init_args(
             operator, init_state, num_time_slices, num_iterations,
             paulis_grouping=paulis_grouping, expansion_mode=expansion_mode,

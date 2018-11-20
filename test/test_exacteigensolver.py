@@ -25,7 +25,7 @@ from qiskit_aqua.input import get_input_class
 from qiskit_aqua import (PluggableType,get_pluggable_class)
 
 
-class TestExactEignesolver(QiskitAquaTestCase):
+class TestExactEigensolver(QiskitAquaTestCase):
 
     def setUp(self):
         np.random.seed(50)
