@@ -15,8 +15,6 @@
 # limitations under the License.
 # =============================================================================
 
-import copy
-
 from qiskit_aqua import AlgorithmError
 from qiskit_aqua.input import AlgorithmInput
 
@@ -49,11 +47,11 @@ class SVMInput(AlgorithmInput):
         'problems': ['svm_classification']
     }
 
-    def __init__(self):
-        super().__init__(copy.deepcopy(SVMInput.CONFIGURATION))
-        self.training_dataset = None
-        self.test_dataset = None
-        self.datapoints = None
+    def __init__(self, training_dataset, test_dataset=None, datapoints=None):
+        super().__init__(SVMInput.CONFIGURATION.copy())
+        self.training_dataset = training_dataset
+        self.test_dataset = test_dataset
+        self.datapoints = datapoints
 
     def to_params(self):
         params = {}
@@ -62,9 +60,11 @@ class SVMInput(AlgorithmInput):
         params['datapoints'] = self.datapoints
         return params
 
-    def from_params(self, params):
+    @classmethod
+    def from_params(cls, params):
         if 'training_dataset' not in params:
             raise AlgorithmError("training_dataset is required.")
-        self.training_dataset = params['training_dataset']
-        self.test_dataset = params['test_dataset']
-        self.datapoints = params['datapoints']
+        training_dataset = params['training_dataset']
+        test_dataset = params['test_dataset']
+        datapoints = params['datapoints']
+        return cls(training_dataset, test_dataset, datapoints)

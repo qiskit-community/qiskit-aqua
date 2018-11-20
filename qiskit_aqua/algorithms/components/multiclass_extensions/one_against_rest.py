@@ -42,10 +42,10 @@ class OneAgainstRest(MulticlassExtension):
         }
     }
 
-    def __init__(self):
+    def __init__(self, estimator_cls, params=[]):
         super().__init__(self.CONFIGURATION.copy())
-        self.estimator_cls = None
-        self.params = None
+        self.estimator_cls = estimator_cls
+        self.params = params
 
     def train(self, X, y):
         """
@@ -63,10 +63,7 @@ class OneAgainstRest(MulticlassExtension):
             unique_y = np.unique(column)
             if len(unique_y) == 1:
                 raise Exception("given all data points are assigned to the same class, the prediction would be boring.")
-            if self.params is None:
-                estimator = self.estimator_cls()
-            else:
-                estimator = self.estimator_cls(*self.params)
+            estimator = self.estimator_cls(*self.params)
             estimator.fit(X, column)
             self.estimators.append(estimator)
 

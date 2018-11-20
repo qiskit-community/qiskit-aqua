@@ -42,10 +42,10 @@ class AllPairs(MulticlassExtension):
         }
     }
 
-    def __init__(self):
+    def __init__(self, estimator_cls, params=[]):
         super().__init__(self.CONFIGURATION.copy())
-        self.estimator_cls = None
-        self.params = None
+        self.estimator_cls = estimator_cls
+        self.params = params
 
     def train(self, x, y):
         """
@@ -63,10 +63,7 @@ class AllPairs(MulticlassExtension):
         for i in range(n_classes):
             estimators_from_i = {}
             for j in range(i + 1, n_classes):
-                if self.params is None:
-                    estimator = self.estimator_cls()
-                else:
-                    estimator = self.estimator_cls(*self.params)
+                estimator = self.estimator_cls(*self.params)
                 cond = np.logical_or(y == i, y == j)
                 indcond = np.arange(x.shape[0])[cond]
                 x_filtered = x[indcond]

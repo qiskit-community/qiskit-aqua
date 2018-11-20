@@ -23,7 +23,7 @@ class QSVM_Kernel_Estimator(Estimator):
     """The estimator that uses the quantum kernel."""
 
     def __init__(self, feature_map, qalgo):
-        super(QSVM_Kernel_Estimator, self).__init__()
+        super().__init__()
         self.qsvm_binary = QSVM_Kernel_Binary()
         self.qsvm_binary.init_args({}, {}, [], feature_map, qalgo)
         self._ret = {}

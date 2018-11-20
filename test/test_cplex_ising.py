@@ -18,16 +18,19 @@
 import numpy as np
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import run_algorithm, PluggableType,get_pluggable_class, local_pluggables
+from qiskit_aqua import run_algorithm, PluggableType, local_pluggables
 from qiskit_aqua.input import get_input_class
 from qiskit_aqua.translators.ising import maxcut
+skip_test = False if 'CPLEX.Ising' not in local_pluggables(PluggableType.ALGORITHM) else True
 
+if not skip_test:
+    from qiskit_aqua.algorithms.classical.cplex.cplex_ising import CPLEX_Ising
 
 class TestCplexIsing(QiskitAquaTestCase):
     """Cplex Ising tests."""
 
     def setUp(self):
-        if 'CPLEX.Ising' not in local_pluggables(PluggableType.ALGORITHM):
+        if skip_test:
             self.skipTest('CPLEX.Ising algorithm not found - CPLEX not installed?')
 
         np.random.seed(8123179)
@@ -49,9 +52,7 @@ class TestCplexIsing(QiskitAquaTestCase):
         self.assertEqual(maxcut.maxcut_value(x, self.w), 24)
 
     def test_cplex_ising_direct(self):
-        algo = get_pluggable_class(PluggableType.ALGORITHM,'CPLEX.Ising')
-        algo = algo()
-        algo.init_args(self.algo_input.qubit_op, display=0)
+        algo = CPLEX_Ising(self.algo_input.qubit_op, display=0)
         result = algo.run()
         self.assertEqual(result['energy'], -20.5)
         x_dict = result['x_sol']

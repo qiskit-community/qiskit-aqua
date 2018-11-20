@@ -16,9 +16,9 @@
 # =============================================================================
 
 from .variational_form import VariationalForm
-from .ry import VarFormRY
-from .ryrz import VarFormRYRZ
-from .swaprz import VarFormSwapRZ
+from .ry import RY
+from .ryrz import RYRZ
+from .swaprz import SwapRZ
 # try:
 #     from .uccsd import UCCSD
 # except ImportError:
@@ -27,6 +27,6 @@ from .swaprz import VarFormSwapRZ
 #         "please install qiskit_aqua_chemistry first."')
 
 __all__ = ['VariationalForm',
-           'VarFormRY',
-           'VarFormRYRZ',
-           'VarFormSwapRZ']
+           'RY',
+           'RYRZ',
+           'SwapRZ']

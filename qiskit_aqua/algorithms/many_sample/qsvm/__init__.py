@@ -15,10 +15,10 @@
 # limitations under the License.
 # =============================================================================
 
-from .qsvm_kernel_abc import QSVM_Kernel_ABC
-from .qsvm_kernel_binary import QSVM_Kernel_Binary
-from .qsvm_kernel_multiclass import QSVM_Kernel_Multiclass
-from .qsvm_kernel_estimator import QSVM_Kernel_Estimator
+from ._qsvm_kernel_abc import QSVM_Kernel_ABC
+from ._qsvm_kernel_binary import QSVM_Kernel_Binary
+from ._qsvm_kernel_multiclass import QSVM_Kernel_Multiclass
+from ._qsvm_kernel_estimator import QSVM_Kernel_Estimator
 
 __all__ = ['QSVM_Kernel_ABC',
            'QSVM_Kernel_Binary',

@@ -21,7 +21,7 @@ from qiskit import QuantumRegister, QuantumCircuit
 from qiskit_aqua.algorithms.components.variational_forms import VariationalForm
 
 
-class VarFormSwapRZ(VariationalForm):
+class SwapRZ(VariationalForm):
     """Layers of Swap+Z rotations followed by entangling gates."""
 
     CONFIGURATION = {

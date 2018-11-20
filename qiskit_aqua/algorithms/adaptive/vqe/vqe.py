@@ -137,20 +137,20 @@ class VQE(QuantumAlgorithm):
         # Set up initial state, we need to add computed num qubits to params
         init_state_params = params.get(QuantumAlgorithm.SECTION_KEY_INITIAL_STATE)
         init_state_params['num_qubits'] = operator.num_qubits
-        init_state_cls = get_pluggable_class(PluggableType.INITIAL_STATE, init_state_params['name'])
-        init_state = init_state_cls.init_params(init_state_params)
+        init_state = get_pluggable_class(PluggableType.INITIAL_STATE,
+                                         init_state_params['name']).init_params(init_state_params)
 
         # Set up variational form, we need to add computed num qubits, and initial state to params
         var_form_params = params.get(QuantumAlgorithm.SECTION_KEY_VAR_FORM)
         var_form_params['num_qubits'] = operator.num_qubits
         var_form_params['initial_state'] = init_state
-        var_form_cls = get_pluggable_class(PluggableType.VARIATIONAL_FORM, var_form_params['name'])
-        var_form = var_form_cls.init_params(var_form_params)
+        var_form = get_pluggable_class(PluggableType.VARIATIONAL_FORM,
+                                       var_form_params['name']).init_params(var_form_params)
 
         # Set up optimizer
         opt_params = params.get(QuantumAlgorithm.SECTION_KEY_OPTIMIZER)
-        optimizer_cls = get_pluggable_class(PluggableType.OPTIMIZER, opt_params['name'])
-        optimizer = optimizer_cls.init_params(opt_params)
+        optimizer = get_pluggable_class(PluggableType.OPTIMIZER,
+                                        opt_params['name']).init_params(opt_params)
 
         return cls(operator, operator_mode, var_form, optimizer,
                    initial_point=initial_point, batch_mode=batch_mode,

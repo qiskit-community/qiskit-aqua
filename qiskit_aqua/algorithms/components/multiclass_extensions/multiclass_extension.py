@@ -38,14 +38,10 @@ class MulticlassExtension(ABC):
         """Return configuration"""
         return self._configuration
 
-    def init_params(self, params):
+    @classmethod
+    def init_params(cls, params):
         args = {k: v for k, v in params.items() if k != 'name'}
-        self.init_args(**args)
-
-    def init_args(self, estimator_cls, code_size=None, params=None):
-        self.estimator_cls = estimator_cls
-        self.code_size = code_size
-        self.params = params
+        return cls(**args)
 
     @abstractmethod
     def train(self, x, y):

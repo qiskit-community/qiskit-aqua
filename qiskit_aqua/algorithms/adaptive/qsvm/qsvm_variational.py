@@ -111,7 +111,6 @@ class QSVMVariational(QuantumAlgorithm):
 
         # Set up optimizer
         opt_params = params.get(QuantumAlgorithm.SECTION_KEY_OPTIMIZER)
-        optimizer_cls = get_pluggable_class(PluggableType.OPTIMIZER, opt_params['name'])
         # If SPSA then override SPSA params as reqd to our predetermined values
         if opt_params['name'] == 'SPSA' and override_spsa_params:
             opt_params['c0'] = 4.0
@@ -120,14 +119,15 @@ class QSVMVariational(QuantumAlgorithm):
             opt_params['c3'] = 0.101
             opt_params['c4'] = 0.0
             opt_params['skip_calibration'] = True
-        optimizer = optimizer_cls.init_params(opt_params)
+        optimizer = get_pluggable_class(PluggableType.OPTIMIZER,
+                                        opt_params['name']).init_params(opt_params)
 
         # Set up variational form
         fea_map_params = params.get(QuantumAlgorithm.SECTION_KEY_FEATURE_MAP)
         num_qubits = get_feature_dimension(algo_input.training_dataset)
         fea_map_params['num_qubits'] = num_qubits
-        feature_map_cls = get_pluggable_class(PluggableType.FEATURE_MAP, fea_map_params['name'])
-        feature_map = feature_map_cls.init_params(fea_map_params)
+        feature_map = get_pluggable_class(PluggableType.FEATURE_MAP,
+                                          fea_map_params['name']).init_params(fea_map_params)
 
         # Set up variational form
         var_form_params = params.get(QuantumAlgorithm.SECTION_KEY_VAR_FORM)

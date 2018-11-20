@@ -25,10 +25,7 @@ class QSVM_Kernel_ABC(ABC):
     abstract base class for the binary classifier and the multiclass classifier
     """
 
-    def __init__(self):
-        self._ret = {}
-
-    def init_args(self, training_dataset, test_dataset, datapoints, feature_map, qalgo):
+    def __init__(self, training_dataset, test_dataset, datapoints, feature_map, qalgo):
 
         if training_dataset is None:
             raise ValueError('training dataset is missing! please provide it')
@@ -47,10 +44,11 @@ class QSVM_Kernel_ABC(ABC):
         self.feature_map = feature_map
         self.num_qubits = self.feature_map.num_qubits
         self.qalgo = qalgo
+        self._ret = {}
 
     @abstractmethod
     def run(self):
-        raise NotImplementedError("Should have implemented this")
+        raise NotImplementedError("Must have implemented this.")
 
     @property
     def ret(self):
