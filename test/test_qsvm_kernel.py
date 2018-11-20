@@ -95,6 +95,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
         num_qubits = 2
         feature_map = SecondOrderExpansion(num_qubits=num_qubits, depth=2, entangler_map={0: [1]})
         svm = QSVM_Kernel(feature_map, self.training_data, self.testing_data, None)
+        svm.random_seed = self.random_seed
         svm.setup_quantum_backend(backend=backend, shots=self.shots)
 
         result = svm.run()

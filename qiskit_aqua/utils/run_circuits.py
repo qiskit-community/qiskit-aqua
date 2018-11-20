@@ -20,12 +20,10 @@ import logging
 import time
 import functools
 import copy
-from packaging import version
 
 import numpy as np
 from qiskit.backends import BaseBackend
 from qiskit import compile as q_compile
-import qiskit
 from qiskit.backends.jobstatus import JobStatus
 from qiskit.backends import JobError
 
@@ -135,7 +133,7 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
     if backend.configuration().get('name', '').startswith('statevector'):
         circuits = _avoid_empty_circuits(circuits)
 
-    if has_shared_circuits and version.parse(qiskit.__version__) > version.parse('0.6.1'):
+    if has_shared_circuits:
         return _reuse_shared_circuits(circuits, backend, execute_config, qjob_config)
 
     with_autorecover = False if backend.configuration()['simulator'] else True

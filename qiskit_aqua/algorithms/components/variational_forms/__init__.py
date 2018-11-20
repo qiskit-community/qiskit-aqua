@@ -19,12 +19,12 @@ from .variational_form import VariationalForm
 from .ry import RY
 from .ryrz import RYRZ
 from .swaprz import SwapRZ
-try:
-    from .uccsd import UCCSD
-except ImportError:
-    raise ImportWarning('UCCSD can be only used with qiskit_aqua_chemistry lib." \
-        "If you would like to use it for other purposes," \
-        "please install qiskit_aqua_chemistry first."')
+# try:
+#     from .uccsd import UCCSD
+# except ImportError:
+#     raise ImportWarning('UCCSD can be only used with qiskit_aqua_chemistry lib." \
+#         "If you would like to use it for other purposes," \
+#         "please install qiskit_aqua_chemistry first."')
 
 __all__ = ['VariationalForm',
            'RY',
