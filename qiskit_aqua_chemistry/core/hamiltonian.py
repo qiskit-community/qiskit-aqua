@@ -206,8 +206,7 @@ class Hamiltonian(ChemistryOperator):
         qubit_op = Hamiltonian._map_fermionic_operator_to_qubit(fer_op, self._qubit_mapping, new_nel,
                                                                 self._two_qubit_reduction, self._max_workers)
         logger.debug('  num paulis: {}, num qubits: {}'.format(len(qubit_op.paulis), qubit_op.num_qubits))
-        algo_input = EnergyInput()
-        algo_input.qubit_op = qubit_op
+        algo_input = EnergyInput(qubit_op)
 
         def _add_aux_op(aux_op):
             algo_input.add_aux_op(Hamiltonian._map_fermionic_operator_to_qubit(aux_op, self._qubit_mapping, new_nel,
