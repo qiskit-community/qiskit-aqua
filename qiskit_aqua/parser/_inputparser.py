@@ -105,7 +105,7 @@ class InputParser(object):
         for pluggable_type in local_pluggables_types():
             if section_name == pluggable_type.value:
                 return True
-            
+
         return False
 
     def get_section_types(self, section_name):
@@ -208,11 +208,13 @@ class InputParser(object):
         self._json_schema.schema['properties'][InputParser.INPUT]['additionalProperties'] = additionalProperties
 
     def _merge_dependencies(self):
-        algo_name = self.get_section_property(PluggableType.ALGORITHM.value, JSONSchema.NAME)
+        algo_name = self.get_section_property(
+            PluggableType.ALGORITHM.value, JSONSchema.NAME)
         if algo_name is None:
             return
 
-        config = get_pluggable_configuration(PluggableType.ALGORITHM, algo_name)
+        config = get_pluggable_configuration(
+            PluggableType.ALGORITHM, algo_name)
         pluggable_dependencies = [] if 'depends' not in config else config['depends']
         pluggable_defaults = {
         } if 'defaults' not in config else config['defaults']
@@ -264,7 +266,8 @@ class InputParser(object):
 
         # do not merge any pluggable that doesn't have name default in schema
         default_section_names = []
-        pluggable_type_names = [pluggable_type.value for  pluggable_type in local_pluggables_types()]
+        pluggable_type_names = [
+            pluggable_type.value for pluggable_type in local_pluggables_types()]
         for section_name in self.get_default_section_names():
             if section_name in pluggable_type_names:
                 if self.get_property_default_value(section_name, JSONSchema.NAME) is not None:
@@ -301,7 +304,8 @@ class InputParser(object):
         self._validate_input_problem()
 
     def _validate_algorithm_problem(self):
-        algo_name = self.get_section_property(PluggableType.ALGORITHM.value, JSONSchema.NAME)
+        algo_name = self.get_section_property(
+            PluggableType.ALGORITHM.value, JSONSchema.NAME)
         if algo_name is None:
             return
 
@@ -513,14 +517,16 @@ class InputParser(object):
             raise AlgorithmError(
                 "No algorithm 'problem' section found on input.")
 
-        algo_name = self.get_section_property(PluggableType.ALGORITHM.value, JSONSchema.NAME)
+        algo_name = self.get_section_property(
+            PluggableType.ALGORITHM.value, JSONSchema.NAME)
         if algo_name is not None and problem_name in InputParser.get_algorithm_problems(algo_name):
             return
 
         for algo_name in local_pluggables(PluggableType.ALGORITHM):
             if problem_name in self.get_algorithm_problems(algo_name):
                 # set to the first algorithm to solve the problem
-                self.set_section_property(PluggableType.ALGORITHM.value, JSONSchema.NAME, algo_name)
+                self.set_section_property(
+                    PluggableType.ALGORITHM.value, JSONSchema.NAME, algo_name)
                 return
 
         # no algorithm solve this problem, remove section
@@ -553,19 +559,20 @@ class InputParser(object):
         self.delete_section(InputParser.INPUT)
 
     def _update_dependency_sections(self):
-        algo_name = self.get_section_property(PluggableType.ALGORITHM.value, JSONSchema.NAME)
-        config = {} if algo_name is None else get_pluggable_configuration(PluggableType.ALGORITHM, algo_name)
+        algo_name = self.get_section_property(
+            PluggableType.ALGORITHM.value, JSONSchema.NAME)
+        config = {} if algo_name is None else get_pluggable_configuration(
+            PluggableType.ALGORITHM, algo_name)
         classical = config['classical'] if 'classical' in config else False
         pluggable_dependencies = [] if 'depends' not in config else config['depends']
         pluggable_defaults = {
         } if 'defaults' not in config else config['defaults']
-        pluggable_types = local_pluggables_types()
-        for pluggable_type in pluggable_types:
+        for pluggable_type in local_pluggables_types():
             # remove pluggables from input that are not in the dependencies
             if pluggable_type != PluggableType.ALGORITHM and \
-                pluggable_type.value not in pluggable_dependencies and \
-                pluggable_type.value in self._sections:
-                del self._sections[pluggable_type]
+                    pluggable_type.value not in pluggable_dependencies and \
+                    pluggable_type.value in self._sections:
+                del self._sections[pluggable_type.value]
 
         for pluggable_type in pluggable_dependencies:
             pluggable_name = None
