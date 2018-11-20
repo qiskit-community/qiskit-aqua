@@ -19,8 +19,7 @@ This module contains the definition of a base class for
 feature map. Several types of commonly used approaches.
 """
 
-from qiskit_aqua.algorithms.components.feature_maps import FeatureMap, PauliExpansion
-from qiskit_aqua.algorithms.components.feature_maps import self_product
+from qiskit_aqua.algorithms.components.feature_maps import PauliExpansion, self_product
 
 
 class PauliZExpansion(PauliExpansion):
@@ -64,20 +63,11 @@ class PauliZExpansion(PauliExpansion):
         }
     }
 
-    def __init__(self, num_qubits, depth, entangler_map=None,
+    def __init__(self, num_qubits, depth=2, entangler_map=None,
                  entanglement='full', z_order=2, data_map_func=self_product):
         """Constructor."""
-        super().__init__(self.CONFIGURATION.copy())
         pauli_string = []
         for i in range(1, z_order + 1):
             pauli_string.append('Z' * i)
-        super(PauliExpansion, self).init_args(num_qubits, depth, entangler_map, entanglement,
-                                              pauli_string, data_map_func)
-
-if __name__ == '__main__':
-    a = PauliZExpansion(4, 2)
-
-    qc = a.construct_circuit()
-
-    print(qc)
-
+        super().__init__(num_qubits, depth, entangler_map, entanglement,
+                         paulis=pauli_string, data_map_func=data_map_func)

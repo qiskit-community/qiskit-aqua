@@ -31,8 +31,7 @@ from qiskit.qasm import pi
 from sympy.core.numbers import NaN, Float
 
 from qiskit_aqua import Operator
-from qiskit_aqua.algorithms.components.feature_maps import FeatureMap
-from qiskit_aqua.algorithms.components.feature_maps import self_product
+from qiskit_aqua.algorithms.components.feature_maps import FeatureMap, self_product
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +78,7 @@ class PauliExpansion(FeatureMap):
         }
     }
 
-    def __init__(self, num_qubits, depth, entangler_map=None,
+    def __init__(self, num_qubits, depth=2, entangler_map=None,
                  entanglement='full', paulis=['Z', 'ZZ'], data_map_func=self_product):
         """Constructor.
 

@@ -18,14 +18,14 @@
 from .feature_map import FeatureMap
 from .data_mapping import self_product
 from .pauli_expansion import PauliExpansion
+from .pauli_z_expansion import PauliZExpansion
 from .first_order_expansion import FirstOrderExpansion
 from .second_order_expansion import SecondOrderExpansion
-from .pauli_z_expansion import PauliZExpansion
-
 
 __all__ = ['FeatureMap',
            'self_product',
-           'FirstOrderExpansion',
-           'SecondOrderExpansion',
            'PauliExpansion',
-           'PauliZExpansion']
+           'PauliZExpansion',
+           'FirstOrderExpansion',
+           'SecondOrderExpansion'
+           ]

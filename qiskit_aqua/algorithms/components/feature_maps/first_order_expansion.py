@@ -19,13 +19,13 @@ This module contains the definition of a base class for
 feature map. Several types of commonly used approaches.
 """
 
-from qiskit_aqua.algorithms.components.feature_maps.pauli_z_expansion import PauliZExpansion
-from qiskit_aqua.algorithms.components.feature_maps import self_product
+from qiskit_aqua.algorithms.components.feature_maps import PauliZExpansion, self_product
 
 
 class FirstOrderExpansion(PauliZExpansion):
     """
     Mapping data with the first order expansion without entangling gates.
+
     Refer to https://arxiv.org/pdf/1804.11326.pdf for details.
     """
 
@@ -47,17 +47,13 @@ class FirstOrderExpansion(PauliZExpansion):
         }
     }
 
-    def __init__(self, num_qubits, depth, data_map_func=self_product):
-        """Constructor."""
-        super().__init__(self.CONFIGURATION.copy())
-        self._ret = {}
-
-    def init_args(self, num_qubits, depth, data_map_func=self_product):
-        """Initializer.
+    def __init__(self, num_qubits, depth=2, data_map_func=self_product):
+        """Constructor.
 
         Args:
             num_qubits (int): number of qubits
             depth (int): the number of repeated circuits
             data_map_func (Callable): a mapping function for data x
         """
-        super().init_args(num_qubits, depth, z_order=1, data_map_func=data_map_func)
+        super().__init__(self.CONFIGURATION.copy())
+        super().__init__(num_qubits, depth, z_order=1, data_map_func=data_map_func)
