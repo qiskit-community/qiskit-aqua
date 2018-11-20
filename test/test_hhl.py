@@ -30,6 +30,7 @@ class TestHHL(QiskitAquaTestCase):
     """HHL tests."""
 
     def setUp(self):
+        np.random.seed(0)
         self.params = {
             "problem": {
                 "name": "linear_system",
@@ -96,7 +97,7 @@ class TestHHL(QiskitAquaTestCase):
         self.log.debug('Testing HHL with matrix with negative eigenvalues')
 
         neg_params = self.params
-        neg_params["eigs"]["num_ancillae"] = 5
+        neg_params["eigs"]["num_ancillae"] = 3
         neg_params["eigs"]["negative_evals"] = "true"
         neg_params["reciprocal"]["negative_evals"] = "true"
 
@@ -118,7 +119,7 @@ class TestHHL(QiskitAquaTestCase):
 
         # compare result
         fidelity = abs(linalg_normed.dot(hhl_normed.conj()))**2
-        np.testing.assert_approx_equal(fidelity, 1, significant=2)
+        np.testing.assert_approx_equal(fidelity, 1, significant=3)
 
         self.log.debug('HHL solution vector:       {}'.format(hhl_solution))
         self.log.debug('algebraic solution vector: {}'.format(linalg_solution))
