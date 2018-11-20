@@ -91,7 +91,7 @@ class PauliExpansion(FeatureMap):
             paulis (str): a comma-seperated string for to-be-used paulis
             data_map_func (Callable): a mapping function for data x
         """
-        super().__init__(self.CONFIGURATION.copy())
+        super().__init__()
         self._num_qubits = num_qubits
         self._depth = depth
         if entangler_map is None:

@@ -36,6 +36,7 @@ logger = logging.getLogger(__name__)
 class VQE(QuantumAlgorithm):
     """
     The Variational Quantum Eigensolver algorithm.
+
     See https://arxiv.org/abs/1304.3061
     """
 
@@ -85,7 +86,8 @@ class VQE(QuantumAlgorithm):
 
     def __init__(self, operator, var_form, optimizer, operator_mode='matrix',
                  initial_point=None, batch_mode=False, aux_operators=[]):
-        """
+        """Constructor.
+
         Args:
             operator (Operator): Qubit operator
             operator_mode (str): operator mode, used for eval of operator
@@ -94,7 +96,7 @@ class VQE(QuantumAlgorithm):
             initial_point (numpy.ndarray) : optimizer initial point.
             aux_operators ([Operator]): Auxiliary operators to be evaluated at each eigenvalue
         """
-        super().__init__(self.CONFIGURATION.copy())
+        super().__init__()
         self._operator = operator
         self._var_form = var_form
         self._optimizer = optimizer

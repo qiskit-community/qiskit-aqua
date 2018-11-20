@@ -28,7 +28,7 @@ class VarFormBased:
             var_form (VariationalForm): the variational form.
             params (list or numpy.ndarray): parameter for the variational form.
         """
-        super().__init__(self.CONFIGURATION.copy())
+        super().__init__()
         if not var_form.num_parameters == len(params):
             raise RuntimeError('Incompatible parameters provided.')
         self._var_form = var_form

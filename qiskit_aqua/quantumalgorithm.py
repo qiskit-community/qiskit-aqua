@@ -70,8 +70,8 @@ class QuantumAlgorithm(ABC):
         configuration (dict): configuration dictionary
     """
     @abstractmethod
-    def __init__(self, configuration=None):
-        self._configuration = configuration
+    def __init__(self):
+        self._configuration = self.CONFIGURATION.copy()
         self._backend = None
         self._execute_config = {}
         self._qjob_config = {}
@@ -82,22 +82,22 @@ class QuantumAlgorithm(ABC):
 
     @property
     def configuration(self):
-        """Return algorithm configuration"""
+        """Return algorithm configuration."""
         return self._configuration
 
     @property
     def random_seed(self):
-        """Return random seed"""
+        """Return random seed."""
         return self._random_seed
 
     @random_seed.setter
     def random_seed(self, seed):
-        """Set random seed"""
+        """Set random seed."""
         self._random_seed = seed
 
     @property
     def random(self):
-        """Return a numpy random"""
+        """Return a numpy random."""
         if self._random is None:
             if self._random_seed is None:
                 self._random = np.random
@@ -135,11 +135,11 @@ class QuantumAlgorithm(ABC):
         return backend.configuration().get('name', '') if backend is not None else ''
 
     def enable_circuit_summary(self):
-        """Enable showing the summary of circuits"""
+        """Enable showing the summary of circuits."""
         self._show_circuit_summary = True
 
     def disable_circuit_summary(self):
-        """Disable showing the summary of circuits"""
+        """Disable showing the summary of circuits."""
         self._show_circuit_summary = False
 
     def setup_quantum_backend(self, backend='statevector_simulator', shots=1024, skip_transpiler=False,
