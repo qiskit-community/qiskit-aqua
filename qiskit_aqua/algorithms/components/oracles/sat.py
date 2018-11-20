@@ -82,8 +82,7 @@ class SAT(Oracle):
         self._qr_variable = QuantumRegister(nv, name='v')
         self._qr_clause = QuantumRegister(nc, name='c')
         num_ancillae = max(max(nc, nv) - 2, 0)
-        if num_ancillae > 0:
-            self._qr_ancilla = QuantumRegister(num_ancillae, name='a')
+        self._qr_ancilla = QuantumRegister(num_ancillae, name='a') if num_ancillae > 0 else None
 
     def variable_register(self):
         return self._qr_variable

@@ -61,14 +61,23 @@ class Grover(QuantumAlgorithm):
         }
     }
 
-    def __init__(self):
-        super().__init__(self.CONFIGURATION.copy())
-        self._incremental = False
-        self._num_iterations = 1
-        self._oracle = None
+    def __init__(self, oracle, incremental=False, num_iterations=1):
+        super().__init__()
+        if QuantumAlgorithm.is_statevector_backend(self.backend):
+            raise ValueError('Selected backend  "{}" does not support measurements.'.format(QuantumAlgorithm.backend_name(self.backend)))
+        self._oracle = oracle
+        self._max_num_iterations = 2 ** (len(self._oracle.variable_register()) / 2)
+        self._incremental = incremental
+        self._num_iterations = num_iterations
+        if incremental:
+            logger.debug('Incremental mode specified, ignoring "num_iterations".')
+        else:
+            if num_iterations > self._max_num_iterations:
+                logger.warning('The specified value {} for "num_iterations" might be too high.'.format(num_iterations))
         self._ret = {}
 
-    def init_params(self, params, algo_input):
+    @classmethod
+    def init_params(cls, params, algo_input):
         """
         Initialize via parameters dictionary and algorithm input instance
         Args:
@@ -86,20 +95,7 @@ class Grover(QuantumAlgorithm):
         oracle = get_pluggable_class(PluggableType.ORACLE,oracle_params['name'])
         oracle = oracle()
         oracle.init_params(oracle_params)
-        self.init_args(oracle, incremental=incremental, num_iterations=num_iterations)
-
-    def init_args(self, oracle, incremental=False, num_iterations=1):
-        if QuantumAlgorithm.is_statevector_backend(self.backend):
-            raise ValueError('Selected backend  "{}" does not support measurements.'.format(QuantumAlgorithm.backend_name(self.backend)))
-        self._oracle = oracle
-        self._max_num_iterations = 2 ** (len(self._oracle.variable_register()) / 2)
-        self._incremental = incremental
-        self._num_iterations = num_iterations
-        if incremental:
-            logger.debug('Incremental mode specified, ignoring "num_iterations".')
-        else:
-            if num_iterations > self._max_num_iterations:
-                logger.warning('The specified value {} for "num_iterations" might be too high.'.format(num_iterations))
+        return cls(oracle, incremental=incremental, num_iterations=num_iterations)
 
     def _construct_circuit_components(self):
         measurement_cr = ClassicalRegister(len(self._oracle.variable_register()), name='m')
