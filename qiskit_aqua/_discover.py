@@ -31,13 +31,6 @@ from enum import Enum
 from .quantumalgorithm import QuantumAlgorithm
 from qiskit_aqua import AlgorithmError
 from qiskit_aqua.preferences import Preferences
-from qiskit_aqua.algorithms.components.optimizers import Optimizer
-from qiskit_aqua.algorithms.components.variational_forms import VariationalForm
-from qiskit_aqua.algorithms.components.initial_states import InitialState
-from qiskit_aqua.algorithms.components.iqfts import IQFT
-from qiskit_aqua.algorithms.components.oracles import Oracle
-from qiskit_aqua.algorithms.components.feature_maps import FeatureMap
-from qiskit_aqua.algorithms.components.multiclass_extensions import MulticlassExtension
 
 logger = logging.getLogger(__name__)
 
@@ -53,16 +46,29 @@ class PluggableType(Enum):
     MULTICLASS_EXTENSION = 'multiclass_extension'
 
 
-_PLUGGABLES = {
-    PluggableType.ALGORITHM: QuantumAlgorithm,
-    PluggableType.OPTIMIZER: Optimizer,
-    PluggableType.VARIATIONAL_FORM: VariationalForm,
-    PluggableType.INITIAL_STATE: InitialState,
-    PluggableType.IQFT: IQFT,
-    PluggableType.ORACLE: Oracle,
-    PluggableType.FEATURE_MAP: FeatureMap,
-    PluggableType.MULTICLASS_EXTENSION: MulticlassExtension
-}
+def _get_pluggables_types_dictionary():
+    """
+    Gets all the pluggables types
+    Any new pluggable type should be added here
+    """
+    from qiskit_aqua.algorithms.components.optimizers import Optimizer
+    from qiskit_aqua.algorithms.components.variational_forms import VariationalForm
+    from qiskit_aqua.algorithms.components.initial_states import InitialState
+    from qiskit_aqua.algorithms.components.iqfts import IQFT
+    from qiskit_aqua.algorithms.components.oracles import Oracle
+    from qiskit_aqua.algorithms.components.feature_maps import FeatureMap
+    from qiskit_aqua.algorithms.components.multiclass_extensions import MulticlassExtension
+    return {
+        PluggableType.ALGORITHM: QuantumAlgorithm,
+        PluggableType.OPTIMIZER: Optimizer,
+        PluggableType.VARIATIONAL_FORM: VariationalForm,
+        PluggableType.INITIAL_STATE: InitialState,
+        PluggableType.IQFT: IQFT,
+        PluggableType.ORACLE: Oracle,
+        PluggableType.FEATURE_MAP: FeatureMap,
+        PluggableType.MULTICLASS_EXTENSION: MulticlassExtension
+    }
+
 
 _NAMES_TO_EXCLUDE = [
     '__main__',
@@ -168,7 +174,7 @@ def _discover_local_pluggables(directory,
                     # Iterate through the classes defined on the module.
                     try:
                         if cls.__module__ == modspec.name:
-                            for pluggable_type, c in _PLUGGABLES.items():
+                            for pluggable_type, c in _get_pluggables_types_dictionary().items():
                                 if issubclass(cls, c):
                                     _register_pluggable(pluggable_type, cls)
                                     importlib.import_module(fullname)
@@ -230,7 +236,7 @@ def register_pluggable(cls):
     """
     _discover_on_demand()
     pluggable_type = None
-    for type, c in _PLUGGABLES.items():
+    for type, c in _get_pluggables_types_dictionary().items():
         if issubclass(cls, c):
             pluggable_type = type
             break
