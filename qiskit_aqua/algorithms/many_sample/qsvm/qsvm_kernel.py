@@ -70,7 +70,7 @@ class QSVM_Kernel(QuantumAlgorithm):
             ValueError: if training_dataset is None
             AlgorithmError: use binary classifer for classes > 3
         """
-        super().__init__(self.CONFIGURATION.copy())
+        super().__init__()
         if training_dataset is None:
             raise ValueError('Training dataset must be provided')
 

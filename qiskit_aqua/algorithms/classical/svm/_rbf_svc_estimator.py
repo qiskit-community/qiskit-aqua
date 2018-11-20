@@ -20,11 +20,11 @@ from sklearn.svm import SVC
 from qiskit_aqua.algorithms.components.multiclass_extensions import Estimator
 
 
-class RBF_SVC_Estimator(Estimator):
+class _RBF_SVC_Estimator(Estimator):
     """The estimator that uses the RBF Kernel."""
 
     def __init__(self):
-        self._estimator = SVC(kernel='rbf')
+        self._estimator = SVC(kernel='rbf', gamma='auto')
 
     def fit(self, x, y):
         """
