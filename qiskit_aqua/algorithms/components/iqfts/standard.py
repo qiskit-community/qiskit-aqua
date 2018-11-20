@@ -38,11 +38,8 @@ class Standard(IQFT):
         }
     }
 
-    def __init__(self):
+    def __init__(self, num_qubits):
         super().__init__(self.CONFIGURATION.copy())
-        self._num_qubits = 0
-
-    def init_args(self, num_qubits):
         self._num_qubits = num_qubits
 
     def construct_circuit(self, mode, register=None, circuit=None):

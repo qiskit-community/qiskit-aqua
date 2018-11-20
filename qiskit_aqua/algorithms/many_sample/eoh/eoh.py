@@ -106,20 +106,22 @@ class EOH(QuantumAlgorithm):
         }
     }
 
-    def __init__(self):
-        super().__init__(self.CONFIGURATION.copy())
-        self._operator = None
-        self._operator_mode = None
-        self._initial_state = None
-        self._evo_operator = None
-        self._evo_time = 0
-        self._num_time_slices = 0
-        self._paulis_grouping = None
-        self._expansion_mode = None
-        self._expansion_order = None
+    def __init__(self, operator, initial_state, evo_operator, operator_mode='paulis', evo_time=1, num_time_slices=1,
+            paulis_grouping='random', expansion_mode='trotter', expansion_order=1):
+        super().__init__()
+        self._operator = operator
+        self._operator_mode = operator_mode
+        self._initial_state = initial_state
+        self._evo_operator = evo_operator
+        self._evo_time = evo_time
+        self._num_time_slices = num_time_slices
+        self._paulis_grouping = paulis_grouping
+        self._expansion_mode = expansion_mode
+        self._expansion_order = expansion_order
         self._ret = {}
 
-    def init_params(self, params, algo_input):
+    @classmethod
+    def init_params(cls, params, algo_input):
         """
         Initialize via parameters dictionary and algorithm input instance
         Args:
@@ -149,26 +151,12 @@ class EOH(QuantumAlgorithm):
         # Set up initial state, we need to add computed num qubits to params
         initial_state_params = params.get(QuantumAlgorithm.SECTION_KEY_INITIAL_STATE)
         initial_state_params['num_qubits'] = operator.num_qubits
-        initial_state = get_pluggable_class(PluggableType.INITIAL_STATE,initial_state_params['name'])(initial_state_params)
-        
-        self.init_args(
-            operator, operator_mode, initial_state, evo_operator, evo_time, num_time_slices,
-            paulis_grouping=paulis_grouping, expansion_mode=expansion_mode, expansion_order=expansion_order
-        )
+        initial_state = get_pluggable_class(PluggableType.INITIAL_STATE,
+                                            initial_state_params['name'])(initial_state_params)
 
-    def init_args(
-            self, operator, operator_mode, initial_state, evo_operator, evo_time, num_time_slices,
-            paulis_grouping='default', expansion_mode='trotter', expansion_order=1):
-        self._operator = operator
-        self._operator_mode = operator_mode
-        self._initial_state = initial_state
-        self._evo_operator = evo_operator
-        self._evo_time = evo_time
-        self._num_time_slices = num_time_slices
-        self._paulis_grouping = paulis_grouping
-        self._expansion_mode = expansion_mode
-        self._expansion_order = expansion_order
-        self._ret = {}
+        return cls(operator, initial_state, evo_operator, operator_mode, evo_time, num_time_slices,
+                   paulis_grouping=paulis_grouping, expansion_mode=expansion_mode,
+                   expansion_order=expansion_order)
 
     def run(self):
         quantum_registers = QuantumRegister(self._operator.num_qubits, name='q')

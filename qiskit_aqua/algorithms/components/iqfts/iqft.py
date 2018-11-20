@@ -42,13 +42,10 @@ class IQFT(ABC):
         """Return configuration"""
         return self._configuration
 
-    def init_params(self, params):
+    @classmethod
+    def init_params(cls, params):
         args = {k: v for k, v in params.items() if k != 'name'}
-        self.init_args(**args)
-
-    @abstractmethod
-    def init_args(self, **args):
-        raise NotImplementedError()
+        return cls(**args)
 
     @abstractmethod
     def construct_circuit(self, mode, register=None, circuit=None):

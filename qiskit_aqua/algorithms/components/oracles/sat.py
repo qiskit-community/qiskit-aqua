@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 class SAT(Oracle):
+
     CONFIGURATION = {
         'name': 'SAT',
         'description': 'Satisfiability Oracle',
@@ -41,15 +42,8 @@ class SAT(Oracle):
         }
     }
 
-    def __init__(self):
+    def __init__(self, cnf):
         super().__init__(self.CONFIGURATION.copy())
-        self._cnf = None
-        self._qr_ancilla = None
-        self._qr_clause = None
-        self._qr_outcome = None
-        self._qr_variable = None
-
-    def init_args(self, cnf):
         ls = [
             l.strip() for l in cnf.split('\n')
             if len(l) > 0 and not l.strip()[0] == 'c'

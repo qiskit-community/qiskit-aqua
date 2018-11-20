@@ -38,19 +38,15 @@ class Approximate(IQFT):
                 'degree': {
                     'type': 'integer',
                     'default': 0,
-                    'minimum':  0
+                    'minimum': 0
                 },
             },
             'additionalProperties': False
         }
     }
 
-    def __init__(self):
-        super().__init__(self.CONFIGURATION.copy())
-        self._num_qubits = 0
-        self._degree = 0
-
-    def init_args(self, num_qubits, degree=1):
+    def __init__(self, num_qubits, degree=0):
+        super().__init__()
         self._num_qubits = num_qubits
         self._degree = degree
 
