@@ -19,9 +19,8 @@
 import logging
 
 from qiskit_aqua import QuantumAlgorithm, AlgorithmError, PluggableType, get_pluggable_class
-from qiskit_aqua.algorithms.adaptive.vqe.vqe import VQE
+from qiskit_aqua.algorithms.adaptive import VQE
 from .varform import QAOAVarForm
-
 
 logger = logging.getLogger(__name__)
 
@@ -29,12 +28,9 @@ logger = logging.getLogger(__name__)
 class QAOA(VQE):
     """
     The Quantum Approximate Optimization Algorithm.
+
     See https://arxiv.org/abs/1411.4028
     """
-
-    PROP_OPERATOR_MODE = 'operator_mode'
-    PROP_P = 'p'
-    PROP_INIT_POINT = 'initial_point'
 
     CONFIGURATION = {
         'name': 'QAOA.Variational',
@@ -44,25 +40,29 @@ class QAOA(VQE):
             'id': 'qaoa_schema',
             'type': 'object',
             'properties': {
-                PROP_OPERATOR_MODE: {
+                'operator_mode': {
                     'type': 'string',
                     'default': 'matrix',
                     'oneOf': [
                         {'enum': ['matrix', 'paulis', 'grouped_paulis']}
                     ]
                 },
-                PROP_P: {
+                'p': {
                     'type': 'integer',
                     'default': 1,
                     'minimum': 1
                 },
-                PROP_INIT_POINT: {
+                'initial_point': {
                     'type': ['array', 'null'],
                     "items": {
                         "type": "number"
                     },
                     'default': None
                 },
+                'batch_mode': {
+                    'type': 'boolean',
+                    'default': False
+                }
             },
             'additionalProperties': False
         },
@@ -75,10 +75,21 @@ class QAOA(VQE):
         }
     }
 
-    def __init__(self):
-        super().__init__(self.CONFIGURATION.copy())
+    def __init__(self, operator, optimizer, p=1, operator_mode='matrix', initial_point=None,
+                 batch_mode=False, aux_operators=[]):
+        """
+        Args:
+            operator (Operator): Qubit operator
+            operator_mode (str): operator mode, used for eval of operator
+            p (int) : the integer parameter p as specified in https://arxiv.org/abs/1411.4028
+            optimizer (Optimizer) : the classical optimization algorithm.
+            initial_point (str) : optimizer initial point.
+        """
+        var_form = QAOAVarForm(operator, p)
+        super().__init__(operator, var_form, optimizer, operator_mode=operator_mode, initial_point=initial_point)
 
-    def init_params(self, params, algo_input):
+    @classmethod
+    def init_params(cls, params, algo_input):
         """
         Initialize via parameters dictionary and algorithm input instance
 
@@ -92,27 +103,16 @@ class QAOA(VQE):
         operator = algo_input.qubit_op
 
         qaoa_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
-        operator_mode = qaoa_params.get(QAOA.PROP_OPERATOR_MODE)
-        p = qaoa_params.get(QAOA.PROP_P)
-        initial_point = qaoa_params.get(QAOA.PROP_INIT_POINT)
+        operator_mode = qaoa_params.get('operator_mode')
+        p = qaoa_params.get('p')
+        initial_point = qaoa_params.get('initial_point')
+        batch_mode = qaoa_params.get('batch_mode')
 
         # Set up optimizer
         opt_params = params.get(QuantumAlgorithm.SECTION_KEY_OPTIMIZER)
-        optimizer = get_pluggable_class(PluggableType.OPTIMIZER,opt_params['name'])
-        optimizer = optimizer()
-        optimizer.init_params(opt_params)
+        optimizer = get_pluggable_class(PluggableType.OPTIMIZER,
+                                        opt_params['name']).init_params(opt_params)
 
-        self.init_args(operator, operator_mode, p, optimizer,
-                       opt_init_point=initial_point, aux_operators=algo_input.aux_ops)
-
-    def init_args(self, operator, operator_mode, p, optimizer, opt_init_point=None, aux_operators=[]):
-        """
-        Args:
-            operator (Operator): Qubit operator
-            operator_mode (str): operator mode, used for eval of operator
-            p (int) : the integer parameter p as specified in https://arxiv.org/abs/1411.4028
-            optimizer (Optimizer) : the classical optimization algorithm.
-            opt_init_point (str) : optimizer initial point.
-        """
-        var_form = QAOAVarForm(operator, p)
-        super().init_args(operator, operator_mode, var_form, optimizer, opt_init_point=opt_init_point)
+        return cls(operator, optimizer, p=p, operator_mode=operator_mode,
+                   initial_point=initial_point, batch_mode=batch_mode,
+                   aux_operators=algo_input.aux_ops)
