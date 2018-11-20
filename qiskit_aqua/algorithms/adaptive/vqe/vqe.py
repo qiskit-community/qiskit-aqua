@@ -154,7 +154,7 @@ class VQE(QuantumAlgorithm):
         optimizer = get_pluggable_class(PluggableType.OPTIMIZER,
                                         opt_params['name']).init_params(opt_params)
 
-        return cls(operator, operator_mode, var_form, optimizer,
+        return cls(operator, var_form, optimizer, operator_mode=operator_mode,
                    initial_point=initial_point, batch_mode=batch_mode,
                    aux_operators=algo_input.aux_ops)
 
