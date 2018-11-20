@@ -75,8 +75,8 @@ class QAOA(VQE):
         }
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.CONFIGURATION.copy())
+    def __init__(self):
+        super().__init__(self.CONFIGURATION.copy())
 
     def init_params(self, params, algo_input):
         """

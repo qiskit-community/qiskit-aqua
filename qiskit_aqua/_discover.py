@@ -237,7 +237,7 @@ def _register_pluggable(pluggable_type, cls):
     """
     Registers a pluggable class
     Args:
-        pluggable_type(str): The pluggable type
+        pluggable_type(PluggableType): The pluggable type
         cls (object): Pluggable class.
      Returns:
         name: pluggable name
@@ -272,7 +272,7 @@ def deregister_pluggable(pluggable_type, pluggable_name):
     """
     Deregisters a pluggable class
     Args:
-        pluggable_type(str): The pluggable type
+        pluggable_type(PluggableType): The pluggable type
         pluggable_name (str): The pluggable name
     Raises:
         AlgorithmError: if the class is not registered
@@ -280,12 +280,10 @@ def deregister_pluggable(pluggable_type, pluggable_name):
     _discover_on_demand()
 
     if pluggable_type not in _REGISTERED_PLUGGABLES:
-        raise AlgorithmError('Could not deregister {} {} not registered'.format(
-            pluggable_type, pluggable_name))
+        raise AlgorithmError('Could not deregister {} {} not registered'.format(pluggable_type, pluggable_name))
 
     if pluggable_name not in _REGISTERED_PLUGGABLES[pluggable_type]:
-        raise AlgorithmError('Could not deregister {} {} not registered'.format(
-            pluggable_type, pluggable_name))
+        raise AlgorithmError('Could not deregister {} {} not registered'.format(pluggable_type, pluggable_name))
 
     _REGISTERED_PLUGGABLES[pluggable_type].pop(pluggable_name)
 
@@ -294,7 +292,7 @@ def get_pluggable_class(pluggable_type, pluggable_name):
     """
     Accesses pluggable class
     Args:
-        pluggable_type(str): The pluggable type
+        pluggable_type(PluggableType or str): The pluggable type
         pluggable_name (str): The pluggable name
     Returns:
         cls: pluggable class
@@ -302,14 +300,21 @@ def get_pluggable_class(pluggable_type, pluggable_name):
         AlgorithmError: if the class is not registered
     """
     _discover_on_demand()
+    
+    if isinstance(pluggable_type, str):
+        for ptype in PluggableType:
+            if ptype.value == pluggable_type:
+                pluggable_type = ptype
+                break
+            
+    if not isinstance(pluggable_type, PluggableType):
+        raise AlgorithmError('Invalid pluggable type {} {}'.format(pluggable_type, pluggable_name))
 
     if pluggable_type not in _REGISTERED_PLUGGABLES:
-        raise AlgorithmError('{} {} not registered'.format(
-            pluggable_type, pluggable_name))
+        raise AlgorithmError('{} {} not registered'.format(pluggable_type, pluggable_name))
 
     if pluggable_name not in _REGISTERED_PLUGGABLES[pluggable_type]:
-        raise AlgorithmError('{} {} not registered'.format(
-            pluggable_type, pluggable_name))
+        raise AlgorithmError('{} {} not registered'.format(pluggable_type, pluggable_name))
 
     return _REGISTERED_PLUGGABLES[pluggable_type][pluggable_name].cls
 
@@ -317,7 +322,7 @@ def get_pluggable_configuration(pluggable_type, pluggable_name):
     """
     Accesses pluggable configuration
     Args:
-        pluggable_type(str): The pluggable type
+        pluggable_type(PluggableType or str): The pluggable type
         pluggable_name (str): The pluggable name
     Returns:
         configuration: pluggable configuration
@@ -325,14 +330,21 @@ def get_pluggable_configuration(pluggable_type, pluggable_name):
         AlgorithmError: if the class is not registered
     """
     _discover_on_demand()
+    
+    if isinstance(pluggable_type, str):
+        for ptype in PluggableType:
+            if ptype.value == pluggable_type:
+                pluggable_type = ptype
+                break
+            
+    if not isinstance(pluggable_type, PluggableType):
+        raise AlgorithmError('Invalid pluggable type {} {}'.format(pluggable_type, pluggable_name))
 
     if pluggable_type not in _REGISTERED_PLUGGABLES:
-        raise AlgorithmError('{} {} not registered'.format(
-            pluggable_type, pluggable_name))
+        raise AlgorithmError('{} {} not registered'.format(pluggable_type, pluggable_name))
 
     if pluggable_name not in _REGISTERED_PLUGGABLES[pluggable_type]:
-        raise AlgorithmError('{} {} not registered'.format(
-            pluggable_type, pluggable_name))
+        raise AlgorithmError('{} {} not registered'.format(pluggable_type, pluggable_name))
 
     return _REGISTERED_PLUGGABLES[pluggable_type][pluggable_name].configuration
 
@@ -350,13 +362,23 @@ def local_pluggables(pluggable_type):
     """
     Accesses pluggable names
     Args:
-        pluggable_type(str): The pluggable type
+        pluggable_type(PluggableType or str): The pluggable type
     Returns:
         names: pluggable names
     Raises:
         AlgorithmError: if the tyoe is not registered
     """
     _discover_on_demand()
+    
+    if isinstance(pluggable_type, str):
+        for ptype in PluggableType:
+            if ptype.value == pluggable_type:
+                pluggable_type = ptype
+                break
+            
+    if not isinstance(pluggable_type, PluggableType):
+        raise AlgorithmError('Invalid pluggable type {}'.format(pluggable_type))
+        
     if pluggable_type not in _REGISTERED_PLUGGABLES:
         raise AlgorithmError('{} not registered'.format(pluggable_type))
 

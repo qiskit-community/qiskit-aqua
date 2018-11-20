@@ -55,8 +55,8 @@ class QSVM_Kernel(QuantumAlgorithm):
         }
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.CONFIGURATION.copy())
+    def __init__(self):
+        super().__init__(self.CONFIGURATION.copy())
         self._ret = {}
         self.instance = None
 
