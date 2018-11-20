@@ -38,7 +38,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-class VarFormUCCSD(VariationalForm):
+class UCCSD(VariationalForm):
     """
         This trial wavefunction is a Unitary Coupled-Cluster Single and Double excitations
         variational form.
