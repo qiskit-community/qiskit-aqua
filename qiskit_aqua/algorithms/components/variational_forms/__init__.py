@@ -25,10 +25,13 @@ __all__ = ['VariationalForm',
            'RYRZ',
            'SwapRZ']
 
+import logging
+logger = logging.getLogger(__name__)
+
 try:
     from .uccsd import UCCSD
     __all__ += ['UCCSD']
 except ImportError:
-    raise ImportWarning("UCCSD can be only used with qiskit_aqua_chemistry lib. "
-                        "If you would like to use it for other purposes, "
-                        "please install qiskit_aqua_chemistry first.")
+    logger.info("UCCSD can be only used with qiskit_aqua_chemistry lib. "
+                "If you would like to use it for other purposes, "
+                "please install qiskit_aqua_chemistry first.")
