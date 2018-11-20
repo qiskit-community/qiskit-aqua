@@ -32,6 +32,16 @@ class HartreeFock(InitialState):
             'id': 'hf_state_schema',
             'type': 'object',
             'properties': {
+                'num_orbitals': {
+                    'type': 'integer',
+                    'default': 4,
+                    'minimum': 1
+                },
+                'num_particles': {
+                    'type': 'integer',
+                    'default': 2,
+                    'minimum': 1
+                },
                 'qubit_mapping': {
                     'type': 'string',
                     'default': 'parity',
@@ -42,24 +52,14 @@ class HartreeFock(InitialState):
                 'two_qubit_reduction': {
                     'type': 'boolean',
                     'default': True
-                },
-                'num_particles': {
-                    'type': 'integer',
-                    'default': 2,
-                    'minimum': 1
-                },
-                'num_orbitals': {
-                    'type': 'integer',
-                    'default': 4,
-                    'minimum': 1
                 }
             },
             'additionalProperties': False
         }
     }
 
-    def __init__(self, num_qubits, num_orbitals, qubit_mapping, two_qubit_reduction,
-                 num_particles, sq_list=None):
+    def __init__(self, num_qubits, num_orbitals=4, num_particles=2,
+                 qubit_mapping='parity', two_qubit_reduction=True, sq_list=None):
         """Constructor.
 
         Args:

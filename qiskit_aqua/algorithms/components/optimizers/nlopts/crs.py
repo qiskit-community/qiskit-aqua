@@ -24,13 +24,11 @@ try:
 except ImportError:
     raise ImportWarning('nlopt cannot be imported')
 
-
-
 logger = logging.getLogger(__name__)
 
 
 class CRS(Optimizer):
-    """Controlled Random Search (CRS) with local mutation
+    """Controlled Random Search (CRS) with local mutation.
 
     NLopt global optimizer, derivative-free
     https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#controlled-random-search-crs-with-local-mutation
@@ -63,11 +61,8 @@ class CRS(Optimizer):
     def __init__(self):
         super().__init__(self.CONFIGURATION.copy())
 
-    def init_args(self):
-        pass
-
-    def optimize(self, num_vars, objective_function, gradient_function=None, variable_bounds=None, initial_point=None):
+    def optimize(self, num_vars, objective_function, gradient_function=None,
+                 variable_bounds=None, initial_point=None):
         super().optimize(num_vars, objective_function, gradient_function, variable_bounds, initial_point)
 
         return minimize(nlopt.GN_CRS2_LM, objective_function, variable_bounds, initial_point, **self._options)
-

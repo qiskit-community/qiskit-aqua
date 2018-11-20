@@ -83,7 +83,7 @@ class VQE(QuantumAlgorithm):
         }
     }
 
-    def __init__(self, operator, operator_mode, var_form, optimizer,
+    def __init__(self, operator, var_form, optimizer, operator_mode='matrix',
                  initial_point=None, batch_mode=False, aux_operators=[]):
         """
         Args:
@@ -96,12 +96,12 @@ class VQE(QuantumAlgorithm):
         """
         super().__init__(self.CONFIGURATION.copy())
         self._operator = operator
-        if operator_mode not in ['paulis', 'grouped_paulis', 'matrix']:
-            raise ValueError('operator_mode must be one of following {} '
-                             'but you have {}.'.format(['paulis', 'grouped_paulis', 'matrix'], operator_mode))
-        self._operator_mode = operator_mode
         self._var_form = var_form
         self._optimizer = optimizer
+        if operator_mode not in ['paulis', 'grouped_paulis', 'matrix']:
+            raise ValueError('operator_mode must be one of following {} but you have '
+                             '{}.'.format(['paulis', 'grouped_paulis', 'matrix'], operator_mode))
+        self._operator_mode = operator_mode
         self._initial_point = initial_point
         self._aux_operators = aux_operators
         self._ret = {}

@@ -24,12 +24,11 @@ try:
 except ImportError:
     raise ImportWarning('nlopt cannot be imported')
 
-
 logger = logging.getLogger(__name__)
 
 
 class DIRECT_L(Optimizer):
-    """DIRECT is the DIviding RECTangles algorithm for global optimization
+    """DIRECT is the DIviding RECTangles algorithm for global optimization.
 
     DIRECT-L is the "locally biased" variant
     NLopt global optimizer, derivative-free
@@ -63,10 +62,8 @@ class DIRECT_L(Optimizer):
     def __init__(self):
         super().__init__(self.CONFIGURATION.copy())
 
-    def init_args(self):
-        pass
-
-    def optimize(self, num_vars, objective_function, gradient_function=None, variable_bounds=None, initial_point=None):
+    def optimize(self, num_vars, objective_function, gradient_function=None,
+                 variable_bounds=None, initial_point=None):
         super().optimize(num_vars, objective_function, gradient_function, variable_bounds, initial_point)
 
         return minimize(nlopt.GN_DIRECT_L, objective_function, variable_bounds, initial_point, **self._options)

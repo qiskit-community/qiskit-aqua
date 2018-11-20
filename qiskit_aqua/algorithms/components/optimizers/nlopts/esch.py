@@ -24,12 +24,11 @@ try:
 except ImportError:
     raise ImportWarning('nlopt cannot be imported')
 
-
 logger = logging.getLogger(__name__)
 
 
 class ESCH(Optimizer):
-    """ESCH (evolutionary algorithm)
+    """ESCH (evolutionary algorithm).
 
     NLopt global optimizer, derivative-free
     http://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#esch-evolutionary-algorithm
@@ -62,10 +61,8 @@ class ESCH(Optimizer):
     def __init__(self):
         super().__init__(self.CONFIGURATION.copy())
 
-    def init_args(self):
-        pass
-
-    def optimize(self, num_vars, objective_function, gradient_function=None, variable_bounds=None, initial_point=None):
+    def optimize(self, num_vars, objective_function, gradient_function=None,
+                 variable_bounds=None, initial_point=None):
         super().optimize(num_vars, objective_function, gradient_function, variable_bounds, initial_point)
 
         return minimize(nlopt.GN_ESCH, objective_function, variable_bounds, initial_point, **self._options)
