@@ -74,7 +74,6 @@ class SVM_Classical(QuantumAlgorithm):
                 training_dataset, test_dataset, datapoints, gamma, multiclass_extension)
 
         self.instance = svm_instance
-        self._ret = {}
 
     @classmethod
     def init_params(cls, params, algo_input):
@@ -140,8 +139,8 @@ class SVM_Classical(QuantumAlgorithm):
 
     @property
     def ret(self):
-        return self._ret
+        return self.instance.ret
 
     @ret.setter
     def ret(self, new_ret):
-        self._ret = new_ret
+        self.instance.ret = new_ret

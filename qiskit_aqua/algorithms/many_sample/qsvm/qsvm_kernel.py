@@ -88,7 +88,6 @@ class QSVM_Kernel(QuantumAlgorithm):
             qsvm_instance = _QSVM_Kernel_Multiclass(feature_map, self, training_dataset, test_dataset, datapoints, multiclass_extension)
 
         self.instance = qsvm_instance
-        self._ret = {}
 
     @classmethod
     def init_params(cls, params, algo_input):
