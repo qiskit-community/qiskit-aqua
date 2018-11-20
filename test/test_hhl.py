@@ -96,7 +96,7 @@ class TestHHL(QiskitAquaTestCase):
         self.log.debug('Testing HHL with matrix with negative eigenvalues')
 
         neg_params = self.params
-        neg_params["eigs"]["num_ancillae"] = 4
+        neg_params["eigs"]["num_ancillae"] = 5
         neg_params["eigs"]["negative_evals"] = "true"
         neg_params["reciprocal"]["negative_evals"] = "true"
 
