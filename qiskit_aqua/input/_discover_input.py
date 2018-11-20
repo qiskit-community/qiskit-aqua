@@ -103,12 +103,11 @@ def discover_local_inputs(directory=os.path.dirname(__file__),
     finally:
         sys.path = syspath_save
 
-def register_input(cls, configuration=None):
+def register_input(cls):
     """
     Registers an input class
     Args:
         cls (object): Input class.
-        configuration (object, optional): Pluggable configuration
     Returns:
         name: input name
     Raises:
@@ -120,14 +119,9 @@ def register_input(cls, configuration=None):
     if cls in [input.cls for input in _REGISTERED_INPUTS.values()]:
         raise AlgorithmError('Could not register class {} is already registered'.format(cls))
 
-    try:
-        input_instance = cls(configuration=configuration)
-    except Exception as err:
-        raise AlgorithmError('Could not register input:{} could not be instantiated: {}'.format(cls, str(err)))
-
     # Verify that it has a minimal valid configuration.
     try:
-        input_name = input_instance.configuration['name']
+        input_name = cls.CONFIGURATION['name']
     except (LookupError, TypeError):
         raise AlgorithmError('Could not register input: invalid configuration')
 
@@ -136,7 +130,7 @@ def register_input(cls, configuration=None):
                              input_name,_REGISTERED_INPUTS[input_name].cls))
 
     # Append the pluggable to the `registered_classes` dict.
-    _REGISTERED_INPUTS[input_name] = RegisteredInput(input_name, cls, input_instance.configuration)
+    _REGISTERED_INPUTS[input_name] = RegisteredInput(input_name, cls, cls.CONFIGURATION)
     return input_name
 
 def deregister_input(input_name):
@@ -170,23 +164,6 @@ def get_input_class(input_name):
         raise AlgorithmError('{} not registered'.format(input_name))
 
     return _REGISTERED_INPUTS[input_name].cls
-
-def get_input_instance(input_name):
-    """
-    Instantiates an input class
-    Args:
-        input_name (str): The input name
-    Returns:
-        instance: input instance
-    Raises:
-        AlgorithmError: if the class is not registered
-    """
-    _discover_on_demand()
-
-    if input_name not in _REGISTERED_INPUTS:
-        raise AlgorithmError('{} not registered'.format(input_name))
-
-    return _REGISTERED_INPUTS[input_name].cls(configuration=_REGISTERED_INPUTS[input_name].configuration)
 
 def get_input_configuration(input_name):
     """

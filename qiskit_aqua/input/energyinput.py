@@ -26,7 +26,7 @@ class EnergyInput(AlgorithmInput):
     PROP_KEY_QUBITOP = 'qubitop'
     PROP_KEY_AUXOPS = 'aux_ops'
 
-    ENERGYINPUT_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'EnergyInput',
         'description': 'Energy problem input',
         'input_schema': {
@@ -48,8 +48,8 @@ class EnergyInput(AlgorithmInput):
         'problems': ['energy', 'excited_states', 'eoh', 'ising']
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or copy.deepcopy(self.ENERGYINPUT_CONFIGURATION))
+    def __init__(self):
+        super().__init__(copy.deepcopy(EnergyInput.CONFIGURATION))
         self._qubit_op = None
         self._aux_ops = []
 

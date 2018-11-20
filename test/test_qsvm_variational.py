@@ -18,7 +18,7 @@
 import numpy as np
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua.input import get_input_instance
+from qiskit_aqua.input import get_input_class
 from qiskit_aqua import (run_algorithm, PluggableType, get_pluggable_class)
 
 
@@ -37,7 +37,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
                                           2.2547051, 7.29971351, 3.74421673, -3.74280352])
         self.ref_train_loss = 0.4999339230552529
 
-        self.svm_input = get_input_instance('SVMInput')
+        self.svm_input = get_input_class('SVMInput')()
         self.svm_input.training_dataset = self.training_data
         self.svm_input.test_dataset = self.testing_data
 

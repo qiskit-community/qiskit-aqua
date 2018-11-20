@@ -22,7 +22,7 @@ from parameterized import parameterized
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import Operator, run_algorithm
-from qiskit_aqua.input import get_input_instance
+from qiskit_aqua.input import get_input_class
 from qiskit_aqua import (PluggableType, get_pluggable_class)
 
 
@@ -39,7 +39,7 @@ class TestVQE(QiskitAquaTestCase):
                        ]
         }
         qubitOp = Operator.load_from_dict(pauli_dict)
-        self.algo_input = get_input_instance('EnergyInput')
+        self.algo_input = get_input_class('EnergyInput')()
         self.algo_input.qubit_op = qubitOp
 
     def test_vqe_via_run_algorithm(self):

@@ -19,7 +19,7 @@ import numpy as np
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import run_algorithm, PluggableType, get_pluggable_class
-from qiskit_aqua.input import get_input_instance
+from qiskit_aqua.input import get_input_class
 
 
 class TestQSVMKernel(QiskitAquaTestCase):
@@ -51,7 +51,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
 
         self.ref_bias = np.asarray([-0.03624927])
 
-        self.svm_input = get_input_instance('SVMInput')
+        self.svm_input = get_input_class('SVMInput')()
         self.svm_input.training_dataset = self.training_data
         self.svm_input.test_dataset = self.testing_data
 
@@ -81,7 +81,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
             }
         }
 
-        algo_input = get_input_instance('SVMInput')
+        algo_input = get_input_class('SVMInput')()
         algo_input.training_dataset = training_input
         algo_input.test_dataset = test_input
         algo_input.datapoints = total_array
@@ -165,7 +165,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
             'feature_map': {'name': 'SecondOrderExpansion', 'depth': 2, 'entangler_map': {0: [1]}}
         }
 
-        algo_input = get_input_instance('SVMInput')
+        algo_input = get_input_class('SVMInput')()
         algo_input.training_dataset = training_input
         algo_input.test_dataset = test_input
         algo_input.datapoints = total_array
@@ -206,7 +206,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
             'feature_map': {'name': 'SecondOrderExpansion', 'depth': 2, 'entangler_map': {0: [1]}}
         }
 
-        algo_input = get_input_instance('SVMInput')
+        algo_input = get_input_class('SVMInput')()
         algo_input.training_dataset = training_input
         algo_input.test_dataset = test_input
         algo_input.datapoints = total_array
@@ -244,7 +244,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
             'feature_map': {'name': 'SecondOrderExpansion', 'depth': 2, 'entangler_map': {0: [1]}}
         }
 
-        algo_input = get_input_instance('SVMInput')
+        algo_input = get_input_class('SVMInput')()
         algo_input.training_dataset = training_input
         algo_input.test_dataset = test_input
         algo_input.datapoints = total_array
