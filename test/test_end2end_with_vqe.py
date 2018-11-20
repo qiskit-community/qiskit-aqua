@@ -21,7 +21,6 @@ from parameterized import parameterized
 from test.common import QiskitAquaChemistryTestCase
 
 from qiskit_aqua import run_algorithm
-from qiskit_aqua.input import get_input_instance
 
 from qiskit_aqua_chemistry.drivers import ConfigurationManager
 from qiskit_aqua_chemistry.core import get_chemistry_operator_instance
@@ -78,6 +77,6 @@ class TestEnd2End(QiskitAquaChemistryTestCase):
         results = run_algorithm(algo_params, self.algo_input)
         self.assertAlmostEqual(results['energy'], self.reference_energy)
 
+
 if __name__ == '__main__':
     unittest.main()
-
