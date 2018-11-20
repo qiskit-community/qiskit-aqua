@@ -23,8 +23,8 @@ from ._discover_input import (register_input,
                               local_inputs)
 
 __all__ = ['AlgorithmInput',
-          'register_input',
-          'deregister_input',
-          'get_input_class',
-          'get_input_configuration',
-          'local_inputs']
+           'register_input',
+           'deregister_input',
+           'get_input_class',
+           'get_input_configuration',
+           'local_inputs']
