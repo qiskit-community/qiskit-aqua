@@ -18,43 +18,46 @@
 import numpy as np
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import run_algorithm, PluggableType, local_pluggables
+from qiskit_aqua import run_algorithm
 from qiskit_aqua.input import EnergyInput
 from qiskit_aqua.translators.ising import maxcut
-skip_test = True if 'CPLEX.Ising' not in local_pluggables(PluggableType.ALGORITHM) else False
+from qiskit_aqua.algorithms.classical.cplex.cplex_ising import CPLEX_Ising
 
-if not skip_test:
-    from qiskit_aqua.algorithms.classical.cplex.cplex_ising import CPLEX_Ising
 
 class TestCplexIsing(QiskitAquaTestCase):
     """Cplex Ising tests."""
 
     def setUp(self):
-        if skip_test:
-            self.skipTest('CPLEX.Ising algorithm not found - CPLEX not installed?')
-
         np.random.seed(8123179)
         self.w = maxcut.random_graph(4, edge_prob=0.5, weight_range=10)
         self.qubit_op, self.offset = maxcut.get_maxcut_qubitops(self.w)
         self.algo_input = EnergyInput(self.qubit_op)
 
     def test_cplex_ising_via_run_algorithm(self):
-        params = {
-            'problem': {'name': 'ising'},
-            'algorithm': {'name': 'CPLEX.Ising', 'display': 0}
-        }
-        result = run_algorithm(params, self.algo_input)
-        self.assertEqual(result['energy'], -20.5)
-        x_dict = result['x_sol']
-        x = np.array([x_dict[i] for i in sorted(x_dict.keys())])
-        np.testing.assert_array_equal(maxcut.get_graph_solution(x), [1, 0, 1, 1])
-        self.assertEqual(maxcut.maxcut_value(x, self.w), 24)
+        try:
+            params = {
+                'problem': {'name': 'ising'},
+                'algorithm': {'name': 'CPLEX.Ising', 'display': 0}
+            }
+            result = run_algorithm(params, self.algo_input)
+            self.assertEqual(result['energy'], -20.5)
+            x_dict = result['x_sol']
+            x = np.array([x_dict[i] for i in sorted(x_dict.keys())])
+            np.testing.assert_array_equal(
+                maxcut.get_graph_solution(x), [1, 0, 1, 1])
+            self.assertEqual(maxcut.maxcut_value(x, self.w), 24)
+        except NameError as e:
+            self.skipTest(str(e))
 
     def test_cplex_ising_direct(self):
-        algo = CPLEX_Ising(self.algo_input.qubit_op, display=0)
-        result = algo.run()
-        self.assertEqual(result['energy'], -20.5)
-        x_dict = result['x_sol']
-        x = np.array([x_dict[i] for i in sorted(x_dict.keys())])
-        np.testing.assert_array_equal(maxcut.get_graph_solution(x), [1, 0, 1, 1])
-        self.assertEqual(maxcut.maxcut_value(x, self.w), 24)
+        try:
+            algo = CPLEX_Ising(self.algo_input.qubit_op, display=0)
+            result = algo.run()
+            self.assertEqual(result['energy'], -20.5)
+            x_dict = result['x_sol']
+            x = np.array([x_dict[i] for i in sorted(x_dict.keys())])
+            np.testing.assert_array_equal(
+                maxcut.get_graph_solution(x), [1, 0, 1, 1])
+            self.assertEqual(maxcut.maxcut_value(x, self.w), 24)
+        except NameError as e:
+            self.skipTest(str(e))
