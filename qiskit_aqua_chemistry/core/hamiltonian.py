@@ -25,6 +25,7 @@ from qiskit_aqua_chemistry.fermionic_operator import FermionicOperator
 from qiskit_aqua.input.energyinput import EnergyInput
 import numpy as np
 import logging
+import copy
 
 logger = logging.getLogger(__name__)
 
@@ -112,7 +113,7 @@ class Hamiltonian(ChemistryOperator):
             orbital_reduction: Orbital list to be frozen or removed
             max_workers: Max workers processes for transformation
         """
-        super().__init__(Hamiltonian.CONFIGURATION.copy())
+        super().__init__(copy.deepcopy(Hamiltonian.CONFIGURATION))
         self._transformation = transformation
         self._qubit_mapping = qubit_mapping
         self._two_qubit_reduction = two_qubit_reduction

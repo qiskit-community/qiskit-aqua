@@ -29,6 +29,7 @@ from qiskit_aqua_chemistry import AquaChemistryError
 from qiskit_aqua_chemistry.preferences import Preferences
 import logging
 import sys
+import copy
 
 logger = logging.getLogger(__name__)
 
@@ -193,7 +194,7 @@ def register_chemistry_operator(cls):
 
     # Append the pluggable to the `registered_classes` dict.
     _REGISTERED_CHEMISTRY_OPERATORS[chemistry_operator_name] = RegisteredChemOp(
-        chemistry_operator_name, cls, cls.CONFIGURATION)
+        chemistry_operator_name, cls, copy.deepcopy(cls.CONFIGURATION))
     return chemistry_operator_name
 
 
@@ -248,7 +249,7 @@ def get_chemistry_operator_configuration(chemistry_operator_name):
     if chemistry_operator_name not in _REGISTERED_CHEMISTRY_OPERATORS:
         raise AquaChemistryError('{} not registered'.format(chemistry_operator_name))
 
-    return _REGISTERED_CHEMISTRY_OPERATORS[chemistry_operator_name].configuration
+    return copy.deepcopy(_REGISTERED_CHEMISTRY_OPERATORS[chemistry_operator_name].configuration)
 
 
 def local_chemistry_operators():
