@@ -46,10 +46,10 @@ class EnergyInput(AlgorithmInput):
         'problems': ['energy', 'excited_states', 'eoh', 'ising']
     }
 
-    def __init__(self, qubit_op, aux_ops=[]):
+    def __init__(self, qubit_op, aux_ops=None):
         super().__init__()
         self._qubit_op = qubit_op
-        self._aux_ops = aux_ops
+        self._aux_ops = aux_ops or []
 
     @property
     def qubit_op(self):

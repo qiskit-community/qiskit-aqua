@@ -15,6 +15,8 @@
 # limitations under the License.
 # =============================================================================
 
+import numpy as np
+
 from qiskit_aqua import AlgorithmError
 from qiskit_aqua.input import AlgorithmInput
 
@@ -29,15 +31,15 @@ class SVMInput(AlgorithmInput):
             'id': 'svm_input_schema',
             'type': 'object',
             'properties': {
-                'training_dataset':{
+                'training_dataset': {
                     'type': ['object', 'null'],
                     'default': None
                 },
-                'test_dataset':{
+                'test_dataset': {
                     'type': ['object', 'null'],
                     'default': None
                 },
-                'datapoints':{
+                'datapoints': {
                     'type': ['array', 'null'],
                     'default': None
                 }
@@ -50,8 +52,8 @@ class SVMInput(AlgorithmInput):
     def __init__(self, training_dataset, test_dataset=None, datapoints=None):
         super().__init__()
         self.training_dataset = training_dataset
-        self.test_dataset = test_dataset
-        self.datapoints = datapoints
+        self.test_dataset = test_dataset or {}
+        self.datapoints = datapoints or np.asarray([])
 
     def to_params(self):
         params = {}
