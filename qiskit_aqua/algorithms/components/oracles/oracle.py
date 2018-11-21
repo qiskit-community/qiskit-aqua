@@ -48,6 +48,10 @@ class Oracle(ABC):
         args = {k: v for k, v in params.items() if k != 'name'}
         return cls(**args)
 
+    @staticmethod
+    def check_pluggable_valid():
+        return True
+
     @property
     @abstractmethod
     def variable_register(self):

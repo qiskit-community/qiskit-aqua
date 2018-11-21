@@ -272,8 +272,12 @@ def _register_pluggable(pluggable_type, cls):
     try:
         pluggable_name = cls.CONFIGURATION['name']
     except (LookupError, TypeError):
-        raise AlgorithmError(
-            'Could not register pluggable: invalid configuration')
+        raise AlgorithmError('Could not register pluggable: invalid configuration')
+
+    # Verify that the pluggable is valid
+    check_pluggable_valid = getattr(cls, 'check_pluggable_valid', None)
+    if check_pluggable_valid is not None and not check_pluggable_valid():
+        raise AlgorithmError('Could not register class {}. Name {} {} is not valid'.format(cls, pluggable_type))
 
     if pluggable_name in _REGISTERED_PLUGGABLES[pluggable_type]:
         raise AlgorithmError('Could not register class {}. Name {} {} is already registered'.format(cls,

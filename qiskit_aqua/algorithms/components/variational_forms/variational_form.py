@@ -52,6 +52,10 @@ class VariationalForm(ABC):
         args = {k: v for k, v in params.items() if k != 'name'}
         return cls(**args)
 
+    @staticmethod
+    def check_pluggable_valid():
+        return True
+
     @abstractmethod
     def construct_circuit(self, parameters, q=None):
         """Construct the variational form, given its parameters.

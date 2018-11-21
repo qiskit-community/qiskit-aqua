@@ -48,6 +48,10 @@ class IQFT(ABC):
         args = {k: v for k, v in params.items() if k != 'name'}
         return cls(**args)
 
+    @staticmethod
+    def check_pluggable_valid():
+        return True
+
     @abstractmethod
     def construct_circuit(self, mode, register=None, circuit=None):
         """Construct the initial state circuit.

@@ -22,7 +22,7 @@ import logging
 from math import fsum
 from timeit import default_timer
 from typing import Dict, List, Tuple, Any
-
+import importlib
 import numpy as np
 
 from qiskit_aqua import QuantumAlgorithm, AlgorithmError
@@ -81,6 +81,14 @@ class CPLEX_Ising(QuantumAlgorithm):
         thread = algo_params['thread']
         display = algo_params['display']
         return cls(algo_input.qubit_op, timelimit, thread, display)
+
+    @staticmethod
+    def check_pluggable_valid():
+        if importlib.util.find_spec("cplex.Cplex") is not None:
+            return True
+
+        logger.info('CPLEX is not installed. See https://www.ibm.com/support/knowledgecenter/SSSA5P_12.8.0/ilog.odms.studio.help/Optimization_Studio/topics/COS_home.html')
+        return False
 
     def run(self):
         model = IsingModel(self._ins, timelimit=self._timelimit, thread=self._thread, display=self._display)

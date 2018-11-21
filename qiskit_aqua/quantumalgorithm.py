@@ -111,6 +111,10 @@ class QuantumAlgorithm(ABC):
         return self._backend
 
     @staticmethod
+    def check_pluggable_valid():
+        return True
+
+    @staticmethod
     def is_statevector_backend(backend):
         """
         Returns True if backend object is statevector.
@@ -185,16 +189,20 @@ class QuantumAlgorithm(ABC):
             except KeyError:
                 preferences = Preferences()
                 my_backend = qiskit.IBMQ.get_backend(backend,
-                                                     url=preferences.get_url(''),
+                                                     url=preferences.get_url(
+                                                         ''),
                                                      token=preferences.get_token(''))
 
             if my_backend is None:
-                raise AlgorithmError("Missing algorithm backend '{}'".format(backend))
+                raise AlgorithmError(
+                    "Missing algorithm backend '{}'".format(backend))
 
         self._backend = my_backend
 
-        shots = 1 if QuantumAlgorithm.is_statevector_backend(my_backend) else shots
-        noise_params = noise_params if my_backend.configuration().get('simulator', False) else None
+        shots = 1 if QuantumAlgorithm.is_statevector_backend(
+            my_backend) else shots
+        noise_params = noise_params if my_backend.configuration().get('simulator',
+                                                                      False) else None
 
         if my_backend.configuration().get('local', False):
             self._qjob_config.pop('wait', None)
@@ -265,9 +273,11 @@ class QuantumAlgorithm(ABC):
                                           url,
                                           proxies=preferences.get_proxies({}))
             if credentials is not None:
-                qiskit.IBMQ._accounts[credentials.unique_id()] = IBMQSingleProvider(credentials, qiskit.IBMQ)
+                qiskit.IBMQ._accounts[credentials.unique_id()] = IBMQSingleProvider(
+                    credentials, qiskit.IBMQ)
                 logger.debug("Registered with Qiskit successfully.")
-                ibmq_backends = [x.name() for x in qiskit.IBMQ.backends(url=url, token=token)]
+                ibmq_backends = [x.name()
+                                 for x in qiskit.IBMQ.backends(url=url, token=token)]
         except Exception as e:
             logger.debug(
                 "Failed to register with Qiskit: {}".format(str(e)))

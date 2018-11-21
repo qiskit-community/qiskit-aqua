@@ -44,6 +44,10 @@ class MulticlassExtension(ABC):
         args = {k: v for k, v in params.items() if k != 'name'}
         return cls(**args)
 
+    @staticmethod
+    def check_pluggable_valid():
+        return True
+
     @abstractmethod
     def train(self, x, y):
         """

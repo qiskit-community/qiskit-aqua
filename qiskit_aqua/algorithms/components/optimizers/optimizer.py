@@ -99,6 +99,10 @@ class Optimizer(ABC):
         optimizer.set_options(**opts)
         return optimizer
 
+    @staticmethod
+    def check_pluggable_valid():
+        return True
+
     def set_options(self, **kwargs):
         """Set an options dictionary that may be used by call to the optimizer
 
