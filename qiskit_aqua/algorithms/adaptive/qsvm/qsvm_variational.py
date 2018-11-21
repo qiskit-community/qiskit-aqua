@@ -67,8 +67,8 @@ class QSVMVariational(QuantumAlgorithm):
         }
     }
 
-    def __init__(self, training_dataset, test_dataset, datapoints, optimizer,
-                 feature_map, var_form, batch_mode=False):
+    def __init__(self, optimizer, feature_map, var_form, training_dataset,
+                 test_dataset=None, datapoints=None, batch_mode=False):
         """Initialize the object
         Args:
             training_dataset (dict): {'A': numpy.ndarray, 'B': numpy.ndarray, ...}
@@ -135,8 +135,8 @@ class QSVMVariational(QuantumAlgorithm):
         var_form = get_pluggable_class(PluggableType.VARIATIONAL_FORM,
                                        var_form_params['name']).init_params(var_form_params)
 
-        return cls(algo_input.training_dataset, algo_input.test_dataset, algo_input.datapoints,
-                   optimizer, feature_map, var_form, batch_mode)
+        return cls(optimizer, feature_map, var_form, algo_input.training_dataset,
+                   algo_input.test_dataset, algo_input.datapoints, batch_mode)
 
     def _construct_circuit(self, x, theta):
         qr = QuantumRegister(self._num_qubits, name='q')

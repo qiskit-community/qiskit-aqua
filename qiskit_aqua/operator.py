@@ -729,7 +729,7 @@ class Operator(object):
             avg = np.vdot(quantum_state, self._matrix.dot(quantum_state))
         return avg
 
-    def eval(self, operator_mode, input_circuit, backend, execute_config={}, qjob_config={}):
+    def eval(self, operator_mode, input_circuit, backend, execute_config=None, qjob_config=None):
         """
         Supporting three ways to evaluate the given circuits with the operator.
         1. If `input_circuit` is a numpy.ndarray, it will directly perform inner product with the operator.
@@ -748,6 +748,8 @@ class Operator(object):
         Returns:
             float, float: mean and standard deviation of avg
         """
+        execute_config = execute_config or {}
+        qjob_config = qjob_config or {}
 
         if isinstance(input_circuit, np.ndarray):
             avg = self._eval_directly(input_circuit)

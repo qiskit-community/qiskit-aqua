@@ -48,10 +48,10 @@ class ErrorCorrectingCode(MulticlassExtension):
         }
     }
 
-    def __init__(self, estimator_cls, params=[], code_size=4):
+    def __init__(self, estimator_cls, params=None, code_size=4):
         super().__init__()
         self.estimator_cls = estimator_cls
-        self.params = params
+        self.params = params or []
         self.code_size = code_size
         # May we re-use the seed from quantum algorithm?
         self.rand = np.random.RandomState(0)

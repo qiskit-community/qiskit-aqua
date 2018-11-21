@@ -76,7 +76,7 @@ class QAOA(VQE):
     }
 
     def __init__(self, operator, optimizer, p=1, operator_mode='matrix', initial_point=None,
-                 batch_mode=False, aux_operators=[]):
+                 batch_mode=False, aux_operators=None):
         """
         Args:
             operator (Operator): Qubit operator

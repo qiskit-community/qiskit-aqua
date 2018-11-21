@@ -490,7 +490,7 @@ class JSONSchema(object):
         return []
 
     @staticmethod
-    def get_value(value, types=[]):
+    def get_value(value, types=None):
         """
         Returns a converted value based on schema types
         Args:
@@ -500,6 +500,7 @@ class JSONSchema(object):
         Returns:
             Returns converted value
         """
+        types = types or []
         if value is None or (isinstance(value, str) and len(value.strip()) == 0):
             # return propet values based on type
             if value is None:

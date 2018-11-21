@@ -72,7 +72,7 @@ def _avoid_empty_circuits(circuits):
     return new_circuits
 
 
-def _reuse_shared_circuits(circuits, backend, execute_config, qjob_config={}):
+def _reuse_shared_circuits(circuits, backend, execute_config, qjob_config=None):
     """Reuse the circuits with the shared head.
 
     We assume the 0-th circuit is the shared_circuit, so we execute it first
@@ -84,6 +84,9 @@ def _reuse_shared_circuits(circuits, backend, execute_config, qjob_config={}):
         after subtraction, the circuits can not be empty.
         it only works for terra 0.6.2+
     """
+
+    qjob_config = qjob_config or {}
+
     shared_circuit = circuits[0]
     shared_result = run_circuits(shared_circuit, backend, execute_config,
                                  show_circuit_summary=True)
@@ -103,7 +106,7 @@ def _reuse_shared_circuits(circuits, backend, execute_config, qjob_config={}):
     result = shared_result + diff_result
     return result
 
-def run_circuits(circuits, backend, execute_config, qjob_config={},
+def run_circuits(circuits, backend, execute_config, qjob_config=None,
                  show_circuit_summary=False, has_shared_circuits=False):
     """
     An execution wrapper with Qiskit-Terra, with job auto recover capability.
@@ -124,6 +127,9 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
     Raises:
         AlgorithmError: Any error except for JobError raised by Qiskit Terra
     """
+
+    qjob_config = qjob_config or {}
+
     if backend is None or not isinstance(backend, BaseBackend):
         raise AlgorithmError('Backend is missing or not an instance of BaseBackend')
 

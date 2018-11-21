@@ -50,7 +50,7 @@ class ExactEigensolver(QuantumAlgorithm):
         'problems': ['energy', 'excited_states', 'ising']
     }
 
-    def __init__(self, operator, k=1, aux_operators=[]):
+    def __init__(self, operator, k=1, aux_operators=None):
         """Constructor.
 
         Args:
@@ -60,9 +60,10 @@ class ExactEigensolver(QuantumAlgorithm):
         """
         super().__init__()
         self._operator = operator
-        if not isinstance(aux_operators, list):
-            aux_operators = [aux_operators]
-        self._aux_operators = aux_operators
+        if aux_operators is None:
+            self._aux_operators = []
+        else:
+            self._aux_operators = [aux_operators] if not isinstance(aux_operators, list) else aux_operators
         self._k = k
         self._operator.to_matrix()
         if self._k > self._operator.matrix.shape[0]:

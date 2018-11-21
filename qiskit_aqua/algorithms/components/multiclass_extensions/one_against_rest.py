@@ -42,10 +42,10 @@ class OneAgainstRest(MulticlassExtension):
         }
     }
 
-    def __init__(self, estimator_cls, params=[]):
+    def __init__(self, estimator_cls, params=None):
         super().__init__()
         self.estimator_cls = estimator_cls
-        self.params = params
+        self.params = params or []
 
     def train(self, X, y):
         """

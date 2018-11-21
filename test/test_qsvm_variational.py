@@ -71,7 +71,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
         feature_map = SecondOrderExpansion(num_qubits=num_qubits, depth=2)
         var_form = RYRZ(num_qubits=num_qubits, depth=3)
 
-        svm = QSVMVariational(self.training_data, self.testing_data, None, optimizer, feature_map, var_form)
+        svm = QSVMVariational(optimizer, feature_map, var_form, self.training_data, self.testing_data)
         svm.random_seed = self.random_seed
         svm.setup_quantum_backend(backend=backend, shots=1024)
         result = svm.run()

@@ -85,7 +85,7 @@ class VQE(QuantumAlgorithm):
     }
 
     def __init__(self, operator, var_form, optimizer, operator_mode='matrix',
-                 initial_point=None, batch_mode=False, aux_operators=[]):
+                 initial_point=None, batch_mode=False, aux_operators=None):
         """Constructor.
 
         Args:
@@ -105,11 +105,14 @@ class VQE(QuantumAlgorithm):
                              '{}.'.format(['paulis', 'grouped_paulis', 'matrix'], operator_mode))
         self._operator_mode = operator_mode
         self._initial_point = initial_point
-        self._aux_operators = aux_operators
-        self._ret = {}
         if initial_point is None:
             self._initial_point = var_form.preferred_init_points
         self._optimizer.set_batch_mode(batch_mode)
+        if aux_operators is None:
+            self._aux_operators = []
+        else:
+            self._aux_operators = [aux_operators] if not isinstance(aux_operators, list) else aux_operators
+        self._ret = {}
         self._eval_count = 0
         self._eval_time = 0
         logger.info(self.print_setting())
