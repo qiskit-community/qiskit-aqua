@@ -20,12 +20,9 @@ from .svm.svm_classical import SVM_Classical
 
 __all__ = ['ExactEigensolver',
            'SVM_Classical']
-
-import logging
-logger = logging.getLogger(__name__)
-
 try:
+    from cplex import Cplex
     from .cplex.cplex_ising import CPLEX_Ising
     __all__ += ['CPLEX_Ising']
 except ImportError:
-    logger.info('CPLEX is not installed. See https://www.ibm.com/support/knowledgecenter/SSSA5P_12.8.0/ilog.odms.studio.help/Optimization_Studio/topics/COS_home.html')
+    pass

@@ -37,11 +37,10 @@ __all__ = ['Optimizer',
            'SPSA',
            'TNC']
 
-import logging
-logger = logging.getLogger(__name__)
-
 try:
     import nlopt
+    import logging
+    logger = logging.getLogger(__name__)
     logger.info('NLopt version: {}.{}.{}'.format(nlopt.version_major(), nlopt.version_minor(), nlopt.version_bugfix()))
     from .nlopts.crs import CRS
     from .nlopts.direct_l import DIRECT_L
@@ -50,4 +49,4 @@ try:
     from .nlopts.isres import ISRES
     __all__ += ['CRS', 'DIRECT_L', 'DIRECT_L_RAND', 'ESCH', 'ISRES']
 except ImportError:
-    logger.info("nlopt is not installed. please install it if you want to use them.")
+    pass
