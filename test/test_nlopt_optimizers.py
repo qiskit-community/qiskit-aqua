@@ -51,10 +51,8 @@ class TestNLOptOptimizers(QiskitAquaTestCase):
         # ['ISRES']
     ])
     def test_nlopt(self, name):
-        optimizer = get_pluggable_class(PluggableType.OPTIMIZER,name)
-        optimizer = optimizer()
+        optimizer = get_pluggable_class(PluggableType.OPTIMIZER, name)()
         optimizer.set_options(**{'max_evals': 50000})
-        optimizer.init_args()
         res = self._optimize(optimizer)
         self.assertLessEqual(res[2], 50000)
 

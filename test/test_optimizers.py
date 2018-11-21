@@ -21,7 +21,6 @@ from scipy.optimize import rosen
 import numpy as np
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import (PluggableType,get_pluggable_class)
 from qiskit_aqua.algorithms.components.optimizers import *
 
 
@@ -34,7 +33,7 @@ class TestOptimizers(QiskitAquaTestCase):
     def _optimize(self, optimizer):
         x0 = [1.3, 0.7, 0.8, 1.9, 1.2]
         res = optimizer.optimize(len(x0), rosen, initial_point=x0)
-        np.testing.assert_array_almost_equal(res[0], [1.0]*len(x0), decimal=2)
+        np.testing.assert_array_almost_equal(res[0], [1.0] * len(x0), decimal=2)
         return res
 
     def test_cg(self):

@@ -132,8 +132,8 @@ class QSVMVariational(QuantumAlgorithm):
         # Set up variational form
         var_form_params = params.get(QuantumAlgorithm.SECTION_KEY_VAR_FORM)
         var_form_params['num_qubits'] = num_qubits
-        var_form_cls = get_pluggable_class(PluggableType.VARIATIONAL_FORM, var_form_params['name'])
-        var_form = var_form_cls.init_params(var_form_params)
+        var_form = get_pluggable_class(PluggableType.VARIATIONAL_FORM,
+                                       var_form_params['name']).init_params(var_form_params)
 
         return cls(algo_input.training_dataset, algo_input.test_dataset, algo_input.datapoints,
                    optimizer, feature_map, var_form, batch_mode)

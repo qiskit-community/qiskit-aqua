@@ -22,7 +22,7 @@ import logging
 from math import fsum
 from timeit import default_timer
 from typing import Dict, List, Tuple, Any
-import copy
+
 import numpy as np
 
 from qiskit_aqua import QuantumAlgorithm, AlgorithmError
