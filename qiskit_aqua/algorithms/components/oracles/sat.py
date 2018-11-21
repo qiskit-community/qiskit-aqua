@@ -18,7 +18,6 @@
 import itertools
 import operator
 import logging
-import copy
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit_aqua.algorithms.components.oracles import Oracle
 
@@ -44,7 +43,7 @@ class SAT(Oracle):
     }
 
     def __init__(self, cnf):
-        super().__init__(copy.deepcopy(self.CONFIGURATION))
+        super().__init__()
         ls = [
             l.strip() for l in cnf.split('\n')
             if len(l) > 0 and not l.strip()[0] == 'c'

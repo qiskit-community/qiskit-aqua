@@ -84,7 +84,7 @@ class CPLEX_Ising(QuantumAlgorithm):
 
     @staticmethod
     def check_pluggable_valid():
-        if importlib.util.find_spec("cplex.Cplex") is not None:
+        if importlib.util.find_spec('', 'cplex') is not None:
             return True
 
         logger.info('CPLEX is not installed. See https://www.ibm.com/support/knowledgecenter/SSSA5P_12.8.0/ilog.odms.studio.help/Optimization_Studio/topics/COS_home.html')
