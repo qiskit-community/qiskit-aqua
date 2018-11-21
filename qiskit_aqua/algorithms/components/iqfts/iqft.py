@@ -19,6 +19,7 @@ This module contains the definition of a base class for inverse quantum
 fourier transforms.
 """
 from abc import ABC, abstractmethod
+import copy
 
 
 class IQFT(ABC):
@@ -34,8 +35,8 @@ class IQFT(ABC):
     """
 
     @abstractmethod
-    def __init__(self, configuration=None):
-        self._configuration = configuration
+    def __init__(self):
+        self._configuration = copy.deepcopy(self.CONFIGURATION)
 
     @property
     def configuration(self):

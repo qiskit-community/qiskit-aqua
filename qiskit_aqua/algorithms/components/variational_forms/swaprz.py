@@ -53,7 +53,7 @@ class SwapRZ(VariationalForm):
         }
     }
 
-    def __init__(self, num_qubits, depth, entangler_map=None,
+    def __init__(self, num_qubits, depth=3, entangler_map=None,
                  entanglement='full', initial_state=None):
         """Constructor.
 

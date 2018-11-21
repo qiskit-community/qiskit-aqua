@@ -15,9 +15,9 @@
 # limitations under the License.
 # =============================================================================
 """
-    This trial wavefunction is a Unitary Coupled-Cluster Single and Double excitations
-    variational form.
-    For more information, see https://arxiv.org/abs/1805.04340
+This trial wavefunction is a Unitary Coupled-Cluster Single and Double excitations
+variational form.
+For more information, see https://arxiv.org/abs/1805.04340
 """
 
 import logging
@@ -137,9 +137,12 @@ class UCCSD(VariationalForm):
         if self._num_qubits != num_qubits:
             raise ValueError('Computed num qubits {} does not match actual {}'
                              .format(self._num_qubits, num_qubits))
-        self._num_orbitals = num_orbitals
         self._depth = depth
+        self._num_orbitals = num_orbitals
         self._num_particles = num_particles
+
+        if self._num_particles > self._num_orbitals:
+            raise ValueError('# of particles must be less than or equal to # of orbitals.')
 
         self._initial_state = initial_state
         self._qubit_mapping = qubit_mapping
@@ -147,8 +150,8 @@ class UCCSD(VariationalForm):
         self._num_time_slices = num_time_slices
 
         self._single_excitations, self._double_excitations = \
-            VarFormUCCSD.compute_excitation_lists(num_particles, num_orbitals,
-                                                  active_occupied, active_unoccupied)
+            UCCSD.compute_excitation_lists(num_particles, num_orbitals,
+                                           active_occupied, active_unoccupied)
 
         self._hopping_ops, self._num_parameters = self._build_hopping_operators()
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]

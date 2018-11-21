@@ -18,6 +18,7 @@
 This module contains the definition of a base class for Oracle.
 """
 from abc import ABC, abstractmethod
+import copy
 
 
 class Oracle(ABC):
@@ -34,8 +35,8 @@ class Oracle(ABC):
     """
 
     @abstractmethod
-    def __init__(self, configuration=None):
-        self._configuration = configuration
+    def __init__(self):
+        self._configuration = copy.deepcopy(self.CONFIGURATION)
 
     @property
     def configuration(self):

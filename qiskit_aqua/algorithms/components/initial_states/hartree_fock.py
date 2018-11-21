@@ -15,10 +15,14 @@
 # limitations under the License.
 # =============================================================================
 
+import logging
+
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 
 from qiskit_aqua.algorithms.components.initial_states import InitialState
+
+logger = logging.getLogger(__name__)
 
 
 class HartreeFock(InitialState):
@@ -58,7 +62,7 @@ class HartreeFock(InitialState):
         }
     }
 
-    def __init__(self, num_qubits, num_orbitals=4, num_particles=2,
+    def __init__(self, num_qubits, num_orbitals, num_particles,
                  qubit_mapping='parity', two_qubit_reduction=True, sq_list=None):
         """Constructor.
 
@@ -70,17 +74,27 @@ class HartreeFock(InitialState):
             num_particles (int): number of particles
             sq_list ([int]): position of the single-qubit operators that anticommute
                         with the cliffords
+
+        Raises:
+            ValueError: wrong setting in num_particles and num_orbitals.
+            ValueError: wrong setting for computed num_qubits and supplied num_qubits.
         """
         super().__init__()
         self._sq_list = sq_list
         self._qubit_tapering = False if self._sq_list is None else True
-
         self._qubit_mapping = qubit_mapping.lower()
         self._two_qubit_reduction = two_qubit_reduction
         if self._qubit_mapping != 'parity':
-            self._two_qubit_reduction = False
+            if self._two_qubit_reduction:
+                logger.warning("two_qubit_reduction only works with parity qubit mapping \
+                    but you have {}. We switch two_qubit_reduction to False.".format(self._qubit_mapping))
+                self._two_qubit_reduction = False
+
         self._num_orbitals = num_orbitals
         self._num_particles = num_particles
+
+        if self._num_particles > self._num_orbitals:
+            raise ValueError('# of particles must be less than or equal to # of orbitals.')
 
         self._num_qubits = num_orbitals - 2 if self._two_qubit_reduction else self._num_orbitals
         self._num_qubits = self._num_qubits if not self._qubit_tapering else self._num_qubits - len(sq_list)
@@ -91,8 +105,6 @@ class HartreeFock(InitialState):
 
     def _build_bitstr(self):
         self._num_particles = self._num_particles
-        if self._num_particles > self._num_orbitals:
-            raise ValueError('# of particles must be less than or equal to # of orbitals.')
 
         half_orbitals = self._num_orbitals // 2
         bitstr = np.zeros(self._num_orbitals, np.bool)
