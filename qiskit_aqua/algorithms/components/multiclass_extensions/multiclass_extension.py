@@ -16,6 +16,7 @@
 # =============================================================================
 
 from abc import ABC, abstractmethod
+import copy
 
 
 class MulticlassExtension(ABC):
@@ -31,7 +32,7 @@ class MulticlassExtension(ABC):
 
     @abstractmethod
     def __init__(self):
-        self._configuration = self.CONFIGURATION.copy()
+        self._configuration = copy.deepcopy(self.CONFIGURATION)
 
     @property
     def configuration(self):

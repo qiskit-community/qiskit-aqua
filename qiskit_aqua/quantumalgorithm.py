@@ -25,7 +25,7 @@ Doing so requires that the required algorithm interface is implemented.
 
 from abc import ABC, abstractmethod
 import logging
-
+import copy
 import numpy as np
 import qiskit
 from qiskit import __version__ as qiskit_version
@@ -71,7 +71,7 @@ class QuantumAlgorithm(ABC):
     """
     @abstractmethod
     def __init__(self):
-        self._configuration = self.CONFIGURATION.copy()
+        self._configuration = copy.deepcopy(self.CONFIGURATION)
         self._backend = None
         self._execute_config = {}
         self._qjob_config = {}

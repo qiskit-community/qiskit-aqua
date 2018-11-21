@@ -372,7 +372,7 @@ def get_pluggable_configuration(pluggable_type, pluggable_name):
         raise AlgorithmError('{} {} not registered'.format(
             pluggable_type, pluggable_name))
 
-    return _REGISTERED_PLUGGABLES[pluggable_type][pluggable_name].configuration
+    return copy.deepcopy(_REGISTERED_PLUGGABLES[pluggable_type][pluggable_name].configuration)
 
 
 def local_pluggables_types():

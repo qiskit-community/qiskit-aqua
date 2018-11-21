@@ -17,7 +17,7 @@
 
 
 from abc import ABC, abstractmethod
-
+import copy
 from qiskit_aqua import AlgorithmError
 
 
@@ -27,7 +27,7 @@ class AlgorithmInput(ABC):
 
     @abstractmethod
     def __init__(self):
-        self._configuration = self.CONFIGURATION.copy()
+        self._configuration = copy.deepcopy(self.CONFIGURATION)
         if 'problems' not in self.configuration or len(self.configuration['problems']) <= 0:
             raise AlgorithmError('Algorithm Input missing or empty configuration problems')
 
@@ -37,7 +37,7 @@ class AlgorithmInput(ABC):
 
     @property
     def all_problems(self):
-        return self._PROBLEM_SET.copy()
+        return copy.deepcopy(self._PROBLEM_SET)
 
     @property
     def configuration(self):

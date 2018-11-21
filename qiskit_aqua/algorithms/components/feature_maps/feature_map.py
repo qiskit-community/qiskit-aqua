@@ -19,7 +19,7 @@ This module contains the definition of a base class for
 feature map. Several types of commonly used approaches.
 """
 from abc import ABC, abstractmethod
-
+import copy
 from qiskit_aqua.utils import get_entangler_map, validate_entangler_map
 
 
@@ -37,7 +37,7 @@ class FeatureMap(ABC):
 
     @abstractmethod
     def __init__(self):
-        self._configuration = self.CONFIGURATION.copy()
+        self._configuration = copy.deepcopy(self.CONFIGURATION)
         pass
 
     @property

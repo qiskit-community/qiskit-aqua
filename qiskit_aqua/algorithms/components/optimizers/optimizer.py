@@ -20,7 +20,7 @@
 from abc import ABC, abstractmethod
 from enum import IntEnum
 import logging
-
+import copy
 import numpy as np
 
 logger = logging.getLogger(__name__)
@@ -63,7 +63,7 @@ class Optimizer(ABC):
         _initial_point_support_level, and empty options.
 
         """
-        self._configuration = self.CONFIGURATION.copy()
+        self._configuration = copy.deepcopy(self.CONFIGURATION)
         if 'support_level' not in self._configuration:
             self._configuration['support_level'] = self.DEFAULT_CONFIGURATION['support_level']
         if 'options' not in self._configuration:

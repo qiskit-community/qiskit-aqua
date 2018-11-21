@@ -20,7 +20,7 @@ initial states. An initial state might be used by a variational
 form or in eoh as a trial state to evolve
 """
 from abc import ABC, abstractmethod
-
+import copy
 
 class InitialState(ABC):
 
@@ -36,7 +36,7 @@ class InitialState(ABC):
 
     @abstractmethod
     def __init__(self):
-        self._configuration = self.CONFIGURATION.copy()
+        self._configuration = copy.deepcopy(self.CONFIGURATION)
 
     @property
     def configuration(self):

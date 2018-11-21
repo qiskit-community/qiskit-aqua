@@ -19,7 +19,7 @@ This module contains the definition of a base class for
 variational forms. Several types of commonly used ansatz.
 """
 from abc import ABC, abstractmethod
-
+import copy
 from qiskit_aqua.utils import get_entangler_map, validate_entangler_map
 
 
@@ -37,7 +37,7 @@ class VariationalForm(ABC):
 
     @abstractmethod
     def __init__(self):
-        self._configuration = self.CONFIGURATION.copy()
+        self._configuration = copy.deepcopy(self.CONFIGURATION)
         self._num_parameters = 0
         self._bounds = list()
         pass

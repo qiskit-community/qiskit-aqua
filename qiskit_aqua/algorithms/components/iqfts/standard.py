@@ -19,8 +19,9 @@ from scipy import linalg
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.qasm import pi
-
+import copy
 from qiskit_aqua.algorithms.components.iqfts import IQFT
+
 
 class Standard(IQFT):
     """A normal standard IQFT."""
@@ -39,7 +40,7 @@ class Standard(IQFT):
     }
 
     def __init__(self, num_qubits):
-        super().__init__(self.CONFIGURATION.copy())
+        super().__init__(copy.deepcopy(self.CONFIGURATION))
         self._num_qubits = num_qubits
 
     def construct_circuit(self, mode, register=None, circuit=None):

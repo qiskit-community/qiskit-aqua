@@ -28,18 +28,21 @@ from qiskit_aqua.input import AlgorithmInput
 from qiskit_aqua import AlgorithmError
 import logging
 import sys
+import copy
 
 logger = logging.getLogger(__name__)
 
-_NAMES_TO_EXCLUDE = ['_discover_input',]
+_NAMES_TO_EXCLUDE = ['_discover_input', ]
 
 _FOLDERS_TO_EXCLUDE = ['__pycache__']
 
-RegisteredInput = namedtuple('RegisteredInput', ['name', 'cls', 'configuration'])
+RegisteredInput = namedtuple(
+    'RegisteredInput', ['name', 'cls', 'configuration'])
 
 _REGISTERED_INPUTS = {}
 
 _DISCOVERED = False
+
 
 def _discover_on_demand():
     """
@@ -48,8 +51,9 @@ def _discover_on_demand():
     if not _DISCOVERED:
         discover_local_inputs()
 
+
 def discover_local_inputs(directory=os.path.dirname(__file__),
-                           parentname=os.path.splitext(__name__)[0]):
+                          parentname=os.path.splitext(__name__)[0]):
     """
     Discovers the input modules on the directory and subdirectories of the current module
     and attempts to register them. Pluggable modules should subclass AlgorithmInput Base class.
@@ -61,14 +65,14 @@ def discover_local_inputs(directory=os.path.dirname(__file__),
 
     def _get_sys_path(directory):
         syspath = [os.path.abspath(directory)]
-        for item  in os.listdir(directory):
-            fullpath = os.path.join(directory,item)
+        for item in os.listdir(directory):
+            fullpath = os.path.join(directory, item)
             if item != '__pycache__' and not item.endswith('dSYM') and os.path.isdir(fullpath):
                 syspath += _get_sys_path(fullpath)
 
         return syspath
 
-    def _discover_localinputs(directory,parentname):
+    def _discover_localinputs(directory, parentname):
         for _, name, ispackage in pkgutil.iter_modules([directory]):
             if ispackage:
                 continue
@@ -87,21 +91,23 @@ def discover_local_inputs(directory=os.path.dirname(__file__),
                             importlib.import_module(fullname)
                 except Exception as e:
                     # Ignore algorithms that could not be initialized.
-                    logger.debug('Failed to load {} error {}'.format(fullname, str(e)))
+                    logger.debug(
+                        'Failed to load {} error {}'.format(fullname, str(e)))
 
-        for item  in os.listdir(directory):
-            fullpath = os.path.join(directory,item)
+        for item in os.listdir(directory):
+            fullpath = os.path.join(directory, item)
             if item not in _FOLDERS_TO_EXCLUDE and not item.endswith('dSYM') and os.path.isdir(fullpath):
-                _discover_localinputs(fullpath,parentname + '.' + item)
+                _discover_localinputs(fullpath, parentname + '.' + item)
 
     global _DISCOVERED
     _DISCOVERED = True
     syspath_save = sys.path
     sys.path = _get_sys_path(directory) + sys.path
     try:
-        _discover_localinputs(directory,parentname)
+        _discover_localinputs(directory, parentname)
     finally:
         sys.path = syspath_save
+
 
 def register_input(cls):
     """
@@ -117,7 +123,8 @@ def register_input(cls):
 
     # Verify that the pluggable is not already registered
     if cls in [input.cls for input in _REGISTERED_INPUTS.values()]:
-        raise AlgorithmError('Could not register class {} is already registered'.format(cls))
+        raise AlgorithmError(
+            'Could not register class {} is already registered'.format(cls))
 
     # Verify that it has a minimal valid configuration.
     try:
@@ -127,11 +134,13 @@ def register_input(cls):
 
     if input_name in _REGISTERED_INPUTS:
         raise AlgorithmError('Could not register class {}. Name {} {} is already registered'.format(cls,
-                             input_name,_REGISTERED_INPUTS[input_name].cls))
+                                                                                                    input_name, _REGISTERED_INPUTS[input_name].cls))
 
     # Append the pluggable to the `registered_classes` dict.
-    _REGISTERED_INPUTS[input_name] = RegisteredInput(input_name, cls, cls.CONFIGURATION)
+    _REGISTERED_INPUTS[input_name] = RegisteredInput(
+        input_name, cls, copy.deepcopy(cls.CONFIGURATION))
     return input_name
+
 
 def deregister_input(input_name):
     """
@@ -144,9 +153,11 @@ def deregister_input(input_name):
     _discover_on_demand()
 
     if input_name not in _REGISTERED_INPUTS:
-        raise AlgorithmError('Could not deregister {} not registered'.format(input_name))
+        raise AlgorithmError(
+            'Could not deregister {} not registered'.format(input_name))
 
     _REGISTERED_INPUTS.pop(input_name)
+
 
 def get_input_class(input_name):
     """
@@ -165,6 +176,7 @@ def get_input_class(input_name):
 
     return _REGISTERED_INPUTS[input_name].cls
 
+
 def get_input_configuration(input_name):
     """
     Accesses input configuration
@@ -180,7 +192,8 @@ def get_input_configuration(input_name):
     if input_name not in _REGISTERED_INPUTS:
         raise AlgorithmError('{} not registered'.format(input_name))
 
-    return _REGISTERED_INPUTS[input_name].configuration
+    return copy.deepcopy(_REGISTERED_INPUTS[input_name].configuration)
+
 
 def local_inputs():
     """
