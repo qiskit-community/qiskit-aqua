@@ -63,9 +63,12 @@ class ISRES(Optimizer):
 
     @staticmethod
     def check_pluggable_valid():
-        spec = importlib.util.find_spec('nlopt')
-        if spec is not None:
-            return True
+        try:
+            spec = importlib.util.find_spec('nlopt')
+            if spec is not None:
+                return True
+        except:
+            pass
 
         logger.info("nlopt is not installed. Please install it if you want to use them.")
         return False

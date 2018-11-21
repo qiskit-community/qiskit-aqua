@@ -99,9 +99,12 @@ class UCCSD(VariationalForm):
 
     @staticmethod
     def check_pluggable_valid():
-        spec = importlib.util.find_spec('qiskit_aqua_chemistry.fermionic_operator')
-        if spec is not None:
-            return True
+        try:
+            spec = importlib.util.find_spec('qiskit_aqua_chemistry.fermionic_operator')
+            if spec is not None:
+                return True
+        except:
+            pass
 
         logger.info('UCCSD can be only used with qiskit_aqua_chemistry lib." \
         "If you would like to use it for other purposes," \
