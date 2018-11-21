@@ -21,6 +21,7 @@ a quantum algorithm
 """
 from abc import ABC, abstractmethod
 import logging
+import copy
 
 logger = logging.getLogger(__name__)
 
@@ -42,14 +43,28 @@ class ChemistryOperator(ABC):
     INFO_TWO_QUBIT_REDUCTION = 'two_qubit_reduction'
 
     @abstractmethod
-    def __init__(self, configuration=None):
-        self._configuration = configuration
+    def __init__(self):
+        self._configuration = copy.deepcopy(self.CONFIGURATION)
         self._molecule_info = {}
-        pass
 
     @property
     def configuration(self):
         return self._configuration
+
+    @classmethod
+    def init_params(cls, params):
+        """
+        Initialize via parameters dictionary.
+
+        Args:
+            params (dict): parameters dictionary
+
+        Returns:
+            Hamiltonian: hamiltonian object
+        """
+        args = {k: v for k, v in params.items() if k != 'name'}
+        logger.debug('init_args: {}'.format(args))
+        return cls(**args)
 
     @abstractmethod
     def run(self, qmolecule):

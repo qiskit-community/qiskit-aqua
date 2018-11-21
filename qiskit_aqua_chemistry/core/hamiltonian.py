@@ -22,10 +22,9 @@ energy of the electrons and nuclei in a molecule.
 from .chemistry_operator import ChemistryOperator
 from qiskit_aqua_chemistry import QMolecule
 from qiskit_aqua_chemistry.fermionic_operator import FermionicOperator
-from qiskit_aqua.input.energyinput import EnergyInput
+from qiskit_aqua.input import EnergyInput
 import numpy as np
 import logging
-import copy
 
 logger = logging.getLogger(__name__)
 
@@ -97,11 +96,11 @@ class Hamiltonian(ChemistryOperator):
         'problems': ['energy', 'excited_states']
     }
 
-    def __init__(self, transformation='full', 
-                 qubit_mapping='parity', 
+    def __init__(self, transformation='full',
+                 qubit_mapping='parity',
                  two_qubit_reduction=True,
-                 freeze_core=False, 
-                 orbital_reduction=[], 
+                 freeze_core=False,
+                 orbital_reduction=[],
                  max_workers=999):
         """
         Initializer
@@ -113,7 +112,7 @@ class Hamiltonian(ChemistryOperator):
             orbital_reduction: Orbital list to be frozen or removed
             max_workers: Max workers processes for transformation
         """
-        super().__init__(copy.deepcopy(Hamiltonian.CONFIGURATION))
+        super().__init__()
         self._transformation = transformation
         self._qubit_mapping = qubit_mapping
         self._two_qubit_reduction = two_qubit_reduction
@@ -137,26 +136,6 @@ class Hamiltonian(ChemistryOperator):
         self._ph_x_dipole_shift = 0.0
         self._ph_y_dipole_shift = 0.0
         self._ph_z_dipole_shift = 0.0
-   
-     
-    @classmethod
-    def init_params(cls, params):
-        """
-        Initialize via parameters dictionary.
-
-        Args:
-            params (dict): parameters dictionary
-          
-        Returns:
-            Hamiltonian: hamiltonian object
-        """
-       
-        return cls(params.get('transformation', 'full'),
-                   params.get('qubit_mapping', 'parity'),
-                   params.get('two_qubit_reduction', True), 
-                   params.get('freeze_core', False),
-                   params.get('orbital_reduction', []),
-                   params.get('max_workers', 999))
 
     def run(self, qmolecule):
         logger.debug('Processing started...')
