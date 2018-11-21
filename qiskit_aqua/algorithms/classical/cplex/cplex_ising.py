@@ -63,7 +63,7 @@ class CPLEX_Ising(QuantumAlgorithm):
         'problems': ['ising']
     }
 
-    def __init__(self, operator,  timelimit=600, thread=1, display=2):
+    def __init__(self, operator, timelimit=600, thread=1, display=2):
         super().__init__()
         self._ins = IsingInstance()
         self._ins.parse(operator.save_to_dict()['paulis'])
@@ -84,14 +84,18 @@ class CPLEX_Ising(QuantumAlgorithm):
 
     @staticmethod
     def check_pluggable_valid():
-        if importlib.util.find_spec('', 'cplex') is not None:
-            return True
+        spec = importlib.util.find_spec('cplex.callbacks')
+        if spec is not None:
+            spec = importlib.util.find_spec('cplex.exceptions')
+            if spec is not None:
+                return True
 
         logger.info('CPLEX is not installed. See https://www.ibm.com/support/knowledgecenter/SSSA5P_12.8.0/ilog.odms.studio.help/Optimization_Studio/topics/COS_home.html')
         return False
 
     def run(self):
-        model = IsingModel(self._ins, timelimit=self._timelimit, thread=self._thread, display=self._display)
+        model = IsingModel(self._ins, timelimit=self._timelimit,
+                           thread=self._thread, display=self._display)
         self._sol = model.solve()
         return {'energy': self._sol.objective, 'eval_time': self._sol.time,
                 'x_sol': self._sol.x_sol, 'z_sol': self._sol.z_sol,
@@ -145,11 +149,13 @@ class IsingInstance:
                 continue
             label = pauli['label'][::-1]
             if 'imag' in pauli['coeff'] and pauli['coeff']['imag'] != 0.0:
-                logger.critical('CPLEX backend cannot deal with complex coefficient %s', pauli)
+                logger.critical(
+                    'CPLEX backend cannot deal with complex coefficient %s', pauli)
                 continue
             weight = pauli['coeff']['real']
             if 'X' in label or 'Y' in label:
-                logger.critical('CPLEX backend cannot deal with X and Y Pauli matrices: %s', pauli)
+                logger.critical(
+                    'CPLEX backend cannot deal with X and Y Pauli matrices: %s', pauli)
                 continue
             ones = []
             for i, e in enumerate(label):
@@ -159,7 +165,8 @@ class IsingInstance:
             size = len(ones)
             if size == 0:
                 if not isinstance(self._const, int):
-                    logger.warning('Overwrite the constant: (current) %f, (new) %f', self._const, weight)
+                    logger.warning(
+                        'Overwrite the constant: (current) %f, (new) %f', self._const, weight)
                 self._const = weight
             elif size == 1:
                 k = ones[0]
@@ -174,7 +181,8 @@ class IsingInstance:
                                    weight)
                 self._quad[k] = weight
             else:
-                logger.critical('CPLEX backend cannot deal with Hamiltonian more than quadratic: %s', pauli)
+                logger.critical(
+                    'CPLEX backend cannot deal with Hamiltonian more than quadratic: %s', pauli)
 
 
 class IsingModel:
@@ -210,8 +218,10 @@ class IsingModel:
             lin[i] += -2 * w
             lin[j] += -2 * w
         self._cplex.set_objective([(x[i], float(w)) for i, w in lin.items()])
-        self._cplex.set_objective([(x[i], x[j], float(4 * w)) for (i, j), w in self._quad.items()])
-        self._cplex.set_objective(fsum([self._const] + list(self._lin.values()) + list(self._quad.values())))
+        self._cplex.set_objective([(x[i], x[j], float(4 * w))
+                                   for (i, j), w in self._quad.items()])
+        self._cplex.set_objective(
+            fsum([self._const] + list(self._lin.values()) + list(self._quad.values())))
 
     def solve(self):
         start = default_timer()

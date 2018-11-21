@@ -21,7 +21,7 @@ For more information, see https://arxiv.org/abs/1805.04340
 """
 
 import logging
-
+import importlib
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 
@@ -96,6 +96,17 @@ class UCCSD(VariationalForm):
             'additionalProperties': False
         }
     }
+
+    @staticmethod
+    def check_pluggable_valid():
+        spec = importlib.util.find_spec('qiskit_aqua_chemistry.fermionic_operator')
+        if spec is not None:
+            return True
+
+        logger.info('UCCSD can be only used with qiskit_aqua_chemistry lib." \
+        "If you would like to use it for other purposes," \
+        "please install qiskit_aqua_chemistry first."')
+        return False
 
     def __init__(self, num_qubits, depth, num_orbitals, num_particles,
                  active_occupied=None, active_unoccupied=None, initial_state=None,
