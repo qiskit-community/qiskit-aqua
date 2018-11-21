@@ -139,7 +139,7 @@ class IsingInstance:
                 logger.critical('Inconsistent number of qubits: (target) %d, (actual) %d %s', self._num_vars,
                                 len(pauli['label']), pauli)
                 continue
-            label = pauli['label']
+            label = pauli['label'][::-1]
             if 'imag' in pauli['coeff'] and pauli['coeff']['imag'] != 0.0:
                 logger.critical('CPLEX backend cannot deal with complex coefficient %s', pauli)
                 continue

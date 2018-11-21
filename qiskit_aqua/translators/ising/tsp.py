@@ -29,7 +29,7 @@ from collections import OrderedDict, namedtuple
 
 import numpy as np
 import numpy.random as rand
-from qiskit.tools.qi.pauli import Pauli
+from qiskit.quantum_info import Pauli
 
 from qiskit_aqua import Operator
 
@@ -140,7 +140,7 @@ def get_tsp_qubitops(ins, penalty=1e5):
     """
     num_nodes = ins.dim
     num_qubits = num_nodes ** 2
-    zero = np.zeros(num_qubits)
+    zero = np.zeros(num_qubits, dtype=np.bool)
     pauli_list = []
     shift = 0
     for i in range(num_nodes):
@@ -151,24 +151,24 @@ def get_tsp_qubitops(ins, penalty=1e5):
                 q = (p + 1) % num_nodes
                 shift += ins.w[i, j] / 4
 
-                vp = np.zeros(num_qubits)
-                vp[i * num_nodes + p] = 1
-                pauli_list.append([-ins.w[i, j] / 4, Pauli(vp, zero)])
+                zp = np.zeros(num_qubits, dtype=np.bool)
+                zp[i * num_nodes + p] = True
+                pauli_list.append([-ins.w[i, j] / 4, Pauli(zp, zero)])
 
-                vp = np.zeros(num_qubits)
-                vp[j * num_nodes + q] = 1
-                pauli_list.append([-ins.w[i, j] / 4, Pauli(vp, zero)])
+                zp = np.zeros(num_qubits, dtype=np.bool)
+                zp[j * num_nodes + q] = True
+                pauli_list.append([-ins.w[i, j] / 4, Pauli(zp, zero)])
 
-                vp = np.zeros(num_qubits)
-                vp[i * num_nodes + p] = 1
-                vp[j * num_nodes + q] = 1
-                pauli_list.append([ins.w[i, j] / 4, Pauli(vp, zero)])
+                zp = np.zeros(num_qubits, dtype=np.bool)
+                zp[i * num_nodes + p] = True
+                zp[j * num_nodes + q] = True
+                pauli_list.append([ins.w[i, j] / 4, Pauli(zp, zero)])
 
     for i in range(num_nodes):
         for p in range(num_nodes):
-            vp = np.zeros(num_qubits)
-            vp[i * num_nodes + p] = 1
-            pauli_list.append([penalty, Pauli(vp, zero)])
+            zp = np.zeros(num_qubits, dtype=np.bool)
+            zp[i * num_nodes + p] = True
+            pauli_list.append([penalty, Pauli(zp, zero)])
             shift += -penalty
 
     for p in range(num_nodes):
@@ -176,36 +176,36 @@ def get_tsp_qubitops(ins, penalty=1e5):
             for j in range(i):
                 shift += penalty / 2
 
-                vp = np.zeros(num_qubits)
-                vp[i * num_nodes + p] = 1
-                pauli_list.append([-penalty / 2, Pauli(vp, zero)])
+                zp = np.zeros(num_qubits, dtype=np.bool)
+                zp[i * num_nodes + p] = True
+                pauli_list.append([-penalty / 2, Pauli(zp, zero)])
 
-                vp = np.zeros(num_qubits)
-                vp[j * num_nodes + p] = 1
-                pauli_list.append([-penalty / 2, Pauli(vp, zero)])
+                zp = np.zeros(num_qubits, dtype=np.bool)
+                zp[j * num_nodes + p] = True
+                pauli_list.append([-penalty / 2, Pauli(zp, zero)])
 
-                vp = np.zeros(num_qubits)
-                vp[i * num_nodes + p] = 1
-                vp[j * num_nodes + p] = 1
-                pauli_list.append([penalty / 2, Pauli(vp, zero)])
+                zp = np.zeros(num_qubits, dtype=np.bool)
+                zp[i * num_nodes + p] = True
+                zp[j * num_nodes + p] = True
+                pauli_list.append([penalty / 2, Pauli(zp, zero)])
 
     for i in range(num_nodes):
         for p in range(num_nodes):
             for q in range(p):
                 shift += penalty / 2
 
-                vp = np.zeros(num_qubits)
-                vp[i * num_nodes + p] = 1
-                pauli_list.append([-penalty / 2, Pauli(vp, zero)])
+                zp = np.zeros(num_qubits, dtype=np.bool)
+                zp[i * num_nodes + p] = True
+                pauli_list.append([-penalty / 2, Pauli(zp, zero)])
 
-                vp = np.zeros(num_qubits)
-                vp[i * num_nodes + q] = 1
-                pauli_list.append([-penalty / 2, Pauli(vp, zero)])
+                zp = np.zeros(num_qubits, dtype=np.bool)
+                zp[i * num_nodes + q] = True
+                pauli_list.append([-penalty / 2, Pauli(zp, zero)])
 
-                vp = np.zeros(num_qubits)
-                vp[i * num_nodes + p] = 1
-                vp[i * num_nodes + q] = 1
-                pauli_list.append([penalty / 2, Pauli(vp, zero)])
+                zp = np.zeros(num_qubits, dtype=np.bool)
+                zp[i * num_nodes + p] = True
+                zp[i * num_nodes + q] = True
+                pauli_list.append([penalty / 2, Pauli(zp, zero)])
     shift += 2 * penalty * num_nodes
     return Operator(paulis=pauli_list), shift
 

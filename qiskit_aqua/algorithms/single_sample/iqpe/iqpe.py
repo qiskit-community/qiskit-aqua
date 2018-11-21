@@ -23,7 +23,7 @@ import logging
 
 import numpy as np
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
-from qiskit.tools.qi.pauli import Pauli
+from qiskit.quantum_info import Pauli
 
 from qiskit_aqua import Operator, QuantumAlgorithm, AlgorithmError
 from qiskit_aqua import get_initial_state_instance
@@ -161,7 +161,7 @@ class IQPE(QuantumAlgorithm):
         q = QuantumRegister(self._operator.num_qubits, name='q')
         qc = self._state_in.construct_circuit('circuit', q)
         # hadamard on a[0]
-        qc.add(a)
+        qc.add_register(a)
         qc.u2(0, np.pi, a[0])
         # controlled-U
         qc_evolutions = Operator.construct_evolution_circuit(
@@ -178,7 +178,7 @@ class IQPE(QuantumAlgorithm):
         qc.u1(omega, a[0])
         # hadamard on a[0]
         qc.u2(0, np.pi, a[0])
-        qc.add(c)
+        qc.add_register(c)
         qc.barrier(a)
         qc.measure(a, c)
         return qc
@@ -219,7 +219,7 @@ class IQPE(QuantumAlgorithm):
         return omega_coef
 
     def _compute_energy(self):
-        self._operator._check_representation('paulis')
+        self._operator.to_paulis()
         self._ret['translation'] = sum([abs(p[0]) for p in self._operator.paulis])
         self._ret['stretch'] = 0.5 / self._ret['translation']
 
@@ -244,7 +244,7 @@ class IQPE(QuantumAlgorithm):
         # check for identify paulis to get its coef for applying global phase shift on ancilla later
         num_identities = 0
         for p in self._operator.paulis:
-            if np.all(p[1].v == 0) and np.all(p[1].w == 0):
+            if np.all(np.logical_not(p[1].z)) and np.all(np.logical_not(p[1].x)):
                 num_identities += 1
                 if num_identities > 1:
                     raise RuntimeError('Multiple identity pauli terms are present.')
