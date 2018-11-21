@@ -21,7 +21,7 @@ from qiskit_aqua.input import AlgorithmInput
 
 class EnergyInput(AlgorithmInput):
 
-    PROP_KEY_QUBITOP = 'qubitop'
+    PROP_KEY_QUBITOP = 'qubit_op'
     PROP_KEY_AUXOPS = 'aux_ops'
 
     CONFIGURATION = {

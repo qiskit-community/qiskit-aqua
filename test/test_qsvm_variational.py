@@ -19,7 +19,7 @@ import numpy as np
 from qiskit import Aer
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua.input import get_input_class
+from qiskit_aqua.input import SVMInput
 from qiskit_aqua import run_algorithm
 from qiskit_aqua.algorithms.adaptive import QSVMVariational
 from qiskit_aqua.algorithms.components.optimizers import SPSA
@@ -42,7 +42,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
                                           2.2547051, 7.29971351, 3.74421673, -3.74280352])
         self.ref_train_loss = 0.4999339230552529
 
-        self.svm_input = get_input_class('SVMInput')(self.training_data, self.testing_data)
+        self.svm_input = SVMInput(self.training_data, self.testing_data)
 
     def test_qsvm_variational_via_run_algorithm(self):
         np.random.seed(self.random_seed)

@@ -19,7 +19,7 @@ import numpy as np
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import run_algorithm, PluggableType, local_pluggables
-from qiskit_aqua.input import get_input_class
+from qiskit_aqua.input import EnergyInput
 from qiskit_aqua.translators.ising import maxcut
 skip_test = True if 'CPLEX.Ising' not in local_pluggables(PluggableType.ALGORITHM) else False
 
@@ -36,7 +36,7 @@ class TestCplexIsing(QiskitAquaTestCase):
         np.random.seed(8123179)
         self.w = maxcut.random_graph(4, edge_prob=0.5, weight_range=10)
         self.qubit_op, self.offset = maxcut.get_maxcut_qubitops(self.w)
-        self.algo_input = get_input_class('EnergyInput')(self.qubit_op)
+        self.algo_input = EnergyInput(self.qubit_op)
 
     def test_cplex_ising_via_run_algorithm(self):
         params = {

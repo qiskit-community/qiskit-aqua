@@ -21,7 +21,7 @@ import numpy as np
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import Operator, run_algorithm
-from qiskit_aqua.input import get_input_class
+from qiskit_aqua.input import EnergyInput
 from qiskit_aqua.algorithms.classical import ExactEigensolver
 
 
@@ -38,7 +38,7 @@ class TestExactEigensolver(QiskitAquaTestCase):
                        ]
         }
         qubit_op = Operator.load_from_dict(pauli_dict)
-        self.algo_input = get_input_class('EnergyInput')(qubit_op)
+        self.algo_input = EnergyInput(qubit_op)
 
     def test_ee_via_run_algorithm(self):
         params = {

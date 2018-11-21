@@ -22,7 +22,7 @@ from qiskit import Aer
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import Operator
-from qiskit_aqua.input import get_input_class
+from qiskit_aqua.input import EnergyInput
 from qiskit_aqua.utils import decimal_to_binary
 from qiskit_aqua.algorithms.components.initial_states.varformbased import VarFormBased
 from qiskit_aqua.algorithms.components.variational_forms import RYRZ
@@ -44,7 +44,7 @@ class TestVQE2IQPE(QiskitAquaTestCase):
                        ]
         }
         qubit_op = Operator.load_from_dict(pauli_dict)
-        self.algo_input = get_input_class('EnergyInput')(qubit_op)
+        self.algo_input = EnergyInput(qubit_op)
 
     def test_vqe_2_iqpe(self):
         backend = Aer.get_backend('qasm_simulator')
