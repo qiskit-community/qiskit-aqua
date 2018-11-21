@@ -52,8 +52,8 @@ class SVMInput(AlgorithmInput):
     def __init__(self, training_dataset, test_dataset=None, datapoints=None):
         super().__init__()
         self.training_dataset = training_dataset
-        self.test_dataset = test_dataset or {}
-        self.datapoints = datapoints or np.asarray([])
+        self.test_dataset = test_dataset
+        self.datapoints = datapoints
 
     def to_params(self):
         params = {}
