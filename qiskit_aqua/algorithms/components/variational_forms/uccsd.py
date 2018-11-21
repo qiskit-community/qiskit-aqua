@@ -28,14 +28,14 @@ from qiskit import QuantumRegister, QuantumCircuit
 from qiskit_aqua import Operator
 from qiskit_aqua.algorithms.components.variational_forms import VariationalForm
 
+logger = logging.getLogger(__name__)
+
 try:
     from qiskit_aqua_chemistry.fermionic_operator import FermionicOperator
 except ImportError:
-    raise ImportWarning('UCCSD can be only used with qiskit_aqua_chemistry lib." \
+    logger.info('UCCSD can be only used with qiskit_aqua_chemistry lib." \
         "If you would like to use it for other purposes," \
         "please install qiskit_aqua_chemistry first."')
-
-logger = logging.getLogger(__name__)
 
 
 class UCCSD(VariationalForm):
