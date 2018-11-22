@@ -28,7 +28,6 @@ import inspect
 import copy
 from collections import namedtuple
 from enum import Enum
-from .quantumalgorithm import QuantumAlgorithm
 from qiskit_aqua import AlgorithmError
 from qiskit_aqua.preferences import Preferences
 
@@ -51,6 +50,7 @@ def _get_pluggables_types_dictionary():
     Gets all the pluggables types
     Any new pluggable type should be added here
     """
+    from .quantumalgorithm import QuantumAlgorithm
     from qiskit_aqua.algorithms.components.optimizers import Optimizer
     from qiskit_aqua.algorithms.components.variational_forms import VariationalForm
     from qiskit_aqua.algorithms.components.initial_states import InitialState
@@ -127,8 +127,7 @@ def _discover_on_demand():
         discover_preferences_pluggables()
         if logger.isEnabledFor(logging.DEBUG):
             for ptype in local_pluggables_types():
-                logger.debug("Found: '{}' has pluggables {} ".format(
-                    ptype.value, local_pluggables(ptype)))
+                logger.debug("Found: '{}' has pluggables {} ".format(ptype.value, local_pluggables(ptype)))
 
 
 def discover_preferences_pluggables():
@@ -151,8 +150,7 @@ def discover_preferences_pluggables():
                 logger.debug('Failed to import package {}'.format(package))
         except Exception as e:
             # Ignore package that could not be initialized.
-            logger.debug(
-                'Failed to load package {} error {}'.format(package, str(e)))
+            logger.debug('Failed to load package {} error {}'.format(package, str(e)))
 
 
 def _discover_local_pluggables(directory,
@@ -181,13 +179,12 @@ def _discover_local_pluggables(directory,
                                     break
                     except Exception as e:
                         # Ignore pluggables that could not be initialized.
-                        logger.debug(
-                            'Failed to load {} error {}'.format(fullname, str(e)))
+                        logger.debug('Failed to load {} error {}'.format(fullname, str(e)))
 
             except Exception as e:
                 # Ignore pluggables that could not be initialized.
-                logger.debug(
-                    'Failed to load {} error {}'.format(fullname, str(e)))
+                # print('Failed to load {} error {}'.format(fullname, str(e)))
+                logger.debug('Failed to load {} error {}'.format(fullname, str(e)))
 
     for item in os.listdir(directory):
         fullpath = os.path.join(directory, item)

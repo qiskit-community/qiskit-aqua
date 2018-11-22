@@ -59,5 +59,5 @@ class TestCplexIsing(QiskitAquaTestCase):
             np.testing.assert_array_equal(
                 maxcut.get_graph_solution(x), [1, 0, 1, 1])
             self.assertEqual(maxcut.maxcut_value(x, self.w), 24)
-        except NameError as e:
+        except ImportError as e:
             self.skipTest(str(e))

@@ -17,16 +17,16 @@
 """Optimizer interface
 """
 
-from abc import ABC, abstractmethod
+from qiskit_aqua import Pluggable
+from abc import abstractmethod
 from enum import IntEnum
 import logging
-import copy
 import numpy as np
 
 logger = logging.getLogger(__name__)
 
 
-class Optimizer(ABC):
+class Optimizer(Pluggable):
     """Base class for optimization algorithm."""
 
     class SupportLevel(IntEnum):
@@ -63,7 +63,7 @@ class Optimizer(ABC):
         _initial_point_support_level, and empty options.
 
         """
-        self._configuration = copy.deepcopy(self.CONFIGURATION)
+        super().__init__()
         if 'support_level' not in self._configuration:
             self._configuration['support_level'] = self.DEFAULT_CONFIGURATION['support_level']
         if 'options' not in self._configuration:
@@ -73,11 +73,6 @@ class Optimizer(ABC):
         self._initial_point_support_level = self._configuration['support_level']['initial_point']
         self._options = {}
         self._batch_mode = False
-
-    @property
-    def configuration(self):
-        """Return optimizer configuration"""
-        return self._configuration
 
     @classmethod
     def init_params(cls, params):
@@ -98,10 +93,6 @@ class Optimizer(ABC):
         optimizer = cls(**args)
         optimizer.set_options(**opts)
         return optimizer
-
-    @staticmethod
-    def check_pluggable_valid():
-        return True
 
     def set_options(self, **kwargs):
         """Set an options dictionary that may be used by call to the optimizer

@@ -18,12 +18,13 @@
 This module contains the definition of a base class for
 variational forms. Several types of commonly used ansatz.
 """
-from abc import ABC, abstractmethod
-import copy
+
+from qiskit_aqua import Pluggable
+from abc import abstractmethod
 from qiskit_aqua.utils import get_entangler_map, validate_entangler_map
 
 
-class VariationalForm(ABC):
+class VariationalForm(Pluggable):
 
     """Base class for VariationalForms.
 
@@ -37,24 +38,15 @@ class VariationalForm(ABC):
 
     @abstractmethod
     def __init__(self):
-        self._configuration = copy.deepcopy(self.CONFIGURATION)
+        super().__init__()
         self._num_parameters = 0
         self._bounds = list()
         pass
-
-    @property
-    def configuration(self):
-        """Return variational form configuration"""
-        return self._configuration
 
     @classmethod
     def init_params(cls, params):
         args = {k: v for k, v in params.items() if k != 'name'}
         return cls(**args)
-
-    @staticmethod
-    def check_pluggable_valid():
-        return True
 
     @abstractmethod
     def construct_circuit(self, parameters, q=None):

@@ -17,11 +17,11 @@
 """
 This module contains the definition of a base class for Oracle.
 """
-from abc import ABC, abstractmethod
-import copy
+from qiskit_aqua import Pluggable
+from abc import abstractmethod
 
 
-class Oracle(ABC):
+class Oracle(Pluggable):
 
     """
         Base class for oracles to be used with the Grover algorithm.
@@ -36,21 +36,12 @@ class Oracle(ABC):
 
     @abstractmethod
     def __init__(self):
-        self._configuration = copy.deepcopy(self.CONFIGURATION)
-
-    @property
-    def configuration(self):
-        """Return configuration"""
-        return self._configuration
+        super().__init__()
 
     @classmethod
     def init_params(cls, params):
         args = {k: v for k, v in params.items() if k != 'name'}
         return cls(**args)
-
-    @staticmethod
-    def check_pluggable_valid():
-        return True
 
     @property
     @abstractmethod

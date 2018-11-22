@@ -17,6 +17,7 @@
 
 """Algorithm discovery methods, Error and Base classes"""
 
+from .pluggable import Pluggable
 from .preferences import Preferences
 from .utils import cnx
 from .algorithmerror import AlgorithmError
@@ -37,7 +38,8 @@ from ._logging import (get_logging_level,
 
 __version__ = '0.3.1'
 
-__all__ = ['AlgorithmError',
+__all__ = ['Pluggable',
+           'AlgorithmError',
            'Operator',
            'Preferences',
            'QuantumAlgorithm',

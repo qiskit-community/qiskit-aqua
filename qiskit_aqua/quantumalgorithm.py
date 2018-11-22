@@ -23,9 +23,9 @@ class in this module.
 Doing so requires that the required algorithm interface is implemented.
 """
 
-from abc import ABC, abstractmethod
+from qiskit_aqua import Pluggable
+from abc import abstractmethod
 import logging
-import copy
 import numpy as np
 import qiskit
 from qiskit import __version__ as qiskit_version
@@ -39,7 +39,7 @@ from qiskit_aqua import Preferences
 logger = logging.getLogger(__name__)
 
 
-class QuantumAlgorithm(ABC):
+class QuantumAlgorithm(Pluggable):
 
     # Configuration dictionary keys
     SECTION_KEY_ALGORITHM = 'algorithm'
@@ -71,7 +71,7 @@ class QuantumAlgorithm(ABC):
     """
     @abstractmethod
     def __init__(self):
-        self._configuration = copy.deepcopy(self.CONFIGURATION)
+        super().__init__()
         self._backend = None
         self._execute_config = {}
         self._qjob_config = {}
@@ -79,11 +79,6 @@ class QuantumAlgorithm(ABC):
         self._random = None
         self._show_circuit_summary = False
         self._has_shared_circuits = False
-
-    @property
-    def configuration(self):
-        """Return algorithm configuration."""
-        return self._configuration
 
     @property
     def random_seed(self):
@@ -109,10 +104,6 @@ class QuantumAlgorithm(ABC):
     def backend(self):
         """Return BaseBackend backend object"""
         return self._backend
-
-    @staticmethod
-    def check_pluggable_valid():
-        return True
 
     @staticmethod
     def is_statevector_backend(backend):

@@ -18,12 +18,12 @@
 This module contains the definition of a base class for
 feature map. Several types of commonly used approaches.
 """
-from abc import ABC, abstractmethod
-import copy
+from qiskit_aqua import Pluggable
+from abc import abstractmethod
 from qiskit_aqua.utils import get_entangler_map, validate_entangler_map
 
 
-class FeatureMap(ABC):
+class FeatureMap(Pluggable):
 
     """Base class for FeatureMap.
 
@@ -37,22 +37,12 @@ class FeatureMap(ABC):
 
     @abstractmethod
     def __init__(self):
-        self._configuration = copy.deepcopy(self.CONFIGURATION)
-        pass
-
-    @property
-    def configuration(self):
-        """Return variational form configuration"""
-        return self._configuration
+        super().__init__()
 
     @classmethod
     def init_params(cls, params):
         args = {k: v for k, v in params.items() if k != 'name'}
         return cls(**args)
-
-    @staticmethod
-    def check_pluggable_valid():
-        return True
 
     @abstractmethod
     def construct_circuit(self, parameters):
