@@ -21,6 +21,7 @@ import numpy as np
 from parameterized import parameterized
 from scipy.linalg import expm
 from scipy import sparse
+from qiskit import Aer
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import Operator
@@ -92,7 +93,8 @@ class TestQPE(QiskitAquaTestCase):
         qpe = QPE(self.qubitOp, state_in, iqft, num_time_slices, n_ancillae,
                   paulis_grouping='random', expansion_mode='suzuki', expansion_order=2)
 
-        qpe.setup_quantum_backend(backend='qasm_simulator', shots=100, skip_transpiler=True)
+        backend = Aer.get_backend('qasm_simulator')
+        qpe.setup_quantum_backend(backend=backend, shots=100, skip_transpiler=True)
 
         # run qpe
         result = qpe.run()

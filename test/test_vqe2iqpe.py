@@ -66,7 +66,7 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         state_in = VarFormBased(var_form, result['opt_params'])
         iqpe = IQPE(self.algo_input.qubit_op, state_in, num_time_slices, num_iterations,
                     paulis_grouping='random', expansion_mode='suzuki', expansion_order=2)
-        iqpe.setup_quantum_backend(backend='qasm_simulator', shots=100, skip_transpiler=True)
+        iqpe.setup_quantum_backend(backend=backend, shots=100, skip_transpiler=True)
 
         result = iqpe.run()
 

@@ -17,7 +17,10 @@
 
 import unittest
 import operator
+
 from parameterized import parameterized
+from qiskit import Aer
+
 from test.common import QiskitAquaTestCase
 from qiskit_aqua.algorithms.components.oracles import SAT
 from qiskit_aqua.algorithms.single_sample import Grover
@@ -52,9 +55,10 @@ class TestGrover(QiskitAquaTestCase):
             ])[::-1]
             for s in header.split('solutions:' if header.find('solutions:') >= 0 else 'solution:')[-1].split(',')
         ]
+        backend = Aer.get_backend('qasm_simulator')
         sat_oracle = SAT(buf)
         grover = Grover(sat_oracle, num_iterations=num_iterations, incremental=incremental)
-        grover.setup_quantum_backend(backend='qasm_simulator', shots=100)
+        grover.setup_quantum_backend(backend=backend, shots=100)
 
         ret = grover.run()
 

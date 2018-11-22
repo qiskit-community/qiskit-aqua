@@ -19,6 +19,7 @@ import unittest
 
 import numpy as np
 from parameterized import parameterized
+from qiskit import Aer
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import Operator, run_algorithm
@@ -93,12 +94,13 @@ class TestVQE(QiskitAquaTestCase):
         self.assertAlmostEqual(result['energy'], -1.85727503, places=places)
 
     def test_vqe_direct(self):
+        backend = Aer.get_backend('statevector_simulator')
         num_qubits = self.algo_input.qubit_op.num_qubits
         init_state = Zero(num_qubits)
         var_form = RY(num_qubits, 3, initial_state=init_state)
         optimizer = L_BFGS_B()
         algo = VQE(self.algo_input.qubit_op, var_form, optimizer, 'matrix')
-        algo.setup_quantum_backend(backend='statevector_simulator')
+        algo.setup_quantum_backend(backend=backend)
         result = algo.run()
         self.assertAlmostEqual(result['energy'], -1.85727503)
 
