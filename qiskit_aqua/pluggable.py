@@ -41,7 +41,7 @@ class Pluggable(ABC):
     @abstractmethod
     def __init__(self):
         if not self.check_pluggable_valid():
-            raise ImportError("{} is not avaliable since missing dependent packages.".format(self.__class__.__name__))
+            raise ImportError("{} is not available since missing dependent packages.".format(self.__class__.__name__))
 
         self._configuration = copy.deepcopy(self.CONFIGURATION)
 
