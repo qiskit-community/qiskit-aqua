@@ -25,10 +25,10 @@ from qiskit_aqua.algorithms.components.reciprocals import Reciprocal
 
 logger = logging.getLogger(__name__)
 
+
 class LookupRotation(Reciprocal):
     """Partial table lookup of rotation angles to rotate an ancilla qubit by
     arcsin(C/lambda).
-    
     Note:
         Please refer to the HHL documentation for an explanation of this
         method.
@@ -96,7 +96,7 @@ class LookupRotation(Reciprocal):
         self._lambda_min = None
 
     def init_args(self, pat_length=None, subpat_length=None, scale=0,
-            negative_evals=False, evo_time=None, lambda_min=None):
+                  negative_evals=False, evo_time=None, lambda_min=None):
         self._pat_length = pat_length
         self._subpat_length = subpat_length
         self._negative_evals = negative_evals
@@ -120,27 +120,25 @@ class LookupRotation(Reciprocal):
 
         def bin_to_num(binary):
             """Convert to numeric"""
-            num = np.sum([2 ** -(n + 1)
-                for n, i in enumerate(reversed(binary)) if i == '1'])
+            num = np.sum([2 ** -(n + 1) for n, i in enumerate(reversed(
+                binary)) if i == '1'])
             return num
-
-        def max_sign_bit(binary):
-            """Get maximum significant bit, i.e. first position of 1 bit"""
-            return len(binary) - list(reversed(binary)).index('1')
 
         def get_est_lamb(pattern, fo, n, k):
             """Estimate the bin mid point and return the float value"""
             if fo - n > 0:
-                remainder = sum([2 ** -i for i in range(k - (fo - n - 1), k + 1)])
+                remainder = sum([2 ** -i for i in range(k - (fo - n - 1),
+                                                        k + 1)])
                 return bin_to_num(pattern)+remainder/2
-            else:
-                return bin_to_num(pattern)
+            return bin_to_num(pattern)
 
         from collections import OrderedDict
         output = OrderedDict()
+        fo = None
         for fo in range(k - 1, n - 1, -1):
             # skip first bit if negative ev are used
-            if negative_evals and fo == k - 1: continue
+            if negative_evals and fo == k - 1:
+                continue
             # init bit string
             vec = ['0'] * k
             # set most significant bit
@@ -167,10 +165,10 @@ class LookupRotation(Reciprocal):
                     prev_res = output[fo_pos]
                 else:
                     prev_res = []
-                
+
                 output.update(
                     {fo_pos: prev_res + [(list(reversed(pattern_)),
-                                app_pattern_array, lambda_array)]})
+                                          app_pattern_array, lambda_array)]})
 
         # last iterations, only last n bits != 0
         last_fo = fo
@@ -181,7 +179,7 @@ class LookupRotation(Reciprocal):
             fo_array = []
             for appendpat in itertools.product('10', repeat=n - m):
                 pattern = list(pattern_ + appendpat).copy()
-                if '1' not in pattern and ( not negative_evals ):
+                if '1' not in pattern and (not negative_evals):
                     continue
                 elif '1' not in pattern and negative_evals:
                     e_l = 0.5
@@ -191,15 +189,16 @@ class LookupRotation(Reciprocal):
                 lambda_array.append(e_l)
                 fo_array.append(last_fo - 1)
                 app_pattern_array.append(list(reversed(appendpat)))
-                
+
             fo_pos = k-last_fo
             if fo_pos in list(output.keys()):
                 prev_res = output[fo_pos]
             else:
                 prev_res = []
-                
+
             output.update({fo_pos: prev_res + [(list(reversed(pattern_)),
-                    app_pattern_array, lambda_array)]})
+                                                app_pattern_array,
+                                                lambda_array)]})
 
         return output
 
@@ -216,7 +215,7 @@ class LookupRotation(Reciprocal):
         """
         qc = self._circuit
         ev = [ev_reg[i] for i in range(len(ev_reg))]
-        #last_iteration = no MSQ set, only the n-bit long pattern
+        # last_iteration = no MSQ set, only the n-bit long pattern
         if last_iteration:
             if fo_pos == 1:
                 qc.x(ev[0])
@@ -265,7 +264,8 @@ class LookupRotation(Reciprocal):
             if i == '0':
                 qc.x(self._ev[int(c + offset)])
         if len(pattern) > 2:
-            temp_reg = [self._ev[i] for i in range(offset, offset+len(pattern))]
+            temp_reg = [self._ev[i]
+                        for i in range(offset, offset+len(pattern))]
             qc.cnx_na(temp_reg, tgt)
         elif len(pattern) == 2:
             qc.ccx(self._ev[offset], self._ev[offset + 1], tgt)
@@ -281,7 +281,7 @@ class LookupRotation(Reciprocal):
             mode (string): not yet implemented
             inreg: input register, typically output register of QPE
         """
-        #initialize circuit
+        # initialize circuit
         if mode == "vector":
             raise NotImplementedError("mode vector not supported")
         if self._lambda_min:
@@ -297,80 +297,95 @@ class LookupRotation(Reciprocal):
         self._reg_size = len(inreg)
         if self._pat_length is None:
             if self._reg_size <= 6:
-                self._pat_length = self._reg_size - (2 if self._negative_evals else 1)
+                self._pat_length = self._reg_size - \
+                                   (2 if self._negative_evals else 1)
             else:
                 self._pat_length = 5
         if self._reg_size <= self._pat_length:
-            self._pat_length = self._reg_size - (2 if self._negative_evals else 1)
+            self._pat_length = self._reg_size - \
+                               (2 if self._negative_evals else 1)
         if self._subpat_length is None:
             self._subpat_length = int(np.ceil(self._pat_length/2))
         m = self._subpat_length
         n = self._pat_length
         k = self._reg_size
-        
-        #get classically precomputed eigenvalue binning
-        approx_dict = LookupRotation.classic_approx(k, n, m, negative_evals=self._negative_evals)
-        
+        neg_evals = self._negative_evals
+
+        # get classically precomputed eigenvalue binning
+        approx_dict = LookupRotation.classic_approx(k, n, m,
+                                                    negative_evals=neg_evals)
+
+        fo = None
         old_fo = None
         # for negative EV, we pass a pseudo register ev[1:] ign. sign bit
         ev = [self._ev[i] for i in range(len(self._ev))]
-        
+
         for _, fo in enumerate(list(approx_dict.keys())):
-            #read m-bit and (n-m) bit patterns for current first-one and
+            # read m-bit and (n-m) bit patterns for current first-one and
             # correct Lambdas
             pattern_map = approx_dict[fo]
-            #set most-significant-qbit register and uncompute previous
+            # set most-significant-qbit register and uncompute previous
             if self._negative_evals:
                 if old_fo != fo:
                     if old_fo is not None:
                         self._set_msq(self._msq, ev[1:], int(old_fo - 1))
                     old_fo = fo
                     if fo + n == k:
-                        self._set_msq(self._msq, ev[1:], int(fo - 1), last_iteration=True)
+                        self._set_msq(self._msq, ev[1:], int(fo - 1),
+                                      last_iteration=True)
                     else:
-                        self._set_msq(self._msq, ev[1:], int(fo - 1), last_iteration=False)
+                        self._set_msq(self._msq, ev[1:], int(fo - 1),
+                                      last_iteration=False)
             else:
                 if old_fo != fo:
                     if old_fo is not None:
                         self._set_msq(self._msq, self._ev, int(old_fo))
                     old_fo = fo
                     if fo + n == k:
-                        self._set_msq(self._msq, self._ev, int(fo), last_iteration=True)
+                        self._set_msq(self._msq, self._ev, int(fo),
+                                      last_iteration=True)
                     else:
-                        self._set_msq(self._msq, self._ev, int(fo), last_iteration=False)
-            #offset = start idx for ncx gate setting and unsetting m-nit long bitstring
+                        self._set_msq(self._msq, self._ev, int(fo),
+                                      last_iteration=False)
+            # offset = start idx for ncx gate setting and unsetting m-bit
+            # long bitstring
             offset_mpat = fo + (n - m) if fo < k - n else fo + n - m - 1
             for mainpat, subpat, lambda_ar in pattern_map:
-                #set m-bit pattern in register workq
+                # set m-bit pattern in register workq
                 self._set_bit_pattern(mainpat, self._workq[0], offset_mpat + 1)
-                #iterate of all 2**(n-m) combinations for fixed m-bit
+                # iterate of all 2**(n-m) combinations for fixed m-bit
                 for subpattern, lambda_ in zip(subpat, lambda_ar):
 
-                    #calculate rotation angle
-                    theta =  2*np.arcsin(min(1, self._scale / lambda_))
-                    #offset for ncx gate checking subpattern
+                    # calculate rotation angle
+                    theta = 2*np.arcsin(min(1, self._scale / lambda_))
+                    # offset for ncx gate checking subpattern
                     offset = fo + 1 if fo < k - n else fo
-                
-                    #rotation is happening here
-                    #1. rotate by half angle
-                    qc.cnu3(theta / 2, 0, 0, [self._workq[0], self._msq[0]], self._anc[0])
-                    #2. cnx_na gate to reverse rotation direction
+
+                    # rotation is happening here
+                    # 1. rotate by half angle
+                    qc.cnu3(theta / 2, 0, 0, [self._workq[0], self._msq[0]],
+                            self._anc[0])
+                    # 2. cnx_na gate to reverse rotation direction
                     self._set_bit_pattern(subpattern, self._anc[0], offset)
-                    #3. rotate by inverse of halfangle to uncompute / complete 
-                    qc.cnu3(-theta / 2, 0, 0, [self._workq[0], self._msq[0]], self._anc[0])
-                    #4. cnx_na gate to uncompute first cnx_na gate
+                    # 3. rotate by inverse of halfangle to uncompute / complete
+                    qc.cnu3(-theta / 2, 0, 0, [self._workq[0], self._msq[0]],
+                            self._anc[0])
+                    # 4. cnx_na gate to uncompute first cnx_na gate
                     self._set_bit_pattern(subpattern, self._anc[0], offset)
-                #uncompute m-bit pattern
+                # uncompute m-bit pattern
                 self._set_bit_pattern(mainpat, self._workq[0], offset_mpat + 1)
-                
+
+        last_fo = fo
         # uncompute msq register
         if self._negative_evals:
-            self._set_msq(self._msq, ev[1:], int(fo - 1), last_iteration=True)
+            self._set_msq(self._msq, ev[1:], int(last_fo - 1),
+                          last_iteration=True)
         else:
-            self._set_msq(self._msq, self._ev, int(fo), last_iteration=True)
-            
-        #rotate by pi to fix sign for negative evals
+            self._set_msq(self._msq, self._ev, int(last_fo),
+                          last_iteration=True)
+
+        # rotate by pi to fix sign for negative evals
         if self._negative_evals:
-            qc.cu3(2*np.pi,0,0,self._ev[0],self._anc[0])
+            qc.cu3(2*np.pi, 0, 0, self._ev[0], self._anc[0])
         self._circuit = qc
         return self._circuit
