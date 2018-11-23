@@ -21,7 +21,7 @@ from .pluggable import Pluggable
 from .preferences import Preferences
 from .utils import cnx
 from .algorithmerror import AlgorithmError
-from .quantumalgorithm import QuantumAlgorithm
+from .algorithms import QuantumAlgorithm
 from .operator import Operator
 from ._discover import (PluggableType,
                         refresh_pluggables,

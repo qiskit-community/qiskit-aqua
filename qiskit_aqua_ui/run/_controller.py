@@ -122,7 +122,7 @@ class Controller(object):
         return self._outputView
 
     def get_available_backends(self):
-        from qiskit_aqua.quantumalgorithm import QuantumAlgorithm
+        from qiskit_aqua.algorithms.quantumalgorithm import QuantumAlgorithm
         if self._backendsthread is not None:
             return
 

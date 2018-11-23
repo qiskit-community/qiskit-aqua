@@ -276,14 +276,7 @@ class QuantumAlgorithm(Pluggable):
         backends = set()
         aer_backends = [x.name() for x in qiskit.Aer.backends()]
         for aer_backend in aer_backends:
-            backend = None
-            for group_name, names in qiskit.Aer.grouped_backend_names().items():
-                if aer_backend in names:
-                    backend = group_name
-                    break
-            if backend is None:
-                backend = aer_backend
-
+            backend = aer_backend
             supported = True
             for unsupported_backend in QuantumAlgorithm.UNSUPPORTED_BACKENDS:
                 if backend.startswith(unsupported_backend):

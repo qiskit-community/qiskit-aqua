@@ -50,7 +50,7 @@ def _get_pluggables_types_dictionary():
     Gets all the pluggables types
     Any new pluggable type should be added here
     """
-    from .quantumalgorithm import QuantumAlgorithm
+    from qiskit_aqua.algorithms.quantumalgorithm import QuantumAlgorithm
     from qiskit_aqua.algorithms.components.optimizers import Optimizer
     from qiskit_aqua.algorithms.components.variational_forms import VariationalForm
     from qiskit_aqua.algorithms.components.initial_states import InitialState
