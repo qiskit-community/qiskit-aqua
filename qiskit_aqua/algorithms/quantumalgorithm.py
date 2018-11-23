@@ -32,7 +32,7 @@ from qiskit import __version__ as qiskit_version
 from qiskit.backends import BaseBackend
 from qiskit.backends.ibmq.credentials import Credentials
 from qiskit.backends.ibmq.ibmqsingleprovider import IBMQSingleProvider
-from qiskit_aqua import AlgorithmError
+from qiskit_aqua import AquaError
 from qiskit_aqua.utils import run_circuits
 from qiskit_aqua import Preferences
 
@@ -157,15 +157,15 @@ class QuantumAlgorithm(Pluggable):
             wait (float): seconds between queries
 
         Raises:
-            AlgorithmError: set backend with invalid Qconfig
+            AquaError: set backend with invalid Qconfig
         """
         if backend is None:
-            raise AlgorithmError('Missing algorithm backend')
+            raise AquaError('Missing algorithm backend')
 
         if isinstance(backend, str):
             operational_backends = self.register_and_get_operational_backends()
             if QuantumAlgorithm.EQUIVALENT_BACKENDS.get(backend, backend) not in operational_backends:
-                raise AlgorithmError("This backend '{}' is not operational for the quantum algorithm, \
+                raise AquaError("This backend '{}' is not operational for the quantum algorithm, \
                                      select any one below: {}".format(backend, operational_backends))
 
         self._qjob_config = {'timeout': timeout,
@@ -185,7 +185,7 @@ class QuantumAlgorithm(Pluggable):
                                                      token=preferences.get_token(''))
 
             if my_backend is None:
-                raise AlgorithmError(
+                raise AquaError(
                     "Missing algorithm backend '{}'".format(backend))
 
         self._backend = my_backend

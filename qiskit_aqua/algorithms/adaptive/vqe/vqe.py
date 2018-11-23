@@ -26,7 +26,7 @@ import functools
 import numpy as np
 from qiskit import ClassicalRegister
 
-from qiskit_aqua import QuantumAlgorithm, AlgorithmError
+from qiskit_aqua import QuantumAlgorithm, AquaError
 from qiskit_aqua import PluggableType, get_pluggable_class
 from qiskit_aqua.utils import find_regs_by_name
 
@@ -130,7 +130,7 @@ class VQE(QuantumAlgorithm):
             VQE: vqe object
         """
         if algo_input is None:
-            raise AlgorithmError("EnergyInput instance is required.")
+            raise AquaError("EnergyInput instance is required.")
 
         operator = algo_input.qubit_op
 

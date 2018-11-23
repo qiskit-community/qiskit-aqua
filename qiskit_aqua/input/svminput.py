@@ -17,7 +17,7 @@
 
 import numpy as np
 
-from qiskit_aqua import AlgorithmError
+from qiskit_aqua import AquaError
 from qiskit_aqua.input import AlgorithmInput
 
 
@@ -65,7 +65,7 @@ class SVMInput(AlgorithmInput):
     @classmethod
     def from_params(cls, params):
         if 'training_dataset' not in params:
-            raise AlgorithmError("training_dataset is required.")
+            raise AquaError("training_dataset is required.")
         training_dataset = params['training_dataset']
         test_dataset = params['test_dataset']
         datapoints = params['datapoints']

@@ -27,7 +27,7 @@ from qiskit import compile as q_compile
 from qiskit.backends.jobstatus import JobStatus
 from qiskit.backends import JobError
 
-from qiskit_aqua.algorithmerror import AlgorithmError
+from qiskit_aqua.aqua_error import AquaError
 from qiskit_aqua.utils import summarize_circuits
 
 logger = logging.getLogger(__name__)
@@ -66,7 +66,7 @@ def _avoid_empty_circuits(circuits):
                 tmp_q = q
                 break
             if tmp_q is None:
-                raise AlgorithmError("A QASM without any quantum register is invalid.")
+                raise AquaError("A QASM without any quantum register is invalid.")
             qc.iden(tmp_q[0])
         new_circuits.append(qc)
     return new_circuits
@@ -125,13 +125,13 @@ def run_circuits(circuits, backend, execute_config, qjob_config=None,
         Result: Result object
 
     Raises:
-        AlgorithmError: Any error except for JobError raised by Qiskit Terra
+        AquaError: Any error except for JobError raised by Qiskit Terra
     """
 
     qjob_config = qjob_config or {}
 
     if backend is None or not isinstance(backend, BaseBackend):
-        raise AlgorithmError('Backend is missing or not an instance of BaseBackend')
+        raise AquaError('Backend is missing or not an instance of BaseBackend')
 
     if not isinstance(circuits, list):
         circuits = [circuits]
@@ -188,7 +188,7 @@ def run_circuits(circuits, backend, execute_config, qjob_config=None,
                     logger.warning("FAILURE: the {}-th chunk of circuits, job id: {}, "
                                    "Terra job error: {} ".format(idx, job_id, e))
                 except Exception as e:
-                    raise AlgorithmError("FAILURE: the {}-th chunk of circuits, job id: {}, "
+                    raise AquaError("FAILURE: the {}-th chunk of circuits, job id: {}, "
                                          "Terra unknown error: {} ".format(idx, job_id, e)) from e
 
                 # keep querying the status until it is okay.
@@ -202,7 +202,7 @@ def run_circuits(circuits, backend, execute_config, qjob_config=None,
                                        "Terra job error: {}".format(job_id, e))
                         time.sleep(5)
                     except Exception as e:
-                        raise AlgorithmError("FAILURE: job id: {}, "
+                        raise AquaError("FAILURE: job id: {}, "
                                              "status: 'FAIL_TO_GET_STATUS' "
                                              "({})".format(job_id, e)) from e
 

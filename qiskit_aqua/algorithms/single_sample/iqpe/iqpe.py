@@ -25,7 +25,7 @@ import numpy as np
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.quantum_info import Pauli
 
-from qiskit_aqua import Operator, QuantumAlgorithm, AlgorithmError
+from qiskit_aqua import Operator, QuantumAlgorithm, AquaError
 from qiskit_aqua import PluggableType, get_pluggable_class
 
 logger = logging.getLogger(__name__)
@@ -121,7 +121,7 @@ class IQPE(QuantumAlgorithm):
             algo_input: EnergyInput instance
         """
         if algo_input is None:
-            raise AlgorithmError("EnergyInput instance is required.")
+            raise AquaError("EnergyInput instance is required.")
 
         operator = algo_input.qubit_op
 

@@ -15,7 +15,7 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit_aqua.algorithmerror import AlgorithmError
+from qiskit_aqua.aqua_error import AquaError
 import json
 from collections import OrderedDict
 import logging
@@ -49,7 +49,7 @@ class InputParser(object):
             elif isinstance(input, str):
                 self._filename = input
             else:
-                raise AlgorithmError("Invalid parser input type.")
+                raise AquaError("Invalid parser input type.")
 
         self._section_order = [JSONSchema.PROBLEM,
                                InputParser.INPUT, PluggableType.ALGORITHM.value]
@@ -83,7 +83,7 @@ class InputParser(object):
         """Parse the data."""
         if self._sections is None:
             if self._filename is None:
-                raise AlgorithmError("Missing input file")
+                raise AquaError("Missing input file")
 
             with open(self._filename) as json_file:
                 self._sections = json.load(json_file)
@@ -163,7 +163,7 @@ class InputParser(object):
                     JSONSchema.PROBLEM, JSONSchema.NAME)
 
             if problem_name is None:
-                raise AlgorithmError(
+                raise AquaError(
                     "No algorithm 'problem' section found on input.")
 
             for name in local_inputs():
@@ -314,12 +314,12 @@ class InputParser(object):
                 JSONSchema.PROBLEM, JSONSchema.NAME)
 
         if problem_name is None:
-            raise AlgorithmError(
+            raise AquaError(
                 "No algorithm 'problem' section found on input.")
 
         problems = InputParser.get_algorithm_problems(algo_name)
         if problem_name not in problems:
-            raise AlgorithmError(
+            raise AquaError(
                 "Problem: {} not in the list of problems: {} for algorithm: {}.".format(problem_name, problems, algo_name))
 
     def _validate_input_problem(self):
@@ -335,12 +335,12 @@ class InputParser(object):
                 JSONSchema.PROBLEM, JSONSchema.NAME)
 
         if problem_name is None:
-            raise AlgorithmError(
+            raise AquaError(
                 "No algorithm 'problem' section found on input.")
 
         problems = InputParser.get_input_problems(input_name)
         if problem_name not in problems:
-            raise AlgorithmError(
+            raise AquaError(
                 "Problem: {} not in the list of problems: {} for input: {}.".format(problem_name, problems, input_name))
 
     def commit_changes(self):
@@ -348,11 +348,11 @@ class InputParser(object):
 
     def save_to_file(self, file_name):
         if file_name is None:
-            raise AlgorithmError('Missing file path')
+            raise AquaError('Missing file path')
 
         file_name = file_name.strip()
         if len(file_name) == 0:
-            raise AlgorithmError('Missing file path')
+            raise AquaError('Missing file path')
 
         with open(file_name, 'w') as f:
             print(json.dumps(self.get_sections(),
@@ -380,13 +380,13 @@ class InputParser(object):
         Returns:
             Section: The section with this name
         Raises:
-            AlgorithmError: if the section does not exist.
+            AquaError: if the section does not exist.
         """
         section_name = JSONSchema.format_section_name(section_name)
         try:
             return self._sections[section_name]
         except KeyError:
-            raise AlgorithmError('No section "{0}"'.format(section_name))
+            raise AquaError('No section "{0}"'.format(section_name))
 
     def get_section_text(self, section_name):
         section = self.get_section(section_name)
@@ -467,7 +467,7 @@ class InputParser(object):
         msg = self._json_schema.validate_property(
             sections_temp, section_name, property_name)
         if msg is not None:
-            raise AlgorithmError("{}.{}: Value '{}': '{}'".format(
+            raise AquaError("{}.{}: Value '{}': '{}'".format(
                 section_name, property_name, value, msg))
 
         InputParser._set_section_property(
@@ -512,7 +512,7 @@ class InputParser(object):
                 JSONSchema.PROBLEM, JSONSchema.NAME)
 
         if problem_name is None:
-            raise AlgorithmError(
+            raise AquaError(
                 "No algorithm 'problem' section found on input.")
 
         algo_name = self.get_section_property(
@@ -538,7 +538,7 @@ class InputParser(object):
                 JSONSchema.PROBLEM, JSONSchema.NAME)
 
         if problem_name is None:
-            raise AlgorithmError(
+            raise AquaError(
                 "No algorithm 'problem' section found on input.")
 
         input_name = self.get_section_property(

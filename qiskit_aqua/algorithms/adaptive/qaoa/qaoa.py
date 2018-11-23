@@ -18,7 +18,7 @@
 
 import logging
 
-from qiskit_aqua import QuantumAlgorithm, AlgorithmError, PluggableType, get_pluggable_class
+from qiskit_aqua import QuantumAlgorithm, AquaError, PluggableType, get_pluggable_class
 from qiskit_aqua.algorithms.adaptive import VQE
 from .varform import QAOAVarForm
 
@@ -98,7 +98,7 @@ class QAOA(VQE):
             algo_input (EnergyInput): EnergyInput instance
         """
         if algo_input is None:
-            raise AlgorithmError("EnergyInput instance is required.")
+            raise AquaError("EnergyInput instance is required.")
 
         operator = algo_input.qubit_op
 

@@ -25,7 +25,7 @@ from typing import Dict, List, Tuple, Any
 import importlib
 import numpy as np
 
-from qiskit_aqua import QuantumAlgorithm, AlgorithmError
+from qiskit_aqua import QuantumAlgorithm, AquaError
 from qiskit_aqua.algorithms.classical.cplex.simple_cplex import SimpleCPLEX
 
 logger = logging.getLogger(__name__)
@@ -75,7 +75,7 @@ class CPLEX_Ising(QuantumAlgorithm):
     @classmethod
     def init_params(cls, params, algo_input):
         if algo_input is None:
-            raise AlgorithmError("EnergyInput instance is required.")
+            raise AquaError("EnergyInput instance is required.")
         algo_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
         timelimit = algo_params['timelimit']
         thread = algo_params['thread']

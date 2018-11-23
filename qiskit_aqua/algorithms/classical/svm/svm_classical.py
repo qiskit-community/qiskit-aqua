@@ -17,7 +17,7 @@
 
 import logging
 
-from qiskit_aqua import (AlgorithmError, QuantumAlgorithm, PluggableType, get_pluggable_class)
+from qiskit_aqua import (AquaError, QuantumAlgorithm, PluggableType, get_pluggable_class)
 from qiskit_aqua.algorithms.classical.svm import (_SVM_Classical_Binary,
                                                   _SVM_Classical_Multiclass,
                                                   _RBF_SVC_Estimator)
@@ -57,12 +57,12 @@ class SVM_Classical(QuantumAlgorithm):
                  gamma=None, multiclass_extension=None):
         super().__init__()
         if training_dataset is None:
-            raise AlgorithmError('Training dataset must be provided.')
+            raise AquaError('Training dataset must be provided.')
 
         is_multiclass = get_num_classes(training_dataset) > 2
         if is_multiclass:
             if multiclass_extension is None:
-                raise AlgorithmError('Dataset has more than two classes. A multiclass extension must be provided.')
+                raise AquaError('Dataset has more than two classes. A multiclass extension must be provided.')
         else:
             if multiclass_extension is not None:
                 logger.warning("Dataset has just two classes. Supplied multiclass extension will be ignored")

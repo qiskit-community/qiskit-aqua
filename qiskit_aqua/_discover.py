@@ -28,7 +28,7 @@ import inspect
 import copy
 from collections import namedtuple
 from enum import Enum
-from qiskit_aqua import AlgorithmError
+from qiskit_aqua import AquaError
 from qiskit_aqua.preferences import Preferences
 
 logger = logging.getLogger(__name__)
@@ -239,7 +239,7 @@ def register_pluggable(cls):
             break
 
     if pluggable_type is None:
-        raise AlgorithmError(
+        raise AquaError(
             'Could not register class {} is not subclass of any known pluggable'.format(cls))
 
     return _register_pluggable(pluggable_type, cls)
@@ -254,7 +254,7 @@ def _register_pluggable(pluggable_type, cls):
      Returns:
         name: pluggable name
     Raises:
-        AlgorithmError: if the class is already registered or could not be registered
+        AquaError: if the class is already registered or could not be registered
     """
     if pluggable_type not in _REGISTERED_PLUGGABLES:
         _REGISTERED_PLUGGABLES[pluggable_type] = {}
@@ -262,23 +262,23 @@ def _register_pluggable(pluggable_type, cls):
     # Verify that the pluggable is not already registered.
     registered_classes = _REGISTERED_PLUGGABLES[pluggable_type]
     if cls in [pluggable.cls for pluggable in registered_classes.values()]:
-        raise AlgorithmError(
+        raise AquaError(
             'Could not register class {} is already registered'.format(cls))
 
     # Verify that it has a minimal valid configuration.
     try:
         pluggable_name = cls.CONFIGURATION['name']
     except (LookupError, TypeError):
-        raise AlgorithmError('Could not register pluggable: invalid configuration')
+        raise AquaError('Could not register pluggable: invalid configuration')
 
     # Verify that the pluggable is valid
     check_pluggable_valid = getattr(cls, 'check_pluggable_valid', None)
     if check_pluggable_valid is not None and not check_pluggable_valid():
-        raise AlgorithmError('Could not register class {}. Name {} {} is not valid'.format(cls, pluggable_type))
+        raise AquaError('Could not register class {}. Name {} {} is not valid'.format(cls, pluggable_type))
 
     if pluggable_name in _REGISTERED_PLUGGABLES[pluggable_type]:
-        raise AlgorithmError('Could not register class {}. Name {} {} is already registered'.format(cls,
-                                                                                                    pluggable_name, _REGISTERED_PLUGGABLES[pluggable_type][pluggable_name].cls))
+        raise AquaError('Could not register class {}. Name {} {} is already registered'.format(cls,
+                                                                                               pluggable_name, _REGISTERED_PLUGGABLES[pluggable_type][pluggable_name].cls))
 
     # Append the pluggable to the `registered_classes` dict.
     _REGISTERED_PLUGGABLES[pluggable_type][pluggable_name] = RegisteredPluggable(
@@ -293,16 +293,16 @@ def deregister_pluggable(pluggable_type, pluggable_name):
         pluggable_type(PluggableType): The pluggable type
         pluggable_name (str): The pluggable name
     Raises:
-        AlgorithmError: if the class is not registered
+        AquaError: if the class is not registered
     """
     _discover_on_demand()
 
     if pluggable_type not in _REGISTERED_PLUGGABLES:
-        raise AlgorithmError('Could not deregister {} {} not registered'.format(
+        raise AquaError('Could not deregister {} {} not registered'.format(
             pluggable_type, pluggable_name))
 
     if pluggable_name not in _REGISTERED_PLUGGABLES[pluggable_type]:
-        raise AlgorithmError('Could not deregister {} {} not registered'.format(
+        raise AquaError('Could not deregister {} {} not registered'.format(
             pluggable_type, pluggable_name))
 
     _REGISTERED_PLUGGABLES[pluggable_type].pop(pluggable_name)
@@ -317,7 +317,7 @@ def get_pluggable_class(pluggable_type, pluggable_name):
     Returns:
         cls: pluggable class
     Raises:
-        AlgorithmError: if the class is not registered
+        AquaError: if the class is not registered
     """
     _discover_on_demand()
 
@@ -328,15 +328,15 @@ def get_pluggable_class(pluggable_type, pluggable_name):
                 break
 
     if not isinstance(pluggable_type, PluggableType):
-        raise AlgorithmError('Invalid pluggable type {} {}'.format(
+        raise AquaError('Invalid pluggable type {} {}'.format(
             pluggable_type, pluggable_name))
 
     if pluggable_type not in _REGISTERED_PLUGGABLES:
-        raise AlgorithmError('{} {} not registered'.format(
+        raise AquaError('{} {} not registered'.format(
             pluggable_type, pluggable_name))
 
     if pluggable_name not in _REGISTERED_PLUGGABLES[pluggable_type]:
-        raise AlgorithmError('{} {} not registered'.format(
+        raise AquaError('{} {} not registered'.format(
             pluggable_type, pluggable_name))
 
     return _REGISTERED_PLUGGABLES[pluggable_type][pluggable_name].cls
@@ -351,7 +351,7 @@ def get_pluggable_configuration(pluggable_type, pluggable_name):
     Returns:
         configuration: pluggable configuration
     Raises:
-        AlgorithmError: if the class is not registered
+        AquaError: if the class is not registered
     """
     _discover_on_demand()
 
@@ -362,15 +362,15 @@ def get_pluggable_configuration(pluggable_type, pluggable_name):
                 break
 
     if not isinstance(pluggable_type, PluggableType):
-        raise AlgorithmError('Invalid pluggable type {} {}'.format(
+        raise AquaError('Invalid pluggable type {} {}'.format(
             pluggable_type, pluggable_name))
 
     if pluggable_type not in _REGISTERED_PLUGGABLES:
-        raise AlgorithmError('{} {} not registered'.format(
+        raise AquaError('{} {} not registered'.format(
             pluggable_type, pluggable_name))
 
     if pluggable_name not in _REGISTERED_PLUGGABLES[pluggable_type]:
-        raise AlgorithmError('{} {} not registered'.format(
+        raise AquaError('{} {} not registered'.format(
             pluggable_type, pluggable_name))
 
     return copy.deepcopy(_REGISTERED_PLUGGABLES[pluggable_type][pluggable_name].configuration)
@@ -394,7 +394,7 @@ def local_pluggables(pluggable_type):
     Returns:
         names: pluggable names
     Raises:
-        AlgorithmError: if the tyoe is not registered
+        AquaError: if the tyoe is not registered
     """
     _discover_on_demand()
 
@@ -405,10 +405,10 @@ def local_pluggables(pluggable_type):
                 break
 
     if not isinstance(pluggable_type, PluggableType):
-        raise AlgorithmError(
+        raise AquaError(
             'Invalid pluggable type {}'.format(pluggable_type))
 
     if pluggable_type not in _REGISTERED_PLUGGABLES:
-        raise AlgorithmError('{} not registered'.format(pluggable_type))
+        raise AquaError('{} not registered'.format(pluggable_type))
 
     return [pluggable.name for pluggable in _REGISTERED_PLUGGABLES[pluggable_type].values()]

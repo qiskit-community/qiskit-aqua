@@ -20,7 +20,7 @@ The Grover Quantum algorithm.
 
 import logging
 from qiskit import ClassicalRegister, QuantumCircuit
-from qiskit_aqua import QuantumAlgorithm, AlgorithmError
+from qiskit_aqua import QuantumAlgorithm, AquaError
 from qiskit_aqua import PluggableType, get_pluggable_class
 
 logger = logging.getLogger(__name__)
@@ -83,7 +83,7 @@ class Grover(QuantumAlgorithm):
             algo_input: input instance
         """
         if algo_input is not None:
-            raise AlgorithmError("Unexpected Input instance.")
+            raise AquaError("Unexpected Input instance.")
 
         grover_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
         incremental = grover_params.get(Grover.PROP_INCREMENTAL)

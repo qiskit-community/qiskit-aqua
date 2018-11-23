@@ -22,7 +22,7 @@ import logging
 
 from qiskit import QuantumRegister
 
-from qiskit_aqua import QuantumAlgorithm, AlgorithmError
+from qiskit_aqua import QuantumAlgorithm, AquaError
 from qiskit_aqua import PluggableType, get_pluggable_class
 
 logger = logging.getLogger(__name__)
@@ -129,16 +129,16 @@ class EOH(QuantumAlgorithm):
             algo_input: EnergyInput instance
         """
         if algo_input is None:
-            raise AlgorithmError("EnergyInput instance is required.")
+            raise AquaError("EnergyInput instance is required.")
 
         # For getting the extra operator, caller has to do something like: algo_input.add_aux_op(evo_op)
         operator = algo_input.qubit_op
         aux_ops = algo_input.aux_ops
         if aux_ops is None or len(aux_ops) != 1:
-            raise AlgorithmError("EnergyInput, a single aux op is required for evaluation.")
+            raise AquaError("EnergyInput, a single aux op is required for evaluation.")
         evo_operator = aux_ops[0]
         if evo_operator is None:
-            raise AlgorithmError("EnergyInput, invalid aux op.")
+            raise AquaError("EnergyInput, invalid aux op.")
 
         dynamics_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
         operator_mode = dynamics_params.get(EOH.PROP_OPERATOR_MODE)

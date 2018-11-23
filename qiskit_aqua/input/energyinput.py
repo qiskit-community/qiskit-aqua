@@ -15,7 +15,7 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit_aqua import AlgorithmError, Operator
+from qiskit_aqua import AquaError, Operator
 from qiskit_aqua.input import AlgorithmInput
 
 
@@ -78,7 +78,7 @@ class EnergyInput(AlgorithmInput):
     @classmethod
     def from_params(cls, params):
         if EnergyInput.PROP_KEY_QUBITOP not in params:
-            raise AlgorithmError("Qubit operator is required.")
+            raise AquaError("Qubit operator is required.")
         qparams = params[EnergyInput.PROP_KEY_QUBITOP]
         qubit_op = Operator.load_from_dict(qparams)
         if EnergyInput.PROP_KEY_AUXOPS in params:

@@ -23,7 +23,7 @@ import logging
 
 from qiskit.backends import BaseBackend
 
-from qiskit_aqua.algorithmerror import AlgorithmError
+from qiskit_aqua.aqua_error import AquaError
 from qiskit_aqua._discover import (_discover_on_demand,
                                    local_pluggables,
                                    PluggableType,
@@ -59,10 +59,10 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
 
     algo_name = inputparser.get_section_property(PluggableType.ALGORITHM.value, JSONSchema.NAME)
     if algo_name is None:
-        raise AlgorithmError('Missing algorithm name')
+        raise AquaError('Missing algorithm name')
 
     if algo_name not in local_pluggables(PluggableType.ALGORITHM):
-        raise AlgorithmError('Algorithm "{0}" missing in local algorithms'.format(algo_name))
+        raise AquaError('Algorithm "{0}" missing in local algorithms'.format(algo_name))
 
     backend_cfg = None
     backend_name = inputparser.get_section_property(JSONSchema.BACKEND, JSONSchema.NAME)

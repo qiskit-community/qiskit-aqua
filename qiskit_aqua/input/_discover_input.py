@@ -25,7 +25,7 @@ import importlib
 import inspect
 from collections import namedtuple
 from qiskit_aqua.input import AlgorithmInput
-from qiskit_aqua import AlgorithmError
+from qiskit_aqua import AquaError
 import logging
 import sys
 import copy
@@ -117,24 +117,24 @@ def register_input(cls):
     Returns:
         name: input name
     Raises:
-        AlgorithmError: if the class is already registered or could not be registered
+        AquaError: if the class is already registered or could not be registered
     """
     _discover_on_demand()
 
     # Verify that the pluggable is not already registered
     if cls in [input.cls for input in _REGISTERED_INPUTS.values()]:
-        raise AlgorithmError(
+        raise AquaError(
             'Could not register class {} is already registered'.format(cls))
 
     # Verify that it has a minimal valid configuration.
     try:
         input_name = cls.CONFIGURATION['name']
     except (LookupError, TypeError):
-        raise AlgorithmError('Could not register input: invalid configuration')
+        raise AquaError('Could not register input: invalid configuration')
 
     if input_name in _REGISTERED_INPUTS:
-        raise AlgorithmError('Could not register class {}. Name {} {} is already registered'.format(cls,
-                                                                                                    input_name, _REGISTERED_INPUTS[input_name].cls))
+        raise AquaError('Could not register class {}. Name {} {} is already registered'.format(cls,
+                                                                                               input_name, _REGISTERED_INPUTS[input_name].cls))
 
     # Append the pluggable to the `registered_classes` dict.
     _REGISTERED_INPUTS[input_name] = RegisteredInput(
@@ -148,12 +148,12 @@ def deregister_input(input_name):
     Args:
         input_name(str): The input name
     Raises:
-        AlgorithmError: if the class is not registered
+        AquaError: if the class is not registered
     """
     _discover_on_demand()
 
     if input_name not in _REGISTERED_INPUTS:
-        raise AlgorithmError(
+        raise AquaError(
             'Could not deregister {} not registered'.format(input_name))
 
     _REGISTERED_INPUTS.pop(input_name)
@@ -167,12 +167,12 @@ def get_input_class(input_name):
     Returns:
         cls: input class
     Raises:
-        AlgorithmError: if the class is not registered
+        AquaError: if the class is not registered
     """
     _discover_on_demand()
 
     if input_name not in _REGISTERED_INPUTS:
-        raise AlgorithmError('{} not registered'.format(input_name))
+        raise AquaError('{} not registered'.format(input_name))
 
     return _REGISTERED_INPUTS[input_name].cls
 
@@ -185,12 +185,12 @@ def get_input_configuration(input_name):
     Returns:
         configuration: input configuration
     Raises:
-        AlgorithmError: if the class is not registered
+        AquaError: if the class is not registered
     """
     _discover_on_demand()
 
     if input_name not in _REGISTERED_INPUTS:
-        raise AlgorithmError('{} not registered'.format(input_name))
+        raise AquaError('{} not registered'.format(input_name))
 
     return copy.deepcopy(_REGISTERED_INPUTS[input_name].configuration)
 

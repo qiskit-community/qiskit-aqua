@@ -20,7 +20,7 @@
 from .pluggable import Pluggable
 from .preferences import Preferences
 from .utils import cnx
-from .algorithmerror import AlgorithmError
+from .aqua_error import AquaError
 from .algorithms import QuantumAlgorithm
 from .operator import Operator
 from ._discover import (PluggableType,
@@ -28,7 +28,9 @@ from ._discover import (PluggableType,
                         local_pluggables_types,
                         local_pluggables,
                         get_pluggable_class,
-                        get_pluggable_configuration)
+                        get_pluggable_configuration,
+                        register_pluggable,
+                        deregister_pluggable)
 from .algomethods import run_algorithm, run_algorithm_to_json
 from ._logging import (get_logging_level,
                        build_logging_config,
@@ -39,7 +41,7 @@ from ._logging import (get_logging_level,
 __version__ = '0.3.1'
 
 __all__ = ['Pluggable',
-           'AlgorithmError',
+           'AquaError',
            'Operator',
            'Preferences',
            'QuantumAlgorithm',
@@ -49,6 +51,8 @@ __all__ = ['Pluggable',
            'local_pluggables',
            'get_pluggable_class',
            'get_pluggable_configuration',
+           'register_pluggable',
+           'deregister_pluggable',
            'run_algorithm',
            'run_algorithm_to_json',
            'get_logging_level',

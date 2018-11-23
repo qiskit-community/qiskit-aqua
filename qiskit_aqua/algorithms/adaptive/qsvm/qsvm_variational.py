@@ -20,7 +20,7 @@ import logging
 import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 
-from qiskit_aqua import (AlgorithmError, QuantumAlgorithm,
+from qiskit_aqua import (AquaError, QuantumAlgorithm,
                          PluggableType, get_pluggable_class)
 from qiskit_aqua.algorithms.adaptive.qsvm import (cost_estimate_sigmoid, return_probabilities)
 from qiskit_aqua.utils import (get_feature_dimension, map_label_to_class_name,
@@ -83,7 +83,7 @@ class QSVMVariational(QuantumAlgorithm):
         """
         super().__init__()
         if training_dataset is None:
-            raise AlgorithmError('Training dataset must be provided')
+            raise AquaError('Training dataset must be provided')
 
         self._training_dataset, self._class_to_label = split_dataset_to_data_and_labels(
             training_dataset)

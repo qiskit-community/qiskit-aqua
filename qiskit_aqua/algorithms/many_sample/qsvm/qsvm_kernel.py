@@ -17,7 +17,7 @@
 
 import logging
 
-from qiskit_aqua import (AlgorithmError, QuantumAlgorithm, PluggableType, get_pluggable_class)
+from qiskit_aqua import (AquaError, QuantumAlgorithm, PluggableType, get_pluggable_class)
 from qiskit_aqua.algorithms.many_sample.qsvm._qsvm_kernel_binary import _QSVM_Kernel_Binary
 from qiskit_aqua.algorithms.many_sample.qsvm._qsvm_kernel_multiclass import _QSVM_Kernel_Multiclass
 from qiskit_aqua.algorithms.many_sample.qsvm._qsvm_kernel_estimator import _QSVM_Kernel_Estimator
@@ -68,7 +68,7 @@ class QSVM_Kernel(QuantumAlgorithm):
 
         Raises:
             ValueError: if training_dataset is None
-            AlgorithmError: use binary classifer for classes > 3
+            AquaError: use binary classifer for classes > 3
         """
         super().__init__()
         if training_dataset is None:
@@ -77,7 +77,7 @@ class QSVM_Kernel(QuantumAlgorithm):
         is_multiclass = get_num_classes(training_dataset) > 2
         if is_multiclass:
             if multiclass_extension is None:
-                raise AlgorithmError('Dataset has more than two classes. A multiclass extension must be provided.')
+                raise AquaError('Dataset has more than two classes. A multiclass extension must be provided.')
         else:
             if multiclass_extension is not None:
                 logger.warning("Dataset has just two classes. Supplied multiclass extension will be ignored")

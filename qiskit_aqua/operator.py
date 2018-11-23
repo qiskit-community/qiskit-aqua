@@ -31,7 +31,7 @@ from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.quantum_info import Pauli
 from qiskit.qasm import pi
 
-from qiskit_aqua import AlgorithmError, QuantumAlgorithm
+from qiskit_aqua import AquaError, QuantumAlgorithm
 from qiskit_aqua.utils import PauliGraph, run_circuits, find_regs_by_name
 
 logger = logging.getLogger(__name__)
@@ -452,20 +452,20 @@ class Operator(object):
             Operator: the loaded operator.
         """
         if 'paulis' not in dictionary:
-            raise AlgorithmError('Dictionary missing "paulis" key')
+            raise AquaError('Dictionary missing "paulis" key')
 
         paulis = []
         for op in dictionary['paulis']:
             if 'label' not in op:
-                raise AlgorithmError('Dictionary missing "label" key')
+                raise AquaError('Dictionary missing "label" key')
 
             pauli_label = op['label']
             if 'coeff' not in op:
-                raise AlgorithmError('Dictionary missing "coeff" key')
+                raise AquaError('Dictionary missing "coeff" key')
 
             pauli_coeff = op['coeff']
             if 'real' not in pauli_coeff:
-                raise AlgorithmError('Dictionary missing "real" key')
+                raise AquaError('Dictionary missing "real" key')
 
             coeff = pauli_coeff['real']
             if 'imag' in pauli_coeff:
@@ -570,7 +570,7 @@ class Operator(object):
                     circuits.append(circuit)
         else:
             if operator_mode == 'matrix':
-                raise AlgorithmError("matrix mode can not be used with non-statevector simulator.")
+                raise AquaError("matrix mode can not be used with non-statevector simulator.")
 
             n_qubits = self.num_qubits
             circuits = []
@@ -1428,7 +1428,7 @@ class Operator(object):
                 elif self._grouped_paulis is not None:
                     self._grouped_paulis_to_paulis()
                 else:
-                    raise AlgorithmError(
+                    raise AquaError(
                         "at least having one of the three operator representations.")
 
         elif targeted_represnetation == 'grouped_paulis':
@@ -1438,7 +1438,7 @@ class Operator(object):
                 elif self._matrix is not None:
                     self._matrix_to_grouped_paulis()
                 else:
-                    raise AlgorithmError(
+                    raise AquaError(
                         "at least having one of the three operator representations.")
 
         elif targeted_represnetation == 'matrix':
@@ -1448,7 +1448,7 @@ class Operator(object):
                 elif self._grouped_paulis is not None:
                     self._grouped_paulis_to_matrix()
                 else:
-                    raise AlgorithmError(
+                    raise AquaError(
                         "at least having one of the three operator representations.")
         else:
             raise ValueError(

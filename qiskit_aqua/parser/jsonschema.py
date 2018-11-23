@@ -22,7 +22,7 @@ import copy
 import ast
 from collections import OrderedDict
 import logging
-from qiskit_aqua import AlgorithmError
+from qiskit_aqua import AquaError
 from qiskit_aqua import (local_pluggables_types,
                          PluggableType,
                          get_pluggable_configuration,
@@ -409,7 +409,7 @@ class JSONSchema(object):
                     break
 
             if not valid:
-                raise AlgorithmError("{}: Value '{}' is not of types: '{}'".format(
+                raise AquaError("{}: Value '{}' is not of types: '{}'".format(
                     section_name, value, types))
 
         return value
@@ -439,7 +439,7 @@ class JSONSchema(object):
                     break
 
             if not valid:
-                raise AlgorithmError("{}.{} Value '{}' is not of types: '{}'".format(
+                raise AquaError("{}.{} Value '{}' is not of types: '{}'".format(
                     section_name, property_name, value, types))
 
         return value
@@ -453,7 +453,7 @@ class JSONSchema(object):
             jsonschema.validate(sections_json, self._schema)
         except jsonschema.exceptions.ValidationError as ve:
             logger.info('JSON Validation error: {}'.format(str(ve)))
-            raise AlgorithmError(ve.message)
+            raise AquaError(ve.message)
 
     def validate_property(self, sections_json, section_name, property_name):
         """
@@ -558,7 +558,7 @@ class JSONSchema(object):
             section_name = ''
         section_name = section_name.strip()
         if len(section_name) == 0:
-            raise AlgorithmError("Empty section name.")
+            raise AquaError("Empty section name.")
 
         return section_name
 
@@ -568,7 +568,7 @@ class JSONSchema(object):
             property_name = ''
         property_name = property_name.strip()
         if len(property_name) == 0:
-            raise AlgorithmError("Empty property name.")
+            raise AquaError("Empty property name.")
 
         return property_name
 
