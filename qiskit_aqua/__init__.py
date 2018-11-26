@@ -17,10 +17,10 @@
 
 """Algorithm discovery methods, Error and Base classes"""
 
+from .aqua_error import AquaError
 from .pluggable import Pluggable
 from .preferences import Preferences
 from .utils import cnx
-from .aqua_error import AquaError
 from .algorithms import QuantumAlgorithm
 from .operator import Operator
 from ._discover import (PluggableType,
@@ -40,8 +40,8 @@ from ._logging import (get_logging_level,
 
 __version__ = '0.3.1'
 
-__all__ = ['Pluggable',
-           'AquaError',
+__all__ = ['AquaError',
+           'Pluggable',
            'Operator',
            'Preferences',
            'QuantumAlgorithm',

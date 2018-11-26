@@ -115,7 +115,7 @@ class QuantumAlgorithm(Pluggable):
         Returns:
             Result (Boolean): True is statevector
         """
-        return backend.configuration().get('name', '').startswith('statevector') if backend is not None else False
+        return backend.configuration().backend_name.startswith('statevector') if backend is not None else False
 
     @staticmethod
     def backend_name(backend):
@@ -127,7 +127,7 @@ class QuantumAlgorithm(Pluggable):
         Returns:
             Name (str): backend name
         """
-        return backend.configuration().get('name', '') if backend is not None else ''
+        return backend.configuration().backend_name if backend is not None else ''
 
     def enable_circuit_summary(self):
         """Enable showing the summary of circuits."""
@@ -192,16 +192,17 @@ class QuantumAlgorithm(Pluggable):
 
         shots = 1 if QuantumAlgorithm.is_statevector_backend(
             my_backend) else shots
-        noise_params = noise_params if my_backend.configuration().get('simulator',
-                                                                      False) else None
+        noise_params = noise_params if my_backend.configuration().simulator else None
 
-        if my_backend.configuration().get('local', False):
+        if my_backend.configuration().local:
             self._qjob_config.pop('wait', None)
-
         if coupling_map is None:
-            coupling_map = my_backend.configuration()['coupling_map']
+            coupling_map = my_backend.configuration().to_dict().get('coupling_map', None)
         if basis_gates is None:
-            basis_gates = my_backend.configuration()['basis_gates']
+            basis_gates = my_backend.configuration().basis_gates
+
+        if isinstance(basis_gates, list):
+            basis_gates = str(basis_gates)
 
         self._execute_config = {'shots': shots,
                                 'skip_transpiler': skip_transpiler,
@@ -215,7 +216,7 @@ class QuantumAlgorithm(Pluggable):
                                 'hpc': hpc_params}
 
         info = "Algorithm: '{}' setup with backend '{}', with following setting:\n {}\n{}".format(
-            self._configuration['name'], my_backend.configuration()['name'], self._execute_config, self._qjob_config)
+            self._configuration['name'], my_backend.configuration().backend_name, self._execute_config, self._qjob_config)
 
         logger.info('Qiskit Terra version {}'.format(qiskit_version))
         logger.info(info)
@@ -238,9 +239,12 @@ class QuantumAlgorithm(Pluggable):
         Returns:
             Result: Result object
         """
-        result = run_circuits(circuits, self._backend, self._execute_config,
-                              self._qjob_config, show_circuit_summary=self._show_circuit_summary,
-                              has_shared_circuits=self._has_shared_circuits)
+        result = run_circuits.run_circuits(circuits,
+                                           self._backend,
+                                           self._execute_config,
+                                           self._qjob_config,
+                                           self._show_circuit_summary,
+                                           self.has_shared_circuits)
         if self._show_circuit_summary:
             self.disable_circuit_summary()
 

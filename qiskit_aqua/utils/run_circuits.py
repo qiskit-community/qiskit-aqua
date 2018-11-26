@@ -29,6 +29,7 @@ from qiskit.backends import JobError
 
 from qiskit_aqua.aqua_error import AquaError
 from qiskit_aqua.utils import summarize_circuits
+from qiskit_aqua.algorithms import QuantumAlgorithm
 
 logger = logging.getLogger(__name__)
 
@@ -106,6 +107,7 @@ def _reuse_shared_circuits(circuits, backend, execute_config, qjob_config=None):
     result = shared_result + diff_result
     return result
 
+
 def run_circuits(circuits, backend, execute_config, qjob_config=None,
                  show_circuit_summary=False, has_shared_circuits=False):
     """
@@ -136,15 +138,14 @@ def run_circuits(circuits, backend, execute_config, qjob_config=None,
     if not isinstance(circuits, list):
         circuits = [circuits]
 
-    if backend.configuration().get('name', '').startswith('statevector'):
+    if QuantumAlgorithm.is_statevector_backend(backend):
         circuits = _avoid_empty_circuits(circuits)
 
     if has_shared_circuits:
         return _reuse_shared_circuits(circuits, backend, execute_config, qjob_config)
 
-    with_autorecover = False if backend.configuration()['simulator'] else True
-    max_circuits_per_job = sys.maxsize if backend.configuration()['local'] \
-        else MAX_CIRCUITS_PER_JOB
+    with_autorecover = False if backend.configuration().simulator else True
+    max_circuits_per_job = sys.maxsize if backend.configuration().local else MAX_CIRCUITS_PER_JOB
 
     qobjs = []
     jobs = []
