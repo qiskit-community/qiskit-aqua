@@ -47,6 +47,9 @@ class Approximate(IQFT):
 
     def __init__(self, num_qubits, degree=0):
         super().__init__()
+        self.validate({
+            'degree': degree
+        })
         self._num_qubits = num_qubits
         self._degree = degree
 

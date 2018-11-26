@@ -26,6 +26,7 @@ Doing so requires that the required pluggable interface is implemented.
 from abc import ABC, abstractmethod
 import logging
 import copy
+from qiskit_aqua.parser import JSONSchema
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +42,8 @@ class Pluggable(ABC):
     @abstractmethod
     def __init__(self):
         if not self.check_pluggable_valid():
-            raise ImportError("{} is not available since missing dependent packages.".format(self.__class__.__name__))
+            raise ImportError("{} is not available since missing dependent packages.".format(
+                self.__class__.__name__))
 
         self._configuration = copy.deepcopy(self.CONFIGURATION)
 
@@ -54,3 +56,11 @@ class Pluggable(ABC):
     def check_pluggable_valid():
         """Checks if pluggable is ready for use"""
         return True
+
+    def validate(self, json_dict):
+        schema_dict = self._configuration.get('input_schema', None)
+        if schema_dict is None:
+            return
+
+        jsonSchema = JSONSchema(schema_dict)
+        jsonSchema.validate(json_dict)

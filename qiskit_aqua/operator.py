@@ -27,7 +27,7 @@ import psutil
 import numpy as np
 from scipy import sparse as scisparse
 from scipy import linalg as scila
-from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
+from qiskit import ClassicalRegister, QuantumCircuit
 from qiskit.quantum_info import Pauli
 from qiskit.qasm import pi
 

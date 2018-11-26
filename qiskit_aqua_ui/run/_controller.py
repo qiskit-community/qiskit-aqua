@@ -407,7 +407,7 @@ class Controller(object):
         return True
 
     def create_popup(self, section_name, property_name, parent, value):
-        from qiskit_aqua.parser import InputParser
+        from qiskit_aqua.parser._inputparser import InputParser
         from qiskit_aqua.parser import JSONSchema
         values = None
         types = ['string']

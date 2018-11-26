@@ -97,12 +97,15 @@ class VQE(QuantumAlgorithm):
             aux_operators ([Operator]): Auxiliary operators to be evaluated at each eigenvalue
         """
         super().__init__()
+        if self.__class__ == VQE:
+            self.validate({
+                'operator_mode': operator_mode,
+                'initial_point': initial_point,
+                'batch_mode': batch_mode
+            })
         self._operator = operator
         self._var_form = var_form
         self._optimizer = optimizer
-        if operator_mode not in ['paulis', 'grouped_paulis', 'matrix']:
-            raise ValueError('operator_mode must be one of following {} but you have '
-                             '{}.'.format(['paulis', 'grouped_paulis', 'matrix'], operator_mode))
         self._operator_mode = operator_mode
         self._initial_point = initial_point
         if initial_point is None:

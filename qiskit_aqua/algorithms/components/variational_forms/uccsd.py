@@ -135,6 +135,16 @@ class UCCSD(VariationalForm):
             symmetries ([Pauli]): represent the Z2 symmetries
         """
         super().__init__()
+        self.validate({
+            'depth': depth,
+            'num_orbitals': num_orbitals,
+            'num_particles': num_particles,
+            'active_occupied': active_occupied,
+            'active_unoccupied': active_unoccupied,
+            'qubit_mapping': qubit_mapping,
+            'two_qubit_reduction': two_qubit_reduction,
+            'num_time_slices': num_time_slices
+        })
         self._cliffords = cliffords
         self._sq_list = sq_list
         self._tapering_values = tapering_values

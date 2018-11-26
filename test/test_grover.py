@@ -31,7 +31,7 @@ class TestGrover(QiskitAquaTestCase):
     @parameterized.expand([
         ['test_grover_tiny.cnf', False, 1],
         ['test_grover.cnf', False, 2],
-        ['test_grover_no_solution.cnf', True, None],
+        ['test_grover_no_solution.cnf', True, 1],
     ])
     def test_grover(self, input_file, incremental=True, num_iterations=1):
         input_file = self._get_resource_path(input_file)

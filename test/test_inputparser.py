@@ -26,7 +26,8 @@ import json
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import AquaError
 from qiskit_aqua import run_algorithm
-from qiskit_aqua.parser import InputParser
+from qiskit_aqua.parser._inputparser import InputParser
+
 
 class TestInputParser(QiskitAquaTestCase):
     """Input Parser and algorithms tests."""
@@ -45,7 +46,7 @@ class TestInputParser(QiskitAquaTestCase):
         os.remove(save_path)
         dict1 = json.loads(json.dumps(self.parser.get_sections()))
         dict2 = json.loads(json.dumps(p.get_sections()))
-        self.assertEqual(dict1,dict2)
+        self.assertEqual(dict1, dict2)
 
     def test_load_from_dict(self):
         json_dict = self.parser.get_sections()
@@ -54,16 +55,16 @@ class TestInputParser(QiskitAquaTestCase):
         p.parse()
         dict1 = json.loads(json.dumps(self.parser.get_sections()))
         dict2 = json.loads(json.dumps(p.get_sections()))
-        self.assertEqual(dict1,dict2)
+        self.assertEqual(dict1, dict2)
 
     def test_is_modified(self):
         json_dict = self.parser.get_sections()
 
         p = InputParser(json_dict)
         p.parse()
-        p.set_section_property('optimizer','maxfun',1002)
+        p.set_section_property('optimizer', 'maxfun', 1002)
         self.assertTrue(p.is_modified())
-        self.assertEqual(p.get_section_property('optimizer','maxfun'),1002)
+        self.assertEqual(p.get_section_property('optimizer', 'maxfun'), 1002)
 
     def test_validate(self):
         json_dict = self.parser.get_sections()
@@ -75,7 +76,7 @@ class TestInputParser(QiskitAquaTestCase):
         except Exception as e:
             self.fail(str(e))
 
-        p.set_section_property('optimizer','dummy',1002)
+        p.set_section_property('optimizer', 'dummy', 1002)
         self.assertRaises(AquaError, p.validate_merge_defaults)
 
     def test_run_algorithm(self):
@@ -91,6 +92,7 @@ class TestInputParser(QiskitAquaTestCase):
             self.fail(str(e))
 
         self.assertIsInstance(dict_ret, dict)
+
 
 if __name__ == '__main__':
     unittest.main()

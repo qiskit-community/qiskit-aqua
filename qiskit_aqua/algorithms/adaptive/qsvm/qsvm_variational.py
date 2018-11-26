@@ -85,6 +85,9 @@ class QSVMVariational(QuantumAlgorithm):
         if training_dataset is None:
             raise AquaError('Training dataset must be provided')
 
+        self.validate({
+            'batch_mode': batch_mode
+        })
         self._training_dataset, self._class_to_label = split_dataset_to_data_and_labels(
             training_dataset)
         if test_dataset is not None:

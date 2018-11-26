@@ -101,6 +101,13 @@ class QPE(QuantumAlgorithm):
                  shallow_circuit_concat=False):
 
         super().__init__()
+        super().validate({
+            QPE.PROP_NUM_TIME_SLICES: num_time_slices,
+            QPE.PROP_PAULIS_GROUPING: paulis_grouping,
+            QPE.PROP_EXPANSION_MODE: expansion_mode,
+            QPE.PROP_EXPANSION_ORDER: expansion_order,
+            QPE.PROP_NUM_ANCILLAE: num_ancillae
+        })
         self._operator = operator
         self._state_in = state_in
         self._iqft = iqft

@@ -18,11 +18,6 @@
 """Algorithm discovery methods, Error and Base classes"""
 
 from .aqua_error import AquaError
-from .pluggable import Pluggable
-from .preferences import Preferences
-from .utils import cnx
-from .algorithms import QuantumAlgorithm
-from .operator import Operator
 from ._discover import (PluggableType,
                         refresh_pluggables,
                         local_pluggables_types,
@@ -31,6 +26,11 @@ from ._discover import (PluggableType,
                         get_pluggable_configuration,
                         register_pluggable,
                         deregister_pluggable)
+from .pluggable import Pluggable
+from .preferences import Preferences
+from .utils import cnx
+from .algorithms import QuantumAlgorithm
+from .operator import Operator
 from .algomethods import run_algorithm, run_algorithm_to_json
 from ._logging import (get_logging_level,
                        build_logging_config,

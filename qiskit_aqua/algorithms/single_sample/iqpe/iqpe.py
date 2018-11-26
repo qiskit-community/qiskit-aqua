@@ -22,7 +22,7 @@ See https://arxiv.org/abs/quant-ph/0610214
 import logging
 
 import numpy as np
-from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
+from qiskit import QuantumRegister, ClassicalRegister
 from qiskit.quantum_info import Pauli
 
 from qiskit_aqua import Operator, QuantumAlgorithm, AquaError
@@ -102,6 +102,13 @@ class IQPE(QuantumAlgorithm):
                  paulis_grouping='default', expansion_mode='suzuki', expansion_order=2,
                  shallow_circuit_concat=False):
         super().__init__()
+        self.validate({
+            IQPE.PROP_NUM_TIME_SLICES: num_time_slices,
+            IQPE.PROP_PAULIS_GROUPING: paulis_grouping,
+            IQPE.PROP_EXPANSION_MODE: expansion_mode,
+            IQPE.PROP_EXPANSION_ORDER: expansion_order,
+            IQPE.PROP_NUM_ITERATIONS: num_iterations
+        })
         self._operator = operator
         self._state_in = state_in
         self._num_time_slices = num_time_slices

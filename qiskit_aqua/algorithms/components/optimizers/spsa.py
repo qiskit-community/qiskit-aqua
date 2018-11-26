@@ -86,6 +86,15 @@ class SPSA(Optimizer):
 
     def __init__(self, max_trials=1000, c0=2*np.pi*0.1, c1=0.1, c2=0.602, c3=0.101, c4=0, skip_calibration=False):
         super().__init__()
+        self.validate({
+            'max_trials': max_trials,
+            'c0': c0,
+            'c1': c1,
+            'c2': c2,
+            'c3': c3,
+            'c4': c4,
+            'skip_calibration': skip_calibration
+        })
         self._max_trials = max_trials
         self._parameters = np.array([c0, c1, c2, c3, c4])
         self._skip_calibration = skip_calibration

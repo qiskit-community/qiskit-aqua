@@ -66,6 +66,9 @@ class Custom(InitialState):
             state_vector: customized vector
         """
         super().__init__()
+        self.validate({
+            'state': state
+        })
         self._num_qubits = num_qubits
         self._state = state
         size = np.power(2, self._num_qubits)
@@ -94,8 +97,10 @@ class Custom(InitialState):
         if isinstance(gates, list):
             return [Custom._convert_to_basis_gates(gate) for gate in gates]
         elif isinstance(gates, CompositeGate):
-            gates_data = [Custom._convert_to_basis_gates(gate) for gate in gates.data]
-            gates = CompositeGate(gates.name, gates.param, gates.qargs, circuit=gates.circuit)
+            gates_data = [Custom._convert_to_basis_gates(
+                gate) for gate in gates.data]
+            gates = CompositeGate(gates.name, gates.param,
+                                  gates.qargs, circuit=gates.circuit)
             gates.data = gates_data
             return gates
         else:
@@ -106,7 +111,8 @@ class Custom(InitialState):
             elif isinstance(gates, CnotGate):
                 return gates
             else:
-                raise RuntimeError('Unexpected component {} from the initialization circuit.'.format(gates.qasm()))
+                raise RuntimeError(
+                    'Unexpected component {} from the initialization circuit.'.format(gates.qasm()))
 
     def construct_circuit(self, mode, register=None):
         """
@@ -132,7 +138,8 @@ class Custom(InitialState):
             circuit = QuantumCircuit(register)
 
             if self._state is None or self._state == 'random':
-                circuit.initialize(self._state_vector, [register[i] for i in range(self._num_qubits)])
+                circuit.initialize(self._state_vector, [
+                                   register[i] for i in range(self._num_qubits)])
                 circuit.data = Custom._convert_to_basis_gates(circuit.data)
             elif self._state == 'zero':
                 pass

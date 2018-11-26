@@ -107,8 +107,16 @@ class EOH(QuantumAlgorithm):
     }
 
     def __init__(self, operator, initial_state, evo_operator, operator_mode='paulis', evo_time=1, num_time_slices=1,
-            paulis_grouping='random', expansion_mode='trotter', expansion_order=1):
+                 paulis_grouping='random', expansion_mode='trotter', expansion_order=1):
         super().__init__()
+        self.validate({
+            EOH.PROP_OPERATOR_MODE: operator_mode,
+            EOH.PROP_EVO_TIME: evo_time,
+            EOH.PROP_NUM_TIME_SLICES: num_time_slices,
+            EOH.PROP_PAULIS_GROUPING: paulis_grouping,
+            EOH.PROP_EXPANSION_MODE: expansion_mode,
+            EOH.PROP_EXPANSION_ORDER: expansion_order
+        })
         self._operator = operator
         self._operator_mode = operator_mode
         self._initial_state = initial_state

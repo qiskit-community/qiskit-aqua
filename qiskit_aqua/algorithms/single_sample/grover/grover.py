@@ -63,6 +63,10 @@ class Grover(QuantumAlgorithm):
 
     def __init__(self, oracle, incremental=False, num_iterations=1):
         super().__init__()
+        self.validate({
+            Grover.PROP_INCREMENTAL: incremental,
+            Grover.PROP_NUM_ITERATIONS: num_iterations
+        })
         self._oracle = oracle
         self._max_num_iterations = 2 ** (len(self._oracle.variable_register()) / 2)
         self._incremental = incremental

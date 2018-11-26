@@ -56,6 +56,9 @@ class SVM_Classical(QuantumAlgorithm):
     def __init__(self, training_dataset, test_dataset=None, datapoints=None,
                  gamma=None, multiclass_extension=None):
         super().__init__()
+        self.validate({
+            'gamma': gamma
+        })
         if training_dataset is None:
             raise AquaError('Training dataset must be provided.')
 

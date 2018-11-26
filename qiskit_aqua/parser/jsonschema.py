@@ -38,17 +38,23 @@ class JSONSchema(object):
     PROBLEM = 'problem'
     BACKEND = 'backend'
 
-    def __init__(self, jsonfile):
+    def __init__(self, schema_input):
         """Create JSONSchema object."""
         self._schema = None
         self._original_schema = None
         self.aqua_jsonschema = None
-        with open(jsonfile) as json_file:
-            self._schema = json.load(json_file)
-            validator = jsonschema.Draft4Validator(self._schema)
-            self._schema = JSONSchema._resolve_schema_references(
-                validator.schema, validator.resolver)
-            self.commit_changes()
+        if isinstance(schema_input, dict):
+            self._schema = schema_input
+        elif isinstance(schema_input, str):
+            with open(schema_input) as json_file:
+                self._schema = json.load(json_file)
+        else:
+            raise AquaError("Invalid JSONSchema input type.")
+
+        validator = jsonschema.Draft4Validator(self._schema)
+        self._schema = JSONSchema._resolve_schema_references(
+            validator.schema, validator.resolver)
+        self.commit_changes()
 
     @property
     def schema(self):
@@ -310,15 +316,19 @@ class JSONSchema(object):
             input_parser (obj): input parser
         """
         # find algorithm
-        default_algo_name = self.get_property_default_value(PluggableType.ALGORITHM.value, JSONSchema.NAME)
-        algo_name = input_parser.get_section_property(PluggableType.ALGORITHM.value, JSONSchema.NAME, default_algo_name)
+        default_algo_name = self.get_property_default_value(
+            PluggableType.ALGORITHM.value, JSONSchema.NAME)
+        algo_name = input_parser.get_section_property(
+            PluggableType.ALGORITHM.value, JSONSchema.NAME, default_algo_name)
 
         # update algorithm scheme
         if algo_name is not None:
-            self._update_pluggable_input_schema(PluggableType.ALGORITHM.value, algo_name, default_algo_name)
+            self._update_pluggable_input_schema(
+                PluggableType.ALGORITHM.value, algo_name, default_algo_name)
 
         # update algorithm depoendencies scheme
-        config = {} if algo_name is None else get_pluggable_configuration(PluggableType.ALGORITHM, algo_name)
+        config = {} if algo_name is None else get_pluggable_configuration(
+            PluggableType.ALGORITHM, algo_name)
         classical = config['classical'] if 'classical' in config else False
         pluggable_dependencies = [] if 'depends' not in config else config['depends']
         pluggable_defaults = {
@@ -350,10 +360,12 @@ class JSONSchema(object):
                         default_properties[key] = value
 
             default_name = pluggable_name
-            pluggable_name = input_parser.get_section_property(pluggable_type, JSONSchema.NAME, pluggable_name)
+            pluggable_name = input_parser.get_section_property(
+                pluggable_type, JSONSchema.NAME, pluggable_name)
 
             # update dependency schema
-            self._update_pluggable_input_schema(pluggable_type, pluggable_name, default_name)
+            self._update_pluggable_input_schema(
+                pluggable_type, pluggable_name, default_name)
             for property_name in self._schema['properties'][pluggable_type]['properties'].keys():
                 if property_name in default_properties:
                     self._schema['properties'][pluggable_type]['properties'][property_name]['default'] = default_properties[property_name]
@@ -362,14 +374,18 @@ class JSONSchema(object):
         config = {}
         try:
             if pluggable_type is not None and pluggable_name is not None:
-                config = get_pluggable_configuration(pluggable_type, pluggable_name)
+                config = get_pluggable_configuration(
+                    pluggable_type, pluggable_name)
         except:
             pass
 
-        input_schema = config['input_schema'] if 'input_schema' in config else {}
-        properties = input_schema['properties'] if 'properties' in input_schema else {}
+        input_schema = config['input_schema'] if 'input_schema' in config else {
+        }
+        properties = input_schema['properties'] if 'properties' in input_schema else {
+        }
         properties[JSONSchema.NAME] = {'type': 'string'}
-        required = input_schema['required'] if 'required' in input_schema else []
+        required = input_schema['required'] if 'required' in input_schema else [
+        ]
         additionalProperties = input_schema['additionalProperties'] if 'additionalProperties' in input_schema else True
         if default_name is not None:
             properties[JSONSchema.NAME]['default'] = default_name
@@ -483,7 +499,8 @@ class JSONSchema(object):
         Returns:
             Returns list of problem names
         """
-        config = get_pluggable_configuration(PluggableType.ALGORITHM,algo_name)
+        config = get_pluggable_configuration(
+            PluggableType.ALGORITHM, algo_name)
         if 'problems' in config:
             return config['problems']
 
