@@ -21,7 +21,7 @@ The Quantum Phase Estimation Algorithm.
 import logging
 import numpy as np
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
-from qiskit.tools.qi.pauli import Pauli
+from qiskit.quantum_info import Pauli
 from qiskit_aqua import Operator, QuantumAlgorithm, AlgorithmError
 from qiskit_aqua import get_initial_state_instance, get_iqft_instance
 
@@ -235,7 +235,7 @@ class QPE(QuantumAlgorithm):
         # measuring ancillae
         if measure:
             c = ClassicalRegister(self._num_ancillae, name='c')
-            qc.add(c)
+            qc.add_register(c)
             qc.barrier(a)
             qc.measure(a, c)
 
@@ -243,7 +243,7 @@ class QPE(QuantumAlgorithm):
         return qc
 
     def _setup(self):
-        self._operator._check_representation('paulis')
+        self._operator.to_paulis()
         self._ret['translation'] = sum([abs(p[0]) for p in self._operator.paulis])
         self._ret['stretch'] = 0.5 / self._ret['translation']
 
@@ -268,7 +268,7 @@ class QPE(QuantumAlgorithm):
         # check for identify paulis to get its coef for applying global phase shift on ancillae later
         num_identities = 0
         for p in self._operator.paulis:
-            if np.all(p[1].v == 0) and np.all(p[1].w == 0):
+            if np.all(np.logical_not(p[1].z)) and np.all(np.logical_not(p[1].x)):
                 num_identities += 1
                 if num_identities > 1:
                     raise RuntimeError('Multiple identity pauli terms are present.')

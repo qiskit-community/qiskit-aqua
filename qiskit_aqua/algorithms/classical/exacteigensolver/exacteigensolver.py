@@ -85,7 +85,7 @@ class ExactEigensolver(QuantumAlgorithm):
             aux_operators = [aux_operators]
         self._aux_operators = aux_operators
         self._k = k
-        self._operator.convert('paulis', 'matrix')
+        self._operator.to_matrix()
         if self._k > self._operator.matrix.shape[0]:
             self._k = self._operator.matrix.shape[0]
             logger.debug("WARNING: Asked for {} eigenvalues but max possible is {}.".format(k, self._k))
@@ -133,7 +133,7 @@ class ExactEigensolver(QuantumAlgorithm):
     def _eval_aux_operators(self, wavefn, threshold=1e-12):
         values = []
         for operator in self._aux_operators:
-            operator.convert('paulis', 'matrix')
+            operator.to_matrix()
             value = 0.0
             if not operator.is_empty():
                 value, _ = operator.eval('matrix', wavefn, self._backend)

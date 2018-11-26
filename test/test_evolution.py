@@ -22,7 +22,7 @@ import numpy as np
 import qiskit
 from qiskit import QuantumRegister
 from qiskit import execute as q_execute
-from qiskit.tools.qi.qi import state_fidelity
+from qiskit.quantum_info import state_fidelity
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua.operator import Operator

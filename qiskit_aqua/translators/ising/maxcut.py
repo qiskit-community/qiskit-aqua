@@ -26,7 +26,7 @@ from collections import OrderedDict
 
 import numpy as np
 import numpy.random as rand
-from qiskit.tools.qi.pauli import Pauli
+from qiskit.quantum_info import Pauli
 
 from qiskit_aqua import Operator
 
@@ -88,12 +88,12 @@ def get_maxcut_qubitops(weight_matrix):
     shift = 0
     for i in range(num_nodes):
         for j in range(i):
-            if (weight_matrix[i,j] != 0):
-                wp = np.zeros(num_nodes)
-                vp = np.zeros(num_nodes)
-                vp[i] = 1
-                vp[j] = 1
-                pauli_list.append([0.5 * weight_matrix[i, j], Pauli(vp, wp)])
+            if weight_matrix[i,j] != 0:
+                xp = np.zeros(num_nodes, dtype=np.bool)
+                zp = np.zeros(num_nodes, dtype=np.bool)
+                zp[i] = True
+                zp[j] = True
+                pauli_list.append([0.5 * weight_matrix[i, j], Pauli(zp, xp)])
                 shift -= 0.5 * weight_matrix[i, j]
     return Operator(paulis=pauli_list), shift
 

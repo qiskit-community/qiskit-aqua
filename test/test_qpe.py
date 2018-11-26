@@ -38,8 +38,8 @@ qubitOp_simple = Operator(matrix=h1)
 pauli_dict = {
     'paulis': [
         {"coeff": {"imag": 0.0, "real": -1.052373245772859}, "label": "II"},
-        {"coeff": {"imag": 0.0, "real": 0.39793742484318045}, "label": "ZI"},
-        {"coeff": {"imag": 0.0, "real": -0.39793742484318045}, "label": "IZ"},
+        {"coeff": {"imag": 0.0, "real": 0.39793742484318045}, "label": "IZ"},
+        {"coeff": {"imag": 0.0, "real": -0.39793742484318045}, "label": "ZI"},
         {"coeff": {"imag": 0.0, "real": -0.01128010425623538}, "label": "ZZ"},
         {"coeff": {"imag": 0.0, "real": 0.18093119978423156}, "label": "XX"}
     ]
@@ -67,7 +67,7 @@ class TestQPE(QiskitAquaTestCase):
         w = results['eigvals']
         v = results['eigvecs']
 
-        self.qubitOp._check_representation('matrix')
+        self.qubitOp.to_matrix()
         np.testing.assert_almost_equal(
             self.qubitOp.matrix @ v[0],
             w[0] * v[0]

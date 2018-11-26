@@ -25,7 +25,7 @@ from collections import OrderedDict
 import numpy as np
 import numpy.random as rand
 
-from qiskit.tools.qi.pauli import Pauli
+from qiskit.quantum_info import Pauli
 
 from qiskit_aqua import Operator
 
@@ -114,43 +114,39 @@ def get_clique_qubitops(weight_matrix, K):
     for i in range(num_nodes):
         for j in range(num_nodes):
             if i != j:
-                wp = np.zeros(num_nodes)
-                vp = np.zeros(num_nodes)
-                vp[i] = 1
-                vp[j] = 1
-                pauli_list.append([A*0.25, Pauli(vp, wp)])
+                xp = np.zeros(num_nodes, dtype=np.bool)
+                zp = np.zeros(num_nodes, dtype=np.bool)
+                zp[i] = True
+                zp[j] = True
+                pauli_list.append([A*0.25, Pauli(zp, xp)])
             else:
                 shift += A*0.25
     for i in range(num_nodes):
-        wp = np.zeros(num_nodes)
-        vp = np.zeros(num_nodes)
-        vp[i] = 1
-        pauli_list.append([-A*Y, Pauli(vp, wp)])
-
-
-
+        xp = np.zeros(num_nodes, dtype=np.bool)
+        zp = np.zeros(num_nodes, dtype=np.bool)
+        zp[i] = True
+        pauli_list.append([-A*Y, Pauli(zp, xp)])
 
     shift += 0.5*K*(K-1)
 
     for i in range(num_nodes):
         for j in range(i):
             if (weight_matrix[i,j] != 0):
-                wp = np.zeros(num_nodes)
-                vp = np.zeros(num_nodes)
-                vp[i] = 1
-                vp[j] = 1
-                pauli_list.append([-0.25, Pauli(vp, wp)])
+                xp = np.zeros(num_nodes, dtype=np.bool)
+                zp = np.zeros(num_nodes, dtype=np.bool)
+                zp[i] = True
+                zp[j] = True
+                pauli_list.append([-0.25, Pauli(zp, xp)])
 
-                vp2 = np.zeros(num_nodes)
-                vp2[i] = 1
-                pauli_list.append([-0.25, Pauli(vp2, wp)])
+                zp2 = np.zeros(num_nodes, dtype=np.bool)
+                zp2[i] = True
+                pauli_list.append([-0.25, Pauli(zp2, xp)])
 
-                vp3 = np.zeros(num_nodes)
-                vp3[j] = 1
-                pauli_list.append([-0.25, Pauli(vp3, wp)])
+                zp3 = np.zeros(num_nodes, dtype=np.bool)
+                zp3[j] = True
+                pauli_list.append([-0.25, Pauli(zp3, xp)])
 
                 shift += -0.25
-
 
     return Operator(paulis=pauli_list), shift
 
