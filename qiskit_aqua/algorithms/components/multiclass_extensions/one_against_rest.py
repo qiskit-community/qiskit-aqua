@@ -29,7 +29,7 @@ class OneAgainstRest(MulticlassExtension):
     """
       the multiclass extension based on the one-against-rest algorithm.
     """
-    OneAgainstRest_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'OneAgainstRest',
         'description': 'OneAgainstRest extension',
         'input_schema': {
@@ -42,10 +42,10 @@ class OneAgainstRest(MulticlassExtension):
         }
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.OneAgainstRest_CONFIGURATION.copy())
-        self.estimator_cls = None
-        self.params = None
+    def __init__(self, estimator_cls, params=None):
+        super().__init__()
+        self.estimator_cls = estimator_cls
+        self.params = params or []
 
     def train(self, X, y):
         """
@@ -63,10 +63,7 @@ class OneAgainstRest(MulticlassExtension):
             unique_y = np.unique(column)
             if len(unique_y) == 1:
                 raise Exception("given all data points are assigned to the same class, the prediction would be boring.")
-            if self.params is None:
-                estimator = self.estimator_cls()
-            else:
-                estimator = self.estimator_cls(*self.params)
+            estimator = self.estimator_cls(*self.params)
             estimator.fit(X, column)
             self.estimators.append(estimator)
 

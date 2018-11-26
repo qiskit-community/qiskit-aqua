@@ -20,9 +20,9 @@ import logging
 
 import numpy as np
 from scipy import sparse as scisparse
-import copy
+
 from qiskit_aqua import QuantumAlgorithm
-from qiskit_aqua import AlgorithmError
+from qiskit_aqua import AquaError
 
 logger = logging.getLogger(__name__)
 
@@ -30,9 +30,7 @@ logger = logging.getLogger(__name__)
 class ExactEigensolver(QuantumAlgorithm):
     """The Exact Eigensolver algorithm."""
 
-    PROP_K = 'k'
-
-    EXACTEIGENSOLVER_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'ExactEigensolver',
         'description': 'ExactEigensolver Algorithm',
         'classical': True,
@@ -52,38 +50,23 @@ class ExactEigensolver(QuantumAlgorithm):
         'problems': ['energy', 'excited_states', 'ising']
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or copy.deepcopy(ExactEigensolver.EXACTEIGENSOLVER_CONFIGURATION))
-        self._operator = None
-        self._aux_operators = None
-        self._k = 1
-        self._ret = {}
+    def __init__(self, operator, k=1, aux_operators=None):
+        """Constructor.
 
-    def init_params(self, params, algo_input):
-        """
-        Initialize via parameters dictionary and algorithm input instance
-        Args:
-            params: parameters dictionary
-            algo_input: EnergyInput instance
-        """
-        if algo_input is None:
-            raise AlgorithmError("EnergyInput instance is required.")
-        ee_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
-        k = ee_params.get(ExactEigensolver.PROP_K)
-        self.init_args(algo_input.qubit_op, k, algo_input.aux_ops)
-
-    def init_args(self, operator, k=1, aux_operators=[]):
-        """
-        Initialize directly via method parameters
         Args:
             operator: Operator instance
             k: How many eigenvalues are to be computed
             aux_operators: Auxiliary operators to be evaluated at each eigenvalue
         """
+        super().__init__()
+        self.validate({
+            'k': k
+        })
         self._operator = operator
-        if not isinstance(aux_operators, list):
-            aux_operators = [aux_operators]
-        self._aux_operators = aux_operators
+        if aux_operators is None:
+            self._aux_operators = []
+        else:
+            self._aux_operators = [aux_operators] if not isinstance(aux_operators, list) else aux_operators
         self._k = k
         self._operator.to_matrix()
         if self._k > self._operator.matrix.shape[0]:
@@ -91,10 +74,24 @@ class ExactEigensolver(QuantumAlgorithm):
             logger.debug("WARNING: Asked for {} eigenvalues but max possible is {}.".format(k, self._k))
         self._ret = {}
 
+    @classmethod
+    def init_params(cls, params, algo_input):
+        """
+        Initialize via parameters dictionary and algorithm input instance
+        Args:
+            params: parameters dictionary
+            algo_input: EnergyInput instance
+        """
+        if algo_input is None:
+            raise AquaError("EnergyInput instance is required.")
+        ee_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
+        k = ee_params.get('k')
+        return cls(algo_input.qubit_op, k, algo_input.aux_ops)
+
     def _solve(self):
         if self._operator.matrix.ndim == 2:
             if self._k >= self._operator.matrix.shape[0] - 1:
-                logger.debug("WARNING: Scipy doesn't support to get all eigenvalues, using numpy instead.")
+                logger.debug("Scipy doesn't support to get all eigenvalues, using numpy instead.")
                 eigval, eigvec = np.linalg.eig(self._operator.matrix.toarray())
             else:
                 eigval, eigvec = scisparse.linalg.eigs(self._operator.matrix, k=self._k, which='SR')

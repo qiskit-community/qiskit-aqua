@@ -17,22 +17,25 @@
 
 import logging
 
-from qiskit_aqua.algorithms.many_sample.qsvm import QSVM_Kernel_ABC
+from qiskit_aqua.algorithms.many_sample.qsvm._qsvm_kernel_abc import _QSVM_Kernel_ABC
 from qiskit_aqua.utils import map_label_to_class_name
 
 logger = logging.getLogger(__name__)
 
 
-class QSVM_Kernel_Multiclass(QSVM_Kernel_ABC):
+class _QSVM_Kernel_Multiclass(_QSVM_Kernel_ABC):
     """
-    the multiclass classifier
+    The multiclass classifier.
+
     the classifier is built by wrapping the estimator
     (for binary classification) with the multiclass extensions
     """
 
-    def __init__(self, multiclass_classifier):
-        super().__init__()
+    def __init__(self, feature_map, qalgo, training_dataset, test_dataset,
+                 datapoints, multiclass_classifier):
+        super().__init__(feature_map, qalgo, training_dataset, test_dataset, datapoints)
         self.multiclass_classifier = multiclass_classifier
+        self.multiclass_classifier.params.append(qalgo)
 
     def train(self, data, labels):
         self.multiclass_classifier.train(data, labels)

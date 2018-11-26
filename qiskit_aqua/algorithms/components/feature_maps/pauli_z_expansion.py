@@ -19,18 +19,17 @@ This module contains the definition of a base class for
 feature map. Several types of commonly used approaches.
 """
 
-from qiskit_aqua.algorithms.components.feature_maps.pauli_expansion import PauliExpansion
-from qiskit_aqua.algorithms.components.feature_maps import self_product
+from qiskit_aqua.algorithms.components.feature_maps import PauliExpansion, self_product
 
 
 class PauliZExpansion(PauliExpansion):
     """
     Mapping data with the second order expansion followed by entangling gates.
-    Refer to https://arxiv.org/pdf/1804.11326.pdf for details.
 
+    Refer to https://arxiv.org/pdf/1804.11326.pdf for details.
     """
 
-    PAULI_Z_EXPANSION_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'PauliZExpansion',
         'description': 'Pauli Z expansion for feature map (any order)',
         'input_schema': {
@@ -64,26 +63,18 @@ class PauliZExpansion(PauliExpansion):
         }
     }
 
-    def __init__(self, configuration=None):
+    def __init__(self, num_qubits, depth=2, entangler_map=None,
+                 entanglement='full', z_order=2, data_map_func=self_product):
         """Constructor."""
-        super().__init__(configuration or self.PAULI_Z_EXPANSION_CONFIGURATION.copy())
-        self._ret = {}
-
-    def init_args(self, num_qubits, depth, entangler_map=None,
-                  entanglement='full', z_order=2, data_map_func=self_product):
-        """Initializer.
-
-        Args:
-            num_qubits (int): number of qubits
-            depth (int): the number of repeated circuits
-            entangler_map (dict): describe the connectivity of qubits
-            entanglement (str): ['full', 'linear'], generate the qubit connectivitiy by predefined
-                                topology
-            z_order (str): z order
-            data_map_func (Callable): a mapping function for data x
-        """
         pauli_string = []
         for i in range(1, z_order + 1):
             pauli_string.append('Z' * i)
-        super().init_args(num_qubits, depth, entangler_map, entanglement,
-                          pauli_string, data_map_func)
+        super().__init__(num_qubits, depth, entangler_map, entanglement,
+                         paulis=pauli_string, data_map_func=data_map_func)
+        if self.__class__ == PauliZExpansion:
+            self.validate({
+                'depth': depth,
+                'entangler_map': entangler_map,
+                'entanglement': entanglement,
+                'z_order': z_order
+            })

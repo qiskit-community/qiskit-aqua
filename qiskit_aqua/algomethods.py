@@ -17,18 +17,21 @@
 
 """Algorithm functions for running etc."""
 
-from qiskit_aqua.algorithmerror import AlgorithmError
+import copy
+import json
+import logging
+
+from qiskit.backends import BaseBackend
+
+from qiskit_aqua.aqua_error import AquaError
 from qiskit_aqua._discover import (_discover_on_demand,
-                                   local_algorithms,
-                                   get_algorithm_instance)
+                                   local_pluggables,
+                                   PluggableType,
+                                   get_pluggable_class)
 from qiskit_aqua.utils.jsonutils import convert_dict_to_json, convert_json_to_dict
 from qiskit_aqua.parser._inputparser import InputParser
 from qiskit_aqua.parser import JSONSchema
-from qiskit_aqua.input import get_input_instance
-from qiskit.backends import BaseBackend
-import logging
-import json
-import copy
+from qiskit_aqua.input import get_input_class
 
 logger = logging.getLogger(__name__)
 
@@ -40,9 +43,9 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
 
     Args:
         params (dict): Dictionary of params for algo and dependent objects
-        algo_input(algorithminput): Main input data for algorithm. Optional, an algo may run entirely from params
-        json_output(bool): False for regular python dictionary return, True for json conversion
-        backend(BaseBackend): Backend object to be used in place of backend name
+        algo_input (AlgorithmInput): Main input data for algorithm. Optional, an algo may run entirely from params
+        json_output (bool): False for regular python dictionary return, True for json conversion
+        backend (BaseBackend): Backend object to be used in place of backend name
 
     Returns:
         Result dictionary containing result of algorithm computation
@@ -54,12 +57,12 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
     inputparser.validate_merge_defaults()
     logger.debug('Algorithm Input: {}'.format(json.dumps(inputparser.get_sections(), sort_keys=True, indent=4)))
 
-    algo_name = inputparser.get_section_property(JSONSchema.ALGORITHM, JSONSchema.NAME)
+    algo_name = inputparser.get_section_property(PluggableType.ALGORITHM.value, JSONSchema.NAME)
     if algo_name is None:
-        raise AlgorithmError('Missing algorithm name')
+        raise AquaError('Missing algorithm name')
 
-    if algo_name not in local_algorithms():
-        raise AlgorithmError('Algorithm "{0}" missing in local algorithms'.format(algo_name))
+    if algo_name not in local_pluggables(PluggableType.ALGORITHM):
+        raise AquaError('Algorithm "{0}" missing in local algorithms'.format(algo_name))
 
     backend_cfg = None
     backend_name = inputparser.get_section_property(JSONSchema.BACKEND, JSONSchema.NAME)
@@ -73,23 +76,21 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
 
         backend_cfg['backend'] = backend
 
-    algorithm = get_algorithm_instance(algo_name)
+    if algo_input is None:
+        input_name = inputparser.get_section_property('input', JSONSchema.NAME)
+        if input_name is not None:
+            input_params = copy.deepcopy(inputparser.get_section_properties('input'))
+            del input_params[JSONSchema.NAME]
+            convert_json_to_dict(input_params)
+            algo_input = get_input_class(input_name).from_params(input_params)
+
+    algo_params = copy.deepcopy(inputparser.get_sections())
+    algorithm = get_pluggable_class(PluggableType.ALGORITHM,
+                                    algo_name).init_params(algo_params, algo_input)
     algorithm.random_seed = inputparser.get_section_property(JSONSchema.PROBLEM, 'random_seed')
     if backend_cfg is not None:
         algorithm.setup_quantum_backend(**backend_cfg)
 
-    algo_params = copy.deepcopy(inputparser.get_sections())
-
-    if algo_input is None:
-        input_name = inputparser.get_section_property('input', JSONSchema.NAME)
-        if input_name is not None:
-            algo_input = get_input_instance(input_name)
-            input_params = copy.deepcopy(inputparser.get_section_properties('input'))
-            del input_params[JSONSchema.NAME]
-            convert_json_to_dict(input_params)
-            algo_input.from_params(input_params)
-
-    algorithm.init_params(algo_params, algo_input)
     value = algorithm.run()
     if isinstance(value, dict) and json_output:
         convert_dict_to_json(value)
@@ -105,8 +106,8 @@ def run_algorithm_to_json(params, algo_input=None, jsonfile='algorithm.json'):
 
     Args:
         params (dict): Dictionary of params for algo and dependent objects
-        algo_input(algorithminput): Main input data for algorithm. Optional, an algo may run entirely from params
-        jsonfile(string): Name of file in which json should be saved
+        algo_input (AlgorithmInput): Main input data for algorithm. Optional, an algo may run entirely from params
+        jsonfile (str): Name of file in which json should be saved
 
     Returns:
         Result dictionary containing the jsonfile name

@@ -31,8 +31,7 @@ from qiskit.qasm import pi
 from sympy.core.numbers import NaN, Float
 
 from qiskit_aqua import Operator
-from qiskit_aqua.algorithms.components.feature_maps import FeatureMap
-from qiskit_aqua.algorithms.components.feature_maps import self_product
+from qiskit_aqua.algorithms.components.feature_maps import FeatureMap, self_product
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +42,7 @@ class PauliExpansion(FeatureMap):
     Refer to https://arxiv.org/pdf/1804.11326.pdf for details.
     """
 
-    PAULI_EXPANSION_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'PauliExpansion',
         'description': 'Pauli expansion for feature map (any order)',
         'input_schema': {
@@ -79,14 +78,9 @@ class PauliExpansion(FeatureMap):
         }
     }
 
-    def __init__(self, configuration=None):
-        """Constructor."""
-        super().__init__(configuration or self.PAULI_EXPANSION_CONFIGURATION.copy())
-        self._ret = {}
-
-    def init_args(self, num_qubits, depth, entangler_map=None,
-                  entanglement='full', paulis=['Z', 'ZZ'], data_map_func=self_product):
-        """Initializer.
+    def __init__(self, num_qubits, depth=2, entangler_map=None,
+                 entanglement='full', paulis=['Z', 'ZZ'], data_map_func=self_product):
+        """Constructor.
 
         Args:
             num_qubits (int): number of qubits
@@ -97,6 +91,14 @@ class PauliExpansion(FeatureMap):
             paulis (str): a comma-seperated string for to-be-used paulis
             data_map_func (Callable): a mapping function for data x
         """
+        super().__init__()
+        if self.__class__ == PauliExpansion:
+            self.validate({
+                'depth': depth,
+                'entangler_map': entangler_map,
+                'entanglement': entanglement,
+                'paulis': paulis
+            })
         self._num_qubits = num_qubits
         self._depth = depth
         if entangler_map is None:

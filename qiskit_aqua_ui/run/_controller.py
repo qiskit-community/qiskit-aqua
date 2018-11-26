@@ -122,7 +122,7 @@ class Controller(object):
         return self._outputView
 
     def get_available_backends(self):
-        from qiskit_aqua.quantumalgorithm import QuantumAlgorithm
+        from qiskit_aqua.algorithms.quantumalgorithm import QuantumAlgorithm
         if self._backendsthread is not None:
             return
 
@@ -407,7 +407,7 @@ class Controller(object):
         return True
 
     def create_popup(self, section_name, property_name, parent, value):
-        from qiskit_aqua.parser import InputParser
+        from qiskit_aqua.parser._inputparser import InputParser
         from qiskit_aqua.parser import JSONSchema
         values = None
         types = ['string']

@@ -21,11 +21,15 @@ import numpy as np
 from parameterized import parameterized
 from scipy.linalg import expm
 from scipy import sparse
+from qiskit import Aer
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import get_algorithm_instance, get_initial_state_instance, get_iqft_instance, Operator
+from qiskit_aqua import Operator
 from qiskit_aqua.utils import decimal_to_binary
-
+from qiskit_aqua.algorithms.classical import ExactEigensolver
+from qiskit_aqua.algorithms.components.iqfts import Standard
+from qiskit_aqua.algorithms.components.initial_states import Custom
+from qiskit_aqua.algorithms.single_sample import QPE
 
 X = np.array([[0, 1], [1, 0]])
 Y = np.array([[0, -1j], [1j, 0]])
@@ -60,8 +64,7 @@ class TestQPE(QiskitAquaTestCase):
 
         self.qubitOp = qubitOp
 
-        exact_eigensolver = get_algorithm_instance('ExactEigensolver')
-        exact_eigensolver.init_args(self.qubitOp, k=1)
+        exact_eigensolver = ExactEigensolver(self.qubitOp, k=1)
         results = exact_eigensolver.run()
 
         w = results['eigvals']
@@ -84,22 +87,14 @@ class TestQPE(QiskitAquaTestCase):
 
         num_time_slices = 50
         n_ancillae = 9
+        state_in = Custom(self.qubitOp.num_qubits, state_vector=self.ref_eigenvec)
+        iqft = Standard(n_ancillae)
 
-        qpe = get_algorithm_instance('QPE')
-        qpe.setup_quantum_backend(backend='qasm_simulator', shots=100, skip_transpiler=True)
+        qpe = QPE(self.qubitOp, state_in, iqft, num_time_slices, n_ancillae,
+                  paulis_grouping='random', expansion_mode='suzuki', expansion_order=2)
 
-        state_in = get_initial_state_instance('CUSTOM')
-        state_in.init_args(self.qubitOp.num_qubits, state_vector=self.ref_eigenvec)
-
-        iqft = get_iqft_instance('STANDARD')
-        iqft.init_args(n_ancillae)
-
-        qpe.init_args(
-            self.qubitOp, state_in, iqft, num_time_slices, n_ancillae,
-            paulis_grouping='random',
-            expansion_mode='suzuki',
-            expansion_order=2
-        )
+        backend = Aer.get_backend('qasm_simulator')
+        qpe.setup_quantum_backend(backend=backend, shots=100, skip_transpiler=True)
 
         # run qpe
         result = qpe.run()
