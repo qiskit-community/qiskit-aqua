@@ -17,7 +17,6 @@
 
 import numpy as np
 
-
 def assign_label(measured_key, num_classes):
     """
     Classes = 2:
@@ -82,6 +81,45 @@ def cost_estimate_sigmoid(shots, probs, gt_labels):
     Returns:
         float: averaged sigmoid cross entropy loss between estimated probs and gt_labels
     """
+    """
+    The prior version of this function errors out when the probabilities in other_probs have 
+    repeated values for most entries.
+    Specifically, the second line below errors out with a dimensionality error when
+    the setdiff1d call results in a single element array for other_probs,
+    and so other_probs[1] causes an error.
+    The logic for cross-entropy loss is not correct in this scenario. The calculation for 
+    cross-entropy loss has been fixed as part of this fork.
+    other_probs = np.setdiff1d(probs[other_index], rest_p)
+        numerator = np.sqrt(shots) * ((1. + np.abs(other_probs[0] - other_probs[1])) /
+                                      number_of_classes - rest_p)
+    """
+    epsilon = 1e-15
+    probs = np.clip(probs, epsilon, 1 - epsilon)
+    number_of_classes = probs.shape[1]
+
+    if number_of_classes > 1:
+        #if len(np.unique(gt_labels)) > number_of_classes:
+        #    raise ValueError('Too many classes compared to pred.')
+        y_true = np.eye(number_of_classes)[np.array(gt_labels).reshape(-1)]
+    else:
+        #if len(np.unique(gt_labels)) > 2:
+        #    raise ValueError('Too many classes compared to pred.')
+        y_true = gt_labels
+        loss = -1 * (y_true * np.log(probs) + (1 - y_true) * np.log(1 - probs)).sum(axis=1)
+        return loss
+
+    if y_true.shape[1] != probs.shape[1]:
+        raise ValueError('Pred and y_true have different number of classes.')
+    if y_true.shape[0] != probs.shape[0]:
+        raise ValueError('Pred and y_true have different number of samples.')
+
+    probs /= probs.sum(axis=1)[:, np.newaxis]
+    loss = -1 * (y_true * np.log(probs)).sum(axis=1)
+    loss = np.sqrt(shots) * np.average(loss)
+    return loss
+
+    #old code commented out below due to the error mentioned above.
+    """
     p = probs[np.arange(0, gt_labels.shape[0]), gt_labels]
     p = np.clip(p, 0.0, 1.0)
     number_of_classes = probs.shape[1]
@@ -108,7 +146,7 @@ def cost_estimate_sigmoid(shots, probs, gt_labels):
     loss[other_index] = loss_other
     loss = np.mean(loss)
     return loss
-
+    """
 
 def return_probabilities(counts, num_classes):
     """Return the probabilities of given measured counts
