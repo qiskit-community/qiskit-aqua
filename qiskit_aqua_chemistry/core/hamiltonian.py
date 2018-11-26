@@ -22,7 +22,7 @@ energy of the electrons and nuclei in a molecule.
 from .chemistry_operator import ChemistryOperator
 from qiskit_aqua_chemistry import QMolecule
 from qiskit_aqua_chemistry.fermionic_operator import FermionicOperator
-from qiskit_aqua.input.energyinput import EnergyInput
+from qiskit_aqua.input import EnergyInput
 import numpy as np
 import logging
 
@@ -48,7 +48,7 @@ class Hamiltonian(ChemistryOperator):
     QUBIT_MAPPING_PARITY = 'parity'
     QUBIT_MAPPING_BINARY_TREE = 'binary_tree'
 
-    HAMILTONIAN_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'hamiltonian',
         'description': 'Hamiltonian chemistry operator',
         'input_schema': {
@@ -96,14 +96,29 @@ class Hamiltonian(ChemistryOperator):
         'problems': ['energy', 'excited_states']
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.HAMILTONIAN_CONFIGURATION.copy())
-        self._transformation = 'full'
-        self._qubit_mapping = 'parity'
-        self._two_qubit_reduction = True
-        self._freeze_core = False
-        self._orbital_reduction = []
-        self._max_workers = 4
+    def __init__(self, transformation='full',
+                 qubit_mapping='parity',
+                 two_qubit_reduction=True,
+                 freeze_core=False,
+                 orbital_reduction=[],
+                 max_workers=999):
+        """
+        Initializer
+        Args:
+            transformation (str): full or particle_hole
+            qubit_mapping (str: jordan_wigner, parity or bravyi_kitaev
+            two_qubit_reduction (bool): Whether two qubit reduction should be used, when parity mapping only
+            freeze_core: Whether to freeze core orbitals when possible
+            orbital_reduction: Orbital list to be frozen or removed
+            max_workers: Max workers processes for transformation
+        """
+        super().__init__()
+        self._transformation = transformation
+        self._qubit_mapping = qubit_mapping
+        self._two_qubit_reduction = two_qubit_reduction
+        self._freeze_core = freeze_core
+        self._orbital_reduction = orbital_reduction
+        self._max_workers = max_workers
 
         # Store values that are computed by the classical logic in order
         # that later they may be combined with the quantum result
@@ -121,28 +136,6 @@ class Hamiltonian(ChemistryOperator):
         self._ph_x_dipole_shift = 0.0
         self._ph_y_dipole_shift = 0.0
         self._ph_z_dipole_shift = 0.0
-
-    def init_args(self, transformation='full', qubit_mapping='parity', two_qubit_reduction=True,
-                  freeze_core=False, orbital_reduction=[], max_workers=999):
-        """
-        Initial according to schema params
-        Args:
-            transformation (str): full or particle_hole
-            qubit_mapping (str: jordan_wigner, parity or bravyi_kitaev
-            two_qubit_reduction (bool): Whether two qubit reduction should be used, when parity mapping only
-            freeze_core: Whether to freeze core orbitals when possible
-            orbital_reduction: Orbital list to be frozen or removed
-            max_workers: Max workers processes for transformation
-
-        Returns:
-
-        """
-        self._transformation = transformation
-        self._qubit_mapping = qubit_mapping
-        self._two_qubit_reduction = two_qubit_reduction
-        self._freeze_core = freeze_core
-        self._orbital_reduction = orbital_reduction
-        self._max_workers = max_workers
 
     def run(self, qmolecule):
         logger.debug('Processing started...')
@@ -206,8 +199,7 @@ class Hamiltonian(ChemistryOperator):
         qubit_op = Hamiltonian._map_fermionic_operator_to_qubit(fer_op, self._qubit_mapping, new_nel,
                                                                 self._two_qubit_reduction, self._max_workers)
         logger.debug('  num paulis: {}, num qubits: {}'.format(len(qubit_op.paulis), qubit_op.num_qubits))
-        algo_input = EnergyInput()
-        algo_input.qubit_op = qubit_op
+        algo_input = EnergyInput(qubit_op)
 
         def _add_aux_op(aux_op):
             algo_input.add_aux_op(Hamiltonian._map_fermionic_operator_to_qubit(aux_op, self._qubit_mapping, new_nel,

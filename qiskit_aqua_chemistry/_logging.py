@@ -97,3 +97,24 @@ def set_logging_config(logging_config):
         configurations.
     """
     dictConfig(logging_config)
+
+
+def get_aqua_chemistry_logging():
+    """
+    Returns the current Aqua Chemistry logging level
+
+    Returns:
+        logging level
+    """
+    return get_logging_level()
+
+
+def set_aqua_chemistry_logging(level):
+    """
+    Updates the Aqua Chemistry logging with the appropriate logging level
+
+    Args:
+        level (int): minimum severity of the messages that are displayed.
+    """
+    set_logging_config(build_logging_config(level))
+    

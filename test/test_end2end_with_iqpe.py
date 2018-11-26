@@ -20,7 +20,7 @@ from parameterized import parameterized
 from collections import OrderedDict
 import numpy as np
 from qiskit_aqua.utils import decimal_to_binary
-from qiskit_aqua import get_algorithm_instance, get_initial_state_instance
+from qiskit_aqua import PluggableType, get_pluggable_class
 from test.common import QiskitAquaChemistryTestCase
 from qiskit_aqua_chemistry.drivers import ConfigurationManager
 from qiskit_aqua_chemistry import FermionicOperator
@@ -56,8 +56,7 @@ class TestIQPE(QiskitAquaChemistryTestCase):
         ferOp = FermionicOperator(h1=self.molecule._one_body_integrals, h2=self.molecule._two_body_integrals)
         self.qubitOp = ferOp.mapping(map_type='PARITY', threshold=1e-10).two_qubit_reduced_operator(2)
 
-        exact_eigensolver = get_algorithm_instance('ExactEigensolver')
-        exact_eigensolver.init_args(self.qubitOp, k=1)
+        exact_eigensolver = get_pluggable_class(PluggableType.ALGORITHM, 'ExactEigensolver')(self.qubitOp, k=1)
         results = exact_eigensolver.run()
         self.reference_energy = results['energy']
         self.log.debug('The exact ground state energy is: {}'.format(results['energy']))
@@ -69,19 +68,15 @@ class TestIQPE(QiskitAquaChemistryTestCase):
 
         num_time_slices = 50
         num_iterations = 12
-
-        iqpe = get_algorithm_instance('IQPE')
-        iqpe.setup_quantum_backend(backend='qasm_simulator', shots=100, skip_transpiler=True)
-
-        state_in = get_initial_state_instance('HartreeFock')
-        state_in.init_args(self.qubitOp.num_qubits, num_orbitals, qubit_mapping, two_qubit_reduction, num_particles)
-
-        iqpe.init_args(
+        state_in = get_pluggable_class(PluggableType.INITIAL_STATE, 'HartreeFock')(
+                self.qubitOp.num_qubits, num_orbitals, num_particles, qubit_mapping, two_qubit_reduction)
+        iqpe = get_pluggable_class(PluggableType.ALGORITHM, 'IQPE')(
             self.qubitOp, state_in, num_time_slices, num_iterations,
             paulis_grouping='random',
             expansion_mode='suzuki',
             expansion_order=2,
         )
+        iqpe.setup_quantum_backend(backend='qasm_simulator', shots=100, skip_transpiler=True)
 
         result = iqpe.run()
 

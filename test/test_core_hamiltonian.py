@@ -20,7 +20,7 @@ from collections import OrderedDict
 
 from test.common import QiskitAquaChemistryTestCase
 from qiskit_aqua_chemistry.drivers import ConfigurationManager
-from qiskit_aqua_chemistry.core import get_chemistry_operator_instance
+from qiskit_aqua_chemistry.core import get_chemistry_operator_class
 
 
 class TestCoreHamiltonian(QiskitAquaChemistryTestCase):
@@ -59,7 +59,6 @@ class TestCoreHamiltonian(QiskitAquaChemistryTestCase):
         self.assertEqual(len(input_object.qubit_op.save_to_dict()['paulis']), num_paulis)
 
     def test_output(self):
-        core = get_chemistry_operator_instance('hamiltonian')
         hamiltonian_cfg = OrderedDict([
             ('name', 'hamiltonian'),
             ('transformation', 'full'),
@@ -68,14 +67,13 @@ class TestCoreHamiltonian(QiskitAquaChemistryTestCase):
             ('freeze_core', False),
             ('orbital_reduction', [])
         ])
-        core.init_params(hamiltonian_cfg)
+        core = get_chemistry_operator_class('hamiltonian').init_params(hamiltonian_cfg)
         input_object = core.run(self.qmolecule)
         self._validate_vars(core)
         self._validate_info(core, actual_two_qubit_reduction=True)
         self._validate_input_object(input_object, num_qubits=2, num_paulis=5)
 
     def test_jordan_wigner(self):
-        core = get_chemistry_operator_instance('hamiltonian')
         hamiltonian_cfg = OrderedDict([
             ('name', 'hamiltonian'),
             ('transformation', 'full'),
@@ -84,14 +82,13 @@ class TestCoreHamiltonian(QiskitAquaChemistryTestCase):
             ('freeze_core', False),
             ('orbital_reduction', [])
         ])
-        core.init_params(hamiltonian_cfg)
+        core = get_chemistry_operator_class('hamiltonian').init_params(hamiltonian_cfg)
         input_object = core.run(self.qmolecule)
         self._validate_vars(core)
         self._validate_info(core)
         self._validate_input_object(input_object)
 
     def test_jordan_wigner_2q(self):
-        core = get_chemistry_operator_instance('hamiltonian')
         hamiltonian_cfg = OrderedDict([
             ('name', 'hamiltonian'),
             ('transformation', 'full'),
@@ -100,7 +97,7 @@ class TestCoreHamiltonian(QiskitAquaChemistryTestCase):
             ('freeze_core', False),
             ('orbital_reduction', [])
         ])
-        core.init_params(hamiltonian_cfg)
+        core = get_chemistry_operator_class('hamiltonian').init_params(hamiltonian_cfg)
         input_object = core.run(self.qmolecule)
         self._validate_vars(core)
         # Reported effective 2 qubit reduction should be false
@@ -108,7 +105,6 @@ class TestCoreHamiltonian(QiskitAquaChemistryTestCase):
         self._validate_input_object(input_object)
 
     def test_parity(self):
-        core = get_chemistry_operator_instance('hamiltonian')
         hamiltonian_cfg = OrderedDict([
             ('name', 'hamiltonian'),
             ('transformation', 'full'),
@@ -117,14 +113,13 @@ class TestCoreHamiltonian(QiskitAquaChemistryTestCase):
             ('freeze_core', False),
             ('orbital_reduction', [])
         ])
-        core.init_params(hamiltonian_cfg)
+        core = get_chemistry_operator_class('hamiltonian').init_params(hamiltonian_cfg)
         input_object = core.run(self.qmolecule)
         self._validate_vars(core)
         self._validate_info(core)
         self._validate_input_object(input_object)
 
     def test_bravyi_kitaev(self):
-        core = get_chemistry_operator_instance('hamiltonian')
         hamiltonian_cfg = OrderedDict([
             ('name', 'hamiltonian'),
             ('transformation', 'full'),
@@ -133,14 +128,13 @@ class TestCoreHamiltonian(QiskitAquaChemistryTestCase):
             ('freeze_core', False),
             ('orbital_reduction', [])
         ])
-        core.init_params(hamiltonian_cfg)
+        core = get_chemistry_operator_class('hamiltonian').init_params(hamiltonian_cfg)
         input_object = core.run(self.qmolecule)
         self._validate_vars(core)
         self._validate_info(core)
         self._validate_input_object(input_object)
 
     def test_particle_hole(self):
-        core = get_chemistry_operator_instance('hamiltonian')
         hamiltonian_cfg = OrderedDict([
             ('name', 'hamiltonian'),
             ('transformation', 'particle_hole'),
@@ -149,14 +143,13 @@ class TestCoreHamiltonian(QiskitAquaChemistryTestCase):
             ('freeze_core', False),
             ('orbital_reduction', [])
         ])
-        core.init_params(hamiltonian_cfg)
+        core = get_chemistry_operator_class('hamiltonian').init_params(hamiltonian_cfg)
         input_object = core.run(self.qmolecule)
         self._validate_vars(core, ph_energy_shift=-1.83696799)
         self._validate_info(core)
         self._validate_input_object(input_object)
 
     def test_freeze_core(self):  # Should be in effect a no-op for H2
-        core = get_chemistry_operator_instance('hamiltonian')
         hamiltonian_cfg = OrderedDict([
             ('name', 'hamiltonian'),
             ('transformation', 'full'),
@@ -165,14 +158,13 @@ class TestCoreHamiltonian(QiskitAquaChemistryTestCase):
             ('freeze_core', True),
             ('orbital_reduction', [])
         ])
-        core.init_params(hamiltonian_cfg)
+        core = get_chemistry_operator_class('hamiltonian').init_params(hamiltonian_cfg)
         input_object = core.run(self.qmolecule)
         self._validate_vars(core)
         self._validate_info(core)
         self._validate_input_object(input_object)
 
     def test_orbital_reduction(self):  # Remove virtual orbital just for test purposes (not sensible!)
-        core = get_chemistry_operator_instance('hamiltonian')
         hamiltonian_cfg = OrderedDict([
             ('name', 'hamiltonian'),
             ('transformation', 'full'),
@@ -181,7 +173,7 @@ class TestCoreHamiltonian(QiskitAquaChemistryTestCase):
             ('freeze_core', False),
             ('orbital_reduction', [-1])
         ])
-        core.init_params(hamiltonian_cfg)
+        core = get_chemistry_operator_class('hamiltonian').init_params(hamiltonian_cfg)
         input_object = core.run(self.qmolecule)
         self._validate_vars(core)
         self._validate_info(core, num_orbitals=2)

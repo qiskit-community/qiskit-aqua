@@ -21,6 +21,7 @@ a quantum algorithm
 """
 from abc import ABC, abstractmethod
 import logging
+import copy
 
 logger = logging.getLogger(__name__)
 
@@ -42,31 +43,28 @@ class ChemistryOperator(ABC):
     INFO_TWO_QUBIT_REDUCTION = 'two_qubit_reduction'
 
     @abstractmethod
-    def __init__(self, configuration=None):
-        self._configuration = configuration
+    def __init__(self):
+        self._configuration = copy.deepcopy(self.CONFIGURATION)
         self._molecule_info = {}
-        pass
 
     @property
     def configuration(self):
         return self._configuration
 
-    def init_params(self, params):
-        """Initialize with a params dictionary
-
-        A dictionary of config params as per the configuration object.
+    @classmethod
+    def init_params(cls, params):
+        """
+        Initialize via parameters dictionary.
 
         Args:
-            params (dict): configuration dict
+            params (dict): parameters dictionary
+
+        Returns:
+            Hamiltonian: hamiltonian object
         """
         args = {k: v for k, v in params.items() if k != 'name'}
         logger.debug('init_args: {}'.format(args))
-        self.init_args(**args)
-
-    @abstractmethod
-    def init_args(self, **args):
-        """Initialize the optimizer with its parameters according to schema"""
-        raise NotImplementedError()
+        return cls(**args)
 
     @abstractmethod
     def run(self, qmolecule):

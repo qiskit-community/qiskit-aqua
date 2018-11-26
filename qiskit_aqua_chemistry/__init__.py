@@ -24,35 +24,19 @@ from .aqua_chemistry import AquaChemistry
 from .fermionic_operator import FermionicOperator
 from ._logging import (get_logging_level,
                        build_logging_config,
-                       set_logging_config)
+                       set_logging_config,
+                       get_aqua_chemistry_logging,
+                       set_aqua_chemistry_logging)
 
 __version__ = '0.3.1'
-
-
-def get_aqua_chemistry_logging():
-    """
-    Returns the current Aqua Chemistry logging level
-
-    Returns:
-        logging level
-    """
-    return get_logging_level()
-
-
-def set_aqua_chemistry_logging(level):
-    """
-    Updates the Aqua Chemistry logging with the appropriate logging level
-
-    Args:
-        level (int): minimum severity of the messages that are displayed.
-    """
-    set_logging_config(build_logging_config(level))
-
 
 __all__ = ['AquaChemistryError',
            'Preferences',
            'QMolecule',
            'AquaChemistry',
            'FermionicOperator',
+           'get_logging_level',
+           'build_logging_config',
+           'set_logging_config',
            'get_aqua_chemistry_logging',
            'set_aqua_chemistry_logging']
