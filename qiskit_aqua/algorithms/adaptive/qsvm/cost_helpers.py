@@ -83,7 +83,12 @@ def cost_estimate_sigmoid(shots, probs, gt_labels):
     """
     """
     The prior version of this function errors out when the probabilities in other_probs have 
-    repeated values for most entries.
+    repeated values for most entries. For example, the bug can be simulated when 
+    the original version of cost_estimate_sigmoid is called with the below values for the 
+    function parameters.
+    probs=np.array([[0.14, 0.25, 0.45], [0.15, 0.25, 0.45], [0.14, 0.25, 0.14]])
+    gt_labels = np.array([0, 2, 1])
+
     Specifically, the second line below errors out with a dimensionality error when
     the setdiff1d call results in a single element array for other_probs,
     and so other_probs[1] causes an error.
