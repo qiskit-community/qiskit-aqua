@@ -55,10 +55,7 @@ class CircuitFactory(ABC):
             params : parameters for circuit
         """
 
-        qreg_names = list(qc.get_qregs().keys())
-        qc_ = QuantumCircuit(qc.get_qregs()[qreg_names[0]], name=qreg_names[0])
-        for name in qreg_names[1:]:
-            qc_.add(qc.get_qregs()[name])
+        qc_ = QuantumCircuit(*qc.qregs)
 
         self.build(qc_, q, q_ancillas, params)
         try:
@@ -78,10 +75,7 @@ class CircuitFactory(ABC):
             params : parameters for circuit
         """
 
-        qreg_names = list(qc.get_qregs().keys())
-        uncontrolled_circuit = QuantumCircuit(qc.get_qregs()[qreg_names[0]], name=qreg_names[0])
-        for name in qreg_names[1:]:
-            uncontrolled_circuit.add(qc.get_qregs()[name])
+        uncontrolled_circuit = QuantumCircuit(*qc.qregs)
 
         self.build(uncontrolled_circuit, q, q_ancillas, params)
         controlled_circuit = get_controlled_circuit(uncontrolled_circuit, q_control)
@@ -98,10 +92,7 @@ class CircuitFactory(ABC):
             params : parameters for circuit
         """
 
-        qreg_names = list(qc.get_qregs().keys())
-        qc_ = QuantumCircuit(qc.get_qregs()[qreg_names[0]], name=qreg_names[0])
-        for name in qreg_names[1:]:
-            qc_.add(qc.get_qregs()[name])
+        qc_ = QuantumCircuit(*qc.qregs)
 
         self.build_controlled(qc_, q, q_control, q_ancillas, params)
         try:
