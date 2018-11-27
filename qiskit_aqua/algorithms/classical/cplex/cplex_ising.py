@@ -65,11 +65,7 @@ class CPLEX_Ising(QuantumAlgorithm):
 
     def __init__(self, operator, timelimit=600, thread=1, display=2):
         super().__init__()
-        self.validate({
-            'timelimit': timelimit,
-            'thread': thread,
-            'display': display
-        })
+        self.validate(locals())
         self._ins = IsingInstance()
         self._ins.parse(operator.save_to_dict()['paulis'])
         self._timelimit = timelimit

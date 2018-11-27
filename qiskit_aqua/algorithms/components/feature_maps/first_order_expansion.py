@@ -56,6 +56,4 @@ class FirstOrderExpansion(PauliZExpansion):
             data_map_func (Callable): a mapping function for data x
         """
         super().__init__(num_qubits, depth, z_order=1, data_map_func=data_map_func)
-        self.validate({
-            'depth': depth
-        })
+        self.validate(locals())

@@ -66,11 +66,7 @@ class RYRZ(VariationalForm):
             initial_state (InitialState): an initial state object
         """
         super().__init__()
-        self.validate({
-            'depth': depth,
-            'entanglement': entanglement,
-            'entangler_map': entangler_map
-        })
+        self.validate(locals())
         self._num_parameters = num_qubits * (depth + 1) * 2
         self._bounds = [(-np.pi, np.pi)] * self._num_parameters
         self._num_qubits = num_qubits

@@ -92,13 +92,7 @@ class PauliExpansion(FeatureMap):
             data_map_func (Callable): a mapping function for data x
         """
         super().__init__()
-        if self.__class__ == PauliExpansion:
-            self.validate({
-                'depth': depth,
-                'entangler_map': entangler_map,
-                'entanglement': entanglement,
-                'paulis': paulis
-            })
+        self.validate(locals())
         self._num_qubits = num_qubits
         self._depth = depth
         if entangler_map is None:

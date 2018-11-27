@@ -71,10 +71,4 @@ class PauliZExpansion(PauliExpansion):
             pauli_string.append('Z' * i)
         super().__init__(num_qubits, depth, entangler_map, entanglement,
                          paulis=pauli_string, data_map_func=data_map_func)
-        if self.__class__ == PauliZExpansion:
-            self.validate({
-                'depth': depth,
-                'entangler_map': entangler_map,
-                'entanglement': entanglement,
-                'z_order': z_order
-            })
+        self.validate(locals())

@@ -88,12 +88,7 @@ class QAOA(VQE):
         var_form = QAOAVarForm(operator, p)
         super().__init__(operator, var_form, optimizer,
                          operator_mode=operator_mode, initial_point=initial_point)
-        self.validate({
-            'operator_mode': operator_mode,
-            'p': p,
-            'initial_point': initial_point,
-            'batch_mode': batch_mode
-        })
+        self.validate(locals())
 
     @classmethod
     def init_params(cls, params, algo_input):

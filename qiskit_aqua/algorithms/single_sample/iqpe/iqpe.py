@@ -102,13 +102,7 @@ class IQPE(QuantumAlgorithm):
                  paulis_grouping='default', expansion_mode='suzuki', expansion_order=2,
                  shallow_circuit_concat=False):
         super().__init__()
-        self.validate({
-            IQPE.PROP_NUM_TIME_SLICES: num_time_slices,
-            IQPE.PROP_PAULIS_GROUPING: paulis_grouping,
-            IQPE.PROP_EXPANSION_MODE: expansion_mode,
-            IQPE.PROP_EXPANSION_ORDER: expansion_order,
-            IQPE.PROP_NUM_ITERATIONS: num_iterations
-        })
+        self.validate(locals())
         self._operator = operator
         self._state_in = state_in
         self._num_time_slices = num_time_slices

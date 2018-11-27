@@ -72,8 +72,4 @@ class SecondOrderExpansion(PauliZExpansion):
         """
         super().__init__(num_qubits, depth, entangler_map, entanglement,
                          z_order=2, data_map_func=data_map_func)
-        self.validate({
-            'depth': depth,
-            'entangler_map': entangler_map,
-            'entanglement': entanglement
-        })
+        self.validate(locals())
