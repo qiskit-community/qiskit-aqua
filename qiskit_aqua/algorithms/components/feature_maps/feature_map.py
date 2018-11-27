@@ -45,11 +45,14 @@ class FeatureMap(Pluggable):
         return cls(**args)
 
     @abstractmethod
-    def construct_circuit(self, parameters):
+    def construct_circuit(self, x, qr=None, inverse=False):
         """Construct the variational form, given its parameters.
 
         Args:
-            parameters (numpy.ndarray[float]) : circuit parameters.
+            x (numpy.ndarray[float]): 1-D array, data
+            qr (QauntumRegister): the QuantumRegister object for the circuit, if None,
+                                  generate new registers with name q.
+            inverse (bool): whether or not inverse the circuit
 
         Returns:
             QuantumCircuit: a quantum circuit.
