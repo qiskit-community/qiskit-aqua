@@ -72,14 +72,15 @@ def _get_pluggables_types_dictionary():
 
 _NAMES_TO_EXCLUDE = [
     '__main__',
+    '_aqua',
+    '_credentialpreferences'
     '_discover',
     '_logging',
-    'algomethods',
-    'algorithmerror',
+    'aqua_error',
     'operator',
+    'pluggable',
     'preferences',
     'quantumalgorithm',
-    'algoutils',
     'jsonutils',
     'optimizer',
     'variational_form',

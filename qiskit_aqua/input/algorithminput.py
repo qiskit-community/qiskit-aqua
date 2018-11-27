@@ -19,7 +19,7 @@
 from abc import ABC, abstractmethod
 import copy
 from qiskit_aqua import AquaError
-
+from qiskit_aqua.parser import JSONSchema
 
 class AlgorithmInput(ABC):
 
@@ -45,6 +45,20 @@ class AlgorithmInput(ABC):
         Gets the configuration of this input form
         """
         return self._configuration
+
+    def validate(self, args_dict):
+        schema_dict = self.CONFIGURATION.get('input_schema', None)
+        if schema_dict is None:
+            return
+
+        jsonSchema = JSONSchema(schema_dict)
+        schema_property_names = jsonSchema.get_default_section_names()
+        json_dict = {}
+        for property_name in schema_property_names:
+            if property_name in args_dict:
+                json_dict[property_name] = args_dict[property_name]
+
+        jsonSchema.validate(json_dict)
 
     @property
     def problems(self):

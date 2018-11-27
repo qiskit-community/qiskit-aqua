@@ -37,8 +37,8 @@ class EnergyInput(AlgorithmInput):
                     'default': {}
                 },
                 PROP_KEY_AUXOPS: {
-                    'type': 'array',
-                    'default': []
+                    'type': ['array', 'null'],
+                    'default': None
                 }
             },
             'additionalProperties': False
@@ -47,6 +47,7 @@ class EnergyInput(AlgorithmInput):
     }
 
     def __init__(self, qubit_op, aux_ops=None):
+        self.validate(locals())
         super().__init__()
         self._qubit_op = qubit_op
         self._aux_ops = aux_ops or []
@@ -62,6 +63,18 @@ class EnergyInput(AlgorithmInput):
     @property
     def aux_ops(self):
         return self._aux_ops
+
+    def validate(self, args_dict):
+        params = {}
+        for key, value in args_dict.items():
+            if key == EnergyInput.PROP_KEY_QUBITOP:
+                value = value.save_to_dict() if value is not None else {}
+            elif key == EnergyInput.PROP_KEY_AUXOPS:
+                value = [value[i].save_to_dict() for i in range(len(value))] if value is not None else None
+
+            params[key] = value
+
+        super().validate(params)
 
     def add_aux_op(self, aux_op):
         self._aux_ops.append(aux_op)
