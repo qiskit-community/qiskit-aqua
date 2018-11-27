@@ -124,7 +124,7 @@ class QPE(QuantumAlgorithm):
         self._shallow_circuit_concat = shallow_circuit_concat
         self._ancilla_phase_coef = 1
         self._circuit = None
-        self._additional_params=additional_params
+        self._additional_params = additional_params
         self._ret = {}
 
     @classmethod
@@ -182,7 +182,7 @@ class QPE(QuantumAlgorithm):
 
         if num_aux_qubits > 0:
             aux = QuantumRegister(num_aux_qubits, name='aux')
-            qc.add(aux)
+            qc.add_register(aux)
 
         # initialize state_in
         if self._state_in is not None:
@@ -295,11 +295,11 @@ class QPE(QuantumAlgorithm):
         self._ret['top_measurement_decimal'] = retval
         self._ret['energy'] = retval / self._ret['stretch'] - self._ret['translation']
 
-    def get_circuit(self):
+    def construct_circuit(self, measure=False):
         if self._circuit is None:
             if self._operator is not None:
                 self._setup()
-            self._construct_circuit(measure=False)
+            self._construct_circuit(measure=measure)
         return self._circuit
 
     def run(self):

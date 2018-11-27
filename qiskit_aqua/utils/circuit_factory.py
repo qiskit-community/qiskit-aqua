@@ -1,8 +1,6 @@
 from abc import ABC, abstractmethod
 from qiskit import QuantumCircuit
-from qiskit_aqua import AlgorithmError
-
-#TODO: should come from qiskit_aqua
+from qiskit_aqua import AquaError
 from qiskit_aqua.utils.controlledcircuit import get_controlled_circuit
 
 
@@ -65,7 +63,7 @@ class CircuitFactory(ABC):
         self.build(qc_, q, q_ancillas, params)
         try:
             qc_.data = [gate.inverse() for gate in reversed(qc_.data)]
-        except AlgorithmError:
+        except AquaError:
             print('Irreversible circuit! Does not support inverse method.')
         qc.extend(qc_)
 
@@ -108,7 +106,7 @@ class CircuitFactory(ABC):
         self.build_controlled(qc_, q, q_control, q_ancillas, params)
         try:
             qc_.data = [gate.inverse() for gate in reversed(qc_.data)]
-        except AlgorithmError:
+        except AquaError:
             print('Irreversible circuit! Does not support inverse method.')
         qc.extend(qc_)
 
