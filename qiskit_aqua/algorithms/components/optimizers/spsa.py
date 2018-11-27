@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 class SPSA(Optimizer):
     """Simultaneous Perturbation Stochastic Approximation algorithm."""
-    SPSA_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'SPSA',
         'description': 'SPSA Optimizer',
         'input_schema': {
@@ -84,13 +84,17 @@ class SPSA(Optimizer):
         'optimizer': ['local', 'noise']
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.SPSA_CONFIGURATION.copy())
-        self._max_trials = None
-        self._parameters = None
-        self._skip_calibration = False
-
-    def init_args(self, max_trials=1000, c0=2*np.pi*0.1, c1=0.1, c2=0.602, c3=0.101, c4=0, skip_calibration=False):
+    def __init__(self, max_trials=1000, c0=2*np.pi*0.1, c1=0.1, c2=0.602, c3=0.101, c4=0, skip_calibration=False):
+        super().__init__()
+        self.validate({
+            'max_trials': max_trials,
+            'c0': c0,
+            'c1': c1,
+            'c2': c2,
+            'c3': c3,
+            'c4': c4,
+            'skip_calibration': skip_calibration
+        })
         self._max_trials = max_trials
         self._parameters = np.array([c0, c1, c2, c3, c4])
         self._skip_calibration = skip_calibration

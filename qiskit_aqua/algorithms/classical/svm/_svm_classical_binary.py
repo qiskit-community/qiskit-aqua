@@ -20,13 +20,13 @@ import logging
 import numpy as np
 from sklearn.metrics.pairwise import rbf_kernel
 
-from qiskit_aqua.algorithms.classical.svm import SVM_Classical_ABC
+from qiskit_aqua.algorithms.classical.svm import _SVM_Classical_ABC
 from qiskit_aqua.utils import map_label_to_class_name, optimize_svm
 
 logger = logging.getLogger(__name__)
 
 
-class SVM_Classical_Binary(SVM_Classical_ABC):
+class _SVM_Classical_Binary(_SVM_Classical_ABC):
     """
     the binary classifier
     """

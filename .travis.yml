@@ -16,21 +16,22 @@ language: python
 python:
     - "3.6"
 
-# Install Qiskit Terra from master branch
-env: CMAKE_FLAGS="-D CMAKE_CXX_COMPILER=g++-5 -D ENABLE_TARGETS_QA=False -D WHEEL_TAG=-pmanylinux1_x86_64 -D STATIC_LINKING=True"
-addons:
+stage_dependencies: &stage_dependencies
+  # Install Qiskit Terra from master branch
+  env: CMAKE_FLAGS="-D CMAKE_CXX_COMPILER=g++-5 -D ENABLE_TARGETS_QA=False -D WHEEL_TAG=-pmanylinux1_x86_64 -D STATIC_LINKING=True"
+  addons:
     apt:
-      sources:
-        - ubuntu-toolchain-r-test
-      packages:
-        - liblapack-dev
-        - libblas-dev
-        - g++-5
-before_install:
+        sources:
+            - ubuntu-toolchain-r-test
+        packages:
+            - liblapack-dev
+            - libblas-dev
+            - g++-5
+  before_install:
     # download Qiskit Terra master and unzip it
     - wget https://codeload.github.com/Qiskit/qiskit-terra/zip/master -O /tmp/qiskit-terra-master.zip
     - unzip /tmp/qiskit-terra-master.zip -d /tmp/
-    # Install Qiskit Terra dependencies.
+    # Install Qiskit Terra requirements.
     - pip install -U -r /tmp/qiskit-terra-master/requirements.txt
     - pip install -U -r /tmp/qiskit-terra-master/requirements-dev.txt
     # Create the basic cmake structure, setting out/ as the default dir.
@@ -42,10 +43,24 @@ before_install:
     - pip install -e /tmp/qiskit-terra-master
     # back to current repo directory
     - cd $TRAVIS_BUILD_DIR
-
-# Test 
-install:
+  install:
+    # install Qiskit Aqua requirements
     - pip install -U -r requirements.txt
     - pip install -U -r requirements-dev.txt
-script:
-    - python -m unittest discover -v test
+
+# Define the order of the stages.
+stages:
+  - test first half
+  - test second half
+
+jobs:
+  include:
+    - stage: test first half
+      <<: *stage_dependencies
+      script: 
+        - python test/customtests.py 0 -end 16
+
+    - stage: test second half
+      <<: *stage_dependencies
+      script: 
+        - python test/customtests.py 16

@@ -17,21 +17,21 @@
 
 import logging
 
-from qiskit_aqua.algorithms.classical.svm import SVM_Classical_ABC
+from qiskit_aqua.algorithms.classical.svm import _SVM_Classical_ABC
 from qiskit_aqua.utils import map_label_to_class_name
 
 logger = logging.getLogger(__name__)
 
 
-class SVM_Classical_Multiclass(SVM_Classical_ABC):
+class _SVM_Classical_Multiclass(_SVM_Classical_ABC):
     """
     the multiclass classifier
     the classifier is built by wrapping the estimator
     (for binary classification) with the multiclass extensions
     """
 
-    def __init__(self, multiclass_classifier):
-        super().__init__()
+    def __init__(self, training_dataset, test_dataset, datapoints, gamma, multiclass_classifier):
+        super().__init__(training_dataset, test_dataset, datapoints, gamma)
         self.multiclass_classifier = multiclass_classifier
 
     def train(self, data, labels):

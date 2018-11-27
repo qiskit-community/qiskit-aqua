@@ -84,3 +84,21 @@ def set_logging_config(logging_config):
         configurations.
     """
     dictConfig(logging_config)
+
+def get_aqua_logging():
+    """
+    Returns the current Aqua logging level
+
+    Returns:
+        logging level
+    """
+    return get_logging_level()
+
+def set_aqua_logging(level):
+    """
+    Updates the Aqua logging with the appropriate logging level
+
+    Args:
+        level (number): logging level
+    """
+    set_logging_config(build_logging_config(level))

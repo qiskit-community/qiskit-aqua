@@ -21,10 +21,10 @@ from qiskit import QuantumRegister, QuantumCircuit
 from qiskit_aqua.algorithms.components.variational_forms import VariationalForm
 
 
-class VarFormSwapRZ(VariationalForm):
+class SwapRZ(VariationalForm):
     """Layers of Swap+Z rotations followed by entangling gates."""
 
-    SWAPRZ_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'SWAPRZ',
         'description': 'SWAPRZ Variational Form',
         'input_schema': {
@@ -53,16 +53,10 @@ class VarFormSwapRZ(VariationalForm):
         }
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.SWAPRZ_CONFIGURATION.copy())
-        self._num_qubits = 0
-        self._depth = 0
-        self._entangler_map = None
-        self._initial_state = None
+    def __init__(self, num_qubits, depth=3, entangler_map=None,
+                 entanglement='full', initial_state=None):
+        """Constructor.
 
-    def init_args(self, num_qubits, depth, entangler_map=None,
-                  entanglement='full', initial_state=None):
-        """
         Args:
             num_qubits (int) : number of qubits
             depth (int) : number of rotation layers
@@ -72,6 +66,12 @@ class VarFormSwapRZ(VariationalForm):
             entanglement (str): 'full' or 'linear'
             initial_state (InitialState): an initial state object
         """
+        super().__init__()
+        self.validate({
+            'depth': depth,
+            'entanglement': entanglement,
+            'entangler_map': entangler_map
+        })
         self._num_qubits = num_qubits
         self._depth = depth
         if entangler_map is None:
@@ -109,9 +109,8 @@ class VarFormSwapRZ(VariationalForm):
 
         param_idx = 0
         for qubit in range(self._num_qubits):
-            circuit.u1(parameters[param_idx], q[qubit])
+            circuit.u1(parameters[param_idx], q[qubit])  # rz
             param_idx += 1
-            # circuit.rz(parameters[self._num_qubits*block*2 + qubit*2 + 1], q[qubit])
         for block in range(self._depth):
             circuit.barrier(q)
             for node in self._entangler_map:
@@ -134,9 +133,8 @@ class VarFormSwapRZ(VariationalForm):
                     circuit.u3(-np.pi / 2, -np.pi / 2, np.pi / 2, q[target])
                     param_idx += 1
             for qubit in range(self._num_qubits):
-                circuit.u1(parameters[param_idx], q[qubit])
+                circuit.u1(parameters[param_idx], q[qubit])  # rz
                 param_idx += 1
-                # circuit.rz(parameters[self._num_qubits*block*2 + qubit*2 + 1], q[qubit])
         circuit.barrier(q)
 
         return circuit

@@ -14,10 +14,3 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-
-import nlopt
-import logging
-
-logger = logging.getLogger(__name__)
-
-logger.debug('NLopt version: {}.{}.{}'.format(nlopt.version_major(), nlopt.version_minor(), nlopt.version_bugfix()))

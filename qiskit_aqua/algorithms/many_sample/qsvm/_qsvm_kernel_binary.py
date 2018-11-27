@@ -19,21 +19,21 @@ import logging
 
 import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
+
 from qiskit_aqua import QuantumAlgorithm
-from qiskit_aqua.algorithms.many_sample.qsvm import QSVM_Kernel_ABC
+from qiskit_aqua.algorithms.many_sample.qsvm._qsvm_kernel_abc import _QSVM_Kernel_ABC
 from qiskit_aqua.utils import map_label_to_class_name, optimize_svm
 
 logger = logging.getLogger(__name__)
 
 
-class QSVM_Kernel_Binary(QSVM_Kernel_ABC):
-    """
-    the binary classifier
-    """
+class _QSVM_Kernel_Binary(_QSVM_Kernel_ABC):
+    """The binary classifier."""
 
     def inner_product(self, x1, x2, measurement=True):
         """
         Generate inner product of x1 and x2 with the given feature map.
+
         The dimension of x1 and x2 must be the same.
 
         Args:
@@ -43,7 +43,6 @@ class QSVM_Kernel_Binary(QSVM_Kernel_ABC):
             x2 (numpy.ndarray): data points, 1-D array, dimension is D
             measurement (bool): add measurement gates at the end
         """
-
         if x1.shape[0] != x2.shape[0]:
             raise ValueError("x1 and x2 must be the same dimension.")
 
@@ -120,6 +119,7 @@ class QSVM_Kernel_Binary(QSVM_Kernel_ABC):
 
     def get_predicted_confidence(self, data, return_kernel_matrix=False):
         """
+
         Args:
             data (numpy.ndarray): NxD array, where N is the number of data,
                                   D is the feature dimension.
@@ -142,7 +142,8 @@ class QSVM_Kernel_Binary(QSVM_Kernel_ABC):
 
     def train(self, data, labels):
         """
-        train the svm
+        Train the svm.
+
         Args:
             data (numpy.ndarray): NxD array, where N is the number of data,
                                   D is the feature dimension.
@@ -167,7 +168,8 @@ class QSVM_Kernel_Binary(QSVM_Kernel_ABC):
 
     def test(self, data, labels):
         """
-        test the svm
+        Test the svm.
+
         Args:
             data (numpy.ndarray): NxD array, where N is the number of data,
                                   D is the feature dimension.
@@ -189,7 +191,8 @@ class QSVM_Kernel_Binary(QSVM_Kernel_ABC):
 
     def predict(self, data):
         """
-        predict using the svm
+        Predict using the svm.
+
         Args:
             data (numpy.ndarray): NxD array, where N is the number of data,
                                   D is the feature dimension.
@@ -203,7 +206,7 @@ class QSVM_Kernel_Binary(QSVM_Kernel_ABC):
 
     def run(self):
         """
-        put the train, test, predict together
+        Put the train, test, predict together.
         """
         self.train(self.training_dataset[0], self.training_dataset[1])
         if self.test_dataset is not None:

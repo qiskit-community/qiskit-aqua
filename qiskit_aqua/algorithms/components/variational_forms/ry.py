@@ -21,10 +21,10 @@ from qiskit import QuantumRegister, QuantumCircuit
 from qiskit_aqua.algorithms.components.variational_forms import VariationalForm
 
 
-class VarFormRY(VariationalForm):
+class RY(VariationalForm):
     """Layers of Y rotations followed by entangling gates."""
 
-    RY_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'RY',
         'description': 'RY Variational Form',
         'input_schema': {
@@ -53,16 +53,10 @@ class VarFormRY(VariationalForm):
         }
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.RY_CONFIGURATION.copy())
-        self._num_qubits = 0
-        self._depth = 0
-        self._entangler_map = None
-        self._initial_state = None
+    def __init__(self, num_qubits, depth=3, entangler_map=None,
+                 entanglement='full', initial_state=None):
+        """Constructor.
 
-    def init_args(self, num_qubits, depth, entangler_map=None,
-                  entanglement='full', initial_state=None):
-        """
         Args:
             num_qubits (int) : number of qubits
             depth (int) : number of rotation layers
@@ -72,6 +66,12 @@ class VarFormRY(VariationalForm):
             entanglement (str): 'full' or 'linear'
             initial_state (InitialState): an initial state object
         """
+        super().__init__()
+        self.validate({
+            'depth': depth,
+            'entanglement': entanglement,
+            'entangler_map': entangler_map
+        })
         self._num_parameters = num_qubits * (depth + 1)
         self._bounds = [(-np.pi, np.pi)] * self._num_parameters
         self._num_qubits = num_qubits

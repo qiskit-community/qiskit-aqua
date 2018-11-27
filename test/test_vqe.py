@@ -19,12 +19,15 @@ import unittest
 
 import numpy as np
 from parameterized import parameterized
+from qiskit import Aer
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import Operator, run_algorithm
-from qiskit_aqua.input import get_input_instance
-from qiskit_aqua import (get_algorithm_instance, get_initial_state_instance,
-                         get_variational_form_instance, get_optimizer_instance)
+from qiskit_aqua.input import EnergyInput
+from qiskit_aqua.algorithms.components.variational_forms import RY
+from qiskit_aqua.algorithms.components.optimizers import L_BFGS_B
+from qiskit_aqua.algorithms.components.initial_states import Zero
+from qiskit_aqua.algorithms.adaptive import VQE
 
 
 class TestVQE(QiskitAquaTestCase):
@@ -39,22 +42,22 @@ class TestVQE(QiskitAquaTestCase):
                        {"coeff": {"imag": 0.0, "real": 0.18093119978423156}, "label": "XX"}
                        ]
         }
-        qubitOp = Operator.load_from_dict(pauli_dict)
-        self.algo_input = get_input_instance('EnergyInput')
-        self.algo_input.qubit_op = qubitOp
+        qubit_op = Operator.load_from_dict(pauli_dict)
+        self.algo_input = EnergyInput(qubit_op)
 
     def test_vqe_via_run_algorithm(self):
         params = {
             'algorithm': {'name': 'VQE'},
-            'backend': {'name': 'statevector_simulator'}
+            'backend': {'name': 'statevector_simulator'},
         }
         result = run_algorithm(params, self.algo_input)
         self.assertAlmostEqual(result['energy'], -1.85727503)
         np.testing.assert_array_almost_equal(result['eigvals'], [-1.85727503], 5)
-        np.testing.assert_array_almost_equal(result['opt_params'], [-0.58294401, -1.86141794, -1.97209632, -0.54796022,
-                                                                    -0.46945572, 2.60114794, -1.15637845,  1.40498879,
-                                                                    1.14479635, -0.48416694, -0.66608349, -1.1367579 ,
-                                                                    -2.67097002,  3.10214631,  3.10000313, 0.37235089], 5)
+        np.testing.assert_array_almost_equal(result['opt_params'],
+                                             [-0.58294401, -1.86141794, -1.97209632, -0.54796022,
+                                              -0.46945572, 2.60114794, -1.15637845,  1.40498879,
+                                              1.14479635, -0.48416694, -0.66608349, -1.1367579,
+                                              -2.67097002, 3.10214631, 3.10000313, 0.37235089], 5)
         self.assertIn('eval_count', result)
         self.assertIn('eval_time', result)
 
@@ -68,7 +71,7 @@ class TestVQE(QiskitAquaTestCase):
         ['SPSA', 5],
         ['TNC', 2]
     ])
-    def test_vqe_optimzers(self, name, places):
+    def test_vqe_optimizers(self, name, places):
         params = {
             'algorithm': {'name': 'VQE'},
             'optimizer': {'name': name},
@@ -91,16 +94,13 @@ class TestVQE(QiskitAquaTestCase):
         self.assertAlmostEqual(result['energy'], -1.85727503, places=places)
 
     def test_vqe_direct(self):
-        num_qbits = self.algo_input.qubit_op.num_qubits
-        init_state = get_initial_state_instance('ZERO')
-        init_state.init_args(num_qbits)
-        var_form = get_variational_form_instance('RY')
-        var_form.init_args(num_qbits, 3, initial_state=init_state)
-        optimizer = get_optimizer_instance('L_BFGS_B')
-        optimizer.init_args()
-        algo = get_algorithm_instance('VQE')
-        algo.setup_quantum_backend(backend='statevector_simulator')
-        algo.init_args(self.algo_input.qubit_op, 'matrix', var_form, optimizer)
+        backend = Aer.get_backend('statevector_simulator')
+        num_qubits = self.algo_input.qubit_op.num_qubits
+        init_state = Zero(num_qubits)
+        var_form = RY(num_qubits, 3, initial_state=init_state)
+        optimizer = L_BFGS_B()
+        algo = VQE(self.algo_input.qubit_op, var_form, optimizer, 'matrix')
+        algo.setup_quantum_backend(backend=backend)
         result = algo.run()
         self.assertAlmostEqual(result['energy'], -1.85727503)
 

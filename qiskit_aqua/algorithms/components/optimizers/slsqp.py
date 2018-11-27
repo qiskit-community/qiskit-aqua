@@ -31,7 +31,7 @@ class SLSQP(Optimizer):
     See https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
     """
 
-    SLSQP_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'SLSQP',
         'description': 'SLSQP Optimizer',
         'input_schema': {
@@ -71,11 +71,11 @@ class SLSQP(Optimizer):
         'optimizer': ['local']
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.SLSQP_CONFIGURATION.copy())
-        self._tol = None
-
-    def init_args(self, tol=None):
+    def __init__(self, tol=None):
+        super().__init__()
+        self.validate({
+            'tol': tol
+        })
         self._tol = tol
 
     def optimize(self, num_vars, objective_function, gradient_function=None, variable_bounds=None, initial_point=None):

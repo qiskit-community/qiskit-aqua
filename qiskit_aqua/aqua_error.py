@@ -17,16 +17,16 @@
 
 
 """
-Exception for errors raised by the Algorithm SDK.
+Exception for errors raised by Aqua.
 """
 
 
-class AlgorithmError(Exception):
-    """Base class for errors raised by the Algorithm SDK."""
+class AquaError(Exception):
+    """Base class for errors raised by Aqua."""
 
     def __init__(self, *message):
         """Set the error message."""
-        super(AlgorithmError, self).__init__(' '.join(message))
+        super(AquaError, self).__init__(' '.join(message))
         self.message = ' '.join(message)
 
     def __str__(self):

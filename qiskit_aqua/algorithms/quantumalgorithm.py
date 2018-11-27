@@ -23,23 +23,23 @@ class in this module.
 Doing so requires that the required algorithm interface is implemented.
 """
 
-from abc import ABC, abstractmethod
+from qiskit_aqua import Pluggable
+from abc import abstractmethod
 import logging
-
 import numpy as np
 import qiskit
 from qiskit import __version__ as qiskit_version
 from qiskit.backends import BaseBackend
 from qiskit.backends.ibmq.credentials import Credentials
 from qiskit.backends.ibmq.ibmqsingleprovider import IBMQSingleProvider
-from qiskit_aqua import AlgorithmError
+from qiskit_aqua import AquaError
 from qiskit_aqua.utils import run_circuits
 from qiskit_aqua import Preferences
 
 logger = logging.getLogger(__name__)
 
 
-class QuantumAlgorithm(ABC):
+class QuantumAlgorithm(Pluggable):
 
     # Configuration dictionary keys
     SECTION_KEY_ALGORITHM = 'algorithm'
@@ -70,8 +70,8 @@ class QuantumAlgorithm(ABC):
         configuration (dict): configuration dictionary
     """
     @abstractmethod
-    def __init__(self, configuration=None):
-        self._configuration = configuration
+    def __init__(self):
+        super().__init__()
         self._backend = None
         self._execute_config = {}
         self._qjob_config = {}
@@ -81,23 +81,18 @@ class QuantumAlgorithm(ABC):
         self._has_shared_circuits = False
 
     @property
-    def configuration(self):
-        """Return algorithm configuration"""
-        return self._configuration
-
-    @property
     def random_seed(self):
-        """Return random seed"""
+        """Return random seed."""
         return self._random_seed
 
     @random_seed.setter
     def random_seed(self, seed):
-        """Set random seed"""
+        """Set random seed."""
         self._random_seed = seed
 
     @property
     def random(self):
-        """Return a numpy random"""
+        """Return a numpy random."""
         if self._random is None:
             if self._random_seed is None:
                 self._random = np.random
@@ -120,7 +115,7 @@ class QuantumAlgorithm(ABC):
         Returns:
             Result (Boolean): True is statevector
         """
-        return backend.configuration().get('name', '').startswith('statevector') if backend is not None else False
+        return backend.configuration().backend_name.startswith('statevector') if backend is not None else False
 
     @staticmethod
     def backend_name(backend):
@@ -132,14 +127,14 @@ class QuantumAlgorithm(ABC):
         Returns:
             Name (str): backend name
         """
-        return backend.configuration().get('name', '') if backend is not None else ''
+        return backend.configuration().backend_name if backend is not None else ''
 
     def enable_circuit_summary(self):
-        """Enable showing the summary of circuits"""
+        """Enable showing the summary of circuits."""
         self._show_circuit_summary = True
 
     def disable_circuit_summary(self):
-        """Disable showing the summary of circuits"""
+        """Disable showing the summary of circuits."""
         self._show_circuit_summary = False
 
     def setup_quantum_backend(self, backend='statevector_simulator', shots=1024, skip_transpiler=False,
@@ -162,15 +157,15 @@ class QuantumAlgorithm(ABC):
             wait (float): seconds between queries
 
         Raises:
-            AlgorithmError: set backend with invalid Qconfig
+            AquaError: set backend with invalid Qconfig
         """
         if backend is None:
-            raise AlgorithmError('Missing algorithm backend')
+            raise AquaError('Missing algorithm backend')
 
         if isinstance(backend, str):
             operational_backends = self.register_and_get_operational_backends()
             if QuantumAlgorithm.EQUIVALENT_BACKENDS.get(backend, backend) not in operational_backends:
-                raise AlgorithmError("This backend '{}' is not operational for the quantum algorithm, \
+                raise AquaError("This backend '{}' is not operational for the quantum algorithm, \
                                      select any one below: {}".format(backend, operational_backends))
 
         self._qjob_config = {'timeout': timeout,
@@ -185,24 +180,29 @@ class QuantumAlgorithm(ABC):
             except KeyError:
                 preferences = Preferences()
                 my_backend = qiskit.IBMQ.get_backend(backend,
-                                                     url=preferences.get_url(''),
+                                                     url=preferences.get_url(
+                                                         ''),
                                                      token=preferences.get_token(''))
 
             if my_backend is None:
-                raise AlgorithmError("Missing algorithm backend '{}'".format(backend))
+                raise AquaError(
+                    "Missing algorithm backend '{}'".format(backend))
 
         self._backend = my_backend
 
-        shots = 1 if QuantumAlgorithm.is_statevector_backend(my_backend) else shots
-        noise_params = noise_params if my_backend.configuration().get('simulator', False) else None
+        shots = 1 if QuantumAlgorithm.is_statevector_backend(
+            my_backend) else shots
+        noise_params = noise_params if my_backend.configuration().simulator else None
 
-        if my_backend.configuration().get('local', False):
+        if my_backend.configuration().local:
             self._qjob_config.pop('wait', None)
-
         if coupling_map is None:
-            coupling_map = my_backend.configuration()['coupling_map']
+            coupling_map = my_backend.configuration().to_dict().get('coupling_map', None)
         if basis_gates is None:
-            basis_gates = my_backend.configuration()['basis_gates']
+            basis_gates = my_backend.configuration().basis_gates
+
+        if isinstance(basis_gates, list):
+            basis_gates = str(basis_gates)
 
         self._execute_config = {'shots': shots,
                                 'skip_transpiler': skip_transpiler,
@@ -216,7 +216,7 @@ class QuantumAlgorithm(ABC):
                                 'hpc': hpc_params}
 
         info = "Algorithm: '{}' setup with backend '{}', with following setting:\n {}\n{}".format(
-            self._configuration['name'], my_backend.configuration()['name'], self._execute_config, self._qjob_config)
+            self._configuration['name'], my_backend.configuration().backend_name, self._execute_config, self._qjob_config)
 
         logger.info('Qiskit Terra version {}'.format(qiskit_version))
         logger.info(info)
@@ -239,9 +239,12 @@ class QuantumAlgorithm(ABC):
         Returns:
             Result: Result object
         """
-        result = run_circuits(circuits, self._backend, self._execute_config,
-                              self._qjob_config, show_circuit_summary=self._show_circuit_summary,
-                              has_shared_circuits=self._has_shared_circuits)
+        result = run_circuits.run_circuits(circuits,
+                                           self._backend,
+                                           self._execute_config,
+                                           self._qjob_config,
+                                           self._show_circuit_summary,
+                                           self.has_shared_circuits)
         if self._show_circuit_summary:
             self.disable_circuit_summary()
 
@@ -265,9 +268,11 @@ class QuantumAlgorithm(ABC):
                                           url,
                                           proxies=preferences.get_proxies({}))
             if credentials is not None:
-                qiskit.IBMQ._accounts[credentials.unique_id()] = IBMQSingleProvider(credentials, qiskit.IBMQ)
+                qiskit.IBMQ._accounts[credentials.unique_id()] = IBMQSingleProvider(
+                    credentials, qiskit.IBMQ)
                 logger.debug("Registered with Qiskit successfully.")
-                ibmq_backends = [x.name() for x in qiskit.IBMQ.backends(url=url, token=token)]
+                ibmq_backends = [x.name()
+                                 for x in qiskit.IBMQ.backends(url=url, token=token)]
         except Exception as e:
             logger.debug(
                 "Failed to register with Qiskit: {}".format(str(e)))
@@ -275,14 +280,7 @@ class QuantumAlgorithm(ABC):
         backends = set()
         aer_backends = [x.name() for x in qiskit.Aer.backends()]
         for aer_backend in aer_backends:
-            backend = None
-            for group_name, names in qiskit.Aer.grouped_backend_names().items():
-                if aer_backend in names:
-                    backend = group_name
-                    break
-            if backend is None:
-                backend = aer_backend
-
+            backend = aer_backend
             supported = True
             for unsupported_backend in QuantumAlgorithm.UNSUPPORTED_BACKENDS:
                 if backend.startswith(unsupported_backend):
@@ -293,10 +291,6 @@ class QuantumAlgorithm(ABC):
                 backends.add(backend)
 
         return list(backends) + ibmq_backends
-
-    @abstractmethod
-    def init_params(self, params, algo_input):
-        pass
 
     @abstractmethod
     def run(self):

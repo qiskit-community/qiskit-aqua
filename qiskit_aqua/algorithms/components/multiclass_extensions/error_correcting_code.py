@@ -30,7 +30,7 @@ class ErrorCorrectingCode(MulticlassExtension):
     """
       the multiclass extension based on the error-correcting-code algorithm.
     """
-    ErrorCorrectingCode_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'ErrorCorrectingCode',
         'description': 'ErrorCorrectingCode extension',
         'input_schema': {
@@ -48,11 +48,14 @@ class ErrorCorrectingCode(MulticlassExtension):
         }
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.ErrorCorrectingCode_CONFIGURATION.copy())
-        self.estimator_cls = None
-        self.params = None
-        self.code_size = None
+    def __init__(self, estimator_cls, params=None, code_size=4):
+        super().__init__()
+        self.validate({
+            'code_size': code_size
+        })
+        self.estimator_cls = estimator_cls
+        self.params = params or []
+        self.code_size = code_size
         # May we re-use the seed from quantum algorithm?
         self.rand = np.random.RandomState(0)
 
@@ -81,11 +84,7 @@ class ErrorCorrectingCode(MulticlassExtension):
                 estimator = _ConstantPredictor()
                 estimator.fit(x, unique_y)
             else:
-                if self.params is None:
-                    estimator = self.estimator_cls()
-                else:
-                    estimator = self.estimator_cls(*self.params)
-
+                estimator = self.estimator_cls(*self.params)
                 estimator.fit(x, y_bit)
             self.estimators.append(estimator)
 

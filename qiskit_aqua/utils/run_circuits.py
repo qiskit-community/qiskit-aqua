@@ -20,17 +20,16 @@ import logging
 import time
 import functools
 import copy
-from packaging import version
 
 import numpy as np
 from qiskit.backends import BaseBackend
 from qiskit import compile as q_compile
-import qiskit
 from qiskit.backends.jobstatus import JobStatus
 from qiskit.backends import JobError
 
-from qiskit_aqua.algorithmerror import AlgorithmError
+from qiskit_aqua.aqua_error import AquaError
 from qiskit_aqua.utils import summarize_circuits
+from qiskit_aqua.algorithms import QuantumAlgorithm
 
 logger = logging.getLogger(__name__)
 
@@ -68,13 +67,13 @@ def _avoid_empty_circuits(circuits):
                 tmp_q = q
                 break
             if tmp_q is None:
-                raise AlgorithmError("A QASM without any quantum register is invalid.")
+                raise AquaError("A QASM without any quantum register is invalid.")
             qc.iden(tmp_q[0])
         new_circuits.append(qc)
     return new_circuits
 
 
-def _reuse_shared_circuits(circuits, backend, execute_config, qjob_config={}):
+def _reuse_shared_circuits(circuits, backend, execute_config, qjob_config=None):
     """Reuse the circuits with the shared head.
 
     We assume the 0-th circuit is the shared_circuit, so we execute it first
@@ -86,6 +85,9 @@ def _reuse_shared_circuits(circuits, backend, execute_config, qjob_config={}):
         after subtraction, the circuits can not be empty.
         it only works for terra 0.6.2+
     """
+
+    qjob_config = qjob_config or {}
+
     shared_circuit = circuits[0]
     shared_result = run_circuits(shared_circuit, backend, execute_config,
                                  show_circuit_summary=True)
@@ -105,7 +107,8 @@ def _reuse_shared_circuits(circuits, backend, execute_config, qjob_config={}):
     result = shared_result + diff_result
     return result
 
-def run_circuits(circuits, backend, execute_config, qjob_config={},
+
+def run_circuits(circuits, backend, execute_config, qjob_config=None,
                  show_circuit_summary=False, has_shared_circuits=False):
     """
     An execution wrapper with Qiskit-Terra, with job auto recover capability.
@@ -124,23 +127,25 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
         Result: Result object
 
     Raises:
-        AlgorithmError: Any error except for JobError raised by Qiskit Terra
+        AquaError: Any error except for JobError raised by Qiskit Terra
     """
+
+    qjob_config = qjob_config or {}
+
     if backend is None or not isinstance(backend, BaseBackend):
-        raise AlgorithmError('Backend is missing or not an instance of BaseBackend')
+        raise AquaError('Backend is missing or not an instance of BaseBackend')
 
     if not isinstance(circuits, list):
         circuits = [circuits]
 
-    if backend.configuration().get('name', '').startswith('statevector'):
+    if QuantumAlgorithm.is_statevector_backend(backend):
         circuits = _avoid_empty_circuits(circuits)
 
-    if has_shared_circuits and version.parse(qiskit.__version__) > version.parse('0.6.1'):
+    if has_shared_circuits:
         return _reuse_shared_circuits(circuits, backend, execute_config, qjob_config)
 
-    with_autorecover = False if backend.configuration()['simulator'] else True
-    max_circuits_per_job = sys.maxsize if backend.configuration()['local'] \
-        else MAX_CIRCUITS_PER_JOB
+    with_autorecover = False if backend.configuration().simulator else True
+    max_circuits_per_job = sys.maxsize if backend.configuration().local else MAX_CIRCUITS_PER_JOB
 
     qobjs = []
     jobs = []
@@ -184,7 +189,7 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
                     logger.warning("FAILURE: the {}-th chunk of circuits, job id: {}, "
                                    "Terra job error: {} ".format(idx, job_id, e))
                 except Exception as e:
-                    raise AlgorithmError("FAILURE: the {}-th chunk of circuits, job id: {}, "
+                    raise AquaError("FAILURE: the {}-th chunk of circuits, job id: {}, "
                                          "Terra unknown error: {} ".format(idx, job_id, e)) from e
 
                 # keep querying the status until it is okay.
@@ -198,7 +203,7 @@ def run_circuits(circuits, backend, execute_config, qjob_config={},
                                        "Terra job error: {}".format(job_id, e))
                         time.sleep(5)
                     except Exception as e:
-                        raise AlgorithmError("FAILURE: job id: {}, "
+                        raise AquaError("FAILURE: job id: {}, "
                                              "status: 'FAIL_TO_GET_STATUS' "
                                              "({})".format(job_id, e)) from e
 
