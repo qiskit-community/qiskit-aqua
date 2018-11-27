@@ -18,12 +18,14 @@
 The Quantum Phase Estimation Algorithm.
 """
 
+import copy
 import logging
 import numpy as np
-from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.quantum_info import Pauli
+from qiskit_aqua.algorithms.components.phase_estimation import PhaseEstimation
 from qiskit_aqua import Operator, QuantumAlgorithm, AquaError
 from qiskit_aqua import PluggableType, get_pluggable_class
+
 
 logger = logging.getLogger(__name__)
 
@@ -96,13 +98,10 @@ class QPE(QuantumAlgorithm):
     }
 
     def __init__(
-            self, operator, state_in, iqft, num_time_slices, num_ancillae,
+            self, operator, state_in, iqft, num_time_slices=1, num_ancillae=1,
             paulis_grouping='random', expansion_mode='trotter', expansion_order=1,
-            state_in_circuit_factory=None,
-            operator_circuit_factory=None,
-            additional_params=None,
-            shallow_circuit_concat=False):
-
+            shallow_circuit_concat=False
+    ):
         super().__init__()
         super().validate({
             QPE.PROP_NUM_TIME_SLICES: num_time_slices,
@@ -111,21 +110,41 @@ class QPE(QuantumAlgorithm):
             QPE.PROP_EXPANSION_ORDER: expansion_order,
             QPE.PROP_NUM_ANCILLAE: num_ancillae
         })
-        self._operator = operator
-        self._operator_circuit_factory = operator_circuit_factory
-        self._state_in = state_in
-        self._state_in_circuit_factory = state_in_circuit_factory
-        self._iqft = iqft
-        self._num_time_slices = num_time_slices
-        self._num_ancillae = num_ancillae
-        self._paulis_grouping = paulis_grouping
-        self._expansion_mode = expansion_mode
-        self._expansion_order = expansion_order
-        self._shallow_circuit_concat = shallow_circuit_concat
-        self._ancilla_phase_coef = 1
-        self._circuit = None
-        self._additional_params = additional_params
+
         self._ret = {}
+        self._operator = copy.deepcopy(operator)
+        self._operator.to_paulis()
+        self._ret['translation'] = sum([abs(p[0]) for p in self._operator.paulis])
+        self._ret['stretch'] = 0.5 / self._ret['translation']
+
+        # translate the operator
+        self._operator._simplify_paulis()
+        translation_op = Operator([
+            [
+                self._ret['translation'],
+                Pauli(
+                    np.zeros(self._operator.num_qubits),
+                    np.zeros(self._operator.num_qubits)
+                )
+            ]
+        ])
+        translation_op._simplify_paulis()
+        self._operator += translation_op
+
+        # stretch the operator
+        for p in self._operator._paulis:
+            p[0] = p[0] * self._ret['stretch']
+
+        self._phase_estimation_component = PhaseEstimation(
+            self._operator, state_in, iqft, num_time_slices=num_time_slices, num_ancillae=num_ancillae,
+            paulis_grouping=paulis_grouping, expansion_mode=expansion_mode, expansion_order=expansion_order,
+            state_in_circuit_factory=None,
+            operator_circuit_factory=None,
+            additional_params=None,
+            shallow_circuit_concat=shallow_circuit_concat
+        )
+        self._circuit = None
+        self._binary_fractions = [1 / 2 ** p for p in range(1, num_ancillae + 1)]
 
     @classmethod
     def init_params(cls, params, algo_input):
@@ -162,145 +181,24 @@ class QPE(QuantumAlgorithm):
                    paulis_grouping=paulis_grouping, expansion_mode=expansion_mode,
                    expansion_order=expansion_order)
 
-    def _construct_circuit(self, measure=False):
-        """Implement the Quantum Phase Estimation algorithm"""
-
-        a = QuantumRegister(self._num_ancillae, name='a')
-        if self._operator is not None:
-            q = QuantumRegister(self._operator.num_qubits, name='q')
-        elif self._operator_circuit_factory is not None:
-            q = QuantumRegister(self._operator_circuit_factory.num_target_qubits, name='q')
-        else:
-            raise RuntimeError('Missing operator specification.')
-        qc = QuantumCircuit(a, q)
-
-        num_aux_qubits, aux = 0, None
-        if self._state_in_circuit_factory is not None:
-            num_aux_qubits = self._state_in_circuit_factory.required_ancillas()
-        if self._operator_circuit_factory is not None:
-            num_aux_qubits = max(num_aux_qubits, self._operator_circuit_factory.required_ancillas_controlled())
-
-        if num_aux_qubits > 0:
-            aux = QuantumRegister(num_aux_qubits, name='aux')
-            qc.add_register(aux)
-
-        # initialize state_in
-        if self._state_in is not None:
-            qc.data += self._state_in.construct_circuit('circuit', q).data
-        elif self._state_in_circuit_factory is not None:
-            self._state_in_circuit_factory.build(qc, q, aux, self._additional_params)
-        else:
-            raise RuntimeError('Missing initial state specification.')
-
-        # Put all ancillae in uniform superposition
-        qc.u2(0, np.pi, a)
-
-        # phase kickbacks via dynamics
-        if self._operator is not None:
-            pauli_list = self._operator.reorder_paulis(grouping=self._paulis_grouping)
-            if len(pauli_list) == 1:
-                slice_pauli_list = pauli_list
-            else:
-                if self._expansion_mode == 'trotter':
-                    slice_pauli_list = pauli_list
-                elif self._expansion_mode == 'suzuki':
-                    slice_pauli_list = Operator._suzuki_expansion_slice_pauli_list(
-                        pauli_list,
-                        1,
-                        self._expansion_order
-                    )
-                else:
-                    raise ValueError('Unrecognized expansion mode {}.'.format(self._expansion_mode))
-            for i in range(self._num_ancillae):
-                qc_evolutions = Operator.construct_evolution_circuit(
-                    slice_pauli_list, -2 * np.pi, self._num_time_slices, q, a, ctl_idx=i,
-                    shallow_slicing=self._shallow_circuit_concat
-                )
-                if self._shallow_circuit_concat:
-                    qc.data += qc_evolutions.data
-                else:
-                    qc += qc_evolutions
-                # global phase shift for the ancilla due to the identity pauli term
-                qc.u1(2 * np.pi * self._ancilla_phase_coef * (2 ** i), a[i])
-        elif self._operator_circuit_factory is not None:
-            for i in range(self._num_ancillae):
-                self._operator_circuit_factory.build_controlled_power(qc, q, a[i], 2 ** i, aux, self._additional_params)
-
-        # inverse qft on ancillae
-        self._iqft.construct_circuit('circuit', a, qc)
-
-        # measuring ancillae
-        if measure:
-            c = ClassicalRegister(self._num_ancillae, name='c')
-            qc.add_register(c)
-            qc.barrier(a)
-            qc.measure(a, c)
-
-        self._circuit = qc
-        return qc
-
-    def _setup(self):
-        self._operator.to_paulis()
-        self._ret['translation'] = sum([abs(p[0]) for p in self._operator.paulis])
-        self._ret['stretch'] = 0.5 / self._ret['translation']
-
-        # translate the operator
-        self._operator._simplify_paulis()
-        translation_op = Operator([
-            [
-                self._ret['translation'],
-                Pauli(
-                    np.zeros(self._operator.num_qubits),
-                    np.zeros(self._operator.num_qubits)
-                )
-            ]
-        ])
-        translation_op._simplify_paulis()
-        self._operator += translation_op
-
-        # stretch the operator
-        for p in self._operator._paulis:
-            p[0] = p[0] * self._ret['stretch']
-
-        # check for identify paulis to get its coef for applying global phase shift on ancillae later
-        num_identities = 0
-        for p in self._operator.paulis:
-            if np.all(np.logical_not(p[1].z)) and np.all(np.logical_not(p[1].x)):
-                num_identities += 1
-                if num_identities > 1:
-                    raise RuntimeError('Multiple identity pauli terms are present.')
-                self._ancilla_phase_coef = p[0].real if isinstance(p[0], complex) else p[0]
-
     def _compute_energy(self):
         if QuantumAlgorithm.is_statevector_backend(self.backend):
             raise ValueError('Selected backend does not support measurements.')
 
         if self._circuit is None:
-            if self._operator is not None:
-                self._setup()
-            self._construct_circuit(measure=True)
+            self._circuit = self._phase_estimation_component.construct_circuit(measure=True)
 
         result = self.execute(self._circuit)
 
         rd = result.get_counts(self._circuit)
         rets = sorted([(rd[k], k) for k in rd])[::-1]
         ret = rets[0][-1][::-1]
-        retval = sum([t[0] * t[1] for t in zip(
-            [1 / 2 ** p for p in range(1, self._num_ancillae + 1)],
-            [int(n) for n in ret]
-        )])
+        retval = sum([t[0] * t[1] for t in zip(self._binary_fractions, [int(n) for n in ret])])
 
         self._ret['measurements'] = rets
         self._ret['top_measurement_label'] = ret
         self._ret['top_measurement_decimal'] = retval
         self._ret['energy'] = retval / self._ret['stretch'] - self._ret['translation']
-
-    def construct_circuit(self, measure=False):
-        if self._circuit is None:
-            if self._operator is not None:
-                self._setup()
-            self._construct_circuit(measure=measure)
-        return self._circuit
 
     def run(self):
         self._compute_energy()
