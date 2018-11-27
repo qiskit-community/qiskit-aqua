@@ -143,7 +143,6 @@ class QPE(QuantumAlgorithm):
             additional_params=None,
             shallow_circuit_concat=shallow_circuit_concat
         )
-        self._circuit = None
         self._binary_fractions = [1 / 2 ** p for p in range(1, num_ancillae + 1)]
 
     @classmethod
@@ -185,12 +184,9 @@ class QPE(QuantumAlgorithm):
         if QuantumAlgorithm.is_statevector_backend(self.backend):
             raise ValueError('Selected backend does not support measurements.')
 
-        if self._circuit is None:
-            self._circuit = self._phase_estimation_component.construct_circuit(measure=True)
-
-        result = self.execute(self._circuit)
-
-        rd = result.get_counts(self._circuit)
+        qc = self._phase_estimation_component.construct_circuit(measure=True)
+        result = self.execute(qc)
+        rd = result.get_counts(qc)
         rets = sorted([(rd[k], k) for k in rd])[::-1]
         ret = rets[0][-1][::-1]
         retval = sum([t[0] * t[1] for t in zip(self._binary_fractions, [int(n) for n in ret])])
