@@ -96,13 +96,8 @@ class VQE(QuantumAlgorithm):
             initial_point (numpy.ndarray) : optimizer initial point.
             aux_operators ([Operator]): Auxiliary operators to be evaluated at each eigenvalue
         """
+        self.validate(locals())
         super().__init__()
-        if self.__class__ == VQE:
-            self.validate({
-                'operator_mode': operator_mode,
-                'initial_point': initial_point,
-                'batch_mode': batch_mode
-            })
         self._operator = operator
         self._var_form = var_form
         self._optimizer = optimizer

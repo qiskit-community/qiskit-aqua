@@ -44,7 +44,7 @@ class JSONSchema(object):
         self._original_schema = None
         self.aqua_jsonschema = None
         if isinstance(schema_input, dict):
-            self._schema = schema_input
+            self._schema = copy.deepcopy(schema_input)
         elif isinstance(schema_input, str):
             with open(schema_input) as json_file:
                 self._schema = json.load(json_file)
