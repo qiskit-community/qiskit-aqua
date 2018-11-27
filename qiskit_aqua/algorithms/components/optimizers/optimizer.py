@@ -17,16 +17,16 @@
 """Optimizer interface
 """
 
-from abc import ABC, abstractmethod
+from qiskit_aqua import Pluggable
+from abc import abstractmethod
 from enum import IntEnum
 import logging
-
 import numpy as np
 
 logger = logging.getLogger(__name__)
 
 
-class Optimizer(ABC):
+class Optimizer(Pluggable):
     """Base class for optimization algorithm."""
 
     class SupportLevel(IntEnum):
@@ -55,7 +55,7 @@ class Optimizer(ABC):
     }
 
     @abstractmethod
-    def __init__(self, configuration=None):
+    def __init__(self):
         """Constructor.
 
         Initialize the optimization algorithm, setting the support
@@ -63,7 +63,7 @@ class Optimizer(ABC):
         _initial_point_support_level, and empty options.
 
         """
-        self._configuration = configuration or Optimizer.DEFAULT_CONFIGURATION
+        super().__init__()
         if 'support_level' not in self._configuration:
             self._configuration['support_level'] = self.DEFAULT_CONFIGURATION['support_level']
         if 'options' not in self._configuration:
@@ -74,12 +74,8 @@ class Optimizer(ABC):
         self._options = {}
         self._batch_mode = False
 
-    @property
-    def configuration(self):
-        """Return optimizer configuration"""
-        return self._configuration
-
-    def init_params(self, params):
+    @classmethod
+    def init_params(cls, params):
         """Initialize with a params dictionary
 
         A dictionary of config params as per the configuration object. Some of these params get
@@ -91,16 +87,12 @@ class Optimizer(ABC):
             params (dict): configuration dict
         """
         logger.debug('init_params: {}'.format(params))
-        opts = {k: v for k, v in params.items() if k in self._configuration['options']}
-        self.set_options(**opts)
-        args = {k: v for k, v in params.items() if k not in self._configuration['options'] and k != 'name'}
+        opts = {k: v for k, v in params.items() if k in cls.CONFIGURATION['options']}
+        args = {k: v for k, v in params.items() if k not in cls.CONFIGURATION['options'] and k != 'name'}
         logger.debug('init_args: {}'.format(args))
-        self.init_args(**args)
-
-    @abstractmethod
-    def init_args(self, **args):
-        """Initialize the optimizer with its parameters according to schema"""
-        raise NotImplementedError()
+        optimizer = cls(**args)
+        optimizer.set_options(**opts)
+        return optimizer
 
     def set_options(self, **kwargs):
         """Set an options dictionary that may be used by call to the optimizer

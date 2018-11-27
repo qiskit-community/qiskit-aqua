@@ -19,10 +19,12 @@ This module contains the definition of a base class for
 initial states. An initial state might be used by a variational
 form or in eoh as a trial state to evolve
 """
-from abc import ABC, abstractmethod
+
+from qiskit_aqua import Pluggable
+from abc import abstractmethod
 
 
-class InitialState(ABC):
+class InitialState(Pluggable):
 
     """Base class for InitialState.
 
@@ -35,32 +37,30 @@ class InitialState(ABC):
     """
 
     @abstractmethod
-    def __init__(self, configuration=None):
-        self._configuration = configuration
+    def __init__(self):
+        super().__init__()
 
-    @property
-    def configuration(self):
-        """Return configuration"""
-        return self._configuration
-
-    def init_params(self, params):
+    @classmethod
+    def init_params(cls, params):
         args = {k: v for k, v in params.items() if k != 'name'}
-        self.init_args(**args)
-
-    @abstractmethod
-    def init_args(self, **args):
-        raise NotImplementedError()
+        return cls(**args)
 
     @abstractmethod
     def construct_circuit(self, mode, register=None):
-        """Construct the initial state circuit.
+        """
+        Construct the statevector of desired initial state.
 
         Args:
-            mode (str): 'vector' or 'circuit'
+            mode (string): `vector` or `circuit`. The `vector` mode produces the vector.
+                            While the `circuit` constructs the quantum circuit corresponding that
+                            vector.
             register (QuantumRegister): register for circuit construction.
 
         Returns:
-            A quantum circuit.
+            QuantumCircuit or numpy.ndarray: statevector.
+
+        Raises:
+            ValueError: when mode is not 'vector' or 'circuit'.
         """
         raise NotImplementedError()
 

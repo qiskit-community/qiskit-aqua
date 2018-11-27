@@ -31,10 +31,11 @@ class Model(object):
         return self._parser is None or len(self._parser.get_section_names()) == 0
 
     def new(self):
-        from qiskit_aqua.parser import InputParser
+        from qiskit_aqua.parser._inputparser import InputParser
         try:
             dict = {}
-            jsonfile = os.path.join(os.path.dirname(__file__), 'input_template.json')
+            jsonfile = os.path.join(os.path.dirname(
+                __file__), 'input_template.json')
             with open(jsonfile) as json_file:
                 dict = json.load(json_file)
 
@@ -51,7 +52,7 @@ class Model(object):
             raise
 
     def load_file(self, filename):
-        from qiskit_aqua.parser import InputParser
+        from qiskit_aqua.parser._inputparser import InputParser
         if filename is None:
             return []
         try:
@@ -153,12 +154,14 @@ class Model(object):
         value = self._parser.get_section_default_properties(section_name)
         if isinstance(value, dict):
             for property_name, property_value in value.items():
-                self._parser.set_section_property(section_name, property_name, property_value)
+                self._parser.set_section_property(
+                    section_name, property_name, property_value)
 
             # do one more time in case schema was updated
             value = self._parser.get_section_default_properties(section_name)
             for property_name, property_value in value.items():
-                self._parser.set_section_property(section_name, property_name, property_value)
+                self._parser.set_section_property(
+                    section_name, property_name, property_value)
         else:
             if value is None:
                 types = self._parser.get_section_types(section_name)
@@ -181,11 +184,13 @@ class Model(object):
         self._parser.delete_section_properties(section_name)
         value = self._parser.get_section_default_properties(section_name)
         if name is not None:
-            self._parser.set_section_property(section_name, JSONSchema.NAME, name)
+            self._parser.set_section_property(
+                section_name, JSONSchema.NAME, name)
         if isinstance(value, dict):
             for property_name, property_value in value.items():
                 if property_name != JSONSchema.NAME:
-                    self._parser.set_section_property(section_name, property_name, property_value)
+                    self._parser.set_section_property(
+                        section_name, property_name, property_value)
         else:
             if value is None:
                 types = self._parser.get_section_types(section_name)
@@ -201,18 +206,20 @@ class Model(object):
 
     @staticmethod
     def is_pluggable_section(section_name):
-        from qiskit_aqua.parser import InputParser
+        from qiskit_aqua.parser._inputparser import InputParser
         return InputParser.is_pluggable_section(section_name)
 
     def get_input_section_names(self):
-        from qiskit_aqua.parser import InputParser
+        from qiskit_aqua.parser._inputparser import InputParser
         from qiskit_aqua.input import local_inputs
         from qiskit_aqua.parser import JSONSchema
         problem_name = None
         if self._parser is not None:
-            problem_name = self.get_section_property(JSONSchema.PROBLEM, JSONSchema.NAME)
+            problem_name = self.get_section_property(
+                JSONSchema.PROBLEM, JSONSchema.NAME)
         if problem_name is None:
-            problem_name = self.get_property_default_value(JSONSchema.PROBLEM, JSONSchema.NAME)
+            problem_name = self.get_property_default_value(
+                JSONSchema.PROBLEM, JSONSchema.NAME)
 
         if problem_name is None:
             return local_inputs()
@@ -226,24 +233,26 @@ class Model(object):
         return input_names
 
     def get_pluggable_section_names(self, section_name):
-        from qiskit_aqua.parser import InputParser
-        from qiskit_aqua import local_pluggables
+        from qiskit_aqua.parser._inputparser import InputParser
+        from qiskit_aqua import PluggableType, local_pluggables
         from qiskit_aqua.parser import JSONSchema
         if not Model.is_pluggable_section(section_name):
             return []
 
-        if JSONSchema.ALGORITHM == section_name:
+        if PluggableType.ALGORITHM.value == section_name:
             problem_name = None
             if self._parser is not None:
-                problem_name = self.get_section_property(JSONSchema.PROBLEM, JSONSchema.NAME)
+                problem_name = self.get_section_property(
+                    JSONSchema.PROBLEM, JSONSchema.NAME)
             if problem_name is None:
-                problem_name = self.get_property_default_value(JSONSchema.PROBLEM, JSONSchema.NAME)
+                problem_name = self.get_property_default_value(
+                    JSONSchema.PROBLEM, JSONSchema.NAME)
 
             if problem_name is None:
-                return local_pluggables(JSONSchema.ALGORITHM)
+                return local_pluggables(PluggableType.ALGORITHM)
 
             algo_names = []
-            for algo_name in local_pluggables(JSONSchema.ALGORITHM):
+            for algo_name in local_pluggables(PluggableType.ALGORITHM):
                 problems = InputParser.get_algorithm_problems(algo_name)
                 if problem_name in problems:
                     algo_names.append(algo_name)
@@ -289,7 +298,7 @@ class Model(object):
         return self._parser.get_property_types(section_name, property_name)
 
     def set_section_property(self, section_name, property_name, value):
-        from qiskit_aqua.parser import InputParser
+        from qiskit_aqua.parser._inputparser import InputParser
         from qiskit_aqua.parser import JSONSchema
         if self._parser is None:
             raise Exception('Input not initialized.')
@@ -297,15 +306,17 @@ class Model(object):
         self._parser.set_section_property(section_name, property_name, value)
         if property_name == JSONSchema.NAME and \
                 (InputParser.is_pluggable_section(section_name) or section_name == InputParser.INPUT):
-            properties = self._parser.get_section_default_properties(section_name)
+            properties = self._parser.get_section_default_properties(
+                section_name)
             if isinstance(properties, dict):
                 properties[JSONSchema.NAME] = value
                 self._parser.delete_section_properties(section_name)
                 for property_name, property_value in properties.items():
-                    self._parser.set_section_property(section_name, property_name, property_value)
+                    self._parser.set_section_property(
+                        section_name, property_name, property_value)
 
     def delete_section_property(self, section_name, property_name):
-        from qiskit_aqua.parser import InputParser
+        from qiskit_aqua.parser._inputparser import InputParser
         from qiskit_aqua.parser import JSONSchema
         if self._parser is None:
             raise Exception('Input not initialized.')

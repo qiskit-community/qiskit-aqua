@@ -17,6 +17,7 @@
 
 from qiskit_aqua.algorithms.components.optimizers import Optimizer
 from ._nloptimizer import minimize
+import importlib
 import logging
 
 try:
@@ -24,19 +25,17 @@ try:
 except ImportError:
     raise ImportWarning('nlopt cannot be imported')
 
-
-
 logger = logging.getLogger(__name__)
 
 
 class CRS(Optimizer):
-    """Controlled Random Search (CRS) with local mutation
+    """Controlled Random Search (CRS) with local mutation.
 
     NLopt global optimizer, derivative-free
     https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#controlled-random-search-crs-with-local-mutation
     """
 
-    CRS_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'CRS',
         'description': 'GN_CRS2_LM Optimizer',
         'input_schema': {
@@ -60,14 +59,23 @@ class CRS(Optimizer):
         'optimizer': ['global']
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.CRS_CONFIGURATION.copy())
+    def __init__(self):
+        super().__init__()
 
-    def init_args(self):
-        pass
+    @staticmethod
+    def check_pluggable_valid():
+        try:
+            spec = importlib.util.find_spec('nlopt')
+            if spec is not None:
+                return True
+        except:
+            pass
 
-    def optimize(self, num_vars, objective_function, gradient_function=None, variable_bounds=None, initial_point=None):
+        logger.info("nlopt is not installed. Please install it if you want to use them.")
+        return False
+
+    def optimize(self, num_vars, objective_function, gradient_function=None,
+                 variable_bounds=None, initial_point=None):
         super().optimize(num_vars, objective_function, gradient_function, variable_bounds, initial_point)
 
         return minimize(nlopt.GN_CRS2_LM, objective_function, variable_bounds, initial_point, **self._options)
-

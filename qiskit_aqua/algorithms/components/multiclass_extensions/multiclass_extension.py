@@ -15,10 +15,11 @@
 # limitations under the License.
 # =============================================================================
 
-from abc import ABC, abstractmethod
+from qiskit_aqua import Pluggable
+from abc import abstractmethod
 
 
-class MulticlassExtension(ABC):
+class MulticlassExtension(Pluggable):
     """
         Base class for multiclass extension.
 
@@ -30,22 +31,13 @@ class MulticlassExtension(ABC):
     """
 
     @abstractmethod
-    def __init__(self, configuration=None):
-        self._configuration = configuration
+    def __init__(self):
+        super().__init__()
 
-    @property
-    def configuration(self):
-        """Return configuration"""
-        return self._configuration
-
-    def init_params(self, params):
+    @classmethod
+    def init_params(cls, params):
         args = {k: v for k, v in params.items() if k != 'name'}
-        self.init_args(**args)
-
-    def init_args(self, estimator_cls, code_size=None, params=None):
-        self.estimator_cls = estimator_cls
-        self.code_size = code_size
-        self.params = params
+        return cls(**args)
 
     @abstractmethod
     def train(self, x, y):

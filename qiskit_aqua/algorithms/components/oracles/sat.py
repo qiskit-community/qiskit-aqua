@@ -25,7 +25,8 @@ logger = logging.getLogger(__name__)
 
 
 class SAT(Oracle):
-    SAT_CONFIGURATION = {
+
+    CONFIGURATION = {
         'name': 'SAT',
         'description': 'Satisfiability Oracle',
         'input_schema': {
@@ -41,15 +42,9 @@ class SAT(Oracle):
         }
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.SAT_CONFIGURATION.copy())
-        self._cnf = None
-        self._qr_ancilla = None
-        self._qr_clause = None
-        self._qr_outcome = None
-        self._qr_variable = None
-
-    def init_args(self, cnf):
+    def __init__(self, cnf):
+        self.validate(locals())
+        super().__init__()
         ls = [
             l.strip() for l in cnf.split('\n')
             if len(l) > 0 and not l.strip()[0] == 'c'
@@ -88,8 +83,7 @@ class SAT(Oracle):
         self._qr_variable = QuantumRegister(nv, name='v')
         self._qr_clause = QuantumRegister(nc, name='c')
         num_ancillae = max(max(nc, nv) - 2, 0)
-        if num_ancillae > 0:
-            self._qr_ancilla = QuantumRegister(num_ancillae, name='a')
+        self._qr_ancilla = QuantumRegister(num_ancillae, name='a') if num_ancillae > 0 else None
 
     def variable_register(self):
         return self._qr_variable

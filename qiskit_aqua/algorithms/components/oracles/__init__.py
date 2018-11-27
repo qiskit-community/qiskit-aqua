@@ -16,5 +16,7 @@
 # =============================================================================
 
 from .oracle import Oracle
+from .sat import SAT
 
-__all__ = ['Oracle']
+__all__ = ['Oracle',
+           'SAT']
