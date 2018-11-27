@@ -37,7 +37,7 @@ def random_unitary(N):
     """
     X = (np.random.randint(N, size=(N, N)) + 1j*np.random.randint(N, size=(N, N))) / np.sqrt(2)
     Q, R = np.linalg.qr(X)
-    R = np.diag(np.multiply(np.diag(R), abs(np.diag(R))))
+    R = np.diag(np.divide(np.diag(R), abs(np.diag(R))))
     unitary_matrix = np.dot(Q, R)
     return unitary_matrix
 
