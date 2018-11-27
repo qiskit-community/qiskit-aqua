@@ -49,10 +49,8 @@ class ErrorCorrectingCode(MulticlassExtension):
     }
 
     def __init__(self, estimator_cls, params=None, code_size=4):
+        self.validate(locals())
         super().__init__()
-        self.validate({
-            'code_size': code_size
-        })
         self.estimator_cls = estimator_cls
         self.params = params or []
         self.code_size = code_size

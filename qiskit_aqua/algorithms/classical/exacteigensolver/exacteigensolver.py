@@ -58,10 +58,8 @@ class ExactEigensolver(QuantumAlgorithm):
             k: How many eigenvalues are to be computed
             aux_operators: Auxiliary operators to be evaluated at each eigenvalue
         """
+        self.validate(locals())
         super().__init__()
-        self.validate({
-            'k': k
-        })
         self._operator = operator
         if aux_operators is None:
             self._aux_operators = []
