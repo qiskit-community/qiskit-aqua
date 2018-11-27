@@ -33,6 +33,9 @@ from qiskit_aqua.preferences import Preferences
 
 logger = logging.getLogger(__name__)
 
+    'qft': QFT,
+    'eigs': Eigenvalues,
+    'reciprocal': Reciprocal
 
 class PluggableType(Enum):
     ALGORITHM = 'algorithm'
@@ -85,9 +88,12 @@ _NAMES_TO_EXCLUDE = [
     'variational_form',
     'initial_state',
     'iqft',
+    'qft',
     'oracle',
     'feature_map',
-    'multiclass_extension'
+    'multiclass_extension',
+    'eigs',
+    'reciprocal'
 ]
 
 _FOLDERS_TO_EXCLUDE = ['__pycache__', 'input', 'ui', 'parser']
