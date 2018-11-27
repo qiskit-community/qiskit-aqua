@@ -34,7 +34,7 @@ class P_BFGS(Optimizer):
     https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.fmin_l_bfgs_b.html
     """
 
-    P_BFGS_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'P_BFGS',
         'description': 'Parallelized l_bfgs_b Optimizer',
         'input_schema': {
@@ -71,13 +71,10 @@ class P_BFGS(Optimizer):
         'optimizer': ['local', 'parallel']
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.P_BFGS_CONFIGURATION.copy())
-        self._max_processes = None
-
-    def init_args(self, max_processes=None):
+    def __init__(self, max_processes=None):
+        self.validate(locals())
+        super().__init__()
         self._max_processes = max_processes
-        pass
 
     def optimize(self, num_vars, objective_function, gradient_function=None, variable_bounds=None, initial_point=None):
         num_procs = multiprocessing.cpu_count() - 1

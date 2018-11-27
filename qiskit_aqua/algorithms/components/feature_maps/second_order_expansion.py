@@ -19,17 +19,17 @@ This module contains the definition of a base class for
 feature map. Several types of commonly used approaches.
 """
 
-from qiskit_aqua.algorithms.components.feature_maps.pauli_z_expansion import PauliZExpansion
-from qiskit_aqua.algorithms.components.feature_maps import self_product
+from qiskit_aqua.algorithms.components.feature_maps import PauliZExpansion, self_product
 
 
 class SecondOrderExpansion(PauliZExpansion):
     """
     Mapping data with the second order expansion followed by entangling gates.
+
     Refer to https://arxiv.org/pdf/1804.11326.pdf for details.
     """
 
-    SECOND_ORDER_EXPANSION_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'SecondOrderExpansion',
         'description': 'Second order expansion for feature map',
         'input_schema': {
@@ -58,14 +58,9 @@ class SecondOrderExpansion(PauliZExpansion):
         }
     }
 
-    def __init__(self, configuration=None):
-        """Constructor."""
-        super().__init__(configuration or self.SECOND_ORDER_EXPANSION_CONFIGURATION.copy())
-        self._ret = {}
-
-    def init_args(self, num_qubits, depth, entangler_map=None,
-                  entanglement='full', data_map_func=self_product):
-        """Initializer.
+    def __init__(self, num_qubits, depth=2, entangler_map=None,
+                 entanglement='full', data_map_func=self_product):
+        """Constructor.
 
         Args:
             num_qubits (int): number of qubits
@@ -75,5 +70,6 @@ class SecondOrderExpansion(PauliZExpansion):
                                 topology
             data_map_func (Callable): a mapping function for data x
         """
-        super().init_args(num_qubits, depth, entangler_map, entanglement,
-                          z_order=2, data_map_func=data_map_func)
+        self.validate(locals())
+        super().__init__(num_qubits, depth, entangler_map, entanglement,
+                         z_order=2, data_map_func=data_map_func)

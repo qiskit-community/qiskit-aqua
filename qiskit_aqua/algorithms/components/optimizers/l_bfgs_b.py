@@ -31,7 +31,7 @@ class L_BFGS_B(Optimizer):
     https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.fmin_l_bfgs_b.html
     """
 
-    L_BFGS_B_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'L_BFGS_B',
         'description': 'L_BFGS_B Optimizer',
         'input_schema': {
@@ -67,11 +67,8 @@ class L_BFGS_B(Optimizer):
         'optimizer': ['local']
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.L_BFGS_B_CONFIGURATION.copy())
-
-    def init_args(self):
-        pass
+    def __init__(self):
+        super().__init__()
 
     def optimize(self, num_vars, objective_function, gradient_function=None, variable_bounds=None, initial_point=None):
         super().optimize(num_vars, objective_function, gradient_function, variable_bounds, initial_point)

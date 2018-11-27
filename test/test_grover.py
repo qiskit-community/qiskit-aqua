@@ -17,9 +17,13 @@
 
 import unittest
 import operator
+
 from parameterized import parameterized
+from qiskit import Aer
+
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import get_algorithm_instance, get_oracle_instance
+from qiskit_aqua.algorithms.components.oracles import SAT
+from qiskit_aqua.algorithms.single_sample import Grover
 
 
 class TestGrover(QiskitAquaTestCase):
@@ -27,7 +31,7 @@ class TestGrover(QiskitAquaTestCase):
     @parameterized.expand([
         ['test_grover_tiny.cnf', False, 1],
         ['test_grover.cnf', False, 2],
-        ['test_grover_no_solution.cnf', True, None],
+        ['test_grover_no_solution.cnf', True, 1],
     ])
     def test_grover(self, input_file, incremental=True, num_iterations=1):
         input_file = self._get_resource_path(input_file)
@@ -51,12 +55,10 @@ class TestGrover(QiskitAquaTestCase):
             ])[::-1]
             for s in header.split('solutions:' if header.find('solutions:') >= 0 else 'solution:')[-1].split(',')
         ]
-        sat_oracle = get_oracle_instance('SAT')
-        sat_oracle.init_args(buf)
-
-        grover = get_algorithm_instance('Grover')
-        grover.setup_quantum_backend(backend='qasm_simulator', shots=100)
-        grover.init_args(sat_oracle, num_iterations=num_iterations, incremental=incremental)
+        backend = Aer.get_backend('qasm_simulator')
+        sat_oracle = SAT(buf)
+        grover = Grover(sat_oracle, num_iterations=num_iterations, incremental=incremental)
+        grover.setup_quantum_backend(backend=backend, shots=100)
 
         ret = grover.run()
 

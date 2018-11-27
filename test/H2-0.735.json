@@ -33,7 +33,7 @@
     "input": {
         "aux_ops": [],
         "name": "EnergyInput",
-        "qubitop": {
+        "qubit_op": {
             "paulis": [
                 {
                     "coeff": {

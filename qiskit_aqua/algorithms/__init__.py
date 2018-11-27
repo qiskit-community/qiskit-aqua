@@ -15,3 +15,6 @@
 # limitations under the License.
 # =============================================================================
 
+from .quantumalgorithm import QuantumAlgorithm
+
+__all__ = ['QuantumAlgorithm']

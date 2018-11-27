@@ -19,13 +19,13 @@ from scipy import linalg
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.qasm import pi
-
 from qiskit_aqua.algorithms.components.iqfts import IQFT
+
 
 class Standard(IQFT):
     """A normal standard IQFT."""
 
-    STANDARD_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'STANDARD',
         'description': 'Inverse QFT',
         'input_schema': {
@@ -38,11 +38,8 @@ class Standard(IQFT):
         }
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.STANDARD_CONFIGURATION.copy())
-        self._num_qubits = 0
-
-    def init_args(self, num_qubits):
+    def __init__(self, num_qubits):
+        super().__init__()
         self._num_qubits = num_qubits
 
     def construct_circuit(self, mode, register=None, circuit=None):

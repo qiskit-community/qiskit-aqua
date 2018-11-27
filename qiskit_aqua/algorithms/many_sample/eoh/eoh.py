@@ -22,8 +22,8 @@ import logging
 
 from qiskit import QuantumRegister
 
-from qiskit_aqua import QuantumAlgorithm, AlgorithmError
-from qiskit_aqua import get_initial_state_instance
+from qiskit_aqua import QuantumAlgorithm, AquaError
+from qiskit_aqua import PluggableType, get_pluggable_class
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ class EOH(QuantumAlgorithm):
     PROP_EXPANSION_MODE = 'expansion_mode'
     PROP_EXPANSION_ORDER = 'expansion_order'
 
-    DYNAMICS_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'EOH',
         'description': 'Evolution of Hamiltonian for Quantum Systems',
         'input_schema': {
@@ -106,20 +106,23 @@ class EOH(QuantumAlgorithm):
         }
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.DYNAMICS_CONFIGURATION.copy())
-        self._operator = None
-        self._operator_mode = None
-        self._initial_state = None
-        self._evo_operator = None
-        self._evo_time = 0
-        self._num_time_slices = 0
-        self._paulis_grouping = None
-        self._expansion_mode = None
-        self._expansion_order = None
+    def __init__(self, operator, initial_state, evo_operator, operator_mode='paulis', evo_time=1, num_time_slices=1,
+                 paulis_grouping='random', expansion_mode='trotter', expansion_order=1):
+        self.validate(locals())
+        super().__init__()
+        self._operator = operator
+        self._operator_mode = operator_mode
+        self._initial_state = initial_state
+        self._evo_operator = evo_operator
+        self._evo_time = evo_time
+        self._num_time_slices = num_time_slices
+        self._paulis_grouping = paulis_grouping
+        self._expansion_mode = expansion_mode
+        self._expansion_order = expansion_order
         self._ret = {}
 
-    def init_params(self, params, algo_input):
+    @classmethod
+    def init_params(cls, params, algo_input):
         """
         Initialize via parameters dictionary and algorithm input instance
         Args:
@@ -127,16 +130,16 @@ class EOH(QuantumAlgorithm):
             algo_input: EnergyInput instance
         """
         if algo_input is None:
-            raise AlgorithmError("EnergyInput instance is required.")
+            raise AquaError("EnergyInput instance is required.")
 
         # For getting the extra operator, caller has to do something like: algo_input.add_aux_op(evo_op)
         operator = algo_input.qubit_op
         aux_ops = algo_input.aux_ops
         if aux_ops is None or len(aux_ops) != 1:
-            raise AlgorithmError("EnergyInput, a single aux op is required for evaluation.")
+            raise AquaError("EnergyInput, a single aux op is required for evaluation.")
         evo_operator = aux_ops[0]
         if evo_operator is None:
-            raise AlgorithmError("EnergyInput, invalid aux op.")
+            raise AquaError("EnergyInput, invalid aux op.")
 
         dynamics_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
         operator_mode = dynamics_params.get(EOH.PROP_OPERATOR_MODE)
@@ -149,27 +152,12 @@ class EOH(QuantumAlgorithm):
         # Set up initial state, we need to add computed num qubits to params
         initial_state_params = params.get(QuantumAlgorithm.SECTION_KEY_INITIAL_STATE)
         initial_state_params['num_qubits'] = operator.num_qubits
-        initial_state = get_initial_state_instance(initial_state_params['name'])
-        initial_state.init_params(initial_state_params)
+        initial_state = get_pluggable_class(PluggableType.INITIAL_STATE,
+                                            initial_state_params['name']).init_params(initial_state_params)
 
-        self.init_args(
-            operator, operator_mode, initial_state, evo_operator, evo_time, num_time_slices,
-            paulis_grouping=paulis_grouping, expansion_mode=expansion_mode, expansion_order=expansion_order
-        )
-
-    def init_args(
-            self, operator, operator_mode, initial_state, evo_operator, evo_time, num_time_slices,
-            paulis_grouping='default', expansion_mode='trotter', expansion_order=1):
-        self._operator = operator
-        self._operator_mode = operator_mode
-        self._initial_state = initial_state
-        self._evo_operator = evo_operator
-        self._evo_time = evo_time
-        self._num_time_slices = num_time_slices
-        self._paulis_grouping = paulis_grouping
-        self._expansion_mode = expansion_mode
-        self._expansion_order = expansion_order
-        self._ret = {}
+        return cls(operator, initial_state, evo_operator, operator_mode, evo_time, num_time_slices,
+                   paulis_grouping=paulis_grouping, expansion_mode=expansion_mode,
+                   expansion_order=expansion_order)
 
     def run(self):
         quantum_registers = QuantumRegister(self._operator.num_qubits, name='q')

@@ -16,5 +16,14 @@
 # =============================================================================
 
 from .initial_state import InitialState
+from .custom import Custom
+from .hartree_fock import HartreeFock
+from .varformbased import VarFormBased
+from .zero import Zero
 
-__all__ = ['InitialState']
+__all__ = ['InitialState',
+           'Custom',
+           'HartreeFock',
+           'VarFormBased',
+           'Zero'
+           ]

@@ -20,8 +20,8 @@ The Grover Quantum algorithm.
 
 import logging
 from qiskit import ClassicalRegister, QuantumCircuit
-from qiskit_aqua import QuantumAlgorithm, AlgorithmError
-from qiskit_aqua import get_oracle_instance
+from qiskit_aqua import QuantumAlgorithm, AquaError
+from qiskit_aqua import PluggableType, get_pluggable_class
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ class Grover(QuantumAlgorithm):
     PROP_INCREMENTAL = 'incremental'
     PROP_NUM_ITERATIONS = 'num_iterations'
 
-    GROVER_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'Grover',
         'description': 'Grover',
         'input_schema': {
@@ -61,35 +61,9 @@ class Grover(QuantumAlgorithm):
         }
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.GROVER_CONFIGURATION.copy())
-        self._incremental = False
-        self._num_iterations = 1
-        self._oracle = None
-        self._ret = {}
-
-    def init_params(self, params, algo_input):
-        """
-        Initialize via parameters dictionary and algorithm input instance
-        Args:
-            params: parameters dictionary
-            algo_input: input instance
-        """
-        if algo_input is not None:
-            raise AlgorithmError("Unexpected Input instance.")
-
-        grover_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
-        incremental = grover_params.get(Grover.PROP_INCREMENTAL)
-        num_iterations = grover_params.get(Grover.PROP_NUM_ITERATIONS)
-
-        oracle_params = params.get(QuantumAlgorithm.SECTION_KEY_ORACLE)
-        oracle = get_oracle_instance(oracle_params['name'])
-        oracle.init_params(oracle_params)
-        self.init_args(oracle, incremental=incremental, num_iterations=num_iterations)
-
-    def init_args(self, oracle, incremental=False, num_iterations=1):
-        if QuantumAlgorithm.is_statevector_backend(self.backend):
-            raise ValueError('Selected backend  "{}" does not support measurements.'.format(QuantumAlgorithm.backend_name(self.backend)))
+    def __init__(self, oracle, incremental=False, num_iterations=1):
+        self.validate(locals())
+        super().__init__()
         self._oracle = oracle
         self._max_num_iterations = 2 ** (len(self._oracle.variable_register()) / 2)
         self._incremental = incremental
@@ -99,6 +73,27 @@ class Grover(QuantumAlgorithm):
         else:
             if num_iterations > self._max_num_iterations:
                 logger.warning('The specified value {} for "num_iterations" might be too high.'.format(num_iterations))
+        self._ret = {}
+
+    @classmethod
+    def init_params(cls, params, algo_input):
+        """
+        Initialize via parameters dictionary and algorithm input instance
+        Args:
+            params: parameters dictionary
+            algo_input: input instance
+        """
+        if algo_input is not None:
+            raise AquaError("Unexpected Input instance.")
+
+        grover_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
+        incremental = grover_params.get(Grover.PROP_INCREMENTAL)
+        num_iterations = grover_params.get(Grover.PROP_NUM_ITERATIONS)
+
+        oracle_params = params.get(QuantumAlgorithm.SECTION_KEY_ORACLE)
+        oracle = get_pluggable_class(PluggableType.ORACLE,
+                                     oracle_params['name']).init_params(oracle_params)
+        return cls(oracle, incremental=incremental, num_iterations=num_iterations)
 
     def _construct_circuit_components(self):
         measurement_cr = ClassicalRegister(len(self._oracle.variable_register()), name='m')
@@ -163,6 +158,11 @@ class Grover(QuantumAlgorithm):
         return assignment, oracle_evaluation
 
     def run(self):
+
+        if QuantumAlgorithm.is_statevector_backend(self.backend):
+            raise ValueError('Selected backend  "{}" does not support measurements.'.format(
+                QuantumAlgorithm.backend_name(self.backend)))
+
         qc_prefix, qc_amplitude_amplification_single_iteration, qc_measurement = self._construct_circuit_components()
         qc_amplitude_amplification = QuantumCircuit()
 

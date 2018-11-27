@@ -15,37 +15,37 @@
 # limitations under the License.
 # =============================================================================
 """
-    This trial wavefunction is a Unitary Coupled-Cluster Single and Double excitations
-    variational form.
-    For more information, see https://arxiv.org/abs/1805.04340
+This trial wavefunction is a Unitary Coupled-Cluster Single and Double excitations
+variational form.
+For more information, see https://arxiv.org/abs/1805.04340
 """
 
 import logging
-
+import importlib
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 
 from qiskit_aqua import Operator
 from qiskit_aqua.algorithms.components.variational_forms import VariationalForm
 
+logger = logging.getLogger(__name__)
+
 try:
     from qiskit_aqua_chemistry.fermionic_operator import FermionicOperator
 except ImportError:
-    raise ImportWarning('UCCSD can be only used with qiskit_aqua_chemistry lib." \
+    logger.info('UCCSD can be only used with qiskit_aqua_chemistry lib." \
         "If you would like to use it for other purposes," \
         "please install qiskit_aqua_chemistry first."')
 
-logger = logging.getLogger(__name__)
 
-
-class VarFormUCCSD(VariationalForm):
+class UCCSD(VariationalForm):
     """
         This trial wavefunction is a Unitary Coupled-Cluster Single and Double excitations
         variational form.
         For more information, see https://arxiv.org/abs/1805.04340
     """
 
-    UCCSD_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'UCCSD',
         'description': 'UCCSD Variational Form',
         'input_schema': {
@@ -97,31 +97,26 @@ class VarFormUCCSD(VariationalForm):
         }
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.UCCSD_CONFIGURATION.copy())
-        self._num_qubits = 0
-        self._depth = 0
-        self._num_orbitals = 0
-        self._num_particles = 0
-        self._single_excitations = None
-        self._double_excitations = None
-        self._qubit_mapping = None
-        self._initial_state = None
-        self._two_qubit_reduction = False
-        self._num_time_slices = 1
-        self._num_parameters = 0
-        self._bounds = None
-        self._cliffords = None
-        self._sq_list = None
-        self._tapering_values = None
-        self._symmetries = None
-        self._hopping_ops = {}
+    @staticmethod
+    def check_pluggable_valid():
+        try:
+            spec = importlib.util.find_spec('qiskit_aqua_chemistry.fermionic_operator')
+            if spec is not None:
+                return True
+        except:
+            pass
 
-    def init_args(self, num_qubits, depth, num_orbitals, num_particles,
-                  active_occupied=None, active_unoccupied=None, initial_state=None,
-                  qubit_mapping='parity', two_qubit_reduction=False, num_time_slices=1,
-                  cliffords=None, sq_list=None, tapering_values=None, symmetries=None):
-        """
+        logger.info('UCCSD can be only used with qiskit_aqua_chemistry lib." \
+        "If you would like to use it for other purposes," \
+        "please install qiskit_aqua_chemistry first."')
+        return False
+
+    def __init__(self, num_qubits, depth, num_orbitals, num_particles,
+                 active_occupied=None, active_unoccupied=None, initial_state=None,
+                 qubit_mapping='parity', two_qubit_reduction=False, num_time_slices=1,
+                 cliffords=None, sq_list=None, tapering_values=None, symmetries=None):
+        """Constructor.
+
         Args:
             num_orbitals (int): number of spin orbitals
             depth (int): number of replica of basic module
@@ -139,6 +134,8 @@ class VarFormUCCSD(VariationalForm):
                                     has to be equal to the length of cliffords and sq_list
             symmetries ([Pauli]): represent the Z2 symmetries
         """
+        self.validate(locals())
+        super().__init__()
         self._cliffords = cliffords
         self._sq_list = sq_list
         self._tapering_values = tapering_values
@@ -155,9 +152,12 @@ class VarFormUCCSD(VariationalForm):
         if self._num_qubits != num_qubits:
             raise ValueError('Computed num qubits {} does not match actual {}'
                              .format(self._num_qubits, num_qubits))
-        self._num_orbitals = num_orbitals
         self._depth = depth
+        self._num_orbitals = num_orbitals
         self._num_particles = num_particles
+
+        if self._num_particles > self._num_orbitals:
+            raise ValueError('# of particles must be less than or equal to # of orbitals.')
 
         self._initial_state = initial_state
         self._qubit_mapping = qubit_mapping
@@ -165,8 +165,8 @@ class VarFormUCCSD(VariationalForm):
         self._num_time_slices = num_time_slices
 
         self._single_excitations, self._double_excitations = \
-            VarFormUCCSD.compute_excitation_lists(num_particles, num_orbitals,
-                                                  active_occupied, active_unoccupied)
+            UCCSD.compute_excitation_lists(num_particles, num_orbitals,
+                                           active_occupied, active_unoccupied)
 
         self._hopping_ops, self._num_parameters = self._build_hopping_operators()
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
