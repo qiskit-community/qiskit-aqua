@@ -65,7 +65,8 @@ class TestQSVMVariational(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(result['opt_params'], self.ref_opt_params, decimal=4)
         np.testing.assert_array_almost_equal(result['training_loss'], self.ref_train_loss, decimal=8)
 
-        self.assertEqual(result['testing_accuracy'], 0.5)
+        #self.assertEqual(result['testing_accuracy'], 0.5)
+        self.assertEqual(result['testing_accuracy'], 1.0)
 
     def test_qsvm_variational_directly(self):
         np.random.seed(self.random_seed)
@@ -85,4 +86,5 @@ class TestQSVMVariational(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(result['opt_params'], self.ref_opt_params, decimal=4)
         np.testing.assert_array_almost_equal(result['training_loss'], self.ref_train_loss, decimal=8)
 
-        self.assertEqual(result['testing_accuracy'], 0.5)
+        #self.assertEqual(result['testing_accuracy'], 0.5)
+        self.assertEqual(result['testing_accuracy'], 1.0)
