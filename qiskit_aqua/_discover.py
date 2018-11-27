@@ -33,9 +33,6 @@ from qiskit_aqua.preferences import Preferences
 
 logger = logging.getLogger(__name__)
 
-    'qft': QFT,
-    'eigs': Eigenvalues,
-    'reciprocal': Reciprocal
 
 class PluggableType(Enum):
     ALGORITHM = 'algorithm'
@@ -43,9 +40,12 @@ class PluggableType(Enum):
     VARIATIONAL_FORM = 'variational_form'
     INITIAL_STATE = 'initial_state'
     IQFT = 'iqft'
+    QFT = 'qft'
     ORACLE = 'oracle'
     FEATURE_MAP = 'feature_map'
     MULTICLASS_EXTENSION = 'multiclass_extension'
+    EIGENVALUES = 'eigs'
+    RECIPROCAL = 'reciprocal'
 
 
 def _get_pluggables_types_dictionary():
@@ -58,18 +58,24 @@ def _get_pluggables_types_dictionary():
     from qiskit_aqua.algorithms.components.variational_forms import VariationalForm
     from qiskit_aqua.algorithms.components.initial_states import InitialState
     from qiskit_aqua.algorithms.components.iqfts import IQFT
+    from qiskit_aqua.algorithms.components.qfts import QFT
     from qiskit_aqua.algorithms.components.oracles import Oracle
     from qiskit_aqua.algorithms.components.feature_maps import FeatureMap
     from qiskit_aqua.algorithms.components.multiclass_extensions import MulticlassExtension
+    from qiskit_aqua.algorithms.components.eigs import Eigenvalues
+    from qiskit_aqua.algorithms.components.reciprocals import Reciprocal
     return {
         PluggableType.ALGORITHM: QuantumAlgorithm,
         PluggableType.OPTIMIZER: Optimizer,
         PluggableType.VARIATIONAL_FORM: VariationalForm,
         PluggableType.INITIAL_STATE: InitialState,
         PluggableType.IQFT: IQFT,
+        PluggableType.QFT: QFT,
         PluggableType.ORACLE: Oracle,
         PluggableType.FEATURE_MAP: FeatureMap,
-        PluggableType.MULTICLASS_EXTENSION: MulticlassExtension
+        PluggableType.MULTICLASS_EXTENSION: MulticlassExtension,
+        PluggableType.EIGENVALUES: Eigenvalues,
+        PluggableType.RECIPROCAL: Reciprocal
     }
 
 
