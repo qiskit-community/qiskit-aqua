@@ -28,17 +28,21 @@ def random_h1_body(N):
 
 def random_unitary(N):
     """
-    Generate a random unitary matrix with NxN matrix.
+    Generate a random unitary matrix with size NxN.
 
     Args:
-        N: the dimension of unitary matrixs
+        N: the dimension of unitary matrix
     Returns:
         np.ndarray: a 2-D matrix with np.complex data type.
     """
-    X = (np.random.randint(N, size=(N, N)) + 1j*np.random.randint(N, size=(N, N))) / np.sqrt(2)
-    Q, R = np.linalg.qr(X)
-    R = np.diag(np.divide(np.diag(R), abs(np.diag(R))))
-    unitary_matrix = np.dot(Q, R)
+    if N == 1:
+        unitary_matrix = np.array(np.random.random() + 1j*np.random.random(),
+                                  ndmin=2)
+    else:
+        X = (np.random.random(size=(N, N))*N + 1j*np.random.random(size=(N, N))*N) / np.sqrt(2)
+        Q, R = np.linalg.qr(X)
+        R = np.diag(np.divide(np.diag(R), abs(np.diag(R))))
+        unitary_matrix = np.dot(Q, R)
     return unitary_matrix
 
 
@@ -123,13 +127,6 @@ def random_h2_body(N, M):
         H2BodyS[Htemp[i, 0], Htemp[i, 1], Htemp[i, 2] + N//2, Htemp[i, 3] +
                 N//2] = val[i]  # shift l and m to their spin symmetrized
     return H2BodyS
-
-
-"""
-###############################################################################
-Random matrix generator for hermitian/sparse/non-hermitian matrices with given
-eigenvalues/condition number/eigenvalue range.
-"""
 
 
 def random_diag(N, eigs=None, K=None, eigrange=[0, 1]):
@@ -250,6 +247,8 @@ def random_hermitian(N, eigs=None, K=None, eigrange=[0, 1], sparsity=None,
     Returns:
         np.ndarray: hermitian matrix
     """
+    if N == 1:
+        raise ValueError('The matrix dimension must be larger than 1')
     u = scipy.stats.unitary_group.rvs(N)
     d = random_diag(N, eigs, K, eigrange)
     ret = u.conj().T.dot(d).dot(u)
@@ -300,6 +299,8 @@ def random_non_hermitian(N, M=None, sings=None, K=None, srange=[0, 1],
     Returns:
         np.ndarray: random matrix
     """
+    if N == 1:
+        raise ValueError('The matrix dimension must be larger than 1')
     if M is None:
         M = N
     d = random_diag(min(N, M), sings, K, srange)
