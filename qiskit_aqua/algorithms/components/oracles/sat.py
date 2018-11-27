@@ -43,8 +43,8 @@ class SAT(Oracle):
     }
 
     def __init__(self, cnf):
-        super().__init__()
         self.validate(locals())
+        super().__init__()
         ls = [
             l.strip() for l in cnf.split('\n')
             if len(l) > 0 and not l.strip()[0] == 'c'

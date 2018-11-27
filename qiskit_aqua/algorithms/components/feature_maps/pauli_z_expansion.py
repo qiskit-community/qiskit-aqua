@@ -66,9 +66,9 @@ class PauliZExpansion(PauliExpansion):
     def __init__(self, num_qubits, depth=2, entangler_map=None,
                  entanglement='full', z_order=2, data_map_func=self_product):
         """Constructor."""
+        self.validate(locals())
         pauli_string = []
         for i in range(1, z_order + 1):
             pauli_string.append('Z' * i)
         super().__init__(num_qubits, depth, entangler_map, entanglement,
                          paulis=pauli_string, data_map_func=data_map_func)
-        self.validate(locals())

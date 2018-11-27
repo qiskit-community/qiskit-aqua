@@ -101,8 +101,8 @@ class IQPE(QuantumAlgorithm):
     def __init__(self, operator, state_in, num_time_slices=1, num_iterations=1,
                  paulis_grouping='default', expansion_mode='suzuki', expansion_order=2,
                  shallow_circuit_concat=False):
-        super().__init__()
         self.validate(locals())
+        super().__init__()
         self._operator = operator
         self._state_in = state_in
         self._num_time_slices = num_time_slices

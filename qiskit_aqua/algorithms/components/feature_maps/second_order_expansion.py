@@ -70,6 +70,6 @@ class SecondOrderExpansion(PauliZExpansion):
                                 topology
             data_map_func (Callable): a mapping function for data x
         """
+        self.validate(locals())
         super().__init__(num_qubits, depth, entangler_map, entanglement,
                          z_order=2, data_map_func=data_map_func)
-        self.validate(locals())

@@ -108,8 +108,8 @@ class EOH(QuantumAlgorithm):
 
     def __init__(self, operator, initial_state, evo_operator, operator_mode='paulis', evo_time=1, num_time_slices=1,
                  paulis_grouping='random', expansion_mode='trotter', expansion_order=1):
-        super().__init__()
         self.validate(locals())
+        super().__init__()
         self._operator = operator
         self._operator_mode = operator_mode
         self._initial_state = initial_state

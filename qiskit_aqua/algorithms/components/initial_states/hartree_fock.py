@@ -79,8 +79,8 @@ class HartreeFock(InitialState):
             ValueError: wrong setting in num_particles and num_orbitals.
             ValueError: wrong setting for computed num_qubits and supplied num_qubits.
         """
-        super().__init__()
         self.validate(locals())
+        super().__init__()
         self._sq_list = sq_list
         self._qubit_tapering = False if self._sq_list is None else True
         self._qubit_mapping = qubit_mapping.lower()

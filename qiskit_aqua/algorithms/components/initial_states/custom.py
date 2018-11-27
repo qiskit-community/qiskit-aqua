@@ -65,12 +65,12 @@ class Custom(InitialState):
             state (str): `zero`, `uniform` or `random`
             state_vector: customized vector
         """
+        loc = locals().copy()
+        del loc['state_vector']
+        self.validate(loc)
         super().__init__()
         # since state_vector is a numpy array of complex numbers which aren't json valid,
         # remove it from validation
-        loc = locals()
-        del loc['state_vector']
-        self.validate(loc)
         self._num_qubits = num_qubits
         self._state = state
         size = np.power(2, self._num_qubits)

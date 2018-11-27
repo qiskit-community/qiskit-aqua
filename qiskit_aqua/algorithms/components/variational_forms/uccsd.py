@@ -134,8 +134,8 @@ class UCCSD(VariationalForm):
                                     has to be equal to the length of cliffords and sq_list
             symmetries ([Pauli]): represent the Z2 symmetries
         """
-        super().__init__()
         self.validate(locals())
+        super().__init__()
         self._cliffords = cliffords
         self._sq_list = sq_list
         self._tapering_values = tapering_values

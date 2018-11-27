@@ -85,10 +85,10 @@ class QAOA(VQE):
             optimizer (Optimizer) : the classical optimization algorithm.
             initial_point (str) : optimizer initial point.
         """
+        self.validate(locals())
         var_form = QAOAVarForm(operator, p)
         super().__init__(operator, var_form, optimizer,
                          operator_mode=operator_mode, initial_point=initial_point)
-        self.validate(locals())
 
     @classmethod
     def init_params(cls, params, algo_input):
