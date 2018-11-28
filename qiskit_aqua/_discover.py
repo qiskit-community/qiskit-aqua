@@ -33,19 +33,6 @@ from qiskit_aqua.preferences import Preferences
 
 logger = logging.getLogger(__name__)
 
-_PLUGGABLES = {
-    'algorithm': QuantumAlgorithm,
-    'optimizer': Optimizer,
-    'variational_form': VariationalForm,
-    'initial_state': InitialState,
-    'iqft': IQFT,
-    'qft': QFT,
-    'oracle': Oracle,
-    'feature_map': FeatureMap,
-    'multiclass_extension': MulticlassExtension,
-    'eigs': Eigenvalues,
-    'reciprocal': Reciprocal
-}
 
 class PluggableType(Enum):
     ALGORITHM = 'algorithm'
@@ -76,9 +63,9 @@ def _get_pluggables_types_dictionary():
     from qiskit_aqua.algorithms.components.oracles import Oracle
     from qiskit_aqua.algorithms.components.feature_maps import FeatureMap
     from qiskit_aqua.algorithms.components.multiclass_extensions import MulticlassExtension
-    from qiskit_aqua.input import AlgorithmInput
     from qiskit_aqua.algorithms.components.eigs import Eigenvalues
     from qiskit_aqua.algorithms.components.reciprocals import Reciprocal
+    from qiskit_aqua.input import AlgorithmInput
     return {
         PluggableType.ALGORITHM: QuantumAlgorithm,
         PluggableType.OPTIMIZER: Optimizer,
