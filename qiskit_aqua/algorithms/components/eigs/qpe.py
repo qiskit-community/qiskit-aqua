@@ -186,10 +186,10 @@ class QPE(Eigenvalues):
         if negative_evals:
             ne_qft_params = iqft_params
             ne_qft_params['num_qubits'] -= 1
-            ne_qfts = [get_pluggable_class(PluggableType.QFT, ne_qft_params['name']),
-                       get_pluggable_class(PluggableType.IQFT, ne_qft_params['name'])]
-            ne_qfts[0].init_params(ne_qft_params)
-            ne_qfts[1].init_params(ne_qft_params)
+            ne_qfts = [get_pluggable_class(PluggableType.QFT,
+                                           ne_qft_params['name']).init_params(ne_qft_params),
+                       get_pluggable_class(PluggableType.IQFT,
+                                           ne_qft_params['name']).init_params(ne_qft_params)]
         else:
             ne_qfts = [None, None]
 
