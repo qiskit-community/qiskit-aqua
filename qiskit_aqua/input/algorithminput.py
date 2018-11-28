@@ -15,19 +15,19 @@
 # limitations under the License.
 # =============================================================================
 
-
-from abc import ABC, abstractmethod
+from qiskit_aqua import Pluggable
+from abc import abstractmethod
 import copy
 from qiskit_aqua import AquaError
 
 
-class AlgorithmInput(ABC):
+class AlgorithmInput(Pluggable):
 
     _PROBLEM_SET = ['energy', 'excited_states', 'eoh', 'search', 'svm_classification', 'ising']
 
     @abstractmethod
     def __init__(self):
-        self._configuration = copy.deepcopy(self.CONFIGURATION)
+        super().__init__()
         if 'problems' not in self.configuration or len(self.configuration['problems']) <= 0:
             raise AquaError('Algorithm Input missing or empty configuration problems')
 
@@ -38,13 +38,6 @@ class AlgorithmInput(ABC):
     @property
     def all_problems(self):
         return copy.deepcopy(self._PROBLEM_SET)
-
-    @property
-    def configuration(self):
-        """
-        Gets the configuration of this input form
-        """
-        return self._configuration
 
     @property
     def problems(self):

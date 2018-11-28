@@ -31,7 +31,6 @@ from qiskit_aqua._discover import (_discover_on_demand,
 from qiskit_aqua.utils.jsonutils import convert_dict_to_json, convert_json_to_dict
 from qiskit_aqua.parser._inputparser import InputParser
 from qiskit_aqua.parser import JSONSchema
-from qiskit_aqua.input import get_input_class
 
 logger = logging.getLogger(__name__)
 
@@ -82,7 +81,7 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
             input_params = copy.deepcopy(inputparser.get_section_properties('input'))
             del input_params[JSONSchema.NAME]
             convert_json_to_dict(input_params)
-            algo_input = get_input_class(input_name).from_params(input_params)
+            algo_input = get_pluggable_class(PluggableType.INPUT, input_name).from_params(input_params)
 
     algo_params = copy.deepcopy(inputparser.get_sections())
     algorithm = get_pluggable_class(PluggableType.ALGORITHM,

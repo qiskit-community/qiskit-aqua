@@ -316,26 +316,23 @@ class JSONSchema(object):
             input_parser (obj): input parser
         """
         # find algorithm
-        default_algo_name = self.get_property_default_value(
-            PluggableType.ALGORITHM.value, JSONSchema.NAME)
-        algo_name = input_parser.get_section_property(
-            PluggableType.ALGORITHM.value, JSONSchema.NAME, default_algo_name)
+        default_algo_name = self.get_property_default_value(PluggableType.ALGORITHM.value, JSONSchema.NAME)
+        algo_name = input_parser.get_section_property(PluggableType.ALGORITHM.value, JSONSchema.NAME, default_algo_name)
 
         # update algorithm scheme
         if algo_name is not None:
-            self._update_pluggable_input_schema(
-                PluggableType.ALGORITHM.value, algo_name, default_algo_name)
+            self._update_pluggable_input_schema(PluggableType.ALGORITHM.value, algo_name, default_algo_name)
 
         # update algorithm depoendencies scheme
-        config = {} if algo_name is None else get_pluggable_configuration(
-            PluggableType.ALGORITHM, algo_name)
+        config = {} if algo_name is None else get_pluggable_configuration(PluggableType.ALGORITHM, algo_name)
         classical = config['classical'] if 'classical' in config else False
         pluggable_dependencies = [] if 'depends' not in config else config['depends']
         pluggable_defaults = {
         } if 'defaults' not in config else config['defaults']
         pluggable_types = local_pluggables_types()
         for pluggable_type in pluggable_types:
-            if pluggable_type != PluggableType.ALGORITHM and pluggable_type.value not in pluggable_dependencies:
+            if pluggable_type not in [PluggableType.INPUT, PluggableType.ALGORITHM] and \
+                    pluggable_type.value not in pluggable_dependencies:
                 # remove pluggables from schema that ate not in the dependencies
                 if pluggable_type.value in self._schema['properties']:
                     del self._schema['properties'][pluggable_type.value]
@@ -374,8 +371,7 @@ class JSONSchema(object):
         config = {}
         try:
             if pluggable_type is not None and pluggable_name is not None:
-                config = get_pluggable_configuration(
-                    pluggable_type, pluggable_name)
+                config = get_pluggable_configuration(pluggable_type, pluggable_name)
         except:
             pass
 
@@ -499,8 +495,7 @@ class JSONSchema(object):
         Returns:
             Returns list of problem names
         """
-        config = get_pluggable_configuration(
-            PluggableType.ALGORITHM, algo_name)
+        config = get_pluggable_configuration(PluggableType.ALGORITHM, algo_name)
         if 'problems' in config:
             return config['problems']
 
