@@ -81,77 +81,113 @@ def cost_estimate_sigmoid(shots, probs, gt_labels):
     Returns:
         float: averaged sigmoid cross entropy loss between estimated probs and gt_labels
     """
-    """
-    The prior version of this function errors out when the probabilities in other_probs have 
-    repeated values for most entries. For example, the bug can be simulated when 
-    the original version of cost_estimate_sigmoid is called with the below values for the 
-    function parameters.
-    probs=np.array([[0.14, 0.25, 0.45], [0.15, 0.25, 0.45], [0.14, 0.25, 0.14]])
-    gt_labels = np.array([0, 2, 1])
+    import numpy as np
+    mylabels = np.zeros(probs.shape)
+    for i in range(gt_labels.shape[0]):
+        whichindex = gt_labels[i]
+        mylabels[i][whichindex] = 1
 
-    Specifically, the second line below errors out with a dimensionality error when
-    the setdiff1d call results in a single element array for other_probs,
-    and so other_probs[1] causes an error.
-    The logic for cross-entropy loss is not correct in this scenario. The calculation for 
-    cross-entropy loss has been fixed as part of this fork.
-    other_probs = np.setdiff1d(probs[other_index], rest_p)
-        numerator = np.sqrt(shots) * ((1. + np.abs(other_probs[0] - other_probs[1])) /
-                                      number_of_classes - rest_p)
-    """
-    epsilon = 1e-15
-    probs = np.clip(probs, epsilon, 1 - epsilon)
-    number_of_classes = probs.shape[1]
+    def cross_entropy(predictions, targets, epsilon=1e-12):
+        predictions = np.clip(predictions, epsilon, 1. - epsilon)
+        N = predictions.shape[0]
+        ce = -np.sum(np.sum(targets*np.log(predictions+1e-9)))/N
+        return ce
 
-    if number_of_classes > 1:
-        #if len(np.unique(gt_labels)) > number_of_classes:
-        #    raise ValueError('Too many classes compared to pred.')
-        y_true = np.eye(number_of_classes)[np.array(gt_labels).reshape(-1)]
-    else:
-        #if len(np.unique(gt_labels)) > 2:
-        #    raise ValueError('Too many classes compared to pred.')
-        y_true = gt_labels
-        loss = -1 * (y_true * np.log(probs) + (1 - y_true) * np.log(1 - probs)).sum(axis=1)
-        return loss
+    x = cross_entropy(probs, mylabels)
+    loss = (1.) / (1. + np.exp(-x))
+    return x
 
-    if y_true.shape[1] != probs.shape[1]:
-        raise ValueError('Pred and y_true have different number of classes.')
-    if y_true.shape[0] != probs.shape[0]:
-        raise ValueError('Pred and y_true have different number of samples.')
-
-    probs /= probs.sum(axis=1)[:, np.newaxis]
-    loss = -1 * (y_true * np.log(probs)).sum(axis=1)
-    loss = np.sqrt(shots) * np.average(loss)
-    return loss
-
-    #old code commented out below due to the error mentioned above.
-    """
-    p = probs[np.arange(0, gt_labels.shape[0]), gt_labels]
-    p = np.clip(p, 0.0, 1.0)
-    number_of_classes = probs.shape[1]
-    loss = np.zeros(p.shape[0])
-    all_index = np.arange(0, p.shape[0])
-    zero_index = np.where(np.isclose(p, 0.0) is True)
-    one_index = np.where(np.isclose(p, 1.0) is True)
-    other_index = np.setdiff1d(all_index, np.concatenate((zero_index, one_index)))
-    rest_p = p[other_index]
-    denominator = np.sqrt(2.0 * rest_p * (1.0 - rest_p))
-
-    if number_of_classes == 2:
-        numerator = np.sqrt(shots) * (0.5 - rest_p)
-    elif number_of_classes == 3:
-        other_probs = np.setdiff1d(probs[other_index], rest_p)
-        numerator = np.sqrt(shots) * ((1. + np.abs(other_probs[0] - other_probs[1])) /
-                                      number_of_classes - rest_p)
-    else:
-        raise ValueError('Do not support the number of class larger than three.')
-    x = numerator / denominator
-    loss_other = (1.) / (1. + np.exp(-x))
-    loss[zero_index] = 0.0
-    loss[one_index] = 1.0
-    loss[other_index] = loss_other
-    loss = np.mean(loss)
-    return loss
-    """
+# def cost_estimate_sigmoid(shots, probs, gt_labels):
+#     """Calculate sigmoid cross entropy over the predicted probs
+#     p is the prob of gt_label.
+#     For class = 2:
+#     if p ~= 1.0, loss = 1.0
+#     elif p ~= 0.0, loss = 0.0
+#     else, x = sqrt(shots) * (0.5 - p) / sqrt(2 * p * (1-p))
+#             loss = 1 / (1 + exp(-x))
+#     For class = 3:
+#     if p ~= 1.0, loss = 1.0
+#     elif p ~= 0.0, loss = 0.0
+#     else, x = sqrt(shots) * ((1 +|p_0 - p_1|)/3 - p) / sqrt(2 * p * (1-p))
+#             loss = 1 / (1 + exp(-x))
+#     Args:
+#         shots (int): the number of shots used in quantum computing
+#         probs (numpy.ndarray): NxK array, N is the number of data and K is the number of class
+#         gt_labels (numpy.ndarray): Nx1 array
+#     Returns:
+#         float: averaged sigmoid cross entropy loss between estimated probs and gt_labels
+#     """
+#     """
+#     The prior version of this function errors out when the probabilities in other_probs have
+#     repeated values for most entries. For example, the bug can be simulated when
+#     the original version of cost_estimate_sigmoid is called with the below values for the
+#     function parameters.
+#     probs=np.array([[0.14, 0.25, 0.45], [0.15, 0.25, 0.45], [0.14, 0.25, 0.14]])
+#     gt_labels = np.array([0, 2, 1])
+#
+#     Specifically, the second line below errors out with a dimensionality error when
+#     the setdiff1d call results in a single element array for other_probs,
+#     and so other_probs[1] causes an error.
+#     The logic for cross-entropy loss is not correct in this scenario. The calculation for
+#     cross-entropy loss has been fixed as part of this fork.
+#     other_probs = np.setdiff1d(probs[other_index], rest_p)
+#         numerator = np.sqrt(shots) * ((1. + np.abs(other_probs[0] - other_probs[1])) /
+#                                       number_of_classes - rest_p)
+#     """
+#     epsilon = 1e-15
+#     probs = np.clip(probs, epsilon, 1 - epsilon)
+#     number_of_classes = probs.shape[1]
+#
+#     if number_of_classes > 1:
+#         #if len(np.unique(gt_labels)) > number_of_classes:
+#         #    raise ValueError('Too many classes compared to pred.')
+#         y_true = np.eye(number_of_classes)[np.array(gt_labels).reshape(-1)]
+#     else:
+#         #if len(np.unique(gt_labels)) > 2:
+#         #    raise ValueError('Too many classes compared to pred.')
+#         y_true = gt_labels
+#         loss = -1 * (y_true * np.log(probs) + (1 - y_true) * np.log(1 - probs)).sum(axis=1)
+#         return loss
+#
+#     if y_true.shape[1] != probs.shape[1]:
+#         raise ValueError('Pred and y_true have different number of classes.')
+#     if y_true.shape[0] != probs.shape[0]:
+#         raise ValueError('Pred and y_true have different number of samples.')
+#
+#     probs /= probs.sum(axis=1)[:, np.newaxis]
+#     loss = -1 * (y_true * np.log(probs)).sum(axis=1)
+#     loss = np.sqrt(shots) * np.average(loss)
+#     return loss
+#
+#     #old code commented out below due to the error mentioned above.
+#     """
+#     p = probs[np.arange(0, gt_labels.shape[0]), gt_labels]
+#     p = np.clip(p, 0.0, 1.0)
+#     number_of_classes = probs.shape[1]
+#     loss = np.zeros(p.shape[0])
+#     all_index = np.arange(0, p.shape[0])
+#     zero_index = np.where(np.isclose(p, 0.0) is True)
+#     one_index = np.where(np.isclose(p, 1.0) is True)
+#     other_index = np.setdiff1d(all_index, np.concatenate((zero_index, one_index)))
+#     rest_p = p[other_index]
+#     denominator = np.sqrt(2.0 * rest_p * (1.0 - rest_p))
+#
+#     if number_of_classes == 2:
+#         numerator = np.sqrt(shots) * (0.5 - rest_p)
+#     elif number_of_classes == 3:
+#         other_probs = np.setdiff1d(probs[other_index], rest_p)
+#         numerator = np.sqrt(shots) * ((1. + np.abs(other_probs[0] - other_probs[1])) /
+#                                       number_of_classes - rest_p)
+#     else:
+#         raise ValueError('Do not support the number of class larger than three.')
+#     x = numerator / denominator
+#     loss_other = (1.) / (1. + np.exp(-x))
+#     loss[zero_index] = 0.0
+#     loss[one_index] = 1.0
+#     loss[other_index] = loss_other
+#     loss = np.mean(loss)
+#     return loss
+#     """
 
 def return_probabilities(counts, num_classes):
     """Return the probabilities of given measured counts
