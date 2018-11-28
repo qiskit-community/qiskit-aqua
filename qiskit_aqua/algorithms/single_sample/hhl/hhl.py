@@ -93,6 +93,21 @@ class HHL(QuantumAlgorithm):
         self._eigenvalue_register = None
         self._ancilla_register = None
         self._success_bit = None
+        self._ret = {}
+
+    def setup_quantum_backend(self, backend='statevector_simulator', shots=1024, skip_transpiler=False,
+                              noise_params=None, coupling_map=None, initial_layout=None, hpc_params=None,
+                              basis_gates=None, max_credits=10, timeout=None, wait=5):
+
+        super().setup_quantum_backend(backend=backend, shots=shots,
+                                      skip_transpiler=skip_transpiler,
+                                      noise_params=noise_params,
+                                      coupling_map=coupling_map,
+                                      initial_layout=initial_layout,
+                                      hpc_params=hpc_params,
+                                      basis_gates=basis_gates,
+                                      max_credits=max_credits,
+                                      timeout=timeout, wait=wait)
 
         # Handle different modes
         from qiskit.backends.aer.qasm_simulator import QasmSimulator
@@ -104,7 +119,7 @@ class HHL(QuantumAlgorithm):
 
         exact = False
         debug = False
-        if mode == 'state_tomography':
+        if self._mode == 'state_tomography':
             if (QuantumAlgorithm.is_statevector_backend(self._backend) or
                     (QuantumAlgorithm.backend_name(self._backend) ==
                      "qasm_simulator" and cpp)):
@@ -112,20 +127,19 @@ class HHL(QuantumAlgorithm):
                 # not always
                 debug = True
 
-        if mode == 'debug':
+        if self._mode == 'debug':
             if QuantumAlgorithm.backend_name(self._backend) != \
                     "qasm_simulator" or not cpp:
                 raise AquaError("Debug mode only possible with C++ "
                                 "qasm_simulator.")
             debug = True
 
-        if mode == 'swap_test':
+        if self._mode == 'swap_test':
             if QuantumAlgorithm.is_statevector_backend(self._backend):
                 raise AquaError("Measurement required")
 
         self._debug = debug
         self._exact = exact
-        self._ret = {}
 
     @classmethod
     def init_params(cls, params, algo_input):

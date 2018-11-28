@@ -18,7 +18,9 @@
 from .grover.grover import Grover
 from .iqpe.iqpe import IQPE
 from .qpe.qpe import QPE
+from .hhl.hhl import HHL
 
 __all__ = ['Grover',
            'IQPE',
-           'QPE']
+           'QPE',
+           'HHL']
