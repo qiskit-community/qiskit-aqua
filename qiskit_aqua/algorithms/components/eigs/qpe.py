@@ -17,15 +17,10 @@
 
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
-
-from qiskit_aqua import Operator
+from qiskit_aqua import Operator, AquaError
+from qiskit_aqua import PluggableType, get_pluggable_class
 from qiskit_aqua.algorithms.components.eigs import Eigenvalues
 
-try:
-    from qiskit_aqua import get_iqft_instance, get_qft_instance
-except ImportError as e:
-    # Initialization run for get_pluggable_instance results in error
-    pass
 
 class QPE(Eigenvalues):
     """A QPE for getting the eigenvalues."""
@@ -109,20 +104,41 @@ class QPE(Eigenvalues):
         },
     }
 
-    def __init__(self):
+    def __init__(self, operator, iqft, num_time_slices, num_ancillae,
+            paulis_grouping=None, expansion_mode=None,
+            expansion_order=1, evo_time=None,
+            use_basis_gates=True, hermitian_matrix=True,
+            negative_evals=False, ne_qfts=[None, None]):
+
         super().__init__()
-        self._operator = None
-        self._num_time_slices = 0
-        self._paulis_grouping = None
-        self._expansion_mode = None
-        self._expansion_order = None
-        self._num_ancillae = 0
-        self._ancilla_phase_coef = 0
-        self._hermitian_matrix = True
-        self._ne_qfts = [None, None]
+        super().validate({
+            QPE.PROP_NUM_TIME_SLICES: num_time_slices,
+            QPE.PROP_PAULIS_GROUPING: paulis_grouping,
+            QPE.PROP_EXPANSION_MODE: expansion_mode,
+            QPE.PROP_EXPANSION_ORDER: expansion_order,
+            QPE.PROP_NUM_ANCILLAE: num_ancillae,
+            QPE.PROP_EVO_TIME: evo_time,
+            QPE.PROP_USE_BASIS_GATES: use_basis_gates,
+            QPE.PROP_HERMITIAN_MATRIX: hermitian_matrix,
+            QPE.PROP_NEGATIVE_EVALS: negative_evals
+        })
+        self._iqft = iqft
+        self._operator = operator
+        self._num_time_slices = num_time_slices
+        self._num_ancillae = num_ancillae
+        self._paulis_grouping = paulis_grouping
+        self._expansion_mode = expansion_mode
+        self._expansion_order = expansion_order
+        self._evo_time = evo_time
+        self._use_basis_gates = use_basis_gates
+        self._hermitian_matrix = hermitian_matrix
+        self._negative_evals = negative_evals
+        self._ne_qfts = ne_qfts
+        self._init_constants()
         self._ret = {}
 
-    def init_params(self, params, matrix):
+    @classmethod
+    def init_params(cls, params, matrix):
         """
         Initialize via parameters dictionary and algorithm input instance
         Args:
@@ -130,7 +146,7 @@ class QPE(Eigenvalues):
             matrix: two dimensional array which represents the operator
         """
         if matrix is None:
-            raise AlgorithmError("Operator instance is required.")
+            raise AquaError("Operator instance is required.")
 
         if not isinstance(matrix, np.ndarray):
             matrix = np.array(matrix)
@@ -146,11 +162,10 @@ class QPE(Eigenvalues):
         negative_evals = params.get(QPE.PROP_NEGATIVE_EVALS)
         iqft_params = params.get(QPE.PROP_IQFT)
 
-        # Adding a automatic falg qubit for negative eigenvalues
+        # Adding an automatic flag qubit for negative eigenvalues
         if negative_evals:
             num_ancillae += 1
 
-  
         # If operator matrix is not hermitian, extending it to B = ((0, A), (A⁺, 0)), which is hermitian
         # In this case QPE will give singular values
         if not hermitian_matrix:
@@ -163,48 +178,29 @@ class QPE(Eigenvalues):
 
         # Set up iqft, we need to add num qubits to params which is our num_ancillae bits here
         iqft_params['num_qubits'] = num_ancillae
-        iqft = get_iqft_instance(iqft_params['name'])
-        iqft.init_params(iqft_params)
-        
+#        iqft = get_iqft_instance(iqft_params['name'])
+#        iqft.init_params(iqft_params)
+        iqft = get_pluggable_class(PluggableType.IQFT,
+                                   iqft_params['name']).init_params(iqft_params)
+
         # For converting the encoding of the negative eigenvalues, we need two
         # additional QFTs
         if negative_evals:
             ne_qft_params = iqft_params
             ne_qft_params['num_qubits'] -= 1
-            ne_qfts = [ get_qft_instance(ne_qft_params['name']),
-                    get_iqft_instance(ne_qft_params['name'])]
+            ne_qfts = [get_qft_instance(ne_qft_params['name']),
+                       get_iqft_instance(ne_qft_params['name'])]
             ne_qfts[0].init_params(ne_qft_params)
             ne_qfts[1].init_params(ne_qft_params)
         else:
             ne_qfts = [None, None]
 
-        self.init_args(
+        return cls(
             operator, iqft, num_time_slices, num_ancillae,
             paulis_grouping=paulis_grouping, expansion_mode=expansion_mode,
             expansion_order=expansion_order, evo_time=evo_time,
             use_basis_gates=use_basis_gates, hermitian_matrix=hermitian_matrix,
             negative_evals=negative_evals, ne_qfts=ne_qfts)
-
-    def init_args(
-            self, operator, iqft, num_time_slices, num_ancillae,
-            paulis_grouping='random', expansion_mode='trotter', expansion_order=1,
-            evo_time=None, use_basis_gates=True, hermitian_matrix=True,
-            negative_evals=False, ne_qfts=[None, None]):
-        self._operator = operator
-        self._iqft = iqft
-        self._num_time_slices = num_time_slices
-        self._num_ancillae = num_ancillae
-        self._paulis_grouping = paulis_grouping
-        self._expansion_mode = expansion_mode
-        self._expansion_order = expansion_order
-        self._evo_time = evo_time
-        self._use_basis_gates = use_basis_gates
-        self._hermitian_matrix = hermitian_matrix
-        self._negative_evals = negative_evals
-        self._ne_qfts = ne_qfts
-        self._ret = {}
-
-        self._init_constants()
 
     def _init_constants(self):
         # estimate evolution time

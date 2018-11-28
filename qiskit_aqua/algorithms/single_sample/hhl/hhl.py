@@ -75,7 +75,7 @@ class HHL(QuantumAlgorithm):
     }
 
     def __init__(self, matrix=None, vector=None, eigs=None, init_state=None,
-                 reciprocal=None, mode=None, num_q=0, num_a=0):
+                 reciprocal=None, mode='circuit', num_q=0, num_a=0):
         super().__init__()
         super().validate({
             HHL.PROP_MODE: mode
@@ -107,7 +107,7 @@ class HHL(QuantumAlgorithm):
         if mode == 'state_tomography':
             if (QuantumAlgorithm.is_statevector_backend(self.backend) or
                     (QuantumAlgorithm.backend_name(self.backend) ==
-                     "qasm_simulator" and cpp)):
+                     "qasm_simulator_py" and cpp)):
                 exact = True
                 # not always
                 debug = True
@@ -165,19 +165,19 @@ class HHL(QuantumAlgorithm):
             raise ValueError("Input vector dimension does not match input "
                              "matrix dimension!")
 
+        # Initialize eigenvalue finding module
+        eigs_params = params.get(QuantumAlgorithm.SECTION_KEY_EIGS) or {}
+        eigs = get_pluggable_class(PluggableType.EIGENVALUES,
+                                   eigs_params['name']).init_params(eigs_params, matrix)
+        num_q, num_a = eigs.get_register_sizes()
+
         # Initialize initial state module
         tmpvec = vector
         init_state_params = {"name": "CUSTOM"}
         init_state_params["num_qubits"] = num_q
         init_state_params["state_vector"] = tmpvec
         init_state = get_pluggable_class(PluggableType.INITIAL_STATE,
-                                         init_state_params['name'].init_params(init_state_params))
-
-        # Initialize eigenvalue finding module
-        eigs_params = params.get(QuantumAlgorithm.SECTION_KEY_EIGS) or {}
-        eigs = get_pluggable_class(PluggableType.EIGENVALUES,
-                                   eigs_params['name'].init_params(eigs_params))
-        num_q, num_a = eigs.get_register_sizes()
+                                         init_state_params['name']).init_params(init_state_params)
 
         # Initialize reciprocal rotation module
         reciprocal_params = \
@@ -185,7 +185,7 @@ class HHL(QuantumAlgorithm):
         reciprocal_params["negative_evals"] = eigs._negative_evals
         reciprocal_params["evo_time"] = eigs._evo_time
         reci = get_pluggable_class(PluggableType.RECIPROCAL,
-                                   reciprocal_params['name'].init_params(reciprocal_params))
+                                   reciprocal_params['name']).init_params(reciprocal_params)
 
         return cls(matrix, vector, eigs, init_state, reci, mode, num_q, num_a)
 
@@ -245,7 +245,8 @@ class HHL(QuantumAlgorithm):
         if QuantumAlgorithm.is_statevector_backend(self._backend):
             res = self.execute(self._circuit)
             sv = res.get_statevector()
-        elif QuantumAlgorithm.backend_name(self._backend) == "qasm_simulator":
+        elif QuantumAlgorithm.backend_name(self._backend) == \
+                "qasm_simulator_py":
             self._circuit.snapshot("5")
             self._execute_config["config"]["data"] = ["quantum_state_ket"]
             res = self.execute(self._circuit)

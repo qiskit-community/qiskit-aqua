@@ -37,26 +37,17 @@ class Reciprocal(Pluggable):
 
     @abstractmethod
     def __init__(self):
-        #self._configuration = configuration
         super().__init__()
 
-    @property
-    def configuration(self):
-        """Return configuration"""
-        return self._configuration
-
     @classmethod
-    def init_params(self, params):
+    def init_params(cls, params):
         args = {k: v for k, v in params.items() if k != 'name'}
-        self.init_args(**args)
-
-    @abstractmethod
-    def init_args(self, **args):
-        raise NotImplementedError()
+        return cls(**args)
 
     @abstractmethod
     def construct_circuit(self, mode, register=None, circuit=None):
-        """Construct the initial state circuit.
+        """
+        Construct the initial state circuit.
 
         Args:
             mode (str): 'vector' or 'circuit'

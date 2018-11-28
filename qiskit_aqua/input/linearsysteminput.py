@@ -48,10 +48,10 @@ class LinearSystemInput(AlgorithmInput):
         'problems': ['linear_system']
     }
 
-    def __init__(self):
+    def __init__(self, matrix=None, vector=[]):
         super().__init__()
-        self._matrix = None
-        self._vector = []
+        self._matrix = matrix
+        self._vector = vector
 
     @property
     def matrix(self):
@@ -75,17 +75,20 @@ class LinearSystemInput(AlgorithmInput):
         params[LinearSystemInput.PROP_KEY_VECTOR] = self.save_to_list(self._vector)
         return params
 
-    def from_params(self, params):
+    @classmethod
+    def from_params(cls, params):
         if LinearSystemInput.PROP_KEY_MATRIX not in params:
             raise AquaError("Matrix is required.")
         if LinearSystemInput.PROP_KEY_VECTOR not in params:
             raise AquaError("Vector is required.")
-        qparams = params[LinearSystemInput.PROP_KEY_MATRIX]
-        self._matrix = self.load_mat_from_list(qparams)
-        qparams = params[LinearSystemInput.PROP_KEY_VECTOR]
-        self._vector = self.load_vec_from_list(qparams)
+        mat_params = params[LinearSystemInput.PROP_KEY_MATRIX]
+        matrix = cls.load_mat_from_list(mat_params)
+        vec_params = params[LinearSystemInput.PROP_KEY_VECTOR]
+        vector = cls.load_vec_from_list(vec_params)
+        return cls(matrix, vector)
 
-    def load_mat_from_list(self, mat):
+    @staticmethod
+    def load_mat_from_list(mat):
         depth = lambda l: isinstance(l, list) and max(map(depth, l))+1
         if depth(mat) == 3:
             return np.array(mat[0])+1j*np.array(mat[1])
@@ -93,8 +96,9 @@ class LinearSystemInput(AlgorithmInput):
             return np.array(mat)
         else:
             raise AquaError("Matrix list must be depth 2 or 3")
-             
-    def load_vec_from_list(self, vec):
+
+    @staticmethod
+    def load_vec_from_list(vec):
         depth = lambda l: isinstance(l, list) and max(map(depth, l))+1
         if depth(vec) == 2:
             return np.array(vec[0])+1j*np.array(vec[1])

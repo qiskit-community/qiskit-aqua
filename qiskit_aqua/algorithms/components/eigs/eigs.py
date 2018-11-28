@@ -43,20 +43,11 @@ class Eigenvalues(Pluggable):
         self._input_register = None
         self._circuit = None
         self._inverse = None
-    
-    @property
-    def configuration(self):
-        """Return configuration"""
-        return self._configuration
 
     @classmethod
-    def init_params(self, params):
+    def init_params(cls, params):
         args = {k: v for k, v in params.items() if k != 'name'}
-        self.init_args(**args)
-
-    @abstractmethod
-    def init_args(self, **args):
-        raise NotImplementedError()
+        return cls(**args)
     
     @abstractmethod
     def get_register_sizes(self):
@@ -68,7 +59,8 @@ class Eigenvalues(Pluggable):
 
     @abstractmethod
     def construct_circuit(self, mode, register=None):
-        """Construct the eigenvalue estmiation circuit.
+        """
+            Construct the eigenvalue estmiation circuit.
 
         Args:
             mode (str): 'vector' or 'circuit'

@@ -22,7 +22,6 @@ from numpy.random import rand
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import run_algorithm
-from qiskit_aqua.input import get_input_instance
 from qiskit_aqua.utils import random_matrix_generator as rmg
 
 
@@ -59,7 +58,7 @@ class TestHHL(QiskitAquaTestCase):
                 "scale": 0.0
             },
             "backend": {
-                "name": "statevector_simulator",
+                "name": "statevector_simulator_py",
                 "skip_transpiler": "false"
             }
         }

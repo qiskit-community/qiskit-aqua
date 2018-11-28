@@ -22,6 +22,7 @@ from ._discover_input import (register_input,
                               get_input_configuration,
                               local_inputs)
 from .energyinput import EnergyInput
+from .linearsysteminput import LinearSystemInput
 from .svminput import SVMInput
 
 __all__ = ['AlgorithmInput',
@@ -31,4 +32,5 @@ __all__ = ['AlgorithmInput',
            'get_input_configuration',
            'local_inputs',
            'EnergyInput',
+           'LinearSystemInput',
            'SVMInput']

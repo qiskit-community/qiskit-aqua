@@ -80,29 +80,42 @@ class LookupRotation(Reciprocal):
         },
     }
 
-    def __init__(self):
+    def __init__(self, pat_length=None, subpat_length=None, scale=0,
+                  negative_evals=False, evo_time=None, lambda_min=None):
         super().__init__()
+        super().validate({
+            LookupRotation.PROP_PAT_LENGTH: pat_length,
+            LookupRotation.PROP_SUBPAT_LENGTH: subpat_length,
+            LookupRotation.PROP_NEGATIVE_EVALS: negative_evals,
+            LookupRotation.PROP_SCALE: scale,
+            LookupRotation.PROP_EVO_TIME: evo_time,
+            LookupRotation.PROP_LAMBDA_MIN: lambda_min
+        })
         self._anc = None
         self._workq = None
         self._msq = None
         self._ev = None
         self._circuit = None
         self._reg_size = 0
-        self._pat_length = None
-        self._subpat_length = None
-        self._negative_evals = False
-        self._scale = 0
-        self._evo_time = None
-        self._lambda_min = None
-
-    def init_args(self, pat_length=None, subpat_length=None, scale=0,
-                  negative_evals=False, evo_time=None, lambda_min=None):
         self._pat_length = pat_length
         self._subpat_length = subpat_length
         self._negative_evals = negative_evals
         self._scale = scale
         self._evo_time = evo_time
         self._lambda_min = lambda_min
+
+    @classmethod
+    def init_params(cls, params):
+        pat_length = params.get(LookupRotation.PROP_PAT_LENGTH)
+        subpat_length = params.get(LookupRotation.PROP_SUBPAT_LENGTH)
+        scale = params.get(LookupRotation.PROP_SCALE)
+        negative_evals = params.get(LookupRotation.PROP_NEGATIVE_EVALS)
+        evo_time = params.get(LookupRotation.PROP_EVO_TIME)
+        lambda_min = params.get(LookupRotation.PROP_LAMBDA_MIN)
+
+        return cls(pat_length=pat_length, subpat_length=subpat_length,
+                   scale=scale, negative_evals=negative_evals,
+                   evo_time=evo_time, lambda_min=lambda_min)
 
     @staticmethod
     def classic_approx(k, n, m, negative_evals=False):
