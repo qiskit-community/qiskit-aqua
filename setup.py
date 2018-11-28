@@ -16,6 +16,10 @@
 # =============================================================================
 
 import setuptools
+from setuptools.command.install import install
+from setuptools.command.develop import develop
+from setuptools.command.egg_info import egg_info
+import atexit
 
 long_description="""<a href="https://qiskit.org/aqua/chemistry" rel=nofollow>Qiskit Aqua Chemistry</a> 
  is a set of quantum computing algorithms, 
@@ -32,6 +36,32 @@ requirements = [
     "pyobjc-core; sys_platform == 'darwin'",
     "pyobjc-framework-Cocoa; sys_platform == 'darwin'"
 ]
+
+
+def _post_install():
+    from qiskit_aqua.preferences import Preferences
+    preferences = Preferences()
+    preferences.add_package('qiskit_aqua_chemistry.aqua_extensions')
+    preferences.save()
+
+
+class CustomInstallCommand(install):
+    def run(self):
+        atexit.register(_post_install)
+        install.run(self)
+
+
+class CustomDevelopCommand(develop):
+    def run(self):
+        atexit.register(_post_install)
+        develop.run(self)
+
+
+class CustomEggInfoCommand(egg_info):
+    def run(self):
+        atexit.register(_post_install)
+        egg_info.run(self)
+
 
 setuptools.setup(
     name='qiskit-aqua-chemistry',
@@ -60,6 +90,11 @@ setuptools.setup(
     install_requires=requirements,
     include_package_data=True,
     python_requires=">=3.5",
+    cmdclass={
+        'install': CustomInstallCommand,
+        'develop': CustomDevelopCommand,
+        'egg_info': CustomEggInfoCommand
+    },
     entry_points = {
         'console_scripts': [
                 'qiskit_aqua_chemistry_cmd=qiskit_aqua_chemistry_cmd.command_line:main'
