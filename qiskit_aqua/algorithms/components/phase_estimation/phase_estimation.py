@@ -18,79 +18,12 @@
 The Quantum Phase Estimation Algorithm.
 """
 
-from qiskit_aqua import Pluggable
 import numpy as np
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
-from qiskit_aqua import Operator, QuantumAlgorithm, AquaError
-from qiskit_aqua import PluggableType, get_pluggable_class
+from qiskit_aqua import Operator, AquaError
 
 
-class PhaseEstimation(Pluggable):
-    """The Quantum Phase Estimation algorithm."""
-
-    PROP_NUM_TIME_SLICES = 'num_time_slices'
-    PROP_PAULIS_GROUPING = 'paulis_grouping'
-    PROP_EXPANSION_MODE = 'expansion_mode'
-    PROP_EXPANSION_ORDER = 'expansion_order'
-    PROP_NUM_ANCILLAE = 'num_ancillae'
-
-    CONFIGURATION = {
-        'name': 'PhaseEstimation',
-        'description': 'Quantum Phase Estimation',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
-            'id': 'qpe_schema',
-            'type': 'object',
-            'properties': {
-                PROP_NUM_TIME_SLICES: {
-                    'type': 'integer',
-                    'default': 1,
-                    'minimum': 0
-                },
-                PROP_PAULIS_GROUPING: {
-                    'type': 'string',
-                    'default': 'random',
-                    'oneOf': [
-                        {'enum': [
-                            'random',
-                            'default'
-                        ]}
-                    ]
-                },
-                PROP_EXPANSION_MODE: {
-                    'type': 'string',
-                    'default': 'suzuki',
-                    'oneOf': [
-                        {'enum': [
-                            'suzuki',
-                            'trotter'
-                        ]}
-                    ]
-                },
-                PROP_EXPANSION_ORDER: {
-                    'type': 'integer',
-                    'default': 2,
-                    'minimum': 1
-                },
-                PROP_NUM_ANCILLAE: {
-                    'type': 'integer',
-                    'default': 1,
-                    'minimum': 1
-                }
-            },
-            'additionalProperties': False
-        },
-        'problems': ['energy'],
-        'depends': ['initial_state', 'iqft'],
-        'defaults': {
-            'initial_state': {
-                'name': 'ZERO'
-            },
-            'iqft': {
-                'name': 'STANDARD'
-            }
-        }
-    }
+class PhaseEstimation:
 
     def __init__(
             self, operator, state_in, iqft, num_time_slices=1, num_ancillae=1,
@@ -100,14 +33,8 @@ class PhaseEstimation(Pluggable):
             additional_params=None,
             shallow_circuit_concat=False):
 
-        super().__init__()
-        super().validate({
-            PhaseEstimation.PROP_NUM_TIME_SLICES: num_time_slices,
-            PhaseEstimation.PROP_PAULIS_GROUPING: paulis_grouping,
-            PhaseEstimation.PROP_EXPANSION_MODE: expansion_mode,
-            PhaseEstimation.PROP_EXPANSION_ORDER: expansion_order,
-            PhaseEstimation.PROP_NUM_ANCILLAE: num_ancillae
-        })
+        # TODO: do some param checking
+
         self._operator = operator
         self._operator_circuit_factory = operator_circuit_factory
         self._state_in = state_in
@@ -123,41 +50,6 @@ class PhaseEstimation(Pluggable):
         self._circuit = {True: None, False: None}
         self._additional_params = additional_params
         self._ret = {}
-
-    @classmethod
-    def init_params(cls, params, algo_input):
-        """
-        Initialize via parameters dictionary and algorithm input instance
-        Args:
-            params: parameters dictionary
-            algo_input: EnergyInput instance
-        """
-        if algo_input is None:
-            raise AquaError("EnergyInput instance is required.")
-
-        operator = algo_input.qubit_op
-
-        qpe_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
-        num_time_slices = qpe_params.get(PhaseEstimation.PROP_NUM_TIME_SLICES)
-        paulis_grouping = qpe_params.get(PhaseEstimation.PROP_PAULIS_GROUPING)
-        expansion_mode = qpe_params.get(PhaseEstimation.PROP_EXPANSION_MODE)
-        expansion_order = qpe_params.get(PhaseEstimation.PROP_EXPANSION_ORDER)
-        num_ancillae = qpe_params.get(PhaseEstimation.PROP_NUM_ANCILLAE)
-
-        # Set up initial state, we need to add computed num qubits to params
-        init_state_params = params.get(QuantumAlgorithm.SECTION_KEY_INITIAL_STATE)
-        init_state_params['num_qubits'] = operator.num_qubits
-        init_state = get_pluggable_class(PluggableType.INITIAL_STATE,
-                                         init_state_params['name']).init_params(init_state_params)
-
-        # Set up iqft, we need to add num qubits to params which is our num_ancillae bits here
-        iqft_params = params.get(QuantumAlgorithm.SECTION_KEY_IQFT)
-        iqft_params['num_qubits'] = num_ancillae
-        iqft = get_pluggable_class(PluggableType.IQFT, iqft_params['name']).init_params(iqft_params)
-
-        return cls(operator, init_state, iqft, num_time_slices, num_ancillae,
-                   paulis_grouping=paulis_grouping, expansion_mode=expansion_mode,
-                   expansion_order=expansion_order)
 
     def construct_circuit(self, measure=False):
         """Construct the Phase Estimation circuit"""

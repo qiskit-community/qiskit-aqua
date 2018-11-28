@@ -102,14 +102,8 @@ class QPE(QuantumAlgorithm):
             paulis_grouping='random', expansion_mode='trotter', expansion_order=1,
             shallow_circuit_concat=False
     ):
+        self.validate(locals())
         super().__init__()
-        super().validate({
-            QPE.PROP_NUM_TIME_SLICES: num_time_slices,
-            QPE.PROP_PAULIS_GROUPING: paulis_grouping,
-            QPE.PROP_EXPANSION_MODE: expansion_mode,
-            QPE.PROP_EXPANSION_ORDER: expansion_order,
-            QPE.PROP_NUM_ANCILLAE: num_ancillae
-        })
 
         self._ret = {}
         self._operator = copy.deepcopy(operator)
