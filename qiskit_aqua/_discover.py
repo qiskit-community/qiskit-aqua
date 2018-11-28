@@ -75,20 +75,22 @@ def _get_pluggables_types_dictionary():
         PluggableType.FEATURE_MAP: FeatureMap,
         PluggableType.MULTICLASS_EXTENSION: MulticlassExtension,
         PluggableType.EIGENVALUES: Eigenvalues,
-        PluggableType.RECIPROCAL: Reciprocal
+        PluggableType.RECIPROCAL: Reciprocal,
+        PluggableType.INPUT: AlgorithmInput
     }
 
 
 _NAMES_TO_EXCLUDE = [
     '__main__',
+    '_aqua',
+    '_credentialpreferences'
     '_discover',
     '_logging',
-    'algomethods',
-    'algorithmerror',
+    'aqua_error',
     'operator',
+    'pluggable',
     'preferences',
     'quantumalgorithm',
-    'algoutils',
     'jsonutils',
     'optimizer',
     'variational_form',
@@ -102,7 +104,7 @@ _NAMES_TO_EXCLUDE = [
     'reciprocal'
 ]
 
-_FOLDERS_TO_EXCLUDE = ['__pycache__', 'input', 'ui', 'parser']
+_FOLDERS_TO_EXCLUDE = ['__pycache__', 'ui', 'parser']
 
 RegisteredPluggable = namedtuple(
     'RegisteredPluggable', ['name', 'cls', 'configuration'])
