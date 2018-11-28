@@ -4,6 +4,7 @@ CNU3 gate. N Controlled-U3 Gate. Not Using ancilla qubits.
 
 from sympy.combinatorics.graycode import GrayCode
 from qiskit import QuantumCircuit, QuantumRegister, CompositeGate
+from qiskit_aqua.utils.controlledcircuit import apply_cu3
 from numpy import angle
 
 
@@ -12,6 +13,11 @@ class CNU3Gate(CompositeGate):
 
     def __init__(self, theta, phi, lam, ctls, tgt, circ=None):
         """Create new CNU3 gate."""
+        self._ctl_bits = ctls
+        self._tgt_bits = tgt
+        self._theta = theta
+        self._phi = phi
+        self._lambda = lam
         qubits = [v for v in ctls] + [tgt]
         n_c = len(ctls)
         super(CNU3Gate, self).__init__("cnu3", (theta, phi, lam, n_c), qubits, circ)
@@ -19,18 +25,14 @@ class CNU3Gate(CompositeGate):
         if n_c == 1: # cx
             self.cu3(theta, phi, lam, ctls[0], tgt)
         else:
-            self.apply_cnu3(theta, phi, lam, ctls, tgt)
+            self.apply_cnu3(theta, phi, lam, ctls, tgt, circ)
 
     def reapply(self, circ):
         """Reapply this gate to corresponding qubits in circ."""
-        ctl_bits = [x for x in self.arg[:self.param[-1]]]
-        tgt_bits = self.arg[-1]
-        theta = self.param[0]
-        phi = self.param[1]
-        lam = self.param[2]
-        self._modifiers(circ.cnu3(theta, phi, lam, ctl_bits, tgt_bits))
+        self._modifiers(circ.cnu3(self._theta, self._phi, self._lambda,
+                                  self._ctl_bits, self._tgt_bits))
 
-    def apply_cnu3(self, theta, phi, lam, ctls, tgt):
+    def apply_cnu3(self, theta, phi, lam, ctls, tgt, circuit):
         """Apply n-controlled u1 gate from ctls to tgt with angle theta."""
         
         n = len(ctls)
@@ -58,17 +60,19 @@ class CNU3Gate(CompositeGate):
                 pos = None
             if pos is not None:
                 if pos != lm_pos:
-                    self.cx(ctls[pos], ctls[lm_pos])
+                    circuit.cx(ctls[pos], ctls[lm_pos])
                 else:
                     indices = [i for i, x in enumerate(pattern) if x == '1']
                     for idx in indices[1:]:
-                        self.cx(ctls[idx], ctls[lm_pos])
+                        circuit.cx(ctls[idx], ctls[lm_pos])
             #check parity
             if pattern.count('1') % 2 == 0:
                 #inverse
-                self.cu3(-theta_angle, phi_angle, lam_angle, ctls[lm_pos], tgt)
+                apply_cu3(circuit, -theta_angle, phi_angle, lam_angle,
+                          ctls[lm_pos], tgt)
             else:
-                self.cu3(theta_angle, phi_angle, lam_angle, ctls[lm_pos], tgt)
+                apply_cu3(circuit, theta_angle, phi_angle, lam_angle,
+                          ctls[lm_pos], tgt)
             last_pattern = pattern
 
 

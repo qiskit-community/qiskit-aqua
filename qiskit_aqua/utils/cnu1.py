@@ -4,6 +4,7 @@ CNU1 gate. N Controlled-U1 Gate. Not Using ancilla qubits.
 
 from sympy.combinatorics.graycode import GrayCode
 from qiskit import QuantumCircuit, QuantumRegister, CompositeGate
+from qiskit_aqua.utils.controlledcircuit import apply_cu1
 from numpy import angle
 
 
@@ -12,6 +13,9 @@ class CNU1Gate(CompositeGate):
 
     def __init__(self, theta, ctls, tgt, circ=None):
         """Create new CNU1 gate."""
+        self._ctl_bits = ctls
+        self._tgt_bits = tgt
+        self._theta = theta
         qubits = [v for v in ctls] + [tgt]
         n_c = len(ctls)
         super(CNU1Gate, self).__init__("cnu1", (theta, n_c), qubits, circ)
@@ -19,16 +23,13 @@ class CNU1Gate(CompositeGate):
         if n_c == 1: # cx
             self.cu1(theta, ctls[0], tgt)
         else:
-            self.apply_cnu1(theta, ctls, tgt)
+            self.apply_cnu1(theta, ctls, tgt, circ)
 
     def reapply(self, circ):
         """Reapply this gate to corresponding qubits in circ."""
-        ctl_bits = [x for x in self.arg[:self.param[1]]]
-        tgt_bits = self.arg[-1]
-        theta = self.param[0]
-        self._modifiers(circ.cnu1(theta, ctl_bits, tgt_bits))
+        self._modifiers(circ.cnu1(self._theta, self._ctl_bits, self._tgt_bits))
 
-    def apply_cnu1(self, theta, ctls, tgt, global_phase=0):
+    def apply_cnu1(self, theta, ctls, tgt, circuit, global_phase=0):
         """Apply n-controlled u1 gate from ctls to tgt with angle theta."""
         
         n = len(ctls)
@@ -55,21 +56,21 @@ class CNU1Gate(CompositeGate):
                 pos = None
             if pos is not None:
                 if pos != lm_pos:
-                    self.cx(ctls[pos], ctls[lm_pos])
+                    circuit.cx(ctls[pos], ctls[lm_pos])
                 else:
                     indices = [i for i, x in enumerate(pattern) if x == '1']
                     for idx in indices[1:]:
-                        self.cx(ctls[idx], ctls[lm_pos])
+                        circuit.cx(ctls[idx], ctls[lm_pos])
             #check parity
             if pattern.count('1') % 2 == 0:
                 #inverse
-                self.cu1(-theta_angle, ctls[lm_pos], tgt)
+                apply_cu1(circuit, -theta_angle, ctls[lm_pos], tgt)
                 if global_phase:
-                    self.u1(-gp_angle, ctls[lm_pos])
+                    circuit.u1(-gp_angle, ctls[lm_pos])
             else:
-                self.cu1(theta_angle, ctls[lm_pos], tgt)
+                apply_cu1(circuit, theta_angle, ctls[lm_pos], tgt)
                 if global_phase:
-                    self.u1(gp_angle, ctls[lm_pos])
+                    circuit.u1(gp_angle, ctls[lm_pos])
             last_pattern = pattern
 
 
