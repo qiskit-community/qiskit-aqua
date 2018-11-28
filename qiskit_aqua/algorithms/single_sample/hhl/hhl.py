@@ -20,17 +20,10 @@ The HHL algorithm.
 
 import logging
 
+import numpy as np
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
-
 from qiskit_aqua import QuantumAlgorithm, AquaError
 from qiskit_aqua import PluggableType, get_pluggable_class
-from qiskit_aqua import get_eigs_instance, get_reciprocal_instance, \
-    get_initial_state_instance
-import numpy as np
-from qiskit.tools.visualization import matplotlib_circuit_drawer as drawer
-
-
-import qiskit.extensions.simulator
 
 logger = logging.getLogger(__name__)
 
@@ -81,31 +74,62 @@ class HHL(QuantumAlgorithm):
         }
     }
 
-    def __init__(self):
+    def __init__(self, matrix=None, vector=None, eigs=None, init_state=None,
+                 reciprocal=None, mode=None, num_q=0, num_a=0):
         super().__init__()
-        self._matrix = None
-        self._vector = None
-
-        self._eigs = None
-        self._init_state = None
-        self._reciprocal = None
-
+        super().validate({
+            HHL.PROP_MODE: mode
+        })
+        self._matrix = matrix
+        self._vector = vector
+        self._eigs = eigs
+        self._init_state = init_state
+        self._reciprocal = reciprocal
+        self._mode = mode
+        self._num_q = num_q
+        self._num_a = num_a
         self._circuit = None
         self._io_register = None
         self._eigenvalue_register = None
         self._ancilla_register = None
         self._success_bit = None
 
-        self._num_q = 0
-        self._num_a = 0
+        # Handle different modes
+        from qiskit.backends.aer.qasm_simulator import QasmSimulator
+        try:
+            QasmSimulator()
+            cpp = True
+        except FileNotFoundError:
+            cpp = False
 
-        self._mode = None
-        self._exact = False
-        self._debug = False
+        exact = False
+        debug = False
+        if mode == 'state_tomography':
+            if (QuantumAlgorithm.is_statevector_backend(self.backend) or
+                    (QuantumAlgorithm.backend_name(self.backend) ==
+                     "qasm_simulator" and cpp)):
+                exact = True
+                # not always
+                debug = True
 
+        if mode == 'debug':
+            if QuantumAlgorithm.backend_name(self.backend) != \
+                    "qasm_simulator" or not cpp:
+                raise AquaError("Debug mode only possible with C++ "
+                                "qasm_simulator.")
+            debug = True
+
+        if mode == 'swap_test':
+            if QuantumAlgorithm.is_statevector_backend(self.backend):
+                raise AquaError("Measurement required")
+
+        self._debug = debug
+        self._exact = exact
+        self._backend = self.backend
         self._ret = {}
 
-    def init_params(self, params, algo_input):
+    @classmethod
+    def init_params(cls, params, algo_input):
         """
         Initialize via parameters dictionary and algorithm input instance
         Args:
@@ -136,82 +160,34 @@ class HHL(QuantumAlgorithm):
         hhl_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM) or {}
         mode = hhl_params.get(HHL.PROP_MODE)
 
-        # Handle different modes
-        from qiskit.backends.aer.qasm_simulator import QasmSimulator
-        try:
-            QasmSimulator()
-            cpp = True
-        except FileNotFoundError:
-            cpp = False
-
-        exact = False
-        if mode == 'state_tomography':
-            if (QuantumAlgorithm.is_statevector_backend(self._backend) or
-                    (QuantumAlgorithm.backend_name(self._backend) ==
-                     "qasm_simulator" and cpp)):
-                exact = True
-                # not always
-                self._debug = True
-
-        if mode == 'debug':
-            if QuantumAlgorithm.backend_name(self._backend) != \
-                    "qasm_simulator" or not cpp:
-                raise AquaError("Debug mode only possible with C++ "
-                                     "qasm_simulator.")
-            self._debug = True
-
-        if mode == 'swap_test':
-            if QuantumAlgorithm.is_statevector_backend(self._backend):
-                raise AquaError("Measurement requred")
-
-        # Initialize eigenvalue finding module
-        eigs_params = params.get(QuantumAlgorithm.SECTION_KEY_EIGS) or {}
-        #eigs = get_eigs_instance(eigs_params["name"])
-        #eigs.init_params(eigs_params, matrix)
-        eigs = get_pluggable_class(PluggableType.EIGENVALUES,
-                                   eigs_params['name'].init_params(eigs_params))
-
-        num_q, num_a = eigs.get_register_sizes()
-
         # Fix vector for nonhermitian/non 2**n size matrices
         if matrix.shape[0] != len(vector):
             raise ValueError("Input vector dimension does not match input "
                              "matrix dimension!")
 
+        # Initialize initial state module
         tmpvec = vector
         init_state_params = {"name": "CUSTOM"}
         init_state_params["num_qubits"] = num_q
         init_state_params["state_vector"] = tmpvec
-        #init_state = get_initial_state_instance(init_state_params["name"])
-        #init_state.init_params(init_state_params)
         init_state = get_pluggable_class(PluggableType.INITIAL_STATE,
                                          init_state_params['name'].init_params(init_state_params))
+
+        # Initialize eigenvalue finding module
+        eigs_params = params.get(QuantumAlgorithm.SECTION_KEY_EIGS) or {}
+        eigs = get_pluggable_class(PluggableType.EIGENVALUES,
+                                   eigs_params['name'].init_params(eigs_params))
+        num_q, num_a = eigs.get_register_sizes()
 
         # Initialize reciprocal rotation module
         reciprocal_params = \
             params.get(QuantumAlgorithm.SECTION_KEY_RECIPROCAL) or {}
         reciprocal_params["negative_evals"] = eigs._negative_evals
         reciprocal_params["evo_time"] = eigs._evo_time
-        #reci = get_reciprocal_instance(reciprocal_params["name"])
-        #reci.init_params(reciprocal_params)
         reci = get_pluggable_class(PluggableType.RECIPROCAL,
                                    reciprocal_params['name'].init_params(reciprocal_params))
 
-        # Initialize self
-        self.init_args(matrix, vector, eigs, init_state, reci, mode, exact,
-                       num_q, num_a)
-
-    def init_args(self, matrix, vector, eigs, init_state, reciprocal, mode,
-                  exact, num_q, num_a):
-        self._matrix = matrix
-        self._vector = vector
-        self._eigs = eigs
-        self._init_state = init_state
-        self._reciprocal = reciprocal
-        self._num_q = num_q
-        self._num_a = num_a
-        self._mode = mode
-        self._exact = exact
+        return cls(matrix, vector, eigs, init_state, reci, mode, num_q, num_a)
 
     def _construct_circuit(self):
         """ Constructing the HHL circuit """
