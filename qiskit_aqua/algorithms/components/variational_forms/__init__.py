@@ -24,9 +24,3 @@ __all__ = ['VariationalForm',
            'RY',
            'RYRZ',
            'SwapRZ']
-try:
-    import qiskit_aqua_chemistry
-    from .uccsd import UCCSD
-    __all__ += ['UCCSD']
-except ImportError:
-    pass
