@@ -19,4 +19,4 @@ from .qft import QFT
 from .standard import Standard
 from .approximate import Approximate
 
-__all__ = ['Standard', 'Approximate', 'qft']
+__all__ = ['Standard', 'Approximate', 'QFT']
