@@ -22,6 +22,7 @@ from numpy.random import rand
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import run_algorithm
+from qiskit_aqua.input import LinearSystemInput
 from qiskit_aqua.utils import random_matrix_generator as rmg
 
 
@@ -104,7 +105,7 @@ class TestHHL(QiskitAquaTestCase):
         matrix = rmg.random_diag(n, eigrange=[-1, 1])
         vector = rand(2)
 
-        algo_input = get_input_instance("LinearSystemInput")
+        algo_input = LinearSystemInput()
         algo_input.matrix = matrix
         algo_input.vector = vector
 
@@ -136,7 +137,7 @@ class TestHHL(QiskitAquaTestCase):
         matrix = rmg.random_hermitian(n, eigrange=[0, 1])
         vector = rand(2)
 
-        algo_input = get_input_instance("LinearSystemInput")
+        algo_input = LinearSystemInput()
         algo_input.matrix = matrix
         algo_input.vector = vector
 
