@@ -132,9 +132,6 @@ class QPE(QuantumAlgorithm):
         self._phase_estimation_component = PhaseEstimation(
             self._operator, state_in, iqft, num_time_slices=num_time_slices, num_ancillae=num_ancillae,
             paulis_grouping=paulis_grouping, expansion_mode=expansion_mode, expansion_order=expansion_order,
-            state_in_circuit_factory=None,
-            operator_circuit_factory=None,
-            additional_params=None,
             shallow_circuit_concat=shallow_circuit_concat
         )
         self._binary_fractions = [1 / 2 ** p for p in range(1, num_ancillae + 1)]

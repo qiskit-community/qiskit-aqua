@@ -15,7 +15,7 @@
 # limitations under the License.
 # =============================================================================
 """
-The Quantum Phase Estimation Algorithm.
+Quantum Phase Estimation.
 """
 
 import numpy as np
