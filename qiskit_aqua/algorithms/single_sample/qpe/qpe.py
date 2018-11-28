@@ -50,7 +50,7 @@ class QPE(QuantumAlgorithm):
                 PROP_NUM_TIME_SLICES: {
                     'type': 'integer',
                     'default': 1,
-                    'minimum': 0
+                    'minimum': 1
                 },
                 PROP_PAULIS_GROUPING: {
                     'type': 'string',
@@ -64,7 +64,7 @@ class QPE(QuantumAlgorithm):
                 },
                 PROP_EXPANSION_MODE: {
                     'type': 'string',
-                    'default': 'suzuki',
+                    'default': 'trotter',
                     'oneOf': [
                         {'enum': [
                             'suzuki',
@@ -74,7 +74,7 @@ class QPE(QuantumAlgorithm):
                 },
                 PROP_EXPANSION_ORDER: {
                     'type': 'integer',
-                    'default': 2,
+                    'default': 1,
                     'minimum': 1
                 },
                 PROP_NUM_ANCILLAE: {
