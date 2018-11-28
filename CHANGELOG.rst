@@ -18,6 +18,11 @@ The format is based on `Keep a Changelog`_.
 `UNRELEASED`_
 =============
 
+Added
+-----
+
+- Enhanced random matrix generator
+
 `0.3.0`_ - 2018-10-05
 =====================
 
