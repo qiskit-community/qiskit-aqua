@@ -25,7 +25,6 @@ from qiskit_aqua import (local_pluggables_types,
                          PluggableType,
                          get_pluggable_configuration,
                          local_pluggables)
-from qiskit_aqua.input import (local_inputs, get_input_configuration)
 from .jsonschema import JSONSchema
 
 logger = logging.getLogger(__name__)
@@ -34,7 +33,6 @@ logger = logging.getLogger(__name__)
 class InputParser(object):
     """JSON input Parser."""
 
-    INPUT = 'input'
     _UNKNOWN = 'unknown'
     _PROPERTY_ORDER = [JSONSchema.NAME, _UNKNOWN]
 
@@ -52,15 +50,15 @@ class InputParser(object):
                 raise AquaError("Invalid parser input type.")
 
         self._section_order = [JSONSchema.PROBLEM,
-                               InputParser.INPUT, PluggableType.ALGORITHM.value]
+                               PluggableType.INPUT.value,
+                               PluggableType.ALGORITHM.value]
         for pluggable_type in local_pluggables_types():
-            if pluggable_type != PluggableType.ALGORITHM:
+            if pluggable_type not in [PluggableType.INPUT, PluggableType.ALGORITHM]:
                 self._section_order.append(pluggable_type.value)
 
         self._section_order.extend([JSONSchema.BACKEND, InputParser._UNKNOWN])
 
-        self._json_schema = JSONSchema(os.path.join(
-            os.path.dirname(__file__), 'input_schema.json'))
+        self._json_schema = JSONSchema(os.path.join(os.path.dirname(__file__), 'input_schema.json'))
         self._json_schema.populate_problem_names()
         self._json_schema.commit_changes()
 
@@ -138,7 +136,7 @@ class InputParser(object):
 
     @staticmethod
     def get_input_problems(input_name):
-        config = get_input_configuration(input_name)
+        config = get_pluggable_configuration(PluggableType.INPUT, input_name)
         if 'problems' in config:
             return config['problems']
 
@@ -149,24 +147,19 @@ class InputParser(object):
         return JSONSchema.get_algorithm_problems(algo_name)
 
     def _update_algorithm_input_schema(self):
-        # find alogorithm input
-        default_name = self.get_property_default_value(
-            InputParser.INPUT, JSONSchema.NAME)
-        input_name = self.get_section_property(
-            InputParser.INPUT, JSONSchema.NAME, default_name)
+        # find algorithm input
+        default_name = self.get_property_default_value(PluggableType.INPUT.value, JSONSchema.NAME)
+        input_name = self.get_section_property(PluggableType.INPUT.value, JSONSchema.NAME, default_name)
         if input_name is None:
             # find the first valid input for the problem
-            problem_name = self.get_section_property(
-                JSONSchema.PROBLEM, JSONSchema.NAME)
+            problem_name = self.get_section_property(JSONSchema.PROBLEM, JSONSchema.NAME)
             if problem_name is None:
-                problem_name = self.get_property_default_value(
-                    JSONSchema.PROBLEM, JSONSchema.NAME)
+                problem_name = self.get_property_default_value(JSONSchema.PROBLEM, JSONSchema.NAME)
 
             if problem_name is None:
-                raise AquaError(
-                    "No algorithm 'problem' section found on input.")
+                raise AquaError("No algorithm 'problem' section found on input.")
 
-            for name in local_inputs():
+            for name in local_pluggables(PluggableType.INPUT):
                 if problem_name in self.get_input_problems(name):
                     # set to the first input to solve the problem
                     input_name = name
@@ -174,8 +167,8 @@ class InputParser(object):
 
         if input_name is None:
             # just remove fromm schema if none solves the problem
-            if InputParser.INPUT in self._json_schema.schema['properties']:
-                del self._json_schema.schema['properties'][InputParser.INPUT]
+            if PluggableType.INPUT.value in self._json_schema.schema['properties']:
+                del self._json_schema.schema['properties'][PluggableType.INPUT.value]
             return
 
         if default_name is None:
@@ -183,7 +176,7 @@ class InputParser(object):
 
         config = {}
         try:
-            config = get_input_configuration(input_name)
+            config = get_pluggable_configuration(PluggableType.INPUT, input_name)
         except:
             pass
 
@@ -199,26 +192,25 @@ class InputParser(object):
             properties[JSONSchema.NAME]['default'] = default_name
             required.append(JSONSchema.NAME)
 
-        if InputParser.INPUT not in self._json_schema.schema['properties']:
-            self._json_schema.schema['properties'][InputParser.INPUT] = {
+        if PluggableType.INPUT.value not in self._json_schema.schema['properties']:
+            self._json_schema.schema['properties'][PluggableType.INPUT.value] = {
                 'type': 'object'}
 
-        self._json_schema.schema['properties'][InputParser.INPUT]['properties'] = properties
-        self._json_schema.schema['properties'][InputParser.INPUT]['required'] = required
-        self._json_schema.schema['properties'][InputParser.INPUT]['additionalProperties'] = additionalProperties
+        self._json_schema.schema['properties'][PluggableType.INPUT.value]['properties'] = properties
+        self._json_schema.schema['properties'][PluggableType.INPUT.value]['required'] = required
+        self._json_schema.schema['properties'][PluggableType.INPUT.value]['additionalProperties'] = additionalProperties
 
     def _merge_dependencies(self):
-        algo_name = self.get_section_property(
-            PluggableType.ALGORITHM.value, JSONSchema.NAME)
+        algo_name = self.get_section_property(PluggableType.ALGORITHM.value, JSONSchema.NAME)
         if algo_name is None:
             return
 
-        config = get_pluggable_configuration(
-            PluggableType.ALGORITHM, algo_name)
+        config = get_pluggable_configuration(PluggableType.ALGORITHM, algo_name)
         pluggable_dependencies = [] if 'depends' not in config else config['depends']
         pluggable_defaults = {} if 'defaults' not in config else config['defaults']
         for pluggable_type in local_pluggables_types():
-            if pluggable_type != PluggableType.ALGORITHM and pluggable_type.value not in pluggable_dependencies:
+            if pluggable_type not in [PluggableType.INPUT, PluggableType.ALGORITHM] and \
+                    pluggable_type.value not in pluggable_dependencies:
                 # remove pluggables from input that are not in the dependencies
                 if pluggable_type.value in self._sections:
                     del self._sections[pluggable_type.value]
@@ -302,46 +294,36 @@ class InputParser(object):
         self._validate_input_problem()
 
     def _validate_algorithm_problem(self):
-        algo_name = self.get_section_property(
-            PluggableType.ALGORITHM.value, JSONSchema.NAME)
+        algo_name = self.get_section_property(PluggableType.ALGORITHM.value, JSONSchema.NAME)
         if algo_name is None:
             return
 
-        problem_name = self.get_section_property(
-            JSONSchema.PROBLEM, JSONSchema.NAME)
+        problem_name = self.get_section_property(JSONSchema.PROBLEM, JSONSchema.NAME)
         if problem_name is None:
-            problem_name = self.get_property_default_value(
-                JSONSchema.PROBLEM, JSONSchema.NAME)
+            problem_name = self.get_property_default_value(JSONSchema.PROBLEM, JSONSchema.NAME)
 
         if problem_name is None:
-            raise AquaError(
-                "No algorithm 'problem' section found on input.")
+            raise AquaError("No algorithm 'problem' section found on input.")
 
         problems = InputParser.get_algorithm_problems(algo_name)
         if problem_name not in problems:
-            raise AquaError(
-                "Problem: {} not in the list of problems: {} for algorithm: {}.".format(problem_name, problems, algo_name))
+            raise AquaError("Problem: {} not in the list of problems: {} for algorithm: {}.".format(problem_name, problems, algo_name))
 
     def _validate_input_problem(self):
-        input_name = self.get_section_property(
-            InputParser.INPUT, JSONSchema.NAME)
+        input_name = self.get_section_property(PluggableType.INPUT.value, JSONSchema.NAME)
         if input_name is None:
             return
 
-        problem_name = self.get_section_property(
-            JSONSchema.PROBLEM, JSONSchema.NAME)
+        problem_name = self.get_section_property(JSONSchema.PROBLEM, JSONSchema.NAME)
         if problem_name is None:
-            problem_name = self.get_property_default_value(
-                JSONSchema.PROBLEM, JSONSchema.NAME)
+            problem_name = self.get_property_default_value(JSONSchema.PROBLEM, JSONSchema.NAME)
 
         if problem_name is None:
-            raise AquaError(
-                "No algorithm 'problem' section found on input.")
+            raise AquaError("No algorithm 'problem' section found on input.")
 
         problems = InputParser.get_input_problems(input_name)
         if problem_name not in problems:
-            raise AquaError(
-                "Problem: {} not in the list of problems: {} for input: {}.".format(problem_name, problems, input_name))
+            raise AquaError("Problem: {} not in the list of problems: {} for input: {}.".format(problem_name, problems, input_name))
 
     def commit_changes(self):
         self._original_sections = copy.deepcopy(self._sections)
@@ -457,8 +439,7 @@ class InputParser(object):
     def set_section_property(self, section_name, property_name, value):
         section_name = JSONSchema.format_section_name(section_name)
         property_name = JSONSchema.format_property_name(property_name)
-        value = self._json_schema.check_property_value(
-            section_name, property_name, value)
+        value = self._json_schema.check_property_value(section_name, property_name, value)
         types = self.get_property_types(section_name, property_name)
 
         sections_temp = copy.deepcopy(self._sections)
@@ -473,7 +454,7 @@ class InputParser(object):
         InputParser._set_section_property(
             self._sections, section_name, property_name, value, types)
         if property_name == JSONSchema.NAME:
-            if InputParser.INPUT == section_name:
+            if PluggableType.INPUT.value == section_name:
                 self._update_algorithm_input_schema()
                 # remove properties that are not valid for this section
                 default_properties = self.get_section_default_properties(
@@ -505,69 +486,58 @@ class InputParser(object):
         self._sections = self._order_sections(self._sections)
 
     def _update_algorithm_problem(self):
-        problem_name = self.get_section_property(
-            JSONSchema.PROBLEM, JSONSchema.NAME)
+        problem_name = self.get_section_property(JSONSchema.PROBLEM, JSONSchema.NAME)
         if problem_name is None:
-            problem_name = self.get_property_default_value(
-                JSONSchema.PROBLEM, JSONSchema.NAME)
+            problem_name = self.get_property_default_value(JSONSchema.PROBLEM, JSONSchema.NAME)
 
         if problem_name is None:
             raise AquaError(
                 "No algorithm 'problem' section found on input.")
 
-        algo_name = self.get_section_property(
-            PluggableType.ALGORITHM.value, JSONSchema.NAME)
+        algo_name = self.get_section_property(PluggableType.ALGORITHM.value, JSONSchema.NAME)
         if algo_name is not None and problem_name in InputParser.get_algorithm_problems(algo_name):
             return
 
         for algo_name in local_pluggables(PluggableType.ALGORITHM):
             if problem_name in self.get_algorithm_problems(algo_name):
                 # set to the first algorithm to solve the problem
-                self.set_section_property(
-                    PluggableType.ALGORITHM.value, JSONSchema.NAME, algo_name)
+                self.set_section_property(PluggableType.ALGORITHM.value, JSONSchema.NAME, algo_name)
                 return
 
         # no algorithm solve this problem, remove section
         self.delete_section(PluggableType.ALGORITHM.value)
 
     def _update_input_problem(self):
-        problem_name = self.get_section_property(
-            JSONSchema.PROBLEM, JSONSchema.NAME)
+        problem_name = self.get_section_property(JSONSchema.PROBLEM, JSONSchema.NAME)
         if problem_name is None:
-            problem_name = self.get_property_default_value(
-                JSONSchema.PROBLEM, JSONSchema.NAME)
+            problem_name = self.get_property_default_value(JSONSchema.PROBLEM, JSONSchema.NAME)
 
         if problem_name is None:
-            raise AquaError(
-                "No algorithm 'problem' section found on input.")
+            raise AquaError("No algorithm 'problem' section found on input.")
 
-        input_name = self.get_section_property(
-            InputParser.INPUT, JSONSchema.NAME)
+        input_name = self.get_section_property(PluggableType.INPUT.value, JSONSchema.NAME)
         if input_name is not None and problem_name in InputParser.get_input_problems(input_name):
             return
 
-        for input_name in local_inputs():
+        for input_name in local_pluggables(PluggableType.INPUT):
             if problem_name in self.get_input_problems(input_name):
                 # set to the first input to solve the problem
-                self.set_section_property(
-                    InputParser.INPUT, JSONSchema.NAME, input_name)
+                self.set_section_property(PluggableType.INPUT.value, JSONSchema.NAME, input_name)
                 return
 
         # no input solve this problem, remove section
-        self.delete_section(InputParser.INPUT)
+        self.delete_section(PluggableType.INPUT.value)
 
     def _update_dependency_sections(self):
-        algo_name = self.get_section_property(
-            PluggableType.ALGORITHM.value, JSONSchema.NAME)
-        config = {} if algo_name is None else get_pluggable_configuration(
-            PluggableType.ALGORITHM, algo_name)
+        algo_name = self.get_section_property(PluggableType.ALGORITHM.value, JSONSchema.NAME)
+        config = {} if algo_name is None else get_pluggable_configuration(PluggableType.ALGORITHM, algo_name)
         classical = config['classical'] if 'classical' in config else False
         pluggable_dependencies = [] if 'depends' not in config else config['depends']
         pluggable_defaults = {
         } if 'defaults' not in config else config['defaults']
         for pluggable_type in local_pluggables_types():
             # remove pluggables from input that are not in the dependencies
-            if pluggable_type != PluggableType.ALGORITHM and \
+            if pluggable_type not in [PluggableType.INPUT, PluggableType.ALGORITHM] and \
                     pluggable_type.value not in pluggable_dependencies and \
                     pluggable_type.value in self._sections:
                 del self._sections[pluggable_type.value]
@@ -579,11 +549,9 @@ class InputParser(object):
                     pluggable_name = pluggable_defaults[pluggable_type][JSONSchema.NAME]
 
             if pluggable_name is not None and pluggable_type not in self._sections:
-                self.set_section_property(
-                    pluggable_type, JSONSchema.NAME, pluggable_name)
+                self.set_section_property(pluggable_type, JSONSchema.NAME, pluggable_name)
                 # update default values for new dependency pluggable types
-                self.set_section_properties(
-                    pluggable_type, self.get_section_default_properties(pluggable_type))
+                self.set_section_properties(pluggable_type, self.get_section_default_properties(pluggable_type))
 
         # update backend based on classical
         if classical:
@@ -591,8 +559,7 @@ class InputParser(object):
                 del self._sections[JSONSchema.BACKEND]
         else:
             if JSONSchema.BACKEND not in self._sections:
-                self._sections[JSONSchema.BACKEND] = self.get_section_default_properties(
-                    JSONSchema.BACKEND)
+                self._sections[JSONSchema.BACKEND] = self.get_section_default_properties(JSONSchema.BACKEND)
 
         # reorder sections
         self._sections = self._order_sections(self._sections)
