@@ -24,6 +24,7 @@ from qiskit_aqua import PluggableType, get_pluggable_class
 from test.common import QiskitAquaChemistryTestCase
 from qiskit_aqua_chemistry.drivers import ConfigurationManager
 from qiskit_aqua_chemistry import FermionicOperator
+from qiskit_aqua_chemistry.aqua_extensions.components.initial_states import HartreeFock
 
 
 class TestIQPE(QiskitAquaChemistryTestCase):
@@ -68,8 +69,7 @@ class TestIQPE(QiskitAquaChemistryTestCase):
 
         num_time_slices = 50
         num_iterations = 12
-        state_in = get_pluggable_class(PluggableType.INITIAL_STATE, 'HartreeFock')(
-                self.qubitOp.num_qubits, num_orbitals, num_particles, qubit_mapping, two_qubit_reduction)
+        state_in = HartreeFock(self.qubitOp.num_qubits, num_orbitals, num_particles, qubit_mapping, two_qubit_reduction)
         iqpe = get_pluggable_class(PluggableType.ALGORITHM, 'IQPE')(
             self.qubitOp, state_in, num_time_slices, num_iterations,
             paulis_grouping='random',
