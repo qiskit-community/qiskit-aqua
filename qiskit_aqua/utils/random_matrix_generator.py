@@ -35,14 +35,10 @@ def random_unitary(N):
     Returns:
         np.ndarray: a 2-D matrix with np.complex data type.
     """
-    if N == 1:
-        unitary_matrix = np.array(np.random.random() + 1j*np.random.random(),
-                                  ndmin=2)
-    else:
-        X = (np.random.random(size=(N, N))*N + 1j*np.random.random(size=(N, N))*N) / np.sqrt(2)
-        Q, R = np.linalg.qr(X)
-        R = np.diag(np.divide(np.diag(R), abs(np.diag(R))))
-        unitary_matrix = np.dot(Q, R)
+    X = (np.random.random(size=(N, N))*N + 1j*np.random.random(size=(N, N))*N) / np.sqrt(2)
+    Q, R = np.linalg.qr(X)
+    R = np.diag(np.divide(np.diag(R), abs(np.diag(R))))
+    unitary_matrix = np.dot(Q, R)
     return unitary_matrix
 
 
