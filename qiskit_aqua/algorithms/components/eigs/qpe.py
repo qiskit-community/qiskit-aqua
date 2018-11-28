@@ -178,8 +178,6 @@ class QPE(Eigenvalues):
 
         # Set up iqft, we need to add num qubits to params which is our num_ancillae bits here
         iqft_params['num_qubits'] = num_ancillae
-#        iqft = get_iqft_instance(iqft_params['name'])
-#        iqft.init_params(iqft_params)
         iqft = get_pluggable_class(PluggableType.IQFT,
                                    iqft_params['name']).init_params(iqft_params)
 
@@ -188,8 +186,8 @@ class QPE(Eigenvalues):
         if negative_evals:
             ne_qft_params = iqft_params
             ne_qft_params['num_qubits'] -= 1
-            ne_qfts = [get_qft_instance(ne_qft_params['name']),
-                       get_iqft_instance(ne_qft_params['name'])]
+            ne_qfts = [get_pluggable_class(PluggableType.QFT, ne_qft_params['name']),
+                       get_pluggable_class(PluggableType.IQFT, ne_qft_params['name'])]
             ne_qfts[0].init_params(ne_qft_params)
             ne_qfts[1].init_params(ne_qft_params)
         else:
