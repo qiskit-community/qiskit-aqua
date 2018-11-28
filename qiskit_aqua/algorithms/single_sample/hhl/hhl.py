@@ -105,27 +105,26 @@ class HHL(QuantumAlgorithm):
         exact = False
         debug = False
         if mode == 'state_tomography':
-            if (QuantumAlgorithm.is_statevector_backend(self.backend) or
-                    (QuantumAlgorithm.backend_name(self.backend) ==
-                     "qasm_simulator_py" and cpp)):
+            if (QuantumAlgorithm.is_statevector_backend(self._backend) or
+                    (QuantumAlgorithm.backend_name(self._backend) ==
+                     "qasm_simulator" and cpp)):
                 exact = True
                 # not always
                 debug = True
 
         if mode == 'debug':
-            if QuantumAlgorithm.backend_name(self.backend) != \
+            if QuantumAlgorithm.backend_name(self._backend) != \
                     "qasm_simulator" or not cpp:
                 raise AquaError("Debug mode only possible with C++ "
                                 "qasm_simulator.")
             debug = True
 
         if mode == 'swap_test':
-            if QuantumAlgorithm.is_statevector_backend(self.backend):
+            if QuantumAlgorithm.is_statevector_backend(self._backend):
                 raise AquaError("Measurement required")
 
         self._debug = debug
         self._exact = exact
-        self._backend = self.backend
         self._ret = {}
 
     @classmethod
