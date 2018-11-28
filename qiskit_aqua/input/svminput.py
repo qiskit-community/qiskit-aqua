@@ -15,10 +15,9 @@
 # limitations under the License.
 # =============================================================================
 
-import numpy as np
-
 from qiskit_aqua import AquaError
 from qiskit_aqua.input import AlgorithmInput
+from qiskit_aqua.utils import convert_dict_to_json
 
 
 class SVMInput(AlgorithmInput):
@@ -50,10 +49,15 @@ class SVMInput(AlgorithmInput):
     }
 
     def __init__(self, training_dataset, test_dataset=None, datapoints=None):
+        self.validate(locals())
         super().__init__()
         self.training_dataset = training_dataset
         self.test_dataset = test_dataset
         self.datapoints = datapoints
+
+    def validate(self, args_dict):
+        params = {key: value for key, value in args_dict.items() if key in ['training_dataset', 'test_dataset', 'datapoints']}
+        super().validate(convert_dict_to_json(params))
 
     def to_params(self):
         params = {}

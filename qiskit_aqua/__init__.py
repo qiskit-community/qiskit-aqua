@@ -31,7 +31,7 @@ from .preferences import Preferences
 from .utils import cnx
 from .algorithms import QuantumAlgorithm
 from .operator import Operator
-from .algomethods import run_algorithm, run_algorithm_to_json
+from ._aqua import run_algorithm, run_algorithm_to_json
 from ._logging import (get_logging_level,
                        build_logging_config,
                        set_logging_config,

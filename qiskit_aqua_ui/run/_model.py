@@ -211,7 +211,7 @@ class Model(object):
 
     def get_input_section_names(self):
         from qiskit_aqua.parser._inputparser import InputParser
-        from qiskit_aqua.input import local_inputs
+        from qiskit_aqua import local_pluggables, PluggableType
         from qiskit_aqua.parser import JSONSchema
         problem_name = None
         if self._parser is not None:
@@ -222,10 +222,10 @@ class Model(object):
                 JSONSchema.PROBLEM, JSONSchema.NAME)
 
         if problem_name is None:
-            return local_inputs()
+            return local_pluggables(PluggableType.INPUT)
 
         input_names = []
-        for input_name in local_inputs():
+        for input_name in local_pluggables(PluggableType.INPUT):
             problems = InputParser.get_input_problems(input_name)
             if problem_name in problems:
                 input_names.append(input_name)
@@ -305,7 +305,7 @@ class Model(object):
 
         self._parser.set_section_property(section_name, property_name, value)
         if property_name == JSONSchema.NAME and \
-                (InputParser.is_pluggable_section(section_name) or section_name == InputParser.INPUT):
+                (InputParser.is_pluggable_section(section_name)):
             properties = self._parser.get_section_default_properties(
                 section_name)
             if isinstance(properties, dict):
@@ -323,7 +323,7 @@ class Model(object):
 
         self._parser.delete_section_property(section_name, property_name)
         if property_name == JSONSchema.NAME and \
-                (InputParser.is_pluggable_section(section_name) or section_name == InputParser.INPUT):
+                (InputParser.is_pluggable_section(section_name)):
             self._parser.delete_section_properties(section_name)
 
     def set_section_text(self, section_name, value):

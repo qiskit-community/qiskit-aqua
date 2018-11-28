@@ -43,6 +43,7 @@ class PluggableType(Enum):
     ORACLE = 'oracle'
     FEATURE_MAP = 'feature_map'
     MULTICLASS_EXTENSION = 'multiclass_extension'
+    INPUT = 'input'
 
 
 def _get_pluggables_types_dictionary():
@@ -58,6 +59,7 @@ def _get_pluggables_types_dictionary():
     from qiskit_aqua.algorithms.components.oracles import Oracle
     from qiskit_aqua.algorithms.components.feature_maps import FeatureMap
     from qiskit_aqua.algorithms.components.multiclass_extensions import MulticlassExtension
+    from qiskit_aqua.input import AlgorithmInput
     return {
         PluggableType.ALGORITHM: QuantumAlgorithm,
         PluggableType.OPTIMIZER: Optimizer,
@@ -66,20 +68,22 @@ def _get_pluggables_types_dictionary():
         PluggableType.IQFT: IQFT,
         PluggableType.ORACLE: Oracle,
         PluggableType.FEATURE_MAP: FeatureMap,
-        PluggableType.MULTICLASS_EXTENSION: MulticlassExtension
+        PluggableType.MULTICLASS_EXTENSION: MulticlassExtension,
+        PluggableType.INPUT: AlgorithmInput
     }
 
 
 _NAMES_TO_EXCLUDE = [
     '__main__',
+    '_aqua',
+    '_credentialpreferences'
     '_discover',
     '_logging',
-    'algomethods',
-    'algorithmerror',
+    'aqua_error',
     'operator',
+    'pluggable',
     'preferences',
     'quantumalgorithm',
-    'algoutils',
     'jsonutils',
     'optimizer',
     'variational_form',
@@ -90,7 +94,7 @@ _NAMES_TO_EXCLUDE = [
     'multiclass_extension'
 ]
 
-_FOLDERS_TO_EXCLUDE = ['__pycache__', 'input', 'ui', 'parser']
+_FOLDERS_TO_EXCLUDE = ['__pycache__', 'ui', 'parser']
 
 RegisteredPluggable = namedtuple(
     'RegisteredPluggable', ['name', 'cls', 'configuration'])
