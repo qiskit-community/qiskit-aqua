@@ -18,12 +18,14 @@
 This module contains the definition of a base class for quantum
 fourier transforms.
 """
-from abc import ABC, abstractmethod
+from qiskit_aqua import Pluggable
+from abc import abstractmethod
 
 
-class QFT(ABC):
+class QFT(Pluggable):
 
-    """Base class for QFT.
+    """
+        Base class for QFT.
 
         This method should initialize the module and its configuration, and
         use an exception if a component of the module is
@@ -34,8 +36,8 @@ class QFT(ABC):
     """
 
     @abstractmethod
-    def __init__(self, configuration=None):
-        self._configuration = configuration
+    def __init__(self):
+        super().__init__()
 
     @property
     def configuration(self):

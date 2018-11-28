@@ -18,12 +18,14 @@
 This module contains the definition of a base class for computing reciprocals
 into an amplitude.
 """
-from abc import ABC, abstractmethod
+from qiskit_aqua import Pluggable
+from abc import abstractmethod
 
 
-class Reciprocal(ABC):
+class Reciprocal(Pluggable):
 
-    """Base class for Reciprocal.
+    """
+        Base class for Reciprocal.
 
         This method should initialize the module and its configuration, and
         use an exception if a component of the module is
@@ -34,14 +36,16 @@ class Reciprocal(ABC):
     """
 
     @abstractmethod
-    def __init__(self, configuration=None):
-        self._configuration = configuration
+    def __init__(self):
+        #self._configuration = configuration
+        super().__init__()
 
     @property
     def configuration(self):
         """Return configuration"""
         return self._configuration
 
+    @classmethod
     def init_params(self, params):
         args = {k: v for k, v in params.items() if k != 'name'}
         self.init_args(**args)

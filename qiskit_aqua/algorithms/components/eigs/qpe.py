@@ -15,13 +15,10 @@
 # limitations under the License.
 # =============================================================================
 
-from scipy import linalg
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 
 from qiskit_aqua import Operator
-from copy import deepcopy
-
 from qiskit_aqua.algorithms.components.eigs import Eigenvalues
 
 try:
@@ -44,7 +41,7 @@ class QPE(Eigenvalues):
     PROP_NEGATIVE_EVALS = 'negative_evals'
     PROP_IQFT = 'iqft'
 
-    QPE_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'QPE',
         'description': 'Quantum Phase Estimation',
         'input_schema': {
@@ -112,8 +109,8 @@ class QPE(Eigenvalues):
         },
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.QPE_CONFIGURATION.copy())
+    def __init__(self):
+        super().__init__()
         self._operator = None
         self._num_time_slices = 0
         self._paulis_grouping = None

@@ -1,12 +1,21 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Thu Oct  4 15:27:04 2018
 
-@author: gawel
-"""
+# Copyright 2018 IBM.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# =============================================================================
+
 from qiskit import QuantumRegister, QuantumCircuit
-
 
 import sys
 sys.path.append('../')
@@ -16,7 +25,7 @@ import numpy as np
 
 
 class LongDivision(Reciprocal):
-    "Finds recirpocal with long division method and rotates the ancilla qubit"
+    "Finds reciprocal with long division method and rotates the ancilla qubit"
 
     PROP_NUM_ANCILLAE = 'num_ancillae'
     PROP_NEGATIVE_EVALS = 'negative_evals'
@@ -25,8 +34,7 @@ class LongDivision(Reciprocal):
     PROP_EVO_TIME = 'evo_time'
     PROP_LAMBDA_MIN = 'lambda_min'
 
-
-    LONGDIVISION_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'LongDivision',
         'description': 'reciprocal computation with long division and rotation of the ancilla qubit',
         'input_schema': {
@@ -64,8 +72,8 @@ class LongDivision(Reciprocal):
         },
         }
 
-    def __init__(self, configuration=None):
-        self._configuration = configuration or self.LONGDIVISION_CONFIGURATION.copy()
+    def __init__(self):
+        super().__init__()
         self._num_ancillae = None
         self._circuit = None
         self._ev = None

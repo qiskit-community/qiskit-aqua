@@ -22,7 +22,8 @@ import logging
 
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 
-from qiskit_aqua import QuantumAlgorithm, AlgorithmError
+from qiskit_aqua import QuantumAlgorithm, AquaError
+from qiskit_aqua import PluggableType, get_pluggable_class
 from qiskit_aqua import get_eigs_instance, get_reciprocal_instance, \
     get_initial_state_instance
 import numpy as np
@@ -39,7 +40,7 @@ class HHL(QuantumAlgorithm):
 
     PROP_MODE = 'mode'
 
-    HHL_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'HHL',
         'description': 'The HHL Algorithm for Solving Linear Systems of '
                        'equations',
@@ -80,8 +81,8 @@ class HHL(QuantumAlgorithm):
         }
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.HHL_CONFIGURATION.copy())
+    def __init__(self):
+        super().__init__()
         self._matrix = None
         self._vector = None
 
@@ -112,7 +113,7 @@ class HHL(QuantumAlgorithm):
             algo_input: LinearSystemInput instance
         """
         if algo_input is None:
-            raise AlgorithmError("LinearSystemInput instance is required.")
+            raise AquaError("LinearSystemInput instance is required.")
         matrix = algo_input.matrix
         vector = algo_input.vector
         if not isinstance(matrix, np.ndarray):
@@ -155,18 +156,20 @@ class HHL(QuantumAlgorithm):
         if mode == 'debug':
             if QuantumAlgorithm.backend_name(self._backend) != \
                     "qasm_simulator" or not cpp:
-                raise AlgorithmError("Debug mode only possible with C++ "
+                raise AquaError("Debug mode only possible with C++ "
                                      "qasm_simulator.")
             self._debug = True
 
         if mode == 'swap_test':
             if QuantumAlgorithm.is_statevector_backend(self._backend):
-                raise AlgorithmError("Measurement requred")
+                raise AquaError("Measurement requred")
 
         # Initialize eigenvalue finding module
         eigs_params = params.get(QuantumAlgorithm.SECTION_KEY_EIGS) or {}
-        eigs = get_eigs_instance(eigs_params["name"])
-        eigs.init_params(eigs_params, matrix)
+        #eigs = get_eigs_instance(eigs_params["name"])
+        #eigs.init_params(eigs_params, matrix)
+        eigs = get_pluggable_class(PluggableType.EIGENVALUES,
+                                   eigs_params['name'].init_params(eigs_params))
 
         num_q, num_a = eigs.get_register_sizes()
 
@@ -179,16 +182,20 @@ class HHL(QuantumAlgorithm):
         init_state_params = {"name": "CUSTOM"}
         init_state_params["num_qubits"] = num_q
         init_state_params["state_vector"] = tmpvec
-        init_state = get_initial_state_instance(init_state_params["name"])
-        init_state.init_params(init_state_params)
+        #init_state = get_initial_state_instance(init_state_params["name"])
+        #init_state.init_params(init_state_params)
+        init_state = get_pluggable_class(PluggableType.INITIAL_STATE,
+                                         init_state_params['name'].init_params(init_state_params))
 
         # Initialize reciprocal rotation module
         reciprocal_params = \
             params.get(QuantumAlgorithm.SECTION_KEY_RECIPROCAL) or {}
         reciprocal_params["negative_evals"] = eigs._negative_evals
         reciprocal_params["evo_time"] = eigs._evo_time
-        reci = get_reciprocal_instance(reciprocal_params["name"])
-        reci.init_params(reciprocal_params)
+        #reci = get_reciprocal_instance(reciprocal_params["name"])
+        #reci.init_params(reciprocal_params)
+        reci = get_pluggable_class(PluggableType.RECIPROCAL,
+                                   reciprocal_params['name'].init_params(reciprocal_params))
 
         # Initialize self
         self.init_args(matrix, vector, eigs, init_state, reci, mode, exact,

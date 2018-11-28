@@ -17,13 +17,15 @@
 """
 This module contains the definition of a base class for eigenvalue estimators.
 """
-from abc import ABC, abstractmethod
+from qiskit_aqua import Pluggable
+from abc import abstractmethod
 
 from qiskit import QuantumCircuit
 
-class Eigenvalues(ABC):
+class Eigenvalues(Pluggable):
 
-    """Base class for Eigenvalues.
+    """
+        Base class for Eigenvalues.
 
         This method should initialize the module and its configuration, and
         use an exception if a component of the module is
@@ -34,8 +36,8 @@ class Eigenvalues(ABC):
     """
     
     @abstractmethod
-    def __init__(self, configuration=None):
-        self._configuration = configuration
+    def __init__(self):
+        super().__init__()
         self._negative_evals = False
         self._output_register = None
         self._input_register = None
@@ -47,6 +49,7 @@ class Eigenvalues(ABC):
         """Return configuration"""
         return self._configuration
 
+    @classmethod
     def init_params(self, params):
         args = {k: v for k, v in params.items() if k != 'name'}
         self.init_args(**args)

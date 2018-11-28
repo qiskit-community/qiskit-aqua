@@ -41,7 +41,7 @@ class LookupRotation(Reciprocal):
     PROP_EVO_TIME = 'evo_time'
     PROP_LAMBDA_MIN = 'lambda_min'
 
-    LOOKUP_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'Lookup',
         'description': 'approximate inversion for HHL based on table lookup',
         'input_schema': {
@@ -80,8 +80,8 @@ class LookupRotation(Reciprocal):
         },
     }
 
-    def __init__(self, configuration=None):
-        self._configuration = configuration or self.LOOKUP_CONFIGURATION.copy()
+    def __init__(self):
+        super().__init__()
         self._anc = None
         self._workq = None
         self._msq = None

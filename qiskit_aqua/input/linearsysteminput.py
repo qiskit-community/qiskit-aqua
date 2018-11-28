@@ -15,9 +15,7 @@
 # limitations under the License.
 # =============================================================================
 
-import copy
-
-from qiskit_aqua import AlgorithmError
+from qiskit_aqua import AquaError
 from qiskit_aqua.input import AlgorithmInput
 
 import numpy as np
@@ -28,7 +26,7 @@ class LinearSystemInput(AlgorithmInput):
     PROP_KEY_MATRIX = 'matrix'
     PROP_KEY_VECTOR = 'vector'
 
-    LINEARSYSTEMINPUT_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'LinearSystemInput',
         'description': 'Linear System problem input',
         'input_schema': {
@@ -50,8 +48,8 @@ class LinearSystemInput(AlgorithmInput):
         'problems': ['linear_system']
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or copy.deepcopy(self.LINEARSYSTEMINPUT_CONFIGURATION))
+    def __init__(self):
+        super().__init__()
         self._matrix = None
         self._vector = []
 
@@ -79,9 +77,9 @@ class LinearSystemInput(AlgorithmInput):
 
     def from_params(self, params):
         if LinearSystemInput.PROP_KEY_MATRIX not in params:
-            raise AlgorithmError("Matrix is required.")
+            raise AquaError("Matrix is required.")
         if LinearSystemInput.PROP_KEY_VECTOR not in params:
-            raise AlgorithmError("Vector is required.")
+            raise AquaError("Vector is required.")
         qparams = params[LinearSystemInput.PROP_KEY_MATRIX]
         self._matrix = self.load_mat_from_list(qparams)
         qparams = params[LinearSystemInput.PROP_KEY_VECTOR]
@@ -94,7 +92,7 @@ class LinearSystemInput(AlgorithmInput):
         elif depth(mat) == 2:
             return np.array(mat)
         else:
-            raise AlgorithmError("Matrix list must be depth 2 or 3")
+            raise AquaError("Matrix list must be depth 2 or 3")
              
     def load_vec_from_list(self, vec):
         depth = lambda l: isinstance(l, list) and max(map(depth, l))+1
@@ -103,7 +101,7 @@ class LinearSystemInput(AlgorithmInput):
         elif depth(vec) == 1:
             return np.array(vec)
         else:
-            raise AlgorithmError("Vector list must be depth 2 or 3")
+            raise AquaError("Vector list must be depth 2 or 3")
 
     def save_to_list(self, mat):
         if not isinstance(mat, np.ndarray):
