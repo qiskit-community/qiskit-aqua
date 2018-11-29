@@ -22,11 +22,11 @@ import logging
 from collections import OrderedDict
 import numpy as np
 
-from qiskit import QuantumRegister, ClassicalRegister
 from qiskit_aqua import QuantumAlgorithm, AquaError
 from qiskit_aqua import PluggableType, get_pluggable_class
 from qiskit_aqua.algorithms.single_sample import PhaseEstimation
 from qiskit_aqua.algorithms.components.iqfts import Standard
+from .q_factory import QFactory
 
 logger = logging.getLogger(__name__)
 
@@ -97,7 +97,7 @@ class AmplitudeEstimation(QuantumAlgorithm):
         return cls(num_eval_qubits, distribution, q_factory=None, additional_params=additional_params, iqft=iqft)
 
     def __init__(self, num_eval_qubits, a_factory, q_factory=None, additional_params=None, iqft=None):
-        self.validate(locals())
+        # self.validate(locals())
         super().__init__()
 
         # get/construct A/Q operator
@@ -156,7 +156,6 @@ class AmplitudeEstimation(QuantumAlgorithm):
 
         return a_probabilities, y_probabilities
 
+    # TODO: implement the run method!
     def run(self):
-        self._compute_energy()
-
-        return self._ret
+        pass

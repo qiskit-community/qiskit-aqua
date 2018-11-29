@@ -32,24 +32,21 @@ class NormalDistribution(UnivariateUncertaintyModel):
                 'num_target_qubits': {
                     'type': 'integer',
                     'default': 2,
-                    'minimum': 1
                 },
                 'mu': {
-                    'type': 'integer',
+                    'type': 'number',
                     'default': 0,
-                    'minimum': 0
                 },
                 'sigma': {
-                    'type': 'integer',
+                    'type': 'number',
                     'default': 1,
-                    'minimum': 0
                 },
                 'low': {
-                    'type': 'integer',
+                    'type': 'number',
                     'default': -1,
                 },
                 'high': {
-                    'type': 'integer',
+                    'type': 'number',
                     'default': 1,
                 },
             },

@@ -20,7 +20,7 @@ from qiskit_aqua import Pluggable
 from qiskit_aqua.utils import CircuitFactory
 
 
-class Problem(ABC, CircuitFactory, Pluggable):
+class Problem(CircuitFactory, Pluggable, ABC):
 
     @classmethod
     def init_params(cls, params):
