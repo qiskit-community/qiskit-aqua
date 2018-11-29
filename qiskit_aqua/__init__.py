@@ -27,7 +27,6 @@ from ._discover import (PluggableType,
                         register_pluggable,
                         deregister_pluggable)
 from .pluggable import Pluggable
-from .preferences import Preferences
 from .utils import cnx
 from .algorithms import QuantumAlgorithm
 from .operator import Operator
@@ -38,12 +37,11 @@ from ._logging import (get_logging_level,
                        get_aqua_logging,
                        set_aqua_logging)
 
-__version__ = '0.3.1'
+__version__ = '0.4.0'
 
 __all__ = ['AquaError',
            'Pluggable',
            'Operator',
-           'Preferences',
            'QuantumAlgorithm',
            'PluggableType',
            'refresh_pluggables',
