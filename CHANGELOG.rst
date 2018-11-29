@@ -18,6 +18,14 @@ The format is based on `Keep a Changelog`_.
 `UNRELEASED`_
 =============
 
+`0.3.1`_ - 2018-11-29
+=====================
+
+Changed
+-------
+
+- Different backends might have different signatures for describing the job completion.
+
 `0.3.0`_ - 2018-10-05
 =====================
 
@@ -125,7 +133,8 @@ Changed
 - Updated qiskit minimum version in setup.py.
 - Fixed links in readme.me.
 
-.. _UNRELEASED: https://github.com/Qiskit/aqua/compare/0.3.0...HEAD
+.. _UNRELEASED: https://github.com/Qiskit/aqua/compare/0.3.1...HEAD
+.. _0.3.1: https://github.com/Qiskit/aqua/compare/0.3.0...0.3.1
 .. _0.3.0: https://github.com/Qiskit/aqua/compare/0.2.0...0.3.0
 .. _0.2.0: https://github.com/Qiskit/aqua/compare/0.1.2...0.2.0
 .. _0.1.2: https://github.com/Qiskit/aqua/compare/0.1.1...0.1.2
