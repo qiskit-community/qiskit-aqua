@@ -50,7 +50,7 @@ class PreferencesDialog(Dialog):
     def body(self, parent, options):
         from qiskit_aqua._logging import (get_logging_level,
                                           set_logging_config)
-        from qiskit_aqua import Preferences
+        from qiskit_aqua_cmd import Preferences
         preferences = Preferences()
         logging_config = preferences.get_logging_config()
         if logging_config is not None:
@@ -138,7 +138,7 @@ class PreferencesDialog(Dialog):
         return True
 
     def apply(self):
-        from qiskit_aqua import Preferences
+        from qiskit_aqua_cmd import Preferences
         from qiskit_aqua._logging import (build_logging_config,
                                           set_logging_config)
         try:

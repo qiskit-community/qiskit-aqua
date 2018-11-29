@@ -18,7 +18,6 @@
 import os
 import json
 import copy
-from ._credentialspreferences import CredentialsPreferences
 
 
 class Preferences(object):
@@ -34,7 +33,7 @@ class Preferences(object):
         }
         self._packages_changed = False
         self._logging_config_changed = False
-        self._credentials_preferences = CredentialsPreferences()
+        self._credentials_preferences = None
 
         home = os.path.expanduser("~")
         self._filepath = os.path.join(home, Preferences._FILENAME)
@@ -44,29 +43,26 @@ class Preferences(object):
         except:
             pass
 
-        if Preferences._SELECTED_KEY in self._preferences:
-            self._credentials_preferences.select_credentials(self._preferences[Preferences._SELECTED_KEY])
-            pass
-
     def save(self):
-        self._credentials_preferences.save()
-        selected_credentials = self._credentials_preferences.selected_credentials
-        selected_credentials_url = selected_credentials.url if selected_credentials is not None else None
+        if self._credentials_preferences is not None:
+            self.credentials_preferences.save()
+            selected_credentials = self.credentials_preferences.selected_credentials
+            selected_credentials_url = selected_credentials.url if selected_credentials is not None else None
 
-        if selected_credentials_url != self._preferences.get(Preferences._SELECTED_KEY) or \
-                self._logging_config_changed or \
-                self._packages_changed:
-            selected_credentials = self._credentials_preferences.selected_credentials
-            if selected_credentials_url is not None:
-                self._preferences[Preferences._SELECTED_KEY] = selected_credentials_url
-            else:
-                if Preferences._SELECTED_KEY in self._preferences:
-                    del self._preferences[Preferences._SELECTED_KEY]
+            if selected_credentials_url != self._preferences.get(Preferences._SELECTED_KEY) or \
+                    self._logging_config_changed or \
+                    self._packages_changed:
+                selected_credentials = self.credentials_preferences.selected_credentials
+                if selected_credentials_url is not None:
+                    self._preferences[Preferences._SELECTED_KEY] = selected_credentials_url
+                else:
+                    if Preferences._SELECTED_KEY in self._preferences:
+                        del self._preferences[Preferences._SELECTED_KEY]
 
-            with open(self._filepath, 'w') as fp:
-                json.dump(self._preferences, fp, sort_keys=True, indent=4)
-            self._logging_config_changed = False
-            self._packages_changed = False
+        with open(self._filepath, 'w') as fp:
+            json.dump(self._preferences, fp, sort_keys=True, indent=4)
+        self._logging_config_changed = False
+        self._packages_changed = False
 
     def get_version(self):
         if 'version' in self._preferences:
@@ -77,19 +73,25 @@ class Preferences(object):
     @property
     def credentials_preferences(self):
         """Return credentials preferences"""
+        from ._credentialspreferences import CredentialsPreferences
+        if self._credentials_preferences is None:
+            self._credentials_preferences = CredentialsPreferences()
+            if Preferences._SELECTED_KEY in self._preferences:
+                self._credentials_preferences.select_credentials(self._preferences[Preferences._SELECTED_KEY])
+
         return self._credentials_preferences
 
     def get_token(self, default_value=None):
-        return self._credentials_preferences.get_token(default_value)
+        return self.credentials_preferences.get_token(default_value)
 
     def get_url(self, default_value=None):
-        return self._credentials_preferences.get_url(default_value)
+        return self.credentials_preferences.get_url(default_value)
 
     def get_proxies(self, default_value=None):
-        return self._credentials_preferences.get_proxies(default_value)
+        return self.credentials_preferences.get_proxies(default_value)
 
     def get_proxy_urls(self, default_value=None):
-        return self._credentials_preferences.get_proxy_urls(default_value)
+        return self.credentials_preferences.get_proxy_urls(default_value)
 
     def get_packages(self, default_value=None):
         if 'packages' in self._preferences and \
