@@ -38,7 +38,7 @@ requirements = [
 
 setuptools.setup(
     name='qiskit-aqua',
-    version="0.3.0",  # this should match __init__.__version__
+    version="0.3.1",  # this should match __init__.__version__
     description='Qiskit Aqua: An extensible library of quantum computing algorithms',
     long_description=long_description,
     long_description_content_type="text/markdown",

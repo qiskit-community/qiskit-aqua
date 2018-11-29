@@ -28,7 +28,7 @@ from ._discover import (refresh_pluggables,
                         get_pluggable_configuration)
 
 
-__version__ = '0.3.0'
+__version__ = '0.3.1'
 
 __all__ = ['AlgorithmError',
            'Operator',
