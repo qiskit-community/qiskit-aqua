@@ -44,14 +44,14 @@ class Preferences(object):
             pass
 
     def save(self):
+        pref_changed = self._logging_config_changed or self._packages_changed
         if self._credentials_preferences is not None:
             self.credentials_preferences.save()
             selected_credentials = self.credentials_preferences.selected_credentials
             selected_credentials_url = selected_credentials.url if selected_credentials is not None else None
 
-            if selected_credentials_url != self._preferences.get(Preferences._SELECTED_KEY) or \
-                    self._logging_config_changed or \
-                    self._packages_changed:
+            if selected_credentials_url != self._preferences.get(Preferences._SELECTED_KEY) or pref_changed:
+                pref_changed = True
                 selected_credentials = self.credentials_preferences.selected_credentials
                 if selected_credentials_url is not None:
                     self._preferences[Preferences._SELECTED_KEY] = selected_credentials_url
@@ -59,8 +59,10 @@ class Preferences(object):
                     if Preferences._SELECTED_KEY in self._preferences:
                         del self._preferences[Preferences._SELECTED_KEY]
 
-        with open(self._filepath, 'w') as fp:
-            json.dump(self._preferences, fp, sort_keys=True, indent=4)
+        if pref_changed:
+            with open(self._filepath, 'w') as fp:
+                json.dump(self._preferences, fp, sort_keys=True, indent=4)
+
         self._logging_config_changed = False
         self._packages_changed = False
 
