@@ -66,7 +66,7 @@ def cost_estimate_sigmoid(shots, probs, gt_labels):
     p is the prob of gt_label.
     Note that we adopt the cross_entropy, rather than the sigmoid_cross_entropy. Besides, we do not use shots here.
     The  'sigmoid' and 'shots' are kept for historical reasons.
-    They may be used in future if necessary. 
+    They may be used in future if necessary.
     Args:
         shots (int): the number of shots used in quantum computing
         probs (numpy.ndarray): NxK array, N is the number of data and K is the number of class
