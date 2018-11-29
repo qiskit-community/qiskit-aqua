@@ -15,12 +15,11 @@
 # limitations under the License.
 # =============================================================================
 
-from abc import ABC
 from qiskit_aqua import Pluggable
 from qiskit_aqua.utils import CircuitFactory
 
 
-class Problem(ABC, CircuitFactory, Pluggable):
+class Problem(CircuitFactory, Pluggable):
 
     @classmethod
     def init_params(cls, params):
