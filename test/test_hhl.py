@@ -60,11 +60,11 @@ class TestHHL(QiskitAquaTestCase):
                 "scale": 0.0
             },
             "backend": {
-                "name": "statevector_simulator_py",
+                "name": "statevector_simulator",
                 "skip_transpiler": "false"
             }
         }
-        backend = Aer.get_backend('statevector_simulator_py')
+        backend = Aer.get_backend('statevector_simulator')
         hhl = HHL(mode='state_tomography')
         hhl.setup_quantum_backend(backend=backend, shots=1,
                                   skip_transpiler=True)
