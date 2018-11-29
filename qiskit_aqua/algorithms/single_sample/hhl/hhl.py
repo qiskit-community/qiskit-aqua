@@ -125,7 +125,7 @@ class HHL(QuantumAlgorithm):
                      "qasm_simulator" and cpp)):
                 exact = True
                 # not always
-                debug = True
+                #debug = True
 
         if self._mode == 'debug':
             if QuantumAlgorithm.backend_name(self._backend) != \
