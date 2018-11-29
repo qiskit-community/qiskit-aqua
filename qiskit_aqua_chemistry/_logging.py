@@ -20,7 +20,7 @@ import copy
 import logging
 from logging.config import dictConfig
 from collections import OrderedDict
-from qiskit_aqua import Preferences as AquaPreferences
+from qiskit_aqua_cmd import Preferences as AquaPreferences
 from qiskit_aqua_chemistry import Preferences as ChemistryPreferences
 
 _AQUA_CHEMISTRY_LOGGING_CONFIG = {
