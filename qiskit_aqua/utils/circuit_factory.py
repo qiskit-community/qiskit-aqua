@@ -20,12 +20,9 @@ and power combinations of the circuit.
 """
 
 from abc import ABC, abstractmethod
-import logging
 from qiskit import QuantumCircuit
 from qiskit_aqua import AquaError
 from qiskit_aqua.utils.controlledcircuit import get_controlled_circuit
-
-logger = logging.getLogger(__name__)
 
 
 class CircuitFactory(ABC):
@@ -83,8 +80,8 @@ class CircuitFactory(ABC):
         self.build(qc_, q, q_ancillas, params)
         try:
             qc_.data = [gate.inverse() for gate in reversed(qc_.data)]
-        except AquaError:
-            logger.warning('Irreversible circuit! Does not support inverse method.')
+        except Exception as exc:
+            raise AquaError('Irreversible circuit! Gate does not support inverse method.') from exc
         qc.extend(qc_)
 
     def build_controlled(self, qc, q, q_control, q_ancillas=None, params=None):
