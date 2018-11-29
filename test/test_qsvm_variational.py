@@ -56,7 +56,6 @@ class TestQSVMVariational(QiskitAquaTestCase):
         }
         result = run_algorithm(params, self.svm_input)
 
-        print(result)
         np.testing.assert_array_almost_equal(result['opt_params'], self.ref_opt_params, decimal=4)
         np.testing.assert_array_almost_equal(result['training_loss'], self.ref_train_loss, decimal=8)
 
