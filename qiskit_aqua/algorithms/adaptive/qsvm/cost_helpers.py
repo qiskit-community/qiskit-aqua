@@ -97,19 +97,7 @@ def cost_estimate_sigmoid(shots, probs, gt_labels):
     Returns:
         float: sigmoid cross entropy loss between estimated probs and gt_labels
     """
-    mylabels = np.zeros(probs.shape)
-    for i in range(gt_labels.shape[0]):
-        whichindex = gt_labels[i]
-        mylabels[i][whichindex] = 1
-
-    def cross_entropy(predictions, targets, epsilon=1e-12):
-        predictions = np.clip(predictions, epsilon, 1. - epsilon)
-        N = predictions.shape[0]
-        tmp = np.sum(targets*np.log(predictions), axis=1)
-        ce = -np.sum(tmp)/N
-        return ce
-
-    x = cross_entropy(probs, mylabels)
+    x = cost_estimate(shots, probs, gt_labels)
     loss = (1.) / (1. + np.exp(-x))
     return loss
 
