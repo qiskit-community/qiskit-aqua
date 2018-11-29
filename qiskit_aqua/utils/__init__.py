@@ -30,6 +30,7 @@ from .dataset_helper import (get_feature_dimension, get_num_classes,
                              reduce_dim_to_via_pca)
 from .qpsolver import optimize_svm
 from .run_circuits import run_circuits, find_regs_by_name
+from .circuit_factory import CircuitFactory
 
 __all__ = ['tensorproduct',
            'PauliGraph',
@@ -52,4 +53,5 @@ __all__ = ['tensorproduct',
            'reduce_dim_to_via_pca',
            'optimize_svm',
            'run_circuits',
-           'find_regs_by_name']
+           'find_regs_by_name',
+           'CircuitFactory']

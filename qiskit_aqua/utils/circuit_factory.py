@@ -1,7 +1,31 @@
+# -*- coding: utf-8 -*-
+
+# Copyright 2018 IBM.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# =============================================================================
+"""
+Abstract CircuitFactory to build a circuit, along with inverse, controlled
+and power combinations of the circuit.
+"""
+
 from abc import ABC, abstractmethod
+import logging
 from qiskit import QuantumCircuit
 from qiskit_aqua import AquaError
 from qiskit_aqua.utils.controlledcircuit import get_controlled_circuit
+
+logger = logging.getLogger(__name__)
 
 
 class CircuitFactory(ABC):
@@ -54,14 +78,13 @@ class CircuitFactory(ABC):
             q_ancillas : list of ancilla qubits (or None if none needed)
             params : parameters for circuit
         """
-
         qc_ = QuantumCircuit(*qc.qregs)
 
         self.build(qc_, q, q_ancillas, params)
         try:
             qc_.data = [gate.inverse() for gate in reversed(qc_.data)]
         except AquaError:
-            print('Irreversible circuit! Does not support inverse method.')
+            logger.warning('Irreversible circuit! Does not support inverse method.')
         qc.extend(qc_)
 
     def build_controlled(self, qc, q, q_control, q_ancillas=None, params=None):
@@ -74,7 +97,6 @@ class CircuitFactory(ABC):
             q_ancillas : list of ancilla qubits (or None if none needed)
             params : parameters for circuit
         """
-
         uncontrolled_circuit = QuantumCircuit(*qc.qregs)
 
         self.build(uncontrolled_circuit, q, q_ancillas, params)
@@ -91,7 +113,6 @@ class CircuitFactory(ABC):
             q_ancillas : list of ancilla qubits (or None if none needed)
             params : parameters for circuit
         """
-
         qc_ = QuantumCircuit(*qc.qregs)
 
         self.build_controlled(qc_, q, q_control, q_ancillas, params)
@@ -102,21 +123,25 @@ class CircuitFactory(ABC):
         qc.extend(qc_)
 
     def build_power(self, qc, q, power, q_ancillas=None, params=None):
-        """ Adds power of corresponding circuit - can be overwritten in case a more efficient implementation is possible """
+        """ Adds power of corresponding circuit.
+            May be overridden if a more efficient implementation is possible """
         for _ in range(power):
             self.build(qc, q, q_ancillas, params)
 
     def build_inverse_power(self, qc, q, power, q_ancillas=None, params=None):
-        """ Adds power of corresponding circuit - can be overwritten in case a more efficient implementation is possible """
+        """ Adds inverse power of corresponding circuit.
+            May be overridden if a more efficient implementation is possible """
         for _ in range(power):
             self.build_inverse(qc, q, q_ancillas, params)
 
     def build_controlled_power(self, qc, q, q_control, power, q_ancillas=None, params=None):
-        """ Adds power of corresponding circuit - can be overwritten in case a more efficient implementation is possible """
+        """ Adds controlled power of corresponding circuit.
+            May be overridden if a more efficient implementation is possible """
         for _ in range(power):
             self.build_controlled(qc, q, q_control, q_ancillas, params)
 
     def build_controlled_inverse_power(self, qc, q, q_control, power, q_ancillas=None, params=None):
-        """ Adds power of corresponding circuit - can be overwritten in case a more efficient implementation is possible """
+        """ Adds controlled, inverse, power of corresponding circuit.
+            May be overridden if a more efficient implementation is possible """
         for _ in range(power):
             self.build_controlled_inverse(qc, q, q_control, q_ancillas, params)
