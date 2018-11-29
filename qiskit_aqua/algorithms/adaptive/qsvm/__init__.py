@@ -15,7 +15,7 @@
 # limitations under the License.
 # =============================================================================
 
-from .cost_helpers import cost_estimate_sigmoid, return_probabilities
+from .cost_helpers import cost_estimate, cost_estimate_sigmoid, return_probabilities
 
 __all__ = ['cost_estimate',
            'cost_estimate_sigmoid',
