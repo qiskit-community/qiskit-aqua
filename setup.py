@@ -23,8 +23,7 @@ import atexit
 
 long_description="""<a href="https://qiskit.org/aqua/chemistry" rel=nofollow>Qiskit Aqua Chemistry</a> 
  is a set of quantum computing algorithms, 
- tools and APIs for experimenting with real-world chemistry applications on near-term quantum devices."""
-    
+ tools and APIs for experimenting with real-world chemistry applications on near-term quantum devices.""" 
 
 requirements = [
     "qiskit-aqua>=0.4.0",
@@ -39,7 +38,7 @@ requirements = [
 
 
 def _post_install():
-    from qiskit_aqua.preferences import Preferences
+    from qiskit_aqua_cmd import Preferences
     preferences = Preferences()
     preferences.add_package('qiskit_aqua_chemistry.aqua_extensions')
     preferences.save()
