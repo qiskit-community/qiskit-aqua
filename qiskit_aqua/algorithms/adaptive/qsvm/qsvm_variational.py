@@ -22,7 +22,7 @@ from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 
 from qiskit_aqua import (AquaError, QuantumAlgorithm,
                          PluggableType, get_pluggable_class)
-from qiskit_aqua.algorithms.adaptive.qsvm import (cost_estimate_sigmoid, return_probabilities)
+from qiskit_aqua.algorithms.adaptive.qsvm import (cost_estimate, cost_estimate_sigmoid, return_probabilities)
 from qiskit_aqua.utils import (get_feature_dimension, map_label_to_class_name,
                                split_dataset_to_data_and_labels)
 

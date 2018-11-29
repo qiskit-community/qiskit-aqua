@@ -61,18 +61,15 @@ def assign_label(measured_key, num_classes):
         return key_order if key_order < num_classes else num_classes - 1
 
 
-def cost_estimate_sigmoid(shots, probs, gt_labels):
-    """Calculate sigmoid cross entropy over the predicted probs
-    p is the prob of gt_label.
-    Note that we adopt the cross_entropy, rather than the sigmoid_cross_entropy. Besides, we do not use shots here.
-    The  'sigmoid' and 'shots' are kept for historical reasons.
-    They may be used in future if necessary.
+def cost_estimate(shots, probs, gt_labels):
+    """Calculate cross entropy
+    # shots is kept since it may be needed in future.
     Args:
         shots (int): the number of shots used in quantum computing
         probs (numpy.ndarray): NxK array, N is the number of data and K is the number of class
         gt_labels (numpy.ndarray): Nx1 array
     Returns:
-        float: averaged sigmoid cross entropy loss between estimated probs and gt_labels
+        float: cross entropy loss between estimated probs and gt_labels
     """
     mylabels = np.zeros(probs.shape)
     for i in range(gt_labels.shape[0]):
@@ -82,12 +79,40 @@ def cost_estimate_sigmoid(shots, probs, gt_labels):
     def cross_entropy(predictions, targets, epsilon=1e-12):
         predictions = np.clip(predictions, epsilon, 1. - epsilon)
         N = predictions.shape[0]
-        ce = -np.sum(np.sum(targets*np.log(predictions)))/N
+        tmp = np.sum(targets*np.log(predictions), axis=1)
+        ce = -np.sum(tmp)/N
         return ce
 
     x = cross_entropy(probs, mylabels)
-    # loss = (1.) / (1. + np.exp(-x))
     return x
+
+
+def cost_estimate_sigmoid(shots, probs, gt_labels):
+    """Calculate sigmoid cross entropy
+
+    Args:
+        shots (int): the number of shots used in quantum computing
+        probs (numpy.ndarray): NxK array, N is the number of data and K is the number of class
+        gt_labels (numpy.ndarray): Nx1 array
+    Returns:
+        float: sigmoid cross entropy loss between estimated probs and gt_labels
+    """
+    mylabels = np.zeros(probs.shape)
+    for i in range(gt_labels.shape[0]):
+        whichindex = gt_labels[i]
+        mylabels[i][whichindex] = 1
+
+    def cross_entropy(predictions, targets, epsilon=1e-12):
+        predictions = np.clip(predictions, epsilon, 1. - epsilon)
+        N = predictions.shape[0]
+        tmp = np.sum(targets*np.log(predictions), axis=1)
+        ce = -np.sum(tmp)/N
+        return ce
+
+    x = cross_entropy(probs, mylabels)
+    loss = (1.) / (1. + np.exp(-x))
+    return loss
+
 
 
 def return_probabilities(counts, num_classes):
