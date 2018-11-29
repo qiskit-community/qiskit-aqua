@@ -73,7 +73,7 @@ def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None,
 
 
 def get_maxcut_qubitops(weight_matrix):
-    """Generate Hamiltonian for the maximum stableset in a graph.
+    """Generate Hamiltonian for the maxcut problem of a graph.
 
     Args:
         weight_matrix (numpy.ndarray) : adjacency matrix.
@@ -122,7 +122,7 @@ def parse_gset_format(filename):
                 s, t, x = v
                 s -= 1  # adjust 1-index
                 t -= 1  # ditto
-                w[s, t] = t
+                w[s, t] = x
                 count += 1
         assert m == count
     w += w.T
