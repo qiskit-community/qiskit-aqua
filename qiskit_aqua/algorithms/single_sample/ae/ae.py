@@ -45,10 +45,6 @@ class AmplitudeEstimation(QuantumAlgorithm):
                     'type': 'integer',
                     'default': 5,
                     'minimum': 1
-                },
-                'additional_params': {
-                    'type': ['object', 'null'],
-                    'default': None
                 }
             },
             'additionalProperties': False
@@ -78,7 +74,6 @@ class AmplitudeEstimation(QuantumAlgorithm):
 
         ae_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
         num_eval_qubits = ae_params.get('num_eval_qubits')
-        additional_params = ae_params.get('additional_params')
 
         # Set up distribution
         distribution = None
@@ -94,9 +89,9 @@ class AmplitudeEstimation(QuantumAlgorithm):
         iqft_params['num_qubits'] = num_eval_qubits
         iqft = get_pluggable_class(PluggableType.IQFT, iqft_params['name']).init_params(iqft_params)
 
-        return cls(num_eval_qubits, distribution, q_factory=None, additional_params=additional_params, iqft=iqft)
+        return cls(num_eval_qubits, distribution, q_factory=None, iqft=iqft)
 
-    def __init__(self, num_eval_qubits, a_factory, q_factory=None, additional_params=None, iqft=None):
+    def __init__(self, num_eval_qubits, a_factory, q_factory=None, iqft=None):
         # self.validate(locals())
         super().__init__()
 
@@ -108,7 +103,6 @@ class AmplitudeEstimation(QuantumAlgorithm):
             self.q_factory = q_factory
 
         # get parameters
-        self._a_params = additional_params
         self._m = num_eval_qubits
         self._M = 2 ** num_eval_qubits
 
@@ -125,8 +119,7 @@ class AmplitudeEstimation(QuantumAlgorithm):
 
         pe = PhaseEstimation(None, None, self._iqft, num_ancillae=self._m,
                              state_in_circuit_factory=self.a_factory,
-                             operator_circuit_factory=self.q_factory,
-                             additional_params=self._a_params)
+                             operator_circuit_factory=self.q_factory)
 
         qc = pe.construct_circuit()
 

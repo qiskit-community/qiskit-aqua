@@ -30,7 +30,6 @@ class PhaseEstimation:
             paulis_grouping='random', expansion_mode='trotter', expansion_order=1,
             state_in_circuit_factory=None,
             operator_circuit_factory=None,
-            additional_params=None,
             shallow_circuit_concat=False):
 
         # TODO: do some param checking
@@ -48,7 +47,6 @@ class PhaseEstimation:
         self._shallow_circuit_concat = shallow_circuit_concat
         self._ancilla_phase_coef = 1
         self._circuit = {True: None, False: None}
-        self._additional_params = additional_params
         self._ret = {}
 
     def construct_circuit(self, measure=False):
@@ -88,7 +86,7 @@ class PhaseEstimation:
             if self._state_in is not None:
                 qc.data += self._state_in.construct_circuit('circuit', q).data
             elif self._state_in_circuit_factory is not None:
-                self._state_in_circuit_factory.build(qc, q, aux, self._additional_params)
+                self._state_in_circuit_factory.build(qc, q, aux)
             else:
                 raise RuntimeError('Missing initial state specification.')
 
@@ -124,7 +122,7 @@ class PhaseEstimation:
                     qc.u1(2 * np.pi * self._ancilla_phase_coef * (2 ** i), a[i])
             elif self._operator_circuit_factory is not None:
                 for i in range(self._num_ancillae):
-                    self._operator_circuit_factory.build_controlled_power(qc, q, a[i], 2 ** i, aux, self._additional_params)
+                    self._operator_circuit_factory.build_controlled_power(qc, q, a[i], 2 ** i, aux)
 
             # inverse qft on ancillae
             self._iqft.construct_circuit('circuit', a, qc)

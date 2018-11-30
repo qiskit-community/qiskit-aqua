@@ -1,6 +1,5 @@
 from qiskit_aqua.algorithms.single_sample import AmplitudeEstimation
 from qiskit_aqua.algorithms.components.problems import EuropeanCallExpectedValue
-from qiskit_aqua.algorithms.components.problems import EuropeanCallDelta
 from qiskit_aqua.algorithms.components.uncertainty_models import NormalDistribution
 
 import matplotlib.pyplot as plt
@@ -42,7 +41,14 @@ strike_price = 1
 c_approx = 0.5
 
 # construct circuit factory for payoff function
-european_call = EuropeanCallExpectedValue(uncertainty_model, strike_price=strike_price, c_approx=c_approx)
+european_call = EuropeanCallExpectedValue(
+    uncertainty_model,
+    strike_price=strike_price,
+    c_approx=c_approx,
+    i_state=list(range(num_uncertainty_qubits)),
+    i_compare=num_uncertainty_qubits,
+    i_objective=num_uncertainty_qubits + 1
+)
 
 
 # plot payoff function
@@ -71,13 +77,10 @@ print('exact delta value:   \t%.4f' % exact_delta)
 m = 5
 
 # assign qubit indices (state/uncertainty quits, compare with strike price qubit, objective qubit)
-i_state = range(num_uncertainty_qubits)
-i_compare = len(i_state)
-i_objective = i_compare + 1
-params = {'i_state': i_state, 'i_compare': i_compare, 'i_objective': i_objective}
+params = None
 
 # construct amplitude estimation
-ae = AmplitudeEstimation(m, european_call, additional_params=params)
+ae = AmplitudeEstimation(m, european_call)
 
 
 
