@@ -33,6 +33,8 @@ class _QSVM_Kernel_ABC(ABC):
         if test_dataset is not None:
             self.test_dataset = split_dataset_to_data_and_labels(test_dataset,
                                                                  self.class_to_label)
+        else:
+            self.test_dataset = None
 
         self.label_to_class = {label: class_name for class_name, label
                                in self.class_to_label.items()}

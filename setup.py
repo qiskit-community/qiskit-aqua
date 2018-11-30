@@ -33,13 +33,12 @@ requirements = [
     "scikit-learn==0.20.0",
     "cvxopt",
     "pyobjc-core; sys_platform == 'darwin'",
-    "pyobjc-framework-Cocoa; sys_platform == 'darwin'",
-    "packaging"
+    "pyobjc-framework-Cocoa; sys_platform == 'darwin'"
 ]
 
 setuptools.setup(
     name='qiskit-aqua',
-    version="0.3.1",  # this should match __init__.__version__
+    version="0.4.0",  # this should match __init__.__version__
     description='Qiskit Aqua: An extensible library of quantum computing algorithms',
     long_description=long_description,
     long_description_content_type="text/markdown",

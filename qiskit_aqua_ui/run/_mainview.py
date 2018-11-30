@@ -248,7 +248,7 @@ class MainView(ttk.Frame):
             self._controller._sectionsView.get_toolbar_size())
 
     def _set_preferences_logging(self):
-        from qiskit_aqua.preferences import Preferences
+        from qiskit_aqua_cmd.preferences import Preferences
         from qiskit_aqua._logging import set_logging_config
         preferences = Preferences()
         config = preferences.get_logging_config()
