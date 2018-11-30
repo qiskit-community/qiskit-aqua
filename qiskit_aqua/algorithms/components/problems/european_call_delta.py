@@ -17,7 +17,7 @@
 
 import numpy as np
 from qiskit_aqua.algorithms.components.problems import Problem
-from comparators.fixed_value_comparator import FixedValueComparator
+from qiskit_aqua.algorithms.components.problems.fixed_value_comparator import FixedValueComparator
 
 
 class EuropeanCallDelta(Problem):

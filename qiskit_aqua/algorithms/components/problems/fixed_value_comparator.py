@@ -15,7 +15,7 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit_aqua.utils import CircuitFactory
+from qiskit_aqua.utils.circuit_factory import CircuitFactory
 from qiskit_aqua.utils.circuit_utils import multi_toffoli_q, logical_multi_or
 
 import numpy as np
@@ -24,11 +24,17 @@ import numpy as np
 class FixedValueComparator(CircuitFactory):
     # TODO: depending on value, increasing or decreasing (<= or >= checks) to reduce number of clauses (and toffolis)?
 
-    def __init__(self, num_target_qubits, value, geq=True):
+    def __init__(self, num_target_qubits, value, geq=True,
+                 i_state=None, i_compare=None, i_objective=None):
         super().__init__(num_target_qubits)
         self._value = value
         self._clauses = self._get_clauses(value)
         self._geq = geq
+        self._params = {
+            'i_state': i_state,
+            'i_compare': i_compare,
+            'i_objective': i_objective
+        }
 
     @property
     def value(self):
@@ -52,7 +58,6 @@ class FixedValueComparator(CircuitFactory):
 
         num_state_qubits = self.num_target_qubits - 1
         clauses = []
-        #if value > 0 and value < 2**num_state_qubits: #TODO Chnaged to chaining - test it!
         if 0 < value < 2 ** num_state_qubits:
 
             n = int(np.ceil(np.log2(value)))
@@ -78,11 +83,11 @@ class FixedValueComparator(CircuitFactory):
 
     def build(self, qc, q, q_ancillas=None, params=None):
 
-        q_result = q[params['i_compare']]
-        q_state = [q[i] for i in params['i_state']]
+        q_result = q[self._params['i_compare']]
+        q_state = [q[i] for i in self._params['i_state']]
         num_state_qubits = self.num_target_qubits - 1
 
-        uncompute = params.get('uncompute_ancillas', True)
+        uncompute = self._params.get('uncompute_ancillas', True)
 
         # evaluate clauses into ancillas
         num_clauses = len(self._clauses)

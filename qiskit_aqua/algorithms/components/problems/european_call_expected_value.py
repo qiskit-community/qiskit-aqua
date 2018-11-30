@@ -18,7 +18,7 @@
 import numpy as np
 from qiskit_aqua.algorithms.components.problems import Problem
 from qiskit_aqua.utils.circuit_utils import cry, ccry, multi_cry_q
-from comparators.fixed_value_comparator import FixedValueComparator
+from qiskit_aqua.algorithms.components.problems.fixed_value_comparator import FixedValueComparator
 
 
 class EuropeanCallExpectedValue(Problem):
