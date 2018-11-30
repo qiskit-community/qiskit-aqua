@@ -42,6 +42,8 @@ class PluggableType(Enum):
     ORACLE = 'oracle'
     FEATURE_MAP = 'feature_map'
     MULTICLASS_EXTENSION = 'multiclass_extension'
+    UNCERTAINTY_PROBLEM = 'uncertainty_problem'
+    UNCERTAINTY_MODEL = 'uncertainty_model'
     INPUT = 'input'
 
 
@@ -58,6 +60,8 @@ def _get_pluggables_types_dictionary():
     from qiskit_aqua.algorithms.components.oracles import Oracle
     from qiskit_aqua.algorithms.components.feature_maps import FeatureMap
     from qiskit_aqua.algorithms.components.multiclass_extensions import MulticlassExtension
+    from qiskit_aqua.algorithms.components.uncertainty_problems import UncertaintyProblem
+    from qiskit_aqua.algorithms.components.uncertainty_models import UncertaintyModel
     from qiskit_aqua.input import AlgorithmInput
     return {
         PluggableType.ALGORITHM: QuantumAlgorithm,
@@ -68,6 +72,8 @@ def _get_pluggables_types_dictionary():
         PluggableType.ORACLE: Oracle,
         PluggableType.FEATURE_MAP: FeatureMap,
         PluggableType.MULTICLASS_EXTENSION: MulticlassExtension,
+        PluggableType.UNCERTAINTY_PROBLEM: UncertaintyProblem,
+        PluggableType.UNCERTAINTY_MODEL: UncertaintyModel,
         PluggableType.INPUT: AlgorithmInput
     }
 
@@ -88,7 +94,10 @@ _NAMES_TO_EXCLUDE = [
     'iqft',
     'oracle',
     'feature_map',
-    'multiclass_extension'
+    'multiclass_extension',
+    'uncertainty_problem',
+    'uncertainty_model',
+    'univariate_uncertainty_model'
 ]
 
 _FOLDERS_TO_EXCLUDE = ['__pycache__', 'ui', 'parser']

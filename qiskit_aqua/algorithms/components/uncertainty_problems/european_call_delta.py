@@ -16,22 +16,22 @@
 # =============================================================================
 
 import numpy as np
-from qiskit_aqua.algorithms.components.problems import Problem
-from qiskit_aqua.algorithms.components.problems.fixed_value_comparator import FixedValueComparator
+from qiskit_aqua.algorithms.components.uncertainty_problems import UncertaintyProblem
+from qiskit_aqua.algorithms.components.uncertainty_problems.fixed_value_comparator import FixedValueComparator
 
 
-class EuropeanCallDelta(Problem):
+class EuropeanCallDelta(UncertaintyProblem):
     """
     Evaluates the expected payoff for a European call option given an uncertainty model.
     The payoff function is f(S, K) = max(0, S - K) for a spot price S and strike price K.
     """
 
     CONFIGURATION = {
-        'name': 'EuropeanCallExpectedValue',
-        'description': 'European Call Expected Value',
+        'name': 'EuropeanCallDelta',
+        'description': 'European Call Delta',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
-            'id': 'ECEV_schema',
+            'id': 'ECD_schema',
             'type': 'object',
             'properties': {
                 'strike_price': {

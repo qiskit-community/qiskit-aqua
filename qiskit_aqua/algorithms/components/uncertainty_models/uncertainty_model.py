@@ -15,8 +15,18 @@
 # limitations under the License.
 # =============================================================================
 
-from .normal_distribution import NormalDistribution
-from .uncertainty_model import UncertaintyModel
+from abc import ABC
+from qiskit_aqua import Pluggable
+from qiskit_aqua.utils import CircuitFactory
 
-__all__ = ['UncertaintyModel',
-           'NormalDistribution']
+
+class UncertaintyModel(CircuitFactory, Pluggable, ABC):
+    """ Abstract uncertainty model pluggable  """
+
+    @classmethod
+    def init_params(cls, params):
+        args = {k: v for k, v in params.items() if k != 'name'}
+        return cls(**args)
+
+    def __init__(self, num_target_qubits):
+        super().__init__(num_target_qubits)

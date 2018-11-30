@@ -50,6 +50,8 @@ class QuantumAlgorithm(Pluggable):
     SECTION_KEY_ORACLE = 'oracle'
     SECTION_KEY_FEATURE_MAP = 'feature_map'
     SECTION_KEY_MULTICLASS_EXTENSION = 'multiclass_extension'
+    SECTION_KEY_UNCERTAINTY_PROBLEM = 'uncertainty_problem'
+    SECTION_KEY_UNCERTAINTY_MODEL = 'uncertainty_model'
 
     UNSUPPORTED_BACKENDS = [
         'unitary_simulator', 'clifford_simulator']

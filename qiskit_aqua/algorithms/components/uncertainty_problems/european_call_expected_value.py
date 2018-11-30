@@ -16,12 +16,12 @@
 # =============================================================================
 
 import numpy as np
-from qiskit_aqua.algorithms.components.problems import Problem
+from qiskit_aqua.algorithms.components.uncertainty_problems import UncertaintyProblem
 from qiskit_aqua.utils.circuit_utils import cry, ccry, multi_cry_q
-from qiskit_aqua.algorithms.components.problems.fixed_value_comparator import FixedValueComparator
+from qiskit_aqua.algorithms.components.uncertainty_problems.fixed_value_comparator import FixedValueComparator
 
 
-class EuropeanCallExpectedValue(Problem):
+class EuropeanCallExpectedValue(UncertaintyProblem):
     """
     Evaluates the expected payoff for a European call option given an uncertainty model.
     The payoff function is f(S, K) = max(0, S - K) for a spot price S and strike price K.

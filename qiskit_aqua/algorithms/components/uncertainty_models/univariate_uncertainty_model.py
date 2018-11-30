@@ -16,12 +16,12 @@
 # =============================================================================
 
 import numpy as np
-from qiskit_aqua import AquaError, Pluggable
-from qiskit_aqua.utils import CircuitFactory
+from qiskit_aqua import AquaError
 from qiskit_aqua.algorithms.components.initial_states import Custom
+from qiskit_aqua.algorithms.components.uncertainty_models.uncertainty_model import UncertaintyModel
 
 
-class UnivariateUncertaintyModel(CircuitFactory, Pluggable):
+class UnivariateUncertaintyModel(UncertaintyModel):
     """ Interface for discrete bounded uncertainty models assuming an equidistant grid """
 
     @classmethod

@@ -16,13 +16,13 @@
 # =============================================================================
 
 from scipy.stats.distributions import norm
-from .univariate_uncertainty_model import UnivariateUncertaintyModel
+from qiskit_aqua.algorithms.components.uncertainty_models.univariate_uncertainty_model import UnivariateUncertaintyModel
 
 
 class NormalDistribution(UnivariateUncertaintyModel):
 
     CONFIGURATION = {
-        'name': 'NORMAL_DISTRIBUTION',
+        'name': 'NormalDistribution',
         'description': 'Normal Distribution',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
@@ -43,11 +43,11 @@ class NormalDistribution(UnivariateUncertaintyModel):
                 },
                 'low': {
                     'type': 'number',
-                    'default': -1,
+                    'default': 0,
                 },
                 'high': {
                     'type': 'number',
-                    'default': 1,
+                    'default': 3,
                 },
             },
             'additionalProperties': False

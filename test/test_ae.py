@@ -1,5 +1,5 @@
 from qiskit_aqua.algorithms.single_sample import AmplitudeEstimation
-from qiskit_aqua.algorithms.components.problems import EuropeanCallExpectedValue
+from qiskit_aqua.algorithms.components.uncertainty_problems import EuropeanCallExpectedValue
 from qiskit_aqua.algorithms.components.uncertainty_models import NormalDistribution
 from qiskit import Aer
 

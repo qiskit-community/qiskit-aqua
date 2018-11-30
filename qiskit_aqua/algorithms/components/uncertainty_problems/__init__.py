@@ -15,10 +15,10 @@
 # limitations under the License.
 # =============================================================================
 
-from .problem import Problem
+from .uncertainty_problem import UncertaintyProblem
 from .european_call_delta import EuropeanCallDelta
 from .european_call_expected_value import EuropeanCallExpectedValue
 
-__all__ = ['Problem',
+__all__ = ['UncertaintyProblem',
            'EuropeanCallDelta',
            'EuropeanCallExpectedValue']
