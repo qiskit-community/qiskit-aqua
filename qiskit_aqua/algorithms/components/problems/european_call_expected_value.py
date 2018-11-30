@@ -83,12 +83,7 @@ class EuropeanCallExpectedValue(Problem):
         self._mapped_strike_price = int(np.round((strike_price - lb)/(ub - lb) * (uncertainty_model.num_values - 1)))
 
         # create comparator
-        self._comparator = FixedValueComparator(
-            uncertainty_model.num_target_qubits + 1, self._mapped_strike_price,
-            i_state=self._params['i_state'],
-            i_compare=self._params['i_compare'],
-            i_objective=self._params['i_objective']
-        )
+        self._comparator = FixedValueComparator(uncertainty_model.num_target_qubits + 1, self._mapped_strike_price)
 
         self.offset_angle_zero = np.pi / 4 * (1 - self._c_approx)
         if self._mapped_strike_price < uncertainty_model.num_values - 1:
@@ -118,10 +113,12 @@ class EuropeanCallExpectedValue(Problem):
         return num_ancillas_controlled
 
     def build(self, qc, q, q_ancillas=None, params=None):
+        if params is None:
+            params = self._params
 
         # get qubits
-        q_compare = q[self._params['i_compare']]
-        q_objective = q[self._params['i_objective']]
+        q_compare = q[params['i_compare']]
+        q_objective = q[params['i_objective']]
 
         # apply uncertainty model
         self._uncertainty_model.build(qc, q, q_ancillas, params)
@@ -136,10 +133,12 @@ class EuropeanCallExpectedValue(Problem):
             ccry(2 * self.slope_angle * 2 ** i, q_compare, q[i], q_objective, qc)
 
     def build_inverse(self, qc, q, q_ancillas=None, params=None):
+        if params is None:
+            params = self._params
 
         # get qubits
-        q_compare = q[self._params['i_compare']]
-        q_objective = q[self._params['i_objective']]
+        q_compare = q[params['i_compare']]
+        q_objective = q[params['i_objective']]
 
         # apply approximate payoff function
         qc.ry(-2 * self.offset_angle_zero, q_objective)
@@ -154,10 +153,12 @@ class EuropeanCallExpectedValue(Problem):
         self._uncertainty_model.build_inverse(qc, q, q_ancillas, params)
 
     def build_controlled(self, qc, q, q_control, q_ancillas=None, params=None):
+        if params is None:
+            params = self._params
 
         # get qubits
-        q_compare = q[self._params['i_compare']]
-        q_objective = q[self._params['i_objective']]
+        q_compare = q[params['i_compare']]
+        q_objective = q[params['i_objective']]
 
         # apply uncertainty model
         self._uncertainty_model.build_controlled(qc, q, q_control, q_ancillas, params)
@@ -172,10 +173,12 @@ class EuropeanCallExpectedValue(Problem):
             multi_cry_q(2 * self.slope_angle * 2 ** i, [q_control, q_compare, q[i]], q_objective, q_ancillas, qc)
 
     def build_controlled_inverse(self, qc, q, q_control, q_ancillas=None, params=None):
+        if params is None:
+            params = self._params
 
         # get qubits
-        q_compare = q[self._params['i_compare']]
-        q_objective = q[self._params['i_objective']]
+        q_compare = q[params['i_compare']]
+        q_objective = q[params['i_objective']]
 
         # apply approximate payoff function
         cry(-2 * self.offset_angle_zero, q_control, q_objective, qc)

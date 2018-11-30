@@ -24,17 +24,11 @@ import numpy as np
 class FixedValueComparator(CircuitFactory):
     # TODO: depending on value, increasing or decreasing (<= or >= checks) to reduce number of clauses (and toffolis)?
 
-    def __init__(self, num_target_qubits, value, geq=True,
-                 i_state=None, i_compare=None, i_objective=None):
+    def __init__(self, num_target_qubits, value, geq=True):
         super().__init__(num_target_qubits)
         self._value = value
         self._clauses = self._get_clauses(value)
         self._geq = geq
-        self._params = {
-            'i_state': i_state,
-            'i_compare': i_compare,
-            'i_objective': i_objective
-        }
 
     @property
     def value(self):
@@ -83,11 +77,11 @@ class FixedValueComparator(CircuitFactory):
 
     def build(self, qc, q, q_ancillas=None, params=None):
 
-        q_result = q[self._params['i_compare']]
-        q_state = [q[i] for i in self._params['i_state']]
+        q_result = q[params['i_compare']]
+        q_state = [q[i] for i in params['i_state']]
         num_state_qubits = self.num_target_qubits - 1
 
-        uncompute = self._params.get('uncompute_ancillas', True)
+        uncompute = params.get('uncompute_ancillas', True)
 
         # evaluate clauses into ancillas
         num_clauses = len(self._clauses)

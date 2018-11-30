@@ -57,27 +57,35 @@ class QFactory(CircuitFactory):
         return self._num_ancillas_controlled
 
     def build(self, qc, q, q_ancillas=None, params=None):
-        self.s_psi_0_reflection_factory.build(qc, q, q_ancillas, self._params)
-        self.a_factory.build_inverse(qc, q, q_ancillas, self._params)
-        self.s_0_reflection_factory.build(qc, q, q_ancillas, self._params)
-        self.a_factory.build(qc, q, q_ancillas, self._params)
+        if params is None:
+            params = self._params
+        self.s_psi_0_reflection_factory.build(qc, q, q_ancillas, params)
+        self.a_factory.build_inverse(qc, q, q_ancillas, params)
+        self.s_0_reflection_factory.build(qc, q, q_ancillas, params)
+        self.a_factory.build(qc, q, q_ancillas, params)
 
     def build_inverse(self, qc, q, q_ancillas=None, params=None):
-        self.a_factory.build_inverse(qc, q, q_ancillas, self._params)
-        self.s_0_reflection_factory.build_inverse(qc, q, q_ancillas, self._params)
-        self.a_factory.build(qc, q, q_ancillas, self._params)
-        self.s_psi_0_reflection_factory.build_inverse(qc, q, q_ancillas, self._params)
+        if params is None:
+            params = self._params
+        self.a_factory.build_inverse(qc, q, q_ancillas, params)
+        self.s_0_reflection_factory.build_inverse(qc, q, q_ancillas, params)
+        self.a_factory.build(qc, q, q_ancillas, params)
+        self.s_psi_0_reflection_factory.build_inverse(qc, q, q_ancillas, params)
 
     def build_controlled(self, qc, q, q_control, q_ancillas=None, params=None):
+        if params is None:
+            params = self._params
         # A operators do not need to be controlled, since they cancel out in the not-controlled case
-        self.s_psi_0_reflection_factory.build_controlled(qc, q, q_control, q_ancillas, self._params)
-        self.a_factory.build_inverse(qc, q, q_ancillas, self._params)
-        self.s_0_reflection_factory.build_controlled(qc, q, q_control, q_ancillas, self._params)
-        self.a_factory.build(qc, q, q_ancillas, self._params)
+        self.s_psi_0_reflection_factory.build_controlled(qc, q, q_control, q_ancillas, params)
+        self.a_factory.build_inverse(qc, q, q_ancillas, params)
+        self.s_0_reflection_factory.build_controlled(qc, q, q_control, q_ancillas, params)
+        self.a_factory.build(qc, q, q_ancillas, params)
 
     def build_controlled_inverse(self, qc, q, q_control, q_ancillas=None, params=None):
+        if params is None:
+            params = self._params
         # A operators do not need to be controlled, since they cancel out in the not-controlled case
-        self.a_factory.build_inverse(qc, q, q_ancillas, self._params)
-        self.s_0_reflection_factory.build_controlled_inverse(qc, q, q_control, q_ancillas, self._params)
-        self.a_factory.build(qc, q, q_ancillas, self._params)
-        self.s_psi_0_reflection_factory.build_controlled_inverse(qc, q, q_control, q_ancillas, self._params)
+        self.a_factory.build_inverse(qc, q, q_ancillas, params)
+        self.s_0_reflection_factory.build_controlled_inverse(qc, q, q_control, q_ancillas, params)
+        self.a_factory.build(qc, q, q_ancillas, params)
+        self.s_psi_0_reflection_factory.build_controlled_inverse(qc, q, q_control, q_ancillas, params)
