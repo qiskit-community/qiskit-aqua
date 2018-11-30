@@ -22,6 +22,7 @@ import logging
 from collections import OrderedDict
 import numpy as np
 
+from qiskit import ClassicalRegister
 from qiskit_aqua import QuantumAlgorithm, AquaError
 from qiskit_aqua import PluggableType, get_pluggable_class
 from qiskit_aqua.algorithms.single_sample import PhaseEstimation
@@ -114,16 +115,16 @@ class AmplitudeEstimation(QuantumAlgorithm):
             iqft = Standard(self._m)
 
         self._iqft = iqft
+        self._circuit = None
+        self._ret = {}
 
-    def get_circuit(self):
-
+    def construct_circuit(self):
         pe = PhaseEstimation(None, None, self._iqft, num_ancillae=self._m,
                              state_in_circuit_factory=self.a_factory,
                              operator_circuit_factory=self.q_factory)
 
-        qc = pe.construct_circuit()
-
-        return qc
+        self._circuit = pe.construct_circuit()
+        return self._circuit
 
         # run circuit
         # qp = QuantumProgram()
@@ -132,7 +133,6 @@ class AmplitudeEstimation(QuantumAlgorithm):
         # state_vector = results.get_statevector()
 
     def evaluate_results(self, probabilities):
-
         # map measured results to estimates
         y_probabilities = OrderedDict()
         for i, probability in enumerate(probabilities):
@@ -149,6 +149,14 @@ class AmplitudeEstimation(QuantumAlgorithm):
 
         return a_probabilities, y_probabilities
 
-    # TODO: implement the run method!
+    # TODO: @Stefan, please populate the run method
     def run(self):
-        pass
+        if self._circuit is None:
+            self.construct_circuit()
+
+        if QuantumAlgorithm.is_statevector_backend(self.backend):
+            ret = self.execute(self._circuit)
+            self._ret['statevector'] = np.asarray([ret.get_statevector(self._circuit)])
+            return self._ret
+        else:
+            raise NotImplementedError
