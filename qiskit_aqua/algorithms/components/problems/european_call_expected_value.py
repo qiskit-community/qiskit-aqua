@@ -58,7 +58,6 @@ class EuropeanCallExpectedValue(Problem):
                     'type': 'integer',
                     'default': 3
                 }
-
             },
             'additionalProperties': False
         }

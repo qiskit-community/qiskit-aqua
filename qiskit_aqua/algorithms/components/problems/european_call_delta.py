@@ -37,18 +37,38 @@ class EuropeanCallDelta(Problem):
                 'strike_price': {
                     'type': 'integer',
                     'default': 0
+                },
+                'i_state': {
+                    'type': 'array',
+                    'items': {
+                        'type': 'integer'
+                    },
+                    'default': [0, 1]
+                },
+                'i_compare': {
+                    'type': 'integer',
+                    'default': 2
+                },
+                'i_objective': {
+                    'type': 'integer',
+                    'default': 3
                 }
             },
             'additionalProperties': False
         }
     }
 
-    def __init__(self, uncertainty_model, strike_price):
+    def __init__(self, uncertainty_model, strike_price, i_state=[0, 1], i_compare=2, i_objective=3):
         super().validate(locals())
         super().__init__(uncertainty_model.num_target_qubits + 1)
 
         self._uncertainty_model = uncertainty_model
         self._strike_price = strike_price
+        self._params = {
+            'i_state': i_state,
+            'i_compare': i_compare,
+            'i_objective': i_objective
+        }
 
         # map strike price to {0, ..., 2^n-1}
         lb = uncertainty_model.low
@@ -71,6 +91,8 @@ class EuropeanCallDelta(Problem):
         return num_ancillas_controlled
 
     def build(self, qc, q, q_ancillas=None, params=None):
+        if params is None:
+            params = self._params
 
         # apply uncertainty model
         self._uncertainty_model.build(qc, q, q_ancillas, params)
@@ -79,6 +101,8 @@ class EuropeanCallDelta(Problem):
         self._comparator.build(qc, q, q_ancillas, params)
 
     def build_inverse(self, qc, q, q_ancillas=None, params=None):
+        if params is None:
+            params = self._params
 
         # apply comparator to compare qubit
         self._comparator.build_inverse(qc, q, q_ancillas, params)
@@ -87,6 +111,8 @@ class EuropeanCallDelta(Problem):
         self._uncertainty_model.build_inverse(qc, q, q_ancillas, params)
 
     def build_controlled(self, qc, q, q_control, q_ancillas=None, params=None):
+        if params is None:
+            params = self._params
 
         # apply uncertainty model
         self._uncertainty_model.build_controlled(qc, q, q_control, q_ancillas, params)
@@ -95,6 +121,8 @@ class EuropeanCallDelta(Problem):
         self._comparator.build_controlled(qc, q, q_control, q_ancillas, params)
 
     def build_controlled_inverse(self, qc, q, q_control, q_ancillas=None, params=None):
+        if params is None:
+            params = self._params
 
         # apply comparator to compare qubit
         self._comparator.build_controlled_inverse(qc, q, q_control, q_ancillas, params)
