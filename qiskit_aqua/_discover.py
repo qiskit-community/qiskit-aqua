@@ -247,6 +247,9 @@ def register_pluggable(cls):
     return _register_pluggable(pluggable_type, cls)
 
 
+global_class = None
+
+
 def _register_pluggable(pluggable_type, cls):
     """
     Registers a pluggable class
@@ -260,6 +263,11 @@ def _register_pluggable(pluggable_type, cls):
     """
     if pluggable_type not in _REGISTERED_PLUGGABLES:
         _REGISTERED_PLUGGABLES[pluggable_type] = {}
+
+    # fix pickle problems
+    method = 'from {} import {}\nglobal global_class\nglobal_class = {}'.format(cls.__module__, cls.__qualname__, cls.__qualname__)
+    exec(method)
+    cls = global_class
 
     # Verify that the pluggable is not already registered.
     registered_classes = _REGISTERED_PLUGGABLES[pluggable_type]
