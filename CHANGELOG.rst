@@ -23,6 +23,14 @@ Added
 
 - Enhanced random matrix generator
 
+`0.3.1`_ - 2018-11-29
+=====================
+
+Changed
+-------
+
+- Different backends might have different signatures for describing the job completion.
+
 `0.3.0`_ - 2018-10-05
 =====================
 
@@ -38,7 +46,7 @@ Added
 - Pluggable Feature Maps for QSVM algos
 - Pluggable Variation Forms for QSVM.Variational
 - SPSA calibration and control variables all configurable
-- Step size configurable for optimizers with numerical approximation of the jacobian 
+- Step size configurable for optimizers with numerical approximation of the jacobian
 - Z2 Symmetry tapering
    - Operator
    - HartreeFock InitialState
@@ -130,7 +138,8 @@ Changed
 - Updated qiskit minimum version in setup.py.
 - Fixed links in readme.me.
 
-.. _UNRELEASED: https://github.com/Qiskit/aqua/compare/0.3.0...HEAD
+.. _UNRELEASED: https://github.com/Qiskit/aqua/compare/0.3.1...HEAD
+.. _0.3.1: https://github.com/Qiskit/aqua/compare/0.3.0...0.3.1
 .. _0.3.0: https://github.com/Qiskit/aqua/compare/0.2.0...0.3.0
 .. _0.2.0: https://github.com/Qiskit/aqua/compare/0.1.2...0.2.0
 .. _0.1.2: https://github.com/Qiskit/aqua/compare/0.1.1...0.1.2
