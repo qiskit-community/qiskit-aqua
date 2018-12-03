@@ -147,6 +147,9 @@ def run_circuits(circuits, backend, execute_config, qjob_config=None,
     with_autorecover = False if backend.configuration().simulator else True
     max_circuits_per_job = sys.maxsize if backend.configuration().local else MAX_CIRCUITS_PER_JOB
 
+    support_qobj = my_backend.configuration().get('allow_q_object', False)
+    job_completed_signature = 'COMPLETED' if not support_qobj else 'Successful completion'
+
     qobjs = []
     jobs = []
     chunks = int(np.ceil(len(circuits) / max_circuits_per_job))
@@ -176,7 +179,7 @@ def run_circuits(circuits, backend, execute_config, qjob_config=None,
             while True:
                 try:
                     result = job.result(**qjob_config)
-                    if result.status == 'COMPLETED':
+                    if result.status == job_completed_signature:
                         results.append(result)
                         logger.info("COMPLETED the {}-th chunk of circuits, "
                                     "job id: {}".format(idx, job_id))
