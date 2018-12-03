@@ -16,14 +16,27 @@
 # =============================================================================
 
 import numpy as np
-try:
-    import nlopt
-except ImportError:
-    raise ImportWarning('nlopt cannot be imported')
-
+import importlib
 import logging
 
 logger = logging.getLogger(__name__)
+
+try:
+    import nlopt
+except ImportError:
+    logger.info('nlopt is not installed. Please install it if you want to use them.')
+
+
+def check_pluggable_valid(name):
+    try:
+        spec = importlib.util.find_spec('nlopt')
+        if spec is not None:
+            return True
+    except:
+        pass
+
+    logger.info("Unable to instantiate '{}', nlopt is not installed. Please install it if you want to use them.".format(name))
+    return False
 
 
 def minimize(name, objective_function, variable_bounds=None, initial_point=None, max_evals=1000):
@@ -39,7 +52,6 @@ def minimize(name, objective_function, variable_bounds=None, initial_point=None,
     Returns:
         Solution at minimum found, value at minimum found, num evaluations performed
     """
-
     threshold = 3*np.pi
     low = [(l if l is not None else -threshold) for (l, u) in variable_bounds]
     high = [(u if u is not None else threshold) for (l, u) in variable_bounds]

@@ -17,15 +17,15 @@
 
 from qiskit_aqua.algorithms.components.optimizers import Optimizer
 from ._nloptimizer import minimize
-import importlib
+from ._nloptimizer import check_pluggable_valid as check_nlopt_valid
 import logging
+
+logger = logging.getLogger(__name__)
 
 try:
     import nlopt
 except ImportError:
-    raise ImportWarning('nlopt cannot be imported')
-
-logger = logging.getLogger(__name__)
+    logger.info('nlopt is not installed. Please install it if you want to use them.')
 
 
 class ESCH(Optimizer):
@@ -64,15 +64,7 @@ class ESCH(Optimizer):
 
     @staticmethod
     def check_pluggable_valid():
-        try:
-            spec = importlib.util.find_spec('nlopt')
-            if spec is not None:
-                return True
-        except:
-            pass
-
-        logger.info("nlopt is not installed. Please install it if you want to use them.")
-        return False
+        return check_nlopt_valid(ESCH.CONFIGURATION['name'])
 
     def optimize(self, num_vars, objective_function, gradient_function=None,
                  variable_bounds=None, initial_point=None):
