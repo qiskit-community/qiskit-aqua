@@ -125,7 +125,7 @@ class AmplitudeEstimation(QuantumAlgorithm):
     def construct_circuit(self):
         pe = PhaseEstimation(None, None, self._iqft, num_ancillae=self._m,
                              state_in_circuit_factory=self.a_factory,
-                             operator_circuit_factory=self.q_factory)
+                             unitary_circuit_factory=self.q_factory)
 
         self._circuit = pe.construct_circuit()
         return self._circuit
