@@ -63,6 +63,9 @@ class DeutschJozsa(QuantumAlgorithm):
         oracle_params = params.get(QuantumAlgorithm.SECTION_KEY_ORACLE)
         oracle = get_oracle_instance(oracle_params['name'])
         oracle.init_params(oracle_params)
+        self.init_oracle(oracle, algo_input)
+
+    def init_oracle(self, oracle, algo_input):
         oracle.check_input(algo_input)
         oracle.construct_circuit(algo_input)
         self._oracle = oracle
