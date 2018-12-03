@@ -34,7 +34,7 @@ from qiskit.backends.ibmq.credentials import Credentials
 from qiskit.backends.ibmq.ibmqsingleprovider import IBMQSingleProvider
 from qiskit_aqua import AquaError
 from qiskit_aqua.utils import run_circuits
-from qiskit_aqua import Preferences
+from qiskit_aqua_cmd import Preferences
 
 logger = logging.getLogger(__name__)
 

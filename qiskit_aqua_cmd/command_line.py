@@ -35,7 +35,7 @@ def main():
 def main_algorithm():
     try:
         from qiskit_aqua._logging import get_logging_level, build_logging_config, set_logging_config
-        from qiskit_aqua.preferences import Preferences
+        from qiskit_aqua_cmd import Preferences
         from qiskit_aqua import run_algorithm
         from qiskit_aqua.utils import convert_json_to_dict
         parser = argparse.ArgumentParser(description='Qiskit Aqua Command Line Tool')

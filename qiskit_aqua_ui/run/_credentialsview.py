@@ -32,7 +32,7 @@ class CredentialsView(ttk.Frame):
 
         self.pack(fill=tk.BOTH, expand=tk.TRUE)
 
-        from qiskit_aqua.preferences import Preferences
+        from qiskit_aqua_cmd import Preferences
         preferences = Preferences()
         self._credentials_preferences = preferences.credentials_preferences
 
@@ -101,7 +101,7 @@ class CredentialsView(ttk.Frame):
         urls = [credentials.url for credentials in self._credentials_preferences.get_all_credentials()]
         dialog = URLEntryDialog(self.master, self)
         dialog.do_init(tk.LEFT)
-        from qiskit_aqua._credentialspreferences import CredentialsPreferences
+        from qiskit_aqua_cmd._credentialspreferences import CredentialsPreferences
         if CredentialsPreferences.URL not in urls:
             dialog._url.insert(0, CredentialsPreferences.URL)
         dialog.do_modal()

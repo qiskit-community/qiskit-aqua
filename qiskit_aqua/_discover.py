@@ -29,7 +29,6 @@ import copy
 from collections import namedtuple
 from enum import Enum
 from qiskit_aqua import AquaError
-from qiskit_aqua.preferences import Preferences
 
 logger = logging.getLogger(__name__)
 
@@ -85,13 +84,11 @@ def _get_pluggables_types_dictionary():
 _NAMES_TO_EXCLUDE = [
     '__main__',
     '_aqua',
-    '_credentialpreferences'
     '_discover',
     '_logging',
     'aqua_error',
     'operator',
     'pluggable',
-    'preferences',
     'quantumalgorithm',
     'jsonutils',
     'optimizer',
@@ -128,8 +125,7 @@ def refresh_pluggables():
     discover_preferences_pluggables()
     if logger.isEnabledFor(logging.DEBUG):
         for ptype in local_pluggables_types():
-            logger.debug("Found: '{}' has pluggables {} ".format(
-                ptype.value, local_pluggables(ptype)))
+            logger.debug("Found: '{}' has pluggables {} ".format(ptype.value, local_pluggables(ptype)))
 
 
 def _discover_on_demand():
@@ -151,6 +147,7 @@ def discover_preferences_pluggables():
     Discovers the pluggable modules on the directory and subdirectories of the preferences package
     and attempts to register them. Pluggable modules should subclass Pluggable Base classes.
     """
+    from qiskit_aqua_cmd import Preferences
     preferences = Preferences()
     packages = preferences.get_packages([])
     for package in packages:
@@ -166,6 +163,7 @@ def discover_preferences_pluggables():
                 logger.debug('Failed to import package {}'.format(package))
         except Exception as e:
             # Ignore package that could not be initialized.
+            # print('Failed to load package {} error {}'.format(package, str(e)))
             logger.debug('Failed to load package {} error {}'.format(package, str(e)))
 
 
