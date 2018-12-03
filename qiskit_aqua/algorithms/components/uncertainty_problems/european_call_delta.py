@@ -64,6 +64,8 @@ class EuropeanCallDelta(UncertaintyProblem):
         self._uncertainty_model = uncertainty_model
         self._strike_price = strike_price
 
+        # TODO: @Stefan, are the defaults below reasonable?
+
         if i_state is None:
             i_state = list(range(uncertainty_model.num_target_qubits))
         if i_compare is None:

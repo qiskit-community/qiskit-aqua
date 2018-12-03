@@ -70,6 +70,8 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
         self._strike_price = strike_price
         self._c_approx = c_approx
 
+        # TODO: @Stefan, are the defaults below reasonable?
+
         if i_state is None:
             i_state = list(range(uncertainty_model.num_target_qubits))
         if i_compare is None:

@@ -4,6 +4,8 @@ from qiskit_aqua.algorithms.components.uncertainty_models import NormalDistribut
 from qiskit import Aer
 
 
+# TODO: @Stefan, please create test(s) for AE
+
 # number of qubits to represent the uncertainty
 num_uncertainty_qubits = 2
 # lowest and highest value considered for the spot price; in between, an equidistant discretization is considered.
