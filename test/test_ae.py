@@ -18,14 +18,7 @@ strike_price = 1
 # set the approximation scaling for the payoff function
 c_approx = 0.5
 # construct circuit factory for payoff function
-european_call = EuropeanCallExpectedValue(
-    uncertainty_model,
-    strike_price=strike_price,
-    c_approx=c_approx,
-    i_state=list(range(num_uncertainty_qubits)),
-    i_compare=num_uncertainty_qubits,
-    i_objective=num_uncertainty_qubits + 1
-)
+european_call = EuropeanCallExpectedValue(uncertainty_model, strike_price=strike_price, c_approx=c_approx)
 # set number of evaluation qubits (samples)
 m = 5
 # construct amplitude estimation

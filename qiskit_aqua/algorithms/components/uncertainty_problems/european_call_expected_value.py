@@ -63,18 +63,27 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
         }
     }
 
-    def __init__(self, uncertainty_model, strike_price, c_approx, i_state=[0, 1], i_compare=2, i_objective=3):
-        super().validate(locals())
+    def __init__(self, uncertainty_model, strike_price, c_approx, i_state=None, i_compare=None, i_objective=None):
         super().__init__(uncertainty_model.num_target_qubits + 2)
 
         self._uncertainty_model = uncertainty_model
         self._strike_price = strike_price
         self._c_approx = c_approx
+
+        if i_state is None:
+            i_state = list(range(uncertainty_model.num_target_qubits))
+        if i_compare is None:
+            i_compare = uncertainty_model.num_target_qubits
+        if i_objective is None:
+            i_objective = uncertainty_model.num_target_qubits + 1
+
         self._params = {
             'i_state': i_state,
             'i_compare': i_compare,
             'i_objective': i_objective
         }
+
+        super().validate(locals())
 
         # map strike price to {0, ..., 2^n-1}
         lb = uncertainty_model.low
