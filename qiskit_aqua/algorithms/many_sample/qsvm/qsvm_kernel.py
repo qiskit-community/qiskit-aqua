@@ -60,11 +60,12 @@ class QSVM_Kernel(QuantumAlgorithm):
         """Constructor.
 
         Args:
-            feature_map (FeatureMap)
-            training_dataset (dict)
-            test_dataset (dict)
-            datapoints (numpy.ndarray)
-            multiclass_extension (MultiExtension)
+            feature_map (FeatureMap): feature map module, used to transform data
+            training_dataset (dict): training dataset.
+            test_dataset (dict): testing dataset.
+            datapoints (numpy.ndarray): prediction dataset.
+            multiclass_extension (MultiExtension): if number of classes > 2, a multiclass scheme is
+                                                    is needed.
 
         Raises:
             ValueError: if training_dataset is None

@@ -18,6 +18,7 @@
 import unittest
 
 import numpy as np
+from qiskit.transpiler import PassManager
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua.operator import Operator
@@ -45,7 +46,7 @@ class TestEOH(QiskitAquaTestCase):
         num_time_slices = 100
 
         eoh = EOH(qubit_op, state_in, evo_op, 'paulis', evo_time, num_time_slices)
-        eoh.setup_quantum_backend(skip_transpiler=True)
+        eoh.setup_quantum_backend(pass_manager=PassManager())
         # self.log.debug('state_out:\n\n')
 
         ret = eoh.run()
