@@ -214,7 +214,7 @@ class QuantumAlgorithm(Pluggable):
                                 'qobj_id': None,
                                 'seed_mapper': self._random_seed}
 
-        info = "Algorithm: '{}' setup with backend '{}', with following setting:\n {}\n{}".format(
+        info = "Algorithm: '{}' setup with backend '{}', with following setting:\n{}\n{}".format(
             self._configuration['name'], my_backend.configuration().backend_name, self._execute_config, self._qjob_config)
 
         logger.info('Qiskit Terra version {}'.format(qiskit_version))
