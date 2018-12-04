@@ -26,9 +26,6 @@ from qiskit.backends import BaseBackend
 from qiskit import compile as q_compile
 from qiskit.backends.jobstatus import JobStatus
 from qiskit.backends import JobError
-from qiskit import transpiler
-from qiskit.tools._compiler import circuits_to_qobj
-
 
 from qiskit_aqua.aqua_error import AquaError
 from qiskit_aqua.utils import summarize_circuits
@@ -97,7 +94,7 @@ def _reuse_shared_circuits(circuits, backend, backend_config, compile_config, ru
 
     if len(circuits) == 1:
         return shared_result
-    shared_quantum_state = np.asarray(shared_result.get_statevector(shared_circuit))
+    shared_quantum_state = np.asarray(shared_result.get_statevector(shared_circuit, decimals=16))
     # extract different of circuits
     for circuit in circuits[1:]:
         circuit.data = circuit.data[len(shared_circuit):]
@@ -109,23 +106,6 @@ def _reuse_shared_circuits(circuits, backend, backend_config, compile_config, ru
     diff_result = compile_and_run_circuits(circuits[1:], backend, temp_run_config, qjob_config)
     result = shared_result + diff_result
     return result
-
-
-def _terra_compile_with_pass_manager(circuits, backend, config=None, basis_gates=None,
-                                     coupling_map=None, initial_layout=None,
-                                     shots=1024, max_credits=10, seed=None, qobj_id=None, hpc=None,
-                                     pass_manager=None, seed_mapper=None):
-
-    circuits = transpiler.transpile(circuits, backend, basis_gates, coupling_map, initial_layout,
-                                    seed_mapper, hpc, pass_manager)
-
-    qobj = circuits_to_qobj(circuits, backend_name=backend.name(),
-                            config=config, shots=shots, max_credits=max_credits,
-                            qobj_id=qobj_id, basis_gates=basis_gates,
-                            coupling_map=coupling_map, seed=seed)
-
-    return qobj
-
 
 def compile_and_run_circuits(circuits, backend, backend_config, compile_config, run_config, qjob_config,
                  show_circuit_summary=False, has_shared_circuits=False):
@@ -168,9 +148,6 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
     with_autorecover = False if backend.configuration().simulator else True
     max_circuits_per_job = sys.maxsize if backend.configuration().local else MAX_CIRCUITS_PER_JOB
 
-    # support_qobj = backend.configuration().get('allow_q_object', False)
-    # job_completed_signature = 'COMPLETED' if not support_qobj else 'Successful completion'
-
     qobjs = []
     jobs = []
     chunks = int(np.ceil(len(circuits) / max_circuits_per_job))
@@ -178,10 +155,7 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
     for i in range(chunks):
         sub_circuits = circuits[i *
                                 max_circuits_per_job:(i + 1) * max_circuits_per_job]
-        compile_config.pop('pass_manager', None)
-        # qobj = q_compile(sub_circuits, backend, **backend_config,
-        #                                         **compile_config, **run_config)
-        qobj = _terra_compile_with_pass_manager(sub_circuits, backend, **backend_config,
+        qobj = q_compile(sub_circuits, backend, **backend_config,
                                                 **compile_config, **run_config)
         job = backend.run(qobj)
         jobs.append(job)

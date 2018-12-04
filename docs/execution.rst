@@ -501,16 +501,6 @@ requires setting the following parameters too:
 
       "initial_layout": {('qr', 0): ('q', 1), ('qr', 1): ('q', 0)}
 
-
--  An optional dictionary can be supplied to setup hpc simulation:
-
-   .. code:: python
-
-       "hpc_params" : dictionary
-
-   This is a Python dictionary consisting of key/value pairs.  Configuring it is optional; the default value is ``None``.
-
-
 -  An optional string can be supplied to the basis gates:
 
    .. code:: python

@@ -44,7 +44,7 @@ class QuantumDevice:
     # TODO, other config setting.
     def __init__(self, backend, basis_gates=None, coupling_map=None,
                  initial_layout=None, shots=1024, max_credits=10, seed=None,
-                 qobj_id=None, hpc=None,
+                 qobj_id=None,
                  noise_params=None, pass_manager=None, seed_mapper=None,
                  timeout=None, wait=5, **kwargs):
         """Constructor.
@@ -56,7 +56,6 @@ class QuantumDevice:
             noise_params (dict): the noise setting for simulator
             coupling_map (list): coupling map (perhaps custom) to target in mapping
             initial_layout (dict): initial layout of qubits in mapping
-            hpc (dict): HPC simulator parameters
             basis_gates (str): comma-separated basis gate set to compile to
             max_credits (int): maximum credits to use
             timeout (float or None): seconds to wait for job. If None, wait indefinitely.
@@ -88,8 +87,7 @@ class QuantumDevice:
 
         self._run_config = {
             'shots': shots,
-            'max_credits': max_credits,
-            'hpc': hpc,
+            'max_credits': max_credits
         }
 
         self._backend_config = {

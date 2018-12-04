@@ -191,10 +191,13 @@ class VQE(QuantumAlgorithm):
         return ret
 
     def construct_circuit(self, parameter):
-        """
+        """Generate the circuits.
+
+        Args:
+            parameters (numpy.ndarray): parameters for variational form.
 
         Returns:
-            [QuantumCircuit]
+            [QuantumCircuit]: the generated circuits with Hamiltonian.
         """
         input_circuit = self._var_form.construct_circuit(parameter)
         circuit = self._operator.construct_evaluation_circuit(self._operator_mode,
@@ -208,7 +211,7 @@ class VQE(QuantumAlgorithm):
         qc = self._var_form.construct_circuit(self._ret['opt_params'])
         if self._quantum_device.is_statevector:
             ret = self._quantum_device.execute(qc)
-            self._ret['eigvecs'] = np.asarray([ret.get_statevector(qc)])
+            self._ret['eigvecs'] = np.asarray([ret.get_statevector(qc, decimals=16)])
         else:
             c = ClassicalRegister(self._operator.num_qubits, name='c')
             q = find_regs_by_name(qc, 'q')

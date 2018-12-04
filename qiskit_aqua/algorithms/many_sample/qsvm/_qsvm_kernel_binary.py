@@ -104,7 +104,7 @@ class _QSVM_Kernel_Binary(_QSVM_Kernel_ABC):
                 kernel_value = 1.0
             else:
                 if is_statevector_sim:
-                    temp = np.asarray(results.get_statevector(circuit))[0]
+                    temp = np.asarray(results.get_statevector(circuit, decimals=16))[0]
                     #  |<0|Psi^daggar(y) x Psi(x)|0>|^2,
                     kernel_value = np.dot(temp.T.conj(), temp).real
                 else:
