@@ -57,10 +57,6 @@
                     "type": ["object", "null"],
                     "default": null
                 },
-                "hpc_params": {
-                    "type": ["object", "null"],
-                    "default": null
-                },
                 "basis_gates": {
                     "type": ["string", "null"],
                     "default": null
