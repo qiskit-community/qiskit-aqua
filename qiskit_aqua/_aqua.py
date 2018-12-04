@@ -21,6 +21,7 @@ import copy
 import json
 import logging
 
+from qiskit import IBMQ, Aer
 from qiskit.backends import BaseBackend
 from qiskit.transpiler import PassManager
 
@@ -32,6 +33,7 @@ from qiskit_aqua._discover import (_discover_on_demand,
 from qiskit_aqua.utils.jsonutils import convert_dict_to_json, convert_json_to_dict
 from qiskit_aqua.parser._inputparser import InputParser
 from qiskit_aqua.parser import JSONSchema
+from qiskit_aqua import QuantumDevice
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +70,14 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
     backend_name = inputparser.get_section_property(JSONSchema.BACKEND, JSONSchema.NAME)
     if backend_name is not None:
         backend_cfg = {k: v for k, v in inputparser.get_section(JSONSchema.BACKEND).items() if k != 'name'}
-        backend_cfg['backend'] = backend_name
+        # backend_cfg['backend'] = backend_name
+        QuantumDevice.register_and_get_operational_backends()
+        try:
+            backend_from_name = Aer.get_backend(backend_name)
+        except:
+            backend_from_name = IBMQ.get_backend(backend_name)
+
+        backend_cfg['backend'] = backend_from_name
 
     if backend is not None and isinstance(backend, BaseBackend):
         if backend_cfg is None:
@@ -93,9 +102,11 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
         pass_manager = PassManager() if backend_cfg.pop('skip_transpiler', False) else None
         if pass_manager is not None:
             backend_cfg['pass_manager'] = pass_manager
-        algorithm.setup_quantum_backend(**backend_cfg)
 
-    value = algorithm.run()
+    quantum_device = QuantumDevice(**backend_cfg)
+        # algorithm.setup_quantum_backend(**backend_cfg)
+
+    value = algorithm.run(quantum_device)
     if isinstance(value, dict) and json_output:
         convert_dict_to_json(value)
 

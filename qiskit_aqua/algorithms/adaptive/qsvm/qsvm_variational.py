@@ -139,20 +139,33 @@ class QSVMVariational(QuantumAlgorithm):
         return cls(optimizer, feature_map, var_form, algo_input.training_dataset,
                    algo_input.test_dataset, algo_input.datapoints, batch_mode)
 
-    def _construct_circuit(self, x, theta):
+    def construct_circuit(self, x, theta, measurement=False):
+        """
+        Construct circuit based on data and paramters in variaitonal form.
+
+        Args:
+            x (numpy.ndarray): 1-D array with D dimension
+            theta ([numpy.ndarray]): list of 1-D array, parameters sets for variational form
+            measurement (bool): flag to add measurement
+        Returns:
+            QuantumCircuit: the circuit
+        """
         qr = QuantumRegister(self._num_qubits, name='q')
         cr = ClassicalRegister(self._num_qubits, name='c')
         qc = QuantumCircuit(qr, cr)
         qc += self._feature_map.construct_circuit(x, qr)
         qc += self._var_form.construct_circuit(theta, qr)
-        qc.barrier(qr)
-        qc.measure(qr, cr)
+
+        if measurement:
+            qc.barrier(qr)
+            qc.measure(qr, cr)
         return qc
 
     def _cost_function(self, predicted_probs, labels):
         """
         Calculate cost of predicted probability of ground truth label based on sigmoid function,
         and the accuracy
+
         Args:
             predicted_probs (numpy.ndarray): NxK array
             labels (numpy.ndarray): Nx1 array
@@ -187,7 +200,7 @@ class QSVMVariational(QuantumAlgorithm):
 
         for theta in theta_sets:
             for datum in data:
-                circuit = self._construct_circuit(datum, theta)
+                circuit = self.construct_circuit(datum, theta, measurement=True)
                 circuits[circuit_id] = circuit
                 circuit_id += 1
 

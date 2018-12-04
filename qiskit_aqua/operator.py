@@ -31,7 +31,7 @@ from qiskit import ClassicalRegister, QuantumCircuit
 from qiskit.quantum_info import Pauli
 from qiskit.qasm import pi
 
-from qiskit_aqua import AquaError, QuantumAlgorithm
+from qiskit_aqua import AquaError, QuantumDevice
 from qiskit_aqua.utils import PauliGraph, run_circuits, find_regs_by_name
 
 logger = logging.getLogger(__name__)
@@ -548,7 +548,7 @@ class Operator(object):
         Returns:
             [QuantumCircuit]: the circuits for evaluation.
         """
-        if QuantumAlgorithm.is_statevector_backend(backend):
+        if QuantumDevice.is_statevector_backend(backend):
             if operator_mode == 'matrix':
                 circuits = [input_circuit]
             else:
@@ -636,7 +636,7 @@ class Operator(object):
             float: the standard deviation
         """
         avg, std_dev, variance = 0.0, 0.0, 0.0
-        if QuantumAlgorithm.is_statevector_backend(backend):
+        if QuantumDevice.is_statevector_backend(backend):
             if operator_mode == "matrix":
                 self._check_representation("matrix")
                 if self._dia_matrix is None:
@@ -755,7 +755,7 @@ class Operator(object):
             avg = self._eval_directly(input_circuit)
             std_dev = 0.0
         else:
-            if QuantumAlgorithm.is_statevector_backend(backend):
+            if QuantumDevice.is_statevector_backend(backend):
                 execute_config['shots'] = 1
                 has_shared_circuits = True
 
