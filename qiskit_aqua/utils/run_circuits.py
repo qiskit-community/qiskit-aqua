@@ -26,8 +26,6 @@ from qiskit.backends import BaseBackend
 from qiskit import compile as q_compile
 from qiskit.backends.jobstatus import JobStatus
 from qiskit.backends import JobError
-from qiskit import transpiler
-from qiskit.tools._compiler import circuits_to_qobj
 
 from qiskit_aqua.aqua_error import AquaError
 from qiskit_aqua.utils import summarize_circuits
@@ -109,21 +107,6 @@ def _reuse_shared_circuits(circuits, backend, execute_config, qjob_config=None):
     result = shared_result + diff_result
     return result
 
-def _terra_compile_with_pass_manager(circuits, backend, config=None, basis_gates=None,
-                                     coupling_map=None, initial_layout=None,
-                                     shots=1024, max_credits=10, seed=None, qobj_id=None, hpc=None,
-                                     pass_manager=None, seed_mapper=None):
-
-    circuits = transpiler.transpile(circuits, backend, basis_gates, coupling_map, initial_layout,
-                                    seed_mapper, hpc, pass_manager)
-
-    qobj = circuits_to_qobj(circuits, backend_name=backend.name(),
-                            config=config, shots=shots, max_credits=max_credits,
-                            qobj_id=qobj_id, basis_gates=basis_gates,
-                            coupling_map=coupling_map, seed=seed)
-
-    return qobj
-
 
 def run_circuits(circuits, backend, execute_config, qjob_config=None,
                  show_circuit_summary=False, has_shared_circuits=False):
@@ -171,7 +154,7 @@ def run_circuits(circuits, backend, execute_config, qjob_config=None,
     for i in range(chunks):
         sub_circuits = circuits[i *
                                 max_circuits_per_job:(i + 1) * max_circuits_per_job]
-        qobj = _terra_compile_with_pass_manager(sub_circuits, backend, **execute_config)
+        qobj = q_compile(sub_circuits, backend, **execute_config)
         job = backend.run(qobj)
         jobs.append(job)
         qobjs.append(qobj)
