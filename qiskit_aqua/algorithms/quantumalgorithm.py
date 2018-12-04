@@ -137,8 +137,8 @@ class QuantumAlgorithm(Pluggable):
         """Disable showing the summary of circuits."""
         self._show_circuit_summary = False
 
-    def setup_quantum_backend(self, backend='statevector_simulator', shots=1024, skip_transpiler=False,
-                              noise_params=None, coupling_map=None, initial_layout=None, hpc_params=None,
+    def setup_quantum_backend(self, backend='statevector_simulator', shots=1024, pass_manager=None,
+                              noise_params=None, coupling_map=None, initial_layout=None,
                               basis_gates=None, max_credits=10, timeout=None, wait=5):
         """
         Setup the quantum backend.
@@ -146,14 +146,13 @@ class QuantumAlgorithm(Pluggable):
         Args:
             backend (str or BaseBackend): name of or instance of selected backend
             shots (int): number of shots for the backend
-            skip_transpiler (bool): skip most of the compile steps and produce qobj directly
+            pass_manager (PassManager): pass manager to handle how to compile the circuits
             noise_params (dict): the noise setting for simulator
             coupling_map (list): coupling map (perhaps custom) to target in mapping
             initial_layout (dict): initial layout of qubits in mapping
-            hpc_params (dict): HPC simulator parameters
             basis_gates (str): comma-separated basis gate set to compile to
             max_credits (int): maximum credits to use
-            timeout (float or None): seconds to wait for job. If None, wait indefinitely.
+            timeout (float or None): seconds to wait for job. If None, wait indefinitely
             wait (float): seconds between queries
 
         Raises:
@@ -205,7 +204,7 @@ class QuantumAlgorithm(Pluggable):
             basis_gates = str(basis_gates)
 
         self._execute_config = {'shots': shots,
-                                'skip_transpiler': skip_transpiler,
+                                'pass_manager': pass_manager,
                                 'config': {"noise_params": noise_params},
                                 'basis_gates': basis_gates,
                                 'coupling_map': coupling_map,
@@ -213,9 +212,9 @@ class QuantumAlgorithm(Pluggable):
                                 'max_credits': max_credits,
                                 'seed': self._random_seed,
                                 'qobj_id': None,
-                                'hpc': hpc_params}
+                                'seed_mapper': self._random_seed}
 
-        info = "Algorithm: '{}' setup with backend '{}', with following setting:\n {}\n{}".format(
+        info = "Algorithm: '{}' setup with backend '{}', with following setting:\n{}\n{}".format(
             self._configuration['name'], my_backend.configuration().backend_name, self._execute_config, self._qjob_config)
 
         logger.info('Qiskit Terra version {}'.format(qiskit_version))

@@ -17,13 +17,13 @@
 
 import setuptools
 
-long_description="""<a href="https://qiskit.org/aqua" rel=nofollow>Qiskit Aqua</a> is an extensible, 
+long_description="""<a href="https://qiskit.org/aqua" rel=nofollow>Qiskit Aqua</a> is an extensible,
  modular, open-source library of quantum computing algorithms.
- Researchers can experiment with Aqua algorithms, on near-term quantum devices and simulators, 
- and can also get involved by contributing new algorithms and algorithm-supporting objects, 
- such as optimizers and variational forms. Qiskit Aqua is used by Qiskit Aqua Chemistry, 
+ Researchers can experiment with Aqua algorithms, on near-term quantum devices and simulators,
+ and can also get involved by contributing new algorithms and algorithm-supporting objects,
+ such as optimizers and variational forms. Qiskit Aqua is used by Qiskit Aqua Chemistry,
  Qiskit Aqua Artificial Intelligence, and Qiskit Aqua Optimization to experiment with real-world applications to quantum computing."""
-    
+
 requirements = [
     "qiskit>=0.7.0,<0.8",
     "scipy>=0.19,!=0.19.1",
@@ -63,7 +63,7 @@ setuptools.setup(
     install_requires=requirements,
     include_package_data=True,
     python_requires=">=3.5",
-    entry_points = {
+    entry_points={
         'console_scripts': [
                 'qiskit_aqua_cmd=qiskit_aqua_cmd.command_line:main'
         ],
