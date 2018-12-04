@@ -19,8 +19,11 @@ The HHL algorithm.
 """
 
 import logging
-
 import numpy as np
+
+import qiskit.extensions.simulator
+from qiskit import Aer
+from qiskit.backends.aer import QasmSimulator
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit_aqua import QuantumAlgorithm, AquaError
 from qiskit_aqua import PluggableType, get_pluggable_class
@@ -110,7 +113,6 @@ class HHL(QuantumAlgorithm):
                                       timeout=timeout, wait=wait)
 
         # Handle different modes
-        from qiskit.backends.aer.qasm_simulator import QasmSimulator
         try:
             QasmSimulator()
             cpp = True
@@ -259,11 +261,11 @@ class HHL(QuantumAlgorithm):
             res = self.execute(self._circuit)
             sv = res.get_statevector()
         elif QuantumAlgorithm.backend_name(self._backend) == \
-                "qasm_simulator_py":
+                "qasm_simulator":
             self._circuit.snapshot("5")
             self._execute_config["config"]["data"] = ["quantum_state_ket"]
             res = self.execute(self._circuit)
-            sv = res.get_snapshot("5").get("statevector")[0]
+            sv = res.data(0)['snapshots']['5']['statevector'][0]
 
         # Extract output vector
         half = int(len(sv)/2)
@@ -389,7 +391,7 @@ class HHL(QuantumAlgorithm):
 
     def __filter(self, qsk, reg=None, qubits=None):
         # WORK IN PROGRESS
-        qregs = list(self._circuit.get_qregs().values())
+        qregs = self._circuit.qregs
         mask = []
         if reg:
             idx = qregs.index(reg)
@@ -443,7 +445,7 @@ class HHL(QuantumAlgorithm):
         res = self.execute(self._circuit)
 
         # Plot eigenvalues
-        eigs = res.get_snapshot("1").get("quantum_state_ket")[0]
+        eigs = res.data(0)['snapshots']['1']['quantum_state_ket'][0]
         eigs = self.__filter(eigs, reg=self._eigenvalue_register)
         nums = np.array(list(map(lambda x: int(x, 2), eigs.keys())))
         nums = nums/2**self._num_a*2*np.pi/self._eigs._evo_time
@@ -476,7 +478,7 @@ class HHL(QuantumAlgorithm):
         ax_eig.plot(tx, ty, "r")
 
         # Plot reciprocals
-        rec = res.get_snapshot("2").get("quantum_state_ket")[0]
+        rec = res.data(0)['snapshots']['2']['quantum_state_ket'][0]
         list(map(lambda x: print(x[0], x[1]), rec.items()))
         rec = self.__filter(rec,
                             qubits=[qi for qi in self._eigenvalue_register] +
@@ -486,15 +488,17 @@ class HHL(QuantumAlgorithm):
         rec = [[getrec(key+"0"), getrec(key+"1")] for key in eigs.keys()]
         y = [np.linalg.norm(i)**2 for i in rec]
         x = [i[1]/np.linalg.norm(i) for i in rec]
-        ax_rec.scatter(x, y)
+        ax_rec.scatter(np.abs(x), np.abs(y))
 
         # Plot theoretical reciprocals (derived from QPE results)
-        tx = np.arange(0, 2**self._num_a)/2**self._num_a
-        tx = self._reciprocal._scale/tx
+        tx = np.arange(0, 2**self._num_a)/(2**(self._num_a+1))
+        mask = (tx != 0)
+        tx[mask] = self._reciprocal._scale/tx[mask]
+        tx[~mask] = 0
         ax_rec.plot(tx, ty, "r")
 
         # Solution deviation
-        sv = res.get_snapshot("3").get("statevector")[0]
+        sv = res.data(0)['snapshots']['3']['statevector'][0]
         half = int(len(sv)/2)
         vec = sv[half:half+2**self._num_q]
         self._ret["probability_result"] = vec.dot(vec.conj())
