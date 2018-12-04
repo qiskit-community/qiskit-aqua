@@ -237,7 +237,7 @@ class HHL(QuantumAlgorithm):
         # Measurement of the ancilla qubit
         if not self._exact:
             c = ClassicalRegister(1)
-            qc.add(c)
+            qc.add_register(c)
             qc.measure(s, c)
             self._success_bit = c
 
@@ -292,7 +292,7 @@ class HHL(QuantumAlgorithm):
         from qiskit import execute
 
         c = ClassicalRegister(self._num_q)
-        self._circuit.add(c)
+        self._circuit.add_register(c)
         qc = QuantumCircuit(c, name="master")
         tomo_set = tomo.state_tomography_set(list(range(self._num_q)))
         tomo_circuits = \
@@ -338,12 +338,12 @@ class HHL(QuantumAlgorithm):
         """
         # Preparing the circuit
         c = ClassicalRegister(1)
-        self._circuit.add(c)
+        self._circuit.add_register(c)
 
         # using free qubits
         if (self._num_q + 1) > self._num_a:
             qx = QuantumRegister(self._num_q+1-self._num_a)
-            self._circuit.add(qx)
+            self._circuit.add_register(qx)
             qubits = [qi for qi in self._eigenvalue_register] + \
                      [qi for qi in qx]
         else:
@@ -352,11 +352,13 @@ class HHL(QuantumAlgorithm):
         test_bit = qubits[0]
         x_state = qubits[1:]
 
-        # Initializeing the solution state vector
-        init_state = get_initial_state_instance("CUSTOM")
+        # Initializing the solution state vector
+        init_state_params = {"name": "CUSTOM"}
         sol = list(np.linalg.solve(self._matrix, self._vector))
-        init_state.init_params(
-            {"num_qubits": self._num_q, "state_vector": sol})
+        init_state_params["num_qubits"] = self._num_q
+        init_state_params["state_vector"] = sol
+        init_state = get_pluggable_class(PluggableType.INITIAL_STATE,
+                                         init_state_params['name']).init_params(init_state_params)
 
         qc = self._circuit
         qc += init_state.construct_circuit('circuit', x_state)
@@ -388,6 +390,7 @@ class HHL(QuantumAlgorithm):
     def __filter(self, qsk, reg=None, qubits=None):
         # WORK IN PROGRESS
         qregs = list(self._circuit.get_qregs().values())
+        mask = []
         if reg:
             idx = qregs.index(reg)
             none = 0
@@ -395,7 +398,6 @@ class HHL(QuantumAlgorithm):
                 none += len(qregs[i]) + 1
             mask = list(range(none, none+len(reg)))
         if qubits:
-            mask = []
             for qubit in qubits:
                 idx = qregs.index(qubit[0])
                 none = 0
