@@ -97,14 +97,13 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
     algorithm = get_pluggable_class(PluggableType.ALGORITHM,
                                     algo_name).init_params(algo_params, algo_input)
     algorithm.random_seed = inputparser.get_section_property(JSONSchema.PROBLEM, 'random_seed')
-
+    quantum_device = None
     if backend_cfg is not None:
         pass_manager = PassManager() if backend_cfg.pop('skip_transpiler', False) else None
         if pass_manager is not None:
             backend_cfg['pass_manager'] = pass_manager
 
-    quantum_device = QuantumDevice(**backend_cfg)
-        # algorithm.setup_quantum_backend(**backend_cfg)
+        quantum_device = QuantumDevice(**backend_cfg)
 
     value = algorithm.run(quantum_device)
     if isinstance(value, dict) and json_output:

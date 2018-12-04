@@ -172,7 +172,7 @@ class QSVMVariational(QuantumAlgorithm):
         Returns:
             float: cost
         """
-        total_loss = cost_estimate(self._execute_config['shots'], predicted_probs, labels)
+        total_loss = cost_estimate(predicted_probs, labels)
         return total_loss
 
     def _get_prediction(self, data, theta):
@@ -186,7 +186,7 @@ class QSVMVariational(QuantumAlgorithm):
             numpy.ndarray or [numpy.ndarray]: list of Nx1 array
         """
 
-        if QuantumAlgorithm.is_statevector_backend(self.backend):
+        if self._quantum_device.is_statevector:
             raise ValueError('Selected backend  "{}" is not supported.'.format(
                 QuantumAlgorithm.backend_name(self.backend)))
 
@@ -204,7 +204,7 @@ class QSVMVariational(QuantumAlgorithm):
                 circuits[circuit_id] = circuit
                 circuit_id += 1
 
-        results = self.execute(list(circuits.values()))
+        results = self._quantum_device.execute(list(circuits.values()))
 
         circuit_id = 0
         predicted_probs = []
@@ -279,7 +279,7 @@ class QSVMVariational(QuantumAlgorithm):
         self._ret['predicted_labels'] = predicted_labels
         return predicted_probs, predicted_labels
 
-    def run(self):
+    def _run(self):
         self.train(self._training_dataset[0], self._training_dataset[1])
 
         if self._test_dataset is not None:
@@ -296,6 +296,10 @@ class QSVMVariational(QuantumAlgorithm):
     def ret(self):
         return self._ret
 
+    @ret.setter
+    def ret(self, new_value):
+        self._ret = new_value
+
     @property
     def label_to_class(self):
         return self._label_to_class
@@ -303,3 +307,11 @@ class QSVMVariational(QuantumAlgorithm):
     @property
     def class_to_label(self):
         return self._class_to_label
+
+    def load_model(self, file_path):
+        model_npz = np.load(file_path)
+        self._ret['opt_params'] = model_npz['opt_params']
+
+    def save_model(self, file_path):
+        model = {'opt_params': self._ret['opt_params']}
+        np.savez(file_path, **model)

@@ -136,9 +136,9 @@ class ExactEigensolver(QuantumAlgorithm):
             values.append((value, 0))
         return np.asarray(values)
 
-    def run(self):
+    def _run(self):
         """
-        Runs the algorithm to compute up to the requested k number of eigenvalues
+        Run the algorithm to compute up to the requested k number of eigenvalues.
         Returns:
             Dictionary of results
         """

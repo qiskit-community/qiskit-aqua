@@ -86,7 +86,8 @@ class QSVM_Kernel(QuantumAlgorithm):
         if multiclass_extension is None:
             qsvm_instance = _QSVM_Kernel_Binary(feature_map, self, training_dataset, test_dataset, datapoints)
         else:
-            qsvm_instance = _QSVM_Kernel_Multiclass(feature_map, self, training_dataset, test_dataset, datapoints, multiclass_extension)
+            qsvm_instance = _QSVM_Kernel_Multiclass(
+                feature_map, self, training_dataset, test_dataset, datapoints, multiclass_extension)
 
         self.instance = qsvm_instance
 
@@ -151,7 +152,7 @@ class QSVM_Kernel(QuantumAlgorithm):
         """
         return self.instance.predict(data)
 
-    def run(self):
+    def _run(self):
         return self.instance.run()
 
     @property
@@ -167,5 +168,11 @@ class QSVM_Kernel(QuantumAlgorithm):
         return self.instance.ret
 
     @ret.setter
-    def ret(self, new_ret):
-        self.instance.ret = new_ret
+    def ret(self, new_value):
+        self.instance.ret = new_value
+
+    def load_model(self, file_path):
+        self.instance.load_model(file_path)
+
+    def save_model(self, file_path):
+        self.instance.save_model(file_path)

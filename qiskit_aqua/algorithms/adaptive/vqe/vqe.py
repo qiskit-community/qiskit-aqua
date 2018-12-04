@@ -249,7 +249,7 @@ class VQE(QuantumAlgorithm):
 
     def _run(self):
         """
-        Runs the algorithm to compute the minimum eigenvalue.
+        Run the algorithm to compute the minimum eigenvalue.
 
         Returns:
             Dictionary of results

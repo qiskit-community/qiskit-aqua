@@ -143,9 +143,21 @@ class QuantumDevice:
     # def execute_config(self, new_value):
     #     self._execute_config = new_value
 
-    # @property
-    # def qjob_config(self):
-    #     return self._qjob_config
+    @property
+    def qjob_config(self):
+        return self._qjob_config
+
+    @property
+    def backend_config(self):
+        return self._backend_config
+
+    @property
+    def compile_config(self):
+        return self._compile_config
+
+    @property
+    def run_config(self):
+        return self._run_config
 
     # @qjob_config.setter
     # def qjob_config(self, new_value):

@@ -72,8 +72,16 @@ def _avoid_empty_circuits(circuits):
         new_circuits.append(qc)
     return new_circuits
 
+def _split_complex_vector(vector):
 
-def _reuse_shared_circuits(circuits, backend, backend_config, compile_config, run_config, qjob_config=None):
+    result = []
+    for real, imag in zip(vector.real, vector.imag):
+        result.append([real, imag])
+
+    return result
+
+def _reuse_shared_circuits(circuits, backend, backend_config, compile_config, run_config,
+                           qjob_config=None, show_circuit_summary=False):
     """Reuse the circuits with the shared head.
 
     We assume the 0-th circuit is the shared_circuit, so we execute it first
@@ -89,8 +97,9 @@ def _reuse_shared_circuits(circuits, backend, backend_config, compile_config, ru
     qjob_config = qjob_config or {}
 
     shared_circuit = circuits[0]
-    shared_result = compile_and_run_circuits(shared_circuit, backend, run_config,
-                                 show_circuit_summary=True)
+    shared_result = compile_and_run_circuits(shared_circuit, backend, backend_config,
+                                             compile_config, run_config, qjob_config,
+                                             show_circuit_summary=show_circuit_summary)
 
     if len(circuits) == 1:
         return shared_result
@@ -99,16 +108,19 @@ def _reuse_shared_circuits(circuits, backend, backend_config, compile_config, ru
     for circuit in circuits[1:]:
         circuit.data = circuit.data[len(shared_circuit):]
 
-    temp_run_config = copy.deepcopy(run_config)
-    if 'config' not in temp_run_config:
-        temp_run_config['config'] = dict()
-    temp_run_config['config']['initial_state'] = shared_quantum_state
-    diff_result = compile_and_run_circuits(circuits[1:], backend, temp_run_config, qjob_config)
+    temp_backend_config = copy.deepcopy(backend_config)
+    if 'config' not in temp_backend_config:
+        temp_backend_config['config'] = dict()
+    temp_backend_config['config']['initial_state'] = _split_complex_vector(shared_quantum_state)
+    diff_result = compile_and_run_circuits(circuits[1:], backend, temp_backend_config,
+                                           compile_config, run_config, qjob_config,
+                                           show_circuit_summary=show_circuit_summary)
     result = shared_result + diff_result
     return result
 
-def compile_and_run_circuits(circuits, backend, backend_config, compile_config, run_config, qjob_config,
-                 show_circuit_summary=False, has_shared_circuits=False):
+
+def compile_and_run_circuits(circuits, backend, backend_config, compile_config, run_config, qjob_config=None,
+                             show_circuit_summary=False, has_shared_circuits=False):
     """
     An execution wrapper with Qiskit-Terra, with job auto recover capability.
 
@@ -156,7 +168,7 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
         sub_circuits = circuits[i *
                                 max_circuits_per_job:(i + 1) * max_circuits_per_job]
         qobj = q_compile(sub_circuits, backend, **backend_config,
-                                                **compile_config, **run_config)
+                         **compile_config, **run_config)
         job = backend.run(qobj)
         jobs.append(job)
         qobjs.append(qobj)

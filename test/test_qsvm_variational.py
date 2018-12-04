@@ -20,7 +20,7 @@ from qiskit import Aer
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua.input import SVMInput
-from qiskit_aqua import run_algorithm
+from qiskit_aqua import run_algorithm, QuantumDevice
 from qiskit_aqua.algorithms.adaptive import QSVMVariational
 from qiskit_aqua.algorithms.components.optimizers import SPSA
 from qiskit_aqua.algorithms.components.feature_maps import SecondOrderExpansion
@@ -73,8 +73,9 @@ class TestQSVMVariational(QiskitAquaTestCase):
 
         svm = QSVMVariational(optimizer, feature_map, var_form, self.training_data, self.testing_data)
         svm.random_seed = self.random_seed
-        svm.setup_quantum_backend(backend=backend, shots=1024)
-        result = svm.run()
+
+        quantum_device = QuantumDevice(backend, shots=1024)
+        result = svm.run(quantum_device)
 
         np.testing.assert_array_almost_equal(result['opt_params'], self.ref_opt_params, decimal=4)
         np.testing.assert_array_almost_equal(result['training_loss'], self.ref_train_loss, decimal=8)
