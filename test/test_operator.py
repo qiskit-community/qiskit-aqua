@@ -19,9 +19,11 @@ import unittest
 import copy
 import itertools
 import os
+
 from qiskit import Aer
 import numpy as np
 from qiskit.quantum_info import Pauli
+from qiskit.transpiler import PassManager
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import Operator
@@ -44,8 +46,8 @@ class TestOperator(QiskitAquaTestCase):
         var_form = RYRZ(self.qubitOp.num_qubits, depth)
         circuit = var_form.construct_circuit(np.array(np.random.randn(var_form.num_parameters)))
         # self.qubitOp.coloring = None
-        execute_config_ref = {'shots': 1, 'skip_transpiler': False}
-        execute_config = {'shots': 10000, 'skip_transpiler': False}
+        execute_config_ref = {'shots': 1}
+        execute_config = {'shots': 10000}
         reference = self.qubitOp.eval('matrix', circuit, Aer.get_backend('statevector_simulator'), execute_config_ref)[0]
         reference = reference.real
         backend = Aer.get_backend('qasm_simulator')
@@ -62,7 +64,7 @@ class TestOperator(QiskitAquaTestCase):
         self.assertLessEqual(reference, grouped_paulis_mode_p_3sigma.real)
         self.assertGreaterEqual(reference, grouped_paulis_mode_m_3sigma.real)
 
-        execute_config = {'shots': 10000, 'skip_transpiler': True}
+        execute_config = {'shots': 10000, 'pass_manager': PassManager()}
         paulis_mode = self.qubitOp.eval('paulis', circuit, backend, execute_config)
         grouped_paulis_mode = self.qubitOp.eval('grouped_paulis', circuit, backend, execute_config)
 
@@ -71,27 +73,27 @@ class TestOperator(QiskitAquaTestCase):
 
         grouped_paulis_mode_p_3sigma = grouped_paulis_mode[0] + 3 * grouped_paulis_mode[1]
         grouped_paulis_mode_m_3sigma = grouped_paulis_mode[0] - 3 * grouped_paulis_mode[1]
-        self.assertLessEqual(reference, paulis_mode_p_3sigma.real, "With skip_transpiler on")
-        self.assertGreaterEqual(reference, paulis_mode_m_3sigma.real, "With skip_transpiler on")
-        self.assertLessEqual(reference, grouped_paulis_mode_p_3sigma.real, "With skip_transpiler on")
-        self.assertGreaterEqual(reference, grouped_paulis_mode_m_3sigma.real, "With skip_transpiler on")
+        self.assertLessEqual(reference, paulis_mode_p_3sigma.real, "Without any pass manager")
+        self.assertGreaterEqual(reference, paulis_mode_m_3sigma.real, "Without any pass manager")
+        self.assertLessEqual(reference, grouped_paulis_mode_p_3sigma.real, "Without any pass manager")
+        self.assertGreaterEqual(reference, grouped_paulis_mode_m_3sigma.real, "Without any pass manager")
 
     def test_exact_eval(self):
         depth = 1
         var_form = RYRZ(self.qubitOp.num_qubits, depth)
         circuit = var_form.construct_circuit(np.array(np.random.randn(var_form.num_parameters)))
 
-        execute_config = {'shots': 1, 'skip_transpiler': False}
+        execute_config = {'shots': 1}
         backend = Aer.get_backend('statevector_simulator')
         matrix_mode = self.qubitOp.eval('matrix', circuit, backend, execute_config)[0]
         non_matrix_mode = self.qubitOp.eval('paulis', circuit, backend, execute_config)[0]
         diff = abs(matrix_mode - non_matrix_mode)
         self.assertLess(diff, 0.01, "Values: ({} vs {})".format(matrix_mode, non_matrix_mode))
 
-        execute_config = {'shots': 1, 'skip_transpiler': True}
+        execute_config = {'shots': 1, 'pass_manager': PassManager()}
         non_matrix_mode = self.qubitOp.eval('paulis', circuit, backend, execute_config)[0]
         diff = abs(matrix_mode - non_matrix_mode)
-        self.assertLess(diff, 0.01, "With skip_transpiler on, Values: ({} vs {})".format(matrix_mode, non_matrix_mode))
+        self.assertLess(diff, 0.01, "Without any pass manager, Values: ({} vs {})".format(matrix_mode, non_matrix_mode))
 
     def test_create_from_paulis_0(self):
         """Test with single paulis."""
@@ -104,7 +106,7 @@ class TestOperator(QiskitAquaTestCase):
             depth = 1
             var_form = RYRZ(op.num_qubits, depth)
             circuit = var_form.construct_circuit(np.array(np.random.randn(var_form.num_parameters)))
-            execute_config = {'shots': 1, 'skip_transpiler': False}
+            execute_config = {'shots': 1}
             backend = Aer.get_backend('statevector_simulator')
             non_matrix_mode = op.eval('paulis', circuit, backend, execute_config)[0]
             matrix_mode = op.eval('matrix', circuit, backend, execute_config)[0]
@@ -123,7 +125,7 @@ class TestOperator(QiskitAquaTestCase):
             var_form = RYRZ(op.num_qubits, depth)
             circuit = var_form.construct_circuit(np.array(np.random.randn(var_form.num_parameters)))
             backend = Aer.get_backend('statevector_simulator')
-            execute_config = {'shots': 1, 'skip_transpiler': False}
+            execute_config = {'shots': 1}
             non_matrix_mode = op.eval('paulis', circuit, backend, execute_config)[0]
             matrix_mode = op.eval('matrix', circuit, backend, execute_config)[0]
 
@@ -618,7 +620,7 @@ class TestOperator(QiskitAquaTestCase):
         depth = 1
         var_form = RYRZ(op.num_qubits, depth)
         circuit = var_form.construct_circuit(np.array(np.random.randn(var_form.num_parameters)))
-        execute_config = {'shots': 1, 'skip_transpiler': False}
+        execute_config = {'shots': 1}
         backend = Aer.get_backend('statevector_simulator')
         non_matrix_mode = op.eval('paulis', circuit, backend, execute_config)[0]
         matrix_mode = op.eval('matrix', circuit, backend, execute_config)[0]

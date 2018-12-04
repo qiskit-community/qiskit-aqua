@@ -107,7 +107,7 @@ class TestEvolution(QiskitAquaTestCase):
                     )
                     job = q_execute(qc, qiskit.Aer.get_backend('statevector_simulator'))
                     state_out_circuit = np.asarray(
-                        job.result().get_statevector(qc))
+                        job.result().get_statevector(qc, decimals=16))
 
                     self.log.debug('The fidelity between exact and matrix:   {}'.format(
                         state_fidelity(state_out_exact, state_out_matrix)

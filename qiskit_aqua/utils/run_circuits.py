@@ -94,7 +94,7 @@ def _reuse_shared_circuits(circuits, backend, execute_config, qjob_config=None):
 
     if len(circuits) == 1:
         return shared_result
-    shared_quantum_state = np.asarray(shared_result.get_statevector(shared_circuit))
+    shared_quantum_state = np.asarray(shared_result.get_statevector(shared_circuit, decimals=16))
     # extract different of circuits
     for circuit in circuits[1:]:
         circuit.data = circuit.data[len(shared_circuit):]
@@ -176,7 +176,7 @@ def run_circuits(circuits, backend, execute_config, qjob_config=None,
             while True:
                 try:
                     result = job.result(**qjob_config)
-                    if result.status == 'COMPLETED':
+                    if result.success:
                         results.append(result)
                         logger.info("COMPLETED the {}-th chunk of circuits, "
                                     "job id: {}".format(idx, job_id))

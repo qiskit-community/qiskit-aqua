@@ -197,7 +197,7 @@ class VQE(QuantumAlgorithm):
         qc = self._var_form.construct_circuit(self._ret['opt_params'])
         if QuantumAlgorithm.is_statevector_backend(self.backend):
             ret = self.execute(qc)
-            self._ret['eigvecs'] = np.asarray([ret.get_statevector(qc)])
+            self._ret['eigvecs'] = np.asarray([ret.get_statevector(qc, decimals=16)])
         else:
             c = ClassicalRegister(self._operator.num_qubits, name='c')
             q = find_regs_by_name(qc, 'q')
