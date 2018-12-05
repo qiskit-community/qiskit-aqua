@@ -108,8 +108,6 @@ class TestVQE(QiskitAquaTestCase):
         init_state = Zero(num_qubits)
         var_form = RY(num_qubits, 3, initial_state=init_state)
         optimizer = L_BFGS_B()
-        # if batch_mode:
-        #     optimizer.set_options(epsilon=1e-8) # for other optimizers, the option name is eps, instead of epsilon
         algo = VQE(self.algo_input.qubit_op, var_form, optimizer, 'matrix', batch_mode=batch_mode)
         algo.setup_quantum_backend(backend=backend)
         result = algo.run()
