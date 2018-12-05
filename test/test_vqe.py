@@ -63,17 +63,27 @@ class TestVQE(QiskitAquaTestCase):
 
     @parameterized.expand([
         ['CG', 5],
-        ['COBYLA', 5],
-        ['L_BFGS_B', 5],
-        ['NELDER_MEAD', 5],
-        ['POWELL', 5],
+        # ['COBYLA', 5],
+        # ['L_BFGS_B', 5],
+        # ['NELDER_MEAD', 5],
+        # ['POWELL', 5],
         ['SLSQP', 5],
-        ['SPSA', 5],
+        # ['SPSA', 5],
         ['TNC', 2]
     ])
-    def test_vqe_optimizers(self, name, places):
+    # def test_vqe_optimizers(self, name, places):
+    #     params = {
+    #         'algorithm': {'name': 'VQE'},
+    #         'optimizer': {'name': name},
+    #         'backend': {'name': 'statevector_simulator'}
+    #     }
+    #     result = run_algorithm(params, self.algo_input)
+    #     self.assertAlmostEqual(result['energy'], -1.85727503, places=places)
+
+
+    def test_vqe_optimizers_batch(self, name, places):
         params = {
-            'algorithm': {'name': 'VQE'},
+            'algorithm': {'name': 'VQE', 'batch_mode': True},
             'optimizer': {'name': name},
             'backend': {'name': 'statevector_simulator'}
         }
@@ -93,13 +103,25 @@ class TestVQE(QiskitAquaTestCase):
         result = run_algorithm(params, self.algo_input)
         self.assertAlmostEqual(result['energy'], -1.85727503, places=places)
 
-    def test_vqe_direct(self):
+    # def test_vqe_direct(self):
+    #     backend = Aer.get_backend('statevector_simulator')
+    #     num_qubits = self.algo_input.qubit_op.num_qubits
+    #     init_state = Zero(num_qubits)
+    #     var_form = RY(num_qubits, 3, initial_state=init_state)
+    #     optimizer = L_BFGS_B()
+    #     algo = VQE(self.algo_input.qubit_op, var_form, optimizer, 'matrix')
+    #     algo.setup_quantum_backend(backend=backend)
+    #     result = algo.run()
+    #     self.assertAlmostEqual(result['energy'], -1.85727503)
+
+    def test_vqe_direct_batch(self):
         backend = Aer.get_backend('statevector_simulator')
         num_qubits = self.algo_input.qubit_op.num_qubits
         init_state = Zero(num_qubits)
         var_form = RY(num_qubits, 3, initial_state=init_state)
         optimizer = L_BFGS_B()
-        algo = VQE(self.algo_input.qubit_op, var_form, optimizer, 'matrix')
+        optimizer.set_options(epsilon=1e-8) # for other optimizers, the option name is eps, instead of epsilon
+        algo = VQE(self.algo_input.qubit_op, var_form, optimizer, 'matrix', batch_mode=True)
         algo.setup_quantum_backend(backend=backend)
         result = algo.run()
         self.assertAlmostEqual(result['energy'], -1.85727503)
