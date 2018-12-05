@@ -25,7 +25,7 @@ from test.common import QiskitAquaTestCase
 from qiskit_aqua.translators.ising import maxcut
 from qiskit_aqua.algorithms.components.optimizers import COBYLA
 from qiskit_aqua.algorithms.adaptive import QAOA
-from qiskit_aqua import QuantumDevice
+from qiskit_aqua import QuantumExpConfig
 
 w1 = np.array([
     [0, 1, 0, 1],
@@ -62,7 +62,7 @@ class TestQAOA(QiskitAquaTestCase):
         qubitOp, offset = maxcut.get_maxcut_qubitops(w)
 
         qaoa = QAOA(qubitOp, optimizer, p, operator_mode='matrix')
-        quantum_device = QuantumDevice(backend)
+        quantum_device = QuantumExpConfig(backend)
 
         result = qaoa.run(quantum_device)
         x = maxcut.sample_most_likely(result['eigvecs'][0])

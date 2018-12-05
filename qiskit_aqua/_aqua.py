@@ -33,7 +33,7 @@ from qiskit_aqua._discover import (_discover_on_demand,
 from qiskit_aqua.utils.jsonutils import convert_dict_to_json, convert_json_to_dict
 from qiskit_aqua.parser._inputparser import InputParser
 from qiskit_aqua.parser import JSONSchema
-from qiskit_aqua import QuantumDevice
+from qiskit_aqua import QuantumExpConfig
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +73,7 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
         noise_params = backend_cfg.pop('noise_params', None)
         backend_cfg['config'] = {}
         backend_cfg['config']['noise_params'] = noise_params
-        QuantumDevice.register_and_get_operational_backends()
+        QuantumExpConfig.register_and_get_operational_backends()
         try:
             backend_from_name = Aer.get_backend(backend_name)
         except:
@@ -105,7 +105,7 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
         if pass_manager is not None:
             backend_cfg['pass_manager'] = pass_manager
 
-        quantum_device = QuantumDevice(**backend_cfg)
+        quantum_device = QuantumExpConfig(**backend_cfg)
 
     value = algorithm.run(quantum_device)
     if isinstance(value, dict) and json_output:

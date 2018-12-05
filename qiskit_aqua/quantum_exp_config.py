@@ -28,7 +28,7 @@ from qiskit_aqua.utils import compile_and_run_circuits
 logger = logging.getLogger(__name__)
 
 
-class QuantumDevice:
+class QuantumExpConfig:
     """Quantum Backend including execution setting."""
 
     UNSUPPORTED_BACKENDS = [
@@ -141,15 +141,15 @@ class QuantumDevice:
 
     def set_config(self, **kwargs):
         for k, v in kwargs.items():
-            if k in QuantumDevice.RUN_CONFIG:
+            if k in QuantumExpConfig.RUN_CONFIG:
                 self._run_config[k] = v
-            elif k in QuantumDevice.QJOB_CONFIG:
+            elif k in QuantumExpConfig.QJOB_CONFIG:
                 self._qjob_config[k] = v
-            elif k in QuantumDevice.COMPILE_CONFIG:
+            elif k in QuantumExpConfig.COMPILE_CONFIG:
                 self._compile_config[k] = v
-            elif k in QuantumDevice.BACKEND_CONFIG:
+            elif k in QuantumExpConfig.BACKEND_CONFIG:
                 self._backend_config[k] = v
-            elif k in QuantumDevice.SIMULATOR_CONFIG:
+            elif k in QuantumExpConfig.SIMULATOR_CONFIG:
                 self._backend_config['config'][k] = v
             else:
                 raise ValueError("unknown setting for the key ({}).".format(k))
@@ -197,17 +197,17 @@ class QuantumDevice:
     @property
     def is_statevector(self):
         """Return True if backend is a statevector-type simulator."""
-        return QuantumDevice.is_statevector_backend(self._backend)
+        return QuantumExpConfig.is_statevector_backend(self._backend)
 
     @property
     def is_simulator(self):
         """Return True if backend is a simulator."""
-        return QuantumDevice.is_simulator_backend(self._backend)
+        return QuantumExpConfig.is_simulator_backend(self._backend)
 
     @property
     def is_local(self):
         """Return True if backend is a local backend."""
-        return QuantumDevice.is_local_backend(self._backend)
+        return QuantumExpConfig.is_local_backend(self._backend)
 
     @staticmethod
     def is_statevector_backend(backend):
@@ -246,12 +246,12 @@ class QuantumDevice:
         return backend.configuration().local
 
     @classmethod
-    def get_quantum_device_with_aer_statevector_simulator(cls):
+    def get_quantum_exp_config_with_aer_statevector_simulator(cls):
         backend = Aer.get_backend('statevector_simulator')
         return cls(backend)
 
     @classmethod
-    def get_quantum_device_with_aer_qasm_simulator(cls, shots=1024):
+    def get_quantum_exp_config_with_aer_qasm_simulator(cls, shots=1024):
         backend = Aer.get_backend('qasm_simulator')
         return cls(backend, shots=shots)
 
@@ -287,7 +287,7 @@ class QuantumDevice:
         for aer_backend in aer_backends:
             backend = aer_backend
             supported = True
-            for unsupported_backend in QuantumDevice.UNSUPPORTED_BACKENDS:
+            for unsupported_backend in QuantumExpConfig.UNSUPPORTED_BACKENDS:
                 if backend.startswith(unsupported_backend):
                     supported = False
                     break

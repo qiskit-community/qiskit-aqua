@@ -19,7 +19,7 @@ import numpy as np
 from qiskit import Aer
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import run_algorithm, QuantumDevice
+from qiskit_aqua import run_algorithm, QuantumExpConfig
 from qiskit_aqua.input import SVMInput
 from qiskit_aqua.algorithms.components.feature_maps import SecondOrderExpansion
 from qiskit_aqua.algorithms.many_sample import QSVM_Kernel
@@ -96,7 +96,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
         feature_map = SecondOrderExpansion(num_qubits=num_qubits, depth=2, entangler_map={0: [1]})
         svm = QSVM_Kernel(feature_map, self.training_data, self.testing_data, None)
         svm.random_seed = self.random_seed
-        quantum_device = QuantumDevice(backend, shots=self.shots, seed=self.random_seed, seed_mapper=self.random_seed)
+        quantum_device = QuantumExpConfig(backend, shots=self.shots, seed=self.random_seed, seed_mapper=self.random_seed)
 
         result = svm.run(quantum_device)
         np.testing.assert_array_almost_equal(
@@ -121,7 +121,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
         svm = QSVM_Kernel(feature_map, self.training_data, self.testing_data, None)
         svm.random_seed = self.random_seed
 
-        quantum_device = QuantumDevice(backend, seed=self.random_seed, seed_mapper=self.random_seed)
+        quantum_device = QuantumExpConfig(backend, seed=self.random_seed, seed_mapper=self.random_seed)
         result = svm.run(quantum_device)
 
         self.assertEqual(len(result['svm']['support_vectors']), 4)

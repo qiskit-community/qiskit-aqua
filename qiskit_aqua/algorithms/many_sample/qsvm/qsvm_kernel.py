@@ -123,9 +123,9 @@ class QSVM_Kernel(QuantumAlgorithm):
             data (numpy.ndarray): NxD array, where N is the number of data,
                                   D is the feature dimension.
             labels (numpy.ndarray): Nx1 array, where N is the number of data
-            quantum_device (QuantumDevice): quantum backend with all setting
+            quantum_device (QuantumExpConfig): quantum backend with all setting
         """
-        self._quantum_device = self._quantum_device if quantum_device is None else quantum_device
+        self._quantum_exp_config = self._quantum_exp_config if quantum_device is None else quantum_device
         self.instance.train(data, labels)
 
     def test(self, data, labels, quantum_device=None):
@@ -136,11 +136,11 @@ class QSVM_Kernel(QuantumAlgorithm):
             data (numpy.ndarray): NxD array, where N is the number of data,
                                   D is the feature dimension.
             labels (numpy.ndarray): Nx1 array, where N is the number of data
-            quantum_device (QuantumDevice): quantum backend with all setting
+            quantum_device (QuantumExpConfig): quantum backend with all setting
         Returns:
             float: accuracy
         """
-        self._quantum_device = self._quantum_device if quantum_device is None else quantum_device
+        self._quantum_exp_config = self._quantum_exp_config if quantum_device is None else quantum_device
         return self.instance.test(data, labels)
 
     def predict(self, data, quantum_device=None):
@@ -150,11 +150,11 @@ class QSVM_Kernel(QuantumAlgorithm):
         Args:
             data (numpy.ndarray): NxD array, where N is the number of data,
                                   D is the feature dimension.
-            quantum_device (QuantumDevice): quantum backend with all setting
+            quantum_device (QuantumExpConfig): quantum backend with all setting
         Returns:
             numpy.ndarray: predicted labels, Nx1 array
         """
-        self._quantum_device = self._quantum_device if quantum_device is None else quantum_device
+        self._quantum_exp_config = self._quantum_exp_config if quantum_device is None else quantum_device
         return self.instance.predict(data)
 
     def _run(self):

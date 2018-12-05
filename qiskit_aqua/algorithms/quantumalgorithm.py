@@ -29,7 +29,7 @@ import logging
 import numpy as np
 from qiskit.backends import BaseBackend
 
-from qiskit_aqua import Pluggable, QuantumDevice, AquaError
+from qiskit_aqua import Pluggable, QuantumExpConfig, AquaError
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +60,7 @@ class QuantumAlgorithm(Pluggable):
         super().__init__()
         self._random_seed = None
         self._random = None
-        self._quantum_device = None
+        self._quantum_exp_config = None
 
     @property
     def random_seed(self):
@@ -86,7 +86,7 @@ class QuantumAlgorithm(Pluggable):
         """Execute the algorithm with selected backend.
 
         Args:
-            quantum_device (QuantumDevice or BaseBackend): the experiemental setting.
+            quantum_device (QuantumExpConfig or BaseBackend): the experiemental setting.
 
         Returns:
             dict: results of an algorithm.
@@ -95,8 +95,8 @@ class QuantumAlgorithm(Pluggable):
             if quantum_device is None:
                 AquaError("Quantum device or backend is needed since you are running quanutm algorithm.")
             if isinstance(quantum_device, BaseBackend):
-                quantum_device = QuantumDevice(quantum_device, **kwargs)
-            self._quantum_device = quantum_device
+                quantum_device = QuantumExpConfig(quantum_device, **kwargs)
+            self._quantum_exp_config = quantum_device
         return self._run()
 
     @abstractmethod
@@ -104,5 +104,5 @@ class QuantumAlgorithm(Pluggable):
         raise NotImplementedError()
 
     @property
-    def quantum_device(self):
-        return self._quantum_device
+    def quantum_exp_config(self):
+        return self._quantum_exp_config

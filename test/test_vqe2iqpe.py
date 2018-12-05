@@ -22,7 +22,7 @@ from qiskit import Aer
 from qiskit.transpiler import PassManager
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import Operator, QuantumDevice
+from qiskit_aqua import Operator, QuantumExpConfig
 from qiskit_aqua.input import EnergyInput
 from qiskit_aqua.utils import decimal_to_binary
 from qiskit_aqua.algorithms.components.initial_states.varformbased import VarFormBased
@@ -55,7 +55,7 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         optimizer = SPSA(max_trials=10)
         # optimizer.set_options(**{'max_trials': 500})
         algo = VQE(self.algo_input.qubit_op, var_form, optimizer, 'paulis')
-        quantum_device = QuantumDevice(backend)
+        quantum_device = QuantumExpConfig(backend)
         result = algo.run(quantum_device)
 
         self.log.debug('VQE result: {}.'.format(result))
@@ -68,7 +68,7 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         state_in = VarFormBased(var_form, result['opt_params'])
         iqpe = IQPE(self.algo_input.qubit_op, state_in, num_time_slices, num_iterations,
                     paulis_grouping='random', expansion_mode='suzuki', expansion_order=2)
-        quantum_device = QuantumDevice(backend, shots=100, pass_manager=PassManager(),
+        quantum_device = QuantumExpConfig(backend, shots=100, pass_manager=PassManager(),
                                        seed=self.random_seed, seed_mapper=self.random_seed)
         result = iqpe.run(quantum_device)
 
