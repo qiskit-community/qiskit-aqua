@@ -12,8 +12,8 @@ Aqua provides a library of cross-domain algorithms upon which domain-specific ap
 built. At the time of writing, [Aqua Chemistry](https://github.com/Qiskit/aqua-chemistry) has
 been created to utilize Aqua for quantum chemistry computations. Aqua is also showcased for other
 domains with both code and notebook examples, such as
-[Aqua Optimization](https://github.com/Qiskit/aqua-tutorials/tree/master/optimization) and
-[Aqua Artificial Intelligence](https://github.com/Qiskit/aqua-tutorials/tree/master/artificial_intelligence).
+[Aqua Optimization](https://github.com/Qiskit/qiskit-tutorial/tree/master/community/aqua/optimization) and
+[Aqua Artificial Intelligence](https://github.com/Qiskit/qiskit-tutorial/tree/master/community/aqua/artificial_intelligence).
 
 Aqua was designed to be extensible, and uses a pluggable framework where algorithms and support objects used
 by algorithms, such as optimizers, variational forms, and oracles, are derived from a defined base class for the type and
@@ -136,7 +136,7 @@ python qiskit_aqua/ui/browser
 ### Programming
 
 Any algorithm in Aqua can be run programmatically too. The aqua folder in the
-[aqua-tutorials GitHub repository](https://github.com/Qiskit/aqua-tutorials/tree/master/aqua) contains numerous
+[qiskit-tutorial GitHub repository](https://github.com/Qiskit/qiskit-tutorial/tree/master/community/aqua) contains numerous
 examples that demonstrate how to do this. As you can see, Aqua exposes a `run_algorithm` method, which takes either
 the JSON algorithm input or an equivalent Python dictionary and optional `AlgorithmInput` object for the algorithm.
 There is also a `run_algorithm_to_json` method that simply takes the input and saves it to JSON in a self-contained form,
