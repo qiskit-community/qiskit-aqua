@@ -115,7 +115,7 @@ class QSVM_Kernel(QuantumAlgorithm):
         return cls(feature_map, algo_input.training_dataset, algo_input.test_dataset,
                    algo_input.datapoints, multiclass_extension)
 
-    def train(self, data, labels):
+    def train(self, data, labels, quantum_device=None):
         """
         Train the svm.
 
@@ -123,10 +123,12 @@ class QSVM_Kernel(QuantumAlgorithm):
             data (numpy.ndarray): NxD array, where N is the number of data,
                                   D is the feature dimension.
             labels (numpy.ndarray): Nx1 array, where N is the number of data
+            quantum_device (QuantumDevice): quantum backend with all setting
         """
+        self._quantum_device = self._quantum_device if quantum_device is None else quantum_device
         self.instance.train(data, labels)
 
-    def test(self, data, labels):
+    def test(self, data, labels, quantum_device=None):
         """
         Test the svm.
 
@@ -134,22 +136,25 @@ class QSVM_Kernel(QuantumAlgorithm):
             data (numpy.ndarray): NxD array, where N is the number of data,
                                   D is the feature dimension.
             labels (numpy.ndarray): Nx1 array, where N is the number of data
-
+            quantum_device (QuantumDevice): quantum backend with all setting
         Returns:
             float: accuracy
         """
+        self._quantum_device = self._quantum_device if quantum_device is None else quantum_device
         return self.instance.test(data, labels)
 
-    def predict(self, data):
+    def predict(self, data, quantum_device=None):
         """
         Predict using the svm.
 
         Args:
             data (numpy.ndarray): NxD array, where N is the number of data,
                                   D is the feature dimension.
+            quantum_device (QuantumDevice): quantum backend with all setting
         Returns:
             numpy.ndarray: predicted labels, Nx1 array
         """
+        self._quantum_device = self._quantum_device if quantum_device is None else quantum_device
         return self.instance.predict(data)
 
     def _run(self):

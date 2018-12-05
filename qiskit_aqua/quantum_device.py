@@ -108,6 +108,11 @@ class QuantumDevice:
         logger.info(self)
 
     def __str__(self):
+        """Overload string.
+
+        Retruns:
+            str: the info of the object.
+        """
         info = 'Qiskit Terra version {}\n'.format(terra_version)
         info += "Backend '{}', with following setting:\n{}\n{}\n{}\n{}".format(
             self.backend_name, self._backend_config, self._compile_config,

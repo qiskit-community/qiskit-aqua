@@ -88,13 +88,15 @@ class QSVMVariational(QuantumAlgorithm):
 
         self._training_dataset, self._class_to_label = split_dataset_to_data_and_labels(
             training_dataset)
-        if test_dataset is not None:
-            self._test_dataset = split_dataset_to_data_and_labels(test_dataset,
-                                                                  self._class_to_label)
-
         self._label_to_class = {label: class_name for class_name, label
                                 in self._class_to_label.items()}
         self._num_classes = len(list(self._class_to_label.keys()))
+
+        if test_dataset is not None:
+            self._test_dataset = split_dataset_to_data_and_labels(test_dataset,
+                                                                  self._class_to_label)
+        else:
+            self._test_dataset = test_dataset
 
         self._datapoints = datapoints
         self._optimizer = optimizer
@@ -123,7 +125,7 @@ class QSVMVariational(QuantumAlgorithm):
         optimizer = get_pluggable_class(PluggableType.OPTIMIZER,
                                         opt_params['name']).init_params(opt_params)
 
-        # Set up variational form
+        # Set up feature map
         fea_map_params = params.get(QuantumAlgorithm.SECTION_KEY_FEATURE_MAP)
         num_qubits = get_feature_dimension(algo_input.training_dataset)
         fea_map_params['num_qubits'] = num_qubits
@@ -163,8 +165,8 @@ class QSVMVariational(QuantumAlgorithm):
 
     def _cost_function(self, predicted_probs, labels):
         """
-        Calculate cost of predicted probability of ground truth label based on sigmoid function,
-        and the accuracy
+        Calculate cost of predicted probability of ground truth label based on
+        cross entropy function.
 
         Args:
             predicted_probs (numpy.ndarray): NxK array
@@ -178,6 +180,7 @@ class QSVMVariational(QuantumAlgorithm):
     def _get_prediction(self, data, theta):
         """
         Make prediction on data based on each theta.
+
         Args:
             data (numpy.ndarray): 2-D array, NxD, N data points, each with D dimension
             theta ([numpy.ndarray]): list of 1-D array, parameters sets for variational form
@@ -185,10 +188,9 @@ class QSVMVariational(QuantumAlgorithm):
             numpy.ndarray or [numpy.ndarray]: list of NxK array
             numpy.ndarray or [numpy.ndarray]: list of Nx1 array
         """
-
         if self._quantum_device.is_statevector:
-            raise ValueError('Selected backend  "{}" is not supported.'.format(
-                QuantumAlgorithm.backend_name(self.backend)))
+            raise ValueError('Selected backend "{}" is not supported.'.format(
+                self._quantum_device.backend_name))
 
         predicted_probs = []
         predicted_labels = []
@@ -225,13 +227,17 @@ class QSVMVariational(QuantumAlgorithm):
 
         return predicted_probs, predicted_labels
 
-    def train(self, data, labels):
-        """Train the models, and save results
+    def train(self, data, labels, quantum_device=None):
+        """Train the models, and save results.
+
         Args:
             data (numpy.ndarray): NxD array, N is number of data and D is dimension
             labels (numpy.ndarray): Nx1 array, N is number of data
+            quantum_device (QuantumDevice): quantum backend with all setting
         """
-        def cost_function_wrapper(theta):
+        self._quantum_device = self._quantum_device if quantum_device is None else quantum_device
+
+        def _cost_function_wrapper(theta):
             predicted_probs, predicted_labels = self._get_prediction(data, theta)
             total_cost = []
             if isinstance(predicted_probs, list):
@@ -243,37 +249,44 @@ class QSVMVariational(QuantumAlgorithm):
 
         initial_theta = self.random.randn(self._var_form.num_parameters)
 
-        theta_best, cost_final, _ = self._optimizer.optimize(
-            initial_theta.shape[0], cost_function_wrapper, initial_point=initial_theta)
+        theta_best, cost_final, _ = self._optimizer.optimize(initial_theta.shape[0],
+                                                             _cost_function_wrapper,
+                                                             initial_point=initial_theta)
 
         self._ret['opt_params'] = theta_best
         self._ret['training_loss'] = cost_final
 
-    def test(self, data, labels):
-        """Predict the labels for the data, and test against with ground truth labels
+    def test(self, data, labels, quantum_device=None):
+        """Predict the labels for the data, and test against with ground truth labels.
+
         Args:
             data (numpy.ndarray): NxD array, N is number of data and D is data dimension
             labels (numpy.ndarray): Nx1 array, N is number of data
+            quantum_device (QuantumDevice): quantum backend with all setting
         Returns:
             float: classification accuracy
         """
+        self._quantum_device = self._quantum_device if quantum_device is None else quantum_device
         predicted_probs, predicted_labels = self._get_prediction(data, self._ret['opt_params'])
         total_cost = self._cost_function(predicted_probs, labels)
         accuracy = np.sum((np.argmax(predicted_probs, axis=1) == labels)) / labels.shape[0]
-        logger.debug('Accuracy is {:.2f}%  \n'.format(accuracy * 100.0))
+        logger.debug('Accuracy is {:.2f}%'.format(accuracy * 100.0))
         self._ret['testing_accuracy'] = accuracy
         self._ret['test_success_ratio'] = accuracy
         self._ret['testing_loss'] = total_cost
         return accuracy
 
-    def predict(self, data):
-        """Predict the labels for the data
+    def predict(self, data, quantum_device=None):
+        """Predict the labels for the data.
+
         Args:
             data (numpy.ndarray): NxD array, N is number of data, D is data dimension
+            quantum_device (QuantumDevice): quantum backend with all setting
         Returns:
             [dict]: for each data point, generates the predicted probability for each class
             list: for each data point, generates the predicted label, which with the highest prob
         """
+        self._quantum_device = self._quantum_device if quantum_device is None else quantum_device
         predicted_probs, predicted_labels = self._get_prediction(data, self._ret['opt_params'])
         self._ret['predicted_probs'] = predicted_probs
         self._ret['predicted_labels'] = predicted_labels

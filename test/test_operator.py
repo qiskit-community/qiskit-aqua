@@ -99,7 +99,6 @@ class TestOperator(QiskitAquaTestCase):
         non_matrix_mode = self.qubitOp.eval('paulis', circuit, backend,
                                             run_config=run_config, compile_config=compile_config)[0]
         diff = abs(matrix_mode - non_matrix_mode)
-        print(matrix_mode, non_matrix_mode)
         self.assertLess(diff, 0.01, "Without any pass manager, Values: ({} vs {})".format(matrix_mode, non_matrix_mode))
 
     def test_create_from_paulis_0(self):
