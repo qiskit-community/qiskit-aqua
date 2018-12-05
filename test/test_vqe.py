@@ -63,13 +63,21 @@ class TestVQE(QiskitAquaTestCase):
 
     @parameterized.expand([
         ['CG', 5, True],
+        ['CG', 5, False],
+        ['COBYLA', 5, True],
         ['COBYLA', 5, False],
         ['L_BFGS_B', 5, True],
+        ['L_BFGS_B', 5, False],
+        ['NELDER_MEAD', 5, True],
         ['NELDER_MEAD', 5, False],
+        ['POWELL', 5, True],
         ['POWELL', 5, False],
         ['SLSQP', 5, True],
+        ['SLSQP', 5, False],
+        ['SPSA', 5, True],
         ['SPSA', 5, False],
-        ['TNC', 2, True]
+        ['TNC', 2, True],
+        ['TNC', 2, False]
     ])
     def test_vqe_optimizers(self, name, places, batch_mode):
         params = {
