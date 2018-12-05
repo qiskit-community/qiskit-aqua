@@ -153,6 +153,7 @@ class QuantumInstance:
                 self._backend_config['config'][k] = v
             else:
                 raise ValueError("unknown setting for the key ({}).".format(k))
+
     @property
     def qjob_config(self):
         return self._qjob_config
@@ -245,16 +246,6 @@ class QuantumInstance:
         """
         return backend.configuration().local
 
-    @classmethod
-    def get_quantum_exp_config_with_aer_statevector_simulator(cls):
-        backend = Aer.get_backend('statevector_simulator')
-        return cls(backend)
-
-    @classmethod
-    def get_quantum_exp_config_with_aer_qasm_simulator(cls, shots=1024):
-        backend = Aer.get_backend('qasm_simulator')
-        return cls(backend, shots=shots)
-
     @staticmethod
     def register_and_get_operational_backends():
         # update registration info using internal methods because:
@@ -296,3 +287,13 @@ class QuantumInstance:
                 backends.add(backend)
 
         return list(backends) + ibmq_backends
+
+
+def get_quantum_exp_config_with_aer_statevector_simulator():
+    backend = Aer.get_backend('statevector_simulator')
+    return QuantumInstance(backend)
+
+
+def get_quantum_exp_config_with_aer_qasm_simulator(shots=1024):
+    backend = Aer.get_backend('qasm_simulator')
+    return QuantumInstance(backend, shots=shots)
