@@ -127,7 +127,7 @@ class SVM_Classical(QuantumAlgorithm):
         """
         return self.instance.predict(data)
 
-    def run(self):
+    def _run(self):
         return self.instance.run()
 
     @property

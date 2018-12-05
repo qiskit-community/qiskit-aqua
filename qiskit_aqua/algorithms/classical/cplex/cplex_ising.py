@@ -97,7 +97,7 @@ class CPLEX_Ising(QuantumAlgorithm):
         logger.info('CPLEX is not installed. See https://www.ibm.com/support/knowledgecenter/SSSA5P_12.8.0/ilog.odms.studio.help/Optimization_Studio/topics/COS_home.html')
         return False
 
-    def run(self):
+    def _run(self):
         model = IsingModel(self._ins, timelimit=self._timelimit,
                            thread=self._thread, display=self._display)
         self._sol = model.solve()

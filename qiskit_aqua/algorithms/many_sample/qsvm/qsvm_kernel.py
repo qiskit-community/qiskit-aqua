@@ -86,7 +86,8 @@ class QSVM_Kernel(QuantumAlgorithm):
         if multiclass_extension is None:
             qsvm_instance = _QSVM_Kernel_Binary(feature_map, self, training_dataset, test_dataset, datapoints)
         else:
-            qsvm_instance = _QSVM_Kernel_Multiclass(feature_map, self, training_dataset, test_dataset, datapoints, multiclass_extension)
+            qsvm_instance = _QSVM_Kernel_Multiclass(
+                feature_map, self, training_dataset, test_dataset, datapoints, multiclass_extension)
 
         self.instance = qsvm_instance
 
@@ -114,7 +115,7 @@ class QSVM_Kernel(QuantumAlgorithm):
         return cls(feature_map, algo_input.training_dataset, algo_input.test_dataset,
                    algo_input.datapoints, multiclass_extension)
 
-    def train(self, data, labels):
+    def train(self, data, labels, quantum_instance=None):
         """
         Train the svm.
 
@@ -122,10 +123,12 @@ class QSVM_Kernel(QuantumAlgorithm):
             data (numpy.ndarray): NxD array, where N is the number of data,
                                   D is the feature dimension.
             labels (numpy.ndarray): Nx1 array, where N is the number of data
+            quantum_instance (QuantumInstance): quantum backend with all setting
         """
+        self._quantum_instance = self._quantum_instance if quantum_instance is None else quantum_instance
         self.instance.train(data, labels)
 
-    def test(self, data, labels):
+    def test(self, data, labels, quantum_instance=None):
         """
         Test the svm.
 
@@ -133,25 +136,28 @@ class QSVM_Kernel(QuantumAlgorithm):
             data (numpy.ndarray): NxD array, where N is the number of data,
                                   D is the feature dimension.
             labels (numpy.ndarray): Nx1 array, where N is the number of data
-
+            quantum_instance (QuantumInstance): quantum backend with all setting
         Returns:
             float: accuracy
         """
+        self._quantum_instance = self._quantum_instance if quantum_instance is None else quantum_instance
         return self.instance.test(data, labels)
 
-    def predict(self, data):
+    def predict(self, data, quantum_instance=None):
         """
         Predict using the svm.
 
         Args:
             data (numpy.ndarray): NxD array, where N is the number of data,
                                   D is the feature dimension.
+            quantum_instance (QuantumInstance): quantum backend with all setting
         Returns:
             numpy.ndarray: predicted labels, Nx1 array
         """
+        self._quantum_instance = self._quantum_instance if quantum_instance is None else quantum_instance
         return self.instance.predict(data)
 
-    def run(self):
+    def _run(self):
         return self.instance.run()
 
     @property
@@ -167,5 +173,11 @@ class QSVM_Kernel(QuantumAlgorithm):
         return self.instance.ret
 
     @ret.setter
-    def ret(self, new_ret):
-        self.instance.ret = new_ret
+    def ret(self, new_value):
+        self.instance.ret = new_value
+
+    def load_model(self, file_path):
+        self.instance.load_model(file_path)
+
+    def save_model(self, file_path):
+        self.instance.save_model(file_path)

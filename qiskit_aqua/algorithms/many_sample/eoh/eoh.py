@@ -159,7 +159,13 @@ class EOH(QuantumAlgorithm):
                    paulis_grouping=paulis_grouping, expansion_mode=expansion_mode,
                    expansion_order=expansion_order)
 
-    def run(self):
+    def construct_circuit(self):
+        """
+        Construct the circuit.
+
+        Returns:
+            QuantumCircuit: the circuit.
+        """
         quantum_registers = QuantumRegister(self._operator.num_qubits, name='q')
         qc = self._initial_state.construct_circuit('circuit', quantum_registers)
 
@@ -174,5 +180,13 @@ class EOH(QuantumAlgorithm):
             expansion_order=self._expansion_order,
         )
 
-        self._ret['avg'], self._ret['std_dev'] = self._operator.eval(self._operator_mode, qc, self._backend)
+        return qc
+
+    def _run(self):
+        qc = self.construct_circuit()
+        qc_with_op = self._operator.construct_evaluation_circuit(self._operator_mode,
+                                                                 qc, self._quantum_instance.backend)
+        result = self._quantum_instance.execute(qc_with_op)
+        self._ret['avg'], self._ret['std_dev'] = self._operator.evaluate_with_result(self._operator_mode,
+                                                                                     qc_with_op, self._quantum_instance.backend, result)
         return self._ret

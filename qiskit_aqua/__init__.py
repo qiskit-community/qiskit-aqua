@@ -27,7 +27,8 @@ from ._discover import (PluggableType,
                         register_pluggable,
                         deregister_pluggable)
 from .pluggable import Pluggable
-from .utils import cnx
+from .utils.cnx import cnx
+from .quantum_instance import QuantumInstance
 from .algorithms import QuantumAlgorithm
 from .operator import Operator
 from ._aqua import run_algorithm, run_algorithm_to_json
@@ -45,6 +46,7 @@ __all__ = ['AquaError',
            'QuantumAlgorithm',
            'PluggableType',
            'refresh_pluggables',
+           'QuantumInstance',
            'local_pluggables_types',
            'local_pluggables',
            'get_pluggable_class',
