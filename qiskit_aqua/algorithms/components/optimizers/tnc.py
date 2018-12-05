@@ -75,7 +75,7 @@ class TNC(Optimizer):
             'additionalProperties': False
         },
         'support_level': {
-            'gradient': Optimizer.SupportLevel.ignored,
+            'gradient': Optimizer.SupportLevel.supported,
             'bounds': Optimizer.SupportLevel.supported,
             'initial_point': Optimizer.SupportLevel.required
         },
@@ -91,7 +91,10 @@ class TNC(Optimizer):
     def optimize(self, num_vars, objective_function, gradient_function=None, variable_bounds=None, initial_point=None):
         super().optimize(num_vars, objective_function, gradient_function, variable_bounds, initial_point)
 
-        res = minimize(objective_function, initial_point, tol=self._tol, bounds=variable_bounds, method="TNC",
-                       options=self._options)
+        if gradient_function is None and self._batch_mode:
+            epsilon = self._options['eps']
+            gradient_function = Optimizer.wrap_function(Optimizer.gradient_num_diff, (objective_function, epsilon))
+
+        res = minimize(objective_function, initial_point, jac=gradient_function, tol=self._tol, bounds=variable_bounds, method="TNC", options=self._options)
         # Note: nfev here seems to be iterations not function evaluations
         return res.x, res.fun, res.nfev
