@@ -49,7 +49,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
             'algorithm': {'name': 'QSVM.Variational'},
-            'backend': {'name': 'qasm_simulator', 'shots': 1024},
+            'backend': {'name': 'qasm_simulator', 'shots': 1024, 'seed': self.random_seed, 'seed_mapper': self.random_seed},
             'optimizer': {'name': 'SPSA', 'max_trials': 10, 'save_steps': 1},
             'variational_form': {'name': 'RYRZ', 'depth': 3},
             'feature_map': {'name': 'SecondOrderExpansion', 'depth': 2}
@@ -74,7 +74,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
         svm = QSVMVariational(optimizer, feature_map, var_form, self.training_data, self.testing_data)
         svm.random_seed = self.random_seed
 
-        quantum_device = QuantumDevice(backend, shots=1024)
+        quantum_device = QuantumDevice(backend, shots=1024, seed=self.random_seed, seed_mapper=self.random_seed)
         result = svm.run(quantum_device)
 
         np.testing.assert_array_almost_equal(result['opt_params'], self.ref_opt_params, decimal=4)

@@ -49,7 +49,7 @@ class TestEOH(QiskitAquaTestCase):
         eoh = EOH(qubit_op, state_in, evo_op, 'paulis', evo_time, num_time_slices)
 
         backend = Aer.get_backend('statevector_simulator')
-        quantum_device = QuantumDevice(backend, pass_manager=PassManager(), shots=1)
+        quantum_device = QuantumDevice(backend, pass_manager=PassManager())
         # self.log.debug('state_out:\n\n')
 
         ret = eoh.run(quantum_device)

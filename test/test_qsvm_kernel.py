@@ -77,7 +77,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
 
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
-            'backend': {'shots': self.shots},
+            'backend': {'shots': self.shots, 'seed': self.random_seed, 'seed_mapper': self.random_seed},
             'algorithm': {
                 'name': 'QSVM.Kernel'
             }
@@ -121,7 +121,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
         svm = QSVM_Kernel(feature_map, self.training_data, self.testing_data, None)
         svm.random_seed = self.random_seed
 
-        quantum_device = QuantumDevice(backend, shots=1)
+        quantum_device = QuantumDevice(backend, seed=self.random_seed, seed_mapper=self.random_seed)
         result = svm.run(quantum_device)
 
         self.assertEqual(len(result['svm']['support_vectors']), 4)
@@ -155,7 +155,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
             'algorithm': {
                 'name': 'QSVM.Kernel',
             },
-            'backend': {'shots': self.shots},
+            'backend': {'shots': self.shots, 'seed': self.random_seed, 'seed_mapper': self.random_seed},
             'multiclass_extension': {'name': 'OneAgainstRest'},
             'feature_map': {'name': 'SecondOrderExpansion', 'depth': 2, 'entangler_map': {0: [1]}}
         }
@@ -195,7 +195,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
             'algorithm': {
                 'name': 'QSVM.Kernel',
             },
-            'backend': {'shots': self.shots},
+            'backend': {'shots': self.shots, 'seed': self.random_seed, 'seed_mapper': self.random_seed},
             'multiclass_extension': {'name': 'AllPairs'},
             'feature_map': {'name': 'SecondOrderExpansion', 'depth': 2, 'entangler_map': {0: [1]}}
         }
@@ -232,7 +232,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
             'algorithm': {
                 'name': 'QSVM.Kernel',
             },
-            'backend': {'shots': self.shots},
+            'backend': {'shots': self.shots, 'seed': self.random_seed, 'seed_mapper': self.random_seed},
             'multiclass_extension': {'name': 'ErrorCorrectingCode', 'code_size': 5},
             'feature_map': {'name': 'SecondOrderExpansion', 'depth': 2, 'entangler_map': {0: [1]}}
         }

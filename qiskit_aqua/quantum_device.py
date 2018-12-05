@@ -18,7 +18,7 @@
 import logging
 
 from qiskit import __version__ as terra_version
-import qiskit
+from qiskit import IBMQ, Aer
 from qiskit.backends.ibmq.credentials import Credentials
 from qiskit.backends.ibmq.ibmqsingleprovider import IBMQSingleProvider
 
@@ -71,8 +71,8 @@ class QuantumDevice:
         self._backend = backend
 
         if self.is_statevector and shots != 1:
-            logger.warning("statevector backend only works with shot=1, change "
-                           "shots from {} to 1.".format(shots))
+            logger.info("statevector backend only works with shot=1, change "
+                        "shots from {} to 1.".format(shots))
             shots = 1
 
         coupling_map = getattr(backend.configuration(), 'coupling_map', None)
@@ -245,6 +245,16 @@ class QuantumDevice:
         """
         return backend.configuration().local
 
+    @classmethod
+    def get_quantum_device_with_aer_statevector_simulator(cls):
+        backend = Aer.get_backend('statevector_simulator')
+        return cls(backend)
+
+    @classmethod
+    def get_quantum_device_with_aer_qasm_simulator(cls, shots=1024):
+        backend = Aer.get_backend('qasm_simulator')
+        return cls(backend, shots=shots)
+
     @staticmethod
     def register_and_get_operational_backends():
         # update registration info using internal methods because:
@@ -263,17 +273,17 @@ class QuantumDevice:
                                           url,
                                           proxies=preferences.get_proxies({}))
             if credentials is not None:
-                qiskit.IBMQ._accounts[credentials.unique_id()] = IBMQSingleProvider(
-                    credentials, qiskit.IBMQ)
+                IBMQ._accounts[credentials.unique_id()] = IBMQSingleProvider(
+                    credentials, IBMQ)
                 logger.debug("Registered with Qiskit successfully.")
                 ibmq_backends = [x.name()
-                                 for x in qiskit.IBMQ.backends(url=url, token=token)]
+                                 for x in IBMQ.backends(url=url, token=token)]
         except Exception as e:
             logger.debug(
                 "Failed to register with Qiskit: {}".format(str(e)))
 
         backends = set()
-        aer_backends = [x.name() for x in qiskit.Aer.backends()]
+        aer_backends = [x.name() for x in Aer.backends()]
         for aer_backend in aer_backends:
             backend = aer_backend
             supported = True

@@ -101,7 +101,7 @@ class TestVQE(QiskitAquaTestCase):
         var_form = RY(num_qubits, 3, initial_state=init_state)
         optimizer = L_BFGS_B()
         algo = VQE(self.algo_input.qubit_op, var_form, optimizer, 'matrix')
-        quantum_device = QuantumDevice(backend, shots=1)
+        quantum_device = QuantumDevice(backend)
         result = algo.run(quantum_device)
         self.assertAlmostEqual(result['energy'], -1.85727503)
 

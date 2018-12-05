@@ -35,7 +35,8 @@ from qiskit_aqua.algorithms.single_sample import IQPE
 class TestVQE2IQPE(QiskitAquaTestCase):
 
     def setUp(self):
-        np.random.seed(0)
+        self.random_seed = 0
+        np.random.seed(self.random_seed)
         pauli_dict = {
             'paulis': [{"coeff": {"imag": 0.0, "real": -1.052373245772859}, "label": "II"},
                        {"coeff": {"imag": 0.0, "real": 0.39793742484318045}, "label": "IZ"},
@@ -67,7 +68,8 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         state_in = VarFormBased(var_form, result['opt_params'])
         iqpe = IQPE(self.algo_input.qubit_op, state_in, num_time_slices, num_iterations,
                     paulis_grouping='random', expansion_mode='suzuki', expansion_order=2)
-        quantum_device = QuantumDevice(backend, shots=100, pass_manager=PassManager())
+        quantum_device = QuantumDevice(backend, shots=100, pass_manager=PassManager(),
+                                       seed=self.random_seed, seed_mapper=self.random_seed)
         result = iqpe.run(quantum_device)
 
         self.log.debug('top result str label:         {}'.format(result['top_measurement_label']))

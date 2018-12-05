@@ -62,7 +62,7 @@ class TestQAOA(QiskitAquaTestCase):
         qubitOp, offset = maxcut.get_maxcut_qubitops(w)
 
         qaoa = QAOA(qubitOp, optimizer, p, operator_mode='matrix')
-        quantum_device = QuantumDevice(backend, shots=1)
+        quantum_device = QuantumDevice(backend)
 
         result = qaoa.run(quantum_device)
         x = maxcut.sample_most_likely(result['eigvecs'][0])
