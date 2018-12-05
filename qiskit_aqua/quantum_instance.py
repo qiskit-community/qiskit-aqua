@@ -141,15 +141,15 @@ class QuantumInstance:
 
     def set_config(self, **kwargs):
         for k, v in kwargs.items():
-            if k in QuantumExpConfig.RUN_CONFIG:
+            if k in QuantumInstance.RUN_CONFIG:
                 self._run_config[k] = v
-            elif k in QuantumExpConfig.QJOB_CONFIG:
+            elif k in QuantumInstance.QJOB_CONFIG:
                 self._qjob_config[k] = v
-            elif k in QuantumExpConfig.COMPILE_CONFIG:
+            elif k in QuantumInstance.COMPILE_CONFIG:
                 self._compile_config[k] = v
-            elif k in QuantumExpConfig.BACKEND_CONFIG:
+            elif k in QuantumInstance.BACKEND_CONFIG:
                 self._backend_config[k] = v
-            elif k in QuantumExpConfig.SIMULATOR_CONFIG:
+            elif k in QuantumInstance.SIMULATOR_CONFIG:
                 self._backend_config['config'][k] = v
             else:
                 raise ValueError("unknown setting for the key ({}).".format(k))
@@ -197,17 +197,17 @@ class QuantumInstance:
     @property
     def is_statevector(self):
         """Return True if backend is a statevector-type simulator."""
-        return QuantumExpConfig.is_statevector_backend(self._backend)
+        return QuantumInstance.is_statevector_backend(self._backend)
 
     @property
     def is_simulator(self):
         """Return True if backend is a simulator."""
-        return QuantumExpConfig.is_simulator_backend(self._backend)
+        return QuantumInstance.is_simulator_backend(self._backend)
 
     @property
     def is_local(self):
         """Return True if backend is a local backend."""
-        return QuantumExpConfig.is_local_backend(self._backend)
+        return QuantumInstance.is_local_backend(self._backend)
 
     @staticmethod
     def is_statevector_backend(backend):
@@ -287,7 +287,7 @@ class QuantumInstance:
         for aer_backend in aer_backends:
             backend = aer_backend
             supported = True
-            for unsupported_backend in QuantumExpConfig.UNSUPPORTED_BACKENDS:
+            for unsupported_backend in QuantumInstance.UNSUPPORTED_BACKENDS:
                 if backend.startswith(unsupported_backend):
                     supported = False
                     break
