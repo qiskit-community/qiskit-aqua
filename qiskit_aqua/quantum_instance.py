@@ -289,11 +289,11 @@ class QuantumInstance:
         return list(backends) + ibmq_backends
 
 
-def get_quantum_exp_config_with_aer_statevector_simulator():
+def get_quantum_instance_with_aer_statevector_simulator():
     backend = Aer.get_backend('statevector_simulator')
     return QuantumInstance(backend)
 
 
-def get_quantum_exp_config_with_aer_qasm_simulator(shots=1024):
+def get_quantum_instance_with_aer_qasm_simulator(shots=1024):
     backend = Aer.get_backend('qasm_simulator')
     return QuantumInstance(backend, shots=shots)
