@@ -16,64 +16,44 @@
 # =============================================================================
 
 """
-CNX gate. N Controlled-Not Gate.
+N-Controlled-Not Operation.
 """
-from qiskit import CompositeGate
 from qiskit import QuantumCircuit
-from qiskit.extensions.standard.cx import CnotGate
-from qiskit.extensions.standard.ccx import ToffoliGate
 
 
-class CNXGate(CompositeGate):
-    """CNX gate."""
-
-    def __init__(self, ctls, ancis, tgt, circ=None):
-        """Create new CNX gate."""
-        self._ctl_bits = ctls
-        self._anc_bits = ancis
-        self._tgt_bits = tgt
-        qubits = [v for v in ctls] + [v for v in ancis] + [tgt]
-        n_c = len(ctls)
-        n_a = len(ancis)
-        super().__init__("cnx", (n_c, n_a), qubits, circ)
-
-        if n_c == 1: # cx
-            self._attach(CnotGate(ctls[0], tgt))
-        elif n_c == 2: # ccx
-            self._attach(ToffoliGate(ctls[0], ctls[1], tgt))
-        else:
-            anci_idx = 0
-            self._attach(ToffoliGate(ctls[0], ctls[1], ancis[anci_idx]))
-            for idx in range(2, len(ctls) - 1):
-                assert anci_idx + 1 < n_a, "length of ancillary qubits are not enough, please use a large one."
-                self._attach(ToffoliGate(ctls[idx], ancis[anci_idx], ancis[anci_idx+1]))
-                anci_idx += 1
-            self._attach(ToffoliGate(ctls[len(ctls)-1], ancis[anci_idx], tgt))
-            for idx in (range(2, len(ctls) - 1))[::-1]:
-                self._attach(ToffoliGate(ctls[idx], ancis[anci_idx-1], ancis[anci_idx]))
-                anci_idx -= 1
-            self._attach(ToffoliGate(ctls[0], ctls[1], ancis[anci_idx]))
-
-    def reapply(self, circ):
-        """Reapply this gate to corresponding qubits in circ."""
-        self._modifiers(circ.cnx(self._ctl_bits, self._anc_bits, self._tgt_bits))
-
-
-def cnx(self, control_qubits, ancillary_qubits, target_qubit):
+def cnx(self, ctls, ancis, tgt):
     """Apply CNX to circuit."""
     temp = []
-    if ancillary_qubits:
-        all_qubits = control_qubits + ancillary_qubits
+    if ancis:
+        all_qubits = ctls + ancis
     else:
-        all_qubits = control_qubits
+        all_qubits = ctls
     for qubit in all_qubits:
         self._check_qubit(qubit)
         temp.append(qubit)
-    self._check_qubit(target_qubit)
-    temp.append(target_qubit)
+    self._check_qubit(tgt)
+    temp.append(tgt)
     self._check_dups(temp)
-    return self._attach(CNXGate(control_qubits, ancillary_qubits, target_qubit, self))
+
+    n_c = len(ctls)
+    n_a = len(ancis)
+
+    if n_c == 1:  # cx
+        self.cx(ctls[0], tgt)
+    elif n_c == 2:  # ccx
+        self.ccx(ctls[0], ctls[1], tgt)
+    else:
+        anci_idx = 0
+        self.ccx(ctls[0], ctls[1], ancis[anci_idx])
+        for idx in range(2, len(ctls) - 1):
+            assert anci_idx + 1 < n_a, "Not enough ancillary qubits."
+            self.ccx(ctls[idx], ancis[anci_idx], ancis[anci_idx + 1])
+            anci_idx += 1
+        self.ccx(ctls[len(ctls) - 1], ancis[anci_idx], tgt)
+        for idx in (range(2, len(ctls) - 1))[::-1]:
+            self.ccx(ctls[idx], ancis[anci_idx - 1], ancis[anci_idx])
+            anci_idx -= 1
+        self.ccx(ctls[0], ctls[1], ancis[anci_idx])
 
 
 QuantumCircuit.cnx = cnx
-CompositeGate.cnx = cnx
