@@ -210,7 +210,7 @@ class _QSVM_Kernel_Binary(_QSVM_Kernel_ABC):
         if self.test_dataset is not None:
             self.test(self.test_dataset[0], self.test_dataset[1])
         if self.datapoints is not None:
-            predicted_labels, _ = self.predict(self.datapoints)
+            predicted_labels = self.predict(self.datapoints)
             predicted_classes = map_label_to_class_name(predicted_labels, self.label_to_class)
             self._ret['predicted_labels'] = predicted_labels
             self._ret['predicted_classes'] = predicted_classes
