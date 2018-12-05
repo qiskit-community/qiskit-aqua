@@ -167,6 +167,8 @@ class Grover(QuantumAlgorithm):
         return assignment, oracle_evaluation
 
     def construct_circuit(self):
+        if self._qc_prefix is None or self._qc_amplitude_amplification_single_iteration is None or self._qc_measurement is None:
+            self._construct_circuit_components()
         if self._qc_amplitude_amplification is None:
             self._qc_amplitude_amplification = QuantumCircuit() + self._qc_amplitude_amplification_single_iteration
         qc = self._qc_prefix + self._qc_amplitude_amplification + self._qc_measurement
