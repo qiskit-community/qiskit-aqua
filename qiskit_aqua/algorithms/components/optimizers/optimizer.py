@@ -26,9 +26,6 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 
-
-
-
 class Optimizer(Pluggable):
     """Base class for optimization algorithm."""
 
@@ -97,7 +94,8 @@ class Optimizer(Pluggable):
         optimizer.set_options(**opts)
         return optimizer
 
-    def gradient_num_diff(self, x_center, f, epsilon):
+    @staticmethod
+    def gradient_num_diff(x_center, f, epsilon):
         """
         We compute the gradient with the numeric differentiation in the parallel way, around the point x_center.
         Args:
@@ -123,7 +121,8 @@ class Optimizer(Pluggable):
             grad[k] = (todos_results[k] - forig) / epsilon
         return grad
 
-    def wrap_function(self, function, args):
+    @staticmethod
+    def wrap_function(function, args):
         """
         Wrap the function to implicitly inject the args at the call of the function.
         Args:

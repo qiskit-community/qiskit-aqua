@@ -62,34 +62,21 @@ class TestVQE(QiskitAquaTestCase):
         self.assertIn('eval_time', result)
 
     @parameterized.expand([
-        ['CG', 5],
-        ['COBYLA', 5],
-        ['L_BFGS_B', 5],
-        ['NELDER_MEAD', 5],
-        ['POWELL', 5],
-        ['SLSQP', 5],
-        ['SPSA', 5],
-        ['TNC', 2]
+        ['CG', 5, True],
+        ['COBYLA', 5, False],
+        ['L_BFGS_B', 5, True],
+        ['NELDER_MEAD', 5, False],
+        ['POWELL', 5, False],
+        ['SLSQP', 5, True],
+        ['SPSA', 5, False],
+        ['TNC', 2, True]
     ])
-    # def test_vqe_optimizers(self, name, places):
-    #     params = {
-    #         'algorithm': {'name': 'VQE'},
-    #         'optimizer': {'name': name},
-    #         'backend': {'name': 'statevector_simulator'}
-    #     }
-    #     result = run_algorithm(params, self.algo_input)
-    #     self.assertAlmostEqual(result['energy'], -1.85727503, places=places)
-
-
-    def test_vqe_optimizers_batch(self, name, places):
+    def test_vqe_optimizers(self, name, places, batch_mode):
         params = {
-            'algorithm': {'name': 'VQE', 'batch_mode': True},
+            'algorithm': {'name': 'VQE', 'batch_mode': batch_mode},
             'optimizer': {'name': name},
             'backend': {'name': 'statevector_simulator'}
         }
-        if name not in ['CG', 'L_BFGS_B', 'SLSQP', 'TNC']:# the optimizers that support the batch_mode
-            return
-
         result = run_algorithm(params, self.algo_input)
         self.assertAlmostEqual(result['energy'], -1.85727503, places=places)
 
@@ -106,25 +93,20 @@ class TestVQE(QiskitAquaTestCase):
         result = run_algorithm(params, self.algo_input)
         self.assertAlmostEqual(result['energy'], -1.85727503, places=places)
 
-    def test_vqe_direct(self):
-        backend = Aer.get_backend('statevector_simulator')
-        num_qubits = self.algo_input.qubit_op.num_qubits
-        init_state = Zero(num_qubits)
-        var_form = RY(num_qubits, 3, initial_state=init_state)
-        optimizer = L_BFGS_B()
-        algo = VQE(self.algo_input.qubit_op, var_form, optimizer, 'matrix')
-        algo.setup_quantum_backend(backend=backend)
-        result = algo.run()
-        self.assertAlmostEqual(result['energy'], -1.85727503)
 
-    def test_vqe_direct_batch(self):
+    @parameterized.expand([
+        [True],
+        [False]
+    ])
+    def test_vqe_direct(self, batch_mode):
         backend = Aer.get_backend('statevector_simulator')
         num_qubits = self.algo_input.qubit_op.num_qubits
         init_state = Zero(num_qubits)
         var_form = RY(num_qubits, 3, initial_state=init_state)
         optimizer = L_BFGS_B()
-        optimizer.set_options(epsilon=1e-8) # for other optimizers, the option name is eps, instead of epsilon
-        algo = VQE(self.algo_input.qubit_op, var_form, optimizer, 'matrix', batch_mode=True)
+        if batch_mode:
+            optimizer.set_options(epsilon=1e-8) # for other optimizers, the option name is eps, instead of epsilon
+        algo = VQE(self.algo_input.qubit_op, var_form, optimizer, 'matrix', batch_mode=batch_mode)
         algo.setup_quantum_backend(backend=backend)
         result = algo.run()
         self.assertAlmostEqual(result['energy'], -1.85727503)

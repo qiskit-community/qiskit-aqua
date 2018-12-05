@@ -81,7 +81,7 @@ class SLSQP(Optimizer):
 
         if gradient_function is None and self._batch_mode:
             epsilon = self._options['eps']
-            gradient_function = self.wrap_function(self.gradient_num_diff, (objective_function, epsilon))
+            gradient_function = Optimizer.wrap_function(Optimizer.gradient_num_diff, (objective_function, epsilon))
 
         res = minimize(objective_function, initial_point, jac=gradient_function, tol=self._tol, bounds=variable_bounds, method="SLSQP",
                        options=self._options)
