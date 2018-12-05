@@ -46,9 +46,10 @@ class QuantumDevice:
     RUN_CONFIG = ['shots', 'max_credits']
     QJOB_CONFIG = ['timeout', 'wait']
 
-    SIMULATOR_CONFIG = ["max_memory", "max_threads_shot", "max_threads_gate",
-                        "threshold_omp_gate", "data", "initial_state",
-                        "target_states", "renom_target_states", "chop", "noise_params"]
+    #  based on table at https://github.com/Qiskit/qiskit-terra/tree/master/src/qasm-simulator-cpp#table-of-config-options
+    SIMULATOR_CONFIG = ["shots_threads", "data", "noise_params", "initial_state",
+                        "target_states", "renom_target_states", "chop",
+                        "max_memory", "max_threads_shot", "max_threads_gate", "threshold_omp_gate"]
 
     def __init__(self, backend, shots=1024, max_credits=10, config=None, seed=None,
                  initial_layout=None, pass_manager=None, seed_mapper=None,
