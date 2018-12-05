@@ -75,7 +75,7 @@ class _QSVM_Kernel_Binary(_QSVM_Kernel_ABC):
         else:
             is_symmetric = False
 
-        is_statevector_sim = self.qalgo.quantum_exp_config.is_statevector
+        is_statevector_sim = self.qalgo.quantum_instance.is_statevector
 
         measurement_basis = '0' * self.num_qubits
         circuits = {}
@@ -90,7 +90,7 @@ class _QSVM_Kernel_Binary(_QSVM_Kernel_ABC):
                 if circuit is not None:
                     to_be_simulated_circuits.append(circuit)
 
-        results = self.qalgo.quantum_exp_config.execute(to_be_simulated_circuits)
+        results = self.qalgo.quantum_instance.execute(to_be_simulated_circuits)
 
         # element on the diagonal is always 1: point*point=|point|^2
         if is_symmetric:
@@ -147,7 +147,7 @@ class _QSVM_Kernel_Binary(_QSVM_Kernel_ABC):
                                   D is the feature dimension.
             labels (numpy.ndarray): Nx1 array, where N is the number of data
         """
-        scaling = 1.0 if self.qalgo.quantum_exp_config.is_statevector else None
+        scaling = 1.0 if self.qalgo.quantum_instance.is_statevector else None
         kernel_matrix = self.construct_kernel_matrix(data)
         labels = labels * 2 - 1  # map label from 0 --> -1 and 1 --> 1
         labels = labels.astype(np.float)

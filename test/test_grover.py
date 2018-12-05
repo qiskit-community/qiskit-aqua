@@ -24,7 +24,7 @@ from qiskit import Aer
 from test.common import QiskitAquaTestCase
 from qiskit_aqua.algorithms.components.oracles import SAT
 from qiskit_aqua.algorithms.single_sample import Grover
-from qiskit_aqua import QuantumExpConfig
+from qiskit_aqua import QuantumInstance
 
 
 class TestGrover(QiskitAquaTestCase):
@@ -59,9 +59,9 @@ class TestGrover(QiskitAquaTestCase):
         backend = Aer.get_backend('qasm_simulator')
         sat_oracle = SAT(buf)
         grover = Grover(sat_oracle, num_iterations=num_iterations, incremental=incremental)
-        quantum_device = QuantumExpConfig(backend, shots=100)
+        quantum_instance = QuantumInstance(backend, shots=100)
 
-        ret = grover.run(quantum_device)
+        ret = grover.run(quantum_instance)
 
         self.log.debug('Ground-truth Solutions: {}.'.format(self.groundtruth))
         self.log.debug('Measurement result:     {}.'.format(ret['measurements']))

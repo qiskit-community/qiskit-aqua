@@ -28,7 +28,7 @@ from qiskit_aqua.utils import compile_and_run_circuits
 logger = logging.getLogger(__name__)
 
 
-class QuantumExpConfig:
+class QuantumInstance:
     """Quantum Backend including execution setting."""
 
     UNSUPPORTED_BACKENDS = [

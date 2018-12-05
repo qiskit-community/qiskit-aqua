@@ -174,7 +174,7 @@ class IQPE(QuantumAlgorithm):
 
     def _estimate_phase_iteratively(self):
         """Iteratively construct the different order of controlled evolution circuit to carry out phase estimation"""
-        if self._quantum_exp_config.is_statevector:
+        if self._quantum_instance.is_statevector:
             raise ValueError('Selected backend does not support measurements.')
 
         pauli_list = self._operator.reorder_paulis(grouping=self._paulis_grouping)
@@ -193,7 +193,7 @@ class IQPE(QuantumAlgorithm):
         for k in range(self._num_iterations, 0, -1):
             omega_coef /= 2
             qc = self._construct_kth_evolution(slice_pauli_list, k, -2 * np.pi * omega_coef)
-            measurements = self._quantum_exp_config.execute(qc).get_counts(qc)
+            measurements = self._quantum_instance.execute(qc).get_counts(qc)
 
             if '0' not in measurements:
                 if '1' in measurements:

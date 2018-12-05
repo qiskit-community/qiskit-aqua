@@ -188,9 +188,9 @@ class QSVMVariational(QuantumAlgorithm):
             numpy.ndarray or [numpy.ndarray]: list of NxK array
             numpy.ndarray or [numpy.ndarray]: list of Nx1 array
         """
-        if self._quantum_exp_config.is_statevector:
+        if self._quantum_instance.is_statevector:
             raise ValueError('Selected backend "{}" is not supported.'.format(
-                self._quantum_exp_config.backend_name))
+                self._quantum_instance.backend_name))
 
         predicted_probs = []
         predicted_labels = []
@@ -206,7 +206,7 @@ class QSVMVariational(QuantumAlgorithm):
                 circuits[circuit_id] = circuit
                 circuit_id += 1
 
-        results = self._quantum_exp_config.execute(list(circuits.values()))
+        results = self._quantum_instance.execute(list(circuits.values()))
 
         circuit_id = 0
         predicted_probs = []
@@ -227,15 +227,15 @@ class QSVMVariational(QuantumAlgorithm):
 
         return predicted_probs, predicted_labels
 
-    def train(self, data, labels, quantum_device=None):
+    def train(self, data, labels, quantum_instance=None):
         """Train the models, and save results.
 
         Args:
             data (numpy.ndarray): NxD array, N is number of data and D is dimension
             labels (numpy.ndarray): Nx1 array, N is number of data
-            quantum_device (QuantumExpConfig): quantum backend with all setting
+            quantum_instance (QuantumInstance): quantum backend with all setting
         """
-        self._quantum_exp_config = self._quantum_exp_config if quantum_device is None else quantum_device
+        self._quantum_instance = self._quantum_instance if quantum_instance is None else quantum_instance
 
         def _cost_function_wrapper(theta):
             predicted_probs, predicted_labels = self._get_prediction(data, theta)
@@ -256,17 +256,17 @@ class QSVMVariational(QuantumAlgorithm):
         self._ret['opt_params'] = theta_best
         self._ret['training_loss'] = cost_final
 
-    def test(self, data, labels, quantum_device=None):
+    def test(self, data, labels, quantum_instance=None):
         """Predict the labels for the data, and test against with ground truth labels.
 
         Args:
             data (numpy.ndarray): NxD array, N is number of data and D is data dimension
             labels (numpy.ndarray): Nx1 array, N is number of data
-            quantum_device (QuantumExpConfig): quantum backend with all setting
+            quantum_instance (QuantumInstance): quantum backend with all setting
         Returns:
             float: classification accuracy
         """
-        self._quantum_exp_config = self._quantum_exp_config if quantum_device is None else quantum_device
+        self._quantum_instance = self._quantum_instance if quantum_instance is None else quantum_instance
         predicted_probs, predicted_labels = self._get_prediction(data, self._ret['opt_params'])
         total_cost = self._cost_function(predicted_probs, labels)
         accuracy = np.sum((np.argmax(predicted_probs, axis=1) == labels)) / labels.shape[0]
@@ -276,17 +276,17 @@ class QSVMVariational(QuantumAlgorithm):
         self._ret['testing_loss'] = total_cost
         return accuracy
 
-    def predict(self, data, quantum_device=None):
+    def predict(self, data, quantum_instance=None):
         """Predict the labels for the data.
 
         Args:
             data (numpy.ndarray): NxD array, N is number of data, D is data dimension
-            quantum_device (QuantumExpConfig): quantum backend with all setting
+            quantum_instance (QuantumInstance): quantum backend with all setting
         Returns:
             [dict]: for each data point, generates the predicted probability for each class
             list: for each data point, generates the predicted label, which with the highest prob
         """
-        self._quantum_exp_config = self._quantum_exp_config if quantum_device is None else quantum_device
+        self._quantum_instance = self._quantum_instance if quantum_instance is None else quantum_instance
         predicted_probs, predicted_labels = self._get_prediction(data, self._ret['opt_params'])
         self._ret['predicted_probs'] = predicted_probs
         self._ret['predicted_labels'] = predicted_labels

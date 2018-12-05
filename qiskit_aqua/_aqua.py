@@ -33,7 +33,7 @@ from qiskit_aqua._discover import (_discover_on_demand,
 from qiskit_aqua.utils.jsonutils import convert_dict_to_json, convert_json_to_dict
 from qiskit_aqua.parser._inputparser import InputParser
 from qiskit_aqua.parser import JSONSchema
-from qiskit_aqua import QuantumExpConfig
+from qiskit_aqua import QuantumInstance
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +73,7 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
         noise_params = backend_cfg.pop('noise_params', None)
         backend_cfg['config'] = {}
         backend_cfg['config']['noise_params'] = noise_params
-        QuantumExpConfig.register_and_get_operational_backends()
+        QuantumInstance.register_and_get_operational_backends()
         try:
             backend_from_name = Aer.get_backend(backend_name)
         except:
@@ -100,7 +100,7 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
                                     algo_name).init_params(algo_params, algo_input)
     random_seed = inputparser.get_section_property(JSONSchema.PROBLEM, 'random_seed')
     algorithm.random_seed = random_seed
-    quantum_exp_config = None
+    quantum_instance = None
     if backend_cfg is not None:
         backend_cfg['seed'] = random_seed
         backend_cfg['seed_mapper'] = random_seed
@@ -108,9 +108,9 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
         if pass_manager is not None:
             backend_cfg['pass_manager'] = pass_manager
 
-        quantum_exp_config = QuantumExpConfig(**backend_cfg)
+        quantum_instance = QuantumInstance(**backend_cfg)
 
-    value = algorithm.run(quantum_exp_config)
+    value = algorithm.run(quantum_instance)
     if isinstance(value, dict) and json_output:
         convert_dict_to_json(value)
 

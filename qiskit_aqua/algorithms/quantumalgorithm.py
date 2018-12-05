@@ -29,7 +29,7 @@ import logging
 import numpy as np
 from qiskit.backends import BaseBackend
 
-from qiskit_aqua import Pluggable, QuantumExpConfig, AquaError
+from qiskit_aqua import Pluggable, QuantumInstance, AquaError
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +60,7 @@ class QuantumAlgorithm(Pluggable):
         super().__init__()
         self._random_seed = None
         self._random = None
-        self._quantum_exp_config = None
+        self._quantum_instance = None
 
     @property
     def random_seed(self):
@@ -82,21 +82,21 @@ class QuantumAlgorithm(Pluggable):
                 self._random = np.random.RandomState(self._random_seed)
         return self._random
 
-    def run(self, quantum_device=None, **kwargs):
+    def run(self, quantum_instance=None, **kwargs):
         """Execute the algorithm with selected backend.
 
         Args:
-            quantum_device (QuantumExpConfig or BaseBackend): the experiemental setting.
+            quantum_instance (QuantumInstance or BaseBackend): the experiemental setting.
 
         Returns:
             dict: results of an algorithm.
         """
         if not self.configuration.get('classical', False):
-            if quantum_device is None:
+            if quantum_instance is None:
                 AquaError("Quantum device or backend is needed since you are running quanutm algorithm.")
-            if isinstance(quantum_device, BaseBackend):
-                quantum_device = QuantumExpConfig(quantum_device, **kwargs)
-            self._quantum_exp_config = quantum_device
+            if isinstance(quantum_instance, BaseBackend):
+                quantum_instance = QuantumInstance(quantum_instance, **kwargs)
+            self._quantum_instance = quantum_instance
         return self._run()
 
     @abstractmethod
@@ -104,5 +104,5 @@ class QuantumAlgorithm(Pluggable):
         raise NotImplementedError()
 
     @property
-    def quantum_exp_config(self):
-        return self._quantum_exp_config
+    def quantum_instance(self):
+        return self._quantum_instance

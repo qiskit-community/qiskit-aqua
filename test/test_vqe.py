@@ -22,7 +22,7 @@ from parameterized import parameterized
 from qiskit import Aer
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import Operator, run_algorithm, QuantumExpConfig
+from qiskit_aqua import Operator, run_algorithm, QuantumInstance
 from qiskit_aqua.input import EnergyInput
 from qiskit_aqua.algorithms.components.variational_forms import RY
 from qiskit_aqua.algorithms.components.optimizers import L_BFGS_B
@@ -101,8 +101,8 @@ class TestVQE(QiskitAquaTestCase):
         var_form = RY(num_qubits, 3, initial_state=init_state)
         optimizer = L_BFGS_B()
         algo = VQE(self.algo_input.qubit_op, var_form, optimizer, 'matrix')
-        quantum_device = QuantumExpConfig(backend)
-        result = algo.run(quantum_device)
+        quantum_instance = QuantumInstance(backend)
+        result = algo.run(quantum_instance)
         self.assertAlmostEqual(result['energy'], -1.85727503)
 
 

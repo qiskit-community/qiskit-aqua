@@ -161,7 +161,7 @@ class Grover(QuantumAlgorithm):
     def _run_with_num_iterations(self):
         qc = self.construct_circuit()
         self._ret['circuit'] = qc
-        self._ret['measurements'] = self._quantum_exp_config.execute(qc).get_counts(qc)
+        self._ret['measurements'] = self._quantum_instance.execute(qc).get_counts(qc)
         assignment = self._oracle.interpret_measurement(self._ret['measurements'])
         oracle_evaluation = self._oracle.evaluate_classically(assignment)
         return assignment, oracle_evaluation
@@ -176,9 +176,9 @@ class Grover(QuantumAlgorithm):
 
     def _run(self):
 
-        if self._quantum_exp_config.is_statevector:
+        if self._quantum_instance.is_statevector:
             raise ValueError('Selected backend  "{}" does not support measurements.'.format(
-                self._quantum_exp_config.backend_name))
+                self._quantum_instance.backend_name))
 
         if self._qc_prefix is None or self._qc_amplitude_amplification_single_iteration is None or self._qc_measurement is None:
             self._construct_circuit_components()
