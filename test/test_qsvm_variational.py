@@ -49,7 +49,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
             'algorithm': {'name': 'QSVM.Variational'},
-            'backend': {'name': 'qasm_simulator', 'shots': 1024, 'seed': self.random_seed, 'seed_mapper': self.random_seed},
+            'backend': {'name': 'qasm_simulator', 'shots': 1024},
             'optimizer': {'name': 'SPSA', 'max_trials': 10, 'save_steps': 1},
             'variational_form': {'name': 'RYRZ', 'depth': 3},
             'feature_map': {'name': 'SecondOrderExpansion', 'depth': 2}

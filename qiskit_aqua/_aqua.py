@@ -98,16 +98,19 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
     algo_params = copy.deepcopy(inputparser.get_sections())
     algorithm = get_pluggable_class(PluggableType.ALGORITHM,
                                     algo_name).init_params(algo_params, algo_input)
-    algorithm.random_seed = inputparser.get_section_property(JSONSchema.PROBLEM, 'random_seed')
-    quantum_device = None
+    random_seed = inputparser.get_section_property(JSONSchema.PROBLEM, 'random_seed')
+    algorithm.random_seed = random_seed
+    quantum_exp_config = None
     if backend_cfg is not None:
+        backend_cfg['seed'] = random_seed
+        backend_cfg['seed_mapper'] = random_seed
         pass_manager = PassManager() if backend_cfg.pop('skip_transpiler', False) else None
         if pass_manager is not None:
             backend_cfg['pass_manager'] = pass_manager
 
-        quantum_device = QuantumExpConfig(**backend_cfg)
+        quantum_exp_config = QuantumExpConfig(**backend_cfg)
 
-    value = algorithm.run(quantum_device)
+    value = algorithm.run(quantum_exp_config)
     if isinstance(value, dict) and json_output:
         convert_dict_to_json(value)
 
