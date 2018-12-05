@@ -70,7 +70,9 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
     backend_name = inputparser.get_section_property(JSONSchema.BACKEND, JSONSchema.NAME)
     if backend_name is not None:
         backend_cfg = {k: v for k, v in inputparser.get_section(JSONSchema.BACKEND).items() if k != 'name'}
-        # backend_cfg['backend'] = backend_name
+        noise_params = backend_cfg.pop('noise_params', None)
+        backend_cfg['config'] = {}
+        backend_cfg['config']['noise_params'] = noise_params
         QuantumDevice.register_and_get_operational_backends()
         try:
             backend_from_name = Aer.get_backend(backend_name)

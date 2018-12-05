@@ -41,27 +41,31 @@ class QuantumDevice:
                            'qasm_simulator_projectq': 'qasm_simulator'
                            }
 
-    # TODO, other config setting.
-    def __init__(self, backend, basis_gates=None, coupling_map=None,
-                 initial_layout=None, shots=1024, max_credits=10, seed=None,
-                 qobj_id=None,
-                 noise_params=None, pass_manager=None, seed_mapper=None,
-                 timeout=None, wait=5, **kwargs):
+    BACKEND_CONFIG = ['basis_gates', 'config', 'coupling_map', 'seed']
+    COMPILE_CONFIG = ['pass_manager', 'initial_layout', 'seed_mapper', 'qobj_id']
+    RUN_CONFIG = ['shots', 'max_credits']
+    QJOB_CONFIG = ['timeout', 'wait']
+
+    SIMULATOR_CONFIG = ["max_memory", "max_threads_shot", "max_threads_gate",
+                        "threshold_omp_gate", "data", "initial_state",
+                        "target_states", "renom_target_states", "chop", "noise_params"]
+
+    def __init__(self, backend, shots=1024, max_credits=10, config=None, seed=None,
+                 initial_layout=None, pass_manager=None, seed_mapper=None,
+                 timeout=None, wait=5):
         """Constructor.
 
         Args:
-            backend (BaseBackend): name of or instance of selected backend
+            backend (BaseBackend): instance of selected backend
             shots (int): number of shots for the backend
-            pass_manager (PassManager): pass manager to handle how to compile the circuits
-            noise_params (dict): the noise setting for simulator
-            coupling_map (list): coupling map (perhaps custom) to target in mapping
-            initial_layout (dict): initial layout of qubits in mapping
-            basis_gates (str): comma-separated basis gate set to compile to
             max_credits (int): maximum credits to use
+            config (dict): all config setting for simulator
+            seed (int): the random seed for simulator
+            initial_layout (dict): initial layout of qubits in mapping
+            pass_manager (PassManager): pass manager to handle how to compile the circuits
+            seed_mapper (int): the random seed for circuit mapper
             timeout (float or None): seconds to wait for job. If None, wait indefinitely.
             wait (float): seconds between queries to result
-        Raises:
-            AlgorithmError: set backend with invalid Qconfig
         """
         self._backend = backend
 
@@ -69,14 +73,11 @@ class QuantumDevice:
             logger.warning("statevector backend only works with shot=1, change "
                            "shots from {} to 1.".format(shots))
             shots = 1
-        if not self.is_simulator and noise_params is not None:
-            logger.warning("for a non-simulator backend, you can not set noise, change to None.")
-            noise_params = None
-        if coupling_map is None:
-            coupling_map = getattr(backend.configuration(), 'coupling_map', None)
-        if basis_gates is None:
-            basis_gates = backend.configuration().basis_gates
-            basis_gates = ','.join(basis_gates)
+
+        coupling_map = getattr(backend.configuration(), 'coupling_map', None)
+        # TODO: basis gates will be [str] rather than str
+        basis_gates = backend.configuration().basis_gates
+        basis_gates = ','.join(basis_gates)
 
         self._compile_config = {
             'pass_manager': pass_manager,
@@ -92,24 +93,25 @@ class QuantumDevice:
 
         self._backend_config = {
             'basis_gates': basis_gates,
-            'config': {"noise_params": noise_params},
+            'config': config or {},
             'coupling_map': coupling_map,
             'seed': seed
         }
 
-        # setup job config
         self._qjob_config = {'timeout': timeout} if self.is_local \
             else {'timeout': timeout, 'wait': wait}
 
-        info = "Backend '{}', with following setting:\n{}\n{}\n{}\n{}".format(
-            self.backend_name, self._backend_config, self._compile_config,
-            self._run_config, self._qjob_config)
-
-        logger.info('Qiskit Terra version {}'.format(terra_version))
-        logger.info(info)
-
         self._shared_circuits = False
         self._circuit_summary = False
+
+        logger.info(self)
+
+    def __str__(self):
+        info = 'Qiskit Terra version {}\n'.format(terra_version)
+        info += "Backend '{}', with following setting:\n{}\n{}\n{}\n{}".format(
+            self.backend_name, self._backend_config, self._compile_config,
+            self._run_config, self._qjob_config)
+        return info
 
     def execute(self, circuits):
         """
@@ -121,28 +123,30 @@ class QuantumDevice:
         Returns:
             Result: Result object
         """
-        result = compile_and_run_circuits(circuits, self._backend, self._backend_config, self._compile_config, self._run_config, self._qjob_config, show_circuit_summary=self._circuit_summary, has_shared_circuits=self._shared_circuits)
+        result = compile_and_run_circuits(circuits, self._backend, self._backend_config,
+                                          self._compile_config, self._run_config,
+                                          self._qjob_config,
+                                          show_circuit_summary=self._circuit_summary,
+                                          has_shared_circuits=self._shared_circuits)
         if self._circuit_summary:
             self._circuit_summary = False
 
         return result
 
-    @property
-    def shots(self):
-        return self._run_config['shots']
-
-    @shots.setter
-    def shots(self, new_value):
-        self._run_config['shots'] = new_value
-
-    # @property
-    # def execute_config(self):
-    #     return self._execute_config
-
-    # @execute_config.setter
-    # def execute_config(self, new_value):
-    #     self._execute_config = new_value
-
+    def set_config(self, **kwargs):
+        for k, v in kwargs.items():
+            if k in QuantumDevice.RUN_CONFIG:
+                self._run_config[k] = v
+            elif k in QuantumDevice.QJOB_CONFIG:
+                self._qjob_config[k] = v
+            elif k in QuantumDevice.COMPILE_CONFIG:
+                self._compile_config[k] = v
+            elif k in QuantumDevice.BACKEND_CONFIG:
+                self._backend_config[k] = v
+            elif k in QuantumDevice.SIMULATOR_CONFIG:
+                self._backend_config['config'][k] = v
+            else:
+                raise ValueError("unknown setting for the key ({}).".format(k))
     @property
     def qjob_config(self):
         return self._qjob_config
@@ -158,10 +162,6 @@ class QuantumDevice:
     @property
     def run_config(self):
         return self._run_config
-
-    # @qjob_config.setter
-    # def qjob_config(self, new_value):
-    #     self._qjob_config = new_value
 
     @property
     def shared_circuits(self):
@@ -181,7 +181,7 @@ class QuantumDevice:
 
     @property
     def backend(self):
-        """Return BaseBackend backend object"""
+        """Return BaseBackend backend object."""
         return self._backend
 
     @property
@@ -190,23 +190,23 @@ class QuantumDevice:
 
     @property
     def is_statevector(self):
-        """Returns True if backend is a statevector-type simulator."""
+        """Return True if backend is a statevector-type simulator."""
         return QuantumDevice.is_statevector_backend(self._backend)
 
     @property
     def is_simulator(self):
-        """Returns True if backend is a simulator."""
+        """Return True if backend is a simulator."""
         return QuantumDevice.is_simulator_backend(self._backend)
 
     @property
     def is_local(self):
-        """Returns True if backend is a local backend."""
+        """Return True if backend is a local backend."""
         return QuantumDevice.is_local_backend(self._backend)
 
     @staticmethod
     def is_statevector_backend(backend):
         """
-        Returns True if backend object is statevector.
+        Return True if backend object is statevector.
 
         Args:
             backend (BaseBackend): backend instance
@@ -242,7 +242,7 @@ class QuantumDevice:
     @staticmethod
     def register_and_get_operational_backends():
         # update registration info using internal methods because:
-        # at this point I don't want to save to or removecredentials from disk
+        # at this point I don't want to save to or remove credentials from disk
         # I want to update url, proxies etc without removing token and
         # re-adding in 2 methods
 
