@@ -154,13 +154,13 @@ class AmplitudeEstimation(QuantumAlgorithm):
         return a_probabilities, y_probabilities
 
     # TODO: @Stefan, please populate the run method
-    def run(self):
+    def _run(self):
         if self._circuit is None:
             self.construct_circuit()
 
-        if QuantumAlgorithm.is_statevector_backend(self.backend):
-            ret = self.execute(self._circuit)
-            self._ret['statevector'] = np.asarray([ret.get_statevector(self._circuit)])
+        if self._quantum_instance.is_statevector:
+            ret = self._quantum_instance.execute(self._circuit)
+            self._ret['statevector'] = np.asarray([ret.get_statevector(self._circuit, decimals=16)])
             return self._ret
         else:
             raise NotImplementedError

@@ -1,7 +1,9 @@
 from qiskit_aqua.algorithms.single_sample import AmplitudeEstimation
 from qiskit_aqua.algorithms.components.uncertainty_problems import EuropeanCallExpectedValue
 from qiskit_aqua.algorithms.components.uncertainty_models import NormalDistribution
+from qiskit_aqua import QuantumInstance
 from qiskit import Aer
+from qiskit.transpiler import PassManager
 
 
 # TODO: @Stefan, please create test(s) for AE
@@ -26,7 +28,9 @@ m = 5
 # construct amplitude estimation
 ae = AmplitudeEstimation(m, european_call)
 backend = Aer.get_backend('statevector_simulator')
-ae.setup_quantum_backend(backend=backend, shots=100, skip_transpiler=False)
-result = ae.run()
+quantum_instance = QuantumInstance(backend, shots=1)
+
+# run ae
+result = ae.run(quantum_instance)
 print(result)
 exit(0)
