@@ -181,3 +181,15 @@ class QSVM_Kernel(QuantumAlgorithm):
 
     def save_model(self, file_path):
         self.instance.save_model(file_path)
+
+    @property
+    def test_dataset(self):
+        return self.instance.test_dataset
+
+    @property
+    def train_dataset(self):
+        return self.instance.train_dataset
+
+    @property
+    def datapoints(self):
+        return self.instance.datapoints

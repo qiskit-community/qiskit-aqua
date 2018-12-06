@@ -257,8 +257,8 @@ class _QSVM_Kernel_Binary(_QSVM_Kernel_ABC):
         self._ret['svm'] = model
 
     def save_model(self, file_path):
-        model = {'alphas': self._ret['alphas'],
-                 'bias': self._ret['bias'],
-                 'support_vectors': self._ret['support_vectors'],
-                 'yin': self._ret['yin']}
+        model = {'alphas': self._ret['svm']['alphas'],
+                 'bias': self._ret['svm']['bias'],
+                 'support_vectors': self._ret['svm']['support_vectors'],
+                 'yin': self._ret['svm']['yin']}
         np.savez(file_path, **model)
