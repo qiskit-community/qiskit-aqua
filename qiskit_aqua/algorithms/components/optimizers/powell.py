@@ -31,7 +31,7 @@ class POWELL(Optimizer):
     See https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
     """
 
-    POWELL_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'POWELL',
         'description': 'POWELL Optimizer',
         'input_schema': {
@@ -71,11 +71,9 @@ class POWELL(Optimizer):
         'optimizer': ['local']
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.POWELL_CONFIGURATION.copy())
-        self._tol = None
-
-    def init_args(self, tol=None):
+    def __init__(self, tol=None):
+        self.validate(locals())
+        super().__init__()
         self._tol = tol
 
     def optimize(self, num_vars, objective_function, gradient_function=None, variable_bounds=None, initial_point=None):

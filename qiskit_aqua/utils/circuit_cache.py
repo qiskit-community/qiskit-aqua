@@ -36,7 +36,7 @@ import copy
 import uuid
 from qiskit.backends.aer import AerJob
 from qiskit.backends import JobError
-from qiskit_aqua.algorithmerror import AlgorithmError
+from qiskit_aqua.aqua_error import AquaError
 from qiskit import QuantumRegister, CompositeGate
 import pickle
 import logging
@@ -177,14 +177,14 @@ def load_qobj_from_cache(circuits, chunk):
             # Need the 'getattr' wrapper because measure has no 'params' field and breaks this.
             if not len(getattr(compiled_gate, 'params', [])) == len(getattr(uncompiled_gate, 'param', [])) or \
                 not compiled_gate.name == uncompiled_gate.name:
-                raise AlgorithmError('Gate mismatch at gate {0} ({1}, {2} params) of circuit against '
+                raise AquaError('Gate mismatch at gate {0} ({1}, {2} params) of circuit against '
                                      'gate {3} ({4}, {5} params) '
                                      'of cached qobj'.format(cache_index, uncompiled_gate.name, len(uncompiled_gate.param),
                                                              gate_num, compiled_gate.name, len(compiled_gate.params)))
             compiled_gate.params = np.array(uncompiled_gate.param, dtype=float).tolist()
     exec_qobj = copy.copy(qobjs[chunk])
     if naughty_mode: exec_qobj.experiments = qobjs[chunk].experiments[0:len(circuits)]
-    else: exec_qobj = copy.deepcopy(qobjs[chunk].experiments[0:len(circuits)])
+    else: exec_qobj.experiments = copy.deepcopy(qobjs[chunk].experiments[0:len(circuits)])
     return exec_qobj
 
 # Does what backend.run and aerjob.submit do, but without qobj validation.

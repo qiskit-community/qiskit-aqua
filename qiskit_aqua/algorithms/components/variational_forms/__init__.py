@@ -16,5 +16,11 @@
 # =============================================================================
 
 from .variational_form import VariationalForm
+from .ry import RY
+from .ryrz import RYRZ
+from .swaprz import SwapRZ
 
-__all__ = ['VariationalForm']
+__all__ = ['VariationalForm',
+           'RY',
+           'RYRZ',
+           'SwapRZ']

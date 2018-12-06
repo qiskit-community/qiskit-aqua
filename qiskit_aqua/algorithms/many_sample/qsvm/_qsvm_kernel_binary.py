@@ -19,21 +19,20 @@ import logging
 
 import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
-from qiskit_aqua import QuantumAlgorithm
-from qiskit_aqua.algorithms.many_sample.qsvm import QSVM_Kernel_ABC
+
+from qiskit_aqua.algorithms.many_sample.qsvm._qsvm_kernel_abc import _QSVM_Kernel_ABC
 from qiskit_aqua.utils import map_label_to_class_name, optimize_svm
 
 logger = logging.getLogger(__name__)
 
 
-class QSVM_Kernel_Binary(QSVM_Kernel_ABC):
-    """
-    the binary classifier
-    """
+class _QSVM_Kernel_Binary(_QSVM_Kernel_ABC):
+    """The binary classifier."""
 
-    def inner_product(self, x1, x2, measurement=True):
+    def construct_circuit(self, x1, x2, measurement=False):
         """
         Generate inner product of x1 and x2 with the given feature map.
+
         The dimension of x1 and x2 must be the same.
 
         Args:
@@ -43,7 +42,6 @@ class QSVM_Kernel_Binary(QSVM_Kernel_ABC):
             x2 (numpy.ndarray): data points, 1-D array, dimension is D
             measurement (bool): add measurement gates at the end
         """
-
         if x1.shape[0] != x2.shape[0]:
             raise ValueError("x1 and x2 must be the same dimension.")
 
@@ -76,7 +74,7 @@ class QSVM_Kernel_Binary(QSVM_Kernel_ABC):
         else:
             is_symmetric = False
 
-        is_statevector_sim = QuantumAlgorithm.is_statevector_backend(self.qalgo.backend)
+        is_statevector_sim = self.qalgo.quantum_instance.is_statevector
 
         measurement_basis = '0' * self.num_qubits
         circuits = {}
@@ -85,13 +83,13 @@ class QSVM_Kernel_Binary(QSVM_Kernel_ABC):
             for j in np.arange(i + 1 if is_symmetric else 0, x2_vec.shape[0]):
                 x1 = x1_vec[i]
                 x2 = x2_vec[j]
-                circuit = None if np.all(x1 == x2) else self.inner_product(x1, x2,
-                                                                           not is_statevector_sim)
+                circuit = None if np.all(x1 == x2) else self.construct_circuit(x1, x2,
+                                                                               not is_statevector_sim)
                 circuits["{}:{}".format(i, j)] = circuit
                 if circuit is not None:
                     to_be_simulated_circuits.append(circuit)
 
-        results = self.qalgo.execute(to_be_simulated_circuits)
+        results = self.qalgo.quantum_instance.execute(to_be_simulated_circuits)
 
         # element on the diagonal is always 1: point*point=|point|^2
         if is_symmetric:
@@ -104,13 +102,12 @@ class QSVM_Kernel_Binary(QSVM_Kernel_ABC):
                 kernel_value = 1.0
             else:
                 if is_statevector_sim:
-                    temp = np.asarray(results.get_statevector(circuit))[0]
+                    temp = np.asarray(results.get_statevector(circuit, decimals=16))[0]
                     #  |<0|Psi^daggar(y) x Psi(x)|0>|^2,
                     kernel_value = np.dot(temp.T.conj(), temp).real
                 else:
                     result = results.get_counts(circuit)
-                    kernel_value = result.get(measurement_basis, 0) / \
-                        self.qalgo._execute_config['shots']
+                    kernel_value = result.get(measurement_basis, 0) / sum(result.values())
             mat[i, j] = kernel_value
             if is_symmetric:
                 mat[j, i] = mat[i, j]
@@ -119,12 +116,13 @@ class QSVM_Kernel_Binary(QSVM_Kernel_ABC):
 
     def get_predicted_confidence(self, data, return_kernel_matrix=False):
         """
+
         Args:
             data (numpy.ndarray): NxD array, where N is the number of data,
                                   D is the feature dimension.
         Returns:
             numpy.ndarray: Nx1 array, predicted confidence
-            numpy.ndarray: the kernel matrix, NxN1, where N1 is the number of support vectors.
+            numpy.ndarray (optional): the kernel matrix, NxN1, where N1 is the number of support vectors.
         """
         alphas = self._ret['svm']['alphas']
         bias = self._ret['svm']['bias']
@@ -141,13 +139,14 @@ class QSVM_Kernel_Binary(QSVM_Kernel_ABC):
 
     def train(self, data, labels):
         """
-        train the svm
+        Train the svm.
+
         Args:
             data (numpy.ndarray): NxD array, where N is the number of data,
                                   D is the feature dimension.
             labels (numpy.ndarray): Nx1 array, where N is the number of data
         """
-        scaling = 1.0 if QuantumAlgorithm.is_statevector_backend(self.qalgo.backend) else None
+        scaling = 1.0 if self.qalgo.quantum_instance.is_statevector else None
         kernel_matrix = self.construct_kernel_matrix(data)
         labels = labels * 2 - 1  # map label from 0 --> -1 and 1 --> 1
         labels = labels.astype(np.float)
@@ -166,7 +165,8 @@ class QSVM_Kernel_Binary(QSVM_Kernel_ABC):
 
     def test(self, data, labels):
         """
-        test the svm
+        Test the svm.
+
         Args:
             data (numpy.ndarray): NxD array, where N is the number of data,
                                   D is the feature dimension.
@@ -188,7 +188,8 @@ class QSVM_Kernel_Binary(QSVM_Kernel_ABC):
 
     def predict(self, data):
         """
-        predict using the svm
+        Predict using the svm.
+
         Args:
             data (numpy.ndarray): NxD array, where N is the number of data,
                                   D is the feature dimension.
@@ -202,7 +203,7 @@ class QSVM_Kernel_Binary(QSVM_Kernel_ABC):
 
     def run(self):
         """
-        put the train, test, predict together
+        Put the train, test, predict together.
         """
         self.train(self.training_dataset[0], self.training_dataset[1])
         if self.test_dataset is not None:
@@ -214,3 +215,18 @@ class QSVM_Kernel_Binary(QSVM_Kernel_ABC):
             self._ret['predicted_classes'] = predicted_classes
 
         return self._ret
+
+    def load_model(self, file_path):
+        model_npz = np.load(file_path)
+        model = {'alphas': model_npz['alphas'],
+                 'bias': model_npz['bias'],
+                 'support_vectors': model_npz['support_vectors'],
+                 'yin': model_npz['yin']}
+        self._ret['svm'] = model
+
+    def save_model(self, file_path):
+        model = {'alphas': self._ret['alphas'],
+                 'bias': self._ret['bias'],
+                 'support_vectors': self._ret['support_vectors'],
+                 'yin': self._ret['yin']}
+        np.savez(file_path, **model)

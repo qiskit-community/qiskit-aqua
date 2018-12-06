@@ -26,13 +26,12 @@ import logging
 
 import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister
-from qiskit.tools.qi.pauli import label_to_pauli
+from qiskit.quantum_info import Pauli
 from qiskit.qasm import pi
 from sympy.core.numbers import NaN, Float
 
 from qiskit_aqua import Operator
-from qiskit_aqua.algorithms.components.feature_maps import FeatureMap
-from qiskit_aqua.algorithms.components.feature_maps import self_product
+from qiskit_aqua.algorithms.components.feature_maps import FeatureMap, self_product
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +42,7 @@ class PauliExpansion(FeatureMap):
     Refer to https://arxiv.org/pdf/1804.11326.pdf for details.
     """
 
-    PAULI_EXPANSION_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'PauliExpansion',
         'description': 'Pauli expansion for feature map (any order)',
         'input_schema': {
@@ -79,14 +78,9 @@ class PauliExpansion(FeatureMap):
         }
     }
 
-    def __init__(self, configuration=None):
-        """Constructor."""
-        super().__init__(configuration or self.PAULI_EXPANSION_CONFIGURATION.copy())
-        self._ret = {}
-
-    def init_args(self, num_qubits, depth, entangler_map=None,
-                  entanglement='full', paulis=['Z', 'ZZ'], data_map_func=self_product):
-        """Initializer.
+    def __init__(self, num_qubits, depth=2, entangler_map=None,
+                 entanglement='full', paulis=['Z', 'ZZ'], data_map_func=self_product):
+        """Constructor.
 
         Args:
             num_qubits (int): number of qubits
@@ -97,6 +91,8 @@ class PauliExpansion(FeatureMap):
             paulis (str): a comma-seperated string for to-be-used paulis
             data_map_func (Callable): a mapping function for data x
         """
+        self.validate(locals())
+        super().__init__()
         self._num_qubits = num_qubits
         self._depth = depth
         if entangler_map is None:
@@ -116,16 +112,15 @@ class PauliExpansion(FeatureMap):
         temp_paulis = []
         for pauli in paulis:
             len_pauli = len(pauli)
-            for j in itertools.combinations(range(self._num_qubits), len_pauli):
+            for possible_pauli_idx in itertools.combinations(range(self._num_qubits), len_pauli):
                 string_temp = ['I'] * self._num_qubits
-                for idx in range(len(j)):
-                    string_temp[j[idx]] = pauli[idx]
+                for idx in range(len(possible_pauli_idx)):
+                    string_temp[-possible_pauli_idx[idx] - 1] = pauli[-idx - 1]
                 temp_paulis.append(''.join(string_temp))
-
         # clean up string that can not be entangled.
         final_paulis = []
         for pauli in temp_paulis:
-            where_z = np.where(np.asarray(list(pauli)) != 'I')[0]
+            where_z = np.where(np.asarray(list(pauli[::-1])) != 'I')[0]
             if len(where_z) == 1:
                 final_paulis.append(pauli)
             else:
@@ -162,7 +157,7 @@ class PauliExpansion(FeatureMap):
         return qc
 
     def _extract_data_for_rotation(self, pauli, x):
-        where_non_i = np.where(np.asarray(list(pauli)) != 'I')[0]
+        where_non_i = np.where(np.asarray(list(pauli[::-1])) != 'I')[0]
         return x[where_non_i]
 
     def _construct_circuit_with_template(self, x):
@@ -206,7 +201,7 @@ class PauliExpansion(FeatureMap):
                     qc.u2(0, pi, qr[i])
                 for pauli in self._pauli_strings:
                     coeff = self._data_map_func(self._extract_data_for_rotation(pauli, x))
-                    p = label_to_pauli(pauli)
+                    p = Pauli.from_label(pauli)
                     qc += Operator.construct_evolution_circuit([[coeff, p]], 1, 1, qr)
 
         if inverse:

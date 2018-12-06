@@ -21,8 +21,6 @@ import copy
 
 class Model(object):
 
-    _INPUT_NAME = 'Input'
-
     def __init__(self):
         """Create Model object."""
         self._data_loaded = False
@@ -34,23 +32,15 @@ class Model(object):
         from qiskit_aqua import (local_pluggables_types,
                                  local_pluggables,
                                  get_pluggable_configuration)
-        from qiskit_aqua.input import (local_inputs,
-                                       get_input_configuration)
 
         self._property_titles = OrderedDict()
         self._sections = OrderedDict()
-        self._sections[Model._INPUT_NAME] = OrderedDict()
-        self._property_titles[Model._INPUT_NAME] = OrderedDict()
-        for input_name in local_inputs():
-            config = copy.deepcopy(get_input_configuration(input_name))
-            self._populate_section(Model._INPUT_NAME, input_name, config)
-
         for pluggable_type in local_pluggables_types():
-            self._sections[pluggable_type] = OrderedDict()
-            self._property_titles[pluggable_type] = OrderedDict()
+            self._sections[pluggable_type.value] = OrderedDict()
+            self._property_titles[pluggable_type.value] = OrderedDict()
             for pluggable_name in local_pluggables(pluggable_type):
                 config = copy.deepcopy(get_pluggable_configuration(pluggable_type, pluggable_name))
-                self._populate_section(pluggable_type, pluggable_name, config)
+                self._populate_section(pluggable_type.value, pluggable_name, config)
 
         self._data_loaded = True
 

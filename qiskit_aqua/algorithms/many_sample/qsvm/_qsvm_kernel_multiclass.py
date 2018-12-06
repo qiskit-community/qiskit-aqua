@@ -16,23 +16,27 @@
 # =============================================================================
 
 import logging
+import numpy as np
 
-from qiskit_aqua.algorithms.many_sample.qsvm import QSVM_Kernel_ABC
+from qiskit_aqua.algorithms.many_sample.qsvm._qsvm_kernel_abc import _QSVM_Kernel_ABC
 from qiskit_aqua.utils import map_label_to_class_name
 
 logger = logging.getLogger(__name__)
 
 
-class QSVM_Kernel_Multiclass(QSVM_Kernel_ABC):
+class _QSVM_Kernel_Multiclass(_QSVM_Kernel_ABC):
     """
-    the multiclass classifier
+    The multiclass classifier.
+
     the classifier is built by wrapping the estimator
     (for binary classification) with the multiclass extensions
     """
 
-    def __init__(self, multiclass_classifier):
-        super().__init__()
+    def __init__(self, feature_map, qalgo, training_dataset, test_dataset,
+                 datapoints, multiclass_classifier):
+        super().__init__(feature_map, qalgo, training_dataset, test_dataset, datapoints)
         self.multiclass_classifier = multiclass_classifier
+        self.multiclass_classifier.params.append(qalgo)
 
     def train(self, data, labels):
         self.multiclass_classifier.train(data, labels)
@@ -61,3 +65,20 @@ class QSVM_Kernel_Multiclass(QSVM_Kernel_ABC):
             self._ret['predicted_classes'] = predicted_classes
 
         return self._ret
+
+    def load_model(self, file_path):
+        model_npz = np.load(file_path)
+        for i in range(len(self.multiclass_classifier.estimators)):
+            self.multiclass_classifier.estimators.ret['alphas'] = model_npz['alphas_{}'.format(i)]
+            self.multiclass_classifier.estimators.ret['bias'] = model_npz['bias_{}'.format(i)]
+            self.multiclass_classifier.estimators.ret['support_vectors'] = model_npz['support_vectors_{}'.format(i)]
+            self.multiclass_classifier.estimators.ret['yin'] = model_npz['yin_{}'.format(i)]
+
+    def save_model(self, file_path):
+        model = {}
+        for i, estimator in enumerate(self.multiclass_classifier.estimators):
+            model['alphas_{}'.format(i)] = estimator.ret['alphas']
+            model['bias_{}'.format(i)] = estimator.ret['bias']
+            model['support_vectors_{}'.format(i)] = estimator.ret['support_vectors']
+            model['yin_{}'.format(i)] = estimator.ret['yin']
+        np.savez(file_path, **model)

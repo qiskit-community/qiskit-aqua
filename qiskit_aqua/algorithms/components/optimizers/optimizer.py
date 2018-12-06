@@ -17,48 +17,16 @@
 """Optimizer interface
 """
 
-from abc import ABC, abstractmethod
+from qiskit_aqua import Pluggable
+from abc import abstractmethod
 from enum import IntEnum
 import logging
-
 import numpy as np
 
 logger = logging.getLogger(__name__)
 
 
-import numpy
-def gradient_num_diff(x_center, f, epsilon):
-    """
-    See ``approx_fprime``.  An optional initial function value arg is added.
-
-    """
-    # import time
-    forig = f(*((x_center,)))
-    grad = numpy.zeros((len(x_center),), float)
-    ei = numpy.zeros((len(x_center),), float)
-    todos = []
-    # before = time.time()
-    for k in range(len(x_center)):
-        ei[k] = 1.0
-        d = epsilon * ei
-        # grad[k] = (f(*((xk + d,))) - forig) / d[k]
-        todos.append(x_center + d)
-        ei[k] = 0.0
-    parallel_parameters = numpy.concatenate(todos)
-    todos_results = f(parallel_parameters)
-    for k in range(len(x_center)):
-        grad[k] = (todos_results[k] - forig) / epsilon
-    # after = time.time()
-    # print("grad computation takes:", (after-before))
-    return grad
-
-def wrap_function(function, args):
-    def function_wrapper(*wrapper_args):
-        return function(*(wrapper_args + args))
-    return function_wrapper
-
-
-class Optimizer(ABC):
+class Optimizer(Pluggable):
     """Base class for optimization algorithm."""
 
     class SupportLevel(IntEnum):
@@ -87,7 +55,7 @@ class Optimizer(ABC):
     }
 
     @abstractmethod
-    def __init__(self, configuration=None):
+    def __init__(self):
         """Constructor.
 
         Initialize the optimization algorithm, setting the support
@@ -95,7 +63,7 @@ class Optimizer(ABC):
         _initial_point_support_level, and empty options.
 
         """
-        self._configuration = configuration or Optimizer.DEFAULT_CONFIGURATION
+        super().__init__()
         if 'support_level' not in self._configuration:
             self._configuration['support_level'] = self.DEFAULT_CONFIGURATION['support_level']
         if 'options' not in self._configuration:
@@ -105,13 +73,13 @@ class Optimizer(ABC):
         self._initial_point_support_level = self._configuration['support_level']['initial_point']
         self._options = {}
         self._batch_mode = False
+        for k, v in self._configuration['input_schema']['properties'].items():
+            if k in self._configuration['options']:
+                self._options[k] = v['default']
+                
 
-    @property
-    def configuration(self):
-        """Return optimizer configuration"""
-        return self._configuration
-
-    def init_params(self, params):
+    @classmethod
+    def init_params(cls, params):
         """Initialize with a params dictionary
 
         A dictionary of config params as per the configuration object. Some of these params get
@@ -123,16 +91,52 @@ class Optimizer(ABC):
             params (dict): configuration dict
         """
         logger.debug('init_params: {}'.format(params))
-        opts = {k: v for k, v in params.items() if k in self._configuration['options']}
-        self.set_options(**opts)
-        args = {k: v for k, v in params.items() if k not in self._configuration['options'] and k != 'name'}
+        opts = {k: v for k, v in params.items() if k in cls.CONFIGURATION['options']}
+        args = {k: v for k, v in params.items() if k not in cls.CONFIGURATION['options'] and k != 'name'}
         logger.debug('init_args: {}'.format(args))
-        self.init_args(**args)
+        optimizer = cls(**args)
+        optimizer.set_options(**opts)
+        return optimizer
 
-    @abstractmethod
-    def init_args(self, **args):
-        """Initialize the optimizer with its parameters according to schema"""
-        raise NotImplementedError()
+    @staticmethod
+    def gradient_num_diff(x_center, f, epsilon):
+        """
+        We compute the gradient with the numeric differentiation in the parallel way, around the point x_center.
+        Args:
+            x_center (ndarray): point around which we compute the gradient
+            f (func): the function of which the gradient is to be computed.
+            epsilon (float): the epsilon used in the numeric differentiation.
+        Returns:
+            grad: the gradient computed
+
+        """
+        forig = f(*((x_center,)))
+        grad = np.zeros((len(x_center),), float)
+        ei = np.zeros((len(x_center),), float)
+        todos = []
+        for k in range(len(x_center)):
+            ei[k] = 1.0
+            d = epsilon * ei
+            todos.append(x_center + d)
+            ei[k] = 0.0
+        parallel_parameters = np.concatenate(todos)
+        todos_results = f(parallel_parameters)
+        for k in range(len(x_center)):
+            grad[k] = (todos_results[k] - forig) / epsilon
+        return grad
+
+    @staticmethod
+    def wrap_function(function, args):
+        """
+        Wrap the function to implicitly inject the args at the call of the function.
+        Args:
+            function (func): the target function
+            args (tuple): the args to be injected
+
+        """
+        def function_wrapper(*wrapper_args):
+            return function(*(wrapper_args + args))
+        return function_wrapper
 
     def set_options(self, **kwargs):
         """Set an options dictionary that may be used by call to the optimizer

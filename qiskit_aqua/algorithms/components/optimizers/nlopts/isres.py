@@ -17,24 +17,24 @@
 
 from qiskit_aqua.algorithms.components.optimizers import Optimizer
 from ._nloptimizer import minimize
+from ._nloptimizer import check_pluggable_valid as check_nlopt_valid
 import logging
+
+logger = logging.getLogger(__name__)
 
 try:
     import nlopt
 except ImportError:
-    raise ImportWarning('nlopt cannot be imported')
-
-
-logger = logging.getLogger(__name__)
+    logger.info('nlopt is not installed. Please install it if you want to use them.')
 
 
 class ISRES(Optimizer):
-    """ISRES (Improved Stochastic Ranking Evolution Strategy)
+    """ISRES (Improved Stochastic Ranking Evolution Strategy).
 
     NLopt global optimizer, derivative-free
     http://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#isres-improved-stochastic-ranking-evolution-strategy
     """
-    ISRES_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'ISRES',
         'description': 'GN_ISRES Optimizer',
         'input_schema': {
@@ -58,13 +58,15 @@ class ISRES(Optimizer):
         'optimizer': ['global']
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.ISRES_CONFIGURATION.copy())
+    def __init__(self):
+        super().__init__()
 
-    def init_args(self):
-        pass
+    @staticmethod
+    def check_pluggable_valid():
+        return check_nlopt_valid(ISRES.CONFIGURATION['name'])
 
-    def optimize(self, num_vars, objective_function, gradient_function=None, variable_bounds=None, initial_point=None):
+    def optimize(self, num_vars, objective_function, gradient_function=None,
+                 variable_bounds=None, initial_point=None):
         super().optimize(num_vars, objective_function, gradient_function, variable_bounds, initial_point)
 
         return minimize(nlopt.GN_ISRES, objective_function, variable_bounds, initial_point, **self._options)

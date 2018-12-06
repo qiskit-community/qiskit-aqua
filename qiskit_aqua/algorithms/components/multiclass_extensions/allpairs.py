@@ -27,9 +27,10 @@ logger = logging.getLogger(__name__)
 
 class AllPairs(MulticlassExtension):
     """
-      the multiclass extension based on the all-pairs algorithm.
+    The multiclass extension based on the all-pairs algorithm.
     """
-    AllPairs_CONFIGURATION = {
+
+    CONFIGURATION = {
         'name': 'AllPairs',
         'description': 'AllPairs extension',
         'input_schema': {
@@ -42,10 +43,10 @@ class AllPairs(MulticlassExtension):
         }
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.AllPairs_CONFIGURATION.copy())
-        self.estimator_cls = None
-        self.params = None
+    def __init__(self, estimator_cls, params=None):
+        super().__init__()
+        self.estimator_cls = estimator_cls
+        self.params = params or []
 
     def train(self, x, y):
         """
@@ -63,10 +64,7 @@ class AllPairs(MulticlassExtension):
         for i in range(n_classes):
             estimators_from_i = {}
             for j in range(i + 1, n_classes):
-                if self.params is None:
-                    estimator = self.estimator_cls()
-                else:
-                    estimator = self.estimator_cls(*self.params)
+                estimator = self.estimator_cls(*self.params)
                 cond = np.logical_or(y == i, y == j)
                 indcond = np.arange(x.shape[0])[cond]
                 x_filtered = x[indcond]

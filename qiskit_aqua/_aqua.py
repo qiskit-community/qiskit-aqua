@@ -17,18 +17,23 @@
 
 """Algorithm functions for running etc."""
 
-from qiskit_aqua.algorithmerror import AlgorithmError
+import copy
+import json
+import logging
+
+from qiskit import IBMQ, Aer
+from qiskit.backends import BaseBackend
+from qiskit.transpiler import PassManager
+
+from qiskit_aqua.aqua_error import AquaError
 from qiskit_aqua._discover import (_discover_on_demand,
-                                   local_algorithms,
-                                   get_algorithm_instance)
+                                   local_pluggables,
+                                   PluggableType,
+                                   get_pluggable_class)
 from qiskit_aqua.utils.jsonutils import convert_dict_to_json, convert_json_to_dict
 from qiskit_aqua.parser._inputparser import InputParser
 from qiskit_aqua.parser import JSONSchema
-from qiskit_aqua.input import get_input_instance
-from qiskit.backends import BaseBackend
-import logging
-import json
-import copy
+from qiskit_aqua import QuantumInstance
 
 logger = logging.getLogger(__name__)
 
@@ -40,9 +45,9 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
 
     Args:
         params (dict): Dictionary of params for algo and dependent objects
-        algo_input(algorithminput): Main input data for algorithm. Optional, an algo may run entirely from params
-        json_output(bool): False for regular python dictionary return, True for json conversion
-        backend(BaseBackend): Backend object to be used in place of backend name
+        algo_input (AlgorithmInput): Main input data for algorithm. Optional, an algo may run entirely from params
+        json_output (bool): False for regular python dictionary return, True for json conversion
+        backend (BaseBackend): Backend object to be used in place of backend name
 
     Returns:
         Result dictionary containing result of algorithm computation
@@ -54,18 +59,27 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
     inputparser.validate_merge_defaults()
     logger.debug('Algorithm Input: {}'.format(json.dumps(inputparser.get_sections(), sort_keys=True, indent=4)))
 
-    algo_name = inputparser.get_section_property(JSONSchema.ALGORITHM, JSONSchema.NAME)
+    algo_name = inputparser.get_section_property(PluggableType.ALGORITHM.value, JSONSchema.NAME)
     if algo_name is None:
-        raise AlgorithmError('Missing algorithm name')
+        raise AquaError('Missing algorithm name')
 
-    if algo_name not in local_algorithms():
-        raise AlgorithmError('Algorithm "{0}" missing in local algorithms'.format(algo_name))
+    if algo_name not in local_pluggables(PluggableType.ALGORITHM):
+        raise AquaError('Algorithm "{0}" missing in local algorithms'.format(algo_name))
 
     backend_cfg = None
     backend_name = inputparser.get_section_property(JSONSchema.BACKEND, JSONSchema.NAME)
     if backend_name is not None:
         backend_cfg = {k: v for k, v in inputparser.get_section(JSONSchema.BACKEND).items() if k != 'name'}
-        backend_cfg['backend'] = backend_name
+        noise_params = backend_cfg.pop('noise_params', None)
+        backend_cfg['config'] = {}
+        backend_cfg['config']['noise_params'] = noise_params
+        QuantumInstance.register_and_get_operational_backends()
+        try:
+            backend_from_name = Aer.get_backend(backend_name)
+        except:
+            backend_from_name = IBMQ.get_backend(backend_name)
+
+        backend_cfg['backend'] = backend_from_name
 
     if backend is not None and isinstance(backend, BaseBackend):
         if backend_cfg is None:
@@ -73,38 +87,42 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
 
         backend_cfg['backend'] = backend
 
-    algorithm = get_algorithm_instance(algo_name)
-    algorithm.random_seed = inputparser.get_section_property(JSONSchema.PROBLEM, 'random_seed')
-    algorithm._circuit_caching = inputparser.get_section_property(JSONSchema.PROBLEM, 'circuit_caching')
-    algorithm._caching_naughty_mode = inputparser.get_section_property(JSONSchema.PROBLEM, 'caching_naughty_mode')
-    algorithm._cache_file = inputparser.get_section_property(JSONSchema.PROBLEM, 'circuit_cache_file')
-    algorithm._persist_cache = inputparser.get_section_property(JSONSchema.PROBLEM, 'persist_cache')
-    if not algorithm._circuit_caching and algorithm._caching_naughty_mode :
-        logging.warning("You should not use caching naughty mode if caching is disabled.")
-
-    if backend_cfg is not None:
-        algorithm.setup_quantum_backend(**backend_cfg)
-
-    if algorithm._caching_naughty_mode and not algorithm.backend.configuration()['local']:
-        raise AlgorithmError("Caching naughty mode can only be used with local backends, but {} backend specified."
-                             .format(backend))
-    if algorithm._circuit_caching and not backend_cfg['skip_transpiler']:
-        raise AlgorithmError("Circuit caching cannot be used with transpiler on. Set skip_transpiler to True to use "
-                             "caching.")
-
-    algo_params = copy.deepcopy(inputparser.get_sections())
-
     if algo_input is None:
         input_name = inputparser.get_section_property('input', JSONSchema.NAME)
         if input_name is not None:
-            algo_input = get_input_instance(input_name)
             input_params = copy.deepcopy(inputparser.get_section_properties('input'))
             del input_params[JSONSchema.NAME]
             convert_json_to_dict(input_params)
-            algo_input.from_params(input_params)
+            algo_input = get_pluggable_class(PluggableType.INPUT, input_name).from_params(input_params)
 
-    algorithm.init_params(algo_params, algo_input)
-    value = algorithm.run()
+    algo_params = copy.deepcopy(inputparser.get_sections())
+    algorithm = get_pluggable_class(PluggableType.ALGORITHM,
+                                    algo_name).init_params(algo_params, algo_input)
+    random_seed = inputparser.get_section_property(JSONSchema.PROBLEM, 'random_seed')
+    algorithm.random_seed = random_seed
+
+    quantum_instance = None
+    if backend_cfg is not None:
+        backend_cfg['seed'] = random_seed
+        backend_cfg['seed_mapper'] = random_seed
+
+        cache_config = {}
+        cache_config['circuit_caching'] = inputparser.get_section_property(JSONSchema.PROBLEM, 'circuit_caching')
+        cache_config['caching_naughty_mode'] = inputparser.get_section_property(JSONSchema.PROBLEM,
+                                                                                'caching_naughty_mode')
+        cache_config['cache_file'] = inputparser.get_section_property(JSONSchema.PROBLEM, 'circuit_cache_file')
+        cache_config['persist_cache'] = inputparser.get_section_property(JSONSchema.PROBLEM, 'persist_cache')
+        if not cache_config['circuit_caching'] and cache_config['caching_naughty_mode']:
+            logger.warning("You should not use caching naughty mode if caching is disabled.")
+        backend_cfg['cache_config'] = cache_config
+
+        pass_manager = PassManager() if backend_cfg.pop('skip_transpiler', False) else None
+        if pass_manager is not None:
+            backend_cfg['pass_manager'] = pass_manager
+
+        quantum_instance = QuantumInstance(**backend_cfg)
+
+    value = algorithm.run(quantum_instance)
     if isinstance(value, dict) and json_output:
         convert_dict_to_json(value)
 
@@ -119,8 +137,8 @@ def run_algorithm_to_json(params, algo_input=None, jsonfile='algorithm.json'):
 
     Args:
         params (dict): Dictionary of params for algo and dependent objects
-        algo_input(algorithminput): Main input data for algorithm. Optional, an algo may run entirely from params
-        jsonfile(string): Name of file in which json should be saved
+        algo_input (AlgorithmInput): Main input data for algorithm. Optional, an algo may run entirely from params
+        jsonfile (str): Name of file in which json should be saved
 
     Returns:
         Result dictionary containing the jsonfile name

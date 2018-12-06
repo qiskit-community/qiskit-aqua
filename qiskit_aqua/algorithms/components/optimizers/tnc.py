@@ -21,8 +21,6 @@ from scipy.optimize import minimize
 
 from qiskit_aqua.algorithms.components.optimizers import Optimizer
 
-from .optimizer import wrap_function, gradient_num_diff
-
 logger = logging.getLogger(__name__)
 
 
@@ -33,7 +31,7 @@ class TNC(Optimizer):
     See https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
     """
 
-    TNC_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'TNC',
         'description': 'TNC Optimizer',
         'input_schema': {
@@ -85,11 +83,9 @@ class TNC(Optimizer):
         'optimizer': ['local']
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.TNC_CONFIGURATION.copy())
-        self._tol = None
-
-    def init_args(self, tol=None):
+    def __init__(self, tol=None):
+        self.validate(locals())
+        super().__init__()
         self._tol = tol
 
     def optimize(self, num_vars, objective_function, gradient_function=None, variable_bounds=None, initial_point=None):
@@ -97,9 +93,8 @@ class TNC(Optimizer):
 
         if gradient_function is None and self._batch_mode:
             epsilon = self._options['eps']
-            gradient_function = wrap_function(gradient_num_diff, (objective_function, epsilon))
+            gradient_function = Optimizer.wrap_function(Optimizer.gradient_num_diff, (objective_function, epsilon))
 
-        res = minimize(objective_function, initial_point, jac=gradient_function, tol=self._tol, bounds=variable_bounds, method="TNC",
-                       options=self._options)
+        res = minimize(objective_function, initial_point, jac=gradient_function, tol=self._tol, bounds=variable_bounds, method="TNC", options=self._options)
         # Note: nfev here seems to be iterations not function evaluations
         return res.x, res.fun, res.nfev

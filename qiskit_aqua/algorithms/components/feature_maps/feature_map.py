@@ -18,12 +18,12 @@
 This module contains the definition of a base class for
 feature map. Several types of commonly used approaches.
 """
-from abc import ABC, abstractmethod
-
+from qiskit_aqua import Pluggable
+from abc import abstractmethod
 from qiskit_aqua.utils import get_entangler_map, validate_entangler_map
 
 
-class FeatureMap(ABC):
+class FeatureMap(Pluggable):
 
     """Base class for FeatureMap.
 
@@ -36,33 +36,26 @@ class FeatureMap(ABC):
     """
 
     @abstractmethod
-    def __init__(self, configuration=None):
-        self._configuration = configuration
-        pass
+    def __init__(self):
+        super().__init__()
 
-    @property
-    def configuration(self):
-        """Return variational form configuration"""
-        return self._configuration
-
-    def init_params(self, params):
+    @classmethod
+    def init_params(cls, params):
         args = {k: v for k, v in params.items() if k != 'name'}
-        self.init_args(**args)
+        return cls(**args)
 
     @abstractmethod
-    def init_args(self, **args):
-        """Initialize the var form with its parameters according to schema"""
-        raise NotImplementedError()
-
-    @abstractmethod
-    def construct_circuit(self, parameters):
+    def construct_circuit(self, x, qr=None, inverse=False):
         """Construct the variational form, given its parameters.
 
         Args:
-            parameters (numpy.ndarray[float]) : circuit parameters.
+            x (numpy.ndarray[float]): 1-D array, data
+            qr (QauntumRegister): the QuantumRegister object for the circuit, if None,
+                                  generate new registers with name q.
+            inverse (bool): whether or not inverse the circuit
 
         Returns:
-            A quantum circuit.
+            QuantumCircuit: a quantum circuit.
         """
         raise NotImplementedError()
 
@@ -77,4 +70,3 @@ class FeatureMap(ABC):
     @property
     def num_qubits(self):
         return self._num_qubits
-

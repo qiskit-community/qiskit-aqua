@@ -16,21 +16,21 @@
 # =============================================================================
 
 from qiskit_aqua.algorithms.components.multiclass_extensions import Estimator
-from qiskit_aqua.algorithms.many_sample.qsvm import QSVM_Kernel_Binary
+from qiskit_aqua.algorithms.many_sample.qsvm._qsvm_kernel_binary import _QSVM_Kernel_Binary
 
 
-class QSVM_Kernel_Estimator(Estimator):
+class _QSVM_Kernel_Estimator(Estimator):
     """The estimator that uses the quantum kernel."""
 
     def __init__(self, feature_map, qalgo):
-        super(QSVM_Kernel_Estimator, self).__init__()
-        self.qsvm_binary = QSVM_Kernel_Binary()
-        self.qsvm_binary.init_args({}, {}, [], feature_map, qalgo)
+        super().__init__()
+        self.qsvm_binary = _QSVM_Kernel_Binary(feature_map, qalgo, {}, {}, [])
         self._ret = {}
 
     def fit(self, x, y):
         """
-        fit values for the points and the labels
+        Fit values for the points and the labels.
+
         Args:
             x (numpy.ndarray): input points, NxD array
             y (numpy.ndarray): input labels, Nx1 array
@@ -40,7 +40,8 @@ class QSVM_Kernel_Estimator(Estimator):
 
     def decision_function(self, x):
         """
-        predicted values for the points which account for both the labels and the confidence
+        Predicted values for the points which account for both the labels and the confidence.
+
         Args:
             x (numpy.ndarray): NxD array
         Returns:

@@ -21,10 +21,8 @@ from scipy.optimize import minimize
 
 from qiskit_aqua.algorithms.components.optimizers import Optimizer
 
-from .optimizer import wrap_function, gradient_num_diff
 
 logger = logging.getLogger(__name__)
-
 
 
 class CG(Optimizer):
@@ -34,7 +32,7 @@ class CG(Optimizer):
     See https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
     """
 
-    CG_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'CG',
         'description': 'CG Optimizer',
         'input_schema': {
@@ -74,11 +72,9 @@ class CG(Optimizer):
         'optimizer': ['local']
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.CG_CONFIGURATION.copy())
-        self._tol = None
-
-    def init_args(self, tol=None):
+    def __init__(self, tol=None):
+        self.validate(locals())
+        super().__init__()
         self._tol = tol
 
     def optimize(self, num_vars, objective_function, gradient_function=None, variable_bounds=None, initial_point=None):
@@ -86,7 +82,7 @@ class CG(Optimizer):
 
         if gradient_function is None and self._batch_mode:
             epsilon = self._options['eps']
-            gradient_function = wrap_function(gradient_num_diff, (objective_function, epsilon))
+            gradient_function = Optimizer.wrap_function(Optimizer.gradient_num_diff, (objective_function, epsilon))
 
         res = minimize(objective_function, initial_point, jac=gradient_function, tol=self._tol, method="CG", options=self._options)
         return res.x, res.fun, res.nfev

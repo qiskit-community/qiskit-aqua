@@ -21,7 +21,7 @@ from itertools import combinations, chain
 from parameterized import parameterized
 import qiskit
 from qiskit import QuantumCircuit, QuantumRegister
-from qiskit.wrapper import execute as q_execute
+from qiskit import execute as q_execute
 from test.common import QiskitAquaTestCase
 
 
@@ -51,7 +51,7 @@ class TestCNX(QiskitAquaTestCase):
                 qc.x(c[idx])
 
             vec = np.asarray(q_execute(qc, qiskit.Aer.get_backend(
-                'statevector_simulator')).result().get_statevector(qc))
+                'statevector_simulator')).result().get_statevector(qc, decimals=16))
             vec_o = [0, 1] if len(subset) == num_controls else [1, 0]
             np.testing.assert_almost_equal(
                 vec,

@@ -17,14 +17,13 @@
 
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
-
 from qiskit_aqua.algorithms.components.variational_forms import VariationalForm
 
 
-class VarFormRYRZ(VariationalForm):
+class RYRZ(VariationalForm):
     """Layers of Y+Z rotations followed by entangling gates."""
 
-    RYRZ_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'RYRZ',
         'description': 'RYRZ Variational Form',
         'input_schema': {
@@ -53,16 +52,10 @@ class VarFormRYRZ(VariationalForm):
         }
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.RYRZ_CONFIGURATION.copy())
-        self._num_qubits = 0
-        self._depth = 0
-        self._entangler_map = None
-        self._initial_state = None
+    def __init__(self, num_qubits, depth=3, entangler_map=None,
+                 entanglement='full', initial_state=None):
+        """Constructor.
 
-    def init_args(self, num_qubits, depth, entangler_map=None,
-                  entanglement='full', initial_state=None):
-        """
         Args:
             num_qubits (int) : number of qubits
             depth (int) : number of rotation layers
@@ -72,6 +65,8 @@ class VarFormRYRZ(VariationalForm):
             entanglement (str): 'full' or 'linear'
             initial_state (InitialState): an initial state object
         """
+        self.validate(locals())
+        super().__init__()
         self._num_parameters = num_qubits * (depth + 1) * 2
         self._bounds = [(-np.pi, np.pi)] * self._num_parameters
         self._num_qubits = num_qubits
@@ -108,25 +103,21 @@ class VarFormRYRZ(VariationalForm):
 
         param_idx = 0
         for qubit in range(self._num_qubits):
-            circuit.u3(parameters[param_idx], 0.0, 0.0, q[qubit])
-            circuit.u1(parameters[param_idx+1], q[qubit])
-            # circuit.ry(parameters[param_idx], q[qubit])
-            # circuit.rz(parameters[param_idx+1], q[qubit])
+            circuit.u3(parameters[param_idx], 0.0, 0.0, q[qubit])  # ry
+            circuit.u1(parameters[param_idx + 1], q[qubit])  # rz
             param_idx += 2
 
         for block in range(self._depth):
             circuit.barrier(q)
             for node in self._entangler_map:
                 for target in self._entangler_map[node]:
+                    # cz
                     circuit.u2(0.0, np.pi, q[target])  # h
                     circuit.cx(q[node], q[target])
                     circuit.u2(0.0, np.pi, q[target])  # h
-                    # circuit.cz(q[node], q[target])
             for qubit in range(self._num_qubits):
-                circuit.u3(parameters[param_idx], 0.0, 0.0, q[qubit])
-                circuit.u1(parameters[param_idx+1], q[qubit])
-                # circuit.ry(parameters[param_idx], q[qubit])
-                # circuit.rz(parameters[param_idx+1], q[qubit])
+                circuit.u3(parameters[param_idx], 0.0, 0.0, q[qubit])  # ry
+                circuit.u1(parameters[param_idx + 1], q[qubit])  # rz
                 param_idx += 2
         circuit.barrier(q)
 

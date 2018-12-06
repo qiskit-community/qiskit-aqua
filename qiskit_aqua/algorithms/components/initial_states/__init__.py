@@ -16,5 +16,12 @@
 # =============================================================================
 
 from .initial_state import InitialState
+from .custom import Custom
+from .varformbased import VarFormBased
+from .zero import Zero
 
-__all__ = ['InitialState']
+__all__ = ['InitialState',
+           'Custom',
+           'VarFormBased',
+           'Zero'
+           ]

@@ -122,7 +122,7 @@ class Controller(object):
         return self._outputView
 
     def get_available_backends(self):
-        from qiskit_aqua.quantumalgorithm import QuantumAlgorithm
+        from qiskit_aqua.algorithms.quantumalgorithm import QuantumAlgorithm
         if self._backendsthread is not None:
             return
 
@@ -407,13 +407,10 @@ class Controller(object):
         return True
 
     def create_popup(self, section_name, property_name, parent, value):
-        from qiskit_aqua.parser import InputParser
         from qiskit_aqua.parser import JSONSchema
         values = None
         types = ['string']
-        if JSONSchema.NAME == property_name and InputParser.INPUT == section_name:
-            values = self._model.get_input_section_names()
-        elif JSONSchema.NAME == property_name and Model.is_pluggable_section(section_name):
+        if JSONSchema.NAME == property_name and Model.is_pluggable_section(section_name):
             values = self._model.get_pluggable_section_names(section_name)
         elif JSONSchema.BACKEND == section_name and JSONSchema.NAME == property_name:
             values = self._available_backends

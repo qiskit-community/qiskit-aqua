@@ -15,12 +15,12 @@
 # limitations under the License.
 # =============================================================================
 
-from .svm_classical_abc import SVM_Classical_ABC
-from .svm_classical_binary import SVM_Classical_Binary
-from .svm_classical_multiclass import SVM_Classical_Multiclass
-from .rbf_svc_estimator import RBF_SVC_Estimator
+from ._svm_classical_abc import _SVM_Classical_ABC
+from ._svm_classical_binary import _SVM_Classical_Binary
+from ._svm_classical_multiclass import _SVM_Classical_Multiclass
+from ._rbf_svc_estimator import _RBF_SVC_Estimator
 
-__all__ = ['SVM_Classical_ABC',
-           'SVM_Classical_Binary',
-           'SVM_Classical_Multiclass'
-           'RBF_SVC_Estimator']
+__all__ = ['_SVM_Classical_ABC',
+           '_SVM_Classical_Binary',
+           '_SVM_Classical_Multiclass'
+           '_RBF_SVC_Estimator']
