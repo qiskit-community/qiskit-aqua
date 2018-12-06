@@ -15,6 +15,8 @@
 # limitations under the License.
 # =============================================================================
 
+import os
+
 import numpy as np
 from qiskit import Aer
 
@@ -124,11 +126,36 @@ class TestQSVMKernel(QiskitAquaTestCase):
         quantum_instance = QuantumInstance(backend, seed=self.random_seed, seed_mapper=self.random_seed)
         result = svm.run(quantum_instance)
 
+        ori_alphas = result['svm']['alphas']
+
         self.assertEqual(len(result['svm']['support_vectors']), 4)
         np.testing.assert_array_almost_equal(
             result['svm']['support_vectors'], self.ref_support_vectors, decimal=4)
 
         self.assertEqual(result['testing_accuracy'], 0.5)
+
+        file_path = self._get_resource_path('qsvm_kernel_test.npz')
+        svm.save_model(file_path)
+
+        self.assertTrue(os.path.exists(file_path))
+
+        loaded_svm = QSVM_Kernel(feature_map, self.training_data, None, None)
+        loaded_svm.load_model(file_path)
+
+        np.testing.assert_array_almost_equal(
+            loaded_svm.ret['svm']['support_vectors'], self.ref_support_vectors, decimal=4)
+
+        np.testing.assert_array_almost_equal(
+            loaded_svm.ret['svm']['alphas'], ori_alphas, decimal=4)
+
+        loaded_test_acc = loaded_svm.test(svm.test_dataset[0], svm.test_dataset[1], quantum_instance)
+        self.assertEqual(result['testing_accuracy'], loaded_test_acc)
+
+        if os.path.exists(file_path):
+            try:
+                os.remove(file_path)
+            except:
+                pass
 
     def test_qsvm_kernel_multiclass_one_against_all(self):
 

@@ -328,3 +328,15 @@ class QSVMVariational(QuantumAlgorithm):
     def save_model(self, file_path):
         model = {'opt_params': self._ret['opt_params']}
         np.savez(file_path, **model)
+
+    @property
+    def test_dataset(self):
+        return self._test_dataset
+
+    @property
+    def train_dataset(self):
+        return self._train_dataset
+
+    @property
+    def datapoints(self):
+        return self._datapoints
