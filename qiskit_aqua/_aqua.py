@@ -105,6 +105,9 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
     if backend_cfg is not None:
         backend_cfg['seed'] = random_seed
         backend_cfg['seed_mapper'] = random_seed
+        pass_manager = PassManager() if backend_cfg.pop('skip_transpiler', False) else None
+        if pass_manager is not None:
+            backend_cfg['pass_manager'] = pass_manager
 
         cache_config = {}
         cache_config['circuit_caching'] = inputparser.get_section_property(JSONSchema.PROBLEM, 'circuit_caching')
@@ -115,10 +118,6 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
         if not cache_config['circuit_caching'] and cache_config['caching_naughty_mode']:
             logger.warning("You should not use caching naughty mode if caching is disabled.")
         backend_cfg['cache_config'] = cache_config
-
-        pass_manager = PassManager() if backend_cfg.pop('skip_transpiler', False) else None
-        if pass_manager is not None:
-            backend_cfg['pass_manager'] = pass_manager
 
         quantum_instance = QuantumInstance(**backend_cfg)
 

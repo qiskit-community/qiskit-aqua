@@ -16,6 +16,7 @@
 # =============================================================================
 
 import numpy as np
+from qiskit.converters import circuit_to_dag
 
 
 def summarize_circuits(circuits):
@@ -35,11 +36,12 @@ def summarize_circuits(circuits):
     ret += "============================================================================\n"
     stats = np.zeros(4)
     for i, circuit in enumerate(circuits):
-        depth = circuit.depth()
-        width = circuit.width()
-        size = circuit.size()
-        classical_bits = circuit.num_cbits()
-        op_counts = circuit.count_ops()
+        dag = circuit_to_dag(circuit)
+        depth = dag.depth()
+        width = dag.width()
+        size = dag.size()
+        classical_bits = dag.num_cbits()
+        op_counts = dag.count_ops()
         stats[0] += width
         stats[1] += classical_bits
         stats[2] += size
