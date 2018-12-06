@@ -22,9 +22,10 @@ from parameterized import parameterized
 from scipy.linalg import expm
 from scipy import sparse
 from qiskit import Aer
+from qiskit.transpiler import PassManager
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import Operator
+from qiskit_aqua import Operator, QuantumInstance
 from qiskit_aqua.utils import decimal_to_binary
 from qiskit_aqua.algorithms.classical import ExactEigensolver
 from qiskit_aqua.algorithms.components.iqfts import Standard
@@ -94,10 +95,10 @@ class TestQPE(QiskitAquaTestCase):
                   paulis_grouping='random', expansion_mode='suzuki', expansion_order=2)
 
         backend = Aer.get_backend('qasm_simulator')
-        qpe.setup_quantum_backend(backend=backend, shots=100, skip_transpiler=True)
+        quantum_instance = QuantumInstance(backend, shots=100, pass_manager=PassManager())
 
         # run qpe
-        result = qpe.run()
+        result = qpe.run(quantum_instance)
         # self.log.debug('transformed operator paulis:\n{}'.format(self.qubitOp.print_operators('paulis')))
 
         # report result

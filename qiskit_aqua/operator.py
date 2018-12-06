@@ -31,8 +31,8 @@ from qiskit import ClassicalRegister, QuantumCircuit
 from qiskit.quantum_info import Pauli
 from qiskit.qasm import pi
 
-from qiskit_aqua import AquaError, QuantumAlgorithm
-from qiskit_aqua.utils import PauliGraph, run_circuits, find_regs_by_name
+from qiskit_aqua import AquaError, QuantumInstance
+from qiskit_aqua.utils import PauliGraph, compile_and_run_circuits, find_regs_by_name
 
 logger = logging.getLogger(__name__)
 
@@ -67,7 +67,6 @@ class Operator(object):
 
         # use for fast lookup whether or not the paulis is existed.
         self._simplify_paulis()
-
         self._summarize_circuits = False
 
     def _extend_or_combine(self, rhs, mode, operation=op_iadd):
@@ -548,7 +547,7 @@ class Operator(object):
         Returns:
             [QuantumCircuit]: the circuits for evaluation.
         """
-        if QuantumAlgorithm.is_statevector_backend(backend):
+        if QuantumInstance.is_statevector_backend(backend):
             if operator_mode == 'matrix':
                 circuits = [input_circuit]
             else:
@@ -636,25 +635,25 @@ class Operator(object):
             float: the standard deviation
         """
         avg, std_dev, variance = 0.0, 0.0, 0.0
-        if QuantumAlgorithm.is_statevector_backend(backend):
+        if QuantumInstance.is_statevector_backend(backend):
             if operator_mode == "matrix":
                 self._check_representation("matrix")
                 if self._dia_matrix is None:
                     self._to_dia_matrix(mode='matrix')
-                quantum_state = np.asarray(result.get_statevector(circuits[0]))
+                quantum_state = np.asarray(result.get_statevector(circuits[0], decimals=16))
                 if self._dia_matrix is not None:
                     avg = np.sum(self._dia_matrix * np.absolute(quantum_state) ** 2)
                 else:
                     avg = np.vdot(quantum_state, self._matrix.dot(quantum_state))
             else:
                 self._check_representation("paulis")
-                quantum_state = np.asarray(result.get_statevector(circuits[0]))
+                quantum_state = np.asarray(result.get_statevector(circuits[0], decimals=16))
                 circuit_idx = 1
                 for idx, pauli in enumerate(self._paulis):
                     if np.all(np.logical_not(pauli[1].z)) and np.all(np.logical_not(pauli[1].x)):
                         avg += pauli[0]
                     else:
-                        quantum_state_i = np.asarray(result.get_statevector(circuits[circuit_idx]))
+                        quantum_state_i = np.asarray(result.get_statevector(circuits[circuit_idx], decimals=16))
                         avg += pauli[0] * (np.vdot(quantum_state, quantum_state_i))
                         circuit_idx += 1
         else:
@@ -729,7 +728,7 @@ class Operator(object):
             avg = np.vdot(quantum_state, self._matrix.dot(quantum_state))
         return avg
 
-    def eval(self, operator_mode, input_circuit, backend, execute_config=None, qjob_config=None):
+    def eval(self, operator_mode, input_circuit, backend, backend_config=None, compile_config=None, run_config=None, qjob_config=None):
         """
         Supporting three ways to evaluate the given circuits with the operator.
         1. If `input_circuit` is a numpy.ndarray, it will directly perform inner product with the operator.
@@ -742,36 +741,41 @@ class Operator(object):
             operator_mode (str): representation of operator, including paulis, grouped_paulis and matrix
             input_circuit (QuantumCircuit or numpy.ndarray): the quantum circuit.
             backend (BaseBackend): backend selection for quantum machine.
-            execute_config (dict): execution setting to quautum backend, refer to qiskit.execute for details.
+            backend_config (dict): configuration for backend
+            compile_config (dict): configuration for compilation
+            run_config (dict): configuration for running a circuit
             qjob_config (dict): the setting to retrieve results from quantum backend, including timeout and wait.
 
         Returns:
             float, float: mean and standard deviation of avg
         """
-        execute_config = execute_config or {}
+        backend_config = backend_config or {}
+        compile_config = compile_config or {}
+        run_config = run_config or {}
         qjob_config = qjob_config or {}
 
         if isinstance(input_circuit, np.ndarray):
             avg = self._eval_directly(input_circuit)
             std_dev = 0.0
         else:
-            if QuantumAlgorithm.is_statevector_backend(backend):
-                execute_config['shots'] = 1
+            if QuantumInstance.is_statevector_backend(backend):
+                run_config['shots'] = 1
                 has_shared_circuits = True
 
                 if operator_mode == 'matrix':
                     has_shared_circuits = False
 
-                if 'config' in execute_config:
-                    if 'noise_params' in execute_config['config']:
+                if 'config' in backend_config:
+                    if 'noise_params' in backend_config['config']:
                         has_shared_circuits = False
             else:
                 has_shared_circuits = False
 
             circuits = self.construct_evaluation_circuit(operator_mode, input_circuit, backend)
-            result = run_circuits(circuits, backend=backend, execute_config=execute_config,
-                                  qjob_config=qjob_config, show_circuit_summary=self._summarize_circuits,
-                                  has_shared_circuits=has_shared_circuits)
+            result = compile_and_run_circuits(circuits, backend=backend, backend_config=backend_config,
+                                              compile_config=compile_config, run_config=run_config,
+                                              qjob_config=qjob_config, show_circuit_summary=self._summarize_circuits,
+                                              has_shared_circuits=has_shared_circuits)
             avg, std_dev = self.evaluate_with_result(operator_mode, circuits, backend, result)
 
         return avg, std_dev

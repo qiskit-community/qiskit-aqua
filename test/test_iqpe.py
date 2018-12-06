@@ -21,9 +21,11 @@ import numpy as np
 from parameterized import parameterized
 from scipy.linalg import expm
 from scipy import sparse
+from qiskit.transpiler import PassManager
+from qiskit import Aer
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import Operator
+from qiskit_aqua import Operator, QuantumInstance
 from qiskit_aqua.utils import decimal_to_binary
 from qiskit_aqua.algorithms.single_sample import IQPE
 from qiskit_aqua.algorithms.classical import ExactEigensolver
@@ -80,9 +82,11 @@ class TestIQPE(QiskitAquaTestCase):
         state_in = Custom(self.qubitOp.num_qubits, state_vector=self.ref_eigenvec)
         iqpe = IQPE(self.qubitOp, state_in, num_time_slices, num_iterations,
                     paulis_grouping='random', expansion_mode='suzuki', expansion_order=2)
-        iqpe.setup_quantum_backend(backend='qasm_simulator', shots=100, skip_transpiler=True)
 
-        result = iqpe.run()
+        backend = Aer.get_backend('qasm_simulator')
+        quantum_instance = QuantumInstance(backend, shots=100, pass_manager=PassManager())
+
+        result = iqpe.run(quantum_instance)
 
         self.log.debug('top result str label:         {}'.format(result['top_measurement_label']))
         self.log.debug('top result in decimal:        {}'.format(result['top_measurement_decimal']))
