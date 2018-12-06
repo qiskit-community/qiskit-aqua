@@ -135,7 +135,6 @@ class TestQSVMKernel(QiskitAquaTestCase):
         self.assertEqual(result['testing_accuracy'], 0.5)
 
         file_path = self._get_resource_path('qsvm_kernel_test.npz')
-        print(file_path)
         svm.save_model(file_path)
 
         self.assertTrue(os.path.exists(file_path))
