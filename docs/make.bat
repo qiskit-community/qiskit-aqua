@@ -9,7 +9,7 @@ if "%SPHINXBUILD%" == "" (
 )
 set SOURCEDIR=.
 set BUILDDIR=_build
-set SPHINXPROJ=QLib
+set SPHINXPROJ=Aqua
 
 if "%1" == "" goto help
 

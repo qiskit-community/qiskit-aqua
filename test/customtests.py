@@ -20,6 +20,18 @@ import unittest
 import importlib
 import sys
 import argparse
+import logging
+from qiskit_aqua import set_aqua_logging
+
+
+_LOG_LEVELS = {
+    logging.getLevelName(logging.CRITICAL).lower(): logging.CRITICAL,
+    logging.getLevelName(logging.ERROR).lower(): logging.ERROR,
+    logging.getLevelName(logging.WARNING).lower(): logging.WARNING,
+    logging.getLevelName(logging.INFO).lower(): logging.INFO,
+    logging.getLevelName(logging.DEBUG).lower(): logging.DEBUG,
+    logging.getLevelName(logging.NOTSET).lower(): logging.NOTSET,
+}
 
 
 def get_all_test_modules():
@@ -81,6 +93,10 @@ if __name__ == '__main__':
                         type=check_positive,
                         help='end index of test modules to run',
                         required=False)
+    parser.add_argument('-level',
+                        metavar='level',
+                        help='logging level',
+                        required=False)
 
     args = parser.parse_args()
 
@@ -99,6 +115,11 @@ if __name__ == '__main__':
         raise Exception('Start index {} >= end index {}.'.format(
             start_index, end_index))
 
+    level = args.level if args.level is not None else logging.getLevelName(logging.NOTSET)
+    if level.lower() not in _LOG_LEVELS:
+        raise Exception('Invalid logging level: {}.'.format(level))
+
+    set_aqua_logging(_LOG_LEVELS[level.lower()])
     customTests = CustomTests(test_modules[start_index:end_index])
     unittest.main(argv=['first-arg-is-ignored'],
                   defaultTest='customTests.suite', verbosity=2)
