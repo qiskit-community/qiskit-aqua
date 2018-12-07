@@ -961,8 +961,6 @@ class Operator(object):
             p = self._paulis[idx]
             hamiltonian += p[0] * p[1].to_spmatrix()
         self._matrix = hamiltonian
-        # print(self._matrix)
-        # print(self._matrix.shape)
         self._to_dia_matrix(mode='matrix')
         self._paulis = None
         self._grouped_paulis = None
