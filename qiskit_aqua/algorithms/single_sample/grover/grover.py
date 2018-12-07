@@ -31,7 +31,15 @@ logger = logging.getLogger(__name__)
 
 
 class Grover(QuantumAlgorithm):
-    """The Grover Quantum algorithm."""
+    """
+    The Grover Quantum algorithm.
+
+    If the `num_iterations` param is specified, the amplitude amplification iteration will be built as specified.
+
+    If the `incremental` mode is specified, which indicates that the optimal `num_iterations` isn't known in advance,
+    a multi-round schedule will be followed with incremental trial `num_iterations` values.
+    The implementation Section 4 of Boyer et al. <https://arxiv.org/abs/quant-ph/9605034>
+    """
 
     PROP_INCREMENTAL = 'incremental'
     PROP_NUM_ITERATIONS = 'num_iterations'
@@ -185,11 +193,6 @@ class Grover(QuantumAlgorithm):
             self._construct_circuit_components()
 
         if self._incremental:
-            '''
-            The incremental mode is used for when the number of targets is not known.
-            The implementation follows Section 4 of Boyer et al. <https://arxiv.org/abs/quant-ph/9605034>
-            '''
-
             current_max_num_iterations, lam = 1, 6 / 5
 
             def _try_current_max_num_iterations():
