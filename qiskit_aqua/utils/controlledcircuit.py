@@ -102,7 +102,7 @@ def get_controlled_circuit(circuit, ctl_qubit, tgt_circuit=None, use_basis_gates
     # get all operations from compiled circuit
     ops = transpiler.compile(
         circuit,
-        Aer.get_backend('local_qasm_simulator'),
+        Aer.get_backend('qasm_simulator'),
         basis_gates='u1,u2,u3,cx,id'
     )['circuits'][0]['compiled_circuit']['operations']
 
