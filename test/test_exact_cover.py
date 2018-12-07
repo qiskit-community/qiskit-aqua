@@ -31,7 +31,8 @@ class TestExactCover(QiskitAquaTestCase):
     """Cplex Ising tests."""
 
     def setUp(self):
-        with open('sample.exactcover') as f:
+        input_file = self._get_resource_path('sample.exactcover')
+        with open(input_file) as f:
             self.list_of_subsets = json.load(f)
             qubitOp, offset = exactcover.get_exactcover_qubitops(self.list_of_subsets)
             self.algo_input = EnergyInput(qubitOp)

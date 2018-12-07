@@ -30,7 +30,8 @@ class TestSetPacking(QiskitAquaTestCase):
     """Cplex Ising tests."""
 
     def setUp(self):
-        with open('sample.setpacking') as f:
+        input_file = self._get_resource_path('sample.setpacking')
+        with open(input_file) as f:
             self.list_of_subsets = json.load(f)
             qubitOp, offset = setpacking.get_setpacking_qubitops(self.list_of_subsets)
             self.algo_input = EnergyInput(qubitOp)
@@ -98,19 +99,10 @@ class TestSetPacking(QiskitAquaTestCase):
             'variational_form': var_form_cfg,
             'backend': {'name': 'qasm_simulator'}
         }
-        # params = {
-        #     'algorithm': {'name': 'VQE'},
-        #     'optimizer': {'name': "L_BFGS_B"},
-        #     'backend': {'name': 'statevector_simulator', 'shots': 1}
-        # }
-
         result = run_algorithm(params, self.algo_input)
         print(result['eigvecs'][0])
         x = setpacking.sample_most_likely(len(self.list_of_subsets), result['eigvecs'][0])
-        print(x)
         ising_sol = setpacking.get_solution(x)
-        print(ising_sol)
-        # np.testing.assert_array_equal(ising_sol, [0, 1, 1, 0, 0, 1, 1, 1])
         oracle = self.brute_force()
         self.assertEqual(np.count_nonzero(ising_sol), oracle)
 

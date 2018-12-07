@@ -100,18 +100,10 @@ class TestVertexCover(QiskitAquaTestCase):
             'variational_form': var_form_cfg,
             'backend': {'name': 'qasm_simulator'}
         }
-        # params = {
-        #     'algorithm': {'name': 'VQE'},
-        #     'optimizer': {'name': "COBYLA"},
-        #     'backend': {'name': 'statevector_simulator', 'shots': 1}
-        # }
         result = run_algorithm(params, self.algo_input)
         print(result['eigvecs'][0])
         x = vertexcover.sample_most_likely(len(self.w), result['eigvecs'][0])
-        print(x)
         sol = vertexcover.get_graph_solution(x)
-        print(sol)
-        # np.testing.assert_array_equal(sol, [1, 1, 0, 0])
         oracle = self.brute_force()
         self.assertEqual(np.count_nonzero(sol), oracle)
 
