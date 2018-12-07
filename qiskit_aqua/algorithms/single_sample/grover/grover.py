@@ -38,7 +38,7 @@ class Grover(QuantumAlgorithm):
 
     If the `incremental` mode is specified, which indicates that the optimal `num_iterations` isn't known in advance,
     a multi-round schedule will be followed with incremental trial `num_iterations` values.
-    The implementation Section 4 of Boyer et al. <https://arxiv.org/abs/quant-ph/9605034>
+    The implementation follows Section 4 of Boyer et al. <https://arxiv.org/abs/quant-ph/9605034>
     """
 
     PROP_INCREMENTAL = 'incremental'
