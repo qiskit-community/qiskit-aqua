@@ -19,8 +19,12 @@ import unittest
 from collections import OrderedDict
 
 from parameterized import parameterized
-from qiskit_aqua import run_algorithm
 from qiskit import Aer
+
+from qiskit_aqua import QuantumInstance
+from qiskit_aqua.algorithms.adaptive import VQE
+from qiskit_aqua.algorithms.components.variational_forms import RYRZ
+from qiskit_aqua.algorithms.components.optimizers import COBYLA, SPSA
 
 from test.common import QiskitAquaChemistryTestCase
 from qiskit_aqua_chemistry.drivers import ConfigurationManager
@@ -56,21 +60,17 @@ class TestEnd2End(QiskitAquaChemistryTestCase):
     ])
     def test_end2end_h2(self, name, optimizer, backend, mode, shots):
 
-        optimizer_params = {'name': optimizer}
         if optimizer == 'COBYLA':
-            optimizer_params['maxiter'] = 1000
+            optimizer = COBYLA()
+            optimizer.set_options(maxiter=1000)
         elif optimizer == 'SPSA':
-            optimizer_params['max_trials'] = 2000
-            optimizer_params['save_steps'] = 25
+            optimizer = SPSA(max_trials=2000)
 
-        algo_params = {'problem': {'name': 'energy'},
-                       'backend': {'name': backend, 'shots': shots},
-                       'algorithm': {'name': 'VQE', 'operator_mode': mode},
-                       'optimizer': optimizer_params,
-                       'variational_form': {'name': 'RYRZ', 'depth': 3, 'entanglement': 'full'}
-                       }
+        ryrz = RYRZ(self.algo_input.qubit_op.num_qubits, depth=3, entanglement='full')
+        vqe = VQE(self.algo_input.qubit_op, ryrz, optimizer, mode, aux_operators=self.algo_input.aux_ops)
 
-        results = run_algorithm(algo_params, self.algo_input)
+        quantum_instance = QuantumInstance(backend, shots=shots)
+        results = vqe.run(quantum_instance)
         self.assertAlmostEqual(results['energy'], self.reference_energy, places=6)
 
 

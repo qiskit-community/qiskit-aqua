@@ -16,11 +16,18 @@
 # =============================================================================
 
 import unittest
-from parameterized import parameterized
 from collections import OrderedDict
+
+from parameterized import parameterized
 import numpy as np
+from qiskit import Aer
+from qiskit.transpiler import PassManager
 from qiskit_aqua.utils import decimal_to_binary
-from qiskit_aqua import PluggableType, get_pluggable_class
+from qiskit_aqua import QuantumInstance
+from qiskit_aqua.algorithms.single_sample import QPE
+from qiskit_aqua.algorithms.classical import ExactEigensolver
+from qiskit_aqua.algorithms.components.iqfts import Standard
+
 from test.common import QiskitAquaChemistryTestCase
 from qiskit_aqua_chemistry.drivers import ConfigurationManager
 from qiskit_aqua_chemistry import FermionicOperator
@@ -55,14 +62,13 @@ class TestEnd2EndWithQPE(QiskitAquaChemistryTestCase):
             self.skipTest('PYSCF driver does not appear to be installed')
 
         self.molecule = driver.run(section)
-
-        ferOp = FermionicOperator(
+        qubit_mapping = 'parity'
+        fer_op = FermionicOperator(
             h1=self.molecule._one_body_integrals, h2=self.molecule._two_body_integrals)
-        self.qubitOp = ferOp.mapping(
-            map_type='PARITY', threshold=1e-10).two_qubit_reduced_operator(2)
+        self.qubit_op = fer_op.mapping(map_type=qubit_mapping,
+                                       threshold=1e-10).two_qubit_reduced_operator(2)
 
-        exact_eigensolver = get_pluggable_class(
-            PluggableType.ALGORITHM, 'ExactEigensolver')(self.qubitOp, k=1)
+        exact_eigensolver = ExactEigensolver(self.qubit_op, k=1)
         results = exact_eigensolver.run()
         self.reference_energy = results['energy']
         self.log.debug(
@@ -70,25 +76,22 @@ class TestEnd2EndWithQPE(QiskitAquaChemistryTestCase):
 
         num_particles = self.molecule._num_alpha + self.molecule._num_beta
         two_qubit_reduction = True
-        num_orbitals = self.qubitOp.num_qubits + \
+        num_orbitals = self.qubit_op.num_qubits + \
             (2 if two_qubit_reduction else 0)
-        qubit_mapping = 'parity'
 
         num_time_slices = 50
         n_ancillae = 9
 
-        state_in = HartreeFock(self.qubitOp.num_qubits, num_orbitals, num_particles, qubit_mapping, two_qubit_reduction)
-        iqft = get_pluggable_class(PluggableType.IQFT, 'STANDARD')(n_ancillae)
+        state_in = HartreeFock(self.qubit_op.num_qubits, num_orbitals,
+                               num_particles, qubit_mapping, two_qubit_reduction)
+        iqft = Standard(n_ancillae)
 
-        qpe = get_pluggable_class(PluggableType.ALGORITHM, 'QPE')(
-            self.qubitOp, state_in, iqft, num_time_slices, n_ancillae,
-            paulis_grouping='random',
-            expansion_mode='suzuki',
-            expansion_order=2
-        )
-        qpe.setup_quantum_backend(backend='qasm_simulator', shots=100, skip_transpiler=True)
-
-        result = qpe.run()
+        qpe = QPE(self.qubit_op, state_in, iqft, num_time_slices, n_ancillae,
+                  paulis_grouping='random', expansion_mode='suzuki',
+                  expansion_order=2, shallow_circuit_concat=True)
+        backend = Aer.get_backend('qasm_simulator')
+        quantum_instance = QuantumInstance(backend, shots=100, pass_manager=PassManager())
+        result = qpe.run(quantum_instance)
 
         self.log.debug('measurement results:      {}'.format(result['measurements']))
         self.log.debug('top result str label:     {}'.format(result['top_measurement_label']))
@@ -97,10 +100,11 @@ class TestEnd2EndWithQPE(QiskitAquaChemistryTestCase):
         self.log.debug('translation:              {}'.format(result['translation']))
         self.log.debug('final energy from QPE:    {}'.format(result['energy']))
         self.log.debug('reference energy:         {}'.format(self.reference_energy))
-        self.log.debug('ref energy (transformed): {}'.format((self.reference_energy + result['translation']) * result['stretch']))
+        self.log.debug('ref energy (transformed): {}'.format(
+            (self.reference_energy + result['translation']) * result['stretch']))
         self.log.debug('ref binary str label:     {}'.format(decimal_to_binary((self.reference_energy + result['translation']) * result['stretch'],
-                       max_num_digits=n_ancillae + 3,
-                       fractional_part_only=True)))
+                                                                               max_num_digits=n_ancillae + 3,
+                                                                               fractional_part_only=True)))
 
         np.testing.assert_approx_equal(
             result['energy'], self.reference_energy, significant=2)
