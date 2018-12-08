@@ -16,11 +16,17 @@
 # =============================================================================
 
 import unittest
-from parameterized import parameterized
 from collections import OrderedDict
+
+from parameterized import parameterized
 import numpy as np
+from qiskit import Aer
+from qiskit.transpiler import PassManager
 from qiskit_aqua.utils import decimal_to_binary
-from qiskit_aqua import PluggableType, get_pluggable_class
+from qiskit_aqua import QuantumInstance
+from qiskit_aqua.algorithms.single_sample import IQPE
+from qiskit_aqua.algorithms.classical import ExactEigensolver
+
 from test.common import QiskitAquaChemistryTestCase
 from qiskit_aqua_chemistry.drivers import ConfigurationManager
 from qiskit_aqua_chemistry import FermionicOperator
@@ -37,7 +43,8 @@ class TestIQPE(QiskitAquaChemistryTestCase):
     ])
     def test_iqpe(self, distance):
         self.algorithm = 'IQPE'
-        self.log.debug('Testing End-to-End with IQPE on H2 with inter-atomic distance {}.'.format(distance))
+        self.log.debug('Testing End-to-End with IQPE on H2 with '
+                       'inter-atomic distance {}.'.format(distance))
         cfg_mgr = ConfigurationManager()
         pyscf_cfg = OrderedDict([
             ('atom', 'H .0 .0 .0; H .0 .0 {}'.format(distance)),
@@ -53,32 +60,30 @@ class TestIQPE(QiskitAquaChemistryTestCase):
         except ModuleNotFoundError:
             self.skipTest('PYSCF driver does not appear to be installed')
         self.molecule = driver.run(section)
+        qubit_mapping = 'parity'
+        fer_op = FermionicOperator(h1=self.molecule._one_body_integrals, h2=self.molecule._two_body_integrals)
+        self.qubit_op = fer_op.mapping(map_type=qubit_mapping, threshold=1e-10).two_qubit_reduced_operator(2)
 
-        ferOp = FermionicOperator(h1=self.molecule._one_body_integrals, h2=self.molecule._two_body_integrals)
-        self.qubitOp = ferOp.mapping(map_type='PARITY', threshold=1e-10).two_qubit_reduced_operator(2)
-
-        exact_eigensolver = get_pluggable_class(PluggableType.ALGORITHM, 'ExactEigensolver')(self.qubitOp, k=1)
+        exact_eigensolver = ExactEigensolver(self.qubit_op, k=1)
         results = exact_eigensolver.run()
         self.reference_energy = results['energy']
         self.log.debug('The exact ground state energy is: {}'.format(results['energy']))
 
         num_particles = self.molecule._num_alpha + self.molecule._num_beta
         two_qubit_reduction = True
-        num_orbitals = self.qubitOp.num_qubits + (2 if two_qubit_reduction else 0)
-        qubit_mapping = 'parity'
+        num_orbitals = self.qubit_op.num_qubits + (2 if two_qubit_reduction else 0)
 
         num_time_slices = 50
         num_iterations = 12
-        state_in = HartreeFock(self.qubitOp.num_qubits, num_orbitals, num_particles, qubit_mapping, two_qubit_reduction)
-        iqpe = get_pluggable_class(PluggableType.ALGORITHM, 'IQPE')(
-            self.qubitOp, state_in, num_time_slices, num_iterations,
-            paulis_grouping='random',
-            expansion_mode='suzuki',
-            expansion_order=2,
-        )
-        iqpe.setup_quantum_backend(backend='qasm_simulator', shots=100, skip_transpiler=True)
+        state_in = HartreeFock(self.qubit_op.num_qubits, num_orbitals,
+                               num_particles, qubit_mapping, two_qubit_reduction)
+        iqpe = IQPE(self.qubit_op, state_in, num_time_slices, num_iterations,
+                    paulis_grouping='random', expansion_mode='suzuki', expansion_order=2,
+                    shallow_circuit_concat=True)
+        backend = Aer.get_backend('qasm_simulator')
+        quantum_instance = QuantumInstance(backend, shots=100, pass_manager=PassManager())
 
-        result = iqpe.run()
+        result = iqpe.run(quantum_instance)
 
         self.log.debug('top result str label:     {}'.format(result['top_measurement_label']))
         self.log.debug('top result in decimal:    {}'.format(result['top_measurement_decimal']))
