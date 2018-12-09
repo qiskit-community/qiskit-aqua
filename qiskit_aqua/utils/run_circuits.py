@@ -29,7 +29,6 @@ from qiskit.backends import JobError
 
 from qiskit_aqua.aqua_error import AquaError
 from qiskit_aqua.utils import summarize_circuits
-from qiskit_aqua.utils import circuit_cache
 
 
 logger = logging.getLogger(__name__)
@@ -119,9 +118,10 @@ def _reuse_shared_circuits(circuits, backend, backend_config, compile_config, ru
     result = shared_result + diff_result
     return result
 
+#TODO compile_and_run_circuits(QuantumInstance)
 
 def compile_and_run_circuits(circuits, backend, backend_config, compile_config, run_config, qjob_config=None,
-                             show_circuit_summary=False, has_shared_circuits=False):
+                             show_circuit_summary=False, has_shared_circuits=False, circuit_cache = None):
     """
     An execution wrapper with Qiskit-Terra, with job auto recover capability.
 
@@ -160,9 +160,8 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
 
     with_autorecover = False if backend.configuration().simulator else True
     max_circuits_per_job = sys.maxsize if backend.configuration().local else MAX_CIRCUITS_PER_JOB
-    # if circuit_cache.use_caching: max_circuits_per_job = psutil.cpu_count() # option to limit the number of threads
 
-    if circuit_cache.use_caching and circuit_cache.try_reusing_qobjs:
+    if circuit_cache is not None and circuit_cache.try_reusing_qobjs:
         # Check if all circuits are the same length. If not, don't try to use the same qobj.experiment for all of them.
         if len(set([len(circ.data) for circ in circuits])) > 1: circuit_cache.try_reusing_qobjs = False
         else: # Try setting up the reusable qobj
@@ -179,7 +178,7 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
 
     for i in range(chunks):
         sub_circuits = circuits[i * max_circuits_per_job:(i + 1) * max_circuits_per_job]
-        if circuit_cache.use_caching and circuit_cache.misses < 5:
+        if circuit_cache is not None and circuit_cache.misses < 5:
             try:
                 qobj = circuit_cache.load_qobj_from_cache(sub_circuits, i)
             # cache miss, fail gracefully
@@ -194,7 +193,7 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
         else:
             qobj = q_compile(sub_circuits, backend, **backend_config,
                              **compile_config, **run_config)
-        if circuit_cache.naughty_mode:
+        if circuit_cache is not None and circuit_cache.naughty_mode:
             job = circuit_cache.naughty_run(backend, qobj)
         else:
             job = backend.run(qobj)

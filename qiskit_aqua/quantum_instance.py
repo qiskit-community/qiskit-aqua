@@ -23,7 +23,7 @@ from qiskit.backends.ibmq.credentials import Credentials
 from qiskit.backends.ibmq.ibmqsingleprovider import IBMQSingleProvider
 
 from qiskit_aqua_cmd import Preferences
-from qiskit_aqua.utils import compile_and_run_circuits, circuit_cache
+from qiskit_aqua.utils import compile_and_run_circuits, CircuitCache
 
 logger = logging.getLogger(__name__)
 
@@ -105,15 +105,8 @@ class QuantumInstance:
         self._shared_circuits = False
         self._circuit_summary = False
 
-        if cache_config:
-            circuit_cache.use_caching = cache_config.get('circuit_caching', False)
-            circuit_cache.naughty_mode = cache_config.get('caching_naughty_mode', False)
-            circuit_cache.cache_file = cache_config.get('cache_file', None)
-            circuit_cache.persist_cache = cache_config.get('persist_cache', False)
-            if cache_config.get('persist_cache'):
-                circuit_cache.misses = 0
-            else:
-                circuit_cache.clear_cache()
+        if cache_config is not None: self.circuit_cache = CircuitCache(**cache_config)
+        else: self.circuit_cache = None
 
         logger.info(self)
 
@@ -143,7 +136,8 @@ class QuantumInstance:
                                           self._compile_config, self._run_config,
                                           self._qjob_config,
                                           show_circuit_summary=self._circuit_summary,
-                                          has_shared_circuits=self._shared_circuits)
+                                          has_shared_circuits=self._shared_circuits,
+                                          circuit_cache = self.circuit_cache)
         if self._circuit_summary:
             self._circuit_summary = False
 

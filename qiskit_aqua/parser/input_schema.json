@@ -25,10 +25,6 @@
                 "circuit_cache_file": {
                     "type": "string",
                     "default": null
-                },
-                "persist_cache": {
-                    "type": "boolean",
-                    "default": false
                 }
             },
             "required": ["name"],

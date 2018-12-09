@@ -30,12 +30,7 @@ from .dataset_helper import (get_feature_dimension, get_num_classes,
                              reduce_dim_to_via_pca)
 from .qpsolver import optimize_svm
 from .run_circuits import compile_and_run_circuits, find_regs_by_name
-from .circuit_cache import cache_circuit
-from .circuit_cache import load_qobj_from_cache
-from .circuit_cache import clear_cache
-from .circuit_cache import naughty_mode
-from .circuit_cache import naughty_run
-from .circuit_cache import cache_file
+from .circuit_cache import CircuitCache
 
 __all__ = ['tensorproduct',
            'PauliGraph',
@@ -59,9 +54,5 @@ __all__ = ['tensorproduct',
            'optimize_svm',
            'compile_and_run_circuits',
            'find_regs_by_name',
-           'cache_circuit',
-           'load_qobj_from_cache',
-           'clear_cache',
-           'naughty_mode',
-           'naughty_run',
-           'cache_file',]
+           'CircuitCache',
+           ]

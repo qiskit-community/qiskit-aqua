@@ -109,15 +109,13 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
         if pass_manager is not None:
             backend_cfg['pass_manager'] = pass_manager
 
-        cache_config = {}
-        cache_config['circuit_caching'] = inputparser.get_section_property(JSONSchema.PROBLEM, 'circuit_caching')
-        cache_config['caching_naughty_mode'] = inputparser.get_section_property(JSONSchema.PROBLEM,
-                                                                                'caching_naughty_mode')
-        cache_config['cache_file'] = inputparser.get_section_property(JSONSchema.PROBLEM, 'circuit_cache_file')
-        cache_config['persist_cache'] = inputparser.get_section_property(JSONSchema.PROBLEM, 'persist_cache')
-        if not cache_config['circuit_caching'] and cache_config['caching_naughty_mode']:
-            logger.warning("You should not use caching naughty mode if caching is disabled.")
-        backend_cfg['cache_config'] = cache_config
+        use_caching = inputparser.get_section_property(JSONSchema.PROBLEM, 'circuit_caching')
+        if use_caching:
+            cache_config = {}
+            cache_config['caching_naughty_mode'] = inputparser.get_section_property(JSONSchema.PROBLEM,
+                                                                                    'caching_naughty_mode')
+            cache_config['cache_file'] = inputparser.get_section_property(JSONSchema.PROBLEM, 'circuit_cache_file')
+            backend_cfg['cache_config'] = cache_config
 
         quantum_instance = QuantumInstance(**backend_cfg)
 
