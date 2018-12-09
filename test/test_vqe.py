@@ -71,7 +71,8 @@ class TestVQE(QiskitAquaTestCase):
         ['POWELL', 5, False],
         ['SLSQP', 5, True],
         ['SLSQP', 5, False],
-        ['SPSA', 5, False],
+        ['SPSA', 3, True],
+        ['SPSA', 3, False],
         ['TNC', 2, True],
         ['TNC', 2, False]
     ])

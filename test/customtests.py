@@ -75,7 +75,7 @@ if __name__ == '__main__':
     parser.add_argument('start',
                         metavar='start',
                         type=check_positive_or_zero,
-                        help='end index of test modules to run')
+                        help='start index of test modules to run')
     parser.add_argument('-end',
                         metavar='index',
                         type=check_positive,
