@@ -23,7 +23,7 @@ from qiskit import Aer
 from test.common import QiskitAquaTestCase
 from qiskit_aqua.input import SVMInput
 from qiskit_aqua import run_algorithm, QuantumInstance
-from qiskit_aqua.algorithms.adaptive import QSVMVariational
+from qiskit_aqua.algorithms import QSVMVariational
 from qiskit_aqua.algorithms.components.optimizers import SPSA
 from qiskit_aqua.algorithms.components.feature_maps import SecondOrderExpansion
 from qiskit_aqua.algorithms.components.variational_forms import RYRZ

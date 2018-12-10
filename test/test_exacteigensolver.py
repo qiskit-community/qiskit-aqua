@@ -22,7 +22,7 @@ import numpy as np
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import Operator, run_algorithm
 from qiskit_aqua.input import EnergyInput
-from qiskit_aqua.algorithms.classical import ExactEigensolver
+from qiskit_aqua.algorithms import ExactEigensolver
 
 
 class TestExactEigensolver(QiskitAquaTestCase):

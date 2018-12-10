@@ -17,7 +17,8 @@
 
 import logging
 
-from qiskit_aqua import (AquaError, QuantumAlgorithm, PluggableType, get_pluggable_class)
+from qiskit_aqua.algorithms import QuantumAlgorithm
+from qiskit_aqua import AquaError, PluggableType, get_pluggable_class
 from qiskit_aqua.algorithms.many_sample.qsvm._qsvm_kernel_binary import _QSVM_Kernel_Binary
 from qiskit_aqua.algorithms.many_sample.qsvm._qsvm_kernel_multiclass import _QSVM_Kernel_Multiclass
 from qiskit_aqua.algorithms.many_sample.qsvm._qsvm_kernel_estimator import _QSVM_Kernel_Estimator
