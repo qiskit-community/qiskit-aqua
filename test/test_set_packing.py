@@ -61,7 +61,7 @@ class TestSetPacking(QiskitAquaTestCase):
         result = run_algorithm(params, self.algo_input)
         x = setpacking.sample_most_likely(len(self.list_of_subsets), result['eigvecs'][0])
         ising_sol = setpacking.get_solution(x)
-        np.testing.assert_array_equal(ising_sol, [0, 1, 1, 1])
+        np.testing.assert_array_equal(ising_sol, [0, 1, 1])
         oracle = self.brute_force()
         self.assertEqual(np.count_nonzero(ising_sol), oracle)
 
@@ -70,7 +70,7 @@ class TestSetPacking(QiskitAquaTestCase):
         result = algo.run()
         x = setpacking.sample_most_likely(len(self.list_of_subsets), result['eigvecs'][0])
         ising_sol = setpacking.get_solution(x)
-        np.testing.assert_array_equal(ising_sol, [0, 1, 1, 1])
+        np.testing.assert_array_equal(ising_sol, [0, 1, 1])
         oracle = self.brute_force()
         self.assertEqual(np.count_nonzero(ising_sol), oracle)
 
@@ -83,7 +83,7 @@ class TestSetPacking(QiskitAquaTestCase):
 
         optimizer_cfg = {
             'name': 'SPSA',
-            'max_trials': 300
+            'max_trials': 200
         }
 
         var_form_cfg = {

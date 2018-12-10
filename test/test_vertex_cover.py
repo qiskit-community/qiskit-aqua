@@ -29,7 +29,7 @@ class TestVertexCover(QiskitAquaTestCase):
 
     def setUp(self):
         np.random.seed(100)
-        self.num_nodes = 4
+        self.num_nodes = 3
         self.w = vertexcover.random_graph(self.num_nodes, edge_prob=0.8, weight_range=10)
         self.qubit_op, self.offset = vertexcover.get_vertexcover_qubitops(self.w)
         self.algo_input = EnergyInput(self.qubit_op)
@@ -63,7 +63,7 @@ class TestVertexCover(QiskitAquaTestCase):
 
         x = vertexcover.sample_most_likely(len(self.w), result['eigvecs'][0])
         sol = vertexcover.get_graph_solution(x)
-        np.testing.assert_array_equal(sol, [1, 1, 0, 0])
+        np.testing.assert_array_equal(sol, [0, 1, 1])
         oracle = self.brute_force()
         self.assertEqual(np.count_nonzero(sol), oracle)
 
@@ -72,7 +72,7 @@ class TestVertexCover(QiskitAquaTestCase):
         result = algo.run()
         x = vertexcover.sample_most_likely(len(self.w), result['eigvecs'][0])
         sol = vertexcover.get_graph_solution(x)
-        np.testing.assert_array_equal(sol, [1, 1, 0, 0])
+        np.testing.assert_array_equal(sol, [0, 1, 1])
         oracle = self.brute_force()
         self.assertEqual(np.count_nonzero(sol), oracle)
 
@@ -84,13 +84,12 @@ class TestVertexCover(QiskitAquaTestCase):
 
         optimizer_cfg = {
             'name': 'SPSA',
-            'max_trials': 300
+            'max_trials': 200
         }
 
         var_form_cfg = {
             'name': 'RYRZ',
             'depth': 3,
-            # 'entanglement': 'linear'
         }
 
         params = {

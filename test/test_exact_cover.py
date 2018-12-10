@@ -62,7 +62,7 @@ class TestExactCover(QiskitAquaTestCase):
         result = run_algorithm(params, self.algo_input)
         x = exactcover.sample_most_likely(len(self.list_of_subsets), result['eigvecs'][0])
         ising_sol = exactcover.get_solution(x)
-        np.testing.assert_array_equal(ising_sol, [0, 1, 0, 0, 1])
+        np.testing.assert_array_equal(ising_sol, [0, 1, 1, 0])
         oracle = self.brute_force()
         self.assertEqual(exactcover.check_solution_satisfiability(ising_sol, self.list_of_subsets), oracle)
 
@@ -71,7 +71,7 @@ class TestExactCover(QiskitAquaTestCase):
         result = algo.run()
         x = exactcover.sample_most_likely(len(self.list_of_subsets), result['eigvecs'][0])
         ising_sol = exactcover.get_solution(x)
-        np.testing.assert_array_equal(ising_sol, [0, 1, 0, 0, 1])
+        np.testing.assert_array_equal(ising_sol, [0, 1, 1, 0])
         oracle = self.brute_force()
         self.assertEqual(exactcover.check_solution_satisfiability(ising_sol, self.list_of_subsets), oracle)
 
@@ -87,9 +87,8 @@ class TestExactCover(QiskitAquaTestCase):
         }
 
         var_form_cfg = {
-            'name': 'RY',
-            'depth': 5,
-            'entanglement': 'linear'
+            'name': 'RYRZ',
+            'depth': 5
         }
 
         params = {
@@ -102,6 +101,5 @@ class TestExactCover(QiskitAquaTestCase):
         result = run_algorithm(params, self.algo_input)
         x = exactcover.sample_most_likely(len(self.list_of_subsets), result['eigvecs'][0])
         ising_sol = exactcover.get_solution(x)
-        np.testing.assert_array_equal(ising_sol, [0, 1, 0, 0, 1])
         oracle = self.brute_force()
         self.assertEqual(exactcover.check_solution_satisfiability(ising_sol, self.list_of_subsets), oracle)
