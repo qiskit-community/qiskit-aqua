@@ -8,7 +8,6 @@ notifications:
     on_failure: always
 
 cache: pip
-sudo: false
 os: linux
 dist: trusty
 
@@ -17,7 +16,10 @@ python:
     - "3.6"
 
 # Install Qiskit Terra from master branch
-env: CMAKE_FLAGS="-D CMAKE_CXX_COMPILER=g++-5 -D ENABLE_TARGETS_QA=False -D WHEEL_TAG=-pmanylinux1_x86_64 -D STATIC_LINKING=True"
+env: 
+    - >
+      CMAKE_FLAGS="-D CMAKE_CXX_COMPILER=g++-5 -D ENABLE_TARGETS_QA=False -D WHEEL_TAG=-pmanylinux1_x86_64 -D STATIC_LINKING=True"
+      DEP_BRANCH=$(if [ ${TRAVIS_BRANCH} != "stable" ]; then echo "master"; else echo "stable"; fi)
 addons:
     apt:
       sources:
@@ -27,35 +29,36 @@ addons:
         - libblas-dev
         - g++-5    
 
-# Install Qiskit Terra from master branch
-# Install Qiskit Aqua from master branch
 before_install:
-    # download Qiskit Terra master and unzip it
-    - wget https://codeload.github.com/Qiskit/qiskit-terra/zip/master -O /tmp/qiskit-terra-master.zip
-    - unzip /tmp/qiskit-terra-master.zip -d /tmp/
-    # Install Qiskit Terra dependencies.
-    - pip install -U -r /tmp/qiskit-terra-master/requirements.txt
-    - pip install -U -r /tmp/qiskit-terra-master/requirements-dev.txt
-    # Create the basic cmake structure, setting out/ as the default dir.
-    - cd /tmp/qiskit-terra-master
-    - mkdir out && cd out && cmake $CMAKE_FLAGS ..
-    # Compile the executables
-    - make
-    # Install local Qiskit Terra
-    - pip install -e /tmp/qiskit-terra-master
-    # back to current repo directory
-    - cd $TRAVIS_BUILD_DIR
-    # download Qiskit Aqua master and unzip it
-    - wget https://codeload.github.com/Qiskit/aqua/zip/master -O /tmp/aqua-master.zip
-    - unzip /tmp/aqua-master.zip -d /tmp/
+    # download Qiskit Terra master and unzip it only if not in stable branch, otherwise use the pypi version
+    - |
+      if [ ${TRAVIS_BRANCH} != "stable" ]; then
+        wget https://codeload.github.com/Qiskit/qiskit-terra/zip/master -O /tmp/qiskit-terra.zip
+        unzip /tmp/qiskit-terra.zip -d /tmp/
+        # Install Qiskit Terra requirements.
+        pip install -U -r /tmp/qiskit-terra-master/requirements.txt
+        pip install -U -r /tmp/qiskit-terra-master/requirements-dev.txt
+        # Create the basic cmake structure, setting out/ as the default dir.
+        cd /tmp/qiskit-terra-master
+        mkdir out && cd out && cmake $CMAKE_FLAGS ..
+        # Compile the executables
+        make
+        # Install local Qiskit Terra
+        pip install -e /tmp/qiskit-terra-master
+        # back to current repo directory
+        cd $TRAVIS_BUILD_DIR
+      fi
+    # download Qiskit Aqua and unzip it
+    - wget https://codeload.github.com/Qiskit/aqua/zip/$DEP_BRANCH -O /tmp/aqua.zip
+    - unzip /tmp/aqua.zip -d /tmp/
     # Install Qiskit Aqua dependencies.
-    - pip install -U -r /tmp/aqua-master/requirements.txt
-    - pip install -U -r /tmp/aqua-master/requirements-dev.txt
+    - pip install -U -r /tmp/aqua-$DEP_BRANCH/requirements.txt
+    - pip install -U -r /tmp/aqua-$DEP_BRANCH/requirements-dev.txt
     # Install local Qiskit Aqua
-    - pip install -e /tmp/aqua-master
+    - pip install -e /tmp/aqua-$DEP_BRANCH
     # download PyQuante master and unzip it
-    - wget https://codeload.github.com/rpmuller/pyquante2/zip/master -O /tmp/pyquante2-master.zip
-    - unzip /tmp/pyquante2-master.zip -d /tmp/
+    - wget https://codeload.github.com/rpmuller/pyquante2/zip/master -O /tmp/pyquante2.zip
+    - unzip /tmp/pyquante2.zip -d /tmp/
     # Install pyQuante  dependencies.
     - pip install -U -r /tmp/pyquante2-master/requirements.txt
     # Install local PyQuante
