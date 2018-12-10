@@ -17,8 +17,9 @@ python:
 
 # Install Qiskit Terra from master branch
 env: 
-    - CMAKE_FLAGS="-D CMAKE_CXX_COMPILER=g++-5 -D ENABLE_TARGETS_QA=False -D WHEEL_TAG=-pmanylinux1_x86_64 -D STATIC_LINKING=True"
-    - DEP_BRANCH=$(if [ ${TRAVIS_BRANCH} != "stable" ]; then echo "master"; else echo "stable"; fi)
+    - >
+      CMAKE_FLAGS="-D CMAKE_CXX_COMPILER=g++-5 -D ENABLE_TARGETS_QA=False -D WHEEL_TAG=-pmanylinux1_x86_64 -D STATIC_LINKING=True"
+      DEP_BRANCH=$(if [ ${TRAVIS_BRANCH} != "stable" ]; then echo "master"; else echo "stable"; fi)
 addons:
     apt:
       sources:
