@@ -172,11 +172,11 @@ class QPE(QuantumAlgorithm):
                    expansion_order=expansion_order)
 
     def _compute_energy(self):
-        if QuantumAlgorithm.is_statevector_backend(self.backend):
+        if self._quantum_instance.is_statevector:
             raise ValueError('Selected backend does not support measurements.')
 
         qc = self._phase_estimation_component.construct_circuit(measure=True)
-        result = self.execute(qc)
+        result = self._quantum_instance.execute(qc)
         rd = result.get_counts(qc)
         rets = sorted([(rd[k], k) for k in rd])[::-1]
         ret = rets[0][-1][::-1]
@@ -187,6 +187,6 @@ class QPE(QuantumAlgorithm):
         self._ret['top_measurement_decimal'] = retval
         self._ret['energy'] = retval / self._ret['stretch'] - self._ret['translation']
 
-    def run(self):
+    def _run(self):
         self._compute_energy()
         return self._ret

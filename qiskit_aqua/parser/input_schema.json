@@ -49,16 +49,8 @@
                     "type": ["object", "null"],
                     "default": null
                 },
-                "coupling_map": {
-                    "type": ["object", "null"],
-                    "default": null
-                },
                 "initial_layout": {
                     "type": ["object", "null"],
-                    "default": null
-                },
-                "basis_gates": {
-                    "type": ["string", "null"],
                     "default": null
                 },
                 "max_credits": {
