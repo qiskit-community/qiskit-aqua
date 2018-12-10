@@ -27,8 +27,8 @@ from qiskit import Aer
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import Operator, QuantumInstance
 from qiskit_aqua.utils import decimal_to_binary
-from qiskit_aqua.algorithms.single_sample import IQPE
-from qiskit_aqua.algorithms.classical import ExactEigensolver
+from qiskit_aqua.algorithms import IQPE
+from qiskit_aqua.algorithms import ExactEigensolver
 from qiskit_aqua.algorithms.components.initial_states import Custom
 
 

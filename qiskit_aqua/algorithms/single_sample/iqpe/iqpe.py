@@ -24,8 +24,8 @@ import logging
 import numpy as np
 from qiskit import QuantumRegister, ClassicalRegister
 from qiskit.quantum_info import Pauli
-
-from qiskit_aqua import Operator, QuantumAlgorithm, AquaError
+from qiskit_aqua.algorithms import QuantumAlgorithm
+from qiskit_aqua import Operator, AquaError
 from qiskit_aqua import PluggableType, get_pluggable_class
 
 logger = logging.getLogger(__name__)
