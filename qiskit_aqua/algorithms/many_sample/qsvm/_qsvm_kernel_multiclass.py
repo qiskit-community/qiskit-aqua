@@ -69,16 +69,16 @@ class _QSVM_Kernel_Multiclass(_QSVM_Kernel_ABC):
     def load_model(self, file_path):
         model_npz = np.load(file_path)
         for i in range(len(self.multiclass_classifier.estimators)):
-            self.multiclass_classifier.estimators.ret['alphas'] = model_npz['alphas_{}'.format(i)]
-            self.multiclass_classifier.estimators.ret['bias'] = model_npz['bias_{}'.format(i)]
-            self.multiclass_classifier.estimators.ret['support_vectors'] = model_npz['support_vectors_{}'.format(i)]
-            self.multiclass_classifier.estimators.ret['yin'] = model_npz['yin_{}'.format(i)]
+            self.multiclass_classifier.estimators.ret['svm']['alphas'] = model_npz['alphas_{}'.format(i)]
+            self.multiclass_classifier.estimators.ret['svm']['bias'] = model_npz['bias_{}'.format(i)]
+            self.multiclass_classifier.estimators.ret['svm']['support_vectors'] = model_npz['support_vectors_{}'.format(i)]
+            self.multiclass_classifier.estimators.ret['svm']['yin'] = model_npz['yin_{}'.format(i)]
 
     def save_model(self, file_path):
         model = {}
         for i, estimator in enumerate(self.multiclass_classifier.estimators):
-            model['alphas_{}'.format(i)] = estimator.ret['alphas']
-            model['bias_{}'.format(i)] = estimator.ret['bias']
-            model['support_vectors_{}'.format(i)] = estimator.ret['support_vectors']
-            model['yin_{}'.format(i)] = estimator.ret['yin']
+            model['alphas_{}'.format(i)] = estimator.ret['svm']['alphas']
+            model['bias_{}'.format(i)] = estimator.ret['svm']['bias']
+            model['support_vectors_{}'.format(i)] = estimator.ret['svm']['support_vectors']
+            model['yin_{}'.format(i)] = estimator.ret['svm']['yin']
         np.savez(file_path, **model)

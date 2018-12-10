@@ -19,8 +19,7 @@ import unittest
 import copy
 
 import numpy as np
-import qiskit
-from qiskit import QuantumRegister
+from qiskit import QuantumRegister, Aer
 from qiskit import execute as q_execute
 from qiskit.quantum_info import state_fidelity
 
@@ -105,7 +104,7 @@ class TestEvolution(QiskitAquaTestCase):
                         expansion_mode=expansion_mode,
                         expansion_order=expansion_order,
                     )
-                    job = q_execute(qc, qiskit.Aer.get_backend('statevector_simulator'))
+                    job = q_execute(qc, Aer.get_backend('statevector_simulator'))
                     state_out_circuit = np.asarray(
                         job.result().get_statevector(qc, decimals=16))
 
