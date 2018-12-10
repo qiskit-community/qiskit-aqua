@@ -19,6 +19,7 @@ import numpy as np
 import json
 
 from test.common import QiskitAquaTestCase
+from qiskit import Aer
 
 from qiskit_aqua import run_algorithm
 from qiskit_aqua.input import EnergyInput
@@ -82,8 +83,7 @@ class TestExactCover(QiskitAquaTestCase):
         }
 
         optimizer_cfg = {
-            'name': 'SPSA',
-            'max_trials': 300
+            'name': 'COBYLA'
         }
 
         var_form_cfg = {
@@ -95,10 +95,10 @@ class TestExactCover(QiskitAquaTestCase):
             'problem': {'name': 'ising', 'random_seed': 10598},
             'algorithm': algorithm_cfg,
             'optimizer': optimizer_cfg,
-            'variational_form': var_form_cfg,
-            'backend': {'name': 'statevector_simulator'}
+            'variational_form': var_form_cfg
         }
-        result = run_algorithm(params, self.algo_input)
+        backend = Aer.get_backend('statevector_simulator')
+        result = run_algorithm(params, self.algo_input, backend=backend)
         x = exactcover.sample_most_likely(len(self.list_of_subsets), result['eigvecs'][0])
         ising_sol = exactcover.get_solution(x)
         oracle = self.brute_force()

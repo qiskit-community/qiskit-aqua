@@ -18,6 +18,7 @@
 import numpy as np
 
 from test.common import QiskitAquaTestCase
+from qiskit import Aer
 
 from qiskit_aqua import run_algorithm
 from qiskit_aqua.input import EnergyInput
@@ -81,8 +82,7 @@ class TestClique(QiskitAquaTestCase):
         }
 
         optimizer_cfg = {
-            'name': 'SPSA',
-            'max_trials': 300
+            'name': 'COBYLA'
         }
 
         var_form_cfg = {
@@ -95,10 +95,10 @@ class TestClique(QiskitAquaTestCase):
             'problem': {'name': 'ising', 'random_seed': 10598},
             'algorithm': algorithm_cfg,
             'optimizer': optimizer_cfg,
-            'variational_form': var_form_cfg,
-            'backend': {'name': 'statevector_simulator'}
+            'variational_form': var_form_cfg
         }
-        result = run_algorithm(params, self.algo_input)
+        backend = Aer.get_backend('statevector_simulator')
+        result = run_algorithm(params, self.algo_input, backend=backend)
         x = clique.sample_most_likely(len(self.w), result['eigvecs'][0])
         ising_sol = clique.get_graph_solution(x)
         np.testing.assert_array_equal(ising_sol, [1, 1, 1, 1, 1])

@@ -18,6 +18,8 @@
 import numpy as np
 
 from test.common import QiskitAquaTestCase
+from qiskit import Aer
+
 from qiskit_aqua import run_algorithm
 from qiskit_aqua.input import EnergyInput
 from qiskit_aqua.translators.ising import vertexcover
@@ -96,11 +98,10 @@ class TestVertexCover(QiskitAquaTestCase):
             'problem': {'name': 'ising', 'random_seed': 100},
             'algorithm': algorithm_cfg,
             'optimizer': optimizer_cfg,
-            'variational_form': var_form_cfg,
-            'backend': {'name': 'qasm_simulator'}
+            'variational_form': var_form_cfg
         }
-        result = run_algorithm(params, self.algo_input)
-        print(result['eigvecs'][0])
+        backend = Aer.get_backend('qasm_simulator')
+        result = run_algorithm(params, self.algo_input, backend=backend)
         x = vertexcover.sample_most_likely(len(self.w), result['eigvecs'][0])
         sol = vertexcover.get_graph_solution(x)
         oracle = self.brute_force()

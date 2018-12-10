@@ -19,6 +19,7 @@ import numpy as np
 import json
 
 from test.common import QiskitAquaTestCase
+from qiskit import Aer
 
 from qiskit_aqua import run_algorithm
 from qiskit_aqua.input import EnergyInput
@@ -96,11 +97,10 @@ class TestSetPacking(QiskitAquaTestCase):
             'problem': {'name': 'ising', 'random_seed': 100},
             'algorithm': algorithm_cfg,
             'optimizer': optimizer_cfg,
-            'variational_form': var_form_cfg,
-            'backend': {'name': 'qasm_simulator'}
+            'variational_form': var_form_cfg
         }
-        result = run_algorithm(params, self.algo_input)
-        print(result['eigvecs'][0])
+        backend = Aer.get_backend('qasm_simulator')
+        result = run_algorithm(params, self.algo_input, backend=backend)
         x = setpacking.sample_most_likely(len(self.list_of_subsets), result['eigvecs'][0])
         ising_sol = setpacking.get_solution(x)
         oracle = self.brute_force()
