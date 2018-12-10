@@ -180,8 +180,8 @@ class Operator(object):
             curr_repr = 'matrix'
             length = "{}x{}".format(2 ** self.num_qubits, 2 ** self.num_qubits)
 
-        ret = "Representation: {}, qubits: {}, size: {} (number of groups: {})".format(
-            curr_repr, self.num_qubits, length, "" if group is None else " {}".format(group))
+        ret = "Representation: {}, qubits: {}, size: {} {}".format(
+            curr_repr, self.num_qubits, length, "" if group is None else "(number of groups: {})".format(group))
 
         return ret
 
