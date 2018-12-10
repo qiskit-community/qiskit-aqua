@@ -22,7 +22,7 @@ from qiskit import Aer
 from qiskit.transpiler import PassManager
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import Operator
+from qiskit_aqua import Operator, QuantumInstance
 from qiskit_aqua.input import EnergyInput
 from qiskit_aqua.utils import decimal_to_binary
 from qiskit_aqua.algorithms.components.initial_states.varformbased import VarFormBased
@@ -35,7 +35,8 @@ from qiskit_aqua.algorithms.single_sample import IQPE
 class TestVQE2IQPE(QiskitAquaTestCase):
 
     def setUp(self):
-        np.random.seed(0)
+        self.random_seed = 0
+        np.random.seed(self.random_seed)
         pauli_dict = {
             'paulis': [{"coeff": {"imag": 0.0, "real": -1.052373245772859}, "label": "II"},
                        {"coeff": {"imag": 0.0, "real": 0.39793742484318045}, "label": "IZ"},
@@ -54,8 +55,8 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         optimizer = SPSA(max_trials=10)
         # optimizer.set_options(**{'max_trials': 500})
         algo = VQE(self.algo_input.qubit_op, var_form, optimizer, 'paulis')
-        algo.setup_quantum_backend(backend=backend)
-        result = algo.run()
+        quantum_instance = QuantumInstance(backend)
+        result = algo.run(quantum_instance)
 
         self.log.debug('VQE result: {}.'.format(result))
 
@@ -66,10 +67,10 @@ class TestVQE2IQPE(QiskitAquaTestCase):
 
         state_in = VarFormBased(var_form, result['opt_params'])
         iqpe = IQPE(self.algo_input.qubit_op, state_in, num_time_slices, num_iterations,
-                    paulis_grouping='random', expansion_mode='suzuki', expansion_order=2)
-        iqpe.setup_quantum_backend(backend=backend, shots=100, pass_manager=PassManager())
-
-        result = iqpe.run()
+                    paulis_grouping='random', expansion_mode='suzuki', expansion_order=2, shallow_circuit_concat=True)
+        quantum_instance = QuantumInstance(backend, shots=100, pass_manager=PassManager(),
+                                       seed=self.random_seed, seed_mapper=self.random_seed)
+        result = iqpe.run(quantum_instance)
 
         self.log.debug('top result str label:         {}'.format(result['top_measurement_label']))
         self.log.debug('top result in decimal:        {}'.format(result['top_measurement_decimal']))
