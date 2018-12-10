@@ -8,7 +8,6 @@ notifications:
     on_failure: always
 
 cache: pip
-sudo: false
 os: linux
 dist: trusty
 
