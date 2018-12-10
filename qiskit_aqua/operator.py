@@ -1546,7 +1546,7 @@ class Operator(object):
         self._check_representation("paulis")
 
         for pauli in self._paulis:
-            stacked_paulis.append(np.concatenate((pauli[1].x, pauli[1].z).astype(np.int), axis=0))
+            stacked_paulis.append(np.concatenate((pauli[1].x, pauli[1].z), axis=0).astype(np.int))
 
         stacked_matrix = np.array(np.stack(stacked_paulis))
         symmetries = Operator.kernel_F2(stacked_matrix)

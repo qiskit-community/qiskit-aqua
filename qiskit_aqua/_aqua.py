@@ -106,6 +106,7 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
         backend_cfg['seed_mapper'] = random_seed
         pass_manager = PassManager() if backend_cfg.pop('skip_transpiler', False) else None
         if pass_manager is not None:
+            logger.warning("skip_transpiler is depreated, please remove it from your setting.")
             backend_cfg['pass_manager'] = pass_manager
 
         quantum_instance = QuantumInstance(**backend_cfg)
