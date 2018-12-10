@@ -16,18 +16,16 @@
 # =============================================================================
 
 
-
-
 import logging
 from collections import OrderedDict
 
 import numpy as np
-import numpy.random as rand
-from qiskit.quantum_info import Pauli
 
+from qiskit.quantum_info import Pauli
 from qiskit_aqua import Operator
 
 logger = logging.getLogger(__name__)
+
 
 def random_number_list(n, weight_range=100, savefile=None):
     """Generate a set of positive integers within the given range.
@@ -47,6 +45,7 @@ def random_number_list(n, weight_range=100, savefile=None):
                 outfile.write('{}\n'.format(number_list[i]))
     return number_list
 
+
 def get_exactcover_qubitops(list_of_subsets):
     """Construct the Hamiltonian for the exact solver problem
 
@@ -61,15 +60,17 @@ def get_exactcover_qubitops(list_of_subsets):
     Assumption:
         the union of the subsets contains all the elements to cover
 
+    The Hamiltonian is:
+       sum_{each element e}{(1-sum_{every subset_i that contains e}{Xi})^2},
+       where Xi (Xi=1 or 0) means whether should include the subset i.
+
     """
     n = len(list_of_subsets)
-    # The Hamiltonian is:
-    # sum_{each element e}{(1-sum_{every subset_i that contains e}{Xi})^2},
-    # where Xi (Xi=1 or 0) means whether or not we should include the subset i.
+
     U = []
     for sub in list_of_subsets:
         U.extend(sub)
-    U = np.unique(U) # U is the universe
+    U = np.unique(U)   # U is the universe
 
     shift = 0
     pauli_list = []
@@ -98,8 +99,8 @@ def get_exactcover_qubitops(list_of_subsets):
             vp[i] = 1
             pauli_list.append([-Y, Pauli(vp, wp)])
 
-
     return Operator(paulis=pauli_list), shift
+
 
 def read_numbers_from_file(filename):
     """Read numbers from a file
@@ -113,10 +114,9 @@ def read_numbers_from_file(filename):
     numbers = []
     with open(filename) as infile:
         for line in infile:
-            assert(int(round(float(line)))  == float(line))
+            assert(int(round(float(line))) == float(line))
             numbers.append(int(round(float(line))))
     return np.array(numbers)
-
 
 
 def sample_most_likely(n, state_vector):
@@ -164,8 +164,7 @@ def check_solution_satisfiability(sol, list_of_subsets):
     U = []
     for sub in list_of_subsets:
         U.extend(sub)
-    U = np.unique(U) # U is the universe
-
+    U = np.unique(U)  # U is the universe
 
     U2 = []
     selected_subsets = []
@@ -184,16 +183,7 @@ def check_solution_satisfiability(sol, list_of_subsets):
             L = selected_subsets[i]
             R = selected_subsets[j]
 
-            if set(L) & set(R): # should be empty
+            if set(L) & set(R):  # should be empty
                 return False
 
     return True
-
-
-
-
-
-
-
-
-

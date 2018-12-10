@@ -15,19 +15,16 @@
 # limitations under the License.
 # =============================================================================
 
-
-
-
 import logging
 from collections import OrderedDict
 
 import numpy as np
-import numpy.random as rand
-from qiskit.quantum_info import Pauli
 
+from qiskit.quantum_info import Pauli
 from qiskit_aqua import Operator
 
 logger = logging.getLogger(__name__)
+
 
 def random_number_list(n, weight_range=100, savefile=None):
     """Generate a set of positive integers within the given range.
@@ -46,6 +43,7 @@ def random_number_list(n, weight_range=100, savefile=None):
             for i in range(n):
                 outfile.write('{}\n'.format(number_list[i]))
     return number_list
+
 
 def get_setpacking_qubitops(list_of_subsets):
     """Construct the Hamiltonian for the set packing
@@ -75,7 +73,7 @@ def get_setpacking_qubitops(list_of_subsets):
     n = len(list_of_subsets)
     for i in range(n):
         for j in range(i):
-            if set(list_of_subsets[i]) & set(list_of_subsets[j]): # overlaps
+            if set(list_of_subsets[i]) & set(list_of_subsets[j]):
                 wp = np.zeros(n)
                 vp = np.zeros(n)
                 vp[i] = 1
@@ -101,6 +99,7 @@ def get_setpacking_qubitops(list_of_subsets):
 
     return Operator(paulis=pauli_list), shift
 
+
 def read_numbers_from_file(filename):
     """Read numbers from a file
 
@@ -113,10 +112,9 @@ def read_numbers_from_file(filename):
     numbers = []
     with open(filename) as infile:
         for line in infile:
-            assert(int(round(float(line)))  == float(line))
+            assert(int(round(float(line))) == float(line))
             numbers.append(int(round(float(line))))
     return np.array(numbers)
-
 
 
 def sample_most_likely(n, state_vector):
@@ -170,16 +168,7 @@ def check_disjoint(sol, list_of_subsets):
         for j in range(i):
             L = selected_subsets[i]
             R = selected_subsets[j]
-            if set(L) & set(R): # should be empty
+            if set(L) & set(R):
                 return False
 
     return True
-
-
-
-
-
-
-
-
-

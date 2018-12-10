@@ -25,14 +25,13 @@ from qiskit_aqua.translators.ising import clique
 from qiskit_aqua.algorithms.classical import ExactEigensolver
 
 
-
 class TestClique(QiskitAquaTestCase):
     """Cplex Ising tests."""
 
     def setUp(self):
-        self.K = 5 # K means the size of the clique
+        self.K = 5  # K means the size of the clique
         np.random.seed(100)
-        self.num_nodes = 5;
+        self.num_nodes = 5
         self.w = clique.random_graph(self.num_nodes, edge_prob=0.8, weight_range=10)
         self.qubit_op, self.offset = clique.get_clique_qubitops(self.w, self.K)
         self.algo_input = EnergyInput(self.qubit_op)
@@ -43,7 +42,7 @@ class TestClique(QiskitAquaTestCase):
             result = np.binary_repr(n, L)
             return [int(digit) for digit in result]
 
-        L = self.num_nodes # length of the bitstring that represents the assignment
+        L = self.num_nodes  # length of the bitstring that represents the assignment
         max = 2**L
         has_sol = False
         for i in range(max):
@@ -105,15 +104,3 @@ class TestClique(QiskitAquaTestCase):
         np.testing.assert_array_equal(ising_sol, [1, 1, 1, 1, 1])
         oracle = self.brute_force()
         self.assertEqual(clique.satisfy_or_not(ising_sol, self.w, self.K), oracle)
-
-
-
-
-
-
-
-
-
-
-
-

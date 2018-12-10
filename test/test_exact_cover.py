@@ -26,7 +26,6 @@ from qiskit_aqua.translators.ising import exactcover
 from qiskit_aqua.algorithms.classical import ExactEigensolver
 
 
-
 class TestExactCover(QiskitAquaTestCase):
     """Cplex Ising tests."""
 
@@ -40,9 +39,10 @@ class TestExactCover(QiskitAquaTestCase):
     def brute_force(self):
         # brute-force way: try every possible assignment!
         has_sol = False
+
         def bitfield(n, L):
             result = np.binary_repr(n, L)
-            return [int(digit) for digit in result] # [2:] to chop off the "0b" part
+            return [int(digit) for digit in result]  # [2:] to chop off the "0b" part
 
         L = len(self.list_of_subsets)
         max = 2**L
@@ -105,25 +105,3 @@ class TestExactCover(QiskitAquaTestCase):
         np.testing.assert_array_equal(ising_sol, [0, 1, 0, 0, 1])
         oracle = self.brute_force()
         self.assertEqual(exactcover.check_solution_satisfiability(ising_sol, self.list_of_subsets), oracle)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -39,7 +39,7 @@ class TestGraphPartition(QiskitAquaTestCase):
         # use the brute-force way to generate the oracle
         def bitfield(n, L):
             result = np.binary_repr(n, L)
-            return [int(digit) for digit in result] # [2:] to chop off the "0b" part
+            return [int(digit) for digit in result]  # [2:] to chop off the "0b" part
 
         L = self.num_nodes
         max = 2**L
@@ -48,7 +48,7 @@ class TestGraphPartition(QiskitAquaTestCase):
             cur = bitfield(i, L)
 
             how_many_nonzero = np.count_nonzero(cur)
-            if how_many_nonzero *2 != L: # not balanced
+            if how_many_nonzero * 2 != L:  # not balanced
                 continue
 
             cur_v = graphpartition.objective_value(np.array(cur), self.w)
@@ -107,9 +107,6 @@ class TestGraphPartition(QiskitAquaTestCase):
         x = graphpartition.sample_most_likely(result['eigvecs'][0])
         # check against the oracle
         ising_sol = graphpartition.get_graph_solution(x)
-        np.testing.assert_array_equal(ising_sol, [1, 0, 0 ,1]) # quantum may produce different feasible solution.
+        np.testing.assert_array_equal(ising_sol, [1, 0, 0, 1])
         oracle = self.brute_force()
         self.assertEqual(graphpartition.objective_value(x, self.w), oracle)
-
-
-

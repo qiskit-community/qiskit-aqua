@@ -40,7 +40,7 @@ class TestSetPacking(QiskitAquaTestCase):
         # brute-force way: try every possible assignment!
         def bitfield(n, L):
             result = np.binary_repr(n, L)
-            return [int(digit) for digit in result] # [2:] to chop off the "0b" part
+            return [int(digit) for digit in result]  # [2:] to chop off the "0b" part
 
         L = len(self.list_of_subsets)
         max = 2**L
@@ -105,16 +105,3 @@ class TestSetPacking(QiskitAquaTestCase):
         ising_sol = setpacking.get_solution(x)
         oracle = self.brute_force()
         self.assertEqual(np.count_nonzero(ising_sol), oracle)
-
-
-
-
-
-
-
-
-
-
-
-
-

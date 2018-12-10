@@ -24,8 +24,8 @@ from collections import OrderedDict
 
 import numpy as np
 import numpy.random as rand
-from qiskit.quantum_info import Pauli
 
+from qiskit.quantum_info import Pauli
 from qiskit_aqua import Operator
 
 logger = logging.getLogger(__name__)
@@ -70,8 +70,6 @@ def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None,
     return w
 
 
-
-
 def get_vertexcover_qubitops(weight_matrix):
     """Generate Hamiltonian for the vertex cover
     Args:
@@ -82,8 +80,8 @@ def get_vertexcover_qubitops(weight_matrix):
         constant shift for the obj function.
 
     Goals:
-        1 color some vertices as red such that every edge is connected to some red vertex
-        2 minimize the vertices to be colored as red
+    1 color some vertices as red such that every edge is connected to some red vertex
+    2 minimize the vertices to be colored as red
 
     Hamiltonian:
     H = A * H_A + H_B
@@ -102,7 +100,7 @@ def get_vertexcover_qubitops(weight_matrix):
 
     for i in range(n):
         for j in range(i):
-            if (weight_matrix[i,j] != 0):
+            if (weight_matrix[i, j] != 0):
                 wp = np.zeros(n)
                 vp = np.zeros(n)
                 vp[i] = 1
@@ -158,9 +156,9 @@ def parse_gset_format(filename):
     w += w.T
     return w
 
+
 def check_full_edge_coverage(x, w):
     """
-
     Args:
         x (numpy.ndarray): binary string as numpy array.
         w (numpy.ndarray): adjacency matrix.
@@ -173,7 +171,7 @@ def check_full_edge_coverage(x, w):
     for i in range(first):
         for j in range(second):
             if w[i, j] != 0:
-                if x[i] != 1 and x[j] != 1: # neither i nor j is in the vertex set, therefore the edge is not covered
+                if x[i] != 1 and x[j] != 1:
                     return False
 
     return True
@@ -189,6 +187,7 @@ def get_graph_solution(x):
         numpy.ndarray: graph solution as binary numpy array.
     """
     return 1 - x
+
 
 def sample_most_likely(n, state_vector):
     """Compute the most likely binary string from state vector.

@@ -26,15 +26,14 @@ from collections import OrderedDict
 
 import numpy as np
 import numpy.random as rand
-from qiskit.quantum_info import Pauli
 
+from qiskit.quantum_info import Pauli
 from qiskit_aqua import Operator
 
 logger = logging.getLogger(__name__)
 
 
-def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None,
-                  seed=None):
+def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None, seed=None):
     """Generate random Erdos-Renyi graph for MaxCut.
 
     Args:
@@ -88,7 +87,7 @@ def get_maxcut_qubitops(weight_matrix):
     shift = 0
     for i in range(num_nodes):
         for j in range(i):
-            if weight_matrix[i,j] != 0:
+            if weight_matrix[i, j] != 0:
                 xp = np.zeros(num_nodes, dtype=np.bool)
                 zp = np.zeros(num_nodes, dtype=np.bool)
                 zp[i] = True
@@ -128,6 +127,7 @@ def parse_gset_format(filename):
     w += w.T
     return w
 
+
 def maxcut_value(x, w):
     """Compute the value of a cut.
 
@@ -141,6 +141,7 @@ def maxcut_value(x, w):
     X = np.outer(x, (1 - x))
     return np.sum(w * X)
 
+
 def get_graph_solution(x):
     """Get graph solution from binary string.
 
@@ -151,6 +152,7 @@ def get_graph_solution(x):
         numpy.ndarray: graph solution as binary numpy array.
     """
     return 1 - x
+
 
 def sample_most_likely(state_vector):
     """Compute the most likely binary string from state vector.
@@ -174,6 +176,7 @@ def sample_most_likely(state_vector):
             x[i] = k % 2
             k >>= 1
         return x
+
 
 def get_gset_result(x):
     """Get graph solution in Gset format from binary string.

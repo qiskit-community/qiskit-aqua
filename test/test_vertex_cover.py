@@ -38,7 +38,7 @@ class TestVertexCover(QiskitAquaTestCase):
         # brute-force way
         def bitfield(n, L):
             result = np.binary_repr(n, L)
-            return [int(digit) for digit in result] # [2:] to chop off the "0b" part
+            return [int(digit) for digit in result]  # [2:] to chop off the "0b" part
 
         L = self.num_nodes
         max = 2**L
@@ -106,8 +106,3 @@ class TestVertexCover(QiskitAquaTestCase):
         sol = vertexcover.get_graph_solution(x)
         oracle = self.brute_force()
         self.assertEqual(np.count_nonzero(sol), oracle)
-
-
-
-
-
