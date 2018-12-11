@@ -24,7 +24,7 @@ from test.common import QiskitAquaTestCase
 from qiskit_aqua import run_algorithm, QuantumInstance
 from qiskit_aqua.input import SVMInput
 from qiskit_aqua.algorithms.components.feature_maps import SecondOrderExpansion
-from qiskit_aqua.algorithms.many_sample import QSVM_Kernel
+from qiskit_aqua.algorithms import QSVM_Kernel
 
 
 class TestQSVMKernel(QiskitAquaTestCase):

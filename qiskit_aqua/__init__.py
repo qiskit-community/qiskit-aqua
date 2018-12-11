@@ -29,8 +29,8 @@ from ._discover import (PluggableType,
 from .pluggable import Pluggable
 from .utils.cnx import cnx
 from .quantum_instance import QuantumInstance
-from .algorithms import QuantumAlgorithm
 from .operator import Operator
+from .algorithms import QuantumAlgorithm
 from ._aqua import run_algorithm, run_algorithm_to_json
 from ._logging import (get_logging_level,
                        build_logging_config,

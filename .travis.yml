@@ -8,7 +8,6 @@ notifications:
     on_failure: always
 
 cache: pip
-sudo: false
 os: linux
 dist: trusty
 
@@ -18,7 +17,7 @@ python:
 
 stage_dependencies: &stage_dependencies
   # Install Qiskit Terra from master branch
-  env: 
+  env:
     - CMAKE_FLAGS="-D CMAKE_CXX_COMPILER=g++-5 -D ENABLE_TARGETS_QA=False -D WHEEL_TAG=-pmanylinux1_x86_64 -D STATIC_LINKING=True"
   addons:
     apt:
@@ -62,13 +61,13 @@ jobs:
   include:
     - stage: test first half
       <<: *stage_dependencies
-      script: 
-        - python test/customtests.py 0 -end 17
+      script:
+        - python test/customtests.py 0 -end 21
 
     - stage: test second half
       <<: *stage_dependencies
-      script: 
-        - python test/customtests.py 17
+      script:
+        - python test/customtests.py 21
 
     # github pages documentation update
     - stage: deploy doc
@@ -97,4 +96,4 @@ jobs:
         skip_cleanup: true
         script: tools/ghpages_documentation_deploy.sh
         on:
-          branch: stable 
+          branch: stable
