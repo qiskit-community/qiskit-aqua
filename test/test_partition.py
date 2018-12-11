@@ -36,7 +36,6 @@ class TestSetPacking(QiskitAquaTestCase):
         qubitOp, offset = partition.get_partition_qubitops(number_list)
         self.algo_input = EnergyInput(qubitOp)
 
-
     def test_partition(self):
         params = {
             'problem': {'name': 'ising'},
@@ -52,7 +51,6 @@ class TestSetPacking(QiskitAquaTestCase):
         result = algo.run()
         x = partition.sample_most_likely(result['eigvecs'][0])
         np.testing.assert_array_equal(x, [0, 1, 0])
-
 
     def test_partition_vqe(self):
         algorithm_cfg = {
