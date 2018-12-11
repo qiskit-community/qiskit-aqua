@@ -47,14 +47,14 @@ class TestSetPacking(QiskitAquaTestCase):
         x = partition.sample_most_likely(result['eigvecs'][0])
         np.testing.assert_array_equal(x, [0, 1, 0])
 
-    def test_set_packing_direct(self):
+    def test_partition_direct(self):
         algo = ExactEigensolver(self.algo_input.qubit_op, k=1, aux_operators=[])
         result = algo.run()
         x = partition.sample_most_likely(result['eigvecs'][0])
         np.testing.assert_array_equal(x, [0, 1, 0])
 
 
-    def test_set_packing_vqe(self):
+    def test_partition_vqe(self):
         algorithm_cfg = {
             'name': 'VQE',
             'operator_mode': 'paulis'
