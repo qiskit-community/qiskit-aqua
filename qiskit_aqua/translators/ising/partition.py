@@ -73,7 +73,7 @@ def get_partition_qubitops(values):
             zp = np.zeros(n, dtype=np.bool)
             zp[i] = True
             zp[j] = True
-            pauli_list.append([2 * np.asscalar(values[i]) * np.asscalar(values[j]), Pauli(zp, xp)])
+            pauli_list.append([2. * values[i] * values[j], Pauli(zp, xp)])
     return Operator(paulis=pauli_list), sum(values*values)
 
 
