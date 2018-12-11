@@ -137,7 +137,7 @@ class AmplitudeEstimation(QuantumAlgorithm):
         # results = qp.execute('ae', shots=1, timeout=10000, backend='local_statevector_simulator_cpp')
         # state_vector = results.get_statevector()
 
-    def evaluate_results(self, probabilities):
+    def _evaluate_statevector_results(self, probabilities):
         # map measured results to estimates
         y_probabilities = OrderedDict()
         for i, probability in enumerate(probabilities):
@@ -154,14 +154,65 @@ class AmplitudeEstimation(QuantumAlgorithm):
 
         return a_probabilities, y_probabilities
 
-    # TODO: @Stefan, please populate the run method
     def _run(self):
-        if self._circuit is None:
-            self.construct_circuit()
+
+        # construct circuit
+        self.construct_circuit()
 
         if self._quantum_instance.is_statevector:
+            # run circuit on statevector simlator
             ret = self._quantum_instance.execute(self._circuit)
-            self._ret['statevector'] = np.asarray([ret.get_statevector(self._circuit, decimals=16)])
-            return self._ret
+            state_vector = np.asarray([ret.get_statevector(self._circuit, decimals=16)])
+            self._ret['statevector'] = state_vector
+
+            # get state probabilities
+            state_probabilities = np.real(state_vector.conj() * state_vector)[0]
+
+            # evaluate results
+            a_probabilities, y_probabilities = self._evaluate_statevector_results(state_probabilities)
         else:
-            raise NotImplementedError
+            # run circuit on QASM simulator
+            qc = self._circuit
+            cr = ClassicalRegister(self._m)
+            qc.add_register(cr)
+            qc.measure([q for q in qc.qregs if q.name == 'a'][0], cr)
+            ret = self._quantum_instance.execute(self._circuit)
+
+            # get counts
+            self._ret['counts'] = ret.get_counts()
+
+            # construct probabilities
+            y_probabilities = {}
+            a_probabilities = {}
+            shots = sum(ret.get_counts().values())
+            for state, counts in ret.get_counts().items():
+                y = int(state.replace(' ', '')[:self._m][::-1], 2)
+                p = counts / shots
+                y_probabilities[y] = p
+                a = np.power(np.sin(y * np.pi / 2 ** self._m), 2)
+                a_probabilities[a] = a_probabilities.get(a, 0.0) + p
+
+        # construct a_items and y_items
+        a_items = [(a, p) for (a, p) in a_probabilities.items() if p > 1e-6]
+        y_items = [(y, p) for (y, p) in y_probabilities.items() if p > 1e-6]
+        a_items = sorted(a_items)
+        y_items = sorted(y_items)
+        self._ret['a_items'] = a_items
+        self._ret['y_items'] = y_items
+
+        # map estimated values to original range and extract probabilities
+        self._ret['mapped_values'] = [self.a_factory.value_to_estimator(a_item[0]) for a_item in self._ret['a_items']]
+        self._ret['values'] = [a_item[0] for a_item in self._ret['a_items']]
+        self._ret['y_values'] = [y_item[0] for y_item in y_items]
+        self._ret['probabilities'] = [a_item[1] for a_item in self._ret['a_items']]
+        self._ret['mapped_items'] = [(self._ret['mapped_values'][i], self._ret['probabilities'][i]) for i in range(len(self._ret['mapped_values']))]
+
+        # determine most likely estimator
+        self._ret['estimator'] = None
+        self._ret['max_prob'] = 0
+        for val, prob in self._ret['mapped_items']:
+            if prob > self._ret['max_prob']:
+                self._ret['max_prob'] = prob
+                self._ret['estimator'] = val
+
+        return self._ret
