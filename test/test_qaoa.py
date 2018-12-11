@@ -24,7 +24,7 @@ from qiskit import Aer
 from test.common import QiskitAquaTestCase
 from qiskit_aqua.translators.ising import maxcut
 from qiskit_aqua.algorithms.components.optimizers import COBYLA
-from qiskit_aqua.algorithms.adaptive import QAOA
+from qiskit_aqua.algorithms import QAOA
 from qiskit_aqua import QuantumInstance
 
 w1 = np.array([

@@ -24,7 +24,7 @@ from test.common import QiskitAquaTestCase
 from qiskit_aqua import run_algorithm, QuantumInstance
 from qiskit_aqua.input import SVMInput
 from qiskit_aqua.algorithms.components.feature_maps import SecondOrderExpansion
-from qiskit_aqua.algorithms.many_sample import QSVM_Kernel
+from qiskit_aqua.algorithms import QSVM_Kernel
 
 
 class TestQSVMKernel(QiskitAquaTestCase):
@@ -74,8 +74,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
                                        [-0.17323832, -0.49535592], [0.14043268, -0.87869109],
                                        [-0.15046837, -0.47340207]])}
 
-        temp = [test_input[k] for k in test_input]
-        total_array = np.concatenate(temp)
+        total_array = np.concatenate((test_input['A'], test_input['B']))
 
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
@@ -174,8 +173,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
                       'C': np.asarray([[-0.74561108, 0.27047295], [-0.69942965, 0.11885162],
                                        [-0.66489165, 0.1181712]])}
 
-        temp = [test_input[k] for k in test_input]
-        total_array = np.concatenate(temp)
+        total_array = np.concatenate((test_input['A'], test_input['B'], test_input['C']))
 
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
@@ -214,8 +212,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
                       'C': np.asarray([[-0.74561108, 0.27047295], [-0.69942965, 0.11885162],
                                        [-0.66489165, 0.1181712]])}
 
-        temp = [test_input[k] for k in test_input]
-        total_array = np.concatenate(temp)
+        total_array = np.concatenate((test_input['A'], test_input['B'], test_input['C']))
 
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
@@ -251,8 +248,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
                       'C': np.asarray([[-0.74561108, 0.27047295], [-0.69942965, 0.11885162],
                                        [-0.66489165, 0.1181712]])}
 
-        temp = [test_input[k] for k in test_input]
-        total_array = np.concatenate(temp)
+        total_array = np.concatenate((test_input['A'], test_input['B'], test_input['C']))
 
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},

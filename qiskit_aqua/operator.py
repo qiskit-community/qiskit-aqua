@@ -181,7 +181,7 @@ class Operator(object):
             length = "{}x{}".format(2 ** self.num_qubits, 2 ** self.num_qubits)
 
         ret = "Representation: {}, qubits: {}, size: {}{}".format(
-            curr_repr, self.num_qubits, length, "" if group is None else " {}".format(group))
+            curr_repr, self.num_qubits, length, "" if group is None else " (number of groups: {})".format(group))
 
         return ret
 
@@ -961,8 +961,6 @@ class Operator(object):
             p = self._paulis[idx]
             hamiltonian += p[0] * p[1].to_spmatrix()
         self._matrix = hamiltonian
-        # print(self._matrix)
-        # print(self._matrix.shape)
         self._to_dia_matrix(mode='matrix')
         self._paulis = None
         self._grouped_paulis = None
@@ -1548,7 +1546,7 @@ class Operator(object):
         self._check_representation("paulis")
 
         for pauli in self._paulis:
-            stacked_paulis.append(np.concatenate((pauli[1].x, pauli[1].z).astype(np.int), axis=0))
+            stacked_paulis.append(np.concatenate((pauli[1].x, pauli[1].z), axis=0).astype(np.int))
 
         stacked_matrix = np.array(np.stack(stacked_paulis))
         symmetries = Operator.kernel_F2(stacked_matrix)
