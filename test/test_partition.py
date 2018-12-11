@@ -79,4 +79,5 @@ class TestSetPacking(QiskitAquaTestCase):
         backend = Aer.get_backend('qasm_simulator')
         result = run_algorithm(params, self.algo_input, backend=backend)
         x = partition.sample_most_likely(result['eigvecs'][0])
-        np.testing.assert_array_equal(x, [1, 0, 1])
+        self.assertNotEqual(x[0], x[1])
+        self.assertNotEqual(x[2], x[1])  # hardcoded oracle
