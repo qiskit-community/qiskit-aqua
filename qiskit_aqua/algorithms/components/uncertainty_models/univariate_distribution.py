@@ -18,10 +18,10 @@
 import numpy as np
 from qiskit_aqua import AquaError
 from qiskit_aqua.algorithms.components.initial_states import Custom
-from qiskit_aqua.algorithms.components.uncertainty_models.uncertainty_model import UncertaintyModel
+from qiskit_aqua.algorithms.components.uncertainty_models.random_distribution import RandomDistribution
 
 
-class UnivariateUncertaintyModel(UncertaintyModel):
+class UnivariateDistribution(RandomDistribution):
     """ Interface for discrete bounded uncertainty models assuming an equidistant grid """
 
     @classmethod

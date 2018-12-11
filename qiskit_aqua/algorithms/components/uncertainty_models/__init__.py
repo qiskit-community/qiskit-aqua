@@ -16,7 +16,7 @@
 # =============================================================================
 
 from .normal_distribution import NormalDistribution
-from .uncertainty_model import UncertaintyModel
+from .random_distribution import RandomDistribution
 
-__all__ = ['UncertaintyModel',
+__all__ = ['RandomDistribution',
            'NormalDistribution']

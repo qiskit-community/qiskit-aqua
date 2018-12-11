@@ -61,7 +61,7 @@ def _get_pluggables_types_dictionary():
     from qiskit_aqua.algorithms.components.feature_maps import FeatureMap
     from qiskit_aqua.algorithms.components.multiclass_extensions import MulticlassExtension
     from qiskit_aqua.algorithms.components.uncertainty_problems import UncertaintyProblem
-    from qiskit_aqua.algorithms.components.uncertainty_models import UncertaintyModel
+    from qiskit_aqua.algorithms.components.uncertainty_models import RandomDistribution
     from qiskit_aqua.input import AlgorithmInput
     return {
         PluggableType.ALGORITHM: QuantumAlgorithm,
@@ -73,7 +73,7 @@ def _get_pluggables_types_dictionary():
         PluggableType.FEATURE_MAP: FeatureMap,
         PluggableType.MULTICLASS_EXTENSION: MulticlassExtension,
         PluggableType.UNCERTAINTY_PROBLEM: UncertaintyProblem,
-        PluggableType.UNCERTAINTY_MODEL: UncertaintyModel,
+        PluggableType.UNCERTAINTY_MODEL: RandomDistribution,
         PluggableType.INPUT: AlgorithmInput
     }
 

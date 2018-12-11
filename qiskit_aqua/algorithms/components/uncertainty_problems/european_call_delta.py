@@ -43,39 +43,31 @@ class EuropeanCallDelta(UncertaintyProblem):
                     'items': {
                         'type': 'integer'
                     },
-                    'default': [0, 1]
-                },
-                'i_compare': {
-                    'type': 'integer',
-                    'default': 2
+                    'default': None
                 },
                 'i_objective': {
                     'type': 'integer',
-                    'default': 3
+                    'default': None
                 }
             },
             'additionalProperties': False
         }
     }
 
-    def __init__(self, uncertainty_model, strike_price, i_state=None, i_compare=None, i_objective=None):
+    def __init__(self, uncertainty_model, strike_price, i_state=None, i_objective=None):
         super().__init__(uncertainty_model.num_target_qubits + 1)
 
         self._uncertainty_model = uncertainty_model
         self._strike_price = strike_price
 
-        # TODO: @Stefan, are the defaults below reasonable?
-
         if i_state is None:
             i_state = list(range(uncertainty_model.num_target_qubits))
-        if i_compare is None:
-            i_compare = uncertainty_model.num_target_qubits
         if i_objective is None:
             i_objective = uncertainty_model.num_target_qubits
 
         self._params = {
             'i_state': i_state,
-            'i_compare': i_compare,
+            'i_compare': i_objective,  # compare and objective qubits are the same for the delta.
             'i_objective': i_objective
         }
 

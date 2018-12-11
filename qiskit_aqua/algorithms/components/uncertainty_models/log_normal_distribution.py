@@ -15,18 +15,19 @@
 # limitations under the License.
 # =============================================================================
 
-from scipy.stats.distributions import norm
+from scipy.stats.distributions import lognorm
 from qiskit_aqua.algorithms.components.uncertainty_models.univariate_distribution import UnivariateDistribution
+import numpy as np
 
 
-class NormalDistribution(UnivariateDistribution):
+class LogNormalDistribution(UnivariateDistribution):
 
     CONFIGURATION = {
-        'name': 'NormalDistribution',
-        'description': 'Normal Distribution',
+        'name': 'LogNormalDistribution',
+        'description': 'Log-Normal Distribution',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
-            'id': 'NormalDistribution_schema',
+            'id': 'LogNormalDistribution_schema',
             'type': 'object',
             'properties': {
                 'num_target_qubits': {
@@ -54,8 +55,8 @@ class NormalDistribution(UnivariateDistribution):
         }
     }
 
-    def __init__(self, num_target_qubits, mu=0, sigma=1, low=-1, high=1):
+    def __init__(self, num_target_qubits, mu=0, sigma=1, low=0, high=1):
         self.validate(locals())
         probabilities, _ = UnivariateDistribution.\
-            pdf_to_probabilities(lambda x: norm.pdf(x, mu, sigma), low, high, 2 ** num_target_qubits)
+        pdf_to_probabilities(lambda x: lognorm.pdf(x, s=sigma, scale=np.exp(mu)), low, high, 2 ** num_target_qubits)
         super().__init__(num_target_qubits, probabilities, low, high)

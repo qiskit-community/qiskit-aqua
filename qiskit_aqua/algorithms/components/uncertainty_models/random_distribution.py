@@ -20,7 +20,7 @@ from qiskit_aqua import Pluggable
 from qiskit_aqua.utils import CircuitFactory
 
 
-class UncertaintyModel(CircuitFactory, Pluggable, ABC):
+class RandomDistribution(CircuitFactory, Pluggable, ABC):
     """ Abstract uncertainty model pluggable  """
 
     @classmethod
