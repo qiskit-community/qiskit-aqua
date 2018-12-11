@@ -24,7 +24,7 @@ from qiskit import Aer
 from qiskit_aqua import run_algorithm
 from qiskit_aqua.input import EnergyInput
 from qiskit_aqua.translators.ising import setpacking
-from qiskit_aqua.algorithms.classical import ExactEigensolver
+from qiskit_aqua.algorithms import ExactEigensolver
 
 
 class TestSetPacking(QiskitAquaTestCase):
