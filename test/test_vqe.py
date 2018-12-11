@@ -27,7 +27,7 @@ from qiskit_aqua.input import EnergyInput
 from qiskit_aqua.algorithms.components.variational_forms import RY
 from qiskit_aqua.algorithms.components.optimizers import L_BFGS_B
 from qiskit_aqua.algorithms.components.initial_states import Zero
-from qiskit_aqua.algorithms.adaptive import VQE
+from qiskit_aqua.algorithms import VQE
 
 
 class TestVQE(QiskitAquaTestCase):
@@ -71,7 +71,8 @@ class TestVQE(QiskitAquaTestCase):
         ['POWELL', 5, False],
         ['SLSQP', 5, True],
         ['SLSQP', 5, False],
-        ['SPSA', 5, False],
+        ['SPSA', 3, True],
+        ['SPSA', 3, False],
         ['TNC', 2, True],
         ['TNC', 2, False]
     ])

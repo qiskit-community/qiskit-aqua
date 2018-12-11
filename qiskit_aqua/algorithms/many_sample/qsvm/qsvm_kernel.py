@@ -17,7 +17,8 @@
 
 import logging
 
-from qiskit_aqua import (AquaError, QuantumAlgorithm, PluggableType, get_pluggable_class)
+from qiskit_aqua.algorithms import QuantumAlgorithm
+from qiskit_aqua import AquaError, PluggableType, get_pluggable_class
 from qiskit_aqua.algorithms.many_sample.qsvm._qsvm_kernel_binary import _QSVM_Kernel_Binary
 from qiskit_aqua.algorithms.many_sample.qsvm._qsvm_kernel_multiclass import _QSVM_Kernel_Multiclass
 from qiskit_aqua.algorithms.many_sample.qsvm._qsvm_kernel_estimator import _QSVM_Kernel_Estimator
@@ -181,3 +182,15 @@ class QSVM_Kernel(QuantumAlgorithm):
 
     def save_model(self, file_path):
         self.instance.save_model(file_path)
+
+    @property
+    def test_dataset(self):
+        return self.instance.test_dataset
+
+    @property
+    def train_dataset(self):
+        return self.instance.train_dataset
+
+    @property
+    def datapoints(self):
+        return self.instance.datapoints

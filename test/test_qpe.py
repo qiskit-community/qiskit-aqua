@@ -27,10 +27,10 @@ from qiskit.transpiler import PassManager
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import Operator, QuantumInstance
 from qiskit_aqua.utils import decimal_to_binary
-from qiskit_aqua.algorithms.classical import ExactEigensolver
+from qiskit_aqua.algorithms import ExactEigensolver
 from qiskit_aqua.algorithms.components.iqfts import Standard
 from qiskit_aqua.algorithms.components.initial_states import Custom
-from qiskit_aqua.algorithms.single_sample import QPE
+from qiskit_aqua.algorithms import QPE
 
 X = np.array([[0, 1], [1, 0]])
 Y = np.array([[0, -1j], [1j, 0]])
@@ -92,7 +92,8 @@ class TestQPE(QiskitAquaTestCase):
         iqft = Standard(n_ancillae)
 
         qpe = QPE(self.qubitOp, state_in, iqft, num_time_slices, n_ancillae,
-                  paulis_grouping='random', expansion_mode='suzuki', expansion_order=2)
+                  paulis_grouping='random', expansion_mode='suzuki', expansion_order=2,
+                  shallow_circuit_concat=True)
 
         backend = Aer.get_backend('qasm_simulator')
         quantum_instance = QuantumInstance(backend, shots=100, pass_manager=PassManager())

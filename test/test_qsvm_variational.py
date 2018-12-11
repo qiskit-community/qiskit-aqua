@@ -15,13 +15,15 @@
 # limitations under the License.
 # =============================================================================
 
+import os
+
 import numpy as np
 from qiskit import Aer
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua.input import SVMInput
 from qiskit_aqua import run_algorithm, QuantumInstance
-from qiskit_aqua.algorithms.adaptive import QSVMVariational
+from qiskit_aqua.algorithms import QSVMVariational
 from qiskit_aqua.algorithms.components.optimizers import SPSA
 from qiskit_aqua.algorithms.components.feature_maps import SecondOrderExpansion
 from qiskit_aqua.algorithms.components.variational_forms import RYRZ
@@ -80,3 +82,24 @@ class TestQSVMVariational(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(result['training_loss'], self.ref_train_loss, decimal=8)
 
         self.assertEqual(result['testing_accuracy'], 0.0)
+
+        file_path = self._get_resource_path('qsvm_variational_test.npz')
+        svm.save_model(file_path)
+
+        self.assertTrue(os.path.exists(file_path))
+
+        loaded_svm = QSVMVariational(optimizer, feature_map, var_form, self.training_data, None)
+        loaded_svm.load_model(file_path)
+
+        np.testing.assert_array_almost_equal(
+            loaded_svm.ret['opt_params'], self.ref_opt_params, decimal=4)
+
+        loaded_test_acc = loaded_svm.test(svm.test_dataset[0], svm.test_dataset[1], quantum_instance)
+        self.assertEqual(result['testing_accuracy'], loaded_test_acc)
+
+        if os.path.exists(file_path):
+            try:
+                os.remove(file_path)
+            except:
+                pass
+
