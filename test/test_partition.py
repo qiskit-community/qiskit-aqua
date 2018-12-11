@@ -16,7 +16,6 @@
 # =============================================================================
 
 import numpy as np
-import json
 
 from test.common import QiskitAquaTestCase
 from qiskit import Aer
