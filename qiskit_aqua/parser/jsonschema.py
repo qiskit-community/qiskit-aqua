@@ -22,32 +22,39 @@ import copy
 import ast
 from collections import OrderedDict
 import logging
-from qiskit_aqua import AlgorithmError
+from qiskit_aqua import AquaError
 from qiskit_aqua import (local_pluggables_types,
+                         PluggableType,
                          get_pluggable_configuration,
-                         get_algorithm_configuration,
-                         local_algorithms)
+                         local_pluggables)
 
 logger = logging.getLogger(__name__)
+
 
 class JSONSchema(object):
     """JSON schema Utilities class."""
 
     NAME = 'name'
     PROBLEM = 'problem'
-    ALGORITHM = 'algorithm'
     BACKEND = 'backend'
 
-    def __init__(self, jsonfile):
+    def __init__(self, schema_input):
         """Create JSONSchema object."""
         self._schema = None
         self._original_schema = None
         self.aqua_jsonschema = None
-        with open(jsonfile) as json_file:
-            self._schema = json.load(json_file)
-            validator = jsonschema.Draft4Validator(self._schema)
-            self._schema = JSONSchema._resolve_schema_references(validator.schema,validator.resolver)
-            self.commit_changes()
+        if isinstance(schema_input, dict):
+            self._schema = copy.deepcopy(schema_input)
+        elif isinstance(schema_input, str):
+            with open(schema_input) as json_file:
+                self._schema = json.load(json_file)
+        else:
+            raise AquaError("Invalid JSONSchema input type.")
+
+        validator = jsonschema.Draft4Validator(self._schema)
+        self._schema = JSONSchema._resolve_schema_references(
+            validator.schema, validator.resolver)
+        self.commit_changes()
 
     @property
     def schema(self):
@@ -70,15 +77,16 @@ class JSONSchema(object):
     def populate_problem_names(self):
         """Populate enum list of problem names"""
         problems_dict = OrderedDict()
-        for algo_name in local_algorithms():
+        for algo_name in local_pluggables(PluggableType.ALGORITHM):
             problems = JSONSchema.get_algorithm_problems(algo_name)
             for problem in problems:
                 problems_dict[problem] = None
 
-        problems_enum = { 'enum' : list(problems_dict.keys()) }
-        self._schema['properties'][JSONSchema.PROBLEM]['properties'][JSONSchema.NAME]['oneOf'] = [problems_enum]
+        problems_enum = {'enum': list(problems_dict.keys())}
+        self._schema['properties'][JSONSchema.PROBLEM]['properties'][JSONSchema.NAME]['oneOf'] = [
+            problems_enum]
 
-    def copy_section_from_aqua_schema(self,section_name):
+    def copy_section_from_aqua_schema(self, section_name):
         """
         Copy a section from aqua json schema if if exists
         Args:
@@ -86,12 +94,13 @@ class JSONSchema(object):
         """
         section_name = JSONSchema.format_section_name(section_name)
         if self.aqua_jsonschema is None:
-            self.aqua_jsonschema = JSONSchema(os.path.join(os.path.dirname(__file__), 'input_schema.json'))
+            self.aqua_jsonschema = JSONSchema(os.path.join(
+                os.path.dirname(__file__), 'input_schema.json'))
 
         if section_name in self.aqua_jsonschema.schema['properties']:
             self._schema['properties'][section_name] = self.aqua_jsonschema.schema['properties'][section_name]
 
-    def get_section_types(self,section_name):
+    def get_section_types(self, section_name):
         """
         Returns types for a schema section
 
@@ -112,12 +121,12 @@ class JSONSchema(object):
             return []
 
         types = self._schema['properties'][section_name]['type']
-        if isinstance(types,list):
+        if isinstance(types, list):
             return types
 
         return [types]
 
-    def get_property_types(self,section_name,property_name):
+    def get_property_types(self, section_name, property_name):
         """
         Returns types for a schema section property
         Args:
@@ -143,8 +152,8 @@ class JSONSchema(object):
 
         prop = self._schema['properties'][section_name]['properties'][property_name]
         if 'type' in prop:
-            types  = prop['type']
-            if isinstance(types,list):
+            types = prop['type']
+            if isinstance(types, list):
                 return types
 
             return [types]
@@ -167,7 +176,7 @@ class JSONSchema(object):
         sections = self.get_default_sections()
         return list(sections.keys()) if sections is not None else []
 
-    def get_section_default_properties(self,section_name):
+    def get_section_default_properties(self, section_name):
         """
         Returns default properties for a schema section
 
@@ -184,26 +193,28 @@ class JSONSchema(object):
         if section_name not in self._schema['properties']:
             return None
 
-        types = [self._schema['properties'][section_name]['type']] if 'type' in self._schema['properties'][section_name] else []
+        types = [self._schema['properties'][section_name]['type']
+                 ] if 'type' in self._schema['properties'][section_name] else []
 
         if 'default' in self._schema['properties'][section_name]:
-            return JSONSchema.get_value(self._schema['properties'][section_name]['default'],types)
+            return JSONSchema.get_value(self._schema['properties'][section_name]['default'], types)
 
         if 'object' not in types:
-            return JSONSchema.get_value(None,types)
+            return JSONSchema.get_value(None, types)
 
         if 'properties' not in self._schema['properties'][section_name]:
             return None
 
         properties = OrderedDict()
-        for property_name,values in self._schema['properties'][section_name]['properties'].items():
+        for property_name, values in self._schema['properties'][section_name]['properties'].items():
             types = [values['type']] if 'type' in values else []
             default_value = values['default'] if 'default' in values else None
-            properties[property_name] = JSONSchema.get_value(default_value,types)
+            properties[property_name] = JSONSchema.get_value(
+                default_value, types)
 
         return properties
 
-    def allows_additional_properties(self,section_name):
+    def allows_additional_properties(self, section_name):
         """
         Returns allows additional properties flag for a schema section
         Args:
@@ -224,7 +235,7 @@ class JSONSchema(object):
 
         return JSONSchema.get_value(self._schema['properties'][section_name]['additionalProperties'])
 
-    def get_property_default_values(self,section_name,property_name):
+    def get_property_default_values(self, section_name, property_name):
         """
         Returns default values for a schema section property
         Args:
@@ -251,11 +262,11 @@ class JSONSchema(object):
         prop = self._schema['properties'][section_name]['properties'][property_name]
         if 'type' in prop:
             types = prop['type']
-            if not isinstance(types,list):
+            if not isinstance(types, list):
                 types = [types]
 
             if 'boolean' in types:
-                return [True,False]
+                return [True, False]
 
         if 'oneOf' not in prop:
             return None
@@ -266,7 +277,7 @@ class JSONSchema(object):
 
         return None
 
-    def get_property_default_value(self,section_name,property_name):
+    def get_property_default_value(self, section_name, property_name):
         """
         Returns default value for a schema section property
 
@@ -297,32 +308,34 @@ class JSONSchema(object):
 
         return None
 
-    def update_pluggable_input_schemas(self,input_parser):
+    def update_pluggable_input_schemas(self, input_parser):
         """
         Updates schemas of all pluggables
 
         Args:
             input_parser (obj): input parser
         """
-        # find alogorithm
-        default_algo_name = self.get_property_default_value(JSONSchema.ALGORITHM,JSONSchema.NAME)
-        algo_name = input_parser.get_section_property(JSONSchema.ALGORITHM,JSONSchema.NAME,default_algo_name)
+        # find algorithm
+        default_algo_name = self.get_property_default_value(PluggableType.ALGORITHM.value, JSONSchema.NAME)
+        algo_name = input_parser.get_section_property(PluggableType.ALGORITHM.value, JSONSchema.NAME, default_algo_name)
 
-        # update alogorithm scheme
+        # update algorithm scheme
         if algo_name is not None:
-            self._update_pluggable_input_schema(JSONSchema.ALGORITHM,algo_name,default_algo_name)
+            self._update_pluggable_input_schema(PluggableType.ALGORITHM.value, algo_name, default_algo_name)
 
-        # update alogorithm depoendencies scheme
-        config = {} if algo_name is None else get_algorithm_configuration(algo_name)
+        # update algorithm depoendencies scheme
+        config = {} if algo_name is None else get_pluggable_configuration(PluggableType.ALGORITHM, algo_name)
         classical = config['classical'] if 'classical' in config else False
         pluggable_dependencies = [] if 'depends' not in config else config['depends']
-        pluggable_defaults = {} if 'defaults' not in config else config['defaults']
+        pluggable_defaults = {
+        } if 'defaults' not in config else config['defaults']
         pluggable_types = local_pluggables_types()
         for pluggable_type in pluggable_types:
-            if pluggable_type != JSONSchema.ALGORITHM and pluggable_type not in pluggable_dependencies:
+            if pluggable_type not in [PluggableType.INPUT, PluggableType.ALGORITHM] and \
+                    pluggable_type.value not in pluggable_dependencies:
                 # remove pluggables from schema that ate not in the dependencies
-                if pluggable_type in self._schema['properties']:
-                    del self._schema['properties'][pluggable_type]
+                if pluggable_type.value in self._schema['properties']:
+                    del self._schema['properties'][pluggable_type.value]
 
         # update algorithm backend from schema if it is classical or not
         if classical:
@@ -337,48 +350,55 @@ class JSONSchema(object):
             pluggable_name = None
             default_properties = {}
             if pluggable_type in pluggable_defaults:
-                for key,value in pluggable_defaults[pluggable_type].items():
+                for key, value in pluggable_defaults[pluggable_type].items():
                     if key == JSONSchema.NAME:
                         pluggable_name = pluggable_defaults[pluggable_type][key]
                     else:
                         default_properties[key] = value
 
             default_name = pluggable_name
-            pluggable_name = input_parser.get_section_property(pluggable_type,JSONSchema.NAME,pluggable_name)
-            if pluggable_name is None:
-                continue
+            pluggable_name = input_parser.get_section_property(
+                pluggable_type, JSONSchema.NAME, pluggable_name)
 
             # update dependency schema
-            self._update_pluggable_input_schema(pluggable_type,pluggable_name,default_name)
+            self._update_pluggable_input_schema(
+                pluggable_type, pluggable_name, default_name)
             for property_name in self._schema['properties'][pluggable_type]['properties'].keys():
                 if property_name in default_properties:
                     self._schema['properties'][pluggable_type]['properties'][property_name]['default'] = default_properties[property_name]
 
-    def _update_pluggable_input_schema(self,pluggable_type,pluggable_name,default_name):
+    def _update_pluggable_input_schema(self, pluggable_type, pluggable_name, default_name):
         config = {}
         try:
-            config = get_pluggable_configuration(pluggable_type,pluggable_name)
+            if pluggable_type is not None and pluggable_name is not None:
+                config = get_pluggable_configuration(pluggable_type, pluggable_name)
         except:
             pass
 
-        input_schema = config['input_schema'] if 'input_schema' in config else {}
-        properties = input_schema['properties'] if 'properties' in input_schema else {}
-        properties[JSONSchema.NAME] = { 'type': 'string' }
-        required = input_schema['required'] if 'required' in input_schema else []
+        input_schema = config['input_schema'] if 'input_schema' in config else {
+        }
+        properties = input_schema['properties'] if 'properties' in input_schema else {
+        }
+        properties[JSONSchema.NAME] = {'type': 'string'}
+        required = input_schema['required'] if 'required' in input_schema else [
+        ]
         additionalProperties = input_schema['additionalProperties'] if 'additionalProperties' in input_schema else True
         if default_name is not None:
             properties[JSONSchema.NAME]['default'] = default_name
             required.append(JSONSchema.NAME)
 
         if pluggable_type not in self._schema['properties']:
-            self._schema['properties'][pluggable_type] = { 'type': 'object' }
+            self._schema['properties'][pluggable_type] = {'type': 'object'}
 
         self._schema['properties'][pluggable_type]['properties'] = properties
-        self._schema['properties'][pluggable_type]['required'] = required
+        if len(required) > 0:
+            self._schema['properties'][pluggable_type]['required'] = required
+        elif 'required' in self._schema['properties'][pluggable_type]:
+            del self._schema['properties'][pluggable_type]['required']
+
         self._schema['properties'][pluggable_type]['additionalProperties'] = additionalProperties
 
-
-    def check_section_value(self,section_name,value):
+    def check_section_value(self, section_name, value):
         """
         Check value for section name
 
@@ -391,17 +411,18 @@ class JSONSchema(object):
         """
         section_name = JSONSchema.format_section_name(section_name)
         types = self.get_section_types(section_name)
-        value = JSONSchema.get_value(value,types)
+        value = JSONSchema.get_value(value, types)
         if len(types) > 0:
             validator = jsonschema.Draft4Validator(self._schema)
             valid = False
             for type in types:
-                valid = validator.is_type(value,type)
+                valid = validator.is_type(value, type)
                 if valid:
                     break
 
             if not valid:
-                raise AlgorithmError("{}: Value '{}' is not of types: '{}'".format(section_name, value, types))
+                raise AquaError("{}: Value '{}' is not of types: '{}'".format(
+                    section_name, value, types))
 
         return value
 
@@ -419,31 +440,34 @@ class JSONSchema(object):
         """
         section_name = JSONSchema.format_section_name(section_name)
         property_name = JSONSchema.format_property_name(property_name)
-        types = self.get_property_types(section_name,property_name)
-        value = JSONSchema.get_value(value,types)
+        types = self.get_property_types(section_name, property_name)
+        value = JSONSchema.get_value(value, types)
         if len(types) > 0:
             validator = jsonschema.Draft4Validator(self._schema)
             valid = False
             for type in types:
-                valid = validator.is_type(value,type)
+                valid = validator.is_type(value, type)
                 if valid:
                     break
 
             if not valid:
-                raise AlgorithmError("{}.{} Value '{}' is not of types: '{}'".format(section_name, property_name, value, types))
+                raise AquaError("{}.{} Value '{}' is not of types: '{}'".format(
+                    section_name, property_name, value, types))
 
         return value
 
-    def validate(self,sections_json):
+    def validate(self, sections_json):
         try:
-            logger.debug('JSON Input: {}'.format(json.dumps(sections_json, sort_keys=True, indent=4)))
-            logger.debug('Aqua Chemistry Input Schema: {}'.format(json.dumps(self._schema, sort_keys=True, indent=4)))
-            jsonschema.validate(sections_json,self._schema)
+            logger.debug('JSON Input: {}'.format(
+                json.dumps(sections_json, sort_keys=True, indent=4)))
+            logger.debug('Aqua Input Schema: {}'.format(
+                json.dumps(self._schema, sort_keys=True, indent=4)))
+            jsonschema.validate(sections_json, self._schema)
         except jsonschema.exceptions.ValidationError as ve:
             logger.info('JSON Validation error: {}'.format(str(ve)))
-            raise AlgorithmError(ve.message)
+            raise AquaError(ve.message)
 
-    def validate_property(self,sections_json,section_name, property_name):
+    def validate_property(self, sections_json, section_name, property_name):
         """
         Validates the propery and returns error message
         Args:
@@ -471,14 +495,14 @@ class JSONSchema(object):
         Returns:
             Returns list of problem names
         """
-        config = get_algorithm_configuration(algo_name)
+        config = get_pluggable_configuration(PluggableType.ALGORITHM, algo_name)
         if 'problems' in config:
             return config['problems']
 
         return []
 
     @staticmethod
-    def get_value(value, types=[]):
+    def get_value(value, types=None):
         """
         Returns a converted value based on schema types
         Args:
@@ -488,7 +512,8 @@ class JSONSchema(object):
         Returns:
             Returns converted value
         """
-        if value is None or (isinstance(value,str) and len(value.strip()) == 0):
+        types = types or []
+        if value is None or (isinstance(value, str) and len(value.strip()) == 0):
             # return propet values based on type
             if value is None:
                 if 'null' in types:
@@ -496,10 +521,10 @@ class JSONSchema(object):
                 if 'string' in types:
                     return ''
             else:
-                 if 'string' in types:
-                     return value
-                 if 'null' in types:
-                     return None
+                if 'string' in types:
+                    return value
+                if 'null' in types:
+                    return None
 
             if 'integer' in types or 'number' in types:
                 return 0
@@ -525,14 +550,14 @@ class JSONSchema(object):
             return str(value)
 
         try:
-            str_value = str(value).strip().replace('\n','').replace('\r','')
+            str_value = str(value).strip().replace('\n', '').replace('\r', '')
             if str_value.lower() == 'true':
                 return True
             elif str_value.lower() == 'false':
                 return False
 
             v = ast.literal_eval(str_value)
-            if isinstance(v,dict):
+            if isinstance(v, dict):
                 v = json.loads(json.dumps(v))
 
             return v
@@ -545,7 +570,7 @@ class JSONSchema(object):
             section_name = ''
         section_name = section_name.strip()
         if len(section_name) == 0:
-            raise AlgorithmError("Empty section name.")
+            raise AquaError("Empty section name.")
 
         return section_name
 
@@ -555,7 +580,7 @@ class JSONSchema(object):
             property_name = ''
         property_name = property_name.strip()
         if len(property_name) == 0:
-            raise AlgorithmError("Empty property name.")
+            raise AquaError("Empty property name.")
 
         return property_name
 
@@ -577,13 +602,15 @@ class JSONSchema(object):
                     if ref_schema:
                         return ref_schema[1]
 
-                resolved_ref = JSONSchema._resolve_schema_references(value, resolver)
+                resolved_ref = JSONSchema._resolve_schema_references(
+                    value, resolver)
                 if resolved_ref:
                     schema[key] = resolved_ref
 
         elif isinstance(schema, list):
             for (idx, value) in enumerate(schema):
-                resolved_ref = JSONSchema._resolve_schema_references(value, resolver)
+                resolved_ref = JSONSchema._resolve_schema_references(
+                    value, resolver)
                 if resolved_ref:
                     schema[idx] = resolved_ref
 

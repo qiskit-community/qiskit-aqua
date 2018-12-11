@@ -17,9 +17,14 @@
 
 import unittest
 import operator
+
 from parameterized import parameterized
+from qiskit import Aer
+
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import get_algorithm_instance, get_oracle_instance
+from qiskit_aqua.algorithms.components.oracles import SAT
+from qiskit_aqua.algorithms import Grover
+from qiskit_aqua import QuantumInstance
 
 
 class TestGrover(QiskitAquaTestCase):
@@ -29,22 +34,24 @@ class TestGrover(QiskitAquaTestCase):
         ['test_grover_tiny.cnf', False, 1, 'advanced'],
         ['test_grover.cnf', False, 2, 'basic'],
         ['test_grover.cnf', False, 2, 'advanced'],
-        ['test_grover_no_solution.cnf', True, None, 'basic'],
-        ['test_grover_no_solution.cnf', True, None, 'advanced'],
+        ['test_grover_no_solution.cnf', True, 1, 'basic'],
+        ['test_grover_no_solution.cnf', True, 1, 'advanced'],
     ])
     def test_grover(self, input_file, incremental=True, num_iterations=1, cnx_mode='basic'):
+        input_file = self._get_resource_path(input_file)
+        # get ground-truth
+        with open(input_file) as f:
+            buf = f.read()
         if incremental:
             self.log.debug('Testing incremental Grover search on SAT problem instance: \n{}'.format(
-                open(input_file).read(),
+                buf,
             ))
         else:
             self.log.debug('Testing Grover search with {} iteration(s) on SAT problem instance: \n{}'.format(
-                num_iterations, open(input_file).read(),
+                num_iterations, buf,
             ))
-        # get ground-truth
-        with open(input_file) as f:
-            header = f.readline()
-            self.assertGreaterEqual(header.find('solution'), 0, 'Ground-truth info missing.')
+        header = buf.split('\n')[0]
+        self.assertGreaterEqual(header.find('solution'), 0, 'Ground-truth info missing.')
         self.groundtruth = [
             ''.join([
                 '1' if i > 0 else '0'
@@ -52,15 +59,12 @@ class TestGrover(QiskitAquaTestCase):
             ])[::-1]
             for s in header.split('solutions:' if header.find('solutions:') >= 0 else 'solution:')[-1].split(',')
         ]
-        sat_oracle = get_oracle_instance('SAT')
-        with open(input_file) as f:
-            sat_oracle.init_args(f.read(), cnx_mode=cnx_mode)
+        backend = Aer.get_backend('qasm_simulator')
+        sat_oracle = SAT(buf)
+        grover = Grover(sat_oracle, num_iterations=num_iterations, incremental=incremental, cnx_mode=cnx_mode)
+        quantum_instance = QuantumInstance(backend, shots=100)
 
-        grover = get_algorithm_instance('Grover')
-        grover.setup_quantum_backend(backend='local_qasm_simulator', shots=100)
-        grover.init_args(sat_oracle, num_iterations=num_iterations, incremental=incremental, cnx_mode=cnx_mode)
-
-        ret = grover.run()
+        ret = grover.run(quantum_instance)
 
         self.log.debug('Ground-truth Solutions: {}.'.format(self.groundtruth))
         self.log.debug('Measurement result:     {}.'.format(ret['measurements']))

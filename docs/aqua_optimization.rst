@@ -55,12 +55,13 @@ the Aqua library of :ref:`classical-reference-algorithms` includes the
 Contributing to Aqua Optimization
 ---------------------------------
 
-Research and developers interested in :ref:`aqua-extending` with new optimization-specific
+Research and developers interested in :ref:`aqua-extending` with new optimnization-specific
 capabilities can take advantage
 of the modular architecture of Aqua and easily extend Aqua with more algorithms
 and algorithm components, such as new :ref:`oracles` for the :ref:`grover` algorithm,
-new :ref:`optimizers` and :ref:`variational-forms` for :ref:`vqe` and :ref:`qaoa`,
-and new :ref:`iqfts` for :ref:`qpe` and :ref:`iqpe`.
+:ref:`optimizers` and :ref:`variational-forms` for :ref:`vqe`, :ref:`qaoa`, and :ref:`svm-variational`,
+:ref:`iqfts` for :ref:`qpe`, :ref:`initial-states` for :ref:`variational-forms`,
+as well as :ref:`feature-maps` and :ref:`multiclass-extensions` for Support Vector Machine
 
 
 --------

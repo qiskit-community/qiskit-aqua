@@ -16,15 +16,13 @@
 # =============================================================================
 
 import unittest
-import numpy as np
 from itertools import combinations, chain
+
+import numpy as np
 from parameterized import parameterized
-from qiskit import QuantumCircuit, QuantumRegister
-from qiskit import transpiler, load_qasm_string
-from qiskit.wrapper import execute as q_execute
-from qiskit.wrapper import get_backend
-from qiskit.tools.qi.qi import state_fidelity
-from qiskit_aqua.utils.summarize_circuits import summarize_circuits as sc
+from qiskit import QuantumCircuit, QuantumRegister, Aer
+from qiskit import execute as q_execute
+from qiskit.quantum_info import state_fidelity
 from test.common import QiskitAquaTestCase
 
 
@@ -57,7 +55,7 @@ class TestCNX(QiskitAquaTestCase):
                         num_ancillae = 1
                 if num_ancillae > 0:
                     a = QuantumRegister(num_ancillae, name='a')
-                    qc.add(a)
+                    qc.add_register(a)
                 for idx in subset:
                     qc.x(c[idx])
                 qc.cnx(
@@ -69,19 +67,8 @@ class TestCNX(QiskitAquaTestCase):
                 for idx in subset:
                     qc.x(c[idx])
 
-                qasm_w_basis_gates = transpiler.compile(
-                    qc,
-                    get_backend('local_qasm_simulator'),
-                    basis_gates='u1,u2,u3,cx,id'
-                )['circuits'][0]['compiled_circuit_qasm']
-
-                self.log.debug('mode: {}, controls: {}, ancilla: {}, circuit summary: \n{}'.format(
-                    mode,
-                    num_controls,
-                    num_ancillae,
-                    sc(load_qasm_string(qasm_w_basis_gates)),
-                ))
-                vec = np.asarray(q_execute(qc, 'local_statevector_simulator').result().get_statevector(qc))
+                vec = np.asarray(q_execute(qc, Aer.get_backend(
+                    'statevector_simulator')).result().get_statevector(qc, decimals=16))
                 vec_o = [0, 1] if len(subset) == num_controls else [1, 0]
                 # print(vec, np.array(vec_o + [0] * (2 ** (num_controls + num_ancillae + 1) - 2)))
                 f = state_fidelity(vec, np.array(vec_o + [0] * (2 ** (num_controls + num_ancillae + 1) - 2)))

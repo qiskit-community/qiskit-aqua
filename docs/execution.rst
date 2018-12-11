@@ -391,8 +391,8 @@ quantum computer or a quantum simulator.
 Terra comes
 with two predefined quantum device simulators: the *local state vector simulator* and
 the *local QASM simulator*, corresponding to the following two
-values for the ``"name"`` parameter: ``"local_statevector_simulator"`` (which
-is the default value for the ``"name"`` parameter) and ``"local_qasm_simulator"``, respectively.
+values for the ``"name"`` parameter: ``"statevector_simulator"`` (which
+is the default value for the ``"name"`` parameter) and ``"qasm_simulator"``, respectively.
 However, any suitable quantum backend can be selected, including
 a real quantum hardware device. The ``QConfig.py`` file
 needs to be setup for QISKit to access remote devices.  For this, it is sufficient to follow the
@@ -471,3 +471,49 @@ requires setting the following parameters too:
        The `Terra documentation on noise parameters
        <https://github.com/Qiskit/qiskit-terra/tree/master/src/qasm-simulator-cpp#noise-parameters>`__
        provides more details on the configuration of the noise model for the backend.
+
+
+-  An optional dictionary can be supplied to assign the qubit mapping:
+
+   .. code:: python
+
+       "initial_layout" : dictionary
+
+   This is a Python dictionary consisting of the mapping qubits from the codes to
+   the backend. Configuring it is optional; the default value is ``None``.
+   The following is an example of such a dictionary that can be used:
+
+   .. code:: python
+
+      "initial_layout": {('qr', 0): ('q', 1), ('qr', 1): ('q', 0)}
+
+
+-  The maximum number of credits used per quantum job:
+
+   .. code:: python
+
+        "max_credits" : int
+
+   This parameter applies, in particular to any real quantum device.
+   The default value is ``10``.
+
+
+-  The waiting time of a result submitted to any real quantum device:
+
+   .. code:: python
+
+        "timeout" : float or None
+
+   This parameter applies, in particular to any real quantum device.
+   The default value is ``None``.
+
+
+-  The query period of the job submitted to any real quantum device:
+
+   .. code:: python
+
+        "wait" : float
+
+   This parameter applies, in particular to any real quantum device.
+   The default value is ``5.0``.
+

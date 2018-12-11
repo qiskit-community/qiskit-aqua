@@ -155,7 +155,7 @@ is set to ``RY``:
 
      When configured declaratively,
      Aqua and its domain specific applications
-     (:ref:`aqua-chemistry`, :ref:`aqua-ai`, and :ref:`aqua-optimization`) do not expose a configuration parameter in
+     (:ref:`aqua-chemistry`, :ref:`aqua-ai`, :ref:`aqua-optimization` and :ref:`aqua-finance`) do not expose a configuration parameter in
      a ``VariationalForm`` object to set
      the number of qubits that will be used in an experiment.  This is because, when it is used as a tool to execute experiments,
      Aqua is working at a higher, more abstract level.  In such cases, the number of qubits

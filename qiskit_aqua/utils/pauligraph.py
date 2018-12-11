@@ -24,9 +24,7 @@ import numpy as np
 
 
 class PauliGraph(object):
-    """
-        Pauli Graph
-    """
+    """Pauli Graph."""
 
     def __init__(self, paulis, mode="largest-degree"):
         self.nodes, self.weights = self._create_nodes(paulis)  # must be pauli list
@@ -36,7 +34,7 @@ class PauliGraph(object):
 
     def _create_nodes(self, paulis):
         """
-        Check the validity of the pauli list and return immutable list as list of nodes
+        Check the validity of the pauli list and return immutable list as list of nodes.
 
         Args:
             paulis: list of [weight, Pauli object]
@@ -56,50 +54,41 @@ class PauliGraph(object):
 
     def _create_edges(self):
         """
-        create edges (i,j) if i and j is not commutable under Paulis
+        Create edges (i,j) if i and j is not commutable under Paulis.
 
         Returns:
             dictionary of graph connectivity with node index as key and list of neighbor as values
         """
-        #assert self.nodes is not None, "No nodes found."
-        edges = {i: [] for i in range(len(self.nodes))}
-        for i in range(len(self.nodes)):
-            nodei = self.nodes[i]
-            for j in range(i+1, len(self.nodes)):
-                nodej = self.nodes[j]
-                isCommutable = True
-                for k in range(self._nqbits):
-                    if ((nodei.v[k] == 0 and nodei.w[k] == 0) or
-                        (nodej.v[k] == 0 and nodej.w[k] == 0) or
-                            (nodei.v[k] == nodej.v[k] and nodei.w[k] == nodej.w[k])):
-                        pass
-                    else:
-                        isCommutable = False
-                        break
-                if not isCommutable:
-                    edges[i].append(j)
-                    edges[j].append(i)
+        conv = {
+            'I': 0,
+            'X': 1,
+            'Y': 2,
+            'Z': 3
+        }
+        a = np.array([[conv[e] for e in reversed(n.to_label())] for n in self.nodes], dtype=np.int8)
+        b = a[:, None]
+        c = (((a * b) * (a - b)) == 0).all(axis=2)  # i and j are commutable with TPB if c[i, j] is True
+        edges = {i: np.where(c[i] == False)[0] for i in range(len(self.nodes))}
         return edges
 
     def _coloring(self, mode="largest-degree"):
         if mode == "largest-degree":
-            degree = [(i, len(self.edges[i])) for i in range(len(self.nodes))]  # list of (nodeid, degree)
-            degree.sort(key=lambda x: x[1], reverse=True)  # sorted by largest degree
-            # -1 means not colored, 0 ... len(self.nodes)-1 is valid colored
-            color = [-1 for i in range(len(self.nodes))]
-            # coloring start
-            for nodei, _ in degree:
-                ineighbors = self.edges[nodei]  # get neighbors of nodei
-                ineighborsColors = set([color[j] for j in ineighbors if color[j] >= 0])  # get colors of ineighbors
-                for c in range(len(self.nodes)):
-                    if c not in ineighborsColors:
-                        color[nodei] = c
-                        break
-            # coloring end
-            assert (np.array(color) >= 0).all(), "Uncolored node exists!"
+            nodes = sorted(self.edges.keys(), key=lambda x: len(self.edges[x]), reverse=True)
+            # -1 means not colored; 0 ... len(self.nodes)-1 is valid colored
+            max_node = max(nodes)
+            color = np.array([-1] * (max_node + 1))
+            all_colors = np.arange(len(nodes))
+            for i in nodes:
+                neighbors = self.edges[i]
+                color_neighbors = color[neighbors]
+                color_neighbors = color_neighbors[color_neighbors >= 0]
+                mask = np.ones(len(nodes), dtype=bool)
+                mask[color_neighbors] = False
+                color[i] = np.min(all_colors[mask])
+            assert np.min(color[nodes]) >= 0, "Uncolored node exists!"
 
             # post-processing to grouped_paulis
-            maxColor = np.max(color)  # the color used is 0, 1, 2, ..., maxColor
+            maxColor = np.max(color[nodes])  # the color used is 0, 1, 2, ..., maxColor
             temp_gp = []  # list of indices of grouped paulis
             for c in range(maxColor+1):  # maxColor is included
                 temp_gp.append([i for i, icolor in enumerate(color) if icolor == c])
@@ -115,9 +104,9 @@ class PauliGraph(object):
                 header = [0.0, copy.deepcopy(groupi[0][1])]
                 for _, p in groupi:
                     for k in range(self._nqbits):
-                        if p.v[k] == 1 or p.w[k] == 1:
-                            header[1].v[k] = p.v[k]
-                            header[1].w[k] = p.w[k]
+                        if p.z[k] or p.x[k]:
+                            header[1].update_z(p.z[k], k)
+                            header[1].update_x(p.x[k], k)
                 gp[i].insert(0, header)
             return gp
         else:
@@ -125,7 +114,5 @@ class PauliGraph(object):
 
     @property
     def grouped_paulis(self):
-        """
-        Getter of grouped Pauli list.
-        """
+        """Getter of grouped Pauli list."""
         return self._grouped_paulis

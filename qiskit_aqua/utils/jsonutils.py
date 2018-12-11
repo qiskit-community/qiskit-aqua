@@ -18,6 +18,7 @@
 
 import numpy
 
+
 def convert_dict_to_json(in_item):
     """
     Combs recursively through a list/dictionary and finds any non-json \
@@ -30,6 +31,9 @@ def convert_dict_to_json(in_item):
     Returns:
         dict or list: Result in_item possibly modified
     """
+
+    if in_item is None:
+        return in_item
 
     key_list = []
     for (item_index, item_iter) in enumerate(in_item):
@@ -60,6 +64,7 @@ def convert_dict_to_json(in_item):
 
     return in_item
 
+
 def convert_json_to_dict(in_item):
     """
     Combs recursively through a list/dictionary that was loaded from json \
@@ -71,6 +76,8 @@ def convert_json_to_dict(in_item):
     Returns:
         dict or list: Result in_item possibly modified
     """
+    if in_item is None:
+        return in_item
 
     key_list = []
     for (item_index, item_iter) in enumerate(in_item):
@@ -98,4 +105,3 @@ def convert_json_to_dict(in_item):
             in_item.pop(curkey_root + '_ndarray_imag')
 
     return in_item
-

@@ -16,17 +16,9 @@
 # =============================================================================
 
 from .algorithminput import AlgorithmInput
-from ._discover_input import (register_input,
-                              deregister_input,
-                              get_input_class,
-                              get_input_instance,
-                              get_input_configuration,
-                              local_inputs)
+from .energyinput import EnergyInput
+from .svminput import SVMInput
 
 __all__ = ['AlgorithmInput',
-          'register_input',
-          'deregister_input',
-          'get_input_class',
-          'get_input_instance',
-          'get_input_configuration',
-          'local_inputs']
+           'EnergyInput',
+           'SVMInput']

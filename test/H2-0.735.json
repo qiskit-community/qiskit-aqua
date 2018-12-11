@@ -5,7 +5,7 @@
         "operator_mode": "matrix"
     },
     "backend": {
-        "name": "local_statevector_simulator",
+        "name": "statevector_simulator",
         "shots": 1,
         "skip_transpiler": false
     },
@@ -33,7 +33,7 @@
     "input": {
         "aux_ops": [],
         "name": "EnergyInput",
-        "qubitop": {
+        "qubit_op": {
             "paulis": [
                 {
                     "coeff": {

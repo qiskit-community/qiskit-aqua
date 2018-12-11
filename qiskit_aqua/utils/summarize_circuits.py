@@ -16,12 +16,12 @@
 # =============================================================================
 
 import numpy as np
-from qiskit.dagcircuit import DAGCircuit
+from qiskit.converters import circuit_to_dag
+
 
 def summarize_circuits(circuits):
-    """
+    """Summarize circuits based on QuantumCircuit, and four metrics are summarized.
 
-    Summarize circuits based on DAGCircuit, and four metrics are summarized.
     Number of qubits and classical bits, and number of operations and depth of circuits.
     The average statistic is provided if multiple circuits are inputed.
 
@@ -32,22 +32,25 @@ def summarize_circuits(circuits):
     if not isinstance(circuits, list):
         circuits = [circuits]
     ret = ""
-    dag_circuits = [DAGCircuit.fromQuantumCircuit(circuit) for circuit in circuits]
-    ret += "Submitting {} circuits.\n".format(len(dag_circuits))
+    ret += "Submitting {} circuits.\n".format(len(circuits))
     ret += "============================================================================\n"
     stats = np.zeros(4)
-    for i, dag_circuit in enumerate(dag_circuits):
-        depth = dag_circuit.depth()
-        width = dag_circuit.width()
-        size = dag_circuit.size()
-        classical_bits = dag_circuit.num_cbits()
+    for i, circuit in enumerate(circuits):
+        dag = circuit_to_dag(circuit)
+        depth = dag.depth()
+        width = dag.width()
+        size = dag.size()
+        classical_bits = dag.num_cbits()
+        op_counts = dag.count_ops()
         stats[0] += width
         stats[1] += classical_bits
         stats[2] += size
         stats[3] += depth
-        ret += "{}-th circuit: {} qubits, {} classical bits and {} operations with depth {}\n".format(i, width, classical_bits, size, depth)
-    if len(dag_circuits) > 1:
-        stats /= len(dag_circuits)
-        ret += "Average: {:.2f} qubits, {:.2f} classical bits and {:.2f} operations with depth {:.2f}\n".format(stats[0], stats[1], stats[2], stats[3])
+        ret = ''.join([ret, "{}-th circuit: {} qubits, {} classical bits and {} operations with depth {}\n op_counts: {}\n".format(
+            i, width, classical_bits, size, depth, op_counts)])
+    if len(circuits) > 1:
+        stats /= len(circuits)
+        ret = ''.join([ret, "Average: {:.2f} qubits, {:.2f} classical bits and {:.2f} operations with depth {:.2f}\n".format(
+            stats[0], stats[1], stats[2], stats[3])])
     ret += "============================================================================\n"
     return ret

@@ -16,6 +16,5 @@
 # =============================================================================
 
 from .jsonschema import JSONSchema
-from ._inputparser import InputParser
 
-__all__ = [ 'InputParser','JSONSchema']
+__all__ = ['JSONSchema']

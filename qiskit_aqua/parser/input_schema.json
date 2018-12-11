@@ -34,7 +34,7 @@
             "properties": {
                 "name": {
                     "type": "string",
-                    "default": "local_statevector_simulator"
+                    "default": "statevector_simulator"
                 },
                 "shots": {
                     "type": "integer",
@@ -49,20 +49,8 @@
                     "type": ["object", "null"],
                     "default": null
                 },
-                "coupling_map": {
-                    "type": ["object", "null"],
-                    "default": null
-                },
                 "initial_layout": {
                     "type": ["object", "null"],
-                    "default": null
-                },
-                "hpc_params": {
-                    "type": ["object", "null"],
-                    "default": null
-                },
-                "basis_gates": {
-                    "type": ["string", "null"],
                     "default": null
                 },
                 "max_credits": {

@@ -17,61 +17,46 @@
 
 """Algorithm discovery methods, Error and Base classes"""
 
-from .utils import cnx
-from ._discover_qconfig import (get_qconfig,
-                                set_qconfig,
-                                load_qconfig,
-                                discover_qconfig)
-from .algorithmerror import AlgorithmError
-from .preferences import Preferences
-from .operator import Operator
-from .quantumalgorithm import QuantumAlgorithm
-from ._discover import (refresh_pluggables,
+from .aqua_error import AquaError
+from ._discover import (PluggableType,
+                        refresh_pluggables,
                         local_pluggables_types,
                         local_pluggables,
-                        get_pluggable_configuration)
-
-__version__ = '0.2.0'
-
-__all__ = [ 'get_qconfig',
-            'set_qconfig',
-            'load_qconfig',
-            'discover_qconfig',
-            'AlgorithmError',
-            'Preferences',
-            'Operator',
-            'QuantumAlgorithm',
-            'refresh_pluggables',
-            'local_pluggables_types',
-            'local_pluggables',
-            'get_pluggable_configuration']
-
-from ._discover import _PLUGGABLES
-
-prefix = 'from ._discover import '
-for pluggable_type in _PLUGGABLES.keys():
-    method = 'register_{}'.format(pluggable_type)
-    exec(prefix + method)
-    __all__.append(method)
-    method = 'deregister_{}'.format(pluggable_type)
-    exec(prefix + method)
-    __all__.append(method)
-    method = 'get_{}_class'.format(pluggable_type)
-    exec(prefix + method)
-    __all__.append(method)
-    method = 'get_{}_instance'.format(pluggable_type)
-    exec(prefix + method)
-    __all__.append(method)
-    method = 'get_{}_configuration'.format(pluggable_type)
-    exec(prefix + method)
-    __all__.append(method)
-    method = 'local_{}s'.format(pluggable_type)
-    exec(prefix + method)
-    __all__.append(method)
-    
-from .algomethods import run_algorithm
-__all__.append('run_algorithm')
-from .algomethods import run_algorithm_to_json
-__all__.append('run_algorithm_to_json')
+                        get_pluggable_class,
+                        get_pluggable_configuration,
+                        register_pluggable,
+                        deregister_pluggable)
+from .pluggable import Pluggable
+from .utils.cnx import cnx
+from .quantum_instance import QuantumInstance
 from .operator import Operator
-__all__.append('Operator')
+from .algorithms import QuantumAlgorithm
+from ._aqua import run_algorithm, run_algorithm_to_json
+from ._logging import (get_logging_level,
+                       build_logging_config,
+                       set_logging_config,
+                       get_aqua_logging,
+                       set_aqua_logging)
+
+__version__ = '0.4.0'
+
+__all__ = ['AquaError',
+           'Pluggable',
+           'Operator',
+           'QuantumAlgorithm',
+           'PluggableType',
+           'refresh_pluggables',
+           'QuantumInstance',
+           'local_pluggables_types',
+           'local_pluggables',
+           'get_pluggable_class',
+           'get_pluggable_configuration',
+           'register_pluggable',
+           'deregister_pluggable',
+           'run_algorithm',
+           'run_algorithm_to_json',
+           'get_logging_level',
+           'build_logging_config',
+           'set_logging_config',
+           'get_aqua_logging',
+           'set_aqua_logging']
