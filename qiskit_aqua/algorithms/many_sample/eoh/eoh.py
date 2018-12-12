@@ -21,9 +21,8 @@ The Quantum Dynamics algorithm.
 import logging
 
 from qiskit import QuantumRegister
-
-from qiskit_aqua import QuantumAlgorithm, AquaError
-from qiskit_aqua import PluggableType, get_pluggable_class
+from qiskit_aqua.algorithms import QuantumAlgorithm
+from qiskit_aqua import AquaError, PluggableType, get_pluggable_class
 
 logger = logging.getLogger(__name__)
 

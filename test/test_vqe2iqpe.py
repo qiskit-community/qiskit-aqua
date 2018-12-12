@@ -28,8 +28,8 @@ from qiskit_aqua.utils import decimal_to_binary
 from qiskit_aqua.algorithms.components.initial_states.varformbased import VarFormBased
 from qiskit_aqua.algorithms.components.variational_forms import RYRZ
 from qiskit_aqua.algorithms.components.optimizers import SPSA
-from qiskit_aqua.algorithms.adaptive import VQE
-from qiskit_aqua.algorithms.single_sample import IQPE
+from qiskit_aqua.algorithms import VQE
+from qiskit_aqua.algorithms import IQPE
 
 
 class TestVQE2IQPE(QiskitAquaTestCase):

@@ -24,7 +24,7 @@ from qiskit import Aer
 from test.common import QiskitAquaTestCase
 from qiskit_aqua.operator import Operator, QuantumInstance
 from qiskit_aqua.algorithms.components.initial_states import Custom
-from qiskit_aqua.algorithms.many_sample import EOH
+from qiskit_aqua.algorithms import EOH
 
 
 class TestEOH(QiskitAquaTestCase):

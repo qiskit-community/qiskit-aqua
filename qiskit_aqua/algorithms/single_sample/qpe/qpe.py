@@ -22,7 +22,8 @@ import copy
 import logging
 import numpy as np
 from qiskit.quantum_info import Pauli
-from qiskit_aqua import Operator, QuantumAlgorithm, AquaError
+from qiskit_aqua.algorithms import QuantumAlgorithm
+from qiskit_aqua import Operator, AquaError
 from qiskit_aqua import PluggableType, get_pluggable_class
 from .phase_estimation import PhaseEstimation
 
