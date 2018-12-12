@@ -35,10 +35,10 @@ _q_h1.add(_q_mints.ao_potential())
 _q_h1.name = "Core-Hamiltonian"
 _q_h1.transform(_q_hf_wavefn.Ca())
 _q_mohij = numpy.asarray(_q_h1)
-_q_molecule._mo_onee_ints = _q_mohij
+_q_molecule.mo_onee_ints = _q_mohij
 #
 _q_mohijkl = numpy.asarray(_q_mints.mo_eri(_q_hf_wavefn.Ca(), _q_hf_wavefn.Ca(), _q_hf_wavefn.Ca(), _q_hf_wavefn.Ca()))
-_q_molecule._mo_eri_ints = _q_mohijkl
+_q_molecule.mo_eri_ints = _q_mohijkl
 
 # dipole integrals
 _q_dipole = _q_mints.ao_dipole()
