@@ -16,7 +16,7 @@
 # =============================================================================
 
 from scipy.stats.distributions import norm
-from qiskit_aqua.algorithms.components.uncertainty_models.univariate_distribution import UnivariateDistribution
+from .univariate_distribution import UnivariateDistribution
 
 
 class NormalDistribution(UnivariateDistribution):

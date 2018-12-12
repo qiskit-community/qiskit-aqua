@@ -17,7 +17,7 @@
 
 import numpy as np
 from scipy.stats import multivariate_normal
-from qiskit_aqua.algorithms.components.uncertainty_models.multivariate_distribution import MultivariateDistribution
+from qiskit_aqua.components.uncertainty_models.multivariate_distribution import MultivariateDistribution
 
 
 class MultivariateNormalDistribution(MultivariateDistribution):

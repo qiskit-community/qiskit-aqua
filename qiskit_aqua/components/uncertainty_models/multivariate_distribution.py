@@ -17,7 +17,7 @@
 
 from qiskit_aqua.utils.circuit_factory import CircuitFactory
 import numpy as np
-from qiskit_aqua.algorithms.components.initial_states.custom import Custom
+from qiskit_aqua.components.initial_states.custom import Custom
 
 
 class MultivariateDistribution(CircuitFactory):

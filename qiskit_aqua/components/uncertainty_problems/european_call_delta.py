@@ -16,8 +16,8 @@
 # =============================================================================
 
 import numpy as np
-from qiskit_aqua.algorithms.components.uncertainty_problems import UncertaintyProblem
-from qiskit_aqua.algorithms.components.uncertainty_problems.fixed_value_comparator import FixedValueComparator
+from qiskit_aqua.components.uncertainty_problems import UncertaintyProblem
+from qiskit_aqua.components.uncertainty_problems.fixed_value_comparator import FixedValueComparator
 
 
 class EuropeanCallDelta(UncertaintyProblem):

@@ -15,7 +15,7 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit_aqua.algorithms.components.uncertainty_problems import UncertaintyProblem
+from qiskit_aqua.components.uncertainty_problems import UncertaintyProblem
 from qiskit_aqua.utils.circuit_utils import cry
 import numpy as np
 

@@ -20,3 +20,5 @@ from .random_distribution import RandomDistribution
 
 __all__ = ['RandomDistribution',
            'NormalDistribution']
+
+# TODO: @Stefan, expose more distributions here?

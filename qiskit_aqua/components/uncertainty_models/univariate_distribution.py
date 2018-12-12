@@ -17,8 +17,8 @@
 
 import numpy as np
 from qiskit_aqua import AquaError
-from qiskit_aqua.algorithms.components.initial_states import Custom
-from qiskit_aqua.algorithms.components.uncertainty_models.random_distribution import RandomDistribution
+from qiskit_aqua.components.initial_states import Custom
+from .random_distribution import RandomDistribution
 
 
 class UnivariateDistribution(RandomDistribution):
