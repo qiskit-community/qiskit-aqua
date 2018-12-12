@@ -8,7 +8,7 @@ Aqua continues now to grow with the help and work of many
 people, listed here in alphabetical order, who contribute to the project at different
 levels:
 
-- Panagiotis Barkoutsos
+- `Panagiotis Barkoutsos <https://researcher.watson.ibm.com/researcher/view.php?person=zurich-BPA>`__
 - Sergey Bravyi
 - Chun-Fu (Richard) Chen
 - `Antonio Córcoles-Gonzalez <https://researcher.watson.ibm.com/researcher/view.php?person=us-adcorcol>`__
