@@ -31,8 +31,11 @@ class MultivariateNormalDistribution(MultivariateDistribution):
             'type': 'object',
             'properties': {
                 'num_target_qubits': {
-                    'type': 'list',
-                    'default': [2, 2],
+                    'type': ['array', 'null'],
+                    "items": {
+                        "type": "number"
+                    },
+                    'default': None
                 },
                 'mu': {
                     'type': ['array', 'null'],

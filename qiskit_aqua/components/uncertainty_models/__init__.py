@@ -18,11 +18,15 @@
 from .random_distribution import RandomDistribution
 from .normal_distribution import NormalDistribution
 from .log_normal_distribution import LogNormalDistribution
+from .bernoulli_distribution import BernoulliDistribution
+from .uniform_distribution import UniformDistribution
 from .multivariate_normal_distribution import MultivariateNormalDistribution
+from .multivariate_uniform_distribution import MultivariateUniformDistribution
 
 __all__ = ['RandomDistribution',
            'NormalDistribution',
            'LogNormalDistribution',
-           'MultivariateNormalDistribution']
-
-# TODO: @Stefan, expose more distributions here?
+           'BernoulliDistribution',
+           'UniformDistribution',
+           'MultivariateNormalDistribution',
+           'MultivariateUniformDistribution']
