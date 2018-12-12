@@ -172,16 +172,16 @@ class Hamiltonian(ChemistryOperator):
         new_nel = nel
         if len(orbitals_list) > 0:
             orbitals_list = np.array(orbitals_list)
-            orbitals_list = orbitals_list[(orbitals_list >= 0) & (orbitals_list < qmolecule._num_orbitals)]
+            orbitals_list = orbitals_list[(orbitals_list >= 0) & (orbitals_list < qmolecule.num_orbitals)]
 
             freeze_list = [i for i in orbitals_list if i < int(nel/2)]
-            freeze_list = np.append(np.array(freeze_list), np.array(freeze_list) + qmolecule._num_orbitals)
+            freeze_list = np.append(np.array(freeze_list), np.array(freeze_list) + qmolecule.num_orbitals)
 
             remove_list = [i for i in orbitals_list if i >= int(nel/2)]
-            remove_list_orig_idx = np.append(np.array(remove_list), np.array(remove_list) + qmolecule._num_orbitals)
-            remove_list = np.append(np.array(remove_list) - int(len(freeze_list)/2), np.array(remove_list) + qmolecule._num_orbitals - len(freeze_list))
+            remove_list_orig_idx = np.append(np.array(remove_list), np.array(remove_list) + qmolecule.num_orbitals)
+            remove_list = np.append(np.array(remove_list) - int(len(freeze_list)/2), np.array(remove_list) + qmolecule.num_orbitals - len(freeze_list))
             logger.info("Combined orbital reduction list: {}".format(orbitals_list))
-            logger.info("  converting to spin orbital reduction list: {}".format(np.append(np.array(orbitals_list), np.array(orbitals_list) + qmolecule._num_orbitals)))
+            logger.info("  converting to spin orbital reduction list: {}".format(np.append(np.array(orbitals_list), np.array(orbitals_list) + qmolecule.num_orbitals)))
             logger.info("    => freezing spin orbitals: {}".format(freeze_list))
             logger.info("    => removing spin orbitals: {} (indexes accounting for freeze {})".format(remove_list_orig_idx, remove_list))
 
@@ -239,7 +239,7 @@ class Hamiltonian(ChemistryOperator):
             algo_input.add_aux_op(op_dipole_z)
 
         logger.info('Molecule num electrons: {}, remaining for processing: {}'.format(nel, new_nel))
-        nspinorbs = qmolecule._num_orbitals * 2
+        nspinorbs = qmolecule.num_orbitals * 2
         new_nspinorbs = nspinorbs - len(freeze_list) - len(remove_list)
         logger.info('Molecule num spin orbitals: {}, remaining for processing: {}'.format(nspinorbs, new_nspinorbs))
 
