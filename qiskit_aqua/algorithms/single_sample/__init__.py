@@ -24,4 +24,5 @@ from .ae.ae import AmplitudeEstimation
 __all__ = ['Grover',
            'IQPE',
            'QPE',
-           'PhaseEstimation']
+           'PhaseEstimation',
+           'AmplitudeEstimation']

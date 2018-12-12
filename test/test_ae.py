@@ -1,10 +1,8 @@
 from qiskit_aqua.algorithms.single_sample import AmplitudeEstimation
-from qiskit_aqua.algorithms.components.uncertainty_problems import EuropeanCallExpectedValue
-from qiskit_aqua.algorithms.components.uncertainty_models import NormalDistribution
+from qiskit_aqua.components.uncertainty_problems import EuropeanCallExpectedValue
+from qiskit_aqua.components.uncertainty_models import NormalDistribution
 from qiskit_aqua import QuantumInstance
 from qiskit import Aer
-from qiskit.transpiler import PassManager
-
 
 # TODO: @Stefan, please create test(s) for AE
 

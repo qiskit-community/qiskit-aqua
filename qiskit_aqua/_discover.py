@@ -52,16 +52,16 @@ def _get_pluggables_types_dictionary():
     Gets all the pluggables types
     Any new pluggable type should be added here
     """
-    from qiskit_aqua.algorithms.quantumalgorithm import QuantumAlgorithm
-    from qiskit_aqua.algorithms.components.optimizers import Optimizer
-    from qiskit_aqua.algorithms.components.variational_forms import VariationalForm
-    from qiskit_aqua.algorithms.components.initial_states import InitialState
-    from qiskit_aqua.algorithms.components.iqfts import IQFT
-    from qiskit_aqua.algorithms.components.oracles import Oracle
-    from qiskit_aqua.algorithms.components.feature_maps import FeatureMap
-    from qiskit_aqua.algorithms.components.multiclass_extensions import MulticlassExtension
-    from qiskit_aqua.algorithms.components.uncertainty_problems import UncertaintyProblem
-    from qiskit_aqua.algorithms.components.uncertainty_models import RandomDistribution
+    from qiskit_aqua.components.uncertainty_problems import UncertaintyProblem
+    from qiskit_aqua.components.uncertainty_models import RandomDistribution
+    from qiskit_aqua.components.optimizers import Optimizer
+    from qiskit_aqua.algorithms.quantum_algorithm import QuantumAlgorithm
+    from qiskit_aqua.components.variational_forms import VariationalForm
+    from qiskit_aqua.components.initial_states import InitialState
+    from qiskit_aqua.components.iqfts import IQFT
+    from qiskit_aqua.components.oracles import Oracle
+    from qiskit_aqua.components.feature_maps import FeatureMap
+    from qiskit_aqua.components.multiclass_extensions import MulticlassExtension
     from qiskit_aqua.input import AlgorithmInput
     return {
         PluggableType.ALGORITHM: QuantumAlgorithm,
@@ -79,15 +79,13 @@ def _get_pluggables_types_dictionary():
 
 
 _NAMES_TO_EXCLUDE = [
-    '__main__',
     '_aqua',
     '_discover',
     '_logging',
     'aqua_error',
     'operator',
     'pluggable',
-    'quantumalgorithm',
-    'jsonutils',
+    'quantum_instance',
     'optimizer',
     'variational_form',
     'initial_state',
@@ -100,7 +98,12 @@ _NAMES_TO_EXCLUDE = [
     'univariate_uncertainty_model'
 ]
 
-_FOLDERS_TO_EXCLUDE = ['__pycache__', 'ui', 'parser']
+_FOLDERS_TO_EXCLUDE = [
+    '__pycache__',
+    'parser',
+    'translators',
+    'utils'
+]
 
 RegisteredPluggable = namedtuple(
     'RegisteredPluggable', ['name', 'cls', 'configuration'])
@@ -157,6 +160,7 @@ def discover_preferences_pluggables():
                                            folders_to_exclude=['__pycache__'])
             else:
                 # Ignore package that could not be initialized.
+                # print('Failed to import package {}'.format(package))
                 logger.debug('Failed to import package {}'.format(package))
         except Exception as e:
             # Ignore package that could not be initialized.
@@ -190,14 +194,15 @@ def _discover_local_pluggables(directory,
                                     break
                     except Exception as e:
                         # Ignore pluggables that could not be initialized.
-                        logger.debug('Failed to load {} error {}'.format(fullname, str(e)))
+                        # print('Failed to load pluggable {} error {}'.format(fullname, str(e)))
+                        logger.debug('Failed to load pluggable {} error {}'.format(fullname, str(e)))
 
             except Exception as e:
                 # Ignore pluggables that could not be initialized.
                 # print('Failed to load {} error {}'.format(fullname, str(e)))
                 logger.debug('Failed to load {} error {}'.format(fullname, str(e)))
 
-    for item in os.listdir(directory):
+    for item in sorted(os.listdir(directory)):
         fullpath = os.path.join(directory, item)
         if item not in folders_to_exclude and not item.endswith('dSYM') and os.path.isdir(fullpath):
             _discover_local_pluggables(

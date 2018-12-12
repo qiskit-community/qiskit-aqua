@@ -23,8 +23,8 @@ from qiskit import Aer
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import run_algorithm, QuantumInstance
 from qiskit_aqua.input import SVMInput
-from qiskit_aqua.algorithms.components.feature_maps import SecondOrderExpansion
-from qiskit_aqua.algorithms import QSVM_Kernel
+from qiskit_aqua.components.feature_maps import SecondOrderExpansion
+from qiskit_aqua.algorithms import QSVMKernel
 
 
 class TestQSVMKernel(QiskitAquaTestCase):
@@ -95,7 +95,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
         backend = Aer.get_backend('qasm_simulator_py')
         num_qubits = 2
         feature_map = SecondOrderExpansion(num_qubits=num_qubits, depth=2, entangler_map={0: [1]})
-        svm = QSVM_Kernel(feature_map, self.training_data, self.testing_data, None)
+        svm = QSVMKernel(feature_map, self.training_data, self.testing_data, None)
         svm.random_seed = self.random_seed
         quantum_instance = QuantumInstance(backend, shots=self.shots, seed=self.random_seed, seed_mapper=self.random_seed)
 
@@ -119,7 +119,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
         backend = Aer.get_backend('statevector_simulator')
         num_qubits = 2
         feature_map = SecondOrderExpansion(num_qubits=num_qubits, depth=2, entangler_map={0: [1]})
-        svm = QSVM_Kernel(feature_map, self.training_data, self.testing_data, None)
+        svm = QSVMKernel(feature_map, self.training_data, self.testing_data, None)
         svm.random_seed = self.random_seed
 
         quantum_instance = QuantumInstance(backend, seed=self.random_seed, seed_mapper=self.random_seed)
@@ -138,7 +138,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
 
         self.assertTrue(os.path.exists(file_path))
 
-        loaded_svm = QSVM_Kernel(feature_map, self.training_data, None, None)
+        loaded_svm = QSVMKernel(feature_map, self.training_data, None, None)
         loaded_svm.load_model(file_path)
 
         np.testing.assert_array_almost_equal(
