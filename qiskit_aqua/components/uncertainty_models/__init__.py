@@ -15,10 +15,14 @@
 # limitations under the License.
 # =============================================================================
 
-from .normal_distribution import NormalDistribution
 from .random_distribution import RandomDistribution
+from .normal_distribution import NormalDistribution
+from .log_normal_distribution import LogNormalDistribution
+from .multivariate_normal_distribution import MultivariateNormalDistribution
 
 __all__ = ['RandomDistribution',
-           'NormalDistribution']
+           'NormalDistribution',
+           'LogNormalDistribution',
+           'MultivariateNormalDistribution']
 
 # TODO: @Stefan, expose more distributions here?

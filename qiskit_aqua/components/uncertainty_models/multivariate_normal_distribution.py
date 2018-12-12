@@ -22,7 +22,52 @@ from qiskit_aqua.components.uncertainty_models.multivariate_distribution import 
 
 class MultivariateNormalDistribution(MultivariateDistribution):
 
-    def __init__(self, num_qubits, low, high, mu, sigma):
+    CONFIGURATION = {
+        'name': 'MultivariateNormalDistribution',
+        'description': 'Multivariate Normal Distribution',
+        'input_schema': {
+            '$schema': 'http://json-schema.org/schema#',
+            'id': 'MultivariateNormalDistribution_schema',
+            'type': 'object',
+            'properties': {
+                'num_target_qubits': {
+                    'type': 'list',
+                    'default': [2, 2],
+                },
+                'mu': {
+                    'type': ['array', 'null'],
+                    "items": {
+                        "type": "number"
+                    },
+                    'default': None
+                },
+                'sigma': {
+                    'type': ['array', 'null'],
+                    "items": {
+                        "type": "number"
+                    },
+                    'default': None
+                },
+                'low': {
+                    'type': ['array', 'null'],
+                    "items": {
+                        "type": "number"
+                    },
+                    'default': None
+                },
+                'high': {
+                    'type': ['array', 'null'],
+                    "items": {
+                        "type": "number"
+                    },
+                    'default': None
+                },
+            },
+            'additionalProperties': False
+        }
+    }
+
+    def __init__(self, num_qubits, low, high, mu=None, sigma=None):
         """
         Circuit Factory to build a circuit that represents a multivariate normal distribution.
 
@@ -32,6 +77,11 @@ class MultivariateNormalDistribution(MultivariateDistribution):
         :param mu: array/list representing expected values
         :param sigma: array representing co-variance matrix
         """
+
+        if mu is None:
+            mu = np.zeros(len(num_qubits))
+        if sigma is None:
+            sigma = np.eye(len(num_qubits))
 
         self.mu = mu
         self.sigma = sigma

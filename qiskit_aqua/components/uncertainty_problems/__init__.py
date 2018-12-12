@@ -18,9 +18,9 @@
 from .uncertainty_problem import UncertaintyProblem
 from .european_call_delta import EuropeanCallDelta
 from .european_call_expected_value import EuropeanCallExpectedValue
+from .fixed_income_expected_value import FixedIncomeExpectedValue
 
 __all__ = ['UncertaintyProblem',
            'EuropeanCallDelta',
-           'EuropeanCallExpectedValue']
-
-# TODO: @Stefan, expose more classes here?
+           'EuropeanCallExpectedValue',
+           'FixedIncomeExpectedValue']

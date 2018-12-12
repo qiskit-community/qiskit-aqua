@@ -20,7 +20,7 @@ from qiskit_aqua.utils.circuit_utils import cry
 import numpy as np
 
 
-class FixedIncomeExpVal(UncertaintyProblem):
+class FixedIncomeExpectedValue(UncertaintyProblem):
     """
     Evaluates a fixed income asset with uncertain interest rates.
     """

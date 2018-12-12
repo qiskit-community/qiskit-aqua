@@ -38,15 +38,11 @@ class CircuitFactory(ABC):
         """ Returns the number of target qubits """
         return self._num_target_qubits
 
-    @abstractmethod
     def required_ancillas(self):
-        """ Returns the number of required ancillas for an uncontrolled circuit application """
-        raise NotImplementedError()
+        return 0
 
-    @abstractmethod
     def required_ancillas_controlled(self):
-        """ Returns the number of required ancillas for a controlled circuit application """
-        raise NotImplementedError()
+        return 0
 
     def get_num_qubits(self):
         return self._num_target_qubits + self.required_ancillas()

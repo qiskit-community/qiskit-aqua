@@ -28,13 +28,13 @@ class S0Factory(CircuitFactory):
         if self.num_target_qubits == 1:
             return 0
         else:
-            return max(1, self._num_target_qubits - 1)  # TODO: verify
+            return max(1, self._num_target_qubits - 1)
 
     def required_ancillas_controlled(self):
         if self.num_target_qubits == 1:
             return 0
         else:
-            return self._num_target_qubits  # TODO: verify
+            return self._num_target_qubits
 
     def build(self, qc, q, q_ancillas=None, params=None):
         if self.num_target_qubits == 1:

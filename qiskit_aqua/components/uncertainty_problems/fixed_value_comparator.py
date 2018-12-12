@@ -22,7 +22,6 @@ import numpy as np
 
 
 class FixedValueComparator(CircuitFactory):
-    # TODO: depending on value, increasing or decreasing (<= or >= checks) to reduce number of clauses (and toffolis)?
 
     def __init__(self, num_target_qubits, value, geq=True):
         super().__init__(num_target_qubits)
@@ -118,13 +117,3 @@ class FixedValueComparator(CircuitFactory):
             elif self.value >= 2**num_state_qubits:
                 if self._geq is False:
                     qc.x(q_result)
-
-    def build_inverse(self, qc, q, q_ancillas=None, params=None):
-        self.build(qc, q, q_ancillas, params)
-
-    def build_controlled(self, qc, q, q_control, q_ancillas=None, params=None):
-        # TODO
-        raise NotImplementedError()
-
-    def build_controlled_inverse(self, qc, q, q_control, q_ancillas=None, params=None):
-        self.build_controlled(qc, q, q_control, q_ancillas, params)
