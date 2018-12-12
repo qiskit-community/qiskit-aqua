@@ -31,7 +31,8 @@ from qiskit_aqua import Operator
 logger = logging.getLogger(__name__)
 
 
-def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None, seed=None):
+def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None,
+                  seed=None):
     """Generate random Erdos-Renyi graph.
 
     Args:
@@ -69,9 +70,8 @@ def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None, seed=None):
     return w
 
 
-def get_graphpartition_qubitops(weight_matrix):
-    """Generate Hamiltonian for the graph partitioning
-
+def get_vertexcover_qubitops(weight_matrix):
+    """Generate Hamiltonian for the vertex cover
     Args:
         weight_matrix (numpy.ndarray) : adjacency matrix.
 
@@ -80,38 +80,49 @@ def get_graphpartition_qubitops(weight_matrix):
         constant shift for the obj function.
 
     Goals:
-        1 separate the vertices into two set of the same size
-        2 make sure the number of edges between the two set is minimized.
+    1 color some vertices as red such that every edge is connected to some red vertex
+    2 minimize the vertices to be colored as red
+
     Hamiltonian:
-    H = H_A + H_B
-    H_A = sum\_{(i,j)\in E}{(1-ZiZj)/2}
-    H_B = (sum_{i}{Zi})^2 = sum_{i}{Zi^2}+sum_{i!=j}{ZiZj}
-    H_A is for achieving goal 2 and H_B is for achieving goal 1.
+    H = A * H_A + H_B
+    H_A = sum\_{(i,j)\in E}{(1-Xi)(1-Xj)}
+    H_B = sum_{i}{Zi}
+
+    H_A is to achieve goal 1 while H_b is to achieve goal 2.
+    H_A is hard constraint so we place a huge penality on it. A=5.
+    Note Xi = (Zi+1)/2
+
     """
-    num_nodes = len(weight_matrix)
+    n = len(weight_matrix)
     pauli_list = []
     shift = 0
+    A = 5
 
-    for i in range(num_nodes):
+    for i in range(n):
         for j in range(i):
-            if weight_matrix[i, j] != 0:
-                xp = np.zeros(num_nodes, dtype=np.bool)
-                zp = np.zeros(num_nodes, dtype=np.bool)
-                zp[i] = True
-                zp[j] = True
-                pauli_list.append([-0.5, Pauli(zp, xp)])
-                shift += 0.5
+            if (weight_matrix[i, j] != 0):
+                wp = np.zeros(n)
+                vp = np.zeros(n)
+                vp[i] = 1
+                vp[j] = 1
+                pauli_list.append([A*0.25, Pauli(vp, wp)])
 
-    for i in range(num_nodes):
-        for j in range(num_nodes):
-            if i != j:
-                xp = np.zeros(num_nodes, dtype=np.bool)
-                zp = np.zeros(num_nodes, dtype=np.bool)
-                zp[i] = True
-                zp[j] = True
-                pauli_list.append([1, Pauli(zp, xp)])
-            else:
-                shift += 1
+                vp2 = np.zeros(n)
+                vp2[i] = 1
+                pauli_list.append([-A*0.25, Pauli(vp2, wp)])
+
+                vp3 = np.zeros(n)
+                vp3[j] = 1
+                pauli_list.append([-A*0.25, Pauli(vp3, wp)])
+
+                shift += A*0.25
+
+    for i in range(n):
+        wp = np.zeros(n)
+        vp = np.zeros(n)
+        vp[i] = 1
+        pauli_list.append([0.5, Pauli(vp, wp)])
+        shift += 0.5
     return Operator(paulis=pauli_list), shift
 
 
@@ -146,9 +157,8 @@ def parse_gset_format(filename):
     return w
 
 
-def objective_value(x, w):
-    """Compute the value of a cut.
-
+def check_full_edge_coverage(x, w):
+    """
     Args:
         x (numpy.ndarray): binary string as numpy array.
         w (numpy.ndarray): adjacency matrix.
@@ -156,9 +166,15 @@ def objective_value(x, w):
     Returns:
         float: value of the cut.
     """
-    X = np.outer(x, (1-x))
-    w_01 = np.where(w != 0, 1, 0)
-    return np.sum(w_01 * X)
+    first = w.shape[0]
+    second = w.shape[1]
+    for i in range(first):
+        for j in range(second):
+            if w[i, j] != 0:
+                if x[i] != 1 and x[j] != 1:
+                    return False
+
+    return True
 
 
 def get_graph_solution(x):
@@ -173,7 +189,7 @@ def get_graph_solution(x):
     return 1 - x
 
 
-def sample_most_likely(state_vector):
+def sample_most_likely(n, state_vector):
     """Compute the most likely binary string from state vector.
     Args:
         state_vector (numpy.ndarray or dict): state vector or counts.
@@ -183,7 +199,7 @@ def sample_most_likely(state_vector):
     if isinstance(state_vector, dict) or isinstance(state_vector, OrderedDict):
         # get the binary string with the largest count
         binary_string = sorted(state_vector.items(), key=lambda kv: kv[1])[-1][0]
-        x = np.asarray([int(y) for y in reversed(list(binary_string))])
+        x = np.asarray([int(y) for y in list(binary_string)])
         return x
     else:
         n = int(np.log2(state_vector.shape[0]))
