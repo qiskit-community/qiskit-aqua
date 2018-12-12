@@ -75,7 +75,8 @@ class Optimizer(Pluggable):
         self._batch_mode = False
         for k, v in self._configuration['input_schema']['properties'].items():
             if k in self._configuration['options']:
-                self._options[k] = v['default']
+                if 'default' in v:
+                    self._options[k] = v['default']
                 
 
     @classmethod
