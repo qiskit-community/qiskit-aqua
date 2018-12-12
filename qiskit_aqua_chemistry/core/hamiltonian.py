@@ -152,7 +152,7 @@ class Hamiltonian(ChemistryOperator):
             logger.info("Freeze_core specified. Core orbitals to be frozen: {}".format(core_list))
         if len(reduce_list) > 0:
             logger.info("Configured orbital reduction list: {}".format(reduce_list))
-            reduce_list = [x + qmolecule._num_orbitals if x < 0 else x for x in reduce_list]
+            reduce_list = [x + qmolecule.num_orbitals if x < 0 else x for x in reduce_list]
 
         freeze_list = []
         remove_list = []
@@ -168,7 +168,7 @@ class Hamiltonian(ChemistryOperator):
         # the indexes for elimination according to how many orbitals were removed when freezing.
         #
         orbitals_list = list(set(core_list + reduce_list))
-        nel = qmolecule._num_alpha + qmolecule._num_beta
+        nel = qmolecule.num_alpha + qmolecule.num_beta
         new_nel = nel
         if len(orbitals_list) > 0:
             orbitals_list = np.array(orbitals_list)
