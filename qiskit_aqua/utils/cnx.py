@@ -16,7 +16,7 @@
 # =============================================================================
 
 """
-CNX gate. N Controlled-Not Gate.
+Multiple (N) Controlled-Not Operation.
 """
 
 from math import pi, ceil
