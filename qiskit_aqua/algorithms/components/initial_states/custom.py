@@ -16,7 +16,7 @@
 # =============================================================================
 
 from qiskit import QuantumRegister, QuantumCircuit
-from qiskit import CompositeGate
+from qiskit.circuit import CompositeGate
 from qiskit.extensions.standard.ry import RYGate
 from qiskit.extensions.standard.rz import RZGate
 from qiskit.extensions.standard.cx import CnotGate
