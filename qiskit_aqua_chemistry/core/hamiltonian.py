@@ -187,7 +187,7 @@ class Hamiltonian(ChemistryOperator):
 
             new_nel -= len(freeze_list)
 
-        fer_op = FermionicOperator(h1=qmolecule._one_body_integrals, h2=qmolecule._two_body_integrals)
+        fer_op = FermionicOperator(h1=qmolecule.one_body_integrals, h2=qmolecule.two_body_integrals)
         fer_op, self._energy_shift, did_shift = Hamiltonian._try_reduce_fermionic_operator(fer_op, freeze_list, remove_list)
         if did_shift:
             logger.info("Frozen orbital energy shift: {}".format(self._energy_shift))
@@ -230,9 +230,9 @@ class Hamiltonian(ChemistryOperator):
                 logger.debug('  num paulis: {}'.format(len(qubit_op_.paulis)))
                 return qubit_op_, shift, ph_shift_
 
-            op_dipole_x, self._x_dipole_shift, self._ph_x_dipole_shift = _dipole_op(qmolecule._x_dipole_integrals, 'x')
-            op_dipole_y, self._y_dipole_shift, self._ph_y_dipole_shift = _dipole_op(qmolecule._y_dipole_integrals, 'y')
-            op_dipole_z, self._z_dipole_shift, self._ph_z_dipole_shift = _dipole_op(qmolecule._z_dipole_integrals, 'z')
+            op_dipole_x, self._x_dipole_shift, self._ph_x_dipole_shift = _dipole_op(qmolecule.x_dipole_integrals, 'x')
+            op_dipole_y, self._y_dipole_shift, self._ph_y_dipole_shift = _dipole_op(qmolecule.y_dipole_integrals, 'y')
+            op_dipole_z, self._z_dipole_shift, self._ph_z_dipole_shift = _dipole_op(qmolecule.z_dipole_integrals, 'z')
 
             algo_input.add_aux_op(op_dipole_x)
             algo_input.add_aux_op(op_dipole_y)

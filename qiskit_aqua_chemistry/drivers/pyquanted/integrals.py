@@ -60,29 +60,29 @@ def compute_integrals(config):
     # Create driver level molecule object and populate
     _q_ = QMolecule()
     # Energies and orbits
-    _q_._hf_energy = ehf
-    _q_._nuclear_repulsion_energy = enuke
-    _q_._num_orbitals = norbs
-    _q_._num_alpha = mol.nup()
-    _q_._num_beta = mol.ndown()
-    _q_._mo_coeff = orbs
-    _q_._orbital_energies = orbs_energy
+    _q_.hf_energy = ehf
+    _q_.nuclear_repulsion_energy = enuke
+    _q_.num_orbitals = norbs
+    _q_.num_alpha = mol.nup()
+    _q_.num_beta = mol.ndown()
+    _q_.mo_coeff = orbs
+    _q_.orbital_energies = orbs_energy
     # Molecule geometry
-    _q_._molecular_charge = mol.charge
-    _q_._multiplicity = mol.multiplicity
-    _q_._num_atoms = len(mol)
-    _q_._atom_symbol = []
-    _q_._atom_xyz = np.empty([len(mol), 3])
+    _q_.molecular_charge = mol.charge
+    _q_.multiplicity = mol.multiplicity
+    _q_.num_atoms = len(mol)
+    _q_.atom_symbol = []
+    _q_.atom_xyz = np.empty([len(mol), 3])
     atoms = mol.atoms
-    for _n in range(0, _q_._num_atoms):
+    for _n in range(0, _q_.num_atoms):
         atuple = atoms[_n].atuple()
-        _q_._atom_symbol.append(QMolecule.symbols[atuple[0]])
-        _q_._atom_xyz[_n][0] = atuple[1]
-        _q_._atom_xyz[_n][1] = atuple[2]
-        _q_._atom_xyz[_n][2] = atuple[3]
+        _q_.atom_symbol.append(QMolecule.symbols[atuple[0]])
+        _q_.atom_xyz[_n][0] = atuple[1]
+        _q_.atom_xyz[_n][1] = atuple[2]
+        _q_.atom_xyz[_n][2] = atuple[3]
     # 1 and 2 electron integrals
-    _q_._mo_onee_ints = mohij
-    _q_._mo_eri_ints = mohijkl
+    _q_.mo_onee_ints = mohij
+    _q_.mo_eri_ints = mohijkl
 
     return _q_
 

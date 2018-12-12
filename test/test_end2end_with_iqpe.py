@@ -61,7 +61,7 @@ class TestIQPE(QiskitAquaChemistryTestCase):
             self.skipTest('PYSCF driver does not appear to be installed')
         self.molecule = driver.run(section)
         qubit_mapping = 'parity'
-        fer_op = FermionicOperator(h1=self.molecule._one_body_integrals, h2=self.molecule._two_body_integrals)
+        fer_op = FermionicOperator(h1=self.molecule.one_body_integrals, h2=self.molecule.two_body_integrals)
         self.qubit_op = fer_op.mapping(map_type=qubit_mapping, threshold=1e-10).two_qubit_reduced_operator(2)
 
         exact_eigensolver = ExactEigensolver(self.qubit_op, k=1)
