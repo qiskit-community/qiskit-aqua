@@ -12,6 +12,7 @@ levels:
 - Sergey Bravyi
 - Chun-Fu (Richard) Chen
 - `Antonio Córcoles-Gonzalez <https://researcher.watson.ibm.com/researcher/view.php?person=us-adcorcol>`__
+- Albert Frisch
 - `Jay Gambetta <https://researcher.watson.ibm.com/researcher/view.php?person=us-jay.gambetta>`__
 - Jennifer Glick
 - `Donny Greenberg <https://researcher.watson.ibm.com/researcher/view.php?person=ibm-donny>`__
@@ -25,6 +26,7 @@ levels:
 - `Nikolaj Moll <https://researcher.watson.ibm.com/researcher/view.php?person=zurich-NIM>`__
 - `Giacomo Nannicini <https://researcher.watson.ibm.com/researcher/view.php?person=us-nannicini>`__
 - Pauline Ollitrault
+- `Anna Phan <https://researcher.watson.ibm.com/researcher/view.php?person=au1-anna.phan>`__
 - `Marco Pistoia <https://researcher.watson.ibm.com/researcher/view.php?person=us-pistoia>`__
 - `Julia Rice <https://researcher.watson.ibm.com/researcher/view.php?person=us-jrice>`__
 - `Raymond Harry Putra Rudy <https://researcher.watson.ibm.com/researcher/view.php?person=jp-RUDYHAR>`__
