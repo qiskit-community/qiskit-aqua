@@ -37,7 +37,8 @@ import uuid
 from qiskit.backends.aer import AerJob
 from qiskit.backends import JobError
 from qiskit_aqua.aqua_error import AquaError
-from qiskit import QuantumRegister, CompositeGate
+from qiskit import QuantumRegister
+from qiskit.circuit import CompositeGate
 import pickle
 import logging
 from qiskit.qobj import qobj_to_dict, Qobj
