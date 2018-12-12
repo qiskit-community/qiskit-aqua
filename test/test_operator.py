@@ -27,7 +27,7 @@ from qiskit.transpiler import PassManager
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import Operator
-from qiskit_aqua.algorithms.components.variational_forms import RYRZ
+from qiskit_aqua.components.variational_forms import RYRZ
 
 
 class TestOperator(QiskitAquaTestCase):

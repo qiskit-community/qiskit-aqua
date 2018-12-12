@@ -22,7 +22,7 @@ from parameterized import parameterized
 from qiskit import Aer
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua.algorithms.components.oracles import SAT
+from qiskit_aqua.components.oracles import SAT
 from qiskit_aqua.algorithms import Grover
 from qiskit_aqua import QuantumInstance
 
