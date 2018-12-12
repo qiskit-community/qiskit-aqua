@@ -465,6 +465,7 @@ class HHL(QuantumAlgorithm):
                            2**-self._num_a))**2
         tx = np.arange(0, 2**self._num_a)/2**self._num_a * \
              2*np.pi/self._eigs._evo_time
+
         ty /= sum(ty)
 
         if self._eigs._negative_evals:
@@ -480,9 +481,8 @@ class HHL(QuantumAlgorithm):
         # Plot reciprocals
         rec = res.data(0)['snapshots']['2']['quantum_state_ket'][0]
         list(map(lambda x: print(x[0], x[1]), rec.items()))
-        rec = self.__filter(rec,
-                            qubits=[qi for qi in self._eigenvalue_register] +
-                                   [self._ancilla_register[0]])
+        rec = self.__filter(rec, qubits=[qi for qi in self._eigenvalue_register] +
+                                        [self._ancilla_register[0]])
         list(map(lambda x: print(x[0], x[1]), rec.items()))
         getrec = lambda s: rec[s] if s in rec else 0
         rec = [[getrec(key+"0"), getrec(key+"1")] for key in eigs.keys()]
@@ -492,9 +492,6 @@ class HHL(QuantumAlgorithm):
 
         # Plot theoretical reciprocals (derived from QPE results)
         tx = np.arange(0, 2**self._num_a)/(2**(self._num_a+1))
-        mask = (tx != 0)
-        tx[mask] = self._reciprocal._scale/tx[mask]
-        tx[~mask] = 0
         ax_rec.plot(tx, ty, "r")
 
         # Solution deviation
@@ -514,8 +511,10 @@ class HHL(QuantumAlgorithm):
         dev = np.abs(solution/np.linalg.norm(solution)-vec)**2
         ax_dev.barh(np.arange(len(dev)), dev)
         sa = solution/np.linalg.norm(solution)
-        print(sa, vec)
-        print(abs(sa[0]*vec[0].conj()+sa[1]*vec[1].conj())**2)
+        fid = abs(sa[0]*vec[0].conj()+sa[1]*vec[1].conj())**2
+        print("result expected: {}".format(sa))
+        print("result HHL:      {}".format(vec))
+        print("fidelity:        {}".format(fid))
 
         # Decoration
         ax_eig.set_title("Eigenvalue results")
