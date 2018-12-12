@@ -122,11 +122,11 @@ class Controller(object):
         return self._outputView
 
     def get_available_backends(self):
-        from qiskit_aqua.algorithms.quantumalgorithm import QuantumAlgorithm
+        from qiskit_aqua import QuantumInstance
         if self._backendsthread is not None:
             return
 
-        self._quantumalgorithmcls = QuantumAlgorithm
+        self._quantuminstancecls = QuantumInstance
         self._backendsthread = threading.Thread(target=self._get_available_backends,
                                                 name='Aqua remote backends')
         self._backendsthread.daemon = True
@@ -135,7 +135,7 @@ class Controller(object):
     def _get_available_backends(self):
         try:
             self._available_backends = []
-            self._available_backends = self._quantumalgorithmcls.register_and_get_operational_backends()
+            self._available_backends = self._quantuminstancecls.register_and_get_operational_backends()
         except Exception as e:
             logger.debug(str(e))
         finally:

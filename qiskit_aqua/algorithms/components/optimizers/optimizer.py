@@ -73,6 +73,11 @@ class Optimizer(Pluggable):
         self._initial_point_support_level = self._configuration['support_level']['initial_point']
         self._options = {}
         self._batch_mode = False
+        for k, v in self._configuration['input_schema']['properties'].items():
+            if k in self._configuration['options']:
+                if 'default' in v:
+                    self._options[k] = v['default']
+                
 
     @classmethod
     def init_params(cls, params):
@@ -93,6 +98,46 @@ class Optimizer(Pluggable):
         optimizer = cls(**args)
         optimizer.set_options(**opts)
         return optimizer
+
+    @staticmethod
+    def gradient_num_diff(x_center, f, epsilon):
+        """
+        We compute the gradient with the numeric differentiation in the parallel way, around the point x_center.
+        Args:
+            x_center (ndarray): point around which we compute the gradient
+            f (func): the function of which the gradient is to be computed.
+            epsilon (float): the epsilon used in the numeric differentiation.
+        Returns:
+            grad: the gradient computed
+
+        """
+        forig = f(*((x_center,)))
+        grad = np.zeros((len(x_center),), float)
+        ei = np.zeros((len(x_center),), float)
+        todos = []
+        for k in range(len(x_center)):
+            ei[k] = 1.0
+            d = epsilon * ei
+            todos.append(x_center + d)
+            ei[k] = 0.0
+        parallel_parameters = np.concatenate(todos)
+        todos_results = f(parallel_parameters)
+        for k in range(len(x_center)):
+            grad[k] = (todos_results[k] - forig) / epsilon
+        return grad
+
+    @staticmethod
+    def wrap_function(function, args):
+        """
+        Wrap the function to implicitly inject the args at the call of the function.
+        Args:
+            function (func): the target function
+            args (tuple): the args to be injected
+
+        """
+        def function_wrapper(*wrapper_args):
+            return function(*(wrapper_args + args))
+        return function_wrapper
 
     def set_options(self, **kwargs):
         """Set an options dictionary that may be used by call to the optimizer

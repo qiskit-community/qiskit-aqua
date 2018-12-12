@@ -73,7 +73,12 @@ class L_BFGS_B(Optimizer):
     def optimize(self, num_vars, objective_function, gradient_function=None, variable_bounds=None, initial_point=None):
         super().optimize(num_vars, objective_function, gradient_function, variable_bounds, initial_point)
 
+        if gradient_function is None and self._batch_mode:
+            epsilon = self._options['epsilon']
+            gradient_function = Optimizer.wrap_function(Optimizer.gradient_num_diff, (objective_function, epsilon))
+
         approx_grad = True if gradient_function is None else False
         sol, opt, info = sciopt.fmin_l_bfgs_b(objective_function, initial_point, bounds=variable_bounds,
                                               fprime=gradient_function, approx_grad=approx_grad, **self._options)
+
         return sol, opt, info['funcalls']

@@ -61,7 +61,7 @@ def assign_label(measured_key, num_classes):
         return key_order if key_order < num_classes else num_classes - 1
 
 
-def cost_estimate(shots, probs, gt_labels):
+def cost_estimate(probs, gt_labels, shots=None):
     """Calculate cross entropy
     # shots is kept since it may be needed in future.
     Args:

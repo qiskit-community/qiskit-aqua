@@ -21,7 +21,7 @@ import logging
 import numpy as np
 from scipy import sparse as scisparse
 
-from qiskit_aqua import QuantumAlgorithm
+from qiskit_aqua.algorithms import QuantumAlgorithm
 from qiskit_aqua import AquaError
 
 logger = logging.getLogger(__name__)
@@ -131,14 +131,14 @@ class ExactEigensolver(QuantumAlgorithm):
             operator.to_matrix()
             value = 0.0
             if not operator.is_empty():
-                value, _ = operator.eval('matrix', wavefn, self._backend)
+                value, _ = operator.eval('matrix', wavefn, None)
                 value = value.real if abs(value.real) > threshold else 0.0
             values.append((value, 0))
         return np.asarray(values)
 
-    def run(self):
+    def _run(self):
         """
-        Runs the algorithm to compute up to the requested k number of eigenvalues
+        Run the algorithm to compute up to the requested k number of eigenvalues.
         Returns:
             Dictionary of results
         """

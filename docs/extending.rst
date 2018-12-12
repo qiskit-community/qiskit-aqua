@@ -61,15 +61,15 @@ ways for a component to be dynamically discovered and loaded by Aqua at run time
        long_description = """New Package for Aqua Component"""
     
        requirements = [
-          "aqua>=0.3.0",
-          "qiskit>=0.6.0",
+          "qiskit-aqua>=0.4.0",
+          "qiskit>=0.7.0,<0.8",
           "numpy>=1.13"
        ]
 
        def _post_install():
-          from qiskit_aqua.preferences import Preferences
+          from qiskit_aqua_cmd import Preferences
           preferences = Preferences()
-          preferences.add_package('aqua_custom_component_package')
+          preferences.add_package('qiskit_aqua_custom_component_package')
           preferences.save()
 
        class CustomInstallCommand(install):
@@ -88,7 +88,7 @@ ways for a component to be dynamically discovered and loaded by Aqua at run time
           egg_info.run(self)
     
        setuptools.setup(
-          name = 'acqua_custom_component_package',
+          name = 'aqua_custom_component_package',
           version = "0.1.0", # this should match __init__.__version__
           description='Aqua Component',
           long_description = long_description,

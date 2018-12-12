@@ -29,7 +29,7 @@ from qiskit.backends import JobError
 
 from qiskit_aqua.aqua_error import AquaError
 from qiskit_aqua.utils import summarize_circuits
-from qiskit_aqua.algorithms import QuantumAlgorithm
+
 
 logger = logging.getLogger(__name__)
 
@@ -67,13 +67,21 @@ def _avoid_empty_circuits(circuits):
                 tmp_q = q
                 break
             if tmp_q is None:
-                raise AquaError("A QASM without any quantum register is invalid.")
+                raise NameError("A QASM without any quantum register is invalid.")
             qc.iden(tmp_q[0])
         new_circuits.append(qc)
     return new_circuits
 
+def _split_complex_vector(vector):
 
-def _reuse_shared_circuits(circuits, backend, execute_config, qjob_config=None):
+    result = []
+    for real, imag in zip(vector.real, vector.imag):
+        result.append([real, imag])
+
+    return result
+
+def _reuse_shared_circuits(circuits, backend, backend_config, compile_config, run_config,
+                           qjob_config=None, show_circuit_summary=False):
     """Reuse the circuits with the shared head.
 
     We assume the 0-th circuit is the shared_circuit, so we execute it first
@@ -89,27 +97,30 @@ def _reuse_shared_circuits(circuits, backend, execute_config, qjob_config=None):
     qjob_config = qjob_config or {}
 
     shared_circuit = circuits[0]
-    shared_result = run_circuits(shared_circuit, backend, execute_config,
-                                 show_circuit_summary=True)
+    shared_result = compile_and_run_circuits(shared_circuit, backend, backend_config,
+                                             compile_config, run_config, qjob_config,
+                                             show_circuit_summary=show_circuit_summary)
 
     if len(circuits) == 1:
         return shared_result
-    shared_quantum_state = np.asarray(shared_result.get_statevector(shared_circuit))
+    shared_quantum_state = np.asarray(shared_result.get_statevector(shared_circuit, decimals=16))
     # extract different of circuits
     for circuit in circuits[1:]:
         circuit.data = circuit.data[len(shared_circuit):]
 
-    temp_execute_config = copy.deepcopy(execute_config)
-    if 'config' not in temp_execute_config:
-        temp_execute_config['config'] = dict()
-    temp_execute_config['config']['initial_state'] = shared_quantum_state
-    diff_result = run_circuits(circuits[1:], backend, temp_execute_config, qjob_config)
+    temp_backend_config = copy.deepcopy(backend_config)
+    if 'config' not in temp_backend_config:
+        temp_backend_config['config'] = dict()
+    temp_backend_config['config']['initial_state'] = _split_complex_vector(shared_quantum_state)
+    diff_result = compile_and_run_circuits(circuits[1:], backend, temp_backend_config,
+                                           compile_config, run_config, qjob_config,
+                                           show_circuit_summary=show_circuit_summary)
     result = shared_result + diff_result
     return result
 
 
-def run_circuits(circuits, backend, execute_config, qjob_config=None,
-                 show_circuit_summary=False, has_shared_circuits=False):
+def compile_and_run_circuits(circuits, backend, backend_config, compile_config, run_config, qjob_config=None,
+                             show_circuit_summary=False, has_shared_circuits=False):
     """
     An execution wrapper with Qiskit-Terra, with job auto recover capability.
 
@@ -119,8 +130,10 @@ def run_circuits(circuits, backend, execute_config, qjob_config=None,
     Args:
         circuits (QuantumCircuit or list[QuantumCircuit]): circuits to execute
         backend (BaseBackend): backend instance
-        execute_config (dict): settings for qiskit execute (or compile)
-        qjob_config (dict): settings for job object, like timeout and wait
+        backend_config (dict): configuration for backend
+        compile_config (dict): configuration for compilation
+        run_config (dict): configuration for running a circuit
+        qjob_config (dict): configuration for quantum job object
         show_circuit_summary (bool): showing the summary of submitted circuits.
         has_shared_circuits (bool): use the 0-th circuits as initial state for other circuits.
     Returns:
@@ -133,16 +146,16 @@ def run_circuits(circuits, backend, execute_config, qjob_config=None,
     qjob_config = qjob_config or {}
 
     if backend is None or not isinstance(backend, BaseBackend):
-        raise AquaError('Backend is missing or not an instance of BaseBackend')
+        raise ValueError('Backend is missing or not an instance of BaseBackend')
 
     if not isinstance(circuits, list):
         circuits = [circuits]
 
-    if QuantumAlgorithm.is_statevector_backend(backend):
+    if 'statevector' in backend.name():
         circuits = _avoid_empty_circuits(circuits)
 
     if has_shared_circuits:
-        return _reuse_shared_circuits(circuits, backend, execute_config, qjob_config)
+        return _reuse_shared_circuits(circuits, backend, backend_config, compile_config, run_config, qjob_config)
 
     with_autorecover = False if backend.configuration().simulator else True
     max_circuits_per_job = sys.maxsize if backend.configuration().local else MAX_CIRCUITS_PER_JOB
@@ -154,7 +167,8 @@ def run_circuits(circuits, backend, execute_config, qjob_config=None,
     for i in range(chunks):
         sub_circuits = circuits[i *
                                 max_circuits_per_job:(i + 1) * max_circuits_per_job]
-        qobj = q_compile(sub_circuits, backend, **execute_config)
+        qobj = q_compile(sub_circuits, backend, **backend_config,
+                         **compile_config, **run_config)
         job = backend.run(qobj)
         jobs.append(job)
         qobjs.append(qobj)
@@ -176,7 +190,7 @@ def run_circuits(circuits, backend, execute_config, qjob_config=None,
             while True:
                 try:
                     result = job.result(**qjob_config)
-                    if result.status == 'COMPLETED':
+                    if result.success:
                         results.append(result)
                         logger.info("COMPLETED the {}-th chunk of circuits, "
                                     "job id: {}".format(idx, job_id))
@@ -190,7 +204,7 @@ def run_circuits(circuits, backend, execute_config, qjob_config=None,
                                    "Terra job error: {} ".format(idx, job_id, e))
                 except Exception as e:
                     raise AquaError("FAILURE: the {}-th chunk of circuits, job id: {}, "
-                                         "Terra unknown error: {} ".format(idx, job_id, e)) from e
+                                    "Terra unknown error: {} ".format(idx, job_id, e)) from e
 
                 # keep querying the status until it is okay.
                 while True:
@@ -204,8 +218,8 @@ def run_circuits(circuits, backend, execute_config, qjob_config=None,
                         time.sleep(5)
                     except Exception as e:
                         raise AquaError("FAILURE: job id: {}, "
-                                             "status: 'FAIL_TO_GET_STATUS' "
-                                             "({})".format(job_id, e)) from e
+                                        "status: 'FAIL_TO_GET_STATUS' "
+                                        "({})".format(job_id, e)) from e
 
                 logger.info("Job status: {}".format(job_status))
                 # when reach here, it means the job fails. let's check what kinds of failure it is.
