@@ -25,8 +25,9 @@ import qiskit.extensions.simulator
 from qiskit import Aer
 from qiskit.backends.aer import QasmSimulator
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
-from qiskit_aqua import QuantumAlgorithm, AquaError
+from qiskit_aqua import QuantumInstance, AquaError
 from qiskit_aqua import PluggableType, get_pluggable_class
+from qiskit_aqua.algorithms import QuantumAlgorithm
 
 logger = logging.getLogger(__name__)
 
@@ -83,6 +84,8 @@ class HHL(QuantumAlgorithm):
         super().validate({
             HHL.PROP_MODE: mode
         })
+        self._debug = None
+        self._exact = None
         self._matrix = matrix
         self._vector = vector
         self._eigs = eigs
@@ -98,19 +101,18 @@ class HHL(QuantumAlgorithm):
         self._success_bit = None
         self._ret = {}
 
-    def setup_quantum_backend(self, backend='statevector_simulator', shots=1024, skip_transpiler=False,
-                              noise_params=None, coupling_map=None, initial_layout=None, hpc_params=None,
-                              basis_gates=None, max_credits=10, timeout=None, wait=5):
+    def setup_quantum_backend(self, backend, shots=1024, config=None, seed=None,
+                              pass_manager=None, seed_mapper=None,
+                              initial_layout=None, max_credits=10,
+                              timeout=None, wait=5):
 
-        super().setup_quantum_backend(backend=backend, shots=shots,
-                                      skip_transpiler=skip_transpiler,
-                                      noise_params=noise_params,
-                                      coupling_map=coupling_map,
-                                      initial_layout=initial_layout,
-                                      hpc_params=hpc_params,
-                                      basis_gates=basis_gates,
-                                      max_credits=max_credits,
-                                      timeout=timeout, wait=wait)
+        quantum_instance = QuantumInstance(backend=backend, shots=shots,
+                                           config=config, seed=seed,
+                                           pass_manager=pass_manager,
+                                           seed_mapper=seed_mapper,
+                                           initial_layout=initial_layout,
+                                           max_credits=max_credits,
+                                           timeout=timeout, wait=wait)
 
         # Handle different modes
         try:
@@ -122,22 +124,20 @@ class HHL(QuantumAlgorithm):
         exact = False
         debug = False
         if self._mode == 'state_tomography':
-            if (QuantumAlgorithm.is_statevector_backend(self._backend) or
-                    (QuantumAlgorithm.backend_name(self._backend) ==
-                     "qasm_simulator" and cpp)):
+            if (quantum_instance.is_statevector_backend(backend) or
+                    (quantum_instance.backend_name == "qasm_simulator" and cpp)):
                 exact = True
                 # not always
                 #debug = True
 
         if self._mode == 'debug':
-            if QuantumAlgorithm.backend_name(self._backend) != \
-                    "qasm_simulator" or not cpp:
+            if quantum_instance.backend_name != "qasm_simulator" or not cpp:
                 raise AquaError("Debug mode only possible with C++ "
                                 "qasm_simulator.")
             debug = True
 
         if self._mode == 'swap_test':
-            if QuantumAlgorithm.is_statevector_backend(self._backend):
+            if quantum_instance.is_statevector_backend(backend):
                 raise AquaError("Measurement required")
 
         self._debug = debug
@@ -260,8 +260,7 @@ class HHL(QuantumAlgorithm):
         if QuantumAlgorithm.is_statevector_backend(self._backend):
             res = self.execute(self._circuit)
             sv = res.get_statevector()
-        elif QuantumAlgorithm.backend_name(self._backend) == \
-                "qasm_simulator":
+        elif QuantumAlgorithm.backend_name(self._backend) == "qasm_simulator":
             self._circuit.snapshot("5")
             self._execute_config["config"]["data"] = ["quantum_state_ket"]
             res = self.execute(self._circuit)
@@ -538,7 +537,7 @@ class HHL(QuantumAlgorithm):
         plt.show()
     ####################################
 
-    def run(self):
+    def _run(self):
         self._construct_circuit()
         # Handling the modes
         if self._mode == "circuit":

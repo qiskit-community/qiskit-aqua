@@ -3,12 +3,13 @@ CNU3 gate. N Controlled-U3 Gate. Not Using ancilla qubits.
 """
 
 from sympy.combinatorics.graycode import GrayCode
-from qiskit import QuantumCircuit, QuantumRegister, CompositeGate
+from qiskit import QuantumCircuit, QuantumRegister
+from qiskit.circuit import Gate
 from qiskit_aqua.utils.controlledcircuit import apply_cu3
 from numpy import angle
 
 
-class CNU3Gate(CompositeGate):
+class CNU3Gate(Gate):
     """CNU3 gate."""
 
     def __init__(self, theta, phi, lam, ctls, tgt, circ=None):
@@ -91,4 +92,3 @@ def cnu3(self, theta, phi, lam, control_qubits, target_qubit):
 
 
 QuantumCircuit.cnu3 = cnu3
-CompositeGate.cnu3 = cnu3
