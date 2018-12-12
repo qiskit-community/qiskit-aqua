@@ -23,8 +23,8 @@ from qiskit import Aer
 
 from qiskit_aqua import QuantumInstance
 from qiskit_aqua.algorithms.adaptive import VQE
-from qiskit_aqua.algorithms.components.variational_forms import RYRZ
-from qiskit_aqua.algorithms.components.optimizers import COBYLA, SPSA
+from qiskit_aqua.components.variational_forms import RYRZ
+from qiskit_aqua.components.optimizers import COBYLA, SPSA
 
 from test.common import QiskitAquaChemistryTestCase
 from qiskit_aqua_chemistry.drivers import ConfigurationManager

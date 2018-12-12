@@ -26,7 +26,7 @@ from qiskit_aqua.utils import decimal_to_binary
 from qiskit_aqua import QuantumInstance
 from qiskit_aqua.algorithms.single_sample import QPE
 from qiskit_aqua.algorithms.classical import ExactEigensolver
-from qiskit_aqua.algorithms.components.iqfts import Standard
+from qiskit_aqua.components.iqfts import Standard
 
 from test.common import QiskitAquaChemistryTestCase
 from qiskit_aqua_chemistry.drivers import ConfigurationManager
