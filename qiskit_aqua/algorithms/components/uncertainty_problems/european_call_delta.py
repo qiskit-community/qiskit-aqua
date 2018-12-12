@@ -76,7 +76,7 @@ class EuropeanCallDelta(UncertaintyProblem):
         # map strike price to {0, ..., 2^n-1}
         lb = uncertainty_model.low
         ub = uncertainty_model.high
-        self._mapped_strike_price = int(np.round((strike_price - lb)/(ub - lb) * (uncertainty_model.num_values - 1)))
+        self._mapped_strike_price = int(np.ceil((strike_price - lb)/(ub - lb) * (uncertainty_model.num_values - 1)))
 
         # create comparator
         self._comparator = FixedValueComparator(uncertainty_model.num_target_qubits + 1, self._mapped_strike_price)
