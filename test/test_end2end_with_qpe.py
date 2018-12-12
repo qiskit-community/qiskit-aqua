@@ -74,7 +74,7 @@ class TestEnd2EndWithQPE(QiskitAquaChemistryTestCase):
         self.log.debug(
             'The exact ground state energy is: {}'.format(results['energy']))
 
-        num_particles = self.molecule._num_alpha + self.molecule._num_beta
+        num_particles = self.molecule.num_alpha + self.molecule.num_beta
         two_qubit_reduction = True
         num_orbitals = self.qubit_op.num_qubits + \
             (2 if two_qubit_reduction else 0)

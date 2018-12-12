@@ -140,10 +140,10 @@ class Hamiltonian(ChemistryOperator):
     def run(self, qmolecule):
         logger.debug('Processing started...')
         # Save these values for later combination with the quantum computation result
-        self._hf_energy = qmolecule._hf_energy
-        self._nuclear_repulsion_energy = qmolecule._nuclear_repulsion_energy
-        self._nuclear_dipole_moment = qmolecule._nuclear_dipole_moment
-        self._reverse_dipole_sign = qmolecule._reverse_dipole_sign
+        self._hf_energy = qmolecule.hf_energy
+        self._nuclear_repulsion_energy = qmolecule.nuclear_repulsion_energy
+        self._nuclear_dipole_moment = qmolecule.nuclear_dipole_moment
+        self._reverse_dipole_sign = qmolecule.reverse_dipole_sign
 
         core_list = qmolecule.core_orbitals if self._freeze_core else []
         reduce_list = self._orbital_reduction
