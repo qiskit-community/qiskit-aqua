@@ -61,36 +61,36 @@ def compute_integrals(config):
     # Create driver level molecule object and populate
     _q_ = QMolecule()
     # Energies and orbits
-    _q_._hf_energy = ehf
-    _q_._nuclear_repulsion_energy = enuke
-    _q_._num_orbitals = norbs
-    _q_._num_alpha = mol.nelec[0]
-    _q_._num_beta = mol.nelec[1]
-    _q_._mo_coeff = mo_coeff
-    _q_._orbital_energies = orbs_energy
+    _q_.hf_energy = ehf
+    _q_.nuclear_repulsion_energy = enuke
+    _q_.num_orbitals = norbs
+    _q_.num_alpha = mol.nelec[0]
+    _q_.num_beta = mol.nelec[1]
+    _q_.mo_coeff = mo_coeff
+    _q_.orbital_energies = orbs_energy
     # Molecule geometry
-    _q_._molecular_charge = mol.charge
-    _q_._multiplicity = mol.spin + 1
-    _q_._num_atoms = mol.natm
-    _q_._atom_symbol = []
-    _q_._atom_xyz = np.empty([mol.natm, 3])
+    _q_.molecular_charge = mol.charge
+    _q_.multiplicity = mol.spin + 1
+    _q_.num_atoms = mol.natm
+    _q_.atom_symbol = []
+    _q_.atom_xyz = np.empty([mol.natm, 3])
     atoms = mol.atom_coords()
-    for _n in range(0, _q_._num_atoms):
+    for _n in range(0, _q_.num_atoms):
         xyz = mol.atom_coord(_n)
-        _q_._atom_symbol.append(mol.atom_pure_symbol(_n))
-        _q_._atom_xyz[_n][0] = xyz[0]
-        _q_._atom_xyz[_n][1] = xyz[1]
-        _q_._atom_xyz[_n][2] = xyz[2]
+        _q_.atom_symbol.append(mol.atom_pure_symbol(_n))
+        _q_.atom_xyz[_n][0] = xyz[0]
+        _q_.atom_xyz[_n][1] = xyz[1]
+        _q_.atom_xyz[_n][2] = xyz[2]
     # 1 and 2 electron integrals. h1 & h2 are ready to pass to FermionicOperator
-    _q_._mo_onee_ints = mohij
-    _q_._mo_eri_ints = mohijkl
+    _q_.mo_onee_ints = mohij
+    _q_.mo_eri_ints = mohijkl
     # dipole integrals
-    _q_._x_dip_mo_ints = x_dip
-    _q_._y_dip_mo_ints = y_dip
-    _q_._z_dip_mo_ints = z_dip
+    _q_.x_dip_mo_ints = x_dip
+    _q_.y_dip_mo_ints = y_dip
+    _q_.z_dip_mo_ints = z_dip
     # dipole moment
-    _q_._nuclear_dipole_moment = nucl_dip
-    _q_._reverse_dipole_sign = True
+    _q_.nuclear_dipole_moment = nucl_dip
+    _q_.reverse_dipole_sign = True
 
     return _q_
 
