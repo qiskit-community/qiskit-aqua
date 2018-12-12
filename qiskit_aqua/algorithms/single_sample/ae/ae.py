@@ -208,11 +208,11 @@ class AmplitudeEstimation(QuantumAlgorithm):
         self._ret['mapped_items'] = [(self._ret['mapped_values'][i], self._ret['probabilities'][i]) for i in range(len(self._ret['mapped_values']))]
 
         # determine most likely estimator
-        self._ret['estimator'] = None
-        self._ret['max_prob'] = 0
+        self._ret['estimation'] = None
+        self._ret['max_probability'] = 0
         for val, prob in self._ret['mapped_items']:
-            if prob > self._ret['max_prob']:
-                self._ret['max_prob'] = prob
-                self._ret['estimator'] = val
+            if prob > self._ret['max_probability']:
+                self._ret['max_probability'] = prob
+                self._ret['estimation'] = val
 
         return self._ret
