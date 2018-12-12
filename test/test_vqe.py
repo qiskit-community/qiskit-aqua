@@ -24,9 +24,9 @@ from qiskit import Aer
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import Operator, run_algorithm, QuantumInstance
 from qiskit_aqua.input import EnergyInput
-from qiskit_aqua.algorithms.components.variational_forms import RY
-from qiskit_aqua.algorithms.components.optimizers import L_BFGS_B
-from qiskit_aqua.algorithms.components.initial_states import Zero
+from qiskit_aqua.components.variational_forms import RY
+from qiskit_aqua.components.optimizers import L_BFGS_B
+from qiskit_aqua.components.initial_states import Zero
 from qiskit_aqua.algorithms import VQE
 
 
