@@ -71,13 +71,13 @@ def _get_pluggables_types_dictionary():
         PluggableType.VARIATIONAL_FORM: VariationalForm,
         PluggableType.INITIAL_STATE: InitialState,
         PluggableType.IQFT: IQFT,
-        PluggableType.QFT: QFT,
         PluggableType.ORACLE: Oracle,
         PluggableType.FEATURE_MAP: FeatureMap,
         PluggableType.MULTICLASS_EXTENSION: MulticlassExtension,
+        PluggableType.INPUT: AlgorithmInput,
+        PluggableType.QFT: QFT,
         PluggableType.EIGENVALUES: Eigenvalues,
-        PluggableType.RECIPROCAL: Reciprocal,
-        PluggableType.INPUT: AlgorithmInput
+        PluggableType.RECIPROCAL: Reciprocal
     }
 
 
@@ -93,10 +93,10 @@ _NAMES_TO_EXCLUDE = [
     'variational_form',
     'initial_state',
     'iqft',
-    'qft',
     'oracle',
     'feature_map',
     'multiclass_extension',
+    'qft',
     'eigs',
     'reciprocal'
 ]
