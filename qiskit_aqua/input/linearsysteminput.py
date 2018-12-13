@@ -69,6 +69,18 @@ class LinearSystemInput(AlgorithmInput):
     def vector(self, vector):
         self._vector = vector
 
+    def validate(self, args_dict):
+        params = {}
+        for key, value in args_dict.items():
+            if key == LinearSystemInput.PROP_KEY_MATRIX:
+                value = value.save_to_list() if value is not None else {}
+            elif key == LinearSystemInput.PROP_KEY_VECTOR:
+                value = value.save_to_list() if value is not None else {}
+
+            params[key] = value
+
+        super().validate(params)
+
     def to_params(self):
         params = {}
         params[LinearSystemInput.PROP_KEY_MATRIX] = self.save_to_list(self._matrix)
