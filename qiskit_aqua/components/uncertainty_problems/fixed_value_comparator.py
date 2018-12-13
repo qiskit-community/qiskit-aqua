@@ -28,7 +28,8 @@ class FixedValueComparator(CircuitFactory):
     """
     The Fixed Value Comparator.
 
-    TODO: @Stefan: a bit more info?
+    Operator compares basis states |i> against a given fixed level l and flips a target qubit if x >= l (or <= depending on parameters):
+    |x>|0> --> |x>|1> if x >= l and |x>|0> otherwise.
     """
 
     def __init__(self, num_target_qubits, value, geq=True):
