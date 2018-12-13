@@ -52,10 +52,7 @@ class PSI4Driver(BaseDriver):
     @staticmethod
     def check_driver_valid():
         if psi4 is None:
-            logger.info("Could not locate {}".format(PSI4))
-            return False
-
-        return True
+            raise AquaChemistryError("Could not locate {}".format(PSI4))
 
     def run(self, section):
         # create input

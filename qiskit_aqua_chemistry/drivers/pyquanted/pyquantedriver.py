@@ -16,6 +16,7 @@
 # =============================================================================
 
 from qiskit_aqua_chemistry.drivers import BaseDriver
+from qiskit_aqua_chemistry import AquaChemistryError
 from qiskit_aqua_chemistry.drivers.pyquanted.integrals import compute_integrals
 import importlib
 import logging
@@ -70,15 +71,16 @@ class PyQuanteDriver(BaseDriver):
 
     @staticmethod
     def check_driver_valid():
+        err_msg = 'PyQuante2 is not installed. See https://github.com/rpmuller/pyquante2'
         try:
             spec = importlib.util.find_spec('pyquante2')
             if spec is not None:
-                return True
-        except:
-            pass
+                return
+        except Exception as e:
+            logger.debug('PyQuante2 check error {}'.format(str(e)))
+            raise AquaChemistryError(err_msg) from e
 
-        logger.info('PyQuante2 is not installed. See https://github.com/rpmuller/pyquante2')
-        return False
+        raise AquaChemistryError(err_msg)
 
     def run(self, section):
         return compute_integrals(section['properties'])

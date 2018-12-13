@@ -36,10 +36,7 @@ class BaseDriver(ABC):
     """
     @abstractmethod
     def __init__(self):
-        if not self.check_driver_valid():
-            raise ImportError("{} is not available since missing dependent packages.".format(
-                self.__class__.__name__))
-
+        self.check_driver_valid()
         self._configuration = copy.deepcopy(self.CONFIGURATION)
         self._work_path = None
 
@@ -50,8 +47,8 @@ class BaseDriver(ABC):
 
     @staticmethod
     def check_driver_valid():
-        """Checks if drivers is ready for use"""
-        return True
+        """Checks if driver is ready for use. Throws an exception if not"""
+        pass
 
     @property
     def work_path(self):

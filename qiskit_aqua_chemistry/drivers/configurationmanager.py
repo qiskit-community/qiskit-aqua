@@ -95,8 +95,12 @@ class ConfigurationManager(object):
 
             # Verify that the driver is valid
             check_driver_valid = getattr(cls, 'check_driver_valid', None)
-            if check_driver_valid is not None and not check_driver_valid():
-                raise AquaChemistryError('Could not register class {}. Name {} is not valid'.format(cls, driver_name))
+            if check_driver_valid is not None:
+                try:
+                    check_driver_valid()
+                except Exception as e:
+                    logger.debug(str(e))
+                    raise AquaChemistryError('Could not register class {}. Name {} is not valid'.format(cls, driver_name)) from e
 
             if driver_name in self._registration:
                 raise AquaChemistryError('Could not register class {}. Name {} {} is already registered'.format(cls,

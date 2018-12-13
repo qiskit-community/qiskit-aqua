@@ -49,10 +49,6 @@ class HDF5Driver(BaseDriver):
     def __init__(self):
         super().__init__()
 
-    @staticmethod
-    def check_driver_valid():
-        return True
-
     def run(self, section):
         properties = section['properties']
         if HDF5Driver.KEY_HDF5_INPUT not in properties:
