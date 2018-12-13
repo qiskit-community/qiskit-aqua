@@ -21,7 +21,7 @@ import itertools
 import logging
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
-from qiskit_aqua.algorithms.components.reciprocals import Reciprocal
+from qiskit_aqua.components.reciprocals import Reciprocal
 
 logger = logging.getLogger(__name__)
 

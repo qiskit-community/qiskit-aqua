@@ -19,7 +19,7 @@ from qiskit import QuantumRegister, QuantumCircuit
 
 import sys
 sys.path.append('../')
-from qiskit_aqua.algorithms.components.reciprocals import Reciprocal
+from qiskit_aqua.components.reciprocals import Reciprocal
 from qiskit_aqua.utils import cnx_na
 import numpy as np
 

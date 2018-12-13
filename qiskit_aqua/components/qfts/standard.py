@@ -20,7 +20,7 @@ import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.qasm import pi
 
-from qiskit_aqua.algorithms.components.qfts import QFT
+from qiskit_aqua.components.qfts import QFT
 
 class Standard(QFT):
     """A normal standard QFT."""

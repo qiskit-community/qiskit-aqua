@@ -19,7 +19,7 @@ import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit_aqua import Operator, AquaError
 from qiskit_aqua import PluggableType, get_pluggable_class
-from qiskit_aqua.algorithms.components.eigs import Eigenvalues
+from qiskit_aqua.components.eigs import Eigenvalues
 
 
 class QPE(Eigenvalues):
