@@ -39,11 +39,11 @@ class PluggableType(Enum):
     VARIATIONAL_FORM = 'variational_form'
     INITIAL_STATE = 'initial_state'
     IQFT = 'iqft'
-    QFT = 'qft'
     ORACLE = 'oracle'
     FEATURE_MAP = 'feature_map'
     MULTICLASS_EXTENSION = 'multiclass_extension'
     INPUT = 'input'
+    QFT = 'qft'
     EIGENVALUES = 'eigs'
     RECIPROCAL = 'reciprocal'
 
