@@ -15,11 +15,6 @@
 # limitations under the License.
 # =============================================================================#
 
-from pyquante2 import molecule, rhf, uhf, rohf, basisset
-from pyquante2 import onee_integrals
-from pyquante2.geo.zmatrix import z2xyz
-from pyquante2.ints.integrals import twoe_integrals
-from pyquante2.utils import simx
 from .transform import transformintegrals, ijkl2intindex
 from qiskit_aqua_chemistry import AquaChemistryError
 from qiskit_aqua_chemistry import QMolecule
@@ -28,6 +23,14 @@ import re
 import logging
 
 logger = logging.getLogger(__name__)
+
+try:
+    from pyquante2 import molecule, rhf, uhf, rohf, basisset, onee_integrals
+    from pyquante2.geo.zmatrix import z2xyz
+    from pyquante2.ints.integrals import twoe_integrals
+    from pyquante2.utils import simx
+except ImportError:
+    logger.info('PyQuante2 is not installed. See https://github.com/rpmuller/pyquante2')
 
 
 def compute_integrals(config):

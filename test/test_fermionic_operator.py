@@ -23,7 +23,7 @@ import numpy as np
 from qiskit_aqua.utils import random_unitary
 
 from test.common import QiskitAquaChemistryTestCase
-from qiskit_aqua_chemistry import FermionicOperator
+from qiskit_aqua_chemistry import FermionicOperator, AquaChemistryError
 from qiskit_aqua_chemistry.drivers import ConfigurationManager
 
 
@@ -65,7 +65,11 @@ class TestFermionicOperator(QiskitAquaChemistryTestCase):
                                  ('charge', 0), ('spin', 0), ('basis', 'sto3g')])
         section = {}
         section['properties'] = pyscf_cfg
-        driver = cfg_mgr.get_driver_instance('PYSCF')
+        try:
+            driver = cfg_mgr.get_driver_instance('PYSCF')
+        except AquaChemistryError:
+            self.skipTest('PYSCF driver does not appear to be installed')
+
         molecule = driver.run(section)
         self.fer_op = FermionicOperator(h1=molecule.one_body_integrals,
                                         h2=molecule.two_body_integrals)

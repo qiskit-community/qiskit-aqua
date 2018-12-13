@@ -276,10 +276,8 @@ class InputParser(object):
 
     def _update_operator_input_schema(self):
         # find operator
-        default_name = self.get_property_default_value(
-            InputParser.OPERATOR, JSONSchema.NAME)
-        operator_name = self.get_section_property(
-            InputParser.OPERATOR, JSONSchema.NAME, default_name)
+        default_name = self.get_property_default_value(InputParser.OPERATOR, JSONSchema.NAME)
+        operator_name = self.get_section_property(InputParser.OPERATOR, JSONSchema.NAME, default_name)
         if operator_name is None:
             # find the first valid input for the problem
             problem_name = self.get_section_property(
@@ -379,18 +377,19 @@ class InputParser(object):
                 self.set_section_properties(pluggable_type, new_properties)
 
     def _update_driver_input_schemas(self):
-        driver_name = self.get_section_property(
-            InputParser.DRIVER, JSONSchema.NAME)
+        # find driver name
+        default_name = self.get_property_default_value(InputParser.DRIVER, JSONSchema.NAME)
+        driver_name = self.get_section_property(InputParser.DRIVER, JSONSchema.NAME, default_name)
         if driver_name is not None:
             driver_name = driver_name.strip().lower()
 
         mgr = ConfigurationManager()
-        configs = mgr.configurations
-        for (name, config) in configs.items():
+        for name in mgr.local_drivers():
+            name_orig = name
             name = name.lower()
             if driver_name is not None and driver_name == name:
-                input_schema = copy.deepcopy(
-                    config['input_schema']) if 'input_schema' in config else {'type': 'object'}
+                config = mgr.get_driver_configuration(name_orig)
+                input_schema = copy.deepcopy(config['input_schema']) if 'input_schema' in config else {'type': 'object'}
                 if '$schema' in input_schema:
                     del input_schema['$schema']
                 if 'id' in input_schema:
@@ -405,8 +404,7 @@ class InputParser(object):
     def _load_driver_names():
         if InputParser._DRIVER_NAMES is None:
             mgr = ConfigurationManager()
-            InputParser._DRIVER_NAMES = [name.lower()
-                                         for name in mgr.module_names]
+            InputParser._DRIVER_NAMES = [name.lower() for name in mgr.local_drivers()]
 
     def _merge_default_values(self):
         section_names = self.get_section_names()
@@ -839,14 +837,12 @@ class InputParser(object):
         self._sections = self._order_sections(self._sections)
 
     def _update_driver_sections(self):
-        driver_name = self.get_section_property(
-            InputParser.DRIVER, JSONSchema.NAME)
+        driver_name = self.get_section_property(InputParser.DRIVER, JSONSchema.NAME)
         if driver_name is not None:
             driver_name = driver_name.strip().lower()
 
         mgr = ConfigurationManager()
-        configs = mgr.configurations
-        for (name, config) in configs.items():
+        for name in mgr.local_drivers():
             name = name.lower()
             if driver_name is not None and driver_name == name:
                 continue

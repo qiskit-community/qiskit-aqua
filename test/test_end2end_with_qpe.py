@@ -30,7 +30,7 @@ from qiskit_aqua.components.iqfts import Standard
 
 from test.common import QiskitAquaChemistryTestCase
 from qiskit_aqua_chemistry.drivers import ConfigurationManager
-from qiskit_aqua_chemistry import FermionicOperator
+from qiskit_aqua_chemistry import FermionicOperator, AquaChemistryError
 from qiskit_aqua_chemistry.aqua_extensions.components.initial_states import HartreeFock
 
 
@@ -58,7 +58,7 @@ class TestEnd2EndWithQPE(QiskitAquaChemistryTestCase):
         section['properties'] = pyscf_cfg
         try:
             driver = cfg_mgr.get_driver_instance('PYSCF')
-        except ModuleNotFoundError:
+        except AquaChemistryError:
             self.skipTest('PYSCF driver does not appear to be installed')
 
         self.molecule = driver.run(section)

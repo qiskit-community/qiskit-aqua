@@ -32,17 +32,14 @@ GAUSSIAN_16 = 'g16'
 GAUSSIAN_16_DESC = 'Gaussian 16'
 
 g16prog = which(GAUSSIAN_16)
-if g16prog is None:
-    raise AquaChemistryError("Could not locate {} executable '{}'. Please check that it is installed correctly."
-                             .format(GAUSSIAN_16_DESC, GAUSSIAN_16))
 
 try:
     from .gauopen.QCMatEl import MatEl
 except ModuleNotFoundError as mnfe:
     if mnfe.name == 'qcmatrixio':
-        err_msg = "qcmatrixio extension not found. See Gaussian driver readme to build qcmatrixio.F using f2py"
-        raise AquaChemistryError(err_msg) from mnfe
-    raise mnfe
+        logger.info('qcmatrixio extension not found. See Gaussian driver readme to build qcmatrixio.F using f2py')
+    else:
+        logger.info(str(mnfe))
 
 
 class GaussianDriver(BaseDriver):
@@ -55,21 +52,37 @@ class GaussianDriver(BaseDriver):
     output a MatrixElement file.
     """
 
-    def __init__(self, configuration=None):
-        """
-        Args:
-            configuration (dict): driver configuration
-        """
-        super(GaussianDriver, self).__init__(configuration)
+    CONFIGURATION = {
+        "name": "GAUSSIAN",
+        "description": "Gaussian 16 Driver",
+        "input_schema": {
+            "$schema": "http://json-schema.org/schema#",
+            "id": "gaussian_schema",
+            "type": "string",
+            "default": "# rhf/sto-3g scf(conventional)\n\nh2 molecule\n\n0 1\nH   0.0  0.0    0.0\nH   0.0  0.0    0.735\n\n"
+        }
+    }
+
+    def __init__(self):
+        super().__init__()
+
+    @staticmethod
+    def check_driver_valid():
+        if g16prog is None:
+            logger.info("Could not locate {} executable '{}'. Please check that it is installed correctly."
+                        .format(GAUSSIAN_16_DESC, GAUSSIAN_16))
+            return False
+
+        return True
 
     def run(self, section):
         cfg = section['data']
-        if cfg is None or not isinstance(cfg,str):
+        if cfg is None or not isinstance(cfg, str):
             raise AquaChemistryError("Gaussian user supplied configuration invalid: '{}'".format(cfg))
-            
+
         while not cfg.endswith('\n\n'):
             cfg += '\n'
-            
+
         logger.debug("User supplied configuration raw: '{}'".format(cfg.replace('\r', '\\r').replace('\n', '\\n')))
         logger.debug('User supplied configuration\n{}'.format(cfg))
 
@@ -165,7 +178,7 @@ class GaussianDriver(BaseDriver):
         # Energies and orbits
         _q_.hf_energy = mel.scalar('ETOTAL')
         _q_.nuclear_repulsion_energy = mel.scalar('ENUCREP')
-        _q_.num_orbitals = 0 # updated below from orbital coeffs size
+        _q_.num_orbitals = 0  # updated below from orbital coeffs size
         _q_.num_alpha = (mel.ne + mel.multip - 1) // 2
         _q_.num_beta = (mel.ne - mel.multip + 1) // 2
         _q_.molecular_charge = mel.icharg
@@ -257,7 +270,7 @@ class GaussianDriver(BaseDriver):
                     start = len(lines) - 10
                 for i in range(start, len(lines)):
                     logger.error(lines[i])
-                    errmsg += lines[i]+"\n"
+                    errmsg += lines[i] + "\n"
             raise AquaChemistryError('{} process return code {}\n{}'.format(GAUSSIAN_16_DESC, process.returncode, errmsg))
         else:
             if logger.isEnabledFor(logging.DEBUG):

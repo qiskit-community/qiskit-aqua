@@ -21,6 +21,7 @@ from collections import OrderedDict
 from test.common import QiskitAquaChemistryTestCase
 from qiskit_aqua_chemistry.drivers import ConfigurationManager
 from qiskit_aqua_chemistry.core import get_chemistry_operator_class
+from qiskit_aqua_chemistry import AquaChemistryError
 
 
 class TestCoreHamiltonianOrbReduce(QiskitAquaChemistryTestCase):
@@ -38,7 +39,7 @@ class TestCoreHamiltonianOrbReduce(QiskitAquaChemistryTestCase):
         section = {'properties': pyscf_cfg}
         try:
             driver = cfg_mgr.get_driver_instance('PYSCF')
-        except ModuleNotFoundError:
+        except AquaChemistryError:
             self.skipTest('PYSCF driver does not appear to be installed')
         self.qmolecule = driver.run(section)
 

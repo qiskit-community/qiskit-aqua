@@ -19,7 +19,7 @@ import unittest
 from collections import OrderedDict
 
 from test.common import QiskitAquaChemistryTestCase
-from qiskit_aqua_chemistry.drivers import ConfigurationManager
+from qiskit_aqua_chemistry.drivers import HDF5Driver
 from test.test_driver import TestDriver
 
 
@@ -27,12 +27,11 @@ class TestDriverHDF5(QiskitAquaChemistryTestCase, TestDriver):
     """HDF5 Driver tests."""
 
     def setUp(self):
-        cfg_mgr = ConfigurationManager()
         hdf5_cfg = OrderedDict([
             ('hdf5_input', self._get_resource_path('test_driver_hdf5.hdf5'))
         ])
         section = {'properties': hdf5_cfg}
-        driver = cfg_mgr.get_driver_instance('HDF5')
+        driver = HDF5Driver()
         self.qmolecule = driver.run(section)
 
 

@@ -27,7 +27,7 @@ from qiskit_aqua.components.variational_forms import RYRZ
 from qiskit_aqua.components.optimizers import COBYLA, SPSA
 
 from test.common import QiskitAquaChemistryTestCase
-from qiskit_aqua_chemistry.drivers import ConfigurationManager
+from qiskit_aqua_chemistry.drivers import HDF5Driver
 from qiskit_aqua_chemistry.core import Hamiltonian
 
 
@@ -35,12 +35,11 @@ class TestEnd2End(QiskitAquaChemistryTestCase):
     """End2End tests."""
 
     def setUp(self):
-        cfg_mgr = ConfigurationManager()
         hdf5_cfg = OrderedDict([
             ('hdf5_input', self._get_resource_path('test_driver_hdf5.hdf5'))
         ])
         section = {'properties': hdf5_cfg}
-        driver = cfg_mgr.get_driver_instance('HDF5')
+        driver = HDF5Driver()
         self.qmolecule = driver.run(section)
 
         core = Hamiltonian(transformation='full', qubit_mapping='parity',
