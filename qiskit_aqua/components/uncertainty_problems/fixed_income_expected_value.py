@@ -32,12 +32,14 @@ class FixedIncomeExpectedValue(UncertaintyProblem):
 
     def __init__(self, uncertainty_model, A, b, cash_flow, c_approx, i_state=None, i_objective=None):
         """
+        Constructor.
 
-        :param uncertainty_model:  multivariate distribution
-        :param A: PCA matrix for delta_r
-        :param b: PCA offset for delta_r
-        :param cash_flow: cash flow time series
-        :param c_approx: approximation scaling factor
+        Args:
+            uncertainty_model:  multivariate distribution
+            A: PCA matrix for delta_r
+            b: PCA offset for delta_r
+            cash_flow: cash flow time series
+            c_approx: approximation scaling factor
         """
 
         if i_state is None:
