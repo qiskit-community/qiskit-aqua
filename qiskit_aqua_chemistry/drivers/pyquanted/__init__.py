@@ -16,3 +16,8 @@
 # =============================================================================
 
 from .transform import transformintegrals, ijkl2intindex
+from .pyquantedriver import PyQuanteDriver
+
+__all__ = ['transformintegrals',
+           'ijkl2intindex',
+           'PyQuanteDriver']

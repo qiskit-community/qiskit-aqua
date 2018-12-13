@@ -30,44 +30,57 @@ logger = logging.getLogger(__name__)
 PSI4 = 'psi4'
 
 psi4 = which(PSI4)
-if psi4 is None:
-    raise AquaChemistryError("Could not locate {}".format(PSI4))
 
 
 class PSI4Driver(BaseDriver):
     """Python implementation of a psi4 driver."""
 
-    def __init__(self, configuration=None):
-        """
-        Args:
-            configuration (dict): driver configuration
-        """
-        super(PSI4Driver, self).__init__(configuration)
+    CONFIGURATION = {
+        "name": "PSI4",
+        "description": "PSI4 Driver",
+        "input_schema": {
+            "$schema": "http://json-schema.org/schema#",
+            "id": "psi4_schema",
+            "type": "string",
+            "default": "molecule h2 {\n  0 1\n  H  0.0 0.0 0.0\n  H  0.0 0.0 0.735\n}\n\nset {\n  basis sto-3g\n  scf_type pk\n}"
+        }
+    }
+
+    def __init__(self):
+        super().__init__()
+
+    @staticmethod
+    def check_driver_valid():
+        if psi4 is None:
+            logger.info("Could not locate {}".format(PSI4))
+            return False
+
+        return True
 
     def run(self, section):
         # create input
         psi4d_directory = os.path.dirname(os.path.realpath(__file__))
         template_file = psi4d_directory + '/_template.txt'
         aqua_chemistry_directory = os.path.abspath(os.path.join(psi4d_directory, '../..'))
-        
+
         molecule = QMolecule()
-    
+
         input_text = section['data'] + '\n'
         input_text += 'import sys\n'
         syspath = '[\'' + aqua_chemistry_directory + '\',\'' + '\',\''.join(sys.path) + '\']'
-       
+
         input_text += 'sys.path = ' + syspath + ' + sys.path\n'
         input_text += 'from qmolecule import QMolecule\n'
         input_text += '_q_molecule = QMolecule("{0}")\n'.format(molecule.filename)
-        
+
         with open(template_file, 'r') as f:
             input_text += f.read()
-              
+
         fd, input_file = tempfile.mkstemp(suffix='.inp')
         os.close(fd)
         with open(input_file, 'w') as stream:
             stream.write(input_text)
-            
+
         fd, output_file = tempfile.mkstemp(suffix='.out')
         os.close(fd)
         try:
@@ -84,26 +97,26 @@ class PSI4Driver(BaseDriver):
                 os.remove('timer.dat')
             except:
                 pass
-            
+
             try:
                 os.remove(input_file)
             except:
                 pass
-            
+
             try:
                 os.remove(output_file)
             except:
                 pass
-        
+
         _q_molecule = QMolecule(molecule.filename)
         _q_molecule.load()
         # remove internal file
         _q_molecule.remove_file()
         return _q_molecule
-    
+
     @staticmethod
     def _run_psi4(input_file, output_file):
-        
+
         # Run psi4.
         process = None
         try:
@@ -114,7 +127,7 @@ class PSI4Driver(BaseDriver):
         except:
             if process is not None:
                 process.kill()
-            
+
             raise AquaChemistryError('{} run has failed'.format(PSI4))
 
         if process.returncode != 0:
@@ -123,5 +136,5 @@ class PSI4Driver(BaseDriver):
                 lines = stdout.splitlines()
                 for i in range(len(lines)):
                     logger.error(lines[i])
-                    errmsg += lines[i]+"\n"
+                    errmsg += lines[i] + "\n"
             raise AquaChemistryError('{} process return code {}\n{}'.format(PSI4, process.returncode, errmsg))

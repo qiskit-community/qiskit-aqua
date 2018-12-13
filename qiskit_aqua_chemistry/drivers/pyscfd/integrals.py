@@ -16,14 +16,18 @@
 # =============================================================================#
 
 import logging
-from pyscf import gto, scf, ao2mo
-from pyscf.lib import param
-from pyscf.lib import logger as pylogger
 from qiskit_aqua_chemistry import AquaChemistryError
 from qiskit_aqua_chemistry import QMolecule
 import numpy as np
 
 logger = logging.getLogger(__name__)
+
+try:
+    from pyscf import gto, scf, ao2mo
+    from pyscf.lib import param
+    from pyscf.lib import logger as pylogger
+except ImportError:
+    logger.info("PySCF is not installed. Use 'pip install pyscf'")
 
 
 def compute_integrals(config):

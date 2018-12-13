@@ -17,17 +17,68 @@
 
 from qiskit_aqua_chemistry.drivers import BaseDriver
 from qiskit_aqua_chemistry.drivers.pyquanted.integrals import compute_integrals
+import importlib
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class PyQuanteDriver(BaseDriver):
     """Python implementation of a PyQuante driver."""
 
-    def __init__(self, configuration=None):
-        """
-        Args:
-            configuration (dict): driver configuration
-        """
-        super(PyQuanteDriver, self).__init__(configuration)
+    CONFIGURATION = {
+        "name": "PYQUANTE",
+        "description": "PyQuante Driver",
+        "input_schema": {
+            "$schema": "http://json-schema.org/schema#",
+            "id": "pyquante_schema",
+            "type": "object",
+            "properties": {
+                "atoms": {
+                    "type": "string",
+                    "default": "H 0.0 0.0 0.0; H 0.0 0.0 0.735"
+                },
+                "units": {
+                    "type": "string",
+                    "default": "Angstrom",
+                    "oneOf": [
+                         {"enum": ["Angstrom", "Bohr"]}
+                    ]
+                },
+                "charge": {
+                    "type": "integer",
+                    "default": 0
+                },
+                "multiplicity": {
+                    "type": "integer",
+                    "default": 1
+                },
+                "basis": {
+                    "type": "string",
+                    "default": "sto3g",
+                    "oneOf": [
+                         {"enum": ["sto3g", "6-31g", "6-31g**"]}
+                    ]
+                }
+            },
+            "additionalProperties": False
+        }
+    }
+
+    def __init__(self):
+        super().__init__()
+
+    @staticmethod
+    def check_driver_valid():
+        try:
+            spec = importlib.util.find_spec('pyquante2')
+            if spec is not None:
+                return True
+        except:
+            pass
+
+        logger.info('PyQuante2 is not installed. See https://github.com/rpmuller/pyquante2')
+        return False
 
     def run(self, section):
         return compute_integrals(section['properties'])

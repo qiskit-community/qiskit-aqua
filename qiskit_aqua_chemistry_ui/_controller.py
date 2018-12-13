@@ -76,7 +76,7 @@ class Controller(object):
         if self._driver_names is None:
             self._driver_names = []
             config_mgr = ConfigurationManager()
-            for name in config_mgr.module_names:
+            for name in config_mgr.local_drivers():
                 try:
                     config_mgr.get_driver_instance(name)
                     self._driver_names.append(name)

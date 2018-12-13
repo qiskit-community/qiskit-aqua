@@ -198,7 +198,7 @@ class AquaChemistry(object):
         if 'data' not in section:
             raise AquaChemistryError('Property "data" missing in section "{0}"'.format(driver_name))
 
-        if driver_name not in self._configuration_mgr.module_names:
+        if driver_name not in self._configuration_mgr.local_drivers():
             raise AquaChemistryError('Driver "{0}" missing in local drivers'.format(driver_name))
 
         work_path = None
