@@ -69,11 +69,8 @@ class GaussianDriver(BaseDriver):
     @staticmethod
     def check_driver_valid():
         if g16prog is None:
-            logger.info("Could not locate {} executable '{}'. Please check that it is installed correctly."
-                        .format(GAUSSIAN_16_DESC, GAUSSIAN_16))
-            return False
-
-        return True
+            raise AquaChemistryError("Could not locate {} executable '{}'. Please check that it is installed correctly."
+                                     .format(GAUSSIAN_16_DESC, GAUSSIAN_16))
 
     def run(self, section):
         cfg = section['data']

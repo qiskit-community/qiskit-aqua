@@ -16,6 +16,7 @@
 # =============================================================================
 
 from qiskit_aqua_chemistry.drivers import BaseDriver
+from qiskit_aqua_chemistry import AquaChemistryError
 from qiskit_aqua_chemistry.drivers.pyscfd.integrals import compute_integrals
 import importlib
 import logging
@@ -71,15 +72,16 @@ class PySCFDriver(BaseDriver):
 
     @staticmethod
     def check_driver_valid():
+        err_msg = "PySCF is not installed. Use 'pip install pyscf'"
         try:
             spec = importlib.util.find_spec('pyscf')
             if spec is not None:
-                return True
-        except:
-            pass
+                return
+        except Exception as e:
+            logger.debug('PySCF check error {}'.format(str(e)))
+            raise AquaChemistryError(err_msg) from e
 
-        logger.info("PySCF is not installed. Use 'pip install pyscf'")
-        return False
+        raise AquaChemistryError(err_msg)
 
     def run(self, section):
         return compute_integrals(section['properties'])
