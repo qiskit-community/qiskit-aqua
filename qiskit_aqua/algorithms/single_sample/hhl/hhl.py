@@ -21,13 +21,10 @@ The HHL algorithm.
 import logging
 import numpy as np
 
-import qiskit.extensions.simulator
-from qiskit import Aer
 from qiskit.backends.aer import QasmSimulator
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
-from qiskit_aqua import QuantumInstance, AquaError
-from qiskit_aqua import PluggableType, get_pluggable_class
 from qiskit_aqua.algorithms import QuantumAlgorithm
+from qiskit_aqua import AquaError, PluggableType, get_pluggable_class
 
 logger = logging.getLogger(__name__)
 
@@ -499,14 +496,14 @@ class HHL(QuantumAlgorithm):
         # Decoration
         ax_eig.set_title("Eigenvalue results")
         ax_eig.set_ylabel("Probability")
-        ax_eig.set_xlabel("Value $\lambda$")
+        ax_eig.set_xlabel("Value $\\lambda$")
         ax_eig.set_xlim(0, 2.1*np.pi/self._eigs._evo_time)
         ax_eig.axvline(x=self._reciprocal._scale*2*np.pi/self._eigs._evo_time,
                        color="g")
 
         ax_rec.set_title("Reciprocal results")
         ax_rec.set_ylabel("Probability")
-        ax_rec.set_xlabel("$C/\lambda$")
+        ax_rec.set_xlabel("$C/\\lambda$")
         ax_rec.set_xlim(0, 1)
 
         ax_dev.set_title("Deviation of Solution")
