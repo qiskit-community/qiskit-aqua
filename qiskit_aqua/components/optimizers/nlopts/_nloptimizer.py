@@ -18,7 +18,7 @@
 import numpy as np
 import importlib
 import logging
-
+from qiskit_aqua import AquaError
 logger = logging.getLogger(__name__)
 
 try:
@@ -28,15 +28,16 @@ except ImportError:
 
 
 def check_pluggable_valid(name):
+    err_msg = "Unable to instantiate '{}', nlopt is not installed. Please install it if you want to use them.".format(name)
     try:
         spec = importlib.util.find_spec('nlopt')
         if spec is not None:
-            return True
-    except:
-        pass
+            return
+    except Exception as e:
+        logger.debug('{} {}'.format(err_msg, str(e)))
+        raise AquaError(err_msg) from e
 
-    logger.info("Unable to instantiate '{}', nlopt is not installed. Please install it if you want to use them.".format(name))
-    return False
+    raise AquaError(err_msg)
 
 
 def minimize(name, objective_function, variable_bounds=None, initial_point=None, max_evals=1000):
