@@ -62,8 +62,8 @@ def _get_pluggables_types_dictionary():
     from qiskit_aqua.components.feature_maps import FeatureMap
     from qiskit_aqua.components.multiclass_extensions import MulticlassExtension
     from qiskit_aqua.components.qfts import QFT
-    from qiskit_aqua.algorithms.components.eigs import Eigenvalues
-    from qiskit_aqua.algorithms.components.reciprocals import Reciprocal
+    from qiskit_aqua.components.eigs import Eigenvalues
+    from qiskit_aqua.components.reciprocals import Reciprocal
     from qiskit_aqua.input import AlgorithmInput
     return {
         PluggableType.ALGORITHM: QuantumAlgorithm,
