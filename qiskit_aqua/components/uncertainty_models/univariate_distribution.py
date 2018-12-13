@@ -14,6 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+"""
+This module contains the definition of a base class for univariate distributions.
+"""
 
 import numpy as np
 from qiskit_aqua import AquaError
@@ -22,7 +25,10 @@ from .random_distribution import RandomDistribution
 
 
 class UnivariateDistribution(RandomDistribution):
-    """ Interface for discrete bounded uncertainty models assuming an equidistant grid """
+    """
+    This module contains the definition of a base class for univariate distributions.
+    (Interface for discrete bounded uncertainty models assuming an equidistant grid)
+    """
 
     @classmethod
     def init_params(cls, params):

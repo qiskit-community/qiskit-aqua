@@ -15,7 +15,7 @@
 # limitations under the License.
 # =============================================================================
 """
-Amplitude Estimation Algorithm.
+The Amplitude Estimation Algorithm.
 """
 
 import logging
@@ -34,6 +34,9 @@ logger = logging.getLogger(__name__)
 
 
 class AmplitudeEstimation(QuantumAlgorithm):
+    """
+    The Amplitude Estimation algorithm.
+    """
 
     CONFIGURATION = {
         'name': 'AE',
@@ -62,6 +65,43 @@ class AmplitudeEstimation(QuantumAlgorithm):
             }
         }
     }
+
+    def __init__(self, num_eval_qubits, a_factory, q_factory=None, iqft=None):
+        """
+        Constructor.
+
+        Args:
+            num_eval_qubits (int): number of evaluation qubits
+            a_factory (CircuitFactory): the CircuitFactory subclass object representing the initial state
+            q_factory (CircuitFactory): the CircuitFactory subclass object representing the problem unitary
+            iqft (IQFT): the Inverse Quantum Fourier Transform pluggable component
+
+        TODO: @Stefan, please check this
+        """
+        self.validate(locals())
+        super().__init__()
+
+        # get/construct A/Q operator
+        self.a_factory = a_factory
+        if q_factory is None:
+            self.q_factory = QFactory(a_factory)
+        else:
+            self.q_factory = q_factory
+
+        # get parameters
+        self._m = num_eval_qubits
+        self._M = 2 ** num_eval_qubits
+
+        # determine number of ancillas
+        self._num_ancillas = self.q_factory.required_ancillas_controlled()
+        self._num_qubits = self.a_factory.num_target_qubits + self._m + self._num_ancillas
+
+        if iqft is None:
+            iqft = Standard(self._m)
+
+        self._iqft = iqft
+        self._circuit = None
+        self._ret = {}
 
     @classmethod
     def init_params(cls, params, algo_input):
@@ -97,45 +137,19 @@ class AmplitudeEstimation(QuantumAlgorithm):
 
         return cls(num_eval_qubits, uncertainty_problem, q_factory=None, iqft=iqft)
 
-    def __init__(self, num_eval_qubits, a_factory, q_factory=None, iqft=None):
-        # self.validate(locals())
-        super().__init__()
-
-        # get/construct A/Q operator
-        self.a_factory = a_factory
-        if q_factory is None:
-            self.q_factory = QFactory(a_factory)
-        else:
-            self.q_factory = q_factory
-
-        # get parameters
-        self._m = num_eval_qubits
-        self._M = 2 ** num_eval_qubits
-
-        # determine number of ancillas
-        self._num_ancillas = self.q_factory.required_ancillas_controlled()
-        self._num_qubits = self.a_factory.num_target_qubits + self._m + self._num_ancillas
-
-        if iqft is None:
-            iqft = Standard(self._m)
-
-        self._iqft = iqft
-        self._circuit = None
-        self._ret = {}
-
     def construct_circuit(self):
+        """
+        Construct the Amplitude Estimation quantum circuit.
+
+        Returns:
+            the QuantumCircuit object for the constructed circuit
+        """
         pe = PhaseEstimation(None, None, self._iqft, num_ancillae=self._m,
                              state_in_circuit_factory=self.a_factory,
                              unitary_circuit_factory=self.q_factory)
 
         self._circuit = pe.construct_circuit()
         return self._circuit
-
-        # run circuit
-        # qp = QuantumProgram()
-        # qp.add_circuit('ae', qc)
-        # results = qp.execute('ae', shots=1, timeout=10000, backend='local_statevector_simulator_cpp')
-        # state_vector = results.get_statevector()
 
     def _evaluate_statevector_results(self, probabilities):
         # map measured results to estimates

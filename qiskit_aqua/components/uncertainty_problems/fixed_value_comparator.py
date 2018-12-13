@@ -14,6 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+"""
+The Fixed Value Comparator.
+"""
 
 from qiskit_aqua.utils.circuit_factory import CircuitFactory
 from qiskit_aqua.utils.circuit_utils import multi_toffoli_q, logical_multi_or
@@ -22,6 +25,11 @@ import numpy as np
 
 
 class FixedValueComparator(CircuitFactory):
+    """
+    The Fixed Value Comparator.
+
+    TODO: @Stefan: a bit more info?
+    """
 
     def __init__(self, num_target_qubits, value, geq=True):
         super().__init__(num_target_qubits)

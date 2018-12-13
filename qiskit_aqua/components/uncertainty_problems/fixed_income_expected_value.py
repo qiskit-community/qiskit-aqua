@@ -14,6 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+"""
+The Fixed Income Expected Value.
+"""
 
 from qiskit_aqua.components.uncertainty_problems import UncertaintyProblem
 from qiskit_aqua.utils.circuit_utils import cry
@@ -22,6 +25,8 @@ import numpy as np
 
 class FixedIncomeExpectedValue(UncertaintyProblem):
     """
+    The Fixed Income Expected Value.
+
     Evaluates a fixed income asset with uncertain interest rates.
     """
 

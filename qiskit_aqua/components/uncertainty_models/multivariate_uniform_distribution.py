@@ -14,12 +14,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+"""
+The Multivariate Uniform Distribution.
+"""
 
 import numpy as np
 from qiskit_aqua.components.uncertainty_models.multivariate_distribution import MultivariateDistribution
 
 
 class MultivariateUniformDistribution(MultivariateDistribution):
+    """
+    The Multivariate Uniform Distribution.
+    """
 
     CONFIGURATION = {
         'name': 'MultivariateUniformDistribution',

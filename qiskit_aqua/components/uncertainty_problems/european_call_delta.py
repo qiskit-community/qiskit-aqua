@@ -14,6 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+"""
+The European Call Option Delta.
+"""
 
 import numpy as np
 from qiskit_aqua.components.uncertainty_problems import UncertaintyProblem
@@ -22,7 +25,9 @@ from qiskit_aqua.components.uncertainty_problems.fixed_value_comparator import F
 
 class EuropeanCallDelta(UncertaintyProblem):
     """
-    Evaluates the expected payoff for a European call option given an uncertainty model.
+    The European Call Option Delta.
+
+    Evaluates the variance for a European call option given an uncertainty model.
     The payoff function is f(S, K) = max(0, S - K) for a spot price S and strike price K.
     """
 

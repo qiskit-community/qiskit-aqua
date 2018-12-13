@@ -14,12 +14,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+"""
+The Univariate Uniform Distribution.
+"""
 
 import numpy as np
 from .univariate_distribution import UnivariateDistribution
 
 
 class UniformDistribution(UnivariateDistribution):
+    """
+    The Univariate Uniform Distribution.
+    """
 
     CONFIGURATION = {
         'name': 'UniformDistribution',

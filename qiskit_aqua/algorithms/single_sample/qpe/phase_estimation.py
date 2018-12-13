@@ -35,6 +35,22 @@ class PhaseEstimation:
             state_in_circuit_factory=None,
             unitary_circuit_factory=None,
             shallow_circuit_concat=False):
+        """
+        Constructor.
+
+        Args:
+            operator (Operator): the hamiltonian Operator object
+            state_in (InitialState): the InitialState pluggable component representing the initial quantum state
+            iqft (IQFT): the Inverse Quantum Fourier Transform pluggable component
+            num_time_slices (int): the number of time slices
+            num_ancillae (int): the number of ancillary qubits to use for the measurement
+            paulis_grouping (str): the pauli term grouping mode
+            expansion_mode (str): the expansion mode (trotter|suzuki)
+            expansion_order (int): the suzuki expansion order
+            state_in_circuit_factory (CircuitFactory): the initial state represented by a CircuitFactory object
+            unitary_circuit_factory (CircuitFactory): the problem unitary represented by a CircuitFactory object
+            shallow_circuit_concat (bool): indicate whether to use shallow (cheap) mode for circuit concatenation
+        """
 
         if (
                 operator is not None and unitary_circuit_factory is not None
@@ -59,7 +75,18 @@ class PhaseEstimation:
         self._ret = {}
 
     def construct_circuit(self, state_register=None, ancilla_register=None, aux_register=None, measure=False):
-        """Construct the Phase Estimation circuit"""
+        """
+        Construct the Phase Estimation circuit
+
+        Args:
+            state_register (QuantumRegister): the optional register to use for the quantum state
+            ancilla_register (QuantumRegister): the optional register to use for the ancillary measurement qubits
+            aux_register (QuantumRegister): an optional auxiliary quantum register
+            measure (bool): boolean flag to indicate if the built circuit should include ancilla measurement
+
+        Returns:
+            the QuantumCircuit object for the constructed circuit
+        """
 
         if self._circuit[measure] is None:
             if self._operator is not None:

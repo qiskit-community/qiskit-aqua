@@ -14,12 +14,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+"""
+The Univariate Bernoulli Distribution.
+"""
 
 import numpy as np
 from .univariate_distribution import UnivariateDistribution
 
 
 class BernoulliDistribution(UnivariateDistribution):
+    """
+    The Univariate Bernoulli Distribution.
+    """
 
     CONFIGURATION = {
         'name': 'BernoulliDistribution',

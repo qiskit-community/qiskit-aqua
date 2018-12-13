@@ -14,12 +14,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+"""
+The Univariate Normal Distribution.
+"""
 
 from scipy.stats.distributions import norm
 from .univariate_distribution import UnivariateDistribution
 
 
 class NormalDistribution(UnivariateDistribution):
+    """
+    The Univariate Normal Distribution.
+    """
 
     CONFIGURATION = {
         'name': 'NormalDistribution',

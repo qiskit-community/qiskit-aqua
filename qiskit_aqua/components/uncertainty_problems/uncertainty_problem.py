@@ -14,6 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+"""
+The abstract Uncertainty Problem pluggable component.
+"""
 
 from abc import ABC
 from qiskit_aqua import Pluggable
@@ -21,6 +24,9 @@ from qiskit_aqua.utils import CircuitFactory
 
 
 class UncertaintyProblem(CircuitFactory, Pluggable, ABC):
+    """
+    The abstract Uncertainty Problem pluggable component.
+    """
 
     @classmethod
     def init_params(cls, params):

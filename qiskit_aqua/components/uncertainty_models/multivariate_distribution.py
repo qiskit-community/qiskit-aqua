@@ -14,6 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+"""
+This module contains the definition of a base class for multivariate distributions.
+"""
 
 from qiskit_aqua.utils.circuit_factory import CircuitFactory
 import numpy as np
@@ -21,7 +24,10 @@ from qiskit_aqua.components.initial_states.custom import Custom
 
 
 class MultivariateDistribution(CircuitFactory):
-    """ Interface for discrete bounded uncertainty models assuming an equidistant grid """
+    """
+    This module contains the definition of a base class for multivariate distributions.
+    (Interface for discrete bounded uncertainty models assuming an equidistant grid)
+    """
 
     def __init__(self, num_qubits, probabilities, low, high):
         """

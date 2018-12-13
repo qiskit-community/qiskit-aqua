@@ -14,6 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+"""
+This module contains the definition of a base class for
+random distributions. A random distribution could be used for
+constructing Amplification Estimation tasks.
+"""
 
 from abc import ABC
 from qiskit_aqua import Pluggable
@@ -21,7 +26,9 @@ from qiskit_aqua.utils import CircuitFactory
 
 
 class RandomDistribution(CircuitFactory, Pluggable, ABC):
-    """ Abstract uncertainty model pluggable  """
+    """
+    The abstract Random Distribution
+    """
 
     @classmethod
     def init_params(cls, params):

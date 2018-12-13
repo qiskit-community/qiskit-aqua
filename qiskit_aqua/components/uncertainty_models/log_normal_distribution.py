@@ -14,6 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+"""
+The Univariate Log-Normal Distribution.
+"""
 
 from scipy.stats.distributions import lognorm
 from qiskit_aqua.components.uncertainty_models.univariate_distribution import UnivariateDistribution
@@ -21,6 +24,9 @@ import numpy as np
 
 
 class LogNormalDistribution(UnivariateDistribution):
+    """
+    The Univariate Log-Normal Distribution.
+    """
 
     CONFIGURATION = {
         'name': 'LogNormalDistribution',

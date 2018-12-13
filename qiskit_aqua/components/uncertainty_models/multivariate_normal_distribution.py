@@ -14,6 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+"""
+The Multivariate Normal Distribution.
+"""
 
 import numpy as np
 from scipy.stats import multivariate_normal
@@ -21,6 +24,9 @@ from qiskit_aqua.components.uncertainty_models.multivariate_distribution import 
 
 
 class MultivariateNormalDistribution(MultivariateDistribution):
+    """
+    The Multivariate Normal Distribution.
+    """
 
     CONFIGURATION = {
         'name': 'MultivariateNormalDistribution',
