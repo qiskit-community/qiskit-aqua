@@ -84,8 +84,6 @@ class HHL(QuantumAlgorithm):
         super().validate({
             HHL.PROP_MODE: mode
         })
-        self._debug = None
-        self._exact = None
         self._matrix = matrix
         self._vector = vector
         self._eigs = eigs
@@ -100,48 +98,6 @@ class HHL(QuantumAlgorithm):
         self._ancilla_register = None
         self._success_bit = None
         self._ret = {}
-
-    def setup_quantum_backend(self, backend, shots=1024, config=None, seed=None,
-                              pass_manager=None, seed_mapper=None,
-                              initial_layout=None, max_credits=10,
-                              timeout=None, wait=5):
-
-        quantum_instance = QuantumInstance(backend=backend, shots=shots,
-                                           config=config, seed=seed,
-                                           pass_manager=pass_manager,
-                                           seed_mapper=seed_mapper,
-                                           initial_layout=initial_layout,
-                                           max_credits=max_credits,
-                                           timeout=timeout, wait=wait)
-
-        # Handle different modes
-        try:
-            QasmSimulator()
-            cpp = True
-        except FileNotFoundError:
-            cpp = False
-
-        exact = False
-        debug = False
-        if self._mode == 'state_tomography':
-            if (quantum_instance.is_statevector_backend(backend) or
-                    (quantum_instance.backend_name == "qasm_simulator" and cpp)):
-                exact = True
-                # not always
-                #debug = True
-
-        if self._mode == 'debug':
-            if quantum_instance.backend_name != "qasm_simulator" or not cpp:
-                raise AquaError("Debug mode only possible with C++ "
-                                "qasm_simulator.")
-            debug = True
-
-        if self._mode == 'swap_test':
-            if quantum_instance.is_statevector_backend(backend):
-                raise AquaError("Measurement required")
-
-        self._debug = debug
-        self._exact = exact
 
     @classmethod
     def init_params(cls, params, algo_input):
@@ -204,6 +160,36 @@ class HHL(QuantumAlgorithm):
 
         return cls(matrix, vector, eigs, init_state, reci, mode, num_q, num_a)
 
+    def _handle_modes(self):
+        # Handle different modes
+        try:
+            QasmSimulator()
+            cpp = True
+        except FileNotFoundError:
+            cpp = False
+        exact = False
+        debug = False
+        if self._mode == 'state_tomography':
+            if (self._quantum_instance.is_statevector_backend(
+                    self._quantum_instance._backend) or
+                    (self._quantum_instance.backend_name == "qasm_simulator"
+                     and cpp)):
+                exact = True
+                # not always
+                #debug = True
+        if self._mode == 'debug':
+            if self._quantum_instance.backend_name != "qasm_simulator" or not \
+                    cpp:
+                raise AquaError("Debug mode only possible with C++ "
+                                "qasm_simulator.")
+            debug = True
+        if self._mode == 'swap_test':
+            if self._quantum_instance.is_statevector_backend(
+                    self._quantum_instance._backend):
+                raise AquaError("Measurement required")
+        self._debug = debug
+        self._exact = exact
+
     def _construct_circuit(self):
         """ Constructing the HHL circuit """
 
@@ -257,13 +243,13 @@ class HHL(QuantumAlgorithm):
         the statevector. Only possible with statevector simulators
         """
         # Handle different backends
-        if QuantumAlgorithm.is_statevector_backend(self._backend):
-            res = self.execute(self._circuit)
+        if self._quantum_instance.is_statevector:
+            res = self._quantum_instance.execute(self._circuit)
             sv = res.get_statevector()
-        elif QuantumAlgorithm.backend_name(self._backend) == "qasm_simulator":
+        elif self._quantum_instance.backend_name == "qasm_simulator":
             self._circuit.snapshot("5")
             self._execute_config["config"]["data"] = ["quantum_state_ket"]
-            res = self.execute(self._circuit)
+            res = self._quantum_instance.execute(self._circuit)
             sv = res.data(0)['snapshots']['5']['statevector'][0]
 
         # Extract output vector
@@ -298,11 +284,9 @@ class HHL(QuantumAlgorithm):
         tomo_set = tomo.state_tomography_set(list(range(self._num_q)))
         tomo_circuits = \
             tomo.create_tomography_circuits(qc, self._io_register, c, tomo_set)
-        config = {k: v for k, v in self._execute_config.items()
-                  if k != "qobj_id"}
 
         # Handling the results
-        job = execute(tomo_circuits, backend=self._backend, **config)
+        job = self._quantum_instance.execute(tomo_circuits)
         probs = []
         for res in job.result():
             counts = res.counts
@@ -373,7 +357,7 @@ class HHL(QuantumAlgorithm):
         qc.measure(test_bit, c[0])
 
         # Execution and calculation of the fidelity
-        res = self.execute(self._circuit)
+        res = self._quantum_instance.execute(self._circuit)
         counts = res.get_counts()
         failed = 0
         probs = [0, 0]
@@ -438,10 +422,7 @@ class HHL(QuantumAlgorithm):
         ax_rec = plt.subplot(gs[1])
         ax_dev = plt.subplot(gs[2])
 
-        self._execute_config["config"] = {"noise_params": None, "data": [
-            "quantum_state_ket"]}
-        self._execute_config["shots"] = 1
-        res = self.execute(self._circuit)
+        res = self._quantum_instance.execute(self._circuit)
 
         # Plot eigenvalues
         eigs = res.data(0)['snapshots']['1']['quantum_state_ket'][0]
@@ -538,6 +519,7 @@ class HHL(QuantumAlgorithm):
     ####################################
 
     def _run(self):
+        self._handle_modes()
         self._construct_circuit()
         # Handling the modes
         if self._mode == "circuit":

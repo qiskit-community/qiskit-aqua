@@ -28,6 +28,9 @@ from ._discover import (PluggableType,
                         deregister_pluggable)
 from .pluggable import Pluggable
 from .utils.cnx import cnx
+from .utils.cnx_no_anc import cnx_na
+from .utils.cnu1 import cnu1
+from .utils.cnu3 import cnu3
 from .quantum_instance import QuantumInstance
 from .operator import Operator
 from .algorithms import QuantumAlgorithm

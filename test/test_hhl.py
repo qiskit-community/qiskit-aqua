@@ -19,13 +19,11 @@ import unittest
 
 import numpy as np
 from numpy.random import rand
-from qiskit import Aer
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import run_algorithm
 from qiskit_aqua.input import LinearSystemInput
 from qiskit_aqua.utils import random_matrix_generator as rmg
-from qiskit_aqua.algorithms.single_sample import HHL
 
 class TestHHL(QiskitAquaTestCase):
     """HHL tests."""
@@ -64,9 +62,6 @@ class TestHHL(QiskitAquaTestCase):
                 "skip_transpiler": "false"
             }
         }
-        backend = Aer.get_backend('statevector_simulator')
-        hhl = HHL(mode='state_tomography')
-        hhl.setup_quantum_backend(backend)
 
     def test_hhl_diagonal(self):
         self.log.debug('Testing HHL simple test')
