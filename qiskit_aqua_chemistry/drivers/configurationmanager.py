@@ -93,7 +93,7 @@ class ConfigurationManager(object):
             except (LookupError, TypeError):
                 raise AquaChemistryError('Could not register driver: invalid configuration')
 
-            # Verify that the pluggable is valid
+            # Verify that the driver is valid
             check_driver_valid = getattr(cls, 'check_driver_valid', None)
             if check_driver_valid is not None:
                 try:
