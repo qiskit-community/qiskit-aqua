@@ -95,7 +95,8 @@ class QuantumAlgorithm(Pluggable):
             if quantum_instance is None:
                 AquaError("Quantum device or backend is needed since you are running quanutm algorithm.")
             if isinstance(quantum_instance, BaseBackend):
-                quantum_instance = QuantumInstance(quantum_instance, **kwargs)
+                quantum_instance = QuantumInstance(quantum_instance)
+                quantum_instance.set_config(**kwargs)
             self._quantum_instance = quantum_instance
         return self._run()
 

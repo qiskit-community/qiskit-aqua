@@ -66,27 +66,6 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
     if algo_name not in local_pluggables(PluggableType.ALGORITHM):
         raise AquaError('Algorithm "{0}" missing in local algorithms'.format(algo_name))
 
-    backend_cfg = None
-    backend_name = inputparser.get_section_property(JSONSchema.BACKEND, JSONSchema.NAME)
-    if backend_name is not None:
-        backend_cfg = {k: v for k, v in inputparser.get_section(JSONSchema.BACKEND).items() if k != 'name'}
-        noise_params = backend_cfg.pop('noise_params', None)
-        backend_cfg['config'] = {}
-        backend_cfg['config']['noise_params'] = noise_params
-        QuantumInstance.register_and_get_operational_backends()
-        try:
-            backend_from_name = Aer.get_backend(backend_name)
-        except:
-            backend_from_name = IBMQ.get_backend(backend_name)
-
-        backend_cfg['backend'] = backend_from_name
-
-    if backend is not None and isinstance(backend, BaseBackend):
-        if backend_cfg is None:
-            backend_cfg = {}
-
-        backend_cfg['backend'] = backend
-
     if algo_input is None:
         input_name = inputparser.get_section_property('input', JSONSchema.NAME)
         if input_name is not None:
@@ -101,13 +80,28 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
     random_seed = inputparser.get_section_property(JSONSchema.PROBLEM, 'random_seed')
     algorithm.random_seed = random_seed
     quantum_instance = None
-    if backend_cfg is not None:
+    # setup backend
+    backend_name = inputparser.get_section_property(JSONSchema.BACKEND, JSONSchema.NAME)
+    if backend_name is not None:  # quantum algorithm
+        backend_cfg = {k: v for k, v in inputparser.get_section(JSONSchema.BACKEND).items() if k != 'name'}
+        noise_params = backend_cfg.pop('noise_params', None)
+        backend_cfg['config'] = {}
+        backend_cfg['config']['noise_params'] = noise_params
         backend_cfg['seed'] = random_seed
         backend_cfg['seed_mapper'] = random_seed
         pass_manager = PassManager() if backend_cfg.pop('skip_transpiler', False) else None
         if pass_manager is not None:
             backend_cfg['pass_manager'] = pass_manager
 
+        if backend is not None and isinstance(backend, BaseBackend):
+            backend_cfg['backend'] = backend
+        else:
+            try:
+                backend_from_name = Aer.get_backend(backend_name)
+            except:
+                QuantumInstance.register_and_get_operational_backends()
+                backend_from_name = IBMQ.get_backend(backend_name)
+            backend_cfg['backend'] = backend_from_name
         quantum_instance = QuantumInstance(**backend_cfg)
 
     value = algorithm.run(quantum_instance)
