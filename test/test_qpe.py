@@ -28,8 +28,8 @@ from test.common import QiskitAquaTestCase
 from qiskit_aqua import Operator, QuantumInstance
 from qiskit_aqua.utils import decimal_to_binary
 from qiskit_aqua.algorithms import ExactEigensolver
-from qiskit_aqua.algorithms.components.iqfts import Standard
-from qiskit_aqua.algorithms.components.initial_states import Custom
+from qiskit_aqua.components.iqfts import Standard
+from qiskit_aqua.components.initial_states import Custom
 from qiskit_aqua.algorithms import QPE
 
 X = np.array([[0, 1], [1, 0]])
