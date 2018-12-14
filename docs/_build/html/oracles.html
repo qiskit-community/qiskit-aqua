@@ -1,0 +1,255 @@
+
+
+<!doctype html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Oracles &#8212; Qiskit Aqua 0.4.0 documentation</title>
+    <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/bizstyle.js"></script>
+    <script type="text/javascript" src="_static/bootstrap.min.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Inverse Quantum Fourier Transforms" href="iqfts.html" />
+    <link rel="prev" title="Variational Forms" href="variational_forms.html" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<!--[if lt IE 9]>
+    <script src="http://css3-mediaqueries-js.googlecode.com/svn/trunk/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head><body>
+<div id="head" class="head">
+    <a href="https://qiskit.org/aqua">Qiskit Aqua</a>
+</div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="iqfts.html" title="Inverse Quantum Fourier Transforms"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="variational_forms.html" title="Variational Forms"
+             accesskey="P">previous</a> |</li>
+<li id="toc-toggle">
+<a class="btn btn-primary" role="button" data-toggle="collapse"
+   href=".sphinxsidebar" aria-expanded="false" aria-controls="collapseExample">
+  TOC</a> |
+</li>
+
+        <li class="nav-item nav-item-0"><a href="index.html">Qiskit Aqua 0.4.0 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="aqua.html" >Qiskit Aqua</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="library.html" accesskey="U">Aqua: A Library of Quantum Algorithms</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/qiskit-logo-white-no-margin.gif" alt="Logo"/>
+            </a></p>
+<p class="logo-description">Qiskit Aqua</p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="aqua.html">Qiskit Aqua</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="library.html">Aqua: A Library of Quantum Algorithms</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html">Installation and Setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="execution.html">Configuring and Running an Experiment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="extending.html">Contributing to Aqua</a></li>
+<li class="toctree-l3"><a class="reference internal" href="algorithms.html">Algorithms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimizers.html">Optimizers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="variational_forms.html">Variational Forms</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Oracles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="iqfts.html">Inverse Quantum Fourier Transforms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="initial_states.html">Initial States</a></li>
+<li class="toctree-l3"><a class="reference internal" href="feature_maps.html">Feature Maps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qiskit_aqua.html">Aqua SDK Reference</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="aqua_ai.html">Aqua Artificial Intelligence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aqua_optimization.html">Aqua Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aqua_finance.html">Aqua Finance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aqua_tutorials.html">Aqua Tutorials</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="variational_forms.html"
+                        title="previous chapter">Variational Forms</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="iqfts.html"
+                        title="next chapter">Inverse Quantum Fourier Transforms</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/oracles.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="oracles">
+<span id="id1"></span><h1>Oracles<a class="headerlink" href="#oracles" title="Permalink to this headline">¶</a></h1>
+<p>Grover’s Search is a well known quantum algorithm for searching through
+unstructured collections of records for particular targets with quadratic
+speedups.</p>
+<p>Given a set <span class="math notranslate nohighlight">\(X\)</span> of <span class="math notranslate nohighlight">\(N\)</span> elements
+<span class="math notranslate nohighlight">\(X=\{x_1,x_2,\ldots,x_N\}\)</span> and a boolean function <span class="math notranslate nohighlight">\(f : X \rightarrow \{0,1\}\)</span>,
+the goal on an <em>unstructured-search problem</em> is to find an
+element <span class="math notranslate nohighlight">\(x^* \in X\)</span> such that <span class="math notranslate nohighlight">\(f(x^*)=1\)</span>.
+Unstructured  search  is  often  alternatively  formulated  as  a  database  search  problem, in
+which, given a database, the goal is to find in it an item that meets some specification.
+The search is called <em>unstructured</em> because there are no guarantees as to how the
+database is ordered.  On a sorted database, for instance, one could perform
+binary  search  to  find  an  element in <span class="math notranslate nohighlight">\(\mathcal{O}(\log N)\)</span> worst-case time.
+Instead, in an unstructured-search problem, there is no  prior knowledge about the contents
+of the database.  With classical circuits, there is no alternative but
+to perform a linear number of queries to find the target element.
+Conversely, Grover’s Search algorithm allows to solve the unstructured-search problem
+on a quantum computer in <span class="math notranslate nohighlight">\(\mathcal{O}(\sqrt{N})\)</span> queries.</p>
+<p>All that is needed for carrying out a search is an oracle from Aqua’s oracles library for
+specifying the search criterion, which basically indicates a hit or miss
+for any given record.  More formally, an <em>oracle</em> <span class="math notranslate nohighlight">\(O_f\)</span> is an object implementing a boolean function
+<span class="math notranslate nohighlight">\(f\)</span> as specified above.  Given an input <span class="math notranslate nohighlight">\(x \in X\)</span>, <span class="math notranslate nohighlight">\(O_f\)</span> returns <span class="math notranslate nohighlight">\(f(x)\)</span>.  The
+details of how <span class="math notranslate nohighlight">\(O_f\)</span> works are unimportant; Grover’s search algorithm treats an oracle as a black
+box.</p>
+<div class="topic">
+<p class="topic-title first">Extending the Oracle Library</p>
+<p>Consistent with its unique  design, Aqua has a modular and
+extensible architecture. Algorithms and their supporting objects, such as oracles for Grover’s Search Algorithm,
+are pluggable modules in Aqua.
+New oracles are typically installed in the <code class="docutils literal notranslate"><span class="pre">qiskit_aqua/utils/oracles</span></code> folder and derive from
+the <code class="docutils literal notranslate"><span class="pre">Oracle</span></code> class.  Aqua also allows for
+<a class="reference internal" href="extending.html#aqua-dynamically-discovered-components"><span class="std std-ref">Dynamically Discovered Components</span></a>: new components can register themselves
+as Aqua extensions and be dynamically discovered at run time independent of their
+location in the file system.
+This is done in order to encourage researchers and
+developers interested in
+<a class="reference internal" href="extending.html#aqua-extending"><span class="std std-ref">Contributing to Aqua</span></a> to extend the Aqua framework with their novel research contributions.</p>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><cite>Section :ref:`aqua-extending</cite> provides more
+details on how to extend Aqua with new components.</p>
+</div>
+<p>Currently, Aqua provides the SATisfiability (SAT) oracle
+implementation, which takes as input an SAT problem
+specified as a formula in
+<a class="reference external" href="https://en.wikipedia.org/wiki/Conjunctive_normal_form">Conjunctive Normal Form (CNF)</a>
+and searches for solutions to that problem.
+Essentially, a CNF is a conjunction of one or more clauses, where a clause is a disjunction of
+one or more literals:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cnf</span> <span class="p">:</span> <span class="nb">str</span>
+</pre></div>
+</div>
+<p>The Aqua SAT oracle implementation expects a CNF to be a <code class="docutils literal notranslate"><span class="pre">str</span></code> value assigned to
+the <code class="docutils literal notranslate"><span class="pre">cnf</span></code> parameter.  The value must be encoded in
+<a class="reference external" href="http://www.satcompetition.org/2009/format-benchmarks2009.html">DIMACS CNF
+format</a>.
+Once it receives a CNF as an input, the SAT oracle constructs the corresponding quantum search circuit
+for Grover’s Search Algorithm to operate upon.</p>
+<p>The following is an example of a CNF expressed in DIMACS CNF format:</p>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">c</span> <span class="n">This</span> <span class="ow">is</span> <span class="n">an</span> <span class="n">example</span> <span class="n">DIMACS</span> <span class="mi">3</span><span class="o">-</span><span class="n">sat</span> <span class="n">file</span> <span class="k">with</span> <span class="mi">3</span> <span class="n">satisfying</span> <span class="n">solutions</span><span class="p">:</span> <span class="mi">1</span> <span class="o">-</span><span class="mi">2</span> <span class="mi">3</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span> <span class="o">-</span><span class="mi">2</span> <span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span> <span class="mi">2</span> <span class="o">-</span><span class="mf">3.</span>
+<span class="n">p</span> <span class="n">cnf</span> <span class="mi">3</span> <span class="mi">5</span>
+<span class="o">-</span><span class="mi">1</span> <span class="o">-</span><span class="mi">2</span> <span class="o">-</span><span class="mi">3</span> <span class="mi">0</span>
+<span class="mi">1</span> <span class="o">-</span><span class="mi">2</span> <span class="mi">3</span> <span class="mi">0</span>
+<span class="mi">1</span> <span class="mi">2</span> <span class="o">-</span><span class="mi">3</span> <span class="mi">0</span>
+<span class="mi">1</span> <span class="o">-</span><span class="mi">2</span> <span class="o">-</span><span class="mi">3</span> <span class="mi">0</span>
+<span class="o">-</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">0</span>
+</pre></div>
+</div>
+<p>The first line, following the <code class="docutils literal notranslate"><span class="pre">c</span></code> character, is a comment.
+The second line specifies that the CNF is over three boolean variables — let us call them
+<span class="math notranslate nohighlight">\(x_1, x_2, x_3\)</span>, and contains five clauses.  The five clauses, listed afterwards,
+are implicitly joined by the logical
+<code class="docutils literal notranslate"><span class="pre">AND</span></code> operator, <span class="math notranslate nohighlight">\(\land\)</span>, while the variables in each clause, represented by their indices,
+are implicitly disjoined by
+the logical <code class="docutils literal notranslate"><span class="pre">OR</span></code> operator, <span class="math notranslate nohighlight">\(lor\)</span>.  The <span class="math notranslate nohighlight">\(-\)</span> symbol preceding a boolean variable index
+corresponds to the logical <code class="docutils literal notranslate"><span class="pre">NOT</span></code> operator, <span class="math notranslate nohighlight">\(lnot\)</span>.  Character <code class="docutils literal notranslate"><span class="pre">0</span></code> marks the end
+of each clause.  Essentially, the code above corresponds to the following CNF:
+<span class="math notranslate nohighlight">\((\lnot x_1 \lor \lnot x_2 \lor \lnot x_3) \land (x_1 \lor \lnot x_2 \lor x_3) \land
+(x_1 \lor x_2 \lor \lnot x_3) \land (x_1 \lor \lnot x_2 \lor \lnot x_3) \land (\lnot x_1 \lor x_2 \lor x_3)\)</span>.</p>
+<p>Examples showing how to use the Grover algorithm in conjunction with the SAT oracles to search
+for solutions to SAT problems are available in the <code class="docutils literal notranslate"><span class="pre">optimization</span></code> folder of the
+<a class="reference external" href="https://github.com/Qiskit/aqua-tutorials">Aqua Tutorials GitHub repository</a>.</p>
+<div class="topic">
+<p class="topic-title first">Declarative Name</p>
+<p>When referring to the SAT oracle declaratively inside Aqua, its code <code class="docutils literal notranslate"><span class="pre">name</span></code>, by which Aqua dynamically discovers and loads it,
+is <code class="docutils literal notranslate"><span class="pre">SAT</span></code>.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="iqfts.html" title="Inverse Quantum Fourier Transforms"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="variational_forms.html" title="Variational Forms"
+             >previous</a> |</li>
+<li id="toc-toggle">
+<a class="btn btn-primary" role="button" data-toggle="collapse"
+   href=".sphinxsidebar" aria-expanded="false" aria-controls="collapseExample">
+  TOC</a> |
+</li>
+
+        <li class="nav-item nav-item-0"><a href="index.html">Qiskit Aqua 0.4.0 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="aqua.html" >Qiskit Aqua</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="library.html" >Aqua: A Library of Quantum Algorithms</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018 IBM.
+      Last updated on 2018/12/14.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.6.
+    </div>
+  </body>
+</html>

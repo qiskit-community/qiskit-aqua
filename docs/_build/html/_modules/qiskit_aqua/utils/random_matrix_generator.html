@@ -1,0 +1,432 @@
+
+
+<!doctype html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>qiskit_aqua.utils.random_matrix_generator &#8212; Qiskit Aqua 0.4.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../../_static/bizstyle.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap.min.js"></script>
+    <link rel="shortcut icon" href="../../../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<!--[if lt IE 9]>
+    <script src="http://css3-mediaqueries-js.googlecode.com/svn/trunk/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head><body>
+<div id="head" class="head">
+    <a href="https://qiskit.org/aqua">Qiskit Aqua</a>
+</div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+<li id="toc-toggle">
+<a class="btn btn-primary" role="button" data-toggle="collapse"
+   href=".sphinxsidebar" aria-expanded="false" aria-controls="collapseExample">
+  TOC</a> |
+</li>
+
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Qiskit Aqua 0.4.0 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/qiskit-logo-white-no-margin.gif" alt="Logo"/>
+            </a></p>
+<p class="logo-description">Qiskit Aqua</p>
+  <h3><a href="../../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../aqua.html">Qiskit Aqua</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for qiskit_aqua.utils.random_matrix_generator</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">scipy</span>
+
+<span class="kn">from</span> <span class="nn">qiskit_aqua.utils</span> <span class="k">import</span> <span class="n">tensorproduct</span>
+
+<div class="viewcode-block" id="random_h1_body"><a class="viewcode-back" href="../../../qiskit_aqua.utils.html#qiskit_aqua.utils.random_matrix_generator.random_h1_body">[docs]</a><span class="k">def</span> <span class="nf">random_h1_body</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate a random one body integrals.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        N (int): the number of spin orbitals.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        np.ndarray: a 2-D matrix with np.complex data type.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">Pup</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+    <span class="n">Pdown</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]])</span>
+
+    <span class="k">if</span> <span class="n">N</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The number of spin-orbitals must be even but </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">N</span><span class="p">))</span>
+    <span class="n">h1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">N</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">N</span> <span class="o">//</span> <span class="mi">2</span><span class="p">))</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">((</span><span class="n">N</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">N</span> <span class="o">//</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="n">h1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">triu</span><span class="p">(</span><span class="n">tensorproduct</span><span class="p">(</span><span class="n">Pup</span><span class="p">,</span> <span class="n">h1</span><span class="p">)</span> <span class="o">+</span> <span class="n">tensorproduct</span><span class="p">(</span><span class="n">Pdown</span><span class="p">,</span> <span class="n">h1</span><span class="p">))</span>
+    <span class="n">h1</span> <span class="o">=</span> <span class="p">(</span><span class="n">h1</span> <span class="o">+</span> <span class="n">h1</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span>
+    <span class="k">return</span> <span class="n">h1</span></div>
+
+
+<div class="viewcode-block" id="random_unitary"><a class="viewcode-back" href="../../../qiskit_aqua.utils.html#qiskit_aqua.utils.random_matrix_generator.random_unitary">[docs]</a><span class="k">def</span> <span class="nf">random_unitary</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate a random unitary matrix with size NxN.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        N: the dimension of unitary matrix</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        np.ndarray: a 2-D matrix with np.complex data type.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">N</span><span class="p">))</span><span class="o">*</span><span class="n">N</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">N</span><span class="p">))</span><span class="o">*</span><span class="n">N</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">Q</span><span class="p">,</span> <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">qr</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+    <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">R</span><span class="p">),</span> <span class="nb">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">R</span><span class="p">))))</span>
+    <span class="n">unitary_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">R</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">unitary_matrix</span></div>
+
+
+<div class="viewcode-block" id="random_h2_body"><a class="viewcode-back" href="../../../qiskit_aqua.utils.html#qiskit_aqua.utils.random_matrix_generator.random_h2_body">[docs]</a><span class="k">def</span> <span class="nf">random_h2_body</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">M</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate a random two body integrals.</span>
+<span class="sd">    Args:</span>
+<span class="sd">        N (int) : number of spin-orbitals (dimentsion of h2)</span>
+<span class="sd">        M (int) : number of non-zero entries</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        np.ndarray: a numpy 4-D tensor with np.complex data type.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">N</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;The number of spin orbitals must be even.&quot;</span>
+
+    <span class="n">h2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">N</span><span class="o">//</span><span class="mi">2</span><span class="p">,</span> <span class="n">N</span><span class="o">//</span><span class="mi">2</span><span class="p">,</span> <span class="n">N</span><span class="o">//</span><span class="mi">2</span><span class="p">,</span> <span class="n">N</span><span class="o">//</span><span class="mi">2</span><span class="p">))</span>
+    <span class="n">max_nonzero_elements</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">if</span> <span class="n">N</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">N</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">max_nonzero_elements</span> <span class="o">+=</span> <span class="mi">4</span> <span class="o">*</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">scipy</span><span class="o">.</span><span class="n">special</span><span class="o">.</span><span class="n">comb</span><span class="p">(</span><span class="n">N</span><span class="o">//</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">N</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">max_nonzero_elements</span> <span class="o">+=</span> <span class="mi">4</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">*</span> <span class="mi">8</span> <span class="o">*</span> <span class="n">scipy</span><span class="o">.</span><span class="n">special</span><span class="o">.</span><span class="n">comb</span><span class="p">(</span><span class="n">N</span><span class="o">//</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">N</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">&gt;=</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="n">max_nonzero_elements</span> <span class="o">+=</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">scipy</span><span class="o">.</span><span class="n">special</span><span class="o">.</span><span class="n">factorial</span><span class="p">(</span><span class="n">N</span><span class="o">//</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">scipy</span><span class="o">.</span><span class="n">special</span><span class="o">.</span><span class="n">factorial</span><span class="p">(</span><span class="n">N</span><span class="o">//</span><span class="mi">2</span><span class="o">-</span><span class="mi">4</span><span class="p">)</span>
+        <span class="c1">#print(&#39;Max number of non-zero elements for {} spin-orbitals is: {}&#39;.format(N, max_nonzero_elements))</span>
+
+    <span class="k">if</span> <span class="n">M</span> <span class="o">&gt;</span> <span class="n">max_nonzero_elements</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;Too many non-zero elements required, given the molecular symmetries. </span><span class="se">\n\</span>
+<span class="s1">                    The maximal number of non-zero elements for </span><span class="si">{}</span><span class="s1"> spin-orbitals is </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">max_nonzero_elements</span><span class="p">)</span>
+
+    <span class="n">element_count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">element_count</span> <span class="o">&lt;</span> <span class="n">M</span><span class="p">:</span>
+        <span class="n">r_i</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">N</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
+        <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">m</span> <span class="o">=</span> <span class="n">r_i</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">r_i</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">r_i</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">r_i</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">l</span> <span class="ow">and</span> <span class="n">j</span> <span class="o">!=</span> <span class="n">m</span> <span class="ow">and</span> <span class="n">h2</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">m</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">h2</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">m</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">element_count</span> <span class="o">+=</span> <span class="mi">4</span>
+            <span class="c1"># In the chemists notation H2BodyS(i,j,l,m) refers to</span>
+            <span class="c1"># a^dag_i a^dag_l a_m a_j</span>
+            <span class="k">if</span> <span class="n">h2</span><span class="p">[</span><span class="n">l</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">h2</span><span class="p">[</span><span class="n">l</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">h2</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">m</span><span class="p">]</span>
+                <span class="n">element_count</span> <span class="o">+=</span> <span class="mi">4</span>
+            <span class="k">if</span> <span class="n">h2</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">l</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">h2</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">l</span><span class="p">]</span> <span class="o">=</span> <span class="n">h2</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">m</span><span class="p">]</span>
+                <span class="n">element_count</span> <span class="o">+=</span> <span class="mi">4</span>
+            <span class="k">if</span> <span class="n">h2</span><span class="p">[</span><span class="n">m</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">h2</span><span class="p">[</span><span class="n">m</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">h2</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">m</span><span class="p">]</span>
+                <span class="n">element_count</span> <span class="o">+=</span> <span class="mi">4</span>
+            <span class="k">if</span> <span class="n">j</span> <span class="o">!=</span> <span class="n">l</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">m</span><span class="p">:</span>
+                <span class="c1"># if these conditions are not satisfied the symmetries</span>
+                <span class="c1"># will produce (negligible) terms that annihilate any state</span>
+                <span class="k">if</span> <span class="n">h2</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">m</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">h2</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">m</span><span class="p">]</span> <span class="o">=</span> <span class="n">h2</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">m</span><span class="p">]</span>
+                    <span class="n">element_count</span> <span class="o">+=</span> <span class="mi">4</span>
+                <span class="k">if</span> <span class="n">h2</span><span class="p">[</span><span class="n">m</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">h2</span><span class="p">[</span><span class="n">m</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">h2</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">m</span><span class="p">]</span>
+                    <span class="n">element_count</span> <span class="o">+=</span> <span class="mi">4</span>
+                <span class="k">if</span> <span class="n">h2</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">l</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">h2</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">l</span><span class="p">]</span> <span class="o">=</span> <span class="n">h2</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">m</span><span class="p">]</span>
+                    <span class="n">element_count</span> <span class="o">+=</span> <span class="mi">4</span>
+                <span class="k">if</span> <span class="n">h2</span><span class="p">[</span><span class="n">l</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">h2</span><span class="p">[</span><span class="n">l</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">h2</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">m</span><span class="p">]</span>
+                    <span class="n">element_count</span> <span class="o">+=</span> <span class="mi">4</span>
+
+    <span class="c1"># Impose spin degeneracy</span>
+    <span class="n">idx_non_zeros</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">h2</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">idx_non_zeros</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">idx_non_zeros</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">idx_non_zeros</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">idx_non_zeros</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">val</span> <span class="o">=</span> <span class="n">h2</span><span class="p">[</span><span class="n">idx_non_zeros</span><span class="p">]</span>
+    <span class="n">Htemp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">((</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">d</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+    <span class="n">dim</span> <span class="o">=</span> <span class="n">Htemp</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">H2BodyS</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">N</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">N</span><span class="p">))</span>
+    <span class="n">H2BodyS</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">N</span><span class="o">//</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">N</span><span class="o">//</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">N</span><span class="o">//</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">N</span><span class="o">//</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">h2</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dim</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="c1"># recall that in the chemists notation H2BodyS(i,j,l,m) refers to</span>
+        <span class="c1"># a^dag_i a^dag_l a_m a_j</span>
+        <span class="n">H2BodyS</span><span class="p">[</span><span class="n">Htemp</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">N</span><span class="o">//</span><span class="mi">2</span><span class="p">,</span> <span class="n">Htemp</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">N</span><span class="o">//</span><span class="mi">2</span><span class="p">,</span> <span class="n">Htemp</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">N</span><span class="o">//</span><span class="mi">2</span><span class="p">,</span>
+                <span class="n">Htemp</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="n">N</span><span class="o">//</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">H2BodyS</span><span class="p">[</span><span class="n">Htemp</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">N</span><span class="o">//</span><span class="mi">2</span><span class="p">,</span> <span class="n">Htemp</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">N</span><span class="o">//</span><span class="mi">2</span><span class="p">,</span> <span class="n">Htemp</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
+                <span class="n">Htemp</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">3</span><span class="p">]]</span> <span class="o">=</span> <span class="n">val</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>  <span class="c1"># shift i and j to their spin symmetrized</span>
+        <span class="n">H2BodyS</span><span class="p">[</span><span class="n">Htemp</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">Htemp</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">Htemp</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">N</span><span class="o">//</span><span class="mi">2</span><span class="p">,</span> <span class="n">Htemp</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">+</span>
+                <span class="n">N</span><span class="o">//</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>  <span class="c1"># shift l and m to their spin symmetrized</span>
+    <span class="k">return</span> <span class="n">H2BodyS</span></div>
+
+
+<div class="viewcode-block" id="random_diag"><a class="viewcode-back" href="../../../qiskit_aqua.utils.html#qiskit_aqua.utils.random_matrix_generator.random_diag">[docs]</a><span class="k">def</span> <span class="nf">random_diag</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">eigs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">K</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">eigrange</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate random diagonal matix with given properties</span>
+<span class="sd">    Args:</span>
+<span class="sd">        N (int): size of matrix</span>
+<span class="sd">        eigs (list, tuple, np.ndarray): list of N eigenvalues. Overrides K,</span>
+<span class="sd">                                        eigrange.</span>
+<span class="sd">        K (float, list, tuple): condition number. Either use only condition</span>
+<span class="sd">                                number K or list/tuple of (K, lmin) or (K,</span>
+<span class="sd">                                lmin, sgn). Where lmin is the smallest</span>
+<span class="sd">                                eigenvalue and sign +/- 1 specifies if</span>
+<span class="sd">                                eigenvalues can be negative.</span>
+<span class="sd">        eigrange (list, tuple, nd.ndarray): [min, max] list for eigenvalue</span>
+<span class="sd">                                            range. (default=[0, 1])</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        np.ndarray: diagonal matrix</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">eigs</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">eigs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">K</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="n">K</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">K</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+                    <span class="n">k</span><span class="p">,</span> <span class="n">lmin</span><span class="p">,</span> <span class="n">sgn</span> <span class="o">=</span> <span class="n">K</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span>
+                <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">K</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="n">k</span><span class="p">,</span> <span class="n">lmin</span> <span class="o">=</span> <span class="n">K</span>
+                    <span class="n">sgn</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">K</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                    <span class="n">k</span><span class="p">,</span> <span class="n">lmin</span><span class="p">,</span> <span class="n">sgn</span> <span class="o">=</span> <span class="n">K</span>
+                <span class="n">eigs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+                <span class="n">a</span> <span class="o">=</span> <span class="p">(</span><span class="n">k</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">lmin</span><span class="o">/</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">eigs</span><span class="p">)</span><span class="o">-</span><span class="nb">min</span><span class="p">(</span><span class="n">eigs</span><span class="p">))</span>
+                <span class="n">b</span> <span class="o">=</span> <span class="n">lmin</span><span class="o">*</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">eigs</span><span class="p">)</span><span class="o">-</span><span class="n">k</span><span class="o">*</span><span class="nb">min</span><span class="p">(</span><span class="n">eigs</span><span class="p">))</span><span class="o">/</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">eigs</span><span class="p">)</span><span class="o">-</span><span class="nb">min</span><span class="p">(</span><span class="n">eigs</span><span class="p">))</span>
+                <span class="n">eigs</span> <span class="o">=</span> <span class="n">a</span><span class="o">*</span><span class="n">eigs</span><span class="o">+</span><span class="n">b</span>
+                <span class="k">if</span> <span class="n">sgn</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                    <span class="n">sgs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">N</span><span class="p">)</span><span class="o">-</span><span class="mf">0.5</span>
+                    <span class="k">while</span> <span class="nb">min</span><span class="p">(</span><span class="n">sgs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">max</span><span class="p">(</span><span class="n">sgs</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">sgs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">N</span><span class="p">)</span><span class="o">-</span><span class="mf">0.5</span>
+                    <span class="n">eigs</span> <span class="o">=</span> <span class="n">eigs</span><span class="o">*</span><span class="p">(</span><span class="n">sgs</span><span class="o">/</span><span class="nb">abs</span><span class="p">(</span><span class="n">sgs</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">eigrange</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">))</span> \
+                    <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">eigrange</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">eigs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">N</span><span class="p">)</span> <span class="o">*</span> \
+                       <span class="p">(</span><span class="n">eigrange</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">eigrange</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span><span class="n">eigrange</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Wrong input data: either &#39;eigs&#39;, &#39;K&#39; or&quot;</span>
+                                 <span class="s2">&quot;&#39;eigrange&#39; needed to be set correctly.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">eigs</span><span class="p">)</span> <span class="o">==</span> <span class="n">N</span><span class="p">,</span> <span class="s2">&quot;NxN matrix needs N eigenvalues.&quot;</span>
+            <span class="n">eigs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">eigs</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">eigs</span><span class="p">)</span> <span class="o">==</span> <span class="n">N</span><span class="p">,</span> <span class="s2">&quot;NxN matrix needs N eigenvalues.&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">eigs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="limit_paulis"><a class="viewcode-back" href="../../../qiskit_aqua.utils.html#qiskit_aqua.utils.random_matrix_generator.limit_paulis">[docs]</a><span class="k">def</span> <span class="nf">limit_paulis</span><span class="p">(</span><span class="n">mat</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">sparsity</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Limits the number of Pauli basis matrices of a hermitian matrix to the n</span>
+<span class="sd">    highest magnitude ones.</span>
+<span class="sd">    Args:</span>
+<span class="sd">        mat (np.ndarray): Input matrix</span>
+<span class="sd">        n (int): number of surviving Pauli matrices (default=5)</span>
+<span class="sd">        sparsity (float &lt; 1): sparsity of matrix</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        scipy.sparse.csr_matrix</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">qiskit_aqua.operator</span> <span class="k">import</span> <span class="n">Operator</span>
+    <span class="c1"># Bringing matrix into form 2**Nx2**N</span>
+    <span class="n">l</span> <span class="o">=</span> <span class="n">mat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="o">%</span> <span class="mi">1</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">l</span><span class="p">)))</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">k</span><span class="p">,</span> <span class="n">k</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex128</span><span class="p">)</span>
+        <span class="n">m</span><span class="p">[:</span><span class="n">l</span><span class="p">,</span> <span class="p">:</span><span class="n">l</span><span class="p">]</span> <span class="o">=</span> <span class="n">mat</span>
+        <span class="n">m</span><span class="p">[</span><span class="n">l</span><span class="p">:,</span> <span class="n">l</span><span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="n">k</span><span class="o">-</span><span class="n">l</span><span class="p">)</span>
+        <span class="n">mat</span> <span class="o">=</span> <span class="n">m</span>
+
+    <span class="c1"># Getting Pauli matrices</span>
+    <span class="n">op</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">matrix</span><span class="o">=</span><span class="n">mat</span><span class="p">)</span>
+    <span class="n">op</span><span class="o">.</span><span class="n">_check_representation</span><span class="p">(</span><span class="s2">&quot;paulis&quot;</span><span class="p">)</span>
+    <span class="n">op</span><span class="o">.</span><span class="n">_simplify_paulis</span><span class="p">()</span>
+    <span class="n">paulis</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">paulis</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="mi">2</span><span class="o">**</span><span class="n">op</span><span class="o">.</span><span class="n">num_qubits</span>
+    <span class="n">mat</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">csr_matrix</span><span class="p">(([],</span> <span class="p">([],</span> <span class="p">[])),</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">g</span><span class="p">),</span>
+                                  <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex128</span><span class="p">)</span>
+
+    <span class="c1"># Truncation</span>
+    <span class="k">if</span> <span class="n">sparsity</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">pa</span> <span class="ow">in</span> <span class="n">paulis</span><span class="p">[:</span><span class="n">n</span><span class="p">]:</span>
+            <span class="n">mat</span> <span class="o">+=</span> <span class="n">pa</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">pa</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">to_spmatrix</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="n">mat</span><span class="p">[:</span><span class="n">l</span><span class="p">,</span> <span class="p">:</span><span class="n">l</span><span class="p">]</span><span class="o">.</span><span class="n">nnz</span><span class="o">/</span><span class="n">l</span><span class="o">**</span><span class="mi">2</span> <span class="o">&lt;</span> <span class="n">sparsity</span><span class="p">:</span>
+            <span class="n">mat</span> <span class="o">+=</span> <span class="n">paulis</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">paulis</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">to_spmatrix</span><span class="p">()</span>
+            <span class="n">idx</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">idx</span>
+    <span class="n">mat</span> <span class="o">=</span> <span class="n">mat</span><span class="o">.</span><span class="n">toarray</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">mat</span><span class="p">[:</span><span class="n">l</span><span class="p">,</span> <span class="p">:</span><span class="n">l</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="random_hermitian"><a class="viewcode-back" href="../../../qiskit_aqua.utils.html#qiskit_aqua.utils.random_matrix_generator.random_hermitian">[docs]</a><span class="k">def</span> <span class="nf">random_hermitian</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">eigs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">K</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">eigrange</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">sparsity</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                     <span class="n">trunc</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate random hermitian (sparse) matix with given properties. Sparsity is</span>
+<span class="sd">    achieved by truncating Pauli matrices. Sparsity settings alternate the</span>
+<span class="sd">    eigenvalues due to truncation.</span>
+<span class="sd">    Args:</span>
+<span class="sd">        N (int): size of matrix</span>
+<span class="sd">        eigs (list, tuple, np.ndarray): list of N eigenvalues. Overrides K,</span>
+<span class="sd">                                        eigrange</span>
+<span class="sd">        K (float, list, tuple): condition number. Either use only condition</span>
+<span class="sd">                                number K or list/tuple of (K, lmin) or (K,</span>
+<span class="sd">                                lmin, sgn). Where lmin is the smallest</span>
+<span class="sd">                                eigenvalue and sign +/- 1 specifies if</span>
+<span class="sd">                                eigenvalues can be negative.</span>
+<span class="sd">        eigrange (list, tuple, nd.ndarray): [min, max] list for eigenvalue</span>
+<span class="sd">                                            range. (default=[0, 1])</span>
+<span class="sd">        trunc (int): limit for number of Pauli matrices.</span>
+<span class="sd">        sparsity (float): sparsity of matrix. Overrides trunc.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        np.ndarray: hermitian matrix</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">N</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The matrix dimension must be larger than 1&#39;</span><span class="p">)</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">unitary_group</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">random_diag</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">eigs</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">eigrange</span><span class="p">)</span>
+    <span class="n">ret</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">conj</span><span class="p">()</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">d</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">sparsity</span> <span class="ow">or</span> <span class="n">trunc</span><span class="p">:</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">limit_paulis</span><span class="p">(</span><span class="n">ret</span><span class="p">,</span> <span class="n">trunc</span><span class="p">,</span> <span class="n">sparsity</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ret</span></div>
+
+
+<div class="viewcode-block" id="limit_entries"><a class="viewcode-back" href="../../../qiskit_aqua.utils.html#qiskit_aqua.utils.random_matrix_generator.limit_entries">[docs]</a><span class="k">def</span> <span class="nf">limit_entries</span><span class="p">(</span><span class="n">mat</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">sparsity</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Limits the number of entries of a matrix to the n highest magnitude ones.</span>
+<span class="sd">    Args:</span>
+<span class="sd">        mat (np.array): Input Matrix</span>
+<span class="sd">        n (int): number of surviving entries (default=5)</span>
+<span class="sd">        sparsity (float &lt; 1): sparsity of matrix</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        scipy.sparse.csr_matrix</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ret</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">coo_matrix</span><span class="p">(</span><span class="n">mat</span><span class="p">)</span>
+    <span class="n">entries</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">ret</span><span class="o">.</span><span class="n">row</span><span class="p">,</span> <span class="n">ret</span><span class="o">.</span><span class="n">col</span><span class="p">,</span> <span class="n">ret</span><span class="o">.</span><span class="n">data</span><span class="p">),</span>
+                          <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">sparsity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">sparsity</span><span class="o">*</span><span class="n">mat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">mat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">entries</span> <span class="o">=</span> <span class="n">entries</span><span class="p">[:</span><span class="n">n</span><span class="p">]</span>
+    <span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">entries</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+    <span class="k">return</span> <span class="n">scipy</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">csr_matrix</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">real</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">),</span> <span class="n">col</span><span class="o">.</span><span class="n">real</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">))))</span></div>
+
+
+<div class="viewcode-block" id="random_non_hermitian"><a class="viewcode-back" href="../../../qiskit_aqua.utils.html#qiskit_aqua.utils.random_matrix_generator.random_non_hermitian">[docs]</a><span class="k">def</span> <span class="nf">random_non_hermitian</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">M</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sings</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">K</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">srange</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+                         <span class="n">sparsity</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">trunc</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate random (sparse) matrix with given properties (singular values).</span>
+<span class="sd">    Sparsity is achieved by truncating Pauli matrices. Sparsity settings</span>
+<span class="sd">    alternate the singular values due to truncation.</span>
+<span class="sd">    Args:</span>
+<span class="sd">        N (int): size of matrix</span>
+<span class="sd">        sings (list, tuple, np.ndarray): list of N singular values.</span>
+<span class="sd">                                         Overrides K, srange.</span>
+<span class="sd">        K (float, list, tuple): condition number. Either use only condition</span>
+<span class="sd">                                number K or list/tuple of (K, lmin). Where lmin</span>
+<span class="sd">                                specifies the smallest singular value.</span>
+<span class="sd">        srange (list, tuple, nd.ndarray): [min, max] list for singular value</span>
+<span class="sd">                                          range, min &gt;= 0. (default=[0, 1]).</span>
+<span class="sd">        trunc (int): limit of Pauli matrices.</span>
+<span class="sd">        sparsity (float): sparsity of matrix. Overrides trunc.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        np.ndarray: random matrix</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">N</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The matrix dimension must be larger than 1&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">M</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">M</span> <span class="o">=</span> <span class="n">N</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">random_diag</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">M</span><span class="p">),</span> <span class="n">sings</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">srange</span><span class="p">)</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">unitary_group</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="n">M</span><span class="p">)</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">unitary_group</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">M</span> <span class="o">&gt;</span> <span class="n">N</span><span class="p">:</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">M</span><span class="p">,</span> <span class="n">N</span><span class="p">])</span>
+        <span class="n">s</span><span class="p">[:</span><span class="n">N</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">d</span>
+    <span class="k">elif</span> <span class="n">N</span> <span class="o">&gt;</span> <span class="n">M</span><span class="p">:</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">M</span><span class="p">,</span> <span class="n">N</span><span class="p">])</span>
+        <span class="n">s</span><span class="p">[:,</span> <span class="p">:</span><span class="n">M</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">d</span>
+    <span class="n">ret</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">conj</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">sparsity</span> <span class="ow">or</span> <span class="n">trunc</span><span class="p">:</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">limit_entries</span><span class="p">(</span><span class="n">ret</span><span class="p">,</span> <span class="n">trunc</span><span class="p">,</span> <span class="n">sparsity</span><span class="p">)</span><span class="o">.</span><span class="n">toarray</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">ret</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+<li id="toc-toggle">
+<a class="btn btn-primary" role="button" data-toggle="collapse"
+   href=".sphinxsidebar" aria-expanded="false" aria-controls="collapseExample">
+  TOC</a> |
+</li>
+
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Qiskit Aqua 0.4.0 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018 IBM.
+      Last updated on 2018/12/14.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.6.
+    </div>
+  </body>
+</html>

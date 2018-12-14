@@ -1,0 +1,30 @@
+qiskit\_aqua.algorithms.adaptive.qsvm package
+=============================================
+
+Submodules
+----------
+
+qiskit\_aqua.algorithms.adaptive.qsvm.cost\_helpers module
+----------------------------------------------------------
+
+.. automodule:: qiskit_aqua.algorithms.adaptive.qsvm.cost_helpers
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+qiskit\_aqua.algorithms.adaptive.qsvm.qsvm\_variational module
+--------------------------------------------------------------
+
+.. automodule:: qiskit_aqua.algorithms.adaptive.qsvm.qsvm_variational
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: qiskit_aqua.algorithms.adaptive.qsvm
+    :members:
+    :undoc-members:
+    :show-inheritance:

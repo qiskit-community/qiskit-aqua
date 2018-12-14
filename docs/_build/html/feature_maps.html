@@ -1,0 +1,337 @@
+
+
+<!doctype html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Feature Maps &#8212; Qiskit Aqua 0.4.0 documentation</title>
+    <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/bizstyle.js"></script>
+    <script type="text/javascript" src="_static/bootstrap.min.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="qiskit_aqua package" href="qiskit_aqua.html" />
+    <link rel="prev" title="Initial States" href="initial_states.html" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<!--[if lt IE 9]>
+    <script src="http://css3-mediaqueries-js.googlecode.com/svn/trunk/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head><body>
+<div id="head" class="head">
+    <a href="https://qiskit.org/aqua">Qiskit Aqua</a>
+</div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="qiskit_aqua.html" title="qiskit_aqua package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="initial_states.html" title="Initial States"
+             accesskey="P">previous</a> |</li>
+<li id="toc-toggle">
+<a class="btn btn-primary" role="button" data-toggle="collapse"
+   href=".sphinxsidebar" aria-expanded="false" aria-controls="collapseExample">
+  TOC</a> |
+</li>
+
+        <li class="nav-item nav-item-0"><a href="index.html">Qiskit Aqua 0.4.0 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="aqua.html" >Qiskit Aqua</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="library.html" accesskey="U">Aqua: A Library of Quantum Algorithms</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/qiskit-logo-white-no-margin.gif" alt="Logo"/>
+            </a></p>
+<p class="logo-description">Qiskit Aqua</p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="aqua.html">Qiskit Aqua</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="library.html">Aqua: A Library of Quantum Algorithms</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html">Installation and Setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="execution.html">Configuring and Running an Experiment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="extending.html">Contributing to Aqua</a></li>
+<li class="toctree-l3"><a class="reference internal" href="algorithms.html">Algorithms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimizers.html">Optimizers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="variational_forms.html">Variational Forms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="oracles.html">Oracles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="iqfts.html">Inverse Quantum Fourier Transforms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="initial_states.html">Initial States</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Feature Maps</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#first-order-expansion">First Order Expansion</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#second-order-expansion">Second Order Expansion</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="qiskit_aqua.html">Aqua SDK Reference</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="aqua_ai.html">Aqua Artificial Intelligence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aqua_optimization.html">Aqua Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aqua_finance.html">Aqua Finance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aqua_tutorials.html">Aqua Tutorials</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="initial_states.html"
+                        title="previous chapter">Initial States</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="qiskit_aqua.html"
+                        title="next chapter">qiskit_aqua package</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/feature_maps.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="feature-maps">
+<span id="id1"></span><h1>Feature Maps<a class="headerlink" href="#feature-maps" title="Permalink to this headline">¶</a></h1>
+<p>In machine learning, pattern recognition and image processing, a <em>feature map</em>
+starts from an initial set of measured data and builds derived values (also known as
+<em>features</em>) intended to be informative and non-redundant, facilitating the subsequent
+learning and generalization steps, and in some cases leading to better human
+interpretations. A feature map is related to <em>dimensionality reduction</em>; it
+involves reducing the amount of resources required to describe a large set of data.
+When performing analysis of complex data, one of the major problems stems from the
+number of variables involved. Analysis with a large number of variables generally
+requires a large amount of memory and computation power, and may even cause a
+classification algorithm to overfit to training samples and generalize poorly to new
+samples.  When the input data to an algorithm is too large to be processed and is
+suspected to be redundant (for example, the same measurement is provided in both
+pounds and kilograms), then it can be transformed into a reduced set of features,
+named a <em>feature vector</em>.
+The process of determining a subset of the initial features is called <em>feature selection</em>.
+The selected features are expected to contain the relevant information from the input data,
+so that the desired task can be performed by using the reduced representation instead
+of the complete initial data.</p>
+<p>Aqua provides an extensible library of feature-map techniques, to be used in
+<a class="reference internal" href="aqua_ai.html#aqua-ai"><span class="std std-ref">Aqua Artificial Intelligence</span></a> and, more generally, in any quantum computing experiment that may
+require constructing combinations of variables to get around the problems mentioned
+above, while still describing the data with sufficient accuracy.</p>
+<div class="topic">
+<p class="topic-title first">Extending the Feature Map Library</p>
+<p>Consistent with its unique design, Aqua has a modular and
+extensible architecture. Algorithms and their supporting objects, such as
+feature-map techniques for Artificial Intelligence,
+are pluggable modules in Aqua.
+New feature maps are typically installed in the
+<code class="docutils literal notranslate"><span class="pre">qiskit_aqua/utils/feature_maps</span></code>
+folder and derive from the <code class="docutils literal notranslate"><span class="pre">FeatureMap</span></code> class.
+Aqua also allows for
+<a class="reference internal" href="extending.html#aqua-dynamically-discovered-components"><span class="std std-ref">Dynamically Discovered Components</span></a>: new components can register themselves
+as Aqua extensions and be dynamically discovered at run time independent of their
+location in the file system.
+This is done in order to encourage researchers and
+developers interested in
+<a class="reference internal" href="extending.html#aqua-extending"><span class="std std-ref">Contributing to Aqua</span></a> to extend the Aqua framework with their novel research contributions.</p>
+</div>
+<div class="topic">
+<p class="topic-title first">Entangler Map Associated with a Feature Map</p>
+<p>A feature map is associated with an entangler map, which specifies the entanglement of the qubits.
+An entangler map can be envisioned (and that is also how it is implemented in Aqua)
+as a dictionary <span class="math notranslate nohighlight">\(D\)</span> such that each entry in the dictionary has a source qubit
+index as the key <span class="math notranslate nohighlight">\(k\)</span>, with the corresponding value <span class="math notranslate nohighlight">\(D(k) = v\)</span> being a list of target qubit
+indexes to which qubit
+<span class="math notranslate nohighlight">\(k\)</span> is entangled.  Indexes are non-negative integer values from <span class="math notranslate nohighlight">\(0\)</span> to <span class="math notranslate nohighlight">\(q - 1\)</span>, where <span class="math notranslate nohighlight">\(q\)</span>
+is the total number of qubits.  The following Python dictionary shows a possible entangler map: <code class="docutils literal notranslate"><span class="pre">{0:</span> <span class="pre">[1,</span> <span class="pre">2],</span> <span class="pre">1:</span> <span class="pre">[3]}</span></code>.</p>
+</div>
+<p>Currently, Aqua supplies the following feature maps:</p>
+<ul class="simple">
+<li><a class="reference internal" href="#firstorderexpansion"><span class="std std-ref">First Order Expansion</span></a></li>
+<li><a class="reference internal" href="#secondorderexpansion"><span class="std std-ref">Second Order Expansion</span></a></li>
+</ul>
+<div class="section" id="first-order-expansion">
+<span id="firstorderexpansion"></span><h2>First Order Expansion<a class="headerlink" href="#first-order-expansion" title="Permalink to this headline">¶</a></h2>
+<p>The First Order Expansion feature map transform data <span class="math notranslate nohighlight">\(\vec{x} \in \mathbb{R}^n\)</span>
+according to the following equation, and then concatenates the same circuit <span class="math notranslate nohighlight">\(d\)</span> times,
+where <span class="math notranslate nohighlight">\(d\)</span> is the depth of the circuit:</p>
+<blockquote>
+<div><span class="math notranslate nohighlight">\(U_{\Phi(\vec{x})} = \exp\left(i \sum_{S \subseteq [n]} \phi_S(\vec{x}) \prod_{i \in S} Z_i\right)\)</span></div></blockquote>
+<p>where <span class="math notranslate nohighlight">\(S \in {0, 1, ..., n-1}, \phi_{i}(\vec{x}) = x_i\)</span>.</p>
+<p>The following allows a specific form to be configured in the
+<code class="docutils literal notranslate"><span class="pre">feature_map</span></code> section of the Aqua
+<a class="reference internal" href="execution.html#aqua-input-file"><span class="std std-ref">Input File</span></a> when the <code class="docutils literal notranslate"><span class="pre">name</span></code> field
+is set to <code class="docutils literal notranslate"><span class="pre">FirstOrderExpansion</span></code>:</p>
+<ul>
+<li><p class="first">The depth of the circuit:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">depth</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">|</span> <span class="mi">2</span> <span class="o">|</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>This parameter takes an <code class="docutils literal notranslate"><span class="pre">int</span></code> value greater than <code class="docutils literal notranslate"><span class="pre">0</span></code>.  The default value is <code class="docutils literal notranslate"><span class="pre">2</span></code>.</p>
+</li>
+</ul>
+<div class="topic">
+<p class="topic-title first">Declarative Name</p>
+<p>When referring to the First Order Expansion feature map declaratively inside Aqua, its code <code class="docutils literal notranslate"><span class="pre">name</span></code>, by which Aqua
+dynamically discovers and loads it,
+is <code class="docutils literal notranslate"><span class="pre">FirstOrderExpansion</span></code>.</p>
+</div>
+</div>
+<div class="section" id="second-order-expansion">
+<span id="secondorderexpansion"></span><h2>Second Order Expansion<a class="headerlink" href="#second-order-expansion" title="Permalink to this headline">¶</a></h2>
+<p>The Second Order Expansion feature map transform data <span class="math notranslate nohighlight">\(\vec{x} \in \mathbb{R}^n\)</span>
+according to the following equation, and then duplicate the same circuit with depth <span class="math notranslate nohighlight">\(d\)</span> times,
+where <span class="math notranslate nohighlight">\(d\)</span> is the depth of the circuit:</p>
+<blockquote>
+<div><span class="math notranslate nohighlight">\(U_{\Phi(\vec{x})} = \exp\left(i \sum_{S \subseteq [n]} \phi_S(\vec{x}) \prod_{i \in S} Z_i\right)\)</span></div></blockquote>
+<p>where <span class="math notranslate nohighlight">\(S \in {0, 1, ..., n-1, (0, 1), (0, 2), ..., (n-2, n-1)}, \phi_{i}(\vec{x}) = x_i, \phi_{(i,j)}(\vec{x}) = (\pi - x_0) * (\pi - x_1)\)</span>.</p>
+<p>The following allows a specific form to be configured in the
+<code class="docutils literal notranslate"><span class="pre">feature_map</span></code> section of the Aqua
+<a class="reference internal" href="execution.html#aqua-input-file"><span class="std std-ref">Input File</span></a> when the <code class="docutils literal notranslate"><span class="pre">name</span></code> field
+is set to <code class="docutils literal notranslate"><span class="pre">SecondOrderExpansion</span></code>:</p>
+<ul>
+<li><p class="first">The depth of the circuit:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">depth</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">|</span> <span class="mi">2</span> <span class="o">|</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>This parameter takes an <code class="docutils literal notranslate"><span class="pre">int</span></code> value greater than <code class="docutils literal notranslate"><span class="pre">0</span></code>.  The default value is <code class="docutils literal notranslate"><span class="pre">2</span></code>.</p>
+</li>
+<li><p class="first">A <code class="docutils literal notranslate"><span class="pre">str</span></code> value representing the type of entanglement to use:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">entanglement</span> <span class="o">=</span> <span class="s2">&quot;full&quot;</span> <span class="o">|</span> <span class="s2">&quot;linear&quot;</span>
+</pre></div>
+</div>
+<p>Only two <code class="docutils literal notranslate"><span class="pre">str</span></code> values are supported: <code class="docutils literal notranslate"><span class="pre">&quot;full&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;linear&quot;</span></code>, corresponding to the <em>full</em> (or <em>all-to-all</em>) and
+<em>linear</em> (or <em>next-neighbor coupling</em>) entangler maps, respectively.  With full entanglement, each qubit is entangled with
+all the
+others; with linear entanglement, qubit <span class="math notranslate nohighlight">\(i\)</span> is entangled with qubit <span class="math notranslate nohighlight">\(i + 1\)</span>, for all <span class="math notranslate nohighlight">\(i \in \{0, 1, ... ,
+q - 2\}\)</span>,
+where <span class="math notranslate nohighlight">\(q\)</span> is the total number of qubits.</p>
+</li>
+<li><p class="first">A dictionary of lists of non-negative <code class="docutils literal notranslate"><span class="pre">int</span></code> values specifying the entangler map:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">entangler_map</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span> <span class="o">|</span> <span class="o">...</span> <span class="o">|</span> <span class="n">q</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span> <span class="o">|</span> <span class="mi">2</span> <span class="o">|</span> <span class="o">...</span> <span class="o">|</span> <span class="n">q</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span> <span class="o">...</span> <span class="p">,</span> <span class="n">q</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span> <span class="o">|</span> <span class="mi">1</span> <span class="o">|</span> <span class="o">...</span> <span class="o">|</span> <span class="n">q</span> <span class="o">-</span> <span class="mi">2</span><span class="p">]}</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">entanglement</span></code> parameter defined above can be overridden by an entangler map explicitly specified as the value of the
+<code class="docutils literal notranslate"><span class="pre">entangler_map</span></code> parameter, if an entanglement map different
+from full or linear is desired.
+As explained more generally above, the form of the map is a dictionary; each entry in the dictionary has a source qubit
+index as the key, with the corresponding value being a list of target qubit indexes to which the source qubit should
+be entangled.
+Indexes are <code class="docutils literal notranslate"><span class="pre">int</span></code> values from <span class="math notranslate nohighlight">\(0\)</span> to <span class="math notranslate nohighlight">\(q-1\)</span>, where <span class="math notranslate nohighlight">\(q\)</span> is the total number of qubits,
+as in the following example:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">entangler_map</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="mi">1</span><span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">]}</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p>The source qubit index is excluded from the list of its corresponding target qubit indexes.  In other words,
+qubit <span class="math notranslate nohighlight">\(i\)</span> cannot be in the list <cite>:math:D(i)</cite> of qubits mapped to qubit <span class="math notranslate nohighlight">\(i\)</span> itself.</p>
+<p class="last">Furthermore, by default, if
+the <code class="docutils literal notranslate"><span class="pre">entangler_map</span></code> parameter specifies that <span class="math notranslate nohighlight">\(j \in D(i)\)</span>, where <span class="math notranslate nohighlight">\(i,j \in \{0, 1, q-1\}, i \neq j\)</span>, then it
+cannot also specify
+<span class="math notranslate nohighlight">\(j \in D(i)\)</span>.  A run-time error will be generated if double entanglement is configured.  This
+restriction can be lifted programmatically by setting the <code class="docutils literal notranslate"><span class="pre">allow_double_entanglement</span></code> boolean flag to <code class="docutils literal notranslate"><span class="pre">True</span></code> inside
+the
+<code class="docutils literal notranslate"><span class="pre">validate_entangler_map</span></code> method in the <code class="docutils literal notranslate"><span class="pre">entangler_map</span></code> Application Programming Interface (API).</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">When configured declaratively,
+Aqua and its domain specific applications
+(<span class="xref std std-ref">aqua-chemistry</span>, <a class="reference internal" href="aqua_ai.html#aqua-ai"><span class="std std-ref">Aqua Artificial Intelligence</span></a>, <a class="reference internal" href="aqua_optimization.html#aqua-optimization"><span class="std std-ref">Aqua Optimization</span></a> and <a class="reference internal" href="aqua_finance.html#aqua-finance"><span class="std std-ref">Aqua Finance</span></a>)
+do not expose a configuration parameter in
+a <code class="docutils literal notranslate"><span class="pre">FeatureMap</span></code> object to set
+the number of qubits that will be used in an experiment.  This is because, when it is used as a tool to execute
+experiments,
+Aqua is working at a higher, more abstract level.  In such cases, the number of qubits
+is computed internally at run time based on the particular experiment, and passed programmatically to
+the <code class="docutils literal notranslate"><span class="pre">init_args</span></code> initialization method of the <code class="docutils literal notranslate"><span class="pre">FeatureMap</span></code> object.
+Manually configuring the entangler map, therefore,
+requires knowing the number of qubits <span class="math notranslate nohighlight">\(q\)</span>, since the qubit indexes allowed
+in the entangler map comfiguration can only take <code class="docutils literal notranslate"><span class="pre">int</span></code> values from <span class="math notranslate nohighlight">\(0\)</span> to <span class="math notranslate nohighlight">\(q-1\)</span>.  Providing an entangler
+map with indexes outside of this range will generate a run-time error.  Therefore, caution should be used when
+manually configuring the entangler map.</p>
+</div>
+</li>
+</ul>
+<div class="topic">
+<p class="topic-title first">Declarative Name</p>
+<p>When referring to SecondOrderExpansion declaratively inside Aqua, its code <code class="docutils literal notranslate"><span class="pre">name</span></code>, by which Aqua dynamically discovers
+and loads it,
+is <code class="docutils literal notranslate"><span class="pre">SecondOrderExpansion</span></code>.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="qiskit_aqua.html" title="qiskit_aqua package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="initial_states.html" title="Initial States"
+             >previous</a> |</li>
+<li id="toc-toggle">
+<a class="btn btn-primary" role="button" data-toggle="collapse"
+   href=".sphinxsidebar" aria-expanded="false" aria-controls="collapseExample">
+  TOC</a> |
+</li>
+
+        <li class="nav-item nav-item-0"><a href="index.html">Qiskit Aqua 0.4.0 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="aqua.html" >Qiskit Aqua</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="library.html" >Aqua: A Library of Quantum Algorithms</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018 IBM.
+      Last updated on 2018/12/14.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.6.
+    </div>
+  </body>
+</html>

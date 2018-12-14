@@ -1,0 +1,38 @@
+qiskit\_aqua.input package
+==========================
+
+Submodules
+----------
+
+qiskit\_aqua.input.algorithminput module
+----------------------------------------
+
+.. automodule:: qiskit_aqua.input.algorithminput
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+qiskit\_aqua.input.energyinput module
+-------------------------------------
+
+.. automodule:: qiskit_aqua.input.energyinput
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+qiskit\_aqua.input.svminput module
+----------------------------------
+
+.. automodule:: qiskit_aqua.input.svminput
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: qiskit_aqua.input
+    :members:
+    :undoc-members:
+    :show-inheritance:

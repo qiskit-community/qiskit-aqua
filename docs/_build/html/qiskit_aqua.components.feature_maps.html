@@ -1,0 +1,1132 @@
+
+
+<!doctype html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>qiskit_aqua.components.feature_maps package &#8212; Qiskit Aqua 0.4.0 documentation</title>
+    <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/bizstyle.js"></script>
+    <script type="text/javascript" src="_static/bootstrap.min.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="qiskit_aqua.components.initial_states package" href="qiskit_aqua.components.initial_states.html" />
+    <link rel="prev" title="qiskit_aqua.components package" href="qiskit_aqua.components.html" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<!--[if lt IE 9]>
+    <script src="http://css3-mediaqueries-js.googlecode.com/svn/trunk/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head><body>
+<div id="head" class="head">
+    <a href="https://qiskit.org/aqua">Qiskit Aqua</a>
+</div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="qiskit_aqua.components.initial_states.html" title="qiskit_aqua.components.initial_states package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="qiskit_aqua.components.html" title="qiskit_aqua.components package"
+             accesskey="P">previous</a> |</li>
+<li id="toc-toggle">
+<a class="btn btn-primary" role="button" data-toggle="collapse"
+   href=".sphinxsidebar" aria-expanded="false" aria-controls="collapseExample">
+  TOC</a> |
+</li>
+
+        <li class="nav-item nav-item-0"><a href="index.html">Qiskit Aqua 0.4.0 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="aqua.html" >Qiskit Aqua</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="library.html" >Aqua: A Library of Quantum Algorithms</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="qiskit_aqua.html" >qiskit_aqua package</a> &#187;</li>
+          <li class="nav-item nav-item-4"><a href="qiskit_aqua.components.html" accesskey="U">qiskit_aqua.components package</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/qiskit-logo-white-no-margin.gif" alt="Logo"/>
+            </a></p>
+<p class="logo-description">Qiskit Aqua</p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="aqua.html">Qiskit Aqua</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="qiskit_aqua.components.html"
+                        title="previous chapter">qiskit_aqua.components package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="qiskit_aqua.components.initial_states.html"
+                        title="next chapter">qiskit_aqua.components.initial_states package</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/qiskit_aqua.components.feature_maps.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="qiskit-aqua-components-feature-maps-package">
+<h1>qiskit_aqua.components.feature_maps package<a class="headerlink" href="#qiskit-aqua-components-feature-maps-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-qiskit_aqua.components.feature_maps.data_mapping">
+<span id="qiskit-aqua-components-feature-maps-data-mapping-module"></span><h2>qiskit_aqua.components.feature_maps.data_mapping module<a class="headerlink" href="#module-qiskit_aqua.components.feature_maps.data_mapping" title="Permalink to this headline">¶</a></h2>
+<p>This module contains the definition of data mapping function for feature map.</p>
+<dl class="function">
+<dt id="qiskit_aqua.components.feature_maps.data_mapping.self_product">
+<code class="descclassname">qiskit_aqua.components.feature_maps.data_mapping.</code><code class="descname">self_product</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/components/feature_maps/data_mapping.html#self_product"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.components.feature_maps.data_mapping.self_product" title="Permalink to this definition">¶</a></dt>
+<dd><p>Define a function map from R^n to R.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong> (<em>np.ndarray</em>) – data</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the mapped value</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">double</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-qiskit_aqua.components.feature_maps.feature_map">
+<span id="qiskit-aqua-components-feature-maps-feature-map-module"></span><h2>qiskit_aqua.components.feature_maps.feature_map module<a class="headerlink" href="#module-qiskit_aqua.components.feature_maps.feature_map" title="Permalink to this headline">¶</a></h2>
+<p>This module contains the definition of a base class for
+feature map. Several types of commonly used approaches.</p>
+<dl class="class">
+<dt id="qiskit_aqua.components.feature_maps.feature_map.FeatureMap">
+<em class="property">class </em><code class="descclassname">qiskit_aqua.components.feature_maps.feature_map.</code><code class="descname">FeatureMap</code><a class="reference internal" href="_modules/qiskit_aqua/components/feature_maps/feature_map.html#FeatureMap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.components.feature_maps.feature_map.FeatureMap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="qiskit_aqua.html#qiskit_aqua.pluggable.Pluggable" title="qiskit_aqua.pluggable.Pluggable"><code class="xref py py-class docutils literal notranslate"><span class="pre">qiskit_aqua.pluggable.Pluggable</span></code></a></p>
+<p>Base class for FeatureMap.</p>
+<p>This method should initialize the module and its configuration, and
+use an exception if a component of the module is
+available.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>configuration</strong> (<em>dict</em>) – configuration dictionary</td>
+</tr>
+</tbody>
+</table>
+<dl class="staticmethod">
+<dt id="qiskit_aqua.components.feature_maps.feature_map.FeatureMap.check_pluggable_valid">
+<em class="property">static </em><code class="descname">check_pluggable_valid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.feature_map.FeatureMap.check_pluggable_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if pluggable is ready for use. Throws an exception if not</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.components.feature_maps.feature_map.FeatureMap.configuration">
+<code class="descname">configuration</code><a class="headerlink" href="#qiskit_aqua.components.feature_maps.feature_map.FeatureMap.configuration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return pluggable configuration.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.components.feature_maps.feature_map.FeatureMap.construct_circuit">
+<code class="descname">construct_circuit</code><span class="sig-paren">(</span><em>x</em>, <em>qr=None</em>, <em>inverse=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/components/feature_maps/feature_map.html#FeatureMap.construct_circuit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.components.feature_maps.feature_map.FeatureMap.construct_circuit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct the variational form, given its parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>numpy.ndarray</em><em>[</em><em>float</em><em>]</em>) – 1-D array, data</li>
+<li><strong>qr</strong> (<em>QauntumRegister</em>) – the QuantumRegister object for the circuit, if None,
+generate new registers with name q.</li>
+<li><strong>inverse</strong> (<em>bool</em>) – whether or not inverse the circuit</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">a quantum circuit.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">QuantumCircuit</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="qiskit_aqua.components.feature_maps.feature_map.FeatureMap.get_entangler_map">
+<em class="property">static </em><code class="descname">get_entangler_map</code><span class="sig-paren">(</span><em>map_type</em>, <em>num_qubits</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/components/feature_maps/feature_map.html#FeatureMap.get_entangler_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.components.feature_maps.feature_map.FeatureMap.get_entangler_map" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="qiskit_aqua.components.feature_maps.feature_map.FeatureMap.init_params">
+<em class="property">classmethod </em><code class="descname">init_params</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/components/feature_maps/feature_map.html#FeatureMap.init_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.components.feature_maps.feature_map.FeatureMap.init_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.components.feature_maps.feature_map.FeatureMap.num_qubits">
+<code class="descname">num_qubits</code><a class="headerlink" href="#qiskit_aqua.components.feature_maps.feature_map.FeatureMap.num_qubits" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.components.feature_maps.feature_map.FeatureMap.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><em>args_dict</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.feature_map.FeatureMap.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="qiskit_aqua.components.feature_maps.feature_map.FeatureMap.validate_entangler_map">
+<em class="property">static </em><code class="descname">validate_entangler_map</code><span class="sig-paren">(</span><em>entangler_map</em>, <em>num_qubits</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/components/feature_maps/feature_map.html#FeatureMap.validate_entangler_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.components.feature_maps.feature_map.FeatureMap.validate_entangler_map" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-qiskit_aqua.components.feature_maps.first_order_expansion">
+<span id="qiskit-aqua-components-feature-maps-first-order-expansion-module"></span><h2>qiskit_aqua.components.feature_maps.first_order_expansion module<a class="headerlink" href="#module-qiskit_aqua.components.feature_maps.first_order_expansion" title="Permalink to this headline">¶</a></h2>
+<p>This module contains the definition of a base class for
+feature map. Several types of commonly used approaches.</p>
+<dl class="class">
+<dt id="qiskit_aqua.components.feature_maps.first_order_expansion.FirstOrderExpansion">
+<em class="property">class </em><code class="descclassname">qiskit_aqua.components.feature_maps.first_order_expansion.</code><code class="descname">FirstOrderExpansion</code><span class="sig-paren">(</span><em>num_qubits</em>, <em>depth=2</em>, <em>data_map_func=&lt;function self_product&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/components/feature_maps/first_order_expansion.html#FirstOrderExpansion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.components.feature_maps.first_order_expansion.FirstOrderExpansion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qiskit_aqua.components.feature_maps.pauli_z_expansion.PauliZExpansion" title="qiskit_aqua.components.feature_maps.pauli_z_expansion.PauliZExpansion"><code class="xref py py-class docutils literal notranslate"><span class="pre">qiskit_aqua.components.feature_maps.pauli_z_expansion.PauliZExpansion</span></code></a></p>
+<p>Mapping data with the first order expansion without entangling gates.</p>
+<p>Refer to <a class="reference external" href="https://arxiv.org/pdf/1804.11326.pdf">https://arxiv.org/pdf/1804.11326.pdf</a> for details.</p>
+<dl class="attribute">
+<dt id="qiskit_aqua.components.feature_maps.first_order_expansion.FirstOrderExpansion.CONFIGURATION">
+<code class="descname">CONFIGURATION</code><em class="property"> = {'description': 'First order expansion for feature map', 'input_schema': {'$schema': 'http://json-schema.org/schema#', 'id': 'First_Order_Expansion_schema', 'type': 'object', 'properties': {'depth': {'type': 'integer', 'default': 2, 'minimum': 1}}, 'additionalProperties': False}, 'name': 'FirstOrderExpansion'}</em><a class="headerlink" href="#qiskit_aqua.components.feature_maps.first_order_expansion.FirstOrderExpansion.CONFIGURATION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.components.feature_maps.first_order_expansion.FirstOrderExpansion.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>num_qubits</em>, <em>depth=2</em>, <em>data_map_func=&lt;function self_product&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/components/feature_maps/first_order_expansion.html#FirstOrderExpansion.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.components.feature_maps.first_order_expansion.FirstOrderExpansion.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructor.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>num_qubits</strong> (<em>int</em>) – number of qubits</li>
+<li><strong>depth</strong> (<em>int</em>) – the number of repeated circuits</li>
+<li><strong>data_map_func</strong> (<em>Callable</em>) – a mapping function for data x</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="qiskit_aqua.components.feature_maps.first_order_expansion.FirstOrderExpansion.check_pluggable_valid">
+<em class="property">static </em><code class="descname">check_pluggable_valid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.first_order_expansion.FirstOrderExpansion.check_pluggable_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if pluggable is ready for use. Throws an exception if not</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.components.feature_maps.first_order_expansion.FirstOrderExpansion.configuration">
+<code class="descname">configuration</code><a class="headerlink" href="#qiskit_aqua.components.feature_maps.first_order_expansion.FirstOrderExpansion.configuration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return pluggable configuration.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.components.feature_maps.first_order_expansion.FirstOrderExpansion.construct_circuit">
+<code class="descname">construct_circuit</code><span class="sig-paren">(</span><em>x</em>, <em>qr=None</em>, <em>inverse=False</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.first_order_expansion.FirstOrderExpansion.construct_circuit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct the second order expansion based on given data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>numpy.ndarray</em>) – 1-D to-be-transformed data.</li>
+<li><strong>qr</strong> (<em>QauntumRegister</em>) – the QuantumRegister object for the circuit, if None,
+generate new registers with name q.</li>
+<li><strong>inverse</strong> (<em>bool</em>) – whether or not inverse the circuit</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">a quantum circuit transform data x.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">QuantumCircuit</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="qiskit_aqua.components.feature_maps.first_order_expansion.FirstOrderExpansion.get_entangler_map">
+<em class="property">static </em><code class="descname">get_entangler_map</code><span class="sig-paren">(</span><em>map_type</em>, <em>num_qubits</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.first_order_expansion.FirstOrderExpansion.get_entangler_map" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="qiskit_aqua.components.feature_maps.first_order_expansion.FirstOrderExpansion.init_params">
+<em class="property">classmethod </em><code class="descname">init_params</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.first_order_expansion.FirstOrderExpansion.init_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.components.feature_maps.first_order_expansion.FirstOrderExpansion.num_qubits">
+<code class="descname">num_qubits</code><a class="headerlink" href="#qiskit_aqua.components.feature_maps.first_order_expansion.FirstOrderExpansion.num_qubits" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.components.feature_maps.first_order_expansion.FirstOrderExpansion.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><em>args_dict</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.first_order_expansion.FirstOrderExpansion.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="qiskit_aqua.components.feature_maps.first_order_expansion.FirstOrderExpansion.validate_entangler_map">
+<em class="property">static </em><code class="descname">validate_entangler_map</code><span class="sig-paren">(</span><em>entangler_map</em>, <em>num_qubits</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.first_order_expansion.FirstOrderExpansion.validate_entangler_map" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-qiskit_aqua.components.feature_maps.pauli_expansion">
+<span id="qiskit-aqua-components-feature-maps-pauli-expansion-module"></span><h2>qiskit_aqua.components.feature_maps.pauli_expansion module<a class="headerlink" href="#module-qiskit_aqua.components.feature_maps.pauli_expansion" title="Permalink to this headline">¶</a></h2>
+<p>This module contains the definition of a base class for
+feature map. Several types of commonly used approaches.</p>
+<dl class="class">
+<dt id="qiskit_aqua.components.feature_maps.pauli_expansion.PauliExpansion">
+<em class="property">class </em><code class="descclassname">qiskit_aqua.components.feature_maps.pauli_expansion.</code><code class="descname">PauliExpansion</code><span class="sig-paren">(</span><em>num_qubits, depth=2, entangler_map=None, entanglement='full', paulis=['Z', 'ZZ'], data_map_func=&lt;function self_product&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/components/feature_maps/pauli_expansion.html#PauliExpansion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.components.feature_maps.pauli_expansion.PauliExpansion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qiskit_aqua.components.feature_maps.feature_map.FeatureMap" title="qiskit_aqua.components.feature_maps.feature_map.FeatureMap"><code class="xref py py-class docutils literal notranslate"><span class="pre">qiskit_aqua.components.feature_maps.feature_map.FeatureMap</span></code></a></p>
+<p>Mapping data with the second order expansion followed by entangling gates.
+Refer to <a class="reference external" href="https://arxiv.org/pdf/1804.11326.pdf">https://arxiv.org/pdf/1804.11326.pdf</a> for details.</p>
+<dl class="attribute">
+<dt id="qiskit_aqua.components.feature_maps.pauli_expansion.PauliExpansion.CONFIGURATION">
+<code class="descname">CONFIGURATION</code><em class="property"> = {'description': 'Pauli expansion for feature map (any order)', 'input_schema': {'$schema': 'http://json-schema.org/schema#', 'id': 'Pauli_Expansion_schema', 'type': 'object', 'properties': {'depth': {'type': 'integer', 'default': 2, 'minimum': 1}, 'entangler_map': {'type': ['object', 'null'], 'default': None}, 'entanglement': {'type': 'string', 'default': 'full', 'oneOf': [{'enum': ['full', 'linear']}]}, 'paulis': {'type': ['array'], 'items': {'type': 'string'}, 'default': ['Z', 'ZZ']}}, 'additionalProperties': False}, 'name': 'PauliExpansion'}</em><a class="headerlink" href="#qiskit_aqua.components.feature_maps.pauli_expansion.PauliExpansion.CONFIGURATION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.components.feature_maps.pauli_expansion.PauliExpansion.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>num_qubits, depth=2, entangler_map=None, entanglement='full', paulis=['Z', 'ZZ'], data_map_func=&lt;function self_product&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/components/feature_maps/pauli_expansion.html#PauliExpansion.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.components.feature_maps.pauli_expansion.PauliExpansion.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructor.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>num_qubits</strong> (<em>int</em>) – number of qubits</li>
+<li><strong>depth</strong> (<em>int</em>) – the number of repeated circuits</li>
+<li><strong>entangler_map</strong> (<em>dict</em>) – describe the connectivity of qubits</li>
+<li><strong>entanglement</strong> (<em>str</em>) – [‘full’, ‘linear’], generate the qubit connectivitiy by predefined
+topology</li>
+<li><strong>paulis</strong> (<em>str</em>) – a comma-seperated string for to-be-used paulis</li>
+<li><strong>data_map_func</strong> (<em>Callable</em>) – a mapping function for data x</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="qiskit_aqua.components.feature_maps.pauli_expansion.PauliExpansion.check_pluggable_valid">
+<em class="property">static </em><code class="descname">check_pluggable_valid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.pauli_expansion.PauliExpansion.check_pluggable_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if pluggable is ready for use. Throws an exception if not</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.components.feature_maps.pauli_expansion.PauliExpansion.configuration">
+<code class="descname">configuration</code><a class="headerlink" href="#qiskit_aqua.components.feature_maps.pauli_expansion.PauliExpansion.configuration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return pluggable configuration.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.components.feature_maps.pauli_expansion.PauliExpansion.construct_circuit">
+<code class="descname">construct_circuit</code><span class="sig-paren">(</span><em>x</em>, <em>qr=None</em>, <em>inverse=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/components/feature_maps/pauli_expansion.html#PauliExpansion.construct_circuit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.components.feature_maps.pauli_expansion.PauliExpansion.construct_circuit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct the second order expansion based on given data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>numpy.ndarray</em>) – 1-D to-be-transformed data.</li>
+<li><strong>qr</strong> (<em>QauntumRegister</em>) – the QuantumRegister object for the circuit, if None,
+generate new registers with name q.</li>
+<li><strong>inverse</strong> (<em>bool</em>) – whether or not inverse the circuit</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">a quantum circuit transform data x.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">QuantumCircuit</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="qiskit_aqua.components.feature_maps.pauli_expansion.PauliExpansion.get_entangler_map">
+<em class="property">static </em><code class="descname">get_entangler_map</code><span class="sig-paren">(</span><em>map_type</em>, <em>num_qubits</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.pauli_expansion.PauliExpansion.get_entangler_map" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="qiskit_aqua.components.feature_maps.pauli_expansion.PauliExpansion.init_params">
+<em class="property">classmethod </em><code class="descname">init_params</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.pauli_expansion.PauliExpansion.init_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.components.feature_maps.pauli_expansion.PauliExpansion.num_qubits">
+<code class="descname">num_qubits</code><a class="headerlink" href="#qiskit_aqua.components.feature_maps.pauli_expansion.PauliExpansion.num_qubits" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.components.feature_maps.pauli_expansion.PauliExpansion.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><em>args_dict</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.pauli_expansion.PauliExpansion.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="qiskit_aqua.components.feature_maps.pauli_expansion.PauliExpansion.validate_entangler_map">
+<em class="property">static </em><code class="descname">validate_entangler_map</code><span class="sig-paren">(</span><em>entangler_map</em>, <em>num_qubits</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.pauli_expansion.PauliExpansion.validate_entangler_map" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-qiskit_aqua.components.feature_maps.pauli_z_expansion">
+<span id="qiskit-aqua-components-feature-maps-pauli-z-expansion-module"></span><h2>qiskit_aqua.components.feature_maps.pauli_z_expansion module<a class="headerlink" href="#module-qiskit_aqua.components.feature_maps.pauli_z_expansion" title="Permalink to this headline">¶</a></h2>
+<p>This module contains the definition of a base class for
+feature map. Several types of commonly used approaches.</p>
+<dl class="class">
+<dt id="qiskit_aqua.components.feature_maps.pauli_z_expansion.PauliZExpansion">
+<em class="property">class </em><code class="descclassname">qiskit_aqua.components.feature_maps.pauli_z_expansion.</code><code class="descname">PauliZExpansion</code><span class="sig-paren">(</span><em>num_qubits</em>, <em>depth=2</em>, <em>entangler_map=None</em>, <em>entanglement='full'</em>, <em>z_order=2</em>, <em>data_map_func=&lt;function self_product&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/components/feature_maps/pauli_z_expansion.html#PauliZExpansion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.components.feature_maps.pauli_z_expansion.PauliZExpansion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qiskit_aqua.components.feature_maps.pauli_expansion.PauliExpansion" title="qiskit_aqua.components.feature_maps.pauli_expansion.PauliExpansion"><code class="xref py py-class docutils literal notranslate"><span class="pre">qiskit_aqua.components.feature_maps.pauli_expansion.PauliExpansion</span></code></a></p>
+<p>Mapping data with the second order expansion followed by entangling gates.</p>
+<p>Refer to <a class="reference external" href="https://arxiv.org/pdf/1804.11326.pdf">https://arxiv.org/pdf/1804.11326.pdf</a> for details.</p>
+<dl class="attribute">
+<dt id="qiskit_aqua.components.feature_maps.pauli_z_expansion.PauliZExpansion.CONFIGURATION">
+<code class="descname">CONFIGURATION</code><em class="property"> = {'description': 'Pauli Z expansion for feature map (any order)', 'input_schema': {'$schema': 'http://json-schema.org/schema#', 'id': 'Pauli_Z_Expansion_schema', 'type': 'object', 'properties': {'depth': {'type': 'integer', 'default': 2, 'minimum': 1}, 'entangler_map': {'type': ['object', 'null'], 'default': None}, 'entanglement': {'type': 'string', 'default': 'full', 'oneOf': [{'enum': ['full', 'linear']}]}, 'z_order': {'type': 'integer', 'minimum': 1, 'default': 2}}, 'additionalProperties': False}, 'name': 'PauliZExpansion'}</em><a class="headerlink" href="#qiskit_aqua.components.feature_maps.pauli_z_expansion.PauliZExpansion.CONFIGURATION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.components.feature_maps.pauli_z_expansion.PauliZExpansion.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>num_qubits</em>, <em>depth=2</em>, <em>entangler_map=None</em>, <em>entanglement='full'</em>, <em>z_order=2</em>, <em>data_map_func=&lt;function self_product&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/components/feature_maps/pauli_z_expansion.html#PauliZExpansion.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.components.feature_maps.pauli_z_expansion.PauliZExpansion.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructor.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="qiskit_aqua.components.feature_maps.pauli_z_expansion.PauliZExpansion.check_pluggable_valid">
+<em class="property">static </em><code class="descname">check_pluggable_valid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.pauli_z_expansion.PauliZExpansion.check_pluggable_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if pluggable is ready for use. Throws an exception if not</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.components.feature_maps.pauli_z_expansion.PauliZExpansion.configuration">
+<code class="descname">configuration</code><a class="headerlink" href="#qiskit_aqua.components.feature_maps.pauli_z_expansion.PauliZExpansion.configuration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return pluggable configuration.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.components.feature_maps.pauli_z_expansion.PauliZExpansion.construct_circuit">
+<code class="descname">construct_circuit</code><span class="sig-paren">(</span><em>x</em>, <em>qr=None</em>, <em>inverse=False</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.pauli_z_expansion.PauliZExpansion.construct_circuit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct the second order expansion based on given data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>numpy.ndarray</em>) – 1-D to-be-transformed data.</li>
+<li><strong>qr</strong> (<em>QauntumRegister</em>) – the QuantumRegister object for the circuit, if None,
+generate new registers with name q.</li>
+<li><strong>inverse</strong> (<em>bool</em>) – whether or not inverse the circuit</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">a quantum circuit transform data x.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">QuantumCircuit</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="qiskit_aqua.components.feature_maps.pauli_z_expansion.PauliZExpansion.get_entangler_map">
+<em class="property">static </em><code class="descname">get_entangler_map</code><span class="sig-paren">(</span><em>map_type</em>, <em>num_qubits</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.pauli_z_expansion.PauliZExpansion.get_entangler_map" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="qiskit_aqua.components.feature_maps.pauli_z_expansion.PauliZExpansion.init_params">
+<em class="property">classmethod </em><code class="descname">init_params</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.pauli_z_expansion.PauliZExpansion.init_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.components.feature_maps.pauli_z_expansion.PauliZExpansion.num_qubits">
+<code class="descname">num_qubits</code><a class="headerlink" href="#qiskit_aqua.components.feature_maps.pauli_z_expansion.PauliZExpansion.num_qubits" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.components.feature_maps.pauli_z_expansion.PauliZExpansion.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><em>args_dict</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.pauli_z_expansion.PauliZExpansion.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="qiskit_aqua.components.feature_maps.pauli_z_expansion.PauliZExpansion.validate_entangler_map">
+<em class="property">static </em><code class="descname">validate_entangler_map</code><span class="sig-paren">(</span><em>entangler_map</em>, <em>num_qubits</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.pauli_z_expansion.PauliZExpansion.validate_entangler_map" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-qiskit_aqua.components.feature_maps.second_order_expansion">
+<span id="qiskit-aqua-components-feature-maps-second-order-expansion-module"></span><h2>qiskit_aqua.components.feature_maps.second_order_expansion module<a class="headerlink" href="#module-qiskit_aqua.components.feature_maps.second_order_expansion" title="Permalink to this headline">¶</a></h2>
+<p>This module contains the definition of a base class for
+feature map. Several types of commonly used approaches.</p>
+<dl class="class">
+<dt id="qiskit_aqua.components.feature_maps.second_order_expansion.SecondOrderExpansion">
+<em class="property">class </em><code class="descclassname">qiskit_aqua.components.feature_maps.second_order_expansion.</code><code class="descname">SecondOrderExpansion</code><span class="sig-paren">(</span><em>num_qubits</em>, <em>depth=2</em>, <em>entangler_map=None</em>, <em>entanglement='full'</em>, <em>data_map_func=&lt;function self_product&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/components/feature_maps/second_order_expansion.html#SecondOrderExpansion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.components.feature_maps.second_order_expansion.SecondOrderExpansion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qiskit_aqua.components.feature_maps.pauli_z_expansion.PauliZExpansion" title="qiskit_aqua.components.feature_maps.pauli_z_expansion.PauliZExpansion"><code class="xref py py-class docutils literal notranslate"><span class="pre">qiskit_aqua.components.feature_maps.pauli_z_expansion.PauliZExpansion</span></code></a></p>
+<p>Mapping data with the second order expansion followed by entangling gates.</p>
+<p>Refer to <a class="reference external" href="https://arxiv.org/pdf/1804.11326.pdf">https://arxiv.org/pdf/1804.11326.pdf</a> for details.</p>
+<dl class="attribute">
+<dt id="qiskit_aqua.components.feature_maps.second_order_expansion.SecondOrderExpansion.CONFIGURATION">
+<code class="descname">CONFIGURATION</code><em class="property"> = {'description': 'Second order expansion for feature map', 'input_schema': {'$schema': 'http://json-schema.org/schema#', 'id': 'Second_Order_Expansion_schema', 'type': 'object', 'properties': {'depth': {'type': 'integer', 'default': 2, 'minimum': 1}, 'entangler_map': {'type': ['object', 'null'], 'default': None}, 'entanglement': {'type': 'string', 'default': 'full', 'oneOf': [{'enum': ['full', 'linear']}]}}, 'additionalProperties': False}, 'name': 'SecondOrderExpansion'}</em><a class="headerlink" href="#qiskit_aqua.components.feature_maps.second_order_expansion.SecondOrderExpansion.CONFIGURATION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.components.feature_maps.second_order_expansion.SecondOrderExpansion.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>num_qubits</em>, <em>depth=2</em>, <em>entangler_map=None</em>, <em>entanglement='full'</em>, <em>data_map_func=&lt;function self_product&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/components/feature_maps/second_order_expansion.html#SecondOrderExpansion.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.components.feature_maps.second_order_expansion.SecondOrderExpansion.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructor.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>num_qubits</strong> (<em>int</em>) – number of qubits</li>
+<li><strong>depth</strong> (<em>int</em>) – the number of repeated circuits</li>
+<li><strong>entangler_map</strong> (<em>dict</em>) – describe the connectivity of qubits</li>
+<li><strong>entanglement</strong> (<em>str</em>) – [‘full’, ‘linear’], generate the qubit connectivitiy by predefined
+topology</li>
+<li><strong>data_map_func</strong> (<em>Callable</em>) – a mapping function for data x</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="qiskit_aqua.components.feature_maps.second_order_expansion.SecondOrderExpansion.check_pluggable_valid">
+<em class="property">static </em><code class="descname">check_pluggable_valid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.second_order_expansion.SecondOrderExpansion.check_pluggable_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if pluggable is ready for use. Throws an exception if not</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.components.feature_maps.second_order_expansion.SecondOrderExpansion.configuration">
+<code class="descname">configuration</code><a class="headerlink" href="#qiskit_aqua.components.feature_maps.second_order_expansion.SecondOrderExpansion.configuration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return pluggable configuration.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.components.feature_maps.second_order_expansion.SecondOrderExpansion.construct_circuit">
+<code class="descname">construct_circuit</code><span class="sig-paren">(</span><em>x</em>, <em>qr=None</em>, <em>inverse=False</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.second_order_expansion.SecondOrderExpansion.construct_circuit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct the second order expansion based on given data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>numpy.ndarray</em>) – 1-D to-be-transformed data.</li>
+<li><strong>qr</strong> (<em>QauntumRegister</em>) – the QuantumRegister object for the circuit, if None,
+generate new registers with name q.</li>
+<li><strong>inverse</strong> (<em>bool</em>) – whether or not inverse the circuit</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">a quantum circuit transform data x.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">QuantumCircuit</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="qiskit_aqua.components.feature_maps.second_order_expansion.SecondOrderExpansion.get_entangler_map">
+<em class="property">static </em><code class="descname">get_entangler_map</code><span class="sig-paren">(</span><em>map_type</em>, <em>num_qubits</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.second_order_expansion.SecondOrderExpansion.get_entangler_map" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="qiskit_aqua.components.feature_maps.second_order_expansion.SecondOrderExpansion.init_params">
+<em class="property">classmethod </em><code class="descname">init_params</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.second_order_expansion.SecondOrderExpansion.init_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.components.feature_maps.second_order_expansion.SecondOrderExpansion.num_qubits">
+<code class="descname">num_qubits</code><a class="headerlink" href="#qiskit_aqua.components.feature_maps.second_order_expansion.SecondOrderExpansion.num_qubits" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.components.feature_maps.second_order_expansion.SecondOrderExpansion.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><em>args_dict</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.second_order_expansion.SecondOrderExpansion.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="qiskit_aqua.components.feature_maps.second_order_expansion.SecondOrderExpansion.validate_entangler_map">
+<em class="property">static </em><code class="descname">validate_entangler_map</code><span class="sig-paren">(</span><em>entangler_map</em>, <em>num_qubits</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.second_order_expansion.SecondOrderExpansion.validate_entangler_map" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-qiskit_aqua.components.feature_maps">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-qiskit_aqua.components.feature_maps" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="qiskit_aqua.components.feature_maps.FeatureMap">
+<em class="property">class </em><code class="descclassname">qiskit_aqua.components.feature_maps.</code><code class="descname">FeatureMap</code><a class="reference internal" href="_modules/qiskit_aqua/components/feature_maps/feature_map.html#FeatureMap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.components.feature_maps.FeatureMap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="qiskit_aqua.html#qiskit_aqua.pluggable.Pluggable" title="qiskit_aqua.pluggable.Pluggable"><code class="xref py py-class docutils literal notranslate"><span class="pre">qiskit_aqua.pluggable.Pluggable</span></code></a></p>
+<p>Base class for FeatureMap.</p>
+<p>This method should initialize the module and its configuration, and
+use an exception if a component of the module is
+available.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>configuration</strong> (<em>dict</em>) – configuration dictionary</td>
+</tr>
+</tbody>
+</table>
+<dl class="staticmethod">
+<dt id="qiskit_aqua.components.feature_maps.FeatureMap.check_pluggable_valid">
+<em class="property">static </em><code class="descname">check_pluggable_valid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.FeatureMap.check_pluggable_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if pluggable is ready for use. Throws an exception if not</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.components.feature_maps.FeatureMap.configuration">
+<code class="descname">configuration</code><a class="headerlink" href="#qiskit_aqua.components.feature_maps.FeatureMap.configuration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return pluggable configuration.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.components.feature_maps.FeatureMap.construct_circuit">
+<code class="descname">construct_circuit</code><span class="sig-paren">(</span><em>x</em>, <em>qr=None</em>, <em>inverse=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/components/feature_maps/feature_map.html#FeatureMap.construct_circuit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.components.feature_maps.FeatureMap.construct_circuit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct the variational form, given its parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>numpy.ndarray</em><em>[</em><em>float</em><em>]</em>) – 1-D array, data</li>
+<li><strong>qr</strong> (<em>QauntumRegister</em>) – the QuantumRegister object for the circuit, if None,
+generate new registers with name q.</li>
+<li><strong>inverse</strong> (<em>bool</em>) – whether or not inverse the circuit</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">a quantum circuit.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">QuantumCircuit</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="qiskit_aqua.components.feature_maps.FeatureMap.get_entangler_map">
+<em class="property">static </em><code class="descname">get_entangler_map</code><span class="sig-paren">(</span><em>map_type</em>, <em>num_qubits</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/components/feature_maps/feature_map.html#FeatureMap.get_entangler_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.components.feature_maps.FeatureMap.get_entangler_map" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="qiskit_aqua.components.feature_maps.FeatureMap.init_params">
+<em class="property">classmethod </em><code class="descname">init_params</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/components/feature_maps/feature_map.html#FeatureMap.init_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.components.feature_maps.FeatureMap.init_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.components.feature_maps.FeatureMap.num_qubits">
+<code class="descname">num_qubits</code><a class="headerlink" href="#qiskit_aqua.components.feature_maps.FeatureMap.num_qubits" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.components.feature_maps.FeatureMap.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><em>args_dict</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.FeatureMap.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="qiskit_aqua.components.feature_maps.FeatureMap.validate_entangler_map">
+<em class="property">static </em><code class="descname">validate_entangler_map</code><span class="sig-paren">(</span><em>entangler_map</em>, <em>num_qubits</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/components/feature_maps/feature_map.html#FeatureMap.validate_entangler_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.components.feature_maps.FeatureMap.validate_entangler_map" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="qiskit_aqua.components.feature_maps.self_product">
+<code class="descclassname">qiskit_aqua.components.feature_maps.</code><code class="descname">self_product</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/components/feature_maps/data_mapping.html#self_product"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.components.feature_maps.self_product" title="Permalink to this definition">¶</a></dt>
+<dd><p>Define a function map from R^n to R.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong> (<em>np.ndarray</em>) – data</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the mapped value</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">double</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="qiskit_aqua.components.feature_maps.PauliExpansion">
+<em class="property">class </em><code class="descclassname">qiskit_aqua.components.feature_maps.</code><code class="descname">PauliExpansion</code><span class="sig-paren">(</span><em>num_qubits, depth=2, entangler_map=None, entanglement='full', paulis=['Z', 'ZZ'], data_map_func=&lt;function self_product&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/components/feature_maps/pauli_expansion.html#PauliExpansion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.components.feature_maps.PauliExpansion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qiskit_aqua.components.feature_maps.feature_map.FeatureMap" title="qiskit_aqua.components.feature_maps.feature_map.FeatureMap"><code class="xref py py-class docutils literal notranslate"><span class="pre">qiskit_aqua.components.feature_maps.feature_map.FeatureMap</span></code></a></p>
+<p>Mapping data with the second order expansion followed by entangling gates.
+Refer to <a class="reference external" href="https://arxiv.org/pdf/1804.11326.pdf">https://arxiv.org/pdf/1804.11326.pdf</a> for details.</p>
+<dl class="attribute">
+<dt id="qiskit_aqua.components.feature_maps.PauliExpansion.CONFIGURATION">
+<code class="descname">CONFIGURATION</code><em class="property"> = {'description': 'Pauli expansion for feature map (any order)', 'input_schema': {'$schema': 'http://json-schema.org/schema#', 'id': 'Pauli_Expansion_schema', 'type': 'object', 'properties': {'depth': {'type': 'integer', 'default': 2, 'minimum': 1}, 'entangler_map': {'type': ['object', 'null'], 'default': None}, 'entanglement': {'type': 'string', 'default': 'full', 'oneOf': [{'enum': ['full', 'linear']}]}, 'paulis': {'type': ['array'], 'items': {'type': 'string'}, 'default': ['Z', 'ZZ']}}, 'additionalProperties': False}, 'name': 'PauliExpansion'}</em><a class="headerlink" href="#qiskit_aqua.components.feature_maps.PauliExpansion.CONFIGURATION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.components.feature_maps.PauliExpansion.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>num_qubits, depth=2, entangler_map=None, entanglement='full', paulis=['Z', 'ZZ'], data_map_func=&lt;function self_product&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/components/feature_maps/pauli_expansion.html#PauliExpansion.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.components.feature_maps.PauliExpansion.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructor.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>num_qubits</strong> (<em>int</em>) – number of qubits</li>
+<li><strong>depth</strong> (<em>int</em>) – the number of repeated circuits</li>
+<li><strong>entangler_map</strong> (<em>dict</em>) – describe the connectivity of qubits</li>
+<li><strong>entanglement</strong> (<em>str</em>) – [‘full’, ‘linear’], generate the qubit connectivitiy by predefined
+topology</li>
+<li><strong>paulis</strong> (<em>str</em>) – a comma-seperated string for to-be-used paulis</li>
+<li><strong>data_map_func</strong> (<em>Callable</em>) – a mapping function for data x</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="qiskit_aqua.components.feature_maps.PauliExpansion.check_pluggable_valid">
+<em class="property">static </em><code class="descname">check_pluggable_valid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.PauliExpansion.check_pluggable_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if pluggable is ready for use. Throws an exception if not</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.components.feature_maps.PauliExpansion.configuration">
+<code class="descname">configuration</code><a class="headerlink" href="#qiskit_aqua.components.feature_maps.PauliExpansion.configuration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return pluggable configuration.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.components.feature_maps.PauliExpansion.construct_circuit">
+<code class="descname">construct_circuit</code><span class="sig-paren">(</span><em>x</em>, <em>qr=None</em>, <em>inverse=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/components/feature_maps/pauli_expansion.html#PauliExpansion.construct_circuit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.components.feature_maps.PauliExpansion.construct_circuit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct the second order expansion based on given data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>numpy.ndarray</em>) – 1-D to-be-transformed data.</li>
+<li><strong>qr</strong> (<em>QauntumRegister</em>) – the QuantumRegister object for the circuit, if None,
+generate new registers with name q.</li>
+<li><strong>inverse</strong> (<em>bool</em>) – whether or not inverse the circuit</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">a quantum circuit transform data x.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">QuantumCircuit</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="qiskit_aqua.components.feature_maps.PauliExpansion.get_entangler_map">
+<em class="property">static </em><code class="descname">get_entangler_map</code><span class="sig-paren">(</span><em>map_type</em>, <em>num_qubits</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.PauliExpansion.get_entangler_map" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="qiskit_aqua.components.feature_maps.PauliExpansion.init_params">
+<em class="property">classmethod </em><code class="descname">init_params</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.PauliExpansion.init_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.components.feature_maps.PauliExpansion.num_qubits">
+<code class="descname">num_qubits</code><a class="headerlink" href="#qiskit_aqua.components.feature_maps.PauliExpansion.num_qubits" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.components.feature_maps.PauliExpansion.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><em>args_dict</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.PauliExpansion.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="qiskit_aqua.components.feature_maps.PauliExpansion.validate_entangler_map">
+<em class="property">static </em><code class="descname">validate_entangler_map</code><span class="sig-paren">(</span><em>entangler_map</em>, <em>num_qubits</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.PauliExpansion.validate_entangler_map" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="qiskit_aqua.components.feature_maps.PauliZExpansion">
+<em class="property">class </em><code class="descclassname">qiskit_aqua.components.feature_maps.</code><code class="descname">PauliZExpansion</code><span class="sig-paren">(</span><em>num_qubits</em>, <em>depth=2</em>, <em>entangler_map=None</em>, <em>entanglement='full'</em>, <em>z_order=2</em>, <em>data_map_func=&lt;function self_product&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/components/feature_maps/pauli_z_expansion.html#PauliZExpansion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.components.feature_maps.PauliZExpansion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qiskit_aqua.components.feature_maps.pauli_expansion.PauliExpansion" title="qiskit_aqua.components.feature_maps.pauli_expansion.PauliExpansion"><code class="xref py py-class docutils literal notranslate"><span class="pre">qiskit_aqua.components.feature_maps.pauli_expansion.PauliExpansion</span></code></a></p>
+<p>Mapping data with the second order expansion followed by entangling gates.</p>
+<p>Refer to <a class="reference external" href="https://arxiv.org/pdf/1804.11326.pdf">https://arxiv.org/pdf/1804.11326.pdf</a> for details.</p>
+<dl class="attribute">
+<dt id="qiskit_aqua.components.feature_maps.PauliZExpansion.CONFIGURATION">
+<code class="descname">CONFIGURATION</code><em class="property"> = {'description': 'Pauli Z expansion for feature map (any order)', 'input_schema': {'$schema': 'http://json-schema.org/schema#', 'id': 'Pauli_Z_Expansion_schema', 'type': 'object', 'properties': {'depth': {'type': 'integer', 'default': 2, 'minimum': 1}, 'entangler_map': {'type': ['object', 'null'], 'default': None}, 'entanglement': {'type': 'string', 'default': 'full', 'oneOf': [{'enum': ['full', 'linear']}]}, 'z_order': {'type': 'integer', 'minimum': 1, 'default': 2}}, 'additionalProperties': False}, 'name': 'PauliZExpansion'}</em><a class="headerlink" href="#qiskit_aqua.components.feature_maps.PauliZExpansion.CONFIGURATION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.components.feature_maps.PauliZExpansion.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>num_qubits</em>, <em>depth=2</em>, <em>entangler_map=None</em>, <em>entanglement='full'</em>, <em>z_order=2</em>, <em>data_map_func=&lt;function self_product&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/components/feature_maps/pauli_z_expansion.html#PauliZExpansion.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.components.feature_maps.PauliZExpansion.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructor.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="qiskit_aqua.components.feature_maps.PauliZExpansion.check_pluggable_valid">
+<em class="property">static </em><code class="descname">check_pluggable_valid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.PauliZExpansion.check_pluggable_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if pluggable is ready for use. Throws an exception if not</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.components.feature_maps.PauliZExpansion.configuration">
+<code class="descname">configuration</code><a class="headerlink" href="#qiskit_aqua.components.feature_maps.PauliZExpansion.configuration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return pluggable configuration.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.components.feature_maps.PauliZExpansion.construct_circuit">
+<code class="descname">construct_circuit</code><span class="sig-paren">(</span><em>x</em>, <em>qr=None</em>, <em>inverse=False</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.PauliZExpansion.construct_circuit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct the second order expansion based on given data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>numpy.ndarray</em>) – 1-D to-be-transformed data.</li>
+<li><strong>qr</strong> (<em>QauntumRegister</em>) – the QuantumRegister object for the circuit, if None,
+generate new registers with name q.</li>
+<li><strong>inverse</strong> (<em>bool</em>) – whether or not inverse the circuit</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">a quantum circuit transform data x.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">QuantumCircuit</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="qiskit_aqua.components.feature_maps.PauliZExpansion.get_entangler_map">
+<em class="property">static </em><code class="descname">get_entangler_map</code><span class="sig-paren">(</span><em>map_type</em>, <em>num_qubits</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.PauliZExpansion.get_entangler_map" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="qiskit_aqua.components.feature_maps.PauliZExpansion.init_params">
+<em class="property">classmethod </em><code class="descname">init_params</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.PauliZExpansion.init_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.components.feature_maps.PauliZExpansion.num_qubits">
+<code class="descname">num_qubits</code><a class="headerlink" href="#qiskit_aqua.components.feature_maps.PauliZExpansion.num_qubits" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.components.feature_maps.PauliZExpansion.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><em>args_dict</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.PauliZExpansion.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="qiskit_aqua.components.feature_maps.PauliZExpansion.validate_entangler_map">
+<em class="property">static </em><code class="descname">validate_entangler_map</code><span class="sig-paren">(</span><em>entangler_map</em>, <em>num_qubits</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.PauliZExpansion.validate_entangler_map" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="qiskit_aqua.components.feature_maps.FirstOrderExpansion">
+<em class="property">class </em><code class="descclassname">qiskit_aqua.components.feature_maps.</code><code class="descname">FirstOrderExpansion</code><span class="sig-paren">(</span><em>num_qubits</em>, <em>depth=2</em>, <em>data_map_func=&lt;function self_product&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/components/feature_maps/first_order_expansion.html#FirstOrderExpansion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.components.feature_maps.FirstOrderExpansion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qiskit_aqua.components.feature_maps.pauli_z_expansion.PauliZExpansion" title="qiskit_aqua.components.feature_maps.pauli_z_expansion.PauliZExpansion"><code class="xref py py-class docutils literal notranslate"><span class="pre">qiskit_aqua.components.feature_maps.pauli_z_expansion.PauliZExpansion</span></code></a></p>
+<p>Mapping data with the first order expansion without entangling gates.</p>
+<p>Refer to <a class="reference external" href="https://arxiv.org/pdf/1804.11326.pdf">https://arxiv.org/pdf/1804.11326.pdf</a> for details.</p>
+<dl class="attribute">
+<dt id="qiskit_aqua.components.feature_maps.FirstOrderExpansion.CONFIGURATION">
+<code class="descname">CONFIGURATION</code><em class="property"> = {'description': 'First order expansion for feature map', 'input_schema': {'$schema': 'http://json-schema.org/schema#', 'id': 'First_Order_Expansion_schema', 'type': 'object', 'properties': {'depth': {'type': 'integer', 'default': 2, 'minimum': 1}}, 'additionalProperties': False}, 'name': 'FirstOrderExpansion'}</em><a class="headerlink" href="#qiskit_aqua.components.feature_maps.FirstOrderExpansion.CONFIGURATION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.components.feature_maps.FirstOrderExpansion.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>num_qubits</em>, <em>depth=2</em>, <em>data_map_func=&lt;function self_product&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/components/feature_maps/first_order_expansion.html#FirstOrderExpansion.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.components.feature_maps.FirstOrderExpansion.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructor.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>num_qubits</strong> (<em>int</em>) – number of qubits</li>
+<li><strong>depth</strong> (<em>int</em>) – the number of repeated circuits</li>
+<li><strong>data_map_func</strong> (<em>Callable</em>) – a mapping function for data x</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="qiskit_aqua.components.feature_maps.FirstOrderExpansion.check_pluggable_valid">
+<em class="property">static </em><code class="descname">check_pluggable_valid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.FirstOrderExpansion.check_pluggable_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if pluggable is ready for use. Throws an exception if not</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.components.feature_maps.FirstOrderExpansion.configuration">
+<code class="descname">configuration</code><a class="headerlink" href="#qiskit_aqua.components.feature_maps.FirstOrderExpansion.configuration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return pluggable configuration.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.components.feature_maps.FirstOrderExpansion.construct_circuit">
+<code class="descname">construct_circuit</code><span class="sig-paren">(</span><em>x</em>, <em>qr=None</em>, <em>inverse=False</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.FirstOrderExpansion.construct_circuit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct the second order expansion based on given data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>numpy.ndarray</em>) – 1-D to-be-transformed data.</li>
+<li><strong>qr</strong> (<em>QauntumRegister</em>) – the QuantumRegister object for the circuit, if None,
+generate new registers with name q.</li>
+<li><strong>inverse</strong> (<em>bool</em>) – whether or not inverse the circuit</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">a quantum circuit transform data x.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">QuantumCircuit</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="qiskit_aqua.components.feature_maps.FirstOrderExpansion.get_entangler_map">
+<em class="property">static </em><code class="descname">get_entangler_map</code><span class="sig-paren">(</span><em>map_type</em>, <em>num_qubits</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.FirstOrderExpansion.get_entangler_map" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="qiskit_aqua.components.feature_maps.FirstOrderExpansion.init_params">
+<em class="property">classmethod </em><code class="descname">init_params</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.FirstOrderExpansion.init_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.components.feature_maps.FirstOrderExpansion.num_qubits">
+<code class="descname">num_qubits</code><a class="headerlink" href="#qiskit_aqua.components.feature_maps.FirstOrderExpansion.num_qubits" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.components.feature_maps.FirstOrderExpansion.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><em>args_dict</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.FirstOrderExpansion.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="qiskit_aqua.components.feature_maps.FirstOrderExpansion.validate_entangler_map">
+<em class="property">static </em><code class="descname">validate_entangler_map</code><span class="sig-paren">(</span><em>entangler_map</em>, <em>num_qubits</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.FirstOrderExpansion.validate_entangler_map" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="qiskit_aqua.components.feature_maps.SecondOrderExpansion">
+<em class="property">class </em><code class="descclassname">qiskit_aqua.components.feature_maps.</code><code class="descname">SecondOrderExpansion</code><span class="sig-paren">(</span><em>num_qubits</em>, <em>depth=2</em>, <em>entangler_map=None</em>, <em>entanglement='full'</em>, <em>data_map_func=&lt;function self_product&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/components/feature_maps/second_order_expansion.html#SecondOrderExpansion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.components.feature_maps.SecondOrderExpansion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qiskit_aqua.components.feature_maps.pauli_z_expansion.PauliZExpansion" title="qiskit_aqua.components.feature_maps.pauli_z_expansion.PauliZExpansion"><code class="xref py py-class docutils literal notranslate"><span class="pre">qiskit_aqua.components.feature_maps.pauli_z_expansion.PauliZExpansion</span></code></a></p>
+<p>Mapping data with the second order expansion followed by entangling gates.</p>
+<p>Refer to <a class="reference external" href="https://arxiv.org/pdf/1804.11326.pdf">https://arxiv.org/pdf/1804.11326.pdf</a> for details.</p>
+<dl class="attribute">
+<dt id="qiskit_aqua.components.feature_maps.SecondOrderExpansion.CONFIGURATION">
+<code class="descname">CONFIGURATION</code><em class="property"> = {'description': 'Second order expansion for feature map', 'input_schema': {'$schema': 'http://json-schema.org/schema#', 'id': 'Second_Order_Expansion_schema', 'type': 'object', 'properties': {'depth': {'type': 'integer', 'default': 2, 'minimum': 1}, 'entangler_map': {'type': ['object', 'null'], 'default': None}, 'entanglement': {'type': 'string', 'default': 'full', 'oneOf': [{'enum': ['full', 'linear']}]}}, 'additionalProperties': False}, 'name': 'SecondOrderExpansion'}</em><a class="headerlink" href="#qiskit_aqua.components.feature_maps.SecondOrderExpansion.CONFIGURATION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.components.feature_maps.SecondOrderExpansion.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>num_qubits</em>, <em>depth=2</em>, <em>entangler_map=None</em>, <em>entanglement='full'</em>, <em>data_map_func=&lt;function self_product&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/components/feature_maps/second_order_expansion.html#SecondOrderExpansion.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.components.feature_maps.SecondOrderExpansion.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructor.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>num_qubits</strong> (<em>int</em>) – number of qubits</li>
+<li><strong>depth</strong> (<em>int</em>) – the number of repeated circuits</li>
+<li><strong>entangler_map</strong> (<em>dict</em>) – describe the connectivity of qubits</li>
+<li><strong>entanglement</strong> (<em>str</em>) – [‘full’, ‘linear’], generate the qubit connectivitiy by predefined
+topology</li>
+<li><strong>data_map_func</strong> (<em>Callable</em>) – a mapping function for data x</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="qiskit_aqua.components.feature_maps.SecondOrderExpansion.check_pluggable_valid">
+<em class="property">static </em><code class="descname">check_pluggable_valid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.SecondOrderExpansion.check_pluggable_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if pluggable is ready for use. Throws an exception if not</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.components.feature_maps.SecondOrderExpansion.configuration">
+<code class="descname">configuration</code><a class="headerlink" href="#qiskit_aqua.components.feature_maps.SecondOrderExpansion.configuration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return pluggable configuration.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.components.feature_maps.SecondOrderExpansion.construct_circuit">
+<code class="descname">construct_circuit</code><span class="sig-paren">(</span><em>x</em>, <em>qr=None</em>, <em>inverse=False</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.SecondOrderExpansion.construct_circuit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct the second order expansion based on given data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>numpy.ndarray</em>) – 1-D to-be-transformed data.</li>
+<li><strong>qr</strong> (<em>QauntumRegister</em>) – the QuantumRegister object for the circuit, if None,
+generate new registers with name q.</li>
+<li><strong>inverse</strong> (<em>bool</em>) – whether or not inverse the circuit</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">a quantum circuit transform data x.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">QuantumCircuit</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="qiskit_aqua.components.feature_maps.SecondOrderExpansion.get_entangler_map">
+<em class="property">static </em><code class="descname">get_entangler_map</code><span class="sig-paren">(</span><em>map_type</em>, <em>num_qubits</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.SecondOrderExpansion.get_entangler_map" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="qiskit_aqua.components.feature_maps.SecondOrderExpansion.init_params">
+<em class="property">classmethod </em><code class="descname">init_params</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.SecondOrderExpansion.init_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.components.feature_maps.SecondOrderExpansion.num_qubits">
+<code class="descname">num_qubits</code><a class="headerlink" href="#qiskit_aqua.components.feature_maps.SecondOrderExpansion.num_qubits" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.components.feature_maps.SecondOrderExpansion.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><em>args_dict</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.SecondOrderExpansion.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="qiskit_aqua.components.feature_maps.SecondOrderExpansion.validate_entangler_map">
+<em class="property">static </em><code class="descname">validate_entangler_map</code><span class="sig-paren">(</span><em>entangler_map</em>, <em>num_qubits</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.components.feature_maps.SecondOrderExpansion.validate_entangler_map" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="qiskit_aqua.components.initial_states.html" title="qiskit_aqua.components.initial_states package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="qiskit_aqua.components.html" title="qiskit_aqua.components package"
+             >previous</a> |</li>
+<li id="toc-toggle">
+<a class="btn btn-primary" role="button" data-toggle="collapse"
+   href=".sphinxsidebar" aria-expanded="false" aria-controls="collapseExample">
+  TOC</a> |
+</li>
+
+        <li class="nav-item nav-item-0"><a href="index.html">Qiskit Aqua 0.4.0 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="aqua.html" >Qiskit Aqua</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="library.html" >Aqua: A Library of Quantum Algorithms</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="qiskit_aqua.html" >qiskit_aqua package</a> &#187;</li>
+          <li class="nav-item nav-item-4"><a href="qiskit_aqua.components.html" >qiskit_aqua.components package</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018 IBM.
+      Last updated on 2018/12/14.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.6.
+    </div>
+  </body>
+</html>

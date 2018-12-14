@@ -1,0 +1,38 @@
+qiskit\_aqua.components.iqfts package
+=====================================
+
+Submodules
+----------
+
+qiskit\_aqua.components.iqfts.approximate module
+------------------------------------------------
+
+.. automodule:: qiskit_aqua.components.iqfts.approximate
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+qiskit\_aqua.components.iqfts.iqft module
+-----------------------------------------
+
+.. automodule:: qiskit_aqua.components.iqfts.iqft
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+qiskit\_aqua.components.iqfts.standard module
+---------------------------------------------
+
+.. automodule:: qiskit_aqua.components.iqfts.standard
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: qiskit_aqua.components.iqfts
+    :members:
+    :undoc-members:
+    :show-inheritance:

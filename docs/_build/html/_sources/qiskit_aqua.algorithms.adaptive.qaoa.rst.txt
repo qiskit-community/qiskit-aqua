@@ -1,0 +1,30 @@
+qiskit\_aqua.algorithms.adaptive.qaoa package
+=============================================
+
+Submodules
+----------
+
+qiskit\_aqua.algorithms.adaptive.qaoa.qaoa module
+-------------------------------------------------
+
+.. automodule:: qiskit_aqua.algorithms.adaptive.qaoa.qaoa
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+qiskit\_aqua.algorithms.adaptive.qaoa.varform module
+----------------------------------------------------
+
+.. automodule:: qiskit_aqua.algorithms.adaptive.qaoa.varform
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: qiskit_aqua.algorithms.adaptive.qaoa
+    :members:
+    :undoc-members:
+    :show-inheritance:

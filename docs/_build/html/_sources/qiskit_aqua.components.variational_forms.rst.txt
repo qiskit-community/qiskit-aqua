@@ -1,0 +1,46 @@
+qiskit\_aqua.components.variational\_forms package
+==================================================
+
+Submodules
+----------
+
+qiskit\_aqua.components.variational\_forms.ry module
+----------------------------------------------------
+
+.. automodule:: qiskit_aqua.components.variational_forms.ry
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+qiskit\_aqua.components.variational\_forms.ryrz module
+------------------------------------------------------
+
+.. automodule:: qiskit_aqua.components.variational_forms.ryrz
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+qiskit\_aqua.components.variational\_forms.swaprz module
+--------------------------------------------------------
+
+.. automodule:: qiskit_aqua.components.variational_forms.swaprz
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+qiskit\_aqua.components.variational\_forms.variational\_form module
+-------------------------------------------------------------------
+
+.. automodule:: qiskit_aqua.components.variational_forms.variational_form
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: qiskit_aqua.components.variational_forms
+    :members:
+    :undoc-members:
+    :show-inheritance:

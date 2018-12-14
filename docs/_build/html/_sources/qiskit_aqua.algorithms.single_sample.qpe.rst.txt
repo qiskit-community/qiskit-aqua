@@ -1,0 +1,30 @@
+qiskit\_aqua.algorithms.single\_sample.qpe package
+==================================================
+
+Submodules
+----------
+
+qiskit\_aqua.algorithms.single\_sample.qpe.phase\_estimation module
+-------------------------------------------------------------------
+
+.. automodule:: qiskit_aqua.algorithms.single_sample.qpe.phase_estimation
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+qiskit\_aqua.algorithms.single\_sample.qpe.qpe module
+-----------------------------------------------------
+
+.. automodule:: qiskit_aqua.algorithms.single_sample.qpe.qpe
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: qiskit_aqua.algorithms.single_sample.qpe
+    :members:
+    :undoc-members:
+    :show-inheritance:

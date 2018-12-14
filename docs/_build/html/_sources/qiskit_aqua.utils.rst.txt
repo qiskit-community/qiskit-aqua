@@ -1,0 +1,134 @@
+qiskit\_aqua.utils package
+==========================
+
+Submodules
+----------
+
+qiskit\_aqua.utils.circuit\_factory module
+------------------------------------------
+
+.. automodule:: qiskit_aqua.utils.circuit_factory
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+qiskit\_aqua.utils.circuit\_utils module
+----------------------------------------
+
+.. automodule:: qiskit_aqua.utils.circuit_utils
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+qiskit\_aqua.utils.cnx module
+-----------------------------
+
+.. automodule:: qiskit_aqua.utils.cnx
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+qiskit\_aqua.utils.controlledcircuit module
+-------------------------------------------
+
+.. automodule:: qiskit_aqua.utils.controlledcircuit
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+qiskit\_aqua.utils.dataset\_helper module
+-----------------------------------------
+
+.. automodule:: qiskit_aqua.utils.dataset_helper
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+qiskit\_aqua.utils.decimal\_to\_binary module
+---------------------------------------------
+
+.. automodule:: qiskit_aqua.utils.decimal_to_binary
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+qiskit\_aqua.utils.entangler\_map module
+----------------------------------------
+
+.. automodule:: qiskit_aqua.utils.entangler_map
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+qiskit\_aqua.utils.jsonutils module
+-----------------------------------
+
+.. automodule:: qiskit_aqua.utils.jsonutils
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+qiskit\_aqua.utils.pauligraph module
+------------------------------------
+
+.. automodule:: qiskit_aqua.utils.pauligraph
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+qiskit\_aqua.utils.qpsolver module
+----------------------------------
+
+.. automodule:: qiskit_aqua.utils.qpsolver
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+qiskit\_aqua.utils.random\_matrix\_generator module
+---------------------------------------------------
+
+.. automodule:: qiskit_aqua.utils.random_matrix_generator
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+qiskit\_aqua.utils.run\_circuits module
+---------------------------------------
+
+.. automodule:: qiskit_aqua.utils.run_circuits
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+qiskit\_aqua.utils.subsystem module
+-----------------------------------
+
+.. automodule:: qiskit_aqua.utils.subsystem
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+qiskit\_aqua.utils.summarize\_circuits module
+---------------------------------------------
+
+.. automodule:: qiskit_aqua.utils.summarize_circuits
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+qiskit\_aqua.utils.tensorproduct module
+---------------------------------------
+
+.. automodule:: qiskit_aqua.utils.tensorproduct
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: qiskit_aqua.utils
+    :members:
+    :undoc-members:
+    :show-inheritance:

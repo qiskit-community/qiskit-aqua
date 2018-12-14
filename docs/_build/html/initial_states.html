@@ -1,0 +1,372 @@
+
+
+<!doctype html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Initial States &#8212; Qiskit Aqua 0.4.0 documentation</title>
+    <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/bizstyle.js"></script>
+    <script type="text/javascript" src="_static/bootstrap.min.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Feature Maps" href="feature_maps.html" />
+    <link rel="prev" title="Inverse Quantum Fourier Transforms" href="iqfts.html" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<!--[if lt IE 9]>
+    <script src="http://css3-mediaqueries-js.googlecode.com/svn/trunk/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head><body>
+<div id="head" class="head">
+    <a href="https://qiskit.org/aqua">Qiskit Aqua</a>
+</div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="feature_maps.html" title="Feature Maps"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="iqfts.html" title="Inverse Quantum Fourier Transforms"
+             accesskey="P">previous</a> |</li>
+<li id="toc-toggle">
+<a class="btn btn-primary" role="button" data-toggle="collapse"
+   href=".sphinxsidebar" aria-expanded="false" aria-controls="collapseExample">
+  TOC</a> |
+</li>
+
+        <li class="nav-item nav-item-0"><a href="index.html">Qiskit Aqua 0.4.0 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="aqua.html" >Qiskit Aqua</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="library.html" accesskey="U">Aqua: A Library of Quantum Algorithms</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/qiskit-logo-white-no-margin.gif" alt="Logo"/>
+            </a></p>
+<p class="logo-description">Qiskit Aqua</p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="aqua.html">Qiskit Aqua</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="library.html">Aqua: A Library of Quantum Algorithms</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html">Installation and Setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="execution.html">Configuring and Running an Experiment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="extending.html">Contributing to Aqua</a></li>
+<li class="toctree-l3"><a class="reference internal" href="algorithms.html">Algorithms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimizers.html">Optimizers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="variational_forms.html">Variational Forms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="oracles.html">Oracles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="iqfts.html">Inverse Quantum Fourier Transforms</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Initial States</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#zero">Zero</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id2">Hartree-Fock</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#custom">Custom</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="feature_maps.html">Feature Maps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qiskit_aqua.html">Aqua SDK Reference</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="aqua_ai.html">Aqua Artificial Intelligence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aqua_optimization.html">Aqua Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aqua_finance.html">Aqua Finance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aqua_tutorials.html">Aqua Tutorials</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="iqfts.html"
+                        title="previous chapter">Inverse Quantum Fourier Transforms</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="feature_maps.html"
+                        title="next chapter">Feature Maps</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/initial_states.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="initial-states">
+<span id="id1"></span><h1>Initial States<a class="headerlink" href="#initial-states" title="Permalink to this headline">¶</a></h1>
+<p>An <em>initial state</em> in Aqua is an object that defines a starting state for one of the <a class="reference internal" href="variational_forms.html#variational-forms"><span class="std std-ref">Variational Forms</span></a>
+and a trial state to be evolved by the <a class="reference internal" href="algorithms.html#qpe"><span class="std std-ref">Quantum Phase Estimation (QPE)</span></a> algorithm.
+An initial state allows the user to define a state, either declaratively or programmatically, and
+then provides a circuit that can take the starting point of all zero qubits to the defined state.</p>
+<div class="topic">
+<p class="topic-title first">Extending the Initial States Library</p>
+<p>Consistent with its unique  design, Aqua has a modular and
+extensible architecture. Algorithms and their supporting objects, such as initial states for
+variational forms and <a class="reference internal" href="algorithms.html#qpe"><span class="std std-ref">Quantum Phase Estimation (QPE)</span></a>, are pluggable modules in Aqua.
+New initial states are typically installed in the <code class="docutils literal notranslate"><span class="pre">qiskit_aqua/utils/initial_states</span></code> folder and derive from
+the <code class="docutils literal notranslate"><span class="pre">InitialState</span></code> class.  Aqua also allows for
+<a class="reference internal" href="extending.html#aqua-dynamically-discovered-components"><span class="std std-ref">Dynamically Discovered Components</span></a>: new components can register themselves
+as Aqua extensions and be dynamically discovered at run time independent of their
+location in the file system.
+This is done in order to encourage researchers and
+developers interested in
+<a class="reference internal" href="extending.html#aqua-extending"><span class="std std-ref">Contributing to Aqua</span></a> to extend the Aqua framework with their novel research contributions.</p>
+</div>
+<p>Aqua supplies the following three initial states:</p>
+<ol class="arabic simple">
+<li><a class="reference internal" href="#zero"><span class="std std-ref">Zero</span></a></li>
+<li><a class="reference internal" href="#id2"><span class="std std-ref">Hartree-Fock</span></a></li>
+<li><a class="reference internal" href="#custom"><span class="std std-ref">Custom</span></a></li>
+</ol>
+<div class="section" id="zero">
+<h2>Zero<a class="headerlink" href="#zero" title="Permalink to this headline">¶</a></h2>
+<p>This initial state is suitable for those situations in which the all-zeroes state is the desired starting state.
+This is the case for a <em>vacuum state</em> in physics or chemistry. The zero initial state has no parameters and is, therefore,
+not configurable.  Configuring the use of the zero initial state will create the zero state based solely on
+the number of qubits.</p>
+<div class="topic">
+<p class="topic-title first">Declarative Name</p>
+<p>When referring to the zero initial state declaratively inside Aqua, its code <code class="docutils literal notranslate"><span class="pre">name</span></code>, by which Aqua dynamically discovers and loads it,
+is <code class="docutils literal notranslate"><span class="pre">ZERO</span></code>.</p>
+</div>
+</div>
+<div class="section" id="id2">
+<h2>Hartree-Fock<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>This initial state is specific for chemistry-related experiments.  It corresponds to a molecule’s <em>Hartree-Fock state</em>.
+In computational physics and chemistry, the Hartree–Fock method is a way to approximate the determination of the wave function and
+the energy of a quantum many-body system in a stationary state.
+The Hartree–Fock method often assumes that the exact, <span class="math notranslate nohighlight">\(N\)</span>-body wave function of the system can be approximated by a
+single Slater determinant in the case where the particles are fermions) of <span class="math notranslate nohighlight">\(N\)</span> spin-orbitals.
+By invoking the variational method, one can derive a set of <span class="math notranslate nohighlight">\(N\)</span>-coupled equations for the <span class="math notranslate nohighlight">\(N\)</span> spin orbitals.
+A solution of these equations yields the Hartree–Fock wave function and energy of the system.
+For both atoms and molecules, the Hartree–Fock solution is the central starting point for most methods that describe
+the many-electron system more accurately. In Aqua, for example, the Hartree-Fock solution is often the ideal
+starting state for the <a class="reference internal" href="variational_forms.html#variational-forms"><span class="std std-ref">Variational Forms</span></a>
+and a trial state to be evolved by the <a class="reference internal" href="algorithms.html#qpe"><span class="std std-ref">Quantum Phase Estimation (QPE)</span></a> algorithm.
+For example, when the transformation type of a chemistry operator is set to be particle hole,
+then the configuration of the initial qubit state offsetting the computation of the final result
+should be set to be the Hartree-Fock energy of the molecule in the <span class="xref std std-ref">aqua-chemistry-input-file</span>.
+Hartree-Fock is also the preferred initial state when using the
+<a class="reference internal" href="variational_forms.html#uccsd"><span class="std std-ref">Unitary Coupled Cluster Singles and Doubles (UCCSD)</span></a> and <a class="reference internal" href="variational_forms.html#swaprz"><span class="std std-ref">SwapRz</span></a> variational forms.</p>
+<p>The following parameters allow
+the Hartree-Fock initial state to be configured:</p>
+<ul>
+<li><p class="first">The total number of spin orbitals for which the Hartree-Fock initial state is to be created:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">num_orbitals</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">|</span> <span class="mi">2</span> <span class="o">|</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>This parameter expects a positive <code class="docutils literal notranslate"><span class="pre">int</span></code> value.</p>
+</li>
+<li><p class="first">The total number of particles for which the Hartree-Fock initial state is to be created:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">num_particles</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">|</span> <span class="mi">2</span> <span class="o">|</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>This parameter expects a positive <code class="docutils literal notranslate"><span class="pre">int</span></code> value.</p>
+</li>
+<li><p class="first">The desired <span class="xref std std-ref">translators</span> from fermions to qubits:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">qubit_mapping</span> <span class="o">=</span> <span class="n">jordan_wigner</span> <span class="o">|</span> <span class="n">parity</span> <span class="o">|</span> <span class="n">bravyi_kitaev</span>
+</pre></div>
+</div>
+<p>This parameter takes a value of type <code class="docutils literal notranslate"><span class="pre">str</span></code>.  Currently, only the three values
+above are supported, but new qubit mappings can easily be plugged in.
+Specifically:</p>
+<ol class="arabic simple">
+<li><code class="docutils literal notranslate"><span class="pre">jordan_wigner</span></code> corresponds to the <span class="xref std std-ref">jordan-wigner</span> transformation.</li>
+<li><code class="docutils literal notranslate"><span class="pre">parity</span></code>, the default value for the <code class="docutils literal notranslate"><span class="pre">qubit_mapping</span></code> parameter, corresponds to the
+<span class="xref std std-ref">parity</span> mapping transformation. When this mapping is selected,
+it is possible to reduce by 2 the number of qubits required by the computation
+without loss of precision by setting the <code class="docutils literal notranslate"><span class="pre">two_qubit_reduction</span></code> parameter to <code class="docutils literal notranslate"><span class="pre">True</span></code>,
+as explained next.</li>
+<li><code class="docutils literal notranslate"><span class="pre">bravyi_kitaev</span></code> corresponds to the <span class="xref std std-ref">bravyi-kitaev</span> transformation,
+also known as <em>binary-tree-based qubit mapping</em>.</li>
+</ol>
+</li>
+<li><p class="first">A Boolean flag specifying whether or not to apply the precision-preserving two-qubit reduction
+optimization:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">two_qubit_reduction</span> <span class="p">:</span> <span class="nb">bool</span>
+</pre></div>
+</div>
+<p>The default value for this parameter is <code class="docutils literal notranslate"><span class="pre">True</span></code>.
+When the parity mapping is selected, and <code class="docutils literal notranslate"><span class="pre">two_qubit_reduction</span></code> is set to <code class="docutils literal notranslate"><span class="pre">True</span></code>,
+then the operator can be reduced by two qubits without loss
+of precision.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">If the mapping from fermionic to qubit is set to something other than
+the parity mapping, the value assigned to <code class="docutils literal notranslate"><span class="pre">two_qubit_reduction</span></code> is ignored.</p>
+</div>
+</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>When the <code class="docutils literal notranslate"><span class="pre">auto_substitutions</span></code> flag in the <code class="docutils literal notranslate"><span class="pre">problem</span></code> section of the
+<span class="xref std std-ref">aqua-chemistry-input-file</span>
+is set to <code class="docutils literal notranslate"><span class="pre">True</span></code>, which is the default, the values of parameters
+<code class="docutils literal notranslate"><span class="pre">num_particles</span></code> and <code class="docutils literal notranslate"><span class="pre">num_orbitals</span></code> are automatically computed by Aqua Chemistry
+when <code class="docutils literal notranslate"><span class="pre">Hartree-Fock</span></code> is selected as the value of the <code class="docutils literal notranslate"><span class="pre">name</span></code> parameter in the <code class="docutils literal notranslate"><span class="pre">InitialState</span></code> section.
+As such, their configuration is disabled; the user will not be required, or even allowed, to assign values to
+these two parameters.  This is also reflected in the <span class="xref std std-ref">aqua-chemistry-gui</span>, where
+these parameters will be grayed out and uneditable as long as <code class="docutils literal notranslate"><span class="pre">auto_substitutions</span></code> is set to <code class="docutils literal notranslate"><span class="pre">True</span></code>
+in the <code class="docutils literal notranslate"><span class="pre">problem</span></code> section.
+Furthermore, Aqua Chemistry automatically sets
+parameters <code class="docutils literal notranslate"><span class="pre">qubit_mapping</span></code> and <code class="docutils literal notranslate"><span class="pre">two_qubit_reduction</span></code> in section <code class="docutils literal notranslate"><span class="pre">initial_state</span></code> when
+<code class="docutils literal notranslate"><span class="pre">HartreeFock</span></code> is selected as the value of the <code class="docutils literal notranslate"><span class="pre">name</span></code>
+parameter.  Specifically, Aqua Chemistry sets <code class="docutils literal notranslate"><span class="pre">qubit_mapping</span></code> and <code class="docutils literal notranslate"><span class="pre">two_qubit_reduction</span></code>
+to the values the user assigned to them in the <code class="docutils literal notranslate"><span class="pre">operator</span></code> section
+of the input file in order to enforce parameter/value matching across these different
+sections.  As a result, the user will only have to configure <code class="docutils literal notranslate"><span class="pre">qubit_mapping</span></code>
+and <code class="docutils literal notranslate"><span class="pre">two_qubit_reduction</span></code> in the <code class="docutils literal notranslate"><span class="pre">operator</span></code> section; the configuration of these two
+parameters in section <code class="docutils literal notranslate"><span class="pre">initial_states</span></code> is disabled,
+as reflected also in the GUI, where the values of these two parameters are only
+editable in the <code class="docutils literal notranslate"><span class="pre">operator</span></code> section, and otherwise grayed out in the
+<code class="docutils literal notranslate"><span class="pre">initial_state</span></code> section when the <code class="docutils literal notranslate"><span class="pre">name</span></code> parameter is set to <code class="docutils literal notranslate"><span class="pre">HartreeFock</span></code>.</p>
+<p class="last">On the other hand, if <code class="docutils literal notranslate"><span class="pre">auto_substitutions</span></code> is set to <code class="docutils literal notranslate"><span class="pre">False</span></code>,
+then the end user has the full responsibility for the entire
+configuration.</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Setting <code class="docutils literal notranslate"><span class="pre">auto_substitutions</span></code> to <code class="docutils literal notranslate"><span class="pre">False</span></code>, while
+made possible for experimental purposes, should only
+be done with extreme care, since it could easily lead to misconfiguring
+the entire experiment and producing imprecise results.</p>
+</div>
+<div class="topic">
+<p class="topic-title first">Declarative Name</p>
+<p>When referring to the Hartree-Fock initial state declaratively inside Aqua, its code <code class="docutils literal notranslate"><span class="pre">name</span></code>, by which Aqua dynamically discovers and loads it,
+is <code class="docutils literal notranslate"><span class="pre">HartreeFock</span></code>.</p>
+</div>
+</div>
+<div class="section" id="custom">
+<h2>Custom<a class="headerlink" href="#custom" title="Permalink to this headline">¶</a></h2>
+<p>Should the <a class="reference internal" href="#zero"><span class="std std-ref">Zero</span></a> and <a class="reference internal" href="#id2"><span class="std std-ref">Hartree-Fock</span></a> pre-defined initial states not meet the user’s
+needs for a particular quantum experiment, this option allows the user of Aqua to fully customize the initial state
+for <a class="reference internal" href="variational_forms.html#variational-forms"><span class="std std-ref">Variational Forms</span></a> and the <a class="reference internal" href="algorithms.html#qpe"><span class="std std-ref">Quantum Phase Estimation (QPE)</span></a> algorithm by directly configuring a <em>custom probability distribution</em> for the state vector.
+No matter what custom probability distribution the user chooses, the state vector will be normalized by Aqua,
+so the total probability represented is <span class="math notranslate nohighlight">\(1.0\)</span>.
+Setting up a custom probability distribution requires assigning a value to the following parameters:</p>
+<ul>
+<li><p class="first">The state vector corresponding to a specific custom probability distribution:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">state</span> <span class="o">=</span> <span class="s2">&quot;zero&quot;</span> <span class="o">|</span> <span class="s2">&quot;uniform&quot;</span> <span class="o">|</span> <span class="s2">&quot;random&quot;</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">state</span></code> parameter accepts a <code class="docutils literal notranslate"><span class="pre">str</span></code> value.  Currently, the following three <code class="docutils literal notranslate"><span class="pre">str</span></code> values are supported:</p>
+<ol class="arabic simple">
+<li><code class="docutils literal notranslate"><span class="pre">&quot;zero&quot;</span></code> — This setting configures the state vector with the <em>zero probability distribution</em>, and is effectively
+equivalent to the <a class="reference internal" href="#zero"><span class="std std-ref">Zero</span></a> initial state.</li>
+<li><code class="docutils literal notranslate"><span class="pre">&quot;uniform&quot;</span></code> — This setting configures the state vector with the <em>uniform probability distribution</em>.  All the qubits
+are set in superposition, each of them being initialized to the Hadamard gate, which means that
+a measurement will have equal probabilities to become <span class="math notranslate nohighlight">\(1\)</span> or <span class="math notranslate nohighlight">\(0\)</span>.</li>
+<li><code class="docutils literal notranslate"><span class="pre">&quot;random&quot;</span></code> — This setting assigns the elements of the state vector according to a random probability distribution.</li>
+</ol>
+</li>
+<li><p class="first">The state vector itself:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">state_vector</span> <span class="p">:</span> <span class="p">[</span><span class="nb">complex</span><span class="p">,</span> <span class="nb">complex</span><span class="p">,</span> <span class="o">...</span> <span class="p">,</span> <span class="nb">complex</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">state_vector</span></code> parameter allows a specific custom initial state to be defined as a
+list of <code class="docutils literal notranslate"><span class="pre">complex</span></code> numbers. The length of the list must be <span class="math notranslate nohighlight">\(2^q\)</span>, where <span class="math notranslate nohighlight">\(q\)</span> is the total number of qubits.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The <code class="docutils literal notranslate"><span class="pre">InitialState</span></code> Application Programming Interface (API) exposes an initialization method, <code class="docutils literal notranslate"><span class="pre">init_args</span></code>, that allows for
+programmatically setting <code class="docutils literal notranslate"><span class="pre">num_qubits</span></code>, the number of qubits in the <code class="docutils literal notranslate"><span class="pre">InitialState</span></code> object.  However, when configured declaratively,
+Aqua and its domain specific applications
+(<span class="xref std std-ref">aqua-chemistry</span>, <a class="reference internal" href="aqua_ai.html#aqua-ai"><span class="std std-ref">Aqua Artificial Intelligence</span></a>, and <a class="reference internal" href="aqua_optimization.html#aqua-optimization"><span class="std std-ref">Aqua Optimization</span></a>) do not expose a configuration parameter in
+an <code class="docutils literal notranslate"><span class="pre">InitialState</span></code> object to set
+the number of qubits to use in an experiment.  This is because, when it is used as a tool to execute experiments,
+Aqua is working at a higher, more abstract level.  In such cases, the number of qubits
+is computed internally at run time based on the particular experiment, and passed programmatically to
+<code class="docutils literal notranslate"><span class="pre">init_args</span></code>.  Manually configuring the state vector, therefore,
+requires knowing the number of qubits <span class="math notranslate nohighlight">\(q\)</span>, since the length of the state vector is <span class="math notranslate nohighlight">\(2^q\)</span>.  Providing a state vector of the wrong
+size will generate a run-time error.  Therefore, caution should be used when manually configuring the state vector.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">When the state vector is manually configured, any value assigned to the <code class="docutils literal notranslate"><span class="pre">state</span></code> parameter to
+specify a custom probability distribution will be ignored.</p>
+</div>
+</li>
+</ul>
+<div class="topic">
+<p class="topic-title first">Declarative Name</p>
+<p>When referring to the custom initial state declaratively inside Aqua, its code <code class="docutils literal notranslate"><span class="pre">name</span></code>, by which Aqua dynamically discovers and loads it,
+is <code class="docutils literal notranslate"><span class="pre">CUSTOM</span></code>.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="feature_maps.html" title="Feature Maps"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="iqfts.html" title="Inverse Quantum Fourier Transforms"
+             >previous</a> |</li>
+<li id="toc-toggle">
+<a class="btn btn-primary" role="button" data-toggle="collapse"
+   href=".sphinxsidebar" aria-expanded="false" aria-controls="collapseExample">
+  TOC</a> |
+</li>
+
+        <li class="nav-item nav-item-0"><a href="index.html">Qiskit Aqua 0.4.0 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="aqua.html" >Qiskit Aqua</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="library.html" >Aqua: A Library of Quantum Algorithms</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018 IBM.
+      Last updated on 2018/12/14.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.6.
+    </div>
+  </body>
+</html>

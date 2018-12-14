@@ -1,0 +1,22 @@
+qiskit\_aqua.algorithms.many\_sample.eoh package
+================================================
+
+Submodules
+----------
+
+qiskit\_aqua.algorithms.many\_sample.eoh.eoh module
+---------------------------------------------------
+
+.. automodule:: qiskit_aqua.algorithms.many_sample.eoh.eoh
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: qiskit_aqua.algorithms.many_sample.eoh
+    :members:
+    :undoc-members:
+    :show-inheritance:

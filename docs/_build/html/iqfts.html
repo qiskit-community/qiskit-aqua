@@ -1,0 +1,260 @@
+
+
+<!doctype html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Inverse Quantum Fourier Transforms &#8212; Qiskit Aqua 0.4.0 documentation</title>
+    <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/bizstyle.js"></script>
+    <script type="text/javascript" src="_static/bootstrap.min.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Initial States" href="initial_states.html" />
+    <link rel="prev" title="Oracles" href="oracles.html" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<!--[if lt IE 9]>
+    <script src="http://css3-mediaqueries-js.googlecode.com/svn/trunk/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head><body>
+<div id="head" class="head">
+    <a href="https://qiskit.org/aqua">Qiskit Aqua</a>
+</div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="initial_states.html" title="Initial States"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="oracles.html" title="Oracles"
+             accesskey="P">previous</a> |</li>
+<li id="toc-toggle">
+<a class="btn btn-primary" role="button" data-toggle="collapse"
+   href=".sphinxsidebar" aria-expanded="false" aria-controls="collapseExample">
+  TOC</a> |
+</li>
+
+        <li class="nav-item nav-item-0"><a href="index.html">Qiskit Aqua 0.4.0 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="aqua.html" >Qiskit Aqua</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="library.html" accesskey="U">Aqua: A Library of Quantum Algorithms</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/qiskit-logo-white-no-margin.gif" alt="Logo"/>
+            </a></p>
+<p class="logo-description">Qiskit Aqua</p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="aqua.html">Qiskit Aqua</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="library.html">Aqua: A Library of Quantum Algorithms</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html">Installation and Setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="execution.html">Configuring and Running an Experiment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="extending.html">Contributing to Aqua</a></li>
+<li class="toctree-l3"><a class="reference internal" href="algorithms.html">Algorithms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimizers.html">Optimizers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="variational_forms.html">Variational Forms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="oracles.html">Oracles</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Inverse Quantum Fourier Transforms</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#standard-iqft">Standard IQFT</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#approximate-iqft">Approximate IQFT</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="initial_states.html">Initial States</a></li>
+<li class="toctree-l3"><a class="reference internal" href="feature_maps.html">Feature Maps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qiskit_aqua.html">Aqua SDK Reference</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="aqua_ai.html">Aqua Artificial Intelligence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aqua_optimization.html">Aqua Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aqua_finance.html">Aqua Finance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aqua_tutorials.html">Aqua Tutorials</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="oracles.html"
+                        title="previous chapter">Oracles</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="initial_states.html"
+                        title="next chapter">Initial States</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/iqfts.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="inverse-quantum-fourier-transforms">
+<span id="iqfts"></span><h1>Inverse Quantum Fourier Transforms<a class="headerlink" href="#inverse-quantum-fourier-transforms" title="Permalink to this headline">¶</a></h1>
+<p>In quantum computing, a Quantum Fourier Transform (QFT) is a linear transformation
+on quantum bits, and is the quantum analogue of the discrete Fourier transform.
+QFT is a part of many quantum algorithms, such as Shor’s algorithm for factoring
+and computing the discrete logarithm, and the <a class="reference internal" href="algorithms.html#qpe"><span class="std std-ref">Quantum Phase Estimation (QPE)</span></a> algorithm for
+estimating the eigenvalues of a unitary operator.
+A QFT can be performed efficiently on a quantum computer, with a particular
+decomposition into a product of simpler unitary matrices.
+<a class="reference external" href="http://csis.pace.edu/ctappert/cs837-18spring/QC-textbook.pdf">It has been shown</a> how,
+using a simple decomposition,
+the discrete Fourier transform on <span class="math notranslate nohighlight">\(2^n\)</span> amplitudes can be implemented as a
+quantum circuit consisting of only <span class="math notranslate nohighlight">\(O(n^2)\)</span> Hadamard gates and controlled phase
+shift gates, where <span class="math notranslate nohighlight">\(n\)</span> is the number of qubits, in contrast
+with the classical discrete Fourier transform, which takes <span class="math notranslate nohighlight">\(O(n2^n)\)</span>
+gates, where in the classical case <span class="math notranslate nohighlight">\(n\)</span> is the number of bits.
+<a class="reference external" href="https://pdfs.semanticscholar.org/deff/d6774d409478734db5f92011ff66bebd4a05.pdf">The best quantum Fourier transform algorithms currently known</a>
+require only <span class="math notranslate nohighlight">\(O(n\log n)\)</span> gates to achieve an efficient approximation.</p>
+<p>Most of the properties of the QFT follow from the fact that it is a unitary
+transformation. This implies that, if <span class="math notranslate nohighlight">\(F\)</span> is the matrix representing the QFT,
+then <span class="math notranslate nohighlight">\(FF^\dagger = F^{\dagger}F=I\)</span>, where <span class="math notranslate nohighlight">\(F^\dagger\)</span> is the Hermitian
+adjoint of <span class="math notranslate nohighlight">\(F\)</span> and <span class="math notranslate nohighlight">\(I\)</span> is the identity matrix.
+It follows that <span class="math notranslate nohighlight">\(F^{-1} = F^\dagger\)</span>.
+Since there is an efficient quantum circuit implementing the QFT, the circuit can be
+run in reverse to perform the Inverse Quantum Fourier Transform (IQFT).
+Thus, both transforms can be efficiently performed on a quantum computer.</p>
+<p>As mentioned above, the <a class="reference internal" href="algorithms.html#qpe"><span class="std std-ref">Quantum Phase Estimation (QPE)</span></a> algorithm uses the QFT for estimating the eigenvalues
+of a unitary operator.  More precisely, QPE uses the Inverse Quantum Fourier Transform
+(IQFT).  IQFTs in Aqua are pluggable objects.  Among the IQFTs provided by Aqua, the user
+can choose which IQFT to use when instantiating QPE or any other algorithm that requires
+the use of an IQFT.  Furthermore, researchers interested in contributing new algorithms to
+Aqua can plug their own IQFT implementation.</p>
+<div class="topic">
+<p class="topic-title first">Extending the IQFT Library</p>
+<p>Consistent with its unique  design, Aqua has a modular and
+extensible architecture. Algorithms and their supporting objects, such as IQFTs,
+are pluggable modules in Aqua. This is done in order to encourage researchers and
+developers interested in
+<a class="reference internal" href="extending.html#aqua-extending"><span class="std std-ref">Contributing to Aqua</span></a> to extend the Aqua framework with their novel research contributions.
+New IQFTs are typically installed in the <code class="docutils literal notranslate"><span class="pre">qiskit_aqua/utils/iqfts</span></code>
+folder and derive from the <code class="docutils literal notranslate"><span class="pre">IQFT</span></code> class.  Aqua also allows for
+<a class="reference internal" href="extending.html#aqua-dynamically-discovered-components"><span class="std std-ref">Dynamically Discovered Components</span></a>: new IQFTs can register themselves
+as Aqua extensions and be dynamically discovered at run time independent of their
+location in the file system.</p>
+</div>
+<p>Aqua comes with two IQFTs:</p>
+<ol class="arabic simple">
+<li><a class="reference external" href="#standard-iqft">Standard IQFT</a></li>
+<li><a class="reference external" href="#approximate-iqft">Approximate IQFT</a></li>
+</ol>
+<p>The <code class="docutils literal notranslate"><span class="pre">iqft</span></code> section in the <a class="reference internal" href="execution.html#aqua-input-file"><span class="std std-ref">Input File</span></a> becomes relevant
+only for algorithms that require an IQFT.  This is reflected also in the
+<a class="reference internal" href="execution.html#aqua-gui"><span class="std std-ref">GUI</span></a>, which enables the <code class="docutils literal notranslate"><span class="pre">iqft</span></code> section for the IQFT configuration
+only when an algorithm requiring an IQFT is selected.  When the <code class="docutils literal notranslate"><span class="pre">iqft</span></code> section is
+indeed enabled, then the user can choose which IQFT to apply by assigning a <code class="docutils literal notranslate"><span class="pre">str</span></code> value
+to the <code class="docutils literal notranslate"><span class="pre">name</span></code> field of the <code class="docutils literal notranslate"><span class="pre">iqft</span></code> section.</p>
+<div class="section" id="standard-iqft">
+<h2>Standard IQFT<a class="headerlink" href="#standard-iqft" title="Permalink to this headline">¶</a></h2>
+<p>The standard version of the IQFT is simply the inverse of a plain QFT.
+It generates the inverse of a QFT circuit with no approximation.
+The standard IQFT takes no parameters and is not configurable.</p>
+<div class="topic">
+<p class="topic-title first">Declarative Name</p>
+<p>When referring to the standard IQFT declaratively inside Aqua, its code <code class="docutils literal notranslate"><span class="pre">name</span></code>, by which Aqua dynamically discovers and loads it,
+is <code class="docutils literal notranslate"><span class="pre">STANDARD</span></code>.</p>
+</div>
+</div>
+<div class="section" id="approximate-iqft">
+<h2>Approximate IQFT<a class="headerlink" href="#approximate-iqft" title="Permalink to this headline">¶</a></h2>
+<p>This form of IQFT generates the inverse of an Approximate
+Quantum Fourier Transform (AQFT) as described in
+<a class="reference external" href="https://arxiv.org/abs/1803.04933">arXiv:1803.04933</a>.
+The degree of approximation can be configured using the following parameter:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">degree</span> <span class="o">=</span> <span class="mi">0</span> <span class="o">|</span> <span class="mi">1</span> <span class="o">|</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>This parameter controls the level of approximation of the IQFT,
+expressed as a non-negative <code class="docutils literal notranslate"><span class="pre">int</span></code> value.
+The value provided will reduce the depth of neighbor terms allowed in the
+IQFT circuit. The default value is <code class="docutils literal notranslate"><span class="pre">0</span></code>, which results in no approximation — in which
+case the resulting IQFT is exactly the same as the <a class="reference external" href="#standard-iqft">standard IQFT</a>.
+Each value above <code class="docutils literal notranslate"><span class="pre">0</span></code>, however ,
+reduces by the corresponding amount the range of the neighbor terms allowed,
+which in turn reduces the circuit complexity.</p>
+<div class="topic">
+<p class="topic-title first">Declarative Name</p>
+<p>When referring to the approximate IQFT declaratively inside Aqua, its code <code class="docutils literal notranslate"><span class="pre">name</span></code>,
+by which Aqua dynamically discovers and loads it, is <code class="docutils literal notranslate"><span class="pre">APPROXIMATE</span></code>.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="initial_states.html" title="Initial States"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="oracles.html" title="Oracles"
+             >previous</a> |</li>
+<li id="toc-toggle">
+<a class="btn btn-primary" role="button" data-toggle="collapse"
+   href=".sphinxsidebar" aria-expanded="false" aria-controls="collapseExample">
+  TOC</a> |
+</li>
+
+        <li class="nav-item nav-item-0"><a href="index.html">Qiskit Aqua 0.4.0 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="aqua.html" >Qiskit Aqua</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="library.html" >Aqua: A Library of Quantum Algorithms</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018 IBM.
+      Last updated on 2018/12/14.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.6.
+    </div>
+  </body>
+</html>

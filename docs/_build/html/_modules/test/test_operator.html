@@ -1,0 +1,815 @@
+
+
+<!doctype html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>test.test_operator &#8212; Qiskit Aqua 0.4.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../_static/bizstyle.js"></script>
+    <script type="text/javascript" src="../../_static/bootstrap.min.js"></script>
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<!--[if lt IE 9]>
+    <script src="http://css3-mediaqueries-js.googlecode.com/svn/trunk/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head><body>
+<div id="head" class="head">
+    <a href="https://qiskit.org/aqua">Qiskit Aqua</a>
+</div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+<li id="toc-toggle">
+<a class="btn btn-primary" role="button" data-toggle="collapse"
+   href=".sphinxsidebar" aria-expanded="false" aria-controls="collapseExample">
+  TOC</a> |
+</li>
+
+        <li class="nav-item nav-item-0"><a href="../../index.html">Qiskit Aqua 0.4.0 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/qiskit-logo-white-no-margin.gif" alt="Logo"/>
+            </a></p>
+<p class="logo-description">Qiskit Aqua</p>
+  <h3><a href="../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../aqua.html">Qiskit Aqua</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for test.test_operator</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="c1"># Copyright 2018 IBM.</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1"># =============================================================================</span>
+
+<span class="kn">import</span> <span class="nn">unittest</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">qiskit</span> <span class="k">import</span> <span class="n">LegacySimulators</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">qiskit.quantum_info</span> <span class="k">import</span> <span class="n">Pauli</span>
+<span class="kn">from</span> <span class="nn">qiskit.transpiler</span> <span class="k">import</span> <span class="n">PassManager</span>
+
+<span class="kn">from</span> <span class="nn">test.common</span> <span class="k">import</span> <span class="n">QiskitAquaTestCase</span>
+<span class="kn">from</span> <span class="nn">qiskit_aqua</span> <span class="k">import</span> <span class="n">Operator</span>
+<span class="kn">from</span> <span class="nn">qiskit_aqua.components.variational_forms</span> <span class="k">import</span> <span class="n">RYRZ</span>
+
+
+<div class="viewcode-block" id="TestOperator"><a class="viewcode-back" href="../../test.html#test.test_operator.TestOperator">[docs]</a><span class="k">class</span> <span class="nc">TestOperator</span><span class="p">(</span><span class="n">QiskitAquaTestCase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Operator tests.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="TestOperator.setUp"><a class="viewcode-back" href="../../test.html#test.test_operator.TestOperator.setUp">[docs]</a>    <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="n">m_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">)</span>
+        <span class="n">matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">m_size</span><span class="p">,</span> <span class="n">m_size</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qubitOp</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">matrix</span><span class="o">=</span><span class="n">matrix</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestOperator.test_real_eval"><a class="viewcode-back" href="../../test.html#test.test_operator.TestOperator.test_real_eval">[docs]</a>    <span class="k">def</span> <span class="nf">test_real_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">depth</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">var_form</span> <span class="o">=</span> <span class="n">RYRZ</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qubitOp</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span> <span class="n">depth</span><span class="p">)</span>
+        <span class="n">circuit</span> <span class="o">=</span> <span class="n">var_form</span><span class="o">.</span><span class="n">construct_circuit</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">var_form</span><span class="o">.</span><span class="n">num_parameters</span><span class="p">)))</span>
+        <span class="c1"># self.qubitOp.coloring = None</span>
+        <span class="n">run_config_ref</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;shots&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+        <span class="n">run_config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;shots&#39;</span><span class="p">:</span> <span class="mi">10000</span><span class="p">}</span>
+        <span class="n">reference</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qubitOp</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s1">&#39;matrix&#39;</span><span class="p">,</span> <span class="n">circuit</span><span class="p">,</span> <span class="n">LegacySimulators</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span>
+            <span class="s1">&#39;statevector_simulator&#39;</span><span class="p">),</span> <span class="n">run_config</span><span class="o">=</span><span class="n">run_config_ref</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">reference</span> <span class="o">=</span> <span class="n">reference</span><span class="o">.</span><span class="n">real</span>
+        <span class="n">backend</span> <span class="o">=</span> <span class="n">LegacySimulators</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;qasm_simulator&#39;</span><span class="p">)</span>
+        <span class="n">paulis_mode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qubitOp</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s1">&#39;paulis&#39;</span><span class="p">,</span> <span class="n">circuit</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span> <span class="n">run_config</span><span class="o">=</span><span class="n">run_config</span><span class="p">)</span>
+        <span class="n">grouped_paulis_mode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qubitOp</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s1">&#39;grouped_paulis&#39;</span><span class="p">,</span> <span class="n">circuit</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span> <span class="n">run_config</span><span class="o">=</span><span class="n">run_config</span><span class="p">)</span>
+
+        <span class="n">paulis_mode_p_3sigma</span> <span class="o">=</span> <span class="n">paulis_mode</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">paulis_mode</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">paulis_mode_m_3sigma</span> <span class="o">=</span> <span class="n">paulis_mode</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">paulis_mode</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">grouped_paulis_mode_p_3sigma</span> <span class="o">=</span> <span class="n">grouped_paulis_mode</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">grouped_paulis_mode</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">grouped_paulis_mode_m_3sigma</span> <span class="o">=</span> <span class="n">grouped_paulis_mode</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">grouped_paulis_mode</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertLessEqual</span><span class="p">(</span><span class="n">reference</span><span class="p">,</span> <span class="n">paulis_mode_p_3sigma</span><span class="o">.</span><span class="n">real</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertGreaterEqual</span><span class="p">(</span><span class="n">reference</span><span class="p">,</span> <span class="n">paulis_mode_m_3sigma</span><span class="o">.</span><span class="n">real</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertLessEqual</span><span class="p">(</span><span class="n">reference</span><span class="p">,</span> <span class="n">grouped_paulis_mode_p_3sigma</span><span class="o">.</span><span class="n">real</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertGreaterEqual</span><span class="p">(</span><span class="n">reference</span><span class="p">,</span> <span class="n">grouped_paulis_mode_m_3sigma</span><span class="o">.</span><span class="n">real</span><span class="p">)</span>
+
+        <span class="n">run_config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;shots&#39;</span><span class="p">:</span> <span class="mi">10000</span><span class="p">}</span>
+        <span class="n">compile_config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;pass_manager&#39;</span><span class="p">:</span> <span class="n">PassManager</span><span class="p">()}</span>
+        <span class="n">paulis_mode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qubitOp</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s1">&#39;paulis&#39;</span><span class="p">,</span> <span class="n">circuit</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span>
+                                        <span class="n">run_config</span><span class="o">=</span><span class="n">run_config</span><span class="p">,</span> <span class="n">compile_config</span><span class="o">=</span><span class="n">compile_config</span><span class="p">)</span>
+        <span class="n">grouped_paulis_mode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qubitOp</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s1">&#39;grouped_paulis&#39;</span><span class="p">,</span> <span class="n">circuit</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span>
+                                                <span class="n">run_config</span><span class="o">=</span><span class="n">run_config</span><span class="p">,</span> <span class="n">compile_config</span><span class="o">=</span><span class="n">compile_config</span><span class="p">)</span>
+
+        <span class="n">paulis_mode_p_3sigma</span> <span class="o">=</span> <span class="n">paulis_mode</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">paulis_mode</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">paulis_mode_m_3sigma</span> <span class="o">=</span> <span class="n">paulis_mode</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">paulis_mode</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">grouped_paulis_mode_p_3sigma</span> <span class="o">=</span> <span class="n">grouped_paulis_mode</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">grouped_paulis_mode</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">grouped_paulis_mode_m_3sigma</span> <span class="o">=</span> <span class="n">grouped_paulis_mode</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">grouped_paulis_mode</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertLessEqual</span><span class="p">(</span><span class="n">reference</span><span class="p">,</span> <span class="n">paulis_mode_p_3sigma</span><span class="o">.</span><span class="n">real</span><span class="p">,</span> <span class="s2">&quot;Without any pass manager&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertGreaterEqual</span><span class="p">(</span><span class="n">reference</span><span class="p">,</span> <span class="n">paulis_mode_m_3sigma</span><span class="o">.</span><span class="n">real</span><span class="p">,</span> <span class="s2">&quot;Without any pass manager&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertLessEqual</span><span class="p">(</span><span class="n">reference</span><span class="p">,</span> <span class="n">grouped_paulis_mode_p_3sigma</span><span class="o">.</span><span class="n">real</span><span class="p">,</span> <span class="s2">&quot;Without any pass manager&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertGreaterEqual</span><span class="p">(</span><span class="n">reference</span><span class="p">,</span> <span class="n">grouped_paulis_mode_m_3sigma</span><span class="o">.</span><span class="n">real</span><span class="p">,</span> <span class="s2">&quot;Without any pass manager&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestOperator.test_exact_eval"><a class="viewcode-back" href="../../test.html#test.test_operator.TestOperator.test_exact_eval">[docs]</a>    <span class="k">def</span> <span class="nf">test_exact_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">depth</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">var_form</span> <span class="o">=</span> <span class="n">RYRZ</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qubitOp</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span> <span class="n">depth</span><span class="p">)</span>
+        <span class="n">circuit</span> <span class="o">=</span> <span class="n">var_form</span><span class="o">.</span><span class="n">construct_circuit</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">var_form</span><span class="o">.</span><span class="n">num_parameters</span><span class="p">)))</span>
+
+        <span class="n">run_config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;shots&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+        <span class="n">backend</span> <span class="o">=</span> <span class="n">LegacySimulators</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;statevector_simulator&#39;</span><span class="p">)</span>
+        <span class="n">matrix_mode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qubitOp</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s1">&#39;matrix&#39;</span><span class="p">,</span> <span class="n">circuit</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span> <span class="n">run_config</span><span class="o">=</span><span class="n">run_config</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">non_matrix_mode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qubitOp</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s1">&#39;paulis&#39;</span><span class="p">,</span> <span class="n">circuit</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span> <span class="n">run_config</span><span class="o">=</span><span class="n">run_config</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">diff</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">matrix_mode</span> <span class="o">-</span> <span class="n">non_matrix_mode</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertLess</span><span class="p">(</span><span class="n">diff</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="s2">&quot;Values: (</span><span class="si">{}</span><span class="s2"> vs </span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">matrix_mode</span><span class="p">,</span> <span class="n">non_matrix_mode</span><span class="p">))</span>
+
+        <span class="n">run_config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;shots&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+        <span class="n">compile_config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;pass_manager&#39;</span><span class="p">:</span> <span class="n">PassManager</span><span class="p">()}</span>
+        <span class="n">non_matrix_mode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qubitOp</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s1">&#39;paulis&#39;</span><span class="p">,</span> <span class="n">circuit</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span>
+                                            <span class="n">run_config</span><span class="o">=</span><span class="n">run_config</span><span class="p">,</span> <span class="n">compile_config</span><span class="o">=</span><span class="n">compile_config</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">diff</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">matrix_mode</span> <span class="o">-</span> <span class="n">non_matrix_mode</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertLess</span><span class="p">(</span><span class="n">diff</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="s2">&quot;Without any pass manager, Values: (</span><span class="si">{}</span><span class="s2"> vs </span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">matrix_mode</span><span class="p">,</span> <span class="n">non_matrix_mode</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="TestOperator.test_create_from_paulis_0"><a class="viewcode-back" href="../../test.html#test.test_operator.TestOperator.test_create_from_paulis_0">[docs]</a>    <span class="k">def</span> <span class="nf">test_create_from_paulis_0</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Test with single paulis.&quot;&quot;&quot;</span>
+        <span class="n">num_qubits</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="k">for</span> <span class="n">pauli_label</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="s1">&#39;IXYZ&#39;</span><span class="p">,</span> <span class="n">repeat</span><span class="o">=</span><span class="n">num_qubits</span><span class="p">):</span>
+            <span class="n">coeff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">pauli_term</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli_label</span><span class="p">)]</span>
+            <span class="n">op</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term</span><span class="p">])</span>
+
+            <span class="n">depth</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">var_form</span> <span class="o">=</span> <span class="n">RYRZ</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span> <span class="n">depth</span><span class="p">)</span>
+            <span class="n">circuit</span> <span class="o">=</span> <span class="n">var_form</span><span class="o">.</span><span class="n">construct_circuit</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">var_form</span><span class="o">.</span><span class="n">num_parameters</span><span class="p">)))</span>
+            <span class="n">run_config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;shots&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+            <span class="n">backend</span> <span class="o">=</span> <span class="n">LegacySimulators</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;statevector_simulator&#39;</span><span class="p">)</span>
+            <span class="n">non_matrix_mode</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s1">&#39;paulis&#39;</span><span class="p">,</span> <span class="n">circuit</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span> <span class="n">run_config</span><span class="o">=</span><span class="n">run_config</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">matrix_mode</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s1">&#39;matrix&#39;</span><span class="p">,</span> <span class="n">circuit</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span> <span class="n">run_config</span><span class="o">=</span><span class="n">run_config</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEqual</span><span class="p">(</span><span class="n">matrix_mode</span><span class="p">,</span> <span class="n">non_matrix_mode</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestOperator.test_create_from_matrix"><a class="viewcode-back" href="../../test.html#test.test_operator.TestOperator.test_create_from_matrix">[docs]</a>    <span class="k">def</span> <span class="nf">test_create_from_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Test with matrix initialization.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">num_qubits</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
+            <span class="n">m_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">num_qubits</span><span class="p">)</span>
+            <span class="n">matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">m_size</span><span class="p">,</span> <span class="n">m_size</span><span class="p">)</span>
+
+            <span class="n">op</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">matrix</span><span class="o">=</span><span class="n">matrix</span><span class="p">)</span>
+
+            <span class="n">depth</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">var_form</span> <span class="o">=</span> <span class="n">RYRZ</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span> <span class="n">depth</span><span class="p">)</span>
+            <span class="n">circuit</span> <span class="o">=</span> <span class="n">var_form</span><span class="o">.</span><span class="n">construct_circuit</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">var_form</span><span class="o">.</span><span class="n">num_parameters</span><span class="p">)))</span>
+            <span class="n">backend</span> <span class="o">=</span> <span class="n">LegacySimulators</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;statevector_simulator&#39;</span><span class="p">)</span>
+            <span class="n">run_config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;shots&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+            <span class="n">non_matrix_mode</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s1">&#39;paulis&#39;</span><span class="p">,</span> <span class="n">circuit</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span> <span class="n">run_config</span><span class="o">=</span><span class="n">run_config</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">matrix_mode</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s1">&#39;matrix&#39;</span><span class="p">,</span> <span class="n">circuit</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span> <span class="n">run_config</span><span class="o">=</span><span class="n">run_config</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEqual</span><span class="p">(</span><span class="n">matrix_mode</span><span class="p">,</span> <span class="n">non_matrix_mode</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestOperator.test_multiplication"><a class="viewcode-back" href="../../test.html#test.test_operator.TestOperator.test_multiplication">[docs]</a>    <span class="k">def</span> <span class="nf">test_multiplication</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Test multiplication.&quot;&quot;&quot;</span>
+        <span class="n">pauli_a</span> <span class="o">=</span> <span class="s1">&#39;IXYZ&#39;</span>
+        <span class="n">pauli_b</span> <span class="o">=</span> <span class="s1">&#39;ZYIX&#39;</span>
+        <span class="n">coeff_a</span> <span class="o">=</span> <span class="mf">0.5</span>
+        <span class="n">coeff_b</span> <span class="o">=</span> <span class="mf">0.5</span>
+        <span class="n">pauli_term_a</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff_a</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli_a</span><span class="p">)]</span>
+        <span class="n">pauli_term_b</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff_b</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli_b</span><span class="p">)]</span>
+        <span class="n">op_a</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term_a</span><span class="p">])</span>
+        <span class="n">op_b</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term_b</span><span class="p">])</span>
+        <span class="n">new_op</span> <span class="o">=</span> <span class="n">op_a</span> <span class="o">*</span> <span class="n">op_b</span>
+        <span class="c1"># print(new_op.print_operators())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_op</span><span class="o">.</span><span class="n">paulis</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="o">-</span><span class="mf">0.25</span><span class="p">,</span> <span class="n">new_op</span><span class="o">.</span><span class="n">paulis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="s1">&#39;ZZYY&#39;</span><span class="p">,</span> <span class="n">new_op</span><span class="o">.</span><span class="n">paulis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">to_label</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="TestOperator.test_addition_paulis_inplace"><a class="viewcode-back" href="../../test.html#test.test_operator.TestOperator.test_addition_paulis_inplace">[docs]</a>    <span class="k">def</span> <span class="nf">test_addition_paulis_inplace</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Test addition.&quot;&quot;&quot;</span>
+        <span class="n">pauli_a</span> <span class="o">=</span> <span class="s1">&#39;IXYZ&#39;</span>
+        <span class="n">pauli_b</span> <span class="o">=</span> <span class="s1">&#39;ZYIX&#39;</span>
+        <span class="n">coeff_a</span> <span class="o">=</span> <span class="mf">0.5</span>
+        <span class="n">coeff_b</span> <span class="o">=</span> <span class="mf">0.5</span>
+        <span class="n">pauli_term_a</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff_a</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli_a</span><span class="p">)]</span>
+        <span class="n">pauli_term_b</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff_b</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli_b</span><span class="p">)]</span>
+        <span class="n">op_a</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term_a</span><span class="p">])</span>
+        <span class="n">op_b</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term_b</span><span class="p">])</span>
+        <span class="n">op_a</span> <span class="o">+=</span> <span class="n">op_b</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">op_a</span><span class="o">.</span><span class="n">paulis</span><span class="p">))</span>
+
+        <span class="n">pauli_c</span> <span class="o">=</span> <span class="s1">&#39;IXYZ&#39;</span>
+        <span class="n">coeff_c</span> <span class="o">=</span> <span class="mf">0.25</span>
+        <span class="n">pauli_term_c</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff_c</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli_c</span><span class="p">)]</span>
+        <span class="n">op_a</span> <span class="o">+=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term_c</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">op_a</span><span class="o">.</span><span class="n">paulis</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mf">0.75</span><span class="p">,</span> <span class="n">op_a</span><span class="o">.</span><span class="n">paulis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="TestOperator.test_addition_matrix"><a class="viewcode-back" href="../../test.html#test.test_operator.TestOperator.test_addition_matrix">[docs]</a>    <span class="k">def</span> <span class="nf">test_addition_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            test addition in the matrix mode</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pauli_a</span> <span class="o">=</span> <span class="s1">&#39;IX&#39;</span>
+        <span class="n">pauli_b</span> <span class="o">=</span> <span class="s1">&#39;ZY&#39;</span>
+        <span class="n">coeff_a</span> <span class="o">=</span> <span class="mf">0.5</span>
+        <span class="n">coeff_b</span> <span class="o">=</span> <span class="mf">0.5</span>
+        <span class="n">pauli_term_a</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff_a</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli_a</span><span class="p">)]</span>
+        <span class="n">pauli_term_b</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff_b</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli_b</span><span class="p">)]</span>
+        <span class="n">op_a</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term_a</span><span class="p">])</span>
+        <span class="n">op_b</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term_b</span><span class="p">])</span>
+        <span class="n">op_a</span><span class="o">.</span><span class="n">to_matrix</span><span class="p">()</span>
+        <span class="n">op_b</span><span class="o">.</span><span class="n">to_matrix</span><span class="p">()</span>
+        <span class="n">op_a</span> <span class="o">+=</span> <span class="n">op_b</span>
+        <span class="n">op_a</span><span class="o">.</span><span class="n">to_paulis</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">op_a</span><span class="o">.</span><span class="n">paulis</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">op_a</span><span class="o">.</span><span class="n">paulis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">op_a</span><span class="o">.</span><span class="n">paulis</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="n">pauli_c</span> <span class="o">=</span> <span class="s1">&#39;IX&#39;</span>
+        <span class="n">coeff_c</span> <span class="o">=</span> <span class="mf">0.25</span>
+        <span class="n">pauli_term_c</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff_c</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli_c</span><span class="p">)]</span>
+        <span class="n">op_c</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term_c</span><span class="p">])</span>
+        <span class="n">op_c</span><span class="o">.</span><span class="n">to_matrix</span><span class="p">()</span>
+        <span class="n">op_a</span><span class="o">.</span><span class="n">to_matrix</span><span class="p">()</span>
+        <span class="n">op_a</span> <span class="o">+=</span> <span class="n">op_c</span>
+
+        <span class="n">op_a</span><span class="o">.</span><span class="n">to_paulis</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">op_a</span><span class="o">.</span><span class="n">paulis</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mf">0.75</span><span class="p">,</span> <span class="n">op_a</span><span class="o">.</span><span class="n">paulis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="TestOperator.test_subtraction_matrix"><a class="viewcode-back" href="../../test.html#test.test_operator.TestOperator.test_subtraction_matrix">[docs]</a>    <span class="k">def</span> <span class="nf">test_subtraction_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            test subtraction in the matrix mode</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pauli_a</span> <span class="o">=</span> <span class="s1">&#39;IX&#39;</span>
+        <span class="n">pauli_b</span> <span class="o">=</span> <span class="s1">&#39;ZY&#39;</span>
+        <span class="n">coeff_a</span> <span class="o">=</span> <span class="mf">0.5</span>
+        <span class="n">coeff_b</span> <span class="o">=</span> <span class="mf">0.5</span>
+        <span class="n">pauli_term_a</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff_a</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli_a</span><span class="p">)]</span>
+        <span class="n">pauli_term_b</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff_b</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli_b</span><span class="p">)]</span>
+        <span class="n">op_a</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term_a</span><span class="p">])</span>
+        <span class="n">op_b</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term_b</span><span class="p">])</span>
+        <span class="n">op_a</span><span class="o">.</span><span class="n">to_matrix</span><span class="p">()</span>
+        <span class="n">op_b</span><span class="o">.</span><span class="n">to_matrix</span><span class="p">()</span>
+        <span class="n">op_a</span> <span class="o">-=</span> <span class="n">op_b</span>
+        <span class="n">op_a</span><span class="o">.</span><span class="n">to_paulis</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">op_a</span><span class="o">.</span><span class="n">paulis</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">op_a</span><span class="o">.</span><span class="n">paulis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">op_a</span><span class="o">.</span><span class="n">paulis</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="n">pauli_c</span> <span class="o">=</span> <span class="s1">&#39;IX&#39;</span>
+        <span class="n">coeff_c</span> <span class="o">=</span> <span class="mf">0.25</span>
+        <span class="n">pauli_term_c</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff_c</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli_c</span><span class="p">)]</span>
+        <span class="n">op_c</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term_c</span><span class="p">])</span>
+        <span class="n">op_c</span><span class="o">.</span><span class="n">to_matrix</span><span class="p">()</span>
+        <span class="n">op_a</span><span class="o">.</span><span class="n">to_matrix</span><span class="p">()</span>
+        <span class="n">op_a</span> <span class="o">-=</span> <span class="n">op_c</span>
+
+        <span class="n">op_a</span><span class="o">.</span><span class="n">to_paulis</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">op_a</span><span class="o">.</span><span class="n">paulis</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mf">0.25</span><span class="p">,</span> <span class="n">op_a</span><span class="o">.</span><span class="n">paulis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="TestOperator.test_addition_paulis_noninplace"><a class="viewcode-back" href="../../test.html#test.test_operator.TestOperator.test_addition_paulis_noninplace">[docs]</a>    <span class="k">def</span> <span class="nf">test_addition_paulis_noninplace</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            test addition</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pauli_a</span> <span class="o">=</span> <span class="s1">&#39;IXYZ&#39;</span>
+        <span class="n">pauli_b</span> <span class="o">=</span> <span class="s1">&#39;ZYIX&#39;</span>
+        <span class="n">coeff_a</span> <span class="o">=</span> <span class="mf">0.5</span>
+        <span class="n">coeff_b</span> <span class="o">=</span> <span class="mf">0.5</span>
+        <span class="n">pauli_term_a</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff_a</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli_a</span><span class="p">)]</span>
+        <span class="n">pauli_term_b</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff_b</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli_b</span><span class="p">)]</span>
+        <span class="n">op_a</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term_a</span><span class="p">])</span>
+        <span class="n">op_b</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term_b</span><span class="p">])</span>
+        <span class="n">copy_op_a</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">op_a</span><span class="p">)</span>
+        <span class="n">new_op</span> <span class="o">=</span> <span class="n">op_a</span> <span class="o">+</span> <span class="n">op_b</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">copy_op_a</span><span class="p">,</span> <span class="n">op_a</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_op</span><span class="o">.</span><span class="n">paulis</span><span class="p">))</span>
+
+        <span class="n">pauli_c</span> <span class="o">=</span> <span class="s1">&#39;IXYZ&#39;</span>
+        <span class="n">coeff_c</span> <span class="o">=</span> <span class="mf">0.25</span>
+        <span class="n">pauli_term_c</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff_c</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli_c</span><span class="p">)]</span>
+        <span class="n">new_op</span> <span class="o">=</span> <span class="n">new_op</span> <span class="o">+</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term_c</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_op</span><span class="o">.</span><span class="n">paulis</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mf">0.75</span><span class="p">,</span> <span class="n">new_op</span><span class="o">.</span><span class="n">paulis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="TestOperator.test_subtraction_noninplace"><a class="viewcode-back" href="../../test.html#test.test_operator.TestOperator.test_subtraction_noninplace">[docs]</a>    <span class="k">def</span> <span class="nf">test_subtraction_noninplace</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            test subtraction</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pauli_a</span> <span class="o">=</span> <span class="s1">&#39;IXYZ&#39;</span>
+        <span class="n">pauli_b</span> <span class="o">=</span> <span class="s1">&#39;ZYIX&#39;</span>
+        <span class="n">coeff_a</span> <span class="o">=</span> <span class="mf">0.5</span>
+        <span class="n">coeff_b</span> <span class="o">=</span> <span class="mf">0.5</span>
+        <span class="n">pauli_term_a</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff_a</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli_a</span><span class="p">)]</span>
+        <span class="n">pauli_term_b</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff_b</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli_b</span><span class="p">)]</span>
+        <span class="n">op_a</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term_a</span><span class="p">])</span>
+        <span class="n">op_b</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term_b</span><span class="p">])</span>
+        <span class="n">copy_op_a</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">op_a</span><span class="p">)</span>
+        <span class="n">new_op</span> <span class="o">=</span> <span class="n">op_a</span> <span class="o">-</span> <span class="n">op_b</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">copy_op_a</span><span class="p">,</span> <span class="n">op_a</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_op</span><span class="o">.</span><span class="n">paulis</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">new_op</span><span class="o">.</span><span class="n">paulis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">new_op</span><span class="o">.</span><span class="n">paulis</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="n">pauli_c</span> <span class="o">=</span> <span class="s1">&#39;IXYZ&#39;</span>
+        <span class="n">coeff_c</span> <span class="o">=</span> <span class="mf">0.25</span>
+        <span class="n">pauli_term_c</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff_c</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli_c</span><span class="p">)]</span>
+        <span class="n">new_op</span> <span class="o">=</span> <span class="n">new_op</span> <span class="o">-</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term_c</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_op</span><span class="o">.</span><span class="n">paulis</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mf">0.25</span><span class="p">,</span> <span class="n">new_op</span><span class="o">.</span><span class="n">paulis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="TestOperator.test_subtraction_inplace"><a class="viewcode-back" href="../../test.html#test.test_operator.TestOperator.test_subtraction_inplace">[docs]</a>    <span class="k">def</span> <span class="nf">test_subtraction_inplace</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            test addition</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pauli_a</span> <span class="o">=</span> <span class="s1">&#39;IXYZ&#39;</span>
+        <span class="n">pauli_b</span> <span class="o">=</span> <span class="s1">&#39;ZYIX&#39;</span>
+        <span class="n">coeff_a</span> <span class="o">=</span> <span class="mf">0.5</span>
+        <span class="n">coeff_b</span> <span class="o">=</span> <span class="mf">0.5</span>
+        <span class="n">pauli_term_a</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff_a</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli_a</span><span class="p">)]</span>
+        <span class="n">pauli_term_b</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff_b</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli_b</span><span class="p">)]</span>
+        <span class="n">op_a</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term_a</span><span class="p">])</span>
+        <span class="n">op_b</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term_b</span><span class="p">])</span>
+        <span class="n">op_a</span> <span class="o">-=</span> <span class="n">op_b</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">op_a</span><span class="o">.</span><span class="n">paulis</span><span class="p">))</span>
+
+        <span class="n">pauli_c</span> <span class="o">=</span> <span class="s1">&#39;IXYZ&#39;</span>
+        <span class="n">coeff_c</span> <span class="o">=</span> <span class="mf">0.25</span>
+        <span class="n">pauli_term_c</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff_c</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli_c</span><span class="p">)]</span>
+        <span class="n">op_a</span> <span class="o">-=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term_c</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">op_a</span><span class="o">.</span><span class="n">paulis</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mf">0.25</span><span class="p">,</span> <span class="n">op_a</span><span class="o">.</span><span class="n">paulis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="TestOperator.test_scaling_coeff"><a class="viewcode-back" href="../../test.html#test.test_operator.TestOperator.test_scaling_coeff">[docs]</a>    <span class="k">def</span> <span class="nf">test_scaling_coeff</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            test scale</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pauli_a</span> <span class="o">=</span> <span class="s1">&#39;IXYZ&#39;</span>
+        <span class="n">pauli_b</span> <span class="o">=</span> <span class="s1">&#39;ZYIX&#39;</span>
+        <span class="n">coeff_a</span> <span class="o">=</span> <span class="mf">0.5</span>
+        <span class="n">coeff_b</span> <span class="o">=</span> <span class="mf">0.5</span>
+        <span class="n">pauli_term_a</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff_a</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli_a</span><span class="p">)]</span>
+        <span class="n">pauli_term_b</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff_b</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli_b</span><span class="p">)]</span>
+        <span class="n">op_a</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term_a</span><span class="p">])</span>
+        <span class="n">op_b</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term_b</span><span class="p">])</span>
+        <span class="n">op_a</span> <span class="o">+=</span> <span class="n">op_b</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">op_a</span><span class="o">.</span><span class="n">paulis</span><span class="p">))</span>
+
+        <span class="n">op_a</span><span class="o">.</span><span class="n">scaling_coeff</span><span class="p">(</span><span class="mf">0.7</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">op_a</span><span class="o">.</span><span class="n">paulis</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mf">0.35</span><span class="p">,</span> <span class="n">op_a</span><span class="o">.</span><span class="n">paulis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="TestOperator.test_str"><a class="viewcode-back" href="../../test.html#test.test_operator.TestOperator.test_str">[docs]</a>    <span class="k">def</span> <span class="nf">test_str</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            test str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pauli_a</span> <span class="o">=</span> <span class="s1">&#39;IXYZ&#39;</span>
+        <span class="n">pauli_b</span> <span class="o">=</span> <span class="s1">&#39;ZYIX&#39;</span>
+        <span class="n">coeff_a</span> <span class="o">=</span> <span class="mf">0.5</span>
+        <span class="n">coeff_b</span> <span class="o">=</span> <span class="mf">0.5</span>
+        <span class="n">pauli_term_a</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff_a</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli_a</span><span class="p">)]</span>
+        <span class="n">pauli_term_b</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff_b</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli_b</span><span class="p">)]</span>
+        <span class="n">op_a</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term_a</span><span class="p">])</span>
+        <span class="n">op_b</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term_b</span><span class="p">])</span>
+        <span class="n">op_a</span> <span class="o">+=</span> <span class="n">op_b</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="s2">&quot;Representation: paulis, qubits: 4, size: 2&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">op_a</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="TestOperator.test_zero_coeff"><a class="viewcode-back" href="../../test.html#test.test_operator.TestOperator.test_zero_coeff">[docs]</a>    <span class="k">def</span> <span class="nf">test_zero_coeff</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            test addition</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pauli_a</span> <span class="o">=</span> <span class="s1">&#39;IXYZ&#39;</span>
+        <span class="n">pauli_b</span> <span class="o">=</span> <span class="s1">&#39;IXYZ&#39;</span>
+        <span class="n">coeff_a</span> <span class="o">=</span> <span class="mf">0.5</span>
+        <span class="n">coeff_b</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span>
+        <span class="n">pauli_term_a</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff_a</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli_a</span><span class="p">)]</span>
+        <span class="n">pauli_term_b</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff_b</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli_b</span><span class="p">)]</span>
+        <span class="n">op_a</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term_a</span><span class="p">])</span>
+        <span class="n">op_b</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term_b</span><span class="p">])</span>
+        <span class="n">new_op</span> <span class="o">=</span> <span class="n">op_a</span> <span class="o">+</span> <span class="n">op_b</span>
+        <span class="n">new_op</span><span class="o">.</span><span class="n">zeros_coeff_elimination</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_op</span><span class="o">.</span><span class="n">paulis</span><span class="p">),</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">new_op</span><span class="o">.</span><span class="n">print_operators</span><span class="p">()))</span>
+
+        <span class="n">paulis</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;IXYZ&#39;</span><span class="p">,</span> <span class="s1">&#39;XXZY&#39;</span><span class="p">,</span> <span class="s1">&#39;IIZZ&#39;</span><span class="p">,</span> <span class="s1">&#39;XXYY&#39;</span><span class="p">,</span> <span class="s1">&#39;ZZXX&#39;</span><span class="p">,</span> <span class="s1">&#39;YYYY&#39;</span><span class="p">]</span>
+        <span class="n">coeffs</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.2</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.6</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.8</span><span class="p">]</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[])</span>
+        <span class="k">for</span> <span class="n">coeff</span><span class="p">,</span> <span class="n">pauli</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">coeffs</span><span class="p">,</span> <span class="n">paulis</span><span class="p">):</span>
+            <span class="n">pauli_term</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli</span><span class="p">)]</span>
+            <span class="n">op</span> <span class="o">+=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">6</span><span class="p">):</span>
+            <span class="n">op_a</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[[</span><span class="o">-</span><span class="n">coeffs</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">paulis</span><span class="p">[</span><span class="n">i</span><span class="p">])]])</span>
+            <span class="n">op</span> <span class="o">+=</span> <span class="n">op_a</span>
+            <span class="n">op</span><span class="o">.</span><span class="n">zeros_coeff_elimination</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">6</span><span class="o">-</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">paulis</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="TestOperator.test_zero_elimination"><a class="viewcode-back" href="../../test.html#test.test_operator.TestOperator.test_zero_elimination">[docs]</a>    <span class="k">def</span> <span class="nf">test_zero_elimination</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">pauli_a</span> <span class="o">=</span> <span class="s1">&#39;IXYZ&#39;</span>
+        <span class="n">coeff_a</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">pauli_term_a</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff_a</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli_a</span><span class="p">)]</span>
+        <span class="n">op_a</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term_a</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">op_a</span><span class="o">.</span><span class="n">paulis</span><span class="p">),</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">op_a</span><span class="o">.</span><span class="n">print_operators</span><span class="p">()))</span>
+        <span class="n">op_a</span><span class="o">.</span><span class="n">zeros_coeff_elimination</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">op_a</span><span class="o">.</span><span class="n">paulis</span><span class="p">),</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">op_a</span><span class="o">.</span><span class="n">print_operators</span><span class="p">()))</span></div>
+
+<div class="viewcode-block" id="TestOperator.test_dia_matrix"><a class="viewcode-back" href="../../test.html#test.test_operator.TestOperator.test_dia_matrix">[docs]</a>    <span class="k">def</span> <span class="nf">test_dia_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            test conversion to dia_matrix</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">num_qubits</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="n">pauli_term</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">pauli_label</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="s1">&#39;IZ&#39;</span><span class="p">,</span> <span class="n">repeat</span><span class="o">=</span><span class="n">num_qubits</span><span class="p">):</span>
+            <span class="n">coeff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">pauli_term</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">coeff</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli_label</span><span class="p">)])</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="n">pauli_term</span><span class="p">)</span>
+
+        <span class="n">op</span><span class="o">.</span><span class="n">to_matrix</span><span class="p">()</span>
+        <span class="n">op</span><span class="o">.</span><span class="n">to_grouped_paulis</span><span class="p">()</span>
+        <span class="n">op</span><span class="o">.</span><span class="n">_to_dia_matrix</span><span class="p">(</span><span class="s1">&#39;grouped_paulis&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">matrix</span><span class="o">.</span><span class="n">ndim</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">num_qubits</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="n">pauli_term</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">pauli_label</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="s1">&#39;YZ&#39;</span><span class="p">,</span> <span class="n">repeat</span><span class="o">=</span><span class="n">num_qubits</span><span class="p">):</span>
+            <span class="n">coeff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">pauli_term</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">coeff</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli_label</span><span class="p">)])</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="n">pauli_term</span><span class="p">)</span>
+
+        <span class="n">op</span><span class="o">.</span><span class="n">to_matrix</span><span class="p">()</span>
+        <span class="n">op</span><span class="o">.</span><span class="n">_to_dia_matrix</span><span class="p">(</span><span class="s1">&#39;matrix&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">matrix</span><span class="o">.</span><span class="n">ndim</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestOperator.test_equal_operator"><a class="viewcode-back" href="../../test.html#test.test_operator.TestOperator.test_equal_operator">[docs]</a>    <span class="k">def</span> <span class="nf">test_equal_operator</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="n">paulis</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;IXYZ&#39;</span><span class="p">,</span> <span class="s1">&#39;XXZY&#39;</span><span class="p">,</span> <span class="s1">&#39;IIZZ&#39;</span><span class="p">,</span> <span class="s1">&#39;XXYY&#39;</span><span class="p">,</span> <span class="s1">&#39;ZZXX&#39;</span><span class="p">,</span> <span class="s1">&#39;YYYY&#39;</span><span class="p">]</span>
+        <span class="n">coeffs</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.2</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.6</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.8</span><span class="p">]</span>
+        <span class="n">op1</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[])</span>
+        <span class="k">for</span> <span class="n">coeff</span><span class="p">,</span> <span class="n">pauli</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">coeffs</span><span class="p">,</span> <span class="n">paulis</span><span class="p">):</span>
+            <span class="n">pauli_term</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli</span><span class="p">)]</span>
+            <span class="n">op1</span> <span class="o">+=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term</span><span class="p">])</span>
+
+        <span class="n">paulis</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;IXYZ&#39;</span><span class="p">,</span> <span class="s1">&#39;XXZY&#39;</span><span class="p">,</span> <span class="s1">&#39;IIZZ&#39;</span><span class="p">,</span> <span class="s1">&#39;XXYY&#39;</span><span class="p">,</span> <span class="s1">&#39;ZZXX&#39;</span><span class="p">,</span> <span class="s1">&#39;YYYY&#39;</span><span class="p">]</span>
+        <span class="n">coeffs</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.2</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.6</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.8</span><span class="p">]</span>
+        <span class="n">op2</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[])</span>
+        <span class="k">for</span> <span class="n">coeff</span><span class="p">,</span> <span class="n">pauli</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">coeffs</span><span class="p">,</span> <span class="n">paulis</span><span class="p">):</span>
+            <span class="n">pauli_term</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli</span><span class="p">)]</span>
+            <span class="n">op2</span> <span class="o">+=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term</span><span class="p">])</span>
+
+        <span class="n">paulis</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;IXYY&#39;</span><span class="p">,</span> <span class="s1">&#39;XXZY&#39;</span><span class="p">,</span> <span class="s1">&#39;IIZZ&#39;</span><span class="p">,</span> <span class="s1">&#39;XXYY&#39;</span><span class="p">,</span> <span class="s1">&#39;ZZXX&#39;</span><span class="p">,</span> <span class="s1">&#39;YYYY&#39;</span><span class="p">]</span>
+        <span class="n">coeffs</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.2</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.6</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.8</span><span class="p">]</span>
+        <span class="n">op3</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[])</span>
+        <span class="k">for</span> <span class="n">coeff</span><span class="p">,</span> <span class="n">pauli</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">coeffs</span><span class="p">,</span> <span class="n">paulis</span><span class="p">):</span>
+            <span class="n">pauli_term</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli</span><span class="p">)]</span>
+            <span class="n">op3</span> <span class="o">+=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term</span><span class="p">])</span>
+
+        <span class="n">paulis</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;IXYZ&#39;</span><span class="p">,</span> <span class="s1">&#39;XXZY&#39;</span><span class="p">,</span> <span class="s1">&#39;IIZZ&#39;</span><span class="p">,</span> <span class="s1">&#39;XXYY&#39;</span><span class="p">,</span> <span class="s1">&#39;ZZXX&#39;</span><span class="p">,</span> <span class="s1">&#39;YYYY&#39;</span><span class="p">]</span>
+        <span class="n">coeffs</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.2</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.6</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.8</span><span class="p">]</span>
+        <span class="n">op4</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[])</span>
+        <span class="k">for</span> <span class="n">coeff</span><span class="p">,</span> <span class="n">pauli</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">coeffs</span><span class="p">,</span> <span class="n">paulis</span><span class="p">):</span>
+            <span class="n">pauli_term</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli</span><span class="p">)]</span>
+            <span class="n">op4</span> <span class="o">+=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">op1</span><span class="p">,</span> <span class="n">op2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertNotEqual</span><span class="p">(</span><span class="n">op1</span><span class="p">,</span> <span class="n">op3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertNotEqual</span><span class="p">(</span><span class="n">op1</span><span class="p">,</span> <span class="n">op4</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertNotEqual</span><span class="p">(</span><span class="n">op3</span><span class="p">,</span> <span class="n">op4</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestOperator.test_negation_operator"><a class="viewcode-back" href="../../test.html#test.test_operator.TestOperator.test_negation_operator">[docs]</a>    <span class="k">def</span> <span class="nf">test_negation_operator</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="n">paulis</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;IXYZ&#39;</span><span class="p">,</span> <span class="s1">&#39;XXZY&#39;</span><span class="p">,</span> <span class="s1">&#39;IIZZ&#39;</span><span class="p">,</span> <span class="s1">&#39;XXYY&#39;</span><span class="p">,</span> <span class="s1">&#39;ZZXX&#39;</span><span class="p">,</span> <span class="s1">&#39;YYYY&#39;</span><span class="p">]</span>
+        <span class="n">coeffs</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.2</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.6</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.8</span><span class="p">]</span>
+        <span class="n">op1</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[])</span>
+        <span class="k">for</span> <span class="n">coeff</span><span class="p">,</span> <span class="n">pauli</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">coeffs</span><span class="p">,</span> <span class="n">paulis</span><span class="p">):</span>
+            <span class="n">pauli_term</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli</span><span class="p">)]</span>
+            <span class="n">op1</span> <span class="o">+=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term</span><span class="p">])</span>
+
+        <span class="n">paulis</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;IXYZ&#39;</span><span class="p">,</span> <span class="s1">&#39;XXZY&#39;</span><span class="p">,</span> <span class="s1">&#39;IIZZ&#39;</span><span class="p">,</span> <span class="s1">&#39;XXYY&#39;</span><span class="p">,</span> <span class="s1">&#39;ZZXX&#39;</span><span class="p">,</span> <span class="s1">&#39;YYYY&#39;</span><span class="p">]</span>
+        <span class="n">coeffs</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.2</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.6</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.8</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">]</span>
+        <span class="n">op2</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[])</span>
+        <span class="k">for</span> <span class="n">coeff</span><span class="p">,</span> <span class="n">pauli</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">coeffs</span><span class="p">,</span> <span class="n">paulis</span><span class="p">):</span>
+            <span class="n">pauli_term</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli</span><span class="p">)]</span>
+            <span class="n">op2</span> <span class="o">+=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertNotEqual</span><span class="p">(</span><span class="n">op1</span><span class="p">,</span> <span class="n">op2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">op1</span><span class="p">,</span> <span class="o">-</span><span class="n">op2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="o">-</span><span class="n">op1</span><span class="p">,</span> <span class="n">op2</span><span class="p">)</span>
+        <span class="n">op1</span><span class="o">.</span><span class="n">scaling_coeff</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">op1</span><span class="p">,</span> <span class="n">op2</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestOperator.test_chop_real_only"><a class="viewcode-back" href="../../test.html#test.test_operator.TestOperator.test_chop_real_only">[docs]</a>    <span class="k">def</span> <span class="nf">test_chop_real_only</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="n">paulis</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;IXYZ&#39;</span><span class="p">,</span> <span class="s1">&#39;XXZY&#39;</span><span class="p">,</span> <span class="s1">&#39;IIZZ&#39;</span><span class="p">,</span> <span class="s1">&#39;XXYY&#39;</span><span class="p">,</span> <span class="s1">&#39;ZZXX&#39;</span><span class="p">,</span> <span class="s1">&#39;YYYY&#39;</span><span class="p">]</span>
+        <span class="n">coeffs</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.2</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.6</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.8</span><span class="p">]</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[])</span>
+        <span class="k">for</span> <span class="n">coeff</span><span class="p">,</span> <span class="n">pauli</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">coeffs</span><span class="p">,</span> <span class="n">paulis</span><span class="p">):</span>
+            <span class="n">pauli_term</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli</span><span class="p">)]</span>
+            <span class="n">op</span> <span class="o">+=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term</span><span class="p">])</span>
+
+        <span class="n">op1</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">op</span><span class="p">)</span>
+        <span class="n">op1</span><span class="o">.</span><span class="n">chop</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="mf">0.4</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">op1</span><span class="o">.</span><span class="n">paulis</span><span class="p">),</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">op1</span><span class="o">.</span><span class="n">print_operators</span><span class="p">()))</span>
+        <span class="n">gt_op1</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[])</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
+            <span class="n">pauli_term</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeffs</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">paulis</span><span class="p">[</span><span class="n">i</span><span class="p">])]</span>
+            <span class="n">gt_op1</span> <span class="o">+=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term</span><span class="p">])</span>
+            <span class="n">pauli_term</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeffs</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="p">],</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">paulis</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="p">])]</span>
+            <span class="n">gt_op1</span> <span class="o">+=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">op1</span><span class="p">,</span> <span class="n">gt_op1</span><span class="p">)</span>
+
+        <span class="n">op2</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">op</span><span class="p">)</span>
+        <span class="n">op2</span><span class="o">.</span><span class="n">chop</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">op2</span><span class="o">.</span><span class="n">paulis</span><span class="p">),</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">op2</span><span class="o">.</span><span class="n">print_operators</span><span class="p">()))</span>
+        <span class="n">gt_op2</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[])</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
+            <span class="n">pauli_term</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeffs</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">paulis</span><span class="p">[</span><span class="n">i</span><span class="p">])]</span>
+            <span class="n">gt_op2</span> <span class="o">+=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term</span><span class="p">])</span>
+            <span class="n">pauli_term</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeffs</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="p">],</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">paulis</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="p">])]</span>
+            <span class="n">gt_op2</span> <span class="o">+=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">op2</span><span class="p">,</span> <span class="n">gt_op2</span><span class="p">)</span>
+
+        <span class="n">op3</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">op</span><span class="p">)</span>
+        <span class="n">op3</span><span class="o">.</span><span class="n">chop</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="mf">0.9</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">op3</span><span class="o">.</span><span class="n">paulis</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">op3</span><span class="o">.</span><span class="n">print_operators</span><span class="p">()))</span>
+        <span class="n">gt_op3</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[])</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
+            <span class="n">pauli_term</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeffs</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">paulis</span><span class="p">[</span><span class="n">i</span><span class="p">])]</span>
+            <span class="n">gt_op3</span> <span class="o">+=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term</span><span class="p">])</span>
+            <span class="n">pauli_term</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeffs</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="p">],</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">paulis</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="p">])]</span>
+            <span class="n">gt_op3</span> <span class="o">+=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">op3</span><span class="p">,</span> <span class="n">gt_op3</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestOperator.test_chop_complex_only_1"><a class="viewcode-back" href="../../test.html#test.test_operator.TestOperator.test_chop_complex_only_1">[docs]</a>    <span class="k">def</span> <span class="nf">test_chop_complex_only_1</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="n">paulis</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;IXYZ&#39;</span><span class="p">,</span> <span class="s1">&#39;XXZY&#39;</span><span class="p">,</span> <span class="s1">&#39;IIZZ&#39;</span><span class="p">,</span> <span class="s1">&#39;XXYY&#39;</span><span class="p">,</span> <span class="s1">&#39;ZZXX&#39;</span><span class="p">,</span> <span class="s1">&#39;YYYY&#39;</span><span class="p">]</span>
+        <span class="n">coeffs</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.2</span> <span class="o">+</span> <span class="o">-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.6</span> <span class="o">+</span> <span class="o">-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.8</span> <span class="o">+</span> <span class="o">-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="mf">0.8</span><span class="p">,</span>
+                  <span class="o">-</span><span class="mf">0.2</span> <span class="o">+</span> <span class="o">-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="mf">0.2</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.6</span> <span class="o">-</span> <span class="o">-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="mf">0.6</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.8</span> <span class="o">-</span> <span class="o">-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="mf">0.8</span><span class="p">]</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[])</span>
+        <span class="k">for</span> <span class="n">coeff</span><span class="p">,</span> <span class="n">pauli</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">coeffs</span><span class="p">,</span> <span class="n">paulis</span><span class="p">):</span>
+            <span class="n">pauli_term</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli</span><span class="p">)]</span>
+            <span class="n">op</span> <span class="o">+=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term</span><span class="p">])</span>
+
+        <span class="n">op1</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">op</span><span class="p">)</span>
+        <span class="n">op1</span><span class="o">.</span><span class="n">chop</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="mf">0.4</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">op1</span><span class="o">.</span><span class="n">paulis</span><span class="p">),</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">op1</span><span class="o">.</span><span class="n">print_operators</span><span class="p">()))</span>
+        <span class="n">gt_op1</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[])</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
+            <span class="n">pauli_term</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeffs</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">paulis</span><span class="p">[</span><span class="n">i</span><span class="p">])]</span>
+            <span class="n">gt_op1</span> <span class="o">+=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term</span><span class="p">])</span>
+            <span class="n">pauli_term</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeffs</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="p">],</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">paulis</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="p">])]</span>
+            <span class="n">gt_op1</span> <span class="o">+=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">op1</span><span class="p">,</span> <span class="n">gt_op1</span><span class="p">)</span>
+
+        <span class="n">op2</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">op</span><span class="p">)</span>
+        <span class="n">op2</span><span class="o">.</span><span class="n">chop</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">op2</span><span class="o">.</span><span class="n">paulis</span><span class="p">),</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">op2</span><span class="o">.</span><span class="n">print_operators</span><span class="p">()))</span>
+        <span class="n">gt_op2</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[])</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
+            <span class="n">pauli_term</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeffs</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">paulis</span><span class="p">[</span><span class="n">i</span><span class="p">])]</span>
+            <span class="n">gt_op2</span> <span class="o">+=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term</span><span class="p">])</span>
+            <span class="n">pauli_term</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeffs</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="p">],</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">paulis</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="p">])]</span>
+            <span class="n">gt_op2</span> <span class="o">+=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">op2</span><span class="p">,</span> <span class="n">gt_op2</span><span class="p">)</span>
+
+        <span class="n">op3</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">op</span><span class="p">)</span>
+        <span class="n">op3</span><span class="o">.</span><span class="n">chop</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="mf">0.9</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">op3</span><span class="o">.</span><span class="n">paulis</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">op3</span><span class="o">.</span><span class="n">print_operators</span><span class="p">()))</span>
+        <span class="n">gt_op3</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[])</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
+            <span class="n">pauli_term</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeffs</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">paulis</span><span class="p">[</span><span class="n">i</span><span class="p">])]</span>
+            <span class="n">gt_op3</span> <span class="o">+=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term</span><span class="p">])</span>
+            <span class="n">pauli_term</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeffs</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="p">],</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">paulis</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="p">])]</span>
+            <span class="n">gt_op3</span> <span class="o">+=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">op3</span><span class="p">,</span> <span class="n">gt_op3</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestOperator.test_chop_complex_only_2"><a class="viewcode-back" href="../../test.html#test.test_operator.TestOperator.test_chop_complex_only_2">[docs]</a>    <span class="k">def</span> <span class="nf">test_chop_complex_only_2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="n">paulis</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;IXYZ&#39;</span><span class="p">,</span> <span class="s1">&#39;XXZY&#39;</span><span class="p">,</span> <span class="s1">&#39;IIZZ&#39;</span><span class="p">,</span> <span class="s1">&#39;XXYY&#39;</span><span class="p">,</span> <span class="s1">&#39;ZZXX&#39;</span><span class="p">,</span> <span class="s1">&#39;YYYY&#39;</span><span class="p">]</span>
+        <span class="n">coeffs</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.2</span> <span class="o">+</span> <span class="o">-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="mf">0.8</span><span class="p">,</span> <span class="mf">0.6</span> <span class="o">+</span> <span class="o">-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.8</span> <span class="o">+</span> <span class="o">-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="mf">0.2</span><span class="p">,</span>
+                  <span class="o">-</span><span class="mf">0.2</span> <span class="o">+</span> <span class="o">-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="mf">0.8</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.6</span> <span class="o">-</span> <span class="o">-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="mf">0.6</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.8</span> <span class="o">-</span> <span class="o">-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="mf">0.2</span><span class="p">]</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[])</span>
+        <span class="k">for</span> <span class="n">coeff</span><span class="p">,</span> <span class="n">pauli</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">coeffs</span><span class="p">,</span> <span class="n">paulis</span><span class="p">):</span>
+            <span class="n">pauli_term</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli</span><span class="p">)]</span>
+            <span class="n">op</span> <span class="o">+=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term</span><span class="p">])</span>
+
+        <span class="n">op1</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">op</span><span class="p">)</span>
+        <span class="n">op1</span><span class="o">.</span><span class="n">chop</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="mf">0.4</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">op1</span><span class="o">.</span><span class="n">paulis</span><span class="p">),</span> <span class="mi">6</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">op1</span><span class="o">.</span><span class="n">print_operators</span><span class="p">()))</span>
+
+        <span class="n">op2</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">op</span><span class="p">)</span>
+        <span class="n">op2</span><span class="o">.</span><span class="n">chop</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">op2</span><span class="o">.</span><span class="n">paulis</span><span class="p">),</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">op2</span><span class="o">.</span><span class="n">print_operators</span><span class="p">()))</span>
+
+        <span class="n">op3</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">op</span><span class="p">)</span>
+        <span class="n">op3</span><span class="o">.</span><span class="n">chop</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="mf">0.9</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">op3</span><span class="o">.</span><span class="n">paulis</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">op3</span><span class="o">.</span><span class="n">print_operators</span><span class="p">()))</span></div>
+
+<div class="viewcode-block" id="TestOperator.test_representations"><a class="viewcode-back" href="../../test.html#test.test_operator.TestOperator.test_representations">[docs]</a>    <span class="k">def</span> <span class="nf">test_representations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qubitOp</span><span class="o">.</span><span class="n">representations</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qubitOp</span><span class="o">.</span><span class="n">representations</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;matrix&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qubitOp</span><span class="o">.</span><span class="n">to_paulis</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qubitOp</span><span class="o">.</span><span class="n">representations</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qubitOp</span><span class="o">.</span><span class="n">representations</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;paulis&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qubitOp</span><span class="o">.</span><span class="n">to_grouped_paulis</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qubitOp</span><span class="o">.</span><span class="n">representations</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qubitOp</span><span class="o">.</span><span class="n">representations</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;grouped_paulis&#39;</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="TestOperator.test_num_qubits"><a class="viewcode-back" href="../../test.html#test.test_operator.TestOperator.test_num_qubits">[docs]</a>    <span class="k">def</span> <span class="nf">test_num_qubits</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="n">op</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qubitOp</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestOperator.test_is_empty"><a class="viewcode-back" href="../../test.html#test.test_operator.TestOperator.test_is_empty">[docs]</a>    <span class="k">def</span> <span class="nf">test_is_empty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">is_empty</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qubitOp</span><span class="o">.</span><span class="n">is_empty</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="TestOperator.test_submit_multiple_circuits"><a class="viewcode-back" href="../../test.html#test.test_operator.TestOperator.test_submit_multiple_circuits">[docs]</a>    <span class="k">def</span> <span class="nf">test_submit_multiple_circuits</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            test with single paulis</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">num_qubits</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="n">pauli_term</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">pauli_label</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="s1">&#39;IXYZ&#39;</span><span class="p">,</span> <span class="n">repeat</span><span class="o">=</span><span class="n">num_qubits</span><span class="p">):</span>
+            <span class="n">coeff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">pauli_term</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">coeff</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli_label</span><span class="p">)])</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="n">pauli_term</span><span class="p">)</span>
+
+        <span class="n">depth</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">var_form</span> <span class="o">=</span> <span class="n">RYRZ</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span> <span class="n">depth</span><span class="p">)</span>
+        <span class="n">circuit</span> <span class="o">=</span> <span class="n">var_form</span><span class="o">.</span><span class="n">construct_circuit</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">var_form</span><span class="o">.</span><span class="n">num_parameters</span><span class="p">)))</span>
+        <span class="n">run_config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;shots&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+        <span class="n">backend</span> <span class="o">=</span> <span class="n">LegacySimulators</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;statevector_simulator&#39;</span><span class="p">)</span>
+        <span class="n">non_matrix_mode</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s1">&#39;paulis&#39;</span><span class="p">,</span> <span class="n">circuit</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span> <span class="n">run_config</span><span class="o">=</span><span class="n">run_config</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">matrix_mode</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s1">&#39;matrix&#39;</span><span class="p">,</span> <span class="n">circuit</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span> <span class="n">run_config</span><span class="o">=</span><span class="n">run_config</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEqual</span><span class="p">(</span><span class="n">matrix_mode</span><span class="p">,</span> <span class="n">non_matrix_mode</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestOperator.test_load_from_file"><a class="viewcode-back" href="../../test.html#test.test_operator.TestOperator.test_load_from_file">[docs]</a>    <span class="k">def</span> <span class="nf">test_load_from_file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">paulis</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;IXYZ&#39;</span><span class="p">,</span> <span class="s1">&#39;XXZY&#39;</span><span class="p">,</span> <span class="s1">&#39;IIZZ&#39;</span><span class="p">,</span> <span class="s1">&#39;XXYY&#39;</span><span class="p">,</span> <span class="s1">&#39;ZZXX&#39;</span><span class="p">,</span> <span class="s1">&#39;YYYY&#39;</span><span class="p">]</span>
+        <span class="n">coeffs</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.2</span> <span class="o">+</span> <span class="o">-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="mf">0.8</span><span class="p">,</span> <span class="mf">0.6</span> <span class="o">+</span> <span class="o">-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.8</span> <span class="o">+</span> <span class="o">-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="mf">0.2</span><span class="p">,</span>
+                  <span class="o">-</span><span class="mf">0.2</span> <span class="o">+</span> <span class="o">-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="mf">0.8</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.6</span> <span class="o">-</span> <span class="o">-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="mf">0.6</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.8</span> <span class="o">-</span> <span class="o">-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="mf">0.2</span><span class="p">]</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[])</span>
+        <span class="k">for</span> <span class="n">coeff</span><span class="p">,</span> <span class="n">pauli</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">coeffs</span><span class="p">,</span> <span class="n">paulis</span><span class="p">):</span>
+            <span class="n">pauli_term</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="n">pauli</span><span class="p">)]</span>
+            <span class="n">op</span> <span class="o">+=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="p">[</span><span class="n">pauli_term</span><span class="p">])</span>
+
+        <span class="n">op</span><span class="o">.</span><span class="n">save_to_file</span><span class="p">(</span><span class="s1">&#39;temp_op.json&#39;</span><span class="p">)</span>
+        <span class="n">load_op</span> <span class="o">=</span> <span class="n">Operator</span><span class="o">.</span><span class="n">load_from_file</span><span class="p">(</span><span class="s1">&#39;temp_op.json&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s1">&#39;temp_op.json&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">load_op</span><span class="p">)</span>
+
+        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;temp_op.json&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestOperator.test_group_paulis_1"><a class="viewcode-back" href="../../test.html#test.test_operator.TestOperator.test_group_paulis_1">[docs]</a>    <span class="k">def</span> <span class="nf">test_group_paulis_1</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Test with color grouping approach</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">num_qubits</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="n">pauli_term</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">pauli_label</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="s1">&#39;IXYZ&#39;</span><span class="p">,</span> <span class="n">repeat</span><span class="o">=</span><span class="n">num_qubits</span><span class="p">):</span>
+            <span class="n">coeff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">pauli_term</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">coeff</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pauli_label</span><span class="p">))])</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="n">pauli_term</span><span class="p">)</span>
+        <span class="n">paulis</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">paulis</span><span class="p">)</span>
+        <span class="n">op</span><span class="o">.</span><span class="n">to_grouped_paulis</span><span class="p">()</span>
+        <span class="n">flattened_grouped_paulis</span> <span class="o">=</span> <span class="p">[</span><span class="n">pauli</span> <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">op</span><span class="o">.</span><span class="n">grouped_paulis</span> <span class="k">for</span> <span class="n">pauli</span> <span class="ow">in</span> <span class="n">group</span><span class="p">[</span><span class="mi">1</span><span class="p">:]]</span>
+
+        <span class="k">for</span> <span class="n">gp</span> <span class="ow">in</span> <span class="n">flattened_grouped_paulis</span><span class="p">:</span>
+            <span class="n">passed</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">paulis</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">gp</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                    <span class="n">passed</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">gp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="k">break</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">passed</span><span class="p">,</span> <span class="s2">&quot;non-existed paulis in grouped_paulis: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">gp</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">to_label</span><span class="p">()))</span></div>
+
+<div class="viewcode-block" id="TestOperator.test_group_paulis_2"><a class="viewcode-back" href="../../test.html#test.test_operator.TestOperator.test_group_paulis_2">[docs]</a>    <span class="k">def</span> <span class="nf">test_group_paulis_2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Test with normal grouping approach</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">num_qubits</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="n">pauli_term</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">pauli_label</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="s1">&#39;IXYZ&#39;</span><span class="p">,</span> <span class="n">repeat</span><span class="o">=</span><span class="n">num_qubits</span><span class="p">):</span>
+            <span class="n">coeff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">pauli_term</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">coeff</span><span class="p">,</span> <span class="n">Pauli</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pauli_label</span><span class="p">))])</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">paulis</span><span class="o">=</span><span class="n">pauli_term</span><span class="p">)</span>
+        <span class="n">op</span><span class="o">.</span><span class="n">coloring</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">paulis</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">paulis</span><span class="p">)</span>
+        <span class="n">op</span><span class="o">.</span><span class="n">to_grouped_paulis</span><span class="p">()</span>
+        <span class="n">flattened_grouped_paulis</span> <span class="o">=</span> <span class="p">[</span><span class="n">pauli</span> <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">op</span><span class="o">.</span><span class="n">grouped_paulis</span> <span class="k">for</span> <span class="n">pauli</span> <span class="ow">in</span> <span class="n">group</span><span class="p">[</span><span class="mi">1</span><span class="p">:]]</span>
+
+        <span class="k">for</span> <span class="n">gp</span> <span class="ow">in</span> <span class="n">flattened_grouped_paulis</span><span class="p">:</span>
+            <span class="n">passed</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">paulis</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">gp</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                    <span class="n">passed</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">gp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="k">break</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">passed</span><span class="p">,</span> <span class="s2">&quot;non-existed paulis in grouped_paulis: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">gp</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">to_label</span><span class="p">()))</span></div></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+<li id="toc-toggle">
+<a class="btn btn-primary" role="button" data-toggle="collapse"
+   href=".sphinxsidebar" aria-expanded="false" aria-controls="collapseExample">
+  TOC</a> |
+</li>
+
+        <li class="nav-item nav-item-0"><a href="../../index.html">Qiskit Aqua 0.4.0 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018 IBM.
+      Last updated on 2018/12/14.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.6.
+    </div>
+  </body>
+</html>

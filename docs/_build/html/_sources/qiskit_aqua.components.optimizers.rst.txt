@@ -1,0 +1,101 @@
+qiskit\_aqua.components.optimizers package
+==========================================
+
+Subpackages
+-----------
+
+.. toctree::
+
+    qiskit_aqua.components.optimizers.nlopts
+
+Submodules
+----------
+
+qiskit\_aqua.components.optimizers.cg module
+--------------------------------------------
+
+.. automodule:: qiskit_aqua.components.optimizers.cg
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+qiskit\_aqua.components.optimizers.cobyla module
+------------------------------------------------
+
+.. automodule:: qiskit_aqua.components.optimizers.cobyla
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+qiskit\_aqua.components.optimizers.l\_bfgs\_b module
+----------------------------------------------------
+
+.. automodule:: qiskit_aqua.components.optimizers.l_bfgs_b
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+qiskit\_aqua.components.optimizers.nelder\_mead module
+------------------------------------------------------
+
+.. automodule:: qiskit_aqua.components.optimizers.nelder_mead
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+qiskit\_aqua.components.optimizers.optimizer module
+---------------------------------------------------
+
+.. automodule:: qiskit_aqua.components.optimizers.optimizer
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+qiskit\_aqua.components.optimizers.p\_bfgs module
+-------------------------------------------------
+
+.. automodule:: qiskit_aqua.components.optimizers.p_bfgs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+qiskit\_aqua.components.optimizers.powell module
+------------------------------------------------
+
+.. automodule:: qiskit_aqua.components.optimizers.powell
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+qiskit\_aqua.components.optimizers.slsqp module
+-----------------------------------------------
+
+.. automodule:: qiskit_aqua.components.optimizers.slsqp
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+qiskit\_aqua.components.optimizers.spsa module
+----------------------------------------------
+
+.. automodule:: qiskit_aqua.components.optimizers.spsa
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+qiskit\_aqua.components.optimizers.tnc module
+---------------------------------------------
+
+.. automodule:: qiskit_aqua.components.optimizers.tnc
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: qiskit_aqua.components.optimizers
+    :members:
+    :undoc-members:
+    :show-inheritance:

@@ -1,0 +1,22 @@
+qiskit\_aqua.parser package
+===========================
+
+Submodules
+----------
+
+qiskit\_aqua.parser.jsonschema module
+-------------------------------------
+
+.. automodule:: qiskit_aqua.parser.jsonschema
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: qiskit_aqua.parser
+    :members:
+    :undoc-members:
+    :show-inheritance:

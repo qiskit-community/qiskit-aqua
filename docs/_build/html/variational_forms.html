@@ -1,0 +1,569 @@
+
+
+<!doctype html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Variational Forms &#8212; Qiskit Aqua 0.4.0 documentation</title>
+    <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/bizstyle.js"></script>
+    <script type="text/javascript" src="_static/bootstrap.min.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Oracles" href="oracles.html" />
+    <link rel="prev" title="Optimizers" href="optimizers.html" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<!--[if lt IE 9]>
+    <script src="http://css3-mediaqueries-js.googlecode.com/svn/trunk/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head><body>
+<div id="head" class="head">
+    <a href="https://qiskit.org/aqua">Qiskit Aqua</a>
+</div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="oracles.html" title="Oracles"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="optimizers.html" title="Optimizers"
+             accesskey="P">previous</a> |</li>
+<li id="toc-toggle">
+<a class="btn btn-primary" role="button" data-toggle="collapse"
+   href=".sphinxsidebar" aria-expanded="false" aria-controls="collapseExample">
+  TOC</a> |
+</li>
+
+        <li class="nav-item nav-item-0"><a href="index.html">Qiskit Aqua 0.4.0 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="aqua.html" >Qiskit Aqua</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="library.html" accesskey="U">Aqua: A Library of Quantum Algorithms</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/qiskit-logo-white-no-margin.gif" alt="Logo"/>
+            </a></p>
+<p class="logo-description">Qiskit Aqua</p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="aqua.html">Qiskit Aqua</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="library.html">Aqua: A Library of Quantum Algorithms</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html">Installation and Setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="execution.html">Configuring and Running an Experiment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="extending.html">Contributing to Aqua</a></li>
+<li class="toctree-l3"><a class="reference internal" href="algorithms.html">Algorithms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimizers.html">Optimizers</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Variational Forms</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ry">Ry</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ryrz">RyRz</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#unitary-coupled-cluster-singles-and-doubles-uccsd">Unitary Coupled Cluster Singles and Doubles (UCCSD)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#swaprz">SwapRz</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="oracles.html">Oracles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="iqfts.html">Inverse Quantum Fourier Transforms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="initial_states.html">Initial States</a></li>
+<li class="toctree-l3"><a class="reference internal" href="feature_maps.html">Feature Maps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qiskit_aqua.html">Aqua SDK Reference</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="aqua_ai.html">Aqua Artificial Intelligence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aqua_optimization.html">Aqua Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aqua_finance.html">Aqua Finance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aqua_tutorials.html">Aqua Tutorials</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="optimizers.html"
+                        title="previous chapter">Optimizers</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="oracles.html"
+                        title="next chapter">Oracles</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/variational_forms.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="variational-forms">
+<span id="id1"></span><h1>Variational Forms<a class="headerlink" href="#variational-forms" title="Permalink to this headline">¶</a></h1>
+<p>In quantum mechanics, the <em>variational method</em> is one way of finding approximations to the lowest energy
+eigenstate, or <em>ground state</em>, and some excited states. This allows calculating approximate wave functions,
+such as molecular orbitals.  The basis for this method is the <em>variational principle</em>.</p>
+<p>The variational method consists of choosing a <em>trial wave function</em>, or <em>variational form</em>, that depends on one
+or more parameters, and finding the values of these parameters for which the expectation value of the energy
+is the lowest possible.  The wave function obtained by fixing the parameters to such values is then an
+approximation to the ground state wave function, and the expectation value of the energy in that state
+is an upper bound to the ground state energy.  Quantum variational algorithms, such as
+<a class="reference internal" href="algorithms.html#vqe"><span class="std std-ref">Variational Quantum Eigensolver (VQE)</span></a>, apply
+the variational method.  As such, they require a variational form.</p>
+<p>In Aqua, variational forms are pluggable entities.  Practitioners who want to use Aqua mainly
+as a tool to experiment with <a class="reference internal" href="algorithms.html#quantum-algorithms"><span class="std std-ref">Quantum Algorithms</span></a>, and particularly
+with variational algorithms, will need to make use of variational forms.  On the other hand, researchers
+who want the advance the field of quantum computing, and design and develop new variational forms, can do so
+by extending Aqua with new variational forms, which will be dynamically discovered at run time and made
+available for use by quantum variational algorithms.</p>
+<div class="topic">
+<p class="topic-title first">Extending the Variational Form Library</p>
+<p>Consistent with its unique  design, Aqua has a modular and
+extensible architecture. Algorithms and their supporting objects, such as variational forms for quantum variational algorithms,
+are pluggable modules in Aqua.
+New variational forms for quantum variational algorithms are typically installed in the <code class="docutils literal notranslate"><span class="pre">qiskit_aqua/utils/variational_forms</span></code>
+folder and derive from the <code class="docutils literal notranslate"><span class="pre">VariationalForm</span></code> class.
+Aqua also allows for
+<a class="reference internal" href="extending.html#aqua-dynamically-discovered-components"><span class="std std-ref">Dynamically Discovered Components</span></a>: new components can register themselves
+as Aqua extensions and be dynamically discovered at run time independent of their
+location in the file system.
+This is done in order to encourage researchers and
+developers interested in
+<a class="reference internal" href="extending.html#aqua-extending"><span class="std std-ref">Contributing to Aqua</span></a> to extend the Aqua framework with their novel research contributions.</p>
+<p>When a variational form is used at run time, the <code class="docutils literal notranslate"><span class="pre">init_args</span></code> method will be
+called with parameters as per the schema. The number of qubits will also be supplied as the value of the parameter
+following <code class="docutils literal notranslate"><span class="pre">self</span></code> in the method argument list. During initialization, in <code class="docutils literal notranslate"><span class="pre">init_args</span></code>, the variational form should set the
+number of parameters it has and their bounds, as in the following example:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">_num_parameters</span> <span class="o">=</span> <span class="n">num_qubits</span> <span class="o">*</span> <span class="p">(</span><span class="n">depth</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">_bounds</span> <span class="o">=</span> <span class="p">[(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_parameters</span><span class="p">)]</span>
+</pre></div>
+</div>
+<p>These values will later be used by the variational algorithm in conjunction with the optimizer.</p>
+<p>The variational form can also
+indicate a <em>preferred initial point</em>.  This feature is particularly useful when there are reasons to believe that the
+solution point is close to a particular point, which can then be provided as the preferred initial point.  As an example,
+when building the dissociation profile of a molecule, it is likely that
+using the previous computed optimal solution as the starting initial point for the next interatomic distance is going
+to reduce the number of iterations necessary for the variational algorithm to converge.  Aqua provides
+<a class="reference external" href="https://github.com/Qiskit/aqua-tutorials/blob/master/chemistry/h2_vqe_initial_point.ipynb">a tutorial detailing this use case</a>.</p>
+<p><a class="reference internal" href="algorithms.html#vqe"><span class="std std-ref">Variational Quantum Eigensolver (VQE)</span></a> can, therefore, take an optional initial point from the user
+as the value of the <code class="docutils literal notranslate"><span class="pre">initial_point</span></code> parameter, specified as a list of <code class="docutils literal notranslate"><span class="pre">float</span></code> values.
+The length of this list must match the number of the parameters expected by the variational form being used.
+If the user does not supply a preferred initial point, then VQE will look to the variational form for a preferred value.
+If the variational form returns <code class="docutils literal notranslate"><span class="pre">None</span></code>,
+then a random point will be generated within the parameter bounds set, as per above.
+If the variational form provides <code class="docutils literal notranslate"><span class="pre">None</span></code> as the lower bound, then VQE
+will default it to <span class="math notranslate nohighlight">\(-2\pi\)</span>; similarly, if the variational form returns <code class="docutils literal notranslate"><span class="pre">None</span></code> as the upper bound, the default value will be <span class="math notranslate nohighlight">\(2\pi\)</span>.</p>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last">Section “<a class="reference internal" href="extending.html#aqua-extending"><span class="std std-ref">Contributing to Aqua</span></a>” provides more
+details on how to extend Aqua with new components.</p>
+</div>
+<div class="topic">
+<p class="topic-title first">Entangler Map Associated with a Variational Form</p>
+<p>A variational form is associated with an entangler map, which specifies the entanglement of the qubits.
+An entangler map can be envisioned (and that is also how it is implemented in Aqua)
+as a dictionary <span class="math notranslate nohighlight">\(D\)</span> such that each entry in the dictionary has a source qubit
+index as the key <span class="math notranslate nohighlight">\(k\)</span>, with the corresponding value <span class="math notranslate nohighlight">\(D(k) = v\)</span> being a list of target qubit indexes to which qubit
+<span class="math notranslate nohighlight">\(k\)</span> is entangled.  Indexes are non-negative integer values from <span class="math notranslate nohighlight">\(0\)</span> to <span class="math notranslate nohighlight">\(q - 1\)</span>, where <span class="math notranslate nohighlight">\(q\)</span>
+is the total number of qubits.  The following Python dictionary shows a possible entangler map: <code class="docutils literal notranslate"><span class="pre">{0:</span> <span class="pre">[1,</span> <span class="pre">2],</span> <span class="pre">1:</span> <span class="pre">[3]}</span></code>.</p>
+</div>
+<p>Currently, Aqua supplies the following variational forms:</p>
+<ul class="simple">
+<li><a class="reference internal" href="#ry"><span class="std std-ref">Ry</span></a></li>
+<li><a class="reference internal" href="#ryrz"><span class="std std-ref">RyRz</span></a></li>
+<li><a class="reference internal" href="#unitary-coupled-cluster-singles-and-doubles-uccsd"><span class="std std-ref">Unitary Coupled Cluster Singles and Doubles (UCCSD)</span></a></li>
+<li><a class="reference internal" href="#swaprz"><span class="std std-ref">SwapRz</span></a></li>
+</ul>
+<div class="section" id="ry">
+<span id="id2"></span><h2>Ry<a class="headerlink" href="#ry" title="Permalink to this headline">¶</a></h2>
+<p>The Ry trial wave function is layers of <span class="math notranslate nohighlight">\(y\)</span> rotations with entanglements. The number of optimizer parameters this form
+creates and uses is given by <span class="math notranslate nohighlight">\(q \times (d + 1)\)</span>, where <span class="math notranslate nohighlight">\(q\)</span> is the total number of qubits and <span class="math notranslate nohighlight">\(d\)</span> is the depth of the circuit.</p>
+<p>The following allows a specific form to be configured in the
+<code class="docutils literal notranslate"><span class="pre">variational_form</span></code> section of the Aqua
+<a class="reference internal" href="execution.html#aqua-input-file"><span class="std std-ref">Input File</span></a> when the <code class="docutils literal notranslate"><span class="pre">name</span></code> field
+is set to <code class="docutils literal notranslate"><span class="pre">RY</span></code>:</p>
+<ul>
+<li><p class="first">The depth of the circuit:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">depth</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">|</span> <span class="mi">2</span> <span class="o">|</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>This parameter takes an <code class="docutils literal notranslate"><span class="pre">int</span></code> value greater than <code class="docutils literal notranslate"><span class="pre">0</span></code>.  The default value is <code class="docutils literal notranslate"><span class="pre">3</span></code>.</p>
+</li>
+<li><p class="first">A <code class="docutils literal notranslate"><span class="pre">str</span></code> value representing the type of entanglement to use:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">entanglement</span> <span class="o">=</span> <span class="s2">&quot;full&quot;</span> <span class="o">|</span> <span class="s2">&quot;linear&quot;</span>
+</pre></div>
+</div>
+<p>Only two <code class="docutils literal notranslate"><span class="pre">str</span></code> values are supported: <code class="docutils literal notranslate"><span class="pre">&quot;full&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;linear&quot;</span></code>, corresponding to the <em>full</em> (or <em>all-to-all</em>) and
+<em>linear</em> (or <em>next-neighbor coupling</em>) entangler maps, respectively.  With full entanglement, each qubit is entangled with all the
+others; with linear entanglement, qubit <span class="math notranslate nohighlight">\(i\)</span> is entangled with qubit <span class="math notranslate nohighlight">\(i + 1\)</span>, for all <span class="math notranslate nohighlight">\(i \in \{0, 1, ... , q - 2\}\)</span>,
+where <span class="math notranslate nohighlight">\(q\)</span> is the total number of qubits.</p>
+</li>
+<li><p class="first">A dictionary of lists of non-negative <code class="docutils literal notranslate"><span class="pre">int</span></code> values specifying the entangler map:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">entangler_map</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span> <span class="o">|</span> <span class="o">...</span> <span class="o">|</span> <span class="n">q</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span> <span class="o">|</span> <span class="mi">2</span> <span class="o">|</span> <span class="o">...</span> <span class="o">|</span> <span class="n">q</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span> <span class="o">...</span> <span class="p">,</span> <span class="n">q</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span> <span class="o">|</span> <span class="mi">1</span> <span class="o">|</span> <span class="o">...</span> <span class="o">|</span> <span class="n">q</span> <span class="o">-</span> <span class="mi">2</span><span class="p">]}</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">entanglement</span></code> parameter defined above can be overridden by an entangler map explicitly specified as the value of the
+<code class="docutils literal notranslate"><span class="pre">entangler_map</span></code> parameter, if an entanglement map different
+from full or linear is desired.
+As explained more generally above, the form of the map is a dictionary; each entry in the dictionary has a source qubit
+index as the key, with the corresponding value being a list of target qubit indexes to which the source qubit should
+be entangled.
+Indexes are <code class="docutils literal notranslate"><span class="pre">int</span></code> values from <span class="math notranslate nohighlight">\(0\)</span> to <span class="math notranslate nohighlight">\(q-1\)</span>, where <span class="math notranslate nohighlight">\(q\)</span> is the total number of qubits,
+as in the following example:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">entangler_map</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="mi">1</span><span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">]}</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p>The source qubit index is excluded from the list of its corresponding target qubit indexes.  In other words,
+qubit <span class="math notranslate nohighlight">\(i\)</span> cannot be in the list <cite>:math:D(i)</cite> of qubits mapped to qubit <span class="math notranslate nohighlight">\(i\)</span> itself.</p>
+<p class="last">Furthermore, by default, if
+the <code class="docutils literal notranslate"><span class="pre">entangler_map</span></code> parameter specifies that <span class="math notranslate nohighlight">\(j \in D(i)\)</span>, where <span class="math notranslate nohighlight">\(i,j \in \{0, 1, q-1\}, i \neq j\)</span>, then it cannot also specify
+<span class="math notranslate nohighlight">\(j \in D(i)\)</span>.  A run-time error will be generated if double entanglement is configured.  This
+restriction can be lifted programmatically by setting the <code class="docutils literal notranslate"><span class="pre">allow_double_entanglement</span></code> boolean flag to <code class="docutils literal notranslate"><span class="pre">True</span></code> inside the
+<code class="docutils literal notranslate"><span class="pre">validate_entangler_map</span></code> method in the <code class="docutils literal notranslate"><span class="pre">entangler_map</span></code> Application Programming Interface (API).</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">When configured declaratively,
+Aqua and its domain specific applications
+(<span class="xref std std-ref">aqua-chemistry</span>, <a class="reference internal" href="aqua_ai.html#aqua-ai"><span class="std std-ref">Aqua Artificial Intelligence</span></a>, <a class="reference internal" href="aqua_optimization.html#aqua-optimization"><span class="std std-ref">Aqua Optimization</span></a> and <a class="reference internal" href="aqua_finance.html#aqua-finance"><span class="std std-ref">Aqua Finance</span></a>) do not expose a configuration parameter in
+a <code class="docutils literal notranslate"><span class="pre">VariationalForm</span></code> object to set
+the number of qubits that will be used in an experiment.  This is because, when it is used as a tool to execute experiments,
+Aqua is working at a higher, more abstract level.  In such cases, the number of qubits
+is computed internally at run time based on the particular experiment, and passed programmatically to
+the <code class="docutils literal notranslate"><span class="pre">init_args</span></code> initialization method of the <code class="docutils literal notranslate"><span class="pre">VariationalForm</span></code> object.
+Manually configuring the entangler map, therefore,
+requires knowing the number of qubits <span class="math notranslate nohighlight">\(q\)</span>, since the qubit indexes allowed
+in the entangler map comfiguration can only take <code class="docutils literal notranslate"><span class="pre">int</span></code> values from <span class="math notranslate nohighlight">\(0\)</span> to <span class="math notranslate nohighlight">\(q-1\)</span>.  Providing an entangler
+map with indexes outside of this range will generate a run-time error.  Therefore, caution should be used when
+manually configuring the entangler map.</p>
+</div>
+</li>
+</ul>
+<div class="topic">
+<p class="topic-title first">Declarative Name</p>
+<p>When referring to Ry declaratively inside Aqua, its code <code class="docutils literal notranslate"><span class="pre">name</span></code>, by which Aqua dynamically discovers and loads it,
+is <code class="docutils literal notranslate"><span class="pre">RY</span></code>.</p>
+</div>
+</div>
+<div class="section" id="ryrz">
+<span id="id3"></span><h2>RyRz<a class="headerlink" href="#ryrz" title="Permalink to this headline">¶</a></h2>
+<p>The RyRz trial wave function is layers of <span class="math notranslate nohighlight">\(y\)</span> plus <span class="math notranslate nohighlight">\(z\)</span> rotations with entanglements.
+The number of optimizer parameters this form
+creates and uses is given by <span class="math notranslate nohighlight">\(q \times (d + 1) \times 2\)</span>, where <span class="math notranslate nohighlight">\(q\)</span> is the total number of qubits and <span class="math notranslate nohighlight">\(d\)</span> is the depth of the circuit.
+The parameters of RyRz can be configured after selecting <code class="docutils literal notranslate"><span class="pre">RYRZ</span></code> as the value of the <code class="docutils literal notranslate"><span class="pre">name</span></code> field in the
+<code class="docutils literal notranslate"><span class="pre">variational_form</span></code> section of the Aqua <span class="xref std std-ref">input-file</span>.  These parameters are <code class="docutils literal notranslate"><span class="pre">depth</span></code>, <code class="docutils literal notranslate"><span class="pre">entanglement</span></code>, and <code class="docutils literal notranslate"><span class="pre">entangler_map</span></code> — the same
+as those of <a class="reference internal" href="#ry"><span class="std std-ref">Ry</span></a>.</p>
+<div class="topic">
+<p class="topic-title first">Declarative Name</p>
+<p>When referring to RyRz declaratively inside Aqua, its code <code class="docutils literal notranslate"><span class="pre">name</span></code>, by which Aqua dynamically discovers and loads it,
+is <code class="docutils literal notranslate"><span class="pre">RYRZ</span></code>.</p>
+</div>
+</div>
+<div class="section" id="unitary-coupled-cluster-singles-and-doubles-uccsd">
+<span id="uccsd"></span><h2>Unitary Coupled Cluster Singles and Doubles (UCCSD)<a class="headerlink" href="#unitary-coupled-cluster-singles-and-doubles-uccsd" title="Permalink to this headline">¶</a></h2>
+<p>UCCSD lends itself to chemistry experiments and it is, therefore, suitable for use in
+<span class="xref std std-ref">aqua-chemistry</span>.
+However, it is still a general variational form which can theoretically be used also in
+more general experiments.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last">The applicability of UCCSD to chemistry is
+described in <a class="reference external" href="https://arxiv.org/abs/1805.04340">arXiv:1805.04340</a>.</p>
+</div>
+<div class="topic">
+<p class="topic-title first">Particle Preservation</p>
+<p>Particle preservation plays an important role when computing the excited states of
+a molecule.  Without particle preservation, the result of the computation of the excited states
+would be polluted with the presence of ionized states, where some of the initial particles may
+be missing, or additional particles would be accounted for that were not there in the initial
+configuration.</p>
+</div>
+<p>In general, Unitary Coupled Cluster (UCC) preserves the number of particles across the computation and, consequently,
+the number of electrons.  This is true, in particular, for UCCSD.
+Therefore, the initial state should be prepared with the desired number of electrons in the
+<a class="reference internal" href="initial_states.html#id2"><span class="std std-ref">Hartree-Fock</span></a> state.
+For a neutral molecule, the number of electrons equals
+the number of protons.</p>
+<p>Note that the UCCSD implementation does not require the use of Trotter steps in the expansion of the
+cluster operators.  Assuming that <span class="math notranslate nohighlight">\(T_1\)</span> and <span class="math notranslate nohighlight">\(T_2\)</span> are the
+cluster operators for the single and double excitations, respectively,
+the Trotter expansion can be written as
+<span class="math notranslate nohighlight">\(e^{(T_1-{T_1}^\dagger)+(T_2-{T_2}^\dagger)}\)</span>.
+This amount can be approximated as <span class="math notranslate nohighlight">\(\left(e^{\left(T_1-{T_1}^\dagger\right)/n}e^{\left(T_2-{T_2}^\dagger\right)/n}\right)^n\)</span>.
+This approximation becomes exact in the limit <span class="math notranslate nohighlight">\(n \rightarrow \infty\)</span>.
+However, <a class="reference external" href="https://arxiv.org/abs/1805.04340">it has been shown</a> that the variational approach gives good accuracy
+with just a single Trotter step.</p>
+<p>Rather than allowing single and double excitations with all particles and all unoccupied orbitals,
+the particles and unoccupied orbitals can be restricted to a so called <em>active space</em>. This allows
+UCCSD to have a simpler form and correspondingly a shorter circuit. While simpler, this will result in an approximation
+of the exact value. The acceptability of such approximation depends on the active space chosen.</p>
+<p>The following parameters allow a specific form to be configured:</p>
+<ul>
+<li><p class="first">The depth of the circuit in use:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">depth</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">|</span> <span class="mi">2</span> <span class="o">|</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>This parameter takes a positive <code class="docutils literal notranslate"><span class="pre">int</span></code> value, representing the depth of the circuit.  The default value is <code class="docutils literal notranslate"><span class="pre">1</span></code>.
+Differently from the heuristic trial wave function approach, in UCCSD we do not need repetition of the circuit.</p>
+</li>
+<li><p class="first">The total number of spin orbitals for which the variational form is to be created:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">num_orbitals</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">|</span> <span class="mi">2</span> <span class="o">|</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>This parameter expects a positive <code class="docutils literal notranslate"><span class="pre">int</span></code> value.</p>
+</li>
+<li><p class="first">The total number of particles for which the variational form is to be created:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">num_particles</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">|</span> <span class="mi">2</span> <span class="o">|</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>This parameter expects a positive <code class="docutils literal notranslate"><span class="pre">int</span></code> value.</p>
+</li>
+<li><p class="first">The desired <span class="xref std std-ref">translators</span> from fermions to qubits:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">qubit_mapping</span> <span class="o">=</span> <span class="n">jordan_wigner</span> <span class="o">|</span> <span class="n">parity</span> <span class="o">|</span> <span class="n">bravyi_kitaev</span>
+</pre></div>
+</div>
+<p>This parameter takes a value of type <code class="docutils literal notranslate"><span class="pre">str</span></code>.  Currently, only the three values
+above are supported, but new qubit mappings can easily be plugged in.
+Specifically:</p>
+<ol class="arabic simple">
+<li><code class="docutils literal notranslate"><span class="pre">jordan_wigner</span></code> corresponds to the <span class="xref std std-ref">jordan-wigner</span> transformation.</li>
+<li><code class="docutils literal notranslate"><span class="pre">parity</span></code>, the default value for the <code class="docutils literal notranslate"><span class="pre">qubit_mapping</span></code> parameter, corresponds to the
+<span class="xref std std-ref">parity</span> mapping transformation. When this mapping is selected,
+it is possible to reduce by 2 the number of qubits required by the computation
+without loss of precision by setting the <code class="docutils literal notranslate"><span class="pre">two_qubit_reduction</span></code> parameter to <code class="docutils literal notranslate"><span class="pre">True</span></code>,
+as explained next.</li>
+<li><code class="docutils literal notranslate"><span class="pre">bravyi_kitaev</span></code> corresponds to the <span class="xref std std-ref">bravyi-kitaev</span> transformation,
+also known as <em>binary-tree-based qubit mapping</em>.</li>
+</ol>
+</li>
+<li><p class="first">A Boolean flag specifying whether or not to apply the precision-preserving two-qubit reduction
+optimization:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">two_qubit_reduction</span> <span class="p">:</span> <span class="nb">bool</span>
+</pre></div>
+</div>
+<p>The default value for this parameter is <code class="docutils literal notranslate"><span class="pre">True</span></code>.
+When the parity mapping is selected, and <code class="docutils literal notranslate"><span class="pre">two_qubit_reduction</span></code> is set to <code class="docutils literal notranslate"><span class="pre">True</span></code>,
+then the operator can be reduced by two qubits without loss
+of precision.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">If the mapping from fermionic to qubit is set to something other than
+the parity mapping, the value assigned to <code class="docutils literal notranslate"><span class="pre">two_qubit_reduction</span></code> is ignored.</p>
+</div>
+</li>
+<li><p class="first">The number of time slices to use in the expansion:</p>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">num_time_slices</span> <span class="o">=</span> <span class="mi">0</span> <span class="o">|</span> <span class="mi">1</span> <span class="o">|</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>This parameter expects a non-negative <code class="docutils literal notranslate"><span class="pre">int</span></code> value.  The default value is <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p>
+</li>
+<li><p class="first">A list of occupied orbitals whose particles are to be used in the creation of single
+and double excitations:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">active_occupied</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="o">...</span> <span class="p">,</span> <span class="nb">int</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>This parameter expects to be assigned a list of <code class="docutils literal notranslate"><span class="pre">int</span></code> values. By default, <code class="docutils literal notranslate"><span class="pre">active_occupied</span></code> is
+assigned <code class="docutils literal notranslate"><span class="pre">None</span></code>, corresponding to a configuration in which none of occupied orbitals is excluded
+from the computation.
+Spin orbitals are as in the diagram below, where <code class="docutils literal notranslate"><span class="pre">No</span></code> and <code class="docutils literal notranslate"><span class="pre">Nv</span></code> indicate the number of
+active occupied alpha orbitals and active unoccupied virtual alpha orbitals, respectively.</p>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span>             <span class="n">alpha</span> <span class="ow">or</span> <span class="n">up</span> <span class="n">electrons</span>                          <span class="n">beta</span> <span class="ow">or</span> <span class="n">down</span> <span class="n">electrons</span>
+<span class="o">/-------------------------------------------</span>\   <span class="o">/-------------------------------------------</span>\
+<span class="mi">0</span>      <span class="mi">1</span>           <span class="n">No</span><span class="o">-</span><span class="mi">1</span> <span class="n">No</span>             <span class="n">No</span><span class="o">+</span><span class="n">Nv</span><span class="o">-</span><span class="mi">1</span>  <span class="n">No</span><span class="o">+</span><span class="n">Nv</span>                                 <span class="mi">2</span><span class="p">(</span><span class="n">No</span><span class="o">+</span><span class="n">Nv</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span>
+\<span class="o">---------------------/</span>\<span class="o">--------------------/</span>   \<span class="o">--------------------/</span>\<span class="o">---------------------/</span>
+         <span class="n">occupied</span>             <span class="n">virtual</span>                  <span class="n">occupied</span>                <span class="n">virtual</span>
+
+<span class="mi">0</span><span class="o">---------------------</span><span class="n">n</span> <span class="mi">0</span><span class="o">-------------------</span><span class="n">m</span>
+    <span class="n">active_occupied</span>       <span class="n">active_unoccupied</span>
+         <span class="nb">range</span>                  <span class="nb">range</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">int</span></code> values in the <code class="docutils literal notranslate"><span class="pre">active_occupied</span></code> list are orbital indices ranging from <code class="docutils literal notranslate"><span class="pre">0</span></code> to <code class="docutils literal notranslate"><span class="pre">n</span></code>,
+where <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">=</span> <span class="pre">No</span> <span class="pre">-</span> <span class="pre">1</span></code>. The user needs only to supply
+the indexes of the active occupied alpha orbitals desired in the computation,
+as the indexes of the active occupied beta orbitals can be computed.
+Indexes can be given with negative numbers too, in
+which case <code class="docutils literal notranslate"><span class="pre">-1</span></code> is the highest occupied orbital, <code class="docutils literal notranslate"><span class="pre">-2</span></code> the next one down, and so on.</p>
+</li>
+<li><p class="first">A list of active unoccupied orbitals to be used in the creation of single and double excitations:</p>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">active_unoccupied</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="o">...</span> <span class="p">,</span> <span class="nb">int</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>This parameter expects to be assigned a list of <code class="docutils literal notranslate"><span class="pre">int</span></code> values.  By default, the default value assigned
+to <cite>active_unoccupied</cite> is <code class="docutils literal notranslate"><span class="pre">None</span></code>, which corresponds to the configuration in which none of the unoccupied orbitals
+is excluded from the computation.
+Particles from the <code class="docutils literal notranslate"><span class="pre">active_occupied</span></code> list are only allowed to be excited into
+orbitals defined by the <code class="docutils literal notranslate"><span class="pre">active_unoccupied</span></code> list.</p>
+<p>Assuming that <code class="docutils literal notranslate"><span class="pre">Nv</span></code> is the number of active unoccupied virtual alpha orbitals,
+the <code class="docutils literal notranslate"><span class="pre">int</span></code> values in the <code class="docutils literal notranslate"><span class="pre">active_unoccupied</span></code> list are orbital indices ranging from <code class="docutils literal notranslate"><span class="pre">0</span></code> to <code class="docutils literal notranslate"><span class="pre">m</span></code>, where <code class="docutils literal notranslate"><span class="pre">m</span> <span class="pre">=</span> <span class="pre">Nv</span> <span class="pre">-</span> <span class="pre">1</span></code>.
+The user needs only to supply
+the indexes of the active unoccupied virtual alpha orbitals, as the indexes of the active unoccupied virtual beta orbitals
+can be computed.
+Indexes can be given with negative numbers too, in
+which case <code class="docutils literal notranslate"><span class="pre">-1</span></code> is the highest unoccupied virtual orbital, <code class="docutils literal notranslate"><span class="pre">-2</span></code> the next one down, and so on.</p>
+</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>When executing an Aqua Chemistry problem, the user can configure two parameters in the <code class="docutils literal notranslate"><span class="pre">operator</span></code>
+section of the Aqua Chemistry
+<span class="xref std std-ref">aqua-chemistry-input-file</span>:
+<code class="docutils literal notranslate"><span class="pre">freeze_core</span></code> and <code class="docutils literal notranslate"><span class="pre">orbital_reduction</span></code>.  These two parameters effectively allow the user
+to specify a set of orbitals to be removed from the computation of the molecular energy.
+Thus the orbitals configurable through UCCSD do not include the orbitals removed via
+the <code class="docutils literal notranslate"><span class="pre">freeze_core</span></code> and <code class="docutils literal notranslate"><span class="pre">orbital_reduction</span></code> parameters.  The orbitals remaining after that removal
+are reindexed and  partitioned according to the following:</p>
+<ol class="last loweralpha simple">
+<li>The indexes in the <code class="docutils literal notranslate"><span class="pre">active_occupied</span></code> list range from <code class="docutils literal notranslate"><span class="pre">0</span></code> to <code class="docutils literal notranslate"><span class="pre">n</span></code>.</li>
+<li>The indexes in the <code class="docutils literal notranslate"><span class="pre">active_unoccupied</span></code> list range from <code class="docutils literal notranslate"><span class="pre">0</span></code> to <code class="docutils literal notranslate"><span class="pre">m</span></code>.</li>
+</ol>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>When the <code class="docutils literal notranslate"><span class="pre">auto_substitutions</span></code> flag in the <code class="docutils literal notranslate"><span class="pre">problem</span></code> section of the Aqua Chemistry
+<span class="xref std std-ref">aqua-chemistry-input-file</span>
+is set to <code class="docutils literal notranslate"><span class="pre">True</span></code>, which is the default, the values of parameters
+<code class="docutils literal notranslate"><span class="pre">num_particles</span></code> and <code class="docutils literal notranslate"><span class="pre">num_orbitals</span></code> are automatically computed by Aqua Chemistry
+when <code class="docutils literal notranslate"><span class="pre">UCCSD</span></code> is selected as the value of the <code class="docutils literal notranslate"><span class="pre">name</span></code> parameter in the <code class="docutils literal notranslate"><span class="pre">variational_forms</span></code> section.
+As such, their configuration is disabled; the user will not be required, or even allowed, to assign values to
+these two parameters.  This is also reflected in the <span class="xref std std-ref">aqua-chemistry-gui</span>, where
+these parameters will be grayed out and uneditable as long as <code class="docutils literal notranslate"><span class="pre">auto_substitutions</span></code> is set to <code class="docutils literal notranslate"><span class="pre">True</span></code>
+in the <code class="docutils literal notranslate"><span class="pre">problem</span></code> section.
+Furthermore, Aqua Chemistry automatically sets
+parameters <code class="docutils literal notranslate"><span class="pre">qubit_mapping</span></code> and <code class="docutils literal notranslate"><span class="pre">two_qubit_reduction</span></code> in section <code class="docutils literal notranslate"><span class="pre">variational_form</span></code> when
+<code class="docutils literal notranslate"><span class="pre">UCCSD</span></code> is selected as the value of the <code class="docutils literal notranslate"><span class="pre">name</span></code>
+parameter.  Specifically, Aqua Chemistry sets <code class="docutils literal notranslate"><span class="pre">qubit_mapping</span></code> and <code class="docutils literal notranslate"><span class="pre">two_qubit_reduction</span></code>
+to the values the user assigned to them in the <code class="docutils literal notranslate"><span class="pre">operator</span></code> section
+of the input file in order to enforce parameter/value matching across these different
+sections.  As a result, the user will only have to configure <code class="docutils literal notranslate"><span class="pre">qubit_mapping</span></code>
+and <code class="docutils literal notranslate"><span class="pre">two_qubit_reduction</span></code> in the <code class="docutils literal notranslate"><span class="pre">operator</span></code> section; the configuration of these two
+parameters in section <code class="docutils literal notranslate"><span class="pre">variational_form</span></code> is disabled,
+as reflected also in the GUI, where the values of these two parameters are only
+editable in the <code class="docutils literal notranslate"><span class="pre">operator</span></code> section, and otherwise grayed out in the
+<code class="docutils literal notranslate"><span class="pre">variational_form</span></code> sections.</p>
+<p class="last">On the other hand, if <code class="docutils literal notranslate"><span class="pre">auto_substitutions</span></code> is set to <code class="docutils literal notranslate"><span class="pre">False</span></code>,
+then the end user has the full responsibility for the entire
+configuration.</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Setting <code class="docutils literal notranslate"><span class="pre">auto_substitutions</span></code> to <code class="docutils literal notranslate"><span class="pre">False</span></code>, while
+made possible for experimental purposes, should only
+be done with extreme care, since it could easily lead to misconfiguring
+the entire experiment and producing imprecise results.</p>
+</div>
+<div class="topic">
+<p class="topic-title first">Declarative Name</p>
+<p>When referring to UCCSD declaratively inside Aqua, its code <code class="docutils literal notranslate"><span class="pre">name</span></code>, by which Aqua dynamically discovers and loads it,
+is <code class="docutils literal notranslate"><span class="pre">UCCSD</span></code>.</p>
+</div>
+</div>
+<div class="section" id="swaprz">
+<span id="id4"></span><h2>SwapRz<a class="headerlink" href="#swaprz" title="Permalink to this headline">¶</a></h2>
+<p>This trial wave function is layers of swap plus <span class="math notranslate nohighlight">\(z\)</span> rotations with entanglements.
+It was designed principally to be a particle-preserving variational form for
+<span class="xref std std-ref">aqua-chemistry</span>.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Particle preservation with SwapRz is not guaranteed unless SwapRz is used in conjunction with
+the <span class="xref std std-ref">jordan-wigner</span> qubit mapping and the <a class="reference internal" href="initial_states.html#id2"><span class="std std-ref">Hartree-Fock</span></a> initial state.</p>
+</div>
+<p>The parameters of SwapRz can be configured after selecting <code class="docutils literal notranslate"><span class="pre">SWAPRZ</span></code> as the value of the <code class="docutils literal notranslate"><span class="pre">name</span></code> field in the
+<code class="docutils literal notranslate"><span class="pre">variational_form</span></code> section of the Aqua
+<span class="xref std std-ref">aqua-input file</span>.  These parameters are <code class="docutils literal notranslate"><span class="pre">depth</span></code>. <code class="docutils literal notranslate"><span class="pre">entanglement</span></code>, and <code class="docutils literal notranslate"><span class="pre">entangler_map</span></code> — the same
+as those of <a class="reference internal" href="#ry"><span class="std std-ref">Ry</span></a>.</p>
+<p>Based on the notation introduced above for the entangler map associated with a variational form,
+the number of optimizer parameters SwapRz creates and uses is given by
+<span class="math notranslate nohighlight">\(q + d \times \left(q + \sum_{k=0}^{q-1}|D(k)|\right)\)</span>, where <span class="math notranslate nohighlight">\(|D(k)|\)</span> denotes the <em>cardinality</em> of
+<span class="math notranslate nohighlight">\(D(k)\)</span> or, more precisely, the <em>length</em> of <span class="math notranslate nohighlight">\(D(k)\)</span> (since <span class="math notranslate nohighlight">\(D(k)\)</span> is not
+just a set, but a list).</p>
+<div class="topic">
+<p class="topic-title first">Particle Preservation</p>
+<p>Particle preservation plays an important role when computing the excited states of
+a molecule.  Without particle preservation, the result of the computation of the excited states
+would be polluted with the presence of ionized states, where some of the initial particles may
+be missing, or additional particles would be accounted for that were not there in the initial
+configuration.</p>
+</div>
+<div class="topic">
+<p class="topic-title first">Declarative Name</p>
+<p>When referring to SwapRz declaratively inside Aqua, its code <code class="docutils literal notranslate"><span class="pre">name</span></code>, by which Aqua dynamically discovers and loads it,
+is <code class="docutils literal notranslate"><span class="pre">SWAPRZ</span></code>.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="oracles.html" title="Oracles"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="optimizers.html" title="Optimizers"
+             >previous</a> |</li>
+<li id="toc-toggle">
+<a class="btn btn-primary" role="button" data-toggle="collapse"
+   href=".sphinxsidebar" aria-expanded="false" aria-controls="collapseExample">
+  TOC</a> |
+</li>
+
+        <li class="nav-item nav-item-0"><a href="index.html">Qiskit Aqua 0.4.0 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="aqua.html" >Qiskit Aqua</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="library.html" >Aqua: A Library of Quantum Algorithms</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018 IBM.
+      Last updated on 2018/12/14.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.6.
+    </div>
+  </body>
+</html>

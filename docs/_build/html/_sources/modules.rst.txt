@@ -1,0 +1,11 @@
+aqua
+====
+
+.. toctree::
+   :maxdepth: 4
+
+   qiskit_aqua
+   qiskit_aqua_cmd
+   qiskit_aqua_ui
+   setup
+   test

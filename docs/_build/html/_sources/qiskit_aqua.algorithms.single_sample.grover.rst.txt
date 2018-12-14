@@ -1,0 +1,22 @@
+qiskit\_aqua.algorithms.single\_sample.grover package
+=====================================================
+
+Submodules
+----------
+
+qiskit\_aqua.algorithms.single\_sample.grover.grover module
+-----------------------------------------------------------
+
+.. automodule:: qiskit_aqua.algorithms.single_sample.grover.grover
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: qiskit_aqua.algorithms.single_sample.grover
+    :members:
+    :undoc-members:
+    :show-inheritance:

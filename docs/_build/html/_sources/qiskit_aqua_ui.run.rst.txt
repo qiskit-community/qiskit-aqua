@@ -1,0 +1,22 @@
+qiskit\_aqua\_ui.run package
+============================
+
+Submodules
+----------
+
+qiskit\_aqua\_ui.run.command\_line module
+-----------------------------------------
+
+.. automodule:: qiskit_aqua_ui.run.command_line
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: qiskit_aqua_ui.run
+    :members:
+    :undoc-members:
+    :show-inheritance:

@@ -1,0 +1,544 @@
+
+
+<!doctype html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>qiskit_aqua.input package &#8212; Qiskit Aqua 0.4.0 documentation</title>
+    <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/bizstyle.js"></script>
+    <script type="text/javascript" src="_static/bootstrap.min.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="qiskit_aqua.parser package" href="qiskit_aqua.parser.html" />
+    <link rel="prev" title="qiskit_aqua.components.variational_forms package" href="qiskit_aqua.components.variational_forms.html" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<!--[if lt IE 9]>
+    <script src="http://css3-mediaqueries-js.googlecode.com/svn/trunk/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head><body>
+<div id="head" class="head">
+    <a href="https://qiskit.org/aqua">Qiskit Aqua</a>
+</div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="qiskit_aqua.parser.html" title="qiskit_aqua.parser package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="qiskit_aqua.components.variational_forms.html" title="qiskit_aqua.components.variational_forms package"
+             accesskey="P">previous</a> |</li>
+<li id="toc-toggle">
+<a class="btn btn-primary" role="button" data-toggle="collapse"
+   href=".sphinxsidebar" aria-expanded="false" aria-controls="collapseExample">
+  TOC</a> |
+</li>
+
+        <li class="nav-item nav-item-0"><a href="index.html">Qiskit Aqua 0.4.0 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="aqua.html" >Qiskit Aqua</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="library.html" >Aqua: A Library of Quantum Algorithms</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="qiskit_aqua.html" accesskey="U">qiskit_aqua package</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/qiskit-logo-white-no-margin.gif" alt="Logo"/>
+            </a></p>
+<p class="logo-description">Qiskit Aqua</p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="aqua.html">Qiskit Aqua</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="qiskit_aqua.components.variational_forms.html"
+                        title="previous chapter">qiskit_aqua.components.variational_forms package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="qiskit_aqua.parser.html"
+                        title="next chapter">qiskit_aqua.parser package</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/qiskit_aqua.input.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="qiskit-aqua-input-package">
+<h1>qiskit_aqua.input package<a class="headerlink" href="#qiskit-aqua-input-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-qiskit_aqua.input.algorithminput">
+<span id="qiskit-aqua-input-algorithminput-module"></span><h2>qiskit_aqua.input.algorithminput module<a class="headerlink" href="#module-qiskit_aqua.input.algorithminput" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="qiskit_aqua.input.algorithminput.AlgorithmInput">
+<em class="property">class </em><code class="descclassname">qiskit_aqua.input.algorithminput.</code><code class="descname">AlgorithmInput</code><a class="reference internal" href="_modules/qiskit_aqua/input/algorithminput.html#AlgorithmInput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.input.algorithminput.AlgorithmInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="qiskit_aqua.html#qiskit_aqua.pluggable.Pluggable" title="qiskit_aqua.pluggable.Pluggable"><code class="xref py py-class docutils literal notranslate"><span class="pre">qiskit_aqua.pluggable.Pluggable</span></code></a></p>
+<dl class="attribute">
+<dt id="qiskit_aqua.input.algorithminput.AlgorithmInput.all_problems">
+<code class="descname">all_problems</code><a class="headerlink" href="#qiskit_aqua.input.algorithminput.AlgorithmInput.all_problems" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="qiskit_aqua.input.algorithminput.AlgorithmInput.check_pluggable_valid">
+<em class="property">static </em><code class="descname">check_pluggable_valid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.input.algorithminput.AlgorithmInput.check_pluggable_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if pluggable is ready for use. Throws an exception if not</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.input.algorithminput.AlgorithmInput.configuration">
+<code class="descname">configuration</code><a class="headerlink" href="#qiskit_aqua.input.algorithminput.AlgorithmInput.configuration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return pluggable configuration.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.input.algorithminput.AlgorithmInput.from_params">
+<code class="descname">from_params</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/input/algorithminput.html#AlgorithmInput.from_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.input.algorithminput.AlgorithmInput.from_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the dictionary into the algorithminput class fields. This dictionary being that as
+created by to_params()
+:param params: A dictionary as originally created by to_params()</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.input.algorithminput.AlgorithmInput.problems">
+<code class="descname">problems</code><a class="headerlink" href="#qiskit_aqua.input.algorithminput.AlgorithmInput.problems" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the set of problems that this input form supports</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.input.algorithminput.AlgorithmInput.to_params">
+<code class="descname">to_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/input/algorithminput.html#AlgorithmInput.to_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.input.algorithminput.AlgorithmInput.to_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert the derived algorithminput class fields to a dictionary where the values are in a
+form that can be saved to json
+:returns: Dictionary of input fields</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.input.algorithminput.AlgorithmInput.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><em>args_dict</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.input.algorithminput.AlgorithmInput.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-qiskit_aqua.input.energyinput">
+<span id="qiskit-aqua-input-energyinput-module"></span><h2>qiskit_aqua.input.energyinput module<a class="headerlink" href="#module-qiskit_aqua.input.energyinput" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="qiskit_aqua.input.energyinput.EnergyInput">
+<em class="property">class </em><code class="descclassname">qiskit_aqua.input.energyinput.</code><code class="descname">EnergyInput</code><span class="sig-paren">(</span><em>qubit_op</em>, <em>aux_ops=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/input/energyinput.html#EnergyInput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.input.energyinput.EnergyInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qiskit_aqua.input.algorithminput.AlgorithmInput" title="qiskit_aqua.input.algorithminput.AlgorithmInput"><code class="xref py py-class docutils literal notranslate"><span class="pre">qiskit_aqua.input.algorithminput.AlgorithmInput</span></code></a></p>
+<dl class="attribute">
+<dt id="qiskit_aqua.input.energyinput.EnergyInput.CONFIGURATION">
+<code class="descname">CONFIGURATION</code><em class="property"> = {'description': 'Energy problem input', 'input_schema': {'$schema': 'http://json-schema.org/schema#', 'id': 'energy_state_schema', 'type': 'object', 'properties': {'qubit_op': {'type': 'object', 'default': {}}, 'aux_ops': {'type': ['array', 'null'], 'default': None}}, 'additionalProperties': False}, 'name': 'EnergyInput', 'problems': ['energy', 'excited_states', 'eoh', 'ising']}</em><a class="headerlink" href="#qiskit_aqua.input.energyinput.EnergyInput.CONFIGURATION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.input.energyinput.EnergyInput.PROP_KEY_AUXOPS">
+<code class="descname">PROP_KEY_AUXOPS</code><em class="property"> = 'aux_ops'</em><a class="headerlink" href="#qiskit_aqua.input.energyinput.EnergyInput.PROP_KEY_AUXOPS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.input.energyinput.EnergyInput.PROP_KEY_QUBITOP">
+<code class="descname">PROP_KEY_QUBITOP</code><em class="property"> = 'qubit_op'</em><a class="headerlink" href="#qiskit_aqua.input.energyinput.EnergyInput.PROP_KEY_QUBITOP" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.input.energyinput.EnergyInput.add_aux_op">
+<code class="descname">add_aux_op</code><span class="sig-paren">(</span><em>aux_op</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/input/energyinput.html#EnergyInput.add_aux_op"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.input.energyinput.EnergyInput.add_aux_op" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.input.energyinput.EnergyInput.all_problems">
+<code class="descname">all_problems</code><a class="headerlink" href="#qiskit_aqua.input.energyinput.EnergyInput.all_problems" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.input.energyinput.EnergyInput.aux_ops">
+<code class="descname">aux_ops</code><a class="headerlink" href="#qiskit_aqua.input.energyinput.EnergyInput.aux_ops" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="qiskit_aqua.input.energyinput.EnergyInput.check_pluggable_valid">
+<em class="property">static </em><code class="descname">check_pluggable_valid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.input.energyinput.EnergyInput.check_pluggable_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if pluggable is ready for use. Throws an exception if not</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.input.energyinput.EnergyInput.configuration">
+<code class="descname">configuration</code><a class="headerlink" href="#qiskit_aqua.input.energyinput.EnergyInput.configuration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return pluggable configuration.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="qiskit_aqua.input.energyinput.EnergyInput.from_params">
+<em class="property">classmethod </em><code class="descname">from_params</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/input/energyinput.html#EnergyInput.from_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.input.energyinput.EnergyInput.from_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the dictionary into the algorithminput class fields. This dictionary being that as
+created by to_params()
+:param params: A dictionary as originally created by to_params()</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.input.energyinput.EnergyInput.has_aux_ops">
+<code class="descname">has_aux_ops</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/input/energyinput.html#EnergyInput.has_aux_ops"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.input.energyinput.EnergyInput.has_aux_ops" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.input.energyinput.EnergyInput.problems">
+<code class="descname">problems</code><a class="headerlink" href="#qiskit_aqua.input.energyinput.EnergyInput.problems" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the set of problems that this input form supports</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.input.energyinput.EnergyInput.qubit_op">
+<code class="descname">qubit_op</code><a class="headerlink" href="#qiskit_aqua.input.energyinput.EnergyInput.qubit_op" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.input.energyinput.EnergyInput.to_params">
+<code class="descname">to_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/input/energyinput.html#EnergyInput.to_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.input.energyinput.EnergyInput.to_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert the derived algorithminput class fields to a dictionary where the values are in a
+form that can be saved to json
+:returns: Dictionary of input fields</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.input.energyinput.EnergyInput.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><em>args_dict</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/input/energyinput.html#EnergyInput.validate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.input.energyinput.EnergyInput.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-qiskit_aqua.input.svminput">
+<span id="qiskit-aqua-input-svminput-module"></span><h2>qiskit_aqua.input.svminput module<a class="headerlink" href="#module-qiskit_aqua.input.svminput" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="qiskit_aqua.input.svminput.SVMInput">
+<em class="property">class </em><code class="descclassname">qiskit_aqua.input.svminput.</code><code class="descname">SVMInput</code><span class="sig-paren">(</span><em>training_dataset</em>, <em>test_dataset=None</em>, <em>datapoints=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/input/svminput.html#SVMInput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.input.svminput.SVMInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qiskit_aqua.input.algorithminput.AlgorithmInput" title="qiskit_aqua.input.algorithminput.AlgorithmInput"><code class="xref py py-class docutils literal notranslate"><span class="pre">qiskit_aqua.input.algorithminput.AlgorithmInput</span></code></a></p>
+<dl class="attribute">
+<dt id="qiskit_aqua.input.svminput.SVMInput.CONFIGURATION">
+<code class="descname">CONFIGURATION</code><em class="property"> = {'description': 'SVM input', 'input_schema': {'$schema': 'http://json-schema.org/schema#', 'id': 'svm_input_schema', 'type': 'object', 'properties': {'training_dataset': {'type': ['object', 'null'], 'default': None}, 'test_dataset': {'type': ['object', 'null'], 'default': None}, 'datapoints': {'type': ['array', 'null'], 'default': None}}, 'additionalProperties': False}, 'name': 'SVMInput', 'problems': ['svm_classification']}</em><a class="headerlink" href="#qiskit_aqua.input.svminput.SVMInput.CONFIGURATION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.input.svminput.SVMInput.all_problems">
+<code class="descname">all_problems</code><a class="headerlink" href="#qiskit_aqua.input.svminput.SVMInput.all_problems" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="qiskit_aqua.input.svminput.SVMInput.check_pluggable_valid">
+<em class="property">static </em><code class="descname">check_pluggable_valid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.input.svminput.SVMInput.check_pluggable_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if pluggable is ready for use. Throws an exception if not</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.input.svminput.SVMInput.configuration">
+<code class="descname">configuration</code><a class="headerlink" href="#qiskit_aqua.input.svminput.SVMInput.configuration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return pluggable configuration.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="qiskit_aqua.input.svminput.SVMInput.from_params">
+<em class="property">classmethod </em><code class="descname">from_params</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/input/svminput.html#SVMInput.from_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.input.svminput.SVMInput.from_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the dictionary into the algorithminput class fields. This dictionary being that as
+created by to_params()
+:param params: A dictionary as originally created by to_params()</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.input.svminput.SVMInput.problems">
+<code class="descname">problems</code><a class="headerlink" href="#qiskit_aqua.input.svminput.SVMInput.problems" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the set of problems that this input form supports</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.input.svminput.SVMInput.to_params">
+<code class="descname">to_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/input/svminput.html#SVMInput.to_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.input.svminput.SVMInput.to_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert the derived algorithminput class fields to a dictionary where the values are in a
+form that can be saved to json
+:returns: Dictionary of input fields</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.input.svminput.SVMInput.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><em>args_dict</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/input/svminput.html#SVMInput.validate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.input.svminput.SVMInput.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-qiskit_aqua.input">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-qiskit_aqua.input" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="qiskit_aqua.input.AlgorithmInput">
+<em class="property">class </em><code class="descclassname">qiskit_aqua.input.</code><code class="descname">AlgorithmInput</code><a class="reference internal" href="_modules/qiskit_aqua/input/algorithminput.html#AlgorithmInput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.input.AlgorithmInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="qiskit_aqua.html#qiskit_aqua.pluggable.Pluggable" title="qiskit_aqua.pluggable.Pluggable"><code class="xref py py-class docutils literal notranslate"><span class="pre">qiskit_aqua.pluggable.Pluggable</span></code></a></p>
+<dl class="attribute">
+<dt id="qiskit_aqua.input.AlgorithmInput.all_problems">
+<code class="descname">all_problems</code><a class="headerlink" href="#qiskit_aqua.input.AlgorithmInput.all_problems" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="qiskit_aqua.input.AlgorithmInput.check_pluggable_valid">
+<em class="property">static </em><code class="descname">check_pluggable_valid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.input.AlgorithmInput.check_pluggable_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if pluggable is ready for use. Throws an exception if not</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.input.AlgorithmInput.configuration">
+<code class="descname">configuration</code><a class="headerlink" href="#qiskit_aqua.input.AlgorithmInput.configuration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return pluggable configuration.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.input.AlgorithmInput.from_params">
+<code class="descname">from_params</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/input/algorithminput.html#AlgorithmInput.from_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.input.AlgorithmInput.from_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the dictionary into the algorithminput class fields. This dictionary being that as
+created by to_params()
+:param params: A dictionary as originally created by to_params()</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.input.AlgorithmInput.problems">
+<code class="descname">problems</code><a class="headerlink" href="#qiskit_aqua.input.AlgorithmInput.problems" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the set of problems that this input form supports</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.input.AlgorithmInput.to_params">
+<code class="descname">to_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/input/algorithminput.html#AlgorithmInput.to_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.input.AlgorithmInput.to_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert the derived algorithminput class fields to a dictionary where the values are in a
+form that can be saved to json
+:returns: Dictionary of input fields</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.input.AlgorithmInput.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><em>args_dict</em><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.input.AlgorithmInput.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="qiskit_aqua.input.EnergyInput">
+<em class="property">class </em><code class="descclassname">qiskit_aqua.input.</code><code class="descname">EnergyInput</code><span class="sig-paren">(</span><em>qubit_op</em>, <em>aux_ops=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/input/energyinput.html#EnergyInput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.input.EnergyInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qiskit_aqua.input.algorithminput.AlgorithmInput" title="qiskit_aqua.input.algorithminput.AlgorithmInput"><code class="xref py py-class docutils literal notranslate"><span class="pre">qiskit_aqua.input.algorithminput.AlgorithmInput</span></code></a></p>
+<dl class="attribute">
+<dt id="qiskit_aqua.input.EnergyInput.CONFIGURATION">
+<code class="descname">CONFIGURATION</code><em class="property"> = {'description': 'Energy problem input', 'input_schema': {'$schema': 'http://json-schema.org/schema#', 'id': 'energy_state_schema', 'type': 'object', 'properties': {'qubit_op': {'type': 'object', 'default': {}}, 'aux_ops': {'type': ['array', 'null'], 'default': None}}, 'additionalProperties': False}, 'name': 'EnergyInput', 'problems': ['energy', 'excited_states', 'eoh', 'ising']}</em><a class="headerlink" href="#qiskit_aqua.input.EnergyInput.CONFIGURATION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.input.EnergyInput.PROP_KEY_AUXOPS">
+<code class="descname">PROP_KEY_AUXOPS</code><em class="property"> = 'aux_ops'</em><a class="headerlink" href="#qiskit_aqua.input.EnergyInput.PROP_KEY_AUXOPS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.input.EnergyInput.PROP_KEY_QUBITOP">
+<code class="descname">PROP_KEY_QUBITOP</code><em class="property"> = 'qubit_op'</em><a class="headerlink" href="#qiskit_aqua.input.EnergyInput.PROP_KEY_QUBITOP" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.input.EnergyInput.add_aux_op">
+<code class="descname">add_aux_op</code><span class="sig-paren">(</span><em>aux_op</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/input/energyinput.html#EnergyInput.add_aux_op"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.input.EnergyInput.add_aux_op" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.input.EnergyInput.all_problems">
+<code class="descname">all_problems</code><a class="headerlink" href="#qiskit_aqua.input.EnergyInput.all_problems" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.input.EnergyInput.aux_ops">
+<code class="descname">aux_ops</code><a class="headerlink" href="#qiskit_aqua.input.EnergyInput.aux_ops" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="qiskit_aqua.input.EnergyInput.check_pluggable_valid">
+<em class="property">static </em><code class="descname">check_pluggable_valid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.input.EnergyInput.check_pluggable_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if pluggable is ready for use. Throws an exception if not</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.input.EnergyInput.configuration">
+<code class="descname">configuration</code><a class="headerlink" href="#qiskit_aqua.input.EnergyInput.configuration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return pluggable configuration.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="qiskit_aqua.input.EnergyInput.from_params">
+<em class="property">classmethod </em><code class="descname">from_params</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/input/energyinput.html#EnergyInput.from_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.input.EnergyInput.from_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the dictionary into the algorithminput class fields. This dictionary being that as
+created by to_params()
+:param params: A dictionary as originally created by to_params()</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.input.EnergyInput.has_aux_ops">
+<code class="descname">has_aux_ops</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/input/energyinput.html#EnergyInput.has_aux_ops"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.input.EnergyInput.has_aux_ops" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.input.EnergyInput.problems">
+<code class="descname">problems</code><a class="headerlink" href="#qiskit_aqua.input.EnergyInput.problems" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the set of problems that this input form supports</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.input.EnergyInput.qubit_op">
+<code class="descname">qubit_op</code><a class="headerlink" href="#qiskit_aqua.input.EnergyInput.qubit_op" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.input.EnergyInput.to_params">
+<code class="descname">to_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/input/energyinput.html#EnergyInput.to_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.input.EnergyInput.to_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert the derived algorithminput class fields to a dictionary where the values are in a
+form that can be saved to json
+:returns: Dictionary of input fields</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.input.EnergyInput.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><em>args_dict</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/input/energyinput.html#EnergyInput.validate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.input.EnergyInput.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="qiskit_aqua.input.SVMInput">
+<em class="property">class </em><code class="descclassname">qiskit_aqua.input.</code><code class="descname">SVMInput</code><span class="sig-paren">(</span><em>training_dataset</em>, <em>test_dataset=None</em>, <em>datapoints=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/input/svminput.html#SVMInput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.input.SVMInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qiskit_aqua.input.algorithminput.AlgorithmInput" title="qiskit_aqua.input.algorithminput.AlgorithmInput"><code class="xref py py-class docutils literal notranslate"><span class="pre">qiskit_aqua.input.algorithminput.AlgorithmInput</span></code></a></p>
+<dl class="attribute">
+<dt id="qiskit_aqua.input.SVMInput.CONFIGURATION">
+<code class="descname">CONFIGURATION</code><em class="property"> = {'description': 'SVM input', 'input_schema': {'$schema': 'http://json-schema.org/schema#', 'id': 'svm_input_schema', 'type': 'object', 'properties': {'training_dataset': {'type': ['object', 'null'], 'default': None}, 'test_dataset': {'type': ['object', 'null'], 'default': None}, 'datapoints': {'type': ['array', 'null'], 'default': None}}, 'additionalProperties': False}, 'name': 'SVMInput', 'problems': ['svm_classification']}</em><a class="headerlink" href="#qiskit_aqua.input.SVMInput.CONFIGURATION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.input.SVMInput.all_problems">
+<code class="descname">all_problems</code><a class="headerlink" href="#qiskit_aqua.input.SVMInput.all_problems" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="qiskit_aqua.input.SVMInput.check_pluggable_valid">
+<em class="property">static </em><code class="descname">check_pluggable_valid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_aqua.input.SVMInput.check_pluggable_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if pluggable is ready for use. Throws an exception if not</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.input.SVMInput.configuration">
+<code class="descname">configuration</code><a class="headerlink" href="#qiskit_aqua.input.SVMInput.configuration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return pluggable configuration.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="qiskit_aqua.input.SVMInput.from_params">
+<em class="property">classmethod </em><code class="descname">from_params</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/input/svminput.html#SVMInput.from_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.input.SVMInput.from_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the dictionary into the algorithminput class fields. This dictionary being that as
+created by to_params()
+:param params: A dictionary as originally created by to_params()</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="qiskit_aqua.input.SVMInput.problems">
+<code class="descname">problems</code><a class="headerlink" href="#qiskit_aqua.input.SVMInput.problems" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the set of problems that this input form supports</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.input.SVMInput.to_params">
+<code class="descname">to_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/input/svminput.html#SVMInput.to_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.input.SVMInput.to_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert the derived algorithminput class fields to a dictionary where the values are in a
+form that can be saved to json
+:returns: Dictionary of input fields</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qiskit_aqua.input.SVMInput.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><em>args_dict</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_aqua/input/svminput.html#SVMInput.validate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qiskit_aqua.input.SVMInput.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="qiskit_aqua.parser.html" title="qiskit_aqua.parser package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="qiskit_aqua.components.variational_forms.html" title="qiskit_aqua.components.variational_forms package"
+             >previous</a> |</li>
+<li id="toc-toggle">
+<a class="btn btn-primary" role="button" data-toggle="collapse"
+   href=".sphinxsidebar" aria-expanded="false" aria-controls="collapseExample">
+  TOC</a> |
+</li>
+
+        <li class="nav-item nav-item-0"><a href="index.html">Qiskit Aqua 0.4.0 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="aqua.html" >Qiskit Aqua</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="library.html" >Aqua: A Library of Quantum Algorithms</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="qiskit_aqua.html" >qiskit_aqua package</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018 IBM.
+      Last updated on 2018/12/14.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.6.
+    </div>
+  </body>
+</html>

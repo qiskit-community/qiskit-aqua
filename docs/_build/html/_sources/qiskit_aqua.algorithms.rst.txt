@@ -1,0 +1,32 @@
+qiskit\_aqua.algorithms package
+===============================
+
+Subpackages
+-----------
+
+.. toctree::
+
+    qiskit_aqua.algorithms.adaptive
+    qiskit_aqua.algorithms.classical
+    qiskit_aqua.algorithms.many_sample
+    qiskit_aqua.algorithms.single_sample
+
+Submodules
+----------
+
+qiskit\_aqua.algorithms.quantum\_algorithm module
+-------------------------------------------------
+
+.. automodule:: qiskit_aqua.algorithms.quantum_algorithm
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: qiskit_aqua.algorithms
+    :members:
+    :undoc-members:
+    :show-inheritance:
