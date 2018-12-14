@@ -16,7 +16,7 @@ Thus, millions of classical samples could be replaced by a few thousand quantum 
 
 *Amplitude estimation* is a derivative of *quantum phase estimation* applied to a particular operator A.
 A is assumed to operate on (n+1) qubits (+ possible ancillas) where the n qubits represent the uncertainty
-(reference to random_distribution) and the last qubit is used to represent the (normalized) objective value
+(random distribution :ref:`random_distribution`) and the last qubit is used to represent the (normalized) objective value
 as its amplitude.
 In other words, A is constructed such that the probability of measuring a '1' in the objective qubit is equal to the
 value of interest.
@@ -54,7 +54,7 @@ European Call Option
 
     The *European call option - expected value* uncertainty problem takes the following input parameters:
 
-    - univariate random distribution for spot price (reference)
+    - univariate random distribution for spot price (:ref:`random_distribution`)
     - strike price :math:`K`
     - approximation scaling parameter :math:`c_{approx}` which specifies how well the objective function is approximated (needs to be synced with the number of evaluation qubits in amplitude estimation). For more details on the approximation, see https://arxiv.org/abs/1806.06893.
 
@@ -83,7 +83,7 @@ European Call Option
 
     The *European call option - Delta* uncertainty problem takes the following input parameters:
 
-    - univariate random distribution for spot price (reference)
+    - univariate random distribution for spot price (:ref:`random_distribution`)
     - the strike price :math:`K`
 
     .. code:: python

@@ -1,4 +1,4 @@
-.. _uncertainty-problems:
+.. _random-distribution:
 
 ====================
 Random Distributions
