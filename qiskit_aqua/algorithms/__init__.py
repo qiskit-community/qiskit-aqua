@@ -15,10 +15,10 @@
 # limitations under the License.
 # =============================================================================
 
-from .quantumalgorithm import QuantumAlgorithm
+from .quantum_algorithm import QuantumAlgorithm
 from .adaptive import VQE, QAOA, QSVMVariational
 from .classical import ExactEigensolver, SVM_Classical
-from .many_sample import EOH, QSVM_Kernel
+from .many_sample import EOH, QSVMKernel
 from .single_sample import Grover, IQPE, QPE
 
 __all__ = ['QuantumAlgorithm',
@@ -28,7 +28,7 @@ __all__ = ['QuantumAlgorithm',
            'ExactEigensolver',
            'SVM_Classical',
            'EOH',
-           'QSVM_Kernel',
+           'QSVMKernel',
            'Grover',
            'IQPE',
            'QPE',
