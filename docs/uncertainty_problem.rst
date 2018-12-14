@@ -56,7 +56,7 @@ European Call Option
 
     - univariate random distribution for spot price (reference)
     - strike price :math:`K`
-    - approximation scaling parameter :math:`c_approx` which specifies how well the objective function is approximated (needs to be synced with the number of evaluation qubits in amplitude estimation). For more details on the approximation, see https://arxiv.org/abs/1806.06893.
+    - approximation scaling parameter :math:`c_{approx}` which specifies how well the objective function is approximated (needs to be synced with the number of evaluation qubits in amplitude estimation). For more details on the approximation, see https://arxiv.org/abs/1806.06893.
 
     .. code:: python
 
@@ -107,9 +107,9 @@ Fixed-Income Asset Pricing
 
     .. math::
 
-        `V = \sum_{t=1}^T \frac{c_t}{(1+r_t)^t}`
+        V = \sum_{t=1}^T \frac{c_t}{(1+r_t)^t}
 
-    Each cash flow is treated as a zero coupon bond with a corresponding interest rate $r_t$ that depends on its maturity.
+    Each cash flow is treated as a zero coupon bond with a corresponding interest rate :math:`r_t` that depends on its maturity.
     The user must specify the distribution modelling the uncertainty in each :math:`r_t` (possibly correlated)
     as well as the number of qubits he wishes to use to sample each distribution.
     In this example we expand the value of the asset to first order in the interest rates :math:`r_t`.
@@ -120,7 +120,7 @@ Fixed-Income Asset Pricing
     - multivariate random distribution: :math:`u`
     - affine map from the random distribution to interest rates (e.g. from a principal component analysis): :math:`A`, :math:`b`
     - cash flow: :math:`c`
-    - approximation scaling parameter :math:`c_approx` which specifies how well the objective function is approximated (needs to be synced with the number of evaluation qubits in amplitude estimation). For more details on the approximation, see https://arxiv.org/abs/1806.06893.
+    - approximation scaling parameter :math:`c_{approx}` which specifies how well the objective function is approximated (needs to be synced with the number of evaluation qubits in amplitude estimation). For more details on the approximation, see https://arxiv.org/abs/1806.06893.
 
     .. code:: python
 
