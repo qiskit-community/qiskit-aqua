@@ -78,13 +78,16 @@ class MultivariateNormalDistribution(MultivariateDistribution):
 
     def __init__(self, num_qubits, low, high, mu=None, sigma=None):
         """
+        Constructor.
+
         Circuit Factory to build a circuit that represents a multivariate normal distribution.
 
-        :param num_qubits: array/list representing number of qubits per dimension
-        :param low: array/list representing lower bounds per dimension
-        :param high: array/list representing upper bounds per dimension
-        :param mu: array/list representing expected values
-        :param sigma: array representing co-variance matrix
+        Args:
+            num_qubits (array or list): representing number of qubits per dimension
+            low (array or list): representing lower bounds per dimension
+            high (array or list): representing upper bounds per dimension
+            mu (array or list): representing expected values
+            sigma (array or list): representing co-variance matrix
         """
 
         if mu is None:

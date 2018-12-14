@@ -31,11 +31,13 @@ class MultivariateDistribution(CircuitFactory):
 
     def __init__(self, num_qubits, probabilities, low, high):
         """
+        Constroctor
 
-        :param num_qubits: list of lists - assigns qubits to dimensions
-        :param probabilities: map - maps index tuples to probabilities
-        :param low: list - lowest value per dimension
-        :param high: list - highest value per dimension
+        Args:
+            num_qubits (:obj:`list` of :obj:`list`): assigns qubits to dimensions
+            probabilities: map - maps index tuples to probabilities
+            low (list): lowest value per dimension
+            high (list): highest value per dimension
         """
 
         # derive dimension from qubit assignment
