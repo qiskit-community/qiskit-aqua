@@ -52,7 +52,7 @@ class QuantumInstance:
                         "max_memory", "max_threads_shot", "max_threads_gate", "threshold_omp_gate"]
 
     def __init__(self, backend, shots=1024, max_credits=10, config=None, seed=None,
-                 initial_layout=None, pass_manager=None, seed_mapper=None,
+                 initial_layout=None, pass_manager=None, seed_mapper=None, memory=False,
                  timeout=None, wait=5):
         """Constructor.
 
@@ -65,6 +65,7 @@ class QuantumInstance:
             initial_layout (dict): initial layout of qubits in mapping
             pass_manager (PassManager): pass manager to handle how to compile the circuits
             seed_mapper (int): the random seed for circuit mapper
+            memory (bool): if True, per-shot measurement bitstrings are returned as well
             timeout (float or None): seconds to wait for job. If None, wait indefinitely.
             wait (float): seconds between queries to result
         """
