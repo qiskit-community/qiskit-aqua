@@ -1,4 +1,4 @@
-qiskit>=0.7.0,<0.8
+qiskit-terra>=0.7.0,<0.8
 scipy>=0.19,!=0.19.1
 sympy>=1.1.1
 numpy>=1.13
