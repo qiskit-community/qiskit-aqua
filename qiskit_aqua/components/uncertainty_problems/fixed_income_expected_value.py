@@ -104,7 +104,7 @@ class FixedIncomeExpectedValue(UncertaintyProblem):
         self.offset_angle = (self.offset - 1/2) * np.pi * self.c_approx
         self.slope_angle = self.slope * np.pi * self.c_approx
 
-    def value_to_estimator(self, value):
+    def value_to_estimation(self, value):
         estimator = value / np.pi / self.c_approx
         estimator = value + 1/2
         estimator *= (self.max_value - self.min_value)

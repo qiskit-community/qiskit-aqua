@@ -53,7 +53,7 @@ def _get_pluggables_types_dictionary():
     Any new pluggable type should be added here
     """
     from qiskit_aqua.components.uncertainty_problems import UncertaintyProblem
-    from qiskit_aqua.components.uncertainty_models import RandomDistribution
+    from qiskit_aqua.components.random_distributions import RandomDistribution
     from qiskit_aqua.components.optimizers import Optimizer
     from qiskit_aqua.algorithms.quantum_algorithm import QuantumAlgorithm
     from qiskit_aqua.components.variational_forms import VariationalForm

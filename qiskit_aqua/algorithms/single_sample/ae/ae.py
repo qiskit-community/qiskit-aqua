@@ -213,7 +213,7 @@ class AmplitudeEstimation(QuantumAlgorithm):
         self._ret['y_items'] = y_items
 
         # map estimated values to original range and extract probabilities
-        self._ret['mapped_values'] = [self.a_factory.value_to_estimator(a_item[0]) for a_item in self._ret['a_items']]
+        self._ret['mapped_values'] = [self.a_factory.value_to_estimation(a_item[0]) for a_item in self._ret['a_items']]
         self._ret['values'] = [a_item[0] for a_item in self._ret['a_items']]
         self._ret['y_values'] = [y_item[0] for y_item in y_items]
         self._ret['probabilities'] = [a_item[1] for a_item in self._ret['a_items']]

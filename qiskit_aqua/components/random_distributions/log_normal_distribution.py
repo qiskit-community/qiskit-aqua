@@ -19,7 +19,7 @@ The Univariate Log-Normal Distribution.
 """
 
 from scipy.stats.distributions import lognorm
-from qiskit_aqua.components.uncertainty_models.univariate_distribution import UnivariateDistribution
+from qiskit_aqua.components.random_distributions.univariate_distribution import UnivariateDistribution
 import numpy as np
 
 

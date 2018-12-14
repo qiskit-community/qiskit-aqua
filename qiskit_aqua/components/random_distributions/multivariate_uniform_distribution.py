@@ -19,7 +19,7 @@ The Multivariate Uniform Distribution.
 """
 
 import numpy as np
-from qiskit_aqua.components.uncertainty_models.multivariate_distribution import MultivariateDistribution
+from qiskit_aqua.components.random_distributions.multivariate_distribution import MultivariateDistribution
 
 
 class MultivariateUniformDistribution(MultivariateDistribution):

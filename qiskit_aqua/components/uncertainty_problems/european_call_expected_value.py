@@ -105,7 +105,7 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
             self.offset_angle = 0
             self.slope_angle = 0
 
-    def value_to_estimator(self, value):
+    def value_to_estimation(self, value):
         estimator = value - 1 / 2 + np.pi / 4 * self._c_approx
         estimator *= 2 / np.pi / self._c_approx
         estimator *= (self._uncertainty_model.num_values - self._mapped_strike_price - 1)

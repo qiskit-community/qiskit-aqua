@@ -36,5 +36,5 @@ class UncertaintyProblem(CircuitFactory, Pluggable, ABC):
     def __init__(self, num_qubits):
         super().__init__(num_qubits)
 
-    def value_to_estimator(self, value):
+    def value_to_estimation(self, value):
         return value
