@@ -39,11 +39,11 @@ class AmplitudeEstimation(QuantumAlgorithm):
     """
 
     CONFIGURATION = {
-        'name': 'AE',
+        'name': 'AmplitudeEstimation',
         'description': 'Amplitude Estimation Algorithm',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
-            'id': 'AE_schema',
+            'id': 'AmplitudeEstimation_schema',
             'type': 'object',
             'properties': {
                 'num_eval_qubits': {
