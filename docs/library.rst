@@ -23,4 +23,6 @@ real quantum device).
    Initial States <initial_states>
    Feature Maps <feature_maps>
    Binary-to-multiclass Classifier Extensions <multiclass-extensions>
+   Random Distributions <random-distribution>
+   Uncertainty Problems <uncertainty-problem>
    Aqua SDK Reference <qiskit_aqua>
