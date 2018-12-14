@@ -21,7 +21,7 @@ import copy
 import json
 import logging
 
-from qiskit import IBMQ, Simulators, LegacySimulators
+from qiskit import IBMQ, BasicAer, LegacySimulators
 from qiskit.backends import BaseBackend
 from qiskit.transpiler import PassManager
 
@@ -78,7 +78,7 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
             backend_from_name = LegacySimulators.get_backend(backend_name)
         except:
             try:
-                backend_from_name = Simulators.get_backend(backend_name)
+                backend_from_name = BasicAer.get_backend(backend_name)
             except:
                 backend_from_name = IBMQ.get_backend(backend_name)
 

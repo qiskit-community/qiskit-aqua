@@ -17,7 +17,7 @@
 
 import logging
 from qiskit import __version__ as terra_version
-from qiskit import IBMQ, Simulators, LegacySimulators
+from qiskit import IBMQ, BasicAer, LegacySimulators
 from qiskit.backends.ibmq.credentials import Credentials
 from qiskit.backends.ibmq.ibmqsingleprovider import IBMQSingleProvider
 
@@ -273,7 +273,7 @@ class QuantumInstance:
                 "Failed to register with Qiskit: {}".format(str(e)))
 
         backends = set()
-        builtin_backends = [x.name() for x in Simulators.backends()]
+        builtin_backends = [x.name() for x in BasicAer.backends()]
         legacy_backends = [x.name() for x in LegacySimulators.backends()]
         for backend in set(builtin_backends + legacy_backends):
             supported = True
