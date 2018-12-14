@@ -50,6 +50,13 @@ quantum algorithms:
     developers interested in
     :ref:`aqua-extending` to extend the Aqua framework with their novel research contributions.
 
+
+.. seealso::
+
+    Section :ref:`aqua-extending` provides more
+    details on how to extend Aqua with new components.
+
+
 .. topic:: Multiple-Controlled-NOT (CNX) Operations
 
     The Multiple-Controlled-NOT operation, or what we call ``cnx``, as the name suggests,
@@ -77,12 +84,6 @@ quantum algorithms:
     ``qc.cnx(...)``.
     An optional keyword argument ``mode`` can also be passed in to indicate the ``'basic'`` or ``'advanced'`` mode,
     which defaults to ``'basic'`` if omitted.
-
-
-.. seealso::
-
-    Section :ref:`aqua-extending` provides more
-    details on how to extend Aqua with new components.
 
 
 .. _quantum-algorithms:
