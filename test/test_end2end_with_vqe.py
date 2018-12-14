@@ -19,7 +19,7 @@ import unittest
 from collections import OrderedDict
 
 from parameterized import parameterized
-from qiskit import Aer
+from qiskit import LegacySimulators
 
 from qiskit_aqua import QuantumInstance
 from qiskit_aqua.algorithms.adaptive import VQE
@@ -52,8 +52,8 @@ class TestEnd2End(QiskitAquaChemistryTestCase):
         self.reference_energy = -1.857275027031588
 
     @parameterized.expand([
-        ['COBYLA_M', 'COBYLA', Aer.get_backend('statevector_simulator'), 'matrix', 1],
-        ['COBYLA_P', 'COBYLA', Aer.get_backend('statevector_simulator'), 'paulis', 1],
+        ['COBYLA_M', 'COBYLA', LegacySimulators.get_backend('statevector_simulator'), 'matrix', 1],
+        ['COBYLA_P', 'COBYLA', LegacySimulators.get_backend('statevector_simulator'), 'paulis', 1],
         # ['SPSA_P', 'SPSA', 'qasm_simulator', 'paulis', 1024],
         # ['SPSA_GP', 'SPSA', 'qasm_simulator', 'grouped_paulis', 1024]
     ])

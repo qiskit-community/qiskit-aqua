@@ -20,7 +20,7 @@ from collections import OrderedDict
 
 from parameterized import parameterized
 import numpy as np
-from qiskit import Aer
+from qiskit import LegacySimulators
 from qiskit.transpiler import PassManager
 from qiskit_aqua.utils import decimal_to_binary
 from qiskit_aqua import QuantumInstance
@@ -89,7 +89,7 @@ class TestEnd2EndWithQPE(QiskitAquaChemistryTestCase):
         qpe = QPE(self.qubit_op, state_in, iqft, num_time_slices, n_ancillae,
                   paulis_grouping='random', expansion_mode='suzuki',
                   expansion_order=2, shallow_circuit_concat=True)
-        backend = Aer.get_backend('qasm_simulator')
+        backend = LegacySimulators.get_backend('qasm_simulator')
         quantum_instance = QuantumInstance(backend, shots=100, pass_manager=PassManager())
         result = qpe.run(quantum_instance)
 
