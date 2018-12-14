@@ -3,12 +3,12 @@ N Controlled Not Gate using no ancilla qubits,
 """
 
 from qiskit import QuantumCircuit, QuantumRegister
-from qiskit.circuit import Gate
+from qiskit.circuit import CompositeGate
 from qiskit_aqua.utils import cnu1
 from numpy import pi
 
 
-class CNXGate(Gate):
+class CNXGate(CompositeGate):
     """CNX gate."""
 
     def __init__(self, ctls, tgt, circ=None):

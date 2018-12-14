@@ -4,12 +4,12 @@ CNU1 gate. N Controlled-U1 Gate. Not Using ancilla qubits.
 
 from sympy.combinatorics.graycode import GrayCode
 from qiskit import QuantumCircuit, QuantumRegister
-from qiskit.circuit import Gate
+from qiskit.circuit import CompositeGate
 from qiskit_aqua.utils.controlledcircuit import apply_cu1
 from numpy import angle
 
 
-class CNU1Gate(Gate):
+class CNU1Gate(CompositeGate):
     """CNU1 gate."""
 
     def __init__(self, theta, ctls, tgt, circ=None):
