@@ -2,7 +2,7 @@ from qiskit_aqua.algorithms.single_sample import AmplitudeEstimation
 from qiskit_aqua.components.uncertainty_problems import EuropeanCallExpectedValue
 from qiskit_aqua.components.uncertainty_models import NormalDistribution
 from qiskit_aqua import QuantumInstance
-from qiskit import Aer
+from qiskit import LegacySimulators
 
 # TODO: @Stefan, please create test(s) for AE
 
@@ -25,7 +25,7 @@ european_call = EuropeanCallExpectedValue(uncertainty_model, strike_price=strike
 m = 5
 # construct amplitude estimation
 ae = AmplitudeEstimation(m, european_call)
-backend = Aer.get_backend('statevector_simulator')
+backend = LegacySimulators.get_backend('statevector_simulator')
 quantum_instance = QuantumInstance(backend, shots=1)
 
 # run ae
