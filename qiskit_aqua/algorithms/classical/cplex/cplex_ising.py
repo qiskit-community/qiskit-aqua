@@ -85,17 +85,18 @@ class CPLEX_Ising(QuantumAlgorithm):
 
     @staticmethod
     def check_pluggable_valid():
+        err_msg = 'CPLEX is not installed. See https://www.ibm.com/support/knowledgecenter/SSSA5P_12.8.0/ilog.odms.studio.help/Optimization_Studio/topics/COS_home.html'
         try:
             spec = importlib.util.find_spec('cplex.callbacks')
             if spec is not None:
                 spec = importlib.util.find_spec('cplex.exceptions')
                 if spec is not None:
-                    return True
-        except:
-            pass
+                    return
+        except Exception as e:
+            logger.debug('{} {}'.format(err_msg, str(e)))
+            raise AquaError(err_msg) from e
 
-        logger.info('CPLEX is not installed. See https://www.ibm.com/support/knowledgecenter/SSSA5P_12.8.0/ilog.odms.studio.help/Optimization_Studio/topics/COS_home.html')
-        return False
+        raise AquaError(err_msg)
 
     def _run(self):
         model = IsingModel(self._ins, timelimit=self._timelimit,

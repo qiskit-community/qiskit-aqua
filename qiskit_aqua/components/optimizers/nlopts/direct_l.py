@@ -65,7 +65,7 @@ class DIRECT_L(Optimizer):
 
     @staticmethod
     def check_pluggable_valid():
-        return check_nlopt_valid(DIRECT_L.CONFIGURATION['name'])
+        check_nlopt_valid(DIRECT_L.CONFIGURATION['name'])
 
     def optimize(self, num_vars, objective_function, gradient_function=None,
                  variable_bounds=None, initial_point=None):
