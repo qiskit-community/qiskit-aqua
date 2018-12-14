@@ -18,6 +18,7 @@ The following `quantum algorithms <#quantum-algorithms>`__ are part of Aqua:
 -  :ref:`Evolution of Hamiltonian (EOH)`
 -  :ref:`Quantum Phase Estimation (QPE)`
 -  :ref:`Iterative Quantum Phase Estimation (IQPE)`
+-  :ref:`Amplitude Estimation (AE)`
 -  :ref:`Quantum Grover Search`
 -  :ref:`Support Vector Machine Quantum Kernel (QSVM Kernel)`
 -  :ref:`Support Vector Machine Variational (QSVM Variational)`
@@ -384,6 +385,77 @@ Inverse Quantum Fourier Transform (IQFT) is not used for IQPE.
 
     In Aqua, IQPE supports the ``energy`` problem.
 
+
+.. _ae:
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Amplitude Estimation Algorithm (AE)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The *Amplitude Estimation Algorithm* can be used to estimate
+the amplitude of the |1> outcome of a unitary operator 
+corresponding to a Bernoulli distribution.
+With the uncertainty problem,
+as well as the number of ancillary evaluation qubits, specified,
+AE internally builds a *Quantum Phase Estimation* circuit
+that efficiently carries out the estimation task
+with a quadratic speedup compared to the classical Monte Carlo method.
+
+.. seealso::
+
+    Consult the documentation on :ref:`qpe` for more details.
+    
+    Also, see `arXiv:1806.06893 <https://arxiv.org/abs/1806.06893>`_ for more details on AE
+    as well as its applications on finance problems.
+    
+
+In addition to relying on a ``PhaseEstimation`` component
+for building, well, the Quantum Phase Estimation circuit, 
+AE expects the following inputs:
+
+
+-  The number of evaluation qubits:
+
+   .. code:: python
+
+       num_eval_qubits = 1 | 2 | ...
+
+   This has to be a positive ``int`` value.
+
+-  The uncertainty problem:
+
+   .. code:: python
+
+       a_factory
+
+   A ``CircuitFactory`` object that represents the uncertainty problem.
+
+-  The optional problem unitary:
+
+   .. code:: python
+
+       q_factory
+
+   An optional ``CircuitFactory`` object that represents the problem unitary, 
+   which, if left unspecified, would be automatically constructed from the ``a_factory``.
+
+-  The Inverse Quantum Fourier Transform component:
+
+   .. code:: python
+
+       iqft
+
+   The Inverse Quantum Fourier Transform pluggable component that's to be used to configure the ``PhaseEstimation`` component.
+
+.. topic:: Declarative Name
+
+   When referring to Amplitude Estimation declaratively inside Aqua, its code ``name``, by which
+   Aqua dynamically discovers and loads it, is ``AE``.
+
+.. topic:: Problems Supported
+
+   In Aqua, AE supports the ``uncertainty`` problem.
+   
 
 .. _grover:
 
