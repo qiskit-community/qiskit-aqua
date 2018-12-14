@@ -437,7 +437,7 @@ AE expects the following inputs:
        q_factory
 
    An optional ``CircuitFactory`` object that represents the problem unitary, 
-   which, if left unspecified, would be automatically constructed from the ``a_factory``.
+   which, if left unspecified, will be automatically constructed from the ``a_factory``.
 
 -  The Inverse Quantum Fourier Transform component:
 
