@@ -21,7 +21,7 @@ import copy
 import json
 import logging
 
-from qiskit import IBMQ, Aer
+from qiskit import IBMQ, Simulators, LegacySimulators
 from qiskit.backends import BaseBackend
 from qiskit.transpiler import PassManager
 
@@ -75,9 +75,12 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
         backend_cfg['config']['noise_params'] = noise_params
         QuantumInstance.register_and_get_operational_backends()
         try:
-            backend_from_name = Aer.get_backend(backend_name)
+            backend_from_name = LegacySimulators.get_backend(backend_name)
         except:
-            backend_from_name = IBMQ.get_backend(backend_name)
+            try:
+                backend_from_name = Simulators.get_backend(backend_name)
+            except:
+                backend_from_name = IBMQ.get_backend(backend_name)
 
         backend_cfg['backend'] = backend_from_name
 
