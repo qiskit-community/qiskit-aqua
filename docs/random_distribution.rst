@@ -1,4 +1,4 @@
-.. _random-distributions:
+.. _uncertainty-problems:
 
 ====================
 Random Distributions
@@ -17,23 +17,115 @@ Univariate Distributions
 
 .. topic:: Univariate Distribution
 
-    asdf
+    This provides a circuit factory to load a general univariate distribution that is defined by an array of
+    probabilities and the interval of interest. It calls the custom state initialization to prepare a quantum state
+    such that the squared amplitudes correspond to the probabilities.
+    The given lower and upper bound define the range of interest, and the number of qubits specifies the number of
+    grid points in between (=2**n, for n qubits).
+
+    .. code:: python
+
+        # parameters
+        low = 0
+        high = 2*np.pi
+        num_qubits = 5
+
+        # build (arbitrary) empirical distribution
+        probabilities = np.sin(np.linspace(low, high, 2**num_qubits))+1
+        probabilities = probabilities / sum(histogram)
+
+        # initialize distribution
+        univariate = UnivariateDistribution(num_qubits, probabilities, low, high)
+
+        # create circuit
+        q = QuantumRegister(num_qubits)
+        qc = QuantumCircuit(q)
+        univariate.build(qc, q)
+
 
 .. topic:: Bernoulli Distribution
 
-    asdf
+    Distribution with only two values (low, high) and the corresponding probabilities represented by a single qubit.
+
+    .. code:: python
+
+        # parameters
+        low = 0
+        high = 1
+        probability = 0.3
+
+        # initialize distribution
+        bernoulli = BernoulliDistribution(probability, low, high)
+
+        # create circuit
+        q = QuantumRegister(num_qubits)
+        qc = QuantumCircuit(q)
+        bernoulli.build(qc, q)
+
 
 .. topic:: Uniform Distribution
 
-    asdf
+    Uniform distribution is defined by the number of qubits that should be used to represent the distribution,
+    as well as the lower bound and upper bound of the considered interval.
+
+    .. code:: python
+
+        # parameters
+        low = 0
+        high = 3
+        num_qubits = 3
+
+        # initialize distribution
+        uniform = UniformDistribution(num_qubits, low, high)
+
+        # create circuit for distribution
+        q = QuantumRegister(num_qubits)
+        qc = QuantumCircuit(q)
+        uniform.build(qc, q)
+
 
 .. topic:: Normal Distribution
 
-    asdf
+    Normal distribution, truncated to lower and upper bound and discretized on a grid defined by the number of qubits.
+
+    .. code:: python
+
+        # parameters
+        low = 0
+        high = 10
+        num_qubits = 5
+
+        # initialize distribution
+        mu = 1.5
+        sigma = 0.5
+        normal = NormalDistribution(num_qubits, mu, sigma, low, high)
+
+        # create circuit for distribution
+        q = QuantumRegister(num_qubits)
+        qc = QuantumCircuit(q)
+        normal.build(qc, q)
+
 
 .. topic:: Log-Normal Distribution
 
-    asdf
+    Log-normal distribution, truncated to lower and upper bound and discretized on a grid defined by the number of qubits.
+
+    .. code:: python
+
+        # parameters
+        low = 0
+        high = 10
+        num_qubits = 5
+
+        # initialize distribution
+        mu = 1.5
+        sigma = 0.5
+        lognormal = LogNormalDistribution(num_qubits, mu, sigma, low, high)
+
+        # create circuit for distribution
+        q = QuantumRegister(num_qubits)
+        qc = QuantumCircuit(q)
+        lognormal.build(qc, q)
 
 --------------------------
 Multivariate Distributions
@@ -41,9 +133,36 @@ Multivariate Distributions
 
 .. topic:: Multivariate Distribution
 
-    asdf
+    This provides a circuit factory to load a general multivariate distribution that is defined by an array of
+    probabilities and the box of interest (given interval per dimension). It calls the custom state initialization
+    to prepare a quantum state such that the squared amplitudes correspond to the probabilities.
+    The given lower and upper bounds per dimension define the range of interest, and the number of qubits
+    per dimension specifies the number of grid points in between (=2**n, for n qubits).
+
+    .. code:: python
+
+        # parameters
+        low = [0, 0]
+        high = [1, 1]
+        num_qubits = [2, 2]
+
+        # build (arbitrary) empirical distribution
+        probabilities = np.random.uniform(size=(4, 4))
+        probabilities = probabilities / sum(histogram)
+
+        # initialize distribution
+        multivariate = MultivariateDistribution(num_qubits, probabilities, low, high)
+
+        # create circuit
+        q = QuantumRegister(num_qubits)
+        qc = QuantumCircuit(q)
+        multivariate.build(qc, q)
 
 .. topic:: Multivariate Uniform Distribution
+
+    Provides a circuit factory to build a multivariate uniform distribution.
+    Although this just results in a Hadamard gate on all involved qubits, the lower and upper bounds and the
+    assignment of the qubits to the different dimensions is important if used in a particular application.
 
     .. code:: python
 
@@ -55,9 +174,18 @@ Multivariate Distributions
         high = [1, 2]
 
         # construct random distribution
-        u = MultivariateUniformDistribution(num_qubits, low, high)
+        multivariate = MultivariateUniformDistribution(num_qubits, low, high)
+
+        # create circuit for distribution
+        q = QuantumRegister(num_qubits)
+        qc = QuantumCircuit(q)
+        multivariate.build(qc, q)
 
 .. topic:: Multivariate Normal Distribution
+
+    Provides a circuit factory to load a (discretized and truncated) normal distribution into a quantum state.
+    Truncation bounds are given by lower and upper bound and discretization is specified by the number of qubits per
+    dimension.
 
     .. code:: python
 
@@ -71,4 +199,9 @@ Multivariate Distributions
         sigma = np.eye(2)
 
         # construct random distribution
-        u = MultivariateNormalDistribution(num_qubits, low, high, mu, sigma)
+        multivariate_normal = MultivariateNormalDistribution(num_qubits, low, high, mu, sigma)
+
+        # create circuit for distribution
+        q = QuantumRegister(num_qubits)
+        qc = QuantumCircuit(q)
+        multivariate_normal.build(qc, q)
