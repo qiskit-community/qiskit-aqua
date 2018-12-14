@@ -19,7 +19,7 @@ import unittest
 import operator
 
 from parameterized import parameterized
-from qiskit import Aer
+from qiskit import LegacySimulators
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua.components.oracles import SAT
@@ -56,7 +56,7 @@ class TestGrover(QiskitAquaTestCase):
             ])[::-1]
             for s in header.split('solutions:' if header.find('solutions:') >= 0 else 'solution:')[-1].split(',')
         ]
-        backend = Aer.get_backend('qasm_simulator')
+        backend = LegacySimulators.get_backend('qasm_simulator')
         sat_oracle = SAT(buf)
         grover = Grover(sat_oracle, num_iterations=num_iterations, incremental=incremental)
         quantum_instance = QuantumInstance(backend, shots=100)

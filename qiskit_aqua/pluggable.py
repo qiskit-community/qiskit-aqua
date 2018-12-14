@@ -41,10 +41,7 @@ class Pluggable(ABC):
     """
     @abstractmethod
     def __init__(self):
-        if not self.check_pluggable_valid():
-            raise ImportError("{} is not available since missing dependent packages.".format(
-                self.__class__.__name__))
-
+        self.check_pluggable_valid()
         self._configuration = copy.deepcopy(self.CONFIGURATION)
 
     @property
@@ -54,8 +51,8 @@ class Pluggable(ABC):
 
     @staticmethod
     def check_pluggable_valid():
-        """Checks if pluggable is ready for use"""
-        return True
+        """Checks if pluggable is ready for use. Throws an exception if not"""
+        pass
 
     def validate(self, args_dict):
         schema_dict = self.CONFIGURATION.get('input_schema', None)
