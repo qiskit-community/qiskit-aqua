@@ -42,6 +42,7 @@ class Grover(QuantumAlgorithm):
 
     PROP_INCREMENTAL = 'incremental'
     PROP_NUM_ITERATIONS = 'num_iterations'
+    PROP_CNX_MODE = 'cnx_mode'
 
     CONFIGURATION = {
         'name': 'Grover',
@@ -59,7 +60,18 @@ class Grover(QuantumAlgorithm):
                     'type': 'integer',
                     'default': 1,
                     'minimum': 1
-                }
+                },
+                PROP_CNX_MODE: {
+                    'type': 'string',
+                    'default': 'basic',
+                    'oneOf': [
+                        {'enum': [
+                            'basic',
+                            'advanced'
+                        ]}
+                    ]
+                },
+
             },
             'additionalProperties': False
         },
@@ -72,7 +84,7 @@ class Grover(QuantumAlgorithm):
         }
     }
 
-    def __init__(self, oracle, incremental=False, num_iterations=1):
+    def __init__(self, oracle, incremental=False, num_iterations=1, cnx_mode='basic'):
         """
         Constructor.
 
@@ -87,6 +99,8 @@ class Grover(QuantumAlgorithm):
         self._max_num_iterations = 2 ** (len(self._oracle.variable_register()) / 2)
         self._incremental = incremental
         self._num_iterations = num_iterations if not incremental else 1
+        self._cnx_mode = cnx_mode
+        self.validate(locals())
         if incremental:
             logger.debug('Incremental mode specified, ignoring "num_iterations".')
         else:
@@ -112,6 +126,7 @@ class Grover(QuantumAlgorithm):
         grover_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
         incremental = grover_params.get(Grover.PROP_INCREMENTAL)
         num_iterations = grover_params.get(Grover.PROP_NUM_ITERATIONS)
+        cnx_mode = grover_params.get(Grover.PROP_CNX_MODE)
 
         oracle_params = params.get(QuantumAlgorithm.SECTION_KEY_ORACLE)
         oracle = get_pluggable_class(PluggableType.ORACLE,
@@ -148,14 +163,16 @@ class Grover(QuantumAlgorithm):
         if self._oracle.ancillary_register():
             qc_amplitude_amplification_single_iteration.cnx(
                 [self._oracle.variable_register()[i] for i in range(len(self._oracle.variable_register()))],
+                self._oracle.outcome_register()[0],
                 [self._oracle.ancillary_register()[i] for i in range(len(self._oracle.ancillary_register()))],
-                self._oracle.outcome_register()[0]
+                mode=self._cnx_mode
             )
         else:
             qc_amplitude_amplification_single_iteration.cnx(
                 [self._oracle.variable_register()[i] for i in range(len(self._oracle.variable_register()))],
+                self._oracle.outcome_register()[0],
                 [],
-                self._oracle.outcome_register()[0]
+                mode=self._cnx_mode
             )
         qc_amplitude_amplification_single_iteration.u2(0, pi, self._oracle.outcome_register())  # h
         qc_amplitude_amplification_single_iteration.u3(pi, 0, pi, self._oracle.variable_register())  # x

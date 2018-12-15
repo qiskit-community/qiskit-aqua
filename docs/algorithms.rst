@@ -51,10 +51,42 @@ quantum algorithms:
     developers interested in
     :ref:`aqua-extending` to extend the Aqua framework with their novel research contributions.
 
+
 .. seealso::
 
     Section :ref:`aqua-extending` provides more
     details on how to extend Aqua with new components.
+
+
+.. _cnx:
+
+.. topic:: Multiple-Controlled-NOT (CNX) Operations
+
+    The Multiple-Controlled-NOT operation, or what we call ``cnx``, as the name suggests,
+    is a generalization of the quantum operation where one target qubit is controlled by a number of control qubits
+    for a NOT (x) operation.
+    The multiple-controlled-NOT operation can be used as the building block
+    for implementing various different quantum algorithms,
+    such as the Grover's search algorithm.
+
+    For the different number of controls 0, 1, 2, ...
+    we have the following corresponding quantum gates ``x``, ``cx``, ``ccx``, ...
+    The first three are basic/well-known quantum gates.
+    In Aqua, the ``cnx`` we provide supports arbitrary number of controls, in particular, 3 or above.
+
+    Currently two different implementation strategies are included: ``basic`` and ``advanced``.
+    The ``basic`` mode employs a textbook implementation
+    where a series of the ``ccx`` Toffoli gates are linked together in a V shape to achieve the desired
+    multiple-controlled-NOT operation.
+    This mode would require ``n-2`` ancillary qubits, where ``n`` is the number of controls.
+    For the ``advanced`` mode, the ``cccx`` and ``ccccx`` operations are achieved without needing ancillary qubits.
+    And multiple-controlled-NOT operations for higher number of controls (5 and above) are implemented recursively
+    using these lower-number-of-control cases.
+
+    Aqua's ``cnx`` can be accessed just like any other quantum gates that are already provided by Qiskit Terra, i.e.,
+    ``qc.cnx(...)``.
+    An optional keyword argument ``mode`` can also be passed in to indicate the ``'basic'`` or ``'advanced'`` mode,
+    which defaults to ``'basic'`` if omitted.
 
 
 .. _quantum-algorithms:
