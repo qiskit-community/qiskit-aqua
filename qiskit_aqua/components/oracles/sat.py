@@ -38,8 +38,15 @@ class SAT(Oracle):
                     'type': 'string',
                 },
                 'cnx_mode': {
-                    'type': 'string'
-                }
+                    'type': 'string',
+                    'default': 'basic',
+                    'oneOf': [
+                        {'enum': [
+                            'basic',
+                            'advanced'
+                        ]}
+                    ]
+                },
             },
             'additionalProperties': False
         }
@@ -50,7 +57,7 @@ class SAT(Oracle):
         super().__init__()
 
         self._cnf = None
-        self._cnx_mode = 'basic'
+        self._cnx_mode = cnx_mode
         self._qr_ancilla = None
         self._qr_clause = None
         self._qr_outcome = None
