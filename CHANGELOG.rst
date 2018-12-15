@@ -21,7 +21,20 @@ The format is based on `Keep a Changelog`_.
 Added
 -----
 
-- Enhanced random matrix generator
+- Compatibility with Terra 0.7
+- API changes (programmatic approach)
+- QuantumInstance API for algorithm/backend decoupling
+- Updated documentation and Jupyter Notebooks exhibiting both programmatic and declarative APIs
+- Hartree-Fock initial state method and UCCSD variational form moved to Aqua Chemistry
+- Transparent parallelization implemented for gradient-based SciPy optimizers
+- Amplitude estimation algorithm
+- Aqua Optimization: New Ising model for: exact cover, set packing, vertex cover
+- Aqua AI: New feature maps extending the FeatureMap pluggable interface: PauliExpansion and PauliZExpansion
+- Aqua Finance:
+   - Amplitude estimation for Bernoulli random variable: illustration of amplitude estimation on a single qubit problem
+   - Loading of multiple univariate and multivariate random distributions
+   - European call option: expected value and delta (using univariate distributions)
+   - Fixed income asset pricing: expected value (using multivariate distributions)
 
 `0.3.1`_ - 2018-11-29
 =====================
