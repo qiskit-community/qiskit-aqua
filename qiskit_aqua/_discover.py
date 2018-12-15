@@ -42,6 +42,8 @@ class PluggableType(Enum):
     ORACLE = 'oracle'
     FEATURE_MAP = 'feature_map'
     MULTICLASS_EXTENSION = 'multiclass_extension'
+    UNCERTAINTY_PROBLEM = 'uncertainty_problem'
+    UNCERTAINTY_MODEL = 'uncertainty_model'
     INPUT = 'input'
 
 
@@ -50,6 +52,8 @@ def _get_pluggables_types_dictionary():
     Gets all the pluggables types
     Any new pluggable type should be added here
     """
+    from qiskit_aqua.components.uncertainty_problems import UncertaintyProblem
+    from qiskit_aqua.components.random_distributions import RandomDistribution
     from qiskit_aqua.components.optimizers import Optimizer
     from qiskit_aqua.algorithms.quantum_algorithm import QuantumAlgorithm
     from qiskit_aqua.components.variational_forms import VariationalForm
@@ -68,6 +72,8 @@ def _get_pluggables_types_dictionary():
         PluggableType.ORACLE: Oracle,
         PluggableType.FEATURE_MAP: FeatureMap,
         PluggableType.MULTICLASS_EXTENSION: MulticlassExtension,
+        PluggableType.UNCERTAINTY_PROBLEM: UncertaintyProblem,
+        PluggableType.UNCERTAINTY_MODEL: RandomDistribution,
         PluggableType.INPUT: AlgorithmInput
     }
 
@@ -86,7 +92,10 @@ _NAMES_TO_EXCLUDE = [
     'iqft',
     'oracle',
     'feature_map',
-    'multiclass_extension'
+    'multiclass_extension',
+    'uncertainty_problem',
+    'uncertainty_model',
+    'univariate_uncertainty_model'
 ]
 
 _FOLDERS_TO_EXCLUDE = [

@@ -76,6 +76,15 @@ class Grover(QuantumAlgorithm):
     }
 
     def __init__(self, oracle, incremental=False, num_iterations=1, cnx_mode='basic'):
+        """
+        Constructor.
+
+        Args:
+            oracle (Oracle): the oracle pluggable component
+            incremental (bool): boolean flag for whether to use incremental search mode or not
+            num_iterations (int): the number of iterations to use for amplitude amplification
+        """
+        self.validate(locals())
         super().__init__()
         self._oracle = oracle
         self._max_num_iterations = 2 ** (len(self._oracle.variable_register()) / 2)
@@ -182,6 +191,12 @@ class Grover(QuantumAlgorithm):
         return assignment, oracle_evaluation
 
     def construct_circuit(self):
+        """
+        Construct the quantum circuit
+
+        Returns:
+            the QuantumCircuit object for the constructed circuit
+        """
         if self._qc_prefix is None or self._qc_amplitude_amplification_single_iteration is None or self._qc_measurement is None:
             self._construct_circuit_components()
         if self._qc_amplitude_amplification is None:
