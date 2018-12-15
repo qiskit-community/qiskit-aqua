@@ -58,6 +58,8 @@ quantum algorithms:
     details on how to extend Aqua with new components.
 
 
+.. _cnx:
+
 .. topic:: Multiple-Controlled-NOT (CNX) Operations
 
     The Multiple-Controlled-NOT operation, or what we call ``cnx``, as the name suggests,
