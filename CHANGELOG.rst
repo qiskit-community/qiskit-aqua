@@ -18,6 +18,15 @@ The format is based on `Keep a Changelog`_.
 `UNRELEASED`_
 =============
 
+Added
+-----
+
+- Compatibility with Aqua 0.4 and Terra 0.7
+- API changes (programmatic approach)
+- Updated documentation and Jupyter Notebooks exhibiting both programmatic and declarative APIs
+- ZMatrix support for the PySCF & PyQuante classical computational chemistry drivers
+- Hartree-Fock initial state and UCCSD variational form have been moved from Aqua to Aqua Chemistry and are registered at installation time as Aqua algorithmic components for use at run time
+
 `0.3.0`_ - 2018-10-05
 =====================
 

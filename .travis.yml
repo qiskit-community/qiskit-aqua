@@ -49,13 +49,13 @@ before_install:
         cd $TRAVIS_BUILD_DIR
       fi
     # download Qiskit Aqua and unzip it
-    - wget https://codeload.github.com/Qiskit/aqua/zip/$DEP_BRANCH -O /tmp/aqua.zip
-    - unzip /tmp/aqua.zip -d /tmp/
+    - wget https://codeload.github.com/Qiskit/qiskit-aqua/zip/$DEP_BRANCH -O /tmp/qiskit-aqua.zip
+    - unzip /tmp/qiskit-aqua.zip -d /tmp/
     # Install Qiskit Aqua dependencies.
-    - pip install -U -r /tmp/aqua-$DEP_BRANCH/requirements.txt
-    - pip install -U -r /tmp/aqua-$DEP_BRANCH/requirements-dev.txt
+    - pip install -U -r /tmp/qiskit-aqua-$DEP_BRANCH/requirements.txt
+    - pip install -U -r /tmp/qiskit-aqua-$DEP_BRANCH/requirements-dev.txt
     # Install local Qiskit Aqua
-    - pip install -e /tmp/aqua-$DEP_BRANCH
+    - pip install -e /tmp/qiskit-aqua-$DEP_BRANCH
     # download PyQuante master and unzip it
     - wget https://codeload.github.com/rpmuller/pyquante2/zip/master -O /tmp/pyquante2.zip
     - unzip /tmp/pyquante2.zip -d /tmp/
