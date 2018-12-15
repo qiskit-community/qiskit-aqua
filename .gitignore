@@ -91,6 +91,7 @@ instance/
 .scrapy
 
 # Sphinx documentation
+docs/_build/
 docs/*.rst
 #Allow
 !docs/qiskit-aqua.rst
