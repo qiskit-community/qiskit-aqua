@@ -71,7 +71,7 @@ jobs:
 
     # github pages documentation update
     - stage: deploy doc
-      if: branch = stable and repo = Qiskit/aqua and type = push
+      if: branch = stable and repo = Qiskit/qiskit-aqua and type = push
       install:
         # download Qiskit Terra stable branch and unzip it
         - wget https://codeload.github.com/Qiskit/qiskit-terra/zip/stable -O /tmp/qiskit-terra.zip
