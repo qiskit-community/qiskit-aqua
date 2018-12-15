@@ -40,7 +40,7 @@ class QuantumInstance:
                            'qasm_simulator_projectq': 'qasm_simulator'
                            }
 
-    BACKEND_CONFIG = ['basis_gates', 'config', 'coupling_map', 'seed']
+    BACKEND_CONFIG = ['basis_gates', 'config', 'coupling_map', 'seed', 'memory']
     COMPILE_CONFIG = ['pass_manager', 'initial_layout', 'seed_mapper', 'qobj_id']
     RUN_CONFIG = ['shots', 'max_credits']
     QJOB_CONFIG = ['timeout', 'wait']
@@ -96,7 +96,8 @@ class QuantumInstance:
             'basis_gates': basis_gates,
             'config': config or {},
             'coupling_map': coupling_map,
-            'seed': seed
+            'seed': seed,
+            'memory': memory
         }
 
         self._qjob_config = {'timeout': timeout} if self.is_local \
