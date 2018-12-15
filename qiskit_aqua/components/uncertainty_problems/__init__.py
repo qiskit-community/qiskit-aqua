@@ -15,28 +15,12 @@
 # limitations under the License.
 # =============================================================================
 
-from .quantum_algorithm import QuantumAlgorithm
-from .adaptive import VQE, QAOA, QSVMVariational
-from .classical import ExactEigensolver, SVM_Classical
-from .many_sample import EOH, QSVMKernel
-from .single_sample import Grover, IQPE, QPE, AmplitudeEstimation
+from .uncertainty_problem import UncertaintyProblem
+from .european_call_delta import EuropeanCallDelta
+from .european_call_expected_value import EuropeanCallExpectedValue
+from .fixed_income_expected_value import FixedIncomeExpectedValue
 
-__all__ = ['QuantumAlgorithm',
-           'VQE',
-           'QAOA',
-           'QSVMVariational',
-           'ExactEigensolver',
-           'SVM_Classical',
-           'EOH',
-           'QSVMKernel',
-           'Grover',
-           'IQPE',
-           'QPE',
-           'AmplitudeEstimation',
-           ]
-
-try:
-    from .classical import CPLEX_Ising
-    __all__ += ['CPLEX_Ising']
-except ImportError:
-    pass
+__all__ = ['UncertaintyProblem',
+           'EuropeanCallDelta',
+           'EuropeanCallExpectedValue',
+           'FixedIncomeExpectedValue']
