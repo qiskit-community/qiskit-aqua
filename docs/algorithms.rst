@@ -545,13 +545,17 @@ Grover is configured with the following parameter settings:
 
    .. code:: python
 
-       Incremental = False | True
+       incremental = False | True
 
-   When run in ``incremental`` mode, the search task will be carried out by using successive circuits built using incrementally higher
-   number of iterations for the repetition of the amplitude amplification until a target is found
-   or the maximal number :math:`\log N` (:math:`N` being the total number of elements in the set from the oracle used) of iterations is reached.
-   This is a boolean flag defaulted to ``False``;
-   when set ``True``, the other parameter ``num_iterations`` will be ignored.
+   When run in ``incremental`` mode,
+   the search task will be carried out in successive rounds,
+   using circuits built with incrementally higher number of iterations for the repetition of the amplitude amplification
+   until a target is found
+   or the maximal number :math:`\log N` (:math:`N` being the total number of elements in the set from the oracle used)
+   of iterations is reached.
+   The implementation follows Section 4 of `Boyer et al. <https://arxiv.org/abs/quant-ph/9605034>`__
+   The ``incremental`` boolean flag defaults to ``False``.
+   When set ``True``, the other parameter ``num_iterations`` will be ignored.
 
 
 .. topic:: Declarative Name
