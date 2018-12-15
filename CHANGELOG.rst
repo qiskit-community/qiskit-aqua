@@ -90,9 +90,9 @@ Changed
 - Changed description and change package name to dashes in setup.py.
 - Update description and fixed links in readme
 
-.. _UNRELEASED: https://github.com/Qiskit/aqua-chemistry/compare/0.3.0...HEAD
-.. _0.3.0: https://github.com/Qiskit/aqua-chemistry/compare/0.2.0...0.3.0
-.. _0.2.0: https://github.com/Qiskit/aqua-chemistry/compare/0.1.1...0.2.0
-.. _0.1.1: https://github.com/Qiskit/aqua-chemistry/compare/0.1.0...0.1.1
+.. _UNRELEASED: https://github.com/Qiskit/qiskit-chemistry/compare/0.3.0...HEAD
+.. _0.3.0: https://github.com/Qiskit/qiskit-chemistry/compare/0.2.0...0.3.0
+.. _0.2.0: https://github.com/Qiskit/qiskit-chemistry/compare/0.1.1...0.2.0
+.. _0.1.1: https://github.com/Qiskit/qiskit-chemistry/compare/0.1.0...0.1.1
 
 .. _Keep a Changelog: http://keepachangelog.com/en/1.0.0/
