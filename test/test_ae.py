@@ -22,7 +22,7 @@ import numpy as np
 from qiskit_aqua.algorithms.single_sample import AmplitudeEstimation
 from qiskit_aqua.components.uncertainty_problems import EuropeanCallExpectedValue, EuropeanCallDelta, FixedIncomeExpectedValue
 from qiskit_aqua.components.random_distributions import LogNormalDistribution, MultivariateNormalDistribution
-from qiskit import Aer
+from qiskit import BasicAer
 
 
 class TestEuropeanCallOption(QiskitAquaTestCase):
@@ -72,7 +72,7 @@ class TestEuropeanCallOption(QiskitAquaTestCase):
         ae = AmplitudeEstimation(m, european_call)
 
         # result = ae.run(quantum_instance=Aer.get_backend('qasm_simulator_py'), shots=100)
-        result = ae.run(quantum_instance=Aer.get_backend('statevector_simulator_py'))
+        result = ae.run(quantum_instance=BasicAer.get_backend('statevector_simulator'))
 
         self.assertEqual(0.0, np.round(result['estimation'] - 0.045705353233, decimals=4))
 
@@ -117,7 +117,7 @@ class TestEuropeanCallOption(QiskitAquaTestCase):
         ae = AmplitudeEstimation(m, european_call_delta)
 
         # result = ae.run(quantum_instance=Aer.get_backend('qasm_simulator_py'), shots=100)
-        result = ae.run(quantum_instance=Aer.get_backend('statevector_simulator_py'))
+        result = ae.run(quantum_instance=BasicAer.get_backend('statevector_simulator'))
 
         self.assertEqual(0.0, np.round(result['estimation'] - 0.5000, decimals=4))
 
