@@ -388,9 +388,9 @@ Inverse Quantum Fourier Transform (IQFT) is not used for IQPE.
 
 .. _ae:
 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Amplitude Estimation Algorithm
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^
+Amplitude Estimation
+^^^^^^^^^^^^^^^^^^^^
 
 The *Amplitude Estimation* algorithm can be used to estimate
 the amplitude of the |1> outcome of a unitary operator 
