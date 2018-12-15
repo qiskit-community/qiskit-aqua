@@ -14,29 +14,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+"""
+This module contains the definition of a base class for
+random distributions. A random distribution could be used for
+constructing Amplification Estimation tasks.
+"""
 
-from .quantum_algorithm import QuantumAlgorithm
-from .adaptive import VQE, QAOA, QSVMVariational
-from .classical import ExactEigensolver, SVM_Classical
-from .many_sample import EOH, QSVMKernel
-from .single_sample import Grover, IQPE, QPE, AmplitudeEstimation
+from abc import ABC
+from qiskit_aqua import Pluggable
+from qiskit_aqua.utils import CircuitFactory
 
-__all__ = ['QuantumAlgorithm',
-           'VQE',
-           'QAOA',
-           'QSVMVariational',
-           'ExactEigensolver',
-           'SVM_Classical',
-           'EOH',
-           'QSVMKernel',
-           'Grover',
-           'IQPE',
-           'QPE',
-           'AmplitudeEstimation',
-           ]
 
-try:
-    from .classical import CPLEX_Ising
-    __all__ += ['CPLEX_Ising']
-except ImportError:
-    pass
+class RandomDistribution(CircuitFactory, Pluggable, ABC):
+    """
+    The abstract Random Distribution
+    """
+
+    @classmethod
+    def init_params(cls, params):
+        args = {k: v for k, v in params.items() if k != 'name'}
+        return cls(**args)
+
+    def __init__(self, num_target_qubits):
+        super().__init__(num_target_qubits)
