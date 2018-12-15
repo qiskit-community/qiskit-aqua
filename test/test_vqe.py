@@ -19,7 +19,7 @@ import unittest
 
 import numpy as np
 from parameterized import parameterized
-from qiskit import Aer
+from qiskit import LegacySimulators
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import Operator, run_algorithm, QuantumInstance
@@ -90,7 +90,7 @@ class TestVQE(QiskitAquaTestCase):
         ['RYRZ', 5]
     ])
     def test_vqe_var_forms(self, name, places):
-        backend = Aer.get_backend('statevector_simulator')
+        backend = LegacySimulators.get_backend('statevector_simulator')
         params = {
             'algorithm': {'name': 'VQE'},
             'variational_form': {'name': name},
@@ -105,7 +105,7 @@ class TestVQE(QiskitAquaTestCase):
         [False]
     ])
     def test_vqe_direct(self, batch_mode):
-        backend = Aer.get_backend('statevector_simulator')
+        backend = LegacySimulators.get_backend('statevector_simulator')
         num_qubits = self.algo_input.qubit_op.num_qubits
         init_state = Zero(num_qubits)
         var_form = RY(num_qubits, 3, initial_state=init_state)

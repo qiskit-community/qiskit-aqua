@@ -16,9 +16,8 @@
 # =============================================================================
 
 import logging
-
 from qiskit import __version__ as terra_version
-from qiskit import IBMQ, Aer
+from qiskit import IBMQ, BasicAer, LegacySimulators
 from qiskit.backends.ibmq.credentials import Credentials
 from qiskit.backends.ibmq.ibmqsingleprovider import IBMQSingleProvider
 
@@ -275,9 +274,9 @@ class QuantumInstance:
                 "Failed to register with Qiskit: {}".format(str(e)))
 
         backends = set()
-        aer_backends = [x.name() for x in Aer.backends()]
-        for aer_backend in aer_backends:
-            backend = aer_backend
+        builtin_backends = [x.name() for x in BasicAer.backends()]
+        legacy_backends = [x.name() for x in LegacySimulators.backends()]
+        for backend in set(builtin_backends + legacy_backends):
             supported = True
             for unsupported_backend in QuantumInstance.UNSUPPORTED_BACKENDS:
                 if backend.startswith(unsupported_backend):
@@ -291,10 +290,10 @@ class QuantumInstance:
 
 
 def get_quantum_instance_with_aer_statevector_simulator():
-    backend = Aer.get_backend('statevector_simulator')
+    backend = LegacySimulators.get_backend('statevector_simulator')
     return QuantumInstance(backend)
 
 
 def get_quantum_instance_with_aer_qasm_simulator(shots=1024):
-    backend = Aer.get_backend('qasm_simulator')
+    backend = LegacySimulators.get_backend('qasm_simulator')
     return QuantumInstance(backend, shots=shots)
