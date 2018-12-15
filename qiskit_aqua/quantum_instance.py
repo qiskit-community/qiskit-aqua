@@ -40,7 +40,7 @@ class QuantumInstance:
                            'qasm_simulator_projectq': 'qasm_simulator'
                            }
 
-    BACKEND_CONFIG = ['basis_gates', 'config', 'coupling_map', 'seed']
+    BACKEND_CONFIG = ['basis_gates', 'config', 'coupling_map', 'seed', 'memory']
     COMPILE_CONFIG = ['pass_manager', 'initial_layout', 'seed_mapper', 'qobj_id']
     RUN_CONFIG = ['shots', 'max_credits']
     QJOB_CONFIG = ['timeout', 'wait']
@@ -51,7 +51,7 @@ class QuantumInstance:
                         "max_memory", "max_threads_shot", "max_threads_gate", "threshold_omp_gate"]
 
     def __init__(self, backend, shots=1024, max_credits=10, config=None, seed=None,
-                 initial_layout=None, pass_manager=None, seed_mapper=None,
+                 initial_layout=None, pass_manager=None, seed_mapper=None, memory=False,
                  timeout=None, wait=5):
         """Constructor.
 
@@ -64,6 +64,7 @@ class QuantumInstance:
             initial_layout (dict): initial layout of qubits in mapping
             pass_manager (PassManager): pass manager to handle how to compile the circuits
             seed_mapper (int): the random seed for circuit mapper
+            memory (bool): if True, per-shot measurement bitstrings are returned as well
             timeout (float or None): seconds to wait for job. If None, wait indefinitely.
             wait (float): seconds between queries to result
         """
@@ -95,7 +96,8 @@ class QuantumInstance:
             'basis_gates': basis_gates,
             'config': config or {},
             'coupling_map': coupling_map,
-            'seed': seed
+            'seed': seed,
+            'memory': memory
         }
 
         self._qjob_config = {'timeout': timeout} if self.is_local \
