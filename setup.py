@@ -68,7 +68,7 @@ setuptools.setup(
     description='Qiskit Aqua Chemistry: Experiment with chemistry applications on a quantum machine',
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url='https://github.com/Qiskit/aqua-chemistry',
+    url='https://github.com/Qiskit/qiskit-chemistry',
     author='Qiskit Aqua Chemistry Development Team',
     author_email='qiskit@us.ibm.com',
     license='Apache-2.0',

@@ -81,11 +81,11 @@ The corresponding driver wrapper in Aqua Chemistry accesses electronic structure
 via the Gaussian-supplied open-source `interfacing code <http://www.gaussian.com/interfacing/>`__.
 
 In the ``qiskit_aqua_chemistry/drivers/gaussiand/gauopen`` folder of the
-`Aqua Chemistry GitHub repository <https://github.com/Qiskit/aqua-chemistry>`__,
+`Aqua Chemistry GitHub repository <https://github.com/Qiskit/qiskit-chemistry>`__,
 the Python part of the above interfacing code, as needed by Aqua Chemistry,
 has been made available. It is licensed under a
 `Gaussian Open-Source Public License
-<https://github.com/Qiskit/aqua-chemistry/blob/master/qiskit_aqua_chemistry/drivers/gaussiand/gauopen/LICENSE.txt>`__.
+<https://github.com/Qiskit/qiskit-chemistry/blob/master/qiskit_aqua_chemistry/drivers/gaussiand/gauopen/LICENSE.txt>`__.
 
 Part of this interfacing code --- specifically, the Fortran file ``qcmatrixio.F`` --- requires compilation to a Python native extension. However,
 Aqua Chemistry comes with pre-built binaries for most common platforms. If there is no pre-built binary
@@ -429,7 +429,7 @@ Generation of an HDF5 Input File
 The most intuitive way to generate an HDF5 input file is by using the Aqua Chemistry
 :ref:`aqua-chemistry-gui`.
 Through the GUI, you can load an existing :ref:`aqua-chemistry-input-file` from the ``chemistry`` folder
-of the `Aqua Tutorials GitHub repository <https://github.com/Qiskit/Aqua-tutorials>`__
+of the `Qiskit Tutorials GitHub repository <https://github.com/Qiskit/qiskit-tutorials>`__
 (which must have been installed on your file system via a ``git clone`` command)
 by selecting **Open...** from the **File** menu.  Alternatively, you can create and then potentially customize
 a brand new :ref:`aqua-chemistry-input-file` by choosing **New** from the **File** menu.

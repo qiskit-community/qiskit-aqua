@@ -7,7 +7,7 @@ Qiskit Chemistry is the application running on top of Aqua that enables conducti
 on top of NISQ computers.  It comes as a set of tools, algorithms and software for use with quantum computers
 to carry out research and investigate how to take advantage of the quantum computational power to experiment with
 quantum chemistry problems. Qiskit Chemistry translates chemistry-specific problem inputs into inputs for a quantum algorithm
-supplied by [Qiskit Aqua](https://github.com/Qiskit/aqua), which then in turn uses
+supplied by [Qiskit Aqua](https://github.com/Qiskit/qiskit-aqua), which then in turn uses
 [Qiskit Terra](https://www.qiskit.org/terra) for the actual quantum computation.
 Please refer to the [Aqua documentation](https://qiskit.org/documentation/aqua/) for a detailed
 presentation of Qiskit Chemistry and its components and capabilities, as well as step-by-step installation and
@@ -26,7 +26,7 @@ Once you have it installed, you can experiment with Aqua Chemistry using either 
 
 More advanced users and developers may wish to develop and add their own
 algorithms or other code. Algorithms and supporting components may be added to
-[Qiskit Aqua](https://github.com/Qiskit/aqua) which was designed with an extensible, pluggable
+[Qiskit Aqua](https://github.com/Qiskit/qiskit-aqua) which was designed with an extensible, pluggable
 framework. Qiskit Chemistry utilizes a similar framework for drivers and the core computation.
 
 **If you'd like to contribute to Qiskit Chemistry, please take a look at our**
@@ -44,7 +44,7 @@ Links to Sections:
 ### Dependencies
 
 As Qiskit Chemistry is built upon Qiskit Aqua you are encouraged to look over the
-[Qiskit Aqua installation](https://github.com/Qiskit/aqua/blob/master/README.md#installation) too.
+[Qiskit Aqua installation](https://github.com/Qiskit/qiskit-aqua/blob/master/README.md#installation) too.
 
 Like for Qiskit Aqua, at least [Python 3.5 or later](https://www.python.org/downloads/) is needed to use
 Qiskit Chemistry.
@@ -86,7 +86,7 @@ Even without installing one of the above drivers, it is still possible to run so
 you have an Qiskit Chemistry HDF5 file that has been previously created when using one of the above drivers.
 The HDF5 driver takes such an input.  
 A few sample hdf5 files have been provided and these can be found in the 
-[chemistry folder](https://github.com/Qiskit/qiskit-tutorial/tree/master/qiskit/aqua/chemistry) of the Qiskit Tutorials
+[chemistry folder](https://github.com/Qiskit/qiskit-tutorials/tree/master/qiskit/aqua/chemistry) of the Qiskit Tutorials
 repository.
 
 ## Running a Chemistry Experiment
@@ -98,7 +98,7 @@ Qiskit Chemistry has both [GUI](#gui) and [command line](#command-line) tools, w
 chemistry simulation experiments on a quantum machine. Both can load and run an [input file](qiskit_aqua_chemistry#input-file) specifying the molecule,
 an algorithm to be used and its configuration, and various other options to tailor the experiment. You can find several
 input files to experiment with in the Qiskit Tutorials repository's
-[chemistry input file folder](https://github.com/Qiskit/qiskit-tutorial/tree/master/community/aqua/chemistry/input_files).
+[chemistry input file folder](https://github.com/Qiskit/qiskit-tutorials/tree/master/community/aqua/chemistry/input_files).
 If you are new to the library we highly recommend getting started with the GUI.
 
 ### GUI
@@ -115,7 +115,7 @@ pip install, then it can be run using:
 
 `python qiskit_aqua_chemistry/ui`
 
-from the root folder of the aqua-chemistry repository clone.
+from the root folder of the qiskit-chemistry repository clone.
 
 ### Command Line
 
@@ -141,13 +141,13 @@ pip install, then it can be run using
 
 `python qiskit_aqua_chemistry`
 
-from the root folder of the aqua-chemistry repository clone.
+from the root folder of the qiskit-chemistry repository clone.
 
 ### Programming
 
 Chemistry experiments can be run programmatically too. The chemistry notebooks in the
-[Qiskit Aqua](https://github.com/Qiskit/qiskit-tutorial/tree/master/qiskit/aqua/chemistry)
-and [Qiskit community](https://github.com/Qiskit/qiskit-tutorial/tree/master/community/aqua/chemistry)
+[Qiskit Aqua](https://github.com/Qiskit/qiskit-tutorials/tree/master/qiskit/aqua/chemistry)
+and [Qiskit community](https://github.com/Qiskit/qiskit-tutorials/tree/master/community/aqua/chemistry)
 tutorials provide numerous examples
 demonstrating how to use Aqua to carry out quantum computing experiments.
 Here you will see different ways of programming an experiment. The simplest, which
@@ -158,15 +158,15 @@ be automatically generated from the GUI, is used and an
 solver = AquaChemistry()
 result = solver.run(aqua_chemistry_dict)
 ```
-The [basic how-to tutorial](https://github.com/Qiskit/qiskit-tutorial/blob/master/qiskit/aqua/chemistry/basic_howto.ipynb)
+The [basic how-to tutorial](https://github.com/Qiskit/qiskit-tutorials/blob/master/qiskit/aqua/chemistry/basic_howto.ipynb)
 notebook details this simple example.
 
-The [advanced how-to tutorial](https://github.com/Qiskit/qiskit-tutorial/blob/master/qiskit/aqua/chemistry/advanced_howto.ipynb) illustrates how to conduct a quantum chemistry experiment using the Qiskit Aqua and Chemistry
+The [advanced how-to tutorial](https://github.com/Qiskit/qiskit-tutorials/blob/master/qiskit/aqua/chemistry/advanced_howto.ipynb) illustrates how to conduct a quantum chemistry experiment using the Qiskit Aqua and Chemistry
 Application Programming Interfaces (APIs).
 
 Since the Python dictionary can be updated programmatically it is possible to carry out more complicated experiments
 such as plotting a
-[dissociation curve](https://github.com/Qiskit/aqua-tutorials/blob/master/chemistry/lih_uccsd.ipynb).
+[dissociation curve](https://github.com/Qiskit/qiskit-tutorials/blob/master/chemistry/lih_uccsd.ipynb).
 
 
 ## Authors

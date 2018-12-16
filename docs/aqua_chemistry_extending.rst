@@ -16,7 +16,7 @@ framework.  Once added, new components are automatically discovered.
 .. topic:: Contribution Guidelines
 
     Any user who would like to contribute to Aqua or Aqua Chemistry should follow the Aqua `contribution
-    guidelines <https://github.com/Qiskit/aqua-chemistry/blob/master/.github/CONTRIBUTING.rst>`__.
+    guidelines <https://github.com/Qiskit/qiskit-chemistry/blob/master/.github/CONTRIBUTING.rst>`__.
 
 ---------------------------------
 Dynamically Discovered Components
@@ -31,7 +31,7 @@ ways for a component to be dynamically discovered and loaded by Aqua Chemistry a
    as explained in `Section "Extension Points" <#extension-points>`__ below for each different component type.
    This is the easiest approach.  Researchers
    and developers extending Aqua Chemistry are more likely to have installed Aqua Chemistry by cloning the
-   `Aqua Chemistry GitHub repository <https://github.com/Qiskit/aqua-chemistry>`__ as opposed to using
+   `Aqua Chemistry GitHub repository <https://github.com/Qiskit/qiskit-chemistry>`__ as opposed to using
    the pip package manager system.  Therefore, the folders indicated below can be easily located in the file system.
 
 2. Alternatively, a developer extending Aqua Chemistry with a new component can simply create a dedicated
@@ -91,7 +91,7 @@ ways for a component to be dynamically discovered and loaded by Aqua Chemistry a
           description='Aqua Chemistry Component',
           long_description = long_description,
           long_description_content_type = "text/markdown",
-          url = 'https://github.com/aqua-chemistry-custom-component-package',
+          url = 'https://github.com/qiskit-chemistry-custom-component-package',
           author = 'Aqua Development Team',
           author_email = 'qiskit@us.ibm.com',
           license='Apache-2.0',

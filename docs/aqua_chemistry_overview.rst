@@ -54,7 +54,7 @@ Either option enforces schema-based configuration correctness.
 
     If you would like to contribute to Aqua Chemistry, please follow the
     Aqua Chemistry `contribution
-    guidelines <https://github.com/Qiskit/aqua-chemistry/blob/master/.github/CONTRIBUTING.rst>`__.
+    guidelines <https://github.com/Qiskit/qiskit-chemistry/blob/master/.github/CONTRIBUTING.rst>`__.
 
 
 ----------------------------
@@ -311,10 +311,10 @@ to external chemistry :ref:`drivers` has additional licensing:
 -  The :ref:`gaussian-16`
    driver
    contains work licensed under the `Gaussian Open-Source Public
-   License <https://github.com/Qiskit/aqua-chemistry/blob/master/qiskit_aqua_chemistry/drivers/gaussiand/gauopen/LICENSE.txt>`__.
+   License <https://github.com/Qiskit/qiskit-chemistry/blob/master/qiskit_aqua_chemistry/drivers/gaussiand/gauopen/LICENSE.txt>`__.
 
 -  The :ref:`pyquante`
    driver
    contains work licensed under the `modified BSD
-   license <https://github.com/Qiskit/aqua-chemistry/blob/master/qiskit_aqua_chemistry/drivers/pyquanted/LICENSE.txt>`__.
+   license <https://github.com/Qiskit/qiskit-chemistry/blob/master/qiskit_aqua_chemistry/drivers/pyquanted/LICENSE.txt>`__.
 

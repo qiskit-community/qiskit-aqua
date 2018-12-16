@@ -65,7 +65,7 @@ as follows:
    qiskit_aqua_chemistry_ui
 
 If you cloned Aqua Chemistry directly from the
-`GitHub repository <https://github.com/Qiskit/aqua-chemistry>`__ instead of using ``pip
+`GitHub repository <https://github.com/Qiskit/qiskit-chemistry>`__ instead of using ``pip
 install``, then the script above will not be present and the launching command should be instead:
 
 .. code:: sh
@@ -99,7 +99,7 @@ will automatically install the following command-line tool:
    qiskit_aqua_chemistry_cmd
 
 If you cloned Aqua Chemistry from its remote
-`GitHub repository <https://github.com/Qiskit/aqua-chemistry>`__
+`GitHub repository <https://github.com/Qiskit/qiskit-chemistry>`__
 instead of using ``pip install``, then the command-line interface can be executed as follows:
 
 .. code:: sh
@@ -144,8 +144,8 @@ Aqua Chemistry also offers Application Programming Interfaces (APIs)
 to execute experiments programmatically. Numerous
 examples on how to do so
 can be found in the
-`chemistry folder of the Aqua Tutorials GitHub repository
-<https://github.com/Qiskit/Aqua-tutorials/tree/master/chemistry>`__.
+`chemistry folder of the Qiskit Tutorials GitHub repository
+<https://github.com/Qiskit/qiskit-tutorials/tree/master/chemistry>`__.
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Programming an Experiment Step by Step
@@ -158,7 +158,7 @@ extracts from that execution the molecular structural data necessary to form
 the input to one of the Aqua quantum algorithms, and finally invokes that algorithm
 to build, compile and execute a circuit modeling the experiment on top of a quantum
 machine.  An example of this is available in the `PySCF_end2end tutorial
-<https://github.com/Qiskit/Aqua-tutorials/blob/master/chemistry/PySCF_end2end.ipynb>`__.
+<https://github.com/Qiskit/qiskit-tutorials/blob/master/chemistry/PySCF_end2end.ipynb>`__.
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Declarative Programming Interface
@@ -252,9 +252,9 @@ classical algorithm.  A comparison with the :ref:`Hartree-Fock` energy is also o
 
 More complex examples include
 `plotting the dissociation curve 
-<https://github.com/Qiskit/Aqua-tutorials/blob/master/chemistry/lih_dissoc.ipynb>`__
+<https://github.com/Qiskit/qiskit-tutorials/blob/master/chemistry/lih_dissoc.ipynb>`__
 or `comparing results obtained via different algorithms 
-<https://github.com/Qiskit/Aqua-tutorials/blob/master/chemistry/lih_uccsd.ipynb>`__.
+<https://github.com/Qiskit/qiskit-tutorials/blob/master/chemistry/lih_uccsd.ipynb>`__.
 
 ^^^^^^^^^^^^^^^^^
 Result Dictionary
@@ -300,8 +300,8 @@ the computation, instead of using defaulted values when none are
 supplied.
 
 Several sample input files can be found in the `chemistry folder of
-the Aqua Tutorials GitHub repository
-<https://github.com/Qiskit/Aqua-tutorials/tree/master/chemistry/input_files>`__.
+the Qiskit Tutorials GitHub repository
+<https://github.com/Qiskit/qiskit-tutorials/tree/master/chemistry/input_files>`__.
 
 An input file comprises the following main sections, although not all
 are mandatory:
