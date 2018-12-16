@@ -20,7 +20,8 @@ import unittest
 
 from parameterized import parameterized
 from qiskit import execute as q_execute
-from qiskit import QuantumCircuit, ClassicalRegister, LegacySimulators
+from qiskit import QuantumCircuit, ClassicalRegister
+from qiskit_aqua import get_aer_backend
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua.components.oracles import SAT
@@ -74,7 +75,7 @@ class TestSATOracle(QiskitAquaTestCase):
                 qc += sat_circuit
                 qc.barrier(sat._qr_outcome)
                 qc.measure(sat._qr_outcome, m)
-                counts = q_execute(qc, LegacySimulators.get_backend(
+                counts = q_execute(qc, get_aer_backend(
                     'qasm_simulator'), shots=num_shots).result().get_counts(qc)
                 if assignment in sols:
                     assert(counts['1'] == num_shots)

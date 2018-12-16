@@ -18,7 +18,7 @@
 import numpy as np
 
 from qiskit import QuantumCircuit
-from qiskit import LegacySimulators
+from .backend_utils import get_aer_backend
 from qiskit import transpiler
 
 
@@ -102,7 +102,7 @@ def get_controlled_circuit(circuit, ctl_qubit, tgt_circuit=None, use_basis_gates
     # get all operations from compiled circuit
     ops = transpiler.compile(
         circuit,
-        LegacySimulators.get_backend('qasm_simulator'),
+        get_aer_backend('qasm_simulator'),
         basis_gates='u1,u2,u3,cx,id'
     )['circuits'][0]['compiled_circuit']['operations']
 

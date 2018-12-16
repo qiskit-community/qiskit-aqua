@@ -18,7 +18,7 @@
 import os
 
 import numpy as np
-from qiskit import LegacySimulators
+from qiskit_aqua import get_aer_backend
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua.input import SVMInput
@@ -64,7 +64,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
 
     def test_qsvm_variational_directly(self):
         np.random.seed(self.random_seed)
-        backend = LegacySimulators.get_backend('qasm_simulator')
+        backend = get_aer_backend('qasm_simulator')
 
         num_qubits = 2
         optimizer = SPSA(max_trials=10, c0=4.0, skip_calibration=True)

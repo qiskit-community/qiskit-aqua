@@ -19,7 +19,7 @@ import numpy as np
 import json
 
 from test.common import QiskitAquaTestCase
-from qiskit import LegacySimulators
+from qiskit_aqua import get_aer_backend
 
 from qiskit_aqua import run_algorithm
 from qiskit_aqua.input import EnergyInput
@@ -99,7 +99,7 @@ class TestSetPacking(QiskitAquaTestCase):
             'optimizer': optimizer_cfg,
             'variational_form': var_form_cfg
         }
-        backend = LegacySimulators.get_backend('qasm_simulator')
+        backend = get_aer_backend('qasm_simulator')
         result = run_algorithm(params, self.algo_input, backend=backend)
         x = setpacking.sample_most_likely(len(self.list_of_subsets), result['eigvecs'][0])
         ising_sol = setpacking.get_solution(x)
