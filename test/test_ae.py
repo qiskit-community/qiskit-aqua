@@ -20,10 +20,10 @@ import unittest
 import numpy as np
 from parameterized import parameterized
 
-from qiskit import LegacySimulators
+from qiskit_aqua import get_aer_backend
 from qiskit_aqua.algorithms import AmplitudeEstimation
-from qiskit_aqua.components.uncertainty_problems import EuropeanCallExpectedValue, EuropeanCallDelta, FixedIncomeExpectedValue
-from qiskit_aqua.components.random_distributions import LogNormalDistribution, MultivariateNormalDistribution
+from qiskit_aqua.components.uncertainty_problems import EuropeanCallExpectedValue, EuropeanCallDelta
+from qiskit_aqua.components.random_distributions import LogNormalDistribution
 
 from test.common import QiskitAquaTestCase
 
@@ -78,8 +78,8 @@ class TestEuropeanCallOption(QiskitAquaTestCase):
         # construct amplitude estimation
         ae = AmplitudeEstimation(m, european_call)
 
-        result = ae.run(quantum_instance=LegacySimulators.get_backend(simulator))
-        # result = ae.run(quantum_instance=LegacySimulators.get_backend('statevector_simulator'))
+        result = ae.run(quantum_instance=get_aer_backend(simulator))
+        # result = ae.run(quantum_instance=get_aer_backend('statevector_simulator'))
 
         self.assertEqual(0.0, np.round(result['estimation'] - 0.045705353233, decimals=4))
 
@@ -127,8 +127,8 @@ class TestEuropeanCallOption(QiskitAquaTestCase):
         # construct amplitude estimation
         ae = AmplitudeEstimation(m, european_call_delta)
 
-        result = ae.run(quantum_instance=LegacySimulators.get_backend(simulator))
-        # result = ae.run(quantum_instance=LegacySimulators.get_backend('statevector_simulator'))
+        result = ae.run(quantum_instance=get_aer_backend(simulator))
+        # result = ae.run(quantum_instance=get_aer_backend('statevector_simulator'))
 
         self.assertEqual(0.0, np.round(result['estimation'] - 0.5000, decimals=4))
 

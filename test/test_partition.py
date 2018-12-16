@@ -18,7 +18,7 @@
 import numpy as np
 
 from test.common import QiskitAquaTestCase
-from qiskit import LegacySimulators
+from qiskit_aqua import get_aer_backend
 
 from qiskit_aqua import run_algorithm
 from qiskit_aqua.input import EnergyInput
@@ -75,7 +75,7 @@ class TestSetPacking(QiskitAquaTestCase):
             'optimizer': optimizer_cfg,
             'variational_form': var_form_cfg
         }
-        backend = LegacySimulators.get_backend('qasm_simulator')
+        backend = get_aer_backend('qasm_simulator')
         result = run_algorithm(params, self.algo_input, backend=backend)
         x = partition.sample_most_likely(result['eigvecs'][0])
         self.assertNotEqual(x[0], x[1])

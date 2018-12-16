@@ -21,7 +21,7 @@ import copy
 import json
 import logging
 
-from qiskit import IBMQ, BasicAer, LegacySimulators
+from qiskit import IBMQ, BasicAer
 from qiskit.backends import BaseBackend
 from qiskit.transpiler import PassManager
 
@@ -34,6 +34,7 @@ from qiskit_aqua.utils.jsonutils import convert_dict_to_json, convert_json_to_di
 from qiskit_aqua.parser._inputparser import InputParser
 from qiskit_aqua.parser import JSONSchema
 from qiskit_aqua import QuantumInstance
+from qiskit_aqua import get_aer_backend
 
 logger = logging.getLogger(__name__)
 
@@ -97,7 +98,7 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
             backend_cfg['backend'] = backend
         else:
             try:
-                backend_from_name = LegacySimulators.get_backend(backend_name)
+                backend_from_name = get_aer_backend(backend_name)
             except:
                 try:
                     backend_from_name = BasicAer.get_backend(backend_name)
