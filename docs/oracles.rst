@@ -104,7 +104,7 @@ of each clause.  Essentially, the code above corresponds to the following CNF:
 
 Examples showing how to use the Grover algorithm in conjunction with the SAT oracles to search
 for solutions to SAT problems are available in the ``optimization`` folder of the
-`Qiskit Tutorials GitHub repository <https://github.com/Qiskit/qiskit-tutorial/tree/master/community/aqua>`__.
+`Qiskit Tutorials GitHub repository <https://github.com/Qiskit/qiskit-tutorials/tree/master/community/aqua>`__.
 
 .. topic:: Declarative Name
 

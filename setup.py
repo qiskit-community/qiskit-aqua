@@ -42,7 +42,7 @@ setuptools.setup(
     description='Qiskit Aqua: An extensible library of quantum computing algorithms',
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url='https://github.com/Qiskit/aqua',
+    url='https://github.com/Qiskit/qiskit-aqua',
     author='Qiskit Aqua Development Team',
     author_email='qiskit@us.ibm.com',
     license='Apache-2.0',
