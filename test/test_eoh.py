@@ -19,7 +19,7 @@ import unittest
 
 import numpy as np
 from qiskit.transpiler import PassManager
-from qiskit import LegacySimulators
+from qiskit_aqua import get_aer_backend
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua.operator import Operator, QuantumInstance
@@ -48,7 +48,7 @@ class TestEOH(QiskitAquaTestCase):
 
         eoh = EOH(qubit_op, state_in, evo_op, 'paulis', evo_time, num_time_slices)
 
-        backend = LegacySimulators.get_backend('statevector_simulator')
+        backend = get_aer_backend('statevector_simulator')
         quantum_instance = QuantumInstance(backend, shots=1, pass_manager=PassManager())
         # self.log.debug('state_out:\n\n')
 

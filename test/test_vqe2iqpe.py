@@ -18,7 +18,7 @@
 import unittest
 
 import numpy as np
-from qiskit import LegacySimulators
+from qiskit_aqua import get_aer_backend
 from qiskit.transpiler import PassManager
 
 from test.common import QiskitAquaTestCase
@@ -49,7 +49,7 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         self.algo_input = EnergyInput(qubit_op)
 
     def test_vqe_2_iqpe(self):
-        backend = LegacySimulators.get_backend('qasm_simulator')
+        backend = get_aer_backend('qasm_simulator')
         num_qbits = self.algo_input.qubit_op.num_qubits
         var_form = RYRZ(num_qbits, 3)
         optimizer = SPSA(max_trials=10)
