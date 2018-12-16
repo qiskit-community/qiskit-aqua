@@ -19,14 +19,14 @@ import unittest
 import copy
 
 import numpy as np
-import qiskit
 from qiskit import QuantumRegister
+from qiskit_aqua import get_aer_backend
 from qiskit import execute as q_execute
-from qiskit.tools.qi.qi import state_fidelity
+from qiskit.quantum_info import state_fidelity
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua.operator import Operator
-from qiskit_aqua import get_initial_state_instance
+from qiskit_aqua.components.initial_states import Custom
 
 
 class TestEvolution(QiskitAquaTestCase):
@@ -45,14 +45,14 @@ class TestEvolution(QiskitAquaTestCase):
         # np.random.seed(2)
         temp = np.random.random((2 ** SIZE, 2 ** SIZE))
         h1 = temp + temp.T
-        qubitOp = Operator(matrix=h1)
-        # qubitOp_jw.chop_by_threshold(10 ** -10)
+        qubit_op = Operator(matrix=h1)
+        # qubit_op_jw.chop_by_threshold(10 ** -10)
 
-        if qubitOp.grouped_paulis is None:
-            qubitOp._matrix_to_paulis()
-            qubitOp._paulis_to_grouped_paulis()
+        if qubit_op.grouped_paulis is None:
+            qubit_op._matrix_to_paulis()
+            qubit_op._paulis_to_grouped_paulis()
 
-        for ps in qubitOp.grouped_paulis:
+        for ps in qubit_op.grouped_paulis:
             for p1 in ps:
                 for p2 in ps:
                     if p1 != p2:
@@ -61,8 +61,7 @@ class TestEvolution(QiskitAquaTestCase):
                             p2[1].to_matrix() @ p1[1].to_matrix()
                         )
 
-        state_in = get_initial_state_instance('CUSTOM')
-        state_in.init_args(SIZE, state='random')
+        state_in = Custom(SIZE, state='random')
 
         evo_time = 1
         num_time_slices = 3
@@ -73,10 +72,10 @@ class TestEvolution(QiskitAquaTestCase):
         self.log.debug('state_in:        {}'.format(state_in._state_vector))
 
         # get the exact state_out from raw matrix multiplication
-        state_out_exact = qubitOp.evolve(
+        state_out_exact = qubit_op.evolve(
             state_in.construct_circuit('vector'), evo_time, 'matrix', 0)
         # self.log.debug('exact:\n{}'.format(state_out_exact))
-        qubitOp_temp = copy.deepcopy(qubitOp)
+        qubit_op_temp = copy.deepcopy(qubit_op)
         for grouping in ['default', 'random']:
             self.log.debug('Under {} paulis grouping:'.format(grouping))
             for expansion_mode in ['trotter', 'suzuki']:
@@ -84,11 +83,11 @@ class TestEvolution(QiskitAquaTestCase):
                     'Under {} expansion mode:'.format(expansion_mode))
                 for expansion_order in [1, 2, 3, 4] if expansion_mode == 'suzuki' else [1]:
                     # assure every time the operator from the original one
-                    qubitOp = copy.deepcopy(qubitOp_temp)
+                    qubit_op = copy.deepcopy(qubit_op_temp)
                     if expansion_mode == 'suzuki':
                         self.log.debug(
                             'With expansion order {}:'.format(expansion_order))
-                    state_out_matrix = qubitOp.evolve(
+                    state_out_matrix = qubit_op.evolve(
                         state_in.construct_circuit(
                             'vector'), evo_time, 'matrix', num_time_slices,
                         paulis_grouping=grouping,
@@ -96,19 +95,19 @@ class TestEvolution(QiskitAquaTestCase):
                         expansion_order=expansion_order
                     )
 
-                    quantum_registers = QuantumRegister(qubitOp.num_qubits)
+                    quantum_registers = QuantumRegister(qubit_op.num_qubits)
                     qc = state_in.construct_circuit(
                         'circuit', quantum_registers)
-                    qc += qubitOp.evolve(
+                    qc += qubit_op.evolve(
                         None, evo_time, 'circuit', num_time_slices,
                         quantum_registers=quantum_registers,
                         paulis_grouping=grouping,
                         expansion_mode=expansion_mode,
                         expansion_order=expansion_order,
                     )
-                    job = q_execute(qc, qiskit.Aer.get_backend('statevector_simulator'))
+                    job = q_execute(qc, get_aer_backend('statevector_simulator'))
                     state_out_circuit = np.asarray(
-                        job.result().get_statevector(qc))
+                        job.result().get_statevector(qc, decimals=16))
 
                     self.log.debug('The fidelity between exact and matrix:   {}'.format(
                         state_fidelity(state_out_exact, state_out_matrix)

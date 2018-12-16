@@ -20,21 +20,18 @@ import unittest
 import numpy as np
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import get_initial_state_instance
+from qiskit_aqua.components.initial_states import Zero
 
 
 class TestInitialStateZero(QiskitAquaTestCase):
 
-    def setUp(self):
-        self.zero = get_initial_state_instance('ZERO')
-
     def test_qubits_2_vector(self):
-        self.zero.init_args(2)
+        self.zero = Zero(2)
         cct = self.zero.construct_circuit('vector')
         np.testing.assert_array_equal(cct, [1.0, 0.0, 0.0, 0.0])
 
     def test_qubits_5_vector(self):
-        self.zero.init_args(5)
+        self.zero = Zero(5)
         cct = self.zero.construct_circuit('vector')
         np.testing.assert_array_equal(cct, [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -42,12 +39,12 @@ class TestInitialStateZero(QiskitAquaTestCase):
                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
     def test_qubits_2_circuit(self):
-        self.zero.init_args(2)
+        self.zero = Zero(2)
         cct = self.zero.construct_circuit('circuit')
         self.assertEqual(cct.qasm(), 'OPENQASM 2.0;\ninclude "qelib1.inc";\nqreg q[2];\n')
 
     def test_qubits_5_circuit(self):
-        self.zero.init_args(5)
+        self.zero = Zero(5)
         cct = self.zero.construct_circuit('circuit')
         self.assertEqual(cct.qasm(), 'OPENQASM 2.0;\ninclude "qelib1.inc";\nqreg q[5];\n')
 

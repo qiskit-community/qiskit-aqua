@@ -15,3 +15,28 @@
 # limitations under the License.
 # =============================================================================
 
+from .quantum_algorithm import QuantumAlgorithm
+from .adaptive import VQE, QAOA, QSVMVariational
+from .classical import ExactEigensolver, SVM_Classical
+from .many_sample import EOH, QSVMKernel
+from .single_sample import Grover, IQPE, QPE, AmplitudeEstimation
+
+__all__ = ['QuantumAlgorithm',
+           'VQE',
+           'QAOA',
+           'QSVMVariational',
+           'ExactEigensolver',
+           'SVM_Classical',
+           'EOH',
+           'QSVMKernel',
+           'Grover',
+           'IQPE',
+           'QPE',
+           'AmplitudeEstimation',
+           ]
+
+try:
+    from .classical import CPLEX_Ising
+    __all__ += ['CPLEX_Ising']
+except ImportError:
+    pass

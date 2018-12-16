@@ -19,10 +19,13 @@ import unittest
 
 import numpy as np
 from parameterized import parameterized
+from qiskit_aqua import get_aer_backend
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import get_algorithm_instance, get_optimizer_instance
 from qiskit_aqua.translators.ising import maxcut
+from qiskit_aqua.components.optimizers import COBYLA
+from qiskit_aqua.algorithms import QAOA
+from qiskit_aqua import QuantumInstance
 
 w1 = np.array([
     [0, 1, 0, 1],
@@ -53,13 +56,15 @@ class TestQAOA(QiskitAquaTestCase):
     def test_qaoa(self, w, p, solutions):
         self.log.debug('Testing {}-step QAOA with MaxCut on graph\n{}'.format(p, w))
         np.random.seed(0)
-        optimizer = get_optimizer_instance('COBYLA')
-        qubitOp, offset = maxcut.get_maxcut_qubitops(w)
-        qaoa = get_algorithm_instance('QAOA.Variational')
-        qaoa.setup_quantum_backend(backend='statevector_simulator', shots=100)
-        qaoa.init_args(qubitOp, 'matrix', p, optimizer)
 
-        result = qaoa.run()
+        backend = get_aer_backend('statevector_simulator')
+        optimizer = COBYLA()
+        qubitOp, offset = maxcut.get_maxcut_qubitops(w)
+
+        qaoa = QAOA(qubitOp, optimizer, p, operator_mode='matrix')
+        quantum_instance = QuantumInstance(backend)
+
+        result = qaoa.run(quantum_instance)
         x = maxcut.sample_most_likely(result['eigvecs'][0])
         graph_solution = maxcut.get_graph_solution(x)
         self.log.debug('energy:             {}'.format(result['energy']))

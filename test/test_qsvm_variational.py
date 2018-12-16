@@ -15,14 +15,18 @@
 # limitations under the License.
 # =============================================================================
 
-import unittest
+import os
 
 import numpy as np
+from qiskit_aqua import get_aer_backend
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua.input import get_input_instance
-from qiskit_aqua import (run_algorithm, get_algorithm_instance, get_optimizer_instance,
-                         get_feature_map_instance, get_variational_form_instance)
+from qiskit_aqua.input import SVMInput
+from qiskit_aqua import run_algorithm, QuantumInstance
+from qiskit_aqua.algorithms import QSVMVariational
+from qiskit_aqua.components.optimizers import SPSA
+from qiskit_aqua.components.feature_maps import SecondOrderExpansion
+from qiskit_aqua.components.variational_forms import RYRZ
 
 
 class TestQSVMVariational(QiskitAquaTestCase):
@@ -34,15 +38,12 @@ class TestQSVMVariational(QiskitAquaTestCase):
         self.testing_data = {'A': np.asarray([[3.83274304, 2.45044227]]),
                              'B': np.asarray([[3.89557489, 0.31415927]])}
 
-        self.ref_opt_params = np.asarray([2.93868096, 0.76735399, 4.21845289, 4.28731786,
-                                          -4.64804051, -4.0103384, 3.62083309, -3.1466139,
-                                          3.36741576, 0.07314989, -1.92529824, -1.31781337,
-                                          2.2547051, 7.29971351, 3.74421673, -3.74280352])
-        self.ref_train_loss = 0.4999339230552529
+        self.ref_opt_params = np.asarray([2.6985,   1.5935,   2.2456,  -6.255,  -4.3215,  -5.41,
+                                          -6.9215,   0.2656,   1.5701,  -4.677,   2.6987, -11.7649,
+                                          -2.3141,  -2.7084,   0.0622,  -0.1577])
+        self.ref_train_loss = 0.6294606017231916
 
-        self.svm_input = get_input_instance('SVMInput')
-        self.svm_input.training_dataset = self.training_data
-        self.svm_input.test_dataset = self.testing_data
+        self.svm_input = SVMInput(self.training_data, self.testing_data)
 
     def test_qsvm_variational_via_run_algorithm(self):
         np.random.seed(self.random_seed)
@@ -59,29 +60,46 @@ class TestQSVMVariational(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(result['opt_params'], self.ref_opt_params, decimal=4)
         np.testing.assert_array_almost_equal(result['training_loss'], self.ref_train_loss, decimal=8)
 
-        self.assertEqual(result['testing_accuracy'], 0.5)
+        self.assertEqual(result['testing_accuracy'], 0.0)
 
     def test_qsvm_variational_directly(self):
         np.random.seed(self.random_seed)
-        svm = get_algorithm_instance("QSVM.Variational")
-        svm.random_seed = self.random_seed
-        svm.setup_quantum_backend(backend='qasm_simulator', shots=1024)
+        backend = get_aer_backend('qasm_simulator')
 
-        optimizer = get_optimizer_instance('SPSA')
-        optimizer.init_args(max_trials=10, c0=4.0, skip_calibration=True)
-        optimizer.set_options(save_steps=1)
         num_qubits = 2
+        optimizer = SPSA(max_trials=10, c0=4.0, skip_calibration=True)
+        optimizer.set_options(save_steps=1)
+        feature_map = SecondOrderExpansion(num_qubits=num_qubits, depth=2)
+        var_form = RYRZ(num_qubits=num_qubits, depth=3)
 
-        feature_map = get_feature_map_instance('SecondOrderExpansion')
-        feature_map.init_args(num_qubits=num_qubits, depth=2)
+        svm = QSVMVariational(optimizer, feature_map, var_form, self.training_data, self.testing_data)
+        svm.random_seed = self.random_seed
 
-        var_form = get_variational_form_instance('RYRZ')
-        var_form.init_args(num_qubits=num_qubits, depth=3)
-
-        svm.init_args(self.training_data, self.testing_data, None, optimizer, feature_map, var_form)
-        result = svm.run()
+        quantum_instance = QuantumInstance(backend, shots=1024, seed=self.random_seed, seed_mapper=self.random_seed)
+        result = svm.run(quantum_instance)
 
         np.testing.assert_array_almost_equal(result['opt_params'], self.ref_opt_params, decimal=4)
         np.testing.assert_array_almost_equal(result['training_loss'], self.ref_train_loss, decimal=8)
 
-        self.assertEqual(result['testing_accuracy'], 0.5)
+        self.assertEqual(result['testing_accuracy'], 0.0)
+
+        file_path = self._get_resource_path('qsvm_variational_test.npz')
+        svm.save_model(file_path)
+
+        self.assertTrue(os.path.exists(file_path))
+
+        loaded_svm = QSVMVariational(optimizer, feature_map, var_form, self.training_data, None)
+        loaded_svm.load_model(file_path)
+
+        np.testing.assert_array_almost_equal(
+            loaded_svm.ret['opt_params'], self.ref_opt_params, decimal=4)
+
+        loaded_test_acc = loaded_svm.test(svm.test_dataset[0], svm.test_dataset[1], quantum_instance)
+        self.assertEqual(result['testing_accuracy'], loaded_test_acc)
+
+        if os.path.exists(file_path):
+            try:
+                os.remove(file_path)
+            except:
+                pass
+

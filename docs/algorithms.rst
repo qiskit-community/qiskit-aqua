@@ -18,6 +18,7 @@ The following `quantum algorithms <#quantum-algorithms>`__ are part of Aqua:
 -  :ref:`Evolution of Hamiltonian (EOH)`
 -  :ref:`Quantum Phase Estimation (QPE)`
 -  :ref:`Iterative Quantum Phase Estimation (IQPE)`
+-  :ref:`Amplitude Estimation`
 -  :ref:`Quantum Grover Search`
 -  :ref:`Support Vector Machine Quantum Kernel (QSVM Kernel)`
 -  :ref:`Support Vector Machine Variational (QSVM Variational)`
@@ -50,10 +51,42 @@ quantum algorithms:
     developers interested in
     :ref:`aqua-extending` to extend the Aqua framework with their novel research contributions.
 
+
 .. seealso::
 
     Section :ref:`aqua-extending` provides more
     details on how to extend Aqua with new components.
+
+
+.. _cnx:
+
+.. topic:: Multiple-Controlled-NOT (CNX) Operations
+
+    The Multiple-Controlled-NOT operation, or what we call ``cnx``, as the name suggests,
+    is a generalization of the quantum operation where one target qubit is controlled by a number of control qubits
+    for a NOT (x) operation.
+    The multiple-controlled-NOT operation can be used as the building block
+    for implementing various different quantum algorithms,
+    such as the Grover's search algorithm.
+
+    For the different number of controls 0, 1, 2, ...
+    we have the following corresponding quantum gates ``x``, ``cx``, ``ccx``, ...
+    The first three are basic/well-known quantum gates.
+    In Aqua, the ``cnx`` we provide supports arbitrary number of controls, in particular, 3 or above.
+
+    Currently two different implementation strategies are included: ``basic`` and ``advanced``.
+    The ``basic`` mode employs a textbook implementation
+    where a series of the ``ccx`` Toffoli gates are linked together in a V shape to achieve the desired
+    multiple-controlled-NOT operation.
+    This mode would require ``n-2`` ancillary qubits, where ``n`` is the number of controls.
+    For the ``advanced`` mode, the ``cccx`` and ``ccccx`` operations are achieved without needing ancillary qubits.
+    And multiple-controlled-NOT operations for higher number of controls (5 and above) are implemented recursively
+    using these lower-number-of-control cases.
+
+    Aqua's ``cnx`` can be accessed just like any other quantum gates that are already provided by Qiskit Terra, i.e.,
+    ``qc.cnx(...)``.
+    An optional keyword argument ``mode`` can also be passed in to indicate the ``'basic'`` or ``'advanced'`` mode,
+    which defaults to ``'basic'`` if omitted.
 
 
 .. _quantum-algorithms:
@@ -385,6 +418,79 @@ Inverse Quantum Fourier Transform (IQFT) is not used for IQPE.
     In Aqua, IQPE supports the ``energy`` problem.
 
 
+.. _ae:
+
+^^^^^^^^^^^^^^^^^^^^
+Amplitude Estimation
+^^^^^^^^^^^^^^^^^^^^
+
+The *Amplitude Estimation* algorithm can be used to estimate
+the amplitude of the |1> outcome of a unitary operator 
+corresponding to a Bernoulli distribution.
+With the uncertainty problem,
+as well as the number of ancillary evaluation qubits, specified,
+Amplitude Estimation internally builds a *Quantum Phase Estimation* circuit
+that efficiently carries out the estimation task
+with a quadratic speedup compared to the classical Monte Carlo method.
+
+.. seealso::
+
+    Consult the documentation on :ref:`qpe` for more details.
+    
+    Also, see `arXiv:1806.06893 <https://arxiv.org/abs/1806.06893>`_ for more details on Amplitude Estimation
+    as well as its applications on finance problems.
+    
+
+In addition to relying on a ``PhaseEstimation`` component
+for building, well, the Quantum Phase Estimation circuit, 
+the Amplitude Estimation algorithm expects the following inputs:
+
+
+-  The number of evaluation qubits:
+
+   .. code:: python
+
+       num_eval_qubits = 1 | 2 | ...
+
+   This has to be a positive ``int`` value.
+
+-  The uncertainty problem:
+
+   .. code:: python
+
+       a_factory
+
+   A ``CircuitFactory`` object that represents the uncertainty problem.
+
+-  The optional problem unitary:
+
+   .. code:: python
+
+       q_factory
+
+   An optional ``CircuitFactory`` object that represents the problem unitary, 
+   which, if left unspecified, will be automatically constructed from the ``a_factory``.
+
+-  The Inverse Quantum Fourier Transform component:
+
+   .. code:: python
+
+       iqft
+
+   The Inverse Quantum Fourier Transform pluggable component
+   that's to be used to configure the ``PhaseEstimation`` component.
+   The standard iqft will be used by default if left None.
+
+.. topic:: Declarative Name
+
+   When referring to Amplitude Estimation declaratively inside Aqua, its code ``name``, by which
+   Aqua dynamically discovers and loads it, is ``AmplitudeEstimation``.
+
+.. topic:: Problems Supported
+
+   In Aqua, Amplitude Estimation supports the ``uncertainty`` problem.
+   
+
 .. _grover:
 
 ^^^^^^^^^^^^^^^^^^^^^
@@ -439,13 +545,17 @@ Grover is configured with the following parameter settings:
 
    .. code:: python
 
-       Incremental = False | True
+       incremental = False | True
 
-   When run in ``incremental`` mode, the search task will be carried out by using successive circuits built using incrementally higher
-   number of iterations for the repetition of the amplitude amplification until a target is found
-   or the maximal number :math:`\log N` (:math:`N` being the total number of elements in the set from the oracle used) of iterations is reached.
-   This is a boolean flag defaulted to ``False``;
-   when set ``True``, the other parameter ``num_iterations`` will be ignored.
+   When run in ``incremental`` mode,
+   the search task will be carried out in successive rounds,
+   using circuits built with incrementally higher number of iterations for the repetition of the amplitude amplification
+   until a target is found
+   or the maximal number :math:`\log N` (:math:`N` being the total number of elements in the set from the oracle used)
+   of iterations is reached.
+   The implementation follows Section 4 of `Boyer et al. <https://arxiv.org/abs/quant-ph/9605034>`__
+   The ``incremental`` boolean flag defaults to ``False``.
+   When set ``True``, the other parameter ``num_iterations`` will be ignored.
 
 
 .. topic:: Declarative Name

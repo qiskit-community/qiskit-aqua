@@ -115,6 +115,8 @@ docs/*.rst
 !docs/aqua_tutorials.rst
 !docs/aqua_finance.rst
 !docs/qiskit_aqua_chemistry.rst
+!docs/random_distribution.rst
+!docs/uncertainty_problem.rst
 
 # PyBuilder
 target/
