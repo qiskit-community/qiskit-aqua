@@ -19,10 +19,10 @@ import unittest
 import operator
 
 from parameterized import parameterized
-from qiskit import Aer
+from qiskit_aqua import get_aer_backend
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua.algorithms.components.oracles import SAT
+from qiskit_aqua.components.oracles import SAT
 from qiskit_aqua.algorithms import Grover
 from qiskit_aqua import QuantumInstance
 
@@ -30,11 +30,14 @@ from qiskit_aqua import QuantumInstance
 class TestGrover(QiskitAquaTestCase):
 
     @parameterized.expand([
-        ['test_grover_tiny.cnf', False, 1],
-        ['test_grover.cnf', False, 2],
-        ['test_grover_no_solution.cnf', True, 1],
+        ['test_grover_tiny.cnf', False, 1, 'basic'],
+        ['test_grover_tiny.cnf', False, 1, 'advanced'],
+        ['test_grover.cnf', False, 2, 'basic'],
+        ['test_grover.cnf', False, 2, 'advanced'],
+        ['test_grover_no_solution.cnf', True, 1, 'basic'],
+        ['test_grover_no_solution.cnf', True, 1, 'advanced'],
     ])
-    def test_grover(self, input_file, incremental=True, num_iterations=1):
+    def test_grover(self, input_file, incremental=True, num_iterations=1, cnx_mode='basic'):
         input_file = self._get_resource_path(input_file)
         # get ground-truth
         with open(input_file) as f:
@@ -56,9 +59,9 @@ class TestGrover(QiskitAquaTestCase):
             ])[::-1]
             for s in header.split('solutions:' if header.find('solutions:') >= 0 else 'solution:')[-1].split(',')
         ]
-        backend = Aer.get_backend('qasm_simulator')
+        backend = get_aer_backend('qasm_simulator')
         sat_oracle = SAT(buf)
-        grover = Grover(sat_oracle, num_iterations=num_iterations, incremental=incremental)
+        grover = Grover(sat_oracle, num_iterations=num_iterations, incremental=incremental, cnx_mode=cnx_mode)
         quantum_instance = QuantumInstance(backend, shots=100)
 
         ret = grover.run(quantum_instance)

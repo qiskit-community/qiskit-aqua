@@ -16,14 +16,14 @@
 # =============================================================================
 
 import logging
-
 from qiskit import __version__ as terra_version
-from qiskit import IBMQ, Aer
+from qiskit import IBMQ, BasicAer
 from qiskit.backends.ibmq.credentials import Credentials
 from qiskit.backends.ibmq.ibmqsingleprovider import IBMQSingleProvider
 
 from qiskit_aqua_cmd import Preferences
 from qiskit_aqua.utils import compile_and_run_circuits, CircuitCache
+from qiskit_aqua import get_aer_backend, get_aer_backends
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +41,7 @@ class QuantumInstance:
                            'qasm_simulator_projectq': 'qasm_simulator'
                            }
 
-    BACKEND_CONFIG = ['basis_gates', 'config', 'coupling_map', 'seed']
+    BACKEND_CONFIG = ['basis_gates', 'config', 'coupling_map', 'seed', 'memory']
     COMPILE_CONFIG = ['pass_manager', 'initial_layout', 'seed_mapper', 'qobj_id']
     RUN_CONFIG = ['shots', 'max_credits']
     QJOB_CONFIG = ['timeout', 'wait']
@@ -52,7 +52,7 @@ class QuantumInstance:
                         "max_memory", "max_threads_shot", "max_threads_gate", "threshold_omp_gate"]
 
     def __init__(self, backend, shots=1024, max_credits=10, config=None, seed=None,
-                 initial_layout=None, pass_manager=None, seed_mapper=None,
+                 initial_layout=None, pass_manager=None, seed_mapper=None, memory=False,
                  timeout=None, wait=5, cache_config=None):
         """Constructor.
 
@@ -65,6 +65,7 @@ class QuantumInstance:
             initial_layout (dict): initial layout of qubits in mapping
             pass_manager (PassManager): pass manager to handle how to compile the circuits
             seed_mapper (int): the random seed for circuit mapper
+            memory (bool): if True, per-shot measurement bitstrings are returned as well
             timeout (float or None): seconds to wait for job. If None, wait indefinitely.
             wait (float): seconds between queries to result
         """
@@ -96,7 +97,8 @@ class QuantumInstance:
             'basis_gates': basis_gates,
             'config': config or {},
             'coupling_map': coupling_map,
-            'seed': seed
+            'seed': seed,
+            'memory': memory
         }
 
         self._qjob_config = {'timeout': timeout} if self.is_local \
@@ -278,9 +280,9 @@ class QuantumInstance:
                 "Failed to register with Qiskit: {}".format(str(e)))
 
         backends = set()
-        aer_backends = [x.name() for x in Aer.backends()]
-        for aer_backend in aer_backends:
-            backend = aer_backend
+        builtin_backends = [x.name() for x in BasicAer.backends()]
+        aer_backends = [x.name() for x in get_aer_backends()]
+        for backend in set(builtin_backends + aer_backends):
             supported = True
             for unsupported_backend in QuantumInstance.UNSUPPORTED_BACKENDS:
                 if backend.startswith(unsupported_backend):
@@ -294,10 +296,10 @@ class QuantumInstance:
 
 
 def get_quantum_instance_with_aer_statevector_simulator():
-    backend = Aer.get_backend('statevector_simulator')
+    backend = get_aer_backend('statevector_simulator')
     return QuantumInstance(backend)
 
 
 def get_quantum_instance_with_aer_qasm_simulator(shots=1024):
-    backend = Aer.get_backend('qasm_simulator')
+    backend = get_aer_backend('qasm_simulator')
     return QuantumInstance(backend, shots=shots)

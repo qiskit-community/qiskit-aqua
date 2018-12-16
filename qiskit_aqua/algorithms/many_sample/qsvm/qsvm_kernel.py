@@ -27,7 +27,7 @@ from qiskit_aqua.utils.dataset_helper import get_feature_dimension, get_num_clas
 logger = logging.getLogger(__name__)
 
 
-class QSVM_Kernel(QuantumAlgorithm):
+class QSVMKernel(QuantumAlgorithm):
     """
     Quantum SVM kernel method.
 
@@ -37,7 +37,7 @@ class QSVM_Kernel(QuantumAlgorithm):
 
     CONFIGURATION = {
         'name': 'QSVM.Kernel',
-        'description': 'QSVM_Kernel Algorithm',
+        'description': 'QSVMKernel Algorithm',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
             'id': 'QSVM_Kernel_schema',

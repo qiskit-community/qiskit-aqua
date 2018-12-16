@@ -21,7 +21,8 @@ from scipy.optimize import rosen
 import numpy as np
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua.algorithms.components.optimizers import *
+from qiskit_aqua.components.optimizers import (CG, COBYLA, L_BFGS_B, NELDER_MEAD,
+                                               POWELL, SLSQP, SPSA, TNC)
 
 
 class TestOptimizers(QiskitAquaTestCase):

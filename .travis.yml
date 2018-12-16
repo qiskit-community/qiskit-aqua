@@ -71,7 +71,7 @@ jobs:
 
     # github pages documentation update
     - stage: deploy doc
-      if: branch = stable and repo = Qiskit/aqua and type = push
+      if: branch = stable and repo = Qiskit/qiskit-aqua and type = push
       install:
         # download Qiskit Terra stable branch and unzip it
         - wget https://codeload.github.com/Qiskit/qiskit-terra/zip/stable -O /tmp/qiskit-terra.zip
@@ -81,16 +81,16 @@ jobs:
         - pip install -e $TRAVIS_BUILD_DIR/../qiskit-terra
         - pip install -U -r $TRAVIS_BUILD_DIR/../qiskit-terra/requirements-dev.txt
         # download Aqua Chemistry stable branch and unzip it
-        - wget https://codeload.github.com/Qiskit/aqua-chemistry/zip/stable -O /tmp/aqua-chemistry.zip
-        - unzip /tmp/aqua-chemistry.zip -d /tmp/
-        - mv /tmp/aqua-chemistry-stable $TRAVIS_BUILD_DIR/../aqua-chemistry
+        - wget https://codeload.github.com/Qiskit/qiskit-chemistry/zip/stable -O /tmp/qiskit-chemistry.zip
+        - unzip /tmp/qiskit-chemistry.zip -d /tmp/
+        - mv /tmp/qiskit-chemistry-stable $TRAVIS_BUILD_DIR/../qiskit-chemistry
       script:
         # install Aqua and dev requirements
         - pip install -e $TRAVIS_BUILD_DIR
         - pip install -U -r requirements-dev.txt
         # install Aqua Chemistry and dev requirements
-        - pip install -e $TRAVIS_BUILD_DIR/../aqua-chemistry
-        - pip install -U -r $TRAVIS_BUILD_DIR/../aqua-chemistry/requirements-dev.txt
+        - pip install -e $TRAVIS_BUILD_DIR/../qiskit-chemistry
+        - pip install -U -r $TRAVIS_BUILD_DIR/../qiskit-chemistry/requirements-dev.txt
       deploy:
         provider: script
         skip_cleanup: true

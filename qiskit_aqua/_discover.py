@@ -42,6 +42,8 @@ class PluggableType(Enum):
     ORACLE = 'oracle'
     FEATURE_MAP = 'feature_map'
     MULTICLASS_EXTENSION = 'multiclass_extension'
+    UNCERTAINTY_PROBLEM = 'uncertainty_problem'
+    UNCERTAINTY_MODEL = 'uncertainty_model'
     INPUT = 'input'
 
 
@@ -50,14 +52,16 @@ def _get_pluggables_types_dictionary():
     Gets all the pluggables types
     Any new pluggable type should be added here
     """
-    from qiskit_aqua.algorithms.quantumalgorithm import QuantumAlgorithm
-    from qiskit_aqua.algorithms.components.optimizers import Optimizer
-    from qiskit_aqua.algorithms.components.variational_forms import VariationalForm
-    from qiskit_aqua.algorithms.components.initial_states import InitialState
-    from qiskit_aqua.algorithms.components.iqfts import IQFT
-    from qiskit_aqua.algorithms.components.oracles import Oracle
-    from qiskit_aqua.algorithms.components.feature_maps import FeatureMap
-    from qiskit_aqua.algorithms.components.multiclass_extensions import MulticlassExtension
+    from qiskit_aqua.components.uncertainty_problems import UncertaintyProblem
+    from qiskit_aqua.components.random_distributions import RandomDistribution
+    from qiskit_aqua.components.optimizers import Optimizer
+    from qiskit_aqua.algorithms.quantum_algorithm import QuantumAlgorithm
+    from qiskit_aqua.components.variational_forms import VariationalForm
+    from qiskit_aqua.components.initial_states import InitialState
+    from qiskit_aqua.components.iqfts import IQFT
+    from qiskit_aqua.components.oracles import Oracle
+    from qiskit_aqua.components.feature_maps import FeatureMap
+    from qiskit_aqua.components.multiclass_extensions import MulticlassExtension
     from qiskit_aqua.input import AlgorithmInput
     return {
         PluggableType.ALGORITHM: QuantumAlgorithm,
@@ -68,30 +72,38 @@ def _get_pluggables_types_dictionary():
         PluggableType.ORACLE: Oracle,
         PluggableType.FEATURE_MAP: FeatureMap,
         PluggableType.MULTICLASS_EXTENSION: MulticlassExtension,
+        PluggableType.UNCERTAINTY_PROBLEM: UncertaintyProblem,
+        PluggableType.UNCERTAINTY_MODEL: RandomDistribution,
         PluggableType.INPUT: AlgorithmInput
     }
 
 
 _NAMES_TO_EXCLUDE = [
-    '__main__',
     '_aqua',
     '_discover',
     '_logging',
     'aqua_error',
     'operator',
     'pluggable',
-    'quantumalgorithm',
-    'jsonutils',
+    'quantum_instance',
     'optimizer',
     'variational_form',
     'initial_state',
     'iqft',
     'oracle',
     'feature_map',
-    'multiclass_extension'
+    'multiclass_extension',
+    'uncertainty_problem',
+    'uncertainty_model',
+    'univariate_uncertainty_model'
 ]
 
-_FOLDERS_TO_EXCLUDE = ['__pycache__', 'ui', 'parser']
+_FOLDERS_TO_EXCLUDE = [
+    '__pycache__',
+    'parser',
+    'translators',
+    'utils'
+]
 
 RegisteredPluggable = namedtuple(
     'RegisteredPluggable', ['name', 'cls', 'configuration'])
@@ -148,6 +160,7 @@ def discover_preferences_pluggables():
                                            folders_to_exclude=['__pycache__'])
             else:
                 # Ignore package that could not be initialized.
+                # print('Failed to import package {}'.format(package))
                 logger.debug('Failed to import package {}'.format(package))
         except Exception as e:
             # Ignore package that could not be initialized.
@@ -181,14 +194,15 @@ def _discover_local_pluggables(directory,
                                     break
                     except Exception as e:
                         # Ignore pluggables that could not be initialized.
-                        logger.debug('Failed to load {} error {}'.format(fullname, str(e)))
+                        # print('Failed to load pluggable {} error {}'.format(fullname, str(e)))
+                        logger.debug('Failed to load pluggable {} error {}'.format(fullname, str(e)))
 
             except Exception as e:
                 # Ignore pluggables that could not be initialized.
                 # print('Failed to load {} error {}'.format(fullname, str(e)))
                 logger.debug('Failed to load {} error {}'.format(fullname, str(e)))
 
-    for item in os.listdir(directory):
+    for item in sorted(os.listdir(directory)):
         fullpath = os.path.join(directory, item)
         if item not in folders_to_exclude and not item.endswith('dSYM') and os.path.isdir(fullpath):
             _discover_local_pluggables(
@@ -283,8 +297,12 @@ def _register_pluggable(pluggable_type, cls):
 
     # Verify that the pluggable is valid
     check_pluggable_valid = getattr(cls, 'check_pluggable_valid', None)
-    if check_pluggable_valid is not None and not check_pluggable_valid():
-        raise AquaError('Could not register class {}. Name {} {} is not valid'.format(cls, pluggable_type))
+    if check_pluggable_valid is not None:
+        try:
+            check_pluggable_valid()
+        except Exception as e:
+            logger.debug(str(e))
+            raise AquaError('Could not register class {}. Name {} is not valid'.format(cls, pluggable_name)) from e
 
     if pluggable_name in _REGISTERED_PLUGGABLES[pluggable_type]:
         raise AquaError('Could not register class {}. Name {} {} is already registered'.format(cls,
