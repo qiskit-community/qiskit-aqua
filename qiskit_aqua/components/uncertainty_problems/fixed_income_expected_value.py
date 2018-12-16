@@ -36,8 +36,8 @@ class FixedIncomeExpectedValue(UncertaintyProblem):
 
         Args:
             uncertainty_model:  multivariate distribution
-            A: PCA matrix for delta_r
-            b: PCA offset for delta_r
+            A: PCA matrix for delta_r (changes in interest rates)
+            b: offset for interest rates (= initial interest rates)
             cash_flow: cash flow time series
             c_approx: approximation scaling factor
         """
@@ -71,15 +71,15 @@ class FixedIncomeExpectedValue(UncertaintyProblem):
         self.b = b
 
         # construct PCA-based cost function (1st order approximation):
-        # c_t / (1 + A_t x + b_t)^{t+1} ~ c_t / (1 + b_t)^{t+1} - (t+1) c_t A_t / (1 + b_t)^{t+2} x
+        # c_t / (1 + A_t x + b_t)^{t+1} ~ c_t / (1 + b_t)^{t+1} - (t+1) c_t A_t / (1 + b_t)^{t+2} x = h + np.dot(g, x)
         self.h = 0
         self.g = np.zeros(self.K)
         for t in range(self.T):
-            self.h += cash_flow[t] / pow(1 + b[t], -(t+1))
-            self.g += -1.0 * (t+1) * cash_flow[t] * A[t,:] / pow(1 + b[t], -(t+2))
+            self.h += cash_flow[t] / pow(1 + b[t], (t+1))
+            self.g += -1.0 * (t+1) * cash_flow[t] * A[t, :] / pow(1 + b[t], (t+2))
 
-        # compute overall offset using lower bound for x (corresponding to x = 0)
-        self.offset = sum(uncertainty_model.low * self.g) + self.h
+        # compute overall offset using lower bound for x (corresponding to x = min)
+        self.offset = np.dot(uncertainty_model.low, self.g) + self.h
 
         # compute overall slope
         self.slope = np.zeros(uncertainty_model.num_target_qubits)
@@ -101,12 +101,13 @@ class FixedIncomeExpectedValue(UncertaintyProblem):
         self.slope /= (self.max_value - self.min_value)
 
         # apply approximation scaling
-        self.offset_angle = (self.offset - 1/2) * np.pi * self.c_approx
-        self.slope_angle = self.slope * np.pi * self.c_approx
+        self.offset_angle = (self.offset - 1/2) * np.pi/2 * self.c_approx + np.pi/4
+        self.slope_angle = self.slope * np.pi/2 * self.c_approx
 
     def value_to_estimation(self, value):
-        estimator = value / np.pi / self.c_approx
-        estimator = value + 1/2
+        estimator = value - 1/2
+        estimator *= 2 / np.pi / self.c_approx
+        estimator += 1/2
         estimator *= (self.max_value - self.min_value)
         estimator += self.min_value
         return estimator
