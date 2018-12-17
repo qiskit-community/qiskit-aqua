@@ -15,32 +15,48 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit import LegacySimulators, BasicAer
+from qiskit import BasicAer, LegacySimulators
+import logging
+import warnings
+import sys
+
+logger = logging.getLogger(__name__)
+
+
+def my_warning_wrapper(message, category, filename, lineno, file=None, line=None):
+    msg = warnings.formatwarning(message, category, filename, lineno, line)
+    # defaults deprecation warnings to logging
+    if category == DeprecationWarning:
+        logger.debug(msg)
+    else:
+        file = sys.stderr if file is None else file
+        file.write(msg)
+
+
+warnings.showwarning = my_warning_wrapper
 
 
 def get_aer_backends():
     try:
-        # Try to import the Aer provider if the Aer element is installed.
-        from qiskit_aer import Aer
-        return Aer.backends()
-    except ImportError:
-        try:
-            return LegacySimulators.backends()
-        except:
-            pass
+        backends = LegacySimulators.backends()
+        logger.debug('Using LegacySimulators backends.')
+        return backends
+    except:
+        pass
 
-    return BasicAer.backends()
+    backends = BasicAer.backends()
+    logger.debug('Using BasicAer backends.')
+    return backends
 
 
 def get_aer_backend(backend_name):
     try:
-        # Try to import the Aer provider if the Aer element is installed.
-        from qiskit_aer import Aer
-        return Aer.get_backend(backend_name)
-    except ImportError:
-        try:
-            return LegacySimulators.get_backend(backend_name)
-        except:
-            pass
+        backend = LegacySimulators.get_backend(backend_name)
+        logger.debug('Using LegacySimulators backend {}.'.format(backend_name))
+        return backend
+    except:
+        pass
 
-    return BasicAer.get_backend(backend_name)
+    backend = BasicAer.get_backend(backend_name)
+    logger.debug('Using BasicAer backend {}.'.format(backend_name))
+    return backend
