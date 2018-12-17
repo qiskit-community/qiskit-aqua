@@ -18,15 +18,15 @@
 import os
 
 import numpy as np
-from qiskit import Aer
+from qiskit_aqua import get_aer_backend
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua.input import SVMInput
 from qiskit_aqua import run_algorithm, QuantumInstance
-from qiskit_aqua.algorithms.adaptive import QSVMVariational
-from qiskit_aqua.algorithms.components.optimizers import SPSA
-from qiskit_aqua.algorithms.components.feature_maps import SecondOrderExpansion
-from qiskit_aqua.algorithms.components.variational_forms import RYRZ
+from qiskit_aqua.algorithms import QSVMVariational
+from qiskit_aqua.components.optimizers import SPSA
+from qiskit_aqua.components.feature_maps import SecondOrderExpansion
+from qiskit_aqua.components.variational_forms import RYRZ
 
 
 class TestQSVMVariational(QiskitAquaTestCase):
@@ -64,7 +64,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
 
     def test_qsvm_variational_directly(self):
         np.random.seed(self.random_seed)
-        backend = Aer.get_backend('qasm_simulator')
+        backend = get_aer_backend('qasm_simulator')
 
         num_qubits = 2
         optimizer = SPSA(max_trials=10, c0=4.0, skip_calibration=True)

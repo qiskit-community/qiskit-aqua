@@ -17,7 +17,8 @@
 
 import logging
 
-from qiskit_aqua import (AquaError, QuantumAlgorithm, PluggableType, get_pluggable_class)
+from qiskit_aqua.algorithms import QuantumAlgorithm
+from qiskit_aqua import AquaError, PluggableType, get_pluggable_class
 from qiskit_aqua.algorithms.many_sample.qsvm._qsvm_kernel_binary import _QSVM_Kernel_Binary
 from qiskit_aqua.algorithms.many_sample.qsvm._qsvm_kernel_multiclass import _QSVM_Kernel_Multiclass
 from qiskit_aqua.algorithms.many_sample.qsvm._qsvm_kernel_estimator import _QSVM_Kernel_Estimator
@@ -26,7 +27,7 @@ from qiskit_aqua.utils.dataset_helper import get_feature_dimension, get_num_clas
 logger = logging.getLogger(__name__)
 
 
-class QSVM_Kernel(QuantumAlgorithm):
+class QSVMKernel(QuantumAlgorithm):
     """
     Quantum SVM kernel method.
 
@@ -36,7 +37,7 @@ class QSVM_Kernel(QuantumAlgorithm):
 
     CONFIGURATION = {
         'name': 'QSVM.Kernel',
-        'description': 'QSVM_Kernel Algorithm',
+        'description': 'QSVMKernel Algorithm',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
             'id': 'QSVM_Kernel_schema',

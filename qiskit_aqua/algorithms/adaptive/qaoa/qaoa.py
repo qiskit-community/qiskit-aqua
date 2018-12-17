@@ -18,7 +18,8 @@
 
 import logging
 
-from qiskit_aqua import QuantumAlgorithm, AquaError, PluggableType, get_pluggable_class
+from qiskit_aqua.algorithms import QuantumAlgorithm
+from qiskit_aqua import AquaError, PluggableType, get_pluggable_class
 from qiskit_aqua.algorithms.adaptive import VQE
 from .varform import QAOAVarForm
 

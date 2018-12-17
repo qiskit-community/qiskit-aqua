@@ -18,18 +18,18 @@
 import unittest
 
 import numpy as np
-from qiskit import Aer
+from qiskit_aqua import get_aer_backend
 from qiskit.transpiler import PassManager
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import Operator, QuantumInstance
 from qiskit_aqua.input import EnergyInput
 from qiskit_aqua.utils import decimal_to_binary
-from qiskit_aqua.algorithms.components.initial_states.varformbased import VarFormBased
-from qiskit_aqua.algorithms.components.variational_forms import RYRZ
-from qiskit_aqua.algorithms.components.optimizers import SPSA
-from qiskit_aqua.algorithms.adaptive import VQE
-from qiskit_aqua.algorithms.single_sample import IQPE
+from qiskit_aqua.components.initial_states import VarFormBased
+from qiskit_aqua.components.variational_forms import RYRZ
+from qiskit_aqua.components.optimizers import SPSA
+from qiskit_aqua.algorithms import VQE
+from qiskit_aqua.algorithms import IQPE
 
 
 class TestVQE2IQPE(QiskitAquaTestCase):
@@ -49,7 +49,7 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         self.algo_input = EnergyInput(qubit_op)
 
     def test_vqe_2_iqpe(self):
-        backend = Aer.get_backend('qasm_simulator')
+        backend = get_aer_backend('qasm_simulator')
         num_qbits = self.algo_input.qubit_op.num_qubits
         var_form = RYRZ(num_qbits, 3)
         optimizer = SPSA(max_trials=10)

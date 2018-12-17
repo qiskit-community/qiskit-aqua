@@ -15,17 +15,17 @@ env:
 	fi;
 
 doc:
-	# create Aqua Chemistry docs
-	make -C ../aqua-chemistry/docs clean
-	sphinx-apidoc -f -o ../aqua-chemistry/docs ../aqua-chemistry
-	make -C ../aqua-chemistry/docs html
+	# create Qiskit Chemistry docs
+	make -C ../qiskit-chemistry/docs clean
+	sphinx-apidoc -f -o ../qiskit-chemistry/docs ../qiskit-chemistry
+	make -C ../qiskit-chemistry/docs html
 	# create Aqua docs
 	make -C docs clean
 	sphinx-apidoc -f -o docs .
 	make -C docs html
 
 clean: 
-	# clean Aqua Chemistry docs
-	make -C ../aqua-chemistry/docs clean
-	# clean Aqua docs
+	# clean Qiskit Chemistry docs
+	make -C ../qiskit-chemistry/docs clean
+	# clean Qiskit Aqua docs
 	make -C docs clean
