@@ -21,7 +21,7 @@ import copy
 import json
 import logging
 
-from qiskit import IBMQ, BasicAer
+from qiskit import IBMQ
 from qiskit.backends import BaseBackend
 from qiskit.transpiler import PassManager
 
@@ -100,11 +100,8 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
             try:
                 backend_from_name = get_aer_backend(backend_name)
             except:
-                try:
-                    backend_from_name = BasicAer.get_backend(backend_name)
-                except:
-                    QuantumInstance.register_and_get_operational_backends()
-                    backend_from_name = IBMQ.get_backend(backend_name)
+                QuantumInstance.register_and_get_operational_backends()
+                backend_from_name = IBMQ.get_backend(backend_name)
             backend_cfg['backend'] = backend_from_name
         quantum_instance = QuantumInstance(**backend_cfg)
 

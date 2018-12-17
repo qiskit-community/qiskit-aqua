@@ -15,32 +15,33 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit import LegacySimulators, BasicAer
+from qiskit import BasicAer, LegacySimulators
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def get_aer_backends():
     try:
-        # Try to import the Aer provider if the Aer element is installed.
-        from qiskit_aer import Aer
-        return Aer.backends()
-    except ImportError:
-        try:
-            return LegacySimulators.backends()
-        except:
-            pass
+        backends = BasicAer.backends()
+        logger.debug('Using BasicAer backends.')
+        return backends
+    except:
+        pass
 
-    return BasicAer.backends()
+    backends = LegacySimulators.backends()
+    logger.debug('Using LegacySimulators backends.')
+    return backends
 
 
 def get_aer_backend(backend_name):
     try:
-        # Try to import the Aer provider if the Aer element is installed.
-        from qiskit_aer import Aer
-        return Aer.get_backend(backend_name)
-    except ImportError:
-        try:
-            return LegacySimulators.get_backend(backend_name)
-        except:
-            pass
+        backend = BasicAer.get_backend(backend_name)
+        logger.debug('Using BasicAer backend {}.'.format(backend_name))
+        return backend
+    except:
+        pass
 
-    return BasicAer.get_backend(backend_name)
+    backend = LegacySimulators.get_backend(backend_name)
+    logger.debug('Using LegacySimulators backend {}.'.format(backend_name))
+    return backend
