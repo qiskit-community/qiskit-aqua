@@ -18,18 +18,19 @@
 from qiskit import BasicAer, LegacySimulators
 import logging
 import warnings
+import sys
 
 logger = logging.getLogger(__name__)
 
 
 def my_warning_wrapper(message, category, filename, lineno, file=None, line=None):
-    # defaults warning to logging
-    logger.debug('{} {} {} {} {} {}'.format(message,
-                                            category,
-                                            filename,
-                                            lineno,
-                                            file if file is not None else '',
-                                            line if line is not None else ''))
+    msg = warnings.formatwarning(message, category, filename, lineno, line)
+    # defaults deprecation warnings to logging
+    if category == DeprecationWarning:
+        logger.debug(msg)
+    else:
+        file = sys.stderr if file is None else file
+        file.write(msg)
 
 
 warnings.showwarning = my_warning_wrapper
