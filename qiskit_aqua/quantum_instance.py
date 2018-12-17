@@ -276,9 +276,8 @@ class QuantumInstance:
                 "Failed to register with Qiskit: {}".format(str(e)))
 
         backends = set()
-        builtin_backends = [x.name() for x in BasicAer.backends()]
         aer_backends = [x.name() for x in get_aer_backends()]
-        for backend in set(builtin_backends + aer_backends):
+        for backend in aer_backends:
             supported = True
             for unsupported_backend in QuantumInstance.UNSUPPORTED_BACKENDS:
                 if backend.startswith(unsupported_backend):
