@@ -20,10 +20,10 @@ import unittest
 import numpy as np
 from parameterized import parameterized
 
-from qiskit_aqua import get_aer_backend
+from qiskit import BasicAer
 from qiskit_aqua.algorithms import AmplitudeEstimation
-from qiskit_aqua.components.uncertainty_problems import EuropeanCallExpectedValue, EuropeanCallDelta
-from qiskit_aqua.components.random_distributions import LogNormalDistribution
+from qiskit_aqua.components.uncertainty_problems import EuropeanCallExpectedValue, EuropeanCallDelta, FixedIncomeExpectedValue
+from qiskit_aqua.components.random_distributions import LogNormalDistribution, MultivariateNormalDistribution
 
 from test.common import QiskitAquaTestCase
 
@@ -78,9 +78,10 @@ class TestEuropeanCallOption(QiskitAquaTestCase):
         # construct amplitude estimation
         ae = AmplitudeEstimation(m, european_call)
 
-        result = ae.run(quantum_instance=get_aer_backend(simulator))
-        # result = ae.run(quantum_instance=get_aer_backend('statevector_simulator'))
+        # run simulation
+        result = ae.run(quantum_instance=BasicAer.get_backend(simulator))
 
+        # compare to precomputed solution
         self.assertEqual(0.0, np.round(result['estimation'] - 0.045705353233, decimals=4))
 
     @parameterized.expand([
@@ -127,10 +128,57 @@ class TestEuropeanCallOption(QiskitAquaTestCase):
         # construct amplitude estimation
         ae = AmplitudeEstimation(m, european_call_delta)
 
-        result = ae.run(quantum_instance=get_aer_backend(simulator))
-        # result = ae.run(quantum_instance=get_aer_backend('statevector_simulator'))
+        # run simulation
+        result = ae.run(quantum_instance=BasicAer.get_backend(simulator))
 
+        # compare to precomputed solution
         self.assertEqual(0.0, np.round(result['estimation'] - 0.5000, decimals=4))
+
+
+class TestFixedIncomeAssets(QiskitAquaTestCase):
+
+    @parameterized.expand([
+        'qasm_simulator',
+        'statevector_simulator'
+    ])
+    def test_expected_value(self, simulator):
+
+        # can be used in case a principal component analysis has been done to derive the uncertainty model, ignored in this example.
+        A = np.eye(2)
+        b = np.zeros(2)
+
+        # specify the number of qubits that are used to represent the different dimenions of the uncertainty model
+        num_qubits = [2, 2]
+
+        # specify the lower and upper bounds for the different dimension
+        low = [0, 0]
+        high = [0.12, 0.24]
+        mu = [0.12, 0.24]
+        sigma = 0.01 * np.eye(2)
+
+        # construct corresponding distribution
+        u = MultivariateNormalDistribution(num_qubits, low, high, mu, sigma)
+
+        # specify cash flow
+        cf = [1.0, 2.0]
+
+        # specify approximation factor
+        c_approx = 0.125
+
+        # get fixed income circuit appfactory
+        fixed_income = FixedIncomeExpectedValue(u, A, b, cf, c_approx)
+
+        # set number of evaluation qubits (samples)
+        m = 5
+
+        # construct amplitude estimation
+        ae = AmplitudeEstimation(m, fixed_income)
+
+        # run simulation
+        result = ae.run(quantum_instance=BasicAer.get_backend('statevector_simulator'))
+
+        # compare to precomputed solution
+        self.assertEqual(0.0, np.round(result['estimation'] - 2.4600, decimals=4))
 
 
 if __name__ == '__main__':
