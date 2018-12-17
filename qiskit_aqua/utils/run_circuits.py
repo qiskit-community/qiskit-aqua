@@ -167,7 +167,7 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
         else: # Try setting up the reusable qobj
             try: circuit_cache.try_loading_cache_from_file()
             except (FileNotFoundError): pass
-            # Compile and cache first circuit if cache is empty. The load method to try to reuse it
+            # Compile and cache first circuit if cache is empty. The load method will try to reuse it
             if circuit_cache.try_reusing_qobjs and circuit_cache.qobjs is None:
                 qobj = q_compile([circuits[0]], backend, **execute_config)
                 circuit_cache.cache_circuit(qobj, [circuits[0]], 0)
@@ -180,7 +180,7 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
         sub_circuits = circuits[i * max_circuits_per_job:(i + 1) * max_circuits_per_job]
         if circuit_cache is not None and circuit_cache.misses < 5:
             try:
-                qobj = circuit_cache.load_qobj_from_cache(sub_circuits, i)
+                qobj = circuit_cache.load_qobj_from_cache(sub_circuits, i, run_config=run_config)
             # cache miss, fail gracefully
             except (TypeError, IndexError, FileNotFoundError, EOFError, AquaError, AttributeError) as e:
                 circuit_cache.try_reusing_qobjs = False  # Reusing Qobj didn't work

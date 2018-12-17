@@ -34,7 +34,7 @@ form."""
 import numpy as np
 import copy
 import uuid
-from qiskit.backends.aer import AerJob
+from qiskit.backends.builtinsimulators.simulatorsjob import SimulatorsJob
 from qiskit.backends import JobError
 from qiskit_aqua.aqua_error import AquaError
 from qiskit import QuantumRegister
@@ -42,6 +42,8 @@ from qiskit.circuit import CompositeGate
 import pickle
 import logging
 from qiskit.qobj import qobj_to_dict, Qobj
+import time
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -96,7 +98,7 @@ class CircuitCache:
 
             #TODO: See if we can skip gates with no params
             for i, uncompiled_gate in enumerate(raw_gates):
-                regs = [(reg, qubit) for (reg, qubit) in uncompiled_gate.arg]
+                regs = [(reg, qubit) for (reg, qubit) in uncompiled_gate.qargs]
                 qubits = [qubit+qreg_indeces[reg.name] for reg, qubit in regs if isinstance(reg, QuantumRegister)]
                 gate_type = uncompiled_gate.name
                 type_and_qubits = gate_type + qubits.__str__()
@@ -108,14 +110,14 @@ class CircuitCache:
                 if len(op_graph[type_and_qubits]) > 0:
                     uncompiled_gate_index = op_graph[type_and_qubits].pop(0)
                     uncompiled_gate = raw_gates[uncompiled_gate_index]
-                    regs = [(reg, qubit) for (reg, qubit) in uncompiled_gate.arg]
+                    regs = [(reg, qubit) for (reg, qubit) in uncompiled_gate.qargs]
                     qubits = [qubit + qreg_indeces[reg.name] for reg, qubit in regs if isinstance(reg, QuantumRegister)]
                     if (compiled_gate.name == uncompiled_gate.name) and (compiled_gate.qubits.__str__() ==
                                                                          qubits.__str__()):
                         mapping.insert(compiled_gate_index, uncompiled_gate_index)
                 else: raise Exception("Circuit shape does not match qobj, found extra {} instruction in qobj".format(
                     type_and_qubits))
-            mappings[chunk][circ_num] = mapping
+            self.mappings[chunk][circ_num] = mapping
             for type_and_qubits, ops in op_graph.items():
                 if len(ops) > 0:
                     raise Exception("Circuit shape does not match qobj, found extra {} in circuit".format(type_and_qubits))
@@ -136,7 +138,7 @@ class CircuitCache:
             logger.debug("Circuit cache loaded from file.")
 
     # Note that this function overwrites the previous cached qobj for speed
-    def load_qobj_from_cache(self, circuits, chunk):
+    def load_qobj_from_cache(self, circuits, chunk, run_config=None):
         self.try_loading_cache_from_file()
 
         if self.try_reusing_qobjs and self.qobjs is not None and len(self.qobjs) <= chunk:
@@ -174,16 +176,32 @@ class CircuitCache:
         exec_qobj = copy.copy(self.qobjs[chunk])
         if self.naughty_mode: exec_qobj.experiments = self.qobjs[chunk].experiments[0:len(circuits)]
         else: exec_qobj.experiments = copy.deepcopy(self.qobjs[chunk].experiments[0:len(circuits)])
+
+        if not run_config: run_config = {}
+        exec_qobj.config.shots = run_config.get('shots', 1024)
+        exec_qobj.config.max_credits = run_config.get('max_credits', 10)
+        exec_qobj.config.memory = run_config.get('memory', False)
+        exec_qobj.config.memory_slots = max(experiment.config.memory_slots for
+                                        experiment in exec_qobj.experiments)
+        exec_qobj.config.n_qubits = max(experiment.config.n_qubits for
+                                    experiment in exec_qobj.experiments)
         return exec_qobj
 
     # Does what backend.run and aerjob.submit do, but without qobj validation.
     def naughty_run(self, backend, qobj):
+        def _run_job(job_id, qobj, backend_options=None, noise_model=None):
+            start = time.time()
+            qobj_str = backend._format_qobj_str(qobj, backend_options, noise_model)
+            output = json.loads(backend._controller(qobj_str).decode('UTF-8'))
+            end = time.time()
+            return backend._format_results(job_id, output, end - start)
+
         job_id = str(uuid.uuid4())
-        aer_job = AerJob(backend, job_id, backend._run_job, qobj)
-        if aer_job._future is not None:
+        sim_job = SimulatorsJob(backend, job_id, _run_job, qobj)
+        if sim_job._future is not None:
             raise JobError("We have already submitted the job!")
-        aer_job._future = aer_job._executor.submit(aer_job._fn, aer_job._job_id, aer_job._qobj)
-        return aer_job
+        sim_job._future = sim_job._executor.submit(sim_job._fn, sim_job._job_id, sim_job._qobj)
+        return sim_job
 
     def clear_cache(self):
         self.qobjs = []
