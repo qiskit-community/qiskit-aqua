@@ -424,14 +424,13 @@ Inverse Quantum Fourier Transform (IQFT) is not used for IQPE.
 Amplitude Estimation
 ^^^^^^^^^^^^^^^^^^^^
 
-The *Amplitude Estimation* algorithm can be used to estimate
-the amplitude of the |1> outcome of a unitary operator 
-corresponding to a Bernoulli distribution.
-With the uncertainty problem,
-as well as the number of ancillary evaluation qubits, specified,
-Amplitude Estimation internally builds a *Quantum Phase Estimation* circuit
-that efficiently carries out the estimation task
-with a quadratic speedup compared to the classical Monte Carlo method.
+*Amplitude Estimation* is a derivative of *Quantum Phase Estimation* applied to a particular operator :math:`A`.
+:math:`A` is assumed to operate on (n+1) qubits (+ possible ancillary qubits)
+where the n qubits represent the uncertainty (random distribution :ref:`random_distribution`)
+and the last qubit is used to represent the (normalized) objective value as its amplitude.
+In other words,
+:math:`A` is constructed such that the probability of measuring a '1' in the objective qubit is equal to the
+value of interest.
 
 .. seealso::
 
@@ -442,7 +441,7 @@ with a quadratic speedup compared to the classical Monte Carlo method.
     
 
 In addition to relying on a ``PhaseEstimation`` component
-for building, well, the Quantum Phase Estimation circuit, 
+for building, well, the Quantum Phase Estimation circuit,
 the Amplitude Estimation algorithm expects the following inputs:
 
 
@@ -460,7 +459,7 @@ the Amplitude Estimation algorithm expects the following inputs:
 
        a_factory
 
-   A ``CircuitFactory`` object that represents the uncertainty problem.
+   A ``CircuitFactory`` object that represents the uncertainty problem, i.e., the :math:`A` operator mentioned above.
 
 -  The optional problem unitary:
 
