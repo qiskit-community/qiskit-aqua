@@ -17,31 +17,45 @@
 
 from qiskit import BasicAer, LegacySimulators
 import logging
+import warnings
 
 logger = logging.getLogger(__name__)
 
 
+def my_warning_wrapper(message, category, filename, lineno, file=None, line=None):
+    # defaults warning to logging
+    logger.debug('{} {} {} {} {} {}'.format(message,
+                                            category,
+                                            filename,
+                                            lineno,
+                                            file if file is not None else '',
+                                            line if line is not None else ''))
+
+
+warnings.showwarning = my_warning_wrapper
+
+
 def get_aer_backends():
     try:
-        backends = BasicAer.backends()
-        logger.debug('Using BasicAer backends.')
+        backends = LegacySimulators.backends()
+        logger.debug('Using LegacySimulators backends.')
         return backends
     except:
         pass
 
-    backends = LegacySimulators.backends()
-    logger.debug('Using LegacySimulators backends.')
+    backends = BasicAer.backends()
+    logger.debug('Using BasicAer backends.')
     return backends
 
 
 def get_aer_backend(backend_name):
     try:
-        backend = BasicAer.get_backend(backend_name)
-        logger.debug('Using BasicAer backend {}.'.format(backend_name))
+        backend = LegacySimulators.get_backend(backend_name)
+        logger.debug('Using LegacySimulators backend {}.'.format(backend_name))
         return backend
     except:
         pass
 
-    backend = LegacySimulators.get_backend(backend_name)
-    logger.debug('Using LegacySimulators backend {}.'.format(backend_name))
+    backend = BasicAer.get_backend(backend_name)
+    logger.debug('Using BasicAer backend {}.'.format(backend_name))
     return backend
