@@ -22,14 +22,14 @@ from parameterized import parameterized
 from scipy.linalg import expm
 from scipy import sparse
 from qiskit.transpiler import PassManager
-from qiskit import Aer
+from qiskit_aqua import get_aer_backend
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import Operator, QuantumInstance
 from qiskit_aqua.utils import decimal_to_binary
-from qiskit_aqua.algorithms.single_sample import IQPE
-from qiskit_aqua.algorithms.classical import ExactEigensolver
-from qiskit_aqua.algorithms.components.initial_states import Custom
+from qiskit_aqua.algorithms import IQPE
+from qiskit_aqua.algorithms import ExactEigensolver
+from qiskit_aqua.components.initial_states import Custom
 
 
 pauli_dict = {
@@ -83,7 +83,7 @@ class TestIQPE(QiskitAquaTestCase):
         iqpe = IQPE(self.qubitOp, state_in, num_time_slices, num_iterations,
                     paulis_grouping='random', expansion_mode='suzuki', expansion_order=2, shallow_circuit_concat=True)
 
-        backend = Aer.get_backend('qasm_simulator')
+        backend = get_aer_backend('qasm_simulator')
         quantum_instance = QuantumInstance(backend, shots=100, pass_manager=PassManager())
 
         result = iqpe.run(quantum_instance)

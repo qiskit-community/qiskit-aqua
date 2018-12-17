@@ -21,7 +21,7 @@ import logging
 import numpy as np
 from scipy import sparse as scisparse
 
-from qiskit_aqua import QuantumAlgorithm
+from qiskit_aqua.algorithms import QuantumAlgorithm
 from qiskit_aqua import AquaError
 
 logger = logging.getLogger(__name__)

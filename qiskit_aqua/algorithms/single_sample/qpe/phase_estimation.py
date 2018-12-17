@@ -26,17 +26,41 @@ from qiskit_aqua import Operator, AquaError
 class PhaseEstimation:
 
     def __init__(
-            self, operator, state_in, iqft, num_time_slices=1, num_ancillae=1,
-            paulis_grouping='random', expansion_mode='trotter', expansion_order=1,
+            self, operator, state_in, iqft,
+            num_time_slices=1,
+            num_ancillae=1,
+            paulis_grouping='random',
+            expansion_mode='trotter',
+            expansion_order=1,
             state_in_circuit_factory=None,
-            operator_circuit_factory=None,
-            additional_params=None,
+            unitary_circuit_factory=None,
             shallow_circuit_concat=False):
+        """
+        Constructor.
 
-        # TODO: do some param checking
+        Args:
+            operator (Operator): the hamiltonian Operator object
+            state_in (InitialState): the InitialState pluggable component representing the initial quantum state
+            iqft (IQFT): the Inverse Quantum Fourier Transform pluggable component
+            num_time_slices (int): the number of time slices
+            num_ancillae (int): the number of ancillary qubits to use for the measurement
+            paulis_grouping (str): the pauli term grouping mode
+            expansion_mode (str): the expansion mode (trotter|suzuki)
+            expansion_order (int): the suzuki expansion order
+            state_in_circuit_factory (CircuitFactory): the initial state represented by a CircuitFactory object
+            unitary_circuit_factory (CircuitFactory): the problem unitary represented by a CircuitFactory object
+            shallow_circuit_concat (bool): indicate whether to use shallow (cheap) mode for circuit concatenation
+        """
+
+        if (
+                operator is not None and unitary_circuit_factory is not None
+        ) or (
+                operator is None and unitary_circuit_factory is None
+        ):
+            raise AquaError('Please supply either an operator or a unitary circuit factory but not both.')
 
         self._operator = operator
-        self._operator_circuit_factory = operator_circuit_factory
+        self._unitary_circuit_factory = unitary_circuit_factory
         self._state_in = state_in
         self._state_in_circuit_factory = state_in_circuit_factory
         self._iqft = iqft
@@ -48,11 +72,21 @@ class PhaseEstimation:
         self._shallow_circuit_concat = shallow_circuit_concat
         self._ancilla_phase_coef = 1
         self._circuit = {True: None, False: None}
-        self._additional_params = additional_params
         self._ret = {}
 
-    def construct_circuit(self, measure=False):
-        """Construct the Phase Estimation circuit"""
+    def construct_circuit(self, state_register=None, ancilla_register=None, aux_register=None, measure=False):
+        """
+        Construct the Phase Estimation circuit
+
+        Args:
+            state_register (QuantumRegister): the optional register to use for the quantum state
+            ancilla_register (QuantumRegister): the optional register to use for the ancillary measurement qubits
+            aux_register (QuantumRegister): an optional auxiliary quantum register
+            measure (bool): boolean flag to indicate if the built circuit should include ancilla measurement
+
+        Returns:
+            the QuantumCircuit object for the constructed circuit
+        """
 
         if self._circuit[measure] is None:
             if self._operator is not None:
@@ -65,30 +99,41 @@ class PhaseEstimation:
                             raise RuntimeError('Multiple identity pauli terms are present.')
                         self._ancilla_phase_coef = p[0].real if isinstance(p[0], complex) else p[0]
 
-            a = QuantumRegister(self._num_ancillae, name='a')
-            if self._operator is not None:
-                q = QuantumRegister(self._operator.num_qubits, name='q')
-            elif self._operator_circuit_factory is not None:
-                q = QuantumRegister(self._operator_circuit_factory.num_target_qubits, name='q')
+            if ancilla_register is None:
+                a = QuantumRegister(self._num_ancillae, name='a')
             else:
-                raise RuntimeError('Missing operator specification.')
+                a = ancilla_register
+
+            if state_register is None:
+                if self._operator is not None:
+                    q = QuantumRegister(self._operator.num_qubits, name='q')
+                elif self._unitary_circuit_factory is not None:
+                    q = QuantumRegister(self._unitary_circuit_factory.num_target_qubits, name='q')
+                else:
+                    raise RuntimeError('Missing operator specification.')
+            else:
+                q = state_register
             qc = QuantumCircuit(a, q)
 
-            num_aux_qubits, aux = 0, None
-            if self._state_in_circuit_factory is not None:
-                num_aux_qubits = self._state_in_circuit_factory.required_ancillas()
-            if self._operator_circuit_factory is not None:
-                num_aux_qubits = max(num_aux_qubits, self._operator_circuit_factory.required_ancillas_controlled())
+            if aux_register is None:
+                num_aux_qubits, aux = 0, None
+                if self._state_in_circuit_factory is not None:
+                    num_aux_qubits = self._state_in_circuit_factory.required_ancillas()
+                if self._unitary_circuit_factory is not None:
+                    num_aux_qubits = max(num_aux_qubits, self._unitary_circuit_factory.required_ancillas_controlled())
 
-            if num_aux_qubits > 0:
-                aux = QuantumRegister(num_aux_qubits, name='aux')
+                if num_aux_qubits > 0:
+                    aux = QuantumRegister(num_aux_qubits, name='aux')
+                    qc.add_register(aux)
+            else:
+                aux = aux_register
                 qc.add_register(aux)
 
             # initialize state_in
             if self._state_in is not None:
                 qc.data += self._state_in.construct_circuit('circuit', q).data
             elif self._state_in_circuit_factory is not None:
-                self._state_in_circuit_factory.build(qc, q, aux, self._additional_params)
+                self._state_in_circuit_factory.build(qc, q, aux)
             else:
                 raise RuntimeError('Missing initial state specification.')
 
@@ -122,9 +167,9 @@ class PhaseEstimation:
                         qc += qc_evolutions
                     # global phase shift for the ancilla due to the identity pauli term
                     qc.u1(2 * np.pi * self._ancilla_phase_coef * (2 ** i), a[i])
-            elif self._operator_circuit_factory is not None:
+            elif self._unitary_circuit_factory is not None:
                 for i in range(self._num_ancillae):
-                    self._operator_circuit_factory.build_controlled_power(qc, q, a[i], 2 ** i, aux, self._additional_params)
+                    self._unitary_circuit_factory.build_controlled_power(qc, q, a[i], 2 ** i, aux)
 
             # inverse qft on ancillae
             self._iqft.construct_circuit('circuit', a, qc)

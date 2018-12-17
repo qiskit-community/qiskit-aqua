@@ -26,8 +26,8 @@ import functools
 import numpy as np
 from qiskit import ClassicalRegister
 
-from qiskit_aqua import QuantumAlgorithm, AquaError
-from qiskit_aqua import PluggableType, get_pluggable_class
+from qiskit_aqua.algorithms import QuantumAlgorithm
+from qiskit_aqua import AquaError, PluggableType, get_pluggable_class
 from qiskit_aqua.utils import find_regs_by_name
 
 logger = logging.getLogger(__name__)

@@ -16,7 +16,7 @@
 # =============================================================================
 
 from .eoh.eoh import EOH
-from .qsvm.qsvm_kernel import QSVM_Kernel
+from .qsvm.qsvm_kernel import QSVMKernel
 
 __all__ = ['EOH',
-           'QSVM_Kernel']
+           'QSVMKernel']
