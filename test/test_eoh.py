@@ -22,7 +22,7 @@ from qiskit.transpiler import PassManager
 from qiskit_aqua import get_aer_backend
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua.operator import Operator, QuantumInstance
+from qiskit_aqua import Operator, QuantumInstance
 from qiskit_aqua.components.initial_states import Custom
 from qiskit_aqua.algorithms import EOH
 
