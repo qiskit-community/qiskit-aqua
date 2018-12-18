@@ -425,9 +425,9 @@ Amplitude Estimation
 ^^^^^^^^^^^^^^^^^^^^
 
 *Amplitude Estimation* is a derivative of *Quantum Phase Estimation* applied to a particular operator :math:`A`.
-:math:`A` is assumed to operate on (n+1) qubits (+ possible ancillary qubits)
-where the n qubits represent the uncertainty (random distribution :ref:`random_distribution`)
-and the last qubit is used to represent the (normalized) objective value as its amplitude.
+:math:`A` is assumed to operate on :math:`n + 1` qubits (plus possible ancillary qubits)
+where the :math:`n` qubits represent the uncertainty (in the form of a random distribution :ref:`random_distribution`)
+and the last qubit, called the *objective qubit*, is used to represent the normalized objective value as its amplitude.
 In other words,
 :math:`A` is constructed such that the probability of measuring a '1' in the objective qubit is equal to the
 value of interest.
@@ -441,7 +441,7 @@ value of interest.
     
 
 In addition to relying on a ``PhaseEstimation`` component
-for building, well, the Quantum Phase Estimation circuit,
+for building the Quantum Phase Estimation circuit,
 the Amplitude Estimation algorithm expects the following inputs:
 
 
