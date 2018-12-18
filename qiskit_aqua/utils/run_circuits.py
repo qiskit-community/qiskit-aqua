@@ -160,18 +160,31 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
             max_circuits_per_job = sys.maxsize
         else:
             max_circuits_per_job = backend.configuration().max_experiments
-    logger.info("Maximum number of circuits per job is: {}".format(max_circuits_per_job))
 
     qobjs = []
     jobs = []
+    job_ids = []
     chunks = int(np.ceil(len(circuits) / max_circuits_per_job))
-
     for i in range(chunks):
         sub_circuits = circuits[i *
                                 max_circuits_per_job:(i + 1) * max_circuits_per_job]
         qobj = q_compile(sub_circuits, backend, **backend_config,
                          **compile_config, **run_config)
-        job = backend.run(qobj)
+        # assure get job ids
+        while True:
+            job = backend.run(qobj)
+            try:
+                job_id = job.job_id()
+                break
+            except JobError as e:
+                logger.warning("FAILURE: the {}-th chunk of circuits, can not get job id, "
+                               "Resubmit the qobj to get job id. "
+                               "Terra job error: {} ".format(i, e))
+            except Exception as e:
+                logger.warning("FAILURE: the {}-th chunk of circuits, can not get job id, "
+                               "Resubmit the qobj to get job id. "
+                               "Error: {} ".format(i, e))
+        job_ids.append(job_id)
         jobs.append(job)
         qobjs.append(qobj)
 
@@ -180,28 +193,15 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
 
     results = []
     if with_autorecover:
-        logger.info("backend status: {}".format(backend.status()))
+        logger.info("Backend status: {}".format(backend.status()))
         logger.info("There are {} circuits and they are chunked into {} chunks, "
-                    "each with {} circutis.".format(len(circuits), chunks,
-                                                    max_circuits_per_job))
-
+                    "each with {} circutis (max.).".format(len(circuits), chunks,
+                                                           max_circuits_per_job))
+        logger.info("All job ids:\n{}".format(job_ids))
         for idx in range(len(jobs)):
             job = jobs[idx]
+            job_id = job_ids[idx]
             while True:
-                #  assure job get its id
-                while True:
-                    try:
-                        job_id = job.job_id()
-                        break
-                    except JobError as e:
-                        logger.warning("FAILURE: the {}-th chunk of circuits, can not get job id, "
-                                       "Resubmit the qobj to get job id. "
-                                       "Terra job error: {} ".format(idx, e))
-                    except Exception as e:
-                        logger.warning("FAILURE: the {}-th chunk of circuits, can not get job id, "
-                                       "Resubmit the qobj to get job id. "
-                                       "Error: {} ".format(idx, e))
-                    job = backend.run(qobjs[idx])
                 logger.info("Running {}-th chunk circuits, job id: {}".format(idx, job_id))
                 # try to get result if possible
                 try:
@@ -252,7 +252,22 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
                 else:
                     logger.info("Fail to run Job ({}), resubmit it.".format(job_id))
                     qobj = qobjs[idx]
-                    job = backend.run(qobj)
+                    #  assure job get its id
+                    while True:
+                        job = backend.run(qobj)
+                        try:
+                            job_id = job.job_id()
+                            break
+                        except JobError as e:
+                            logger.warning("FAILURE: the {}-th chunk of circuits, can not get job id, "
+                                           "Resubmit the qobj to get job id. "
+                                           "Terra job error: {} ".format(idx, e))
+                        except Exception as e:
+                            logger.warning("FAILURE: the {}-th chunk of circuits, can not get job id, "
+                                           "Resubmit the qobj to get job id. "
+                                           "Error: {} ".format(idx, e))
+                    jobs[idx] = job
+                    job_ids[idx] = job_id
     else:
         results = []
         for job in jobs:
