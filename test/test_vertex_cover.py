@@ -30,6 +30,7 @@ class TestVertexCover(QiskitAquaTestCase):
     """Cplex Ising tests."""
 
     def setUp(self):
+        super().setUp()
         np.random.seed(100)
         self.num_nodes = 3
         self.w = vertexcover.random_graph(self.num_nodes, edge_prob=0.8, weight_range=10)
@@ -81,7 +82,8 @@ class TestVertexCover(QiskitAquaTestCase):
     def test_vertex_cover_vqe(self):
         algorithm_cfg = {
             'name': 'VQE',
-            'operator_mode': 'paulis'
+            'operator_mode': 'grouped_paulis',
+            'batch_mode': True
         }
 
         optimizer_cfg = {

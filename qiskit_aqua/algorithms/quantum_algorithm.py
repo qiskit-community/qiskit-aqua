@@ -27,7 +27,7 @@ from abc import abstractmethod
 import logging
 
 import numpy as np
-from qiskit.backends import BaseBackend
+from qiskit.providers import BaseBackend
 
 from qiskit_aqua import Pluggable, QuantumInstance, AquaError
 

@@ -22,10 +22,8 @@ import functools
 import copy
 
 import numpy as np
-from qiskit.backends import BaseBackend
 from qiskit import compile as q_compile
-from qiskit.backends.jobstatus import JobStatus
-from qiskit.backends import JobError
+from qiskit.providers import BaseBackend, JobStatus, JobError
 
 from qiskit_aqua.aqua_error import AquaError
 from qiskit_aqua.utils import summarize_circuits
@@ -72,6 +70,7 @@ def _avoid_empty_circuits(circuits):
         new_circuits.append(qc)
     return new_circuits
 
+
 def _split_complex_vector(vector):
 
     result = []
@@ -79,6 +78,7 @@ def _split_complex_vector(vector):
         result.append([real, imag])
 
     return result
+
 
 def _reuse_shared_circuits(circuits, backend, backend_config, compile_config, run_config,
                            qjob_config=None, show_circuit_summary=False):
@@ -88,12 +88,7 @@ def _reuse_shared_circuits(circuits, backend, backend_config, compile_config, ru
     and then use it as initial state for simulation.
 
     Note that all circuits should have the exact the same shared parts.
-
-    TODO:
-        after subtraction, the circuits can not be empty.
-        it only works for terra 0.6.2+
     """
-
     qjob_config = qjob_config or {}
 
     shared_circuit = circuits[0]
@@ -142,7 +137,6 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
     Raises:
         AquaError: Any error except for JobError raised by Qiskit Terra
     """
-
     qjob_config = qjob_config or {}
 
     if backend is None or not isinstance(backend, BaseBackend):
@@ -179,9 +173,9 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
     results = []
     if with_autorecover:
 
-        logger.debug("There are {} circuits and they are chunked into {} chunks, "
-                     "each with {} circutis.".format(len(circuits), chunks,
-                                                     max_circuits_per_job))
+        logger.info("There are {} circuits and they are chunked into {} chunks, "
+                    "each with {} circutis.".format(len(circuits), chunks,
+                                                    max_circuits_per_job))
 
         for idx in range(len(jobs)):
             job = jobs[idx]
