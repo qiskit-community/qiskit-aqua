@@ -24,7 +24,6 @@ import copy
 import numpy as np
 from qiskit import compile as q_compile
 from qiskit.providers import BaseBackend, JobStatus, JobError
-from qiskit.providers.ibmq.ibmq_provider import QE_URL
 
 from qiskit_aqua.aqua_error import AquaError
 from qiskit_aqua.utils import summarize_circuits
