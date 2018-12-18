@@ -199,9 +199,9 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
                                                            max_circuits_per_job))
         logger.info("All job ids:\n{}".format(job_ids))
         for idx in range(len(jobs)):
-            job = jobs[idx]
-            job_id = job_ids[idx]
             while True:
+                job = jobs[idx]
+                job_id = job_ids[idx]
                 logger.info("Running {}-th chunk circuits, job id: {}".format(idx, job_id))
                 # try to get result if possible
                 try:
