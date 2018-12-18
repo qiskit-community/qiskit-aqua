@@ -18,8 +18,8 @@
 import logging
 from qiskit import __version__ as terra_version
 from qiskit import IBMQ, BasicAer
-from qiskit.backends.ibmq.credentials import Credentials
-from qiskit.backends.ibmq.ibmqsingleprovider import IBMQSingleProvider
+from qiskit.providers.ibmq.credentials import Credentials
+from qiskit.providers.ibmq.ibmqsingleprovider import IBMQSingleProvider
 
 from qiskit_aqua_cmd import Preferences
 from qiskit_aqua.utils import compile_and_run_circuits
@@ -276,9 +276,8 @@ class QuantumInstance:
                 "Failed to register with Qiskit: {}".format(str(e)))
 
         backends = set()
-        builtin_backends = [x.name() for x in BasicAer.backends()]
         aer_backends = [x.name() for x in get_aer_backends()]
-        for backend in set(builtin_backends + aer_backends):
+        for backend in aer_backends:
             supported = True
             for unsupported_backend in QuantumInstance.UNSUPPORTED_BACKENDS:
                 if backend.startswith(unsupported_backend):

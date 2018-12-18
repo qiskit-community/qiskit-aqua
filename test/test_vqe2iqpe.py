@@ -35,6 +35,7 @@ from qiskit_aqua.algorithms import IQPE
 class TestVQE2IQPE(QiskitAquaTestCase):
 
     def setUp(self):
+        super().setUp()
         self.random_seed = 0
         np.random.seed(self.random_seed)
         pauli_dict = {

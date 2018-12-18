@@ -31,6 +31,7 @@ class TestExactCover(QiskitAquaTestCase):
     """Cplex Ising tests."""
 
     def setUp(self):
+        super().setUp()
         input_file = self._get_resource_path('sample.exactcover')
         with open(input_file) as f:
             self.list_of_subsets = json.load(f)
@@ -79,7 +80,8 @@ class TestExactCover(QiskitAquaTestCase):
     def test_exactcover_vqe(self):
         algorithm_cfg = {
             'name': 'VQE',
-            'operator_mode': 'matrix'
+            'operator_mode': 'matrix',
+            'batch_mode': True
         }
 
         optimizer_cfg = {

@@ -33,6 +33,7 @@ class TestInputParser(QiskitAquaTestCase):
     """Input Parser and algorithms tests."""
 
     def setUp(self):
+        super().setUp()
         filepath = self._get_resource_path('H2-0.735.json')
         self.parser = InputParser(filepath)
         self.parser.parse()

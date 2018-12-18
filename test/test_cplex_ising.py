@@ -28,6 +28,7 @@ class TestCplexIsing(QiskitAquaTestCase):
     """Cplex Ising tests."""
 
     def setUp(self):
+        super().setUp()
         np.random.seed(8123179)
         self.w = maxcut.random_graph(4, edge_prob=0.5, weight_range=10)
         self.qubit_op, self.offset = maxcut.get_maxcut_qubitops(self.w)
