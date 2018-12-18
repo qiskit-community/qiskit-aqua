@@ -28,6 +28,7 @@ from qiskit_aqua import PluggableType, get_pluggable_class
 class TestNLOptOptimizers(QiskitAquaTestCase):
 
     def setUp(self):
+        super().setUp()
         np.random.seed(50)
         try:
             import nlopt
