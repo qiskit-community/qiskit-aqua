@@ -20,6 +20,7 @@ import logging
 import time
 import functools
 import copy
+import os
 
 import numpy as np
 from qiskit import compile as q_compile
@@ -28,6 +29,7 @@ from qiskit.providers import BaseBackend, JobStatus, JobError
 from qiskit_aqua.aqua_error import AquaError
 from qiskit_aqua.utils import summarize_circuits
 
+MAX_CIRCUITS_PER_JOB = os.environ.get('QISKIT_AQUA_MAX_CIRCUITS_PER_JOB', None)
 
 logger = logging.getLogger(__name__)
 
@@ -151,14 +153,14 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
 
     with_autorecover = False if backend.configuration().simulator else True
 
-    if backend.configuration().local:
-        max_circuits_per_job = sys.maxsize
+    if MAX_CIRCUITS_PER_JOB is not None:
+        max_circuits_per_job = int(MAX_CIRCUITS_PER_JOB)
     else:
-        allow_q_object = backend.configuration().allow_q_object
-        if allow_q_object:
-            max_circuits_per_job = backend.configuration().max_experiments
+        if backend.configuration().local:
+            max_circuits_per_job = sys.maxsize
         else:
-            max_circuits_per_job = 1000 if backend.configuration().n_qubits >= 20 else 300
+            max_circuits_per_job = backend.configuration().max_experiments
+    logger.info("Maximum number of circuits per job is: {}".format(max_circuits_per_job))
 
     qobjs = []
     jobs = []
@@ -178,16 +180,30 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
 
     results = []
     if with_autorecover:
-
+        logger.info("backend status: {}".format(backend.status()))
         logger.info("There are {} circuits and they are chunked into {} chunks, "
                     "each with {} circutis.".format(len(circuits), chunks,
                                                     max_circuits_per_job))
 
         for idx in range(len(jobs)):
             job = jobs[idx]
-            job_id = job.job_id()
-            logger.info("Running {}-th chunk circuits, job id: {}".format(idx, job_id))
             while True:
+                #  assure job get its id
+                while True:
+                    try:
+                        job_id = job.job_id()
+                        break
+                    except JobError as e:
+                        logger.warning("FAILURE: the {}-th chunk of circuits, can not get job id, "
+                                       "Resubmit the qobj to get job id. "
+                                       "Terra job error: {} ".format(idx, e))
+                    except Exception as e:
+                        logger.warning("FAILURE: the {}-th chunk of circuits, can not get job id, "
+                                       "Resubmit the qobj to get job id. "
+                                       "Error: {} ".format(idx, e))
+                    job = backend.run(qobjs[idx])
+                logger.info("Running {}-th chunk circuits, job id: {}".format(idx, job_id))
+                # try to get result if possible
                 try:
                     result = job.result(**qjob_config)
                     if result.success:
@@ -200,13 +216,14 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
                                        "job id: {}".format(idx, job_id))
                 except JobError as e:
                     # if terra raise any error, which means something wrong, re-run it
-                    logger.warning("FAILURE: the {}-th chunk of circuits, job id: {}, "
+                    logger.warning("FAILURE: the {}-th chunk of circuits, job id: {} "
                                    "Terra job error: {} ".format(idx, job_id, e))
                 except Exception as e:
-                    raise AquaError("FAILURE: the {}-th chunk of circuits, job id: {}, "
+                    raise AquaError("FAILURE: the {}-th chunk of circuits, job id: {} "
                                     "Terra unknown error: {} ".format(idx, job_id, e)) from e
 
-                # keep querying the status until it is okay.
+                # something wrong here, querying the status to check how to handle it.
+                # keep qeurying it until getting the status.
                 while True:
                     try:
                         job_status = job.status()
@@ -219,10 +236,11 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
                     except Exception as e:
                         raise AquaError("FAILURE: job id: {}, "
                                         "status: 'FAIL_TO_GET_STATUS' "
-                                        "({})".format(job_id, e)) from e
+                                        "Error: ({})".format(job_id, e)) from e
 
                 logger.info("Job status: {}".format(job_status))
-                # when reach here, it means the job fails. let's check what kinds of failure it is.
+
+                # handle the failure job based on job status
                 if job_status == JobStatus.DONE:
                     logger.info("Job ({}) is completed anyway, retrieve result "
                                 "from backend.".format(job_id))

@@ -51,7 +51,7 @@ class QiskitAquaTestCase(unittest.TestCase):
     def tearDown(self):
         elapsed = time.time() - self._started_at
         if elapsed > 5.0:
-            print('({:.2f}s)'.format(round(elapsed, 2)))
+            print('({:.2f}s)'.format(round(elapsed, 2)), flush=True)
 
     @classmethod
     def setUpClass(cls):
