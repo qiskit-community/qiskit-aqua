@@ -5,6 +5,7 @@ import scipy
 
 from qiskit_aqua.utils import tensorproduct
 
+
 def random_h1_body(N):
     """
     Generate a random one body integrals.
@@ -188,7 +189,7 @@ def limit_paulis(mat, n=5, sparsity=None):
     Returns:
         scipy.sparse.csr_matrix
     """
-    from qiskit_aqua.operator import Operator
+    from qiskit_aqua import Operator
     # Bringing matrix into form 2**Nx2**N
     l = mat.shape[0]
     if np.log2(l) % 1 != 0:
