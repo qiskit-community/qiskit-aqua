@@ -16,10 +16,12 @@ python:
     - "3.6"
 
 # Install Qiskit Terra from master branch
+# The env. variable MASTER_BRANCH_DEPENDENCIES forces dependencies used from master 
 env: 
     - >
+      MASTER_BRANCH_DEPENDENCIES=true
       CMAKE_FLAGS="-D CMAKE_CXX_COMPILER=g++-5 -D ENABLE_TARGETS_QA=False -D WHEEL_TAG=-pmanylinux1_x86_64 -D STATIC_LINKING=True"
-      DEP_BRANCH=$(if [ ${TRAVIS_BRANCH} != "stable" ]; then echo "master"; else echo "stable"; fi)
+      DEP_BRANCH=$(if [ ${MASTER_BRANCH_DEPENDENCIES} = "true" ] || [ ${TRAVIS_BRANCH} != "stable" ]; then echo "master"; else echo "stable"; fi)
 addons:
     apt:
       sources:
@@ -30,9 +32,9 @@ addons:
         - g++-5    
 
 before_install:
-    # download Qiskit Terra master and unzip it only if not in stable branch, otherwise use the pypi version
+    # download Qiskit Terra master and unzip it only if forced from master or not stable branch, otherwise use the pypi version
     - |
-      if [ ${TRAVIS_BRANCH} != "stable" ]; then
+      if [ ${MASTER_BRANCH_DEPENDENCIES} = "true" ] || [ ${TRAVIS_BRANCH} != "stable" ]; then
         wget https://codeload.github.com/Qiskit/qiskit-terra/zip/master -O /tmp/qiskit-terra.zip
         unzip /tmp/qiskit-terra.zip -d /tmp/
         # Install Qiskit Terra requirements.
