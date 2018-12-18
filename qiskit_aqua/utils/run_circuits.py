@@ -24,14 +24,13 @@ import copy
 import numpy as np
 from qiskit import compile as q_compile
 from qiskit.providers import BaseBackend, JobStatus, JobError
+from qiskit.providers.ibmq.ibmq_provider import QE_URL
 
 from qiskit_aqua.aqua_error import AquaError
 from qiskit_aqua.utils import summarize_circuits
 
 
 logger = logging.getLogger(__name__)
-
-MAX_CIRCUITS_PER_JOB = 300
 
 
 def find_regs_by_name(circuit, name, qreg=True):
@@ -152,7 +151,15 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
         return _reuse_shared_circuits(circuits, backend, backend_config, compile_config, run_config, qjob_config)
 
     with_autorecover = False if backend.configuration().simulator else True
-    max_circuits_per_job = sys.maxsize if backend.configuration().local else MAX_CIRCUITS_PER_JOB
+
+    if backend.configuration().local:
+        max_circuits_per_job = sys.maxsize
+    else:
+        allow_q_object = backend.configuration().allow_q_object
+        if allow_q_object:
+            max_circuits_per_job = backend.configuration().max_experiments
+        else:
+            max_circuits_per_job = 1000 if backend.configuration().n_qubits >= 20 else 300
 
     qobjs = []
     jobs = []
