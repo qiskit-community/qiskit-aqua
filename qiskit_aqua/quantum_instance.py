@@ -18,8 +18,8 @@
 import logging
 from qiskit import __version__ as terra_version
 from qiskit import IBMQ, BasicAer
-from qiskit.backends.ibmq.credentials import Credentials
-from qiskit.backends.ibmq.ibmqsingleprovider import IBMQSingleProvider
+from qiskit.providers.ibmq.credentials import Credentials
+from qiskit.providers.ibmq.ibmqsingleprovider import IBMQSingleProvider
 
 from qiskit_aqua_cmd import Preferences
 from qiskit_aqua.utils import compile_and_run_circuits

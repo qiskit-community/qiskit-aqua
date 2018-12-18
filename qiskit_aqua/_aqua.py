@@ -22,7 +22,7 @@ import json
 import logging
 
 from qiskit import IBMQ
-from qiskit.backends import BaseBackend
+from qiskit.providers import BaseBackend
 from qiskit.transpiler import PassManager
 
 from qiskit_aqua.aqua_error import AquaError
