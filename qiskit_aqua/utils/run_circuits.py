@@ -106,7 +106,7 @@ def _reuse_shared_circuits(circuits, backend, backend_config, compile_config, ru
 
 
 def compile_and_run_circuits(circuits, backend, backend_config, compile_config, run_config, qjob_config=None,
-                             show_circuit_summary=False, has_shared_circuits=False):
+                             noise_config=None, show_circuit_summary=False, has_shared_circuits=False):
     """
     An execution wrapper with Qiskit-Terra, with job auto recover capability.
 
@@ -120,8 +120,10 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
         compile_config (dict): configuration for compilation
         run_config (dict): configuration for running a circuit
         qjob_config (dict): configuration for quantum job object
+        noise_config (dict): configuration for noise model
         show_circuit_summary (bool): showing the summary of submitted circuits.
         has_shared_circuits (bool): use the 0-th circuits as initial state for other circuits.
+
     Returns:
         Result: Result object
 
@@ -163,7 +165,7 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
                          **compile_config, **run_config)
         # assure get job ids
         while True:
-            job = backend.run(qobj)
+            job = backend.run(qobj, **noise_config)
             try:
                 job_id = job.job_id()
                 break

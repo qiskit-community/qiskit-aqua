@@ -17,7 +17,7 @@
 
 import logging
 from qiskit import __version__ as terra_version
-from qiskit import IBMQ, BasicAer
+from qiskit import IBMQ
 from qiskit.providers.ibmq.credentials import Credentials
 from qiskit.providers.ibmq.ibmqsingleprovider import IBMQSingleProvider
 
@@ -34,26 +34,23 @@ class QuantumInstance:
     UNSUPPORTED_BACKENDS = [
         'unitary_simulator', 'clifford_simulator']
 
-    EQUIVALENT_BACKENDS = {'statevector_simulator_py': 'statevector_simulator',
-                           'statevector_simulator_sympy': 'statevector_simulator',
-                           'statevector_simulator_projectq': 'statevector_simulator',
-                           'qasm_simulator_py': 'qasm_simulator',
-                           'qasm_simulator_projectq': 'qasm_simulator'
-                           }
-
-    BACKEND_CONFIG = ['basis_gates', 'config', 'coupling_map', 'seed', 'memory']
+    # TODO: separate the config out from backend config; backend_options are stored in config
+    BACKEND_CONFIG = ['basis_gates', 'coupling_map', 'config', 'seed', 'memory']
     COMPILE_CONFIG = ['pass_manager', 'initial_layout', 'seed_mapper', 'qobj_id']
     RUN_CONFIG = ['shots', 'max_credits']
     QJOB_CONFIG = ['timeout', 'wait']
+    NOISE_CONFIG = ['noise_model']
 
-    #  based on table at https://github.com/Qiskit/qiskit-terra/tree/master/src/qasm-simulator-cpp#table-of-config-options
-    SIMULATOR_CONFIG = ["shots_threads", "data", "noise_params", "initial_state",
-                        "target_states", "renom_target_states", "chop",
-                        "max_memory", "max_threads_shot", "max_threads_gate", "threshold_omp_gate"]
+    #  https://github.com/Qiskit/qiskit-aer/blob/master/qiskit/providers/aer/backends/qasm_simulator.py
+    SIMULATOR_CONFIG = ["initial_statevector", "chop_threshold", "max_parallel_threads",
+                        "max_parallel_experiments", "statevector_parallel_threshold",
+                        "statevector_hpc_gate_opt",
+                        # below for qasm simulator only
+                        "statevector_sample_measure_opt", "max_parallel_shots"]
 
     def __init__(self, backend, shots=1024, max_credits=10, config=None, seed=None,
                  initial_layout=None, pass_manager=None, seed_mapper=None, memory=False,
-                 timeout=None, wait=5):
+                 noise_model=None, timeout=None, wait=5):
         """Constructor.
 
         Args:
@@ -66,6 +63,7 @@ class QuantumInstance:
             pass_manager (PassManager): pass manager to handle how to compile the circuits
             seed_mapper (int): the random seed for circuit mapper
             memory (bool): if True, per-shot measurement bitstrings are returned as well
+            noise_model (qiskit.provider.aer.noise.noise_model.NoiseModel): noise model for simulator
             timeout (float or None): seconds to wait for job. If None, wait indefinitely.
             wait (float): seconds between queries to result
         """
@@ -77,7 +75,7 @@ class QuantumInstance:
             shots = 1
 
         coupling_map = getattr(backend.configuration(), 'coupling_map', None)
-        # TODO: basis gates will be [str] rather than str
+        # TODO: basis gates will be [str] rather than comma-separated str
         basis_gates = backend.configuration().basis_gates
         basis_gates = ','.join(basis_gates)
 
@@ -93,9 +91,21 @@ class QuantumInstance:
             'max_credits': max_credits
         }
 
+        if not self.is_simulator and noise_model is not None:
+            logger.info("The noise model can be only used with simulator. "
+                        "Change it to None.")
+            self._noise_config = None
+        else:
+            self._noise_config = {'noise_model': noise_model}
+
+        if not self.is_simulator and memory is True:
+            logger.info("The memory flag only supports simulator rather than real device. "
+                        "Change it to from {} to False.".format(memory))
+            memory = False
+
         self._backend_config = {
             'basis_gates': basis_gates,
-            'config': config or {},
+            'config': config,
             'coupling_map': coupling_map,
             'seed': seed,
             'memory': memory
@@ -116,9 +126,9 @@ class QuantumInstance:
             str: the info of the object.
         """
         info = 'Qiskit Terra version {}\n'.format(terra_version)
-        info += "Backend '{}', with following setting:\n{}\n{}\n{}\n{}".format(
+        info += "Backend '{}', with following setting:\n{}\n{}\n{}\n{}\n{}".format(
             self.backend_name, self._backend_config, self._compile_config,
-            self._run_config, self._qjob_config)
+            self._run_config, self._qjob_config, self._noise_config)
         return info
 
     def execute(self, circuits):
@@ -133,7 +143,7 @@ class QuantumInstance:
         """
         result = compile_and_run_circuits(circuits, self._backend, self._backend_config,
                                           self._compile_config, self._run_config,
-                                          self._qjob_config,
+                                          self._qjob_config, noise_config=self._noise_config,
                                           show_circuit_summary=self._circuit_summary,
                                           has_shared_circuits=self._shared_circuits)
         if self._circuit_summary:
@@ -142,6 +152,9 @@ class QuantumInstance:
         return result
 
     def set_config(self, **kwargs):
+        """
+        Set configurations for the quantum instance.
+        """
         for k, v in kwargs.items():
             if k in QuantumInstance.RUN_CONFIG:
                 self._run_config[k] = v
@@ -152,29 +165,42 @@ class QuantumInstance:
             elif k in QuantumInstance.BACKEND_CONFIG:
                 self._backend_config[k] = v
             elif k in QuantumInstance.SIMULATOR_CONFIG:
+                if self._backend_config.get('config', None) is None:
+                    self._backend_config['config'] = dict()
                 self._backend_config['config'][k] = v
+            elif k in QuantumInstance.NOISE_CONFIG:
+                self._noise_config[k] = v
             else:
                 raise ValueError("unknown setting for the key ({}).".format(k))
 
     @property
     def qjob_config(self):
+        """Getter of qjob_config."""
         return self._qjob_config
 
     @property
     def backend_config(self):
+        """Getter of backend_config."""
         return self._backend_config
 
     @property
     def compile_config(self):
+        """Getter of compile_config."""
         return self._compile_config
 
     @property
     def run_config(self):
+        """Getter of run_config."""
         return self._run_config
 
     @property
+    def noise_config(self):
+        """Getter of noise_config."""
+        return self._noise_config
+
+    @property
     def shared_circuits(self):
-        return self._has_shared_circuits
+        return self._shared_circuits
 
     @shared_circuits.setter
     def shared_circuits(self, new_value):
