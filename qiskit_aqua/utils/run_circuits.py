@@ -97,7 +97,7 @@ def _reuse_shared_circuits(circuits, backend, backend_config, compile_config, ru
     temp_backend_config = copy.deepcopy(backend_config)
     if 'config' not in temp_backend_config:
         temp_backend_config['config'] = dict()
-    temp_backend_config['config']['initial_state'] = shared_quantum_state
+    temp_backend_config['config']['initial_statevector'] = shared_quantum_state
     diff_result = compile_and_run_circuits(circuits[1:], backend, temp_backend_config,
                                            compile_config, run_config, qjob_config,
                                            show_circuit_summary=show_circuit_summary)

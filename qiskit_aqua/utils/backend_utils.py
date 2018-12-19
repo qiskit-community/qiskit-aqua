@@ -15,7 +15,7 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit import BasicAer, LegacySimulators
+from qiskit import BasicAer
 import logging
 import warnings
 import sys
@@ -38,25 +38,23 @@ warnings.showwarning = my_warning_wrapper
 
 def get_aer_backends():
     try:
-        backends = LegacySimulators.backends()
-        logger.debug('Using LegacySimulators backends.')
+        from qiskit import Aer
+        backends = Aer.backends()
         return backends
     except:
         pass
 
     backends = BasicAer.backends()
-    logger.debug('Using BasicAer backends.')
     return backends
 
 
 def get_aer_backend(backend_name):
     try:
-        backend = LegacySimulators.get_backend(backend_name)
-        logger.debug('Using LegacySimulators backend {}.'.format(backend_name))
+        from qiskit import Aer
+        backend = Aer.get_backend(backend_name)
         return backend
     except:
         pass
 
     backend = BasicAer.get_backend(backend_name)
-    logger.debug('Using BasicAer backend {}.'.format(backend_name))
     return backend
