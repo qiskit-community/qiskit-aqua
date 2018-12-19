@@ -213,8 +213,4 @@ entered in Z-matrix format even when the user has chosen PySCF or
 PyQuante as the classical computational chemistry software driver
 interfaced by Qiskit Chemistry. Qiskit Chemistry uses the APIs of the underlying
 drivers to transparently convert any Z-matrix configuration entered by the user to the
-<<<<<<< HEAD
 corresponding Cartesian coordinates.
-=======
-corresponding Cartesian coordinates.
->>>>>>> eef6563f49ba7b0b5a9e8c008e5b5a1aa27c4788
