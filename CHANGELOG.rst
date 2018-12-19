@@ -21,11 +21,17 @@ The format is based on `Keep a Changelog`_.
 Added
 -----
 
-- Compatibility with Aqua 0.4 and Terra 0.7
-- API changes (programmatic approach)
-- Updated documentation and Jupyter Notebooks exhibiting both programmatic and declarative APIs
-- ZMatrix support for the PySCF & PyQuante classical computational chemistry drivers
-- Hartree-Fock initial state and UCCSD variational form have been moved from Aqua to Aqua Chemistry and are registered at installation time as Aqua algorithmic components for use at run time
+- Compatibility with Aqua 0.4
+- Compatibility with Terra 0.7
+- Compatibility with Aer 0.1
+- Programmatic APIs for algorithms and components -- each component can now be instantiated and initialized via a single (non-emptY) constructot call
+- ``QuantumInstance`` API for algorithm/backend decoupling -- ``QuantumInstance`` encapsulates a backend and its settings
+- Updated documentation and Jupyter Notebooks illustrating the new programmatic APIs
+- Z-Matrix support for the PySCF & PyQuante classical computational chemistry drivers
+- ``HartreeFock`` component of pluggable type ``InitialState` moved from Qiskit Aqua to Qiskit Chemistry
+  registers itself at installation time as Aqua algorithmic components for use at run time
+- ``UCCSD`` component of pluggable type ``VariationalForm`` moved from Qiskit Aqua to Qiskit Chemistry
+  registers itself at installation time as Aqua algorithmic components for use at run time
 
 `0.3.0`_ - 2018-10-05
 =====================
