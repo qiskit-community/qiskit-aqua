@@ -23,30 +23,44 @@ import os
 
 logger = logging.getLogger(__name__)
 
+
 class HDF5Driver(BaseDriver):
     """Python implementation of a hdf5 driver."""
-    
+
     KEY_HDF5_INPUT = 'hdf5_input'
 
-    def __init__(self, configuration=None):
-        """
-        Args:
-            configuration (dict): driver configuration
-        """
-        super(HDF5Driver, self).__init__(configuration)
+    CONFIGURATION = {
+        "name": "HDF5",
+        "description": "HDF5 Driver",
+        "input_schema": {
+            "$schema": "http://json-schema.org/schema#",
+            "id": "hdf5_schema",
+            "type": "object",
+            "properties": {
+                "hdf5_input": {
+                    "type": "string",
+                    "default": "molecule.hdf5"
+                }
+            },
+            "additionalProperties": False
+        }
+    }
+
+    def __init__(self):
+        super().__init__()
 
     def run(self, section):
         properties = section['properties']
         if HDF5Driver.KEY_HDF5_INPUT not in properties:
             raise AquaChemistryError('Missing hdf5 input property')
-       
+
         hdf5_file = properties[HDF5Driver.KEY_HDF5_INPUT]
         if self.work_path is not None and not os.path.isabs(hdf5_file):
-            hdf5_file = os.path.abspath(os.path.join(self.work_path,hdf5_file))
-         
+            hdf5_file = os.path.abspath(os.path.join(self.work_path, hdf5_file))
+
         if not os.path.isfile(hdf5_file):
             raise LookupError('HDF5 file not found: {}'.format(hdf5_file))
-                            
+
         molecule = QMolecule(hdf5_file)
         molecule.load()
         return molecule

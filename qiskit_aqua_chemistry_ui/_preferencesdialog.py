@@ -18,19 +18,12 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import font
-from qiskit_aqua_chemistry.ui._dialog import Dialog
+from ._dialog import Dialog
 from collections import OrderedDict
-from qiskit_aqua_chemistry.core import refresh_operators
-from qiskit_aqua_chemistry.drivers import ConfigurationManager
-from qiskit_aqua.ui.run import CredentialsView
-from qiskit_aqua_chemistry.ui._toolbarview import ToolbarView
-from qiskit_aqua_chemistry.ui._customwidgets import EntryCustom
-from qiskit_aqua_chemistry.preferences import Preferences
-from qiskit_aqua import Preferences as AquaPreferences
-from qiskit_aqua_chemistry.ui._uipreferences import UIPreferences
-from qiskit_aqua_chemistry._logging import (get_logging_level,
-                                            build_logging_config,
-                                            set_logging_config)
+from qiskit_aqua_ui.run import CredentialsView
+from ._toolbarview import ToolbarView
+from ._customwidgets import EntryCustom
+from ._uipreferences import UIPreferences
 import logging
 
 
@@ -55,6 +48,8 @@ class PreferencesDialog(Dialog):
         self._populateDefaults = tk.IntVar()
 
     def body(self, parent, options):
+        from qiskit_aqua_chemistry.preferences import Preferences
+        from qiskit_aqua_chemistry._logging import (get_logging_level, set_logging_config)
         preferences = Preferences()
         logging_config = preferences.get_logging_config()
         if logging_config is not None:
@@ -65,7 +60,7 @@ class PreferencesDialog(Dialog):
         self._populateDefaults.set(1 if populate else 0)
 
         credentialsGroup = ttk.LabelFrame(parent,
-                                          text='Qiskit Credentials',
+                                          text='IBMQ Credentials',
                                           padding=(6, 6, 6, 6),
                                           borderwidth=4,
                                           relief=tk.GROOVE)
@@ -142,6 +137,9 @@ class PreferencesDialog(Dialog):
         return True
 
     def apply(self):
+        from qiskit_aqua_chemistry.preferences import Preferences
+        from qiskit_aqua_chemistry._logging import (build_logging_config, set_logging_config)
+        from qiskit_aqua import Preferences as AquaPreferences
         try:
             level_name = self._levelCombo.get()
             levels = [key for key, value in PreferencesDialog._LOG_LEVELS.items(
@@ -190,6 +188,7 @@ class PackagesPage(ToolbarView):
         self._tree.bind('<Button-1>', self._on_tree_edit)
         self.init_widgets(self._tree)
 
+        from qiskit_aqua_chemistry.preferences import Preferences
         self._preferences = Preferences()
         self._popup_widget = None
         self.pack(fill=tk.BOTH, expand=tk.TRUE)
@@ -205,6 +204,7 @@ class PackagesPage(ToolbarView):
             self._tree.delete([i])
 
     def populate(self):
+        from qiskit_aqua_chemistry.preferences import Preferences
         self.clear()
         packages = self._preferences.get_packages(
             Preferences.PACKAGE_TYPE_DRIVERS, [])
@@ -289,6 +289,9 @@ class PackagesPage(ToolbarView):
         return True
 
     def apply(self, preferences):
+        from qiskit_aqua_chemistry.preferences import Preferences
+        from qiskit_aqua_chemistry.drivers import ConfigurationManager
+        from qiskit_aqua_chemistry.core import refresh_operators
         changed = False
         packages = self._preferences.get_packages(
             Preferences.PACKAGE_TYPE_DRIVERS, [])
@@ -351,6 +354,7 @@ class PackageComboDialog(Dialog):
         self._controller = controller
 
     def body(self, parent, options):
+        from qiskit_aqua_chemistry.preferences import Preferences
         ttk.Label(parent,
                   text='Type:',
                   borderwidth=0,

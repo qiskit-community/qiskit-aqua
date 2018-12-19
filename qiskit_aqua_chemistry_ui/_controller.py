@@ -15,12 +15,8 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit_aqua_chemistry.ui._model import Model
-from qiskit_aqua import QuantumAlgorithm
-from qiskit_aqua_chemistry.drivers import ConfigurationManager
-from qiskit_aqua_chemistry.ui._customwidgets import (EntryPopup,
-                                                     ComboboxPopup,
-                                                     TextPopup)
+from ._model import Model
+from ._customwidgets import (EntryPopup, ComboboxPopup, TextPopup)
 import psutil
 import os
 import subprocess
@@ -31,9 +27,7 @@ import tkinter as tk
 from tkinter import messagebox
 import tkinter.filedialog as tkfd
 import json
-from qiskit_aqua_chemistry.parser import InputParser
-from qiskit_aqua.parser import JSONSchema
-from qiskit_aqua_chemistry.ui._uipreferences import UIPreferences
+from ._uipreferences import UIPreferences
 import ast
 import pprint
 import sys
@@ -65,14 +59,7 @@ class Controller(object):
         self._thread_queue = queue.Queue()
         self._thread = None
         self._command = Controller._START
-        self._driver_names = []
-        config_mgr = ConfigurationManager()
-        for name in config_mgr.module_names:
-            try:
-                config_mgr.get_driver_instance(name)
-                self._driver_names.append(name)
-            except:
-                pass
+        self._driver_names = None
 
         self._process_stop = False
         self._validate_integer_command = self._view.register(
@@ -82,6 +69,21 @@ class Controller(object):
         self._available_backends = []
         self._backendsthread = None
         self.get_available_backends()
+
+    @property
+    def driver_names(self):
+        from qiskit_aqua_chemistry.drivers import ConfigurationManager
+        if self._driver_names is None:
+            self._driver_names = []
+            config_mgr = ConfigurationManager()
+            for name in config_mgr.local_drivers():
+                try:
+                    config_mgr.get_driver_instance(name)
+                    self._driver_names.append(name)
+                except:
+                    pass
+
+        return self._driver_names
 
     @staticmethod
     def _validate_integer(action, index, value_if_allowed,
@@ -121,7 +123,7 @@ class Controller(object):
                     return False
 
                 if index < len(value_if_allowed) - 1:
-                    right = value_if_allowed[index+1:]
+                    right = value_if_allowed[index + 1:]
                     if right == '+' or right == '-':
                         return True
                     try:
@@ -142,9 +144,11 @@ class Controller(object):
         return self._outputView
 
     def get_available_backends(self):
+        from qiskit_aqua import QuantumInstance
         if self._backendsthread is not None:
             return
 
+        self._quantuminstancecls = QuantumInstance
         self._backendsthread = threading.Thread(target=self._get_available_backends,
                                                 name='Chemistry remote backends')
         self._backendsthread.daemon = True
@@ -152,7 +156,7 @@ class Controller(object):
 
     def _get_available_backends(self):
         try:
-            self._available_backends = QuantumAlgorithm.register_and_get_operational_backends()
+            self._available_backends = self._quantuminstancecls.register_and_get_operational_backends()
         except Exception as e:
             logger.debug(str(e))
         finally:
@@ -293,6 +297,7 @@ class Controller(object):
             self._propertiesView.tkraise()
 
     def on_property_select(self, section_name, property_name):
+        from qiskit_aqua.parser import JSONSchema
         self._propertiesView.show_remove_button(
             property_name != JSONSchema.NAME)
 
@@ -339,6 +344,7 @@ class Controller(object):
         return True
 
     def on_section_defaults(self, section_name):
+        from qiskit_aqua_chemistry.parser import InputParser
         try:
             self._model.set_default_properties_for_name(section_name)
             if section_name == InputParser.DRIVER:
@@ -394,6 +400,7 @@ class Controller(object):
         return False
 
     def on_property_set(self, section_name, property_name, value):
+        from qiskit_aqua.parser import JSONSchema
         try:
             self._model.set_section_property(
                 section_name, property_name, value)
@@ -456,12 +463,14 @@ class Controller(object):
         return True
 
     def create_popup(self, section_name, property_name, parent, value):
+        from qiskit_aqua_chemistry.parser import InputParser
+        from qiskit_aqua.parser import JSONSchema
         values = None
         types = ['string']
         if InputParser.OPERATOR == section_name and JSONSchema.NAME == property_name:
             values = self._model.get_operator_section_names()
         elif InputParser.DRIVER == section_name and JSONSchema.NAME == property_name:
-            values = self._driver_names
+            values = self.driver_names
         elif JSONSchema.NAME == property_name and Model.is_pluggable_section(section_name):
             values = self._model.get_pluggable_section_names(section_name)
         elif JSONSchema.BACKEND == section_name and JSONSchema.NAME == property_name:
@@ -662,7 +671,7 @@ class AquaChemistryThread(threading.Thread):
             aqua_chemistry_directory = os.path.dirname(
                 os.path.realpath(__file__))
             aqua_chemistry_directory = os.path.abspath(
-                os.path.join(aqua_chemistry_directory, '..'))
+                os.path.join(aqua_chemistry_directory, '../qiskit_aqua_chemistry_cmd'))
             input_file = self._model.get_filename()
             if input_file is None or self._model.is_modified():
                 fd, input_file = tempfile.mkstemp(suffix='.in')

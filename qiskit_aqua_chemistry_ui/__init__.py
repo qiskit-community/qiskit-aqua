@@ -14,15 +14,3 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-
-import sys
-import os
-
-qiskit_aqua_chemistry_directory = os.path.dirname(os.path.realpath(__file__))
-qiskit_aqua_chemistry_directory = os.path.join(qiskit_aqua_chemistry_directory,'../..')
-sys.path.insert(0,'qiskit_aqua_chemistry')
-sys.path.insert(0,qiskit_aqua_chemistry_directory)
-
-from qiskit_aqua_chemistry.ui.command_line import main
-
-main()

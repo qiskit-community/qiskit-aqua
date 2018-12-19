@@ -26,11 +26,10 @@ import os
 import copy
 import pprint
 import logging
-from qiskit_aqua_chemistry.preferences import Preferences
-from qiskit_aqua_chemistry.core import get_chemistry_operator_instance
-from qiskit_aqua_chemistry._logging import get_logging_level,build_logging_config,set_logging_config
+from qiskit_aqua_chemistry.core import get_chemistry_operator_class
 
 logger = logging.getLogger(__name__)
+
 
 class AquaChemistry(object):
     """Main entry point."""
@@ -45,40 +44,29 @@ class AquaChemistry(object):
         self._parser = None
         self._core = None
 
-    def get_effective_logging_level(self):
+    def run(self, input, output=None, backend=None):
         """
-        Returns the logging level being used by Aqua Chemistry
-        """
-        return get_logging_level()
+        Runs the Aqua Chemistry experiment
 
-    def set_logging(self, level=logging.INFO):
-        """
-        Sets logging output of the logging messages. \
-        Sets the output of logging messages (above level `level`) by \
-        configuring the logger accordingly. \
-        Disables logging if set to logging.NOTSET
+        Args:
+            input (dictionary/filename): Input data
+            output (filename):  Output data
+            backend (BaseBackend): backend object
 
-        Params:
-            level (int): minimum severity of the messages that are displayed.
+        Returns:
+            result dictionary
         """
-        logging_config = build_logging_config(level)
-        preferences = Preferences()
-        preferences.set_logging_config(logging_config)
-        preferences.save()
-        set_logging_config(logging_config)
-
-    def run(self, input, output=None):
         if input is None:
             raise AquaChemistryError("Missing input.")
 
         self._parser = InputParser(input)
         self._parser.parse()
-        driver_return = self._run_driver_from_parser(self._parser,False)
+        driver_return = self._run_driver_from_parser(self._parser, False)
         if driver_return[0] == AquaChemistry._DRIVER_RUN_TO_HDF5:
             logger.info('No further process.')
             return {'printable': [driver_return[1]]}
 
-        data = run_algorithm(driver_return[1],driver_return[2],True)
+        data = run_algorithm(driver_return[1], driver_return[2], True, backend)
         if not isinstance(data, dict):
             raise AquaChemistryError("Algorithm run result should be a dictionary")
 
@@ -97,7 +85,7 @@ class AquaChemistry(object):
 
         return result
 
-    def save_input(self,input_file):
+    def save_input(self, input_file):
         """
         Save the input of a run to a file.
 
@@ -105,15 +93,15 @@ class AquaChemistry(object):
             input_file (string): file path
         """
         if self._parser is None:
-           raise AquaChemistryError("Missing input information.")
+            raise AquaChemistryError("Missing input information.")
 
         self._parser.save_to_file(input_file)
 
-    def run_drive_to_jsonfile(self,input,jsonfile):
+    def run_drive_to_jsonfile(self, input, jsonfile):
         if jsonfile is None:
             raise AquaChemistryError("Missing json file")
 
-        data = self._run_drive(input,True)
+        data = self._run_drive(input, True)
         if data is None:
             logger.info('No data to save. No further process.')
             return
@@ -123,12 +111,34 @@ class AquaChemistry(object):
 
         print("Algorithm input file saved: '{}'".format(jsonfile))
 
-    def run_algorithm_from_jsonfile(self, jsonfile, output=None):
-        with open(jsonfile) as json_file:
-            return self.run_algorithm_from_json(json.load(json_file), output)
+    def run_algorithm_from_jsonfile(self, jsonfile, output=None, backend=None):
+        """
+        Runs the Aqua Chemistry experiment from json file
 
-    def run_algorithm_from_json(self, params, output=None):
-        ret = run_algorithm(params,None,True)
+        Args:
+            jsonfile (filename): Input data
+            output (filename):  Output data
+            backend (BaseBackend): backend object
+
+        Returns:
+            result dictionary
+        """
+        with open(jsonfile) as json_file:
+            return self.run_algorithm_from_json(json.load(json_file), output, backend)
+
+    def run_algorithm_from_json(self, params, output=None, backend=None):
+        """
+        Runs the Aqua Chemistry experiment from json dictionary
+
+        Args:
+            params (dictionary): Input data
+            output (filename):  Output data
+            backend (BaseBackend): backend object
+
+        Returns:
+            result dictionary
+        """
+        ret = run_algorithm(params, None, True, backend)
         if not isinstance(ret, dict):
             raise AquaChemistryError("Algorithm run result should be a dictionary")
 
@@ -137,9 +147,9 @@ class AquaChemistry(object):
             logger.debug('Algorithm returned: {}'.format(pprint.pformat(ret, indent=4)))
 
         print('Output:')
-        if isinstance(ret,dict):
-            for k,v in ret.items():
-                print("'{}': {}".format(k,v))
+        if isinstance(ret, dict):
+            for k, v in ret.items():
+                print("'{}': {}".format(k, v))
         else:
             print(ret)
 
@@ -150,15 +160,15 @@ class AquaChemistry(object):
         return lines, result
 
     def run_drive(self, input):
-        return self._run_drive(input,False)
+        return self._run_drive(input, False)
 
-    def _run_drive(self, input,save_json_algo_file):
+    def _run_drive(self, input, save_json_algo_file):
         if input is None:
             raise AquaChemistryError("Missing input.")
 
         self._parser = InputParser(input)
         self._parser.parse()
-        driver_return = self._run_driver_from_parser(self._parser,save_json_algo_file)
+        driver_return = self._run_driver_from_parser(self._parser, save_json_algo_file)
         driver_return[1]['input'] = driver_return[2].to_params()
         driver_return[1]['input']['name'] = driver_return[2].configuration['name']
         return driver_return[1]
@@ -168,7 +178,7 @@ class AquaChemistry(object):
             raise AquaChemistryError("Missing parser")
 
         p.validate_merge_defaults()
-        #logger.debug('ALgorithm Input Schema: {}'.format(json.dumps(p.to_JSON(), sort_keys=True, indent=4)))
+        # logger.debug('ALgorithm Input Schema: {}'.format(json.dumps(p.to_JSON(), sort_keys=True, indent=4)))
 
         experiment_name = "-- no &NAME section found --"
         if JSONSchema.NAME in p.get_section_names():
@@ -178,9 +188,9 @@ class AquaChemistry(object):
         logger.info('Running chemistry problem from input file: {}'.format(p.get_filename()))
         logger.info('Experiment description: {}'.format(experiment_name.rstrip()))
 
-        driver_name = p.get_section_property(InputParser.DRIVER,JSONSchema.NAME)
+        driver_name = p.get_section_property(InputParser.DRIVER, JSONSchema.NAME)
         if driver_name is None:
-             raise AquaChemistryError('Property "{0}" missing in section "{1}"'.format(JSONSchema.NAME, InputParser.DRIVER))
+            raise AquaChemistryError('Property "{0}" missing in section "{1}"'.format(JSONSchema.NAME, InputParser.DRIVER))
 
         hdf5_file = p.get_section_property(InputParser.DRIVER, AquaChemistry.KEY_HDF5_OUTPUT)
 
@@ -188,7 +198,7 @@ class AquaChemistry(object):
         if 'data' not in section:
             raise AquaChemistryError('Property "data" missing in section "{0}"'.format(driver_name))
 
-        if driver_name not in self._configuration_mgr.module_names:
+        if driver_name not in self._configuration_mgr.local_drivers():
             raise AquaChemistryError('Driver "{0}" missing in local drivers'.format(driver_name))
 
         work_path = None
@@ -216,8 +226,8 @@ class AquaChemistry(object):
                 return AquaChemistry._DRIVER_RUN_TO_HDF5, text
 
         # Run the Hamiltonian to process the QMolecule and get an input for algorithms
-        self._core = get_chemistry_operator_instance(p.get_section_property(InputParser.OPERATOR, JSONSchema.NAME))
-        self._core.init_params(p.get_section_properties(InputParser.OPERATOR))
+        cls = get_chemistry_operator_class(p.get_section_property(InputParser.OPERATOR, JSONSchema.NAME))
+        self._core = cls.init_params(p.get_section_properties(InputParser.OPERATOR))
         input_object = self._core.run(molecule)
 
         logger.debug('Core computed substitution variables {}'.format(self._core.molecule_info))
@@ -225,7 +235,7 @@ class AquaChemistry(object):
         logger.debug('Substitutions {}'.format(result))
 
         params = {}
-        for section_name,section in p.get_sections().items():
+        for section_name, section in p.get_sections().items():
             if section_name == JSONSchema.NAME or \
                section_name == InputParser.DRIVER or \
                section_name == driver_name.lower() or \
@@ -235,7 +245,7 @@ class AquaChemistry(object):
 
             params[section_name] = copy.deepcopy(section['properties'])
             if JSONSchema.PROBLEM == section_name and \
-                InputParser.AUTO_SUBSTITUTIONS in params[section_name]:
+                    InputParser.AUTO_SUBSTITUTIONS in params[section_name]:
                 del params[section_name][InputParser.AUTO_SUBSTITUTIONS]
 
         return AquaChemistry._DRIVER_RUN_TO_ALGO_INPUT, params, input_object

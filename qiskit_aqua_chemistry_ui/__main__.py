@@ -15,6 +15,14 @@
 # limitations under the License.
 # =============================================================================
 
-from .psi4driver import PSI4Driver
+import sys
+import os
 
-__all__ = ['PSI4Driver']
+qiskit_aqua_chemistry_directory = os.path.dirname(os.path.realpath(__file__))
+qiskit_aqua_chemistry_directory = os.path.join(qiskit_aqua_chemistry_directory, '../..')
+sys.path.insert(0, 'qiskit_aqua_chemistry_ui')
+sys.path.insert(0, qiskit_aqua_chemistry_directory)
+
+from qiskit_aqua_chemistry_ui.command_line import main
+
+main()

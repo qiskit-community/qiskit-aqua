@@ -16,7 +16,7 @@ framework.  Once added, new components are automatically discovered.
 .. topic:: Contribution Guidelines
 
     Any user who would like to contribute to Aqua or Aqua Chemistry should follow the Aqua `contribution
-    guidelines <https://github.com/Qiskit/aqua-chemistry/blob/master/.github/CONTRIBUTING.rst>`__.
+    guidelines <https://github.com/Qiskit/qiskit-chemistry/blob/master/.github/CONTRIBUTING.rst>`__.
 
 ---------------------------------
 Dynamically Discovered Components
@@ -31,7 +31,7 @@ ways for a component to be dynamically discovered and loaded by Aqua Chemistry a
    as explained in `Section "Extension Points" <#extension-points>`__ below for each different component type.
    This is the easiest approach.  Researchers
    and developers extending Aqua Chemistry are more likely to have installed Aqua Chemistry by cloning the
-   `Aqua Chemistry GitHub repository <https://github.com/Qiskit/aqua-chemistry>`__ as opposed to using
+   `Aqua Chemistry GitHub repository <https://github.com/Qiskit/qiskit-chemistry>`__ as opposed to using
    the pip package manager system.  Therefore, the folders indicated below can be easily located in the file system.
 
 2. Alternatively, a developer extending Aqua Chemistry with a new component can simply create a dedicated
@@ -59,16 +59,20 @@ ways for a component to be dynamically discovered and loaded by Aqua Chemistry a
        long_description = """New Package for Aqua Chemistry Component"""
     
        requirements = [
-          "aqua-chemistry>=0.2.0",
-          "qiskit>=0.5.6",
-          "numpy>=1.13,<1.15"
+          "qiskit-aqua-chemistry>=0.4.0",
+          "qiskit-terra>=0.7.0,<0.8",
+          "numpy>=1.13"
        ]
 
        def _post_install():
           from qiskit_aqua_chemistry.preferences import Preferences
           preferences = Preferences()
-          preferences.add_package('aqua_chemistry_custom_component_package')
+          # if your package contains classes derived from BaseDriver
+          preferences.add_package(Preferences.PACKAGE_TYPE_DRIVERS,'aqua_chemistry_custom_component_package')
+          # if your package contains classes derived from ChemistryOperator
+          preferences.add_package(Preferences.PACKAGE_TYPE_CHEMISTRY,'aqua_chemistry_custom_component_package')
           preferences.save()
+      
 
        class CustomInstallCommand(install):
           def run(self):
@@ -91,7 +95,7 @@ ways for a component to be dynamically discovered and loaded by Aqua Chemistry a
           description='Aqua Chemistry Component',
           long_description = long_description,
           long_description_content_type = "text/markdown",
-          url = 'https://github.com/aqua-chemistry-custom-component-package',
+          url = 'https://github.com/qiskit-chemistry-custom-component-package',
           author = 'Aqua Development Team',
           author_email = 'qiskit@us.ibm.com',
           license='Apache-2.0',
@@ -141,11 +145,10 @@ In order for Aqua Chemistry to
 be able to interface a driver library, the ``BaseDriver`` base class must be implemented so to
 provide the interfacing code, or *wrapper*.  As part of this process, the required
 `JavaScript Object Notation (JSON) <http://json.org>`__ schema for the driver interface must
-be supplied in a file named ``configuration.json``.  The interfacing code in the driver wrapper
+be supplied in a CONFIGURATION static property in the class.  The interfacing code in the driver wrapper
 is responsible for constructing and populating a ``QMolecule`` instance with the electronic
-structure data listed above.  Driver wrappers implementing the ``BaseDriver`` class and the
-associated ``configuration.json`` schema file are organized in subfolders of the ``drivers`` folder
-for automatic discovery and dynamic lookup.
+structure data listed above.  Driver wrappers implementing the ``BaseDriver`` class are organized 
+in subfolders of the ``drivers`` folder for automatic discovery and dynamic lookup.
 
 .. _chemistry-operators:
 
@@ -156,7 +159,8 @@ Chemistry Operators
 Chemistry operators convert the electronic structure information obtained from the
 drivers to qubit-operator forms, suitable to be processed by the Aqua :ref:`quantum-algorithms`.  New chemistry operators
 can be plugged in by extending the ``ChemistryOperator`` interface and providing the required
-`JavaScript Object Notation (JSON) <>`__ schema.  Chemistry operator implementations are collected in the ``core`` folder
+`JavaScript Object Notation (JSON) <>`__ schema in a CONFIGURATION static property in the class.
+Chemistry operator implementations are collected in the ``core`` folder
 for automatic discovery and dynamic lookup.
 
 

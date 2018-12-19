@@ -32,17 +32,14 @@ GAUSSIAN_16 = 'g16'
 GAUSSIAN_16_DESC = 'Gaussian 16'
 
 g16prog = which(GAUSSIAN_16)
-if g16prog is None:
-    raise AquaChemistryError("Could not locate {} executable '{}'. Please check that it is installed correctly."
-                             .format(GAUSSIAN_16_DESC, GAUSSIAN_16))
 
 try:
     from .gauopen.QCMatEl import MatEl
 except ModuleNotFoundError as mnfe:
     if mnfe.name == 'qcmatrixio':
-        err_msg = "qcmatrixio extension not found. See Gaussian driver readme to build qcmatrixio.F using f2py"
-        raise AquaChemistryError(err_msg) from mnfe
-    raise mnfe
+        logger.info('qcmatrixio extension not found. See Gaussian driver readme to build qcmatrixio.F using f2py')
+    else:
+        logger.info(str(mnfe))
 
 
 class GaussianDriver(BaseDriver):
@@ -55,21 +52,34 @@ class GaussianDriver(BaseDriver):
     output a MatrixElement file.
     """
 
-    def __init__(self, configuration=None):
-        """
-        Args:
-            configuration (dict): driver configuration
-        """
-        super(GaussianDriver, self).__init__(configuration)
+    CONFIGURATION = {
+        "name": "GAUSSIAN",
+        "description": "Gaussian 16 Driver",
+        "input_schema": {
+            "$schema": "http://json-schema.org/schema#",
+            "id": "gaussian_schema",
+            "type": "string",
+            "default": "# rhf/sto-3g scf(conventional)\n\nh2 molecule\n\n0 1\nH   0.0  0.0    0.0\nH   0.0  0.0    0.735\n\n"
+        }
+    }
+
+    def __init__(self):
+        super().__init__()
+
+    @staticmethod
+    def check_driver_valid():
+        if g16prog is None:
+            raise AquaChemistryError("Could not locate {} executable '{}'. Please check that it is installed correctly."
+                                     .format(GAUSSIAN_16_DESC, GAUSSIAN_16))
 
     def run(self, section):
         cfg = section['data']
-        if cfg is None or not isinstance(cfg,str):
+        if cfg is None or not isinstance(cfg, str):
             raise AquaChemistryError("Gaussian user supplied configuration invalid: '{}'".format(cfg))
-            
+
         while not cfg.endswith('\n\n'):
             cfg += '\n'
-            
+
         logger.debug("User supplied configuration raw: '{}'".format(cfg.replace('\r', '\\r').replace('\n', '\\n')))
         logger.debug('User supplied configuration\n{}'.format(cfg))
 
@@ -163,32 +173,32 @@ class GaussianDriver(BaseDriver):
         # Create driver level molecule object and populate
         _q_ = QMolecule()
         # Energies and orbits
-        _q_._hf_energy = mel.scalar('ETOTAL')
-        _q_._nuclear_repulsion_energy = mel.scalar('ENUCREP')
-        _q_._num_orbitals = 0 # updated below from orbital coeffs size
-        _q_._num_alpha = (mel.ne+mel.multip-1)//2
-        _q_._num_beta = (mel.ne-mel.multip+1)//2
-        _q_._molecular_charge = mel.icharg
+        _q_.hf_energy = mel.scalar('ETOTAL')
+        _q_.nuclear_repulsion_energy = mel.scalar('ENUCREP')
+        _q_.num_orbitals = 0  # updated below from orbital coeffs size
+        _q_.num_alpha = (mel.ne + mel.multip - 1) // 2
+        _q_.num_beta = (mel.ne - mel.multip + 1) // 2
+        _q_.molecular_charge = mel.icharg
         # Molecule geometry
-        _q_._multiplicity = mel.multip
-        _q_._num_atoms = mel.natoms
-        _q_._atom_symbol = []
-        _q_._atom_xyz = np.empty([mel.natoms, 3])
+        _q_.multiplicity = mel.multip
+        _q_.num_atoms = mel.natoms
+        _q_.atom_symbol = []
+        _q_.atom_xyz = np.empty([mel.natoms, 3])
         syms = mel.ian
-        xyz = np.reshape(mel.c, (_q_._num_atoms, 3))
-        for _n in range(0, _q_._num_atoms):
-            _q_._atom_symbol.append(QMolecule.symbols[syms[_n]])
+        xyz = np.reshape(mel.c, (_q_.num_atoms, 3))
+        for _n in range(0, _q_.num_atoms):
+            _q_.atom_symbol.append(QMolecule.symbols[syms[_n]])
             for _i in range(xyz.shape[1]):
                 coord = xyz[_n][_i]
                 if abs(coord) < 1e-10:
                     coord = 0
-                _q_._atom_xyz[_n][_i] = coord
+                _q_.atom_xyz[_n][_i] = coord
 
         moc = self._getMatrix(mel, 'ALPHA MO COEFFICIENTS')
-        _q_._num_orbitals = moc.shape[0]
-        _q_._mo_coeff = moc
+        _q_.num_orbitals = moc.shape[0]
+        _q_.mo_coeff = moc
         orbs_energy = self._getMatrix(mel, 'ALPHA ORBITAL ENERGIES')
-        _q_._orbital_energies = orbs_energy
+        _q_.orbital_energies = orbs_energy
 
         # 1 and 2 electron integrals
         hcore = self._getMatrix(mel, 'CORE HAMILTONIAN ALPHA')
@@ -207,20 +217,20 @@ class GaussianDriver(BaseDriver):
             mohijkl = self._getMatrix(mel, 'AA MO 2E INTEGRALS')
             logger.debug('AA MO 2E INTEGRALS {}'.format(mohijkl.shape))
 
-        _q_._mo_onee_ints = mohij
-        _q_._mo_eri_ints = mohijkl
+        _q_.mo_onee_ints = mohij
+        _q_.mo_eri_ints = mohijkl
 
         # dipole moment
         dipints = self._getMatrix(mel, 'DIPOLE INTEGRALS')
         dipints = np.einsum('ijk->kji', dipints)
-        _q_._x_dip_mo_ints = QMolecule.oneeints2mo(dipints[0], moc)
-        _q_._y_dip_mo_ints = QMolecule.oneeints2mo(dipints[1], moc)
-        _q_._z_dip_mo_ints = QMolecule.oneeints2mo(dipints[2], moc)
+        _q_.x_dip_mo_ints = QMolecule.oneeints2mo(dipints[0], moc)
+        _q_.y_dip_mo_ints = QMolecule.oneeints2mo(dipints[1], moc)
+        _q_.z_dip_mo_ints = QMolecule.oneeints2mo(dipints[2], moc)
 
         nucl_dip = np.einsum('i,ix->x', syms, xyz)
         nucl_dip = np.round(nucl_dip, decimals=8)
-        _q_._nuclear_dipole_moment = nucl_dip
-        _q_._reverse_dipole_sign = True
+        _q_.nuclear_dipole_moment = nucl_dip
+        _q_.reverse_dipole_sign = True
 
         return _q_
 
@@ -257,7 +267,7 @@ class GaussianDriver(BaseDriver):
                     start = len(lines) - 10
                 for i in range(start, len(lines)):
                     logger.error(lines[i])
-                    errmsg += lines[i]+"\n"
+                    errmsg += lines[i] + "\n"
             raise AquaChemistryError('{} process return code {}\n{}'.format(GAUSSIAN_16_DESC, process.returncode, errmsg))
         else:
             if logger.isEnabledFor(logging.DEBUG):

@@ -24,7 +24,7 @@ control the processing and the quantum algorithm, used for the computation, inst
 none are supplied.
 
 Several sample input files can be found in the chemistry folder of
-[aqua-tutorials](https://github.com/Qiskit/aqua-tutorials/tree/master/chemistry/input_files)
+[qiskit-tutorials](https://github.com/Qiskit/qiskit-tutorials/tree/master/chemistry/input_files)
 
 An input file comprises the following main sections, although not all are mandatory:
 
@@ -176,7 +176,7 @@ is relative to the highest orbital and will always refer to the highest two orbi
 #### ALGORITHM
 
 ALGORITHM is an optional section that allows you to define which quantum algorithm will be used by the computation.
-Algorithms are provided by [QISKIt Aqua](https://github.com/Qiskit/aqua/blob/master/qiskit_aqua/README.md)
+Algorithms are provided by [QISKIt Aqua](https://github.com/Qiskit/qiskit-aqua/blob/master/qiskit_aqua/README.md)
 The algorithm defaults to VQE (Variational Quantum Eigensolver), with a set of default parameters. 
 
 According to each ALGORITHM you may add further sections to optionally configure the algorithm further. These sections
@@ -205,7 +205,7 @@ variational forms that are used by VQE.
 ``` 
 
 For more information on algorithms, and any pluggable entities it may use, see
-[Qiskit Aqua](https://github.com/Qiskit/aqua/blob/master/qiskit_aqua/README.md) for more specifics 
+[Qiskit Aqua](https://github.com/Qiskit/qiskit-aqua/blob/master/qiskit_aqua/README.md) for more specifics 
 about them and their configuration options.
 
 
@@ -213,13 +213,13 @@ about them and their configuration options.
 
 BACKEND is an optional section that includes naming the [Qiskit](https://www.qiskit.org/) quantum computational
 backend to be used for the quantum algorithm computation. This defaults to a local quantum simulator backend. See
-[Qiskit Aqua](https://github.com/Qiskit/aqua/blob/master/qiskit_aqua/README.md#backend) for more
+[Qiskit Aqua](https://github.com/Qiskit/qiskit-aqua/blob/master/qiskit_aqua/README.md#backend) for more
 information. 
 
 #### PROBLEM
 
 PROBLEM is an optional section that includes the overall problem being solved and overall problem level configuration
-See [Qiskit Aqua](https://github.com/Qiskit/aqua/blob/master/qiskit_aqua/README.md#problem) for more
+See [Qiskit Aqua](https://github.com/Qiskit/qiskit-aqua/blob/master/qiskit_aqua/README.md#problem) for more
 information.
 
 This is the same PROBLEM specification but 
@@ -246,7 +246,7 @@ This is the same PROBLEM specification but
   
 * `random_seed`=*An integer, default None*  
   
-   See [Qiskit Aqua](https://github.com/Qiskit/aqua/blob/master/qiskit_aqua/README.md#problem)
+   See [Qiskit Aqua](https://github.com/Qiskit/qiskit-aqua/blob/master/qiskit_aqua/README.md#problem)
    `random_seed` for more information.  
 
 ## Developers
@@ -259,7 +259,7 @@ input file. Like the input file its parameters take on the same values and same 
 
 The dictionary can be manipulated programmatically, if desired, to vary the problem e.g. changing the interatomic
 distance of the molecule, changing basis set, algorithm etc. You can find notebooks in the 
-[aqua-tutorials](https://github.com/Qiskit/aqua-tutorials/tree/master/chemistry)
+[qiskit-tutorials](https://github.com/Qiskit/qiskit-tutorials/tree/master/chemistry)
 chemistry folder demonstrating this usage.
 
 The code fragment below also shows such a dictionary and a simple usage.     

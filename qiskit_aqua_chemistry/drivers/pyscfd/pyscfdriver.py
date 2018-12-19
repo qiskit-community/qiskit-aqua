@@ -16,20 +16,72 @@
 # =============================================================================
 
 from qiskit_aqua_chemistry.drivers import BaseDriver
+from qiskit_aqua_chemistry import AquaChemistryError
 from qiskit_aqua_chemistry.drivers.pyscfd.integrals import compute_integrals
+import importlib
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class PySCFDriver(BaseDriver):
     """Python implementation of a PySCF driver."""
 
-    def __init__(self, configuration=None):
-        """
-        Args:
-            configuration (dict): driver configuration
-        """
-        super(PySCFDriver, self).__init__(configuration)
+    CONFIGURATION = {
+        "name": "PYSCF",
+        "description": "PYSCF Driver",
+        "input_schema": {
+            "$schema": "http://json-schema.org/schema#",
+            "id": "pyscf_schema",
+            "type": "object",
+            "properties": {
+                "atom": {
+                    "type": "string",
+                    "default": "H 0.0 0.0 0.0; H 0.0 0.0 0.735"
+                },
+                "unit": {
+                    "type": "string",
+                    "default": "Angstrom",
+                    "oneOf": [
+                        {"enum": ["Angstrom", "Bohr"]}
+                    ]
+                },
+                "charge": {
+                    "type": "integer",
+                    "default": 0
+                },
+                "spin": {
+                    "type": "integer",
+                    "default": 0
+                },
+                "basis": {
+                    "type": "string",
+                    "default": "sto3g"
+                },
+                "max_memory": {
+                    "type": ["integer", "null"],
+                    "default": None
+                }
+            },
+            "additionalProperties": False
+        }
+    }
+
+    def __init__(self):
+        super().__init__()
+
+    @staticmethod
+    def check_driver_valid():
+        err_msg = "PySCF is not installed. Use 'pip install pyscf'"
+        try:
+            spec = importlib.util.find_spec('pyscf')
+            if spec is not None:
+                return
+        except Exception as e:
+            logger.debug('PySCF check error {}'.format(str(e)))
+            raise AquaChemistryError(err_msg) from e
+
+        raise AquaChemistryError(err_msg)
 
     def run(self, section):
         return compute_integrals(section['properties'])
-
-

@@ -81,11 +81,11 @@ The corresponding driver wrapper in Aqua Chemistry accesses electronic structure
 via the Gaussian-supplied open-source `interfacing code <http://www.gaussian.com/interfacing/>`__.
 
 In the ``qiskit_aqua_chemistry/drivers/gaussiand/gauopen`` folder of the
-`Aqua Chemistry GitHub repository <https://github.com/Qiskit/aqua-chemistry>`__,
+`Aqua Chemistry GitHub repository <https://github.com/Qiskit/qiskit-chemistry>`__,
 the Python part of the above interfacing code, as needed by Aqua Chemistry,
 has been made available. It is licensed under a
 `Gaussian Open-Source Public License
-<https://github.com/Qiskit/aqua-chemistry/blob/master/qiskit_aqua_chemistry/drivers/gaussiand/gauopen/LICENSE.txt>`__.
+<https://github.com/Qiskit/qiskit-chemistry/blob/master/qiskit_aqua_chemistry/drivers/gaussiand/gauopen/LICENSE.txt>`__.
 
 Part of this interfacing code --- specifically, the Fortran file ``qcmatrixio.F`` --- requires compilation to a Python native extension. However,
 Aqua Chemistry comes with pre-built binaries for most common platforms. If there is no pre-built binary
@@ -314,7 +314,13 @@ To use PySCF to configure a molecule on which to do a chemistry experiment with 
 set the ``name`` field in the ``driver`` section of the :ref:`aqua-chemistry-input-file` to ``PYSCF`` and
 then create a ``pyscf`` section in the input file as per the example below, which shows the configuration of a molecule of
 hydrogen, :math:`H_2`.  Here, the molecule, basis set and other options are specified as key/value pairs, according
-to the syntax expected by PySCF.  In PySCF, these arguments can be passed to the ``pyscf.gto.Mole`` class
+to the syntax expected by PySCF.  In PySCF, these are the arguments as passed to the ``pyscf.gto.Mole`` class
+
+The ``atom`` field can be in xyz format, as per the example below. Here each atom is identified by its symbol along
+with its position in the x, y, z coordinate space. Atoms are separated by the semicolon symbol.
+
+The ``atom`` field can also be in `ZMatrix <https://en.wikipedia.org/wiki/Z-matrix_(chemistry)>`__ format. Here again
+atoms are separate by semicolon. This is an example for H2O (water): "H; O 1 1.08; H 2 1.08 1 107.5"
 
 .. code:: python
 
@@ -364,6 +370,10 @@ hydrogen, :math:`H_2`.  Here, the molecule, basis set and other options are spec
 to the PyQuante control file, so the syntax specified by PyQuante should be followed.
 Specifically, a molecule is configured as a list of atoms.  Each atom's chemical symbol is followed by the atom's :math:`x, y, z`
 geometrical coordinates separated by a blank space.  Atom configurations are separated by semicolons.
+
+The molecule in the ``atoms`` field can also be in `ZMatrix <https://en.wikipedia.org/wiki/Z-matrix_(chemistry)>`__ format.
+Here again atoms are separated by semicolons; within an atom the symbol and positional information separated by spaces.
+This is an example for H2O (water): "H; O 1 1.08; H 2 1.08 1 107.5"
 
 .. code:: python
 
@@ -419,7 +429,7 @@ Generation of an HDF5 Input File
 The most intuitive way to generate an HDF5 input file is by using the Aqua Chemistry
 :ref:`aqua-chemistry-gui`.
 Through the GUI, you can load an existing :ref:`aqua-chemistry-input-file` from the ``chemistry`` folder
-of the `Aqua Tutorials GitHub repository <https://github.com/Qiskit/Aqua-tutorials>`__
+of the `Qiskit Tutorials GitHub repository <https://github.com/Qiskit/qiskit-tutorials>`__
 (which must have been installed on your file system via a ``git clone`` command)
 by selecting **Open...** from the **File** menu.  Alternatively, you can create and then potentially customize
 a brand new :ref:`aqua-chemistry-input-file` by choosing **New** from the **File** menu.

@@ -15,6 +15,6 @@
 # limitations under the License.
 # =============================================================================
 
-from .psi4driver import PSI4Driver
+from .hartree_fock import HartreeFock
 
-__all__ = ['PSI4Driver']
+__all__ = ['HartreeFock']

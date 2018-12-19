@@ -37,8 +37,8 @@ If your intention is not so much to access Aqua Chemistry
 as a tool to perform chemistry computations on a quantum machine, but rather to extend Aqua Chemistry
 with new research contributions --- such as new algorithms, algorithm components, input-translation operators or drivers ---
 then it is advisable to clone both the
-`Aqua Chemistry <https://github.com/Qiskit/Aqua-chemistry>`__ and
-`Aqua <https://github.com/Qiskit/Aqua>`__ Git repositories in order
+`Aqua Chemistry <https://github.com/Qiskit/qiskit-chemistry>`__ and
+`Aqua <https://github.com/Qiskit/qiskit-aqua>`__ Git repositories in order
 to have easier access to the source code of the various components.
 
 .. note::
@@ -46,7 +46,7 @@ to have easier access to the source code of the various components.
     We recommend using Python virtual environments to improve your experience.
 
 Jupyter Notebooks and input files for Aqua Chemistry are included as part of the
-`Aqua Tutorials <https://nbviewer.jupyter.org/github/Qiskit/Aqua-tutorials/blob/master/index.ipynb>`__.
+`Qiskit Tutorials <https://nbviewer.jupyter.org/github/Qiskit/qiskit-tutorials/blob/master/index.ipynb>`__.
 
 ---------------------------------
 Installation of Chemistry Drivers
@@ -75,4 +75,4 @@ AQUA Chemistry lists HDF5 as an additional driver --- in fact, the only built-in
 with Aqua Chemistry.
  
 A few sample HDF5 files are provided as input files in the ``chemistry`` folder of the
-`Aqua Tutorials <https://nbviewer.jupyter.org/github/Qiskit/Aqua-tutorials/blob/master/index.ipynb>`__ repository.
+`Qiskit Tutorials <https://nbviewer.jupyter.org/github/Qiskit/qiskit-tutorials/blob/master/index.ipynb>`__ repository.

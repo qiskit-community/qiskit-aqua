@@ -22,7 +22,21 @@ from .preferences import Preferences
 from .qmolecule import QMolecule
 from .aqua_chemistry import AquaChemistry
 from .fermionic_operator import FermionicOperator
+from ._logging import (get_logging_level,
+                       build_logging_config,
+                       set_logging_config,
+                       get_aqua_chemistry_logging,
+                       set_aqua_chemistry_logging)
 
-__version__ = '0.3.0'
+__version__ = '0.4.0'
 
-__all__ = ['AquaChemistryError','Preferences','QMolecule', 'AquaChemistry', 'FermionicOperator']
+__all__ = ['AquaChemistryError',
+           'Preferences',
+           'QMolecule',
+           'AquaChemistry',
+           'FermionicOperator',
+           'get_logging_level',
+           'build_logging_config',
+           'set_logging_config',
+           'get_aqua_chemistry_logging',
+           'set_aqua_chemistry_logging']

@@ -25,11 +25,11 @@ import copy
 import pprint
 import ast
 from qiskit_aqua import (local_pluggables_types,
-                         get_algorithm_configuration,
-                         local_algorithms)
+                         PluggableType,
+                         get_pluggable_configuration,
+                         local_pluggables)
 from qiskit_aqua.parser import JSONSchema
-from qiskit_aqua_chemistry.core import (
-    local_chemistry_operators, get_chemistry_operator_configuration)
+from qiskit_aqua_chemistry.core import local_chemistry_operators, get_chemistry_operator_configuration
 
 logger = logging.getLogger(__name__)
 
@@ -70,10 +70,10 @@ class InputParser(object):
 
         self._section_order = [JSONSchema.NAME, JSONSchema.PROBLEM,
                                InputParser.DRIVER, InputParser._UNKNOWN,
-                               InputParser.OPERATOR, JSONSchema.ALGORITHM]
+                               InputParser.OPERATOR, PluggableType.ALGORITHM.value]
         for pluggable_type in local_pluggables_types():
-            if pluggable_type != JSONSchema.ALGORITHM:
-                self._section_order.append(pluggable_type)
+            if pluggable_type not in [PluggableType.INPUT, PluggableType.ALGORITHM]:
+                self._section_order.append(pluggable_type.value)
 
         self._section_order.append(JSONSchema.BACKEND)
 
@@ -86,7 +86,7 @@ class InputParser(object):
             os.path.dirname(__file__), 'input_schema.json'))
 
         # get some properties from algorithms schema
-        self._json_schema.copy_section_from_aqua_schema(JSONSchema.ALGORITHM)
+        self._json_schema.copy_section_from_aqua_schema(PluggableType.ALGORITHM.value)
         self._json_schema.copy_section_from_aqua_schema(JSONSchema.BACKEND)
         self._json_schema.copy_section_from_aqua_schema(JSONSchema.PROBLEM)
         self._json_schema.schema['properties'][JSONSchema.PROBLEM]['properties'][InputParser.AUTO_SUBSTITUTIONS] = {
@@ -96,7 +96,7 @@ class InputParser(object):
         self._json_schema.populate_problem_names()
 
         self._json_schema.commit_changes()
-        #logger.debug('Resolved Schema Input: {}'.format(json.dumps(self._json_schema.schema, sort_keys=True, indent=4)))
+        # logger.debug('Resolved Schema Input: {}'.format(json.dumps(self._json_schema.schema, sort_keys=True, indent=4)))
 
     def _order_sections(self, sections):
         sections_sorted = OrderedDict(sorted(list(sections.items()),
@@ -219,7 +219,12 @@ class InputParser(object):
 
     @staticmethod
     def is_pluggable_section(section_name):
-        return JSONSchema.format_section_name(section_name).lower() in local_pluggables_types()
+        section_name = JSONSchema.format_section_name(section_name)
+        for pluggable_type in local_pluggables_types():
+            if section_name == pluggable_type.value:
+                return True
+
+        return False
 
     def get_section_types(self, section_name):
         return self._json_schema.get_section_types(section_name)
@@ -271,10 +276,8 @@ class InputParser(object):
 
     def _update_operator_input_schema(self):
         # find operator
-        default_name = self.get_property_default_value(
-            InputParser.OPERATOR, JSONSchema.NAME)
-        operator_name = self.get_section_property(
-            InputParser.OPERATOR, JSONSchema.NAME, default_name)
+        default_name = self.get_property_default_value(InputParser.OPERATOR, JSONSchema.NAME)
+        operator_name = self.get_section_property(InputParser.OPERATOR, JSONSchema.NAME, default_name)
         if operator_name is None:
             # find the first valid input for the problem
             problem_name = self.get_section_property(
@@ -330,20 +333,19 @@ class InputParser(object):
         self._json_schema.schema['properties'][InputParser.OPERATOR]['additionalProperties'] = additionalProperties
 
     def _merge_dependencies(self):
-        algo_name = self.get_section_property(
-            JSONSchema.ALGORITHM, JSONSchema.NAME)
+        algo_name = self.get_section_property(PluggableType.ALGORITHM.value, JSONSchema.NAME)
         if algo_name is None:
             return
 
-        config = get_algorithm_configuration(algo_name)
+        config = get_pluggable_configuration(PluggableType.ALGORITHM, algo_name)
         pluggable_dependencies = [] if 'depends' not in config else config['depends']
-        pluggable_defaults = {
-        } if 'defaults' not in config else config['defaults']
+        pluggable_defaults = {} if 'defaults' not in config else config['defaults']
         for pluggable_type in local_pluggables_types():
-            if pluggable_type != JSONSchema.ALGORITHM and pluggable_type not in pluggable_dependencies:
+            if pluggable_type not in [PluggableType.INPUT, PluggableType.ALGORITHM] and \
+                    pluggable_type.value not in pluggable_dependencies:
                 # remove pluggables from input that are not in the dependencies
-                if pluggable_type in self._sections:
-                    del self._sections[pluggable_type]
+                if pluggable_type.value in self._sections:
+                    del self._sections[pluggable_type.value]
 
         section_names = self.get_section_names()
         for pluggable_type in pluggable_dependencies:
@@ -363,8 +365,7 @@ class InputParser(object):
                 self.set_section(pluggable_type)
 
             if self.get_section_property(pluggable_type, JSONSchema.NAME) is None:
-                self.set_section_property(
-                    pluggable_type, JSONSchema.NAME, pluggable_name)
+                self.set_section_property(pluggable_type, JSONSchema.NAME, pluggable_name)
 
             if pluggable_name == self.get_section_property(pluggable_type, JSONSchema.NAME):
                 properties = self.get_section_properties(pluggable_type)
@@ -376,18 +377,19 @@ class InputParser(object):
                 self.set_section_properties(pluggable_type, new_properties)
 
     def _update_driver_input_schemas(self):
-        driver_name = self.get_section_property(
-            InputParser.DRIVER, JSONSchema.NAME)
+        # find driver name
+        default_name = self.get_property_default_value(InputParser.DRIVER, JSONSchema.NAME)
+        driver_name = self.get_section_property(InputParser.DRIVER, JSONSchema.NAME, default_name)
         if driver_name is not None:
             driver_name = driver_name.strip().lower()
 
         mgr = ConfigurationManager()
-        configs = mgr.configurations
-        for (name, config) in configs.items():
+        for name in mgr.local_drivers():
+            name_orig = name
             name = name.lower()
             if driver_name is not None and driver_name == name:
-                input_schema = copy.deepcopy(
-                    config['input_schema']) if 'input_schema' in config else {'type': 'object'}
+                config = mgr.get_driver_configuration(name_orig)
+                input_schema = copy.deepcopy(config['input_schema']) if 'input_schema' in config else {'type': 'object'}
                 if '$schema' in input_schema:
                     del input_schema['$schema']
                 if 'id' in input_schema:
@@ -402,15 +404,14 @@ class InputParser(object):
     def _load_driver_names():
         if InputParser._DRIVER_NAMES is None:
             mgr = ConfigurationManager()
-            InputParser._DRIVER_NAMES = [name.lower()
-                                         for name in mgr.module_names]
+            InputParser._DRIVER_NAMES = [name.lower() for name in mgr.local_drivers()]
 
     def _merge_default_values(self):
         section_names = self.get_section_names()
         if JSONSchema.NAME not in section_names:
             self.set_section(JSONSchema.NAME)
 
-        if JSONSchema.ALGORITHM in section_names:
+        if PluggableType.ALGORITHM.value in section_names:
             if JSONSchema.PROBLEM not in section_names:
                 self.set_section(JSONSchema.PROBLEM)
 
@@ -422,9 +423,9 @@ class InputParser(object):
 
         # do not merge any pluggable that doesn't have name default in schema
         default_section_names = []
-        pluggable_types = local_pluggables_types()
+        pluggable_type_names = [pluggable_type.value for pluggable_type in local_pluggables_types()]
         for section_name in self.get_default_section_names():
-            if section_name in pluggable_types:
+            if section_name in pluggable_type_names:
                 if self.get_property_default_value(section_name, JSONSchema.NAME) is not None:
                     default_section_names.append(section_name)
             else:
@@ -459,41 +460,33 @@ class InputParser(object):
         self._validate_operator_problem()
 
     def _validate_algorithm_problem(self):
-        algo_name = self.get_section_property(
-            JSONSchema.ALGORITHM, JSONSchema.NAME)
+        algo_name = self.get_section_property(PluggableType.ALGORITHM.value, JSONSchema.NAME)
         if algo_name is None:
             return
 
-        problem_name = self.get_section_property(
-            JSONSchema.PROBLEM, JSONSchema.NAME)
+        problem_name = self.get_section_property(JSONSchema.PROBLEM, JSONSchema.NAME)
         if problem_name is None:
-            problem_name = self.get_property_default_value(
-                JSONSchema.PROBLEM, JSONSchema.NAME)
+            problem_name = self.get_property_default_value(JSONSchema.PROBLEM, JSONSchema.NAME)
 
         if problem_name is None:
-            raise AquaChemistryError(
-                "No algorithm 'problem' section found on input.")
+            raise AquaChemistryError("No algorithm 'problem' section found on input.")
 
         problems = InputParser.get_algorithm_problems(algo_name)
         if problem_name not in problems:
-            raise AquaChemistryError(
-                "Problem: {} not in the list of problems: {} for algorithm: {}.".format(problem_name, problems, algo_name))
+            raise AquaChemistryError("Problem: {} not in the list of problems: {} for algorithm: {}.".format(
+                problem_name, problems, algo_name))
 
     def _validate_operator_problem(self):
-        operator_name = self.get_section_property(
-            InputParser.OPERATOR, JSONSchema.NAME)
+        operator_name = self.get_section_property(InputParser.OPERATOR, JSONSchema.NAME)
         if operator_name is None:
             return
 
-        problem_name = self.get_section_property(
-            JSONSchema.PROBLEM, JSONSchema.NAME)
+        problem_name = self.get_section_property(JSONSchema.PROBLEM, JSONSchema.NAME)
         if problem_name is None:
-            problem_name = self.get_property_default_value(
-                JSONSchema.PROBLEM, JSONSchema.NAME)
+            problem_name = self.get_property_default_value(JSONSchema.PROBLEM, JSONSchema.NAME)
 
         if problem_name is None:
-            raise AquaChemistryError(
-                "No algorithm 'problem' section found on input.")
+            raise AquaChemistryError("No algorithm 'problem' section found on input.")
 
         problems = InputParser.get_operator_problems(operator_name)
         if problem_name not in problems:
@@ -515,8 +508,7 @@ class InputParser(object):
         dict = OrderedDict()
         for section_name in self.get_section_names():
             if self.section_is_text(section_name):
-                dict[section_name] = self.get_section_text(
-                    section_name).splitlines()
+                dict[section_name] = self.get_section_text(section_name).splitlines()
             else:
                 dict[section_name] = self.get_section_properties(section_name)
 
@@ -755,7 +747,7 @@ class InputParser(object):
                             self.delete_section_property(
                                 section_name, property_name)
 
-                if section_name == JSONSchema.ALGORITHM:
+                if section_name == PluggableType.ALGORITHM.value:
                     self._update_dependency_sections()
             elif value is not None:
                 value = str(value).lower().strip()
@@ -766,41 +758,34 @@ class InputParser(object):
         self._sections = self._order_sections(self._sections)
 
     def _update_algorithm_problem(self):
-        problem_name = self.get_section_property(
-            JSONSchema.PROBLEM, JSONSchema.NAME)
+        problem_name = self.get_section_property(JSONSchema.PROBLEM, JSONSchema.NAME)
         if problem_name is None:
-            problem_name = self.get_property_default_value(
-                JSONSchema.PROBLEM, JSONSchema.NAME)
+            problem_name = self.get_property_default_value(JSONSchema.PROBLEM, JSONSchema.NAME)
 
         if problem_name is None:
-            raise AquaChemistryError(
-                "No algorithm 'problem' section found on input.")
+            raise AquaChemistryError("No algorithm 'problem' section found on input.")
 
-        algo_name = self.get_section_property(
-            JSONSchema.ALGORITHM, JSONSchema.NAME)
+        algo_name = self.get_section_property(PluggableType.ALGORITHM.value, JSONSchema.NAME)
         if algo_name is not None and problem_name in InputParser.get_algorithm_problems(algo_name):
             return
 
-        for algo_name in local_algorithms():
+        for algo_name in local_pluggables(PluggableType.ALGORITHM):
             if problem_name in self.get_algorithm_problems(algo_name):
                 # set to the first algorithm to solve the problem
                 self.set_section_property(
-                    JSONSchema.ALGORITHM, JSONSchema.NAME, algo_name)
+                    PluggableType.ALGORITHM.value, JSONSchema.NAME, algo_name)
                 return
 
         # no algorithm solve this problem, remove section
-        self.delete_section(JSONSchema.ALGORITHM)
+        self.delete_section(PluggableType.ALGORITHM.value)
 
     def _update_operator_problem(self):
-        problem_name = self.get_section_property(
-            JSONSchema.PROBLEM, JSONSchema.NAME)
+        problem_name = self.get_section_property(JSONSchema.PROBLEM, JSONSchema.NAME)
         if problem_name is None:
-            problem_name = self.get_property_default_value(
-                JSONSchema.PROBLEM, JSONSchema.NAME)
+            problem_name = self.get_property_default_value(JSONSchema.PROBLEM, JSONSchema.NAME)
 
         if problem_name is None:
-            raise AquaChemistryError(
-                "No algorithm 'problem' section found on input.")
+            raise AquaChemistryError("No algorithm 'problem' section found on input.")
 
         operator_name = self.get_section_property(
             InputParser.OPERATOR, JSONSchema.NAME)
@@ -810,27 +795,24 @@ class InputParser(object):
         for operator_name in local_chemistry_operators():
             if problem_name in self.get_operator_problems(operator_name):
                 # set to the first input to solve the problem
-                self.set_section_property(
-                    InputParser.OPERATOR, JSONSchema.NAME, operator_name)
+                self.set_section_property(InputParser.OPERATOR, JSONSchema.NAME, operator_name)
                 return
 
         # no input solve this problem, remove section
         self.delete_section(InputParser.OPERATOR)
 
     def _update_dependency_sections(self):
-        algo_name = self.get_section_property(
-            JSONSchema.ALGORITHM, JSONSchema.NAME)
-        config = {} if algo_name is None else get_algorithm_configuration(
-            algo_name)
+        algo_name = self.get_section_property(PluggableType.ALGORITHM.value, JSONSchema.NAME)
+        config = {} if algo_name is None else get_pluggable_configuration(PluggableType.ALGORITHM, algo_name)
         classical = config['classical'] if 'classical' in config else False
         pluggable_dependencies = [] if 'depends' not in config else config['depends']
-        pluggable_defaults = {
-        } if 'defaults' not in config else config['defaults']
-        pluggable_types = local_pluggables_types()
-        for pluggable_type in pluggable_types:
+        pluggable_defaults = {} if 'defaults' not in config else config['defaults']
+        for pluggable_type in local_pluggables_types():
             # remove pluggables from input that are not in the dependencies
-            if pluggable_type != JSONSchema.ALGORITHM and pluggable_type not in pluggable_dependencies and pluggable_type in self._sections:
-                del self._sections[pluggable_type]
+            if pluggable_type not in [PluggableType.INPUT, PluggableType.ALGORITHM] and \
+                    pluggable_type.value not in pluggable_dependencies and \
+                    pluggable_type.value in self._sections:
+                del self._sections[pluggable_type.value]
 
         for pluggable_type in pluggable_dependencies:
             pluggable_name = None
@@ -839,11 +821,9 @@ class InputParser(object):
                     pluggable_name = pluggable_defaults[pluggable_type][JSONSchema.NAME]
 
             if pluggable_name is not None and pluggable_type not in self._sections:
-                self.set_section_property(
-                    pluggable_type, JSONSchema.NAME, pluggable_name)
+                self.set_section_property(pluggable_type, JSONSchema.NAME, pluggable_name)
                 # update default values for new dependency pluggable types
-                self.set_section_properties(
-                    pluggable_type, self.get_section_default_properties(pluggable_type))
+                self.set_section_properties(pluggable_type, self.get_section_default_properties(pluggable_type))
 
         # update backend based on classical
         if classical:
@@ -851,21 +831,18 @@ class InputParser(object):
                 del self._sections[JSONSchema.BACKEND]
         else:
             if JSONSchema.BACKEND not in self._sections:
-                self.set_section_properties(
-                    JSONSchema.BACKEND, self.get_section_default_properties(JSONSchema.BACKEND))
+                self.set_section_properties(JSONSchema.BACKEND, self.get_section_default_properties(JSONSchema.BACKEND))
 
         # reorder sections
         self._sections = self._order_sections(self._sections)
 
     def _update_driver_sections(self):
-        driver_name = self.get_section_property(
-            InputParser.DRIVER, JSONSchema.NAME)
+        driver_name = self.get_section_property(InputParser.DRIVER, JSONSchema.NAME)
         if driver_name is not None:
             driver_name = driver_name.strip().lower()
 
         mgr = ConfigurationManager()
-        configs = mgr.configurations
-        for (name, config) in configs.items():
+        for name in mgr.local_drivers():
             name = name.lower()
             if driver_name is not None and driver_name == name:
                 continue
@@ -1155,7 +1132,7 @@ class InputParser(object):
         pos = stripLine.find(InputParser._PROPVALUE_SEPARATOR)
         if pos > 0:
             key = stripLine[0:pos].strip()
-            value = stripLine[pos+1:].strip()
+            value = stripLine[pos + 1:].strip()
             return (key, JSONSchema.get_value(value))
 
         return (None, None)

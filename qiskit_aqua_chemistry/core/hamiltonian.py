@@ -22,7 +22,7 @@ energy of the electrons and nuclei in a molecule.
 from .chemistry_operator import ChemistryOperator
 from qiskit_aqua_chemistry import QMolecule
 from qiskit_aqua_chemistry.fermionic_operator import FermionicOperator
-from qiskit_aqua.input.energyinput import EnergyInput
+from qiskit_aqua.input import EnergyInput
 import numpy as np
 import logging
 
@@ -48,7 +48,7 @@ class Hamiltonian(ChemistryOperator):
     QUBIT_MAPPING_PARITY = 'parity'
     QUBIT_MAPPING_BINARY_TREE = 'binary_tree'
 
-    HAMILTONIAN_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'hamiltonian',
         'description': 'Hamiltonian chemistry operator',
         'input_schema': {
@@ -96,14 +96,29 @@ class Hamiltonian(ChemistryOperator):
         'problems': ['energy', 'excited_states']
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.HAMILTONIAN_CONFIGURATION.copy())
-        self._transformation = 'full'
-        self._qubit_mapping = 'parity'
-        self._two_qubit_reduction = True
-        self._freeze_core = False
-        self._orbital_reduction = []
-        self._max_workers = 4
+    def __init__(self, transformation='full',
+                 qubit_mapping='parity',
+                 two_qubit_reduction=True,
+                 freeze_core=False,
+                 orbital_reduction=[],
+                 max_workers=999):
+        """
+        Initializer
+        Args:
+            transformation (str): full or particle_hole
+            qubit_mapping (str: jordan_wigner, parity or bravyi_kitaev
+            two_qubit_reduction (bool): Whether two qubit reduction should be used, when parity mapping only
+            freeze_core: Whether to freeze core orbitals when possible
+            orbital_reduction: Orbital list to be frozen or removed
+            max_workers: Max workers processes for transformation
+        """
+        super().__init__()
+        self._transformation = transformation
+        self._qubit_mapping = qubit_mapping
+        self._two_qubit_reduction = two_qubit_reduction
+        self._freeze_core = freeze_core
+        self._orbital_reduction = orbital_reduction
+        self._max_workers = max_workers
 
         # Store values that are computed by the classical logic in order
         # that later they may be combined with the quantum result
@@ -122,35 +137,13 @@ class Hamiltonian(ChemistryOperator):
         self._ph_y_dipole_shift = 0.0
         self._ph_z_dipole_shift = 0.0
 
-    def init_args(self, transformation='full', qubit_mapping='parity', two_qubit_reduction=True,
-                  freeze_core=False, orbital_reduction=[], max_workers=999):
-        """
-        Initial according to schema params
-        Args:
-            transformation (str): full or particle_hole
-            qubit_mapping (str: jordan_wigner, parity or bravyi_kitaev
-            two_qubit_reduction (bool): Whether two qubit reduction should be used, when parity mapping only
-            freeze_core: Whether to freeze core orbitals when possible
-            orbital_reduction: Orbital list to be frozen or removed
-            max_workers: Max workers processes for transformation
-
-        Returns:
-
-        """
-        self._transformation = transformation
-        self._qubit_mapping = qubit_mapping
-        self._two_qubit_reduction = two_qubit_reduction
-        self._freeze_core = freeze_core
-        self._orbital_reduction = orbital_reduction
-        self._max_workers = max_workers
-
     def run(self, qmolecule):
         logger.debug('Processing started...')
         # Save these values for later combination with the quantum computation result
-        self._hf_energy = qmolecule._hf_energy
-        self._nuclear_repulsion_energy = qmolecule._nuclear_repulsion_energy
-        self._nuclear_dipole_moment = qmolecule._nuclear_dipole_moment
-        self._reverse_dipole_sign = qmolecule._reverse_dipole_sign
+        self._hf_energy = qmolecule.hf_energy
+        self._nuclear_repulsion_energy = qmolecule.nuclear_repulsion_energy
+        self._nuclear_dipole_moment = qmolecule.nuclear_dipole_moment
+        self._reverse_dipole_sign = qmolecule.reverse_dipole_sign
 
         core_list = qmolecule.core_orbitals if self._freeze_core else []
         reduce_list = self._orbital_reduction
@@ -159,7 +152,7 @@ class Hamiltonian(ChemistryOperator):
             logger.info("Freeze_core specified. Core orbitals to be frozen: {}".format(core_list))
         if len(reduce_list) > 0:
             logger.info("Configured orbital reduction list: {}".format(reduce_list))
-            reduce_list = [x + qmolecule._num_orbitals if x < 0 else x for x in reduce_list]
+            reduce_list = [x + qmolecule.num_orbitals if x < 0 else x for x in reduce_list]
 
         freeze_list = []
         remove_list = []
@@ -175,26 +168,26 @@ class Hamiltonian(ChemistryOperator):
         # the indexes for elimination according to how many orbitals were removed when freezing.
         #
         orbitals_list = list(set(core_list + reduce_list))
-        nel = qmolecule._num_alpha + qmolecule._num_beta
+        nel = qmolecule.num_alpha + qmolecule.num_beta
         new_nel = nel
         if len(orbitals_list) > 0:
             orbitals_list = np.array(orbitals_list)
-            orbitals_list = orbitals_list[(orbitals_list >= 0) & (orbitals_list < qmolecule._num_orbitals)]
+            orbitals_list = orbitals_list[(orbitals_list >= 0) & (orbitals_list < qmolecule.num_orbitals)]
 
             freeze_list = [i for i in orbitals_list if i < int(nel/2)]
-            freeze_list = np.append(np.array(freeze_list), np.array(freeze_list) + qmolecule._num_orbitals)
+            freeze_list = np.append(np.array(freeze_list), np.array(freeze_list) + qmolecule.num_orbitals)
 
             remove_list = [i for i in orbitals_list if i >= int(nel/2)]
-            remove_list_orig_idx = np.append(np.array(remove_list), np.array(remove_list) + qmolecule._num_orbitals)
-            remove_list = np.append(np.array(remove_list) - int(len(freeze_list)/2), np.array(remove_list) + qmolecule._num_orbitals - len(freeze_list))
+            remove_list_orig_idx = np.append(np.array(remove_list), np.array(remove_list) + qmolecule.num_orbitals)
+            remove_list = np.append(np.array(remove_list) - int(len(freeze_list)/2), np.array(remove_list) + qmolecule.num_orbitals - len(freeze_list))
             logger.info("Combined orbital reduction list: {}".format(orbitals_list))
-            logger.info("  converting to spin orbital reduction list: {}".format(np.append(np.array(orbitals_list), np.array(orbitals_list) + qmolecule._num_orbitals)))
+            logger.info("  converting to spin orbital reduction list: {}".format(np.append(np.array(orbitals_list), np.array(orbitals_list) + qmolecule.num_orbitals)))
             logger.info("    => freezing spin orbitals: {}".format(freeze_list))
             logger.info("    => removing spin orbitals: {} (indexes accounting for freeze {})".format(remove_list_orig_idx, remove_list))
 
             new_nel -= len(freeze_list)
 
-        fer_op = FermionicOperator(h1=qmolecule._one_body_integrals, h2=qmolecule._two_body_integrals)
+        fer_op = FermionicOperator(h1=qmolecule.one_body_integrals, h2=qmolecule.two_body_integrals)
         fer_op, self._energy_shift, did_shift = Hamiltonian._try_reduce_fermionic_operator(fer_op, freeze_list, remove_list)
         if did_shift:
             logger.info("Frozen orbital energy shift: {}".format(self._energy_shift))
@@ -206,8 +199,7 @@ class Hamiltonian(ChemistryOperator):
         qubit_op = Hamiltonian._map_fermionic_operator_to_qubit(fer_op, self._qubit_mapping, new_nel,
                                                                 self._two_qubit_reduction, self._max_workers)
         logger.debug('  num paulis: {}, num qubits: {}'.format(len(qubit_op.paulis), qubit_op.num_qubits))
-        algo_input = EnergyInput()
-        algo_input.qubit_op = qubit_op
+        algo_input = EnergyInput(qubit_op)
 
         def _add_aux_op(aux_op):
             algo_input.add_aux_op(Hamiltonian._map_fermionic_operator_to_qubit(aux_op, self._qubit_mapping, new_nel,
@@ -238,16 +230,16 @@ class Hamiltonian(ChemistryOperator):
                 logger.debug('  num paulis: {}'.format(len(qubit_op_.paulis)))
                 return qubit_op_, shift, ph_shift_
 
-            op_dipole_x, self._x_dipole_shift, self._ph_x_dipole_shift = _dipole_op(qmolecule._x_dipole_integrals, 'x')
-            op_dipole_y, self._y_dipole_shift, self._ph_y_dipole_shift = _dipole_op(qmolecule._y_dipole_integrals, 'y')
-            op_dipole_z, self._z_dipole_shift, self._ph_z_dipole_shift = _dipole_op(qmolecule._z_dipole_integrals, 'z')
+            op_dipole_x, self._x_dipole_shift, self._ph_x_dipole_shift = _dipole_op(qmolecule.x_dipole_integrals, 'x')
+            op_dipole_y, self._y_dipole_shift, self._ph_y_dipole_shift = _dipole_op(qmolecule.y_dipole_integrals, 'y')
+            op_dipole_z, self._z_dipole_shift, self._ph_z_dipole_shift = _dipole_op(qmolecule.z_dipole_integrals, 'z')
 
             algo_input.add_aux_op(op_dipole_x)
             algo_input.add_aux_op(op_dipole_y)
             algo_input.add_aux_op(op_dipole_z)
 
         logger.info('Molecule num electrons: {}, remaining for processing: {}'.format(nel, new_nel))
-        nspinorbs = qmolecule._num_orbitals * 2
+        nspinorbs = qmolecule.num_orbitals * 2
         new_nspinorbs = nspinorbs - len(freeze_list) - len(remove_list)
         logger.info('Molecule num spin orbitals: {}, remaining for processing: {}'.format(nspinorbs, new_nspinorbs))
 

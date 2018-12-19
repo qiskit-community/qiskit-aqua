@@ -18,6 +18,24 @@ The format is based on `Keep a Changelog`_.
 `UNRELEASED`_
 =============
 
+`0.4.0`_ - 2018-12-19
+=====================
+
+Added
+-----
+
+- Compatibility with Aqua 0.4
+- Compatibility with Terra 0.7
+- Compatibility with Aer 0.1
+- Programmatic APIs for algorithms and components -- each component can now be instantiated and initialized via a single (non-emptY) constructot call
+- ``QuantumInstance`` API for algorithm/backend decoupling -- ``QuantumInstance`` encapsulates a backend and its settings
+- Updated documentation and Jupyter Notebooks illustrating the new programmatic APIs
+- Z-Matrix support for the PySCF & PyQuante classical computational chemistry drivers
+- ``HartreeFock`` component of pluggable type ``InitialState` moved from Qiskit Aqua to Qiskit Chemistry
+  registers itself at installation time as Aqua algorithmic components for use at run time
+- ``UCCSD`` component of pluggable type ``VariationalForm`` moved from Qiskit Aqua to Qiskit Chemistry
+  registers itself at installation time as Aqua algorithmic components for use at run time
+
 `0.3.0`_ - 2018-10-05
 =====================
 
@@ -81,9 +99,10 @@ Changed
 - Changed description and change package name to dashes in setup.py.
 - Update description and fixed links in readme
 
-.. _UNRELEASED: https://github.com/Qiskit/aqua-chemistry/compare/0.3.0...HEAD
-.. _0.3.0: https://github.com/Qiskit/aqua-chemistry/compare/0.2.0...0.3.0
-.. _0.2.0: https://github.com/Qiskit/aqua-chemistry/compare/0.1.1...0.2.0
-.. _0.1.1: https://github.com/Qiskit/aqua-chemistry/compare/0.1.0...0.1.1
+.. _UNRELEASED: https://github.com/Qiskit/qiskit-chemistry/compare/0.4.0...HEAD
+.. _0.4.0: https://github.com/Qiskit/qiskit-chemistry/compare/0.3.0...0.4.0
+.. _0.3.0: https://github.com/Qiskit/qiskit-chemistry/compare/0.2.0...0.3.0
+.. _0.2.0: https://github.com/Qiskit/qiskit-chemistry/compare/0.1.1...0.2.0
+.. _0.1.1: https://github.com/Qiskit/qiskit-chemistry/compare/0.1.0...0.1.1
 
 .. _Keep a Changelog: http://keepachangelog.com/en/1.0.0/

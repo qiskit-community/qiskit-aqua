@@ -16,15 +16,18 @@
 # =============================================================================
 
 import setuptools
+from setuptools.command.install import install
+from setuptools.command.develop import develop
+from setuptools.command.egg_info import egg_info
+import atexit
 
 long_description="""<a href="https://qiskit.org/aqua/chemistry" rel=nofollow>Qiskit Aqua Chemistry</a> 
  is a set of quantum computing algorithms, 
- tools and APIs for experimenting with real-world chemistry applications on near-term quantum devices."""
-    
+ tools and APIs for experimenting with real-world chemistry applications on near-term quantum devices.""" 
 
 requirements = [
-    "qiskit-aqua>=0.3.0",
-    "qiskit>=0.6.1,<0.7",
+    "qiskit-aqua>=0.4.0",
+    "qiskit-terra>=0.7.0,<0.8",
     "numpy>=1.13",
     "h5py",
     "psutil>=5",
@@ -33,13 +36,39 @@ requirements = [
     "pyobjc-framework-Cocoa; sys_platform == 'darwin'"
 ]
 
+
+def _post_install():
+    from qiskit_aqua_cmd import Preferences
+    preferences = Preferences()
+    preferences.add_package('qiskit_aqua_chemistry.aqua_extensions')
+    preferences.save()
+
+
+class CustomInstallCommand(install):
+    def run(self):
+        atexit.register(_post_install)
+        install.run(self)
+
+
+class CustomDevelopCommand(develop):
+    def run(self):
+        atexit.register(_post_install)
+        develop.run(self)
+
+
+class CustomEggInfoCommand(egg_info):
+    def run(self):
+        atexit.register(_post_install)
+        egg_info.run(self)
+
+
 setuptools.setup(
     name='qiskit-aqua-chemistry',
-    version="0.3.0",  # this should match __init__.__version__
+    version="0.4.0",  # this should match __init__.__version__
     description='Qiskit Aqua Chemistry: Experiment with chemistry applications on a quantum machine',
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url='https://github.com/Qiskit/aqua-chemistry',
+    url='https://github.com/Qiskit/qiskit-chemistry',
     author='Qiskit Aqua Chemistry Development Team',
     author_email='qiskit@us.ibm.com',
     license='Apache-2.0',
@@ -60,12 +89,17 @@ setuptools.setup(
     install_requires=requirements,
     include_package_data=True,
     python_requires=">=3.5",
+    cmdclass={
+        'install': CustomInstallCommand,
+        'develop': CustomDevelopCommand,
+        'egg_info': CustomEggInfoCommand
+    },
     entry_points = {
         'console_scripts': [
-                'qiskit_aqua_chemistry_cmd=qiskit_aqua_chemistry.command_line:main'
+                'qiskit_aqua_chemistry_cmd=qiskit_aqua_chemistry_cmd.command_line:main'
         ],
         'gui_scripts': [
-                'qiskit_aqua_chemistry_ui=qiskit_aqua_chemistry.ui.command_line:main'
+                'qiskit_aqua_chemistry_ui=qiskit_aqua_chemistry_ui.command_line:main'
         ]
     }
 )

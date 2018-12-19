@@ -23,7 +23,7 @@ import numpy as np
 from qiskit_aqua.utils import random_unitary
 
 from test.common import QiskitAquaChemistryTestCase
-from qiskit_aqua_chemistry import FermionicOperator
+from qiskit_aqua_chemistry import FermionicOperator, AquaChemistryError
 from qiskit_aqua_chemistry.drivers import ConfigurationManager
 
 
@@ -65,10 +65,14 @@ class TestFermionicOperator(QiskitAquaChemistryTestCase):
                                  ('charge', 0), ('spin', 0), ('basis', 'sto3g')])
         section = {}
         section['properties'] = pyscf_cfg
-        driver = cfg_mgr.get_driver_instance('PYSCF')
+        try:
+            driver = cfg_mgr.get_driver_instance('PYSCF')
+        except AquaChemistryError:
+            self.skipTest('PYSCF driver does not appear to be installed')
+
         molecule = driver.run(section)
-        self.fer_op = FermionicOperator(h1=molecule._one_body_integrals,
-                                        h2=molecule._two_body_integrals)
+        self.fer_op = FermionicOperator(h1=molecule.one_body_integrals,
+                                        h2=molecule.two_body_integrals)
 
     def test_transform(self):
         unitary_matrix = random_unitary(self.fer_op.h1.shape[0])
@@ -97,8 +101,8 @@ class TestFermionicOperator(QiskitAquaChemistryTestCase):
         section['properties'] = pyscf_cfg
         driver = cfg_mgr.get_driver_instance('PYSCF')
         molecule = driver.run(section)
-        fer_op = FermionicOperator(h1=molecule._one_body_integrals,
-                                   h2=molecule._two_body_integrals)
+        fer_op = FermionicOperator(h1=molecule.one_body_integrals,
+                                   h2=molecule.two_body_integrals)
         fer_op, energy_shift = fer_op.fermion_mode_freezing([0, 6])
         gt = -7.8187092970493755
         diff = abs(energy_shift - gt)
@@ -111,8 +115,8 @@ class TestFermionicOperator(QiskitAquaChemistryTestCase):
         section['properties'] = pyscf_cfg
         driver = cfg_mgr.get_driver_instance('PYSCF')
         molecule = driver.run(section)
-        fer_op = FermionicOperator(h1=molecule._one_body_integrals,
-                                   h2=molecule._two_body_integrals)
+        fer_op = FermionicOperator(h1=molecule.one_body_integrals,
+                                   h2=molecule.two_body_integrals)
         fer_op, energy_shift = fer_op.fermion_mode_freezing([0, 1, 2, 3, 4, 10, 11, 12, 13, 14])
         gt = -162.58414559586748
         diff = abs(energy_shift - gt)
@@ -130,8 +134,8 @@ class TestFermionicOperator(QiskitAquaChemistryTestCase):
         section['properties'] = pyscf_cfg
         driver = cfg_mgr.get_driver_instance('PYSCF')
         molecule = driver.run(section)
-        fer_op = FermionicOperator(h1=molecule._one_body_integrals,
-                                   h2=molecule._two_body_integrals)
+        fer_op = FermionicOperator(h1=molecule.one_body_integrals,
+                                   h2=molecule.two_body_integrals)
         jw_op = fer_op.mapping('jordan_wigner')
         bksf_op = fer_op.mapping('bksf')
         jw_op.to_matrix()

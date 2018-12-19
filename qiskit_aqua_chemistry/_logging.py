@@ -20,7 +20,7 @@ import copy
 import logging
 from logging.config import dictConfig
 from collections import OrderedDict
-from qiskit_aqua import Preferences as AquaPreferences
+from qiskit_aqua_cmd import Preferences as AquaPreferences
 from qiskit_aqua_chemistry import Preferences as ChemistryPreferences
 
 _AQUA_CHEMISTRY_LOGGING_CONFIG = {
@@ -97,3 +97,24 @@ def set_logging_config(logging_config):
         configurations.
     """
     dictConfig(logging_config)
+
+
+def get_aqua_chemistry_logging():
+    """
+    Returns the current Aqua Chemistry logging level
+
+    Returns:
+        logging level
+    """
+    return get_logging_level()
+
+
+def set_aqua_chemistry_logging(level):
+    """
+    Updates the Aqua Chemistry logging with the appropriate logging level
+
+    Args:
+        level (int): minimum severity of the messages that are displayed.
+    """
+    set_logging_config(build_logging_config(level))
+    
