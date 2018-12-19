@@ -1,9 +1,9 @@
 ###############
-Release history
+Release History
 ###############
 
 *************
-Release notes
+Release Notes
 *************
 
 ======================
@@ -28,7 +28,7 @@ we have added the following new features :
 - Compatibility with Aqua 0.4
 - Compatibility with Terra 0.7
 - Compatibility with Aer 0.1
-- Programmatic APIs for algorithms and components -- each component can now be instantiated and initialized via a single (non-emptY) constructot call
+- Programmatic APIs for algorithms and components -- each component can now be instantiated and initialized via a single (non-empty) constructot call
 - ``QuantumInstance`` API for algorithm/backend decoupling -- ``QuantumInstance`` encapsulates a backend and its settings
 - Updated documentation and Jupyter Notebooks illustrating the new programmatic APIs
 - ``HartreeFock`` component of pluggable type ``InitialState` moved from Qiskit Aqua to Qiskit Chemistry
