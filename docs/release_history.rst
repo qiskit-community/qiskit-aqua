@@ -209,7 +209,9 @@ supporting components—-consisting of the L-BFGS-B ``Optimizer``, RyRz
 initialized via simple constructor calls. The Aer statevector simulator
 backend is passed as a parameter to the run method of the VQE algorithm
 object, which means that the backend will be executed with default
-parameters.
+parameters.  The program above also shows how to import the ``HartreFock``
+``InitialState`` component now that it has been moved to Qiskit Chemistry.
+The ``UCCSD`` ``VariationalForm`` can be imported in a similar way.
 
 To customize the backend, you can wrap it into a ``QuantumInstance`` object,
 and then pass that object to the run method of the ``QuantumAlgorithm``, as
