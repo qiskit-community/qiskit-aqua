@@ -15,7 +15,7 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit import BasicAer
+from qiskit import BasicAer, Aer
 import logging
 import warnings
 import sys
@@ -38,7 +38,6 @@ warnings.showwarning = my_warning_wrapper
 
 def get_aer_backends():
     try:
-        from qiskit import Aer
         backends = Aer.backends()
         return backends
     except:
@@ -50,7 +49,6 @@ def get_aer_backends():
 
 def get_aer_backend(backend_name):
     try:
-        from qiskit import Aer
         backend = Aer.get_backend(backend_name)
         return backend
     except:
