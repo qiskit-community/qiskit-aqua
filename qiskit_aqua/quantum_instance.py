@@ -20,6 +20,7 @@ from qiskit import __version__ as terra_version
 from qiskit import IBMQ
 from qiskit.providers.ibmq.credentials import Credentials
 from qiskit.providers.ibmq.ibmqsingleprovider import IBMQSingleProvider
+from qiskit.providers.aer import AerProvider
 
 from qiskit_aqua_cmd import Preferences
 from qiskit_aqua.utils import compile_and_run_circuits
@@ -91,12 +92,13 @@ class QuantumInstance:
             'max_credits': max_credits
         }
 
-        if not self.is_simulator and noise_model is not None:
-            logger.info("The noise model can be only used with simulator. "
-                        "Change it to None.")
-            self._noise_config = {}
-        else:
-            self._noise_config = {'noise_model': noise_model}
+        self._noise_config = {}
+        if isinstance(self._backend.provider(), AerProvider) and noise_model is not None:
+            if not self.is_statevector:
+                self._noise_config = {'noise_model': noise_model}
+            else:
+                logger.info("The noise model can be only used with Aer qasm simulator. "
+                            "Change it to None.")
 
         if not self.is_simulator and memory is True:
             logger.info("The memory flag only supports simulator rather than real device. "
