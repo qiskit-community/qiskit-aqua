@@ -211,8 +211,6 @@ position and orientation in space of a molecule are irrelevant. Starting
 from V0.4, Qiskit Chemistry allows the configuration of a molecule to be
 entered in Z-matrix format even when the user has chosen PySCF or
 PyQuante as the classical computational chemistry software driver
-interfaced by Qiskit Chemistry. Although these two drivers do not
-support the Z-matrix syntax natively, Qiskit Chemistry transparently
-converts any Z-matrix configuration entered by the user to the
-corresponding Cartesian coordinates, and passes them to the underlying
-classical drivers to bootstrap the computation.
+interfaced by Qiskit Chemistry. Qiskit Chemistry uses the APIs of the underlying
+drivers to transparently convert any Z-matrix configuration entered by the user to the
+corresponding Cartesian coordinates.
