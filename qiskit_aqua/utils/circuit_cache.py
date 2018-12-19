@@ -16,20 +16,21 @@
 # =============================================================================
 
 """ A utility for caching and reparameterizing circuits, rather than compiling from scratch
-with each iteration. This is a singleton style module, with only a single instance per pytbon
-runtime. Each time an algorithm begins, the cache is wiped. Note that caching only works when
-transpilation is off (aqua_dict['backend']['skip_transpiler'] = True).
+with each iteration. Note that caching only works when transpilation is off
+(aqua_dict['backend']['skip_transpiler'] = True).
 
 Caching is controlled via the aqua_dict['problem']['circuit_caching'] parameter. Caching naughty
 mode bypasses qobj validation before compiling and reuses the same qobj object over and over to
 avoid deepcopying. It is controlled via the aqua_dict['problem']['caching_naughty_mode'] parameter.
 Note that naughty mode only works for local simulation.
 
-You may also specify a filename into which to store the cache as a pickle file, for molecules which
+You may also specify a filename into which to store the cache as a pickle file, for circuits which
 are expensive to compile even the first time. The filename is set in aqua_dict['problem']['circuit_cache_file'].
-If a filename is present, the system will attempt to load from the file. In the event of an error, the system
-will fail gracefully, compile from scratch, and cache the new compiled qobj and mapping in the file location in pickled
-form."""
+If a filename is present, the system will attempt to load from the file.
+
+In the event of an error, the system will fail gracefully, compile from scratch, and cache the new
+compiled qobj and mapping in the file location in pickled form. It will fail over 5 times before deciding
+that caching should be disabled."""
 
 import numpy as np
 import copy
@@ -59,7 +60,7 @@ class CircuitCache:
 
     def cache_circuit(self, qobj, circuits, chunk):
         """
-        A helper method for caching compiled qobjs by storing the compiled qobj
+        A method for caching compiled qobjs by storing the compiled qobj
         and constructing a mapping array from the uncompiled operations in the circuit
         to the instructions in the qobj. Note that the "qobjs" list in the cache dict is a
         list of the cached chunks, each element of which contains a single qobj with as
@@ -70,11 +71,13 @@ class CircuitCache:
         len(circuit_cache['qobjs'][1].experiments) == 200.
 
         This feature is only applied if 'circuit_caching' is True in the 'problem' Aqua
-        dictionary section and 'skip_transpiler' is True in the 'backend' section. Note that
-        the global circuit_cache is defined inside algomethods.py.
+        dictionary section.
 
         Args:
-            #TODO
+            qobj (Qobj): A compiled qobj to be saved
+            circuits (list): The original uncompiled QuantumCircuits
+            chunk (int): If a larger list of circuits was broken into chunks by run_algorithm for separate runs,
+            which chunk number `circuits` represents
         """
 
         self.qobjs.insert(chunk, copy.deepcopy(qobj))

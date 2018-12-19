@@ -15,8 +15,8 @@ from qiskit_aqua.algorithms.adaptive import VQE
 
 class TestCaching(QiskitAquaTestCase):
 
-    #TODO Actually write tests
     def setUp(self):
+        super().setUp()
         np.random.seed(50)
         pauli_dict = {
             'paulis': [{"coeff": {"imag": 0.0, "real": -1.052373245772859}, "label": "II"},
@@ -29,50 +29,77 @@ class TestCaching(QiskitAquaTestCase):
         qubit_op = Operator.load_from_dict(pauli_dict)
         self.algo_input = EnergyInput(qubit_op)
 
-    def test_vqe_caching_via_run_algorithm_sv(self):
-        params = {
+    @parameterized.expand([
+        ['statevector_simulator', 1],
+        ['qasm_simulator', 1000]
+    ])
+    def test_vqe_caching_via_run_algorithm_sv(self, backend, shots):
+        params_no_caching = {
             'algorithm': {'name': 'VQE'},
             'problem': {'name': 'energy',
-                    'random_seed': 50,
-                    'circuit_caching': True,
-                    'caching_naughty_mode': True,
-                    'circuit_cache_file': None,
-                    },
-            'backend': {'name': 'statevector_simulator', 'shots': 1},
+                        'random_seed': 50,
+                        'circuit_caching': False,
+                        'caching_naughty_mode': False,
+                        'circuit_cache_file': None,
+                        },
+            'backend': {'name': backend, 'shots': shots},
         }
-        result = run_algorithm(params, self.algo_input)
-        self.assertAlmostEqual(result['energy'], -1.85727503)
-        np.testing.assert_array_almost_equal(result['eigvals'], [-1.85727503], 5)
-        np.testing.assert_array_almost_equal(result['opt_params'],
-                                             [-0.58294401, -1.86141794, -1.97209632, -0.54796022,
-                                              -0.46945572, 2.60114794, -1.15637845,  1.40498879,
-                                              1.14479635, -0.48416694, -0.66608349, -1.1367579,
-                                              -2.67097002, 3.10214631, 3.10000313, 0.37235089], 5)
-        self.assertIn('eval_count', result)
-        self.assertIn('eval_time', result)
+        result_no_caching = run_algorithm(params_no_caching, self.algo_input)
 
-    #TODO Change to assert that caching on an off are different, and caching is faster
-    def test_vqe_caching_via_run_algorithm_qasm(self):
-        params = {
+        params_caching = {
             'algorithm': {'name': 'VQE'},
             'problem': {'name': 'energy',
                     'random_seed': 50,
                     'circuit_caching': True,
-                    'caching_naughty_mode': True,
+                    'caching_naughty_mode': False,
                     'circuit_cache_file': None,
                     },
-            'backend': {'name': 'qasm_simulator', 'shots': 1},
+            'backend': {'name': backend, 'shots': shots},
         }
-        result = run_algorithm(params, self.algo_input)
-        self.assertAlmostEqual(result['energy'], -1.85727503)
-        np.testing.assert_array_almost_equal(result['eigvals'], [-1.85727503], 5)
-        np.testing.assert_array_almost_equal(result['opt_params'],
-                                             [-0.58294401, -1.86141794, -1.97209632, -0.54796022,
-                                              -0.46945572, 2.60114794, -1.15637845,  1.40498879,
-                                              1.14479635, -0.48416694, -0.66608349, -1.1367579,
-                                              -2.67097002, 3.10214631, 3.10000313, 0.37235089], 5)
-        self.assertIn('eval_count', result)
-        self.assertIn('eval_time', result)
+        result_caching = run_algorithm(params_caching, self.algo_input)
+
+        self.assertAlmostEqual(result_no_caching['energy'], result_caching['energy'])
+
+        np.testing.assert_array_almost_equal(result_no_caching['eigvals'], result_caching['eigvals'], 5)
+        np.testing.assert_array_almost_equal(result_no_caching['opt_params'], result_caching['opt_params'], 5)
+        self.assertIn('eval_count', result_caching)
+        self.assertIn('eval_time', result_caching)
+
+    @parameterized.expand([
+        ['statevector_simulator', 1],
+        ['qasm_simulator', 1000]
+    ])
+    def test_vqe_caching_naughty_via_run_algorithm(self, backend, shots):
+        params_caching = {
+            'algorithm': {'name': 'VQE'},
+            'problem': {'name': 'energy',
+                        'random_seed': 50,
+                        'circuit_caching': True,
+                        'caching_naughty_mode': False,
+                        'circuit_cache_file': None,
+                        },
+            'backend': {'name': backend, 'shots': shots},
+        }
+        result_caching = run_algorithm(params_caching, self.algo_input)
+
+        params_caching_naughty = {
+            'algorithm': {'name': 'VQE'},
+            'problem': {'name': 'energy',
+                        'random_seed': 50,
+                        'circuit_caching': True,
+                        'caching_naughty_mode': True,
+                        'circuit_cache_file': None,
+                        },
+            'backend': {'name': backend, 'shots': shots},
+        }
+        result_caching_naughty = run_algorithm(params_caching_naughty, self.algo_input)
+
+        self.assertAlmostEqual(result_caching['energy'], result_caching_naughty['energy'])
+
+        np.testing.assert_array_almost_equal(result_caching_naughty['eigvals'], result_caching['eigvals'], 5)
+        np.testing.assert_array_almost_equal(result_caching_naughty['opt_params'], result_caching['opt_params'], 5)
+        self.assertIn('eval_count', result_caching_naughty)
+        self.assertIn('eval_time', result_caching_naughty)
 
     @parameterized.expand([
         [True],
@@ -86,9 +113,10 @@ class TestCaching(QiskitAquaTestCase):
         optimizer = L_BFGS_B()
         algo = VQE(self.algo_input.qubit_op, var_form, optimizer, 'matrix', batch_mode=batch_mode)
         quantum_instance = QuantumInstance(backend)
-        result = algo.run(quantum_instance)
-        self.assertAlmostEqual(result['energy'], -1.85727503)
-
+        quantum_instance_caching = QuantumInstance(backend, cache_config={'caching_naughty_mode':True})
+        result_no_caching = algo.run(quantum_instance)
+        result_caching = algo.run(quantum_instance_caching)
+        self.assertAlmostEqual(result_no_caching['energy'], result_caching['energy'])
 
 if __name__ == '__main__':
     unittest.main()

@@ -68,6 +68,7 @@ class QuantumInstance:
             memory (bool): if True, per-shot measurement bitstrings are returned as well
             timeout (float or None): seconds to wait for job. If None, wait indefinitely.
             wait (float): seconds between queries to result
+            cache_config (dict): A dictionary with kwargs to init an instance of CircuitCache
         """
         self._backend = backend
 
