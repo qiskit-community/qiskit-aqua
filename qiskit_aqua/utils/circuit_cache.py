@@ -34,16 +34,14 @@ form."""
 import numpy as np
 import copy
 import uuid
-from qiskit.backends.builtinsimulators.simulatorsjob import SimulatorsJob
-from qiskit.backends import JobError
+from qiskit.providers.builtinsimulators.simulatorsjob import SimulatorsJob
+from qiskit.providers import JobError
 from qiskit_aqua.aqua_error import AquaError
 from qiskit import QuantumRegister
 from qiskit.circuit import CompositeGate
 import pickle
 import logging
 from qiskit.qobj import qobj_to_dict, Qobj
-import time
-import json
 
 logger = logging.getLogger(__name__)
 
@@ -189,15 +187,8 @@ class CircuitCache:
 
     # Does what backend.run and aerjob.submit do, but without qobj validation.
     def naughty_run(self, backend, qobj):
-        def _run_job(job_id, qobj, backend_options=None, noise_model=None):
-            start = time.time()
-            qobj_str = backend._format_qobj_str(qobj, backend_options, noise_model)
-            output = json.loads(backend._controller(qobj_str).decode('UTF-8'))
-            end = time.time()
-            return backend._format_results(job_id, output, end - start)
-
         job_id = str(uuid.uuid4())
-        sim_job = SimulatorsJob(backend, job_id, _run_job, qobj)
+        sim_job = SimulatorsJob(backend, job_id, backend._run_job, qobj)
         if sim_job._future is not None:
             raise JobError("We have already submitted the job!")
         sim_job._future = sim_job._executor.submit(sim_job._fn, sim_job._job_id, sim_job._qobj)
