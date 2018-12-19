@@ -63,32 +63,34 @@ quantum algorithms:
 
 .. topic:: Multiple-Controlled-NOT (CNX) Operations
 
-    The Multiple-Controlled-NOT operation, or what we call ``cnx``, as the name suggests,
-    is a generalization of the quantum operation where one target qubit is controlled by a number of control qubits
-    for a NOT (x) operation.
+    The *Multiple-Controlled-NOT (cnx)* operation, as the name suggests, is
+    a generalization of the quantum operation where one target qubit is
+    controlled by a number *n* of control qubits for a NOT (`x`) operation.
     The multiple-controlled-NOT operation can be used as the building block
-    for implementing various different quantum algorithms,
-    such as the Grover's search algorithm.
+    for implementing various different quantum algorithms, such as Grover's
+    search algorithm.
 
-    For the different number of controls 0, 1, 2, ...
-    we have the following corresponding quantum gates ``x``, ``cx``, ``ccx``, ...
-    The first three are basic/well-known quantum gates.
-    In Aqua, the ``cnx`` we provide supports arbitrary number of controls, in particular, 3 or above.
+    For the different numbers 0, 1, 2, … of controls, we have corresponding
+    quantum gates ``x``, ``cx``, ``ccx``, ... The first three are basic/well-known
+    quantum gates. In Aqua, the cnx operation provides support for arbitrary
+    numbers of controls, in particular, 3 or above.
 
-    Currently two different implementation strategies are included: ``basic`` and ``advanced``.
-    The ``basic`` mode employs a textbook implementation
-    where a series of the ``ccx`` Toffoli gates are linked together in a V shape to achieve the desired
-    multiple-controlled-NOT operation.
-    This mode would require ``n-2`` ancillary qubits, where ``n`` is the number of controls.
-    For the ``advanced`` mode, the ``cccx`` and ``ccccx`` operations are achieved without needing ancillary qubits.
-    And multiple-controlled-NOT operations for higher number of controls (5 and above) are implemented recursively
-    using these lower-number-of-control cases.
+    Currently two different implementation strategies are included: *basic*
+    and *advanced*. The basic mode employs a textbook implementation, where
+    a series of ``ccx`` Toffoli gates are linked together in a ``V`` shape to
+    achieve the desired multiple-controlled-NOT operation. This mode
+    requires :math:`n-2` ancillary qubits, where :math:`n` is the number of controls. For
+    the advanced mode, the ``cccx`` and ``ccccx`` operations are achieved without
+    needing ancillary qubits. Multiple-controlled-NOT operations for higher
+    number of controls (5 and above) are implemented recursively using these
+    lower-number-of-control cases.
 
-    Aqua's ``cnx`` can be accessed just like any other quantum gates that are already provided by Qiskit Terra, i.e.,
-    ``qc.cnx(...)``.
-    An optional keyword argument ``mode`` can also be passed in to indicate the ``'basic'`` or ``'advanced'`` mode,
-    which defaults to ``'basic'`` if omitted.
-
+    Aqua's cnx operation can be invoked from a ``QuantumCircuit`` object
+    using the ``cnx`` API, which expects a list ``q_controls`` of control qubits,
+    a target qubit ``q_target``, and a list ``q_ancilla`` of ancillary qubits.
+    An optional keyword
+    argument ``mode`` can also be passed in to indicate whether the ``'basic'`` or
+    ``'advanced'`` mode is chosen.  If omitted, this argument defaults to ``'basic'``.
 
 .. _quantum-algorithms:
 
@@ -425,9 +427,11 @@ Inverse Quantum Fourier Transform (IQFT) is not used for IQPE.
 Amplitude Estimation
 ^^^^^^^^^^^^^^^^^^^^
 
-*Amplitude Estimation* is a derivative of *Quantum Phase Estimation* applied to a particular operator :math:`A`.
+*Amplitude Estimation* is a derivative of -  :ref:`Quantum Phase Estimation (QPE)`
+applied to a particular operator :math:`A`.
 :math:`A` is assumed to operate on :math:`n + 1` qubits (plus possible ancillary qubits)
-where the :math:`n` qubits represent the uncertainty (in the form of a random distribution :ref:`random_distribution`)
+where the :math:`n` qubits represent the uncertainty (in the form of a random distribution from the
+:ref:`random-distributions` library)
 and the last qubit, called the *objective qubit*, is used to represent the normalized objective value as its amplitude.
 In other words,
 :math:`A` is constructed such that the probability of measuring a '1' in the objective qubit is equal to the
@@ -435,16 +439,14 @@ value of interest.
 
 .. seealso::
 
-    Consult the documentation on :ref:`qpe` for more details.
-    
+    Consult the documentation on -  :ref:`Quantum Phase Estimation (QPE)` for more details.
     Also, see `arXiv:1806.06893 <https://arxiv.org/abs/1806.06893>`_ for more details on Amplitude Estimation
     as well as its applications on finance problems.
-    
 
-In addition to relying on a ``PhaseEstimation`` component
+In addition to relying on a ``QPE`` component
 for building the Quantum Phase Estimation circuit,
-the Amplitude Estimation algorithm expects the following inputs:
-
+in order to be properly constructed, an ``AmplitudeEstimation`` algorithm object
+expects the following inputs:
 
 -  The number of evaluation qubits:
 

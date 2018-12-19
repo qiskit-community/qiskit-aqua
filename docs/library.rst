@@ -25,7 +25,7 @@ real quantum device).
    Eigs <eigs>
    Reciprocals <reciprocals>
    Feature Maps <feature_maps>
-   Binary-to-multiclass Classifier Extensions <multiclass-extensions>
-   Random Distributions <random-distributions>
-   Uncertainty Problems <uncertainty-problems>
+   Multiclass Extensions <multiclass_extensions>
+   Random Distributions <random_distributions>
+   Uncertainty Problems <uncertainty_problems>
    Aqua SDK Reference <qiskit_aqua>
