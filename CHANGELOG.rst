@@ -22,6 +22,7 @@ Added
 -----
 
 - Compatibility with Terra 0.7
+- Compatibility with Aer 0.1
 - Programmatic APIs for algorithms and components -- each component can now be instantiated and initialized via a single (non-emptY) constructot call
 - ``QuantumInstance`` API for algorithm/backend decoupling -- ``QuantumInstance`` encapsulates a backend and its settings
 - Updated documentation and Jupyter Notebooks illustrating the new programmatic APIs
@@ -29,11 +30,11 @@ Added
 - Multiple-Controlled-NOT (cnx) operation
 - Pluggable algorithmic component ``RandomDistribution``
 - Concrete implementations of ``RandomDistribution``: ``BernoulliDistribution``, ``LogNormalDistribution``, 
-   ``MultivariateDistribution``, ``MultivariateNormalDistribution``, ``MultivariateUniformDistribution``, ``NormalDistribution``,
-   ``UniformDistribution``, and ``UnivariateDistribution``
+  ``MultivariateDistribution``, ``MultivariateNormalDistribution``, ``MultivariateUniformDistribution``, ``NormalDistribution``,
+  ``UniformDistribution``, and ``UnivariateDistribution``
 - Pluggable algorithmic component:
 - Concrete implementations of ``UncertaintyProblem``: ``FixedIncomeExpectedValue``, ``EuropeanCallExpectedValue``, and 
-   ``EuropeanCallDelta``
+  ``EuropeanCallDelta``
 - Amplitude Estimation algorithm
 - Qiskit Optimization: New Ising models for optimization problems exact cover, set packing, vertex cover, clique, and graph partition
 - Qiskit AI:
