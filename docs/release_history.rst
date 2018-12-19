@@ -25,7 +25,7 @@ we have added the following new features :
 
 - Compatibility with Terra 0.7
 - Compatibility with Aer 0.1
-- Programmatic APIs for algorithms and components -- each component can now be instantiated and initialized via a single (non-emptY) constructot call
+- Programmatic APIs for algorithms and components -- each component can now be instantiated and initialized via a single (non-empty) constructot call
 - ``QuantumInstance`` API for algorithm/backend decoupling -- ``QuantumInstance`` encapsulates a backend and its settings
 - Updated documentation and Jupyter Notebooks illustrating the new programmatic APIs
 - Transparent parallelization for gradient-based optimizers
@@ -50,7 +50,7 @@ we have added the following new features :
 
 In this release, we have also removed the following new features:
 
-- ``HartreeFock`` component of pluggable type ``InitialState` moved to Qiskit Chemistry
+- ``HartreeFock`` component of pluggable type ``InitialState`` moved to Qiskit Chemistry
 - ``UCCSD`` component of pluggable type ``VariationalForm`` moved to Qiskit Chemistry
 
 ----------------------------------------------
