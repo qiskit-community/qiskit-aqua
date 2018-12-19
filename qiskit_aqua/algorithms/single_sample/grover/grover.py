@@ -184,6 +184,7 @@ class Grover(QuantumAlgorithm):
             self._oracle.variable_register(),
             measurement_cr
         )
+        qc_measurement.barrier(self._oracle.variable_register())
         qc_measurement.measure(self._oracle.variable_register(), measurement_cr)
 
         self._qc_prefix = qc_prefix
