@@ -1,9 +1,9 @@
 ###############
-Release history
+Release History
 ###############
 
 *************
-Release notes
+Release Notes
 *************
 
 ==================
@@ -49,6 +49,7 @@ we have added the following new features :
    - Fixed income asset pricing: expected value (using multivariate distributions)
 
 In this release, we have also removed the following new features:
+
 - ``HartreeFock`` component of pluggable type ``InitialState` moved to Qiskit Chemistry
 - ``UCCSD`` component of pluggable type ``VariationalForm`` moved to Qiskit Chemistry
 
@@ -208,7 +209,9 @@ supporting components—-consisting of the L-BFGS-B ``Optimizer``, RyRz
 initialized via simple constructor calls. The Aer statevector simulator
 backend is passed as a parameter to the run method of the VQE algorithm
 object, which means that the backend will be executed with default
-parameters.
+parameters.  The program above also shows how to import the ``HartreFock``
+``InitialState`` component now that it has been moved to Qiskit Chemistry.
+The ``UCCSD`` ``VariationalForm`` can be imported in a similar way.
 
 To customize the backend, you can wrap it into a ``QuantumInstance`` object,
 and then pass that object to the run method of the ``QuantumAlgorithm``, as
