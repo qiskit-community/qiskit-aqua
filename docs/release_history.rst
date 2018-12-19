@@ -214,4 +214,4 @@ PyQuante as the classical computational chemistry software driver
 interfaced by Qiskit Chemistry. Qiskit Chemistry uses the APIs of the underlying
 drivers to transparently convert any Z-matrix configuration entered by the user to the
 corresponding Cartesian coordinates.  Molecules with a linear segment of 3 connected
-atoms or more are not yet covered by this new feature
+atoms or more are not yet covered by this new feature.
