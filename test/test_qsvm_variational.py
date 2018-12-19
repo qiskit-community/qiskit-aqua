@@ -64,29 +64,26 @@ class TestQSVMVariational(QiskitAquaTestCase):
 
         self.assertEqual(result['testing_accuracy'], 1.0)
 
-    def test_qsvm_variational_with_minibatching(self):
+    def test_qsvm_variational_with_minbatching(self):
         np.random.seed(self.random_seed)
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
             'algorithm': {'name': 'QSVM.Variational', 'minibatch_size': 10},
             'backend': {'name': 'qasm_simulator', 'shots': 1024},
-            'optimizer': {'name': 'SPSA', 'max_trials': 30, 'save_steps': 1},
+            'optimizer': {'name': 'SPSA', 'max_trials': 10, 'save_steps': 1},
             'variational_form': {'name': 'RYRZ', 'depth': 3},
             'feature_map': {'name': 'SecondOrderExpansion', 'depth': 2}
         }
         result = run_algorithm(params, self.svm_input)
 
-        # The results will differ from the above even though the batch size is larger than the trainingset size due
-        # to the shuffle during minibatching
-        minibatching_ref_opt_params = np.asarray([  3.8294,   0.8499, -10.3114,   1.4568,  -1.922 ,  -0.959,
-                                                    9.5507,  -4.5817,   3.4706,  -3.0028,   1.6618,  -0.4632,
-                                                   -3.8126,   5.2131,   7.6821,   0.6334])
-        minibatching_ref_train_loss = 0.18195089
+        minibatching_ref_opt_params = np.asarray([-2.1936,  2.1026,  1.9955,  1.557 ,  0.7316, -0.5114,  2.9611, -4.04,
+                                                  -1.7995, -2.1025, -1.5314, -4.0017, -1.6176, -1.4646, 0.2639, -1.9575])
+        minibatching_ref_train_loss = 2.29238663e-05
 
         np.testing.assert_array_almost_equal(result['opt_params'], minibatching_ref_opt_params, decimal=4)
         np.testing.assert_array_almost_equal(result['training_loss'], minibatching_ref_train_loss, decimal=8)
 
-        self.assertEqual(result['testing_accuracy'], 0.0)
+        self.assertEqual(result['testing_accuracy'], 0.5)
 
     def test_qsvm_variational_directly(self):
         np.random.seed(self.random_seed)
