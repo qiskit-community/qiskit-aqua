@@ -247,10 +247,12 @@ needing ancillary qubits. Multiple-controlled-NOT operations for higher
 number of controls (5 and above) are implemented recursively using these
 lower-number-of-control cases.
 
-Aqua's cnx can be accessed just like any other quantum gates that are
-already provided by Qiskit Terra, i.e., ``qc.cnx(...)``. An optional keyword
-argument ``mode`` can also be passed in to indicate the ``'basic'`` or
-``'advanced'`` mode, which defaults to ``'basic'`` if omitted.
+    Aqua's cnx operation can be invoked from a ``QuantumCircuit`` object
+    using the ``cnx`` API, which expects a list ``q_controls`` of control qubits,
+    a target qubit ``q_target``, and a list ``q_ancilla`` of ancillary qubits.
+    An optional keyword
+    argument ``mode`` can also be passed in to indicate whether the ``'basic'`` or
+    ``'advanced'`` mode is chosen.  If omitted, this argument defaults to ``'basic'``.
 
 ^^^^^^^^^^^^^^^^^^^^
 Random Distributions
