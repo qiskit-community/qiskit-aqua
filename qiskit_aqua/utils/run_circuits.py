@@ -71,15 +71,6 @@ def _avoid_empty_circuits(circuits):
     return new_circuits
 
 
-def _split_complex_vector(vector):
-
-    result = []
-    for real, imag in zip(vector.real, vector.imag):
-        result.append([real, imag])
-
-    return result
-
-
 def _reuse_shared_circuits(circuits, backend, backend_config, compile_config, run_config,
                            qjob_config=None, show_circuit_summary=False):
     """Reuse the circuits with the shared head.
@@ -106,7 +97,7 @@ def _reuse_shared_circuits(circuits, backend, backend_config, compile_config, ru
     temp_backend_config = copy.deepcopy(backend_config)
     if 'config' not in temp_backend_config:
         temp_backend_config['config'] = dict()
-    temp_backend_config['config']['initial_state'] = _split_complex_vector(shared_quantum_state)
+    temp_backend_config['config']['initial_state'] = shared_quantum_state
     diff_result = compile_and_run_circuits(circuits[1:], backend, temp_backend_config,
                                            compile_config, run_config, qjob_config,
                                            show_circuit_summary=show_circuit_summary)
