@@ -14,11 +14,7 @@ Qconfig.py
 .vscode/
 .idea/
 
-
 # Standard python ignores follow
-*.swp
-.ipynb_checkpoints/
-
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -119,8 +115,10 @@ docs/*.rst
 !docs/aqua_tutorials.rst
 !docs/aqua_finance.rst
 !docs/qiskit_aqua_chemistry.rst
-!docs/random_distribution.rst
-!docs/uncertainty_problem.rst
+!docs/random_distributions.rst
+!docs/uncertainty_problems.rst
+!docs/multiclass_extensions.rst
+!docs/release_history.rst
 !docs/eigs.rst
 !docs/reciprocals.rst
 
@@ -160,4 +158,3 @@ venv.bak/
 
 # mypy
 .mypy_cache/
-
