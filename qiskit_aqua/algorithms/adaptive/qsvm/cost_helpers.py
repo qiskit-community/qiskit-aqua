@@ -17,7 +17,6 @@
 
 import numpy as np
 
-
 def assign_label(measured_key, num_classes):
     """
     Classes = 2:
@@ -61,6 +60,7 @@ def assign_label(measured_key, num_classes):
         key_order = int(decimal_value / class_step)
         return key_order if key_order < num_classes else num_classes - 1
 
+
 def cost_estimate(probs, gt_labels, shots=None):
     """Calculate cross entropy
     # shots is kept since it may be needed in future.
@@ -71,7 +71,6 @@ def cost_estimate(probs, gt_labels, shots=None):
     Returns:
         float: cross entropy loss between estimated probs and gt_labels
     """
-
     mylabels = np.zeros(probs.shape)
     for i in range(gt_labels.shape[0]):
         whichindex = gt_labels[i]
@@ -87,33 +86,24 @@ def cost_estimate(probs, gt_labels, shots=None):
     x = cross_entropy(probs, mylabels)
     return x
 
+
 def cost_estimate_sigmoid(shots, probs, gt_labels):
-    """Calculate sigmoid cross entropy over the predicted probs
-    p is the prob of gt_label.
-    For class = 2:
-    if p ~= 1.0, loss = 1.0
-    elif p ~= 0.0, loss = 0.0
-    else, x = sqrt(shots) * (0.5 - p) / sqrt(2 * p * (1-p))
-            loss = 1 / (1 + exp(-x))
-    For class = 3:
-    if p ~= 1.0, loss = 1.0
-    elif p ~= 0.0, loss = 0.0
-    else, x = sqrt(shots) * ((1 +|p_0 - p_1|)/3 - p) / sqrt(2 * p * (1-p))
-            loss = 1 / (1 + exp(-x))
+    """Calculate sigmoid cross entropy
+
     Args:
         shots (int): the number of shots used in quantum computing
         probs (numpy.ndarray): NxK array, N is the number of data and K is the number of class
         gt_labels (numpy.ndarray): Nx1 array
     Returns:
-        float: averaged sigmoid cross entropy loss between estimated probs and gt_labels
+        float: sigmoid cross entropy loss between estimated probs and gt_labels
     """
     #Error in the order of parameters corrected below - 19 Dec 2018
     #x = cost_estimate(shots, probs, gt_labels)
     x = cost_estimate(probs, gt_labels, shots)
-
     loss = (1.) / (1. + np.exp(-x))
-
     return loss
+
+
 
 def return_probabilities(counts, num_classes):
     """Return the probabilities of given measured counts
