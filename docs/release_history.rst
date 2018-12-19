@@ -125,89 +125,38 @@ passed as a parameter to the ``run`` method of the ``QuantumAlgorithm`` object
 as is, or wrapped in a ``QuantumInstance`` object along with
 backend-configuration parameters.
 
-The following program shows how to conduct a chemistry experiment using
+The following program shows how to conduct a quantum programming experiment using
 Aqua's improved programmatic interface:
 
 .. code-block:: python
 
-    from collections import OrderedDict
-    from qiskit_aqua_chemistry import FermionicOperator
-    from qiskit_aqua_chemistry.drivers import PySCFDriver
-
-    # Use PySCF, a classical computational chemistry software package, to compute the one-body and two-body integrals in
-    # molecular-orbital basis, necessary to form the Fermionic operator
-    pyscf_cfg = OrderedDict([
-        ('atom', 'H .0 .0 .0; H .0 .0 0.735'),
-        ('unit', 'Angstrom'),
-        ('basis', 'sto3g')
-    ])
-    section = {'properties': pyscf_cfg}
-    driver = PySCFDriver()
-    molecule = driver.run(section)
-    num_particles = molecule.num_alpha + molecule.num_beta
-    num_spin_orbitals = molecule.num_orbitals * 2
-
-    # Build the qubit operator, which is the input to the VQE algorithm in Aqua
-    ferOp = FermionicOperator(h1=molecule.one_body_integrals, h2=molecule.two_body_integrals)
-    map_type = 'PARITY'
-    qubitOp = ferOp.mapping(map_type)
-    qubitOp = qubitOp.two_qubit_reduced_operator(num_particles)
-    num_qubits = qubitOp.num_qubits
-
-    # set the backend for the quantum computation
     from qiskit import Aer
-    backend = Aer.get_backend('statevector_simulator')
-
-    # setup a classical optimizer for VQE
-    from qiskit_aqua.components.optimizers import L_BFGS_B
-    optimizer = L_BFGS_B()
-
-    # setup the initial state for the variational form
-    from qiskit_aqua_chemistry.aqua_extensions.components.initial_states import HartreeFock
-    init_state = HartreeFock(num_qubits, num_spin_orbitals, num_particles)
-
-    # setup the variational form for VQE
-    from qiskit_aqua.components.variational_forms import RYRZ
-    var_form = RYRZ(num_qubits, initial_state=init_state)
-
-    # setup and run VQE
-    from qiskit_aqua.algorithms import VQE
-    algorithm = VQE(qubitOp, var_form, optimizer)
+    from qiskit_aqua.components.oracles import SAT
+    from qiskit_aqua.algorithms import Grover
+    sat_cnf = """
+    c Example DIMACS 3-sat
+    p cnf 3 5
+    -1 -2 -3 0
+    1 -2 3 0
+    1 2 -3 0
+    1 -2 -3 0
+    -1 2 3 0
+    """
+    backend = Aer.get_backend('qasm_simulator')
+    oracle = SAT(sat_cnf)
+    algorithm = Grover(oracle)
     result = algorithm.run(backend)
-    print(result['energy'])
+    print(result["result"])
 
-Specifically, the program above uses a quantum computer to calculate
-the ground state energy of molecular Hydrogen, H2, where the two atoms
-are configured to be at a distance of 0.735 angstroms. The molecular
-configuration input is generated using
-`PySCF <https://sunqm.github.io/pyscf/>`__, a standard classical
-computational chemistry software package. First, Aqua transparently
-executes PySCF, and extracts from it the one- and two-body
-molecular-orbital integrals; an inexpensive operation that scales well
-classically and does not require the use of a quantum computer. These
-integrals are then used to create a quantum fermionic-operator
-representation of the molecule. In this specific example, we use a
-parity mapping to generate a qubit operator from the fermionic one, with
-a unique precision-preserving optimization that allows for two qubits to
-be tapered off; a reduction in complexity that is particularly
-advantageous for NISQ computers. The qubit operator is then passed as an
-input to the `Variational Quantum Eigensolver
-(VQE) <https://www.nature.com/articles/ncomms5213>`__ algorithm,
-instantiated with a `Limited-memory Broyden-Fletcher-Goldfarb-Shanno
-Bound
-(L-BFGS-B) <http://www.ece.northwestern.edu/~nocedal/PSfiles/limited-memory.ps.gz>`__
-classical optimizer and the `RyRz variational
-form <https://qiskit.org/documentation/aqua/variational_forms.html#ryrz>`__.
-The `Hartree-Fock
-state <https://qiskit.org/documentation/aqua/initial_states.html#id2>`__
-is utilized to initialize the variational form.
+This program demonstrates how Grover's search algorithm can be used in conjunction
+with the Satisfiability (SAT) oracle to compute one of the many possible solutions of a
+Conjunctive Normal Form (CNF).
 
 This example emphasizes the use of Aqua's improved programmatic
-interface by illustrating how the VQE ``QuantumAlgorithm``, along with its
-supporting components—-consisting of the L-BFGS-B ``Optimizer``, RyRz
-``VariationalForm``, and Hartree-Fock ``InitialState``-—are all instantiated and
-initialized via simple constructor calls. The Aer statevector simulator
-backend is passed as a parameter to the run method of the VQE algorithm
+interface by illustrating how the Grover ``QuantumAlgorithm`` and its
+supporting component—-consisting of the SAT ``oracle``, can both be instantiated and
+initialized via simple constructor calls. The Aer QASM simulator
+backend is passed as a parameter to the ``run`` method of the ``Grover`` ``QuantumAlgorithm``
 object, which means that the backend will be executed with default
 parameters.
 
@@ -234,9 +183,10 @@ programmatically using the new Aqua APIs.
 Transparent Parallelization of Gradient-based Optimizers
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Aqua comes with a large collection of adaptive algorithms, such as VQE
-(used in the example of Fig. 1), the `Quantum Approximate Optimization
-Algorithm (QAOA) <https://arxiv.org/abs/1411.4028>`__, and the `Quantum
+Aqua comes with a large collection of adaptive algorithms, such as the
+`Variational Quantum Eigensolver (VQE) algorithm <https://www.nature.com/articles/ncomms5213>`__,
+`Quantum Approximate Optimization
+Algorithm (QAOA) <https://arxiv.org/abs/1411.4028>`__, the `Quantum
 Support Vector Machine (SVM) Variational
 Algorithm <https://arxiv.org/abs/1804.11326>`__ for AI. All these
 algorithms interleave quantum and classical computations, making use of
@@ -250,8 +200,7 @@ function :math:`f` through its gradient.
 
 Five local optimizers among those integrated into Aqua are
 gradient-based: the four local optimizers *Limited-memory
-Broyden-Fletcher-Goldfarb-Shanno Bound L-BFGS-B* (used in the code of
-Fig. 1), *Sequential Least SQuares Programming (SLSQP)*, *Conjugate
+Broyden-Fletcher-Goldfarb-Shanno Bound (L-BFGS-B)*, *Sequential Least SQuares Programming (SLSQP)*, *Conjugate
 Gradient (CG)*, and *Truncated Newton (TNC)* from
 `SciPy <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html>`__,
 as well as `Simultaneous Perturbation Stochastic Approximation
