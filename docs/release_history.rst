@@ -20,12 +20,12 @@ open-source library completely written in Python and specifically
 designed to be modular and extensible at multiple levels. Currently,
 Aqua supports four applications, in domains that have long been
 identified as potential areas for quantum computing: Chemistry,
-Artificial Intelligence (AI), Optimization, and Finance. In this reelease,
+Artificial Intelligence (AI), Optimization, and Finance. In this release,
 we have added the following new features :
 
 - Compatibility with Terra 0.7
 - Compatibility with Aer 0.1
-- Programmatic APIs for algorithms and components -- each component can now be instantiated and initialized via a single (non-empty) constructot call
+- Programmatic APIs for algorithms and components -- each component can now be instantiated and initialized via a single (non-empty) constructor call
 - ``QuantumInstance`` API for algorithm/backend decoupling -- ``QuantumInstance`` encapsulates a backend and its settings
 - Updated documentation and Jupyter Notebooks illustrating the new programmatic APIs
 - Transparent parallelization for gradient-based optimizers
@@ -158,9 +158,7 @@ supporting component—-consisting of the SAT ``oracle``, can both be instantiat
 initialized via simple constructor calls. The Aer QASM simulator
 backend is passed as a parameter to the ``run`` method of the ``Grover`` ``QuantumAlgorithm``
 object, which means that the backend will be executed with default
-parameters.  The program above also shows how to import the ``HartreFock``
-``InitialState`` component now that it has been moved to Qiskit Chemistry.
-The ``UCCSD`` ``VariationalForm`` can be imported in a similar way.
+parameters.
 
 To customize the backend, you can wrap it into a ``QuantumInstance`` object,
 and then pass that object to the run method of the ``QuantumAlgorithm``, as
@@ -247,12 +245,12 @@ needing ancillary qubits. Multiple-controlled-NOT operations for higher
 number of controls (5 and above) are implemented recursively using these
 lower-number-of-control cases.
 
-    Aqua's cnx operation can be invoked from a ``QuantumCircuit`` object
-    using the ``cnx`` API, which expects a list ``q_controls`` of control qubits,
-    a target qubit ``q_target``, and a list ``q_ancilla`` of ancillary qubits.
-    An optional keyword
-    argument ``mode`` can also be passed in to indicate whether the ``'basic'`` or
-    ``'advanced'`` mode is chosen.  If omitted, this argument defaults to ``'basic'``.
+Aqua's cnx operation can be invoked from a ``QuantumCircuit`` object
+using the ``cnx`` API, which expects a list ``q_controls`` of control qubits,
+a target qubit ``q_target``, and a list ``q_ancilla`` of ancillary qubits.
+An optional keyword
+argument ``mode`` can also be passed in to indicate whether the ``'basic'`` or
+``'advanced'`` mode is chosen.  If omitted, this argument defaults to ``'basic'``.
 
 ^^^^^^^^^^^^^^^^^^^^
 Random Distributions
