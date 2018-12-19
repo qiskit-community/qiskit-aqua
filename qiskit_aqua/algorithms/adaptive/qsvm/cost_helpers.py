@@ -97,7 +97,9 @@ def cost_estimate_sigmoid(shots, probs, gt_labels):
     Returns:
         float: sigmoid cross entropy loss between estimated probs and gt_labels
     """
-    x = cost_estimate(shots, probs, gt_labels)
+    #Error in the order of parameters corrected below - 19 Dec 2018
+    #x = cost_estimate(shots, probs, gt_labels)
+    x = cost_estimate(probs, gt_labels, shots)
     loss = (1.) / (1. + np.exp(-x))
     return loss
 
