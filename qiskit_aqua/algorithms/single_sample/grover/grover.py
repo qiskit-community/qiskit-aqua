@@ -19,6 +19,7 @@ The Grover Quantum algorithm.
 """
 
 import logging
+import numpy as np
 
 from qiskit import ClassicalRegister, QuantumCircuit
 from qiskit.qasm import pi
@@ -29,10 +30,19 @@ logger = logging.getLogger(__name__)
 
 
 class Grover(QuantumAlgorithm):
-    """The Grover Quantum algorithm."""
+    """
+    The Grover Quantum algorithm.
+
+    If the `num_iterations` param is specified, the amplitude amplification iteration will be built as specified.
+
+    If the `incremental` mode is specified, which indicates that the optimal `num_iterations` isn't known in advance,
+    a multi-round schedule will be followed with incremental trial `num_iterations` values.
+    The implementation follows Section 4 of Boyer et al. <https://arxiv.org/abs/quant-ph/9605034>
+    """
 
     PROP_INCREMENTAL = 'incremental'
     PROP_NUM_ITERATIONS = 'num_iterations'
+    PROP_CNX_MODE = 'cnx_mode'
 
     CONFIGURATION = {
         'name': 'Grover',
@@ -50,7 +60,18 @@ class Grover(QuantumAlgorithm):
                     'type': 'integer',
                     'default': 1,
                     'minimum': 1
-                }
+                },
+                PROP_CNX_MODE: {
+                    'type': 'string',
+                    'default': 'basic',
+                    'oneOf': [
+                        {'enum': [
+                            'basic',
+                            'advanced'
+                        ]}
+                    ]
+                },
+
             },
             'additionalProperties': False
         },
@@ -63,13 +84,23 @@ class Grover(QuantumAlgorithm):
         }
     }
 
-    def __init__(self, oracle, incremental=False, num_iterations=1):
+    def __init__(self, oracle, incremental=False, num_iterations=1, cnx_mode='basic'):
+        """
+        Constructor.
+
+        Args:
+            oracle (Oracle): the oracle pluggable component
+            incremental (bool): boolean flag for whether to use incremental search mode or not
+            num_iterations (int): the number of iterations to use for amplitude amplification
+        """
         self.validate(locals())
         super().__init__()
         self._oracle = oracle
         self._max_num_iterations = 2 ** (len(self._oracle.variable_register()) / 2)
         self._incremental = incremental
         self._num_iterations = num_iterations if not incremental else 1
+        self._cnx_mode = cnx_mode
+        self.validate(locals())
         if incremental:
             logger.debug('Incremental mode specified, ignoring "num_iterations".')
         else:
@@ -95,11 +126,12 @@ class Grover(QuantumAlgorithm):
         grover_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
         incremental = grover_params.get(Grover.PROP_INCREMENTAL)
         num_iterations = grover_params.get(Grover.PROP_NUM_ITERATIONS)
+        cnx_mode = grover_params.get(Grover.PROP_CNX_MODE)
 
         oracle_params = params.get(QuantumAlgorithm.SECTION_KEY_ORACLE)
         oracle = get_pluggable_class(PluggableType.ORACLE,
                                      oracle_params['name']).init_params(oracle_params)
-        return cls(oracle, incremental=incremental, num_iterations=num_iterations)
+        return cls(oracle, incremental=incremental, num_iterations=num_iterations, cnx_mode=cnx_mode)
 
     def _construct_circuit_components(self):
         measurement_cr = ClassicalRegister(len(self._oracle.variable_register()), name='m')
@@ -131,14 +163,16 @@ class Grover(QuantumAlgorithm):
         if self._oracle.ancillary_register():
             qc_amplitude_amplification_single_iteration.cnx(
                 [self._oracle.variable_register()[i] for i in range(len(self._oracle.variable_register()))],
+                self._oracle.outcome_register()[0],
                 [self._oracle.ancillary_register()[i] for i in range(len(self._oracle.ancillary_register()))],
-                self._oracle.outcome_register()[0]
+                mode=self._cnx_mode
             )
         else:
             qc_amplitude_amplification_single_iteration.cnx(
                 [self._oracle.variable_register()[i] for i in range(len(self._oracle.variable_register()))],
+                self._oracle.outcome_register()[0],
                 [],
-                self._oracle.outcome_register()[0]
+                mode=self._cnx_mode
             )
         qc_amplitude_amplification_single_iteration.u2(0, pi, self._oracle.outcome_register())  # h
         qc_amplitude_amplification_single_iteration.u3(pi, 0, pi, self._oracle.variable_register())  # x
@@ -166,6 +200,12 @@ class Grover(QuantumAlgorithm):
         return assignment, oracle_evaluation
 
     def construct_circuit(self):
+        """
+        Construct the quantum circuit
+
+        Returns:
+            the QuantumCircuit object for the constructed circuit
+        """
         if self._qc_prefix is None or self._qc_amplitude_amplification_single_iteration is None or self._qc_measurement is None:
             self._construct_circuit_components()
         if self._qc_amplitude_amplification is None:
@@ -182,18 +222,26 @@ class Grover(QuantumAlgorithm):
         if self._qc_prefix is None or self._qc_amplitude_amplification_single_iteration is None or self._qc_measurement is None:
             self._construct_circuit_components()
 
-        self._qc_amplitude_amplification = QuantumCircuit()
-
         if self._incremental:
-            self._qc_amplitude_amplification += self._qc_amplitude_amplification_single_iteration
-            current_num_iterations = 1
-            while current_num_iterations <= self._max_num_iterations:
-                assignment, oracle_evaluation = self._run_with_num_iterations()
+            current_max_num_iterations, lam = 1, 6 / 5
+
+            def _try_current_max_num_iterations():
+                target_num_iterations = np.random.randint(current_max_num_iterations) + 1
+                self._qc_amplitude_amplification = QuantumCircuit()
+                for _ in range(target_num_iterations):
+                    self._qc_amplitude_amplification += self._qc_amplitude_amplification_single_iteration
+                return self._run_with_num_iterations()
+
+            while current_max_num_iterations < self._max_num_iterations:
+                assignment, oracle_evaluation = _try_current_max_num_iterations()
                 if oracle_evaluation:
                     break
-                current_num_iterations += 1
-                self._qc_amplitude_amplification += self._qc_amplitude_amplification_single_iteration
+                current_max_num_iterations = min(lam * current_max_num_iterations, self._max_num_iterations)
+            else:
+                # after max is reached, try one more round
+                assignment, oracle_evaluation = _try_current_max_num_iterations()
         else:
+            self._qc_amplitude_amplification = QuantumCircuit()
             for i in range(self._num_iterations):
                 self._qc_amplitude_amplification += self._qc_amplitude_amplification_single_iteration
             assignment, oracle_evaluation = self._run_with_num_iterations()

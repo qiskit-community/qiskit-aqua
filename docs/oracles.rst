@@ -68,6 +68,16 @@ format <http://www.satcompetition.org/2009/format-benchmarks2009.html>`__.
 Once it receives a CNF as an input, the SAT oracle constructs the corresponding quantum search circuit
 for Grover's Search Algorithm to operate upon.
 
+Internally, SAT relies on ``cnx``, the multiple-controlled-NOT operation, for circuit construction.
+Aqua includes two different modes for ``cnx``, namely ``'basic'`` and ``'advanced'``:
+
+.. code:: python
+
+    cnx_mode : str = 'basic' | 'advanced'
+
+More information on ``cnx`` and its two modes can be found at :ref:`cnx`.
+
+
 The following is an example of a CNF expressed in DIMACS CNF format:
 
 .. code::
@@ -94,7 +104,7 @@ of each clause.  Essentially, the code above corresponds to the following CNF:
 
 Examples showing how to use the Grover algorithm in conjunction with the SAT oracles to search
 for solutions to SAT problems are available in the ``optimization`` folder of the
-`Aqua Tutorials GitHub repository <https://github.com/Qiskit/aqua-tutorials>`__.
+`Qiskit Tutorials GitHub repository <https://github.com/Qiskit/qiskit-tutorials/tree/master/community/aqua>`__.
 
 .. topic:: Declarative Name
 

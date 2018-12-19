@@ -18,7 +18,7 @@
 import numpy as np
 
 from test.common import QiskitAquaTestCase
-from qiskit import Aer
+from qiskit_aqua import get_aer_backend
 
 from qiskit_aqua import run_algorithm
 from qiskit_aqua.input import EnergyInput
@@ -30,6 +30,7 @@ class TestGraphPartition(QiskitAquaTestCase):
     """Cplex Ising tests."""
 
     def setUp(self):
+        super().setUp()
         np.random.seed(100)
         self.num_nodes = 4
         self.w = graphpartition.random_graph(self.num_nodes, edge_prob=0.8, weight_range=10)
@@ -83,7 +84,8 @@ class TestGraphPartition(QiskitAquaTestCase):
     def test_graph_partition_vqe(self):
         algorithm_cfg = {
             'name': 'VQE',
-            'operator_mode': 'matrix'
+            'operator_mode': 'matrix',
+            'batch_mode': True
         }
 
         optimizer_cfg = {
@@ -103,7 +105,7 @@ class TestGraphPartition(QiskitAquaTestCase):
             'optimizer': optimizer_cfg,
             'variational_form': var_form_cfg
         }
-        backend = Aer.get_backend('statevector_simulator')
+        backend = get_aer_backend('statevector_simulator')
         result = run_algorithm(params, self.algo_input, backend=backend)
         x = graphpartition.sample_most_likely(result['eigvecs'][0])
         # check against the oracle

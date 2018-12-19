@@ -20,7 +20,7 @@ import copy
 import itertools
 import os
 
-from qiskit import Aer
+from qiskit_aqua import get_aer_backend
 import numpy as np
 from qiskit.quantum_info import Pauli
 from qiskit.transpiler import PassManager
@@ -34,9 +34,10 @@ class TestOperator(QiskitAquaTestCase):
     """Operator tests."""
 
     def setUp(self):
+        super().setUp()
         np.random.seed(0)
 
-        self.num_qubits = 4
+        self.num_qubits = 3
         m_size = np.power(2, self.num_qubits)
         matrix = np.random.rand(m_size, m_size)
         self.qubitOp = Operator(matrix=matrix)
@@ -48,10 +49,10 @@ class TestOperator(QiskitAquaTestCase):
         # self.qubitOp.coloring = None
         run_config_ref = {'shots': 1}
         run_config = {'shots': 10000}
-        reference = self.qubitOp.eval('matrix', circuit, Aer.get_backend(
+        reference = self.qubitOp.eval('matrix', circuit, get_aer_backend(
             'statevector_simulator'), run_config=run_config_ref)[0]
         reference = reference.real
-        backend = Aer.get_backend('qasm_simulator')
+        backend = get_aer_backend('qasm_simulator')
         paulis_mode = self.qubitOp.eval('paulis', circuit, backend, run_config=run_config)
         grouped_paulis_mode = self.qubitOp.eval('grouped_paulis', circuit, backend, run_config=run_config)
 
@@ -88,7 +89,7 @@ class TestOperator(QiskitAquaTestCase):
         circuit = var_form.construct_circuit(np.array(np.random.randn(var_form.num_parameters)))
 
         run_config = {'shots': 1}
-        backend = Aer.get_backend('statevector_simulator')
+        backend = get_aer_backend('statevector_simulator')
         matrix_mode = self.qubitOp.eval('matrix', circuit, backend, run_config=run_config)[0]
         non_matrix_mode = self.qubitOp.eval('paulis', circuit, backend, run_config=run_config)[0]
         diff = abs(matrix_mode - non_matrix_mode)
@@ -103,7 +104,7 @@ class TestOperator(QiskitAquaTestCase):
 
     def test_create_from_paulis_0(self):
         """Test with single paulis."""
-        num_qubits = 4
+        num_qubits = 3
         for pauli_label in itertools.product('IXYZ', repeat=num_qubits):
             coeff = np.random.random(1)[0]
             pauli_term = [coeff, Pauli.from_label(pauli_label)]
@@ -113,7 +114,7 @@ class TestOperator(QiskitAquaTestCase):
             var_form = RYRZ(op.num_qubits, depth)
             circuit = var_form.construct_circuit(np.array(np.random.randn(var_form.num_parameters)))
             run_config = {'shots': 1}
-            backend = Aer.get_backend('statevector_simulator')
+            backend = get_aer_backend('statevector_simulator')
             non_matrix_mode = op.eval('paulis', circuit, backend, run_config=run_config)[0]
             matrix_mode = op.eval('matrix', circuit, backend, run_config=run_config)[0]
 
@@ -130,7 +131,7 @@ class TestOperator(QiskitAquaTestCase):
             depth = 1
             var_form = RYRZ(op.num_qubits, depth)
             circuit = var_form.construct_circuit(np.array(np.random.randn(var_form.num_parameters)))
-            backend = Aer.get_backend('statevector_simulator')
+            backend = get_aer_backend('statevector_simulator')
             run_config = {'shots': 1}
             non_matrix_mode = op.eval('paulis', circuit, backend, run_config=run_config)[0]
             matrix_mode = op.eval('matrix', circuit, backend, run_config=run_config)[0]
@@ -625,7 +626,7 @@ class TestOperator(QiskitAquaTestCase):
         var_form = RYRZ(op.num_qubits, depth)
         circuit = var_form.construct_circuit(np.array(np.random.randn(var_form.num_parameters)))
         run_config = {'shots': 1}
-        backend = Aer.get_backend('statevector_simulator')
+        backend = get_aer_backend('statevector_simulator')
         non_matrix_mode = op.eval('paulis', circuit, backend, run_config=run_config)[0]
         matrix_mode = op.eval('matrix', circuit, backend, run_config=run_config)[0]
 

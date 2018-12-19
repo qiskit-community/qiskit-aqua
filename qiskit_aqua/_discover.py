@@ -42,6 +42,8 @@ class PluggableType(Enum):
     ORACLE = 'oracle'
     FEATURE_MAP = 'feature_map'
     MULTICLASS_EXTENSION = 'multiclass_extension'
+    UNCERTAINTY_PROBLEM = 'uncertainty_problem'
+    UNCERTAINTY_MODEL = 'uncertainty_model'
     INPUT = 'input'
     QFT = 'qft'
     EIGENVALUES = 'eigs'
@@ -53,6 +55,8 @@ def _get_pluggables_types_dictionary():
     Gets all the pluggables types
     Any new pluggable type should be added here
     """
+    from qiskit_aqua.components.uncertainty_problems import UncertaintyProblem
+    from qiskit_aqua.components.random_distributions import RandomDistribution
     from qiskit_aqua.components.optimizers import Optimizer
     from qiskit_aqua.algorithms.quantum_algorithm import QuantumAlgorithm
     from qiskit_aqua.components.variational_forms import VariationalForm
@@ -74,7 +78,10 @@ def _get_pluggables_types_dictionary():
         PluggableType.ORACLE: Oracle,
         PluggableType.FEATURE_MAP: FeatureMap,
         PluggableType.MULTICLASS_EXTENSION: MulticlassExtension,
+        PluggableType.UNCERTAINTY_PROBLEM: UncertaintyProblem,
+        PluggableType.UNCERTAINTY_MODEL: RandomDistribution,
         PluggableType.INPUT: AlgorithmInput,
+
         PluggableType.QFT: QFT,
         PluggableType.EIGENVALUES: Eigenvalues,
         PluggableType.RECIPROCAL: Reciprocal
@@ -95,7 +102,12 @@ _NAMES_TO_EXCLUDE = [
     'iqft',
     'oracle',
     'feature_map',
+
+
     'multiclass_extension',
+    'uncertainty_problem',
+    'uncertainty_model',
+    'univariate_uncertainty_model',
     'qft',
     'eigs',
     'reciprocal'
@@ -300,8 +312,12 @@ def _register_pluggable(pluggable_type, cls):
 
     # Verify that the pluggable is valid
     check_pluggable_valid = getattr(cls, 'check_pluggable_valid', None)
-    if check_pluggable_valid is not None and not check_pluggable_valid():
-        raise AquaError('Could not register class {}. Name {} {} is not valid'.format(cls, pluggable_type))
+    if check_pluggable_valid is not None:
+        try:
+            check_pluggable_valid()
+        except Exception as e:
+            logger.debug(str(e))
+            raise AquaError('Could not register class {}. Name {} is not valid'.format(cls, pluggable_name)) from e
 
     if pluggable_name in _REGISTERED_PLUGGABLES[pluggable_type]:
         raise AquaError('Could not register class {}. Name {} {} is already registered'.format(cls,

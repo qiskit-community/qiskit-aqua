@@ -26,4 +26,6 @@ real quantum device).
    Reciprocals <reciprocals>
    Feature Maps <feature_maps>
    Binary-to-multiclass Classifier Extensions <multiclass-extensions>
+   Random Distributions <random-distributions>
+   Uncertainty Problems <uncertainty-problems>
    Aqua SDK Reference <qiskit_aqua>

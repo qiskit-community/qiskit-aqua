@@ -33,4 +33,4 @@ levels:
 - `Kanav Setia <https://physics.dartmouth.edu/people/kanav-setia>`__
 - `Ivano Tavernelli <https://researcher.watson.ibm.com/researcher/view.php?person=zurich-ITA>`__
 - `Stephen Wood <https://researcher.watson.ibm.com/researcher/view.php?person=us-woodsp>`__
-- `Stefan Wörner <https://researcher.watson.ibm.com/researcher/view.php?person=zurich-wor>`__
+- `Stefan Woerner <https://researcher.watson.ibm.com/researcher/view.php?person=zurich-wor>`__

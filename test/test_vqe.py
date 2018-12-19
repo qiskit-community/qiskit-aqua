@@ -19,7 +19,7 @@ import unittest
 
 import numpy as np
 from parameterized import parameterized
-from qiskit import Aer
+from qiskit_aqua import get_aer_backend
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import Operator, run_algorithm, QuantumInstance
@@ -33,6 +33,7 @@ from qiskit_aqua.algorithms import VQE
 class TestVQE(QiskitAquaTestCase):
 
     def setUp(self):
+        super().setUp()
         np.random.seed(50)
         pauli_dict = {
             'paulis': [{"coeff": {"imag": 0.0, "real": -1.052373245772859}, "label": "II"},
@@ -90,7 +91,7 @@ class TestVQE(QiskitAquaTestCase):
         ['RYRZ', 5]
     ])
     def test_vqe_var_forms(self, name, places):
-        backend = Aer.get_backend('statevector_simulator')
+        backend = get_aer_backend('statevector_simulator')
         params = {
             'algorithm': {'name': 'VQE'},
             'variational_form': {'name': name},
@@ -105,7 +106,7 @@ class TestVQE(QiskitAquaTestCase):
         [False]
     ])
     def test_vqe_direct(self, batch_mode):
-        backend = Aer.get_backend('statevector_simulator')
+        backend = get_aer_backend('statevector_simulator')
         num_qubits = self.algo_input.qubit_op.num_qubits
         init_state = Zero(num_qubits)
         var_form = RY(num_qubits, 3, initial_state=init_state)

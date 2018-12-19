@@ -64,7 +64,7 @@ class CRS(Optimizer):
 
     @staticmethod
     def check_pluggable_valid():
-        return check_nlopt_valid(CRS.CONFIGURATION['name'])
+        check_nlopt_valid(CRS.CONFIGURATION['name'])
 
     def optimize(self, num_vars, objective_function, gradient_function=None,
                  variable_bounds=None, initial_point=None):

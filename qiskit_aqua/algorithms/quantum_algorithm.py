@@ -27,7 +27,7 @@ from abc import abstractmethod
 import logging
 
 import numpy as np
-from qiskit.backends import BaseBackend
+from qiskit.providers import BaseBackend
 
 from qiskit_aqua import Pluggable, QuantumInstance, AquaError
 
@@ -46,6 +46,8 @@ class QuantumAlgorithm(Pluggable):
     SECTION_KEY_ORACLE = 'oracle'
     SECTION_KEY_FEATURE_MAP = 'feature_map'
     SECTION_KEY_MULTICLASS_EXTENSION = 'multiclass_extension'
+    SECTION_KEY_UNCERTAINTY_PROBLEM = 'uncertainty_problem'
+    SECTION_KEY_UNCERTAINTY_MODEL = 'uncertainty_model'
     SECTION_KEY_EIGS = 'eigs'
     SECTION_KEY_RECIPROCAL = 'reciprocal'
 
@@ -98,7 +100,8 @@ class QuantumAlgorithm(Pluggable):
             if quantum_instance is None:
                 AquaError("Quantum device or backend is needed since you are running quanutm algorithm.")
             if isinstance(quantum_instance, BaseBackend):
-                quantum_instance = QuantumInstance(quantum_instance, **kwargs)
+                quantum_instance = QuantumInstance(quantum_instance)
+                quantum_instance.set_config(**kwargs)
             self._quantum_instance = quantum_instance
         return self._run()
 

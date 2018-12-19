@@ -27,6 +27,7 @@ from ._discover import (PluggableType,
                         register_pluggable,
                         deregister_pluggable)
 from .pluggable import Pluggable
+from .utils.backend_utils import get_aer_backend, get_aer_backends
 from .utils.cnx import cnx
 from .utils.cnx_no_anc import cnx_na
 from .utils.cnu1 import cnu1
@@ -50,6 +51,8 @@ __all__ = ['AquaError',
            'PluggableType',
            'refresh_pluggables',
            'QuantumInstance',
+           'get_aer_backend',
+           'get_aer_backends',
            'local_pluggables_types',
            'local_pluggables',
            'get_pluggable_class',
