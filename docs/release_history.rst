@@ -1,9 +1,9 @@
 ###############
-Release history
+Release History
 ###############
 
 *************
-Release notes
+Release Notes
 *************
 
 ======================
@@ -28,14 +28,14 @@ we have added the following new features :
 - Compatibility with Aqua 0.4
 - Compatibility with Terra 0.7
 - Compatibility with Aer 0.1
-- Programmatic APIs for algorithms and components -- each component can now be instantiated and initialized via a single (non-emptY) constructot call
+- Programmatic APIs for algorithms and components -- each component can now be instantiated and initialized via a single (non-empty) constructot call
 - ``QuantumInstance`` API for algorithm/backend decoupling -- ``QuantumInstance`` encapsulates a backend and its settings
 - Updated documentation and Jupyter Notebooks illustrating the new programmatic APIs
 - ``HartreeFock`` component of pluggable type ``InitialState` moved from Qiskit Aqua to Qiskit Chemistry
   registers itself at installation time as Aqua algorithmic components for use at run time
 - ``UCCSD`` component of pluggable type ``VariationalForm`` moved from Qiskit Aqua to Qiskit Chemistry
   registers itself at installation time as Aqua algorithmic components for use at run time
-- Z-Matrix support for the PySCF & PyQuante classical computational chemistry drivers
+- Z-matrix support for the PySCF & PyQuante classical computational chemistry drivers
 
 --------------------------------------------------
 Compatibility with Aqua 0.4, Terra 0.7 and Aer 0.1
@@ -176,7 +176,7 @@ The programming example above shows how to import and use the ``HartreeFock``
 Qiskit Aqua as was done in previous versions).
 
 ---------------------------------------
-Z-Matrix Support for PySCF and PyQuante
+Z-matrix Support for PySCF and PyQuante
 ---------------------------------------
 
 We have also improved the way molecular configurations are input into
@@ -204,7 +204,7 @@ molecule's configuration in
 format, which consists of describing each atom in a molecule in terms of
 its atomic number, bond length, bond angle, and *dihedral angle* (the
 angle between planes through two sets of three atoms having two atoms in
-common). A Z-matrix assigns the second atom of a molecule along the *z*
+common). A Z-matrix configuration assigns the second atom of a molecule along the *z*
 axis from the first atom, which is assumed to be at the origin. This
 representation is very intuitive and convenient, especially when the
 position and orientation in space of a molecule are irrelevant. Starting
@@ -213,4 +213,8 @@ entered in Z-matrix format even when the user has chosen PySCF or
 PyQuante as the classical computational chemistry software driver
 interfaced by Qiskit Chemistry. Qiskit Chemistry uses the APIs of the underlying
 drivers to transparently convert any Z-matrix configuration entered by the user to the
+<<<<<<< HEAD
 corresponding Cartesian coordinates.
+=======
+corresponding Cartesian coordinates.
+>>>>>>> eef6563f49ba7b0b5a9e8c008e5b5a1aa27c4788
