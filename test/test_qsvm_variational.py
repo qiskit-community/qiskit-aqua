@@ -32,6 +32,7 @@ from qiskit_aqua.components.variational_forms import RYRZ
 class TestQSVMVariational(QiskitAquaTestCase):
 
     def setUp(self):
+        super().setUp()
         self.random_seed = 10598
         self.training_data = {'A': np.asarray([[2.95309709, 2.51327412], [3.14159265, 4.08407045]]),
                               'B': np.asarray([[4.08407045, 2.26194671], [4.46106157, 2.38761042]])}

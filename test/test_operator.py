@@ -34,9 +34,10 @@ class TestOperator(QiskitAquaTestCase):
     """Operator tests."""
 
     def setUp(self):
+        super().setUp()
         np.random.seed(0)
 
-        self.num_qubits = 4
+        self.num_qubits = 3
         m_size = np.power(2, self.num_qubits)
         matrix = np.random.rand(m_size, m_size)
         self.qubitOp = Operator(matrix=matrix)
@@ -103,7 +104,7 @@ class TestOperator(QiskitAquaTestCase):
 
     def test_create_from_paulis_0(self):
         """Test with single paulis."""
-        num_qubits = 4
+        num_qubits = 3
         for pauli_label in itertools.product('IXYZ', repeat=num_qubits):
             coeff = np.random.random(1)[0]
             pauli_term = [coeff, Pauli.from_label(pauli_label)]

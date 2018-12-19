@@ -29,6 +29,7 @@ from qiskit_aqua.algorithms import QSVMKernel
 class TestQSVMKernel(QiskitAquaTestCase):
 
     def setUp(self):
+        super().setUp()
         self.random_seed = 10598
         self.shots = 8192
         np.random.seed(self.random_seed)

@@ -22,19 +22,35 @@ Added
 -----
 
 - Compatibility with Terra 0.7
-- API changes (programmatic approach)
-- QuantumInstance API for algorithm/backend decoupling
-- Updated documentation and Jupyter Notebooks exhibiting both programmatic and declarative APIs
-- Hartree-Fock initial state method and UCCSD variational form moved to Aqua Chemistry
-- Transparent parallelization implemented for gradient-based SciPy optimizers
-- Amplitude estimation algorithm
-- Aqua Optimization: New Ising model for: exact cover, set packing, vertex cover
-- Aqua AI: New feature maps extending the FeatureMap pluggable interface: PauliExpansion and PauliZExpansion
-- Aqua Finance:
+- Compatibility with Aer 0.1
+- Programmatic APIs for algorithms and components -- each component can now be instantiated and initialized via a single (non-emptY) constructot call
+- ``QuantumInstance`` API for algorithm/backend decoupling -- ``QuantumInstance`` encapsulates a backend and its settings
+- Updated documentation and Jupyter Notebooks illustrating the new programmatic APIs
+- Transparent parallelization for gradient-based optimizers
+- Multiple-Controlled-NOT (cnx) operation
+- Pluggable algorithmic component ``RandomDistribution``
+- Concrete implementations of ``RandomDistribution``: ``BernoulliDistribution``, ``LogNormalDistribution``, 
+  ``MultivariateDistribution``, ``MultivariateNormalDistribution``, ``MultivariateUniformDistribution``, ``NormalDistribution``,
+  ``UniformDistribution``, and ``UnivariateDistribution``
+- Pluggable algorithmic component:
+- Concrete implementations of ``UncertaintyProblem``: ``FixedIncomeExpectedValue``, ``EuropeanCallExpectedValue``, and 
+  ``EuropeanCallDelta``
+- Amplitude Estimation algorithm
+- Qiskit Optimization: New Ising models for optimization problems exact cover, set packing, vertex cover, clique, and graph partition
+- Qiskit AI:
+   - New feature maps extending the ``FeatureMap`` pluggable interface: ``PauliExpansion`` and ``PauliZExpansion``
+   - Training model serialization/deserialization mechanism
+- Qiskit Finance:
    - Amplitude estimation for Bernoulli random variable: illustration of amplitude estimation on a single qubit problem
    - Loading of multiple univariate and multivariate random distributions
    - European call option: expected value and delta (using univariate distributions)
    - Fixed income asset pricing: expected value (using multivariate distributions)
+   
+Removed
+-------
+
+- ``HartreeFock`` component of pluggable type ``InitialState` moved to Qiskit Chemistry
+- ``UCCSD`` component of pluggable type ``VariationalForm`` moved to Qiskit Chemistry
 
 `0.3.1`_ - 2018-11-29
 =====================

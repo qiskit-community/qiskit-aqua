@@ -31,6 +31,7 @@ class TestSetPacking(QiskitAquaTestCase):
     """Cplex Ising tests."""
 
     def setUp(self):
+        super().setUp()
         input_file = self._get_resource_path('sample.setpacking')
         with open(input_file) as f:
             self.list_of_subsets = json.load(f)
@@ -78,8 +79,8 @@ class TestSetPacking(QiskitAquaTestCase):
     def test_set_packing_vqe(self):
         algorithm_cfg = {
             'name': 'VQE',
-            'operator_mode': 'paulis'
-
+            'operator_mode': 'grouped_paulis',
+            'batch_mode': True
         }
 
         optimizer_cfg = {

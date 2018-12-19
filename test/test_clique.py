@@ -30,6 +30,7 @@ class TestClique(QiskitAquaTestCase):
     """Cplex Ising tests."""
 
     def setUp(self):
+        super().setUp()
         self.K = 5  # K means the size of the clique
         np.random.seed(100)
         self.num_nodes = 5
@@ -78,7 +79,8 @@ class TestClique(QiskitAquaTestCase):
     def test_clique_vqe(self):
         algorithm_cfg = {
             'name': 'VQE',
-            'operator_mode': 'matrix'
+            'operator_mode': 'matrix',
+            'batch_mode': True
         }
 
         optimizer_cfg = {

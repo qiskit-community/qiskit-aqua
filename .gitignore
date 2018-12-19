@@ -117,6 +117,8 @@ docs/*.rst
 !docs/qiskit_aqua_chemistry.rst
 !docs/random_distribution.rst
 !docs/uncertainty_problem.rst
+!docs/multiclass_extensions.rst
+!docs/release_history.rst
 
 # PyBuilder
 target/

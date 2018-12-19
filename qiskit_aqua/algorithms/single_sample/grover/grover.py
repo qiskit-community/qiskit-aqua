@@ -131,7 +131,7 @@ class Grover(QuantumAlgorithm):
         oracle_params = params.get(QuantumAlgorithm.SECTION_KEY_ORACLE)
         oracle = get_pluggable_class(PluggableType.ORACLE,
                                      oracle_params['name']).init_params(oracle_params)
-        return cls(oracle, incremental=incremental, num_iterations=num_iterations)
+        return cls(oracle, incremental=incremental, num_iterations=num_iterations, cnx_mode=cnx_mode)
 
     def _construct_circuit_components(self):
         measurement_cr = ClassicalRegister(len(self._oracle.variable_register()), name='m')
