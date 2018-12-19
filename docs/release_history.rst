@@ -1,9 +1,9 @@
 ###############
-Release history
+Release History
 ###############
 
 *************
-Release notes
+Release Notes
 *************
 
 ==================
@@ -158,7 +158,9 @@ supporting component—-consisting of the SAT ``oracle``, can both be instantiat
 initialized via simple constructor calls. The Aer QASM simulator
 backend is passed as a parameter to the ``run`` method of the ``Grover`` ``QuantumAlgorithm``
 object, which means that the backend will be executed with default
-parameters.
+parameters.  The program above also shows how to import the ``HartreFock``
+``InitialState`` component now that it has been moved to Qiskit Chemistry.
+The ``UCCSD`` ``VariationalForm`` can be imported in a similar way.
 
 To customize the backend, you can wrap it into a ``QuantumInstance`` object,
 and then pass that object to the run method of the ``QuantumAlgorithm``, as
