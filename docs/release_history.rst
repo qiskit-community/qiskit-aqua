@@ -1,9 +1,9 @@
 ###############
-Release history
+Release History
 ###############
 
 *************
-Release notes
+Release Notes
 *************
 
 ==================
