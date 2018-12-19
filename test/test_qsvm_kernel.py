@@ -100,9 +100,9 @@ class TestQSVMKernel(QiskitAquaTestCase):
 
         result = svm.run(quantum_instance)
         np.testing.assert_array_almost_equal(
-            result['kernel_matrix_training'], ref_kernel_training, decimal=4)
+            result['kernel_matrix_training'], ref_kernel_training, decimal=1)
         np.testing.assert_array_almost_equal(
-            result['kernel_matrix_testing'], ref_kernel_testing, decimal=4)
+            result['kernel_matrix_testing'], ref_kernel_testing, decimal=1)
 
         self.assertEqual(len(result['svm']['support_vectors']), 4)
         np.testing.assert_array_almost_equal(
