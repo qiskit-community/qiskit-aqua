@@ -94,7 +94,7 @@ class QuantumInstance:
         if not self.is_simulator and noise_model is not None:
             logger.info("The noise model can be only used with simulator. "
                         "Change it to None.")
-            self._noise_config = None
+            self._noise_config = {}
         else:
             self._noise_config = {'noise_model': noise_model}
 
@@ -105,7 +105,7 @@ class QuantumInstance:
 
         self._backend_config = {
             'basis_gates': basis_gates,
-            'config': config,
+            'config': config or {},
             'coupling_map': coupling_map,
             'seed': seed,
             'memory': memory
@@ -165,8 +165,6 @@ class QuantumInstance:
             elif k in QuantumInstance.BACKEND_CONFIG:
                 self._backend_config[k] = v
             elif k in QuantumInstance.SIMULATOR_CONFIG:
-                if self._backend_config.get('config', None) is None:
-                    self._backend_config['config'] = dict()
                 self._backend_config['config'][k] = v
             elif k in QuantumInstance.NOISE_CONFIG:
                 self._noise_config[k] = v

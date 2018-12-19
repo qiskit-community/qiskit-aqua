@@ -131,6 +131,7 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
         AquaError: Any error except for JobError raised by Qiskit Terra
     """
     qjob_config = qjob_config or {}
+    noise_config = noise_config or {}
 
     if backend is None or not isinstance(backend, BaseBackend):
         raise ValueError('Backend is missing or not an instance of BaseBackend')
