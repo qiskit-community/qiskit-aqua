@@ -16,7 +16,7 @@
 # =============================================================================
 
 """
-Multiple (N) Controlled-Not Operation.
+Multiple-(N)-Controlled-Not Operation.
 """
 
 from math import pi, ceil
