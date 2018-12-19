@@ -22,12 +22,13 @@ from scipy.optimize import rosen
 import numpy as np
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import get_optimizer_instance
+from qiskit_aqua import PluggableType, get_pluggable_class
 
 
 class TestNLOptOptimizers(QiskitAquaTestCase):
 
     def setUp(self):
+        super().setUp()
         np.random.seed(50)
         try:
             import nlopt
@@ -51,9 +52,8 @@ class TestNLOptOptimizers(QiskitAquaTestCase):
         # ['ISRES']
     ])
     def test_nlopt(self, name):
-        optimizer = get_optimizer_instance(name)
+        optimizer = get_pluggable_class(PluggableType.OPTIMIZER, name)()
         optimizer.set_options(**{'max_evals': 50000})
-        optimizer.init_args()
         res = self._optimize(optimizer)
         self.assertLessEqual(res[2], 50000)
 

@@ -23,12 +23,12 @@ import logging
 from collections import OrderedDict
 
 import numpy as np
-import numpy.random as rand
-from qiskit.tools.qi.pauli import Pauli
 
+from qiskit.quantum_info import Pauli
 from qiskit_aqua import Operator
 
 logger = logging.getLogger(__name__)
+
 
 def random_number_list(n, weight_range=100, savefile=None):
     """Generate a set of positive integers within the given range.
@@ -47,6 +47,7 @@ def random_number_list(n, weight_range=100, savefile=None):
             for i in range(n):
                 outfile.write('{}\n'.format(number_list[i]))
     return number_list
+
 
 def get_partition_qubitops(values):
     """Construct the Hamiltonian for a given Partition instance.
@@ -68,12 +69,13 @@ def get_partition_qubitops(values):
     pauli_list = []
     for i in range(n):
         for j in range(i):
-            wp = np.zeros(n)
-            vp = np.zeros(n)
-            vp[i] = 1
-            vp[j] = 1
-            pauli_list.append([2 * values[i] * values[j], Pauli(vp, wp)])
+            xp = np.zeros(n, dtype=np.bool)
+            zp = np.zeros(n, dtype=np.bool)
+            zp[i] = True
+            zp[j] = True
+            pauli_list.append([2. * values[i] * values[j], Pauli(zp, xp)])
     return Operator(paulis=pauli_list), sum(values*values)
+
 
 def read_numbers_from_file(filename):
     """Read numbers from a file
@@ -91,6 +93,7 @@ def read_numbers_from_file(filename):
             numbers.append(int(round(float(line))))
     return np.array(numbers)
 
+
 def partition_value(x, number_list):
     """Compute the value of a partition.
 
@@ -104,6 +107,7 @@ def partition_value(x, number_list):
     """
     diff = np.sum(number_list[x == 0]) - np.sum(number_list[x == 1])
     return diff * diff
+
 
 def sample_most_likely(state_vector):
     """Compute the most likely binary string from state vector.
@@ -127,5 +131,3 @@ def sample_most_likely(state_vector):
             x[i] = k % 2
             k >>= 1
         return x
-
-

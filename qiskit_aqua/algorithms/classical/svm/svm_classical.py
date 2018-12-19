@@ -15,12 +15,13 @@
 # limitations under the License.
 # =============================================================================
 
-import copy
 import logging
 
-from qiskit_aqua import (AlgorithmError, QuantumAlgorithm, get_multiclass_extension_instance)
-from qiskit_aqua.algorithms.classical.svm import (SVM_Classical_Binary, SVM_Classical_Multiclass,
-                                                  RBF_SVC_Estimator)
+from qiskit_aqua.algorithms import QuantumAlgorithm
+from qiskit_aqua import AquaError, PluggableType, get_pluggable_class
+from qiskit_aqua.algorithms.classical.svm import (_SVM_Classical_Binary,
+                                                  _SVM_Classical_Multiclass,
+                                                  _RBF_SVC_Estimator)
 from qiskit_aqua.utils import get_num_classes
 
 logger = logging.getLogger(__name__)
@@ -33,7 +34,7 @@ class SVM_Classical(QuantumAlgorithm):
     based on how many classes the data have.
     """
 
-    SVM_Classical_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'SVM',
         'description': 'SVM_Classical Algorithm',
         'classical': True,
@@ -53,45 +54,45 @@ class SVM_Classical(QuantumAlgorithm):
         'problems': ['svm_classification']
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or copy.deepcopy(SVM_Classical.SVM_Classical_CONFIGURATION))
-        self._ret = {}
-        self.instance = None
-
-    def init_params(self, params, algo_input):
-        svm_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
-
-        multiclass_extension = None
-        multiclass_extension_params = params.get(QuantumAlgorithm.SECTION_KEY_MULTICLASS_EXTENSION)
-        if multiclass_extension_params is not None:
-            multiclass_extension = get_multiclass_extension_instance(multiclass_extension_params['name'])
-            multiclass_extension_params['estimator_cls'] = RBF_SVC_Estimator
-            multiclass_extension.init_params(multiclass_extension_params)
-            logger.info("Multiclass dataset with extension: {}".format(multiclass_extension_params['name']))
-
-        self.init_args(algo_input.training_dataset, algo_input.test_dataset,
-                       algo_input.datapoints, svm_params.get('gamma'), multiclass_extension)
-
-    def init_args(self, training_dataset, test_dataset, datapoints, gamma, multiclass_extension=None):
-
+    def __init__(self, training_dataset, test_dataset=None, datapoints=None,
+                 gamma=None, multiclass_extension=None):
+        self.validate(locals())
+        super().__init__()
         if training_dataset is None:
-            raise AlgorithmError('Training dataset must be provided')
+            raise AquaError('Training dataset must be provided.')
 
         is_multiclass = get_num_classes(training_dataset) > 2
         if is_multiclass:
             if multiclass_extension is None:
-                raise AlgorithmError('Dataset has more than two classes. A multiclass extension must be provided.')
+                raise AquaError('Dataset has more than two classes. A multiclass extension must be provided.')
         else:
             if multiclass_extension is not None:
                 logger.warning("Dataset has just two classes. Supplied multiclass extension will be ignored")
 
         if multiclass_extension is None:
-            svm_instance = SVM_Classical_Binary()
+            svm_instance = _SVM_Classical_Binary(training_dataset, test_dataset, datapoints, gamma)
         else:
-            svm_instance = SVM_Classical_Multiclass(multiclass_extension)
+            svm_instance = _SVM_Classical_Multiclass(
+                training_dataset, test_dataset, datapoints, gamma, multiclass_extension)
 
-        svm_instance.init_args(training_dataset, test_dataset, datapoints, gamma)
         self.instance = svm_instance
+
+    @classmethod
+    def init_params(cls, params, algo_input):
+        svm_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
+        gamma = svm_params.get('gamma', None)
+
+        multiclass_extension = None
+        multiclass_extension_params = params.get(QuantumAlgorithm.SECTION_KEY_MULTICLASS_EXTENSION)
+        if multiclass_extension_params is not None:
+            multiclass_extension_params['estimator_cls'] = _RBF_SVC_Estimator
+
+            multiclass_extension = get_pluggable_class(
+                PluggableType.MULTICLASS_EXTENSION, multiclass_extension_params['name']).init_params(multiclass_extension_params)
+            logger.info("Multiclass dataset with extension: {}".format(multiclass_extension_params['name']))
+
+        return cls(algo_input.training_dataset, algo_input.test_dataset,
+                   algo_input.datapoints, gamma, multiclass_extension)
 
     def train(self, data, labels):
         """
@@ -127,7 +128,7 @@ class SVM_Classical(QuantumAlgorithm):
         """
         return self.instance.predict(data)
 
-    def run(self):
+    def _run(self):
         return self.instance.run()
 
     @property
@@ -137,3 +138,11 @@ class SVM_Classical(QuantumAlgorithm):
     @property
     def class_to_label(self):
         return self.instance.class_to_label
+
+    @property
+    def ret(self):
+        return self.instance.ret
+
+    @ret.setter
+    def ret(self, new_ret):
+        self.instance.ret = new_ret

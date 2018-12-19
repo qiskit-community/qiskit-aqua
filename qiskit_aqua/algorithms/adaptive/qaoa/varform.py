@@ -18,8 +18,8 @@
 import numpy as np
 from functools import reduce
 from qiskit import QuantumRegister, QuantumCircuit
-from qiskit.tools.qi.pauli import Pauli
-from qiskit_aqua.operator import Operator
+from qiskit.quantum_info import Pauli
+from qiskit_aqua import Operator
 
 
 class QAOAVarForm:
@@ -60,3 +60,13 @@ class QAOAVarForm:
             circuit += self._cost_operator.evolve(None, gamma, 'circuit', 1, quantum_registers=q)
             circuit += self._mixer_operator.evolve(None, beta, 'circuit', 1, quantum_registers=q)
         return circuit
+
+    @property
+    def setting(self):
+        ret = "Variational Form: {}\n".format(self.__class__.__name__)
+        params = ""
+        for key, value in self.__dict__.items():
+            if key != "_configuration" and key[0] == "_":
+                params += "-- {}: {}\n".format(key[1:], value)
+        ret += "{}".format(params)
+        return ret

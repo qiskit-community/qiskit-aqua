@@ -22,11 +22,11 @@ See https://arxiv.org/abs/quant-ph/0610214
 import logging
 
 import numpy as np
-from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
-from qiskit.tools.qi.pauli import Pauli
-
-from qiskit_aqua import Operator, QuantumAlgorithm, AlgorithmError
-from qiskit_aqua import get_initial_state_instance
+from qiskit import QuantumRegister, ClassicalRegister
+from qiskit.quantum_info import Pauli
+from qiskit_aqua.algorithms import QuantumAlgorithm
+from qiskit_aqua import Operator, AquaError
+from qiskit_aqua import PluggableType, get_pluggable_class
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +43,7 @@ class IQPE(QuantumAlgorithm):
     PROP_EXPANSION_ORDER = 'expansion_order'
     PROP_NUM_ITERATIONS = 'num_iterations'
 
-    IQPE_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'IQPE',
         'description': 'Iterative Quantum Phase Estimation for Quantum Systems',
         'input_schema': {
@@ -58,7 +58,7 @@ class IQPE(QuantumAlgorithm):
                 },
                 PROP_PAULIS_GROUPING: {
                     'type': 'string',
-                    'default': 'random',
+                    'default': 'default',
                     'oneOf': [
                         {'enum': [
                             'random',
@@ -98,18 +98,23 @@ class IQPE(QuantumAlgorithm):
         }
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.IQPE_CONFIGURATION.copy())
-        self._operator = None
-        self._state_in = None
-        self._num_time_slices = 0
-        self._paulis_grouping = None
-        self._expansion_mode = None
-        self._expansion_order = None
-        self._num_iterations = 0
+    def __init__(self, operator, state_in, num_time_slices=1, num_iterations=1,
+                 paulis_grouping='default', expansion_mode='suzuki', expansion_order=2,
+                 shallow_circuit_concat=False):
+        self.validate(locals())
+        super().__init__()
+        self._operator = operator
+        self._state_in = state_in
+        self._num_time_slices = num_time_slices
+        self._num_iterations = num_iterations
+        self._paulis_grouping = paulis_grouping
+        self._expansion_mode = expansion_mode
+        self._expansion_order = expansion_order
+        self._shallow_circuit_concat = shallow_circuit_concat
         self._ret = {}
 
-    def init_params(self, params, algo_input):
+    @classmethod
+    def init_params(cls, params, algo_input):
         """
         Initialize via parameters dictionary and algorithm input instance
         Args:
@@ -117,7 +122,7 @@ class IQPE(QuantumAlgorithm):
             algo_input: EnergyInput instance
         """
         if algo_input is None:
-            raise AlgorithmError("EnergyInput instance is required.")
+            raise AquaError("EnergyInput instance is required.")
 
         operator = algo_input.qubit_op
 
@@ -131,51 +136,47 @@ class IQPE(QuantumAlgorithm):
         # Set up initial state, we need to add computed num qubits to params
         init_state_params = params.get(QuantumAlgorithm.SECTION_KEY_INITIAL_STATE)
         init_state_params['num_qubits'] = operator.num_qubits
-        init_state = get_initial_state_instance(init_state_params['name'])
-        init_state.init_params(init_state_params)
+        init_state = get_pluggable_class(PluggableType.INITIAL_STATE,
+                                         init_state_params['name']).init_params(init_state_params)
 
-        self.init_args(
-            operator, init_state, num_time_slices, num_iterations,
-            paulis_grouping=paulis_grouping, expansion_mode=expansion_mode,
-            expansion_order=expansion_order)
-
-    def init_args(self, operator, state_in, num_time_slices, num_iterations,
-                  paulis_grouping='default', expansion_mode='trotter', expansion_order=1):
-        if self._backend.find('statevector') >= 0:
-            raise ValueError('Selected backend does not support measurements.')
-        self._operator = operator
-        self._state_in = state_in
-        self._num_time_slices = num_time_slices
-        self._num_iterations = num_iterations
-        self._paulis_grouping = paulis_grouping
-        self._expansion_mode = expansion_mode
-        self._expansion_order = expansion_order
-        self._ret = {}
+        return cls(operator, init_state, num_time_slices=num_time_slices, num_iterations=num_iterations,
+                   paulis_grouping=paulis_grouping, expansion_mode=expansion_mode,
+                   expansion_order=expansion_order)
 
     def _construct_kth_evolution(self, slice_pauli_list, k, omega):
         """Construct the kth iteration Quantum Phase Estimation circuit"""
         a = QuantumRegister(1, name='a')
         c = ClassicalRegister(1, name='c')
         q = QuantumRegister(self._operator.num_qubits, name='q')
-        qc = QuantumCircuit(a, c, q)
-        qc.data += self._state_in.construct_circuit('circuit', q).data
+        qc = self._state_in.construct_circuit('circuit', q)
         # hadamard on a[0]
+        qc.add_register(a)
         qc.u2(0, np.pi, a[0])
         # controlled-U
-        qc.data += self._operator.construct_evolution_circuit(
-            slice_pauli_list, -2 * np.pi, self._num_time_slices, q, a, unitary_power=2 ** (k - 1)
-        ).data
+        qc_evolutions = Operator.construct_evolution_circuit(
+            slice_pauli_list, -2 * np.pi, self._num_time_slices, q, a, unitary_power=2 ** (k - 1),
+            shallow_slicing=self._shallow_circuit_concat
+        )
+        if self._shallow_circuit_concat:
+            qc.data += qc_evolutions.data
+        else:
+            qc += qc_evolutions
         # global phase due to identity pauli
         qc.u1(2 * np.pi * self._ancilla_phase_coef * (2 ** (k - 1)), a[0])
         # rz on a[0]
         qc.u1(omega, a[0])
         # hadamard on a[0]
         qc.u2(0, np.pi, a[0])
+        qc.add_register(c)
+        qc.barrier(a)
         qc.measure(a, c)
         return qc
 
     def _estimate_phase_iteratively(self):
         """Iteratively construct the different order of controlled evolution circuit to carry out phase estimation"""
+        if self._quantum_instance.is_statevector:
+            raise ValueError('Selected backend does not support measurements.')
+
         pauli_list = self._operator.reorder_paulis(grouping=self._paulis_grouping)
         if len(pauli_list) == 1:
             slice_pauli_list = pauli_list
@@ -192,7 +193,7 @@ class IQPE(QuantumAlgorithm):
         for k in range(self._num_iterations, 0, -1):
             omega_coef /= 2
             qc = self._construct_kth_evolution(slice_pauli_list, k, -2 * np.pi * omega_coef)
-            measurements = self.execute(qc).get_counts(qc)
+            measurements = self._quantum_instance.execute(qc).get_counts(qc)
 
             if '0' not in measurements:
                 if '1' in measurements:
@@ -210,7 +211,7 @@ class IQPE(QuantumAlgorithm):
         return omega_coef
 
     def _compute_energy(self):
-        self._operator._check_representation('paulis')
+        self._operator.to_paulis()
         self._ret['translation'] = sum([abs(p[0]) for p in self._operator.paulis])
         self._ret['stretch'] = 0.5 / self._ret['translation']
 
@@ -235,7 +236,7 @@ class IQPE(QuantumAlgorithm):
         # check for identify paulis to get its coef for applying global phase shift on ancilla later
         num_identities = 0
         for p in self._operator.paulis:
-            if np.all(p[1].v == 0) and np.all(p[1].w == 0):
+            if np.all(np.logical_not(p[1].z)) and np.all(np.logical_not(p[1].x)):
                 num_identities += 1
                 if num_identities > 1:
                     raise RuntimeError('Multiple identity pauli terms are present.')
@@ -248,6 +249,6 @@ class IQPE(QuantumAlgorithm):
         )])
         self._ret['energy'] = self._ret['phase'] / self._ret['stretch'] - self._ret['translation']
 
-    def run(self):
+    def _run(self):
         self._compute_energy()
         return self._ret

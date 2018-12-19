@@ -21,17 +21,22 @@ import numpy as np
 from parameterized import parameterized
 from scipy.linalg import expm
 from scipy import sparse
+from qiskit.transpiler import PassManager
+from qiskit_aqua import get_aer_backend
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import get_algorithm_instance, get_initial_state_instance, Operator
+from qiskit_aqua import Operator, QuantumInstance
 from qiskit_aqua.utils import decimal_to_binary
+from qiskit_aqua.algorithms import IQPE
+from qiskit_aqua.algorithms import ExactEigensolver
+from qiskit_aqua.components.initial_states import Custom
 
 
 pauli_dict = {
     'paulis': [
         {"coeff": {"imag": 0.0, "real": -1.052373245772859}, "label": "II"},
-        {"coeff": {"imag": 0.0, "real": 0.39793742484318045}, "label": "ZI"},
-        {"coeff": {"imag": 0.0, "real": -0.39793742484318045}, "label": "IZ"},
+        {"coeff": {"imag": 0.0, "real": 0.39793742484318045}, "label": "IZ"},
+        {"coeff": {"imag": 0.0, "real": -0.39793742484318045}, "label": "ZI"},
         {"coeff": {"imag": 0.0, "real": -0.01128010425623538}, "label": "ZZ"},
         {"coeff": {"imag": 0.0, "real": 0.18093119978423156}, "label": "XX"}
     ]
@@ -51,14 +56,13 @@ class TestIQPE(QiskitAquaTestCase):
 
         self.qubitOp = qubitOp
 
-        exact_eigensolver = get_algorithm_instance('ExactEigensolver')
-        exact_eigensolver.init_args(self.qubitOp, k=1)
+        exact_eigensolver = ExactEigensolver(self.qubitOp, k=1)
         results = exact_eigensolver.run()
 
         w = results['eigvals']
         v = results['eigvecs']
 
-        self.qubitOp._check_representation('matrix')
+        self.qubitOp.to_matrix()
         np.testing.assert_almost_equal(
             self.qubitOp.matrix @ v[0],
             w[0] * v[0]
@@ -75,21 +79,14 @@ class TestIQPE(QiskitAquaTestCase):
 
         num_time_slices = 50
         num_iterations = 12
+        state_in = Custom(self.qubitOp.num_qubits, state_vector=self.ref_eigenvec)
+        iqpe = IQPE(self.qubitOp, state_in, num_time_slices, num_iterations,
+                    paulis_grouping='random', expansion_mode='suzuki', expansion_order=2, shallow_circuit_concat=True)
 
-        iqpe = get_algorithm_instance('IQPE')
-        iqpe.setup_quantum_backend(backend='qasm_simulator', shots=100, skip_transpiler=True)
+        backend = get_aer_backend('qasm_simulator')
+        quantum_instance = QuantumInstance(backend, shots=100, pass_manager=PassManager())
 
-        state_in = get_initial_state_instance('CUSTOM')
-        state_in.init_args(self.qubitOp.num_qubits, state_vector=self.ref_eigenvec)
-
-        iqpe.init_args(
-            self.qubitOp, state_in, num_time_slices, num_iterations,
-            paulis_grouping='random',
-            expansion_mode='suzuki',
-            expansion_order=2,
-        )
-
-        result = iqpe.run()
+        result = iqpe.run(quantum_instance)
 
         self.log.debug('top result str label:         {}'.format(result['top_measurement_label']))
         self.log.debug('top result in decimal:        {}'.format(result['top_measurement_decimal']))

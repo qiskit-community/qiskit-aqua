@@ -15,6 +15,8 @@
 # limitations under the License.
 # =============================================================================
 
+import operator
+
 import numpy as np
 from sklearn.decomposition import PCA
 
@@ -60,23 +62,28 @@ def split_dataset_to_data_and_labels(dataset, class_names=None):
 
     Args:
         dataset (dict): {'A': numpy.ndarray, 'B': numpy.ndarray, ...}
-        class_names (dict): class name of dataset, {label: class_name}
+        class_names (dict): class name of dataset, {class_name: label}
 
     Returns:
         [numpy.ndarray, numpy.ndarray]: idx 0 is data, NxD array,
                     idx 1 is labels, Nx1 array, value is ranged
                     from 0 to K-1, K is the number of classes
-        dict: {int: str}, map of label to class name
+        dict: {str: int}, map from class name to label
     """
     data = []
     labels = []
-    class_to_label = {k: idx for idx, k in enumerate(list(dataset.keys()))} \
-        if class_names is None else class_names
-    for key, values in dataset.items():
+    if class_names is None:
+        sorted_classes_name = sorted(list(dataset.keys()))
+        class_to_label = {k: idx for idx, k in enumerate(sorted_classes_name)}
+    else:
+        class_to_label = class_names
+    sorted_label = sorted(class_to_label.items(), key=operator.itemgetter(1))
+    for class_name, label in sorted_label:
+        values = dataset[class_name]
         for value in values:
             data.append(value)
             try:
-                labels.append(class_to_label[key])
+                labels.append(class_to_label[class_name])
             except Exception as e:
                 raise KeyError('The dataset has different class names to '
                                'the training data. error message: {}'.format(e))

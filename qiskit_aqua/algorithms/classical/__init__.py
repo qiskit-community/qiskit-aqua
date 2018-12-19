@@ -15,3 +15,14 @@
 # limitations under the License.
 # =============================================================================
 
+from .exacteigensolver.exacteigensolver import ExactEigensolver
+from .svm.svm_classical import SVM_Classical
+
+__all__ = ['ExactEigensolver',
+           'SVM_Classical']
+try:
+    from cplex import Cplex
+    from .cplex.cplex_ising import CPLEX_Ising
+    __all__ += ['CPLEX_Ising']
+except ImportError:
+    pass

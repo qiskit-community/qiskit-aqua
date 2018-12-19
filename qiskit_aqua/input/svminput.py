@@ -15,15 +15,14 @@
 # limitations under the License.
 # =============================================================================
 
-import copy
-
-from qiskit_aqua import AlgorithmError
+from qiskit_aqua import AquaError
 from qiskit_aqua.input import AlgorithmInput
+from qiskit_aqua.utils import convert_dict_to_json
 
 
 class SVMInput(AlgorithmInput):
 
-    SVM_INPUT_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'SVMInput',
         'description': 'SVM input',
         'input_schema': {
@@ -31,15 +30,15 @@ class SVMInput(AlgorithmInput):
             'id': 'svm_input_schema',
             'type': 'object',
             'properties': {
-                'training_dataset':{
+                'training_dataset': {
                     'type': ['object', 'null'],
                     'default': None
                 },
-                'test_dataset':{
+                'test_dataset': {
                     'type': ['object', 'null'],
                     'default': None
                 },
-                'datapoints':{
+                'datapoints': {
                     'type': ['array', 'null'],
                     'default': None
                 }
@@ -49,11 +48,16 @@ class SVMInput(AlgorithmInput):
         'problems': ['svm_classification']
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or copy.deepcopy(self.SVM_INPUT_CONFIGURATION))
-        self.training_dataset = None
-        self.test_dataset = None
-        self.datapoints = None
+    def __init__(self, training_dataset, test_dataset=None, datapoints=None):
+        self.validate(locals())
+        super().__init__()
+        self.training_dataset = training_dataset
+        self.test_dataset = test_dataset
+        self.datapoints = datapoints
+
+    def validate(self, args_dict):
+        params = {key: value for key, value in args_dict.items() if key in ['training_dataset', 'test_dataset', 'datapoints']}
+        super().validate(convert_dict_to_json(params))
 
     def to_params(self):
         params = {}
@@ -62,9 +66,11 @@ class SVMInput(AlgorithmInput):
         params['datapoints'] = self.datapoints
         return params
 
-    def from_params(self, params):
+    @classmethod
+    def from_params(cls, params):
         if 'training_dataset' not in params:
-            raise AlgorithmError("training_dataset is required.")
-        self.training_dataset = params['training_dataset']
-        self.test_dataset = params['test_dataset']
-        self.datapoints = params['datapoints']
+            raise AquaError("training_dataset is required.")
+        training_dataset = params['training_dataset']
+        test_dataset = params['test_dataset']
+        datapoints = params['datapoints']
+        return cls(training_dataset, test_dataset, datapoints)

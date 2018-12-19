@@ -18,6 +18,7 @@ The following `quantum algorithms <#quantum-algorithms>`__ are part of Aqua:
 -  :ref:`Evolution of Hamiltonian (EOH)`
 -  :ref:`Quantum Phase Estimation (QPE)`
 -  :ref:`Iterative Quantum Phase Estimation (IQPE)`
+-  :ref:`Amplitude Estimation`
 -  :ref:`Quantum Grover Search`
 -  :ref:`Support Vector Machine Quantum Kernel (QSVM Kernel)`
 -  :ref:`Support Vector Machine Variational (QSVM Variational)`
@@ -50,11 +51,45 @@ quantum algorithms:
     developers interested in
     :ref:`aqua-extending` to extend the Aqua framework with their novel research contributions.
 
+
 .. seealso::
 
     Section :ref:`aqua-extending` provides more
     details on how to extend Aqua with new components.
 
+
+.. _cnx:
+
+.. topic:: Multiple-Controlled-NOT (CNX) Operations
+
+    The *Multiple-Controlled-NOT (cnx)* operation, as the name suggests, is
+    a generalization of the quantum operation where one target qubit is
+    controlled by a number *n* of control qubits for a NOT (`x`) operation.
+    The multiple-controlled-NOT operation can be used as the building block
+    for implementing various different quantum algorithms, such as Grover's
+    search algorithm.
+
+    For the different numbers 0, 1, 2, … of controls, we have corresponding
+    quantum gates ``x``, ``cx``, ``ccx``, ... The first three are basic/well-known
+    quantum gates. In Aqua, the cnx operation provides support for arbitrary
+    numbers of controls, in particular, 3 or above.
+
+    Currently two different implementation strategies are included: *basic*
+    and *advanced*. The basic mode employs a textbook implementation, where
+    a series of ``ccx`` Toffoli gates are linked together in a ``V`` shape to
+    achieve the desired multiple-controlled-NOT operation. This mode
+    requires :math:`n-2` ancillary qubits, where :math:`n` is the number of controls. For
+    the advanced mode, the ``cccx`` and ``ccccx`` operations are achieved without
+    needing ancillary qubits. Multiple-controlled-NOT operations for higher
+    number of controls (5 and above) are implemented recursively using these
+    lower-number-of-control cases.
+
+    Aqua's cnx operation can be invoked from a ``QuantumCircuit`` object
+    using the ``cnx`` API, which expects a list ``q_controls`` of control qubits,
+    a target qubit ``q_target``, and a list ``q_ancilla`` of ancillary qubits.
+    An optional keyword
+    argument ``mode`` can also be passed in to indicate whether the ``'basic'`` or
+    ``'advanced'`` mode is chosen.  If omitted, this argument defaults to ``'basic'``.
 
 .. _quantum-algorithms:
 
@@ -385,6 +420,78 @@ Inverse Quantum Fourier Transform (IQFT) is not used for IQPE.
     In Aqua, IQPE supports the ``energy`` problem.
 
 
+.. _ae:
+
+^^^^^^^^^^^^^^^^^^^^
+Amplitude Estimation
+^^^^^^^^^^^^^^^^^^^^
+
+*Amplitude Estimation* is a derivative of -  :ref:`Quantum Phase Estimation (QPE)`
+applied to a particular operator :math:`A`.
+:math:`A` is assumed to operate on :math:`n + 1` qubits (plus possible ancillary qubits)
+where the :math:`n` qubits represent the uncertainty (in the form of a random distribution from the
+:ref:`random-distributions` library)
+and the last qubit, called the *objective qubit*, is used to represent the normalized objective value as its amplitude.
+In other words,
+:math:`A` is constructed such that the probability of measuring a '1' in the objective qubit is equal to the
+value of interest.
+
+.. seealso::
+
+    Consult the documentation on -  :ref:`Quantum Phase Estimation (QPE)` for more details.
+    Also, see `arXiv:1806.06893 <https://arxiv.org/abs/1806.06893>`_ for more details on Amplitude Estimation
+    as well as its applications on finance problems.
+
+In addition to relying on a ``QPE`` component
+for building the Quantum Phase Estimation circuit,
+in order to be properly constructed, an ``AmplitudeEstimation`` algorithm object
+expects the following inputs:
+
+-  The number of evaluation qubits:
+
+   .. code:: python
+
+       num_eval_qubits = 1 | 2 | ...
+
+   This has to be a positive ``int`` value.
+
+-  The uncertainty problem:
+
+   .. code:: python
+
+       a_factory
+
+   A ``CircuitFactory`` object that represents the uncertainty problem, i.e., the :math:`A` operator mentioned above.
+
+-  The optional problem unitary:
+
+   .. code:: python
+
+       q_factory
+
+   An optional ``CircuitFactory`` object that represents the problem unitary, 
+   which, if left unspecified, will be automatically constructed from the ``a_factory``.
+
+-  The Inverse Quantum Fourier Transform component:
+
+   .. code:: python
+
+       iqft
+
+   The Inverse Quantum Fourier Transform pluggable component
+   that's to be used to configure the ``PhaseEstimation`` component.
+   The standard iqft will be used by default if left None.
+
+.. topic:: Declarative Name
+
+   When referring to Amplitude Estimation declaratively inside Aqua, its code ``name``, by which
+   Aqua dynamically discovers and loads it, is ``AmplitudeEstimation``.
+
+.. topic:: Problems Supported
+
+   In Aqua, Amplitude Estimation supports the ``uncertainty`` problem.
+   
+
 .. _grover:
 
 ^^^^^^^^^^^^^^^^^^^^^
@@ -439,13 +546,17 @@ Grover is configured with the following parameter settings:
 
    .. code:: python
 
-       Incremental = False | True
+       incremental = False | True
 
-   When run in ``incremental`` mode, the search task will be carried out by using successive circuits built using incrementally higher
-   number of iterations for the repetition of the amplitude amplification until a target is found
-   or the maximal number :math:`\log N` (:math:`N` being the total number of elements in the set from the oracle used) of iterations is reached.
-   This is a boolean flag defaulted to ``False``;
-   when set ``True``, the other parameter ``num_iterations`` will be ignored.
+   When run in ``incremental`` mode,
+   the search task will be carried out in successive rounds,
+   using circuits built with incrementally higher number of iterations for the repetition of the amplitude amplification
+   until a target is found
+   or the maximal number :math:`\log N` (:math:`N` being the total number of elements in the set from the oracle used)
+   of iterations is reached.
+   The implementation follows Section 4 of `Boyer et al. <https://arxiv.org/abs/quant-ph/9605034>`__
+   The ``incremental`` boolean flag defaults to ``False``.
+   When set ``True``, the other parameter ``num_iterations`` will be ignored.
 
 
 .. topic:: Declarative Name

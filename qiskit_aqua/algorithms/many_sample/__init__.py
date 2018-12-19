@@ -15,3 +15,8 @@
 # limitations under the License.
 # =============================================================================
 
+from .eoh.eoh import EOH
+from .qsvm.qsvm_kernel import QSVMKernel
+
+__all__ = ['EOH',
+           'QSVMKernel']

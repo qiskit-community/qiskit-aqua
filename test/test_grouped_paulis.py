@@ -17,10 +17,10 @@
 
 import unittest
 
-from qiskit.tools.qi.pauli import pauli_group
+from qiskit.quantum_info import pauli_group
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua.operator import Operator
+from qiskit_aqua import Operator
 
 
 class TestGroupedPaulis(QiskitAquaTestCase):
@@ -29,7 +29,7 @@ class TestGroupedPaulis(QiskitAquaTestCase):
     def test_grouped_paulis(self):
         n = 3  # number of qubits
 
-        pg = pauli_group(n, case=1)
+        pg = pauli_group(n, case='tensor')
         self.assertTrue(pg != -1, "Error in pauli_group()")
 
         pg = [[1.0, x] for x in pg]  # create paulis with equal weight

@@ -22,11 +22,11 @@ import copy
 import ast
 from collections import OrderedDict
 import logging
-from qiskit_aqua import AlgorithmError
+from qiskit_aqua import AquaError
 from qiskit_aqua import (local_pluggables_types,
+                         PluggableType,
                          get_pluggable_configuration,
-                         get_algorithm_configuration,
-                         local_algorithms)
+                         local_pluggables)
 
 logger = logging.getLogger(__name__)
 
@@ -36,20 +36,25 @@ class JSONSchema(object):
 
     NAME = 'name'
     PROBLEM = 'problem'
-    ALGORITHM = 'algorithm'
     BACKEND = 'backend'
 
-    def __init__(self, jsonfile):
+    def __init__(self, schema_input):
         """Create JSONSchema object."""
         self._schema = None
         self._original_schema = None
         self.aqua_jsonschema = None
-        with open(jsonfile) as json_file:
-            self._schema = json.load(json_file)
-            validator = jsonschema.Draft4Validator(self._schema)
-            self._schema = JSONSchema._resolve_schema_references(
-                validator.schema, validator.resolver)
-            self.commit_changes()
+        if isinstance(schema_input, dict):
+            self._schema = copy.deepcopy(schema_input)
+        elif isinstance(schema_input, str):
+            with open(schema_input) as json_file:
+                self._schema = json.load(json_file)
+        else:
+            raise AquaError("Invalid JSONSchema input type.")
+
+        validator = jsonschema.Draft4Validator(self._schema)
+        self._schema = JSONSchema._resolve_schema_references(
+            validator.schema, validator.resolver)
+        self.commit_changes()
 
     @property
     def schema(self):
@@ -72,7 +77,7 @@ class JSONSchema(object):
     def populate_problem_names(self):
         """Populate enum list of problem names"""
         problems_dict = OrderedDict()
-        for algo_name in local_algorithms():
+        for algo_name in local_pluggables(PluggableType.ALGORITHM):
             problems = JSONSchema.get_algorithm_problems(algo_name)
             for problem in problems:
                 problems_dict[problem] = None
@@ -310,30 +315,27 @@ class JSONSchema(object):
         Args:
             input_parser (obj): input parser
         """
-        # find alogorithm
-        default_algo_name = self.get_property_default_value(
-            JSONSchema.ALGORITHM, JSONSchema.NAME)
-        algo_name = input_parser.get_section_property(
-            JSONSchema.ALGORITHM, JSONSchema.NAME, default_algo_name)
+        # find algorithm
+        default_algo_name = self.get_property_default_value(PluggableType.ALGORITHM.value, JSONSchema.NAME)
+        algo_name = input_parser.get_section_property(PluggableType.ALGORITHM.value, JSONSchema.NAME, default_algo_name)
 
-        # update alogorithm scheme
+        # update algorithm scheme
         if algo_name is not None:
-            self._update_pluggable_input_schema(
-                JSONSchema.ALGORITHM, algo_name, default_algo_name)
+            self._update_pluggable_input_schema(PluggableType.ALGORITHM.value, algo_name, default_algo_name)
 
-        # update alogorithm depoendencies scheme
-        config = {} if algo_name is None else get_algorithm_configuration(
-            algo_name)
+        # update algorithm depoendencies scheme
+        config = {} if algo_name is None else get_pluggable_configuration(PluggableType.ALGORITHM, algo_name)
         classical = config['classical'] if 'classical' in config else False
         pluggable_dependencies = [] if 'depends' not in config else config['depends']
         pluggable_defaults = {
         } if 'defaults' not in config else config['defaults']
         pluggable_types = local_pluggables_types()
         for pluggable_type in pluggable_types:
-            if pluggable_type != JSONSchema.ALGORITHM and pluggable_type not in pluggable_dependencies:
+            if pluggable_type not in [PluggableType.INPUT, PluggableType.ALGORITHM] and \
+                    pluggable_type.value not in pluggable_dependencies:
                 # remove pluggables from schema that ate not in the dependencies
-                if pluggable_type in self._schema['properties']:
-                    del self._schema['properties'][pluggable_type]
+                if pluggable_type.value in self._schema['properties']:
+                    del self._schema['properties'][pluggable_type.value]
 
         # update algorithm backend from schema if it is classical or not
         if classical:
@@ -369,8 +371,7 @@ class JSONSchema(object):
         config = {}
         try:
             if pluggable_type is not None and pluggable_name is not None:
-                config = get_pluggable_configuration(
-                    pluggable_type, pluggable_name)
+                config = get_pluggable_configuration(pluggable_type, pluggable_name)
         except:
             pass
 
@@ -420,7 +421,7 @@ class JSONSchema(object):
                     break
 
             if not valid:
-                raise AlgorithmError("{}: Value '{}' is not of types: '{}'".format(
+                raise AquaError("{}: Value '{}' is not of types: '{}'".format(
                     section_name, value, types))
 
         return value
@@ -450,7 +451,7 @@ class JSONSchema(object):
                     break
 
             if not valid:
-                raise AlgorithmError("{}.{} Value '{}' is not of types: '{}'".format(
+                raise AquaError("{}.{} Value '{}' is not of types: '{}'".format(
                     section_name, property_name, value, types))
 
         return value
@@ -464,7 +465,7 @@ class JSONSchema(object):
             jsonschema.validate(sections_json, self._schema)
         except jsonschema.exceptions.ValidationError as ve:
             logger.info('JSON Validation error: {}'.format(str(ve)))
-            raise AlgorithmError(ve.message)
+            raise AquaError(ve.message)
 
     def validate_property(self, sections_json, section_name, property_name):
         """
@@ -494,14 +495,14 @@ class JSONSchema(object):
         Returns:
             Returns list of problem names
         """
-        config = get_algorithm_configuration(algo_name)
+        config = get_pluggable_configuration(PluggableType.ALGORITHM, algo_name)
         if 'problems' in config:
             return config['problems']
 
         return []
 
     @staticmethod
-    def get_value(value, types=[]):
+    def get_value(value, types=None):
         """
         Returns a converted value based on schema types
         Args:
@@ -511,6 +512,7 @@ class JSONSchema(object):
         Returns:
             Returns converted value
         """
+        types = types or []
         if value is None or (isinstance(value, str) and len(value.strip()) == 0):
             # return propet values based on type
             if value is None:
@@ -568,7 +570,7 @@ class JSONSchema(object):
             section_name = ''
         section_name = section_name.strip()
         if len(section_name) == 0:
-            raise AlgorithmError("Empty section name.")
+            raise AquaError("Empty section name.")
 
         return section_name
 
@@ -578,7 +580,7 @@ class JSONSchema(object):
             property_name = ''
         property_name = property_name.strip()
         if len(property_name) == 0:
-            raise AlgorithmError("Empty property name.")
+            raise AquaError("Empty property name.")
 
         return property_name
 

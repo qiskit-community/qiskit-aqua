@@ -63,6 +63,44 @@ from the `options
 dictionary <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.show_options.html>`__,
 which may be referred to for further information.
 
+.. topic:: Transparent Parallelization of Gradient-based Local Opitmizers
+
+Aqua comes with a large collection of adaptive algorithms, such as the
+`Variational Quantum Eigensolver (VQE) algorithm <https://www.nature.com/articles/ncomms5213>`__,
+`Quantum Approximate Optimization
+Algorithm (QAOA) <https://arxiv.org/abs/1411.4028>`__, the `Quantum
+Support Vector Machine (SVM) Variational
+Algorithm <https://arxiv.org/abs/1804.11326>`__ for AI. All these
+algorithms interleave quantum and classical computations, making use of
+classical optimizers. Aqua includes nine local and five global
+optimizers to choose from. By profiling the execution of the adaptive
+algorithms, we have detected that a large portion of the execution time
+is taken by the optimization phase, which runs classically. Among the
+most widely used optimizers are the *gradient-based* ones; these
+optimizers attempt to compute the absolute minimum (or maximum) of a
+function :math:`f` through its gradient.
+
+Five local optimizers among those integrated into Aqua are
+gradient-based: the four local optimizers *Limited-memory
+Broyden-Fletcher-Goldfarb-Shanno Bound (L-BFGS-B)*, *Sequential Least SQuares Programming (SLSQP)*, *Conjugate
+Gradient (CG)*, and *Truncated Newton (TNC)* from
+`SciPy <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html>`__,
+as well as `Simultaneous Perturbation Stochastic Approximation
+(SPSA) <https://www.jhuapl.edu/SPSA/>`__. Aqua contains a
+methodology that parallelizes the classical computation of the partial
+derivatives in the gradient-based local optimizers listed above. This
+parallelization takes place *transparently*, in the sense that Aqua
+intercepts the computation of the partial derivatives and parallelizes
+it without making any change to the actual source code of the
+optimizers.
+
+In order to activate the parallelization mechanism for an adaptive
+algorithm included in Aqua, it is sufficient to construct it with
+parameter ``batch_mode`` set to ``True``. Our experiments have proven
+empirically that parallelizing the process of a gradient-based local
+optimizer achieves a 30% speedup in the execution time of an adaptive algorithms on
+a simulator.
+
 .. _cg:
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -291,6 +329,14 @@ The following parameters are supported:
 
    This parameter is optional.  If specified, the value of this parameter must be of type ``float``, otherwise, it is  ``None``.
    The default is ``None``.
+
+   .. code:: python
+
+       adaptive : bool
+
+   The default is ``False``.
+
+-  If true will adapt algorithm to dimensionality of problem.
 
 .. topic:: Declarative Name
 

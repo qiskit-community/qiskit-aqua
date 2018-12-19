@@ -17,20 +17,20 @@
 
 import setuptools
 
-long_description="""<a href="https://qiskit.org/aqua" rel=nofollow>Qiskit Aqua</a> is an extensible, 
+long_description="""<a href="https://qiskit.org/aqua" rel=nofollow>Qiskit Aqua</a> is an extensible,
  modular, open-source library of quantum computing algorithms.
- Researchers can experiment with Aqua algorithms, on near-term quantum devices and simulators, 
- and can also get involved by contributing new algorithms and algorithm-supporting objects, 
- such as optimizers and variational forms. Qiskit Aqua is used by Qiskit Aqua Chemistry, 
+ Researchers can experiment with Aqua algorithms, on near-term quantum devices and simulators,
+ and can also get involved by contributing new algorithms and algorithm-supporting objects,
+ such as optimizers and variational forms. Qiskit Aqua is used by Qiskit Aqua Chemistry,
  Qiskit Aqua Artificial Intelligence, and Qiskit Aqua Optimization to experiment with real-world applications to quantum computing."""
-    
+
 requirements = [
-    "qiskit>=0.6.1,<0.7",
+    "qiskit-terra>=0.7.0,<0.8",
     "scipy>=0.19,!=0.19.1",
     "numpy>=1.13",
     "psutil>=5",
     "jsonschema>=2.6,<2.7",
-    "scikit-learn",
+    "scikit-learn==0.20.0",
     "cvxopt",
     "pyobjc-core; sys_platform == 'darwin'",
     "pyobjc-framework-Cocoa; sys_platform == 'darwin'"
@@ -38,11 +38,11 @@ requirements = [
 
 setuptools.setup(
     name='qiskit-aqua',
-    version="0.3.1",  # this should match __init__.__version__
+    version="0.4.0",  # this should match __init__.__version__
     description='Qiskit Aqua: An extensible library of quantum computing algorithms',
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url='https://github.com/Qiskit/aqua',
+    url='https://github.com/Qiskit/qiskit-aqua',
     author='Qiskit Aqua Development Team',
     author_email='qiskit@us.ibm.com',
     license='Apache-2.0',
@@ -63,13 +63,13 @@ setuptools.setup(
     install_requires=requirements,
     include_package_data=True,
     python_requires=">=3.5",
-    entry_points = {
+    entry_points={
         'console_scripts': [
-                'qiskit_aqua_cmd=qiskit_aqua.command_line:main'
+                'qiskit_aqua_cmd=qiskit_aqua_cmd.command_line:main'
         ],
         'gui_scripts': [
-                'qiskit_aqua_ui=qiskit_aqua.ui.run.command_line:main',
-                'qiskit_aqua_browser=qiskit_aqua.ui.browser.command_line:main'
+                'qiskit_aqua_ui=qiskit_aqua_ui.run.command_line:main',
+                'qiskit_aqua_browser=qiskit_aqua_ui.browser.command_line:main'
         ]
     }
 )

@@ -17,7 +17,6 @@
 
 import numpy as np
 
-
 def assign_label(measured_key, num_classes):
     """
     Classes = 2:
@@ -62,52 +61,48 @@ def assign_label(measured_key, num_classes):
         return key_order if key_order < num_classes else num_classes - 1
 
 
-def cost_estimate_sigmoid(shots, probs, gt_labels):
-    """Calculate sigmoid cross entropy over the predicted probs
-    p is the prob of gt_label.
-    For class = 2:
-    if p ~= 1.0, loss = 1.0
-    elif p ~= 0.0, loss = 0.0
-    else, x = sqrt(shots) * (0.5 - p) / sqrt(2 * p * (1-p))
-            loss = 1 / (1 + exp(-x))
-    For class = 3:
-    if p ~= 1.0, loss = 1.0
-    elif p ~= 0.0, loss = 0.0
-    else, x = sqrt(shots) * ((1 +|p_0 - p_1|)/3 - p) / sqrt(2 * p * (1-p))
-            loss = 1 / (1 + exp(-x))
+def cost_estimate(probs, gt_labels, shots=None):
+    """Calculate cross entropy
+    # shots is kept since it may be needed in future.
     Args:
         shots (int): the number of shots used in quantum computing
         probs (numpy.ndarray): NxK array, N is the number of data and K is the number of class
         gt_labels (numpy.ndarray): Nx1 array
     Returns:
-        float: averaged sigmoid cross entropy loss between estimated probs and gt_labels
+        float: cross entropy loss between estimated probs and gt_labels
     """
-    p = probs[np.arange(0, gt_labels.shape[0]), gt_labels]
-    p = np.clip(p, 0.0, 1.0)
-    number_of_classes = probs.shape[1]
-    loss = np.zeros(p.shape[0])
-    all_index = np.arange(0, p.shape[0])
-    zero_index = np.where(np.isclose(p, 0.0) is True)
-    one_index = np.where(np.isclose(p, 1.0) is True)
-    other_index = np.setdiff1d(all_index, np.concatenate((zero_index, one_index)))
-    rest_p = p[other_index]
-    denominator = np.sqrt(2.0 * rest_p * (1.0 - rest_p))
+    mylabels = np.zeros(probs.shape)
+    for i in range(gt_labels.shape[0]):
+        whichindex = gt_labels[i]
+        mylabels[i][whichindex] = 1
 
-    if number_of_classes == 2:
-        numerator = np.sqrt(shots) * (0.5 - rest_p)
-    elif number_of_classes == 3:
-        other_probs = np.setdiff1d(probs[other_index], rest_p)
-        numerator = np.sqrt(shots) * ((1. + np.abs(other_probs[0] - other_probs[1])) /
-                                      number_of_classes - rest_p)
-    else:
-        raise ValueError('Do not support the number of class larger than three.')
-    x = numerator / denominator
-    loss_other = (1.) / (1. + np.exp(-x))
-    loss[zero_index] = 0.0
-    loss[one_index] = 1.0
-    loss[other_index] = loss_other
-    loss = np.mean(loss)
+    def cross_entropy(predictions, targets, epsilon=1e-12):
+        predictions = np.clip(predictions, epsilon, 1. - epsilon)
+        N = predictions.shape[0]
+        tmp = np.sum(targets*np.log(predictions), axis=1)
+        ce = -np.sum(tmp)/N
+        return ce
+
+    x = cross_entropy(probs, mylabels)
+    return x
+
+
+def cost_estimate_sigmoid(shots, probs, gt_labels):
+    """Calculate sigmoid cross entropy
+
+    Args:
+        shots (int): the number of shots used in quantum computing
+        probs (numpy.ndarray): NxK array, N is the number of data and K is the number of class
+        gt_labels (numpy.ndarray): Nx1 array
+    Returns:
+        float: sigmoid cross entropy loss between estimated probs and gt_labels
+    """
+    #Error in the order of parameters corrected below - 19 Dec 2018
+    #x = cost_estimate(shots, probs, gt_labels)
+    x = cost_estimate(probs, gt_labels, shots)
+    loss = (1.) / (1. + np.exp(-x))
     return loss
+
 
 
 def return_probabilities(counts, num_classes):

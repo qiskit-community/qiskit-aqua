@@ -18,7 +18,9 @@
 from .tensorproduct import tensorproduct
 from .pauligraph import PauliGraph
 from .jsonutils import convert_dict_to_json, convert_json_to_dict
-from .random_matrix_generator import random_unitary, random_h2_body, random_h1_body
+from .random_matrix_generator import (random_unitary, random_h2_body,
+                                      random_h1_body, random_hermitian,
+                                      random_non_hermitian)
 from .decimal_to_binary import decimal_to_binary
 from .summarize_circuits import summarize_circuits
 from .cnx import cnx
@@ -27,7 +29,9 @@ from .dataset_helper import (get_feature_dimension, get_num_classes,
                              split_dataset_to_data_and_labels, map_label_to_class_name,
                              reduce_dim_to_via_pca)
 from .qpsolver import optimize_svm
-from .run_circuits import run_circuits
+from .circuit_factory import CircuitFactory
+from .run_circuits import compile_and_run_circuits, find_regs_by_name
+
 
 __all__ = ['tensorproduct',
            'PauliGraph',
@@ -36,6 +40,8 @@ __all__ = ['tensorproduct',
            'random_unitary',
            'random_h2_body',
            'random_h1_body',
+           'random_hermitian',
+           'random_non_hermitian',
            'decimal_to_binary',
            'summarize_circuits',
            'cnx',
@@ -47,4 +53,6 @@ __all__ = ['tensorproduct',
            'map_label_to_class_name',
            'reduce_dim_to_via_pca',
            'optimize_svm',
-           'run_circuits']
+           'CircuitFactory',
+           'compile_and_run_circuits',
+           'find_regs_by_name']

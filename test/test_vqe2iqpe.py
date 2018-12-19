@@ -16,43 +16,48 @@
 # =============================================================================
 
 import unittest
+
 import numpy as np
+from qiskit_aqua import get_aer_backend
+from qiskit.transpiler import PassManager
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import Operator
-from qiskit_aqua.input import get_input_instance
-from qiskit_aqua import get_algorithm_instance, get_variational_form_instance, get_optimizer_instance
+from qiskit_aqua import Operator, QuantumInstance
+from qiskit_aqua.input import EnergyInput
 from qiskit_aqua.utils import decimal_to_binary
-from qiskit_aqua.algorithms.components.initial_states.varformbased import VarFormBased
+from qiskit_aqua.components.initial_states import VarFormBased
+from qiskit_aqua.components.variational_forms import RYRZ
+from qiskit_aqua.components.optimizers import SPSA
+from qiskit_aqua.algorithms import VQE
+from qiskit_aqua.algorithms import IQPE
 
 
 class TestVQE2IQPE(QiskitAquaTestCase):
 
     def setUp(self):
-        np.random.seed(0)
+        super().setUp()
+        self.random_seed = 0
+        np.random.seed(self.random_seed)
         pauli_dict = {
             'paulis': [{"coeff": {"imag": 0.0, "real": -1.052373245772859}, "label": "II"},
-                       {"coeff": {"imag": 0.0, "real": 0.39793742484318045}, "label": "ZI"},
-                       {"coeff": {"imag": 0.0, "real": -0.39793742484318045}, "label": "IZ"},
+                       {"coeff": {"imag": 0.0, "real": 0.39793742484318045}, "label": "IZ"},
+                       {"coeff": {"imag": 0.0, "real": -0.39793742484318045}, "label": "ZI"},
                        {"coeff": {"imag": 0.0, "real": -0.01128010425623538}, "label": "ZZ"},
                        {"coeff": {"imag": 0.0, "real": 0.18093119978423156}, "label": "XX"}
                        ]
         }
-        qubitOp = Operator.load_from_dict(pauli_dict)
-        self.algo_input = get_input_instance('EnergyInput')
-        self.algo_input.qubit_op = qubitOp
+        qubit_op = Operator.load_from_dict(pauli_dict)
+        self.algo_input = EnergyInput(qubit_op)
 
     def test_vqe_2_iqpe(self):
+        backend = get_aer_backend('qasm_simulator')
         num_qbits = self.algo_input.qubit_op.num_qubits
-        var_form = get_variational_form_instance('RYRZ')
-        var_form.init_args(num_qbits, 3)
-        optimizer = get_optimizer_instance('SPSA')
-        optimizer.init_args(max_trials=10)
+        var_form = RYRZ(num_qbits, 3)
+        optimizer = SPSA(max_trials=10)
         # optimizer.set_options(**{'max_trials': 500})
-        algo = get_algorithm_instance('VQE')
-        algo.setup_quantum_backend(backend='qasm_simulator')
-        algo.init_args(self.algo_input.qubit_op, 'paulis', var_form, optimizer)
-        result = algo.run()
+        algo = VQE(self.algo_input.qubit_op, var_form, optimizer, 'paulis')
+        quantum_instance = QuantumInstance(backend)
+        result = algo.run(quantum_instance)
 
         self.log.debug('VQE result: {}.'.format(result))
 
@@ -61,19 +66,12 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         num_time_slices = 50
         num_iterations = 11
 
-        state_in = VarFormBased()
-        state_in.init_args(var_form, result['opt_params'])
-
-        iqpe = get_algorithm_instance('IQPE')
-        iqpe.setup_quantum_backend(backend='qasm_simulator', shots=100, skip_transpiler=True)
-        iqpe.init_args(
-            self.algo_input.qubit_op, state_in, num_time_slices, num_iterations,
-            paulis_grouping='random',
-            expansion_mode='suzuki',
-            expansion_order=2,
-        )
-
-        result = iqpe.run()
+        state_in = VarFormBased(var_form, result['opt_params'])
+        iqpe = IQPE(self.algo_input.qubit_op, state_in, num_time_slices, num_iterations,
+                    paulis_grouping='random', expansion_mode='suzuki', expansion_order=2, shallow_circuit_concat=True)
+        quantum_instance = QuantumInstance(backend, shots=100, pass_manager=PassManager(),
+                                       seed=self.random_seed, seed_mapper=self.random_seed)
+        result = iqpe.run(quantum_instance)
 
         self.log.debug('top result str label:         {}'.format(result['top_measurement_label']))
         self.log.debug('top result in decimal:        {}'.format(result['top_measurement_decimal']))

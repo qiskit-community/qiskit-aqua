@@ -27,7 +27,7 @@ from collections import OrderedDict
 
 import numpy as np
 import numpy.random as rand
-from qiskit.tools.qi.pauli import Pauli
+from qiskit.quantum_info import Pauli
 
 from qiskit_aqua import Operator
 
@@ -80,19 +80,19 @@ def get_stableset_qubitops(w):
     shift = 0
     for i in range(num_nodes):
         for j in range(i+1, num_nodes):
-            if (w[i, j] != 0):
-                wp = np.zeros(num_nodes)
-                vp = np.zeros(num_nodes)
-                vp[i] = 1
-                vp[j] = 1
-                pauli_list.append([1.0, Pauli(vp, wp)])
+            if w[i, j] != 0:
+                xp = np.zeros(num_nodes, dtype=np.bool)
+                zp = np.zeros(num_nodes, dtype=np.bool)
+                zp[i] = True
+                zp[j] = True
+                pauli_list.append([1.0, Pauli(zp, xp)])
                 shift += 1
     for i in range(num_nodes):
         degree = np.sum(w[i, :])
-        wp = np.zeros(num_nodes)
-        vp = np.zeros(num_nodes)
-        vp[i] = 1
-        pauli_list.append([degree - 1/2, Pauli(vp, wp)])
+        xp = np.zeros(num_nodes, dtype=np.bool)
+        zp = np.zeros(num_nodes, dtype=np.bool)
+        zp[i] = True
+        pauli_list.append([degree - 1/2, Pauli(zp, xp)])
     return Operator(paulis=pauli_list), shift - num_nodes/2
 
 

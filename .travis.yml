@@ -1,0 +1,72 @@
+# Copyright 2018, IBM.
+#
+# This source code is licensed under the Apache License, Version 2.0 found in
+# the LICENSE.txt file in the root directory of this source tree.
+
+notifications:
+    on_success: change
+    on_failure: always
+
+cache: pip
+os: linux
+dist: trusty
+
+language: python
+python:
+  - "3.6"
+
+stage_dependencies: &stage_dependencies
+  # Install Dependencies
+  # The env. variable MASTER_BRANCH_DEPENDENCIES forces dependencies used from master
+  env:
+    - >
+      MASTER_BRANCH_DEPENDENCIES=true
+      CMAKE_FLAGS="-D CMAKE_CXX_COMPILER=g++-5 -D ENABLE_TARGETS_QA=False -D WHEEL_TAG=-pmanylinux1_x86_64 -D STATIC_LINKING=True"
+  addons:
+    apt:
+        sources:
+            - ubuntu-toolchain-r-test
+        packages:
+            - liblapack-dev
+            - libblas-dev
+            - g++-5
+  before_install:
+    # download Qiskit Terra master and unzip it only if forced from master or not stable branch, otherwise use the pypi version
+    - |
+      if [ ${MASTER_BRANCH_DEPENDENCIES} = "true" ] || [ ${TRAVIS_BRANCH} != "stable" ]; then
+        wget https://codeload.github.com/Qiskit/qiskit-terra/zip/master -O /tmp/qiskit-terra.zip
+        unzip /tmp/qiskit-terra.zip -d /tmp/
+        # Install Qiskit Terra requirements.
+        pip install -U -r /tmp/qiskit-terra-master/requirements.txt
+        pip install -U -r /tmp/qiskit-terra-master/requirements-dev.txt
+        # Create the basic cmake structure, setting out/ as the default dir.
+        cd /tmp/qiskit-terra-master
+        mkdir out && cd out && cmake $CMAKE_FLAGS ..
+        # Compile the executables
+        make
+        # Install local Qiskit Terra
+        pip install -e /tmp/qiskit-terra-master
+        # back to current repo directory
+        cd $TRAVIS_BUILD_DIR
+      fi
+  install:
+    # install Aqua and dev requirements
+    - pip install -e $TRAVIS_BUILD_DIR
+    - pip install -U -r requirements-dev.txt
+
+# Define the order of the stages.
+stages:
+  - test first half
+  - test second half
+
+jobs:
+  include:
+    - stage: test first half
+      <<: *stage_dependencies
+      script:
+        - python test/customtests.py 0 -end 21
+
+    - stage: test second half
+      <<: *stage_dependencies
+      script:
+        - python test/customtests.py 21

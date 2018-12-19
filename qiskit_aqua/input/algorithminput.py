@@ -15,36 +15,29 @@
 # limitations under the License.
 # =============================================================================
 
+from qiskit_aqua import Pluggable
+from abc import abstractmethod
+import copy
+from qiskit_aqua import AquaError
 
-from abc import ABC, abstractmethod
 
-from qiskit_aqua import AlgorithmError
-
-
-class AlgorithmInput(ABC):
+class AlgorithmInput(Pluggable):
 
     _PROBLEM_SET = ['energy', 'excited_states', 'eoh', 'search', 'svm_classification', 'ising']
 
     @abstractmethod
-    def __init__(self, configuration=None):
-        self._configuration = configuration
-        if 'problems' not in configuration or len(configuration['problems']) <= 0:
-            raise AlgorithmError('Algorithm Input missing or empty configuration problems')
+    def __init__(self):
+        super().__init__()
+        if 'problems' not in self.configuration or len(self.configuration['problems']) <= 0:
+            raise AquaError('Algorithm Input missing or empty configuration problems')
 
-        for problem in configuration['problems']:
+        for problem in self.configuration['problems']:
             if problem not in AlgorithmInput._PROBLEM_SET:
-                raise AlgorithmError('Problem {} not in known problem set {}'.format(problem, AlgorithmInput._PROBLEM_SET))
+                raise AquaError('Problem {} not in known problem set {}'.format(problem, AlgorithmInput._PROBLEM_SET))
 
     @property
     def all_problems(self):
-        return self._PROBLEM_SET.copy()
-
-    @property
-    def configuration(self):
-        """
-        Gets the configuration of this input form
-        """
-        return self._configuration
+        return copy.deepcopy(self._PROBLEM_SET)
 
     @property
     def problems(self):

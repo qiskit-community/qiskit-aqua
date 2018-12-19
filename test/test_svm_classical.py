@@ -14,17 +14,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-import unittest
-
 import numpy as np
 
 from qiskit_aqua import run_algorithm
-from qiskit_aqua.input import get_input_instance
+from qiskit_aqua.input import SVMInput
 from test.common import QiskitAquaTestCase
 
 
 class TestSVMClassical(QiskitAquaTestCase):
     def setUp(self):
+        super().setUp()
         pass
 
     def test_classical_binary(self):
@@ -100,10 +99,7 @@ class TestSVMClassical(QiskitAquaTestCase):
             }
         }
 
-        algo_input = get_input_instance('SVMInput')
-        algo_input.training_dataset = training_input
-        algo_input.test_dataset = test_input
-        algo_input.datapoints = total_array
+        algo_input = SVMInput(training_input, test_input, total_array)
 
         result = run_algorithm(params, algo_input)
         self.assertEqual(result['testing_accuracy'], 1.0)
@@ -215,10 +211,7 @@ class TestSVMClassical(QiskitAquaTestCase):
             'multiclass_extension': {'name': 'OneAgainstRest'}
         }
 
-        algo_input = get_input_instance('SVMInput')
-        algo_input.training_dataset = training_input
-        algo_input.test_dataset = test_input
-        algo_input.datapoints = total_array
+        algo_input = SVMInput(training_input, test_input, total_array)
 
         result = run_algorithm(params, algo_input)
         self.assertEqual(result['testing_accuracy'], 1.0)
@@ -331,10 +324,7 @@ class TestSVMClassical(QiskitAquaTestCase):
 
         }
 
-        algo_input = get_input_instance('SVMInput')
-        algo_input.training_dataset = training_input
-        algo_input.test_dataset = test_input
-        algo_input.datapoints = total_array
+        algo_input = SVMInput(training_input, test_input, total_array)
 
         result = run_algorithm(params, algo_input)
         self.assertEqual(result['testing_accuracy'], 1.0)
@@ -447,10 +437,7 @@ class TestSVMClassical(QiskitAquaTestCase):
             'multiclass_extension': {'name': 'ErrorCorrectingCode', 'code_size': 5},
         }
 
-        algo_input = get_input_instance('SVMInput')
-        algo_input.training_dataset = training_input
-        algo_input.test_dataset = test_input
-        algo_input.datapoints = total_array
+        algo_input = SVMInput(training_input, test_input, total_array)
 
         result = run_algorithm(params, algo_input)
         self.assertEqual(result['testing_accuracy'], 1.0)

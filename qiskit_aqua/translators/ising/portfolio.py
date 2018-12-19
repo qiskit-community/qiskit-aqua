@@ -20,9 +20,9 @@
 from collections import OrderedDict
 
 import numpy as np
-from qiskit.tools.qi.pauli import Pauli
+from qiskit.quantum_info import Pauli
 
-from qiskit_aqua.operator import Operator
+from qiskit_aqua import Operator
 
 from sklearn.datasets import make_spd_matrix
 
@@ -69,19 +69,19 @@ def get_portfolio_qubitops(mu, sigma, q, budget, penalty):
         i_ = i
         # i_ = n-i-1
         if np.abs(mu_z[i_]) > 1e-6:
-            wp = np.zeros(n)
-            vp = np.zeros(n)
-            vp[i_] = 1
-            pauli_list.append([mu_z[i_], Pauli(vp, wp)])
+            xp = np.zeros(n, dtype=np.bool)
+            zp = np.zeros(n, dtype=np.bool)
+            zp[i_] = True
+            pauli_list.append([mu_z[i_], Pauli(zp, xp)])
         for j in range(i):
             j_ = j
             # j_ = n-j-1
             if np.abs(sigma_z[i_, j_]) > 1e-6:
-                wp = np.zeros(n)
-                vp = np.zeros(n)
-                vp[i_] = 1
-                vp[j_] = 1
-                pauli_list.append([2*sigma_z[i_, j_], Pauli(vp, wp)])
+                xp = np.zeros(n, dtype=np.bool)
+                zp = np.zeros(n, dtype=np.bool)
+                zp[i_] = True
+                zp[j_] = True
+                pauli_list.append([2*sigma_z[i_, j_], Pauli(zp, xp)])
         offset += sigma_z[i_, i_]
 
     return Operator(paulis=pauli_list), offset

@@ -21,75 +21,68 @@ from scipy.optimize import rosen
 import numpy as np
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import get_optimizer_instance
+from qiskit_aqua.components.optimizers import (CG, COBYLA, L_BFGS_B, NELDER_MEAD,
+                                               POWELL, SLSQP, SPSA, TNC)
 
 
 class TestOptimizers(QiskitAquaTestCase):
 
     def setUp(self):
+        super().setUp()
         np.random.seed(50)
         pass
 
     def _optimize(self, optimizer):
         x0 = [1.3, 0.7, 0.8, 1.9, 1.2]
         res = optimizer.optimize(len(x0), rosen, initial_point=x0)
-        np.testing.assert_array_almost_equal(res[0], [1.0]*len(x0), decimal=2)
+        np.testing.assert_array_almost_equal(res[0], [1.0] * len(x0), decimal=2)
         return res
 
     def test_cg(self):
-        optimizer = get_optimizer_instance('CG')
+        optimizer = CG(tol=1e-06)
         optimizer.set_options(**{'maxiter': 1000})
-        optimizer.init_args(tol=1e-06)
         res = self._optimize(optimizer)
         self.assertLessEqual(res[2], 10000)
 
     def test_cobyla(self):
-        optimizer = get_optimizer_instance('COBYLA')
+        optimizer = COBYLA(tol=1e-06)
         optimizer.set_options(**{'maxiter': 100000})
-        optimizer.init_args(tol=1e-06)
         res = self._optimize(optimizer)
         self.assertLessEqual(res[2], 100000)
 
     def test_l_bfgs_b(self):
-        optimizer = get_optimizer_instance('L_BFGS_B')
+        optimizer = L_BFGS_B()
         optimizer.set_options(**{'maxfun': 1000})
-        optimizer.init_args()
         res = self._optimize(optimizer)
         self.assertLessEqual(res[2], 10000)
 
     def test_nelder_mead(self):
-        optimizer = get_optimizer_instance('NELDER_MEAD')
+        optimizer = NELDER_MEAD(tol=1e-06)
         optimizer.set_options(**{'maxfev': 10000})
-        optimizer.init_args(tol=1e-06)
         res = self._optimize(optimizer)
         self.assertLessEqual(res[2], 10000)
 
     def test_powell(self):
-        optimizer = get_optimizer_instance('POWELL')
+        optimizer = POWELL(tol=1e-06)
         optimizer.set_options(**{'maxfev': 10000})
-        optimizer.init_args(tol=1e-06)
         res = self._optimize(optimizer)
         self.assertLessEqual(res[2], 10000)
 
     def test_slsqp(self):
-        optimizer = get_optimizer_instance('SLSQP')
+        optimizer = SLSQP(tol=1e-06)
         optimizer.set_options(**{'maxiter': 1000})
-        optimizer.init_args(tol=1e-06)
         res = self._optimize(optimizer)
         self.assertLessEqual(res[2], 10000)
 
     @unittest.skip("Skipping SPSA as it does not do well on non-convex rozen")
     def test_spsa(self):
-        optimizer = get_optimizer_instance('SPSA')
-        optimizer.set_options(**{})
-        optimizer.init_args(max_trials=10000)
+        optimizer = SPSA(max_trials=10000)
         res = self._optimize(optimizer)
         self.assertLessEqual(res[2], 100000)
 
     def test_tnc(self):
-        optimizer = get_optimizer_instance('TNC')
+        optimizer = TNC(tol=1e-06)
         optimizer.set_options(**{'maxiter': 1000})
-        optimizer.init_args(tol=1e-06)
         res = self._optimize(optimizer)
         self.assertLessEqual(res[2], 10000)
 

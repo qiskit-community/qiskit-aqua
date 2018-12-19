@@ -15,18 +15,16 @@
 # limitations under the License.
 # =============================================================================
 
-import copy
-
-from qiskit_aqua import AlgorithmError, Operator
+from qiskit_aqua import AquaError, Operator
 from qiskit_aqua.input import AlgorithmInput
 
 
 class EnergyInput(AlgorithmInput):
 
-    PROP_KEY_QUBITOP = 'qubitop'
+    PROP_KEY_QUBITOP = 'qubit_op'
     PROP_KEY_AUXOPS = 'aux_ops'
 
-    ENERGYINPUT_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'EnergyInput',
         'description': 'Energy problem input',
         'input_schema': {
@@ -39,8 +37,8 @@ class EnergyInput(AlgorithmInput):
                     'default': {}
                 },
                 PROP_KEY_AUXOPS: {
-                    'type': 'array',
-                    'default': []
+                    'type': ['array', 'null'],
+                    'default': None
                 }
             },
             'additionalProperties': False
@@ -48,10 +46,11 @@ class EnergyInput(AlgorithmInput):
         'problems': ['energy', 'excited_states', 'eoh', 'ising']
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or copy.deepcopy(self.ENERGYINPUT_CONFIGURATION))
-        self._qubit_op = None
-        self._aux_ops = []
+    def __init__(self, qubit_op, aux_ops=None):
+        self.validate(locals())
+        super().__init__()
+        self._qubit_op = qubit_op
+        self._aux_ops = aux_ops or []
 
     @property
     def qubit_op(self):
@@ -65,6 +64,18 @@ class EnergyInput(AlgorithmInput):
     def aux_ops(self):
         return self._aux_ops
 
+    def validate(self, args_dict):
+        params = {}
+        for key, value in args_dict.items():
+            if key == EnergyInput.PROP_KEY_QUBITOP:
+                value = value.save_to_dict() if value is not None else {}
+            elif key == EnergyInput.PROP_KEY_AUXOPS:
+                value = [value[i].save_to_dict() for i in range(len(value))] if value is not None else None
+
+            params[key] = value
+
+        super().validate(params)
+
     def add_aux_op(self, aux_op):
         self._aux_ops.append(aux_op)
 
@@ -77,11 +88,13 @@ class EnergyInput(AlgorithmInput):
         params[EnergyInput.PROP_KEY_AUXOPS] = [self._aux_ops[i].save_to_dict() for i in range(len(self._aux_ops))]
         return params
 
-    def from_params(self, params):
+    @classmethod
+    def from_params(cls, params):
         if EnergyInput.PROP_KEY_QUBITOP not in params:
-            raise AlgorithmError("Qubit operator is required.")
+            raise AquaError("Qubit operator is required.")
         qparams = params[EnergyInput.PROP_KEY_QUBITOP]
-        self._qubit_op = Operator.load_from_dict(qparams)
+        qubit_op = Operator.load_from_dict(qparams)
         if EnergyInput.PROP_KEY_AUXOPS in params:
             auxparams = params[EnergyInput.PROP_KEY_AUXOPS]
-            self._aux_ops = [Operator.load_from_dict(auxparams[i]) for i in range(len(auxparams))]
+            aux_ops = [Operator.load_from_dict(auxparams[i]) for i in range(len(auxparams))]
+        return cls(qubit_op, aux_ops)
