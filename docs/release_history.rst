@@ -49,6 +49,7 @@ we have added the following new features :
    - Fixed income asset pricing: expected value (using multivariate distributions)
 
 In this release, we have also removed the following new features:
+
 - ``HartreeFock`` component of pluggable type ``InitialState` moved to Qiskit Chemistry
 - ``UCCSD`` component of pluggable type ``VariationalForm`` moved to Qiskit Chemistry
 
