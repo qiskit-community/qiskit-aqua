@@ -29,15 +29,15 @@ Added
 - Multiple-Controlled-NOT (cnx) operation
 - Pluggable algorithmic component ``RandomDistribution``
 - Concrete implementations of ``RandomDistribution``: ``BernoulliDistribution``, ``LogNormalDistribution``, 
-``MultivariateDistribution``, ``MultivariateNormalDistribution``, ``MultivariateUniformDistribution``, ``NormalDistribution``, 
-``UniformDistribution``, and ``UnivariateDistribution``
+   ``MultivariateDistribution``, ``MultivariateNormalDistribution``, ``MultivariateUniformDistribution``, ``NormalDistribution``,
+   ``UniformDistribution``, and ``UnivariateDistribution``
 - Pluggable algorithmic component:
 - Concrete implementations of ``UncertaintyProblem``: ``FixedIncomeExpectedValue``, ``EuropeanCallExpectedValue``, and 
-``EuropeanCallDelta``
+   ``EuropeanCallDelta``
 - Amplitude Estimation algorithm
 - Qiskit Optimization: New Ising models for optimization problems exact cover, set packing, vertex cover, clique, and graph partition
 - Qiskit AI:
-   -  New feature maps extending the ``FeatureMap`` pluggable interface: ``PauliExpansion`` and ``PauliZExpansion``
+   - New feature maps extending the ``FeatureMap`` pluggable interface: ``PauliExpansion`` and ``PauliZExpansion``
    - Training model serialization/deserialization mechanism
 - Qiskit Finance:
    - Amplitude estimation for Bernoulli random variable: illustration of amplitude estimation on a single qubit problem
@@ -45,10 +45,11 @@ Added
    - European call option: expected value and delta (using univariate distributions)
    - Fixed income asset pricing: expected value (using multivariate distributions)
    
- Removed
- -------
- - ``HartreeFock`` component of pluggable type ``InitialState` moved to Qiskit Chemistry
- - ``UCCSD`` component of pluggable type ``VariationalForm`` moved to Qiskit Chemistry
+Removed
+-------
+
+- ``HartreeFock`` component of pluggable type ``InitialState` moved to Qiskit Chemistry
+- ``UCCSD`` component of pluggable type ``VariationalForm`` moved to Qiskit Chemistry
 
 `0.3.1`_ - 2018-11-29
 =====================
