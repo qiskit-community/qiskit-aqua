@@ -1,4 +1,4 @@
-.. _random-distribution:
+.. _random-distributions:
 
 ====================
 Random Distributions
