@@ -18,6 +18,9 @@ The format is based on `Keep a Changelog`_.
 `UNRELEASED`_
 =============
 
+`0.4.0`_ - 2018-12-19
+=====================
+
 Added
 -----
 
@@ -96,7 +99,8 @@ Changed
 - Changed description and change package name to dashes in setup.py.
 - Update description and fixed links in readme
 
-.. _UNRELEASED: https://github.com/Qiskit/qiskit-chemistry/compare/0.3.0...HEAD
+.. _UNRELEASED: https://github.com/Qiskit/qiskit-chemistry/compare/0.4.0...HEAD
+.. _0.4.0: https://github.com/Qiskit/qiskit-chemistry/compare/0.3.0...0.4.0
 .. _0.3.0: https://github.com/Qiskit/qiskit-chemistry/compare/0.2.0...0.3.0
 .. _0.2.0: https://github.com/Qiskit/qiskit-chemistry/compare/0.1.1...0.2.0
 .. _0.1.1: https://github.com/Qiskit/qiskit-chemistry/compare/0.1.0...0.1.1
