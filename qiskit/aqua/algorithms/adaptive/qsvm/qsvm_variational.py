@@ -24,6 +24,7 @@ from qiskit.aqua import AquaError, PluggableType, get_pluggable_class
 from qiskit.aqua.algorithms.adaptive.qsvm import (cost_estimate, return_probabilities)
 from qiskit.aqua.utils import (get_feature_dimension, map_label_to_class_name,
                                split_dataset_to_data_and_labels)
+from sklearn.utils import shuffle
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +46,10 @@ class QSVMVariational(QuantumAlgorithm):
                 'batch_mode': {
                     'type': 'boolean',
                     'default': False
+                },
+                'minibatch_size': {
+                    'type': 'integer',
+                    'default': -1
                 }
             },
             'additionalProperties': False
@@ -67,7 +72,8 @@ class QSVMVariational(QuantumAlgorithm):
     }
 
     def __init__(self, optimizer, feature_map, var_form, training_dataset,
-                 test_dataset=None, datapoints=None, batch_mode=False):
+                 test_dataset=None, datapoints=None, batch_mode=False,
+                 minibatch_size = -1):
         """Initialize the object
         Args:
             training_dataset (dict): {'A': numpy.ndarray, 'B': numpy.ndarray, ...}
@@ -105,6 +111,7 @@ class QSVMVariational(QuantumAlgorithm):
         self._var_form = var_form
         self._num_qubits = self._feature_map.num_qubits
         self._optimizer.set_batch_mode(batch_mode)
+        self._minibatch_size = minibatch_size
         self._ret = {}
 
     @classmethod
@@ -112,6 +119,7 @@ class QSVMVariational(QuantumAlgorithm):
         algo_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
         override_spsa_params = algo_params.get('override_SPSA_params')
         batch_mode = algo_params.get('batch_mode')
+        minibatch_size = algo_params.get('minibatch_size')
 
         # Set up optimizer
         opt_params = params.get(QuantumAlgorithm.SECTION_KEY_OPTIMIZER)
@@ -140,7 +148,8 @@ class QSVMVariational(QuantumAlgorithm):
                                        var_form_params['name']).init_params(var_form_params)
 
         return cls(optimizer, feature_map, var_form, algo_input.training_dataset,
-                   algo_input.test_dataset, algo_input.datapoints, batch_mode)
+                   algo_input.test_dataset, algo_input.datapoints, batch_mode,
+                   minibatch_size)
 
     def construct_circuit(self, x, theta, measurement=False):
         """
@@ -239,13 +248,20 @@ class QSVMVariational(QuantumAlgorithm):
         self._quantum_instance = self._quantum_instance if quantum_instance is None else quantum_instance
 
         def _cost_function_wrapper(theta):
-            predicted_probs, predicted_labels = self._get_prediction(data, theta)
+            if self._minibatch_size > 0 :
+                batch, batch_labels = shuffle(data, labels)
+                batch_size = min(self._minibatch_size, len(data))
+            else :
+                batch, batch_labels = data, labels
+                batch_size = len(data)
+
+            predicted_probs, predicted_labels = self._get_prediction(batch[0:batch_size], theta)
             total_cost = []
             if isinstance(predicted_probs, list):
                 for predicted_prob in predicted_probs:
                     total_cost.append(self._cost_function(predicted_prob, labels))
             else:
-                total_cost.append(self._cost_function(predicted_probs, labels))
+                total_cost.append(self._cost_function(predicted_probs, batch_labels[0:batch_size]))
             return total_cost if len(total_cost) > 1 else total_cost[0]
 
         initial_theta = self.random.randn(self._var_form.num_parameters)
