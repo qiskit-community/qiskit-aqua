@@ -84,7 +84,7 @@ class QAOA(VQE):
             operator_mode (str): operator mode, used for eval of operator
             p (int) : the integer parameter p as specified in https://arxiv.org/abs/1411.4028
             optimizer (Optimizer) : the classical optimization algorithm.
-            initial_point (str) : optimizer initial point.
+            initial_point (numpy.ndarray) : optimizer initial point.
         """
         self.validate(locals())
         var_form = QAOAVarForm(operator, p)

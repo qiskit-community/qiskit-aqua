@@ -5,7 +5,7 @@ Uncertainty Problems
 ====================
 
 Uncertainty is present in most realistic applications, and often it is necessary to evaluate
-the behavior of a a system under uncertain data.
+the behavior of a system under uncertain data.
 For instance, in finance, it is of interest to evaluate expected value or risk metrics of
 financial products that depend on underlying stock prices, economic factors, or changing interest rates.
 Classically, such problems are often evaluated using Monte Carlo simulation.
