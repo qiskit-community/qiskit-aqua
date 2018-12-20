@@ -22,7 +22,7 @@ Table of Contents
    Running an Experiment <aqua_chemistry_execution>
    Contributing to Aqua Chemistry <aqua_chemistry_extending>
    Translators <aqua_chemistry_translators>
-   Aqua Chemistry SDK Reference <qiskit_aqua_chemistry>
+   Qiskit Chemistry SDK Reference <qiskit_chemistry>
 
 ==============
 Python Modules
@@ -35,7 +35,7 @@ Main Modules
 .. autosummary::
    :nosignatures:
 
-   qiskit_aqua_chemistry
+   qiskit_chemistry
 
 :ref:`modindex`
 
