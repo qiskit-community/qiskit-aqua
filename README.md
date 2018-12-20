@@ -58,7 +58,7 @@ Python distribution, as it comes with all of these dependencies pre-installed.
 We encourage you to install Qiskit Chemistry via pip, a Python package manager:
 
 ```
-pip install qiskit-aqua-chemistry
+pip install qiskit-chemistry
 ```
 
 pip will handle all dependencies automatically and you will always install the latest (and well-tested)

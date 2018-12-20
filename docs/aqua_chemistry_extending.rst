@@ -59,7 +59,7 @@ ways for a component to be dynamically discovered and loaded by Aqua Chemistry a
        long_description = """New Package for Aqua Chemistry Component"""
     
        requirements = [
-          "qiskit-aqua-chemistry>=0.4.0",
+          "qiskit-chemistry>=0.4.0",
           "qiskit-terra>=0.7.0,<0.8",
           "numpy>=1.13"
        ]
