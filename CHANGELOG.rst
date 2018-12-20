@@ -24,7 +24,7 @@ The format is based on `Keep a Changelog`_.
 Changed
 -------
 
-- Changed package name ans imports to qiskit_chemistry
+- Changed package name and imports to qiskit_chemistry
 
 Fixed
 -----
