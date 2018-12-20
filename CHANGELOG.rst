@@ -18,7 +18,7 @@ The format is based on `Keep a Changelog`_.
 `UNRELEASED`_
 =============
 
-`0.4.1`_ - 2018-12-20'
+`0.4.1`_ - 2018-12-21'
 =====================
 
 Changed
