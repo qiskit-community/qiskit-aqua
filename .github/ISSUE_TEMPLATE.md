@@ -5,7 +5,7 @@
 
 ### Informations
 
-- **Qiskit Aqua Chemistry version**:
+- **Qiskit Chemistry version**:
 - **Python version**:
 - **Operating system**:
 
