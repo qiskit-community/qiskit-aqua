@@ -21,7 +21,7 @@ import json
 
 class UIPreferences(object):
 
-    _FILENAME = '.qiskit_aqua_chemistry_ui'
+    _FILENAME = '.qiskit_chemistry_ui'
     _VERSION = '1.0'
 
     def __init__(self):

@@ -18,6 +18,20 @@ The format is based on `Keep a Changelog`_.
 `UNRELEASED`_
 =============
 
+`0.4.1`_ - 2018-12-20'
+=====================
+
+Changed
+-------
+
+- Changed package name to qiskit_chemistry
+
+Fixed
+-----
+
+- "ModuleNotFoundError unavailable in python 3.5"
+
+
 `0.4.0`_ - 2018-12-19
 =====================
 
@@ -99,7 +113,8 @@ Changed
 - Changed description and change package name to dashes in setup.py.
 - Update description and fixed links in readme
 
-.. _UNRELEASED: https://github.com/Qiskit/qiskit-chemistry/compare/0.4.0...HEAD
+.. _UNRELEASED: https://github.com/Qiskit/qiskit-chemistry/compare/0.4.1...HEAD
+.. _0.4.1: https://github.com/Qiskit/qiskit-chemistry/compare/0.4.0...0.4.1
 .. _0.4.0: https://github.com/Qiskit/qiskit-chemistry/compare/0.3.0...0.4.0
 .. _0.3.0: https://github.com/Qiskit/qiskit-chemistry/compare/0.2.0...0.3.0
 .. _0.2.0: https://github.com/Qiskit/qiskit-chemistry/compare/0.1.1...0.2.0

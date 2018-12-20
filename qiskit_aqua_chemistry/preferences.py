@@ -25,7 +25,7 @@ class Preferences(object):
 
     PACKAGE_TYPE_DRIVERS = 'drivers'
     PACKAGE_TYPE_CHEMISTRY = 'chemistry'
-    _FILENAME = '.qiskit_aqua_chemistry'
+    _FILENAME = '.qiskit_chemistry'
     _VERSION = '1.0'
 
     def __init__(self):

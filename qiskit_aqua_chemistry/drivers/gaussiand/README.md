@@ -1,4 +1,4 @@
-# Qiskit Aqua Chemistry
+# Qiskit Chemistry
 
 ## Electronic structure driver for Gaussian 16
 
@@ -7,17 +7,17 @@ Gaussian 16 is a commercial program for computational chemistry, see http://gaus
 The driver accesses electronic structure information from Gaussian 16 via the Gaussian supplied open-source 
 interfacing code available from Gaussian at http://www.gaussian.com/interfacing/
 
-In the folder here called 'gauopen' the Python part of the above interfacing code, as needed by Qiskit Aqua Chemistry,
+In the folder here called 'gauopen' the Python part of the above interfacing code, as needed by Qiskit Chemistry,
 has been made available. It is licensed under a [Gaussian Open-Source Public License](./gauopen/LICENSE.txt) which can
 also be found in this folder.
 
 Part of this interfacing code, qcmatrixio.F, requires compilation to a Python native extension, however
-Qiskit Aqua Chemistry comes with pre-built binaries for most common platforms. If there is no pre-built binary
+Qiskit Chemistry comes with pre-built binaries for most common platforms. If there is no pre-built binary
 matching your platform then it will be necessary to compile this file as per the instructions below.  
 
 ### Compiling the Fortran interfacing code
 
-If no pre-built native extension binary, as supplied with Qiskit Aqua Chemistry, works for your platform then
+If no pre-built native extension binary, as supplied with Qiskit Chemistry, works for your platform then
 to use the Gaussian driver on your machine the Fortran file qcmatrixio.F must be compiled into object code that can
 be used by Python. This is accomplished using f2py, which is part of numpy https://docs.scipy.org/doc/numpy/f2py/
 
@@ -69,7 +69,7 @@ alias enable_gaussian='. $g16root/g16/bsd/g16.profile'
 The above assumes that Gaussian 16 was placed in the /Applications folder and that ~/.gaussian is the full path to
 the selected scratch folder, where Gaussian 16 stores its temporary files. 
  
-Now, before executing Qiskit Aqua Chemistry, to use it with Gaussian, you will have to run the `enable_gaussian` command.
+Now, before executing Qiskit Chemistry, to use it with Gaussian, you will have to run the `enable_gaussian` command.
 This, however, may generate the following error:
 ```
 bash: ulimit: open files: cannot modify limit: Invalid argument
@@ -90,7 +90,7 @@ ulimit -n 65536 65536
 
 ## Input file example
 
-To configure a molecule, on which to do a chemistry experiment with Qiskit Aqua Chemistry, create a GAUSSIAN section
+To configure a molecule, on which to do a chemistry experiment with Qiskit Chemistry, create a GAUSSIAN section
 in the input file as per the example below. Here the molecule, basis set and other options are specified according
 to the GAUSSIAN control file, so blank lines, control line syntax etc. according to Gaussian should be followed.
 ```

@@ -8,7 +8,7 @@ about: Create a report to help us improve 🤔.
 
 ### Informations
 
-- **Qiskit Aqua Chemistry version**:
+- **Qiskit Chemistry version**:
 - **Python version**:
 - **Operating system**:
 

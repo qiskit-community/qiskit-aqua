@@ -28,7 +28,7 @@ We encourage you to install Aqua Chemistry via the `pip <https://pypi.org/projec
 
 .. code:: sh
 
-   pip install qiskit-aqua-chemistry
+   pip install qiskit-chemistry
 
 pip will handle all dependencies automatically (including the dependencies on Aqua and Qiskit Core). and you will always
 install the latest (and well-tested) release version.
