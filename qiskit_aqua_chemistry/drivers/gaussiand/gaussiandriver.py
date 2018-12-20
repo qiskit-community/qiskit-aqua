@@ -35,7 +35,7 @@ g16prog = which(GAUSSIAN_16)
 
 try:
     from .gauopen.QCMatEl import MatEl
-except ModuleNotFoundError as mnfe:
+except ImportError as mnfe:
     if mnfe.name == 'qcmatrixio':
         logger.info('qcmatrixio extension not found. See Gaussian driver readme to build qcmatrixio.F using f2py')
     else:

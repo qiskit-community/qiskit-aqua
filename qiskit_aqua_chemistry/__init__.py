@@ -15,7 +15,7 @@
 # limitations under the License.
 # =============================================================================
 
-"""Main qiskit_aqua_chemistry public functionality."""
+"""Main public functionality."""
 
 from .aqua_chemistry_error import AquaChemistryError
 from .preferences import Preferences
@@ -28,7 +28,7 @@ from ._logging import (get_logging_level,
                        get_aqua_chemistry_logging,
                        set_aqua_chemistry_logging)
 
-__version__ = '0.4.0'
+__version__ = '0.4.1'
 
 __all__ = ['AquaChemistryError',
            'Preferences',

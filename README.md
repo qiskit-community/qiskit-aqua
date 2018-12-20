@@ -95,7 +95,7 @@ Now that you have installed Qiskit Chemistry you can run an experiment, for exam
 state energy of a molecule.
 
 Qiskit Chemistry has both [GUI](#gui) and [command line](#command-line) tools, which may be used when conducting
-chemistry simulation experiments on a quantum machine. Both can load and run an [input file](qiskit_aqua_chemistry#input-file) specifying the molecule,
+chemistry simulation experiments on a quantum machine. Both can load and run an [input file](qiskit_chemistry#input-file) specifying the molecule,
 an algorithm to be used and its configuration, and various other options to tailor the experiment. You can find several
 input files to experiment with in the Qiskit Tutorials repository's
 [chemistry input file folder](https://github.com/Qiskit/qiskit-tutorials/tree/master/community/aqua/chemistry/input_files).
@@ -108,22 +108,22 @@ can also be created, edited and saved with validation of values to provide ease 
 using the input file. The pip installation creates a script that allows you to start the GUI from the
 command line, as follows:
 
-`qiskit_aqua_chemistry_ui`
+`qiskit_chemistry_ui`
 
 If you clone and run directly from the repository, instead of using
 pip install, then it can be run using:
 
-`python qiskit_aqua_chemistry/ui`
+`python qiskit_aqua_chemistry_ui`
 
 from the root folder of the qiskit-chemistry repository clone.
 
 ### Command Line
 
-Summary of qiskit_aqua_chemistry command line options:
+Summary of qiskit_chemistry command line options:
 
-`qiskit_aqua_chemistry_cmd`:
+`qiskit_chemistry_cmd`:
 ```
-usage: qiskit_aqua_chemistry [-h] [-o output | -jo json output] input
+usage: qiskit_chemistry_cmd [-h] [-o output | -jo json output] input
 
 Quantum Chemistry Program.
 
@@ -139,7 +139,7 @@ optional arguments:
 If you clone and run directly from the repository, instead of using
 pip install, then it can be run using
 
-`python qiskit_aqua_chemistry`
+`python qiskit_aqua_chemistry_cmd`
 
 from the root folder of the qiskit-chemistry repository clone.
 

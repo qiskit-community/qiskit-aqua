@@ -62,7 +62,7 @@ as follows:
 
 .. code:: sh
 
-   qiskit_aqua_chemistry_ui
+   qiskit_chemistry_ui
 
 If you cloned Aqua Chemistry directly from the
 `GitHub repository <https://github.com/Qiskit/qiskit-chemistry>`__ instead of using ``pip
@@ -96,7 +96,7 @@ will automatically install the following command-line tool:
 
 .. code:: sh
 
-   qiskit_aqua_chemistry_cmd
+   qiskit_chemistry_cmd
 
 If you cloned Aqua Chemistry from its remote
 `GitHub repository <https://github.com/Qiskit/qiskit-chemistry>`__
@@ -112,7 +112,7 @@ Here is a summary of the command-line options:
 
 .. code:: sh
 
-   usage: qiskit_aqua_chemistry_cmd [-h] [-o output | -jo json output] input
+   usage: qiskit_chemistry_cmd [-h] [-o output | -jo json output] input
 
    Quantum Chemistry Program.
 
