@@ -113,7 +113,7 @@ command line, as follows:
 If you clone and run directly from the repository, instead of using
 pip install, then it can be run using:
 
-`python qiskit_aqua_chemistry_ui`
+`python qiskit_chemistry_ui`
 
 from the root folder of the qiskit-chemistry repository clone.
 
@@ -139,7 +139,7 @@ optional arguments:
 If you clone and run directly from the repository, instead of using
 pip install, then it can be run using
 
-`python qiskit_aqua_chemistry_cmd`
+`python qiskit_chemistry_cmd`
 
 from the root folder of the qiskit-chemistry repository clone.
 

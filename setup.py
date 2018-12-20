@@ -27,7 +27,6 @@ long_description="""<a href="https://qiskit.org/aqua" rel=nofollow>Qiskit Chemis
 
 requirements = [
     "qiskit-aqua>=0.4.0",
-    "qiskit-terra>=0.7.0,<0.8",
     "numpy>=1.13",
     "h5py",
     "psutil>=5",
@@ -96,10 +95,10 @@ setuptools.setup(
     },
     entry_points = {
         'console_scripts': [
-                'qiskit_chemistry_cmd=qiskit_aqua_chemistry_cmd.command_line:main'
+                'qiskit_chemistry_cmd=qiskit_chemistry_cmd.command_line:main'
         ],
         'gui_scripts': [
-                'qiskit_chemistry_ui=qiskit_aqua_chemistry_ui.command_line:main'
+                'qiskit_chemistry_ui=qiskit_chemistry_ui.command_line:main'
         ]
     }
 )
