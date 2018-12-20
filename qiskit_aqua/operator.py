@@ -596,8 +596,8 @@ class Operator(object):
                             else:
                                 # Measure X
                                 circuit.u2(0.0, np.pi, q[qubit_idx])  # h
-                        circuit.barrier(q[qubit_idx])
-                        circuit.measure(q[qubit_idx], c[qubit_idx])
+                    circuit.barrier(q)
+                    circuit.measure(q, c)
                     circuits.append(circuit)
             else:
                 self._check_representation("grouped_paulis")

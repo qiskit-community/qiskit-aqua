@@ -16,9 +16,12 @@ python:
   - "3.6"
 
 stage_dependencies: &stage_dependencies
-  # Install Qiskit Terra from master branch
+  # Install Dependencies
+  # The env. variable MASTER_BRANCH_DEPENDENCIES forces dependencies used from master
   env:
-    - CMAKE_FLAGS="-D CMAKE_CXX_COMPILER=g++-5 -D ENABLE_TARGETS_QA=False -D WHEEL_TAG=-pmanylinux1_x86_64 -D STATIC_LINKING=True"
+    - >
+      MASTER_BRANCH_DEPENDENCIES=true
+      CMAKE_FLAGS="-D CMAKE_CXX_COMPILER=g++-5 -D ENABLE_TARGETS_QA=False -D WHEEL_TAG=-pmanylinux1_x86_64 -D STATIC_LINKING=True"
   addons:
     apt:
         sources:
@@ -28,9 +31,9 @@ stage_dependencies: &stage_dependencies
             - libblas-dev
             - g++-5
   before_install:
-    # download Qiskit Terra master and unzip it only if not in stable branch, otherwise use the pypi version
+    # download Qiskit Terra master and unzip it only if forced from master or not stable branch, otherwise use the pypi version
     - |
-      if [ ${TRAVIS_BRANCH} != "stable" ]; then
+      if [ ${MASTER_BRANCH_DEPENDENCIES} = "true" ] || [ ${TRAVIS_BRANCH} != "stable" ]; then
         wget https://codeload.github.com/Qiskit/qiskit-terra/zip/master -O /tmp/qiskit-terra.zip
         unzip /tmp/qiskit-terra.zip -d /tmp/
         # Install Qiskit Terra requirements.
@@ -55,7 +58,6 @@ stage_dependencies: &stage_dependencies
 stages:
   - test first half
   - test second half
-  - deploy doc
 
 jobs:
   include:
@@ -68,32 +70,3 @@ jobs:
       <<: *stage_dependencies
       script:
         - python test/customtests.py 21
-
-    # github pages documentation update
-    - stage: deploy doc
-      if: branch = stable and repo = Qiskit/qiskit-aqua and type = push
-      install:
-        # download Qiskit Terra stable branch and unzip it
-        - wget https://codeload.github.com/Qiskit/qiskit-terra/zip/stable -O /tmp/qiskit-terra.zip
-        - unzip /tmp/qiskit-terra.zip -d /tmp/
-        - mv /tmp/qiskit-terra-stable $TRAVIS_BUILD_DIR/../qiskit-terra
-        # install Qiskit Terra and dev requirements
-        - pip install -e $TRAVIS_BUILD_DIR/../qiskit-terra
-        - pip install -U -r $TRAVIS_BUILD_DIR/../qiskit-terra/requirements-dev.txt
-        # download Aqua Chemistry stable branch and unzip it
-        - wget https://codeload.github.com/Qiskit/qiskit-chemistry/zip/stable -O /tmp/qiskit-chemistry.zip
-        - unzip /tmp/qiskit-chemistry.zip -d /tmp/
-        - mv /tmp/qiskit-chemistry-stable $TRAVIS_BUILD_DIR/../qiskit-chemistry
-      script:
-        # install Aqua and dev requirements
-        - pip install -e $TRAVIS_BUILD_DIR
-        - pip install -U -r requirements-dev.txt
-        # install Aqua Chemistry and dev requirements
-        - pip install -e $TRAVIS_BUILD_DIR/../qiskit-chemistry
-        - pip install -U -r $TRAVIS_BUILD_DIR/../qiskit-chemistry/requirements-dev.txt
-      deploy:
-        provider: script
-        skip_cleanup: true
-        script: tools/ghpages_documentation_deploy.sh
-        on:
-          branch: stable

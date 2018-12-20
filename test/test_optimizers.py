@@ -28,6 +28,7 @@ from qiskit_aqua.components.optimizers import (CG, COBYLA, L_BFGS_B, NELDER_MEAD
 class TestOptimizers(QiskitAquaTestCase):
 
     def setUp(self):
+        super().setUp()
         np.random.seed(50)
         pass
 

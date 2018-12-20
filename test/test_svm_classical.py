@@ -23,6 +23,7 @@ from test.common import QiskitAquaTestCase
 
 class TestSVMClassical(QiskitAquaTestCase):
     def setUp(self):
+        super().setUp()
         pass
 
     def test_classical_binary(self):
