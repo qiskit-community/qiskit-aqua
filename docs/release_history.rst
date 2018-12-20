@@ -38,7 +38,7 @@ we have added the following new features :
 - Z-matrix support for the PySCF & PyQuante classical computational chemistry drivers
 
 --------------------------------------------------
-Compatibility with Aqua 0.4, Terra 0.7 and Aer 0.1
+Compatibility with Aqua 0.4, Terra 0.7 and Aer 0.1
 --------------------------------------------------
 
 Qiskit Chemistry 0.4 is fully compatible with Qiskit Aqua, 0.4,
@@ -55,8 +55,8 @@ Aqua's improved programmatic interface:
 .. code-block:: python
 
     from collections import OrderedDict
-    from qiskit_aqua_chemistry import FermionicOperator
-    from qiskit_aqua_chemistry.drivers import PySCFDriver
+    from qiskit_chemistry import FermionicOperator
+    from qiskit_chemistry.drivers import PySCFDriver
 
     # Use PySCF, a classical computational chemistry software package, to compute the one-body and two-body integrals in
     # molecular-orbital basis, necessary to form the Fermionic operator
@@ -87,7 +87,7 @@ Aqua's improved programmatic interface:
     optimizer = L_BFGS_B()
 
     # setup the initial state for the variational form
-    from qiskit_aqua_chemistry.aqua_extensions.components.initial_states import HartreeFock
+    from qiskit_chemistry.aqua_extensions.components.initial_states import HartreeFock
     init_state = HartreeFock(num_qubits, num_spin_orbitals, num_particles)
 
     # setup the variational form for VQE

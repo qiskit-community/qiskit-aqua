@@ -26,8 +26,8 @@ def set_preferences_logging():
     """
     Update logging setting with latest external packages
     """
-    from qiskit_aqua_chemistry._logging import get_logging_level, build_logging_config, set_logging_config
-    from qiskit_aqua_chemistry.preferences import Preferences
+    from qiskit_chemistry._logging import get_logging_level, build_logging_config, set_logging_config
+    from qiskit_chemistry.preferences import Preferences
     preferences = Preferences()
     logging_level = logging.INFO
     if preferences.get_logging_config() is not None:

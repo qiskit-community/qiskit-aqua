@@ -28,9 +28,9 @@ from qiskit_aqua.algorithms.single_sample import IQPE
 from qiskit_aqua.algorithms.classical import ExactEigensolver
 
 from test.common import QiskitAquaChemistryTestCase
-from qiskit_aqua_chemistry.drivers import ConfigurationManager
-from qiskit_aqua_chemistry import FermionicOperator, AquaChemistryError
-from qiskit_aqua_chemistry.aqua_extensions.components.initial_states import HartreeFock
+from qiskit_chemistry.drivers import ConfigurationManager
+from qiskit_chemistry import FermionicOperator, QiskitChemistryError
+from qiskit_chemistry.aqua_extensions.components.initial_states import HartreeFock
 
 
 class TestIQPE(QiskitAquaChemistryTestCase):
@@ -57,7 +57,7 @@ class TestIQPE(QiskitAquaChemistryTestCase):
         section['properties'] = pyscf_cfg
         try:
             driver = cfg_mgr.get_driver_instance('PYSCF')
-        except AquaChemistryError:
+        except QiskitChemistryError:
             self.skipTest('PYSCF driver does not appear to be installed')
         self.molecule = driver.run(section)
         qubit_mapping = 'parity'

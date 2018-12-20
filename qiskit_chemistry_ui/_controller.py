@@ -72,7 +72,7 @@ class Controller(object):
 
     @property
     def driver_names(self):
-        from qiskit_aqua_chemistry.drivers import ConfigurationManager
+        from qiskit_chemistry.drivers import ConfigurationManager
         if self._driver_names is None:
             self._driver_names = []
             config_mgr = ConfigurationManager()
@@ -344,7 +344,7 @@ class Controller(object):
         return True
 
     def on_section_defaults(self, section_name):
-        from qiskit_aqua_chemistry.parser import InputParser
+        from qiskit_chemistry.parser import InputParser
         try:
             self._model.set_default_properties_for_name(section_name)
             if section_name == InputParser.DRIVER:
@@ -463,7 +463,7 @@ class Controller(object):
         return True
 
     def create_popup(self, section_name, property_name, parent, value):
-        from qiskit_aqua_chemistry.parser import InputParser
+        from qiskit_chemistry.parser import InputParser
         from qiskit_aqua.parser import JSONSchema
         values = None
         types = ['string']

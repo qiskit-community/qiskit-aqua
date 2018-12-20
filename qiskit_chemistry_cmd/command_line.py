@@ -34,9 +34,9 @@ def main():
 
 def main_chemistry():
     try:
-        from qiskit_aqua_chemistry import AquaChemistry
-        from qiskit_aqua_chemistry._logging import get_logging_level, build_logging_config, set_logging_config
-        from qiskit_aqua_chemistry.preferences import Preferences
+        from qiskit_chemistry import QiskitChemistry
+        from qiskit_chemistry._logging import get_logging_level, build_logging_config, set_logging_config
+        from qiskit_chemistry.preferences import Preferences
         parser = argparse.ArgumentParser(description='Qiskit Chemistry Command Line Tool')
         parser.add_argument('input',
                             metavar='input',
@@ -63,7 +63,7 @@ def main_chemistry():
 
         set_logging_config(preferences.get_logging_config())
 
-        solver = AquaChemistry()
+        solver = QiskitChemistry()
 
         # check to see if input is json file
         params = None

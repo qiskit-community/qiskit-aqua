@@ -65,7 +65,7 @@ ways for a component to be dynamically discovered and loaded by Aqua Chemistry a
        ]
 
        def _post_install():
-          from qiskit_aqua_chemistry.preferences import Preferences
+          from qiskit_chemistry.preferences import Preferences
           preferences = Preferences()
           # if your package contains classes derived from BaseDriver
           preferences.add_package(Preferences.PACKAGE_TYPE_DRIVERS,'aqua_chemistry_custom_component_package')

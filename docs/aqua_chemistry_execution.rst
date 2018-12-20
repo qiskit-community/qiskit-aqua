@@ -70,7 +70,7 @@ install``, then the script above will not be present and the launching command s
 
 .. code:: sh
 
-   python qiskit_aqua_chemistry/ui
+   python qiskit_chemistry_ui
 
 This command must be launched from the root folder of the ``aqua-chemistry`` repository
 clone.
@@ -104,7 +104,7 @@ instead of using ``pip install``, then the command-line interface can be execute
 
 .. code:: sh
 
-   python qiskit_aqua_chemistry
+   python qiskit_chemistry_cmd
 
 from the root folder of the ``aqua-chemistry`` repository clone.
 
@@ -182,11 +182,11 @@ experiment can be executed with the following two lines of code:
 
 .. code:: python
 
-   solver = AQUAChemistry()
+   solver = QiskitChemistry()
    result = solver.run(aqua_chemistry_dict)
 
 Executing the Python dictionary extracted from the :ref:`aqua-chemistry-input-file`
-via a call to the ``run`` method of an ``AQUAChemistry`` solver
+via a call to the ``run`` method of an ``QiskitChemistry`` solver
 is essentially what the :ref:`aqua-chemistry-command-line` and :ref:`aqua-chemistry-gui`
 do too in order to execute an experiment.
 
@@ -242,8 +242,8 @@ classical algorithm.  A comparison with the :ref:`Hartree-Fock` energy is also o
     }
 
     # Execute the experiments
-    result_qpe = AQUAChemistry().run(aqua_chemistry_qpe_dict)
-    result_ees = AQUAChemistry().run(aqua_chemistry_ees_dict)
+    result_qpe = QiskitChemistry().run(aqua_chemistry_qpe_dict)
+    result_ees = QiskitChemistry().run(aqua_chemistry_ees_dict)
 
     # Extract the energy values
     print('The ground-truth ground-state energy is       {}.'.format(result_ees['energy']))
@@ -261,7 +261,7 @@ Result Dictionary
 ^^^^^^^^^^^^^^^^^
 
 As can be seen in the programmable-interface example above, the
-``AQUAChemistry`` ``run`` method returns a result dictionary.
+``QiskitChemistry`` ``run`` method returns a result dictionary.
 The unit of measure for the energy values is
 Hartree, while for the dipole-moment values it is atomic units (a.u.).
 

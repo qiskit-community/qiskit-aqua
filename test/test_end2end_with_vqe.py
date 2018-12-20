@@ -27,8 +27,8 @@ from qiskit_aqua.components.variational_forms import RYRZ
 from qiskit_aqua.components.optimizers import COBYLA, SPSA
 
 from test.common import QiskitAquaChemistryTestCase
-from qiskit_aqua_chemistry.drivers import HDF5Driver
-from qiskit_aqua_chemistry.core import Hamiltonian
+from qiskit_chemistry.drivers import HDF5Driver
+from qiskit_chemistry.core import Hamiltonian
 
 
 class TestEnd2End(QiskitAquaChemistryTestCase):

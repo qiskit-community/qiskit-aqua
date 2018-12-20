@@ -80,12 +80,12 @@ Gaussian™ 16
 The corresponding driver wrapper in Aqua Chemistry accesses electronic structure information from Gaussian™ 16
 via the Gaussian-supplied open-source `interfacing code <http://www.gaussian.com/interfacing/>`__.
 
-In the ``qiskit_aqua_chemistry/drivers/gaussiand/gauopen`` folder of the
+In the ``qiskit_chemistry/drivers/gaussiand/gauopen`` folder of the
 `Aqua Chemistry GitHub repository <https://github.com/Qiskit/qiskit-chemistry>`__,
 the Python part of the above interfacing code, as needed by Aqua Chemistry,
 has been made available. It is licensed under a
 `Gaussian Open-Source Public License
-<https://github.com/Qiskit/qiskit-chemistry/blob/master/qiskit_aqua_chemistry/drivers/gaussiand/gauopen/LICENSE.txt>`__.
+<https://github.com/Qiskit/qiskit-chemistry/blob/master/qiskit_chemistry/drivers/gaussiand/gauopen/LICENSE.txt>`__.
 
 Part of this interfacing code --- specifically, the Fortran file ``qcmatrixio.F`` --- requires compilation to a Python native extension. However,
 Aqua Chemistry comes with pre-built binaries for most common platforms. If there is no pre-built binary
@@ -100,7 +100,7 @@ to use the Gaussian™ 16 driver on your machine, the Fortran file ``qcmatrixio.
 be used by Python. This is accomplished using the
 `Fortran to Python Interface Generator (F2PY) <https://docs.scipy.org/doc/numpy/f2py/>`__,
 which is part of the `NumPy <http://www.numpy.org/>`__ Python library.
-Specifically, on your command prompt window, change directory to the ``qiskit_aqua_chemistry/drivers/gaussiand/gauopen``
+Specifically, on your command prompt window, change directory to the ``qiskit_chemistry/drivers/gaussiand/gauopen``
 directory inside the Aqua Chemistry installation directory, and while in the Python environment
 created for Aqua and Aqua Chemistry, invoke ``f2py`` on ``qcmatrixio.F`` as explained below.
 

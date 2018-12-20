@@ -15,25 +15,17 @@
 # limitations under the License.
 # =============================================================================
 
-import unittest
-from collections import OrderedDict
-
-from test.common import QiskitAquaChemistryTestCase
-from qiskit_chemistry.drivers import HDF5Driver
-from test.test_driver import TestDriver
+"""Exception for errors raised by the QiskitChemistry SDK."""
 
 
-class TestDriverHDF5(QiskitAquaChemistryTestCase, TestDriver):
-    """HDF5 Driver tests."""
+class QiskitChemistryError(Exception):
+    """Base class for errors raised by the QiskitChemistry SDK."""
 
-    def setUp(self):
-        hdf5_cfg = OrderedDict([
-            ('hdf5_input', self._get_resource_path('test_driver_hdf5.hdf5'))
-        ])
-        section = {'properties': hdf5_cfg}
-        driver = HDF5Driver()
-        self.qmolecule = driver.run(section)
+    def __init__(self, *message):
+        """Set the error message."""
+        super(QiskitChemistryError, self).__init__(' '.join(message))
+        self.message = ' '.join(message)
 
-
-if __name__ == '__main__':
-    unittest.main()
+    def __str__(self):
+        """Return the message."""
+        return repr(self.message)

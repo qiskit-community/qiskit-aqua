@@ -311,10 +311,10 @@ to external chemistry :ref:`drivers` has additional licensing:
 -  The :ref:`gaussian-16`
    driver
    contains work licensed under the `Gaussian Open-Source Public
-   License <https://github.com/Qiskit/qiskit-chemistry/blob/master/qiskit_aqua_chemistry/drivers/gaussiand/gauopen/LICENSE.txt>`__.
+   License <https://github.com/Qiskit/qiskit-chemistry/blob/master/qiskit_chemistry/drivers/gaussiand/gauopen/LICENSE.txt>`__.
 
 -  The :ref:`pyquante`
    driver
    contains work licensed under the `modified BSD
-   license <https://github.com/Qiskit/qiskit-chemistry/blob/master/qiskit_aqua_chemistry/drivers/pyquanted/LICENSE.txt>`__.
+   license <https://github.com/Qiskit/qiskit-chemistry/blob/master/qiskit_chemistry/drivers/pyquanted/LICENSE.txt>`__.
 

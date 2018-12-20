@@ -48,7 +48,7 @@ class MainView(ttk.Frame):
             parent.protocol('WM_DELETE_WINDOW', self.quit)
 
     def _show_about_dialog(self):
-        from qiskit_aqua_chemistry import __version__
+        from qiskit_chemistry import __version__
         tkmb.showinfo(message='Qiskit Chemistry {}'.format(__version__))
 
     def _show_preferences(self):
@@ -265,8 +265,8 @@ class MainView(ttk.Frame):
         self._controller._emptyView.set_toolbar_size(self._controller._sectionsView.get_toolbar_size())
 
     def _set_preferences_logging(self):
-        from qiskit_aqua_chemistry.preferences import Preferences
-        from qiskit_aqua_chemistry._logging import set_logging_config
+        from qiskit_chemistry.preferences import Preferences
+        from qiskit_chemistry._logging import set_logging_config
         preferences = Preferences()
         config = preferences.get_logging_config()
         if config is not None:

@@ -30,7 +30,7 @@ class Model(object):
         return self._parser is None or len(self._parser.get_section_names()) == 0
 
     def new(self):
-        from qiskit_aqua_chemistry.parser import InputParser
+        from qiskit_chemistry.parser import InputParser
         try:
             dict = {}
             jsonfile = os.path.join(os.path.dirname(
@@ -51,7 +51,7 @@ class Model(object):
             raise
 
     def load_file(self, filename):
-        from qiskit_aqua_chemistry.parser import InputParser
+        from qiskit_chemistry.parser import InputParser
         if filename is None:
             return []
         try:
@@ -243,13 +243,13 @@ class Model(object):
 
     @staticmethod
     def is_pluggable_section(section_name):
-        from qiskit_aqua_chemistry.parser import InputParser
+        from qiskit_chemistry.parser import InputParser
         return InputParser.is_pluggable_section(section_name)
 
     def get_operator_section_names(self):
         from qiskit_aqua.parser import JSONSchema
-        from qiskit_aqua_chemistry.parser import InputParser
-        from qiskit_aqua_chemistry.core import local_chemistry_operators
+        from qiskit_chemistry.parser import InputParser
+        from qiskit_chemistry.core import local_chemistry_operators
         problem_name = None
         if self._parser is not None:
             problem_name = self.get_section_property(
@@ -272,7 +272,7 @@ class Model(object):
     def get_pluggable_section_names(self, section_name):
         from qiskit_aqua.parser import JSONSchema
         from qiskit_aqua import PluggableType, local_pluggables
-        from qiskit_aqua_chemistry.parser import InputParser
+        from qiskit_chemistry.parser import InputParser
         if not Model.is_pluggable_section(section_name):
             return []
 
@@ -334,7 +334,7 @@ class Model(object):
 
     def set_section_property(self, section_name, property_name, value):
         from qiskit_aqua.parser import JSONSchema
-        from qiskit_aqua_chemistry.parser import InputParser
+        from qiskit_chemistry.parser import InputParser
         if self._parser is None:
             raise Exception('Input not initialized.')
 
@@ -351,7 +351,7 @@ class Model(object):
 
     def delete_section_property(self, section_name, property_name):
         from qiskit_aqua.parser import JSONSchema
-        from qiskit_aqua_chemistry.parser import InputParser
+        from qiskit_chemistry.parser import InputParser
         if self._parser is None:
             raise Exception('Input not initialized.')
 
