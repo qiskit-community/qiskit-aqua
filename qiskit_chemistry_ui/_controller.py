@@ -671,7 +671,7 @@ class AquaChemistryThread(threading.Thread):
             aqua_chemistry_directory = os.path.dirname(
                 os.path.realpath(__file__))
             aqua_chemistry_directory = os.path.abspath(
-                os.path.join(aqua_chemistry_directory, '../qiskit_aqua_chemistry_cmd'))
+                os.path.join(aqua_chemistry_directory, '../qiskit_chemistry_cmd'))
             input_file = self._model.get_filename()
             if input_file is None or self._model.is_modified():
                 fd, input_file = tempfile.mkstemp(suffix='.in')

@@ -139,7 +139,7 @@ class PreferencesDialog(Dialog):
     def apply(self):
         from qiskit_aqua_chemistry.preferences import Preferences
         from qiskit_aqua_chemistry._logging import (build_logging_config, set_logging_config)
-        from qiskit_aqua import Preferences as AquaPreferences
+        from qiskit_aqua_cmd import Preferences as AquaPreferences
         try:
             level_name = self._levelCombo.get()
             levels = [key for key, value in PreferencesDialog._LOG_LEVELS.items(

@@ -1,11 +1,11 @@
-# Qiskit Aqua Chemistry
+# Qiskit Chemistry
 
-Qiskit Aqua Chemistry is a set of tools, algorithms and software for use with quantum computers
+Qiskit Chemistry is a set of tools, algorithms and software for use with quantum computers
 to carry out research and investigate how to take advantage of quantum computing power to solve chemistry
 problems.
 
 If you need introductory material see the main [readme](../README.md) which has
-[installation](../README.md#installation) instructions and information on how to use Qiskit Aqua Chemistry for 
+[installation](../README.md#installation) instructions and information on how to use Qiskit Chemistry for 
 [running a chemistry experiment](../README.md#running-a-chemistry-experiment).
 
 This readme contains the following sections: 
@@ -232,7 +232,7 @@ This is the same PROBLEM specification but
   
 * `auto_substitutions`=**true** | false
 
-  *This field is only support by Qiskit Aqua Chemistry.* 
+  *This field is only support by Qiskit Chemistry.* 
 
   During configuration some items may require matching their settings e.g. UCCSD variation form and HartreeFock
   initial state configuration need qubit_mapping and two_qubit_reduction to match what is set in [OPERATOR](#operator)
@@ -321,7 +321,7 @@ The dictionary contains the following fields of note:
 
 Qiskit Aqua is the library of cross-domain algorithms and pluggable utilities. Please refer to the documentation 
 there for more information on how to write and contribute such objects to Qiskit Aqua. Such objects are then available
-to be used by Qiskit Aqua Chemistry.  
+to be used by Qiskit Chemistry.  
 
 ### For unit test writers:
 
