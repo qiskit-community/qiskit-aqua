@@ -16,14 +16,10 @@
 # =============================================================================
 
 import setuptools
-from setuptools.command.install import install
-from setuptools.command.develop import develop
-from setuptools.command.egg_info import egg_info
-import atexit
 
-long_description="""<a href="https://qiskit.org/aqua" rel=nofollow>Qiskit Chemistry</a> 
+long_description = """<a href="https://qiskit.org/aqua" rel=nofollow>Qiskit Chemistry</a> 
  is a set of quantum computing algorithms, 
- tools and APIs for experimenting with real-world chemistry applications on near-term quantum devices.""" 
+ tools and APIs for experimenting with real-world chemistry applications on near-term quantum devices."""
 
 requirements = [
     "qiskit-aqua>=0.4.0",
@@ -31,35 +27,10 @@ requirements = [
     "h5py",
     "psutil>=5",
     "jsonschema>=2.6,<2.7",
+    "setuptools>=40.5.0",
     "pyobjc-core; sys_platform == 'darwin'",
     "pyobjc-framework-Cocoa; sys_platform == 'darwin'"
 ]
-
-
-def _post_install():
-    from qiskit_aqua_cmd import Preferences
-    preferences = Preferences()
-    preferences.remove_package('qiskit_aqua_chemistry.aqua_extensions')
-    preferences.add_package('qiskit_chemistry.aqua_extensions')
-    preferences.save()
-
-
-class CustomInstallCommand(install):
-    def run(self):
-        atexit.register(_post_install)
-        install.run(self)
-
-
-class CustomDevelopCommand(develop):
-    def run(self):
-        atexit.register(_post_install)
-        develop.run(self)
-
-
-class CustomEggInfoCommand(egg_info):
-    def run(self):
-        atexit.register(_post_install)
-        egg_info.run(self)
 
 
 setuptools.setup(
@@ -89,17 +60,16 @@ setuptools.setup(
     install_requires=requirements,
     include_package_data=True,
     python_requires=">=3.5",
-    cmdclass={
-        'install': CustomInstallCommand,
-        'develop': CustomDevelopCommand,
-        'egg_info': CustomEggInfoCommand
-    },
-    entry_points = {
+    entry_points={
         'console_scripts': [
-                'qiskit_chemistry_cmd=qiskit_chemistry_cmd.command_line:main'
+            'qiskit_chemistry_cmd=qiskit_chemistry_cmd.command_line:main'
         ],
         'gui_scripts': [
-                'qiskit_chemistry_ui=qiskit_chemistry_ui.command_line:main'
-        ]
-    }
+            'qiskit_chemistry_ui=qiskit_chemistry_ui.command_line:main'
+        ],
+        'qiskit.aqua.pluggables': [
+            'HartreeFock = qiskit_chemistry.aqua_extensions.components.initial_states:HartreeFock',
+            'UCCSD = qiskit_chemistry.aqua_extensions.components.variational_forms:UCCSD',
+        ],
+    },
 )

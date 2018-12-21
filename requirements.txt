@@ -3,6 +3,7 @@ numpy>=1.13
 h5py
 psutil>=5
 jsonschema>=2.6,<2.7
+setuptools>=40.5.0
 pyobjc-core; sys_platform == 'darwin'
 pyobjc-framework-Cocoa; sys_platform == 'darwin'
 networkx
