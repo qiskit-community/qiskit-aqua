@@ -23,25 +23,27 @@ import logging
 import os
 import unittest
 
-from qiskit_aqua_chemistry import __path__ as qiskit_aqua_chemistry_path
+from qiskit_chemistry import __path__ as qiskit_chemistry_path
 
 TRAVIS_FORK_PULL_REQUEST = False
 if os.getenv('TRAVIS_PULL_REQUEST_SLUG'):
     if os.getenv('TRAVIS_REPO_SLUG') != os.getenv('TRAVIS_PULL_REQUEST_SLUG'):
         TRAVIS_FORK_PULL_REQUEST = True
 
+
 class Path(Enum):
     """Helper with paths commonly used during the tests."""
-    # Main SDK path:    qiskit_aqua_chemistry/
-    SDK = qiskit_aqua_chemistry_path[0]
+    # Main SDK path:    qiskit_chemistry/
+    SDK = qiskit_chemistry_path[0]
     # test.python path: test/
     TEST = os.path.dirname(__file__)
 
+
 class QiskitAquaChemistryTestCase(unittest.TestCase):
     """Helper class that contains common functionality."""
-    
-    SLOW_TEST = int(os.getenv('SLOW_TEST','0'))
-    
+
+    SLOW_TEST = int(os.getenv('SLOW_TEST', '0'))
+
     @classmethod
     def setUpClass(cls):
         cls.moduleName = os.path.splitext(inspect.getfile(cls))[0]
@@ -77,13 +79,14 @@ class QiskitAquaChemistryTestCase(unittest.TestCase):
             str: the absolute path to the resource.
         """
         return os.path.normpath(os.path.join(path.value, filename))
-    
+
     def assertNoLogs(self, logger=None, level=None):
         """The opposite to assertLogs.
         """
         # pylint: disable=invalid-name
         return _AssertNoLogsContext(self, logger, level)
-    
+
+
 class _AssertNoLogsContext(unittest.case._AssertLogsContext):
     """A context manager used to implement TestCase.assertNoLogs()."""
 
@@ -104,4 +107,3 @@ class _AssertNoLogsContext(unittest.case._AssertLogsContext):
             self._raiseFailure(
                 "Something was logged in the logger %s by %s:%i" %
                 (record.name, record.pathname, record.lineno))
-

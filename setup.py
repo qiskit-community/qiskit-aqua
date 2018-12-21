@@ -39,7 +39,8 @@ requirements = [
 def _post_install():
     from qiskit_aqua_cmd import Preferences
     preferences = Preferences()
-    preferences.add_package('qiskit_aqua_chemistry.aqua_extensions')
+    preferences.remove_package('qiskit_aqua_chemistry.aqua_extensions')
+    preferences.add_package('qiskit_chemistry.aqua_extensions')
     preferences.save()
 
 

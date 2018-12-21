@@ -21,7 +21,7 @@ any end user in their favorite driver into quantum-specific input.
 
 You can follow the [installation](#installation) instructions to install this software and its dependencies.
 
-Once you have it installed, you can experiment with Aqua Chemistry using either the supplied [GUI](#gui) or
+Once you have it installed, you can experiment with Qiskit Chemistry using either the supplied [GUI](#gui) or
 [command line](#command-line) tools.
 
 More advanced users and developers may wish to develop and add their own
@@ -153,10 +153,10 @@ demonstrating how to use Aqua to carry out quantum computing experiments.
 Here you will see different ways of programming an experiment. The simplest, which
 matches closely to the input file, is used in many examples. Here a similar Python dictionary, which can
 be automatically generated from the GUI, is used and an
-`AquaChemistry` instance is used to run the experiment and return the result.
+`QiskitChemistry` instance is used to run the experiment and return the result.
 ```
-solver = AquaChemistry()
-result = solver.run(aqua_chemistry_dict)
+solver = QiskitChemistry()
+result = solver.run(qiskit_chemistry_dict)
 ```
 The [basic how-to tutorial](https://github.com/Qiskit/qiskit-tutorials/blob/master/qiskit/aqua/chemistry/basic_howto.ipynb)
 notebook details this simple example.
@@ -181,11 +181,11 @@ to the project at different levels.
 
 This project uses the [Apache License Version 2.0 software license](https://www.apache.org/licenses/LICENSE-2.0).
 
-Some code supplied here for [drivers](qiskit_aqua_chemistry/drivers/README.md), for interfacing to external chemistry
+Some code supplied here for [drivers](qiskit_chemistry/drivers/README.md), for interfacing to external chemistry
 programs/libraries, has additional licensing.
 
-* The [Gaussian 16 driver](qiskit_aqua_chemistry/drivers/gaussiand/README.md) contains work licensed under the
-[Gaussian Open-Source Public License](qiskit_aqua_chemistry/drivers/gaussiand/gauopen/LICENSE.txt).
+* The [Gaussian 16 driver](qiskit_chemistry/drivers/gaussiand/README.md) contains work licensed under the
+[Gaussian Open-Source Public License](qiskit_chemistry/drivers/gaussiand/gauopen/LICENSE.txt).
 
-* The [Pyquante driver](qiskit_aqua_chemistry/drivers/pyquanted/README.md) contains work licensed under the
-[modified BSD license](qiskit_aqua_chemistry/drivers/pyquanted/LICENSE.txt).
+* The [Pyquante driver](qiskit_chemistry/drivers/pyquanted/README.md) contains work licensed under the
+[modified BSD license](qiskit_chemistry/drivers/pyquanted/LICENSE.txt).

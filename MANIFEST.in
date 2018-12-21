@@ -1,4 +1,4 @@
-recursive-include qiskit_aqua_chemistry *.json
+recursive-include qiskit_chemistry *.json
 recursive-include qiskit_chemistry_ui *.json
-graft qiskit_aqua_chemistry/drivers/gaussiand/gauopen
+graft qiskit_chemistry/drivers/gaussiand/gauopen
 global-exclude *.py[co] .DS_Store

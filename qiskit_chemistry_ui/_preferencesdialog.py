@@ -48,8 +48,8 @@ class PreferencesDialog(Dialog):
         self._populateDefaults = tk.IntVar()
 
     def body(self, parent, options):
-        from qiskit_aqua_chemistry.preferences import Preferences
-        from qiskit_aqua_chemistry._logging import (get_logging_level, set_logging_config)
+        from qiskit_chemistry.preferences import Preferences
+        from qiskit_chemistry._logging import (get_logging_level, set_logging_config)
         preferences = Preferences()
         logging_config = preferences.get_logging_config()
         if logging_config is not None:
@@ -137,8 +137,8 @@ class PreferencesDialog(Dialog):
         return True
 
     def apply(self):
-        from qiskit_aqua_chemistry.preferences import Preferences
-        from qiskit_aqua_chemistry._logging import (build_logging_config, set_logging_config)
+        from qiskit_chemistry.preferences import Preferences
+        from qiskit_chemistry._logging import (build_logging_config, set_logging_config)
         from qiskit_aqua_cmd import Preferences as AquaPreferences
         try:
             level_name = self._levelCombo.get()
@@ -188,7 +188,7 @@ class PackagesPage(ToolbarView):
         self._tree.bind('<Button-1>', self._on_tree_edit)
         self.init_widgets(self._tree)
 
-        from qiskit_aqua_chemistry.preferences import Preferences
+        from qiskit_chemistry.preferences import Preferences
         self._preferences = Preferences()
         self._popup_widget = None
         self.pack(fill=tk.BOTH, expand=tk.TRUE)
@@ -204,7 +204,7 @@ class PackagesPage(ToolbarView):
             self._tree.delete([i])
 
     def populate(self):
-        from qiskit_aqua_chemistry.preferences import Preferences
+        from qiskit_chemistry.preferences import Preferences
         self.clear()
         packages = self._preferences.get_packages(
             Preferences.PACKAGE_TYPE_DRIVERS, [])
@@ -289,9 +289,9 @@ class PackagesPage(ToolbarView):
         return True
 
     def apply(self, preferences):
-        from qiskit_aqua_chemistry.preferences import Preferences
-        from qiskit_aqua_chemistry.drivers import ConfigurationManager
-        from qiskit_aqua_chemistry.core import refresh_operators
+        from qiskit_chemistry.preferences import Preferences
+        from qiskit_chemistry.drivers import ConfigurationManager
+        from qiskit_chemistry.core import refresh_operators
         changed = False
         packages = self._preferences.get_packages(
             Preferences.PACKAGE_TYPE_DRIVERS, [])
@@ -354,7 +354,7 @@ class PackageComboDialog(Dialog):
         self._controller = controller
 
     def body(self, parent, options):
-        from qiskit_aqua_chemistry.preferences import Preferences
+        from qiskit_chemistry.preferences import Preferences
         ttk.Label(parent,
                   text='Type:',
                   borderwidth=0,

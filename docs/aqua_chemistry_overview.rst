@@ -5,25 +5,25 @@ Overview
 ========
 
 Qiskit Chemistry is a set of tools and algorithms that enable experimenting with chemistry problems
-via quantum computing. Aqua Chemistry translates chemistry-specific problems into inputs for an algorithm from the Aqua :ref:`quantum-algorithms` library,
+via quantum computing. Qiskit Chemistry translates chemistry-specific problems into inputs for an algorithm from the Aqua :ref:`quantum-algorithms` library,
 which in turn uses `Qiskit Terra <https://qiskit.org/terra>`__ for the actual quantum computation.
 
-Aqua Chemistry allows users with different levels of experience to execute chemistry experiments and
+Qiskit Chemistry allows users with different levels of experience to execute chemistry experiments and
 contribute to the quantum computing chemistry software stack.
 Users with pure chemistry background can continue to configure chemistry
 problems according to their favorite computational chemistry software packages, called *drivers*.
 These users do not need to learn the
-details of quantum computing; Aqua Chemistry translates any chemistry program configuration entered by
+details of quantum computing; Qiskit Chemistry translates any chemistry program configuration entered by
 those users in one of their favorite drivers into quantum-specific input.
 For these to work, the following simple requirements must be met:
 
 - The driver chosen by the user should be installed on the same system in which
-  Aqua Chemistry is also installed.
+  Qiskit Chemistry is also installed.
 - The appropriate software license for that driver must be in place.
-- An interface to that driver must be built in Aqua Chemistry as a ``BaseDriver`` extension
+- An interface to that driver must be built in Qiskit Chemistry as a ``BaseDriver`` extension
   point.
 
-Currently, Aqua Chemistry comes with interfaces prebuilt
+Currently, Qiskit Chemistry comes with interfaces prebuilt
 for the following four computational chemistry software drivers:
 
 1. :ref:`gaussian-16`, a commercial chemistry program
@@ -35,25 +35,25 @@ Additional chemistry drivers can easily be added via the ``BaseDriver`` extensio
 for a driver installed in the system has been implemented, that driver will be automatically loaded at run time
 and made available in Qiskit Quantum Chemistry for running experiments.
 
-Once Aqua Chemistry has been installed, a user can execute chemistry experiments
-on a quantum machine by using either the :ref:`aqua-chemistry-gui` or
-:ref:`aqua-chemistry-command-line` supplied tools, or the :ref:`aqua-chemistry-programmable-interface`.
+Once Qiskit Chemistry has been installed, a user can execute chemistry experiments
+on a quantum machine by using either the :ref:`qiskit-chemistry-gui` or
+:ref:`qiskit-chemistry-command-line` supplied tools, or the :ref:`qiskit-chemistry-programmable-interface`.
 Either option enforces schema-based configuration correctness.
 
-.. topic:: Contributing to Aqua Chemistry
+.. topic:: Contributing to Qiskit Chemistry
 
-    Instead of just *accessing* Aqua Chemistry as a tool to experiment with chemistry problems
-    on a quantum machine, a user may decide to *contribute* to Aqua Chemistry by
+    Instead of just *accessing* Qiskit Chemistry as a tool to experiment with chemistry problems
+    on a quantum machine, a user may decide to *contribute* to Qiskit Chemistry by
     providing new algorithms, algorithm components, input translators, and driver interfaces.
     Algorithms and supporting components may be programmatically added to
     :ref:`aqua-library`, which was designed as an extensible, pluggable
     framework in order to address the needs of research and developers interested in
     :ref:`aqua-extending`.
-    Aqua Chemistry utilizes a similar framework for drivers and the core computation
+    Qiskit Chemistry utilizes a similar framework for drivers and the core computation
     performed at the input-translation layer.
 
-    If you would like to contribute to Aqua Chemistry, please follow the
-    Aqua Chemistry `contribution
+    If you would like to contribute to Qiskit Chemistry, please follow the
+    Qiskit Chemistry `contribution
     guidelines <https://github.com/Qiskit/qiskit-chemistry/blob/master/.github/CONTRIBUTING.rst>`__.
 
 
@@ -61,11 +61,11 @@ Either option enforces schema-based configuration correctness.
 Modularity and Extensibility
 ----------------------------
 
-Aqua Chemistry is built on top of :ref:`aqua-library`.  Just like Aqua,
+Qiskit Chemistry is built on top of :ref:`aqua-library`.  Just like Aqua,
 it is specifically designed to be extensible at each level of the software stack.
 This allows different users with different levels of expertise and different scientific interests
-to contribute to, and extend, the Aqua Chemistry software stack at different levels.  In addition to the extension
-points offered by the underlying Aqua library, Aqua Chemistry allows a user to plug in new algorithms
+to contribute to, and extend, the Qiskit Chemistry software stack at different levels.  In addition to the extension
+points offered by the underlying Aqua library, Qiskit Chemistry allows a user to plug in new algorithms
 and new operators for translating classical inputs into inputs for quantum algorithms.
 
 ~~~~~~~~~~~~~~~~
@@ -94,7 +94,7 @@ placed at a distance of :math:`0.735` Å:
     H   0.0  0.0 -0.3675
     H   0.0  0.0  0.3675
 
-Aqua Chemistry uses this molecular configuration as an input to the computational
+Qiskit Chemistry uses this molecular configuration as an input to the computational
 chemistry software --- in the case above, Gaussian 16.  The computational chemistry software
 package is executed classically --- not to compute the ground-state energy,
 dipole moment, or excited states of the given molecule, since these expensive computations
@@ -119,14 +119,14 @@ computational chemistry software that was used to compute it.  However,
 the level of accuracy of such data does depend on the computational chemistry software;
 more elaborate software packages are more likely to produce more accurate data.
 
-Aqua Chemistry offers the option to serialize this data in a binary format known as
+Qiskit Chemistry offers the option to serialize this data in a binary format known as
 `Hierarchical Data Format 5 (HDF5) <https://support.hdfgroup.org/HDF5/>`__.
 This is done to enable future reuse of previously computed
 input data.  This feature also enables researchers to exchange 
 input data among each other --- which turns out to be particularly useful to researchers who may not have
 particular computational chemistry drivers
 installed on their computers.  HDF5 is configured as a prebuilt driver in
-Aqua Chemistry because it allows for chemistry input to be passed into the
+Qiskit Chemistry because it allows for chemistry input to be passed into the
 computation.
 
 ~~~~~~~~~~~~~~~~~
@@ -140,7 +140,7 @@ is also extensible.  Practitioners interested in providing more efficient
 translation operators may do so by extending this layer of the Aqua software
 stack with their own implementation of the ``ChemistryOperator`` class.
 
-In the reference implementation provided by Aqua Chemistry, the translation phase
+In the reference implementation provided by Qiskit Chemistry, the translation phase
 takes the input generated by the classical execution of the computational chemistry driver
 and generates first a fermionic operator, and from this a qubit operator, which becomes
 the input to one of the quantum algorithms in Aqua.
@@ -149,7 +149,7 @@ the input to one of the quantum algorithms in Aqua.
 Novel Features
 --------------
 
-Aqua Chemistry present some unique advantages
+Qiskit Chemistry present some unique advantages
 in terms of usability, functionality, and configuration-correctness enforcement.  
 
 ~~~~~~~~~~~~~~~
@@ -157,7 +157,7 @@ User Experience
 ~~~~~~~~~~~~~~~
 
 Allowing classical computational chemistry software at the front end has its own important advantages.
-In fact, at the top of the Aqua Chemistry software stack are chemists
+In fact, at the top of the Qiskit Chemistry software stack are chemists
 who are most likely very familiar with existing
 computational chemistry software.  These practitioners  may be interested
 in experimenting with the benefits of quantum computing in terms of performance, accuracy
@@ -168,7 +168,7 @@ used to as a front end to the quantum computing system, without having to learn 
 language of new APIs.  It is also
 likely that such practitioners may have collected, over time, numerous
 chemistry problem configurations, corresponding to various experiments.
-Aqua Chemistry is designed to accept those
+Qiskit Chemistry is designed to accept those
 configuration files  with no modifications, and
 without requiring a chemist to
 have to learn a quantum programming language. This approach has a clear advantage in terms
@@ -178,7 +178,7 @@ of usability.
 Functionality
 ~~~~~~~~~~~~~
 
-If Aqua Chemistry had been designed to interpose a quantum programming language
+If Qiskit Chemistry had been designed to interpose a quantum programming language
 or new APIs between the user and the classical computational chemistry software drivers,
 it would not have been able to
 fully exploit all the features of those drivers unless all such features
@@ -190,7 +190,7 @@ Chemistry.  The ability of  Aqua to directly interface classical computational s
 to compute the intermediate data needed to form the quantum input at its highest level of precision.
 
 To better illustrate this point, consider the ability of popular computational chemistry :ref:`drivers`, such as
-:ref:`gaussian-16`, :ref:`psi4` and :ref:`pyscf` --- all interfaced by Aqua Chemistry --- to accept the configuration of
+:ref:`gaussian-16`, :ref:`psi4` and :ref:`pyscf` --- all interfaced by Qiskit Chemistry --- to accept the configuration of
 a molecule where different atoms are represented in different basis sets, as opposed to having to necessarily impose
 one single basis set for all the atoms.  As an example, the following code snippet, written in the PSI4 language,
 individually configures the basis sets for the atoms of a molecule of benzene,
@@ -212,7 +212,7 @@ assigns basis set STO-3G to one particular hydrogen atom --- the one with index 
 atoms keep basis set DZ.  Finally, the last statement assigns basis set STO-3G to the one carbon atom with index
 1, leaving the remaining five carbon atoms with basis set 3-21G as per the second assignment.
 
-Aqua Chemistry would have no problem supporting this fine-grained basis set specification, since
+Qiskit Chemistry would have no problem supporting this fine-grained basis set specification, since
 it allows the computational chemistry drivers to be the front end to the system, with no additional
 layer on top of them.  Conversely, other systems that have chosen to interpose a new programming language
 or new APIs in front of the computational drivers currently do not support the assignment
@@ -221,7 +221,7 @@ such advanced, fine-grained configurations, those systems will have to support t
 basis sets to be specified, and map them to all of the underlying drivers.
 
 Fine-grained basis-set specification is only one example of the functionality of
-the computational chemistry drivers directly exposed by Aqua Chemistry.  Another --- perhaps even more
+the computational chemistry drivers directly exposed by Qiskit Chemistry.  Another --- perhaps even more
 important --- example has to do with the :ref:`hartree-fock` wave function,
 which is computed by the underlying driver and allows for the computation of the one-
 and two-body MO integrals, which in turn are used to determine
@@ -229,7 +229,7 @@ the full Configuration Interaction (CI) wave function and the :ref:`uccsd`
 wave function, among other things.  Computational chemistry software drivers
 expose configuration parameters to make the computation of the
 Hartree-Fock wave function converge, should the default parameter values fail.
-Aqua Chemistry has no problem supporting such advanced configuration parameters,
+Qiskit Chemistry has no problem supporting such advanced configuration parameters,
 which would be passed directly into the configuration file as an input to the underlying driver.  Conversely,
 solutions that have chosen to interpose a new programming language or new APIs between the user and
 the underlying drivers currently do not support customizing the parameters for facilitating
@@ -245,10 +245,10 @@ and the driver.  It has been `demonstrated <https://arxiv.org/abs/1701.08213>`__
 that taking into account a molecule's spatial symmetries
 can be used to reduce the number of qubits necessary to model that molecule and compute its energy
 properties.  Computational chemistry software packages allow for configuring spatial symmetries
-in their input files.  Thus, Aqua Chemistry can immediately take direct advantage of such feature
+in their input files.  Thus, Qiskit Chemistry can immediately take direct advantage of such feature
 exposed by the underlying computational software packages and obtain from those packages
 intermediate data that is already optimized with respect to the symmetries configured by the user.
-As a result, energy computations performed by Aqua Chemistry require fewer qubits when
+As a result, energy computations performed by Qiskit Chemistry require fewer qubits when
 a spatial symmetries are present in a molecule.
 Conversely, other solutions that interpose a new programming language or APIs fail to expose
 this configuration feature to their users unless an ad-hoc symmetry API is constructed, which must then be mapped
@@ -266,7 +266,7 @@ that will be supported in the future.
 Configuration Correctness
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Aqua Chemistry offers another unique feature. Given that Aqua Chemistry
+Qiskit Chemistry offers another unique feature. Given that Qiskit Chemistry
 allows traditional software to be executed on a quantum system,
 configuring a chemistry experiment definitely requires setting up a hybrid
 configuration, which involves configuring both chemistry- and quantum-specific
@@ -305,16 +305,16 @@ License
 This project uses the `Apache License Version 2.0 software
 license <https://www.apache.org/licenses/LICENSE-2.0>`__.
 
-Some code supplied by Aqua Chemistry for interfacing
+Some code supplied by Qiskit Chemistry for interfacing
 to external chemistry :ref:`drivers` has additional licensing:
 
 -  The :ref:`gaussian-16`
    driver
    contains work licensed under the `Gaussian Open-Source Public
-   License <https://github.com/Qiskit/qiskit-chemistry/blob/master/qiskit_aqua_chemistry/drivers/gaussiand/gauopen/LICENSE.txt>`__.
+   License <https://github.com/Qiskit/qiskit-chemistry/blob/master/qiskit_chemistry/drivers/gaussiand/gauopen/LICENSE.txt>`__.
 
 -  The :ref:`pyquante`
    driver
    contains work licensed under the `modified BSD
-   license <https://github.com/Qiskit/qiskit-chemistry/blob/master/qiskit_aqua_chemistry/drivers/pyquanted/LICENSE.txt>`__.
+   license <https://github.com/Qiskit/qiskit-chemistry/blob/master/qiskit_chemistry/drivers/pyquanted/LICENSE.txt>`__.
 

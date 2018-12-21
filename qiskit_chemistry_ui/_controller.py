@@ -72,7 +72,7 @@ class Controller(object):
 
     @property
     def driver_names(self):
-        from qiskit_aqua_chemistry.drivers import ConfigurationManager
+        from qiskit_chemistry.drivers import ConfigurationManager
         if self._driver_names is None:
             self._driver_names = []
             config_mgr = ConfigurationManager()
@@ -344,7 +344,7 @@ class Controller(object):
         return True
 
     def on_section_defaults(self, section_name):
-        from qiskit_aqua_chemistry.parser import InputParser
+        from qiskit_chemistry.parser import InputParser
         try:
             self._model.set_default_properties_for_name(section_name)
             if section_name == InputParser.DRIVER:
@@ -463,7 +463,7 @@ class Controller(object):
         return True
 
     def create_popup(self, section_name, property_name, parent, value):
-        from qiskit_aqua_chemistry.parser import InputParser
+        from qiskit_chemistry.parser import InputParser
         from qiskit_aqua.parser import JSONSchema
         values = None
         types = ['string']
@@ -668,10 +668,10 @@ class AquaChemistryThread(threading.Thread):
         output_file = None
         temp_input = False
         try:
-            aqua_chemistry_directory = os.path.dirname(
+            qiskit_chemistry_directory = os.path.dirname(
                 os.path.realpath(__file__))
-            aqua_chemistry_directory = os.path.abspath(
-                os.path.join(aqua_chemistry_directory, '../qiskit_chemistry_cmd'))
+            qiskit_chemistry_directory = os.path.abspath(
+                os.path.join(qiskit_chemistry_directory, '../qiskit_chemistry_cmd'))
             input_file = self._model.get_filename()
             if input_file is None or self._model.is_modified():
                 fd, input_file = tempfile.mkstemp(suffix='.in')
@@ -709,7 +709,7 @@ class AquaChemistryThread(threading.Thread):
                         startupinfo.wShowWindow = subprocess.SW_HIDE
                         process_name = new_process
 
-            input_array = [process_name, aqua_chemistry_directory, input_file]
+            input_array = [process_name, qiskit_chemistry_directory, input_file]
             if self._json_algo_file:
                 input_array.extend(['-jo', self._json_algo_file])
             else:

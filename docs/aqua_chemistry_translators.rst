@@ -4,9 +4,9 @@
 Translators
 ===========
 
-The translation layer in Aqua Chemistry maps high-level classically generated input
+The translation layer in Qiskit Chemistry maps high-level classically generated input
 to a qubit operator, which becomes the input to one of Aqua's :ref:`quantum-algorithms`.
-As part of this layer, Aqua Chemistry offers three qubit mapping functions.
+As part of this layer, Qiskit Chemistry offers three qubit mapping functions.
 
 .. _jordan-wigner:
 
