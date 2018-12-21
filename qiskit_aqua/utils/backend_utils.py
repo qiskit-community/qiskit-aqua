@@ -15,7 +15,11 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit import BasicAer, Aer
+try:
+    from qiskit import Aer
+except ImportError:
+    from qiskit import BasicAer
+
 import logging
 import warnings
 import sys
@@ -39,20 +43,14 @@ warnings.showwarning = my_warning_wrapper
 def get_aer_backends():
     try:
         backends = Aer.backends()
-        return backends
     except:
-        pass
-
-    backends = BasicAer.backends()
+        backends = BasicAer.backends()
     return backends
 
 
 def get_aer_backend(backend_name):
     try:
         backend = Aer.get_backend(backend_name)
-        return backend
     except:
-        pass
-
-    backend = BasicAer.get_backend(backend_name)
+        backend = BasicAer.get_backend(backend_name)
     return backend
