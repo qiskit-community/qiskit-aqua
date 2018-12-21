@@ -25,8 +25,8 @@ from .fermionic_operator import FermionicOperator
 from ._logging import (get_logging_level,
                        build_logging_config,
                        set_logging_config,
-                       get_aqua_chemistry_logging,
-                       set_aqua_chemistry_logging)
+                       get_qiskit_chemistry_logging,
+                       set_qiskit_chemistry_logging)
 
 __version__ = '0.4.1'
 
@@ -38,5 +38,5 @@ __all__ = ['QiskitChemistryError',
            'get_logging_level',
            'build_logging_config',
            'set_logging_config',
-           'get_aqua_chemistry_logging',
-           'set_aqua_chemistry_logging']
+           'get_qiskit_chemistry_logging',
+           'set_qiskit_chemistry_logging']

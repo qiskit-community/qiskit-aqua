@@ -668,10 +668,10 @@ class AquaChemistryThread(threading.Thread):
         output_file = None
         temp_input = False
         try:
-            aqua_chemistry_directory = os.path.dirname(
+            qiskit_chemistry_directory = os.path.dirname(
                 os.path.realpath(__file__))
-            aqua_chemistry_directory = os.path.abspath(
-                os.path.join(aqua_chemistry_directory, '../qiskit_chemistry_cmd'))
+            qiskit_chemistry_directory = os.path.abspath(
+                os.path.join(qiskit_chemistry_directory, '../qiskit_chemistry_cmd'))
             input_file = self._model.get_filename()
             if input_file is None or self._model.is_modified():
                 fd, input_file = tempfile.mkstemp(suffix='.in')
@@ -709,7 +709,7 @@ class AquaChemistryThread(threading.Thread):
                         startupinfo.wShowWindow = subprocess.SW_HIDE
                         process_name = new_process
 
-            input_array = [process_name, aqua_chemistry_directory, input_file]
+            input_array = [process_name, qiskit_chemistry_directory, input_file]
             if self._json_algo_file:
                 input_array.extend(['-jo', self._json_algo_file])
             else:

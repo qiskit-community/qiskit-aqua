@@ -16,5 +16,5 @@ real quantum device).
    Drivers <aqua_chemistry_drivers>
    Translators <aqua_chemistry_translators>
    Configuring and Running an Experiment <aqua_chemistry_execution>
-   Contributing to Aqua Chemistry <aqua_chemistry_extending>
-   Aqua Chemistry SDK Reference <qiskit_chemistry>
+   Contributing to Qiskit Chemistry <aqua_chemistry_extending>
+   Qiskit Chemistry SDK Reference <qiskit_chemistry>

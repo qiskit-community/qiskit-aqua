@@ -253,7 +253,7 @@ This is the same PROBLEM specification but
 
 ### Programming interface
 
-The UI and Command line tools use aqua_chemistry.py when solving the chemistry problem given by the supplied
+The UI and Command line tools use qiskit_chemistry.py when solving the chemistry problem given by the supplied
 input file. A programmatic interface is also available that can be called using a dictionary in the same formula as the
 input file. Like the input file its parameters take on the same values and same defaults.
 
@@ -265,7 +265,7 @@ chemistry folder demonstrating this usage.
 The code fragment below also shows such a dictionary and a simple usage.     
 
 ```
-aqua_chemistry_dict = {
+qiskit_chemistry_dict = {
     'driver': {'name': 'PYSCF'},
     'PYSCF': {'atom': '', 'basis': 'sto3g'},
     'algorithm': {'name': 'VQE'}
@@ -273,9 +273,9 @@ aqua_chemistry_dict = {
 molecule = 'H .0 .0 -{0}; H .0 .0 {0}'
 d = 0.74
 
-aqua_chemistry_dict['PYSCF']['atom'] = molecule.format(d/2) 
+qiskit_chemistry_dict['PYSCF']['atom'] = molecule.format(d/2) 
 solver = QiskitChemistry()
-result = solver.run(aqua_chemistry_dict)
+result = solver.run(qiskit_chemistry_dict)
 print('Ground state energy {}'.format(result['energy']))
 ```
 

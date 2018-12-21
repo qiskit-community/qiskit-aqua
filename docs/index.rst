@@ -4,10 +4,10 @@
    contain the root `toctree` directive.
 
 ############################
-Aqua Chemistry Documentation
+Qiskit Chemistry Documentation
 ############################
 
-Aqua Chemistry
+Qiskit Chemistry
 
 =================
 Table of Contents
@@ -20,7 +20,7 @@ Table of Contents
    Installation and Setup <aqua_chemistry_installation>
    Drivers <aqua_chemistry_drivers>
    Running an Experiment <aqua_chemistry_execution>
-   Contributing to Aqua Chemistry <aqua_chemistry_extending>
+   Contributing to Qiskit Chemistry <aqua_chemistry_extending>
    Translators <aqua_chemistry_translators>
    Qiskit Chemistry SDK Reference <qiskit_chemistry>
 

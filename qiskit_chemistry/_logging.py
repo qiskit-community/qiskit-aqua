@@ -23,7 +23,7 @@ from collections import OrderedDict
 from qiskit_aqua_cmd import Preferences as AquaPreferences
 from qiskit_chemistry import Preferences as ChemistryPreferences
 
-_AQUA_CHEMISTRY_LOGGING_CONFIG = {
+_QISKIT_CHEMISTRY_LOGGING_CONFIG = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
@@ -67,13 +67,13 @@ def _get_logging_names():
 def build_logging_config(level):
     """
      Creates a the configuration dict of the named loggers using the default SDK
-     configuration provided by `_AQUA_CHEMISTRY_LOGGING_CONFIG`:
+     configuration provided by `_QISKIT_CHEMISTRY_LOGGING_CONFIG`:
 
     * console logging using a custom format for levels != level parameter.
     * console logging with simple format for level parameter.
     * set logger level to level parameter.
     """
-    dict = copy.deepcopy(_AQUA_CHEMISTRY_LOGGING_CONFIG)
+    dict = copy.deepcopy(_QISKIT_CHEMISTRY_LOGGING_CONFIG)
     for name in _get_logging_names():
         dict['loggers'][name] = {
             'handlers': ['h'],
@@ -99,9 +99,9 @@ def set_logging_config(logging_config):
     dictConfig(logging_config)
 
 
-def get_aqua_chemistry_logging():
+def get_qiskit_chemistry_logging():
     """
-    Returns the current Aqua Chemistry logging level
+    Returns the current Qiskit Chemistry logging level
 
     Returns:
         logging level
@@ -109,12 +109,11 @@ def get_aqua_chemistry_logging():
     return get_logging_level()
 
 
-def set_aqua_chemistry_logging(level):
+def set_qiskit_chemistry_logging(level):
     """
-    Updates the Aqua Chemistry logging with the appropriate logging level
+    Updates the Qiskit Chemistry logging with the appropriate logging level
 
     Args:
         level (int): minimum severity of the messages that are displayed.
     """
     set_logging_config(build_logging_config(level))
-    

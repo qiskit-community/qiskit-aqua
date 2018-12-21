@@ -40,7 +40,7 @@ def main_chemistry():
         parser = argparse.ArgumentParser(description='Qiskit Chemistry Command Line Tool')
         parser.add_argument('input',
                             metavar='input',
-                            help='Chemistry input file or saved JSON input file')
+                            help='Qiskit Chemistry input file or saved JSON input file')
         group = parser.add_mutually_exclusive_group(required=False)
         group.add_argument('-o',
                            metavar='output',

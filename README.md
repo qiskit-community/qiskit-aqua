@@ -21,7 +21,7 @@ any end user in their favorite driver into quantum-specific input.
 
 You can follow the [installation](#installation) instructions to install this software and its dependencies.
 
-Once you have it installed, you can experiment with Aqua Chemistry using either the supplied [GUI](#gui) or
+Once you have it installed, you can experiment with Qiskit Chemistry using either the supplied [GUI](#gui) or
 [command line](#command-line) tools.
 
 More advanced users and developers may wish to develop and add their own
@@ -156,7 +156,7 @@ be automatically generated from the GUI, is used and an
 `QiskitChemistry` instance is used to run the experiment and return the result.
 ```
 solver = QiskitChemistry()
-result = solver.run(aqua_chemistry_dict)
+result = solver.run(qiskit_chemistry_dict)
 ```
 The [basic how-to tutorial](https://github.com/Qiskit/qiskit-tutorials/blob/master/qiskit/aqua/chemistry/basic_howto.ipynb)
 notebook details this simple example.
