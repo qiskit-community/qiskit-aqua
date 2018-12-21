@@ -20,6 +20,14 @@ stage_dependencies: &stage_dependencies
   # The env. variable MASTER_BRANCH_DEPENDENCIES forces dependencies used from master
   env:
     - MASTER_BRANCH_DEPENDENCIES=true
+  addons:
+    apt:
+      sources:
+        - ubuntu-toolchain-r-test
+      packages:
+        - libopenblas-dev
+        - g++-7    
+        
   before_install:
     # download Qiskit Terra master and unzip it only if forced from master or not stable branch, otherwise use the pypi version
     - |
