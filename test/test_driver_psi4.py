@@ -18,8 +18,8 @@
 import unittest
 
 from test.common import QiskitAquaChemistryTestCase
-from qiskit_aqua_chemistry import AquaChemistryError
-from qiskit_aqua_chemistry.drivers import ConfigurationManager
+from qiskit_chemistry import QiskitChemistryError
+from qiskit_chemistry.drivers import ConfigurationManager
 from test.test_driver import TestDriver
 
 
@@ -43,7 +43,7 @@ set {
         section = {'data': psi4_cfg}
         try:
             driver = cfg_mgr.get_driver_instance('PSI4')
-        except AquaChemistryError:
+        except QiskitChemistryError:
             self.skipTest('PSI4 driver does not appear to be installed')
         self.qmolecule = driver.run(section)
 

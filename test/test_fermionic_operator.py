@@ -23,8 +23,8 @@ import numpy as np
 from qiskit_aqua.utils import random_unitary
 
 from test.common import QiskitAquaChemistryTestCase
-from qiskit_aqua_chemistry import FermionicOperator, AquaChemistryError
-from qiskit_aqua_chemistry.drivers import ConfigurationManager
+from qiskit_chemistry import FermionicOperator, QiskitChemistryError
+from qiskit_chemistry.drivers import ConfigurationManager
 
 
 def h2_transform_slow(h2, unitary_matrix):
@@ -67,7 +67,7 @@ class TestFermionicOperator(QiskitAquaChemistryTestCase):
         section['properties'] = pyscf_cfg
         try:
             driver = cfg_mgr.get_driver_instance('PYSCF')
-        except AquaChemistryError:
+        except QiskitChemistryError:
             self.skipTest('PYSCF driver does not appear to be installed')
 
         molecule = driver.run(section)

@@ -1,50 +1,50 @@
-.. _aqua-chemistry-extending:
+.. _qiskit-chemistry-extending:
 
 ==============================
-Contributing to Aqua Chemistry
+Contributing to Qiskit Chemistry
 ==============================
 
-Aqua Chemistry, just like the Aqua library it is built upon, has a modular and extensible architecture.
+Qiskit Chemistry, just like the Aqua library it is built upon, has a modular and extensible architecture.
 
-Instead of just *accessing* Aqua Chemistry as a library of quantum algorithms and tools to experiment with quantum
-computing for chemistry, a user may decide to *contribute* to Aqua Chemistry by
+Instead of just *accessing* Qiskit Chemistry as a library of quantum algorithms and tools to experiment with quantum
+computing for chemistry, a user may decide to *contribute* to Qiskit Chemistry by
 providing new components.
-These can be programmatically added to Aqua Chemistry,
+These can be programmatically added to Qiskit Chemistry,
 which was designed as an extensible, pluggable
 framework.  Once added, new components are automatically discovered.
 
 .. topic:: Contribution Guidelines
 
-    Any user who would like to contribute to Aqua or Aqua Chemistry should follow the Aqua `contribution
+    Any user who would like to contribute to Aqua or Qiskit Chemistry should follow the Aqua `contribution
     guidelines <https://github.com/Qiskit/qiskit-chemistry/blob/master/.github/CONTRIBUTING.rst>`__.
 
 ---------------------------------
 Dynamically Discovered Components
 ---------------------------------
 
-Researchers and developers can contribute to Aqua Chemistry
+Researchers and developers can contribute to Qiskit Chemistry
 by providing new components, which will be automatically discovered and loaded by Aqua at run time.
 Each component should derive from the corresponding base class, as explained below.  There are three
-ways for a component to be dynamically discovered and loaded by Aqua Chemistry at run time:
+ways for a component to be dynamically discovered and loaded by Qiskit Chemistry at run time:
 
 1. The class implementing the component should be placed in the appropriate folder in the file system,
    as explained in `Section "Extension Points" <#extension-points>`__ below for each different component type.
    This is the easiest approach.  Researchers
-   and developers extending Aqua Chemistry are more likely to have installed Aqua Chemistry by cloning the
-   `Aqua Chemistry GitHub repository <https://github.com/Qiskit/qiskit-chemistry>`__ as opposed to using
+   and developers extending Qiskit Chemistry are more likely to have installed Qiskit Chemistry by cloning the
+   `Qiskit Chemistry GitHub repository <https://github.com/Qiskit/qiskit-chemistry>`__ as opposed to using
    the pip package manager system.  Therefore, the folders indicated below can be easily located in the file system.
 
-2. Alternatively, a developer extending Aqua Chemistry with a new component can simply create a dedicated
+2. Alternatively, a developer extending Qiskit Chemistry with a new component can simply create a dedicated
    repository with its own versioning.  This repository must be locally installable with the package that was
    created.  Once the repository has been installed, for example via the ``pip install -e`` command,
    the user can access the
-   Aqua Chemistry :ref:`aqua-chemistry-gui`
+   Qiskit Chemistry :ref:`qiskit-chemistry-gui`
    and add the package's name to the list of packages in the **Preferences** panel.
    From that moment on, any custom component found below that package will be dynamically added to
-   ``aqua-chemistry`` upon initialization.
+   ``qiskit-chemistry`` upon initialization.
 
 3. There is yet another way to achieve the same goal, and that simply consists of customizing the
-   ``setup.py`` file of the new component in order to add the package's name to ``aqua-chemistry``
+   ``setup.py`` file of the new component in order to add the package's name to ``qiskit-chemistry``
    when someone installs the package, without the need of using the GUI to enter it later.  This is an example
    of what ``setup.py`` would look like:
 
@@ -56,7 +56,7 @@ ways for a component to be dynamically discovered and loaded by Aqua Chemistry a
        from setuptools.command.egg_info import egg_info
        import atexit
 
-       long_description = """New Package for Aqua Chemistry Component"""
+       long_description = """New Package for Qiskit Chemistry Component"""
     
        requirements = [
           "qiskit-chemistry>=0.4.1",
@@ -65,12 +65,12 @@ ways for a component to be dynamically discovered and loaded by Aqua Chemistry a
        ]
 
        def _post_install():
-          from qiskit_aqua_chemistry.preferences import Preferences
+          from qiskit_chemistry.preferences import Preferences
           preferences = Preferences()
           # if your package contains classes derived from BaseDriver
-          preferences.add_package(Preferences.PACKAGE_TYPE_DRIVERS,'aqua_chemistry_custom_component_package')
+          preferences.add_package(Preferences.PACKAGE_TYPE_DRIVERS,'qiskit_chemistry_custom_component_package')
           # if your package contains classes derived from ChemistryOperator
-          preferences.add_package(Preferences.PACKAGE_TYPE_CHEMISTRY,'aqua_chemistry_custom_component_package')
+          preferences.add_package(Preferences.PACKAGE_TYPE_CHEMISTRY,'qiskit_chemistry_custom_component_package')
           preferences.save()
       
 
@@ -90,9 +90,9 @@ ways for a component to be dynamically discovered and loaded by Aqua Chemistry a
           egg_info.run(self)
     
        setuptools.setup(
-          name = 'aqua_chemistry_custom_component_package',
+          name = 'qiskit_chemistry_custom_component_package',
           version = "0.1.0", # this should match __init__.__version__
-          description='Aqua Chemistry Component',
+          description='Qiskit Chemistry Component',
           long_description = long_description,
           long_description_content_type = "text/markdown",
           url = 'https://github.com/qiskit-chemistry-custom-component-package',
@@ -128,8 +128,8 @@ ways for a component to be dynamically discovered and loaded by Aqua Chemistry a
 Extension Points
 ----------------
 This section details the components that researchers and developers
-can contribute to Aqua Chemistry.
-Aqua Chemistry exposes two extension points:
+can contribute to Qiskit Chemistry.
+Qiskit Chemistry exposes two extension points:
 
 1. :ref:`chemistry-drivers`
 2. :ref:`chemistry-operators`
@@ -140,8 +140,8 @@ Aqua Chemistry exposes two extension points:
 Chemistry Drivers
 ^^^^^^^^^^^^^^^^^
 
-The driver support in Aqua Chemistry was designed to make the :ref:`drivers` pluggable and discoverable.
-In order for Aqua Chemistry to
+The driver support in Qiskit Chemistry was designed to make the :ref:`drivers` pluggable and discoverable.
+In order for Qiskit Chemistry to
 be able to interface a driver library, the ``BaseDriver`` base class must be implemented so to
 provide the interfacing code, or *wrapper*.  As part of this process, the required
 `JavaScript Object Notation (JSON) <http://json.org>`__ schema for the driver interface must
@@ -168,7 +168,7 @@ for automatic discovery and dynamic lookup.
 Unit Tests
 ----------
 
-Contributing new software components to Aqua Chemistry requires writing new unit tests for those components,
+Contributing new software components to Qiskit Chemistry requires writing new unit tests for those components,
 and executing all the existing unit tests to make sure that no bugs were inadvertently injected.
 
 ^^^^^^^^^^^^^^^^^^

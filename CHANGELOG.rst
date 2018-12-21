@@ -18,13 +18,13 @@ The format is based on `Keep a Changelog`_.
 `UNRELEASED`_
 =============
 
-`0.4.1`_ - 2018-12-20'
+`0.4.1`_ - 2018-12-21
 =====================
 
 Changed
 -------
 
-- Changed package name to qiskit_chemistry
+- Changed package name and imports to qiskit_chemistry
 
 Fixed
 -----
