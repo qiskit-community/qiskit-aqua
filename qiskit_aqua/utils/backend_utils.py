@@ -17,7 +17,8 @@
 
 try:
     from qiskit import Aer
-except ImportError:
+except ImportError as e:
+    print("can not use Aer, error: {}".format(e), flush=True)
     from qiskit import BasicAer
 
 import logging
@@ -43,7 +44,8 @@ warnings.showwarning = my_warning_wrapper
 def get_aer_backends():
     try:
         backends = Aer.backends()
-    except:
+    except Exception as e:
+        print("can not use Aer, error: {}".format(e), flush=True)
         backends = BasicAer.backends()
     return backends
 
@@ -51,6 +53,7 @@ def get_aer_backends():
 def get_aer_backend(backend_name):
     try:
         backend = Aer.get_backend(backend_name)
-    except:
+    except Exception as e:
+        print("can not use Aer, error: {}".format(e), flush=True)
         backend = BasicAer.get_backend(backend_name)
     return backend
