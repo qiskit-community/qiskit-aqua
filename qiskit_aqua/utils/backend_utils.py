@@ -16,7 +16,7 @@
 # =============================================================================
 
 try:
-    from qiskit import Aer
+    from qiskit.providers.aer import Aer
 except ImportError as e:
     print("can not use Aer, error: {}".format(e), flush=True)
     from qiskit import BasicAer
