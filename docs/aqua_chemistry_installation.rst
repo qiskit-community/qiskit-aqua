@@ -1,4 +1,4 @@
-.. _aqua-chemistry-installation-and-setup:
+.. _qiskit-chemistry-installation-and-setup:
 
 ======================
 Installation and Setup
@@ -18,7 +18,7 @@ recommend installing the `Anaconda
 3 <https://www.continuum.io/downloads>`__ Python distribution, as it
 comes with all of these dependencies pre-installed.
 
-.. _aqua-chemistry-code-installation:
+.. _qiskit-chemistry-code-installation:
 
 -----------------
 Code Installation

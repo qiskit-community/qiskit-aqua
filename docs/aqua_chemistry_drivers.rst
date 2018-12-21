@@ -6,8 +6,8 @@ Drivers
 
 Qiskit Chemistry requires a computational chemistry program or library, known as *driver*, to be installed on the
 system for the electronic-structure computation.  When launched via the Qiskit Chemistry
-:ref:`aqua-chemistry-command-line`,
-:ref:`aqua-chemistry-gui`, or :ref:`aqua-chemistry-programmable-interface`,
+:ref:`qiskit-chemistry-command-line`,
+:ref:`qiskit-chemistry-gui`, or :ref:`qiskit-chemistry-programmable-interface`,
 Qiskit Chemistry expects a driver to be specified, and a
 molecular configuration to be passed in the format compatible with that driver.
 Qiskit Chemistry uses the driver not only as a frontend input language, to allow the user to configure
@@ -227,7 +227,7 @@ Input File Example
 ~~~~~~~~~~~~~~~~~~
 
 To use Gaussian™ 16 to configure a molecule on which to do a chemistry experiment with Qiskit Chemistry,
-set the ``name`` field in the ``driver`` section of the :ref:`aqua-chemistry-input-file` to ``GAUSSIAN`` and
+set the ``name`` field in the ``driver`` section of the :ref:`qiskit-chemistry-input-file` to ``GAUSSIAN`` and
 then create a ``gaussian`` section in the input file as per the example below,
 which shows the configuration of a molecule of
 hydrogen, :math:`H_2`.  Here, the molecule, basis set and other options are specified according
@@ -247,7 +247,7 @@ to the Gaussian™ 16 control file, so the syntax specified by Gaussian™ 16 sh
 
 Experienced chemists who already have existing Gaussian™ 16 control files can simply paste the contents of those files
 into the ``gaussian`` section of the input file.  This configuration can also be easily achieved using the
-Qiskit Chemistry :ref:`aqua-chemistry-gui`.
+Qiskit Chemistry :ref:`qiskit-chemistry-gui`.
 
 .. _psi4:
 
@@ -273,7 +273,7 @@ In order for Qiskit Chemistry to discover PSI4 at run time, it is then necessary
 before launching Qiskit Chemistry.
 
 To use PSI4 to configure a molecule on which to do a chemistry experiment with Qiskit Chemistry,
-set the ``name`` field in the ``driver`` section of the :ref:`aqua-chemistry-input-file` to ``PSI4`` and
+set the ``name`` field in the ``driver`` section of the :ref:`qiskit-chemistry-input-file` to ``PSI4`` and
 then create a ``psi4`` section in the input file as per the example below, which shows the configuration of a molecule of
 hydrogen, :math:`H_2`.  Here, the molecule, basis set and other options are specified according
 to the PSI4 control file, so the syntax specified by PSI4 should be followed:
@@ -295,7 +295,7 @@ to the PSI4 control file, so the syntax specified by PSI4 should be followed:
 
 Experienced chemists who already have existing PSI4 control files can simply paste the contents of those files
 into the ``psi4`` section of the input file.  This configuration can also be easily achieved using the
-Qiskit Chemistry :ref:`aqua-chemistry-gui`.
+Qiskit Chemistry :ref:`qiskit-chemistry-gui`.
 
 .. _pyscf:
 
@@ -311,7 +311,7 @@ virtual environment where Qiskit Chemistry is also installed will automatically 
 by Qiskit Chemistry at run time.
 
 To use PySCF to configure a molecule on which to do a chemistry experiment with Qiskit Chemistry,
-set the ``name`` field in the ``driver`` section of the :ref:`aqua-chemistry-input-file` to ``PYSCF`` and
+set the ``name`` field in the ``driver`` section of the :ref:`qiskit-chemistry-input-file` to ``PYSCF`` and
 then create a ``pyscf`` section in the input file as per the example below, which shows the configuration of a molecule of
 hydrogen, :math:`H_2`.  Here, the molecule, basis set and other options are specified as key/value pairs, according
 to the syntax expected by PySCF.  In PySCF, these are the arguments as passed to the ``pyscf.gto.Mole`` class
@@ -334,7 +334,7 @@ atoms are separate by semicolon. This is an example for H2O (water): "H; O 1 1.0
 
 Experienced chemists who already have existing PySCF control files can simply paste the contents of those files
 into the ``pyscf`` section of the input file.  This configuration can also be easily achieved using the
-Qiskit Chemistry :ref:`aqua-chemistry-gui`.
+Qiskit Chemistry :ref:`qiskit-chemistry-gui`.
 
 .. _pyquante:
 
@@ -364,7 +364,7 @@ under a `modified BSD license <https://opensource.org/licenses/BSD-3-Clause>`__.
     dipole moment.
 
 To use PyQuante to configure a molecule on which to do a chemistry experiment with Qiskit Chemistry,
-set the ``name`` field in the ``driver`` section of the :ref:`aqua-chemistry-input-file` to ``PYQUANTE`` and
+set the ``name`` field in the ``driver`` section of the :ref:`qiskit-chemistry-input-file` to ``PYQUANTE`` and
 then create a ``pyquante`` section in the input file as per the example below, which shows the configuration of a molecule of
 hydrogen, :math:`H_2`.  Here, the molecule, basis set and other options are specified according
 to the PyQuante control file, so the syntax specified by PyQuante should be followed.
@@ -387,7 +387,7 @@ This is an example for H2O (water): "H; O 1 1.08; H 2 1.08 1 107.5"
 
 Experienced chemists who already have existing PyQuante control files can simply paste the contents of those files
 into the ``pyquante`` section of the input file.  This configuration can also be easily achieved using the
-Qiskit Chemistry :ref:`aqua-chemistry-gui`.
+Qiskit Chemistry :ref:`qiskit-chemistry-gui`.
 
 .. _hdf5:
 
@@ -427,12 +427,12 @@ Generation of an HDF5 Input File
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The most intuitive way to generate an HDF5 input file is by using the Qiskit Chemistry
-:ref:`aqua-chemistry-gui`.
-Through the GUI, you can load an existing :ref:`aqua-chemistry-input-file` from the ``chemistry`` folder
+:ref:`qiskit-chemistry-gui`.
+Through the GUI, you can load an existing :ref:`qiskit-chemistry-input-file` from the ``chemistry`` folder
 of the `Qiskit Tutorials GitHub repository <https://github.com/Qiskit/qiskit-tutorials>`__
 (which must have been installed on your file system via a ``git clone`` command)
 by selecting **Open...** from the **File** menu.  Alternatively, you can create and then potentially customize
-a brand new :ref:`aqua-chemistry-input-file` by choosing **New** from the **File** menu.
+a brand new :ref:`qiskit-chemistry-input-file` by choosing **New** from the **File** menu.
 Once you have configured the chemistry experiment in one of the existing classical drivers
 (:ref:`gaussian-16`, :ref:`psi4`, :ref:`pyscf` or :ref:`pyquante`),
 you can specify the name of the file where you want the HDF5 file to be serialized.  This can be done
@@ -448,13 +448,13 @@ and directory path you chose, respectively.
 
 Using the GUI is the most intuitive option to generate the HDF5 file corresponding to a given experiment.  The
 same result can be obtained by assigning a value to the ``hdf5_output`` field of the ``driver`` section of 
-an :ref:`aqua-chemistry-input-file` and then invoking the Qiskit Chemistry
-:ref:`aqua-chemistry-command-line` tool with the name of that file as the input parameter.
+an :ref:`qiskit-chemistry-input-file` and then invoking the Qiskit Chemistry
+:ref:`qiskit-chemistry-command-line` tool with the name of that file as the input parameter.
 
 Using an HDF5 File as the Input to an Experiment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 If you later want the HDF5 file to be deserialized and its contents used as the input for a chemistry experiment,
-you can select ``HDF5`` as the driver in an :ref:`aqua-chemistry-input-file`.  Doing so will
+you can select ``HDF5`` as the driver in an :ref:`qiskit-chemistry-input-file`.  Doing so will
 require the ``hdf5`` section in the input file to be configured by assigning a valid fully qualified
 file name to the ``hdf5_input`` field, as shown:
 

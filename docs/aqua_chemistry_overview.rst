@@ -36,8 +36,8 @@ for a driver installed in the system has been implemented, that driver will be a
 and made available in Qiskit Quantum Chemistry for running experiments.
 
 Once Qiskit Chemistry has been installed, a user can execute chemistry experiments
-on a quantum machine by using either the :ref:`aqua-chemistry-gui` or
-:ref:`aqua-chemistry-command-line` supplied tools, or the :ref:`aqua-chemistry-programmable-interface`.
+on a quantum machine by using either the :ref:`qiskit-chemistry-gui` or
+:ref:`qiskit-chemistry-command-line` supplied tools, or the :ref:`qiskit-chemistry-programmable-interface`.
 Either option enforces schema-based configuration correctness.
 
 .. topic:: Contributing to Qiskit Chemistry

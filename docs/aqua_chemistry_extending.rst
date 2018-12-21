@@ -1,4 +1,4 @@
-.. _aqua-chemistry-extending:
+.. _qiskit-chemistry-extending:
 
 ==============================
 Contributing to Qiskit Chemistry

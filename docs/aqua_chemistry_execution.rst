@@ -25,7 +25,7 @@ Specifically, this section describes how Qiskit Chemistry can be accessed as a
 tool for quantum-based chemistry computations.
 
 To see how you can extend Qiskit Chemistry with new components,
-please refer to Section ":ref:`aqua-chemistry-extending`".
+please refer to Section ":ref:`qiskit-chemistry-extending`".
 
 ---------------
 Execution Modes
@@ -43,7 +43,7 @@ Finally, Qiskit Chemistry can also be accessed
 `programmatically <#programmable-interface>`__ by users interested
 in customizing the experiments beyond what the command line and GUI can offer.
 
-.. _aqua-chemistry-gui:
+.. _qiskit-chemistry-gui:
 
 ~~~
 GUI
@@ -56,7 +56,7 @@ An input file is created,
 edited and saved with validation of parameter values.
 
 During the
-Qiskit Chemistry :ref:`aqua-chemistry-code-installation` via the ``pip install`` command,
+Qiskit Chemistry :ref:`qiskit-chemistry-code-installation` via the ``pip install`` command,
 a script is created that allows you to start the GUI from the command line,
 as follows:
 
@@ -72,7 +72,7 @@ install``, then the script above will not be present and the launching command s
 
    python qiskit_chemistry_ui
 
-This command must be launched from the root folder of the ``aqua-chemistry`` repository
+This command must be launched from the root folder of the ``qiskit-chemistry`` repository
 clone.
 
 When executing an Qiskit Chemistry problem using the GUI, the user can choose
@@ -85,13 +85,13 @@ quantum algorithm, before invoking that algorithm, and
 will serialize the input to the quantum algorithm in a
 JSON :ref:`input-file-for-direct-algorithm-invocation`.
 
-.. _aqua-chemistry-command-line:
+.. _qiskit-chemistry-command-line:
 
 ~~~~~~~~~~~~
 Command Line
 ~~~~~~~~~~~~
 
-The Qiskit Chemistry pip :ref:`aqua-chemistry-code-installation` process
+The Qiskit Chemistry pip :ref:`qiskit-chemistry-code-installation` process
 will automatically install the following command-line tool:
 
 .. code:: sh
@@ -134,7 +134,7 @@ quantum algorithm specified in the input file, before invoking that algorithm, a
 will serialize the quantum-algorithm to a JSON :ref:`input-file-for-direct-algorithm-invocation`.
 
 
-.. _aqua-chemistry-programmable-interface:
+.. _qiskit-chemistry-programmable-interface:
 
 ~~~~~~~~~~~~~~~~~~~~~~
 Programmable Interface
@@ -173,7 +173,7 @@ learning new Application Programming Interfaces (APIs).  Even though there is
 nothing preventing a user from accessing the Qiskit Chemistry APIs and
 programming an experiment step by step, Qiskit Chemistry lets you
 build a Python dictionary from an :ref:`qiskit-chemistry-input-file`.  This can be achieved via the
-:ref:`aqua-chemistry-gui`
+:ref:`qiskit-chemistry-gui`
 by loading (or creating from scratch) the input file representing the 
 configuration of the desired experiment, and by then selecting **Export Dictionary**
 from the **File** menu.  Assuming that the programmer assigns the
@@ -185,9 +185,9 @@ experiment can be executed with the following two lines of code:
    solver = QiskitChemistry()
    result = solver.run(qiskit_chemistry_dict)
 
-Executing the Python dictionary extracted from the :ref:`aqua-chemistry-input-file`
+Executing the Python dictionary extracted from the :ref:`qiskit-chemistry-input-file`
 via a call to the ``run`` method of an ``QiskitChemistry`` solver
-is essentially what the :ref:`aqua-chemistry-command-line` and :ref:`aqua-chemistry-gui`
+is essentially what the :ref:`qiskit-chemistry-command-line` and :ref:`qiskit-chemistry-gui`
 do too in order to execute an experiment.
 
 The advantage of this approach is that users can now programmatically customize the
@@ -284,7 +284,7 @@ The dictionary contains the following fields of note:
 -  ``algorithm_retvals``:  The result dictionary of the
    algorithm that produced the values in the experiment.
 
-.. _aqua-chemistry-input-file:
+.. _qiskit-chemistry-input-file:
 
 ----------
 Input File
@@ -683,7 +683,7 @@ accessible through the **Preferences...** menu item.
     Since a classical algorithm runs on a classical computer,
     no backend should be configured when a classical algorithm
     is selected in the ``algorithm`` section.
-    Accordingly, the Qiskit Chemistry :ref:`aqua-chemistry-gui` will automatically
+    Accordingly, the Qiskit Chemistry :ref:`qiskit-chemistry-gui` will automatically
     disable the ``backend`` configuration section
     whenever a non-quantum algorithm is selected. 
 
@@ -869,7 +869,7 @@ for sections ``initial_state`` and
 ``variational_form`` when ``UCCSD`` and ``Hartree-Fock`` are selected, respectively.  As such,
 the configuration of these two parameters is disabled; the user will not be required, or even allowed,
 to assign values to
-these two parameters.  This is also reflected in the :ref:`aqua-chemistry-gui`, where
+these two parameters.  This is also reflected in the :ref:`qiskit-chemistry-gui`, where
 these two parameters will be grayed out and uneditable when ``auto_substitutions`` is set to ``True``.
 Furthermore, Qiskit Chemistry automatically sets
 parameters ``qubit_mapping`` and ``two_qubit_reduction`` in sections ``initial_state`` and
@@ -880,7 +880,7 @@ of the input file in order to enforce parameter-value matching across these thre
 sections.  As a result, the user will only have to configure ``qubit_mapping``
 and ``two_qubit_reduction`` in the ``operator`` section; the configuration of these two
 parameters in sections ``initial_state`` and ``variational_form`` is disabled,
-as reflected also in the :ref:`aqua-chemistry-gui`, where the values of these two parameters are only
+as reflected also in the :ref:`qiskit-chemistry-gui`, where the values of these two parameters are only
 editable in the ``operator`` section, while the parameters themselves are grayed out in the
 ``initial_state`` and ``variational_form`` sections.
 
