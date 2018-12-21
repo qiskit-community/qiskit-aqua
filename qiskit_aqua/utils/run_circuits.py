@@ -97,7 +97,7 @@ def _reuse_shared_circuits(circuits, backend, backend_config, compile_config, ru
     temp_backend_config = copy.deepcopy(backend_config)
     if 'config' not in temp_backend_config:
         temp_backend_config['config'] = dict()
-    temp_backend_config['config']['initial_state'] = shared_quantum_state
+    temp_backend_config['config']['initial_statevector'] = shared_quantum_state
     diff_result = compile_and_run_circuits(circuits[1:], backend, temp_backend_config,
                                            compile_config, run_config, qjob_config,
                                            show_circuit_summary=show_circuit_summary)
@@ -106,7 +106,7 @@ def _reuse_shared_circuits(circuits, backend, backend_config, compile_config, ru
 
 
 def compile_and_run_circuits(circuits, backend, backend_config, compile_config, run_config, qjob_config=None,
-                             show_circuit_summary=False, has_shared_circuits=False):
+                             noise_config=None, show_circuit_summary=False, has_shared_circuits=False):
     """
     An execution wrapper with Qiskit-Terra, with job auto recover capability.
 
@@ -120,8 +120,10 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
         compile_config (dict): configuration for compilation
         run_config (dict): configuration for running a circuit
         qjob_config (dict): configuration for quantum job object
+        noise_config (dict): configuration for noise model
         show_circuit_summary (bool): showing the summary of submitted circuits.
         has_shared_circuits (bool): use the 0-th circuits as initial state for other circuits.
+
     Returns:
         Result: Result object
 
@@ -129,6 +131,7 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
         AquaError: Any error except for JobError raised by Qiskit Terra
     """
     qjob_config = qjob_config or {}
+    noise_config = noise_config or {}
 
     if backend is None or not isinstance(backend, BaseBackend):
         raise ValueError('Backend is missing or not an instance of BaseBackend')
@@ -163,7 +166,7 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
                          **compile_config, **run_config)
         # assure get job ids
         while True:
-            job = backend.run(qobj)
+            job = backend.run(qobj, **noise_config)
             try:
                 job_id = job.job_id()
                 break
