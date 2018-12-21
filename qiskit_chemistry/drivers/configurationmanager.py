@@ -27,6 +27,7 @@ from ._basedriver import BaseDriver
 from qiskit_chemistry.preferences import Preferences
 from collections import namedtuple
 from qiskit_chemistry import QiskitChemistryError
+import pkg_resources
 
 logger = logging.getLogger(__name__)
 
@@ -188,8 +189,9 @@ class ConfigurationManager(object):
             """
             self._discovered = False
             self._registration = OrderedDict()
-            self.discover_local_drivers()
-            self.discover_preferences_drivers()
+            self._discover_local_drivers()
+            self._discover_entry_point_chemistry_drivers()
+            self._discover_preferences_drivers()
             if logger.isEnabledFor(logging.DEBUG):
                 logger.debug("Found: drivers {} ".format(self.local_drivers()))
 
@@ -200,12 +202,37 @@ class ConfigurationManager(object):
             if not self._discovered:
                 self._discovered = True
                 self._registration = OrderedDict()
-                self.discover_local_drivers()
-                self.discover_preferences_drivers()
+                self._discover_local_drivers()
+                self._discover_entry_point_chemistry_drivers()
+                self._discover_preferences_drivers()
                 if logger.isEnabledFor(logging.DEBUG):
                     logger.debug("Found: has drivers {} ".format(self.local_drivers()))
 
-        def discover_preferences_drivers(self):
+        def _discover_entry_point_chemistry_drivers(self):
+            """
+            Discovers the chemistry driver modules defined by entry_points in setup
+            and attempts to register them. Chem.Drivers modules should subclass BaseDriver Base class.
+            """
+            for entry_point in pkg_resources.iter_entry_points('qiskit.chemistry.drivers'):
+                try:
+                    ep = entry_point.load()
+                    _registered = False
+                    if issubclass(ep, BaseDriver):
+                        self._register_driver(ep)
+                        _registered = True
+                        # print("Registered entry point chemistry driver '{}' class '{}'".format(entry_point, ep))
+                        logger.debug("Registered entry point chemistry driver '{}' class '{}'".format(entry_point, ep))
+                        break
+
+                    if not _registered:
+                        # print("Unknown entry point chemistry driver '{}' class '{}'".format(entry_point, ep))
+                        logger.debug("Unknown entry point chemistry driver '{}' class '{}'".format(entry_point, ep))
+                except Exception as e:
+                    # Ignore entry point that could not be initialized.
+                    # print("Failed to load entry point '{}' error {}".format(entry_point, str(e)))
+                    logger.debug("Failed to load entry point '{}' error {}".format(entry_point, str(e)))
+
+        def _discover_preferences_drivers(self):
             """
             Discovers the chemistry drivers on the directory and subdirectories of the preferences package
             and attempts to register them. Drivers modules should subclass BaseDriver Base class.
@@ -216,9 +243,9 @@ class ConfigurationManager(object):
                 try:
                     mod = importlib.import_module(package)
                     if mod is not None:
-                        self._discover_local_drivers(os.path.dirname(mod.__file__),
-                                                     mod.__name__,
-                                                     names_to_exclude=[
+                        self._discover_local_drivers_in_dirs(os.path.dirname(mod.__file__),
+                                                             mod.__name__,
+                                                             names_to_exclude=[
                             '__main__'],
                             folders_to_exclude=['__pycache__'])
                     else:
@@ -229,11 +256,11 @@ class ConfigurationManager(object):
                     logger.debug(
                         'Failed to load package {} error {}'.format(package, str(e)))
 
-        def _discover_local_drivers(self,
-                                    directory,
-                                    parentname,
-                                    names_to_exclude=_NAMES_TO_EXCLUDE,
-                                    folders_to_exclude=_FOLDERS_TO_EXCLUDE):
+        def _discover_local_drivers_in_dirs(self,
+                                            directory,
+                                            parentname,
+                                            names_to_exclude=_NAMES_TO_EXCLUDE,
+                                            folders_to_exclude=_FOLDERS_TO_EXCLUDE):
             for _, name, ispackage in pkgutil.iter_modules([directory]):
                 if ispackage:
                     continue
@@ -261,10 +288,10 @@ class ConfigurationManager(object):
             for item in os.listdir(directory):
                 fullpath = os.path.join(directory, item)
                 if item not in folders_to_exclude and not item.endswith('dSYM') and os.path.isdir(fullpath):
-                    self._discover_local_drivers(
+                    self._discover_local_drivers_in_dirs(
                         fullpath, parentname + '.' + item, names_to_exclude, folders_to_exclude)
 
-        def discover_local_drivers(self,
+        def _discover_local_drivers(self,
                                    directory=os.path.dirname(__file__),
                                    parentname=os.path.splitext(__name__)[0]):
             """
@@ -288,6 +315,6 @@ class ConfigurationManager(object):
             syspath_save = sys.path
             sys.path = _get_sys_path(directory) + sys.path
             try:
-                self._discover_local_drivers(directory, parentname)
+                self._discover_local_drivers_in_dirs(directory, parentname)
             finally:
                 sys.path = syspath_save
