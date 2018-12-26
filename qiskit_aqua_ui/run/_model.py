@@ -19,6 +19,10 @@ import os
 import json
 from qiskit_aqua_ui._uipreferences import UIPreferences
 from collections import OrderedDict
+import threading
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Model(object):
@@ -26,6 +30,32 @@ class Model(object):
     def __init__(self):
         """Create Model object."""
         self._parser = None
+        self._available_providers = {}
+        self._backendsthread = None
+        self.get_available_providers()
+
+    @property
+    def available_providers(self):
+        return self._available_providers
+
+    def get_available_providers(self):
+        from qiskit_aqua import register_ibmq_and_get_known_providers
+        if self._backendsthread is not None:
+            return
+
+        self._register_ibmq_and_get_known_providers = register_ibmq_and_get_known_providers
+        self._backendsthread = threading.Thread(target=self._get_available_providers,
+                                                name='Aqua available providers')
+        self._backendsthread.daemon = True
+        self._backendsthread.start()
+
+    def _get_available_providers(self):
+        try:
+            self._available_providers = self._register_ibmq_and_get_known_providers()
+        except Exception as e:
+            logger.debug(str(e))
+        finally:
+            self._backendsthread = None
 
     def is_empty(self):
         return self._parser is None or len(self._parser.get_section_names()) == 0
@@ -135,7 +165,7 @@ class Model(object):
         if not isinstance(default_properties, dict) or not isinstance(properties, dict):
             return default_properties == properties
 
-        if JSONSchema.NAME in properties:
+        if JSONSchema.BACKEND != section_name and JSONSchema.NAME in properties:
             default_properties[JSONSchema.NAME] = properties[JSONSchema.NAME]
 
         return default_properties == properties
@@ -183,14 +213,12 @@ class Model(object):
         name = self._parser.get_section_property(section_name, JSONSchema.NAME)
         self._parser.delete_section_properties(section_name)
         value = self._parser.get_section_default_properties(section_name)
-        if name is not None:
-            self._parser.set_section_property(
-                section_name, JSONSchema.NAME, name)
+        if JSONSchema.BACKEND != section_name and name is not None:
+            self._parser.set_section_property(section_name, JSONSchema.NAME, name)
         if isinstance(value, dict):
             for property_name, property_value in value.items():
-                if property_name != JSONSchema.NAME:
-                    self._parser.set_section_property(
-                        section_name, property_name, property_value)
+                if JSONSchema.BACKEND == section_name or property_name != JSONSchema.NAME:
+                    self._parser.set_section_property(section_name, property_name, property_value)
         else:
             if value is None:
                 types = self._parser.get_section_types(section_name)
@@ -304,16 +332,17 @@ class Model(object):
             raise Exception('Input not initialized.')
 
         self._parser.set_section_property(section_name, property_name, value)
-        if property_name == JSONSchema.NAME and \
-                (InputParser.is_pluggable_section(section_name)):
-            properties = self._parser.get_section_default_properties(
-                section_name)
+        if property_name == JSONSchema.NAME and InputParser.is_pluggable_section(section_name):
+            properties = self._parser.get_section_default_properties(section_name)
             if isinstance(properties, dict):
                 properties[JSONSchema.NAME] = value
                 self._parser.delete_section_properties(section_name)
                 for property_name, property_value in properties.items():
-                    self._parser.set_section_property(
-                        section_name, property_name, property_value)
+                    self._parser.set_section_property(section_name, property_name, property_value)
+        elif section_name == JSONSchema.BACKEND and property_name == JSONSchema.PROVIDER:
+            backends = self.available_providers.get(value, [])
+            backend = backends[0] if len(backends) > 0 else ''
+            self._parser.set_section_property(section_name, JSONSchema.NAME, backend)
 
     def delete_section_property(self, section_name, property_name):
         from qiskit_aqua.parser._inputparser import InputParser
@@ -322,8 +351,9 @@ class Model(object):
             raise Exception('Input not initialized.')
 
         self._parser.delete_section_property(section_name, property_name)
-        if property_name == JSONSchema.NAME and \
-                (InputParser.is_pluggable_section(section_name)):
+        if property_name == JSONSchema.NAME and InputParser.is_pluggable_section(section_name):
+            self._parser.delete_section_properties(section_name)
+        elif section_name == JSONSchema.BACKEND and (property_name == JSONSchema.PROVIDER or property_name == JSONSchema.NAME):
             self._parser.delete_section_properties(section_name)
 
     def set_section_text(self, section_name, value):

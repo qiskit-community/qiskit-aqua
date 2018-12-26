@@ -32,6 +32,10 @@
         "backend": {
             "type": "object",
             "properties": {
+                "provider": {
+                    "type": "string",
+                    "default": "qiskit.BasicAer"
+                },
                 "name": {
                     "type": "string",
                     "default": "statevector_simulator"

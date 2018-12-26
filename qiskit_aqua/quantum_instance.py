@@ -280,47 +280,6 @@ class QuantumInstance:
         """
         return backend.configuration().local
 
-    @staticmethod
-    def register_and_get_operational_backends():
-        # update registration info using internal methods because:
-        # at this point I don't want to save to or remove credentials from disk
-        # I want to update url, proxies etc without removing token and
-        # re-adding in 2 methods
-
-        ibmq_backends = []
-        try:
-            credentials = None
-            preferences = Preferences()
-            url = preferences.get_url()
-            token = preferences.get_token()
-            if url is not None and url != '' and token is not None and token != '':
-                credentials = Credentials(token,
-                                          url,
-                                          proxies=preferences.get_proxies({}))
-            if credentials is not None:
-                IBMQ._accounts[credentials.unique_id()] = IBMQSingleProvider(
-                    credentials, IBMQ)
-                logger.debug("Registered with Qiskit successfully.")
-                ibmq_backends = [x.name()
-                                 for x in IBMQ.backends(url=url, token=token)]
-        except Exception as e:
-            logger.debug(
-                "Failed to register with Qiskit: {}".format(str(e)))
-
-        backends = set()
-        aer_backends = [x.name() for x in get_aer_backends()]
-        for backend in aer_backends:
-            supported = True
-            for unsupported_backend in QuantumInstance.UNSUPPORTED_BACKENDS:
-                if backend.startswith(unsupported_backend):
-                    supported = False
-                    break
-
-            if supported:
-                backends.add(backend)
-
-        return list(backends) + ibmq_backends
-
 
 def get_quantum_instance_with_aer_statevector_simulator():
     backend = get_aer_backend('statevector_simulator')
