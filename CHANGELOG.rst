@@ -18,6 +18,10 @@ The format is based on `Keep a Changelog`_.
 `UNRELEASED`_
 =============
 
+Added
+-----
+ - A flag ``before_04`` in the ``load_from_dict(file)`` method is added to support to load operator in the old format. We encourage to save the operator in the new format from now on.
+
 `0.4.0`_ - 2018-12-19
 =====================
 
@@ -48,7 +52,12 @@ Added
    - Loading of multiple univariate and multivariate random distributions
    - European call option: expected value and delta (using univariate distributions)
    - Fixed income asset pricing: expected value (using multivariate distributions)
-   
+
+Changed
+-------
+
+- The pauli string in ``Operator`` class is aligned with Terra 0.7. Now the order of a n-qubit pauli string is ``q_{n-1}...q{0}`` Thus, the (de)serialier (``save_to_dict`` and ``load_from_dict``) in the ``Operator`` class are also changed to adopt the changes of ``Pauli`` class.
+
 Removed
 -------
 
