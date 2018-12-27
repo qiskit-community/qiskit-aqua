@@ -65,17 +65,16 @@ The code above demonstrates how Grover’s search algorithm can be used in conju
 Satisfiability (SAT) oracle to compute one of the many possible solutions of a Conjunctive Normal
 Form (CNF).  Variable `sat_cnf` corresponds to the following CNF:
 
+```
 (&not;<i>x</i><sub>1</sub> &or; &not;<i>x</i><sub>2</sub> &or; &not;<i>x</i><sub>3</sub>) &and;
 (<i>x</i><sub>1</sub> &or; &not;<i>x</i><sub>2</sub> &or; <i>x</i><sub>3</sub>) &and;
 (<i>x</i><sub>1</sub> &or; <i>x</i><sub>2</sub> &or; &not;<i>x</i><sub>3</sub>) &and;
 (<i>x</i><sub>1</sub> &or; &not;<i>x</i><sub>2</sub> &or; &not;<i>x</i><sub>3</sub>) &and;
 (&not;<i>x</i><sub>1</sub> &or; <i>x</i><sub>2</sub> &or; <i>x</i><sub>3</sub>)  
+```
 
 The Python code above prints out one possible solution for this CNF. For example, output `1, -2, 3` indicates
-that (<i>x</i><sub>1</sub> &or; &not;<i>x</i><sub>2</sub> &or; <i>x</i><sub>3</sub>) satisfies the given CNF.
-  
-
-### Executing your code on a real quantum chip
+that logical expression (<i>x</i><sub>1</sub> &or; &not;<i>x</i><sub>2</sub> &or; <i>x</i><sub>3</sub>) satisfies the given CNF.
 
 You can also use Qiskit to execute your code on a
 **real quantum chip**.
