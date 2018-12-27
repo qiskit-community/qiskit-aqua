@@ -47,9 +47,10 @@ the pull request,  including a link to accept the agreement. The
 `individual CLA <https://qiskit.org/license/qiskit-cla.pdf>`_ document is
 available for review as a PDF.
 
-NOTE: If you work for a company that wants to allow you to contribute your work,
-then you'll need to sign a `corporate CLA <https://qiskit.org/license/qiskit-corporate-cla.pdf>`_
-and email it to us at qiskit@us.ibm.com.
+.. note::
+    If you work for a company that wants to allow you to contribute your work,
+    then you'll need to sign a `corporate CLA <https://qiskit.org/license/qiskit-corporate-cla.pdf>`_
+    and email it to us at qiskit@us.ibm.com.
 
 
 Good First Contributions
@@ -165,7 +166,7 @@ you need to have some libraries, which can be installed in this way:
     pip install -r requirements.txt
     pip install -r requirements-dev.txt
 
-To install Qiskit Aqua locallu, execute the following command from the `qiskit-aqua` root
+To install Qiskit Aqua locally, execute the following command from the `qiskit-aqua` root
 directory on your machine:
 
 .. code:: sh
