@@ -440,6 +440,7 @@ class Controller(object):
         from qiskit_aqua.parser import JSONSchema
         values = None
         types = ['string']
+        combobox_state = 'readonly'
         if InputParser.OPERATOR == section_name and JSONSchema.NAME == property_name:
             values = self.model.get_operator_section_names()
         elif InputParser.DRIVER == section_name and JSONSchema.NAME == property_name:
@@ -450,11 +451,12 @@ class Controller(object):
                 (JSONSchema.NAME == property_name or JSONSchema.PROVIDER == property_name):
             values = []
             if JSONSchema.PROVIDER == property_name:
-                for provider, _ in self.model.available_providers.items():
+                combobox_state = 'normal'
+                for provider, _ in self.model.providers.items():
                     values.append(provider)
             else:
                 provider_name = self.model.get_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER)
-                values = self.model.available_providers.get(provider_name, [])
+                values = self.model.providers.get(provider_name, [])
         else:
             values = self.model.get_property_default_values(section_name, property_name)
             types = self.model.get_property_types(section_name, property_name)
@@ -466,7 +468,7 @@ class Controller(object):
                                    property_name,
                                    parent,
                                    exportselection=0,
-                                   state='readonly',
+                                   state=combobox_state,
                                    values=values)
             widget._text = value
             if len(values) > 0:

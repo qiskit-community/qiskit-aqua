@@ -155,7 +155,8 @@ class ComboboxPopup(ttk.Combobox):
     def _update_value(self, *ignore):
         new_text = self.get()
         state = self.state()
-        if isinstance(state, tuple) and state[0] != 'pressed':
+        combo_state = state[0] if isinstance(state, tuple) and len(state) > 0 else None
+        if combo_state is None or combo_state != 'pressed':
             self.destroy()
 
         if len(new_text) > 0 and self._text != new_text:
