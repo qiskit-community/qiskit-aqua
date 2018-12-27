@@ -1,11 +1,6 @@
 # Qiskit Aqua
 
-[![License](https://img.shields.io/github/license/Qiskit/qiskit-aqua.svg?style=popout-square)](https://opensource.org/licenses/Apache-2.0)
-[![Build Status](https://img.shields.io/travis/com/Qiskit/qiskit-aqua/master.svg?style=popout-square)](https://travis-ci.com/Qiskit/qiskit-aqua)
-![](https://img.shields.io/pypi/v/qiskit-aqua.svg?style=popout-square)![](https://img.shields.io/pypi/dm/qiskit-aqua.svg?style=popout-square)
-
-
-[![License](https://img.shields.io/github/license/Qiskit/qiskit-terra.svg?style=popout-square)](https://opensource.org/licenses/Apache-2.0)[![Build Status](https://img.shields.io/travis/Qiskit/qiskit-terra/master.svg?style=popout-square)](https://travis-ci.org/Qiskit/qiskit-terra)[![](https://img.shields.io/github/release/Qiskit/qiskit-terra.svg?style=popout-square)](https://github.com/Qiskit/qiskit-terra/releases)[![](https://img.shields.io/pypi/dm/qiskit-terra.svg?style=popout-square)](https://pypi.org/project/qiskit-terra/)
+[![License](https://img.shields.io/github/license/Qiskit/qiskit-aqua.svg?style=popout-square)](https://opensource.org/licenses/Apache-2.0)[![Build Status](https://img.shields.io/travis/com/Qiskit/qiskit-aqua/master.svg?style=popout-square)](https://travis-ci.com/Qiskit/qiskit-aqua)[![](https://img.shields.io/github/release/Qiskit/qiskit-aqua.svg?style=popout-square)](https://github.com/Qiskit/qiskit-aqua/releases)[![](https://img.shields.io/pypi/dm/qiskit-aqua.svg?style=popout-square)](https://pypi.org/project/qiskit-aqua/)
 
 **Qiskit** is an open-source framework for working with noisy intermediate-scale quantum computers (NISQ) at the level of pulses, circuits, algorithms, and applications.
 
@@ -31,8 +26,9 @@ We encourage installing Qiskit Aqua via the pip tool (a python package manager):
 pip install qiskit-aqua
 ```
 
-PIP will handle all dependencies automatically for you, including the other Qiskit elements on which
-Aqua is built, and you will always install the latest (and well-tested) version.
+pip will handle all dependencies automatically for you, including the other Qiskit elements on which
+Aqua is built, such as [Qiskit Terra](https://github.com/Qiskit/qiskit-terra/),
+and you will always install the latest (and well-tested) version.
 
 To install from source, follow the instructions in the [contribution guidelines](.github/CONTRIBUTING.rst).
 
@@ -75,12 +71,15 @@ Form (CNF).  Variable `sat_cnf` corresponds to the following CNF:
 (&not;<i>x</i><sub>1</sub> &or; <i>x</i><sub>2</sub> &or; <i>x</i><sub>3</sub>)  
 
 The Python code above prints out one possible solution for this CNF. For example, output `1, -2, 3` indicates
-that logical expression (<i>x</i><sub>1</sub> &or; &not;<i>x</i><sub>2</sub> &or; <i>x</i><sub>3</sub>) satisfies the given CNF.
+that logical expression (<i>x</i><sub>1</sub> &or; &not;<i>x</i><sub>2</sub> &or; <i>x</i><sub>3</sub>)
+satisfies the given CNF.
 
 You can also use Qiskit to execute your code on a **real quantum chip**.
-In order to do so, you need to configure Qiskit for using the credentials in
-your IBM Q account.  Please consult the relevant instructions in the
-[Qiskit Terra GitHub repository](https://github.com/Qiskit/qiskit-terra/blob/master/README.md#executing-your-code-on-a-real-quantum-chip). 
+In order to do so, you need to configure Qiskit to use the credentials in
+your [IBM Q](https://quantumexperience.ng.bluemix.net) account.
+Please consult the relevant instructions in the
+[Qiskit Terra GitHub repository](https://github.com/Qiskit/qiskit-terra/blob/master/README.md#executing-your-code-on-a-real-quantum-chip)
+for more details.  
 
 ## Contribution Guidelines
 
@@ -88,8 +87,8 @@ If you'd like to contribute to Qiskit, please take a look at our
 [contribution guidelines](.github/CONTRIBUTING.rst). This project adheres to Qiskit's [code of conduct](.github/CODE_OF_CONDUCT.rst). By participating, you are expected to uphold to this code.
 
 We use [GitHub issues](https://github.com/Qiskit/qiskit-aqua/issues) for tracking requests and bugs. Please use the [Aqua Slack channel](https://qiskit.slack.com/messages/aqua)
-for discussion and simple questions.  To join our Slack community use the [link](https://join.slack.com/t/qiskit/shared_invite/enQtNDc2NjUzMjE4Mzc0LTMwZmE0YTM4ZThiNGJmODkzN2Y2NTNlMDIwYWNjYzA2ZmM1YTRlZGQ3OGM0NjcwMjZkZGE0MTA4MGQ1ZTVmYzk).
-For questions that are more suited for a forum we use the Qiskit tag in the [Stack Overflow](https://stackoverflow.com/questions/tagged/qiskit).
+for discussion and simple questions.  To join our Slack community use this [link](https://join.slack.com/t/qiskit/shared_invite/enQtNDc2NjUzMjE4Mzc0LTMwZmE0YTM4ZThiNGJmODkzN2Y2NTNlMDIwYWNjYzA2ZmM1YTRlZGQ3OGM0NjcwMjZkZGE0MTA4MGQ1ZTVmYzk).
+For questions that are more suited for a forum, we use the **Qiskit** tag in [Stack Overflow](https://stackoverflow.com/questions/tagged/qiskit).
 
 ## Next Steps
 

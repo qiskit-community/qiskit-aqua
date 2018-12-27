@@ -216,14 +216,14 @@ The docunentation can then be built using the instructions available in the
 Development Cycle
 -----------------
 
-Our development cycle is straightforward. We define a roadmap with milestones
-for releases, and features that we want to include in these releases. The
-roadmap is not public at the moment, but it's a committed project in our
-community and we are working to make parts of it public in a way that can be
-beneficial for everyone. Whenever a new release is close to be launched, we'll
-announce it and detail what has changed since the latest version.
-The channels we'll use to announce new releases are still being discussed, but
-for now you can `follow us <https://twitter.com/qiskit>`_ on Twitter!
+Our development cycle is straightforward. Use the **Projects** board in Github
+for project management and use **Milestones** in the **Issues** board for releases. The features
+that we want to include in these releases will be tagged and discussed
+in the project boards. Whenever a new release is close to be launched,
+we'll announce it and detail what has changed since the latest version in
+our Release Notes and Changelog. The channels we'll use to announce new
+releases are still being discussed, but for now, you can
+`follow us <https://twitter.com/qiskit>`_ on Twitter!
 
 
 Branch Model
