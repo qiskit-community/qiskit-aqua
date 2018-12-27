@@ -30,7 +30,8 @@ from .utils.backend_utils import (get_aer_backend,
                                   get_aer_backends,
                                   get_local_providers,
                                   get_backend_from_provider,
-                                  register_ibmq_and_get_known_providers)
+                                  register_ibmq_and_get_known_providers,
+                                  get_provider_from_backend)
 from .pluggable import Pluggable
 from .utils.cnx import cnx
 from .quantum_instance import QuantumInstance
@@ -57,6 +58,7 @@ __all__ = ['AquaError',
            'get_local_providers',
            'get_backend_from_provider',
            'register_ibmq_and_get_known_providers',
+           'get_provider_from_backend',
            'local_pluggables_types',
            'local_pluggables',
            'get_pluggable_class',

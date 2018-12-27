@@ -32,8 +32,9 @@ from qiskit_aqua._discover import (_discover_on_demand,
 from qiskit_aqua.utils.jsonutils import convert_dict_to_json, convert_json_to_dict
 from qiskit_aqua.parser._inputparser import InputParser
 from qiskit_aqua.parser import JSONSchema
-from qiskit_aqua import QuantumInstance
-from qiskit_aqua import get_backend_from_provider
+from qiskit_aqua import (QuantumInstance,
+                         get_backend_from_provider,
+                         get_provider_from_backend)
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +57,13 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
 
     inputparser = InputParser(params)
     inputparser.parse()
+    # before merging defaults attempts to find a provider for the backend in case no
+    # provider was passed
+    if backend is None and inputparser.get_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER) is None:
+        backend_name = inputparser.get_section_property(JSONSchema.BACKEND, JSONSchema.NAME)
+        if backend_name is not None:
+            inputparser.set_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER, get_provider_from_backend(backend_name))
+
     inputparser.validate_merge_defaults()
     logger.debug('Algorithm Input: {}'.format(json.dumps(inputparser.get_sections(), sort_keys=True, indent=4)))
 

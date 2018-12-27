@@ -62,6 +62,16 @@ def get_aer_backend(backend_name):
 
 
 def get_backend_from_provider(provider_name, backend_name):
+    """
+    Backend access method
+    Args:
+        provider_name (str): Fullname of provider instance global property or class
+        backend_name (str): name of backend for tgis provider
+    Returns:
+        object: backend object
+    Raises:
+        ImportError: Invalid provider name or failed to find provider
+    """
     index = provider_name.rfind(".")
     if index < 1:
         raise ImportError("Invalid provider name '{}'".format(provider_name))
@@ -109,11 +119,12 @@ def get_local_providers():
 
 
 def register_ibmq():
-    # update registration info using internal methods because:
-    # at this point I don't want to save to or remove credentials from disk
-    # I want to update url, proxies etc without removing token and
-    # re-adding in 2 methods
-
+    """
+    Update registration info using internal methods because:
+    at this point I don't want to save to or remove credentials from disk
+    I want to update url, proxies etc without removing token and
+    re-adding in 2 methods
+    """
     try:
         credentials = None
         preferences = Preferences()
@@ -130,12 +141,8 @@ def register_ibmq():
         logger.debug("Failed to register with Qiskit IBMQ: {}".format(str(e)))
 
 
-def get_ibmq_providers():
-    # update registration info using internal methods because:
-    # at this point I don't want to save to or remove credentials from disk
-    # I want to update url, proxies etc without removing token and
-    # re-adding in 2 methods
-
+def get_ibmq_provider():
+    """Registers IBMQ and return it"""
     providers = OrderedDict()
     try:
         register_ibmq()
@@ -150,11 +157,36 @@ def get_ibmq_providers():
 
 
 def register_ibmq_and_get_known_providers():
-    # update registration info using internal methods because:
-    # at this point I don't want to save to or remove credentials from disk
-    # I want to update url, proxies etc without removing token and
-    # re-adding in 2 methods
-
+    """Gets known local providers and registers IBMQ"""
     providers = get_local_providers()
-    providers.update(get_ibmq_providers())
+    providers.update(get_ibmq_provider())
     return providers
+
+
+def get_provider_from_backend(backend_name):
+    """
+        Attempts to find a known provider that provides this backend
+        Args:
+            backend_name (str): name of backend for tgis provider
+        Returns:
+            str: provider name
+        Raises:
+            ImportError: Failed to find provider
+    """
+    try:
+        from qiskit import Aer
+        if Aer.get_backend(backend_name) is not None:
+            return 'qiskit.Aer'
+    except:
+        try:
+            if BasicAer.get_backend(backend_name) is not None:
+                return 'qiskit.BasicAer'
+        except:
+            try:
+                register_ibmq()
+                if IBMQ.get_backend(backend_name) is not None:
+                    return 'qiskit.IBMQ'
+            except:
+                pass
+
+    raise ImportError("No known  providers found for backend '{}'".format(backend_name))

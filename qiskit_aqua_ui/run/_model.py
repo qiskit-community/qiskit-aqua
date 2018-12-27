@@ -64,8 +64,7 @@ class Model(object):
         from qiskit_aqua.parser._inputparser import InputParser
         try:
             dict = {}
-            jsonfile = os.path.join(os.path.dirname(
-                __file__), 'input_template.json')
+            jsonfile = os.path.join(os.path.dirname(__file__), 'input_template.json')
             with open(jsonfile) as json_file:
                 dict = json.load(json_file)
 
@@ -83,11 +82,20 @@ class Model(object):
 
     def load_file(self, filename):
         from qiskit_aqua.parser._inputparser import InputParser
+        from qiskit_aqua.parser import JSONSchema
+        from qiskit_aqua import get_provider_from_backend
         if filename is None:
             return []
         try:
             self._parser = InputParser(filename)
             self._parser.parse()
+            # before merging defaults attempts to find a provider for the backend in case no
+            # provider was passed
+            if self._parser.get_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER) is None:
+                backend_name = self._parser.get_section_property(JSONSchema.BACKEND, JSONSchema.NAME)
+                if backend_name is not None:
+                    self._parser.set_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER, get_provider_from_backend(backend_name))
+
             uipreferences = UIPreferences()
             if uipreferences.get_populate_defaults(True):
                 self._parser.validate_merge_defaults()
@@ -184,14 +192,12 @@ class Model(object):
         value = self._parser.get_section_default_properties(section_name)
         if isinstance(value, dict):
             for property_name, property_value in value.items():
-                self._parser.set_section_property(
-                    section_name, property_name, property_value)
+                self._parser.set_section_property(section_name, property_name, property_value)
 
             # do one more time in case schema was updated
             value = self._parser.get_section_default_properties(section_name)
             for property_name, property_value in value.items():
-                self._parser.set_section_property(
-                    section_name, property_name, property_value)
+                self._parser.set_section_property(section_name, property_name, property_value)
         else:
             if value is None:
                 types = self._parser.get_section_types(section_name)
@@ -243,11 +249,9 @@ class Model(object):
         from qiskit_aqua.parser import JSONSchema
         problem_name = None
         if self._parser is not None:
-            problem_name = self.get_section_property(
-                JSONSchema.PROBLEM, JSONSchema.NAME)
+            problem_name = self.get_section_property(JSONSchema.PROBLEM, JSONSchema.NAME)
         if problem_name is None:
-            problem_name = self.get_property_default_value(
-                JSONSchema.PROBLEM, JSONSchema.NAME)
+            problem_name = self.get_property_default_value(JSONSchema.PROBLEM, JSONSchema.NAME)
 
         if problem_name is None:
             return local_pluggables(PluggableType.INPUT)
@@ -270,11 +274,9 @@ class Model(object):
         if PluggableType.ALGORITHM.value == section_name:
             problem_name = None
             if self._parser is not None:
-                problem_name = self.get_section_property(
-                    JSONSchema.PROBLEM, JSONSchema.NAME)
+                problem_name = self.get_section_property(JSONSchema.PROBLEM, JSONSchema.NAME)
             if problem_name is None:
-                problem_name = self.get_property_default_value(
-                    JSONSchema.PROBLEM, JSONSchema.NAME)
+                problem_name = self.get_property_default_value(JSONSchema.PROBLEM, JSONSchema.NAME)
 
             if problem_name is None:
                 return local_pluggables(PluggableType.ALGORITHM)

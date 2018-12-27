@@ -34,7 +34,7 @@ class InputParser(object):
     """JSON input Parser."""
 
     _UNKNOWN = 'unknown'
-    __DEFAULT_PROPERTY_ORDER = [JSONSchema.NAME, _UNKNOWN]
+    _DEFAULT_PROPERTY_ORDER = [JSONSchema.NAME, _UNKNOWN]
     _BACKEND_PROPERTY_ORDER = [JSONSchema.PROVIDER, JSONSchema.NAME, _UNKNOWN]
 
     def __init__(self, input=None):
@@ -70,8 +70,8 @@ class InputParser(object):
                                              if x[0] in self._section_order else self._section_order.index(InputParser._UNKNOWN)))
 
         for section, properties in sections_sorted.items():
-            _property_order = InputParser._BACKEND_PROPERTY_ORDER if section == JSONSchema.BACKEND else InputParser.__DEFAULT_PROPERTY_ORDER
             if isinstance(properties, dict):
+                _property_order = InputParser._BACKEND_PROPERTY_ORDER if section == JSONSchema.BACKEND else InputParser._DEFAULT_PROPERTY_ORDER
                 sections_sorted[section] = OrderedDict(sorted(list(properties.items()),
                                                               key=lambda x: _property_order.index(x[0])
                                                               if x[0] in _property_order
@@ -448,16 +448,12 @@ class InputParser(object):
         types = self.get_property_types(section_name, property_name)
 
         sections_temp = copy.deepcopy(self._sections)
-        InputParser._set_section_property(
-            sections_temp, section_name, property_name, value, types)
-        msg = self._json_schema.validate_property(
-            sections_temp, section_name, property_name)
+        InputParser._set_section_property(sections_temp, section_name, property_name, value, types)
+        msg = self._json_schema.validate_property(sections_temp, section_name, property_name)
         if msg is not None:
-            raise AquaError("{}.{}: Value '{}': '{}'".format(
-                section_name, property_name, value, msg))
+            raise AquaError("{}.{}: Value '{}': '{}'".format(section_name, property_name, value, msg))
 
-        InputParser._set_section_property(
-            self._sections, section_name, property_name, value, types)
+        InputParser._set_section_property(self._sections, section_name, property_name, value, types)
         if property_name == JSONSchema.NAME:
             if PluggableType.INPUT.value == section_name:
                 self._update_algorithm_input_schema()

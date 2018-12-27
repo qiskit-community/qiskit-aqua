@@ -39,7 +39,7 @@ class Controller(object):
 
     def __init__(self, view):
         self._view = view
-        self._model = None
+        self._model = Model()
         self._filemenu = None
         self._title = tk.StringVar()
         self._sectionsView = None
