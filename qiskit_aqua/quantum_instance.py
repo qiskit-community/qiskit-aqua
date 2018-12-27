@@ -33,9 +33,6 @@ logger = logging.getLogger(__name__)
 class QuantumInstance:
     """Quantum Backend including execution setting."""
 
-    UNSUPPORTED_BACKENDS = [
-        'unitary_simulator', 'clifford_simulator']
-
     # TODO: separate the config out from backend config; backend_options are stored in config
     BACKEND_CONFIG = ['basis_gates', 'coupling_map', 'config', 'seed', 'memory']
     COMPILE_CONFIG = ['pass_manager', 'initial_layout', 'seed_mapper', 'qobj_id']

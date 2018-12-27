@@ -24,7 +24,8 @@ import copy
 from qiskit_aqua import (local_pluggables_types,
                          PluggableType,
                          get_pluggable_configuration,
-                         local_pluggables)
+                         local_pluggables,
+                         get_backends_from_provider)
 from .jsonschema import JSONSchema
 
 logger = logging.getLogger(__name__)
@@ -451,6 +452,10 @@ class InputParser(object):
         msg = self._json_schema.validate_property(sections_temp, section_name, property_name)
         if msg is not None:
             raise AquaError("{}.{}: Value '{}': '{}'".format(section_name, property_name, value, msg))
+
+        # check if this provider is loadable and valid
+        if JSONSchema.BACKEND == section_name and property_name == JSONSchema.PROVIDER:
+            get_backends_from_provider(value)
 
         InputParser._set_section_property(self._sections, section_name, property_name, value, types)
         if property_name == JSONSchema.NAME:

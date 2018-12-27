@@ -19,6 +19,7 @@ import os
 import json
 from qiskit_aqua_ui._uipreferences import UIPreferences
 from collections import OrderedDict
+import copy
 import threading
 import logging
 
@@ -30,13 +31,16 @@ class Model(object):
     def __init__(self):
         """Create Model object."""
         self._parser = None
+        self._custom_providers = {}
         self._available_providers = {}
         self._backendsthread = None
         self.get_available_providers()
 
     @property
-    def available_providers(self):
-        return self._available_providers
+    def providers(self):
+        providers = copy.deepcopy(self._custom_providers)
+        providers.update(self._available_providers)
+        return providers
 
     def get_available_providers(self):
         from qiskit_aqua import register_ibmq_and_get_known_providers
@@ -84,18 +88,24 @@ class Model(object):
     def load_file(self, filename):
         from qiskit_aqua.parser._inputparser import InputParser
         from qiskit_aqua.parser import JSONSchema
-        from qiskit_aqua import get_provider_from_backend
+        from qiskit_aqua import get_provider_from_backend, get_backends_from_provider
         if filename is None:
             return []
         try:
             self._parser = InputParser(filename)
             self._parser.parse()
-            # before merging defaults attempts to find a provider for the backend in case no
-            # provider was passed
-            if self._parser.get_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER) is None:
+            # before merging defaults attempts to find a provider for the backend
+            provider = self._parser.get_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER)
+            if provider is None:
                 backend_name = self._parser.get_section_property(JSONSchema.BACKEND, JSONSchema.NAME)
                 if backend_name is not None:
                     self._parser.set_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER, get_provider_from_backend(backend_name))
+            else:
+                try:
+                    if provider not in self.providers:
+                        self._custom_providers[provider] = get_backends_from_provider(provider)
+                except Exception as e:
+                    logger.debug(str(e))
 
             uipreferences = UIPreferences()
             if uipreferences.get_populate_defaults(True):
@@ -331,6 +341,7 @@ class Model(object):
     def set_section_property(self, section_name, property_name, value):
         from qiskit_aqua.parser._inputparser import InputParser
         from qiskit_aqua.parser import JSONSchema
+        from qiskit_aqua import get_backends_from_provider
         if self._parser is None:
             raise Exception('Input not initialized.')
 
@@ -343,7 +354,10 @@ class Model(object):
                 for property_name, property_value in properties.items():
                     self._parser.set_section_property(section_name, property_name, property_value)
         elif section_name == JSONSchema.BACKEND and property_name == JSONSchema.PROVIDER:
-            backends = self.available_providers.get(value, [])
+            backends = get_backends_from_provider(value)
+            if value not in self.providers:
+                self._custom_providers[value] = backends
+
             backend = backends[0] if len(backends) > 0 else ''
             self._parser.set_section_property(section_name, JSONSchema.NAME, backend)
 
