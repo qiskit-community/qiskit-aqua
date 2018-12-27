@@ -299,14 +299,5 @@ To generate the documentation, we need to invoke CMake first in order to generat
 all specific files for our current platform.
 See the [instructions](https://github.com/Qiskit/qiskit-terra/blob/master/.github/CONTRIBUTING.rst#dependencies)
 in the Terra repository for details on how to install and run CMake.
-
-Once CMake is invoked, all configuration files are in place, so you can build the
-documentation by following the instructions available in the `docs` folder's
-[README file](../docs/README.md).
-
-All platforms:
-
-.. code:: sh
-
-    $> cd out
-    doc$> make doc
+The docunentation can then be built using the instructions available in the
+[docs folder's README file](../docs/README.md).
