@@ -172,9 +172,9 @@ directory on your machine:
 
     $ pip install -e .
 
-Installing Aqua will automatically install [Terra](https://github.com/Qiskit/qiskit-terra)
+Installing Aqua will automatically install `Terra <https://github.com/Qiskit/qiskit-terra>`__
 as one of its dependencies.  We recommend that you also set up
-[Aer](https://github.com/Qiskit/qiskit-aer) to get more advanced simulators.
+`Aer <https://github.com/Qiskit/qiskit-aer>`__ to get more advanced simulators.
 Refer to the installation instructions of both Terra and Aer for more details.
 
 Style guide
@@ -207,10 +207,10 @@ documentation <http://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_go
 
 To generate the documentation, we need to invoke CMake first in order to generate
 all specific files for our current platform.
-See the [instructions](https://github.com/Qiskit/qiskit-terra/blob/master/.github/CONTRIBUTING.rst#dependencies)
+See the `instructions <https://github.com/Qiskit/qiskit-terra/blob/master/.github/CONTRIBUTING.rst#dependencies>`__
 in the Terra repository for details on how to install and run CMake.
 The docunentation can then be built using the instructions available in the
-[docs folder's README file](../docs/README.md).
+`docs folder's README file <../docs/README.md>`__.
 
 
 Development Cycle
