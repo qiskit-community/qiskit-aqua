@@ -51,7 +51,8 @@ class Model(object):
 
     def _get_available_providers(self):
         try:
-            self._available_providers = self._register_ibmq_and_get_known_providers()
+            self._available_providers = OrderedDict([x for x in
+                                                     self._register_ibmq_and_get_known_providers().items() if len(x[1]) > 0])
         except Exception as e:
             logger.debug(str(e))
         finally:

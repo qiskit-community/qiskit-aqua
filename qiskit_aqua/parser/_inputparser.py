@@ -65,8 +65,7 @@ class InputParser(object):
 
     def _order_sections(self, sections):
         sections_sorted = OrderedDict(sorted(list(sections.items()),
-                                             key=lambda x: self._section_order.index(
-                                                 x[0])
+                                             key=lambda x: self._section_order.index(x[0])
                                              if x[0] in self._section_order else self._section_order.index(InputParser._UNKNOWN)))
 
         for section, properties in sections_sorted.items():
