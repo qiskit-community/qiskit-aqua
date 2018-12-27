@@ -1,3 +1,4 @@
+qiskit-aer>=0.1.0,<0.2
 discover
 parameterized
 Sphinx>=1.7.6,<1.8
