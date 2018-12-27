@@ -39,10 +39,11 @@ class TestQSVMVariational(QiskitAquaTestCase):
         self.testing_data = {'A': np.asarray([[3.83274304, 2.45044227]]),
                              'B': np.asarray([[3.89557489, 0.31415927]])}
 
-        self.ref_opt_params = np.asarray([2.6985,   1.5935,   2.2456,  -6.255,  -4.3215,  -5.41,
-                                          -6.9215,   0.2656,   1.5701,  -4.677,   2.6987, -11.7649,
-                                          -2.3141,  -2.7084,   0.0622,  -0.1577])
-        self.ref_train_loss = 0.6294606017231916
+        self.ref_opt_params = np.array([-0.09936191, -1.26202073,  1.30316646,  3.24053034, -0.50731743,
+                                        -0.6853292,  2.57404557,  1.74873317,  1.62238446, -1.83326183,
+                                        4.48499251,  0.21433137, -1.76288916, -0.15767913,  1.86321388,
+                                        0.27216782])
+        self.ref_train_loss = 1.4088445273265953
 
         self.svm_input = SVMInput(self.training_data, self.testing_data)
 
@@ -61,7 +62,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(result['opt_params'], self.ref_opt_params, decimal=4)
         np.testing.assert_array_almost_equal(result['training_loss'], self.ref_train_loss, decimal=8)
 
-        self.assertEqual(result['testing_accuracy'], 0.0)
+        self.assertEqual(result['testing_accuracy'], 1.0)
 
     def test_qsvm_variational_directly(self):
         np.random.seed(self.random_seed)
@@ -82,7 +83,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(result['opt_params'], self.ref_opt_params, decimal=4)
         np.testing.assert_array_almost_equal(result['training_loss'], self.ref_train_loss, decimal=8)
 
-        self.assertEqual(result['testing_accuracy'], 0.0)
+        self.assertEqual(result['testing_accuracy'], 1.0)
 
         file_path = self._get_resource_path('qsvm_variational_test.npz')
         svm.save_model(file_path)
@@ -103,4 +104,3 @@ class TestQSVMVariational(QiskitAquaTestCase):
                 os.remove(file_path)
             except:
                 pass
-
