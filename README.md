@@ -2,6 +2,8 @@
 
 [![License](https://img.shields.io/github/license/Qiskit/qiskit-aqua.svg?style=popout-square)](https://opensource.org/licenses/Apache-2.0)[![Build Status](https://img.shields.io/travis/Qiskit/qiskit-aqua/master.svg?style=popout-square)](https://travis-ci.com/Qiskit/qiskit-aqua)![](https://img.shields.io/pypi/v/qiskit-aqua.svg?style=popout-square)![](https://img.shields.io/pypi/dm/qiskit-aqua.svg?style=popout-square)
 
+[![License](https://img.shields.io/github/license/Qiskit/qiskit-terra.svg?style=popout-square)](https://opensource.org/licenses/Apache-2.0)[![Build Status](https://img.shields.io/travis/Qiskit/qiskit-terra/master.svg?style=popout-square)](https://travis-ci.org/Qiskit/qiskit-terra)[![](https://img.shields.io/github/release/Qiskit/qiskit-terra.svg?style=popout-square)](https://github.com/Qiskit/qiskit-terra/releases)[![](https://img.shields.io/pypi/dm/qiskit-terra.svg?style=popout-square)](https://pypi.org/project/qiskit-terra/)
+
 **Qiskit** is an open-source framework for working with noisy intermediate-scale quantum computers (NISQ) at the level of pulses, circuits, algorithms, and applications.
 
 Qiskit is made up elements that work together to enable quantum computing. This element is **Aqua**.
@@ -20,7 +22,7 @@ discovered dynamically at run time.
 
 ## Installation
 
-We encourage installing Qiskit Aqua via the PIP tool (a python package manager):
+We encourage installing Qiskit Aqua via the pip tool (a python package manager):
 
 ```bash
 pip install qiskit-aqua
