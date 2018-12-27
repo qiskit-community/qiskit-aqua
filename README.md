@@ -33,9 +33,7 @@ To install from source, follow the instructions in the [contribution guidelines]
 
 ## Creating your first quantum program in Qiskit Aqua
 
-Now that Qiskit Aqua is installed, it's time to begin working with it.
-
-We are ready to try out an experiment using Qiskit Aqua:
+Now that Qiskit Aqua is installed, it's time to begin working with it.  We are ready to try out an experiment using Qiskit Aqua:
 
 ```
 $ python
@@ -65,19 +63,16 @@ The code above demonstrates how Grover’s search algorithm can be used in conju
 Satisfiability (SAT) oracle to compute one of the many possible solutions of a Conjunctive Normal
 Form (CNF).  Variable `sat_cnf` corresponds to the following CNF:
 
-```
 (&not;<i>x</i><sub>1</sub> &or; &not;<i>x</i><sub>2</sub> &or; &not;<i>x</i><sub>3</sub>) &and;
 (<i>x</i><sub>1</sub> &or; &not;<i>x</i><sub>2</sub> &or; <i>x</i><sub>3</sub>) &and;
 (<i>x</i><sub>1</sub> &or; <i>x</i><sub>2</sub> &or; &not;<i>x</i><sub>3</sub>) &and;
 (<i>x</i><sub>1</sub> &or; &not;<i>x</i><sub>2</sub> &or; &not;<i>x</i><sub>3</sub>) &and;
 (&not;<i>x</i><sub>1</sub> &or; <i>x</i><sub>2</sub> &or; <i>x</i><sub>3</sub>)  
-```
 
 The Python code above prints out one possible solution for this CNF. For example, output `1, -2, 3` indicates
 that logical expression (<i>x</i><sub>1</sub> &or; &not;<i>x</i><sub>2</sub> &or; <i>x</i><sub>3</sub>) satisfies the given CNF.
 
-You can also use Qiskit to execute your code on a
-**real quantum chip**.
+You can also use Qiskit to execute your code on a **real quantum chip**.
 In order to do so, you need to configure Qiskit for using the credentials in
 your IBM Q account.  Please consult the relevant instructions in the
 [Qiskit Terra GitHub repository](https://github.com/Qiskit/qiskit-terra/blob/master/README.md#executing-your-code-on-a-real-quantum-chip). 
