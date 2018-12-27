@@ -43,15 +43,6 @@ def my_warning_wrapper(message, category, filename, lineno, file=None, line=None
 warnings.showwarning = my_warning_wrapper
 
 
-def get_aer_backends():
-    try:
-        from qiskit import Aer
-        backends = Aer.backends()
-    except:
-        backends = BasicAer.backends()
-    return backends
-
-
 def get_aer_backend(backend_name):
     try:
         from qiskit import Aer

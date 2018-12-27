@@ -17,9 +17,6 @@
 
 import logging
 from qiskit import __version__ as terra_version
-from qiskit import IBMQ
-from qiskit.providers.ibmq.credentials import Credentials
-from qiskit.providers.ibmq.ibmqsingleprovider import IBMQSingleProvider
 try:
     from qiskit.providers.aer import AerProvider
     HAS_AER = True
@@ -27,9 +24,8 @@ except ImportError:
     HAS_AER = False
     pass
 
-from qiskit_aqua_cmd import Preferences
 from qiskit_aqua.utils import compile_and_run_circuits
-from qiskit_aqua import get_aer_backend, get_aer_backends
+from qiskit_aqua import get_aer_backend
 
 logger = logging.getLogger(__name__)
 
