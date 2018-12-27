@@ -31,7 +31,7 @@ Aqua is built, and you will always install the latest (and well-tested) version.
 
 To install from source, follow the instructions in the [contribution guidelines](.github/CONTRIBUTING.rst).
 
-## Creating your first quantum program in Qiskit Aqua
+## Creating Your First Quantum Program in Qiskit Aqua
 
 Now that Qiskit Aqua is installed, it's time to begin working with it.  We are ready to try out an experiment using Qiskit Aqua:
 
@@ -77,7 +77,7 @@ In order to do so, you need to configure Qiskit for using the credentials in
 your IBM Q account.  Please consult the relevant instructions in the
 [Qiskit Terra GitHub repository](https://github.com/Qiskit/qiskit-terra/blob/master/README.md#executing-your-code-on-a-real-quantum-chip). 
 
-## Contribution guidelines
+## Contribution Guidelines
 
 If you'd like to contribute to Qiskit, please take a look at our
 [contribution guidelines](.github/CONTRIBUTING.rst). This project adheres to Qiskit's [code of conduct](.github/CODE_OF_CONDUCT.rst). By participating, you are expected to uphold to this code.
@@ -86,7 +86,7 @@ We use [GitHub issues](https://github.com/Qiskit/qiskit-aqua/issues) for trackin
 for discussion and simple questions.  To join our Slack community use the [link](https://join.slack.com/t/qiskit/shared_invite/enQtNDc2NjUzMjE4Mzc0LTMwZmE0YTM4ZThiNGJmODkzN2Y2NTNlMDIwYWNjYzA2ZmM1YTRlZGQ3OGM0NjcwMjZkZGE0MTA4MGQ1ZTVmYzk).
 For questions that are more suited for a forum we use the Qiskit tag in the [Stack Overflow](https://stackoverflow.com/questions/tagged/qiskit).
 
-### Next Steps
+## Next Steps
 
 Now you're set up and ready to check out some of the other examples from our
 [Qiskit Tutorials](https://github.com/Qiskit/qiskit-tutorials) repository.
