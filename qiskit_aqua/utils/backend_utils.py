@@ -197,7 +197,7 @@ def enable_ibmq_account(url, token, proxies):
 
             if unique_id not in IBMQ._accounts:
                 IBMQ.enable_account(token, url=url, proxies=proxies)
-                logger.warning("Enabled IBMQ account. Url:'{}' Token:'{}' Proxies:'{}'".format(url, token, proxies))
+                logger.info("Enabled IBMQ account. Url:'{}' Token:'{}' Proxies:'{}'".format(url, token, proxies))
     except Exception as e:
         logger.warning("Failed to enable IBMQ account. Url:'{}' Token:'{}' Proxies:'{}' :{}".format(url, token, proxies, str(e)))
 
@@ -215,9 +215,9 @@ def disable_ibmq_account(url, token, proxies):
             unique_id = credentials.unique_id()
             if unique_id in IBMQ._accounts:
                 del IBMQ._accounts[unique_id]
-                logger.warning("Disabled IBMQ account. Url:'{}' Token:'{}' Proxies:'{}'".format(url, token, proxies))
+                logger.info("Disabled IBMQ account. Url:'{}' Token:'{}' Proxies:'{}'".format(url, token, proxies))
             else:
-                logger.warning("IBMQ account is not active. Not disabled. Url:'{}' Token:'{}' Proxies:'{}'".format(url, token, proxies))
+                logger.info("IBMQ account is not active. Not disabled. Url:'{}' Token:'{}' Proxies:'{}'".format(url, token, proxies))
     except Exception as e:
         logger.warning("Failed to disable IBMQ account. Url:'{}' Token:'{}' Proxies:'{}' :{}".format(url, token, proxies, str(e)))
 
