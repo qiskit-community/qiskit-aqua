@@ -19,6 +19,7 @@ from qiskit import IBMQ
 from qiskit_aqua_cmd import Preferences
 import logging
 from collections import OrderedDict
+from qiskit.providers.ibmq.credentials import Credentials
 import importlib
 
 logger = logging.getLogger(__name__)
@@ -170,36 +171,55 @@ def _load_provider(provider_name):
         raise ImportError("Failed to import provider '{}'".format(provider_name))
 
     if provider_object == IBMQ:
-        # register IBMQ
-        _register_ibmq()
+        # enable IBMQ account
+        preferences = Preferences()
+        enable_ibmq_account(preferences.get_url(), preferences.get_token(), preferences.get_proxies({}))
 
     return provider_object
 
 
-def _register_ibmq():
+def enable_ibmq_account(url, token, proxies):
     """
-    Update registration info using internal methods because:
-    at this point I don't want to save to or remove credentials from disk
-    I want to update url, proxies etc without removing token and
-    re-adding in 2 methods
+    Enable IBMQ account, if not alreay enabled
     """
     try:
-        preferences = Preferences()
-        url = preferences.get_url()
-        token = preferences.get_token()
-        if url is not None and url != '' and token is not None and token != '':
-            found = False
-            for account in IBMQ.active_accounts():
-                if 'url' in account and 'token' in account and \
-                        account['url'] == url and account['token'] == token:
-                    found = True
-                    break
+        url = url or ''
+        token = token or ''
+        proxies = proxies or {}
+        if url != '' and token != '':
+            credentials = Credentials(token, url, proxies=proxies)
+            unique_id = credentials.unique_id()
+            if unique_id in IBMQ._accounts:
+                # disable first any existent previous account with same unique_id and different properties
+                enabled_credentials = IBMQ._accounts[unique_id].credentials
+                if enabled_credentials.url != url or enabled_credentials.token != token or enabled_credentials.proxies != proxies:
+                    del IBMQ._accounts[unique_id]
 
-            if not found:
-                IBMQ.enable_account(token, url=url, proxies=preferences.get_proxies({}))
-                logger.debug("Registered with Qiskit IBMQ successfully.")
+            if unique_id not in IBMQ._accounts:
+                IBMQ.enable_account(token, url=url, proxies=proxies)
+                logger.debug("Enabled IBMQ account. Url:'{}' Token:'{}' Proxies:'{}'".format(url, token, proxies))
     except Exception as e:
-        logger.debug("Failed to register with Qiskit IBMQ: {}".format(str(e)))
+        logger.debug("Failed to enable IBMQ account. Url:'{}' Token:'{}' Proxies:'{}' :{}".format(url, token, proxies, str(e)))
+
+
+def disable_ibmq_account(url, token, proxies):
+    """
+    Disable IBMQ account
+    """
+    try:
+        url = url or ''
+        token = token or ''
+        proxies = proxies or {}
+        if url != '' and token != '':
+            credentials = Credentials(token, url, proxies=proxies)
+            unique_id = credentials.unique_id()
+            if unique_id in IBMQ._accounts:
+                del IBMQ._accounts[unique_id]
+                logger.debug("Disabled IBMQ account. Url:'{}' Token:'{}' Proxies:'{}'".format(url, token, proxies))
+            else:
+                logger.debug("IBMQ account is not active. Not disabled. Url:'{}' Token:'{}' Proxies:'{}'".format(url, token, proxies))
+    except Exception as e:
+        logger.debug("Failed to disable IBMQ account. Url:'{}' Token:'{}' Proxies:'{}' :{}".format(url, token, proxies, str(e)))
 
 
 def _get_ibmq_provider():
@@ -208,6 +228,6 @@ def _get_ibmq_provider():
     try:
         providers['qiskit.IBMQ'] = get_backends_from_provider('qiskit.IBMQ')
     except Exception as e:
-        logger.debug("Failed to register with Qiskit IBMQ: {}".format(str(e)))
+        logger.debug("Failed to access IBMQ: {}".format(str(e)))
 
     return providers

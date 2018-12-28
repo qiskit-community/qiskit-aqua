@@ -113,15 +113,16 @@ class PreferencesDialog(Dialog):
 
     def apply(self):
         from qiskit_aqua_cmd import Preferences
+        from qiskit_aqua import disable_ibmq_account
         from qiskit_aqua._logging import (build_logging_config,
                                           set_logging_config)
         try:
             level_name = self._levelCombo.get()
-            levels = [key for key, value in PreferencesDialog._LOG_LEVELS.items(
-            ) if value == level_name]
+            levels = [key for key, value in PreferencesDialog._LOG_LEVELS.items() if value == level_name]
             loglevel = levels[0]
 
             preferences = Preferences()
+            disable_ibmq_account(preferences.get_url(), preferences.get_token(), preferences.get_proxies({}))
             self._credentialsview.apply(preferences)
             preferences.save()
 
@@ -135,8 +136,7 @@ class PreferencesDialog(Dialog):
 
             uipreferences = UIPreferences()
             populate = self._populateDefaults.get()
-            uipreferences.set_populate_defaults(
-                False if populate == 0 else True)
+            uipreferences.set_populate_defaults(False if populate == 0 else True)
             uipreferences.save()
 
             self._controller.model.get_available_providers()
