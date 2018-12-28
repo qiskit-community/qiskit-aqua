@@ -67,7 +67,7 @@ class SectionsView(ToolbarView):
 
         if dialog.result is not None and len(dialog.result) > 0:
             if self._controller.on_section_add(dialog.result):
-                self.populate(self._controller._model.get_section_names(), dialog.result)
+                self.populate(self._controller.model.get_section_names(), dialog.result)
 
     def onremove(self):
         for item in self._tree.selection():
