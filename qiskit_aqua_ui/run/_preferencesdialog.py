@@ -166,7 +166,7 @@ class PreferencesDialog(Dialog):
                 False if populate == 0 else True)
             uipreferences.save()
 
-            self._controller.get_available_backends()
+            self._controller.model.get_available_providers()
         except Exception as e:
             self.controller.outputview.write_line(str(e))
 
