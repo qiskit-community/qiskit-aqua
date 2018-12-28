@@ -671,7 +671,7 @@ By installing ``"qiskit-aer"``, the ``"qiskit.Aer"`` provider gets included too.
 Each provider has its own set of simulators and ``"qiskit.IBMQ"`` gives access to real-hardware quantum 
 computer or simulators in the cloud.
 For the ``"qiskit.IBMQ"`` provider, you need to configure it with a token and possibly url proxies.
-The Aqua `GUI <#aqua-gui>` greatly simplifies it via a user friendly interface,
+The Chemistry GUI greatly simplifies it via a user friendly interface,
 accessible through the **Preferences...** menu item.
 Otherwise you need to configure programmatically using Qiskit Terra <https://www.qiskit.org/terra>` apis.
 
