@@ -1,6 +1,6 @@
 # Qiskit Chemistry
 
-[![License](https://img.shields.io/github/license/Qiskit/qiskit-chemistry.svg?style=popout-square)](https://opensource.org/licenses/Apache-2.0)[![Build Status](https://img.shields.io/travis/com/Qiskit/qiskit-chemistry/master.svg?style=popout-square)](https://travis-ci.com/Qiskit/qiskit-chemistry)![](https://img.shields.io/pypi/v/qiskit-chemistry.svg?style=popout-square)![](https://img.shields.io/pypi/dm/qiskit-chemistry.svg?style=popout-square)
+[![License](https://img.shields.io/github/license/Qiskit/qiskit-chemistry.svg?style=popout-square)](https://opensource.org/licenses/Apache-2.0)[![Build Status](https://img.shields.io/travis/com/Qiskit/qiskit-chemistry/master.svg?style=popout-square)](https://travis-ci.com/Qiskit/qiskit-chemistry)[![](https://img.shields.io/github/release/Qiskit/qiskit-chemistry.svg?style=popout-square)](https://github.com/Qiskit/qiskit-chemistry/releases)[![](https://img.shields.io/pypi/dm/qiskit-chemistry.svg?style=popout-square)](https://pypi.org/project/qiskit-chemistry/)
 
 **Qiskit** is an open-source framework for working with noisy intermediate-scale quantum computers (NISQ) at the level of pulses, circuits, algorithms, and applications.
 
@@ -194,7 +194,7 @@ to the project at different levels.
 
 This project uses the [Apache License 2.0](LICENSE.txt).
 
-Some of the code embedded in Qiskit CHhemistry to interface some of the computational chemistry
+Some of the code embedded in Qiskit Chemistry to interface some of the computational chemistry
 software drivers requires additional licensing:
 * The [Gaussian 16 driver](qiskit_chemistry/drivers/gaussiand/README.md) contains work licensed under the
 [Gaussian Open-Source Public License](qiskit_chemistry/drivers/gaussiand/gauopen/LICENSE.txt).
