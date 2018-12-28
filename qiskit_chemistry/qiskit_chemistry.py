@@ -17,7 +17,7 @@
 
 from qiskit_chemistry import QiskitChemistryError
 from qiskit_chemistry.drivers import ConfigurationManager
-from qiskit_aqua import run_algorithm
+from qiskit_aqua import run_algorithm, get_provider_from_backend
 from qiskit_aqua.utils import convert_json_to_dict
 from qiskit_chemistry.parser import InputParser
 from qiskit_aqua.parser import JSONSchema
@@ -176,6 +176,13 @@ class QiskitChemistry(object):
     def _run_driver_from_parser(self, p, save_json_algo_file):
         if p is None:
             raise QiskitChemistryError("Missing parser")
+
+        # before merging defaults attempts to find a provider for the backend in case no
+        # provider was passed
+        if p.get_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER) is None:
+            backend_name = p.get_section_property(JSONSchema.BACKEND, JSONSchema.NAME)
+            if backend_name is not None:
+                p.set_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER, get_provider_from_backend(backend_name))
 
         p.validate_merge_defaults()
         # logger.debug('ALgorithm Input Schema: {}'.format(json.dumps(p.to_JSON(), sort_keys=True, indent=4)))
