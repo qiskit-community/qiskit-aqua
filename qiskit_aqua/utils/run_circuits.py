@@ -100,7 +100,7 @@ def _reuse_shared_circuits(circuits, backend, backend_config, compile_config, ru
     diff_result = compile_and_run_circuits(circuits[1:], backend, temp_backend_config,
                                            compile_config, run_config, qjob_config,
                                            show_circuit_summary=show_circuit_summary)
-    result = shared_result + diff_result
+    result = _combine_result_objects([shared_result, diff_result])
     return result
 
 
@@ -110,6 +110,10 @@ def _combine_result_objects(results):
     TODO:
         This function would be removed after Terra supports job with infinite circuits.
     """
+
+    if len(results) == 1:
+        return results[0]
+
     new_result = copy.deepcopy(results[0])
 
     for idx in range(1, len(results)):
