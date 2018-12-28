@@ -17,8 +17,6 @@
 
 from qiskit import IBMQ
 from qiskit_aqua_cmd import Preferences
-import sys
-import warnings
 import logging
 from collections import OrderedDict
 import importlib
@@ -26,19 +24,6 @@ import importlib
 logger = logging.getLogger(__name__)
 
 _UNSUPPORTED_BACKENDS = ['unitary_simulator', 'clifford_simulator']
-
-
-def my_warning_wrapper(message, category, filename, lineno, file=None, line=None):
-    msg = warnings.formatwarning(message, category, filename, lineno, line)
-    # defaults deprecation warnings to logging
-    if category == DeprecationWarning:
-        logger.debug(msg)
-    else:
-        file = sys.stderr if file is None else file
-        file.write(msg)
-
-
-warnings.showwarning = my_warning_wrapper
 
 
 def get_aer_backend(backend_name):

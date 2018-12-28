@@ -44,7 +44,7 @@ from ._logging import (get_logging_level,
                        get_aqua_logging,
                        set_aqua_logging)
 
-__version__ = '0.4.0'
+__version__ = '0.4.1'
 
 __all__ = ['AquaError',
            'Pluggable',
