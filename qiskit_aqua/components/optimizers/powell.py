@@ -71,9 +71,12 @@ class POWELL(Optimizer):
         'optimizer': ['local']
     }
 
-    def __init__(self, tol=None):
+    def __init__(self, maxiter=None, maxfev=1000, disp=False, xtol=0.0001, tol=None):
         self.validate(locals())
         super().__init__()
+        for k, v in locals().items():
+            if k in self._configuration['options']:
+                self._options[k] = v
         self._tol = tol
 
     def optimize(self, num_vars, objective_function, gradient_function=None, variable_bounds=None, initial_point=None):

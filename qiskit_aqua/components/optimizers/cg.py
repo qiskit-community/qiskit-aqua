@@ -72,9 +72,12 @@ class CG(Optimizer):
         'optimizer': ['local']
     }
 
-    def __init__(self, tol=None):
+    def __init__(self, maxiter=20, disp=False, gtol=1e-5, tol=None, eps=1.4901161193847656e-08):
         self.validate(locals())
         super().__init__()
+        for k, v in locals().items():
+            if k in self._configuration['options']:
+                self._options[k] = v
         self._tol = tol
 
     def optimize(self, num_vars, objective_function, gradient_function=None, variable_bounds=None, initial_point=None):

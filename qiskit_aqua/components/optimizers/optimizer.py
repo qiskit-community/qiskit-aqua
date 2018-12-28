@@ -73,11 +73,6 @@ class Optimizer(Pluggable):
         self._initial_point_support_level = self._configuration['support_level']['initial_point']
         self._options = {}
         self._batch_mode = False
-        for k, v in self._configuration['input_schema']['properties'].items():
-            if k in self._configuration['options']:
-                if 'default' in v:
-                    self._options[k] = v['default']
-                
 
     @classmethod
     def init_params(cls, params):
@@ -92,11 +87,8 @@ class Optimizer(Pluggable):
             params (dict): configuration dict
         """
         logger.debug('init_params: {}'.format(params))
-        opts = {k: v for k, v in params.items() if k in cls.CONFIGURATION['options']}
-        args = {k: v for k, v in params.items() if k not in cls.CONFIGURATION['options'] and k != 'name'}
-        logger.debug('init_args: {}'.format(args))
+        args = {k: v for k, v in params.items() if k != 'name'}
         optimizer = cls(**args)
-        optimizer.set_options(**opts)
         return optimizer
 
     @staticmethod
@@ -138,16 +130,6 @@ class Optimizer(Pluggable):
         def function_wrapper(*wrapper_args):
             return function(*(wrapper_args + args))
         return function_wrapper
-
-    def set_options(self, **kwargs):
-        """Set an options dictionary that may be used by call to the optimizer
-
-        Args:
-            kwargs (dict): options, given as name=value.
-        """
-        for (name, value) in kwargs.items():
-            self._options[name] = value
-        logger.debug('options: {}'.format(self._options))
 
     @property
     def setting(self):

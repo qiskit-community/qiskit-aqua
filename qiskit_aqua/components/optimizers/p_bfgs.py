@@ -71,9 +71,12 @@ class P_BFGS(Optimizer):
         'optimizer': ['local', 'parallel']
     }
 
-    def __init__(self, max_processes=None):
+    def __init__(self, maxfun=1000, factr=10, iprint=-1, max_processes=None):
         self.validate(locals())
         super().__init__()
+        for k, v in locals().items():
+            if k in self._configuration['options']:
+                self._options[k] = v
         self._max_processes = max_processes
 
     def optimize(self, num_vars, objective_function, gradient_function=None, variable_bounds=None, initial_point=None):

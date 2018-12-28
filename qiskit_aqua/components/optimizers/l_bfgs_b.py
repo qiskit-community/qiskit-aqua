@@ -67,8 +67,12 @@ class L_BFGS_B(Optimizer):
         'optimizer': ['local']
     }
 
-    def __init__(self):
+    def __init__(self, maxfun=1000, factr=10, iprint=-1, epsilon=1e-08):
+        self.validate(locals())
         super().__init__()
+        for k, v in locals().items():
+            if k in self._configuration['options']:
+                self._options[k] = v
 
     def optimize(self, num_vars, objective_function, gradient_function=None, variable_bounds=None, initial_point=None):
         super().optimize(num_vars, objective_function, gradient_function, variable_bounds, initial_point)
