@@ -1,191 +1,202 @@
 # Qiskit Chemistry
 
-This README file presents a quick overview of Qiskit Chemistry, with brief installation, setup and execution
-instructions.
+[![License](https://img.shields.io/github/license/Qiskit/qiskit-chemistry.svg?style=popout-square)](https://opensource.org/licenses/Apache-2.0)[![Build Status](https://img.shields.io/travis/com/Qiskit/qiskit-chemistry/master.svg?style=popout-square)](https://travis-ci.com/Qiskit/qiskit-chemistry)![](https://img.shields.io/pypi/v/qiskit-chemistry.svg?style=popout-square)![](https://img.shields.io/pypi/dm/qiskit-chemistry.svg?style=popout-square)
 
-Qiskit Chemistry is the application running on top of Aqua that enables conducting quantum chemistry simulations
-on top of NISQ computers.  It comes as a set of tools, algorithms and software for use with quantum computers
-to carry out research and investigate how to take advantage of the quantum computational power to experiment with
-quantum chemistry problems. Qiskit Chemistry translates chemistry-specific problem inputs into inputs for a quantum algorithm
-supplied by [Qiskit Aqua](https://github.com/Qiskit/qiskit-aqua), which then in turn uses
-[Qiskit Terra](https://www.qiskit.org/terra) for the actual quantum computation.
-Please refer to the [Aqua documentation](https://qiskit.org/documentation/aqua/) for a detailed
-presentation of Qiskit Chemistry and its components and capabilities, as well as step-by-step installation and
-execution instructions.
+**Qiskit** is an open-source framework for working with noisy intermediate-scale quantum computers (NISQ) at the level of pulses, circuits, algorithms, and applications.
 
-Qiskit Chemistry allows users with different levels of experience to execute chemistry experiments and
-contribute to the software stack.  Users with pure chemistry background can continue to configure chemistry
-problems according to their favorite software packages, called *drivers*.  These users do not need to learn the
-details of quantum computing; Qiskit Chemistry translates any chemistry program configuration entered by
-any end user in their favorite driver into quantum-specific input.
+Qiskit is made up elements that work together to enable quantum computing. The element **Aqua**
+provides a library of cross-domain algorithms upon which domain-specific applications can be
+built. The **Qiskit Chemistry** component has
+been created to utilize Aqua for quantum chemistry computations. Aqua is also showcased for other
+domains, such as Optimization, Artificial Intelligence, and
+Finance, with both code and notebook examples available in the
+[qiskit/aqua/chemistry](https://github.com/Qiskit/qiskit-tutorials/tree/master/qiskit/aqua/chemistry)
+and [community/aqua/chemistry](https://github.com/Qiskit/qiskit-tutorials/tree/master/community/aqua/chemistry)
+folders of the [qiskit-tutorials GitHub Repository](https://github.com/Qiskit/qiskit-tutorials).  
 
-You can follow the [installation](#installation) instructions to install this software and its dependencies.
+Qiskit Aqua and its applications, such as Qiskit Chemistry, were all designed to be extensible,
+and use a pluggable framework where algorithms and support objects used
+by algorithms—such as optimizers, variational forms, and oracles—are derived from a defined base class
+for the type and discovered dynamically at run time.  In particular, Qiskit Chemistry comes with
+chemistry-specific Aqua extensions, such as algorithms, variational forms and initial states that
+are suited to simulate molecular structures.
 
-Once you have it installed, you can experiment with Qiskit Chemistry using either the supplied [GUI](#gui) or
-[command line](#command-line) tools.
+## Installation
 
-More advanced users and developers may wish to develop and add their own
-algorithms or other code. Algorithms and supporting components may be added to
-[Qiskit Aqua](https://github.com/Qiskit/qiskit-aqua) which was designed with an extensible, pluggable
-framework. Qiskit Chemistry utilizes a similar framework for drivers and the core computation.
+We encourage installing Qiskit Chemistry via the pip tool (a python package manager):
 
-**If you'd like to contribute to Qiskit Chemistry, please take a look at our**
-[contribution guidelines](.github/CONTRIBUTING.rst).
-
-Links to Sections:
-
-* [Installation](#installation)
-* [Running a chemistry experiment](#running-a-chemistry-experiment)
-* [Authors](#authors-alphabetical)
-* [License](#license)
-
-## Installation and Setup
-
-### Dependencies
-
-As Qiskit Chemistry is built upon Qiskit Aqua you are encouraged to look over the
-[Qiskit Aqua installation](https://github.com/Qiskit/qiskit-aqua/blob/master/README.md#installation) too.
-
-Like for Qiskit Aqua, at least [Python 3.5 or later](https://www.python.org/downloads/) is needed to use
-Qiskit Chemistry.
-In addition, [Jupyter Notebook](https://jupyter.readthedocs.io/en/latest/install.html) is recommended
-for interacting with the tutorials.
-For this reason we recommend installing the [Anaconda 3](https://www.continuum.io/downloads)
-Python distribution, as it comes with all of these dependencies pre-installed.
-
-### Installation
-
-We encourage you to install Qiskit Chemistry via pip, a Python package manager:
-
-```
+```bash
 pip install qiskit-chemistry
 ```
+pip will handle all dependencies automatically for you, including the other Qiskit elements upon which
+Qiskit Chemistry is built, such as [Aqua](https://github.com/Qiskit/qiskit-aqua) and
+[Terra](https://github.com/Qiskit/qiskit-terra), and you will always install the latest (and well-tested)
+version.
 
-pip will handle all dependencies automatically and you will always install the latest (and well-tested)
-release version.
+To run chemistry experiments using Qiskit Chemistry, it is recommended that you to install a classical
+computation chemistry software program interfaced by Qiskit Chemistry. 
+Several such programs are supported, and while logic to
+interface these programs is supplied by Qiskit Chemistry via the above pip installation,
+the dependent programs themselves need to be installed separately becausea they are not part of the Qiskit
+Chemistry installation bundle.
+Qiskit Chemistry comes with prebuilt support to interface the following computational chemistry
+software programs:
 
-We recommend using Python virtual environments to cleanly separate the installation of Qiskit Terra, Aqua and Chemistry
-from other programs and improve your experience.
-
-### Chemistry Drivers
-
-To run chemistry experiments on molecules, you will also need to install a supported chemistry program or library. 
-Several so-called chemistry drivers are supported and while logic to
-interface these external libraries and programs is supplied, by the above pip install, the dependent chemistry library
-or program needs to be installed separately. The following chemistry drivers are supported:
-
-1. [Gaussian 16](http://gaussian.com/gaussian16/), a commercial chemistry program
-2. [PSI4](http://www.psicode.org/), an open-source chemistry program built on Python
+1. [Gaussian 16&trade;](http://gaussian.com/gaussian16/), a commercial chemistry program
+2. [PSI4](http://www.psicode.org/), a chemistry program that exposes a Python interface allowing for accessing internal objects
 3. [PySCF](https://github.com/sunqm/pyscf), an open-source Python chemistry program
 4. [PyQuante](https://github.com/rpmuller/pyquante2), a pure cross-platform open-source Python chemistry program
 
-Please refer to the Qiskit Chemistry drivers installation instructions in the
-[Aqua documentation](https://qiskit.org/documentation/aqua/).
+Please refer to the [Qiskit Chemistry drivers installation instructions](https://qiskit.org/documentation/aqua/aqua_chemistry_drivers.html)
+for details on how to integrate these drivers into Qiskit Chemistry.
 
-Even without installing one of the above drivers, it is still possible to run some chemistry experiments if
-you have an Qiskit Chemistry HDF5 file that has been previously created when using one of the above drivers.
-The HDF5 driver takes such an input.  
-A few sample hdf5 files have been provided and these can be found in the 
-[chemistry folder](https://github.com/Qiskit/qiskit-tutorials/tree/master/qiskit/aqua/chemistry) of the Qiskit Tutorials
-repository.
+A useful functionality integrated into Qiskit Chemistry is its ability to serialize a file in Hierarchical Data
+Format 5 (HDF5) format representing all the data extracted from one of the drivers listed above when
+executing an experiment.  Qiskit Chemistry can then use that data to initiate the conversion of that
+data into a fermionic operator and then a qubit operator, which can then be used as an input to a quantum
+algorithm.  Therefore, even without installing one of the drivers above, it is still possible to run
+chemistry experiments as long as you have a Hierarchical Data Format 5 (HDF5) file that has been previously
+created.  Qiskit Chemistry's built-in HDF5 driver accepts such such HDF5 files as input.  
+A few sample HDF5 files for different are provided in the 
+[chemistry folder](https://github.com/Qiskit/qiskit-tutorials/tree/master/qiskit/aqua/chemistry) of the
+[Qiskit Tutorials](https://github.com/Qiskit/qiskit-tutorials) repository.
 
-## Running a Chemistry Experiment
+To install from source, follow the instructions in the [contribution guidelines](.github/CONTRIBUTING.rst).
 
-Now that you have installed Qiskit Chemistry you can run an experiment, for example to compute the ground
-state energy of a molecule.
+## Creating Your First Qiskit Chemistry Programming Experiment
 
-Qiskit Chemistry has both [GUI](#gui) and [command line](#command-line) tools, which may be used when conducting
-chemistry simulation experiments on a quantum machine. Both can load and run an input file specifying the molecule,
-an algorithm to be used and its configuration, and various other options to tailor the experiment. You can find several
-input files to experiment with in the Qiskit Tutorials repository's
-[chemistry input file folder](https://github.com/Qiskit/qiskit-tutorials/tree/master/community/aqua/chemistry/input_files).
-If you are new to the library we highly recommend getting started with the GUI.
+Now that Qiskit Chemistry is installed, it's time to begin working with it.  We are ready to try out an experiment using Qiskit Chemistry:
 
-### GUI
+```python
+from collections import OrderedDict
+from qiskit_chemistry import FermionicOperator
+from qiskit_chemistry.drivers import PySCFDriver
 
-The GUI provides an easy means to load and run an input file specifying your chemistry problem. An input file
-can also be created, edited and saved with validation of values to provide ease of configuring the chemistry problem
-using the input file. The pip installation creates a script that allows you to start the GUI from the
-command line, as follows:
+# Use PySCF, a classical computational chemistry software package, to compute the one-body and two-body integrals in
+# molecular-orbital basis, necessary to form the Fermionic operator
+pyscf_cfg = OrderedDict([
+    ('atom', 'H .0 .0 .0; H .0 .0 0.735'),
+    ('unit', 'Angstrom'),
+    ('basis', 'sto3g')
+])
+section = {'properties': pyscf_cfg}
+driver = PySCFDriver()
+molecule = driver.run(section)
+num_particles = molecule.num_alpha + molecule.num_beta
+num_spin_orbitals = molecule.num_orbitals * 2
 
-`qiskit_chemistry_ui`
+# Build the qubit operator, which is the input to the VQE algorithm in Aqua
+ferOp = FermionicOperator(h1=molecule.one_body_integrals, h2=molecule.two_body_integrals)
+map_type = 'PARITY'
+qubitOp = ferOp.mapping(map_type)
+qubitOp = qubitOp.two_qubit_reduced_operator(num_particles)
+num_qubits = qubitOp.num_qubits
 
-If you clone and run directly from the repository, instead of using
-pip install, then it can be run using:
+# set the backend for the quantum computation
+from qiskit import Aer
+backend = Aer.get_backend('statevector_simulator')
 
-`python qiskit_chemistry_ui`
+# setup a classical optimizer for VQE
+from qiskit_aqua.components.optimizers import L_BFGS_B
+optimizer = L_BFGS_B()
 
-from the root folder of the qiskit-chemistry repository clone.
+# setup the initial state for the variational form
+from qiskit_chemistry.aqua_extensions.components.initial_states import HartreeFock
+init_state = HartreeFock(num_qubits, num_spin_orbitals, num_particles)
 
-### Command Line
+# setup the variational form for VQE
+from qiskit_aqua.components.variational_forms import RYRZ
+var_form = RYRZ(num_qubits, initial_state=init_state)
 
-Summary of qiskit_chemistry command line options:
-
-`qiskit_chemistry_cmd`:
+# setup and run VQE
+from qiskit_aqua.algorithms import VQE
+algorithm = VQE(qubitOp, var_form, optimizer)
+result = algorithm.run(backend)
+print(result['energy'])
 ```
-usage: qiskit_chemistry_cmd [-h] [-o output | -jo json output] input
 
-Quantum Chemistry Program.
+The program above uses a quantum computer to calculate the ground state energy of molecular Hydrogen,
+H<sub>2</sub>, where the two atoms are configured to be at a distance of 0.735 angstroms. The molecular
+configuration input is generated using PySCF. First, Qiskit Chemisrtry transparently executes PySCF,
+and extracts from it the one- and two-body molecular-orbital integrals; an inexpensive operation that scales
+well classically and does not require the use of a quantum computer. These integrals are then used to create
+a quantum fermionic-operator representation of the molecule. In this specific example, we use a parity mapping
+to generate a qubit operator from the fermionic one, with a unique precision-preserving optimization that
+allows for two qubits to be tapered off; a reduction in complexity that is particularly advantageous for NISQ
+computers. The qubit operator is then passed as an input to the Variational Quantum Eigensolver (VQE) algorithm,
+instantiated with a Limited-memory Broyden-Fletcher-Goldfarb-Shanno Bound (L-BFGS-B) classical optimizer and
+the RyRz variational form. The Hartree-Fock state is utilized to initialize the variational form.
+This example emphasizes the use of Qiskit Aqua and Qiskit Chemistry's programmatic interface by illustrating
+the constructor calls that initialize the VQE `QuantumAlgorithm`, along with its supporting
+components—consisting of the L-BFGS-B `Optimizer`, RyRz `VariationalForm`, and Hartree-Fock `InitialState`.
+The Aer statevector simulator backend is passed as a parameter to the `run` method of the VQE algorithm object,
+which means that the backend will be executed with default parameters.
+To customize the backend, you can wrap it into a `QuantumInstance` object, and then pass that object to the
+`run` method of the QuantumAlgorithm, as explained above. The `QuantumInstance` API allows you to customize
+run-time properties of the backend, such as the number of shots, the maximum number of credits to use,
+a dictionary with the configuration settings for the simulator, a dictionary with the initial layout of qubits
+in the mapping, and the Terra `PassManager` that will handle the compilation of the circuits.
+For the full set of options, please refer to the documentation of the Aqua `QuantumInstance` API.
 
-positional arguments:
-  input            Chemistry Driver input or Algorithm JSON input file
+### Qiskit Chemistry Wizard and Command-line Interfaces
 
-optional arguments:
-  -h, --help       show this help message and exit
-  -o output        Algorithm Results Output file name
-  -jo json output  Algorithm JSON Output file name
-```
+Qiskit Chemistry comes with wizard and command-line tools, which may be used when conducting
+chemistry simulation experiments on a quantum machine. Both can load and run an input file
+specifying both the chemistry and quantum configurations of the ecperiment.
+You can find several
+input files to experiment with in the
+[qiskit/aqua/chemistry/input_files](https://github.com/Qiskit/qiskit-tutorials/tree/master/qiskit/aqua/chemistry)
+and [community/aqua/chemistry/input_files](https://github.com/Qiskit/qiskit-tutorials/tree/master/community/aqua/chemistry)
+folders of the [qiskit-tutorials GitHub Repository](https://github.com/Qiskit/qiskit-tutorials).
 
-If you clone and run directly from the repository, instead of using
-pip install, then it can be run using
+The wizard provides an easy means to load and run an input file specifying your chemistry problem and
+the configuration of the quantum experiment.  The wizard verifies that the quantum-chemistry experiment
+is not misconfigured and also allows for automatically generating Python code for easily transitioning
+into running Qiskit Chemistry experiments programmatically.
 
-`python qiskit_chemistry_cmd`
+The pip installation creates the `qiskit_chemistry_ui` command that allows you to start the wizard.  Similarly,
+the command-line tool can be launched by entering the `qiskit_chemistry_cmd` command.
 
-from the root folder of the qiskit-chemistry repository clone.
+You can also use Qiskit to execute your code on a **real quantum chip**.
+In order to do so, you need to configure Qiskit to use the credentials in
+your [IBM Q](https://quantumexperience.ng.bluemix.net) account.
+Please consult the relevant instructions in the
+[Qiskit Terra GitHub repository](https://github.com/Qiskit/qiskit-terra/blob/master/README.md#executing-your-code-on-a-real-quantum-chip)
+for more details.  
 
-### Programming
+## Contribution Guidelines
 
-Chemistry experiments can be run programmatically too. The chemistry notebooks in the
-[Qiskit Aqua](https://github.com/Qiskit/qiskit-tutorials/tree/master/qiskit/aqua/chemistry)
-and [Qiskit community](https://github.com/Qiskit/qiskit-tutorials/tree/master/community/aqua/chemistry)
-tutorials provide numerous examples
-demonstrating how to use Aqua to carry out quantum computing experiments.
-Here you will see different ways of programming an experiment. The simplest, which
-matches closely to the input file, is used in many examples. Here a similar Python dictionary, which can
-be automatically generated from the GUI, is used and an
-`QiskitChemistry` instance is used to run the experiment and return the result.
-```
-solver = QiskitChemistry()
-result = solver.run(qiskit_chemistry_dict)
-```
-The [basic how-to tutorial](https://github.com/Qiskit/qiskit-tutorials/blob/master/qiskit/aqua/chemistry/basic_howto.ipynb)
-notebook details this simple example.
+If you'd like to contribute to Qiskit, please take a look at our
+[contribution guidelines](.github/CONTRIBUTING.rst). This project adheres to Qiskit's [code of conduct](.github/CODE_OF_CONDUCT.rst).
+By participating, you are expected to uphold to this code.
 
-The [advanced how-to tutorial](https://github.com/Qiskit/qiskit-tutorials/blob/master/qiskit/aqua/chemistry/advanced_howto.ipynb) illustrates how to conduct a quantum chemistry experiment using the Qiskit Aqua and Chemistry
-Application Programming Interfaces (APIs).
+We use [GitHub issues](https://github.com/Qiskit/qiskit-aqua/issues) for tracking requests and bugs. Please
+[join the Qiskit Slack community](https://join.slack.com/t/qiskit/shared_invite/enQtNDc2NjUzMjE4Mzc0LTMwZmE0YTM4ZThiNGJmODkzN2Y2NTNlMDIwYWNjYzA2ZmM1YTRlZGQ3OGM0NjcwMjZkZGE0MTA4MGQ1ZTVmYzk)
+and use the [Aqua Slack channel](https://qiskit.slack.com/messages/aqua)
+for discussion and simple questions.
+For questions that are more suited for a forum, we use the **Qiskit** tag in
+[Stack Overflow](https://stackoverflow.com/questions/tagged/qiskit).
 
-Since the Python dictionary can be updated programmatically it is possible to carry out more complicated experiments
-such as plotting a
-[dissociation curve](https://github.com/Qiskit/qiskit-tutorials/blob/master/chemistry/lih_uccsd.ipynb).
+## Next Steps
 
+Now you're set up and ready to check out some of the other examples from the
+[qiskit/aqua/chemistry](https://github.com/Qiskit/qiskit-tutorials/tree/master/qiskit/aqua/chemistry)
+and [community/aqua/chemistry](https://github.com/Qiskit/qiskit-tutorials/tree/master/community/aqua/chemistry)
+folders of the [qiskit-tutorials GitHub Repository](https://github.com/Qiskit/qiskit-tutorials).
 
 ## Authors
 
-Qiskit Chemistry was inspired, authored and brought about by the collective
-work of a team of researchers.
-
-Qiskit Chemistry continues now to grow with the help and work of [many people](CONTRIBUTORS.rst) who contribute
+Qiskit Chemistry was inspired, authored and brought about by the collective work of a team of researchers.
+Aqua continues to grow with the help and work of [many people](./CONTRIBUTORS.rst), who contribute
 to the project at different levels.
 
 ## License
 
-This project uses the [Apache License Version 2.0 software license](https://www.apache.org/licenses/LICENSE-2.0).
+This project uses the [Apache License 2.0](LICENSE.txt).
 
-Some code supplied here for [drivers](qiskit_chemistry/drivers/README.md), for interfacing to external chemistry
-programs/libraries, has additional licensing.
-
+Some of the code embedded in Qiskit CHhemistry to interface some of the computational chemistry
+software drivers requires additional licensing:
 * The [Gaussian 16 driver](qiskit_chemistry/drivers/gaussiand/README.md) contains work licensed under the
 [Gaussian Open-Source Public License](qiskit_chemistry/drivers/gaussiand/gauopen/LICENSE.txt).
-
 * The [Pyquante driver](qiskit_chemistry/drivers/pyquanted/README.md) contains work licensed under the
-[modified BSD license](qiskit_chemistry/drivers/pyquanted/LICENSE.txt).
+[modified BSD license](qiskit_chemistry/drivers/pyquanted/LICENSE.txt).```
