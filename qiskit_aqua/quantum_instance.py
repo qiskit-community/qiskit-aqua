@@ -25,7 +25,6 @@ except ImportError:
     pass
 
 from qiskit_aqua.utils import compile_and_run_circuits
-from qiskit_aqua import get_aer_backend
 
 logger = logging.getLogger(__name__)
 
@@ -273,13 +272,3 @@ class QuantumInstance:
             Result (Boolean): True is a local backend
         """
         return backend.configuration().local
-
-
-def get_quantum_instance_with_aer_statevector_simulator():
-    backend = get_aer_backend('statevector_simulator')
-    return QuantumInstance(backend)
-
-
-def get_quantum_instance_with_aer_qasm_simulator(shots=1024):
-    backend = get_aer_backend('qasm_simulator')
-    return QuantumInstance(backend, shots=shots)
