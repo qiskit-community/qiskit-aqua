@@ -227,6 +227,7 @@ classical algorithm.  A comparison with the :ref:`Hartree-Fock` energy is also o
         },
         'initial_state': {'name': 'HartreeFock'},
         'backend': {
+            'provider': 'qiskit.BasicAer',
             'name': 'qasm_simulator',
             'shots': 100,
         }
@@ -652,28 +653,27 @@ is selected along with the :ref:`l-bfgs-b` optimizer and the
 Aqua allows for configuring the *backend*, which is the quantum machine
 on which a quantum experiment will be run.
 This configuration requires specifying 
-the `Qiskit Terra <https://qiskit.org/Terra>`__ quantum computational
-backend to be used for computation, which is done by assigning a ``str`` value to
-the ``name`` parameter of the ``backend`` section:
+the `Qiskit Terra <https://www.qiskit.org/terra>`__ quantum computational
+provider and backend to be used for computation, which is done by assigning a ``str`` value to
+the ``"provider"`` and ``"name"`` parameters of the ``"backend"`` section:
 
 .. code:: python
 
-    name : string
+    "provider" : string
+    "name" : string
 
-The value of the ``name`` parameter indicates either a real-hardware
-quantum computer or a quantum simulator.
-The underlying Qiskit core used by Aqua comes
-with two predefined quantum device simulators: the *local state vector simulator* and
-the *local QASM simulator*, corresponding to the following two
-values for the ``name`` parameter: ``"statevector_simulator"`` (which
-is the default value for the ``name`` parameter) and ``"qasm_simulator"``, respectively.
-However, any suitable quantum backend can be selected, including
-a real quantum hardware device. The ``QConfig.py`` file
-needs to be setup for Qiskit to access remote devices.  For this, it is sufficient to follow the
-`Qiskit Terra installation instructions <https://Qiskit.org/documentation/install.html#installation>`__.
-The Qiskit Chemistry :ref:`qiskit-chemistry-gui` greatly simplifies the
-configuration of ``QConfig.py`` via a user friendly interface,
+The value of the ``"provider"`` parameter indicates the full name of a class derived from ``"BaseProvider"`` 
+or global variable pointing to a instance of this class. 
+The value of the ``"name"`` parameter indicates either a real-hardware
+quantum computer or a quantum simulator accessed from the provider.
+Terra comes with two predefined providers: ``"qiskit.BasicAer"`` and  ``"qiskit.IBMQ"``.
+By installing ``"qiskit-aer"``, the ``"qiskit.Aer"`` provider gets included too.
+Each provider has its own set of simulators and ``"qiskit.IBMQ"`` gives access to real-hardware quantum 
+computer or simulators in the cloud.
+For the ``"qiskit.IBMQ"`` provider, you need to configure it with a token and possibly url proxies.
+The Aqua `GUI <#aqua-gui>` greatly simplifies it via a user friendly interface,
 accessible through the **Preferences...** menu item.
+Otherwise you need to configure programmatically using Qiskit Terra <https://www.qiskit.org/terra>` apis.
 
 .. topic:: Backend Configuration --- Quantum vs. Classical Algorithms:
     Although Aqua is mostly a library of :ref:`quantum-algorithms`,
