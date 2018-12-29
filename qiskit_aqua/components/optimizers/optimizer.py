@@ -76,7 +76,7 @@ class Optimizer(Pluggable):
 
     @classmethod
     def init_params(cls, params):
-        """Initialize with a params dictionary
+        """Initialize with a params dictionary.
 
         A dictionary of config params as per the configuration object. Some of these params get
         passed to scipy optimizers in an options dictionary. We can specify an options array of
@@ -90,6 +90,16 @@ class Optimizer(Pluggable):
         args = {k: v for k, v in params.items() if k != 'name'}
         optimizer = cls(**args)
         return optimizer
+
+    def set_options(self, **kwargs):
+        """Set an options dictionary that may be used by call to the optimizer.
+
+        Args:
+            kwargs (dict): options, given as name=value.
+        """
+        for name, value in kwargs.items():
+            self._options[name] = value
+        logger.debug('options: {}'.format(self._options))
 
     @staticmethod
     def gradient_num_diff(x_center, f, epsilon):
