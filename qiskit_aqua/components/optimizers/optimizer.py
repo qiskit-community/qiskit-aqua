@@ -92,7 +92,13 @@ class Optimizer(Pluggable):
         return optimizer
 
     def set_options(self, **kwargs):
-        """Set an options dictionary that may be used by call to the optimizer.
+        """
+        Sets or updates values in the options dictionary.
+
+        The options dictionary may be used internally by a given optimizer to
+        pass additional optional values for the underlying optimizer/optimization
+        function used. The options dictionary may be initially populated with
+        a set of key/values when the given optimizer is constructed.
 
         Args:
             kwargs (dict): options, given as name=value.
