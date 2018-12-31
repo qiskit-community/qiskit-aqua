@@ -85,6 +85,24 @@ class SPSA(Optimizer):
     }
 
     def __init__(self, max_trials=1000, save_steps=1, last_avg=1, c0=2*np.pi*0.1, c1=0.1, c2=0.602, c3=0.101, c4=0, skip_calibration=False):
+        """
+        Constructor.
+
+        For details, please refer to https://arxiv.org/pdf/1704.05018v2.pdf.
+        Supplementary information Section IV.
+
+        Args:
+            max_trials (int): Maximum number of iterations to perform.
+            save_steps (int): Save intermeditate info every save_steps step.
+            last_avg (int): Averged parameters over the last_avg iterations.
+                            If last_avg = 1, only the last iteration is considered.
+            c0 (float): The initial a. Step size to update paramters.
+            c1 (float): The initial c. The step size used to approximate gradient.
+            c2 (float): The alpha in the paper, and it is used to adjust a (c0) at each iteration.
+            c3 (float): The gamma in the paper, and it is used to adjust c (c1) at each iteration.
+            c4 (float): The parameter used to control a as well.
+            skip_calibration (bool): skip calibration and use provided c(s) as is.
+        """
         self.validate(locals())
         super().__init__()
         for k, v in locals().items():
