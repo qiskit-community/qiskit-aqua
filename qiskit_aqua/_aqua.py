@@ -21,7 +21,6 @@ import copy
 import json
 import logging
 
-from qiskit import IBMQ
 from qiskit.providers import BaseBackend
 from qiskit.transpiler import PassManager
 
@@ -33,8 +32,9 @@ from qiskit_aqua._discover import (_discover_on_demand,
 from qiskit_aqua.utils.jsonutils import convert_dict_to_json, convert_json_to_dict
 from qiskit_aqua.parser._inputparser import InputParser
 from qiskit_aqua.parser import JSONSchema
-from qiskit_aqua import QuantumInstance
-from qiskit_aqua import get_aer_backend
+from qiskit_aqua import (QuantumInstance,
+                         get_backend_from_provider,
+                         get_provider_from_backend)
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +57,13 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
 
     inputparser = InputParser(params)
     inputparser.parse()
+    # before merging defaults attempts to find a provider for the backend in case no
+    # provider was passed
+    if backend is None and inputparser.get_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER) is None:
+        backend_name = inputparser.get_section_property(JSONSchema.BACKEND, JSONSchema.NAME)
+        if backend_name is not None:
+            inputparser.set_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER, get_provider_from_backend(backend_name))
+
     inputparser.validate_merge_defaults()
     logger.debug('Algorithm Input: {}'.format(json.dumps(inputparser.get_sections(), sort_keys=True, indent=4)))
 
@@ -82,9 +89,10 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
     algorithm.random_seed = random_seed
     quantum_instance = None
     # setup backend
+    backend_provider = inputparser.get_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER)
     backend_name = inputparser.get_section_property(JSONSchema.BACKEND, JSONSchema.NAME)
-    if backend_name is not None:  # quantum algorithm
-        backend_cfg = {k: v for k, v in inputparser.get_section(JSONSchema.BACKEND).items() if k != 'name'}
+    if backend_provider is not None and backend_name is not None:  # quantum algorithm
+        backend_cfg = {k: v for k, v in inputparser.get_section(JSONSchema.BACKEND).items() if k not in [JSONSchema.PROVIDER, JSONSchema.NAME]}
         noise_params = backend_cfg.pop('noise_params', None)
         backend_cfg['config'] = {}
         backend_cfg['config']['noise_params'] = noise_params
@@ -97,12 +105,7 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
         if backend is not None and isinstance(backend, BaseBackend):
             backend_cfg['backend'] = backend
         else:
-            try:
-                backend_from_name = get_aer_backend(backend_name)
-            except:
-                QuantumInstance.register_and_get_operational_backends()
-                backend_from_name = IBMQ.get_backend(backend_name)
-            backend_cfg['backend'] = backend_from_name
+            backend_cfg['backend'] = get_backend_from_provider(backend_provider, backend_name)
 
         use_caching = inputparser.get_section_property(JSONSchema.PROBLEM, 'circuit_caching')
         if use_caching:

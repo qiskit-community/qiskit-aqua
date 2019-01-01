@@ -104,7 +104,7 @@ class SectionPropertiesView(ToolbarView):
 
     def onadd(self):
         dialog = None
-        if self._controller._model.allows_additional_properties(self.section_name):
+        if self._controller.model.allows_additional_properties(self.section_name):
             dialog = PropertyEntryDialog(self._controller, self.section_name, self.master)
             dialog.do_init()
         else:
