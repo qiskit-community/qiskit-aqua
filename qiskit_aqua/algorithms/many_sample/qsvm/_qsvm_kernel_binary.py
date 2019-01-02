@@ -16,6 +16,7 @@
 # =============================================================================
 
 import logging
+import warnings
 
 import numpy as np
 
@@ -27,6 +28,16 @@ logger = logging.getLogger(__name__)
 
 class _QSVM_Kernel_Binary(_QSVM_Kernel_ABC):
     """The binary classifier."""
+
+    def construct_circuit(self, x1, x2, measurement=False):
+        warnings.warn("Please use the 'construct_circuit' in the qsvm_kernel class directly.",
+                      DeprecationWarning)
+        return self._qalgo.construct_circuit(x1, x2, measurement)
+
+    def construct_kernel_matrix(self, x1_vec, x2_vec=None):
+        warnings.warn("Please use the 'construct_kernel_matrix' in the qsvm_kernel "
+                      "class directly.", DeprecationWarning)
+        return self._qalgo.construct_kernel_matrix(x1_vec, x2_vec, self._qalgo.quantum_instance)
 
     def get_predicted_confidence(self, data, return_kernel_matrix=False):
         """Get predicted confidence.
@@ -123,7 +134,8 @@ class _QSVM_Kernel_Binary(_QSVM_Kernel_ABC):
             self.test(self._qalgo.test_dataset[0], self._qalgo.test_dataset[1])
         if self._qalgo.datapoints is not None:
             predicted_labels = self.predict(self._qalgo.datapoints)
-            predicted_classes = map_label_to_class_name(predicted_labels, self._qalgo.label_to_class)
+            predicted_classes = map_label_to_class_name(predicted_labels,
+                                                        self._qalgo.label_to_class)
             self._ret['predicted_labels'] = predicted_labels
             self._ret['predicted_classes'] = predicted_classes
 

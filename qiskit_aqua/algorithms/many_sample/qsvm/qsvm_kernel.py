@@ -120,8 +120,7 @@ class QSVMKernel(QuantumAlgorithm):
 
     @classmethod
     def init_params(cls, params, algo_input):
-        """
-        """
+        """Constructor from params."""
         num_qubits = get_feature_dimension(algo_input.training_dataset)
         fea_map_params = params.get(QuantumAlgorithm.SECTION_KEY_FEATURE_MAP)
         fea_map_params['num_qubits'] = num_qubits
@@ -176,8 +175,6 @@ class QSVMKernel(QuantumAlgorithm):
         The dimension of x1 and x2 must be the same.
 
         Args:
-            feature_map (FeatureMap): FeatureMap instance
-            num_qubits (int): number of qubits
             x1 (numpy.ndarray): data points, 1-D array, dimension is D
             x2 (numpy.ndarray): data points, 1-D array, dimension is D
             measurement (bool): add measurement gates at the end
@@ -249,7 +246,8 @@ class QSVMKernel(QuantumAlgorithm):
             with concurrent.futures.ProcessPoolExecutor(max_workers=num_processes) as executor:
                 for idx, circuit in circuits.items():
                     kernel_values[idx] = executor.submit(QSVMKernel._compute_overlap,
-                                                         results, circuit, is_statevector_sim, measurement_basis)
+                                                         results, circuit, is_statevector_sim,
+                                                         measurement_basis)
                 for k, v in kernel_values.items():
                     i, j = [int(x) for x in k.split(":")]
                     mat[i, j] = v.result()
@@ -314,7 +312,17 @@ class QSVMKernel(QuantumAlgorithm):
         self.instance.ret = new_value
 
     def load_model(self, file_path):
+        """Load a model from a file path.
+
+        Args:
+            file_path (str): tthe path of the saved model.
+        """
         self.instance.load_model(file_path)
 
     def save_model(self, file_path):
+        """Save the model to a file path.
+
+        Args:
+            file_path (str): a path to save the model.
+        """
         self.instance.save_model(file_path)
