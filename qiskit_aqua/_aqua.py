@@ -94,6 +94,7 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
     if backend_provider is not None and backend_name is not None:  # quantum algorithm
         backend_cfg = {k: v for k, v in inputparser.get_section(JSONSchema.BACKEND).items() if k not in [JSONSchema.PROVIDER, JSONSchema.NAME]}
         # TODO, how to build the noise model from a dictionary?
+        backend_cfg.pop('noise_params', None)
         backend_cfg['seed'] = random_seed
         backend_cfg['seed_mapper'] = random_seed
         pass_manager = PassManager() if backend_cfg.pop('skip_transpiler', False) else None
