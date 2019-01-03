@@ -767,10 +767,6 @@ class Operator(object):
 
                 if operator_mode == 'matrix':
                     has_shared_circuits = False
-
-                if 'config' in backend_config:
-                    if 'noise_params' in backend_config['config']:
-                        has_shared_circuits = False
             else:
                 has_shared_circuits = False
 

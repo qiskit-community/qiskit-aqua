@@ -93,6 +93,7 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
     backend_name = inputparser.get_section_property(JSONSchema.BACKEND, JSONSchema.NAME)
     if backend_provider is not None and backend_name is not None:  # quantum algorithm
         backend_cfg = {k: v for k, v in inputparser.get_section(JSONSchema.BACKEND).items() if k not in [JSONSchema.PROVIDER, JSONSchema.NAME]}
+        # TODO, how to build the noise model from a dictionary?
         noise_params = backend_cfg.pop('noise_params', None)
         backend_cfg['config'] = {}
         backend_cfg['config']['noise_params'] = noise_params

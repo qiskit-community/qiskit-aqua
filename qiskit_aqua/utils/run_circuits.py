@@ -71,7 +71,7 @@ def _avoid_empty_circuits(circuits):
 
 
 def _reuse_shared_circuits(circuits, backend, backend_config, compile_config, run_config,
-                           qjob_config=None, show_circuit_summary=False):
+                           qjob_config=None, simulator_config=None, show_circuit_summary=False):
     """Reuse the circuits with the shared head.
 
     We assume the 0-th circuit is the shared_circuit, so we execute it first
@@ -80,6 +80,7 @@ def _reuse_shared_circuits(circuits, backend, backend_config, compile_config, ru
     Note that all circuits should have the exact the same shared parts.
     """
     qjob_config = qjob_config or {}
+    simulator_config = simulator_config or {}
 
     shared_circuit = circuits[0]
     shared_result = compile_and_run_circuits(shared_circuit, backend, backend_config,
@@ -93,12 +94,11 @@ def _reuse_shared_circuits(circuits, backend, backend_config, compile_config, ru
     for circuit in circuits[1:]:
         circuit.data = circuit.data[len(shared_circuit):]
 
-    temp_backend_config = copy.deepcopy(backend_config)
-    if 'config' not in temp_backend_config:
-        temp_backend_config['config'] = dict()
-    temp_backend_config['config']['initial_statevector'] = shared_quantum_state
-    diff_result = compile_and_run_circuits(circuits[1:], backend, temp_backend_config,
+    temp_simulator_config = copy.deepcopy(simulator_config)
+    temp_simulator_config['initial_statevector'] = shared_quantum_state
+    diff_result = compile_and_run_circuits(circuits[1:], backend, backend_config,
                                            compile_config, run_config, qjob_config,
+                                           simulator_config=temp_simulator_config,
                                            show_circuit_summary=show_circuit_summary)
     result = _combine_result_objects([shared_result, diff_result])
     return result
@@ -110,7 +110,6 @@ def _combine_result_objects(results):
     TODO:
         This function would be removed after Terra supports job with infinite circuits.
     """
-
     if len(results) == 1:
         return results[0]
 
@@ -123,7 +122,8 @@ def _combine_result_objects(results):
 
 
 def compile_and_run_circuits(circuits, backend, backend_config, compile_config, run_config,
-                             qjob_config=None, noise_config=None, show_circuit_summary=False,
+                             qjob_config=None, simulator_config=None,
+                             noise_config=None, show_circuit_summary=False,
                              has_shared_circuits=False):
     """
     An execution wrapper with Qiskit-Terra, with job auto recover capability.
@@ -138,6 +138,7 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
         compile_config (dict): configuration for compilation
         run_config (dict): configuration for running a circuit
         qjob_config (dict): configuration for quantum job object
+        simulator_config (dict): configuration for simulator
         noise_config (dict): configuration for noise model
         show_circuit_summary (bool): showing the summary of submitted circuits.
         has_shared_circuits (bool): use the 0-th circuits as initial state for other circuits.
@@ -149,6 +150,7 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
         AquaError: Any error except for JobError raised by Qiskit Terra
     """
     qjob_config = qjob_config or {}
+    simulator_config = simulator_config or {}
     noise_config = noise_config or {}
 
     if backend is None or not isinstance(backend, BaseBackend):
@@ -162,7 +164,7 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
 
     if has_shared_circuits:
         return _reuse_shared_circuits(circuits, backend, backend_config, compile_config,
-                                      run_config, qjob_config)
+                                      run_config, qjob_config, simulator_config)
 
     with_autorecover = False if backend.configuration().simulator else True
 
@@ -185,7 +187,7 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
                          **compile_config, **run_config)
         # assure get job ids
         while True:
-            job = backend.run(qobj, **noise_config)
+            job = backend.run(qobj, backend_options=simulator_config, **noise_config)
             try:
                 job_id = job.job_id()
                 break
