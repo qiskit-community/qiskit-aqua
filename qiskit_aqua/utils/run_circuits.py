@@ -95,7 +95,9 @@ def _reuse_shared_circuits(circuits, backend, backend_config, compile_config, ru
         circuit.data = circuit.data[len(shared_circuit):]
 
     temp_simulator_config = copy.deepcopy(simulator_config)
-    temp_simulator_config['initial_statevector'] = shared_quantum_state
+    if 'backend_options' not in temp_simulator_config:
+        temp_simulator_config['backend_options'] = {}
+    temp_simulator_config['backend_options']['initial_statevector'] = shared_quantum_state
     diff_result = compile_and_run_circuits(circuits[1:], backend, backend_config,
                                            compile_config, run_config, qjob_config,
                                            simulator_config=temp_simulator_config,
@@ -187,7 +189,7 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
                          **compile_config, **run_config)
         # assure get job ids
         while True:
-            job = backend.run(qobj, backend_options=simulator_config, **noise_config)
+            job = backend.run(qobj, **simulator_config, **noise_config)
             try:
                 job_id = job.job_id()
                 break
