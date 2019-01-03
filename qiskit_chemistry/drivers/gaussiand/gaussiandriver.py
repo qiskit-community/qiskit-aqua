@@ -24,7 +24,7 @@ import numpy as np
 
 from qiskit_chemistry import QMolecule
 from qiskit_chemistry import QiskitChemistryError
-from qiskit_chemistry.drivers import BaseDriver
+from qiskit_chemistry.drivers import BaseDriver, get_driver_class
 
 logger = logging.getLogger(__name__)
 
@@ -32,14 +32,6 @@ GAUSSIAN_16 = 'g16'
 GAUSSIAN_16_DESC = 'Gaussian 16'
 
 g16prog = which(GAUSSIAN_16)
-
-try:
-    from .gauopen.QCMatEl import MatEl
-except ImportError as mnfe:
-    if mnfe.name == 'qcmatrixio':
-        logger.info('qcmatrixio extension not found. See Gaussian driver readme to build qcmatrixio.F using f2py')
-    else:
-        logger.info(str(mnfe))
 
 
 class GaussianDriver(BaseDriver):
@@ -65,16 +57,16 @@ class GaussianDriver(BaseDriver):
 
     def __init__(self, value=None):
         value = value or [
-                     '# rhf/sto-3g scf(conventional)',
-                     '',
-                     'h2 molecule',
-                     '',
-                     '0 1',
-                     'H   0.0  0.0    0.0',
-                     'H   0.0  0.0    0.735',
-                     '',
-                     ''
-                     ]
+            '# rhf/sto-3g scf(conventional)',
+            '',
+            'h2 molecule',
+            '',
+            '0 1',
+            'H   0.0  0.0    0.0',
+            'H   0.0  0.0    0.735',
+            '',
+            ''
+        ]
         self.validate(locals())
         super().__init__()
         self._value = value
@@ -177,6 +169,18 @@ class GaussianDriver(BaseDriver):
         return cfgaug
 
     def _parse_matrix_file(self, fname, useAO2E=False):
+        # get_driver_class is used here because the discovery routine will load all the gaussian
+        # binary dependencies, if not loaded already. It won't work without it.
+        try:
+            get_driver_class('GAUSSIAN')
+            from .gauopen.QCMatEl import MatEl
+        except ImportError as mnfe:
+            msg = 'qcmatrixio extension not found. See Gaussian driver readme to build qcmatrixio.F using f2py' \
+                if mnfe.name == 'qcmatrixio' else str(mnfe)
+
+            logger.info(msg)
+            raise QiskitChemistryError(msg)
+
         mel = MatEl(file=fname)
         logger.debug('MatrixElement file:\n{}'.format(mel))
 
