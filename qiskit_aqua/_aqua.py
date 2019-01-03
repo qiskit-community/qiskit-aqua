@@ -30,6 +30,7 @@ from qiskit_aqua._discover import (_discover_on_demand,
                                    PluggableType,
                                    get_pluggable_class)
 from qiskit_aqua.utils.jsonutils import convert_dict_to_json, convert_json_to_dict
+from qiskit_aqua.utils import CircuitCache
 from qiskit_aqua.parser._inputparser import InputParser
 from qiskit_aqua.parser import JSONSchema
 from qiskit_aqua import (QuantumInstance,
@@ -109,11 +110,9 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
 
         use_caching = inputparser.get_section_property(JSONSchema.PROBLEM, 'circuit_caching')
         if use_caching:
-            cache_config = {}
-            cache_config['caching_naughty_mode'] = inputparser.get_section_property(JSONSchema.PROBLEM,
-                                                                                    'caching_naughty_mode')
-            cache_config['cache_file'] = inputparser.get_section_property(JSONSchema.PROBLEM, 'circuit_cache_file')
-            backend_cfg['cache_config'] = cache_config
+            caching_naughty_mode = inputparser.get_section_property(JSONSchema.PROBLEM, 'caching_naughty_mode')
+            cache_file = inputparser.get_section_property(JSONSchema.PROBLEM, 'circuit_cache_file')
+            backend_cfg['circuit_cache'] = CircuitCache(caching_naughty_mode=caching_naughty_mode, cache_file=cache_file)
 
         quantum_instance = QuantumInstance(**backend_cfg)
 

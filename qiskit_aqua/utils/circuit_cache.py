@@ -34,9 +34,6 @@ that caching should be disabled."""
 
 import numpy as np
 import copy
-import uuid
-from qiskit.providers.builtinsimulators.simulatorsjob import SimulatorsJob
-from qiskit.providers import JobError
 from qiskit_aqua.aqua_error import AquaError
 from qiskit import QuantumRegister
 from qiskit.circuit import CompositeGate
@@ -50,13 +47,19 @@ class CircuitCache:
 
     def __init__(self,
                  caching_naughty_mode = False,
-                 cache_file = None):
+                 cache_file = None,
+                 allowed_misses = 3):
         self.naughty_mode = caching_naughty_mode
         self.cache_file = cache_file
         self.misses = 0
         self.qobjs = []
         self.mappings = []
         self.try_reusing_qobjs = True
+        self.allowed_misses = allowed_misses
+        try:
+            self.try_loading_cache_from_file()
+        except (FileNotFoundError):
+            pass
 
     def cache_circuit(self, qobj, circuits, chunk):
         """
@@ -99,6 +102,7 @@ class CircuitCache:
 
             #TODO: See if we can skip gates with no params
             for i, uncompiled_gate in enumerate(raw_gates):
+                if not hasattr(uncompiled_gate, 'param'): continue
                 regs = [(reg, qubit) for (reg, qubit) in uncompiled_gate.qargs]
                 qubits = [qubit+qreg_indeces[reg.name] for reg, qubit in regs if isinstance(reg, QuantumRegister)]
                 gate_type = uncompiled_gate.name
@@ -107,6 +111,7 @@ class CircuitCache:
                     op_graph.get(type_and_qubits, []) + [i]
             mapping = []
             for compiled_gate_index, compiled_gate in enumerate(qobj.experiments[circ_num].instructions):
+                if not hasattr(compiled_gate, 'params'): continue
                 type_and_qubits = compiled_gate.name + compiled_gate.qubits.__str__()
                 if len(op_graph[type_and_qubits]) > 0:
                     uncompiled_gate_index = op_graph[type_and_qubits].pop(0)
@@ -127,7 +132,7 @@ class CircuitCache:
             qobj_dicts = [qobj_to_dict(qob) for qob in self.qobjs]
             pickle.dump({'qobjs':qobj_dicts, 'mappings':self.mappings}, cache_handler, protocol=pickle.HIGHEST_PROTOCOL)
             cache_handler.close()
-            logger.debug("Circuit cache saved to file.")
+            logger.debug("Circuit cache saved to file: {}".format(self.cache_file))
 
     def try_loading_cache_from_file(self):
         if len(self.qobjs) == 0 and self.cache_file is not None and len(self.cache_file) > 0:
@@ -136,7 +141,7 @@ class CircuitCache:
             cache_handler.close()
             self.qobjs = [Qobj.from_dict(qob) for qob in cache['qobjs']]
             self.mappings = cache['mappings']
-            logger.debug("Circuit cache loaded from file.")
+            logger.debug("Circuit cache loaded from file: {}".format(self.cache_file))
 
     # Note that this function overwrites the previous cached qobj for speed
     def load_qobj_from_cache(self, circuits, chunk, run_config=None):
@@ -162,6 +167,7 @@ class CircuitCache:
                 else: raw_gates += [gate]
             self.qobjs[chunk].experiments[circ_num].header.name = input_circuit.name
             for gate_num, compiled_gate in enumerate(self.qobjs[chunk].experiments[circ_num].instructions):
+                if not hasattr(compiled_gate, 'params'): continue
                 if compiled_gate.name == 'snapshot': continue
                 cache_index = self.mappings[chunk][circ_num][gate_num]
                 uncompiled_gate = raw_gates[cache_index]
@@ -187,15 +193,6 @@ class CircuitCache:
         exec_qobj.config.n_qubits = max(experiment.config.n_qubits for
                                     experiment in exec_qobj.experiments)
         return exec_qobj
-
-    # Does what backend.run and aerjob.submit do, but without qobj validation.
-    def naughty_run(self, backend, qobj):
-        job_id = str(uuid.uuid4())
-        sim_job = SimulatorsJob(backend, job_id, backend._run_job, qobj)
-        if sim_job._future is not None:
-            raise JobError("We have already submitted the job!")
-        sim_job._future = sim_job._executor.submit(sim_job._fn, sim_job._job_id, sim_job._qobj)
-        return sim_job
 
     def clear_cache(self):
         self.qobjs = []

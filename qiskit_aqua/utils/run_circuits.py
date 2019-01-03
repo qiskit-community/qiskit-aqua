@@ -20,10 +20,12 @@ import logging
 import time
 import copy
 import os
+import uuid
 
 import numpy as np
 from qiskit import compile as q_compile
 from qiskit.providers import BaseBackend, JobStatus, JobError
+from qiskit.providers.builtinsimulators.simulatorsjob import SimulatorsJob
 
 from qiskit_aqua.aqua_error import AquaError
 from qiskit_aqua.utils import summarize_circuits
@@ -178,8 +180,6 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
         # Check if all circuits are the same length. If not, don't try to use the same qobj.experiment for all of them.
         if len(set([len(circ.data) for circ in circuits])) > 1: circuit_cache.try_reusing_qobjs = False
         else: # Try setting up the reusable qobj
-            try: circuit_cache.try_loading_cache_from_file()
-            except (FileNotFoundError): pass
             # Compile and cache first circuit if cache is empty. The load method will try to reuse it
             if circuit_cache.try_reusing_qobjs and circuit_cache.qobjs is None:
                 qobj = q_compile([circuits[0]], backend, **execute_config)
@@ -191,14 +191,14 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
     chunks = int(np.ceil(len(circuits) / max_circuits_per_job))
     for i in range(chunks):
         sub_circuits = circuits[i * max_circuits_per_job:(i + 1) * max_circuits_per_job]
-        if circuit_cache is not None and circuit_cache.misses < 5:
+        if circuit_cache is not None and circuit_cache.misses < circuit_cache.allowed_misses:
             try:
                 qobj = circuit_cache.load_qobj_from_cache(sub_circuits, i, run_config=run_config)
             # cache miss, fail gracefully
             except (TypeError, IndexError, FileNotFoundError, EOFError, AquaError, AttributeError) as e:
                 circuit_cache.try_reusing_qobjs = False  # Reusing Qobj didn't work
                 circuit_cache.clear_cache()
-                logger.debug('Circuit cache miss, recompiling. Cache miss reason:' + repr(e))
+                logger.debug('Circuit cache miss, recompiling. Cache miss reason: ' + repr(e))
                 qobj = q_compile(sub_circuits, backend, **backend_config,
                          **compile_config, **run_config)
                 circuit_cache.cache_circuit(qobj, sub_circuits, i)
@@ -206,24 +206,22 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
         else:
             qobj = q_compile(sub_circuits, backend, **backend_config,
                              **compile_config, **run_config)
-        if circuit_cache is not None and circuit_cache.naughty_mode:
-            job = circuit_cache.naughty_run(backend, qobj)
-            job_id = job.job_id()
-        else:
-            # assure get job ids
-            while True:
-                job = backend.run(qobj, **noise_config)
-                try:
-                    job_id = job.job_id()
-                    break
-                except JobError as e:
-                    logger.warning("FAILURE: the {}-th chunk of circuits, can not get job id, "
-                                   "Resubmit the qobj to get job id. "
-                                   "Terra job error: {} ".format(i, e))
-                except Exception as e:
-                    logger.warning("FAILURE: the {}-th chunk of circuits, can not get job id, "
-                                   "Resubmit the qobj to get job id. "
-                                   "Error: {} ".format(i, e))
+
+        skip_validation = circuit_cache is not None and circuit_cache.naughty_mode
+        # assure get job ids
+        while True:
+            job = run_on_backend(backend, qobj, noise_config=noise_config, skip_validation=skip_validation)
+            try:
+                job_id = job.job_id()
+                break
+            except JobError as e:
+                logger.warning("FAILURE: the {}-th chunk of circuits, can not get job id, "
+                               "Resubmit the qobj to get job id. "
+                               "Terra job error: {} ".format(i, e))
+            except Exception as e:
+                logger.warning("FAILURE: the {}-th chunk of circuits, can not get job id, "
+                               "Resubmit the qobj to get job id. "
+                               "Error: {} ".format(i, e))
         job_ids.append(job_id)
         jobs.append(job)
         qobjs.append(qobj)
@@ -294,7 +292,7 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
                     qobj = qobjs[idx]
                     #  assure job get its id
                     while True:
-                        job = backend.run(qobj)
+                        job = run_on_backend(backend, qobj, noise_config=noise_config, skip_validation=skip_validation)
                         try:
                             job_id = job.job_id()
                             break
@@ -316,3 +314,19 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
     result = _combine_result_objects(results) if len(results) != 0 else None
 
     return result
+
+# Skip_validation = True does what backend.run and aerjob.submit do, but without qobj validation.
+def run_on_backend(backend, qobj, noise_config = None, skip_validation = False):
+    if skip_validation:
+        job_id = str(uuid.uuid4())
+        # TODO: Either fix, or validate that the user is simulating - maybe check the provider and change the job
+        #  depending on provider
+        # TODO: Also check that pass manager is not None
+        job = SimulatorsJob(backend, job_id, backend._run_job, qobj)
+        if job._future is not None:
+            raise JobError("We have already submitted the job!")
+        job._future = job._executor.submit(job._fn, job._job_id, job._qobj)
+        return job
+    else:
+        job = backend.run(qobj, **noise_config)
+        return job

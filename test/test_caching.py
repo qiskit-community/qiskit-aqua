@@ -11,6 +11,7 @@ from qiskit_aqua.components.variational_forms import RY
 from qiskit_aqua.components.optimizers import L_BFGS_B
 from qiskit_aqua.components.initial_states import Zero
 from qiskit_aqua.algorithms.adaptive import VQE
+from qiskit_aqua.utils import CircuitCache
 
 
 class TestCaching(QiskitAquaTestCase):
@@ -113,7 +114,8 @@ class TestCaching(QiskitAquaTestCase):
         optimizer = L_BFGS_B()
         algo = VQE(self.algo_input.qubit_op, var_form, optimizer, 'matrix', batch_mode=batch_mode)
         quantum_instance = QuantumInstance(backend)
-        quantum_instance_caching = QuantumInstance(backend, cache_config={'caching_naughty_mode':True})
+        circuit_cache = CircuitCache(caching_naughty_mode=True)
+        quantum_instance_caching = QuantumInstance(backend, circuit_cache=circuit_cache)
         result_no_caching = algo.run(quantum_instance)
         result_caching = algo.run(quantum_instance_caching)
         self.assertAlmostEqual(result_no_caching['energy'], result_caching['energy'])

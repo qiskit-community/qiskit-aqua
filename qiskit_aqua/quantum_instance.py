@@ -24,7 +24,7 @@ except ImportError:
     HAS_AER = False
     pass
 
-from qiskit_aqua.utils import compile_and_run_circuits, CircuitCache
+from qiskit_aqua.utils import compile_and_run_circuits
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ class QuantumInstance:
 
     def __init__(self, backend, shots=1024, max_credits=10, config=None, seed=None,
                  initial_layout=None, pass_manager=None, seed_mapper=None, memory=False,
-                 noise_model=None, timeout=None, wait=5, cache_config=None):
+                 noise_model=None, timeout=None, wait=5, circuit_cache=None):
         """Constructor.
 
         Args:
@@ -118,9 +118,7 @@ class QuantumInstance:
 
         self._shared_circuits = False
         self._circuit_summary = False
-
-        if cache_config is not None: self.circuit_cache = CircuitCache(**cache_config)
-        else: self.circuit_cache = None
+        self.circuit_cache = circuit_cache
 
         logger.info(self)
 
