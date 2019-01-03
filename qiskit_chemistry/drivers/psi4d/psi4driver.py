@@ -46,15 +46,28 @@ class PSI4Driver(BaseDriver):
         }
     }
 
-    def __init__(self):
+    def __init__(self,
+                 value=[
+                     'molecule h2 {',
+                     '  0 1',
+                     '  H  0.0 0.0 0.0',
+                     '  H  0.0 0.0 0.735',
+                     '}',
+                     '',
+                     'set {',
+                     '  basis sto-3g',
+                     '  scf_type pk',
+                     '}']):
+        self.validate(locals())
         super().__init__()
+        self._value = value
 
     @staticmethod
     def check_driver_valid():
         if psi4 is None:
             raise QiskitChemistryError("Could not locate {}".format(PSI4))
 
-    def run(self, section):
+    def run(self):
         # create input
         psi4d_directory = os.path.dirname(os.path.realpath(__file__))
         template_file = psi4d_directory + '/_template.txt'
@@ -62,7 +75,7 @@ class PSI4Driver(BaseDriver):
 
         molecule = QMolecule()
 
-        input_text = section['data'] + '\n'
+        input_text = '\n'.join(self._value) + '\n'
         input_text += 'import sys\n'
         syspath = '[\'' + qiskit_chemistry_directory + '\',\'' + '\',\''.join(sys.path) + '\']'
 

@@ -33,7 +33,12 @@ except ImportError:
     logger.info('PyQuante2 is not installed. See https://github.com/rpmuller/pyquante2')
 
 
-def compute_integrals(config):
+def compute_integrals(atoms='H 0.0 0.0 0.0; H 0.0 0.0 0.735',
+                      units='Angstrom',
+                      charge=0,
+                      multiplicity=1,
+                      basis='sto3g',
+                      calc_type='rhf'):
     # Get config from input parameters
     # Molecule is in this format xyz as below or in Z-matrix e.g "H; O 1 1.08; H 2 1.08 1 107.5":
     # atoms=H .0 .0 .0; H .0 .0 0.2
@@ -42,18 +47,9 @@ def compute_integrals(config):
     # multiplicity=1
     # where we support symbol for atom as well as number
 
-    if 'atoms' not in config:
-        raise QiskitChemistryError('Atoms is missing')
-    val = config['atoms']
-    if val is None:
-        raise QiskitChemistryError('Atoms value is missing')
-
-    charge = int(config.get('charge', '0'))
-    multiplicity = int(config.get('multiplicity', '1'))
-    units = _check_units(config.get('units', 'Angstrom'))
-    mol = _parse_molecule(val, units, charge, multiplicity)
-    basis = config.get('basis', 'sto3g')
-    calc_type = config.get('calc_type', 'rhf').lower()
+    units = _check_units(units)
+    mol = _parse_molecule(atoms, units, charge, multiplicity)
+    calc_type = calc_type.lower()
 
     try:
         ehf, enuke, norbs, mohij, mohijkl, orbs, orbs_energy = _calculate_integrals(mol, basis, calc_type)

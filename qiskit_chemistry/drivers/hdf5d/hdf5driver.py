@@ -46,15 +46,13 @@ class HDF5Driver(BaseDriver):
         }
     }
 
-    def __init__(self):
+    def __init__(self, hdf5_input='molecule.hdf5'):
+        self.validate(locals())
         super().__init__()
+        self._hdf5_input = hdf5_input
 
-    def run(self, section):
-        properties = section['properties']
-        if HDF5Driver.KEY_HDF5_INPUT not in properties:
-            raise QiskitChemistryError('Missing hdf5 input property')
-
-        hdf5_file = properties[HDF5Driver.KEY_HDF5_INPUT]
+    def run(self):
+        hdf5_file = self._hdf5_input
         if self.work_path is not None and not os.path.isabs(hdf5_file):
             hdf5_file = os.path.abspath(os.path.join(self.work_path, hdf5_file))
 

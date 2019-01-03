@@ -54,20 +54,15 @@ Aqua's improved programmatic interface:
 
 .. code-block:: python
 
-    from collections import OrderedDict
     from qiskit_chemistry import FermionicOperator
     from qiskit_chemistry.drivers import PySCFDriver
 
     # Use PySCF, a classical computational chemistry software package, to compute the one-body and two-body integrals in
     # molecular-orbital basis, necessary to form the Fermionic operator
-    pyscf_cfg = OrderedDict([
-        ('atom', 'H .0 .0 .0; H .0 .0 0.735'),
-        ('unit', 'Angstrom'),
-        ('basis', 'sto3g')
-    ])
-    section = {'properties': pyscf_cfg}
-    driver = PySCFDriver()
-    molecule = driver.run(section)
+    driver = PySCFDriver(atom='H .0 .0 .0; H .0 .0 0.735',
+                        unit='Angstrom',
+                        basis='sto3g')
+    molecule = driver.run()
     num_particles = molecule.num_alpha + molecule.num_beta
     num_spin_orbitals = molecule.num_orbitals * 2
 

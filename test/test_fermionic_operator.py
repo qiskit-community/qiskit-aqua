@@ -17,14 +17,12 @@
 
 import copy
 import unittest
-from collections import OrderedDict
-
 import numpy as np
 from qiskit_aqua.utils import random_unitary
 
 from test.common import QiskitAquaChemistryTestCase
 from qiskit_chemistry import FermionicOperator, QiskitChemistryError
-from qiskit_chemistry.drivers import ConfigurationManager
+from qiskit_chemistry.drivers import PySCFDriver
 
 
 def h2_transform_slow(h2, unitary_matrix):
@@ -60,17 +58,16 @@ class TestFermionicOperator(QiskitAquaChemistryTestCase):
     """Fermionic Operator tests."""
 
     def setUp(self):
-        cfg_mgr = ConfigurationManager()
-        pyscf_cfg = OrderedDict([('atom', 'Li .0 .0 .0; H .0 .0 1.595'), ('unit', 'Angstrom'),
-                                 ('charge', 0), ('spin', 0), ('basis', 'sto3g')])
-        section = {}
-        section['properties'] = pyscf_cfg
         try:
-            driver = cfg_mgr.get_driver_instance('PYSCF')
+            driver = PySCFDriver(atom='Li .0 .0 .0; H .0 .0 1.595',
+                                 unit='Angstrom',
+                                 charge=0,
+                                 spin=0,
+                                 basis='sto3g')
         except QiskitChemistryError:
             self.skipTest('PYSCF driver does not appear to be installed')
 
-        molecule = driver.run(section)
+        molecule = driver.run()
         self.fer_op = FermionicOperator(h1=molecule.one_body_integrals,
                                         h2=molecule.two_body_integrals)
 
@@ -93,14 +90,12 @@ class TestFermionicOperator(QiskitAquaChemistryTestCase):
         self.assertEqual(h2_nonzeros, 0, "there are differences between h2 transformation")
 
     def test_freezing_core(self):
-        cfg_mgr = ConfigurationManager()
-        pyscf_cfg = OrderedDict([('atom', 'H .0 .0 -1.160518; Li .0 .0 0.386839'),
-                                 ('unit', 'Angstrom'), ('charge', 0),
-                                 ('spin', 0), ('basis', 'sto3g')])
-        section = {}
-        section['properties'] = pyscf_cfg
-        driver = cfg_mgr.get_driver_instance('PYSCF')
-        molecule = driver.run(section)
+        driver = PySCFDriver(atom='H .0 .0 -1.160518; Li .0 .0 0.386839',
+                             unit='Angstrom',
+                             charge=0,
+                             spin=0,
+                             basis='sto3g')
+        molecule = driver.run()
         fer_op = FermionicOperator(h1=molecule.one_body_integrals,
                                    h2=molecule.two_body_integrals)
         fer_op, energy_shift = fer_op.fermion_mode_freezing([0, 6])
@@ -108,13 +103,12 @@ class TestFermionicOperator(QiskitAquaChemistryTestCase):
         diff = abs(energy_shift - gt)
         self.assertLess(diff, 1e-6)
 
-        cfg_mgr = ConfigurationManager()
-        pyscf_cfg = OrderedDict([('atom', 'H .0 .0 .0; Na .0 .0 1.888'), ('unit', 'Angstrom'),
-                                 ('charge', 0), ('spin', 0), ('basis', 'sto3g')])
-        section = {}
-        section['properties'] = pyscf_cfg
-        driver = cfg_mgr.get_driver_instance('PYSCF')
-        molecule = driver.run(section)
+        driver = PySCFDriver(atom='H .0 .0 .0; Na .0 .0 1.888',
+                             unit='Angstrom',
+                             charge=0,
+                             spin=0,
+                             basis='sto3g')
+        molecule = driver.run()
         fer_op = FermionicOperator(h1=molecule.one_body_integrals,
                                    h2=molecule.two_body_integrals)
         fer_op, energy_shift = fer_op.fermion_mode_freezing([0, 1, 2, 3, 4, 10, 11, 12, 13, 14])
@@ -127,13 +121,12 @@ class TestFermionicOperator(QiskitAquaChemistryTestCase):
 
         The spectrum of bksf mapping should be half of jordan wigner mapping.
         """
-        cfg_mgr = ConfigurationManager()
-        pyscf_cfg = OrderedDict([('atom', 'H .0 .0 0.7414; H .0 .0 .0'), ('unit', 'Angstrom'),
-                                 ('charge', 0), ('spin', 0), ('basis', 'sto3g')])
-        section = {}
-        section['properties'] = pyscf_cfg
-        driver = cfg_mgr.get_driver_instance('PYSCF')
-        molecule = driver.run(section)
+        driver = PySCFDriver(atom='H .0 .0 0.7414; H .0 .0 .0',
+                             unit='Angstrom',
+                             charge=0,
+                             spin=0,
+                             basis='sto3g')
+        molecule = driver.run()
         fer_op = FermionicOperator(h1=molecule.one_body_integrals,
                                    h2=molecule.two_body_integrals)
         jw_op = fer_op.mapping('jordan_wigner')

@@ -66,8 +66,19 @@ class PyQuanteDriver(BaseDriver):
         }
     }
 
-    def __init__(self):
+    def __init__(self,
+                 atoms='H 0.0 0.0 0.0; H 0.0 0.0 0.735',
+                 units='Angstrom',
+                 charge=0,
+                 multiplicity=1,
+                 basis='sto3g'):
+        self.validate(locals())
         super().__init__()
+        self._atoms = atoms
+        self._units = units
+        self._charge = charge
+        self._multiplicity = multiplicity
+        self._basis = basis
 
     @staticmethod
     def check_driver_valid():
@@ -82,5 +93,9 @@ class PyQuanteDriver(BaseDriver):
 
         raise QiskitChemistryError(err_msg)
 
-    def run(self, section):
-        return compute_integrals(section['properties'])
+    def run(self):
+        return compute_integrals(atoms=self._atoms,
+                                 units=self._units,
+                                 charge=self._charge,
+                                 multiplicity=self._multiplicity,
+                                 basis=self._basis)

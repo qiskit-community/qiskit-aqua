@@ -63,8 +63,21 @@ class GaussianDriver(BaseDriver):
         }
     }
 
-    def __init__(self):
+    def __init__(self,
+                 value=[
+                     '# rhf/sto-3g scf(conventional)',
+                     '',
+                     'h2 molecule',
+                     '',
+                     '0 1',
+                     'H   0.0  0.0    0.0',
+                     'H   0.0  0.0    0.735',
+                     '',
+                     ''
+                     ]):
+        self.validate(locals())
         super().__init__()
+        self._value = value
 
     @staticmethod
     def check_driver_valid():
@@ -72,11 +85,8 @@ class GaussianDriver(BaseDriver):
             raise QiskitChemistryError("Could not locate {} executable '{}'. Please check that it is installed correctly."
                                        .format(GAUSSIAN_16_DESC, GAUSSIAN_16))
 
-    def run(self, section):
-        cfg = section['data']
-        if cfg is None or not isinstance(cfg, str):
-            raise QiskitChemistryError("Gaussian user supplied configuration invalid: '{}'".format(cfg))
-
+    def run(self):
+        cfg = '\n'.join(self._value)
         while not cfg.endswith('\n\n'):
             cfg += '\n'
 

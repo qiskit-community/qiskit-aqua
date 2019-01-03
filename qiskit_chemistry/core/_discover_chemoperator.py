@@ -69,6 +69,8 @@ def _discover_on_demand():
     global _DISCOVERED
     if not _DISCOVERED:
         _DISCOVERED = True
+        global _REGISTERED_CHEMISTRY_OPERATORS
+        _REGISTERED_CHEMISTRY_OPERATORS = {}
         _discover_local_chemistry_operators()
         _discover_entry_point_chemistry_operators()
         _discover_preferences_chemistry_operators()
@@ -146,7 +148,7 @@ def _discover_local_chemistry_operators_in_dirs(directory,
                     # Iterate through the classes defined on the module.
                     try:
                         if cls.__module__ == modspec.name and issubclass(cls, ChemistryOperator):
-                            register_chemistry_operator(cls)
+                            _register_chemistry_operator(cls)
                             importlib.import_module(fullname)
                     except Exception as e:
                         # Ignore operator that could not be initialized.
@@ -203,18 +205,22 @@ def register_chemistry_operator(cls):
         QiskitChemistryError: if the class is already registered or could not be registered
     """
     _discover_on_demand()
+    if not issubclass(cls, ChemistryOperator):
+        raise QiskitChemistryError('Could not register class {} is not subclass of ChemistryOperator'.format(cls))
 
+    return _register_chemistry_operator(cls)
+
+
+def _register_chemistry_operator(cls):
     # Verify that the pluggable is not already registered
     if cls in [input.cls for input in _REGISTERED_CHEMISTRY_OPERATORS.values()]:
-        raise QiskitChemistryError(
-            'Could not register class {} is already registered'.format(cls))
+        raise QiskitChemistryError('Could not register class {} is already registered'.format(cls))
 
     # Verify that it has a minimal valid configuration.
     try:
         chemistry_operator_name = cls.CONFIGURATION['name']
     except (LookupError, TypeError):
-        raise QiskitChemistryError(
-            'Could not register chemistry operator: invalid configuration')
+        raise QiskitChemistryError('Could not register chemistry operator: invalid configuration')
 
     if chemistry_operator_name in _REGISTERED_CHEMISTRY_OPERATORS:
         raise QiskitChemistryError('Could not register class {}. Name {} {} is already registered'.format(cls,

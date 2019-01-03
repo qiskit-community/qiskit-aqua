@@ -112,6 +112,7 @@ class Hamiltonian(ChemistryOperator):
             orbital_reduction: Orbital list to be frozen or removed
             max_workers: Max workers processes for transformation
         """
+        self.validate(locals())
         super().__init__()
         self._transformation = transformation
         self._qubit_mapping = qubit_mapping

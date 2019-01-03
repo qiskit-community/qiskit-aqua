@@ -16,7 +16,12 @@
 # =============================================================================
 
 from ._basedriver import BaseDriver
-from .configurationmanager import ConfigurationManager
+from ._discover_driver import (refresh_drivers,
+                               register_driver,
+                               deregister_driver,
+                               get_driver_class,
+                               get_driver_configuration,
+                               local_drivers)
 from .gaussiand import GaussianDriver
 from .hdf5d import HDF5Driver
 from .psi4d import PSI4Driver
@@ -24,7 +29,12 @@ from .pyquanted import PyQuanteDriver
 from .pyscfd import PySCFDriver
 
 __all__ = ['BaseDriver',
-           'ConfigurationManager',
+           'refresh_drivers',
+           'register_driver',
+           'deregister_driver',
+           'get_driver_class',
+           'get_driver_configuration',
+           'local_drivers',
            'GaussianDriver',
            'HDF5Driver',
            'PSI4Driver',

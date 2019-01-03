@@ -67,8 +67,21 @@ class PySCFDriver(BaseDriver):
         }
     }
 
-    def __init__(self):
+    def __init__(self,
+                 atom='H 0.0 0.0 0.0; H 0.0 0.0 0.735',
+                 unit='Angstrom',
+                 charge=0,
+                 spin=0,
+                 basis='sto3g',
+                 max_memory=None):
+        self.validate(locals())
         super().__init__()
+        self._atom = atom
+        self._unit = unit
+        self._charge = charge
+        self._spin = spin
+        self._basis = basis
+        self._max_memory = max_memory
 
     @staticmethod
     def check_driver_valid():
@@ -83,5 +96,10 @@ class PySCFDriver(BaseDriver):
 
         raise QiskitChemistryError(err_msg)
 
-    def run(self, section):
-        return compute_integrals(section['properties'])
+    def run(self):
+        return compute_integrals(atom=self._atom,
+                                 unit=self._unit,
+                                 charge=self._charge,
+                                 spin=self._spin,
+                                 basis=self._basis,
+                                 max_memory=self._max_memory)

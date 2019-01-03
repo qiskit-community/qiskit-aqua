@@ -67,16 +67,9 @@ class Controller(object):
 
     @property
     def driver_names(self):
-        from qiskit_chemistry.drivers import ConfigurationManager
+        from qiskit_chemistry.drivers import local_drivers
         if self._driver_names is None:
-            self._driver_names = []
-            config_mgr = ConfigurationManager()
-            for name in config_mgr.local_drivers():
-                try:
-                    config_mgr.get_driver_instance(name)
-                    self._driver_names.append(name)
-                except:
-                    pass
+            self._driver_names = local_drivers()
 
         return self._driver_names
 

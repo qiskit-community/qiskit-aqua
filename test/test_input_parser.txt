@@ -57,6 +57,7 @@ H2 molecule experiment
 &end
 
 &backend
+   provider=qiskit.BasicAer
    name=statevector_simulator
    shots=1024
    skip_transpiler=False

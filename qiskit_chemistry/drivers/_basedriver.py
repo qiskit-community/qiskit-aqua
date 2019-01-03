@@ -24,6 +24,7 @@ Doing so requires that the required driver interface is implemented.
 
 from abc import ABC, abstractmethod
 import copy
+from qiskit_aqua.parser import JSONSchema
 
 
 class BaseDriver(ABC):
@@ -50,6 +51,23 @@ class BaseDriver(ABC):
         """Checks if driver is ready for use. Throws an exception if not"""
         pass
 
+    def validate(self, args_dict):
+        schema_dict = self.CONFIGURATION.get('input_schema', None)
+        if schema_dict is None:
+            return
+
+        json_dict = {}
+        jsonSchema = JSONSchema(schema_dict)
+        if jsonSchema.get_default_sections() is not None:
+            schema_property_names = jsonSchema.get_default_section_names()
+            for property_name in schema_property_names:
+                if property_name in args_dict:
+                    json_dict[property_name] = args_dict[property_name]
+        else:
+            json_dict = '\n'.join(args_dict.get('value', []))
+
+        jsonSchema.validate(json_dict)
+
     @property
     def work_path(self):
         return self._work_path
@@ -59,5 +77,5 @@ class BaseDriver(ABC):
         self._work_path = new_work_path
 
     @abstractmethod
-    def run(self, section):
+    def run(self):
         pass
