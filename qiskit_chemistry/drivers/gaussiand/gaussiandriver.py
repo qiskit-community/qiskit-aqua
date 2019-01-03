@@ -63,8 +63,8 @@ class GaussianDriver(BaseDriver):
         }
     }
 
-    def __init__(self,
-                 value=[
+    def __init__(self, value=None):
+        value = value or [
                      '# rhf/sto-3g scf(conventional)',
                      '',
                      'h2 molecule',
@@ -74,7 +74,7 @@ class GaussianDriver(BaseDriver):
                      'H   0.0  0.0    0.735',
                      '',
                      ''
-                     ]):
+                     ]
         self.validate(locals())
         super().__init__()
         self._value = value

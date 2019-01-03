@@ -100,7 +100,7 @@ class Hamiltonian(ChemistryOperator):
                  qubit_mapping='parity',
                  two_qubit_reduction=True,
                  freeze_core=False,
-                 orbital_reduction=[],
+                 orbital_reduction=None,
                  max_workers=999):
         """
         Initializer
@@ -112,6 +112,7 @@ class Hamiltonian(ChemistryOperator):
             orbital_reduction: Orbital list to be frozen or removed
             max_workers: Max workers processes for transformation
         """
+        orbital_reduction = orbital_reduction or []
         self.validate(locals())
         super().__init__()
         self._transformation = transformation

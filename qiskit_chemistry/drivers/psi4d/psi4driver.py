@@ -46,8 +46,8 @@ class PSI4Driver(BaseDriver):
         }
     }
 
-    def __init__(self,
-                 value=[
+    def __init__(self, value=None):
+        value = value or [
                      'molecule h2 {',
                      '  0 1',
                      '  H  0.0 0.0 0.0',
@@ -57,7 +57,7 @@ class PSI4Driver(BaseDriver):
                      'set {',
                      '  basis sto-3g',
                      '  scf_type pk',
-                     '}']):
+                     '}']
         self.validate(locals())
         super().__init__()
         self._value = value
