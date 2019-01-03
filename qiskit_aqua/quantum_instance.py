@@ -118,7 +118,9 @@ class QuantumInstance:
         self._qjob_config = {'timeout': timeout} if self.is_local \
             else {'timeout': timeout, 'wait': wait}
 
-        self._simulator_config = simulator_options or {}
+        self._simulator_config = {} if simulator_options is None \
+            else {'backend_options': simulator_options}
+
         self._shared_circuits = False
         self._circuit_summary = False
 
@@ -266,7 +268,7 @@ class QuantumInstance:
     @staticmethod
     def is_simulator_backend(backend):
         """
-        Returns True if backend is a simulator.
+        Return True if backend is a simulator.
 
         Args:
             backend (BaseBackend): backend instance
@@ -278,7 +280,7 @@ class QuantumInstance:
     @staticmethod
     def is_local_backend(backend):
         """
-        Returns True if backend is a local backend.
+        Return True if backend is a local backend.
 
         Args:
             backend (BaseBackend): backend instance
