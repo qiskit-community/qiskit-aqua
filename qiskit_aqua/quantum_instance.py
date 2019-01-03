@@ -32,7 +32,6 @@ logger = logging.getLogger(__name__)
 class QuantumInstance:
     """Quantum Backend including execution setting."""
 
-    # TODO: separate the config out from backend config; backend_options are stored in config
     BACKEND_CONFIG = ['basis_gates', 'coupling_map']
     COMPILE_CONFIG = ['pass_manager', 'initial_layout', 'seed_mapper', 'qobj_id']
     RUN_CONFIG = ['shots', 'max_credits', 'memory', 'seed']
