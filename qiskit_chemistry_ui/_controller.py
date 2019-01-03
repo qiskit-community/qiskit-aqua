@@ -392,7 +392,7 @@ class Controller(object):
             self._propertiesView.populate(self.model.get_section_properties_with_substitution(section_name))
             self._propertiesView.show_add_button(self.shows_add_button(section_name))
             _show_remove = property_name != JSONSchema.PROVIDER and property_name != JSONSchema.NAME \
-                if section_name == JSONSchema.BACKEND else property_name != JSONSchema.NAM
+                if section_name == JSONSchema.BACKEND else property_name != JSONSchema.NAME
             self._propertiesView.show_remove_button(_show_remove and self._propertiesView.has_selection())
             self._propertiesView.show_defaults_button(not self.model.default_properties_equals_properties(section_name))
             section_names = self.model.get_section_names()
