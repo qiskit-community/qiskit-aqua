@@ -27,7 +27,7 @@ from qiskit_aqua.algorithms.classical import ExactEigensolver
 from qiskit_aqua.components.iqfts import Standard
 
 from test.common import QiskitAquaChemistryTestCase
-from qiskit_chemistry.drivers import PySCFDriver
+from qiskit_chemistry.drivers import PySCFDriver, UnitsType
 from qiskit_chemistry import FermionicOperator, QiskitChemistryError
 from qiskit_chemistry.aqua_extensions.components.initial_states import HartreeFock
 
@@ -45,7 +45,7 @@ class TestEnd2EndWithQPE(QiskitAquaChemistryTestCase):
         self.log.debug('Testing End-to-End with QPE on H2 with inter-atomic distance {}.'.format(distance))
         try:
             driver = PySCFDriver(atom='H .0 .0 .0; H .0 .0 {}'.format(distance),
-                                 unit='Angstrom',
+                                 unit=UnitsType.ANGSTROM,
                                  charge=0,
                                  spin=0,
                                  basis='sto3g')

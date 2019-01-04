@@ -30,12 +30,12 @@ except ImportError:
     logger.info("PySCF is not installed. Use 'pip install pyscf'")
 
 
-def compute_integrals(atom='H 0.0 0.0 0.0; H 0.0 0.0 0.735',
-                      unit='Angstrom',
-                      charge=0,
-                      spin=0,
-                      basis='sto3g',
-                      max_memory=None,
+def compute_integrals(atom,
+                      unit,
+                      charge,
+                      spin,
+                      basis,
+                      max_memory,
                       calc_type='rhf'):
     # Get config from input parameters
     # molecule is in PySCF atom string format e.g. "H .0 .0 .0; H .0 .0 0.2"

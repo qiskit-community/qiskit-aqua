@@ -18,7 +18,6 @@
 from qiskit_chemistry.drivers import BaseDriver
 import logging
 from qiskit_chemistry import QMolecule
-from qiskit_chemistry import QiskitChemistryError
 import os
 
 logger = logging.getLogger(__name__)
@@ -46,7 +45,7 @@ class HDF5Driver(BaseDriver):
         }
     }
 
-    def __init__(self, hdf5_input='molecule.hdf5'):
+    def __init__(self, hdf5_input):
         self.validate(locals())
         super().__init__()
         self._hdf5_input = hdf5_input

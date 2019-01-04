@@ -17,8 +17,8 @@
 
 import unittest
 from test.common import QiskitAquaChemistryTestCase
-from qiskit_chemistry.drivers import PySCFDriver
-from qiskit_chemistry.core import Hamiltonian
+from qiskit_chemistry.drivers import PySCFDriver, UnitsType
+from qiskit_chemistry.core import Hamiltonian, TransformationType, QubitMappingType
 from qiskit_chemistry import QiskitChemistryError
 
 
@@ -28,7 +28,7 @@ class TestCoreHamiltonianOrbReduce(QiskitAquaChemistryTestCase):
     def setUp(self):
         try:
             driver = PySCFDriver(atom='Li .0 .0 -0.8; H .0 .0 0.8',
-                                 unit='Angstrom',
+                                 unit=UnitsType.ANGSTROM,
                                  charge=0,
                                  spin=0,
                                  basis='sto3g')
@@ -53,8 +53,8 @@ class TestCoreHamiltonianOrbReduce(QiskitAquaChemistryTestCase):
         self.assertEqual(len(input_object.qubit_op.save_to_dict()['paulis']), num_paulis)
 
     def test_output(self):
-        core = Hamiltonian(transformation='full',
-                           qubit_mapping='jordan_wigner',
+        core = Hamiltonian(transformation=TransformationType.FULL,
+                           qubit_mapping=QubitMappingType.JORDAN_WIGNER,
                            two_qubit_reduction=False,
                            freeze_core=False,
                            orbital_reduction=[])
@@ -64,8 +64,8 @@ class TestCoreHamiltonianOrbReduce(QiskitAquaChemistryTestCase):
         self._validate_input_object(input_object)
 
     def test_parity(self):
-        core = Hamiltonian(transformation='full',
-                           qubit_mapping='parity',
+        core = Hamiltonian(transformation=TransformationType.FULL,
+                           qubit_mapping=QubitMappingType.PARITY,
                            two_qubit_reduction=True,
                            freeze_core=False,
                            orbital_reduction=[])
@@ -75,8 +75,8 @@ class TestCoreHamiltonianOrbReduce(QiskitAquaChemistryTestCase):
         self._validate_input_object(input_object, num_qubits=10)
 
     def test_freeze_core(self):
-        core = Hamiltonian(transformation='full',
-                           qubit_mapping='parity',
+        core = Hamiltonian(transformation=TransformationType.FULL,
+                           qubit_mapping=QubitMappingType.PARITY,
                            two_qubit_reduction=False,
                            freeze_core=True,
                            orbital_reduction=[])
@@ -86,8 +86,8 @@ class TestCoreHamiltonianOrbReduce(QiskitAquaChemistryTestCase):
         self._validate_input_object(input_object, num_qubits=10, num_paulis=276)
 
     def test_freeze_core_orb_reduction(self):
-        core = Hamiltonian(transformation='full',
-                           qubit_mapping='parity',
+        core = Hamiltonian(transformation=TransformationType.FULL,
+                           qubit_mapping=QubitMappingType.PARITY,
                            two_qubit_reduction=False,
                            freeze_core=True,
                            orbital_reduction=[-3, -2])
@@ -97,8 +97,8 @@ class TestCoreHamiltonianOrbReduce(QiskitAquaChemistryTestCase):
         self._validate_input_object(input_object, num_qubits=6, num_paulis=118)
 
     def test_freeze_core_all_reduction(self):
-        core = Hamiltonian(transformation='full',
-                           qubit_mapping='parity',
+        core = Hamiltonian(transformation=TransformationType.FULL,
+                           qubit_mapping=QubitMappingType.PARITY,
                            two_qubit_reduction=True,
                            freeze_core=True,
                            orbital_reduction=[-3, -2])
@@ -108,8 +108,8 @@ class TestCoreHamiltonianOrbReduce(QiskitAquaChemistryTestCase):
         self._validate_input_object(input_object, num_qubits=4, num_paulis=100)
 
     def test_freeze_core_all_reduction_ph(self):
-        core = Hamiltonian(transformation='particle_hole',
-                           qubit_mapping='parity',
+        core = Hamiltonian(transformation=TransformationType.PH,
+                           qubit_mapping=QubitMappingType.PARITY,
                            two_qubit_reduction=True,
                            freeze_core=True,
                            orbital_reduction=[-2, -1])

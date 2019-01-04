@@ -28,7 +28,7 @@ class TestDriverPSI4(QiskitAquaChemistryTestCase, TestDriver):
 
     def setUp(self):
         try:
-            driver = PSI4Driver(value=[
+            driver = PSI4Driver([
                 'molecule h2 {',
                 '  0 1',
                 '  H  0.0 0.0 0.0',

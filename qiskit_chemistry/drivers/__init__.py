@@ -15,7 +15,7 @@
 # limitations under the License.
 # =============================================================================
 
-from ._basedriver import BaseDriver
+from ._basedriver import BaseDriver, UnitsType
 from ._discover_driver import (refresh_drivers,
                                register_driver,
                                deregister_driver,
@@ -25,10 +25,11 @@ from ._discover_driver import (refresh_drivers,
 from .gaussiand import GaussianDriver
 from .hdf5d import HDF5Driver
 from .psi4d import PSI4Driver
-from .pyquanted import PyQuanteDriver
+from .pyquanted import PyQuanteDriver, BasisType
 from .pyscfd import PySCFDriver
 
 __all__ = ['BaseDriver',
+           'UnitsType',
            'refresh_drivers',
            'register_driver',
            'deregister_driver',
@@ -38,5 +39,6 @@ __all__ = ['BaseDriver',
            'GaussianDriver',
            'HDF5Driver',
            'PSI4Driver',
+           'BasisType',
            'PyQuanteDriver',
            'PySCFDriver']

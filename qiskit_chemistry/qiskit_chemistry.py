@@ -214,13 +214,13 @@ class QiskitChemistry(object):
 
         driver_class = get_driver_class(driver_name)
         driver = None
-        kwargs = None
+        params = None
         if 'properties' not in section or len(section['properties']) == 0:
-            kwargs = {'value': section['data'].splitlines()}
+            params = {'config': section['data'].splitlines()}
         else:
-            kwargs = section['properties']
+            params = section['properties']
 
-        driver = driver_class(**kwargs)
+        driver = driver_class.init_params(params)
         driver.work_path = work_path
         molecule = driver.run()
 

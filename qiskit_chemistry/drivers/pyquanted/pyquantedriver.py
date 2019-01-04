@@ -15,17 +15,27 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit_chemistry.drivers import BaseDriver
+from qiskit_chemistry.drivers import BaseDriver, UnitsType
 from qiskit_chemistry import QiskitChemistryError
 from qiskit_chemistry.drivers.pyquanted.integrals import compute_integrals
 import importlib
+from enum import Enum
 import logging
 
 logger = logging.getLogger(__name__)
 
 
+class BasisType(Enum):
+    BSTO3G = 'sto3g'
+    B631G = '6-31g'
+    B631GSS = '6-31g**'
+
+
 class PyQuanteDriver(BaseDriver):
     """Python implementation of a PyQuante driver."""
+
+    KEY_UNITS = 'units'
+    KEY_BASIS = 'basis'
 
     CONFIGURATION = {
         "name": "PYQUANTE",
@@ -39,11 +49,14 @@ class PyQuanteDriver(BaseDriver):
                     "type": "string",
                     "default": "H 0.0 0.0 0.0; H 0.0 0.0 0.735"
                 },
-                "units": {
+                KEY_UNITS: {
                     "type": "string",
-                    "default": "Angstrom",
+                    "default": UnitsType.ANGSTROM.value,
                     "oneOf": [
-                         {"enum": ["Angstrom", "Bohr"]}
+                         {"enum": [
+                            UnitsType.ANGSTROM.value,
+                            UnitsType.BOHR.value,
+                         ]}
                     ]
                 },
                 "charge": {
@@ -54,11 +67,15 @@ class PyQuanteDriver(BaseDriver):
                     "type": "integer",
                     "default": 1
                 },
-                "basis": {
+                KEY_BASIS: {
                     "type": "string",
-                    "default": "sto3g",
+                    "default": BasisType.BSTO3G.value,
                     "oneOf": [
-                         {"enum": ["sto3g", "6-31g", "6-31g**"]}
+                         {"enum": [
+                             BasisType.BSTO3G.value,
+                             BasisType.B631G.value,
+                             BasisType.B631GSS.value,
+                         ]}
                     ]
                 }
             },
@@ -67,11 +84,22 @@ class PyQuanteDriver(BaseDriver):
     }
 
     def __init__(self,
-                 atoms='H 0.0 0.0 0.0; H 0.0 0.0 0.735',
-                 units='Angstrom',
+                 atoms,
+                 units=UnitsType.ANGSTROM,
                  charge=0,
                  multiplicity=1,
-                 basis='sto3g'):
+                 basis=BasisType.BSTO3G):
+        if not isinstance(atoms, list) and not isinstance(atoms, str):
+            raise QiskitChemistryError("Invalid atom input for PYQUANTE Driver '{}'".format(atoms))
+
+        if isinstance(atoms, list):
+            atoms = ';'.join(atoms)
+        else:
+            atoms = atoms.replace('\n', ';')
+
+        units = units.value
+        basis = basis.value
+
         self.validate(locals())
         super().__init__()
         self._atoms = atoms
@@ -92,6 +120,32 @@ class PyQuanteDriver(BaseDriver):
             raise QiskitChemistryError(err_msg) from e
 
         raise QiskitChemistryError(err_msg)
+
+    @classmethod
+    def init_params(cls, params):
+        """
+        Initialize via parameters dictionary.
+
+        Args:
+            params (dict): parameters dictionary
+
+        Returns:
+            Driver: driver object
+        """
+        kwargs = {}
+        for k, v in params.items():
+            if k == 'name':
+                continue
+
+            if k == PyQuanteDriver.KEY_UNITS:
+                v = UnitsType(v)
+            elif k == PyQuanteDriver.KEY_BASIS:
+                v = BasisType(v)
+
+            kwargs[k] = v
+
+        logger.debug('init_params: {}'.format(kwargs))
+        return cls(**kwargs)
 
     def run(self):
         return compute_integrals(atoms=self._atoms,

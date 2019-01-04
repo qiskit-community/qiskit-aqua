@@ -33,11 +33,11 @@ except ImportError:
     logger.info('PyQuante2 is not installed. See https://github.com/rpmuller/pyquante2')
 
 
-def compute_integrals(atoms='H 0.0 0.0 0.0; H 0.0 0.0 0.735',
-                      units='Angstrom',
-                      charge=0,
-                      multiplicity=1,
-                      basis='sto3g',
+def compute_integrals(atoms,
+                      units,
+                      charge,
+                      multiplicity,
+                      basis,
                       calc_type='rhf'):
     # Get config from input parameters
     # Molecule is in this format xyz as below or in Z-matrix e.g "H; O 1 1.08; H 2 1.08 1 107.5":

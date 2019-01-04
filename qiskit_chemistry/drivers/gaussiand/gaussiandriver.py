@@ -55,21 +55,15 @@ class GaussianDriver(BaseDriver):
         }
     }
 
-    def __init__(self, value=None):
-        value = value or [
-            '# rhf/sto-3g scf(conventional)',
-            '',
-            'h2 molecule',
-            '',
-            '0 1',
-            'H   0.0  0.0    0.0',
-            'H   0.0  0.0    0.735',
-            '',
-            ''
-        ]
-        self.validate(locals())
+    def __init__(self, config):
+        if not isinstance(config, list) and not isinstance(config, str):
+            raise QiskitChemistryError("Invalid input for Gaussian Driver '{}'".format(config))
+
+        if isinstance(config, list):
+            config = '\n'.join(config)
+
         super().__init__()
-        self._value = value
+        self._config = config
 
     @staticmethod
     def check_driver_valid():
@@ -78,7 +72,7 @@ class GaussianDriver(BaseDriver):
                                        .format(GAUSSIAN_16_DESC, GAUSSIAN_16))
 
     def run(self):
-        cfg = '\n'.join(self._value)
+        cfg = self._config
         while not cfg.endswith('\n\n'):
             cfg += '\n'
 

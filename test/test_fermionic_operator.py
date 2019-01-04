@@ -22,7 +22,8 @@ from qiskit_aqua.utils import random_unitary
 
 from test.common import QiskitAquaChemistryTestCase
 from qiskit_chemistry import FermionicOperator, QiskitChemistryError
-from qiskit_chemistry.drivers import PySCFDriver
+from qiskit_chemistry.drivers import PySCFDriver, UnitsType
+from qiskit_chemistry.core import QubitMappingType
 
 
 def h2_transform_slow(h2, unitary_matrix):
@@ -60,7 +61,7 @@ class TestFermionicOperator(QiskitAquaChemistryTestCase):
     def setUp(self):
         try:
             driver = PySCFDriver(atom='Li .0 .0 .0; H .0 .0 1.595',
-                                 unit='Angstrom',
+                                 unit=UnitsType.ANGSTROM,
                                  charge=0,
                                  spin=0,
                                  basis='sto3g')
@@ -91,7 +92,7 @@ class TestFermionicOperator(QiskitAquaChemistryTestCase):
 
     def test_freezing_core(self):
         driver = PySCFDriver(atom='H .0 .0 -1.160518; Li .0 .0 0.386839',
-                             unit='Angstrom',
+                             unit=UnitsType.ANGSTROM,
                              charge=0,
                              spin=0,
                              basis='sto3g')
@@ -104,7 +105,7 @@ class TestFermionicOperator(QiskitAquaChemistryTestCase):
         self.assertLess(diff, 1e-6)
 
         driver = PySCFDriver(atom='H .0 .0 .0; Na .0 .0 1.888',
-                             unit='Angstrom',
+                             unit=UnitsType.ANGSTROM,
                              charge=0,
                              spin=0,
                              basis='sto3g')
@@ -122,14 +123,14 @@ class TestFermionicOperator(QiskitAquaChemistryTestCase):
         The spectrum of bksf mapping should be half of jordan wigner mapping.
         """
         driver = PySCFDriver(atom='H .0 .0 0.7414; H .0 .0 .0',
-                             unit='Angstrom',
+                             unit=UnitsType.ANGSTROM,
                              charge=0,
                              spin=0,
                              basis='sto3g')
         molecule = driver.run()
         fer_op = FermionicOperator(h1=molecule.one_body_integrals,
                                    h2=molecule.two_body_integrals)
-        jw_op = fer_op.mapping('jordan_wigner')
+        jw_op = fer_op.mapping(QubitMappingType.PARITY.value)
         bksf_op = fer_op.mapping('bksf')
         jw_op.to_matrix()
         bksf_op.to_matrix()

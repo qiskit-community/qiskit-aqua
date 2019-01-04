@@ -15,7 +15,7 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit_chemistry.drivers import BaseDriver
+from qiskit_chemistry.drivers import BaseDriver, UnitsType
 from qiskit_chemistry import QiskitChemistryError
 from qiskit_chemistry.drivers.pyscfd.integrals import compute_integrals
 import importlib
@@ -41,9 +41,12 @@ class PySCFDriver(BaseDriver):
                 },
                 "unit": {
                     "type": "string",
-                    "default": "Angstrom",
+                    "default": UnitsType.ANGSTROM.value,
                     "oneOf": [
-                        {"enum": ["Angstrom", "Bohr"]}
+                        {"enum": [
+                            UnitsType.ANGSTROM.value,
+                            UnitsType.BOHR.value,
+                         ]}
                     ]
                 },
                 "charge": {
@@ -68,12 +71,21 @@ class PySCFDriver(BaseDriver):
     }
 
     def __init__(self,
-                 atom='H 0.0 0.0 0.0; H 0.0 0.0 0.735',
-                 unit='Angstrom',
+                 atom,
+                 unit=UnitsType.ANGSTROM,
                  charge=0,
                  spin=0,
                  basis='sto3g',
                  max_memory=None):
+        if not isinstance(atom, list) and not isinstance(atom, str):
+            raise QiskitChemistryError("Invalid atom input for PYSCF Driver '{}'".format(atom))
+
+        if isinstance(atom, list):
+            atom = ';'.join(atom)
+        else:
+            atom = atom.replace('\n', ';')
+
+        unit = unit.value
         self.validate(locals())
         super().__init__()
         self._atom = atom
@@ -95,6 +107,30 @@ class PySCFDriver(BaseDriver):
             raise QiskitChemistryError(err_msg) from e
 
         raise QiskitChemistryError(err_msg)
+
+    @classmethod
+    def init_params(cls, params):
+        """
+        Initialize via parameters dictionary.
+
+        Args:
+            params (dict): parameters dictionary
+
+        Returns:
+            Driver: driver object
+        """
+        kwargs = {}
+        for k, v in params.items():
+            if k == 'name':
+                continue
+
+            if k == 'unit':
+                v = UnitsType(v)
+
+            kwargs[k] = v
+
+        logger.debug('init_params: {}'.format(kwargs))
+        return cls(**kwargs)
 
     def run(self):
         return compute_integrals(atom=self._atom,

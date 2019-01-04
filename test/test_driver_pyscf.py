@@ -18,7 +18,7 @@
 import unittest
 from test.common import QiskitAquaChemistryTestCase
 from qiskit_chemistry import QiskitChemistryError
-from qiskit_chemistry.drivers import PySCFDriver
+from qiskit_chemistry.drivers import PySCFDriver, UnitsType
 from test.test_driver import TestDriver
 
 
@@ -28,7 +28,7 @@ class TestDriverPySCF(QiskitAquaChemistryTestCase, TestDriver):
     def setUp(self):
         try:
             driver = PySCFDriver(atom='H .0 .0 .0; H .0 .0 0.735',
-                                 unit='Angstrom',
+                                 unit=UnitsType.ANGSTROM,
                                  charge=0,
                                  spin=0,
                                  basis='sto3g')

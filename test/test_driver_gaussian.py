@@ -28,7 +28,7 @@ class TestDriverGaussian(QiskitAquaChemistryTestCase, TestDriver):
 
     def setUp(self):
         try:
-            driver = GaussianDriver(value=[
+            driver = GaussianDriver([
                     '# rhf/sto-3g scf(conventional) geom=nocrowd',
                     '',
                     'h2 molecule',

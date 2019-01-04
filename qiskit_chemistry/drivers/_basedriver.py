@@ -25,6 +25,15 @@ Doing so requires that the required driver interface is implemented.
 from abc import ABC, abstractmethod
 import copy
 from qiskit_aqua.parser import JSONSchema
+from enum import Enum
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+class UnitsType(Enum):
+    ANGSTROM = 'Angstrom'
+    BOHR = 'Bohr'
 
 
 class BaseDriver(ABC):
@@ -46,6 +55,21 @@ class BaseDriver(ABC):
         """Return driver configuration."""
         return self._configuration
 
+    @classmethod
+    def init_params(cls, params):
+        """
+        Initialize via parameters dictionary.
+
+        Args:
+            params (dict): parameters dictionary
+
+        Returns:
+            Driver: Driver object
+        """
+        kwargs = {k: v for k, v in params.items() if k != 'name'}
+        logger.debug('init_params: {}'.format(kwargs))
+        return cls(**kwargs)
+
     @staticmethod
     def check_driver_valid():
         """Checks if driver is ready for use. Throws an exception if not"""
@@ -56,15 +80,12 @@ class BaseDriver(ABC):
         if schema_dict is None:
             return
 
-        json_dict = {}
         jsonSchema = JSONSchema(schema_dict)
-        if jsonSchema.get_default_sections() is not None:
-            schema_property_names = jsonSchema.get_default_section_names()
-            for property_name in schema_property_names:
-                if property_name in args_dict:
-                    json_dict[property_name] = args_dict[property_name]
-        else:
-            json_dict = '\n'.join(args_dict.get('value', []))
+        schema_property_names = jsonSchema.get_default_section_names()
+        json_dict = {}
+        for property_name in schema_property_names:
+            if property_name in args_dict:
+                json_dict[property_name] = args_dict[property_name]
 
         jsonSchema.validate(json_dict)
 

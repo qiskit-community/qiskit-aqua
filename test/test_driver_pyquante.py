@@ -18,7 +18,7 @@
 import unittest
 from test.common import QiskitAquaChemistryTestCase
 from qiskit_chemistry import QiskitChemistryError
-from qiskit_chemistry.drivers import PyQuanteDriver
+from qiskit_chemistry.drivers import PyQuanteDriver, UnitsType, BasisType
 from test.test_driver import TestDriver
 
 
@@ -28,10 +28,10 @@ class TestDriverPyQuante(QiskitAquaChemistryTestCase, TestDriver):
     def setUp(self):
         try:
             driver = PyQuanteDriver(atoms='H .0 .0 .0; H .0 .0 0.735',
-                                    units='Angstrom',
+                                    units=UnitsType.ANGSTROM,
                                     charge=0,
                                     multiplicity=1,
-                                    basis='sto3g')
+                                    basis=BasisType.BSTO3G)
         except QiskitChemistryError:
             self.skipTest('PYQUANTE driver does not appear to be installed')
         self.qmolecule = driver.run()

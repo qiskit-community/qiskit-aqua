@@ -80,11 +80,11 @@ class ChemistryOperator(ABC):
             params (dict): parameters dictionary
 
         Returns:
-            Hamiltonian: hamiltonian object
+            Chemistry Operator: Chemistry Operator object
         """
-        args = {k: v for k, v in params.items() if k != 'name'}
-        logger.debug('init_args: {}'.format(args))
-        return cls(**args)
+        kwargs = {k: v for k, v in params.items() if k != 'name'}
+        logger.debug('init_params: {}'.format(kwargs))
+        return cls(**kwargs)
 
     @abstractmethod
     def run(self, qmolecule):

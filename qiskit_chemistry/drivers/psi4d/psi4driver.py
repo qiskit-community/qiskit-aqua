@@ -46,21 +46,15 @@ class PSI4Driver(BaseDriver):
         }
     }
 
-    def __init__(self, value=None):
-        value = value or [
-                     'molecule h2 {',
-                     '  0 1',
-                     '  H  0.0 0.0 0.0',
-                     '  H  0.0 0.0 0.735',
-                     '}',
-                     '',
-                     'set {',
-                     '  basis sto-3g',
-                     '  scf_type pk',
-                     '}']
-        self.validate(locals())
+    def __init__(self, config):
+        if not isinstance(config, list) and not isinstance(config, str):
+            raise QiskitChemistryError("Invalid input for PSI4 Driver '{}'".format(config))
+
+        if isinstance(config, list):
+            config = '\n'.join(config)
+
         super().__init__()
-        self._value = value
+        self._config = config
 
     @staticmethod
     def check_driver_valid():
@@ -75,7 +69,7 @@ class PSI4Driver(BaseDriver):
 
         molecule = QMolecule()
 
-        input_text = '\n'.join(self._value) + '\n'
+        input_text = self._config + '\n'
         input_text += 'import sys\n'
         syspath = '[\'' + qiskit_chemistry_directory + '\',\'' + '\',\''.join(sys.path) + '\']'
 
