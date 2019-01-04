@@ -169,7 +169,8 @@ def _check_molecule_format(val):
     if atoms is None or len(atoms) < 1:
         raise QiskitChemistryError('Molecule format error: ' + val)
 
-    # Anx xyz format has 4 parts in each atom, if not then do zmatrix convert
+    # An xyz format has 4 parts in each atom, if not then do zmatrix convert
+    # Allows dummy atoms, using symbol 'X' in zmatrix format for coord computation to xyz
     parts = [x.strip() for x in atoms[0].split(' ')]
     if len(parts) != 4:
         try:
@@ -185,7 +186,9 @@ def _check_molecule_format(val):
             new_val = ""
             for i in range(len(xyz)):
                 atm = xyz[i]
-                if i > 0:
+                if atm[0].upper() == 'X':
+                    continue
+                if len(new_val) > 0:
                     new_val += "; "
                 new_val += "{} {} {} {}".format(atm[0], atm[1], atm[2], atm[3])
             return new_val

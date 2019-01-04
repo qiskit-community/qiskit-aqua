@@ -320,7 +320,9 @@ The ``atom`` field can be in xyz format, as per the example below. Here each ato
 with its position in the x, y, z coordinate space. Atoms are separated by the semicolon symbol.
 
 The ``atom`` field can also be in `ZMatrix <https://en.wikipedia.org/wiki/Z-matrix_(chemistry)>`__ format. Here again
-atoms are separate by semicolon. This is an example for H2O (water): "H; O 1 1.08; H 2 1.08 1 107.5"
+atoms are separate by semicolon. This is an example for H2O (water): "H; O 1 1.08; H 2 1.08 1 107.5". Dummy atom(s)
+using symbol 'X' may be added to allow or facilitate conversion to xyz coordinates, as used internally for processing,
+and are removed from the molecule following the conversion.
 
 .. code:: python
 
@@ -373,7 +375,9 @@ geometrical coordinates separated by a blank space.  Atom configurations are sep
 
 The molecule in the ``atoms`` field can also be in `ZMatrix <https://en.wikipedia.org/wiki/Z-matrix_(chemistry)>`__ format.
 Here again atoms are separated by semicolons; within an atom the symbol and positional information separated by spaces.
-This is an example for H2O (water): "H; O 1 1.08; H 2 1.08 1 107.5"
+This is an example for H2O (water): "H; O 1 1.08; H 2 1.08 1 107.5". Dummy atom(s)
+using symbol 'X' may be added to allow or facilitate conversion to xyz coordinates, as used internally for processing,
+and are removed from the molecule following the conversion.
 
 .. code:: python
 
