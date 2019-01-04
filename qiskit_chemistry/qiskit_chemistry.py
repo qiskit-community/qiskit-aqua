@@ -212,15 +212,7 @@ class QiskitChemistry(object):
         if input_file is not None:
             work_path = os.path.dirname(os.path.realpath(input_file))
 
-        driver_class = get_driver_class(driver_name)
-        driver = None
-        params = None
-        if 'properties' not in section or len(section['properties']) == 0:
-            params = {'config': section['data'].splitlines()}
-        else:
-            params = section['properties']
-
-        driver = driver_class.init_params(params)
+        driver = get_driver_class(driver_name).init_from_input(section)
         driver.work_path = work_path
         molecule = driver.run()
 

@@ -56,19 +56,17 @@ class BaseDriver(ABC):
         return self._configuration
 
     @classmethod
-    def init_params(cls, params):
+    def init_from_input(cls, section):
         """
-        Initialize via parameters dictionary.
+        Initialize via section dictionary.
 
         Args:
-            params (dict): parameters dictionary
+            params (dict): section dictionary
 
         Returns:
             Driver: Driver object
         """
-        kwargs = {k: v for k, v in params.items() if k != 'name'}
-        logger.debug('init_params: {}'.format(kwargs))
-        return cls(**kwargs)
+        pass
 
     @staticmethod
     def check_driver_valid():

@@ -46,7 +46,7 @@ class PySCFDriver(BaseDriver):
                         {"enum": [
                             UnitsType.ANGSTROM.value,
                             UnitsType.BOHR.value,
-                         ]}
+                        ]}
                     ]
                 },
                 "charge": {
@@ -77,6 +77,16 @@ class PySCFDriver(BaseDriver):
                  spin=0,
                  basis='sto3g',
                  max_memory=None):
+        """
+        Initializer
+        Args:
+            atom (str or list): atom list or string separated by semicolons or line breaks
+            unit (UnitsType): angstrom or bohr
+            charge (int): charge
+            spin (int): spin
+            basis (str): basis set
+            max_memory (int): maximum memory
+        """
         if not isinstance(atom, list) and not isinstance(atom, str):
             raise QiskitChemistryError("Invalid atom input for PYSCF Driver '{}'".format(atom))
 
@@ -109,27 +119,28 @@ class PySCFDriver(BaseDriver):
         raise QiskitChemistryError(err_msg)
 
     @classmethod
-    def init_params(cls, params):
+    def init_from_input(cls, section):
         """
-        Initialize via parameters dictionary.
+        Initialize via section dictionary.
 
         Args:
-            params (dict): parameters dictionary
+            params (dict): section dictionary
 
         Returns:
-            Driver: driver object
+            Driver: Driver object
         """
+        if 'properties' not in section or len(section['properties']) == 0:
+            raise QiskitChemistryError('Missing or empty properties section')
+
+        params = section['properties']
         kwargs = {}
         for k, v in params.items():
-            if k == 'name':
-                continue
-
             if k == 'unit':
                 v = UnitsType(v)
 
             kwargs[k] = v
 
-        logger.debug('init_params: {}'.format(kwargs))
+        logger.debug('init_from_input: {}'.format(kwargs))
         return cls(**kwargs)
 
     def run(self):

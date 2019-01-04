@@ -130,7 +130,7 @@ class TestFermionicOperator(QiskitAquaChemistryTestCase):
         molecule = driver.run()
         fer_op = FermionicOperator(h1=molecule.one_body_integrals,
                                    h2=molecule.two_body_integrals)
-        jw_op = fer_op.mapping(QubitMappingType.PARITY.value)
+        jw_op = fer_op.mapping('parity')
         bksf_op = fer_op.mapping('bksf')
         jw_op.to_matrix()
         bksf_op.to_matrix()

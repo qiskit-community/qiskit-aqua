@@ -89,6 +89,15 @@ class PyQuanteDriver(BaseDriver):
                  charge=0,
                  multiplicity=1,
                  basis=BasisType.BSTO3G):
+        """
+        Initializer
+        Args:
+            atoms (str or list): atoms list or string separated by semicolons or line breaks
+            units (UnitsType): angstrom or bohr
+            charge (int): charge
+            multiplicity (int): spin multiplicity
+            basis (BasisType): sto3g or 6-31g or 6-31g**
+        """
         if not isinstance(atoms, list) and not isinstance(atoms, str):
             raise QiskitChemistryError("Invalid atom input for PYQUANTE Driver '{}'".format(atoms))
 
@@ -122,21 +131,22 @@ class PyQuanteDriver(BaseDriver):
         raise QiskitChemistryError(err_msg)
 
     @classmethod
-    def init_params(cls, params):
+    def init_from_input(cls, section):
         """
-        Initialize via parameters dictionary.
+        Initialize via section dictionary.
 
         Args:
-            params (dict): parameters dictionary
+            params (dict): section dictionary
 
         Returns:
-            Driver: driver object
+            Driver: Driver object
         """
+        if 'properties' not in section or len(section['properties']) == 0:
+            raise QiskitChemistryError('Missing or empty properties section')
+
+        params = section['properties']
         kwargs = {}
         for k, v in params.items():
-            if k == 'name':
-                continue
-
             if k == PyQuanteDriver.KEY_UNITS:
                 v = UnitsType(v)
             elif k == PyQuanteDriver.KEY_BASIS:
@@ -144,7 +154,7 @@ class PyQuanteDriver(BaseDriver):
 
             kwargs[k] = v
 
-        logger.debug('init_params: {}'.format(kwargs))
+        logger.debug('init_from_input: {}'.format(kwargs))
         return cls(**kwargs)
 
     def run(self):

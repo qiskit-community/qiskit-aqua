@@ -119,12 +119,12 @@ class Hamiltonian(ChemistryOperator):
         """
         Initializer
         Args:
-            transformation (str): full or particle_hole
-            qubit_mapping (str: jordan_wigner, parity or bravyi_kitaev
+            transformation (TransformationType): full or particle_hole
+            qubit_mapping (QubitMappingType): jordan_wigner, parity or bravyi_kitaev
             two_qubit_reduction (bool): Whether two qubit reduction should be used, when parity mapping only
-            freeze_core: Whether to freeze core orbitals when possible
-            orbital_reduction: Orbital list to be frozen or removed
-            max_workers: Max workers processes for transformation
+            freeze_core (bool): Whether to freeze core orbitals when possible
+            orbital_reduction (list): Orbital list to be frozen or removed
+            max_workers (int): Max workers processes for transformation
         """
         transformation = transformation.value
         qubit_mapping = qubit_mapping.value

@@ -21,36 +21,35 @@ import numpy as np
 
 from test.common import QiskitAquaChemistryTestCase
 from qiskit_chemistry.aqua_extensions.components.initial_states import HartreeFock
-from qiskit_chemistry.core import QubitMappingType
 
 
 class TestInitialStateHartreeFock(QiskitAquaChemistryTestCase):
 
     def test_qubits_4_jw_h2(self):
-        self.hf = HartreeFock(4, 4, 2, QubitMappingType.JORDAN_WIGNER.value, False)
+        self.hf = HartreeFock(4, 4, 2, 'jordan_wigner', False)
         cct = self.hf.construct_circuit('vector')
         np.testing.assert_array_equal(cct, [0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
     def test_qubits_4_py_h2(self):
-        self.hf = HartreeFock(4, 4, 2, QubitMappingType.PARITY.value, False)
+        self.hf = HartreeFock(4, 4, 2, 'parity', False)
         cct = self.hf.construct_circuit('vector')
         np.testing.assert_array_equal(cct, [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0,
                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
     def test_qubits_4_bk_h2(self):
-        self.hf = HartreeFock(4, 4, 2, QubitMappingType.BRAVYI_KITAEV.value, False)
+        self.hf = HartreeFock(4, 4, 2, 'bravyi_kitaev', False)
         cct = self.hf.construct_circuit('vector')
         np.testing.assert_array_equal(cct, [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0,
                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
     def test_qubits_2_py_h2(self):
-        self.hf = HartreeFock(2, 4, 2, QubitMappingType.PARITY.value, True)
+        self.hf = HartreeFock(2, 4, 2, 'parity', True)
         cct = self.hf.construct_circuit('vector')
         np.testing.assert_array_equal(cct, [0.0, 1.0, 0.0, 0.0])
 
     def test_qubits_2_py_h2_cct(self):
-        self.hf = HartreeFock(2, 4, 2, QubitMappingType.PARITY.value, True)
+        self.hf = HartreeFock(2, 4, 2, 'parity', True)
         cct = self.hf.construct_circuit('circuit')
         self.assertEqual(cct.qasm(), 'OPENQASM 2.0;\ninclude "qelib1.inc";\nqreg q[2];\n'
                                      'u3(3.14159265358979,0.0,3.14159265358979) q[0];\n')

@@ -22,8 +22,7 @@ from shutil import which
 import tempfile
 import numpy as np
 
-from qiskit_chemistry import QMolecule
-from qiskit_chemistry import QiskitChemistryError
+from qiskit_chemistry import QMolecule, QiskitChemistryError
 from qiskit_chemistry.drivers import BaseDriver, get_driver_class
 
 logger = logging.getLogger(__name__)
@@ -56,6 +55,11 @@ class GaussianDriver(BaseDriver):
     }
 
     def __init__(self, config):
+        """
+        Initializer
+        Args:
+            config (str or list): driver configuration
+        """
         if not isinstance(config, list) and not isinstance(config, str):
             raise QiskitChemistryError("Invalid input for Gaussian Driver '{}'".format(config))
 
@@ -70,6 +74,24 @@ class GaussianDriver(BaseDriver):
         if g16prog is None:
             raise QiskitChemistryError("Could not locate {} executable '{}'. Please check that it is installed correctly."
                                        .format(GAUSSIAN_16_DESC, GAUSSIAN_16))
+
+    @classmethod
+    def init_from_input(cls, section):
+        """
+        Initialize via section dictionary.
+
+        Args:
+            params (dict): section dictionary
+
+        Returns:
+            Driver: Driver object
+        """
+        if 'data' not in section:
+            raise QiskitChemistryError('Missing data section')
+
+        kwargs = {'config': section['data']}
+        logger.debug('init_from_input: {}'.format(kwargs))
+        return cls(**kwargs)
 
     def run(self):
         cfg = self._config
