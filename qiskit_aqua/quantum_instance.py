@@ -44,7 +44,7 @@ class QuantumInstance:
                         "max_parallel_experiments", "statevector_parallel_threshold",
                         "statevector_hpc_gate_opt"] + SIMULATOR_CONFIG_QASM_ONLY
 
-    def __init__(self, backend, shots=1024, max_credits=10, config=None, seed=None,
+    def __init__(self, backend, shots=1024, max_credits=10, seed=None,
                  initial_layout=None, pass_manager=None, seed_mapper=None, memory=False,
                  simulator_options=None,
                  noise_model=None, timeout=None, wait=5):

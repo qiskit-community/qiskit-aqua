@@ -271,7 +271,7 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
                     qobj = qobjs[idx]
                     #  assure job get its id
                     while True:
-                        job = backend.run(qobj)
+                        job = backend.run(qobj, **simulator_config, **noise_config)
                         try:
                             job_id = job.job_id()
                             break
