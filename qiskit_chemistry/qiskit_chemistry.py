@@ -16,7 +16,7 @@
 # =============================================================================
 
 from qiskit_chemistry import QiskitChemistryError
-from qiskit_chemistry.drivers import ConfigurationManager
+from qiskit_chemistry.drivers import local_drivers, get_driver_class
 from qiskit_aqua import run_algorithm, get_provider_from_backend
 from qiskit_aqua.utils import convert_json_to_dict
 from qiskit_chemistry.parser import InputParser
@@ -40,7 +40,6 @@ class QiskitChemistry(object):
 
     def __init__(self):
         """Create an QiskitChemistry object."""
-        self._configuration_mgr = ConfigurationManager()
         self._parser = None
         self._core = None
 
@@ -205,7 +204,7 @@ class QiskitChemistry(object):
         if 'data' not in section:
             raise QiskitChemistryError('Property "data" missing in section "{0}"'.format(driver_name))
 
-        if driver_name not in self._configuration_mgr.local_drivers():
+        if driver_name not in local_drivers():
             raise QiskitChemistryError('Driver "{0}" missing in local drivers'.format(driver_name))
 
         work_path = None
@@ -213,9 +212,9 @@ class QiskitChemistry(object):
         if input_file is not None:
             work_path = os.path.dirname(os.path.realpath(input_file))
 
-        driver = self._configuration_mgr.get_driver_instance(driver_name)
+        driver = get_driver_class(driver_name).init_from_input(section)
         driver.work_path = work_path
-        molecule = driver.run(section)
+        molecule = driver.run()
 
         if work_path is not None and hdf5_file is not None and not os.path.isabs(hdf5_file):
             hdf5_file = os.path.abspath(os.path.join(work_path, hdf5_file))

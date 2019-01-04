@@ -16,7 +16,7 @@
 # =============================================================================
 
 from qiskit_chemistry import QiskitChemistryError
-from qiskit_chemistry.drivers import ConfigurationManager
+from qiskit_chemistry.drivers import local_drivers, get_driver_configuration
 import json
 import os
 from collections import OrderedDict
@@ -383,12 +383,11 @@ class InputParser(object):
         if driver_name is not None:
             driver_name = driver_name.strip().lower()
 
-        mgr = ConfigurationManager()
-        for name in mgr.local_drivers():
+        for name in local_drivers():
             name_orig = name
             name = name.lower()
             if driver_name is not None and driver_name == name:
-                config = mgr.get_driver_configuration(name_orig)
+                config = get_driver_configuration(name_orig)
                 input_schema = copy.deepcopy(config['input_schema']) if 'input_schema' in config else {'type': 'object'}
                 if '$schema' in input_schema:
                     del input_schema['$schema']
@@ -403,8 +402,7 @@ class InputParser(object):
     @staticmethod
     def _load_driver_names():
         if InputParser._DRIVER_NAMES is None:
-            mgr = ConfigurationManager()
-            InputParser._DRIVER_NAMES = [name.lower() for name in mgr.local_drivers()]
+            InputParser._DRIVER_NAMES = [name.lower() for name in local_drivers()]
 
     def _merge_default_values(self):
         section_names = self.get_section_names()
@@ -840,8 +838,7 @@ class InputParser(object):
         if driver_name is not None:
             driver_name = driver_name.strip().lower()
 
-        mgr = ConfigurationManager()
-        for name in mgr.local_drivers():
+        for name in local_drivers():
             name = name.lower()
             if driver_name is not None and driver_name == name:
                 continue

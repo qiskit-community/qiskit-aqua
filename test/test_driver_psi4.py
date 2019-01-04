@@ -19,7 +19,7 @@ import unittest
 
 from test.common import QiskitAquaChemistryTestCase
 from qiskit_chemistry import QiskitChemistryError
-from qiskit_chemistry.drivers import ConfigurationManager
+from qiskit_chemistry.drivers import PSI4Driver
 from test.test_driver import TestDriver
 
 
@@ -27,25 +27,21 @@ class TestDriverPSI4(QiskitAquaChemistryTestCase, TestDriver):
     """PSI4 Driver tests."""
 
     def setUp(self):
-        cfg_mgr = ConfigurationManager()
-        psi4_cfg = """
-molecule h2 {
-  0 1
-  H  0.0 0.0 0.0
-  H  0.0 0.0 0.735
-}
- 
-set {
-  basis sto-3g
-  scf_type pk
-}
-"""
-        section = {'data': psi4_cfg}
         try:
-            driver = cfg_mgr.get_driver_instance('PSI4')
+            driver = PSI4Driver([
+                'molecule h2 {',
+                '  0 1',
+                '  H  0.0 0.0 0.0',
+                '  H  0.0 0.0 0.735',
+                '}',
+                '',
+                'set {',
+                '  basis sto-3g',
+                '  scf_type pk',
+                '}'])
         except QiskitChemistryError:
             self.skipTest('PSI4 driver does not appear to be installed')
-        self.qmolecule = driver.run(section)
+        self.qmolecule = driver.run()
 
 
 if __name__ == '__main__':

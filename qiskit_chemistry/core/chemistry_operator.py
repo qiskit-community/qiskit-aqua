@@ -22,6 +22,7 @@ a quantum algorithm
 from abc import ABC, abstractmethod
 import logging
 import copy
+from qiskit_aqua.parser import JSONSchema
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +52,25 @@ class ChemistryOperator(ABC):
     def configuration(self):
         return self._configuration
 
+    @staticmethod
+    def check_chemistry_operator_valid():
+        """Checks if Chemistry Operator is ready for use. Throws an exception if not"""
+        pass
+
+    def validate(self, args_dict):
+        schema_dict = self.CONFIGURATION.get('input_schema', None)
+        if schema_dict is None:
+            return
+
+        jsonSchema = JSONSchema(schema_dict)
+        schema_property_names = jsonSchema.get_default_section_names()
+        json_dict = {}
+        for property_name in schema_property_names:
+            if property_name in args_dict:
+                json_dict[property_name] = args_dict[property_name]
+
+        jsonSchema.validate(json_dict)
+
     @classmethod
     def init_params(cls, params):
         """
@@ -60,11 +80,11 @@ class ChemistryOperator(ABC):
             params (dict): parameters dictionary
 
         Returns:
-            Hamiltonian: hamiltonian object
+            Chemistry Operator: Chemistry Operator object
         """
-        args = {k: v for k, v in params.items() if k != 'name'}
-        logger.debug('init_args: {}'.format(args))
-        return cls(**args)
+        kwargs = {k: v for k, v in params.items() if k != 'name'}
+        logger.debug('init_params: {}'.format(kwargs))
+        return cls(**kwargs)
 
     @abstractmethod
     def run(self, qmolecule):
