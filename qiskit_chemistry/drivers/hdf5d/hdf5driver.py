@@ -17,8 +17,7 @@
 
 from qiskit_chemistry.drivers import BaseDriver
 import logging
-from qiskit_chemistry import QMolecule
-from qiskit_chemistry import QiskitChemistryError
+from qiskit_chemistry import QMolecule, QiskitChemistryError
 import os
 
 logger = logging.getLogger(__name__)
@@ -46,15 +45,36 @@ class HDF5Driver(BaseDriver):
         }
     }
 
-    def __init__(self):
+    def __init__(self, hdf5_input):
+        """
+        Initializer
+        Args:
+            hdf5_input (str): path to hdf5 file
+        """
+        self.validate(locals())
         super().__init__()
+        self._hdf5_input = hdf5_input
 
-    def run(self, section):
-        properties = section['properties']
-        if HDF5Driver.KEY_HDF5_INPUT not in properties:
-            raise QiskitChemistryError('Missing hdf5 input property')
+    @classmethod
+    def init_from_input(cls, section):
+        """
+        Initialize via section dictionary.
 
-        hdf5_file = properties[HDF5Driver.KEY_HDF5_INPUT]
+        Args:
+            params (dict): section dictionary
+
+        Returns:
+            Driver: Driver object
+        """
+        if 'properties' not in section or len(section['properties']) == 0:
+            raise QiskitChemistryError('Missing or empty properties section')
+
+        kwargs = section['properties']
+        logger.debug('init_from_input: {}'.format(kwargs))
+        return cls(**kwargs)
+
+    def run(self):
+        hdf5_file = self._hdf5_input
         if self.work_path is not None and not os.path.isabs(hdf5_file):
             hdf5_file = os.path.abspath(os.path.join(self.work_path, hdf5_file))
 

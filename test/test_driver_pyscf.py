@@ -16,11 +16,9 @@
 # =============================================================================
 
 import unittest
-from collections import OrderedDict
-
 from test.common import QiskitAquaChemistryTestCase
 from qiskit_chemistry import QiskitChemistryError
-from qiskit_chemistry.drivers import ConfigurationManager
+from qiskit_chemistry.drivers import PySCFDriver, UnitsType
 from test.test_driver import TestDriver
 
 
@@ -28,20 +26,15 @@ class TestDriverPySCF(QiskitAquaChemistryTestCase, TestDriver):
     """PYSCF Driver tests."""
 
     def setUp(self):
-        cfg_mgr = ConfigurationManager()
-        pyscf_cfg = OrderedDict([
-            ('atom', 'H .0 .0 .0; H .0 .0 0.735'),
-            ('unit', 'Angstrom'),
-            ('charge', 0),
-            ('spin', 0),
-            ('basis', 'sto3g')
-        ])
-        section = {'properties': pyscf_cfg}
         try:
-            driver = cfg_mgr.get_driver_instance('PYSCF')
+            driver = PySCFDriver(atom='H .0 .0 .0; H .0 .0 0.735',
+                                 unit=UnitsType.ANGSTROM,
+                                 charge=0,
+                                 spin=0,
+                                 basis='sto3g')
         except QiskitChemistryError:
             self.skipTest('PYSCF driver does not appear to be installed')
-        self.qmolecule = driver.run(section)
+        self.qmolecule = driver.run()
 
 
 if __name__ == '__main__':

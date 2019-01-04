@@ -16,11 +16,8 @@
 # =============================================================================
 
 import unittest
-from collections import OrderedDict
-
 from parameterized import parameterized
-from qiskit_aqua import get_aer_backend
-
+import qiskit
 from qiskit_aqua import QuantumInstance
 from qiskit_aqua.algorithms.adaptive import VQE
 from qiskit_aqua.components.variational_forms import RYRZ
@@ -28,21 +25,18 @@ from qiskit_aqua.components.optimizers import COBYLA, SPSA
 
 from test.common import QiskitAquaChemistryTestCase
 from qiskit_chemistry.drivers import HDF5Driver
-from qiskit_chemistry.core import Hamiltonian
+from qiskit_chemistry.core import Hamiltonian, TransformationType, QubitMappingType
 
 
 class TestEnd2End(QiskitAquaChemistryTestCase):
     """End2End tests."""
 
     def setUp(self):
-        hdf5_cfg = OrderedDict([
-            ('hdf5_input', self._get_resource_path('test_driver_hdf5.hdf5'))
-        ])
-        section = {'properties': hdf5_cfg}
-        driver = HDF5Driver()
-        self.qmolecule = driver.run(section)
+        driver = HDF5Driver(hdf5_input=self._get_resource_path('test_driver_hdf5.hdf5'))
+        self.qmolecule = driver.run()
 
-        core = Hamiltonian(transformation='full', qubit_mapping='parity',
+        core = Hamiltonian(transformation=TransformationType.FULL,
+                           qubit_mapping=QubitMappingType.PARITY,
                            two_qubit_reduction=True,
                            freeze_core=False,
                            orbital_reduction=[],
@@ -52,8 +46,8 @@ class TestEnd2End(QiskitAquaChemistryTestCase):
         self.reference_energy = -1.857275027031588
 
     @parameterized.expand([
-        ['COBYLA_M', 'COBYLA', get_aer_backend('statevector_simulator'), 'matrix', 1],
-        ['COBYLA_P', 'COBYLA', get_aer_backend('statevector_simulator'), 'paulis', 1],
+        ['COBYLA_M', 'COBYLA', qiskit.Aer.get_backend('statevector_simulator'), 'matrix', 1],
+        ['COBYLA_P', 'COBYLA', qiskit.Aer.get_backend('statevector_simulator'), 'paulis', 1],
         # ['SPSA_P', 'SPSA', 'qasm_simulator', 'paulis', 1024],
         # ['SPSA_GP', 'SPSA', 'qasm_simulator', 'grouped_paulis', 1024]
     ])

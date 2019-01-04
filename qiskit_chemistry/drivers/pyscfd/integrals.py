@@ -30,27 +30,22 @@ except ImportError:
     logger.info("PySCF is not installed. Use 'pip install pyscf'")
 
 
-def compute_integrals(config):
+def compute_integrals(atom,
+                      unit,
+                      charge,
+                      spin,
+                      basis,
+                      max_memory,
+                      calc_type='rhf'):
     # Get config from input parameters
     # molecule is in PySCF atom string format e.g. "H .0 .0 .0; H .0 .0 0.2"
     #          or in Z-Matrix format e.g. "H; O 1 1.08; H 2 1.08 1 107.5"
     # other parameters are as per PySCF got.Mole format
 
-    if 'atom' not in config:
-        raise QiskitChemistryError('Atom is missing')
-    val = config['atom']
-    if val is None:
-        raise QiskitChemistryError('Atom value is missing')
-
-    atom = _check_molecule_format(val)
-    basis = config.get('basis', 'sto3g')
-    unit = config.get('unit', 'Angstrom')
-    charge = int(config.get('charge', '0'))
-    spin = int(config.get('spin', '0'))
-    max_memory = config.get('max_memory')
+    atom = _check_molecule_format(atom)
     if max_memory is None:
         max_memory = param.MAX_MEMORY
-    calc_type = config.get('calc_type', 'rhf').lower()
+    calc_type = calc_type.lower()
 
     try:
         mol = gto.Mole(atom=atom, unit=unit, basis=basis, max_memory=max_memory, verbose=pylogger.QUIET)

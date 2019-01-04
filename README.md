@@ -68,20 +68,15 @@ To install from source, follow the instructions in the [contribution guidelines]
 Now that Qiskit Chemistry is installed, it's time to begin working with it.  We are ready to try out an experiment using Qiskit Chemistry:
 
 ```python
-from collections import OrderedDict
 from qiskit_chemistry import FermionicOperator
-from qiskit_chemistry.drivers import PySCFDriver
+from qiskit_chemistry.drivers import PySCFDriver, UnitsType
 
 # Use PySCF, a classical computational chemistry software package, to compute the one-body and two-body integrals in
 # molecular-orbital basis, necessary to form the Fermionic operator
-pyscf_cfg = OrderedDict([
-    ('atom', 'H .0 .0 .0; H .0 .0 0.735'),
-    ('unit', 'Angstrom'),
-    ('basis', 'sto3g')
-])
-section = {'properties': pyscf_cfg}
-driver = PySCFDriver()
-molecule = driver.run(section)
+driver = PySCFDriver(atom='H .0 .0 .0; H .0 .0 0.735',
+                    unit=UnitsType.ANGSTROM,
+                    basis='sto3g')
+molecule = driver.run()
 num_particles = molecule.num_alpha + molecule.num_beta
 num_spin_orbitals = molecule.num_orbitals * 2
 
