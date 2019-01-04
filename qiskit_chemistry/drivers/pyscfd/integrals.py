@@ -100,11 +100,16 @@ def _check_molecule_format(val):
     if atoms is None or len(atoms) < 1:
         raise QiskitChemistryError('Molecule format error: ' + val)
 
-    # Anx xyz format has 4 parts in each atom, if not then do zmatrix convert
+    # An xyz format has 4 parts in each atom, if not then do zmatrix convert
+    # Allows dummy atoms, using symbol 'X' in zmatrix format for coord computation to xyz
     parts = [x.strip() for x in atoms[0].split(' ')]
     if len(parts) != 4:
         try:
-            return gto.mole.from_zmatrix(val)
+            newval = []
+            for entry in gto.mole.from_zmatrix(val):
+                if entry[0].upper() != 'X':
+                    newval.append(entry)
+            return newval
         except Exception as exc:
             raise QiskitChemistryError('Failed to convert atom string: ' + val) from exc
 
