@@ -101,10 +101,9 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
         if pass_manager is not None:
             backend_cfg['pass_manager'] = pass_manager
 
-        if backend is not None and isinstance(backend, BaseBackend):
-            backend_cfg['backend'] = backend
-        else:
-            backend_cfg['backend'] = get_backend_from_provider(backend_provider, backend_name)
+        if backend is None or not isinstance(backend, BaseBackend):
+            backend = get_backend_from_provider(backend_provider, backend_name)
+        backend_cfg['backend'] = backend
 
         # overwrite the basis_gates and coupling_map
         basis_gates = backend_cfg.pop('basis_gates', None)

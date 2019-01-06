@@ -131,8 +131,8 @@ class QuantumInstance:
         Retruns:
             str: the info of the object.
         """
-        info = "Qiskit Terra version {}\n".format(terra_version)
-        info += "Backend '{} ({})', with following setting:\n{}\n{}\n{}\n{}\n{}\n{}".format(
+        info = "\nQiskit Terra version: {}\n".format(terra_version)
+        info += "Backend: '{} ({})', with following setting:\n{}\n{}\n{}\n{}\n{}\n{}".format(
             self.backend_name, self._backend.provider(), self._backend_config, self._compile_config,
             self._run_config, self._qjob_config, self._backend_options, self._noise_config)
         return info
