@@ -94,7 +94,7 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
     if backend_provider is not None and backend_name is not None:  # quantum algorithm
         backend_cfg = {k: v for k, v in inputparser.get_section(JSONSchema.BACKEND).items() if k not in [JSONSchema.PROVIDER, JSONSchema.NAME]}
         # TODO, how to build the noise model from a dictionary?
-        backend_cfg.pop('noise_params', None)
+        # backend_cfg.pop('noise_params', None)
         backend_cfg['seed'] = random_seed
         backend_cfg['seed_mapper'] = random_seed
         pass_manager = PassManager() if backend_cfg.pop('skip_transpiler', False) else None
@@ -105,6 +105,17 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
             backend_cfg['backend'] = backend
         else:
             backend_cfg['backend'] = get_backend_from_provider(backend_provider, backend_name)
+
+        # overwrite the basis_gates and coupling_map
+        basis_gates = backend_cfg.pop('basis_gates', None)
+        coupling_map = backend_cfg.pop('coupling_map', None)
+        if backend.configuration().simulator:
+            if basis_gates is not None:
+                backend.configuration().basis_gates = basis_gates
+            if coupling_map is not None:
+                backend.configuration().coupling_map = coupling_map
+        else:
+            logger.warning("Change basis_gates and coupling_map on a real device is disallowed.")
 
         quantum_instance = QuantumInstance(**backend_cfg)
 
