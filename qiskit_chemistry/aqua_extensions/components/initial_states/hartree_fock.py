@@ -87,20 +87,23 @@ class HartreeFock(InitialState):
         self._two_qubit_reduction = two_qubit_reduction
         if self._qubit_mapping != 'parity':
             if self._two_qubit_reduction:
-                logger.warning("two_qubit_reduction only works with parity qubit mapping \
-                    but you have {}. We switch two_qubit_reduction to False.".format(self._qubit_mapping))
+                logger.warning("two_qubit_reduction only works with parity qubit mapping "
+                               "but you have {}. We switch two_qubit_reduction "
+                               "to False.".format(self._qubit_mapping))
                 self._two_qubit_reduction = False
 
         self._num_orbitals = num_orbitals
         self._num_particles = num_particles
 
         if self._num_particles > self._num_orbitals:
-            raise ValueError('# of particles must be less than or equal to # of orbitals.')
+            raise ValueError("# of particles must be less than or equal to # of orbitals.")
 
         self._num_qubits = num_orbitals - 2 if self._two_qubit_reduction else self._num_orbitals
-        self._num_qubits = self._num_qubits if not self._qubit_tapering else self._num_qubits - len(sq_list)
+        self._num_qubits = self._num_qubits \
+            if not self._qubit_tapering else self._num_qubits - len(sq_list)
         if self._num_qubits != num_qubits:
-            raise ValueError('Computed num qubits {} does not match actual {}'.format(self._num_qubits, num_qubits))
+            raise ValueError("Computed num qubits {} does not match "
+                             "actual {}".format(self._num_qubits, num_qubits))
 
         self._bitstr = None
 
@@ -109,16 +112,16 @@ class HartreeFock(InitialState):
 
         half_orbitals = self._num_orbitals // 2
         bitstr = np.zeros(self._num_orbitals, np.bool)
-        bitstr[:int(np.ceil(self._num_particles / 2))] = True
-        bitstr[half_orbitals:half_orbitals + int(np.floor(self._num_particles / 2))] = True
+        bitstr[-int(np.ceil(self._num_particles / 2)):] = True
+        bitstr[-(half_orbitals + int(np.floor(self._num_particles / 2))):-half_orbitals] = True
 
         if self._qubit_mapping == 'parity':
             new_bitstr = bitstr.copy()
 
-            for new_k in range(1, new_bitstr.size):
-                new_bitstr[new_k] = np.logical_xor(new_bitstr[new_k - 1], bitstr[new_k])
+            t = np.triu(np.ones((self._num_orbitals, self._num_orbitals)))
+            new_bitstr = t.dot(new_bitstr.astype(np.int)) % 2
 
-            bitstr = np.append(new_bitstr[:half_orbitals - 1], new_bitstr[half_orbitals:-1]) \
+            bitstr = np.append(new_bitstr[1:half_orbitals], new_bitstr[half_orbitals + 1:]) \
                 if self._two_qubit_reduction else new_bitstr
 
         elif self._qubit_mapping == 'bravyi_kitaev':
@@ -127,7 +130,7 @@ class HartreeFock(InitialState):
             basis = np.asarray([[1, 0], [0, 1]])
             for i in range(binary_superset_size):
                 beta = np.kron(basis, beta)
-                beta[-1, :] = 1
+                beta[0, :] = 1
 
             beta = beta[:self._num_orbitals, :self._num_orbitals]
             new_bitstr = beta.dot(bitstr.astype(int)) % 2
@@ -161,16 +164,16 @@ class HartreeFock(InitialState):
             state = 1.0
             one = np.asarray([0.0, 1.0])
             zero = np.asarray([1.0, 0.0])
-            for k in self._bitstr:
+            for k in self._bitstr[::-1]:
                 state = np.kron(one if k else zero, state)
             return state
         elif mode == 'circuit':
             if register is None:
                 register = QuantumRegister(self._num_qubits, name='q')
             quantum_circuit = QuantumCircuit(register)
-            for idx, bit in enumerate(self._bitstr):
+            for qubit_idx, bit in enumerate(self._bitstr[::-1]):
                 if bit:
-                    quantum_circuit.u3(np.pi, 0.0, np.pi, register[idx])
+                    quantum_circuit.u3(np.pi, 0.0, np.pi, register[qubit_idx])
             return quantum_circuit
         else:
             raise ValueError('Mode should be either "vector" or "circuit"')
