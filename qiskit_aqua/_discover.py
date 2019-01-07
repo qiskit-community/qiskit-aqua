@@ -29,6 +29,7 @@ import copy
 from collections import namedtuple
 from enum import Enum
 from qiskit_aqua import AquaError
+import pkg_resources
 
 logger = logging.getLogger(__name__)
 
@@ -121,8 +122,9 @@ def refresh_pluggables():
     _REGISTERED_PLUGGABLES = {}
     global _DISCOVERED
     _DISCOVERED = True
-    discover_local_pluggables()
-    discover_preferences_pluggables()
+    _discover_local_pluggables()
+    _discover_entry_point_pluggables()
+    _discover_preferences_pluggables()
     if logger.isEnabledFor(logging.DEBUG):
         for ptype in local_pluggables_types():
             logger.debug("Found: '{}' has pluggables {} ".format(ptype.value, local_pluggables(ptype)))
@@ -135,14 +137,41 @@ def _discover_on_demand():
     global _DISCOVERED
     if not _DISCOVERED:
         _DISCOVERED = True
-        discover_local_pluggables()
-        discover_preferences_pluggables()
+        _discover_local_pluggables()
+        _discover_entry_point_pluggables()
+        _discover_preferences_pluggables()
         if logger.isEnabledFor(logging.DEBUG):
             for ptype in local_pluggables_types():
                 logger.debug("Found: '{}' has pluggables {} ".format(ptype.value, local_pluggables(ptype)))
 
 
-def discover_preferences_pluggables():
+def _discover_entry_point_pluggables():
+    """
+    Discovers the pluggable modules defined by entry_points in setup
+    and attempts to register them. Pluggable modules should subclass Pluggable Base classes.
+    """
+    for entry_point in pkg_resources.iter_entry_points('qiskit.aqua.pluggables'):
+        try:
+            ep = entry_point.load()
+            _registered = False
+            for pluggable_type, c in _get_pluggables_types_dictionary().items():
+                if issubclass(ep, c):
+                    _register_pluggable(pluggable_type, ep)
+                    _registered = True
+                    # print("Registered entry point pluggable type '{}' '{}' class '{}'".format(pluggable_type.value, entry_point, ep))
+                    logger.debug("Registered entry point pluggable type '{}' '{}' class '{}'".format(pluggable_type.value, entry_point, ep))
+                    break
+
+            if not _registered:
+                # print("Unknown entry point pluggable '{}' class '{}'".format(entry_point, ep))
+                logger.debug("Unknown entry point pluggable '{}' class '{}'".format(entry_point, ep))
+        except Exception as e:
+            # Ignore entry point that could not be initialized.
+            # print("Failed to load entry point '{}' error {}".format(entry_point, str(e)))
+            logger.debug("Failed to load entry point '{}' error {}".format(entry_point, str(e)))
+
+
+def _discover_preferences_pluggables():
     """
     Discovers the pluggable modules on the directory and subdirectories of the preferences package
     and attempts to register them. Pluggable modules should subclass Pluggable Base classes.
@@ -154,10 +183,10 @@ def discover_preferences_pluggables():
         try:
             mod = importlib.import_module(package)
             if mod is not None:
-                _discover_local_pluggables(os.path.dirname(mod.__file__),
-                                           mod.__name__,
-                                           names_to_exclude=['__main__'],
-                                           folders_to_exclude=['__pycache__'])
+                _discover_local_pluggables_in_dirs(os.path.dirname(mod.__file__),
+                                                   mod.__name__,
+                                                   names_to_exclude=['__main__'],
+                                                   folders_to_exclude=['__pycache__'])
             else:
                 # Ignore package that could not be initialized.
                 # print('Failed to import package {}'.format(package))
@@ -168,10 +197,10 @@ def discover_preferences_pluggables():
             logger.debug('Failed to load package {} error {}'.format(package, str(e)))
 
 
-def _discover_local_pluggables(directory,
-                               parentname,
-                               names_to_exclude=_NAMES_TO_EXCLUDE,
-                               folders_to_exclude=_FOLDERS_TO_EXCLUDE):
+def _discover_local_pluggables_in_dirs(directory,
+                                       parentname,
+                                       names_to_exclude=_NAMES_TO_EXCLUDE,
+                                       folders_to_exclude=_FOLDERS_TO_EXCLUDE):
     for _, name, ispackage in pkgutil.iter_modules([directory]):
         if ispackage:
             continue
@@ -205,14 +234,14 @@ def _discover_local_pluggables(directory,
     for item in sorted(os.listdir(directory)):
         fullpath = os.path.join(directory, item)
         if item not in folders_to_exclude and not item.endswith('dSYM') and os.path.isdir(fullpath):
-            _discover_local_pluggables(
+            _discover_local_pluggables_in_dirs(
                 fullpath, parentname + '.' + item, names_to_exclude, folders_to_exclude)
 
 
-def discover_local_pluggables(directory=os.path.dirname(__file__),
-                              parentname=os.path.splitext(__name__)[0],
-                              names_to_exclude=_NAMES_TO_EXCLUDE,
-                              folders_to_exclude=_FOLDERS_TO_EXCLUDE):
+def _discover_local_pluggables(directory=os.path.dirname(__file__),
+                               parentname=os.path.splitext(__name__)[0],
+                               names_to_exclude=_NAMES_TO_EXCLUDE,
+                               folders_to_exclude=_FOLDERS_TO_EXCLUDE):
     """
     Discovers the pluggable modules on the directory and subdirectories of the current module
     and attempts to register them. Pluggable modules should subclass Pluggable Base classes.
@@ -234,7 +263,7 @@ def discover_local_pluggables(directory=os.path.dirname(__file__),
     syspath_save = sys.path
     sys.path = sys.path + _get_sys_path(directory)
     try:
-        _discover_local_pluggables(directory, parentname)
+        _discover_local_pluggables_in_dirs(directory, parentname)
     finally:
         sys.path = syspath_save
 

@@ -59,8 +59,18 @@ class CRS(Optimizer):
         'optimizer': ['global']
     }
 
-    def __init__(self):
+    def __init__(self, max_evals=1000):
+        """
+        Constructor.
+
+        Args:
+            max_evals (int): Maximum allowed number of function evaluations.
+        """
+        self.validate(locals())
         super().__init__()
+        for k, v in locals().items():
+            if k in self._configuration['options']:
+                self._options[k] = v
 
     @staticmethod
     def check_pluggable_valid():

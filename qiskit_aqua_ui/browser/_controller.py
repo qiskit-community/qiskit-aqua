@@ -28,29 +28,36 @@ class Controller(object):
 
     def __init__(self, view):
         self._view = view
-        self._model = Model()
+        self._model = None
         self._filemenu = None
         self._sectionsView = None
         self._emptyView = None
         self._sectionsView_title = tk.StringVar()
         self._propertiesView = None
 
+    @property
+    def model(self):
+        if self._model is None:
+            self._model = Model()
+
+        return self._model
+
     def top_names(self):
-        return self._model.top_names()
+        return self.model.top_names()
 
     def get_property_titles(self, section_name):
-        return self._model.get_property_titles(section_name)
+        return self.model.get_property_titles(section_name)
 
     def populate_sections(self):
-        self._sectionsView.populate(self._model.get_sections())
+        self._sectionsView.populate(self.model.get_sections())
 
     def on_top_name_select(self, top_name):
         self._sectionsView_title.set('')
         self._emptyView.tkraise()
 
     def on_algo_select(self, top_name, section_name):
-        self._sectionsView_title.set(self._model.get_section_description(top_name, section_name))
-        properties = self._model.get_section_properties(top_name, section_name)
-        column_titles = self._model.get_property_titles(top_name, section_name)
+        self._sectionsView_title.set(self.model.get_section_description(top_name, section_name))
+        properties = self.model.get_section_properties(top_name, section_name)
+        column_titles = self.model.get_property_titles(top_name, section_name)
         self._propertiesView.populate(column_titles, properties)
         self._propertiesView.tkraise()
