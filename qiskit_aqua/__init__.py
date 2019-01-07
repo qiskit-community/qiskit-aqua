@@ -26,8 +26,15 @@ from ._discover import (PluggableType,
                         get_pluggable_configuration,
                         register_pluggable,
                         deregister_pluggable)
+from .utils.backend_utils import (get_aer_backend,
+                                  get_backends_from_provider,
+                                  get_backend_from_provider,
+                                  get_local_providers,
+                                  register_ibmq_and_get_known_providers,
+                                  get_provider_from_backend,
+                                  enable_ibmq_account,
+                                  disable_ibmq_account)
 from .pluggable import Pluggable
-from .utils.backend_utils import get_aer_backend, get_aer_backends
 from .utils.cnx import cnx
 from .utils.cnx_no_anc import cnx_na
 from .utils.cnu1 import cnu1
@@ -42,7 +49,7 @@ from ._logging import (get_logging_level,
                        get_aqua_logging,
                        set_aqua_logging)
 
-__version__ = '0.4.0'
+__version__ = '0.4.1'
 
 __all__ = ['AquaError',
            'Pluggable',
@@ -52,7 +59,13 @@ __all__ = ['AquaError',
            'refresh_pluggables',
            'QuantumInstance',
            'get_aer_backend',
-           'get_aer_backends',
+           'get_backends_from_provider',
+           'get_backend_from_provider',
+           'get_local_providers',
+           'register_ibmq_and_get_known_providers',
+           'get_provider_from_backend',
+           'enable_ibmq_account',
+           'disable_ibmq_account',
            'local_pluggables_types',
            'local_pluggables',
            'get_pluggable_class',

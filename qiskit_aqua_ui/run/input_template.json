@@ -4,6 +4,7 @@
         "operator_mode": "matrix"
     },
     "backend": {
+        "provider": "qiskit.BasicAer",
         "name": "statevector_simulator"
     }
 }

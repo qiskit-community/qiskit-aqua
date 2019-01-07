@@ -188,11 +188,20 @@ class QPE(QuantumAlgorithm):
                    paulis_grouping=paulis_grouping, expansion_mode=expansion_mode,
                    expansion_order=expansion_order)
 
+    def construct_circuit(self):
+        """Construct circuit.
+
+        Returns:
+            QuantumCircuit: quantum circuit.
+        """
+        qc = self._phase_estimation_component.construct_circuit(measure=True)
+        return qc
+
     def _compute_energy(self):
         if self._quantum_instance.is_statevector:
             raise ValueError('Selected backend does not support measurements.')
 
-        qc = self._phase_estimation_component.construct_circuit(measure=True)
+        qc = self.construct_circuit()
         result = self._quantum_instance.execute(qc)
         rd = result.get_counts(qc)
         rets = sorted([(rd[k], k) for k in rd])[::-1]

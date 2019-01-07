@@ -18,7 +18,6 @@
 import sys
 import logging
 import time
-import functools
 import copy
 import os
 
@@ -97,16 +96,35 @@ def _reuse_shared_circuits(circuits, backend, backend_config, compile_config, ru
     temp_backend_config = copy.deepcopy(backend_config)
     if 'config' not in temp_backend_config:
         temp_backend_config['config'] = dict()
-    temp_backend_config['config']['initial_state'] = shared_quantum_state
+    temp_backend_config['config']['initial_statevector'] = shared_quantum_state
     diff_result = compile_and_run_circuits(circuits[1:], backend, temp_backend_config,
                                            compile_config, run_config, qjob_config,
                                            show_circuit_summary=show_circuit_summary)
-    result = shared_result + diff_result
+    result = _combine_result_objects([shared_result, diff_result])
     return result
 
 
-def compile_and_run_circuits(circuits, backend, backend_config, compile_config, run_config, qjob_config=None,
-                             show_circuit_summary=False, has_shared_circuits=False):
+def _combine_result_objects(results):
+    """Tempoary helper function.
+
+    TODO:
+        This function would be removed after Terra supports job with infinite circuits.
+    """
+
+    if len(results) == 1:
+        return results[0]
+
+    new_result = copy.deepcopy(results[0])
+
+    for idx in range(1, len(results)):
+        new_result.results.extend(results[idx].results)
+
+    return new_result
+
+
+def compile_and_run_circuits(circuits, backend, backend_config, compile_config, run_config,
+                             qjob_config=None, noise_config=None, show_circuit_summary=False,
+                             has_shared_circuits=False):
     """
     An execution wrapper with Qiskit-Terra, with job auto recover capability.
 
@@ -120,8 +138,10 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
         compile_config (dict): configuration for compilation
         run_config (dict): configuration for running a circuit
         qjob_config (dict): configuration for quantum job object
+        noise_config (dict): configuration for noise model
         show_circuit_summary (bool): showing the summary of submitted circuits.
         has_shared_circuits (bool): use the 0-th circuits as initial state for other circuits.
+
     Returns:
         Result: Result object
 
@@ -129,6 +149,7 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
         AquaError: Any error except for JobError raised by Qiskit Terra
     """
     qjob_config = qjob_config or {}
+    noise_config = noise_config or {}
 
     if backend is None or not isinstance(backend, BaseBackend):
         raise ValueError('Backend is missing or not an instance of BaseBackend')
@@ -140,7 +161,8 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
         circuits = _avoid_empty_circuits(circuits)
 
     if has_shared_circuits:
-        return _reuse_shared_circuits(circuits, backend, backend_config, compile_config, run_config, qjob_config)
+        return _reuse_shared_circuits(circuits, backend, backend_config, compile_config,
+                                      run_config, qjob_config)
 
     with_autorecover = False if backend.configuration().simulator else True
 
@@ -163,7 +185,7 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
                          **compile_config, **run_config)
         # assure get job ids
         while True:
-            job = backend.run(qobj)
+            job = backend.run(qobj, **noise_config)
             try:
                 job_id = job.job_id()
                 break
@@ -211,7 +233,7 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
                                    "Terra job error: {} ".format(idx, job_id, e))
                 except Exception as e:
                     raise AquaError("FAILURE: the {}-th chunk of circuits, job id: {} "
-                                    "Terra unknown error: {} ".format(idx, job_id, e)) from e
+                                    "Unknown error: {} ".format(idx, job_id, e)) from e
 
                 # something wrong here, querying the status to check how to handle it.
                 # keep qeurying it until getting the status.
@@ -227,7 +249,7 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
                     except Exception as e:
                         raise AquaError("FAILURE: job id: {}, "
                                         "status: 'FAIL_TO_GET_STATUS' "
-                                        "Error: ({})".format(job_id, e)) from e
+                                        "Unknown error: ({})".format(job_id, e)) from e
 
                 logger.info("Job status: {}".format(job_status))
 
@@ -250,13 +272,13 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
                             job_id = job.job_id()
                             break
                         except JobError as e:
-                            logger.warning("FAILURE: the {}-th chunk of circuits, can not get job id, "
-                                           "Resubmit the qobj to get job id. "
+                            logger.warning("FAILURE: the {}-th chunk of circuits, "
+                                           "can not get job id. Resubmit the qobj to get job id. "
                                            "Terra job error: {} ".format(idx, e))
                         except Exception as e:
-                            logger.warning("FAILURE: the {}-th chunk of circuits, can not get job id, "
-                                           "Resubmit the qobj to get job id. "
-                                           "Error: {} ".format(idx, e))
+                            logger.warning("FAILURE: the {}-th chunk of circuits, "
+                                           "can not get job id, Resubmit the qobj to get job id. "
+                                           "Unknown error: {} ".format(idx, e))
                     jobs[idx] = job
                     job_ids[idx] = job_id
     else:
@@ -264,8 +286,6 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
         for job in jobs:
             results.append(job.result(**qjob_config))
 
-    if len(results) != 0:
-        result = functools.reduce(lambda x, y: x + y, results)
-    else:
-        result = None
+    result = _combine_result_objects(results) if len(results) != 0 else None
+
     return result
