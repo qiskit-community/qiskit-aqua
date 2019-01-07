@@ -190,18 +190,29 @@ class VQE(QuantumAlgorithm):
         ret += "===============================================================\n"
         return ret
 
-    def construct_circuit(self, parameter):
+    def construct_circuit(self, parameter, backend=None):
         """Generate the circuits.
 
         Args:
             parameters (numpy.ndarray): parameters for variational form.
+            backend (BaseBackend): backend object.
 
         Returns:
             [QuantumCircuit]: the generated circuits with Hamiltonian.
         """
         input_circuit = self._var_form.construct_circuit(parameter)
+        if backend is None:
+            warning_msg = "Circuits used in VQE depends on the backend type, "
+            from qiskit import BasicAer
+            if self._operator_mode == 'matrix':
+                temp_backend_name = 'statevector_simulator'
+            else:
+                temp_backend_name = 'qasm_simulator'
+            backend = BasicAer.get_backend(temp_backend_name)
+            warning_msg += "since operator_mode is '{}', '{}' backend is used.".format(self._operator_mode, temp_backend_name)
+            logger.warning(warning_msg)
         circuit = self._operator.construct_evaluation_circuit(self._operator_mode,
-                                                              input_circuit, self._quantum_instance.backend)
+                                                              input_circuit, backend)
         return circuit
 
     def _solve(self):
@@ -284,7 +295,7 @@ class VQE(QuantumAlgorithm):
         parameter_sets = np.split(parameters, num_parameter_sets)
         for idx in range(len(parameter_sets)):
             parameter = parameter_sets[idx]
-            circuit = self.construct_circuit(parameter)
+            circuit = self.construct_circuit(parameter, self._quantum_instance.backend)
             circuits.append(circuit)
 
         to_be_simulated_circuits = functools.reduce(lambda x, y: x + y, circuits)
