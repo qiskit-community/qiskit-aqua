@@ -71,9 +71,27 @@ class POWELL(Optimizer):
         'optimizer': ['local']
     }
 
-    def __init__(self, tol=None):
+    def __init__(self, maxiter=None, maxfev=1000, disp=False, xtol=0.0001, tol=None):
+        """
+        Constructor.
+
+        For details, please refer to
+        https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html.
+
+        Args:
+            maxiter (int): Maximum allowed number of iterations. If both maxiter and maxfev
+                           are set, minimization will stop at the first reached.
+            maxfev (int): Maximum allowed number of function evaluations. If both maxiter and
+                          maxfev are set, minimization will stop at the first reached.
+            disp (bool): Set to True to print convergence messages.
+            xtol (float): Relative error in solution xopt acceptable for convergence.
+            tol (float or None): Tolerance for termination.
+        """
         self.validate(locals())
         super().__init__()
+        for k, v in locals().items():
+            if k in self._configuration['options']:
+                self._options[k] = v
         self._tol = tol
 
     def optimize(self, num_vars, objective_function, gradient_function=None, variable_bounds=None, initial_point=None):

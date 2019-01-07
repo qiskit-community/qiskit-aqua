@@ -26,7 +26,7 @@ by providing new components, which will be automatically discovered and loaded b
 Dynamically Discovered Components
 ---------------------------------
 
-Each component should derive from the corresponding base class, as explained below.  There are three
+Each component should derive from the corresponding base class, as explained below.  There are two
 ways for a component to be dynamically discovered and loaded by Aqua at run time:
 
 1. The class implementing the component should be placed in the appropriate folder in the file system,
@@ -38,54 +38,21 @@ ways for a component to be dynamically discovered and loaded by Aqua at run time
 
 2. Alternatively, a developer extending Aqua with a new component can simply create a dedicated
    repository with its own versioning.  This repository must be locally installable with the package that was
-   created.  Once the repository has been installed, for example via the ``pip install -e`` command,
-   the user can access the
-   Aqua `Graphical User Interface (GUI) <#aqua-gui>`__
-   and add the package's name to the list of packages in the **Preferences** panel.
-   From that moment on, any custom component found below that package will be dynamically added to
-   ``aqua`` upon initialization.
-
-3. There is yet another way to achieve the same goal, and it simply consists of customizing the
-   ``setup.py`` file of the new component in order to add the package's name to ``aqua``
-   when someone installs the package, without the need of using the GUI to enter it later.  This is an example
-   of what ``setup.py`` would look like:
+   created. It simply consists of customizing the ``setup.py`` adding the entry points for ``qiskit.aqua.pluggables`` as shown below.
+   The format is: ``anyname = full_package:class_name``. Each class must be included separately.
+   When someone installs the package, the extensions will be automatically registered:
 
    .. code:: python
 
        import setuptools
-       from setuptools.command.install import install
-       from setuptools.command.develop import develop
-       from setuptools.command.egg_info import egg_info
-       import atexit
 
        long_description = """New Package for Aqua Component"""
     
        requirements = [
-          "qiskit-aqua>=0.4.0",
+          "qiskit-aqua>=0.4.1",
           "qiskit-terra>=0.7.0,<0.8",
           "numpy>=1.13"
        ]
-
-       def _post_install():
-          from qiskit_aqua_cmd import Preferences
-          preferences = Preferences()
-          preferences.add_package('qiskit_aqua_custom_component_package')
-          preferences.save()
-
-       class CustomInstallCommand(install):
-          def run(self):
-          atexit.register(_post_install)
-          install.run(self)
-        
-       class CustomDevelopCommand(develop):
-          def run(self):
-          atexit.register(_post_install)
-          develop.run(self)
-        
-       class CustomEggInfoCommand(egg_info):
-          def run(self):
-          atexit.register(_post_install)
-          egg_info.run(self)
     
        setuptools.setup(
           name = 'aqua_custom_component_package',
@@ -114,11 +81,12 @@ ways for a component to be dynamically discovered and loaded by Aqua at run time
           install_requires = requirements,
           include_package_data = True,
           python_requires = ">=3.5",
-          cmdclass = {
-             'install': CustomInstallCommand,
-             'develop': CustomDevelopCommand,
-             'egg_info': CustomEggInfoCommand
-          }
+          entry_points={
+               'qiskit.aqua.pluggables': [
+                     'MyInitialState = qiskit_aqua_custom_component_package:MyInitialStateClass',
+                     'MyVarForm = qiskit_aqua_custom_component_package:MyVarFormClass',
+               ],
+         },
        )
 
 .. note::

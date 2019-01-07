@@ -27,18 +27,20 @@ long_description="""<a href="https://qiskit.org/aqua" rel=nofollow>Qiskit Aqua</
 requirements = [
     "qiskit-terra>=0.7.0,<0.8",
     "scipy>=0.19,!=0.19.1",
+    "sympy>=1.3",
     "numpy>=1.13",
     "psutil>=5",
     "jsonschema>=2.6,<2.7",
     "scikit-learn==0.20.0",
     "cvxopt",
+    "setuptools>=40.5.0",
     "pyobjc-core; sys_platform == 'darwin'",
     "pyobjc-framework-Cocoa; sys_platform == 'darwin'"
 ]
 
 setuptools.setup(
     name='qiskit-aqua',
-    version="0.4.0",  # this should match __init__.__version__
+    version="0.4.1",  # this should match __init__.__version__
     description='Qiskit Aqua: An extensible library of quantum computing algorithms',
     long_description=long_description,
     long_description_content_type="text/markdown",

@@ -55,13 +55,8 @@ class Controller(object):
         self._thread = None
         self._command = Controller._START
         self._process_stop = False
-        self._validate_integer_command = self._view.register(
-            Controller._validate_integer)
-        self._validate_float_command = self._view.register(
-            Controller._validate_float)
-        self._available_backends = []
-        self._backendsthread = None
-        self.get_available_backends()
+        self._validate_integer_command = self._view.register(Controller._validate_integer)
+        self._validate_float_command = self._view.register(Controller._validate_float)
 
     @staticmethod
     def _validate_integer(action, index, value_if_allowed,
@@ -101,7 +96,7 @@ class Controller(object):
                     return False
 
                 if index < len(value_if_allowed) - 1:
-                    right = value_if_allowed[index+1:]
+                    right = value_if_allowed[index + 1:]
                     if right == '+' or right == '-':
                         return True
                     try:
@@ -121,25 +116,12 @@ class Controller(object):
     def outputview(self):
         return self._outputView
 
-    def get_available_backends(self):
-        from qiskit_aqua import QuantumInstance
-        if self._backendsthread is not None:
-            return
+    @property
+    def model(self):
+        if self._model is None:
+            self._model = Model()
 
-        self._quantuminstancecls = QuantumInstance
-        self._backendsthread = threading.Thread(target=self._get_available_backends,
-                                                name='Aqua remote backends')
-        self._backendsthread.daemon = True
-        self._backendsthread.start()
-
-    def _get_available_backends(self):
-        try:
-            self._available_backends = []
-            self._available_backends = self._quantuminstancecls.register_and_get_operational_backends()
-        except Exception as e:
-            logger.debug(str(e))
-        finally:
-            self._backendsthread = None
+        return self._model
 
     def new_input(self):
         try:
@@ -156,7 +138,7 @@ class Controller(object):
             self._propertiesView.show_remove_button(False)
             self._emptyView.tkraise()
 
-            section_names = self._model.new()
+            section_names = self.model.new()
             self._sectionsView.populate(section_names)
             self._start_button.state(['!disabled'])
             missing = self.get_sections_names_missing()
@@ -183,7 +165,7 @@ class Controller(object):
             self._propertiesView.show_remove_button(False)
             self._emptyView.tkraise()
 
-            section_names = self._model.load_file(filename)
+            section_names = self.model.load_file(filename)
             self._title.set(os.path.basename(filename))
             if len(section_names) == 0:
                 self._outputView.write_line('No sections found on file')
@@ -201,16 +183,16 @@ class Controller(object):
         return False
 
     def is_empty(self):
-        return self._model.is_empty()
+        return self.model.is_empty()
 
     def save_file(self):
-        filename = self._model.get_filename()
+        filename = self.model.get_filename()
         if filename is None or len(filename) == 0:
             self._outputView.write_line("No file to save.")
             return False
 
         try:
-            self._model.save_to_file(filename)
+            self.model.save_to_file(filename)
             self._outputView.write_line("Saved file: {}".format(filename))
             return True
         except Exception as e:
@@ -220,7 +202,7 @@ class Controller(object):
 
     def save_file_as(self, filename):
         try:
-            self._model.save_to_file(filename)
+            self.model.save_to_file(filename)
             self.open_file(filename)
             return True
         except Exception as e:
@@ -231,28 +213,26 @@ class Controller(object):
     def on_section_select(self, section_name):
         self._sectionsView.show_remove_button(True)
         self._sectionView_title.set(section_name)
-        if self._model.section_is_text(section_name):
-            self._textView.populate(self._model.get_section_text(section_name))
+        if self.model.section_is_text(section_name):
+            self._textView.populate(self.model.get_section_text(section_name))
             self._textView.section_name = section_name
             self._textView.show_add_button(False)
             self._textView.show_remove_button(False)
-            self._textView.show_defaults_button(
-                not self._model.default_properties_equals_properties(section_name))
+            self._textView.show_defaults_button(not self.model.default_properties_equals_properties(section_name))
             self._textView.tkraise()
         else:
-            self._propertiesView.show_add_button(
-                self.shows_add_button(section_name))
-            self._propertiesView.populate(
-                self._model.get_section_properties(section_name))
+            self._propertiesView.show_add_button(self.shows_add_button(section_name))
+            self._propertiesView.populate(self.model.get_section_properties(section_name))
             self._propertiesView.section_name = section_name
             self._propertiesView.show_remove_button(False)
-            self._propertiesView.show_defaults_button(
-                not self._model.default_properties_equals_properties(section_name))
+            self._propertiesView.show_defaults_button(not self.model.default_properties_equals_properties(section_name))
             self._propertiesView.tkraise()
 
     def on_property_select(self, section_name, property_name):
         from qiskit_aqua.parser import JSONSchema
-        self._propertiesView.show_remove_button(property_name != JSONSchema.NAME)
+        _show_remove = property_name != JSONSchema.PROVIDER and property_name != JSONSchema.NAME \
+            if section_name == JSONSchema.BACKEND else property_name != JSONSchema.NAME
+        self._propertiesView.show_remove_button(_show_remove)
 
     def on_section_add(self, section_name):
         try:
@@ -262,7 +242,7 @@ class Controller(object):
             if len(section_name) == 0:
                 return False
 
-            self._model.set_section(section_name)
+            self.model.set_section(section_name)
             missing = self.get_sections_names_missing()
             self._sectionsView.show_add_button(True if missing else False)
         except Exception as e:
@@ -273,7 +253,7 @@ class Controller(object):
 
     def validate_section_add(self, section_name):
         try:
-            if section_name in self._model.get_section_names():
+            if section_name in self.model.get_section_names():
                 return'Duplicate section name'
         except Exception as e:
             return e.message
@@ -283,7 +263,7 @@ class Controller(object):
     def on_section_remove(self, section_name):
         try:
             self._sectionsView.show_remove_button(False)
-            self._model.delete_section(section_name)
+            self.model.delete_section(section_name)
             missing = self.get_sections_names_missing()
             self._sectionsView.show_add_button(True if missing else False)
             self._sectionView_title.set('')
@@ -298,7 +278,7 @@ class Controller(object):
 
     def on_section_defaults(self, section_name):
         try:
-            self._model.set_default_properties_for_name(section_name)
+            self.model.set_default_properties_for_name(section_name)
             self.on_section_select(section_name)
             return True
         except Exception as e:
@@ -308,16 +288,16 @@ class Controller(object):
 
     def get_sections_names_missing(self):
         try:
-            section_names = self._model.get_section_names()
-            default_sections = self._model.get_default_sections()
+            section_names = self.model.get_section_names()
+            default_sections = self.model.get_default_sections()
             return list(set(default_sections.keys()) - set(section_names))
         except Exception as e:
             self._outputView.write_line(str(e))
 
     def get_property_names_missing(self, section_name):
         try:
-            properties = self._model.get_section_properties(section_name)
-            default_properties = self._model.get_section_default_properties(
+            properties = self.model.get_section_properties(section_name)
+            default_properties = self.model.get_section_default_properties(
                 section_name)
             if default_properties is None:
                 return None
@@ -326,7 +306,7 @@ class Controller(object):
             self._outputView.write_line(str(e))
 
     def shows_add_button(self, section_name):
-        if self._model.allows_additional_properties(section_name):
+        if self.model.allows_additional_properties(section_name):
             return True
 
         missing = self.get_property_names_missing(section_name)
@@ -334,7 +314,7 @@ class Controller(object):
 
     def on_property_add(self, section_name, property_name):
         try:
-            value = self._model.get_property_default_value(section_name, property_name)
+            value = self.model.get_property_default_value(section_name, property_name)
             if value is None:
                 value = ''
 
@@ -347,21 +327,19 @@ class Controller(object):
     def on_property_set(self, section_name, property_name, value):
         from qiskit_aqua.parser import JSONSchema
         try:
-            self._model.set_section_property(section_name, property_name, value)
+            self.model.set_section_property(section_name, property_name, value)
         except Exception as e:
             messagebox.showerror("Error", str(e))
             return False
 
         try:
-            self._propertiesView.populate(
-                self._model.get_section_properties(section_name))
-            self._propertiesView.show_add_button(
-                self.shows_add_button(section_name))
-            self._propertiesView.show_remove_button(
-                property_name != JSONSchema.NAME and self._propertiesView.has_selection())
-            self._propertiesView.show_defaults_button(
-                not self._model.default_properties_equals_properties(section_name))
-            section_names = self._model.get_section_names()
+            self._propertiesView.populate(self.model.get_section_properties(section_name))
+            self._propertiesView.show_add_button(self.shows_add_button(section_name))
+            _show_remove = property_name != JSONSchema.PROVIDER and property_name != JSONSchema.NAME \
+                if section_name == JSONSchema.BACKEND else property_name != JSONSchema.NAME
+            self._propertiesView.show_remove_button(_show_remove and self._propertiesView.has_selection())
+            self._propertiesView.show_defaults_button(not self.model.default_properties_equals_properties(section_name))
+            section_names = self.model.get_section_names()
             self._sectionsView.populate(section_names, section_name)
             missing = self.get_sections_names_missing()
             self._sectionsView.show_add_button(True if missing else False)
@@ -373,8 +351,7 @@ class Controller(object):
 
     def validate_property_add(self, section_name, property_name):
         try:
-            value = self._model.get_section_property(
-                section_name, property_name)
+            value = self.model.get_section_property(section_name, property_name)
             if value is not None:
                 return 'Duplicate property name'
         except Exception as e:
@@ -384,22 +361,20 @@ class Controller(object):
 
     def on_section_property_remove(self, section_name, property_name):
         try:
-            self._model.delete_section_property(section_name, property_name)
+            self.model.delete_section_property(section_name, property_name)
             self._propertiesView.populate(
-                self._model.get_section_properties(section_name))
+                self.model.get_section_properties(section_name))
             self._propertiesView.show_add_button(
                 self.shows_add_button(section_name))
             self._propertiesView.show_remove_button(False)
-            self._propertiesView.show_defaults_button(
-                not self._model.default_properties_equals_properties(section_name))
+            self._propertiesView.show_defaults_button(not self.model.default_properties_equals_properties(section_name))
         except Exception as e:
             self._outputView.write_line(str(e))
 
     def on_text_set(self, section_name, value):
         try:
-            self._model.set_section_text(section_name, value)
-            self._textView.show_defaults_button(
-                not self._model.default_properties_equals_properties(section_name))
+            self.model.set_section_text(section_name, value)
+            self._textView.show_defaults_button(not self.model.default_properties_equals_properties(section_name))
         except Exception as e:
             self._outputView.write_line(str(e))
             return False
@@ -410,14 +385,22 @@ class Controller(object):
         from qiskit_aqua.parser import JSONSchema
         values = None
         types = ['string']
+        combobox_state = 'readonly'
         if JSONSchema.NAME == property_name and Model.is_pluggable_section(section_name):
-            values = self._model.get_pluggable_section_names(section_name)
-        elif JSONSchema.BACKEND == section_name and JSONSchema.NAME == property_name:
-            values = self._available_backends
+            values = self.model.get_pluggable_section_names(section_name)
+        elif JSONSchema.BACKEND == section_name and \
+                (JSONSchema.NAME == property_name or JSONSchema.PROVIDER == property_name):
+            values = []
+            if JSONSchema.PROVIDER == property_name:
+                combobox_state = 'normal'
+                for provider, _ in self.model.providers.items():
+                    values.append(provider)
+            else:
+                provider_name = self.model.get_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER)
+                values = self.model.providers.get(provider_name, [])
         else:
-            values = self._model.get_property_default_values(
-                section_name, property_name)
-            types = self._model.get_property_types(section_name, property_name)
+            values = self.model.get_property_default_values(section_name, property_name)
+            types = self.model.get_property_types(section_name, property_name)
 
         if values is not None:
             value = '' if value is None else str(value)
@@ -426,7 +409,7 @@ class Controller(object):
                                    property_name,
                                    parent,
                                    exportselection=0,
-                                   state='readonly',
+                                   state=combobox_state,
                                    values=values)
             widget._text = value
             if len(values) > 0:
@@ -473,7 +456,7 @@ class Controller(object):
         return widget
 
     def toggle(self):
-        if self._model.is_empty():
+        if self.model.is_empty():
             self._outputView.write_line("Missing Input")
             return
 
@@ -486,7 +469,7 @@ class Controller(object):
             if self._command is Controller._START:
                 self._outputView.clear()
                 self._thread = AlgorithmThread(
-                    self._model, self._outputView, self._thread_queue)
+                    self.model, self._outputView, self._thread_queue)
                 self._thread.daemon = True
                 self._thread.start()
             else:
@@ -559,7 +542,7 @@ class AlgorithmThread(threading.Thread):
 
     def __init__(self, model, output, queue):
         super(AlgorithmThread, self).__init__(name='Algorithm run thread')
-        self._model = model
+        self.model = model
         self._output = output
         self._thread_queue = queue
         self._popen = None
@@ -590,12 +573,12 @@ class AlgorithmThread(threading.Thread):
             algorithms_directory = os.path.dirname(os.path.realpath(__file__))
             algorithms_directory = os.path.abspath(
                 os.path.join(algorithms_directory, '../../qiskit_aqua_cmd'))
-            input_file = self._model.get_filename()
-            if input_file is None or self._model.is_modified():
+            input_file = self.model.get_filename()
+            if input_file is None or self.model.is_modified():
                 fd, input_file = tempfile.mkstemp(suffix='.in')
                 os.close(fd)
                 temp_input = True
-                self._model.save_to_file(input_file)
+                self.model.save_to_file(input_file)
 
             startupinfo = None
             process_name = psutil.Process().exe()

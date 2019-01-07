@@ -24,7 +24,8 @@ import copy
 from qiskit_aqua import (local_pluggables_types,
                          PluggableType,
                          get_pluggable_configuration,
-                         local_pluggables)
+                         local_pluggables,
+                         get_backends_from_provider)
 from .jsonschema import JSONSchema
 
 logger = logging.getLogger(__name__)
@@ -34,7 +35,8 @@ class InputParser(object):
     """JSON input Parser."""
 
     _UNKNOWN = 'unknown'
-    _PROPERTY_ORDER = [JSONSchema.NAME, _UNKNOWN]
+    _DEFAULT_PROPERTY_ORDER = [JSONSchema.NAME, _UNKNOWN]
+    _BACKEND_PROPERTY_ORDER = [JSONSchema.PROVIDER, JSONSchema.NAME, _UNKNOWN]
 
     def __init__(self, input=None):
         """Create InputParser object."""
@@ -64,16 +66,16 @@ class InputParser(object):
 
     def _order_sections(self, sections):
         sections_sorted = OrderedDict(sorted(list(sections.items()),
-                                             key=lambda x: self._section_order.index(
-                                                 x[0])
+                                             key=lambda x: self._section_order.index(x[0])
                                              if x[0] in self._section_order else self._section_order.index(InputParser._UNKNOWN)))
 
         for section, properties in sections_sorted.items():
             if isinstance(properties, dict):
+                _property_order = InputParser._BACKEND_PROPERTY_ORDER if section == JSONSchema.BACKEND else InputParser._DEFAULT_PROPERTY_ORDER
                 sections_sorted[section] = OrderedDict(sorted(list(properties.items()),
-                                                              key=lambda x: InputParser._PROPERTY_ORDER.index(
-                                                                  x[0])
-                                                              if x[0] in InputParser._PROPERTY_ORDER else InputParser._PROPERTY_ORDER.index(InputParser._UNKNOWN)))
+                                                              key=lambda x: _property_order.index(x[0])
+                                                              if x[0] in _property_order
+                                                              else _property_order.index(InputParser._UNKNOWN)))
 
         return sections_sorted
 
@@ -86,6 +88,7 @@ class InputParser(object):
             with open(self._filename) as json_file:
                 self._sections = json.load(json_file)
 
+        self._json_schema.update_backend_schema()
         self._json_schema.update_pluggable_input_schemas(self)
         self._update_algorithm_input_schema()
         self._sections = self._order_sections(self._sections)
@@ -251,6 +254,7 @@ class InputParser(object):
             if JSONSchema.PROBLEM not in section_names:
                 self.set_section(JSONSchema.PROBLEM)
 
+        self._json_schema.update_backend_schema()
         self._json_schema.update_pluggable_input_schemas(self)
         self._update_algorithm_input_schema()
         self._merge_dependencies()
@@ -428,6 +432,7 @@ class InputParser(object):
 
         # update schema
         self._json_schema.rollback_changes()
+        self._json_schema.update_backend_schema()
         self._json_schema.update_pluggable_input_schemas(self)
         self._update_algorithm_input_schema()
 
@@ -443,42 +448,40 @@ class InputParser(object):
         types = self.get_property_types(section_name, property_name)
 
         sections_temp = copy.deepcopy(self._sections)
-        InputParser._set_section_property(
-            sections_temp, section_name, property_name, value, types)
-        msg = self._json_schema.validate_property(
-            sections_temp, section_name, property_name)
+        InputParser._set_section_property(sections_temp, section_name, property_name, value, types)
+        msg = self._json_schema.validate_property(sections_temp, section_name, property_name)
         if msg is not None:
-            raise AquaError("{}.{}: Value '{}': '{}'".format(
-                section_name, property_name, value, msg))
+            raise AquaError("{}.{}: Value '{}': '{}'".format(section_name, property_name, value, msg))
 
-        InputParser._set_section_property(
-            self._sections, section_name, property_name, value, types)
+        # check if this provider is loadable and valid
+        if JSONSchema.BACKEND == section_name and property_name == JSONSchema.PROVIDER:
+            get_backends_from_provider(value)
+
+        InputParser._set_section_property(self._sections, section_name, property_name, value, types)
         if property_name == JSONSchema.NAME:
             if PluggableType.INPUT.value == section_name:
                 self._update_algorithm_input_schema()
                 # remove properties that are not valid for this section
-                default_properties = self.get_section_default_properties(
-                    section_name)
+                default_properties = self.get_section_default_properties(section_name)
                 if isinstance(default_properties, dict):
                     properties = self.get_section_properties(section_name)
                     for property_name in list(properties.keys()):
                         if property_name != JSONSchema.NAME and property_name not in default_properties:
-                            self.delete_section_property(
-                                section_name, property_name)
+                            self.delete_section_property(section_name, property_name)
             elif JSONSchema.PROBLEM == section_name:
                 self._update_algorithm_problem()
                 self._update_input_problem()
+            elif JSONSchema.BACKEND == section_name:
+                self._json_schema.update_backend_schema()
             elif InputParser.is_pluggable_section(section_name):
                 self._json_schema.update_pluggable_input_schemas(self)
                 # remove properties that are not valid for this section
-                default_properties = self.get_section_default_properties(
-                    section_name)
+                default_properties = self.get_section_default_properties(section_name)
                 if isinstance(default_properties, dict):
                     properties = self.get_section_properties(section_name)
                     for property_name in list(properties.keys()):
                         if property_name != JSONSchema.NAME and property_name not in default_properties:
-                            self.delete_section_property(
-                                section_name, property_name)
+                            self.delete_section_property(section_name, property_name)
 
                 if section_name == PluggableType.ALGORITHM.value:
                     self._update_dependency_sections()
