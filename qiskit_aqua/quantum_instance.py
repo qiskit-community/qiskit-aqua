@@ -16,7 +16,9 @@
 # =============================================================================
 
 import logging
+
 from qiskit import __version__ as terra_version
+from qiskit.providers.ibmq import IBMQProvider
 try:
     from qiskit.providers.aer import AerProvider
     HAS_AER = True
@@ -117,8 +119,11 @@ class QuantumInstance:
         self._qjob_config = {'timeout': timeout} if self.is_local \
             else {'timeout': timeout, 'wait': wait}
 
-        self._backend_options = {} if backend_options is None \
-            else {'backend_options': backend_options}
+        if isinstance(self._backend.provider(), IBMQProvider):
+            logger.info("backend_options can not used with the backends in IBMQ provider.")
+        else:
+            self._backend_options = {} if backend_options is None \
+                else {'backend_options': backend_options}
 
         self._shared_circuits = False
         self._circuit_summary = False
@@ -171,13 +176,16 @@ class QuantumInstance:
             elif k in QuantumInstance.BACKEND_CONFIG:
                 self._backend_config[k] = v
             elif k in QuantumInstance.BACKEND_OPTIONS:
-                if k in QuantumInstance.BACKEND_OPTIONS_QASM_ONLY and self.is_statevector:
-                    logger.info("'{}' is only applicable for qasm simulator but "
-                                "statevector simulator is used. Skip the setting.")
+                if isinstance(self._backend.provider(), IBMQProvider):
+                    logger.info("backend_options can not used with the backends in IBMQ provider.")
                 else:
-                    if 'backend_options' not in self._backend_options:
-                        self._backend_options['backend_options'] = {}
-                    self._backend_options['backend_options'][k] = v
+                    if k in QuantumInstance.BACKEND_OPTIONS_QASM_ONLY and self.is_statevector:
+                        logger.info("'{}' is only applicable for qasm simulator but "
+                                    "statevector simulator is used. Skip the setting.")
+                    else:
+                        if 'backend_options' not in self._backend_options:
+                            self._backend_options['backend_options'] = {}
+                        self._backend_options['backend_options'][k] = v
             elif k in QuantumInstance.NOISE_CONFIG:
                 self._noise_config[k] = v
             else:
