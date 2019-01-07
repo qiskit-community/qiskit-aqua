@@ -50,7 +50,7 @@
                     "default": false
                 },
                 "coupling_map": {
-                    "type": ["object", "null"],
+                    "type": ["array", "null"],
                     "default": null
                 },
                 "basis_gates": {
