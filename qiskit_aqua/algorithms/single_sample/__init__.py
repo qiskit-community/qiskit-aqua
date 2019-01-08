@@ -18,7 +18,11 @@
 from .grover.grover import Grover
 from .iqpe.iqpe import IQPE
 from .qpe.qpe import QPE
+from .qpe.phase_estimation import PhaseEstimation
+from .ae.ae import AmplitudeEstimation
 
 __all__ = ['Grover',
            'IQPE',
-           'QPE']
+           'QPE',
+           'PhaseEstimation',
+           'AmplitudeEstimation']

@@ -1,150 +1,112 @@
 # Qiskit Aqua
 
-This README file presents a quick overview of Qiskit Aqua, with brief installation, setup and execution
-instructions.  Please refer to the [Aqua documentation](https://qiskit.org/documentation/aqua/) for a detailed
-presentation of Aqua and its components and capabilities, as well as step-by-step installation and
-execution instructions.
+[![License](https://img.shields.io/github/license/Qiskit/qiskit-aqua.svg?style=popout-square)](https://opensource.org/licenses/Apache-2.0)[![Build Status](https://img.shields.io/travis/com/Qiskit/qiskit-aqua/master.svg?style=popout-square)](https://travis-ci.com/Qiskit/qiskit-aqua)[![](https://img.shields.io/github/release/Qiskit/qiskit-aqua.svg?style=popout-square)](https://github.com/Qiskit/qiskit-aqua/releases)[![](https://img.shields.io/pypi/dm/qiskit-aqua.svg?style=popout-square)](https://pypi.org/project/qiskit-aqua/)
 
-Qiskit Algorithms for Quantum Applications (Qiskit Aqua) is a library of algorithms for quantum computing
-that uses [Qiskit Terra](https://qiskit.org/terra) to build out, compile and run quantum circuits.
+**Qiskit** is an open-source framework for working with noisy intermediate-scale quantum computers (NISQ) at the level of pulses, circuits, algorithms, and applications.
 
+Qiskit is made up elements that work together to enable quantum computing. This element is **Aqua**.
 Aqua provides a library of cross-domain algorithms upon which domain-specific applications can be
-built. At the time of writing, [Aqua Chemistry](https://github.com/Qiskit/aqua-chemistry) has
+built. [Qiskit Chemistry](https://github.com/Qiskit/qiskit-chemistry) has
 been created to utilize Aqua for quantum chemistry computations. Aqua is also showcased for other
-domains with both code and notebook examples, such as
-[Aqua Optimization](https://github.com/Qiskit/aqua-tutorials/tree/master/optimization) and
-[Aqua Artificial Intelligence](https://github.com/Qiskit/aqua-tutorials/tree/master/artificial_intelligence).
+domains, such as Optimization, Artificial Intelligence, and
+Finance, with both code and notebook examples available in the
+[qiskit/aqua](https://github.com/Qiskit/qiskit-tutorials/tree/master/qiskit/aqua)
+and [community/aqua](https://github.com/Qiskit/qiskit-tutorials/tree/master/community/aqua)
+folders of the [qiskit-tutorials GitHub Repository](https://github.com/Qiskit/qiskit-tutorials).  
 
 Aqua was designed to be extensible, and uses a pluggable framework where algorithms and support objects used
-by algorithms, such as optimizers, variational forms, and oracles, are derived from a defined base class for the type and
+by algorithms—such as optimizers, variational forms, and oracles—are derived from a defined base class for the type and
 discovered dynamically at run time.
-
-**If you'd like to contribute to Aqua, please take a look at our**
-[contribution guidelines](.github/CONTRIBUTING.rst).
-
-Links to Sections:
-
-* [Installation](#installation)
-* [Running an Algorithm](#running-an-algorithm)
-* [Authors](#authors)
 
 ## Installation
 
-### Dependencies
+We encourage installing Qiskit Aqua via the pip tool (a python package manager):
 
-Aqua is built upon [Qiskit Terra](https://qiskit.org/terra).  Therefore, you are encouraged to look over the
-[Qiskit Terra installation instructions](https://github.com/Qiskit/qiskit-terra/blob/master/README.md#installation)
-too.
-
-Just like for Terra, at least [Python 3.5 or later](https://www.python.org/downloads/) is needed to use Aqua.
-In addition, [Jupyter Notebook](https://jupyter.readthedocs.io/en/latest/install.html) is recommended for interacting
-with the tutorials. For this reason we recommend installing the [Anaconda 3](https://www.continuum.io/downloads)
-Python distribution, as it comes with all of these dependencies pre-installed.
-
-### Getting the Code
-
-We encourage you to install Aqua via the [pip](https://pip.pypa.io/en/stable/) Python package management tool:
-
-```
+```bash
 pip install qiskit-aqua
 ```
 
-pip will handle all dependencies automatically and you will always install the latest (and well-tested) release version.
+pip will handle all dependencies automatically for you, including the other Qiskit elements on which
+Aqua is built, such as [Qiskit Terra](https://github.com/Qiskit/qiskit-terra/),
+and you will always install the latest (and well-tested) version.
 
-If, however, your goal is not to use Aqua as a tool, but rather to contribute new components to Aqua, then we recommend 
-cloning this repository.  This will give you a more direct access to the code.  In any case, we recommend using Python virtual 
-environments to improve your experience.
+To install from source, follow the instructions in the [contribution guidelines](.github/CONTRIBUTING.rst).
 
-## Running an Algorithm
+## Creating Your First Quantum Program in Qiskit Aqua
 
-Now that you have installed Aqua, you can execute an algorithm. This can be done [programmatically](#programming) or using a 
-[JSON](http://json.org/) file as an input. Whether via dictionary or via JSON, the input is validated for correctness against
-schemas. 
- 
-JSON is convenient when the algorithm input has been saved in this form from a prior run. A file containing a saved
-JSON input can be given to either the [GUI](#gui) or the [command line](#command-line) tool in order to run
-the algorithm.
- 
-One simple way to generate such JSON input is by serializing the input to Aqua when executing one of the
-applications running on top of Aqua, such as Aqua Chemistry, Aqua AI or Aqua Optimization. The GUI also saves any entered 
-configuration in JSON.
-
-The [documentation](https://qiskit.org/documentation/aqua/) contains detailed information on the various parameters for each
-algorithm along with links to the respective components they use.
- 
-
-### GUI
-
-The Aqua GUI allows you to load and save a JSON file to run an algorithm, as well as create a new one or edit
-an existing one. Using the GUI, you can alter the parameters of an algorithm and/or its dependent
-objects to see how the changes affect the outcome. If you installed Aqua via the pip tool, a script will be present on
-your system allowing you to start the GUI from the command line, as follows:
+Now that Qiskit Aqua is installed, it's time to begin working with it.  We are ready to try out an experiment using Qiskit Aqua:
 
 ```
-qiskit_aqua_ui
+$ python
 ```
 
-If you installed Aqua by cloning this repository directly, instead of using the pip tool, then the GUI can
-be run from the root folder of the qiskit-aqua repository clone, using the following command:
-
-```
-python qiskit_aqua/ui/run
-```
-
-Configuring an experiment that involves both quantum-computing and domain-specific parameters may look like a 
-challenging activity, which requires specialized knowledge on both the specific domain in which the experiment runs and
-quantum computing itself. Aqua simplifies the configuration of any run in two ways:
-
-1.  Defaults are provided for each parameter. Such defaults have been validated to be the best choices in most cases.
-2.  Robust configuration correctness enforcement mechanisms are in place. The input parameters are always schema
-    validated by Aqua when attempting to run an algorithm. When using the GUI to configure an experiment,
-    the GUI itself prevents incompatible parameters from being selected.
-
-### Command Line
-
-The command line tool will run an algorithm from the supplied JSON file. Run without any arguments, it will print help
-information. The pip installation creates a script, `qiskit_aqua_cmd`, which can be invoked with a JSON algorithm input file from the command line, for example as follows:
-
-```
-qiskit_aqua_cmd examples/H2-0.735.json
+```python
+>>> from qiskit import Aer
+>>> from qiskit_aqua.components.oracles import SAT
+>>> from qiskit_aqua.algorithms import Grover
+>>> sat_cnf = """
+>>> c Example DIMACS 3-sat
+>>> p cnf 3 5
+>>> -1 -2 -3 0
+>>> 1 -2 3 0
+>>> 1 2 -3 0
+>>> 1 -2 -3 0
+>>> -1 2 3 0
+>>> """
+>>> backend = Aer.get_backend('qasm_simulator')
+>>> oracle = SAT(sat_cnf)
+>>> algorithm = Grover(oracle)
+>>> result = algorithm.run(backend)
+>>> print(result["result"])
 ```
 
-If you installed Aqua by cloning this repository directly, instead of using the pip tool, then the command line tool can be
-run from the root folder of the qiskit-aqua repository clone using the following command:
+The code above demonstrates how Grover’s search algorithm can be used in conjunction with the
+Satisfiability (SAT) oracle to compute one of the many possible solutions of a Conjunctive Normal
+Form (CNF).  Variable `sat_cnf` corresponds to the following CNF:
 
-```
-python qiskit_aqua
-```
+(&not;<i>x</i><sub>1</sub> &or; &not;<i>x</i><sub>2</sub> &or; &not;<i>x</i><sub>3</sub>) &and;
+(<i>x</i><sub>1</sub> &or; &not;<i>x</i><sub>2</sub> &or; <i>x</i><sub>3</sub>) &and;
+(<i>x</i><sub>1</sub> &or; <i>x</i><sub>2</sub> &or; &not;<i>x</i><sub>3</sub>) &and;
+(<i>x</i><sub>1</sub> &or; &not;<i>x</i><sub>2</sub> &or; &not;<i>x</i><sub>3</sub>) &and;
+(&not;<i>x</i><sub>1</sub> &or; <i>x</i><sub>2</sub> &or; <i>x</i><sub>3</sub>)  
 
-### Browser
+The Python code above prints out one possible solution for this CNF. For example, output `1, -2, 3` indicates
+that logical expression (<i>x</i><sub>1</sub> &or; &not;<i>x</i><sub>2</sub> &or; <i>x</i><sub>3</sub>)
+satisfies the given CNF.
 
-Since Aqua is extensible with pluggable components, we have provided a documentation GUI that shows all the
-pluggable components along with the schema for their parameters. The pip installation creates a script to invoke the
-browser GUI as follows:
+You can also use Qiskit to execute your code on a **real quantum chip**.
+In order to do so, you need to configure Qiskit to use the credentials in
+your [IBM Q](https://quantumexperience.ng.bluemix.net) account.
+Please consult the relevant instructions in the
+[Qiskit Terra GitHub repository](https://github.com/Qiskit/qiskit-terra/blob/master/README.md#executing-your-code-on-a-real-quantum-chip)
+for more details.  
 
-```
-qiskit_aqua_browser
-```
+## Contribution Guidelines
 
-If you installed Aqua by cloning this repository directly, instead of using the pip tool, then the documentation GUI can be 
-run from the root folder of the qiskit-aqua repository clone using the following command:
+If you'd like to contribute to Qiskit, please take a look at our
+[contribution guidelines](.github/CONTRIBUTING.rst). This project adheres to Qiskit's [code of conduct](.github/CODE_OF_CONDUCT.rst). By participating, you are expected to uphold to this code.
 
-```
-python qiskit_aqua/ui/browser
-```
+We use [GitHub issues](https://github.com/Qiskit/qiskit-aqua/issues) for tracking requests and bugs. Please
+[join the Qiskit Slack community](https://join.slack.com/t/qiskit/shared_invite/enQtNDc2NjUzMjE4Mzc0LTMwZmE0YTM4ZThiNGJmODkzN2Y2NTNlMDIwYWNjYzA2ZmM1YTRlZGQ3OGM0NjcwMjZkZGE0MTA4MGQ1ZTVmYzk)
+and use the [Aqua Slack channel](https://qiskit.slack.com/messages/aqua)
+for discussion and simple questions.
+For questions that are more suited for a forum, we use the **Qiskit** tag in [Stack Overflow](https://stackoverflow.com/questions/tagged/qiskit).
 
-### Programming
+## Next Steps
 
-Any algorithm in Aqua can be run programmatically too. The aqua folder in the
-[aqua-tutorials GitHub repository](https://github.com/Qiskit/aqua-tutorials/tree/master/aqua) contains numerous
-examples that demonstrate how to do this. As you can see, Aqua exposes a `run_algorithm` method, which takes either
-the JSON algorithm input or an equivalent Python dictionary and optional `AlgorithmInput` object for the algorithm.
-There is also a `run_algorithm_to_json` method that simply takes the input and saves it to JSON in a self-contained form,
-which can later be used by the command line or GUI.
+Now you're set up and ready to check out some of the other examples from the
+[qiskit/aqua](https://github.com/Qiskit/qiskit-tutorials/tree/master/qiskit/aqua)
+and [community/aqua](https://github.com/Qiskit/qiskit-tutorials/tree/master/community/aqua)
+folders of the [qiskit-tutorials GitHub Repository](https://github.com/Qiskit/qiskit-tutorials).
 
 ## Authors
 
 Aqua was inspired, authored and brought about by the collective work of a team of researchers.
-
-Aqua continues now to grow with the help and work of [many people](./CONTRIBUTORS.rst), who contribute
+Aqua continues to grow with the help and work of [many people](./CONTRIBUTORS.rst), who contribute
 to the project at different levels.
+
+## License
+
+[Apache License 2.0](LICENSE.txt)
+
+

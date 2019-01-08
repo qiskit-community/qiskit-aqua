@@ -28,6 +28,7 @@ class TestCplexIsing(QiskitAquaTestCase):
     """Cplex Ising tests."""
 
     def setUp(self):
+        super().setUp()
         np.random.seed(8123179)
         self.w = maxcut.random_graph(4, edge_prob=0.5, weight_range=10)
         self.qubit_op, self.offset = maxcut.get_maxcut_qubitops(self.w)
@@ -59,5 +60,5 @@ class TestCplexIsing(QiskitAquaTestCase):
             np.testing.assert_array_equal(
                 maxcut.get_graph_solution(x), [1, 0, 1, 1])
             self.assertEqual(maxcut.maxcut_value(x, self.w), 24)
-        except ImportError as e:
+        except AquaError as e:
             self.skipTest(str(e))

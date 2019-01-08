@@ -26,7 +26,7 @@ by providing new components, which will be automatically discovered and loaded b
 Dynamically Discovered Components
 ---------------------------------
 
-Each component should derive from the corresponding base class, as explained below.  There are three
+Each component should derive from the corresponding base class, as explained below.  There are two
 ways for a component to be dynamically discovered and loaded by Aqua at run time:
 
 1. The class implementing the component should be placed in the appropriate folder in the file system,
@@ -38,57 +38,24 @@ ways for a component to be dynamically discovered and loaded by Aqua at run time
 
 2. Alternatively, a developer extending Aqua with a new component can simply create a dedicated
    repository with its own versioning.  This repository must be locally installable with the package that was
-   created.  Once the repository has been installed, for example via the ``pip install -e`` command,
-   the user can access the
-   Aqua `Graphical User Interface (GUI) <#aqua-gui>`__
-   and add the package's name to the list of packages in the **Preferences** panel.
-   From that moment on, any custom component found below that package will be dynamically added to
-   ``aqua`` upon initialization.
-
-3. There is yet another way to achieve the same goal, and it simply consists of customizing the
-   ``setup.py`` file of the new component in order to add the package's name to ``aqua``
-   when someone installs the package, without the need of using the GUI to enter it later.  This is an example
-   of what ``setup.py`` would look like:
+   created. It simply consists of customizing the ``setup.py`` adding the entry points for ``qiskit.aqua.pluggables`` as shown below.
+   The format is: ``anyname = full_package:class_name``. Each class must be included separately.
+   When someone installs the package, the extensions will be automatically registered:
 
    .. code:: python
 
        import setuptools
-       from setuptools.command.install import install
-       from setuptools.command.develop import develop
-       from setuptools.command.egg_info import egg_info
-       import atexit
 
        long_description = """New Package for Aqua Component"""
     
        requirements = [
-          "aqua>=0.3.0",
-          "qiskit>=0.6.0",
+          "qiskit-aqua>=0.4.1",
+          "qiskit-terra>=0.7.0,<0.8",
           "numpy>=1.13"
        ]
-
-       def _post_install():
-          from qiskit_aqua.preferences import Preferences
-          preferences = Preferences()
-          preferences.add_package('aqua_custom_component_package')
-          preferences.save()
-
-       class CustomInstallCommand(install):
-          def run(self):
-          atexit.register(_post_install)
-          install.run(self)
-        
-       class CustomDevelopCommand(develop):
-          def run(self):
-          atexit.register(_post_install)
-          develop.run(self)
-        
-       class CustomEggInfoCommand(egg_info):
-          def run(self):
-          atexit.register(_post_install)
-          egg_info.run(self)
     
        setuptools.setup(
-          name = 'acqua_custom_component_package',
+          name = 'aqua_custom_component_package',
           version = "0.1.0", # this should match __init__.__version__
           description='Aqua Component',
           long_description = long_description,
@@ -114,11 +81,12 @@ ways for a component to be dynamically discovered and loaded by Aqua at run time
           install_requires = requirements,
           include_package_data = True,
           python_requires = ">=3.5",
-          cmdclass = {
-             'install': CustomInstallCommand,
-             'develop': CustomDevelopCommand,
-             'egg_info': CustomEggInfoCommand
-          }
+          entry_points={
+               'qiskit.aqua.pluggables': [
+                     'MyInitialState = qiskit_aqua_custom_component_package:MyInitialStateClass',
+                     'MyVarForm = qiskit_aqua_custom_component_package:MyVarFormClass',
+               ],
+         },
        )
 
 .. note::
@@ -156,7 +124,7 @@ Optimizers
 
 New `optimizers <#optimizers>`__ for quantum variational algorithms
 should and derive from
-the ``Optimizer`` class.  They should also be installed in the ``qiskit_aqua/algorithms/components/optimizers`` folder
+the ``Optimizer`` class.  They should also be installed in the ``qiskit_aqua/components/optimizers`` folder
 of the ``aqua`` repository clone,
 unless the dynamic-discovery approach has been
 chosen, in which case a new optimizer can register itself as an Aqua optimizer irrespective of its installation
@@ -170,7 +138,7 @@ Variational Forms
 
 `Trial wave functions <#variational_forms>`__ for quantum variational algorithms, such as
 `VQE <#variational-quantum-eigensolver-vqe>`__ must derive from the ``VariationalForm`` class.
-They should also be installed under the ``qiskit_aqua/algorithms/components/variational_forms`` folder
+They should also be installed under the ``qiskit_aqua/components/variational_forms`` folder
 unless the dynamic-discovery approach has been
 chosen, in which case a new trial wave function can register itself as an Aqua variational form irrespective of its installation
 folder in the file system.
@@ -183,7 +151,7 @@ Oracles
 
 `Oracles <#oracles>`__, for use with algorithms such as `Grover's search <#quantum-grover-search>`__,
 should derive from the ``Oracle`` class.  They should also go under the
-``qiskit_aqua/algorithms/components/oracles`` folder,
+``qiskit_aqua/components/oracles`` folder,
 unless the dynamic-discovery approach has been
 chosen, in which case a new oracle can register itself as an Aqua oracle irrespective of its installation
 folder in the file system.
@@ -195,7 +163,7 @@ Inverse Quantum Fourier Transforms (IQFTs)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 `IQFTs <#iqfts>`__, for use for example for `QPE <#quantum-phase-estimation-qpe>`__, must derive from the ``IQFT`` class.
-They should also be installed  under the ``qiskit_aqua/algorithms/components/iqfts`` folder,
+They should also be installed  under the ``qiskit_aqua/components/iqfts`` folder,
 unless the dynamic-discovery approach has been
 chosen, in which case a new IQFT can register itself as an Aqua IQFT irrespective of its installation
 folder in the file system.
@@ -209,7 +177,7 @@ Initial States
 `Initial states <#initial_states>`__, for algorithms such as `VQE <#variational-quantum-eigensolver-vqe>`__,
 `QPE <#quantum-phase-estimation-qpe>`__
 and `IQPE <#iterative-quantum-phase-estimation-iqpe>`__, must derive from the ``InitialState`` class.
-They should also be installed under the ``qiskit_aqua/algorithms/components/initial_states`` folder,
+They should also be installed under the ``qiskit_aqua/components/initial_states`` folder,
 unless the dynamic-discovery approach has been
 chosen, in which case a new initial state can register itself as an Aqua initial state irrespective of its installation
 folder in the file system.

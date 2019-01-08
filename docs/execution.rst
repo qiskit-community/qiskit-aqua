@@ -76,7 +76,7 @@ install``, then the script above will not be present and the launching command s
 
 .. code:: sh
 
-   python qiskit_aqua/ui/run
+   python qiskit_aqua_ui/run
 
 This command must be launched from the root folder of the ``qiskit-aqua`` repository clone.
 
@@ -103,7 +103,7 @@ instead of using ``pip install``, then the command-line interface can be execute
 
 .. code:: sh
 
-   python qiskit_aqua
+   python qiskit_aqua_cmd
 
 from the root folder of the ``qiskit-aqua`` repository clone.
 
@@ -177,7 +177,7 @@ Aqua documentation UI can be launched as follows:
 
 .. code:: sh
 
-   python qiskit_aqua/ui/browser
+   python qiskit_aqua_ui/browser
 
 from the root folder of the ``qiskit-aqua`` repository clone.
 
@@ -379,27 +379,26 @@ Aqua allows for configuring the *backend*, which is the quantum machine
 on which a quantum experiment will be run.
 This configuration requires specifying 
 the `Qiskit Terra <https://www.qiskit.org/terra>`__ quantum computational
-backend to be used for computation, which is done by assigning a ``str`` value to
-the ``"name"`` parameter of the ``"backend"`` section:
+provider and backend to be used for computation, which is done by assigning a ``str`` value to
+the ``"provider"`` and ``"name"`` parameters of the ``"backend"`` section:
 
 .. code:: python
 
+    "provider" : string
     "name" : string
 
+The value of the ``"provider"`` parameter indicates the full name of a class derived from ``"BaseProvider"`` 
+or global variable pointing to a instance of this class. 
 The value of the ``"name"`` parameter indicates either a real-hardware
-quantum computer or a quantum simulator.
-Terra comes
-with two predefined quantum device simulators: the *local state vector simulator* and
-the *local QASM simulator*, corresponding to the following two
-values for the ``"name"`` parameter: ``"statevector_simulator"`` (which
-is the default value for the ``"name"`` parameter) and ``"qasm_simulator"``, respectively.
-However, any suitable quantum backend can be selected, including
-a real quantum hardware device. The ``QConfig.py`` file
-needs to be setup for QISKit to access remote devices.  For this, it is sufficient to follow the
-`Terra installation instructions <https://qiskit.org/documentation/install.html#installation>`__.
-The Aqua `GUI <#aqua-gui>` greatly simplifies the
-configuration of ``QConfig.py`` via a user friendly interface,
+quantum computer or a quantum simulator accessed from the provider.
+Terra comes with two predefined providers: ``"qiskit.BasicAer"`` and  ``"qiskit.IBMQ"``.
+By installing ``"qiskit-aer"``, the ``"qiskit.Aer"`` provider gets included too.
+Each provider has its own set of simulators and ``"qiskit.IBMQ"`` gives access to real-hardware quantum 
+computer or simulators in the cloud.
+For the ``"qiskit.IBMQ"`` provider, you need to configure it with a token and possibly url proxies.
+The Aqua `GUI <#aqua-gui>` greatly simplifies it via a user friendly interface,
 accessible through the **Preferences...** menu item.
+Otherwise you need to configure programmatically using Qiskit Terra <https://www.qiskit.org/terra>` apis.
 
 .. topic:: Backend Configuration: Quantum vs. Classical Algorithms
 
@@ -448,31 +447,6 @@ requires setting the following parameters too:
        as if the quantum algorithm does not restrict itself to the set of basis
        gates supported by the backend, then the circuit will fail to run.
 
--  An optional dictionary can be supplied to control the backend's noise model:
-
-   .. code:: python
-
-       "noise_params" : dictionary
-
-   This is a Python dictionary consisting of key/value pairs.  Configuring it is optional; the default
-   value is ``None``.  The following is an example of such a dictionary that can be used:
-
-   .. code:: python
-
-      "noise_params": {"U": {"p_depol": 0.001,
-                             "p_pauli": [0, 0, 0.01],
-                             "gate_time": 1,
-                             "U_error": [ [[1, 0], [0, 0]]
-                                        ]
-                            }
-                      }
-
-   .. seealso::
-       The `Terra documentation on noise parameters
-       <https://github.com/Qiskit/qiskit-terra/tree/master/src/qasm-simulator-cpp#noise-parameters>`__
-       provides more details on the configuration of the noise model for the backend.
-
-
 -  An optional list can be supplied to setup the backend's coupling map:
 
    .. code:: python
@@ -486,6 +460,18 @@ requires setting the following parameters too:
 
       "coupling_map": [[0, 1], [0, 2], [1, 2], [3, 2], [3, 4], [4, 2]]
 
+-  An optional string can be supplied to the basis gates:
+
+   .. code:: python
+
+       "basis_gates" : string
+
+   This is a Python string consisting of basis gates, where are separated by comma.  Configuring it is optional; the default value is ``None``.
+   ``None`` denotes using the basis gates in the selected backend. The following is an example of such a dictionary that can be used:
+
+   .. code:: python
+
+      "basis_gates": "u1,u2,u3,cx,id"
 
 -  An optional dictionary can be supplied to assign the qubit mapping:
 
@@ -501,28 +487,6 @@ requires setting the following parameters too:
 
       "initial_layout": {('qr', 0): ('q', 1), ('qr', 1): ('q', 0)}
 
-
--  An optional dictionary can be supplied to setup hpc simulation:
-
-   .. code:: python
-
-       "hpc_params" : dictionary
-
-   This is a Python dictionary consisting of key/value pairs.  Configuring it is optional; the default value is ``None``.
-
-
--  An optional string can be supplied to the basis gates:
-
-   .. code:: python
-
-       "basis_gates" : string
-
-   This is a Python string consisting of basis gates, where are separated by comma.  Configuring it is optional; the default value is ``None``.
-   ``None`` denotes using the basis gates in the selected backend. The following is an example of such a dictionary that can be used:
-
-   .. code:: python
-
-      "basis_gates": "u1,u2,u3,cx,id"
 
 -  The maximum number of credits used per quantum job:
 

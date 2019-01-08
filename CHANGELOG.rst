@@ -20,8 +20,57 @@ The format is based on `Keep a Changelog`_.
 
 Added
 -----
+ - A flag ``before_04`` in the ``load_from_dict(file)`` method is added to support to load operator in the old format. We encourage to save the operator in the new format from now on.
 
-- Enhanced random matrix generator
+`0.4.0`_ - 2018-12-19
+=====================
+
+Added
+-----
+
+- Compatibility with Terra 0.7
+- Compatibility with Aer 0.1
+- Programmatic APIs for algorithms and components -- each component can now be instantiated and initialized via a single (non-emptY) constructot call
+- ``QuantumInstance`` API for algorithm/backend decoupling -- ``QuantumInstance`` encapsulates a backend and its settings
+- Updated documentation and Jupyter Notebooks illustrating the new programmatic APIs
+- Transparent parallelization for gradient-based optimizers
+- Multiple-Controlled-NOT (cnx) operation
+- Pluggable algorithmic component ``RandomDistribution``
+- Concrete implementations of ``RandomDistribution``: ``BernoulliDistribution``, ``LogNormalDistribution``, 
+  ``MultivariateDistribution``, ``MultivariateNormalDistribution``, ``MultivariateUniformDistribution``, ``NormalDistribution``,
+  ``UniformDistribution``, and ``UnivariateDistribution``
+- Pluggable algorithmic component:
+- Concrete implementations of ``UncertaintyProblem``: ``FixedIncomeExpectedValue``, ``EuropeanCallExpectedValue``, and 
+  ``EuropeanCallDelta``
+- Amplitude Estimation algorithm
+- Qiskit Optimization: New Ising models for optimization problems exact cover, set packing, vertex cover, clique, and graph partition
+- Qiskit AI:
+   - New feature maps extending the ``FeatureMap`` pluggable interface: ``PauliExpansion`` and ``PauliZExpansion``
+   - Training model serialization/deserialization mechanism
+- Qiskit Finance:
+   - Amplitude estimation for Bernoulli random variable: illustration of amplitude estimation on a single qubit problem
+   - Loading of multiple univariate and multivariate random distributions
+   - European call option: expected value and delta (using univariate distributions)
+   - Fixed income asset pricing: expected value (using multivariate distributions)
+
+Changed
+-------
+
+- The pauli string in ``Operator`` class is aligned with Terra 0.7. Now the order of a n-qubit pauli string is ``q_{n-1}...q{0}`` Thus, the (de)serialier (``save_to_dict`` and ``load_from_dict``) in the ``Operator`` class are also changed to adopt the changes of ``Pauli`` class.
+
+Removed
+-------
+
+- ``HartreeFock`` component of pluggable type ``InitialState` moved to Qiskit Chemistry
+- ``UCCSD`` component of pluggable type ``VariationalForm`` moved to Qiskit Chemistry
+
+`0.3.1`_ - 2018-11-29
+=====================
+
+Changed
+-------
+
+- Different backends might have different signatures for describing the job completion.
 
 `0.3.0`_ - 2018-10-05
 =====================
@@ -38,7 +87,7 @@ Added
 - Pluggable Feature Maps for QSVM algos
 - Pluggable Variation Forms for QSVM.Variational
 - SPSA calibration and control variables all configurable
-- Step size configurable for optimizers with numerical approximation of the jacobian 
+- Step size configurable for optimizers with numerical approximation of the jacobian
 - Z2 Symmetry tapering
    - Operator
    - HartreeFock InitialState
@@ -130,10 +179,12 @@ Changed
 - Updated qiskit minimum version in setup.py.
 - Fixed links in readme.me.
 
-.. _UNRELEASED: https://github.com/Qiskit/aqua/compare/0.3.0...HEAD
-.. _0.3.0: https://github.com/Qiskit/aqua/compare/0.2.0...0.3.0
-.. _0.2.0: https://github.com/Qiskit/aqua/compare/0.1.2...0.2.0
-.. _0.1.2: https://github.com/Qiskit/aqua/compare/0.1.1...0.1.2
-.. _0.1.1: https://github.com/Qiskit/aqua/compare/0.1.0...0.1.1
+.. _UNRELEASED: https://github.com/Qiskit/qiskit-aqua/compare/0.4.0...HEAD
+.. _0.4.0: https://github.com/Qiskit/qiskit-aqua/compare/0.3.1...0.4.0
+.. _0.3.1: https://github.com/Qiskit/qiskit-aqua/compare/0.3.0...0.3.1
+.. _0.3.0: https://github.com/Qiskit/qiskit-aqua/compare/0.2.0...0.3.0
+.. _0.2.0: https://github.com/Qiskit/qiskit-aqua/compare/0.1.2...0.2.0
+.. _0.1.2: https://github.com/Qiskit/qiskit-aqua/compare/0.1.1...0.1.2
+.. _0.1.1: https://github.com/Qiskit/qiskit-aqua/compare/0.1.0...0.1.1
 
 .. _Keep a Changelog: http://keepachangelog.com/en/1.0.0/

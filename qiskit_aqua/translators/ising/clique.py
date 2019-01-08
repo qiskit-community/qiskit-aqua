@@ -26,14 +26,12 @@ import numpy as np
 import numpy.random as rand
 
 from qiskit.quantum_info import Pauli
-
 from qiskit_aqua import Operator
 
 logger = logging.getLogger(__name__)
 
 
-def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None,
-                  seed=None):
+def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None, seed=None):
     """Generate random Erdos-Renyi graph.
 
     Args:
@@ -71,10 +69,9 @@ def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None,
     return w
 
 
-
-
 def get_clique_qubitops(weight_matrix, K):
-    """Generate Hamiltonian for the clique
+    """
+    Generate Hamiltonian for the clique
 
     Args:
         weight_matrix (numpy.ndarray) : adjacency matrix.
@@ -87,7 +84,7 @@ def get_clique_qubitops(weight_matrix, K):
         can we find a complete graph of size K?
 
     Hamiltonian:
-    suppose Xv denotes whether v should appear in the K-clique or not (Xv=1 or 0)
+    suppose Xv denotes whether v should appear in the clique (Xv=1 or 0)
     H = Ha + Hb
     Ha = (K-sum_{v}{Xv})^2
     Hb = K(K−1)/2 􏰏- sum_{(u,v)\in E}{XuXv}
@@ -95,11 +92,16 @@ def get_clique_qubitops(weight_matrix, K):
     Besides, Xv = (Zv+1)/2
     By replacing Xv with Zv and simplifying it, we get what we want below.
 
-    Note: in practice, we use H = A*Ha + Bb, where A is a large constant such as 1000.
-    A is like a huge penality over the violation of Ha, which forces Ha to be 0, i.e., you have exact K vertices selected.
-    Under this assumption, Hb = 0 starts to make sense, it means the subgraph constitutes a clique or complete graph.
-    Note the lowest possible value of Hb is 0. You cannot get negative Hb value.
-    Without the above assumption, Hb may be negative (say you select all the vertices). In this case, one needs to use Hb^2 in the hamiltonian to minimize the difference.
+    Note: in practice, we use H = A*Ha + Bb,
+        where A is a large constant such as 1000.
+    A is like a huge penality over the violation of Ha,
+    which forces Ha to be 0, i.e., you have exact K vertices selected.
+    Under this assumption, Hb = 0 starts to make sense,
+    it means the subgraph constitutes a clique or complete graph.
+    Note the lowest possible value of Hb is 0.
+
+    Without the above assumption, Hb may be negative (say you select all).
+    In this case, one needs to use Hb^2 in the hamiltonian to minimize the difference.
     """
     num_nodes = len(weight_matrix)
     pauli_list = []
@@ -131,7 +133,7 @@ def get_clique_qubitops(weight_matrix, K):
 
     for i in range(num_nodes):
         for j in range(i):
-            if (weight_matrix[i,j] != 0):
+            if weight_matrix[i, j] != 0:
                 xp = np.zeros(num_nodes, dtype=np.bool)
                 zp = np.zeros(num_nodes, dtype=np.bool)
                 zp[i] = True
@@ -181,6 +183,7 @@ def parse_gset_format(filename):
     w += w.T
     return w
 
+
 def satisfy_or_not(x, w, K):
     """Compute the value of a cut.
 
@@ -194,7 +197,8 @@ def satisfy_or_not(x, w, K):
     X = np.outer(x, x)
     w_01 = np.where(w != 0, 1, 0)
 
-    return np.sum(w_01 * X) == K*(K-1) # note sum() count the same edge twice
+    return np.sum(w_01 * X) == K*(K-1)  # note sum() count the same edge twice
+
 
 def get_graph_solution(x):
     """Get graph solution from binary string.
@@ -206,6 +210,7 @@ def get_graph_solution(x):
         numpy.ndarray: graph solution as binary numpy array.
     """
     return 1 - x
+
 
 def sample_most_likely(n, state_vector):
     """Compute the most likely binary string from state vector.
@@ -233,6 +238,7 @@ def sample_most_likely(n, state_vector):
         x[i] = k % 2
         k >>= 1
     return x
+
 
 def get_gset_result(x):
     """Get graph solution in Gset format from binary string.

@@ -19,12 +19,12 @@ import itertools
 import unittest
 
 from parameterized import parameterized
-import qiskit
 from qiskit import execute as q_execute
 from qiskit import QuantumCircuit, ClassicalRegister
+from qiskit_aqua import get_aer_backend
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua.algorithms.components.oracles import SAT
+from qiskit_aqua.components.oracles import SAT
 
 
 cnf_str_1 = '''
@@ -63,23 +63,24 @@ class TestSATOracle(QiskitAquaTestCase):
     ])
     def test_sat_oracle(self, cnf_str, sols):
         num_shots = 1024
-        sat = SAT(cnf_str)
-        sat_circuit = sat.construct_circuit()
-        m = ClassicalRegister(1, name='m')
-        for assignment in itertools.product([True, False], repeat=len(sat.variable_register())):
-            qc = QuantumCircuit(m, sat.variable_register())
-            for idx, tf in enumerate(assignment):
-                if tf:
-                    qc.x(sat.variable_register()[idx])
-            qc += sat_circuit
-            qc.barrier(sat._qr_outcome)
-            qc.measure(sat._qr_outcome, m)
-            counts = q_execute(qc, qiskit.Aer.get_backend(
-                'qasm_simulator'), shots=num_shots).result().get_counts(qc)
-            if assignment in sols:
-                assert(counts['1'] == num_shots)
-            else:
-                assert(counts['0'] == num_shots)
+        for cnx_mode in ['basic', 'advanced']:
+            sat = SAT(cnf_str, cnx_mode=cnx_mode)
+            sat_circuit = sat.construct_circuit()
+            m = ClassicalRegister(1, name='m')
+            for assignment in itertools.product([True, False], repeat=len(sat.variable_register())):
+                qc = QuantumCircuit(m, sat.variable_register())
+                for idx, tf in enumerate(assignment):
+                    if tf:
+                        qc.x(sat.variable_register()[idx])
+                qc += sat_circuit
+                qc.barrier(sat._qr_outcome)
+                qc.measure(sat._qr_outcome, m)
+                counts = q_execute(qc, get_aer_backend(
+                    'qasm_simulator'), shots=num_shots).result().get_counts(qc)
+                if assignment in sols:
+                    assert(counts['1'] == num_shots)
+                else:
+                    assert(counts['0'] == num_shots)
 
 
 if __name__ == '__main__':

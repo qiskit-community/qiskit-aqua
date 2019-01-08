@@ -19,9 +19,8 @@ import logging
 
 import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
-
-from qiskit_aqua import (AquaError, QuantumAlgorithm,
-                         PluggableType, get_pluggable_class)
+from qiskit_aqua.algorithms import QuantumAlgorithm
+from qiskit_aqua import AquaError, PluggableType, get_pluggable_class
 from qiskit_aqua.algorithms.adaptive.qsvm import (cost_estimate, return_probabilities)
 from qiskit_aqua.utils import (get_feature_dimension, map_label_to_class_name,
                                split_dataset_to_data_and_labels)
@@ -88,13 +87,15 @@ class QSVMVariational(QuantumAlgorithm):
 
         self._training_dataset, self._class_to_label = split_dataset_to_data_and_labels(
             training_dataset)
-        if test_dataset is not None:
-            self._test_dataset = split_dataset_to_data_and_labels(test_dataset,
-                                                                  self._class_to_label)
-
         self._label_to_class = {label: class_name for class_name, label
                                 in self._class_to_label.items()}
         self._num_classes = len(list(self._class_to_label.keys()))
+
+        if test_dataset is not None:
+            self._test_dataset = split_dataset_to_data_and_labels(test_dataset,
+                                                                  self._class_to_label)
+        else:
+            self._test_dataset = test_dataset
 
         self._datapoints = datapoints
         self._optimizer = optimizer
@@ -123,7 +124,7 @@ class QSVMVariational(QuantumAlgorithm):
         optimizer = get_pluggable_class(PluggableType.OPTIMIZER,
                                         opt_params['name']).init_params(opt_params)
 
-        # Set up variational form
+        # Set up feature map
         fea_map_params = params.get(QuantumAlgorithm.SECTION_KEY_FEATURE_MAP)
         num_qubits = get_feature_dimension(algo_input.training_dataset)
         fea_map_params['num_qubits'] = num_qubits
@@ -139,32 +140,46 @@ class QSVMVariational(QuantumAlgorithm):
         return cls(optimizer, feature_map, var_form, algo_input.training_dataset,
                    algo_input.test_dataset, algo_input.datapoints, batch_mode)
 
-    def _construct_circuit(self, x, theta):
+    def construct_circuit(self, x, theta, measurement=False):
+        """
+        Construct circuit based on data and paramters in variaitonal form.
+
+        Args:
+            x (numpy.ndarray): 1-D array with D dimension
+            theta ([numpy.ndarray]): list of 1-D array, parameters sets for variational form
+            measurement (bool): flag to add measurement
+        Returns:
+            QuantumCircuit: the circuit
+        """
         qr = QuantumRegister(self._num_qubits, name='q')
         cr = ClassicalRegister(self._num_qubits, name='c')
         qc = QuantumCircuit(qr, cr)
         qc += self._feature_map.construct_circuit(x, qr)
         qc += self._var_form.construct_circuit(theta, qr)
-        qc.barrier(qr)
-        qc.measure(qr, cr)
+
+        if measurement:
+            qc.barrier(qr)
+            qc.measure(qr, cr)
         return qc
 
     def _cost_function(self, predicted_probs, labels):
         """
-        Calculate cost of predicted probability of ground truth label based on sigmoid function,
-        and the accuracy
+        Calculate cost of predicted probability of ground truth label based on
+        cross entropy function.
+
         Args:
             predicted_probs (numpy.ndarray): NxK array
             labels (numpy.ndarray): Nx1 array
         Returns:
             float: cost
         """
-        total_loss = cost_estimate(self._execute_config['shots'], predicted_probs, labels)
+        total_loss = cost_estimate(predicted_probs, labels)
         return total_loss
 
     def _get_prediction(self, data, theta):
         """
         Make prediction on data based on each theta.
+
         Args:
             data (numpy.ndarray): 2-D array, NxD, N data points, each with D dimension
             theta ([numpy.ndarray]): list of 1-D array, parameters sets for variational form
@@ -172,10 +187,9 @@ class QSVMVariational(QuantumAlgorithm):
             numpy.ndarray or [numpy.ndarray]: list of NxK array
             numpy.ndarray or [numpy.ndarray]: list of Nx1 array
         """
-
-        if QuantumAlgorithm.is_statevector_backend(self.backend):
-            raise ValueError('Selected backend  "{}" is not supported.'.format(
-                QuantumAlgorithm.backend_name(self.backend)))
+        if self._quantum_instance.is_statevector:
+            raise ValueError('Selected backend "{}" is not supported.'.format(
+                self._quantum_instance.backend_name))
 
         predicted_probs = []
         predicted_labels = []
@@ -187,11 +201,11 @@ class QSVMVariational(QuantumAlgorithm):
 
         for theta in theta_sets:
             for datum in data:
-                circuit = self._construct_circuit(datum, theta)
+                circuit = self.construct_circuit(datum, theta, measurement=True)
                 circuits[circuit_id] = circuit
                 circuit_id += 1
 
-        results = self.execute(list(circuits.values()))
+        results = self._quantum_instance.execute(list(circuits.values()))
 
         circuit_id = 0
         predicted_probs = []
@@ -212,13 +226,17 @@ class QSVMVariational(QuantumAlgorithm):
 
         return predicted_probs, predicted_labels
 
-    def train(self, data, labels):
-        """Train the models, and save results
+    def train(self, data, labels, quantum_instance=None):
+        """Train the models, and save results.
+
         Args:
             data (numpy.ndarray): NxD array, N is number of data and D is dimension
             labels (numpy.ndarray): Nx1 array, N is number of data
+            quantum_instance (QuantumInstance): quantum backend with all setting
         """
-        def cost_function_wrapper(theta):
+        self._quantum_instance = self._quantum_instance if quantum_instance is None else quantum_instance
+
+        def _cost_function_wrapper(theta):
             predicted_probs, predicted_labels = self._get_prediction(data, theta)
             total_cost = []
             if isinstance(predicted_probs, list):
@@ -230,43 +248,50 @@ class QSVMVariational(QuantumAlgorithm):
 
         initial_theta = self.random.randn(self._var_form.num_parameters)
 
-        theta_best, cost_final, _ = self._optimizer.optimize(
-            initial_theta.shape[0], cost_function_wrapper, initial_point=initial_theta)
+        theta_best, cost_final, _ = self._optimizer.optimize(initial_theta.shape[0],
+                                                             _cost_function_wrapper,
+                                                             initial_point=initial_theta)
 
         self._ret['opt_params'] = theta_best
         self._ret['training_loss'] = cost_final
 
-    def test(self, data, labels):
-        """Predict the labels for the data, and test against with ground truth labels
+    def test(self, data, labels, quantum_instance=None):
+        """Predict the labels for the data, and test against with ground truth labels.
+
         Args:
             data (numpy.ndarray): NxD array, N is number of data and D is data dimension
             labels (numpy.ndarray): Nx1 array, N is number of data
+            quantum_instance (QuantumInstance): quantum backend with all setting
         Returns:
             float: classification accuracy
         """
+        self._quantum_instance = self._quantum_instance if quantum_instance is None else quantum_instance
         predicted_probs, predicted_labels = self._get_prediction(data, self._ret['opt_params'])
         total_cost = self._cost_function(predicted_probs, labels)
         accuracy = np.sum((np.argmax(predicted_probs, axis=1) == labels)) / labels.shape[0]
-        logger.debug('Accuracy is {:.2f}%  \n'.format(accuracy * 100.0))
+        logger.debug('Accuracy is {:.2f}%'.format(accuracy * 100.0))
         self._ret['testing_accuracy'] = accuracy
         self._ret['test_success_ratio'] = accuracy
         self._ret['testing_loss'] = total_cost
         return accuracy
 
-    def predict(self, data):
-        """Predict the labels for the data
+    def predict(self, data, quantum_instance=None):
+        """Predict the labels for the data.
+
         Args:
             data (numpy.ndarray): NxD array, N is number of data, D is data dimension
+            quantum_instance (QuantumInstance): quantum backend with all setting
         Returns:
             [dict]: for each data point, generates the predicted probability for each class
             list: for each data point, generates the predicted label, which with the highest prob
         """
+        self._quantum_instance = self._quantum_instance if quantum_instance is None else quantum_instance
         predicted_probs, predicted_labels = self._get_prediction(data, self._ret['opt_params'])
         self._ret['predicted_probs'] = predicted_probs
         self._ret['predicted_labels'] = predicted_labels
         return predicted_probs, predicted_labels
 
-    def run(self):
+    def _run(self):
         self.train(self._training_dataset[0], self._training_dataset[1])
 
         if self._test_dataset is not None:
@@ -283,6 +308,10 @@ class QSVMVariational(QuantumAlgorithm):
     def ret(self):
         return self._ret
 
+    @ret.setter
+    def ret(self, new_value):
+        self._ret = new_value
+
     @property
     def label_to_class(self):
         return self._label_to_class
@@ -290,3 +319,23 @@ class QSVMVariational(QuantumAlgorithm):
     @property
     def class_to_label(self):
         return self._class_to_label
+
+    def load_model(self, file_path):
+        model_npz = np.load(file_path)
+        self._ret['opt_params'] = model_npz['opt_params']
+
+    def save_model(self, file_path):
+        model = {'opt_params': self._ret['opt_params']}
+        np.savez(file_path, **model)
+
+    @property
+    def test_dataset(self):
+        return self._test_dataset
+
+    @property
+    def train_dataset(self):
+        return self._train_dataset
+
+    @property
+    def datapoints(self):
+        return self._datapoints

@@ -61,7 +61,7 @@ def assign_label(measured_key, num_classes):
         return key_order if key_order < num_classes else num_classes - 1
 
 
-def cost_estimate(shots, probs, gt_labels):
+def cost_estimate(probs, gt_labels, shots=None):
     """Calculate cross entropy
     # shots is kept since it may be needed in future.
     Args:
@@ -97,7 +97,9 @@ def cost_estimate_sigmoid(shots, probs, gt_labels):
     Returns:
         float: sigmoid cross entropy loss between estimated probs and gt_labels
     """
-    x = cost_estimate(shots, probs, gt_labels)
+    #Error in the order of parameters corrected below - 19 Dec 2018
+    #x = cost_estimate(shots, probs, gt_labels)
+    x = cost_estimate(probs, gt_labels, shots)
     loss = (1.) / (1. + np.exp(-x))
     return loss
 

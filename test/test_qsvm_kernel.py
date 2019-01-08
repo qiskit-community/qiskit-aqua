@@ -15,21 +15,23 @@
 # limitations under the License.
 # =============================================================================
 
-import numpy as np
-from qiskit import Aer
+import os
 
+import numpy as np
+from qiskit_aqua import get_aer_backend
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import run_algorithm
+from qiskit_aqua import run_algorithm, QuantumInstance
 from qiskit_aqua.input import SVMInput
-from qiskit_aqua.algorithms.components.feature_maps import SecondOrderExpansion
-from qiskit_aqua.algorithms.many_sample import QSVM_Kernel
+from qiskit_aqua.components.feature_maps import SecondOrderExpansion
+from qiskit_aqua.algorithms import QSVMKernel
 
 
 class TestQSVMKernel(QiskitAquaTestCase):
 
     def setUp(self):
+        super().setUp()
         self.random_seed = 10598
-        self.shots = 8192
+        self.shots = 12000
         np.random.seed(self.random_seed)
         self.training_data = {'A': np.asarray([[2.95309709, 2.51327412],
                                                [3.14159265, 4.08407045]]),
@@ -37,22 +39,6 @@ class TestQSVMKernel(QiskitAquaTestCase):
                                                [4.46106157, 2.38761042]])}
         self.testing_data = {'A': np.asarray([[3.83274304, 2.45044227]]),
                              'B': np.asarray([[3.89557489, 0.31415927]])}
-
-        self.ref_kernel_matrix_training = np.asarray([[1.,         0.84851074, 0.12390137, 0.36669922],
-                                                      [0.84851074, 1.,         0.11950684, 0.45507812],
-                                                      [0.12390137, 0.11950684, 1.,         0.67211914],
-                                                      [0.36669922, 0.45507812, 0.67211914, 1.]])
-
-        self.ref_kernel_matrix_testing = np.asarray([[0.14575195, 0.18237305, 0.47644043, 0.14587402],
-                                                     [0.33203125, 0.37573242, 0.0222168,  0.15698242]])
-
-        self.ref_support_vectors = np.asarray([[2.95309709, 2.51327412],
-                                               [3.14159265, 4.08407045],
-                                               [4.08407045, 2.26194671],
-                                               [4.46106157, 2.38761042]])
-        self.ref_alpha = np.asarray([0.39755359, 1.46035009, 0.03446283, 1.82344085])
-
-        self.ref_bias = np.asarray([-0.03624927])
 
         self.svm_input = SVMInput(self.training_data, self.testing_data)
 
@@ -72,8 +58,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
                                        [-0.17323832, -0.49535592], [0.14043268, -0.87869109],
                                        [-0.15046837, -0.47340207]])}
 
-        temp = [test_input[k] for k in test_input]
-        total_array = np.concatenate(temp)
+        total_array = np.concatenate((test_input['A'], test_input['B']))
 
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
@@ -82,7 +67,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
                 'name': 'QSVM.Kernel'
             }
         }
-        backend = Aer.get_backend('qasm_simulator')
+        backend = get_aer_backend('qasm_simulator')
         algo_input = SVMInput(training_input, test_input, total_array)
         result = run_algorithm(params, algo_input, backend=backend)
         self.assertEqual(result['testing_accuracy'], 0.6)
@@ -91,47 +76,100 @@ class TestQSVMKernel(QiskitAquaTestCase):
 
     def test_qsvm_kernel_binary_directly(self):
 
-        backend = Aer.get_backend('qasm_simulator_py')
+        ref_kernel_training = np.array([[1., 0.85366667, 0.12341667, 0.36408333],
+                                        [0.85366667, 1., 0.11141667, 0.45491667],
+                                        [0.12341667, 0.11141667, 1., 0.667],
+                                        [0.36408333, 0.45491667, 0.667, 1.]])
+
+        ref_kernel_testing = np.array([[0.14316667, 0.18208333, 0.4785, 0.14441667],
+                                       [0.33608333, 0.3765, 0.02316667, 0.15858333]])
+
+        ref_alpha = np.array([0.36064489, 1.49204209, 0.0264953, 1.82619169])
+        ref_bias = np.array([-0.03380763])
+
+        ref_support_vectors = np.array([[2.95309709, 2.51327412], [3.14159265, 4.08407045],
+                                        [4.08407045, 2.26194671], [4.46106157, 2.38761042]])
+
+        backend = get_aer_backend('qasm_simulator')
         num_qubits = 2
         feature_map = SecondOrderExpansion(num_qubits=num_qubits, depth=2, entangler_map={0: [1]})
-        svm = QSVM_Kernel(feature_map, self.training_data, self.testing_data, None)
+        svm = QSVMKernel(feature_map, self.training_data, self.testing_data, None)
         svm.random_seed = self.random_seed
-        svm.setup_quantum_backend(backend=backend, shots=self.shots)
+        quantum_instance = QuantumInstance(backend, shots=self.shots,
+                                           seed=self.random_seed, seed_mapper=self.random_seed)
 
-        result = svm.run()
+        result = svm.run(quantum_instance)
         np.testing.assert_array_almost_equal(
-            result['kernel_matrix_training'], self.ref_kernel_matrix_training, decimal=4)
+            result['kernel_matrix_training'], ref_kernel_training, decimal=1)
         np.testing.assert_array_almost_equal(
-            result['kernel_matrix_testing'], self.ref_kernel_matrix_testing, decimal=4)
+            result['kernel_matrix_testing'], ref_kernel_testing, decimal=1)
 
         self.assertEqual(len(result['svm']['support_vectors']), 4)
         np.testing.assert_array_almost_equal(
-            result['svm']['support_vectors'], self.ref_support_vectors, decimal=4)
+            result['svm']['support_vectors'], ref_support_vectors, decimal=4)
 
-        np.testing.assert_array_almost_equal(result['svm']['alphas'], self.ref_alpha, decimal=4)
-        np.testing.assert_array_almost_equal(result['svm']['bias'], self.ref_bias, decimal=4)
+        np.testing.assert_array_almost_equal(result['svm']['alphas'], ref_alpha, decimal=4)
+        np.testing.assert_array_almost_equal(result['svm']['bias'], ref_bias, decimal=4)
 
         self.assertEqual(result['testing_accuracy'], 0.5)
 
     def test_qsvm_kernel_binary_directly_statevector(self):
 
-        backend = Aer.get_backend('statevector_simulator')
+        ref_kernel_testing = np. array([[0.1443953, 0.18170069, 0.47479649, 0.14691763],
+                                        [0.33041779, 0.37663733, 0.02115561, 0.16106199]])
+
+        ref_support_vectors = np.array([[2.95309709, 2.51327412], [3.14159265, 4.08407045],
+                                        [4.08407045, 2.26194671], [4.46106157, 2.38761042]])
+
+        backend = get_aer_backend('statevector_simulator')
         num_qubits = 2
         feature_map = SecondOrderExpansion(num_qubits=num_qubits, depth=2, entangler_map={0: [1]})
-        svm = QSVM_Kernel(feature_map, self.training_data, self.testing_data, None)
+        svm = QSVMKernel(feature_map, self.training_data, self.testing_data, None)
         svm.random_seed = self.random_seed
-        svm.setup_quantum_backend(backend=backend)
-        result = svm.run()
+
+        quantum_instance = QuantumInstance(backend, seed=self.random_seed, seed_mapper=self.random_seed)
+        result = svm.run(quantum_instance)
+
+        ori_alphas = result['svm']['alphas']
+
+        np.testing.assert_array_almost_equal(
+            result['kernel_matrix_testing'], ref_kernel_testing, decimal=4)
 
         self.assertEqual(len(result['svm']['support_vectors']), 4)
         np.testing.assert_array_almost_equal(
-            result['svm']['support_vectors'], self.ref_support_vectors, decimal=4)
+            result['svm']['support_vectors'], ref_support_vectors, decimal=4)
 
         self.assertEqual(result['testing_accuracy'], 0.5)
 
+        file_path = self._get_resource_path('qsvm_kernel_test.npz')
+        svm.save_model(file_path)
+
+        self.assertTrue(os.path.exists(file_path))
+
+        loaded_svm = QSVMKernel(feature_map, self.training_data, None, None)
+        loaded_svm.load_model(file_path)
+
+        np.testing.assert_array_almost_equal(
+            loaded_svm.ret['svm']['support_vectors'], ref_support_vectors, decimal=4)
+
+        np.testing.assert_array_almost_equal(
+            loaded_svm.ret['svm']['alphas'], ori_alphas, decimal=4)
+
+        loaded_test_acc = loaded_svm.test(svm.test_dataset[0], svm.test_dataset[1], quantum_instance)
+        self.assertEqual(result['testing_accuracy'], loaded_test_acc)
+
+        np.testing.assert_array_almost_equal(
+            loaded_svm.ret['kernel_matrix_testing'], ref_kernel_testing, decimal=4)
+
+        if os.path.exists(file_path):
+            try:
+                os.remove(file_path)
+            except:
+                pass
+
     def test_qsvm_kernel_multiclass_one_against_all(self):
 
-        backend = Aer.get_backend('qasm_simulator')
+        backend = get_aer_backend('qasm_simulator')
         training_input = {'A': np.asarray([[0.6560706, 0.17605998], [0.25776033, 0.47628296],
                                            [0.8690704, 0.70847635]]),
                           'B': np.asarray([[0.38857596, -0.33775802], [0.49946978, -0.48727951],
@@ -146,8 +184,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
                       'C': np.asarray([[-0.74561108, 0.27047295], [-0.69942965, 0.11885162],
                                        [-0.66489165, 0.1181712]])}
 
-        temp = [test_input[k] for k in test_input]
-        total_array = np.concatenate(temp)
+        total_array = np.concatenate((test_input['A'], test_input['B'], test_input['C']))
 
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
@@ -171,7 +208,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
 
     def test_qsvm_kernel_multiclass_all_pairs(self):
 
-        backend = Aer.get_backend('qasm_simulator')
+        backend = get_aer_backend('qasm_simulator')
         training_input = {'A': np.asarray([[0.6560706, 0.17605998], [0.25776033, 0.47628296],
                                            [0.8690704, 0.70847635]]),
                           'B': np.asarray([[0.38857596, -0.33775802], [0.49946978, -0.48727951],
@@ -186,8 +223,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
                       'C': np.asarray([[-0.74561108, 0.27047295], [-0.69942965, 0.11885162],
                                        [-0.66489165, 0.1181712]])}
 
-        temp = [test_input[k] for k in test_input]
-        total_array = np.concatenate(temp)
+        total_array = np.concatenate((test_input['A'], test_input['B'], test_input['C']))
 
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
@@ -208,7 +244,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
 
     def test_qsvm_kernel_multiclass_error_correcting_code(self):
 
-        backend = Aer.get_backend('qasm_simulator')
+        backend = get_aer_backend('qasm_simulator')
         training_input = {'A': np.asarray([[0.6560706, 0.17605998], [0.25776033, 0.47628296],
                                            [0.8690704, 0.70847635]]),
                           'B': np.asarray([[0.38857596, -0.33775802], [0.49946978, -0.48727951],
@@ -223,8 +259,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
                       'C': np.asarray([[-0.74561108, 0.27047295], [-0.69942965, 0.11885162],
                                        [-0.66489165, 0.1181712]])}
 
-        temp = [test_input[k] for k in test_input]
-        total_array = np.concatenate(temp)
+        total_array = np.concatenate((test_input['A'], test_input['B'], test_input['C']))
 
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},

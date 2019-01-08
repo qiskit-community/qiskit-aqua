@@ -22,12 +22,13 @@ import numpy as np
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import Operator, run_algorithm
 from qiskit_aqua.input import EnergyInput
-from qiskit_aqua.algorithms.classical import ExactEigensolver
+from qiskit_aqua.algorithms import ExactEigensolver
 
 
 class TestExactEigensolver(QiskitAquaTestCase):
 
     def setUp(self):
+        super().setUp()
         np.random.seed(50)
         pauli_dict = {
             'paulis': [{"coeff": {"imag": 0.0, "real": -1.052373245772859}, "label": "II"},

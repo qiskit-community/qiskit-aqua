@@ -21,15 +21,16 @@ import numpy as np
 from parameterized import parameterized
 from scipy.linalg import expm
 from scipy import sparse
-from qiskit import Aer
+from qiskit_aqua import get_aer_backend
+from qiskit.transpiler import PassManager
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import Operator
+from qiskit_aqua import Operator, QuantumInstance
 from qiskit_aqua.utils import decimal_to_binary
-from qiskit_aqua.algorithms.classical import ExactEigensolver
-from qiskit_aqua.algorithms.components.iqfts import Standard
-from qiskit_aqua.algorithms.components.initial_states import Custom
-from qiskit_aqua.algorithms.single_sample import QPE
+from qiskit_aqua.algorithms import ExactEigensolver
+from qiskit_aqua.components.iqfts import Standard
+from qiskit_aqua.components.initial_states import Custom
+from qiskit_aqua.algorithms import QPE
 
 X = np.array([[0, 1], [1, 0]])
 Y = np.array([[0, -1j], [1j, 0]])
@@ -91,13 +92,14 @@ class TestQPE(QiskitAquaTestCase):
         iqft = Standard(n_ancillae)
 
         qpe = QPE(self.qubitOp, state_in, iqft, num_time_slices, n_ancillae,
-                  paulis_grouping='random', expansion_mode='suzuki', expansion_order=2)
+                  paulis_grouping='random', expansion_mode='suzuki', expansion_order=2,
+                  shallow_circuit_concat=True)
 
-        backend = Aer.get_backend('qasm_simulator')
-        qpe.setup_quantum_backend(backend=backend, shots=100, skip_transpiler=True)
+        backend = get_aer_backend('qasm_simulator')
+        quantum_instance = QuantumInstance(backend, shots=100, pass_manager=PassManager())
 
         # run qpe
-        result = qpe.run()
+        result = qpe.run(quantum_instance)
         # self.log.debug('transformed operator paulis:\n{}'.format(self.qubitOp.print_operators('paulis')))
 
         # report result
@@ -117,7 +119,7 @@ class TestQPE(QiskitAquaTestCase):
             fractional_part_only=True
         )))
 
-        np.testing.assert_approx_equal(self.ref_eigenval.real, result['energy'], significant=2)
+        np.testing.assert_approx_equal(result['energy'], self.ref_eigenval.real, significant=2)
 
 
 if __name__ == '__main__':

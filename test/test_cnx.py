@@ -16,48 +16,65 @@
 # =============================================================================
 
 import unittest
-import numpy as np
 from itertools import combinations, chain
+
+import numpy as np
 from parameterized import parameterized
-import qiskit
 from qiskit import QuantumCircuit, QuantumRegister
+from qiskit_aqua import get_aer_backend
 from qiskit import execute as q_execute
+from qiskit.quantum_info import state_fidelity
 from test.common import QiskitAquaTestCase
 
 
 class TestCNX(QiskitAquaTestCase):
     @parameterized.expand([
-        [1, 1],
-        [2, 1],
-        [3, 1],
-        [4, 2],
+        [1],
+        [2],
+        [3],
+        [4],
+        [5],
+        [6],
+        [7],
     ])
-    def test_cnx(self, num_controls, num_ancillae):
+    def test_cnx(self, num_controls):
         c = QuantumRegister(num_controls, name='c')
         o = QuantumRegister(1, name='o')
-        a = QuantumRegister(num_ancillae, name='a')
-        allsubsets = list(chain(
-            *[combinations(range(num_controls), ni) for ni in range(num_controls + 1)]))
+        allsubsets = list(chain(*[combinations(range(num_controls), ni) for ni in range(num_controls + 1)]))
         for subset in allsubsets:
-            qc = QuantumCircuit(o, c, a)
-            for idx in subset:
-                qc.x(c[idx])
-            qc.cnx(
-                [c[i] for i in range(num_controls)],
-                [a[i] for i in range(num_ancillae)],
-                o[0]
-            )
-            for idx in subset:
-                qc.x(c[idx])
+            for mode in ['basic', 'advanced']:
+                qc = QuantumCircuit(o, c)
+                if mode == 'basic':
+                    if num_controls <= 2:
+                        num_ancillae = 0
+                    else:
+                        num_ancillae = num_controls - 2
+                else:
+                    if num_controls <= 4:
+                        num_ancillae = 0
+                    else:
+                        num_ancillae = 1
+                if num_ancillae > 0:
+                    a = QuantumRegister(num_ancillae, name='a')
+                    qc.add_register(a)
+                for idx in subset:
+                    qc.x(c[idx])
+                qc.cnx(
+                    [c[i] for i in range(num_controls)],
+                    o[0],
+                    [a[i] for i in range(num_ancillae)],
+                    mode=mode
+                )
+                for idx in subset:
+                    qc.x(c[idx])
 
-            vec = np.asarray(q_execute(qc, qiskit.Aer.get_backend(
-                'statevector_simulator')).result().get_statevector(qc))
-            vec_o = [0, 1] if len(subset) == num_controls else [1, 0]
-            np.testing.assert_almost_equal(
-                vec,
-                np.array(vec_o + [0] *
-                         (2 ** (num_controls + num_ancillae + 1) - 2))
-            )
+                vec = np.asarray(q_execute(qc, get_aer_backend(
+                    'statevector_simulator')).result().get_statevector(qc, decimals=16))
+                vec_o = [0, 1] if len(subset) == num_controls else [1, 0]
+                # print(vec, np.array(vec_o + [0] * (2 ** (num_controls + num_ancillae + 1) - 2)))
+                f = state_fidelity(vec, np.array(vec_o + [0] * (2 ** (num_controls + num_ancillae + 1) - 2)))
+                self.assertAlmostEqual(f, 1)
+            return
 
 
 if __name__ == '__main__':
