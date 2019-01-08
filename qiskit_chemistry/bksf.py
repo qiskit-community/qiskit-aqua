@@ -327,6 +327,7 @@ def bksf_mapping(fer_op):
     """
 
     fer_op = copy.deepcopy(fer_op)
+    fer_op.h2 = np.einsum('ijkm->ikmj', fer_op.h2)
     modes = fer_op.modes
     # Initialize qubit operator as constant.
     qubit_op = Operator(paulis=[])
