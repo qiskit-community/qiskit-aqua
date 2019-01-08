@@ -5,7 +5,7 @@ N Controlled Not Gate using no ancilla qubits,
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.circuit import CompositeGate
 from qiskit_aqua.utils import cnu1
-from numpy import pi
+import math
 
 
 class CNXGate(CompositeGate):
@@ -18,13 +18,11 @@ class CNXGate(CompositeGate):
         super(CNXGate, self).__init__("cnx", [n_c], qubits, circ)
 
         if n_c == 1: # cx
-            self.cx(ctls[0], tgt)
+            circ.cx(ctls[0], tgt)
         elif n_c == 2: # ccx
-            self.ccx(ctls[0], ctls[1], tgt)
+            circ.ccx(ctls[0], ctls[1], tgt)
         else:
-            self.h(tgt)
-            self.cnu1(pi, ctls, tgt)
-            self.h(tgt)
+            self.apply_cnx_na(ctls, tgt, circ)
 
     def reapply(self, circ):
         """Reapply this gate to corresponding qubits in circ."""
@@ -32,6 +30,10 @@ class CNXGate(CompositeGate):
         tgt_bits = self.arg[-1]
         self._modifiers(circ.cnx_na(ctl_bits, tgt_bits))
 
+    def apply_cnx_na(self, ctls, tgt, circuit):
+        circuit.h(tgt)
+        circuit.cnu1(math.pi, ctls, tgt)
+        circuit.h(tgt)
 
 def cnx_na(self, control_qubits, target_qubit):
     """Apply N Controlled X gate from ctls to tgt."""
