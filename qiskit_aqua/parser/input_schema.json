@@ -32,6 +32,10 @@
         "backend": {
             "type": "object",
             "properties": {
+                "provider": {
+                    "type": "string",
+                    "default": "qiskit.BasicAer"
+                },
                 "name": {
                     "type": "string",
                     "default": "statevector_simulator"
@@ -45,8 +49,12 @@
                     "type": "boolean",
                     "default": false
                 },
-                "noise_params": {
-                    "type": ["object", "null"],
+                "coupling_map": {
+                    "type": ["array", "null"],
+                    "default": null
+                },
+                "basis_gates": {
+                    "type": ["string", "null"],
                     "default": null
                 },
                 "initial_layout": {

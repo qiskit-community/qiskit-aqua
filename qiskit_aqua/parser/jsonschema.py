@@ -26,7 +26,8 @@ from qiskit_aqua import AquaError
 from qiskit_aqua import (local_pluggables_types,
                          PluggableType,
                          get_pluggable_configuration,
-                         local_pluggables)
+                         local_pluggables,
+                         get_local_providers)
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +36,7 @@ class JSONSchema(object):
     """JSON schema Utilities class."""
 
     NAME = 'name'
+    PROVIDER = 'provider'
     PROBLEM = 'problem'
     BACKEND = 'backend'
 
@@ -52,9 +54,15 @@ class JSONSchema(object):
             raise AquaError("Invalid JSONSchema input type.")
 
         validator = jsonschema.Draft4Validator(self._schema)
-        self._schema = JSONSchema._resolve_schema_references(
-            validator.schema, validator.resolver)
+        self._schema = JSONSchema._resolve_schema_references(validator.schema, validator.resolver)
         self.commit_changes()
+        self._initial_default_backend = None
+        if 'properties' in self._schema and \
+            JSONSchema.BACKEND in self._schema['properties'] and \
+            'properties' in self._schema['properties'][JSONSchema.BACKEND] and \
+            JSONSchema.NAME in self._schema['properties'][JSONSchema.BACKEND]['properties'] and \
+                'default' in self._schema['properties'][JSONSchema.BACKEND]['properties'][JSONSchema.NAME]:
+            self._initial_default_backend = self._schema['properties'][JSONSchema.BACKEND]['properties'][JSONSchema.NAME]['default']
 
     @property
     def schema(self):
@@ -308,6 +316,20 @@ class JSONSchema(object):
 
         return None
 
+    def update_backend_schema(self):
+        """
+        Updates default backend schema by checking local providers
+        """
+        if JSONSchema.BACKEND in self._schema['properties']:
+            providers = get_local_providers().items()
+            provider_tuple = next(iter(providers)) if len(providers) > 0 else ('', [])
+            self._schema['properties'][JSONSchema.BACKEND]['properties'][JSONSchema.PROVIDER]['default'] = provider_tuple[0]
+            if self._initial_default_backend is not None and self._initial_default_backend in provider_tuple[1]:
+                default_backend = self._initial_default_backend
+            else:
+                default_backend = provider_tuple[1][0] if len(provider_tuple[1]) > 0 else ''
+            self._schema['properties'][JSONSchema.BACKEND]['properties'][JSONSchema.NAME]['default'] = default_backend
+
     def update_pluggable_input_schemas(self, input_parser):
         """
         Updates schemas of all pluggables
@@ -357,8 +379,7 @@ class JSONSchema(object):
                         default_properties[key] = value
 
             default_name = pluggable_name
-            pluggable_name = input_parser.get_section_property(
-                pluggable_type, JSONSchema.NAME, pluggable_name)
+            pluggable_name = input_parser.get_section_property(pluggable_type, JSONSchema.NAME, pluggable_name)
 
             # update dependency schema
             self._update_pluggable_input_schema(
