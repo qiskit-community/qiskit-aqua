@@ -20,8 +20,7 @@ import unittest
 from parameterized import parameterized
 from qiskit import QuantumRegister
 from test.common import QiskitAquaTestCase
-from qiskit_aqua.algorithms.components.reciprocals.lookup_rotation import \
-    LookupRotation
+from qiskit_aqua.components.reciprocals.lookup_rotation import LookupRotation
 
 
 class TestLookupRotation(QiskitAquaTestCase):

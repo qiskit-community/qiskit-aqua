@@ -18,7 +18,7 @@
 import unittest
 
 import numpy as np
-from numpy.random import rand
+from numpy.random import random
 
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import run_algorithm
@@ -29,6 +29,7 @@ class TestHHL(QiskitAquaTestCase):
     """HHL tests."""
 
     def setUp(self):
+        super(TestHHL, self).setUp()
         np.random.seed(0)
         self.params = {
             "problem": {
@@ -102,7 +103,7 @@ class TestHHL(QiskitAquaTestCase):
 
         n = 2
         matrix = rmg.random_diag(n, eigrange=[-1, 1])
-        vector = rand(2)
+        vector = random(2)
 
         algo_input = LinearSystemInput()
         algo_input.matrix = matrix
@@ -134,7 +135,7 @@ class TestHHL(QiskitAquaTestCase):
 
         n = 2
         matrix = rmg.random_hermitian(n, eigrange=[0, 1])
-        vector = rand(2)
+        vector = random(2)
 
         algo_input = LinearSystemInput()
         algo_input.matrix = matrix

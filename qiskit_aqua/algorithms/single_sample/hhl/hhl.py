@@ -21,7 +21,8 @@ The HHL algorithm.
 import logging
 import numpy as np
 
-from qiskit.backends.aer import QasmSimulator
+from qiskit.providers.aer.backends import QasmSimulator
+from qiskit.extensions.simulator import snapshot
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit_aqua.algorithms import QuantumAlgorithm
 from qiskit_aqua import AquaError, PluggableType, get_pluggable_class
@@ -175,10 +176,8 @@ class HHL(QuantumAlgorithm):
                 # not always
                 #debug = True
         if self._mode == 'debug':
-            if self._quantum_instance.backend_name != "qasm_simulator" or not \
-                    cpp:
-                raise AquaError("Debug mode only possible with C++ "
-                                "qasm_simulator.")
+            if not cpp:
+                raise AquaError("Debug mode only possible with C++ simulator.")
             debug = True
         if self._mode == 'swap_test':
             if self._quantum_instance.is_statevector_backend(
@@ -245,7 +244,7 @@ class HHL(QuantumAlgorithm):
             sv = res.get_statevector()
         elif self._quantum_instance.backend_name == "qasm_simulator":
             self._circuit.snapshot("5")
-            self._execute_config["config"]["data"] = ["quantum_state_ket"]
+            #self._execute_config["config"]["data"] = ["quantum_state_ket"]
             res = self._quantum_instance.execute(self._circuit)
             sv = res.data(0)['snapshots']['5']['statevector'][0]
 
@@ -547,6 +546,7 @@ class HHL(QuantumAlgorithm):
         self._ret["gate_count_total"] = self._circuit.number_atomic_gates()
         # TODO print depth of worst qubit
         return self._ret
+
 
     ###############################################
     def number_atomic_gates_2(self, qc=None):
