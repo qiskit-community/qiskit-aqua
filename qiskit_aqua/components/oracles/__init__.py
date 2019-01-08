@@ -17,6 +17,8 @@
 
 from .oracle import Oracle
 from .sat import SAT
+from .simon_oracle import SimonOracle
 
 __all__ = ['Oracle',
-           'SAT']
+           'SAT',
+           'SimonOracle']

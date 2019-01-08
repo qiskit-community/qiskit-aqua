@@ -16,10 +16,10 @@
 # =============================================================================
 
 import logging
-from qiskit_aqua.algorithms.components.oracles import Oracle
+from qiskit_aqua.components.oracles import Oracle
 from qiskit import QuantumRegister, QuantumCircuit 
 import math
-import numpy as np
+import numpy
 import operator
 from sympy import Matrix, MatrixSymbol, expand, mod_inverse
 
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 class SimonOracle(Oracle):
 
-    SIMONORACLE_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'SimonOracle',
         'description': 'Simon Oracle',
         'input_schema': {
@@ -35,24 +35,36 @@ class SimonOracle(Oracle):
             'id': 'simon_oracle_schema',
             'type': 'object',
             'properties': {
+                'bitmap': {
+                    "type": ["object", "null"],
+                }
             },
             'additionalProperties': False
         }
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.SIMONORACLE_CONFIGURATION.copy())
-        self._qr_variable = None
-        self._qr_ancilla = None
-        self._qr_outcome = None
-        
-        self._hidden = ""
-        self._nbits = -1
-        self._circuit = QuantumCircuit()
+    def __init__(self, bitmap):
+        self.validate(locals())
+        super().__init__()
 
-    def init_args(self, **args):
-        pass
-        
+        # checks that the input bitstring length is a power of two
+        nbits = math.log(len(bitmap),2)
+        if math.ceil(nbits) != math.floor(nbits):
+            raise AlgorithmError('Input not the right length')
+        self._nbits = int(nbits)
+
+        # find the two keys that have matching values
+        get_key_pair = ((k1,k2) for k1,v1 in bitmap.items() for k2,v2 in bitmap.items() if v1 == v2 and not k1 == k2)
+        try: # matching keys found
+            k1,k2 = next(get_key_pair)
+            self._hidden = numpy.binary_repr(int(k1,2) ^ int(k2,2), nbits)
+        except StopIteration as e: # non matching keys found
+            k1,k2 = None,None
+            self._hidden = numpy.binary_repr(0, self._nbits)
+
+        self._qr_variable = QuantumRegister(self._nbits, name='v')
+        self._qr_ancilla = QuantumRegister(self._nbits, name='a')
+
     def variable_register(self):
         return self._qr_variable
 
@@ -62,34 +74,12 @@ class SimonOracle(Oracle):
     def outcome_register(self):
         pass
     
-    def circuit(self):
-        return self._circuit
-    
-    def check_input(self, simon_input):
-        # checks that the input bitstring length is a power of two
-        nbits = math.log(len(simon_input),2)
-        if math.ceil(nbits) != math.floor(nbits):
-            raise AlgorithmError('Input not the right length')
-        self._nbits = int(nbits)
-
-        # find the two keys that have matching values
-        get_key_pair = ((k1,k2) for k1,v1 in simon_input.items() for k2,v2 in simon_input.items() if v1 == v2 and not k1 == k2)
-        try: # matching keys found
-            k1,k2 = next(get_key_pair)
-            self._hidden = np.binary_repr(int(k1,2) ^ int(k2,2), nbits)
-        except StopIteration as e: # non matching keys found
-            k1,k2 = None,None
-            self._hidden = np.binary_repr(0, self._nbits)
-
-    def construct_circuit(self, simon_input):
-        self._qr_variable = QuantumRegister(self._nbits, name='v')
-        self._qr_ancilla = QuantumRegister(self._nbits, name='a')
-
-        self._circuit = QuantumCircuit(self._qr_variable, self._qr_ancilla)
+    def construct_circuit(self):
+        qc = QuantumCircuit(self._qr_variable, self._qr_ancilla)
         
         # Copy the content of the variable register to the ancilla register
         for i in range(self._nbits):
-            self._circuit.cx(self._qr_variable[i],self._qr_ancilla[i])
+            qc.cx(self._qr_variable[i],self._qr_ancilla[i])
         
         # Find the first occurance of 1 in the hidden string
         flip_index = self._hidden.find("1")
@@ -97,24 +87,26 @@ class SimonOracle(Oracle):
         # Create 1-to-1 or 2-to-1 mapping
         for i, c in enumerate(self._hidden):
             if c == "1" and flip_index > -1:
-                self._circuit.cx(self._qr_variable[flip_index],self._qr_ancilla[i])
+                qc.cx(self._qr_variable[flip_index],self._qr_ancilla[i])
         
         # Randomly permute the ancilla register
-        perm = list(np.random.permutation(self._nbits))
+        perm = list(numpy.random.permutation(self._nbits))
         init = list(range(self._nbits))
         i = 0
         while i < self._nbits:
             if init[i] != perm[i]:
                 k = perm.index(init[i])
-                self._circuit.swap(self._qr_ancilla[i],self._qr_ancilla[k]) #swap qubits
+                qc.swap(self._qr_ancilla[i],self._qr_ancilla[k]) #swap qubits
                 init[i], init[k] = init[k], init[i]                         #marked swapped qubits
             else:
                 i += 1        
         
         # Randomly flip bits in the ancilla register
         for i in range(self._nbits):
-            if np.random.random() > 0.5:
-                self._circuit.x(self._qr_ancilla[i])
+            if numpy.random.random() > 0.5:
+                qc.x(self._qr_ancilla[i])
+        
+        return qc
             
     def evaluate_classically(self, assignment):
         return self._hidden == assignment

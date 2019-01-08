@@ -16,48 +16,26 @@
 # =============================================================================
 
 import unittest
-from parameterized import parameterized
 from test.common import QiskitAquaTestCase
 
-from qiskit_aqua import get_algorithm_instance, get_oracle_instance
+from parameterized import parameterized
 
-simon_000 = {
-    '000': '001',
-    '001': '010',
-    '010': '011',
-    '011': '100',
-
-    '100': '101',
-    '101': '110',
-    '110': '111',
-    '111': '000'
-}
-
-simon_110 = {
-    '000': '101',
-    '001': '010',
-    '010': '000',
-    '011': '110',
-
-    '100': '000',
-    '101': '110',
-    '110': '101',
-    '111': '010'
-}
+from qiskit_aqua.components.oracles import SimonOracle
+from qiskit_aqua.algorithms import Simon
+from qiskit_aqua import get_aer_backend
 
 class TestSimon(QiskitAquaTestCase):
 
     @parameterized.expand([
-        [simon_000],
-        [simon_110]
+        [{'000':'001','001':'010','010':'011','011':'100','100':'101','101':'110','110':'111','111':'000'}],
+        [{'000':'101','001':'010','010':'000','011':'110','100':'000','101':'110','110':'101','111':'010'}]
     ])
 
-    def test_simon(self, bv_input):
-        simon_oracle = get_oracle_instance('SimonOracle')
-        simon = get_algorithm_instance('Simon')
-        simon.setup_quantum_backend(backend='qasm_simulator')
-        simon.init_oracle(simon_oracle,simon_input)
-        result = simon.run()
+    def test_simon(self, simon_input):
+        backend = get_aer_backend('qasm_simulator')
+        oracle = SimonOracle(simon_input)
+        algorithm = Simon(oracle)
+        result = algorithm.run(backend)
         self.assertTrue(result['oracle_evaluation'])
 
 if __name__ == '__main__':
