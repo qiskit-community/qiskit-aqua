@@ -49,8 +49,12 @@
                     "type": "boolean",
                     "default": false
                 },
-                "noise_params": {
-                    "type": ["object", "null"],
+                "coupling_map": {
+                    "type": ["array", "null"],
+                    "default": null
+                },
+                "basis_gates": {
+                    "type": ["string", "null"],
                     "default": null
                 },
                 "initial_layout": {

@@ -447,30 +447,31 @@ requires setting the following parameters too:
        as if the quantum algorithm does not restrict itself to the set of basis
        gates supported by the backend, then the circuit will fail to run.
 
--  An optional dictionary can be supplied to control the backend's noise model:
+-  An optional list can be supplied to setup the backend's coupling map:
 
    .. code:: python
 
-       "noise_params" : dictionary
+       "coupling_map" : list
 
-   This is a Python dictionary consisting of key/value pairs.  Configuring it is optional; the default
-   value is ``None``.  The following is an example of such a dictionary that can be used:
+   This is a Python list consisting of the directed edges, each edge ([A, B]) points qubit A can connect to qubit B.  Configuring it is optional; the default value is ``None``.
+   The following is an example of such a list that can be used:
 
    .. code:: python
 
-      "noise_params": {"U": {"p_depol": 0.001,
-                             "p_pauli": [0, 0, 0.01],
-                             "gate_time": 1,
-                             "U_error": [ [[1, 0], [0, 0]]
-                                        ]
-                            }
-                      }
+      "coupling_map": [[0, 1], [0, 2], [1, 2], [3, 2], [3, 4], [4, 2]]
 
-   .. seealso::
-       The `Terra documentation on noise parameters
-       <https://github.com/Qiskit/qiskit-terra/tree/master/src/qasm-simulator-cpp#noise-parameters>`__
-       provides more details on the configuration of the noise model for the backend.
+-  An optional string can be supplied to the basis gates:
 
+   .. code:: python
+
+       "basis_gates" : string
+
+   This is a Python string consisting of basis gates, where are separated by comma.  Configuring it is optional; the default value is ``None``.
+   ``None`` denotes using the basis gates in the selected backend. The following is an example of such a dictionary that can be used:
+
+   .. code:: python
+
+      "basis_gates": "u1,u2,u3,cx,id"
 
 -  An optional dictionary can be supplied to assign the qubit mapping:
 
