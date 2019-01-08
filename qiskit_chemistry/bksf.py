@@ -326,9 +326,7 @@ def bksf_mapping(fer_op):
         Operator: mapped qubit operator
     """
 
-    # convert to interleaved spins and negate the values of h2
     fer_op = copy.deepcopy(fer_op)
-    fer_op.h2 = fer_op.h2 * -1.0
     modes = fer_op.modes
     # Initialize qubit operator as constant.
     qubit_op = Operator(paulis=[])
