@@ -33,7 +33,7 @@ class TestLookupRotation(QiskitAquaTestCase):
         self.log.debug('Testing Lookup Rotation with positive eigenvalues')
 
         a = QuantumRegister(reg_size, name='a')
-        lrot = LookupRotation()
+        lrot = LookupRotation(negative_evals=False)
         lrot_circuit = lrot.construct_circuit('', a)
         circuit_cnt = lrot_circuit.data.__len__()
         assert(circuit_cnt == gate_cnt)

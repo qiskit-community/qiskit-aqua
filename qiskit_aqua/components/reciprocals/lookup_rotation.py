@@ -296,7 +296,7 @@ class LookupRotation(Reciprocal):
         """
         # initialize circuit
         if mode == "vector":
-            raise NotImplementedError("mode vector not supported")
+            raise NotImplementedError("vector mode not supported")
         if self._lambda_min:
             self._scale = self._lambda_min/2/np.pi*self._evo_time
         if self._scale == 0:
