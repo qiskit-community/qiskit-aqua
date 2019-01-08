@@ -25,7 +25,7 @@ from qiskit_aqua import Operator
 
 
 def _one_body(edge_list, p, q, h1_pq):
-    r"""
+    """
     Map the term a^\dagger_p a_q + a^\dagger_q a_p to qubit operator.
 
     Args:
@@ -64,7 +64,7 @@ def _one_body(edge_list, p, q, h1_pq):
 
 
 def _two_body(edge_list, p, q, r, s, h2_pqrs):
-    r"""
+    """
     Map the term a^\dagger_p a^\dagger_q a_r a_s + h.c. to qubit operator.
 
     Args:
@@ -78,6 +78,7 @@ def _two_body(edge_list, p, q, r, s, h2_pqrs):
     Returns:
         Operator: mapped qubit operator
     """
+
     # Handle case of four unique indices.
     v = np.zeros(edge_list.shape[1])
     id_op = Operator(paulis=[[1, Pauli(v, v)]])
@@ -95,7 +96,7 @@ def _two_body(edge_list, p, q, r, s, h2_pqrs):
 
         qubit_op = (a_pq * a_rs) * (-id_op - b_p * b_q + b_p * b_r +
                                     b_p * b_s + b_q * b_r + b_q * b_s -
-                                    b_r * b_s + b_p * b_q * b_r * b_s)
+                                    b_r * b_s - b_p * b_q * b_r * b_s)
         final_coeff = 0.125
 
     # Handle case of three unique indices.
@@ -146,9 +147,9 @@ def _two_body(edge_list, p, q, r, s, h2_pqrs):
     return qubit_op
 
 
-def bksf_edge_list(fer_op):
+def bravyi_kitaev_fast_edge_list(fer_op):
     """
-    Construct edge list required for the bksf algorithm.
+    Construct edge list required for the bksf algorithm
 
     Args:
         fer_op (FeriomicOperator): the fermionic operator in the second quantized form
@@ -199,15 +200,14 @@ def bksf_edge_list(fer_op):
                     a, b = sorted([p, r])
                 else:
                     continue
-                edge_matrix[b, a] = True
-
+                edge_matrix[b, a] = True    
+    
     edge_list = np.asarray(np.nonzero(np.triu(edge_matrix.T) ^ np.diag(np.diag(edge_matrix.T))))
     return edge_list
 
 
 def edge_operator_aij(edge_list, i, j):
     """Calculate the edge operator A_ij.
-
     The definitions used here are consistent with arXiv:quant-ph/0003137
 
     Args:
@@ -248,6 +248,27 @@ def edge_operator_aij(edge_list, i, j):
     qubit_op = Operator(paulis=[[1.0, Pauli(v, w)]])
     return qubit_op
 
+def stabilizers(fer_op):
+    
+    edge_list = bravyi_kitaev_fast_edge_list(fer_op)
+    num_qubits = edge_list.shape[1]
+    vac_operator = Operator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
+
+    g = networkx.Graph()
+    g.add_edges_from(tuple(edge_list.transpose()))
+    stabs = np.asarray(networkx.cycle_basis(g))
+    stabilizers = []
+    for stab in stabs:
+        a = Operator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
+        stab = np.asarray(stab)
+        for i in range(np.size(stab)):
+            a = a * edge_operator_aij(edge_list, stab[i], stab[(i + 1) % np.size(stab)])
+            a.scaling_coeff(1j)
+        stabilizers.append(a)
+        
+    return stabilizers
+
+
 
 def edge_operator_bi(edge_list, i):
     """Calculate the edge operator B_i.
@@ -272,8 +293,9 @@ def edge_operator_bi(edge_list, i):
 
 
 def bksf_mapping(fer_op):
-    r"""
-    Transform from FermionOpeator to QubitOperator for Bravyi-Kitaev superfast algorithm.
+    """
+    Transform from InteractionOpeator to QubitOperator for Bravyi-Kitaev fast
+    algorithm.
 
     The electronic Hamiltonian is represented in terms of creation and
     annihilation operators. These creation and annihilation operators could be
@@ -303,17 +325,13 @@ def bksf_mapping(fer_op):
     Returns:
         Operator: mapped qubit operator
     """
-    # convert to interleaved spins and negate the values of h2
+
     fer_op = copy.deepcopy(fer_op)
-    fer_op._convert_to_interleaved_spins()
-    fer_op.h2 = fer_op.h2 * -1.0
-    # for i,j,k,m in itertools.product(range(fer_op.modes), repeat=4):
-    #     if len(list(set([i,j,k,m]))) == 1:
-    #         fer_op.h2[i,j,k,m] = 0.0
+    fer_op.h2 = np.einsum('ijkm->ikmj', fer_op.h2)
     modes = fer_op.modes
     # Initialize qubit operator as constant.
     qubit_op = Operator(paulis=[])
-    edge_list = bksf_edge_list(fer_op)
+    edge_list = bravyi_kitaev_fast_edge_list(fer_op)
     # Loop through all indices.
     for p in range(modes):
         for q in range(modes):
@@ -351,12 +369,7 @@ def bksf_mapping(fer_op):
 
 
 def vacuum_operator(fer_op):
-    """Use the stabilizers to find the vacuum state in BKSF.
-
-    This operator can be used to generate the vaccum state for
-    BKSF mapping.
-    Upon having this operator, operate it on `orignal` vaccum state |000...>,
-    and resulted state is the vacuum state for bksf mapping.
+    """Use the stabilizers to find the vacuum state in bravyi_kitaev_fast.
 
     Args:
         fer_op (FermionicOperator): the fermionic operator in the second quanitzed form
@@ -364,7 +377,7 @@ def vacuum_operator(fer_op):
     Returns:
         Operator: the qubit operator
     """
-    edge_list = bksf_edge_list(fer_op)
+    edge_list = bravyi_kitaev_fast_edge_list(fer_op)
     num_qubits = edge_list.shape[1]
     vac_operator = Operator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
 
@@ -377,7 +390,6 @@ def vacuum_operator(fer_op):
         for i in range(np.size(stab)):
             a = a * edge_operator_aij(edge_list, stab[i], stab[(i + 1) % np.size(stab)])
             a.scaling_coeff(1j)
-
         a += Operator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
         vac_operator = vac_operator * a
         vac_operator.scaling_coeff(np.sqrt(2))
@@ -386,13 +398,7 @@ def vacuum_operator(fer_op):
 
 
 def number_operator(fer_op, mode_number=None):
-    """Find the number operator in BKSF representation.
-
-    This operator can be used to examine the number of particle in
-    a given eigenstate.
-    If `mode_number` is None, it checks how many particles in the eigenstate.
-    If `mode_number` is not None, it will only check whether or not
-    that particle at `mode_number` in the eigenstate.
+    """Find the qubit operator for the number operator in bravyi_kitaev_fast representation
 
     Args:
         fer_op (FermionicOperator): the fermionic operator in the second quanitzed form
@@ -402,7 +408,7 @@ def number_operator(fer_op, mode_number=None):
         Operator: the qubit operator
    """
     modes = fer_op.h1.modes
-    edge_list = bksf_edge_list(fer_op)
+    edge_list = bravyi_kitaev_fast_edge_list(fer_op)
     num_qubits = edge_list.shape[1]
     num_operator = Operator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
 
@@ -420,20 +426,7 @@ def number_operator(fer_op, mode_number=None):
 
 
 def generate_fermions(fer_op, i, j):
-    """The qubit operator for generating fermions in BKSF representation.
-
-    This function is used to generate the state you want; however, you need
-    to prepare vacuum state first and then use this operator to fill
-    the location of particles
-
-    E.g.
-
-    |0000> --> |1010>, you will call this function with i=0, j=2
-    |0000> --> |1111>, call function twice sequentially, (i=0, j=2), (i=1, j=3)
-
-    Note:
-        since BKSF only model the even particle sector, the number of
-        particles must be an even number.
+    """The qubit operator for generating fermions in bravyi_kitaev_fast representation
 
     Args:
         fer_op (FermionicOperator): the fermionic operator in the second quanitzed form
@@ -443,7 +436,7 @@ def generate_fermions(fer_op, i, j):
     Returns:
         Operator: the qubit operator
     """
-    edge_list = bksf_edge_list(fer_op)
+    edge_list = bravyi_kitaev_fast_edge_list(fer_op)
     gen_fer_operator = edge_operator_aij(edge_list, i, j) * edge_operator_bi(edge_list, j) \
         - edge_operator_bi(edge_list, i) * edge_operator_aij(edge_list, i, j)
 
