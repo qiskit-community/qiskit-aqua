@@ -244,7 +244,6 @@ class HHL(QuantumAlgorithm):
             sv = res.get_statevector()
         elif self._quantum_instance.backend_name == "qasm_simulator":
             self._circuit.snapshot("5")
-            #self._execute_config["config"]["data"] = ["quantum_state_ket"]
             res = self._quantum_instance.execute(self._circuit)
             sv = res.data(0)['snapshots']['5']['statevector'][0]
 
