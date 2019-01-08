@@ -14,13 +14,3 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-
-from .oracle import Oracle
-from .sat import SAT
-from .deutsch_jozsa_oracle import DeutschJozsaOracle
-from .bernstein_vazirani_oracle import BernsteinVaziraniOracle
-
-__all__ = ['Oracle',
-           'SAT'
-           'DeutschJozsaOracle'
-           'BernsteinVaziraniOracle']

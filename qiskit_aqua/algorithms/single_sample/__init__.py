@@ -20,9 +20,13 @@ from .iqpe.iqpe import IQPE
 from .qpe.qpe import QPE
 from .qpe.phase_estimation import PhaseEstimation
 from .ae.ae import AmplitudeEstimation
+from .dj.deutsch_jozsa import DeutschJozsa
+from .bv.bernstein_vazirani import BernsteinVazirani
 
 __all__ = ['Grover',
            'IQPE',
            'QPE',
            'PhaseEstimation',
-           'AmplitudeEstimation']
+           'AmplitudeEstimation',
+           'DeutschJozsa',
+           'BernsteinVazirani']

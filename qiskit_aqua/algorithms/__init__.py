@@ -19,7 +19,7 @@ from .quantum_algorithm import QuantumAlgorithm
 from .adaptive import VQE, QAOA, QSVMVariational
 from .classical import ExactEigensolver, SVM_Classical
 from .many_sample import EOH, QSVMKernel
-from .single_sample import Grover, IQPE, QPE, AmplitudeEstimation
+from .single_sample import Grover, IQPE, QPE, AmplitudeEstimation, DeutschJozsa, BernsteinVazirani
 
 __all__ = ['QuantumAlgorithm',
            'VQE',
@@ -33,6 +33,8 @@ __all__ = ['QuantumAlgorithm',
            'IQPE',
            'QPE',
            'AmplitudeEstimation',
+           'DeutschJozsa',
+           'BernsteinVazirani'
            ]
 
 try:

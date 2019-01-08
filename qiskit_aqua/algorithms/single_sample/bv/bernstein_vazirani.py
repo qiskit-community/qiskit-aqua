@@ -19,8 +19,8 @@ The Bernstein-Vazirani algorithm.
 """
 
 import logging
-from qiskit_aqua import QuantumAlgorithm, AlgorithmError
-from qiskit_aqua import get_oracle_instance
+from qiskit_aqua.algorithms import QuantumAlgorithm
+from qiskit_aqua import AquaError, PluggableType, get_pluggable_class
 from qiskit import ClassicalRegister, QuantumCircuit 
 
 logger = logging.getLogger(__name__)
@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 class BernsteinVazirani(QuantumAlgorithm):
     """The Bernstein-Vazirani algorithm."""
 
-    BV_CONFIGURATION = {
+    CONFIGURATION = {
         'name': 'BernsteinVazirani',
         'description': 'BernsteinVazirani',
         'input_schema': {
@@ -39,37 +39,34 @@ class BernsteinVazirani(QuantumAlgorithm):
             },
             'additionalProperties': False
         },
-        'problems': ['bernsteinvazirani'],
+        'problems': ['hiddenstringfinding'],
         'depends': ['oracle'],
         'defaults': {
             'oracle': {
-                'name': 'bernsteinvazirani'
+                'name': 'BernsteinVaziraniOracle'
             }
         }
     }
 
-    def __init__(self, configuration=None):
-        super().__init__(configuration or self.BV_CONFIGURATION.copy())
-        self._input = {}
-        self._function = None
-        self._oracle = None
-        self._return = {}
-        pass
+    def __init__(self, oracle):
+        self.validate(locals())
+        super().__init__()
 
-    def init_params(self, params, algo_input):
-        dj_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
-        self._input = algo_input
+        self._oracle = oracle
+        self._return = {}
+
+    @classmethod
+    def init_params(cls, params, algo_input):
+        if algo_input is not None:
+            raise AquaError("Unexpected Input instance.")
+
+        bv_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
  
         oracle_params = params.get(QuantumAlgorithm.SECTION_KEY_ORACLE)
-        oracle = get_oracle_instance(oracle_params['name'])
-        oracle.init_params(oracle_params)
-        self.init_oracle(oracle, algo_input)
-
-    def init_oracle(self, oracle, algo_input):
-        oracle.check_input(algo_input)
-        oracle.construct_circuit(algo_input)
-        self._oracle = oracle
-
+        oracle = get_pluggable_class(PluggableType.ORACLE,
+                                     oracle_params['name']).init_params(oracle_params)
+        return cls(oracle)
+    
     def _construct_circuit_components(self):        
         qc_preoracle = QuantumCircuit(
             self._oracle.variable_register(),
@@ -81,7 +78,7 @@ class BernsteinVazirani(QuantumAlgorithm):
         qc_preoracle.barrier()
         
         # oracle circuit
-        qc_oracle = self._oracle.circuit()
+        qc_oracle = self._oracle.construct_circuit()
         qc_oracle.barrier()
 
         # postoracle circuit
@@ -105,11 +102,11 @@ class BernsteinVazirani(QuantumAlgorithm):
         qc = qc_preoracle + qc_oracle + qc_postoracle + qc_measurement
         return qc
         
-    def run(self):
+    def _run(self):
         qc = self._construct_circuit_components()
         
         self._return['circuit'] = qc
-        self._return['measurements'] = self.execute(qc).get_counts(qc)
+        self._return['measurements'] = self._quantum_instance.execute(qc).get_counts(qc)
         self._return['result'] = self._oracle.interpret_measurement(self._return['measurements'])
         self._return['oracle_evaluation'] = self._oracle.evaluate_classically(self._return['result'])
         

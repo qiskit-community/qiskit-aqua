@@ -16,46 +16,26 @@
 # =============================================================================
 
 import unittest
-from parameterized import parameterized
 from test.common import QiskitAquaTestCase
 
-from qiskit_aqua import get_algorithm_instance, get_oracle_instance
+from parameterized import parameterized
 
-bv_110 = {
-    '000': '0',
-    '001': '0',
-    '010': '1',
-    '011': '1',
-    '100': '1',
-    '101': '1',
-    '110': '0',
-    '111': '0'
-}
-
-bv_101 = {
-    '000': '0', 
-    '001': '1', 
-    '010': '0', 
-    '011': '1', 
-    '100': '1', 
-    '101': '0', 
-    '110': '1', 
-    '111': '0'
-}
+from qiskit_aqua.components.oracles import BernsteinVaziraniOracle
+from qiskit_aqua.algorithms import BernsteinVazirani
+from qiskit_aqua import get_aer_backend
 
 class TestBernsteinVazirani(QiskitAquaTestCase):
 
     @parameterized.expand([
-        [bv_110],
-        [bv_101]
+        [{'000':'0','001':'0','010':'1','011':'1','100':'1','101':'1','110':'0','111':'0'}],
+        [{'000':'0','001':'1','010':'0','011':'1','100':'1','101':'0','110': '1','111':'0'}]
     ])
 
     def test_bernsteinvazirani(self, bv_input):
-        bv_oracle = get_oracle_instance('BernsteinVaziraniOracle')
-        bv = get_algorithm_instance('BernsteinVazirani')
-        bv.setup_quantum_backend(backend='qasm_simulator')
-        bv.init_oracle(bv_oracle,bv_input)
-        result = bv.run()
+        backend = get_aer_backend('qasm_simulator')
+        oracle = BernsteinVaziraniOracle(bv_input)
+        algorithm = BernsteinVazirani(oracle)
+        result = algorithm.run(backend)
         self.assertTrue(result['oracle_evaluation'])
 
 if __name__ == '__main__':
