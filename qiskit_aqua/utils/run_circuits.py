@@ -26,6 +26,7 @@ import numpy as np
 from qiskit import compile as q_compile
 from qiskit.providers import BaseBackend, JobStatus, JobError
 from qiskit.providers.builtinsimulators.simulatorsjob import SimulatorsJob
+from qiskit.providers.ibmq.ibmqjob import IBMQJob
 
 from qiskit_aqua.aqua_error import AquaError
 from qiskit_aqua.utils import summarize_circuits
@@ -326,9 +327,13 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
 def run_on_backend(backend, qobj, backend_options = None, noise_config = None, skip_validation = False):
     if skip_validation:
         job_id = str(uuid.uuid4())
-        # TODO: Either fix, or validate that the user is simulating - maybe check the provider and change the job
-        #  depending on provider
-        job = SimulatorsJob(backend, job_id, backend._run_job, qobj)
+        if backend.configuration().simulator:
+            if backend_options or noise_config:
+                job = qiskit.providers.aer.AerJob(backend, job_id, backend._run_job, qobj, backend_options, noise_config)
+            else:
+                job = SimulatorsJob(backend, job_id, backend._run_job, qobj)
+        else:
+            job = IBMQJob(backend, None, backend._api, not backend.configuration().simulator, qobj=qobj)
         if job._future is not None:
             raise JobError("We have already submitted the job!")
         job._future = job._executor.submit(job._fn, job._job_id, job._qobj)
