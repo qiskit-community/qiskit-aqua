@@ -168,13 +168,9 @@ class HHL(QuantumAlgorithm):
         exact = False
         debug = False
         if self._mode == 'state_tomography':
-            if (self._quantum_instance.is_statevector_backend(
-                    self._quantum_instance._backend) or
-                    (self._quantum_instance.backend_name == "qasm_simulator"
-                     and cpp)):
+            if self._quantum_instance.is_statevector_backend(
+                    self._quantum_instance._backend):
                 exact = True
-                # not always
-                #debug = True
         if self._mode == 'debug':
             if not cpp:
                 raise AquaError("Debug mode only possible with C++ simulator.")
@@ -253,14 +249,13 @@ class HHL(QuantumAlgorithm):
         self._ret["probability_result"] = vec.dot(vec.conj())
         vec = vec/np.linalg.norm(vec)
         self._ret["result_hhl"] = vec
-
         # Calculating the fidelity
         theo = np.linalg.solve(self._matrix, self._vector)
         theo = theo/np.linalg.norm(theo)
         self._ret["fidelity_hhl_to_classical"] = abs(theo.dot(vec.conj()))**2
         tmp_vec = self._matrix.dot(vec)
         f1 = np.linalg.norm(self._vector)/np.linalg.norm(tmp_vec)
-        f2 = sum(np.angle(self._vector*tmp_vec.conj()))/self._num_q
+        f2 = sum(np.angle(self._vector*tmp_vec.conj()-1+1))/self._num_q # "-1+1" to fix angle error for -0.+0.j
         self._ret["solution_scaled"] = f1*vec*np.exp(-1j*f2)
 
     def _state_tomography(self):
@@ -281,10 +276,10 @@ class HHL(QuantumAlgorithm):
             tomo.create_tomography_circuits(qc, self._io_register, c, tomo_set)
 
         # Handling the results
-        job = self._quantum_instance.execute(tomo_circuits)
+        result = self._quantum_instance.execute(tomo_circuits)
         probs = []
-        for res in job.result():
-            counts = res.counts
+        for circ in tomo_circuits:
+            counts = result.get_counts(circ)
             s, f = 0, 0
             for k, v in counts.items():
                 if k[-1] == "1":
@@ -295,20 +290,18 @@ class HHL(QuantumAlgorithm):
         self._ret["probability_result"] = probs
 
         # Fitting the tomography data
-        tomo_data = tomo.tomography_data(job.result(), "master", tomo_set)
+        tomo_data = tomo.tomography_data(result, "master", tomo_set)
         rho_fit = tomo.fit_tomography_data(tomo_data)
         vec = rho_fit[:, 0]/np.sqrt(rho_fit[0, 0])
         self._ret["result_hhl"] = vec
-
         # Calculating the fidelity with the classical solution
         theo = np.linalg.solve(self._matrix, self._vector)
         theo = theo/np.linalg.norm(theo)
         self._ret["fidelity_hhl_to_classical"] = abs(theo.dot(vec.conj()))**2
-
         # Rescaling the output vector to the real solution vector
         tmp_vec = self._matrix.dot(vec)
         f1 = np.linalg.norm(self._vector)/np.linalg.norm(tmp_vec)
-        f2 = sum(np.angle(self._vector*tmp_vec.conj()))/self._num_q
+        f2 = sum(np.angle(self._vector*tmp_vec.conj()-1+1))/self._num_q # "-1+1" to fix angle error for -0.+0.j
         self._ret["solution_scaled"] = f1*vec*np.exp(-1j*f2)
 
     def _swap_test(self):
@@ -367,6 +360,8 @@ class HHL(QuantumAlgorithm):
         self._ret["solution_scaled"] = sol
         self._ret["result_counts"] = res.get_counts()
 
+    #####################################################
+
     def __filter(self, qsk, reg=None, qubits=None):
         # WORK IN PROGRESS
         qregs = self._circuit.qregs
@@ -396,7 +391,6 @@ class HHL(QuantumAlgorithm):
         ret = {k: v/n for k, v in ret.items()}
         return ret
 
-    #####################################################
     def _exec_debug(self):
         # WORK IN PROGRESS
         print(" HHL - Debug Mode ")
@@ -481,7 +475,7 @@ class HHL(QuantumAlgorithm):
             abs(vec.conj().dot(solution/np.linalg.norm(solution)))**2
         tmp_vec = self._matrix.dot(vec)
         f1 = np.linalg.norm(self._vector)/np.linalg.norm(tmp_vec)
-        f2 = sum(np.angle(self._vector*tmp_vec.conj()))/self._num_q
+        f2 = sum(np.angle(self._vector*tmp_vec.conj()-1+1))/self._num_q # "-1+1" to fix angle error for -0.+0.j
         self._ret["solution_scaled"] = f1*vec*np.exp(-1j*f2)
         dev = np.abs(solution/np.linalg.norm(solution)-vec)**2
         ax_dev.barh(np.arange(len(dev)), dev)
@@ -511,6 +505,7 @@ class HHL(QuantumAlgorithm):
         ax_dev.set_xlim(0, lim)
 
         plt.show()
+
     ####################################
 
     def _run(self):
@@ -528,14 +523,14 @@ class HHL(QuantumAlgorithm):
             self._ret["regs"] = regs
         elif self._mode == "state_tomography":
             if self._exact:
-                sv = self._exact_simulation()
+                self._exact_simulation()
             else:
                 self._state_tomography()
         elif self._mode == "debug":
             self._exec_debug()
         elif self._mode == "swap_test":
             self._swap_test()
-        # Adding few general informations
+        # Adding a bit of general information
         self._ret["input_matrix"] = self._matrix
         self._ret["input_vector"] = self._vector
         self._ret["eigenvalues_calculated"] = np.linalg.eig(self._matrix)[0]
@@ -545,37 +540,3 @@ class HHL(QuantumAlgorithm):
         self._ret["gate_count_total"] = self._circuit.number_atomic_gates()
         # TODO print depth of worst qubit
         return self._ret
-
-
-    ###############################################
-    def number_atomic_gates_2(self, qc=None):
-        from qiskit import CompositeGate, Gate
-        from qiskit.extensions.standard.ccx import ToffoliGate
-        from qiskit.extensions.standard.cu1 import Cu1Gate
-        from qiskit.extensions.standard.cu3 import Cu3Gate
-        from qiskit.extensions.standard.cswap import FredkinGate
-        from qiskit.extensions.standard.cy import CyGate
-        from qiskit.extensions.standard.cz import CzGate
-        from qiskit.extensions.standard.ch import CHGate
-        from qiskit.extensions.standard.crz import CrzGate
-
-        """Count the number of leaf gates. """
-        # worth 6 basic gates
-        gate_list = [Cu1Gate, Cu3Gate, FredkinGate, CyGate, CzGate, CHGate,
-                     CrzGate]
-        num = 0
-        if qc is None:
-            qc = self._circuit
-        for gate in qc.data:
-            if isinstance(gate, CompositeGate):
-                num += self.number_atomic_gates_2(gate)
-            else:
-                if isinstance(gate, Gate):
-                    if isinstance(gate, ToffoliGate):
-                        num += 15
-                    inlist = [isinstance(gate, i) for i in gate_list]
-                    if any(inlist):
-                        num += 5
-                    num += 1
-        return num
-    ##############################################
