@@ -125,6 +125,39 @@ class TestHHL(QiskitAquaTestCase):
         self.log.debug('probability of result:     {}'.
                        format(result["probability_result"]))
 
+    def test_hhl_diagonal_qasm(self):
+        self.log.debug('Testing HHL simple test in swap_test mode')
+
+        swap_params = self.params
+        matrix = [[1, 0], [0, 3]]
+        vector = [1, 0]
+        swap_params["input"] = {
+            "name": "LinearSystemInput",
+            "matrix": matrix,
+            "vector": vector
+        }
+        swap_params["algorithm"]["mode"] = "swap_test"
+        swap_params["backend"]["name"] = "qasm_simulator"
+        swap_params["backend"]["shots"] = 10
+
+        # run hhl
+        result = run_algorithm(swap_params)
+        hhl_solution = result["solution_scaled"]
+        hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
+        # linear algebra solution
+        linalg_solution = np.linalg.solve(matrix, vector)
+        linalg_normed = linalg_solution/np.linalg.norm(linalg_solution)
+
+        # compare result
+        fidelity = abs(linalg_normed.dot(hhl_normed.conj()))**2
+        np.testing.assert_approx_equal(fidelity, 1, significant=5)
+
+        self.log.debug('HHL solution vector:       {}'.format(hhl_solution))
+        self.log.debug('algebraic solution vector: {}'.format(linalg_solution))
+        self.log.debug('fidelity HHL to algebraic: {}'.format(fidelity))
+        self.log.debug('probability of result:     {}'.
+                       format(result["probability_result"]))
+
     def test_hhl_negative_eigs_sv(self):
         self.log.debug('Testing HHL with matrix with negative eigenvalues')
 
