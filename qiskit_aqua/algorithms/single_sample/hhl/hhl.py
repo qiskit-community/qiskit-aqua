@@ -306,8 +306,9 @@ class HHL(QuantumAlgorithm):
 
     def _swap_test(self):
         """
-        Making a swap test calculating the fidelity between the HHL and
-        classical result (normalized).
+        Making a swap test to directly measure the fidelity between the HHL and
+        classical result (normalized) by initializing the input vector with
+        the classically computed result.
         """
         # Preparing the circuit
         c = ClassicalRegister(1)
@@ -327,16 +328,16 @@ class HHL(QuantumAlgorithm):
 
         # Initializing the solution state vector
         init_state_params = {"name": "CUSTOM"}
-        sol = list(np.linalg.solve(self._matrix, self._vector))
+        solution = list(np.linalg.solve(self._matrix, self._vector))
         init_state_params["num_qubits"] = self._num_q
-        init_state_params["state_vector"] = sol
+        init_state_params["state_vector"] = solution
         init_state = get_pluggable_class(PluggableType.INITIAL_STATE,
                                          init_state_params['name']).init_params(init_state_params)
 
         qc = self._circuit
         qc += init_state.construct_circuit('circuit', x_state)
 
-        # Making a swap test
+        # Making the swap test
         qc.h(test_bit)
         for i in range(self._num_q):
             qc.cswap(test_bit, self._io_register[i], x_state[i])
@@ -357,7 +358,7 @@ class HHL(QuantumAlgorithm):
         self._ret["probability_result"] = sum(probs)/(sum(probs)+failed)
         probs = np.array(probs)/sum(probs)
         self._ret["fidelity_hhl_to_classical"] = probs[0]*2-1
-        self._ret["solution_scaled"] = sol
+        self._ret["solution_scaled"] = solution
         self._ret["result_counts"] = res.get_counts()
 
     #####################################################
