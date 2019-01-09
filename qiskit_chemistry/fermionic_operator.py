@@ -49,8 +49,16 @@ class FermionicOperator(object):
         arXiv e-print arXiv:1701.08213 (2017). \
     - K. Setia, J. D. Whitfield, arXiv:1712.00446 (2017)
     """
+
     def __init__(self, h1, h2=None, ph_trans_shift=None):
         """Constructor.
+
+        This class requires the integrals stored in the 'chemist' notation
+            h2(i,j,k,l) --> adag_i adag_k a_m a_j
+        There is another popular notation is the 'physicist' notation
+            h2(i,j,k,l) --> adag_i adag_j a_k a_l
+        If you are using the 'physicist' notation, you need to convert it to
+        the 'chemist' notation first. E.g., h2 = numpy.einsum('ikmj->ijkm', h2)
 
         Args:
             h1 (numpy.ndarray): second-quantized fermionic one-body operator, a 2-D (NxN) tensor
@@ -68,6 +76,7 @@ class FermionicOperator(object):
 
     @property
     def modes(self):
+        """Getter of modes."""
         return self._modes
 
     @property
@@ -294,7 +303,8 @@ class FermionicOperator(object):
         return a
 
     def mapping(self, map_type, threshold=0.00000001, num_workers=4):
-        """
+        """Map fermionic operator to qubit operator.
+
         Using multiprocess to speedup the mapping, the improvement can be
         observed when h2 is a non-sparse matrix.
 
@@ -310,7 +320,6 @@ class FermionicOperator(object):
         Raises:
             QiskitChemistryError: if the `map_type` can not be recognized.
         """
-
         """
         ####################################################################
         ############   DEFINING MAPPED FERMIONIC OPERATORS    ##############
@@ -329,7 +338,7 @@ class FermionicOperator(object):
             return bksf_mapping(self)
         else:
             raise QiskitChemistryError('Please specify the supported modes: '
-                                     'jordan_wigner, parity, bravyi_kitaev, bksf')
+                                       'jordan_wigner, parity, bravyi_kitaev, bksf')
         """
         ####################################################################
         ############    BUILDING THE MAPPED HAMILTONIAN     ################
@@ -421,9 +430,10 @@ class FermionicOperator(object):
         return Operator(paulis=pauli_list)
 
     def _convert_to_interleaved_spins(self):
-        """
-        Converting the spin order from up-up-up-up-down-down-down-down
-                                    to up-down-up-down-up-down-up-down
+        """Converting the spin order.
+
+        From up-up-up-up-down-down-down-down
+          to up-down-up-down-up-down-up-down
         """
         matrix = np.zeros((self._h1.shape), self._h1.dtype)
         n = matrix.shape[0]
@@ -433,9 +443,10 @@ class FermionicOperator(object):
         self.transform(matrix)
 
     def _convert_to_block_spins(self):
-        """
-        Converting the spin order from up-down-up-down-up-down-up-down
-                                    to up-up-up-up-down-down-down-down
+        """Converting the spin order.
+
+        From up-down-up-down-up-down-up-down
+          to up-up-up-up-down-down-down-down
         """
         matrix = np.zeros((self._h1.shape), self._h1.dtype)
         n = matrix.shape[0]
@@ -466,7 +477,8 @@ class FermionicOperator(object):
         return new_fer_op, energy_shift
 
     def fermion_mode_elimination(self, fermion_mode_array):
-        """
+        """Eliminate modes.
+
         Generate a new fermionic operator with the modes in fermion_mode_array deleted
 
         Args:
@@ -490,7 +502,8 @@ class FermionicOperator(object):
         return FermionicOperator(h1_new, h2_new)
 
     def fermion_mode_freezing(self, fermion_mode_array):
-        """
+        """Freezing modes and extracting its energy.
+
         Generate a fermionic operator with the modes in fermion_mode_array deleted and
         provide the shifted energy after freezing.
 
@@ -499,6 +512,7 @@ class FermionicOperator(object):
 
         Returns:
             FermionicOperator: Fermionic Hamiltonian
+            float: energy of frozen modes
         """
         fermion_mode_array = np.sort(fermion_mode_array)
         n_modes_old = self._modes
@@ -555,7 +569,6 @@ class FermionicOperator(object):
         Returns:
             FermionicOperator: Fermionic Hamiltonian
         """
-
         modes = self._modes
         h1 = np.eye(modes, dtype=np.complex)
         h2 = np.zeros((modes, modes, modes, modes))
@@ -569,7 +582,6 @@ class FermionicOperator(object):
         Returns:
             FermionicOperator: Fermionic Hamiltonian
         """
-
         modes = self._modes
         h1 = np.eye(modes, dtype=np.complex) * 0.5
         h1[modes // 2:, modes // 2:] *= -1.0
@@ -582,7 +594,6 @@ class FermionicOperator(object):
         Returns:
             FermionicOperator: Fermionic Hamiltonian
         """
-
         num_modes = self._modes
         num_modes_2 = num_modes // 2
         h1 = np.zeros((num_modes, num_modes))
@@ -613,7 +624,6 @@ class FermionicOperator(object):
         Returns:
             FermionicOperator: Fermionic Hamiltonian
         """
-
         num_modes = self._modes
         num_modes_2 = num_modes // 2
         h1 = np.zeros((num_modes, num_modes))
@@ -644,7 +654,6 @@ class FermionicOperator(object):
         Returns:
             FermionicOperator: Fermionic Hamiltonian
         """
-
         num_modes = self._modes
         num_modes_2 = num_modes // 2
         h1 = np.zeros((num_modes, num_modes))
@@ -668,14 +677,14 @@ class FermionicOperator(object):
         return h1, h2
 
     def total_angular_momentum(self):
-        """
+        """Total angular momentum.
+
         A data_preprocess_helper fermionic operator which can be used to evaluate the total
         angular momentum of the given eigenstate.
 
         Returns:
             FermionicOperator: Fermionic Hamiltonian
         """
-
         x_h1, x_h2 = self._s_x_squared()
         y_h1, y_h2 = self._s_y_squared()
         z_h1, z_h2 = self._s_z_squared()

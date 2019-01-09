@@ -118,7 +118,7 @@ class TestFermionicOperator(QiskitAquaChemistryTestCase):
         self.assertLess(diff, 1e-6)
 
     def test_bksf_mapping(self):
-        """Test bksf mapping
+        """Test bksf mapping.
 
         The spectrum of bksf mapping should be half of jordan wigner mapping.
         """
@@ -130,7 +130,7 @@ class TestFermionicOperator(QiskitAquaChemistryTestCase):
         molecule = driver.run()
         fer_op = FermionicOperator(h1=molecule.one_body_integrals,
                                    h2=molecule.two_body_integrals)
-        jw_op = fer_op.mapping('parity')
+        jw_op = fer_op.mapping('jordan_wigner')
         bksf_op = fer_op.mapping('bksf')
         jw_op.to_matrix()
         bksf_op.to_matrix()

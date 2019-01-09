@@ -78,7 +78,6 @@ def _two_body(edge_list, p, q, r, s, h2_pqrs):
     Returns:
         Operator: mapped qubit operator
     """
-
     # Handle case of four unique indices.
     v = np.zeros(edge_list.shape[1])
     id_op = Operator(paulis=[[1, Pauli(v, v)]])
@@ -149,7 +148,7 @@ def _two_body(edge_list, p, q, r, s, h2_pqrs):
 
 def bravyi_kitaev_fast_edge_list(fer_op):
     """
-    Construct edge list required for the bksf algorithm
+    Construct edge list required for the bksf algorithm.
 
     Args:
         fer_op (FeriomicOperator): the fermionic operator in the second quantized form
@@ -200,14 +199,15 @@ def bravyi_kitaev_fast_edge_list(fer_op):
                     a, b = sorted([p, r])
                 else:
                     continue
-                edge_matrix[b, a] = True    
-    
+                edge_matrix[b, a] = True
+
     edge_list = np.asarray(np.nonzero(np.triu(edge_matrix.T) ^ np.diag(np.diag(edge_matrix.T))))
     return edge_list
 
 
 def edge_operator_aij(edge_list, i, j):
     """Calculate the edge operator A_ij.
+
     The definitions used here are consistent with arXiv:quant-ph/0003137
 
     Args:
@@ -248,11 +248,12 @@ def edge_operator_aij(edge_list, i, j):
     qubit_op = Operator(paulis=[[1.0, Pauli(v, w)]])
     return qubit_op
 
+
 def stabilizers(fer_op):
-    
+
     edge_list = bravyi_kitaev_fast_edge_list(fer_op)
     num_qubits = edge_list.shape[1]
-    vac_operator = Operator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
+    # vac_operator = Operator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
 
     g = networkx.Graph()
     g.add_edges_from(tuple(edge_list.transpose()))
@@ -265,9 +266,8 @@ def stabilizers(fer_op):
             a = a * edge_operator_aij(edge_list, stab[i], stab[(i + 1) % np.size(stab)])
             a.scaling_coeff(1j)
         stabilizers.append(a)
-        
-    return stabilizers
 
+    return stabilizers
 
 
 def edge_operator_bi(edge_list, i):
@@ -294,8 +294,7 @@ def edge_operator_bi(edge_list, i):
 
 def bksf_mapping(fer_op):
     """
-    Transform from InteractionOpeator to QubitOperator for Bravyi-Kitaev fast
-    algorithm.
+    Transform from InteractionOpeator to QubitOperator for Bravyi-Kitaev fast algorithm.
 
     The electronic Hamiltonian is represented in terms of creation and
     annihilation operators. These creation and annihilation operators could be
@@ -325,8 +324,8 @@ def bksf_mapping(fer_op):
     Returns:
         Operator: mapped qubit operator
     """
-
     fer_op = copy.deepcopy(fer_op)
+    # bksf mapping works with the 'physicist' notation.
     fer_op.h2 = np.einsum('ijkm->ikmj', fer_op.h2)
     modes = fer_op.modes
     # Initialize qubit operator as constant.
@@ -398,7 +397,7 @@ def vacuum_operator(fer_op):
 
 
 def number_operator(fer_op, mode_number=None):
-    """Find the qubit operator for the number operator in bravyi_kitaev_fast representation
+    """Find the qubit operator for the number operator in bravyi_kitaev_fast representation.
 
     Args:
         fer_op (FermionicOperator): the fermionic operator in the second quanitzed form
@@ -406,7 +405,7 @@ def number_operator(fer_op, mode_number=None):
 
     Returns:
         Operator: the qubit operator
-   """
+    """
     modes = fer_op.h1.modes
     edge_list = bravyi_kitaev_fast_edge_list(fer_op)
     num_qubits = edge_list.shape[1]
@@ -426,7 +425,7 @@ def number_operator(fer_op, mode_number=None):
 
 
 def generate_fermions(fer_op, i, j):
-    """The qubit operator for generating fermions in bravyi_kitaev_fast representation
+    """The qubit operator for generating fermions in bravyi_kitaev_fast representation.
 
     Args:
         fer_op (FermionicOperator): the fermionic operator in the second quanitzed form
