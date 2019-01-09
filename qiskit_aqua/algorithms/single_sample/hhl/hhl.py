@@ -24,7 +24,6 @@ import numpy as np
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit_aqua.algorithms import QuantumAlgorithm
 from qiskit_aqua import AquaError, PluggableType, get_pluggable_class
-import qiskit.tools.qcvv.tomography as tomo
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +47,8 @@ class HHL(QuantumAlgorithm):
                     'oneOf': [
                         {'enum': [
                             'circuit',
-                            'state_tomography'
+                            'state_tomography',
+                            'swap_test'
                         ]}
                     ],
                     'default': 'circuit'
@@ -163,6 +163,10 @@ class HHL(QuantumAlgorithm):
                 exact = True
         else:
             exact = False
+        if self._mode == 'swap_test':
+            if self._quantum_instance.is_statevector_backend(
+                    self._quantum_instance._backend):
+                raise AquaError("Measurement required")
         self._exact = exact
 
     def _construct_circuit(self):
@@ -232,6 +236,10 @@ class HHL(QuantumAlgorithm):
         Inefficient, uses 3**n*shots executions of the circuit.
         """
         # Preparing the state tomography circuits
+        import qiskit.tools.qcvv.tomography as tomo
+        from qiskit import QuantumCircuit
+        from qiskit import execute
+
         c = ClassicalRegister(self._num_q)
         self._circuit.add_register(c)
         qc = QuantumCircuit(c, name="master")
@@ -268,6 +276,63 @@ class HHL(QuantumAlgorithm):
         f2 = sum(np.angle(self._vector*tmp_vec.conj()-1+1))/self._num_q # "-1+1" to fix angle error for -0.+0.j
         self._ret["solution_scaled"] = f1*vec*np.exp(-1j*f2)
 
+    def _swap_test(self):
+        """
+        Making a swap test to check the fidelity calculation by initializing
+        the input vector with the classically computed result and swapping the
+        input register with the result register.
+        """
+        # Preparing the circuit
+        c = ClassicalRegister(1)
+        self._circuit.add_register(c)
+
+        # using free qubits
+        if (self._num_q + 1) > self._num_a:
+            qx = QuantumRegister(self._num_q+1-self._num_a)
+            self._circuit.add_register(qx)
+            qubits = [qi for qi in self._eigenvalue_register] + \
+                     [qi for qi in qx]
+        else:
+            qubits = [self._eigenvalue_register[i] for i in
+                      range(self._num_q + 1)]
+        test_bit = qubits[0]
+        x_state = qubits[1:]
+
+        # Initializing the solution state vector
+        init_state_params = {"name": "CUSTOM"}
+        solution = list(np.linalg.solve(self._matrix, self._vector))
+        init_state_params["num_qubits"] = self._num_q
+        init_state_params["state_vector"] = solution
+        init_state = get_pluggable_class(PluggableType.INITIAL_STATE,
+                                         init_state_params['name']).init_params(init_state_params)
+
+        qc = self._circuit
+        qc += init_state.construct_circuit('circuit', x_state)
+
+        # Making the swap test
+        qc.h(test_bit)
+        for i in range(self._num_q):
+            qc.cswap(test_bit, self._io_register[i], x_state[i])
+        qc.h(test_bit)
+
+        qc.measure(test_bit, c[0])
+
+        # Execution and calculation of the fidelity
+        res = self._quantum_instance.execute(self._circuit)
+        counts = res.get_counts()
+        failed = 0
+        probs = [0, 0]
+        for key, val in counts.items():
+            if key[-1] == "1":
+                probs[int(key[0])] = val
+            else:
+                failed += val
+        self._ret["probability_result"] = sum(probs)/(sum(probs)+failed)
+        probs = np.array(probs)/sum(probs)
+        self._ret["fidelity_hhl_to_classical"] = probs[0]*2-1
+        self._ret["solution_scaled"] = solution
+        self._ret["result_counts"] = res.get_counts()
+
     def _run(self):
         self._handle_modes()
         self._construct_circuit()
@@ -286,6 +351,8 @@ class HHL(QuantumAlgorithm):
                 self._exact_simulation()
             else:
                 self._state_tomography()
+        elif self._mode == "swap_test":
+            self._swap_test()
         # Adding a bit of general information
         self._ret["input_matrix"] = self._matrix
         self._ret["input_vector"] = self._vector
