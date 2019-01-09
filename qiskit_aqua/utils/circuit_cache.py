@@ -100,9 +100,8 @@ class CircuitCache:
                 if isinstance(gate, CompositeGate): raw_gates += gate.instruction_list()
                 else: raw_gates += [gate]
 
-            #TODO: See if we can skip gates with no params
             for i, uncompiled_gate in enumerate(raw_gates):
-                if not hasattr(uncompiled_gate, 'param'): continue
+                if not hasattr(uncompiled_gate, 'param') or len(uncompiled_gate.param) < 1: continue
                 regs = [(reg, qubit) for (reg, qubit) in uncompiled_gate.qargs]
                 qubits = [qubit+qreg_indeces[reg.name] for reg, qubit in regs if isinstance(reg, QuantumRegister)]
                 gate_type = uncompiled_gate.name
@@ -111,7 +110,7 @@ class CircuitCache:
                     op_graph.get(type_and_qubits, []) + [i]
             mapping = []
             for compiled_gate_index, compiled_gate in enumerate(qobj.experiments[circ_num].instructions):
-                if not hasattr(compiled_gate, 'params'): continue
+                if not hasattr(compiled_gate, 'params') or len(compiled_gate.params) < 1: continue
                 type_and_qubits = compiled_gate.name + compiled_gate.qubits.__str__()
                 if len(op_graph[type_and_qubits]) > 0:
                     uncompiled_gate_index = op_graph[type_and_qubits].pop(0)
@@ -167,7 +166,7 @@ class CircuitCache:
                 else: raw_gates += [gate]
             self.qobjs[chunk].experiments[circ_num].header.name = input_circuit.name
             for gate_num, compiled_gate in enumerate(self.qobjs[chunk].experiments[circ_num].instructions):
-                if not hasattr(compiled_gate, 'params'): continue
+                if not hasattr(compiled_gate, 'params') or len(compiled_gate.params) < 1: continue
                 if compiled_gate.name == 'snapshot': continue
                 cache_index = self.mappings[chunk][circ_num][gate_num]
                 uncompiled_gate = raw_gates[cache_index]
