@@ -18,6 +18,18 @@ The format is based on `Keep a Changelog`_.
 `UNRELEASED`_
 =============
 
+`0.4.1`_ - 2019-01-09
+=====================
+
+Added
+-----
+
+- Optimizers now have most relevant options on constructor for ease of programming. Options may still be set via set_options.
+- Provider is now explicilty named and the named backend is created from that named provider. Backend being selected from the first of the internally known set of providers is deprecated.
+- Improve operation with Aer provider/backends.
+- Registration to Aqua of externally provided pluggable algorithms and components altered to setuptools entry point support for plugins. The prior registration mechanism has been removed.
+- A flag ``before_04`` in the ``load_from_dict(file)`` method is added to support to load operator in the old format. We encourage to save the operator in the new format from now on.
+
 `0.4.0`_ - 2018-12-19
 =====================
 
@@ -48,7 +60,12 @@ Added
    - Loading of multiple univariate and multivariate random distributions
    - European call option: expected value and delta (using univariate distributions)
    - Fixed income asset pricing: expected value (using multivariate distributions)
-   
+
+Changed
+-------
+
+- The pauli string in ``Operator`` class is aligned with Terra 0.7. Now the order of a n-qubit pauli string is ``q_{n-1}...q{0}`` Thus, the (de)serialier (``save_to_dict`` and ``load_from_dict``) in the ``Operator`` class are also changed to adopt the changes of ``Pauli`` class.
+
 Removed
 -------
 
@@ -170,7 +187,8 @@ Changed
 - Updated qiskit minimum version in setup.py.
 - Fixed links in readme.me.
 
-.. _UNRELEASED: https://github.com/Qiskit/qiskit-aqua/compare/0.4.0...HEAD
+.. _UNRELEASED: https://github.com/Qiskit/qiskit-aqua/compare/0.4.1...HEAD
+.. _0.4.1: https://github.com/Qiskit/qiskit-aqua/compare/0.4.0...0.4.1
 .. _0.4.0: https://github.com/Qiskit/qiskit-aqua/compare/0.3.1...0.4.0
 .. _0.3.1: https://github.com/Qiskit/qiskit-aqua/compare/0.3.0...0.3.1
 .. _0.3.0: https://github.com/Qiskit/qiskit-aqua/compare/0.2.0...0.3.0

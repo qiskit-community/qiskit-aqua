@@ -47,9 +47,17 @@ class TestVQE(QiskitAquaTestCase):
         self.algo_input = EnergyInput(qubit_op)
 
     def test_vqe_via_run_algorithm(self):
+
+        coupling_map = [[0, 1]]
+        basis_gates = 'u1,u2,u3,cx,id'
+
         params = {
             'algorithm': {'name': 'VQE'},
-            'backend': {'name': 'statevector_simulator', 'shots': 1},
+            'backend': {'name': 'statevector_simulator',
+                        'provider': 'qiskit.Aer',
+                        'shots': 1,
+                        'coupling_map': coupling_map,
+                        'basis_gates': basis_gates},
         }
         result = run_algorithm(params, self.algo_input)
         self.assertAlmostEqual(result['energy'], -1.85727503)
@@ -78,12 +86,13 @@ class TestVQE(QiskitAquaTestCase):
         ['TNC', 2, False]
     ])
     def test_vqe_optimizers(self, name, places, batch_mode):
+        backend = get_aer_backend('statevector_simulator')
         params = {
             'algorithm': {'name': 'VQE', 'batch_mode': batch_mode},
             'optimizer': {'name': name},
-            'backend': {'name': 'statevector_simulator', 'shots': 1}
+            'backend': {'shots': 1}
         }
-        result = run_algorithm(params, self.algo_input)
+        result = run_algorithm(params, self.algo_input, backend=backend)
         self.assertAlmostEqual(result['energy'], -1.85727503, places=places)
 
     @parameterized.expand([
@@ -99,7 +108,6 @@ class TestVQE(QiskitAquaTestCase):
         }
         result = run_algorithm(params, self.algo_input, backend=backend)
         self.assertAlmostEqual(result['energy'], -1.85727503, places=places)
-
 
     @parameterized.expand([
         [True],
