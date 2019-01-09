@@ -42,12 +42,12 @@ class QuantumAlgorithm(Pluggable):
     SECTION_KEY_VAR_FORM = 'variational_form'
     SECTION_KEY_INITIAL_STATE = 'initial_state'
     SECTION_KEY_IQFT = 'iqft'
-    SECTION_KEY_QFT = 'qft'
     SECTION_KEY_ORACLE = 'oracle'
     SECTION_KEY_FEATURE_MAP = 'feature_map'
     SECTION_KEY_MULTICLASS_EXTENSION = 'multiclass_extension'
     SECTION_KEY_UNCERTAINTY_PROBLEM = 'uncertainty_problem'
     SECTION_KEY_UNCERTAINTY_MODEL = 'uncertainty_model'
+    SECTION_KEY_QFT = 'qft'
     SECTION_KEY_EIGS = 'eigs'
     SECTION_KEY_RECIPROCAL = 'reciprocal'
 

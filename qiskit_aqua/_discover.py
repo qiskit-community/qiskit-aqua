@@ -82,7 +82,6 @@ def _get_pluggables_types_dictionary():
         PluggableType.UNCERTAINTY_PROBLEM: UncertaintyProblem,
         PluggableType.UNCERTAINTY_MODEL: RandomDistribution,
         PluggableType.INPUT: AlgorithmInput,
-
         PluggableType.QFT: QFT,
         PluggableType.EIGENVALUES: Eigenvalues,
         PluggableType.RECIPROCAL: Reciprocal
@@ -103,8 +102,6 @@ _NAMES_TO_EXCLUDE = [
     'iqft',
     'oracle',
     'feature_map',
-
-
     'multiclass_extension',
     'uncertainty_problem',
     'uncertainty_model',
