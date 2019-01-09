@@ -809,7 +809,6 @@ CPLEX Ising can be configured with the following parameters:
    In Aqua, CPLEX supports the ``ising`` problem.
 
 .. _avm-rbf-kernel:
-
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Support Vector Machine Radial Basis Function Kernel (SVM Classical)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -833,4 +832,3 @@ The default value for this parameter is ``False``.
 .. topic:: Problems Supported
 
    In Aqua, SVM Classical supports the ``svm_classification`` problem.
-
