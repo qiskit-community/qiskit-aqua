@@ -21,11 +21,10 @@ The HHL algorithm.
 import logging
 import numpy as np
 
-from qiskit.providers.aer.backends import QasmSimulator
-from qiskit.extensions.simulator import snapshot
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit_aqua.algorithms import QuantumAlgorithm
 from qiskit_aqua import AquaError, PluggableType, get_pluggable_class
+import qiskit.tools.qcvv.tomography as tomo
 
 logger = logging.getLogger(__name__)
 
@@ -49,9 +48,7 @@ class HHL(QuantumAlgorithm):
                     'oneOf': [
                         {'enum': [
                             'circuit',
-                            'state_tomography',
-                            'debug',
-                            'swap_test'
+                            'state_tomography'
                         ]}
                     ],
                     'default': 'circuit'
@@ -160,28 +157,12 @@ class HHL(QuantumAlgorithm):
 
     def _handle_modes(self):
         # Handle different modes
-        try:
-            QasmSimulator()
-            cpp = True
-        except FileNotFoundError:
-            cpp = False
-        exact = False
         if self._mode == 'state_tomography':
             if self._quantum_instance.is_statevector_backend(
                     self._quantum_instance._backend):
                 exact = True
-        #####################################################
-        debug = False
-        if self._mode == 'debug':
-            if not cpp:
-                raise AquaError("Debug mode only possible with C++ simulator.")
-            debug = True
-        if self._mode == 'swap_test':
-            if self._quantum_instance.is_statevector_backend(
-                    self._quantum_instance._backend):
-                raise AquaError("Measurement required")
-        #####################################################
-        self._debug = debug
+        else:
+            exact = False
         self._exact = exact
 
     def _construct_circuit(self):
@@ -193,28 +174,16 @@ class HHL(QuantumAlgorithm):
         # InitialState
         qc += self._init_state.construct_circuit("circuit", q)
 
-        if self._debug:
-            qc.snapshot("0")
-
         # EigenvalueEstimation (QPE)
         qc += self._eigs.construct_circuit("circuit", q)
         a = self._eigs._output_register
-
-        if self._debug:
-            qc.snapshot("1")
 
         # Reciprocal calculation with rotation
         qc += self._reciprocal.construct_circuit("circuit", a)
         s = self._reciprocal._anc
 
-        if self._debug:
-            qc.snapshot("2")
-
         # Inverse EigenvalueEstimation
         qc += self._eigs.construct_inverse("circuit")
-
-        if self._debug:
-            qc.snapshot("3")
 
         # Measurement of the ancilla qubit
         if not self._exact:
@@ -222,9 +191,6 @@ class HHL(QuantumAlgorithm):
             qc.add_register(c)
             qc.measure(s, c)
             self._success_bit = c
-
-        if self._debug:
-            qc.snapshot("-1")
 
         self._io_register = q
         self._eigenvalue_register = a
@@ -266,10 +232,6 @@ class HHL(QuantumAlgorithm):
         Inefficient, uses 3**n*shots executions of the circuit.
         """
         # Preparing the state tomography circuits
-        import qiskit.tools.qcvv.tomography as tomo
-        from qiskit import QuantumCircuit
-        from qiskit import execute
-
         c = ClassicalRegister(self._num_q)
         self._circuit.add_register(c)
         qc = QuantumCircuit(c, name="master")
@@ -306,211 +268,6 @@ class HHL(QuantumAlgorithm):
         f2 = sum(np.angle(self._vector*tmp_vec.conj()-1+1))/self._num_q # "-1+1" to fix angle error for -0.+0.j
         self._ret["solution_scaled"] = f1*vec*np.exp(-1j*f2)
 
-    #####################################################
-
-    def _swap_test(self):
-        """
-        Making a swap test to check the fidelity calculation by initializing
-        the input vector with the classically computed result and swapping the
-        input register with the result register.
-        """
-        # Preparing the circuit
-        c = ClassicalRegister(1)
-        self._circuit.add_register(c)
-
-        # using free qubits
-        if (self._num_q + 1) > self._num_a:
-            qx = QuantumRegister(self._num_q+1-self._num_a)
-            self._circuit.add_register(qx)
-            qubits = [qi for qi in self._eigenvalue_register] + \
-                     [qi for qi in qx]
-        else:
-            qubits = [self._eigenvalue_register[i] for i in
-                      range(self._num_q + 1)]
-        test_bit = qubits[0]
-        x_state = qubits[1:]
-
-        # Initializing the solution state vector
-        init_state_params = {"name": "CUSTOM"}
-        solution = list(np.linalg.solve(self._matrix, self._vector))
-        init_state_params["num_qubits"] = self._num_q
-        init_state_params["state_vector"] = solution
-        init_state = get_pluggable_class(PluggableType.INITIAL_STATE,
-                                         init_state_params['name']).init_params(init_state_params)
-
-        qc = self._circuit
-        qc += init_state.construct_circuit('circuit', x_state)
-
-        # Making the swap test
-        qc.h(test_bit)
-        for i in range(self._num_q):
-            qc.cswap(test_bit, self._io_register[i], x_state[i])
-        qc.h(test_bit)
-
-        qc.measure(test_bit, c[0])
-
-        # Execution and calculation of the fidelity
-        res = self._quantum_instance.execute(self._circuit)
-        counts = res.get_counts()
-        failed = 0
-        probs = [0, 0]
-        for key, val in counts.items():
-            if key[-1] == "1":
-                probs[int(key[0])] = val
-            else:
-                failed += val
-        self._ret["probability_result"] = sum(probs)/(sum(probs)+failed)
-        probs = np.array(probs)/sum(probs)
-        self._ret["fidelity_hhl_to_classical"] = probs[0]*2-1
-        self._ret["solution_scaled"] = solution
-        self._ret["result_counts"] = res.get_counts()
-
-    def __filter(self, qsk, reg=None, qubits=None):
-        # WORK IN PROGRESS
-        qregs = self._circuit.qregs
-        mask = []
-        if reg:
-            idx = qregs.index(reg)
-            none = 0
-            for i in range(idx):
-                none += len(qregs[i]) + 1
-            mask = list(range(none, none+len(reg)))
-        if qubits:
-            for qubit in qubits:
-                idx = qregs.index(qubit[0])
-                none = 0
-                for i in range(idx):
-                    none += len(qregs[i]) + 1
-                mask += [none + qubit[1]]
-        ret = {}
-        mask = np.array(mask)
-        for key, val in qsk.items():
-            nkey = "".join(np.array(list(key))[len(key)-1-mask])
-            if nkey in ret:
-                ret[nkey] += complex(*val)
-            else:
-                ret[nkey] = complex(*val)
-        n = np.linalg.norm(np.array(list(ret.values())))
-        ret = {k: v/n for k, v in ret.items()}
-        return ret
-
-    def _exec_debug(self):
-        # WORK IN PROGRESS
-        print(" HHL - Debug Mode ")
-        print("##################\n")
-        print("Matrix:\t", str(self._matrix).replace("\n", "\n\t "))
-        w, v = np.linalg.eig(self._matrix)
-        print("-> Eigenvalues", w)
-        print("-> Eigenvectors", *v)
-        print("-> Condition", np.linalg.cond(self._matrix))
-
-        print("Input:", self._vector)
-
-        import matplotlib.pyplot as plt
-        from matplotlib import gridspec
-        gs = gridspec.GridSpec(1, 3, width_ratios=[3, 3, 1])
-        fig = plt.figure(figsize=(16, 7))
-        ax_eig = plt.subplot(gs[0])
-        ax_rec = plt.subplot(gs[1])
-        ax_dev = plt.subplot(gs[2])
-
-        res = self._quantum_instance.execute(self._circuit)
-
-        # Plot eigenvalues
-        eigs = res.data(0)['snapshots']['1']['quantum_state_ket'][0]
-        eigs = self.__filter(eigs, reg=self._eigenvalue_register)
-        nums = np.array(list(map(lambda x: int(x, 2), eigs.keys())))
-        nums = nums/2**self._num_a*2*np.pi/self._eigs._evo_time
-        vals = np.array(list(eigs.values()))
-        ax_eig.bar(nums, abs(vals)**2,
-                   width=2*np.pi/self._eigs._evo_time/2**self._num_a)
-
-        # Theoretical eigenvalues
-        w, v = np.linalg.eig(self._matrix)
-        vt = v.T.conj().dot(self._vector)
-
-        ty = np.arange(0, 2**self._num_a)
-        tmp = 1j*(2**self._num_a*np.outer(w, np.ones(len(ty))) *
-                  self._eigs._evo_time - 2*np.pi*np.outer(np.ones(len(w)), ty))
-        tmp[tmp == 0] = 2j*np.pi/self._eigs._evo_time/2**self._num_a
-        ty = np.abs(vt.dot((1-np.exp(tmp))/(1-np.exp(tmp/2**self._num_a)) *
-                           2**-self._num_a))**2
-        tx = np.arange(0, 2**self._num_a)/2**self._num_a * \
-             2*np.pi/self._eigs._evo_time
-
-        ty /= sum(ty)
-
-        if self._eigs._negative_evals:
-            h = int(len(tx)/2)
-            tx1 = tx[:h]
-            tx2 = tx[h:]
-            tx2 -= 2*tx2[0]
-            tx = np.concatenate(tx2, tx1)
-            ty = np.concatenate(ty[h:], ty[:h])
-
-        ax_eig.plot(tx, ty, "r")
-
-        # Plot reciprocals
-        rec = res.data(0)['snapshots']['2']['quantum_state_ket'][0]
-        list(map(lambda x: print(x[0], x[1]), rec.items()))
-        rec = self.__filter(rec, qubits=[qi for qi in self._eigenvalue_register] +
-                                        [self._ancilla_register[0]])
-        list(map(lambda x: print(x[0], x[1]), rec.items()))
-        getrec = lambda s: rec[s] if s in rec else 0
-        rec = [[getrec(key+"0"), getrec(key+"1")] for key in eigs.keys()]
-        y = [np.linalg.norm(i)**2 for i in rec]
-        x = [i[1]/np.linalg.norm(i) for i in rec]
-        ax_rec.scatter(np.abs(x), np.abs(y))
-
-        # Plot theoretical reciprocals (derived from QPE results)
-        tx = np.arange(0, 2**self._num_a)/(2**(self._num_a+1))
-        ax_rec.plot(tx, ty, "r")
-
-        # Solution deviation
-        sv = res.data(0)['snapshots']['3']['statevector'][0]
-        half = int(len(sv)/2)
-        vec = sv[half:half+2**self._num_q]
-        self._ret["probability_result"] = vec.dot(vec.conj())
-        vec = vec/np.linalg.norm(vec)
-        self._ret["result_hhl"] = vec
-        solution = np.linalg.solve(self._matrix, self._vector)
-        self._ret["fidelity_hhl_to_classical"] = \
-            abs(vec.conj().dot(solution/np.linalg.norm(solution)))**2
-        tmp_vec = self._matrix.dot(vec)
-        f1 = np.linalg.norm(self._vector)/np.linalg.norm(tmp_vec)
-        f2 = sum(np.angle(self._vector*tmp_vec.conj()-1+1))/self._num_q # "-1+1" to fix angle error for -0.+0.j
-        self._ret["solution_scaled"] = f1*vec*np.exp(-1j*f2)
-        dev = np.abs(solution/np.linalg.norm(solution)-vec)**2
-        ax_dev.barh(np.arange(len(dev)), dev)
-        sa = solution/np.linalg.norm(solution)
-        fid = abs(sa[0]*vec[0].conj()+sa[1]*vec[1].conj())**2
-        print("result expected: {}".format(sa))
-        print("result HHL:      {}".format(vec))
-        print("fidelity:        {}".format(fid))
-
-        # Decoration
-        ax_eig.set_title("Eigenvalue results")
-        ax_eig.set_ylabel("Probability")
-        ax_eig.set_xlabel("Value $\\lambda$")
-        ax_eig.set_xlim(0, 2.1*np.pi/self._eigs._evo_time)
-        ax_eig.axvline(x=self._reciprocal._scale*2*np.pi/self._eigs._evo_time,
-                       color="g")
-
-        ax_rec.set_title("Reciprocal results")
-        ax_rec.set_ylabel("Probability")
-        ax_rec.set_xlabel("$C/\\lambda$")
-        ax_rec.set_xlim(0, 1)
-
-        ax_dev.set_title("Deviation of Solution")
-        ax_dev.set_xlabel("Amount")
-        ax_dev.set_ylabel("Entry")
-        lim = max(abs(dev)*1.5)
-        ax_dev.set_xlim(0, lim)
-
-        plt.show()
-
-    ####################################
-
     def _run(self):
         self._handle_modes()
         self._construct_circuit()
@@ -529,12 +286,6 @@ class HHL(QuantumAlgorithm):
                 self._exact_simulation()
             else:
                 self._state_tomography()
-        #####################################################
-        elif self._mode == "debug":
-            self._exec_debug()
-        elif self._mode == "swap_test":
-            self._swap_test()
-        #####################################################
         # Adding a bit of general information
         self._ret["input_matrix"] = self._matrix
         self._ret["input_vector"] = self._vector
