@@ -102,11 +102,11 @@ class TestCaching(QiskitAquaTestCase):
         self.assertIn('eval_count', result_caching_naughty)
         self.assertIn('eval_time', result_caching_naughty)
 
-    @parameterized.expand([
-        [True],
-        [False]
-    ])
-    def test_vqe_caching_direct(self, batch_mode):
+    # @parameterized.expand([
+    #     [True],
+    #     [False]
+    # ])
+    def test_vqe_caching_direct(self, batch_mode=False):
         backend = get_aer_backend('statevector_simulator')
         num_qubits = self.algo_input.qubit_op.num_qubits
         init_state = Zero(num_qubits)
