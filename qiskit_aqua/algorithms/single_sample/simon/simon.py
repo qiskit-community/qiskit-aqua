@@ -50,6 +50,7 @@ class Simon(QuantumAlgorithm):
         super().__init__()
 
         self._oracle = oracle
+        self._circuit = None
         self._return = {}
 
     @classmethod
@@ -64,7 +65,10 @@ class Simon(QuantumAlgorithm):
                                      oracle_params['name']).init_params(oracle_params)
         return cls(oracle)
 
-    def _construct_circuit_components(self):        
+    def construct_circuit(self):
+        if self._circuit is not None:
+            return self._circuit
+
         qc_preoracle = QuantumCircuit(
             self._oracle.variable_register(),
             self._oracle.ancillary_register(),
@@ -94,11 +98,11 @@ class Simon(QuantumAlgorithm):
         qc_measurement.barrier(self._oracle.variable_register())
         qc_measurement.measure(self._oracle.variable_register(), measurement_cr)
         
-        qc = qc_preoracle + qc_oracle + qc_postoracle + qc_measurement
-        return qc
+        self._circuit = qc_preoracle + qc_oracle + qc_postoracle + qc_measurement
+        return self._circuit
         
     def _run(self):
-        qc = self._construct_circuit_components()
+        qc = self.construct_circuit()
         
         self._return['circuit'] = qc
         self._return['measurements'] = self._quantum_instance.execute(qc).get_counts(qc)
