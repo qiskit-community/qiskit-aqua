@@ -166,11 +166,12 @@ class HHL(QuantumAlgorithm):
         except FileNotFoundError:
             cpp = False
         exact = False
-        debug = False
         if self._mode == 'state_tomography':
             if self._quantum_instance.is_statevector_backend(
                     self._quantum_instance._backend):
                 exact = True
+        #####################################################
+        debug = False
         if self._mode == 'debug':
             if not cpp:
                 raise AquaError("Debug mode only possible with C++ simulator.")
@@ -179,6 +180,7 @@ class HHL(QuantumAlgorithm):
             if self._quantum_instance.is_statevector_backend(
                     self._quantum_instance._backend):
                 raise AquaError("Measurement required")
+        #####################################################
         self._debug = debug
         self._exact = exact
 
@@ -304,11 +306,13 @@ class HHL(QuantumAlgorithm):
         f2 = sum(np.angle(self._vector*tmp_vec.conj()-1+1))/self._num_q # "-1+1" to fix angle error for -0.+0.j
         self._ret["solution_scaled"] = f1*vec*np.exp(-1j*f2)
 
+    #####################################################
+
     def _swap_test(self):
         """
-        Making a swap test to directly measure the fidelity between the HHL and
-        classical result (normalized) by initializing the input vector with
-        the classically computed result.
+        Making a swap test to check the fidelity calculation by initializing
+        the input vector with the classically computed result and swapping the
+        input register with the result register.
         """
         # Preparing the circuit
         c = ClassicalRegister(1)
@@ -360,8 +364,6 @@ class HHL(QuantumAlgorithm):
         self._ret["fidelity_hhl_to_classical"] = probs[0]*2-1
         self._ret["solution_scaled"] = solution
         self._ret["result_counts"] = res.get_counts()
-
-    #####################################################
 
     def __filter(self, qsk, reg=None, qubits=None):
         # WORK IN PROGRESS
@@ -527,10 +529,12 @@ class HHL(QuantumAlgorithm):
                 self._exact_simulation()
             else:
                 self._state_tomography()
+        #####################################################
         elif self._mode == "debug":
             self._exec_debug()
         elif self._mode == "swap_test":
             self._swap_test()
+        #####################################################
         # Adding a bit of general information
         self._ret["input_matrix"] = self._matrix
         self._ret["input_vector"] = self._vector
