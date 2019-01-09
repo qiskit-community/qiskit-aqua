@@ -27,5 +27,4 @@ __all__ = ['Grover',
            'QPE',
            'PhaseEstimation',
            'AmplitudeEstimation',
-
            'HHL']
