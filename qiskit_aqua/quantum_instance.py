@@ -120,6 +120,7 @@ class QuantumInstance:
         self._qjob_config = {'timeout': timeout} if self.is_local \
             else {'timeout': timeout, 'wait': wait}
 
+        self._backend_options = {}
         if isinstance(self._backend.provider(), IBMQProvider):
             logger.info("backend_options can not used with the backends in IBMQ provider.")
         else:
