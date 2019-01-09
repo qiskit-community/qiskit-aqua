@@ -69,8 +69,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
         backend = get_aer_backend('qasm_simulator')
 
         num_qubits = 2
-        optimizer = SPSA(max_trials=10, c0=4.0, skip_calibration=True)
-        optimizer.set_options(save_steps=1)
+        optimizer = SPSA(max_trials=10, save_steps=1, c0=4.0, skip_calibration=True)
         feature_map = SecondOrderExpansion(num_qubits=num_qubits, depth=2)
         var_form = RYRZ(num_qubits=num_qubits, depth=3)
 

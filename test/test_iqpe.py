@@ -103,7 +103,7 @@ class TestIQPE(QiskitAquaTestCase):
             fractional_part_only=True
         )))
 
-        np.testing.assert_approx_equal(self.ref_eigenval.real, result['energy'], significant=2)
+        np.testing.assert_approx_equal(result['energy'], self.ref_eigenval.real, significant=2)
 
 
 if __name__ == '__main__':

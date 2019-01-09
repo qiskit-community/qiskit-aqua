@@ -16,7 +16,9 @@
 # =============================================================================
 
 import logging
+
 from qiskit import __version__ as terra_version
+from qiskit.providers.ibmq import IBMQProvider
 try:
     from qiskit.providers.aer import AerProvider
     HAS_AER = True
@@ -32,35 +34,33 @@ logger = logging.getLogger(__name__)
 class QuantumInstance:
     """Quantum Backend including execution setting."""
 
-    # TODO: separate the config out from backend config; backend_options are stored in config
-    BACKEND_CONFIG = ['basis_gates', 'coupling_map', 'config', 'seed', 'memory']
+    BACKEND_CONFIG = ['basis_gates', 'coupling_map']
     COMPILE_CONFIG = ['pass_manager', 'initial_layout', 'seed_mapper', 'qobj_id']
-    RUN_CONFIG = ['shots', 'max_credits']
+    RUN_CONFIG = ['shots', 'max_credits', 'memory', 'seed']
     QJOB_CONFIG = ['timeout', 'wait']
     NOISE_CONFIG = ['noise_model']
 
     #  https://github.com/Qiskit/qiskit-aer/blob/master/qiskit/providers/aer/backends/qasm_simulator.py
-    SIMULATOR_CONFIG = ["initial_statevector", "chop_threshold", "max_parallel_threads",
-                        "max_parallel_experiments", "statevector_parallel_threshold",
-                        "statevector_hpc_gate_opt",
-                        # below for qasm simulator only
-                        "statevector_sample_measure_opt", "max_parallel_shots"]
+    BACKEND_OPTIONS_QASM_ONLY = ["statevector_sample_measure_opt", "max_parallel_shots"]
+    BACKEND_OPTIONS = ["initial_statevector", "chop_threshold", "max_parallel_threads",
+                       "max_parallel_experiments", "statevector_parallel_threshold",
+                       "statevector_hpc_gate_opt"] + BACKEND_OPTIONS_QASM_ONLY
 
-    def __init__(self, backend, shots=1024, max_credits=10, config=None, seed=None,
+    def __init__(self, backend, shots=1024, max_credits=10, seed=None,
                  initial_layout=None, pass_manager=None, seed_mapper=None, memory=False,
-                 noise_model=None, timeout=None, wait=5, circuit_cache=None):
+                 backend_options=None, noise_model=None, timeout=None, wait=5, circuit_cache=None):
         """Constructor.
 
         Args:
             backend (BaseBackend): instance of selected backend
             shots (int): number of shots for the backend
             max_credits (int): maximum credits to use
-            config (dict): all config setting for simulator
             seed (int): the random seed for simulator
             initial_layout (dict): initial layout of qubits in mapping
             pass_manager (PassManager): pass manager to handle how to compile the circuits
             seed_mapper (int): the random seed for circuit mapper
             memory (bool): if True, per-shot measurement bitstrings are returned as well
+            backend_options (dict): all config setting for backend
             noise_model (qiskit.provider.aer.noise.noise_model.NoiseModel): noise model for simulator
             timeout (float or None): seconds to wait for job. If None, wait indefinitely.
             wait (float): seconds between queries to result
@@ -73,11 +73,33 @@ class QuantumInstance:
                         "shots from {} to 1.".format(shots))
             shots = 1
 
+        if not self.is_simulator and memory is True:
+            logger.info("The memory flag only supports simulator rather than real device. "
+                        "Change it to from {} to False.".format(memory))
+            memory = False
+
         coupling_map = getattr(backend.configuration(), 'coupling_map', None)
         # TODO: basis gates will be [str] rather than comma-separated str
         basis_gates = backend.configuration().basis_gates
         if isinstance(basis_gates, list):
             basis_gates = ','.join(basis_gates)
+
+        noise_config = None
+        if noise_model is not None:
+            if HAS_AER:
+                if isinstance(self._backend.provider(), AerProvider) and not self.is_statevector:
+                    noise_config = noise_model
+                else:
+                    logger.info("The noise model can be only used with Aer qasm simulator. "
+                                "Change it to None.")
+            else:
+                logger.info("The noise model can be only used with Qiskit Aer. "
+                            "Please install it.")
+
+        self._backend_config = {
+            'basis_gates': basis_gates,
+            'coupling_map': coupling_map
+        }
 
         self._compile_config = {
             'pass_manager': pass_manager,
@@ -88,33 +110,21 @@ class QuantumInstance:
 
         self._run_config = {
             'shots': shots,
-            'max_credits': max_credits
-        }
-
-        self._noise_config = {}
-        if HAS_AER:
-            if isinstance(self._backend.provider(), AerProvider) and noise_model is not None:
-                if not self.is_statevector:
-                    self._noise_config = {'noise_model': noise_model}
-                else:
-                    logger.info("The noise model can be only used with Aer qasm simulator. "
-                                "Change it to None.")
-
-        if not self.is_simulator and memory is True:
-            logger.info("The memory flag only supports simulator rather than real device. "
-                        "Change it to from {} to False.".format(memory))
-            memory = False
-
-        self._backend_config = {
-            'basis_gates': basis_gates,
-            'config': config or {},
-            'coupling_map': coupling_map,
+            'max_credits': max_credits,
             'seed': seed,
             'memory': memory
         }
 
+        self._noise_config = {} if noise_config is None else {'noise_model': noise_config}
+
         self._qjob_config = {'timeout': timeout} if self.is_local \
             else {'timeout': timeout, 'wait': wait}
+
+        if isinstance(self._backend.provider(), IBMQProvider):
+            logger.info("backend_options can not used with the backends in IBMQ provider.")
+        else:
+            self._backend_options = {} if backend_options is None \
+                else {'backend_options': backend_options}
 
         self._shared_circuits = False
         self._circuit_summary = False
@@ -128,10 +138,10 @@ class QuantumInstance:
         Retruns:
             str: the info of the object.
         """
-        info = 'Qiskit Terra version {}\n'.format(terra_version)
-        info += "Backend '{} ({})', with following setting:\n{}\n{}\n{}\n{}\n{}".format(
+        info = "\nQiskit Terra version: {}\n".format(terra_version)
+        info += "Backend: '{} ({})', with following setting:\n{}\n{}\n{}\n{}\n{}\n{}".format(
             self.backend_name, self._backend.provider(), self._backend_config, self._compile_config,
-            self._run_config, self._qjob_config, self._noise_config)
+            self._run_config, self._qjob_config, self._backend_options, self._noise_config)
         return info
 
     def execute(self, circuits):
@@ -146,7 +156,9 @@ class QuantumInstance:
         """
         result = compile_and_run_circuits(circuits, self._backend, self._backend_config,
                                           self._compile_config, self._run_config,
-                                          self._qjob_config, noise_config=self._noise_config,
+                                          self._qjob_config,
+                                          backend_options=self._backend_options,
+                                          noise_config=self._noise_config,
                                           show_circuit_summary=self._circuit_summary,
                                           has_shared_circuits=self._shared_circuits,
                                           circuit_cache = self.circuit_cache)
@@ -156,9 +168,7 @@ class QuantumInstance:
         return result
 
     def set_config(self, **kwargs):
-        """
-        Set configurations for the quantum instance.
-        """
+        """Set configurations for the quantum instance."""
         for k, v in kwargs.items():
             if k in QuantumInstance.RUN_CONFIG:
                 self._run_config[k] = v
@@ -168,8 +178,17 @@ class QuantumInstance:
                 self._compile_config[k] = v
             elif k in QuantumInstance.BACKEND_CONFIG:
                 self._backend_config[k] = v
-            elif k in QuantumInstance.SIMULATOR_CONFIG:
-                self._backend_config['config'][k] = v
+            elif k in QuantumInstance.BACKEND_OPTIONS:
+                if isinstance(self._backend.provider(), IBMQProvider):
+                    logger.info("backend_options can not used with the backends in IBMQ provider.")
+                else:
+                    if k in QuantumInstance.BACKEND_OPTIONS_QASM_ONLY and self.is_statevector:
+                        logger.info("'{}' is only applicable for qasm simulator but "
+                                    "statevector simulator is used. Skip the setting.")
+                    else:
+                        if 'backend_options' not in self._backend_options:
+                            self._backend_options['backend_options'] = {}
+                        self._backend_options['backend_options'][k] = v
             elif k in QuantumInstance.NOISE_CONFIG:
                 self._noise_config[k] = v
             else:
@@ -201,7 +220,13 @@ class QuantumInstance:
         return self._noise_config
 
     @property
+    def backend_options(self):
+        """Getter of backend_options."""
+        return self._backend_options
+
+    @property
     def shared_circuits(self):
+        """Getter of shared_circuits."""
         return self._shared_circuits
 
     @shared_circuits.setter
@@ -223,6 +248,7 @@ class QuantumInstance:
 
     @property
     def backend_name(self):
+        """Return backend name."""
         return self._backend.name()
 
     @property
@@ -255,7 +281,7 @@ class QuantumInstance:
     @staticmethod
     def is_simulator_backend(backend):
         """
-        Returns True if backend is a simulator.
+        Return True if backend is a simulator.
 
         Args:
             backend (BaseBackend): backend instance
@@ -267,7 +293,7 @@ class QuantumInstance:
     @staticmethod
     def is_local_backend(backend):
         """
-        Returns True if backend is a local backend.
+        Return True if backend is a local backend.
 
         Args:
             backend (BaseBackend): backend instance
