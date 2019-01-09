@@ -24,6 +24,7 @@ import numpy as np
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit_aqua.algorithms import QuantumAlgorithm
 from qiskit_aqua import AquaError, PluggableType, get_pluggable_class
+import qiskit.tools.qcvv.tomography as tomo
 
 logger = logging.getLogger(__name__)
 
@@ -236,10 +237,6 @@ class HHL(QuantumAlgorithm):
         Inefficient, uses 3**n*shots executions of the circuit.
         """
         # Preparing the state tomography circuits
-        import qiskit.tools.qcvv.tomography as tomo
-        from qiskit import QuantumCircuit
-        from qiskit import execute
-
         c = ClassicalRegister(self._num_q)
         self._circuit.add_register(c)
         qc = QuantumCircuit(c, name="master")
@@ -278,7 +275,7 @@ class HHL(QuantumAlgorithm):
 
     def _swap_test(self):
         """
-        Making a swap test to check the fidelity calculation by initializing
+        Making a swap test to calculate fidelity by initializing
         the input vector with the classically computed result and swapping the
         input register with the result register.
         """
