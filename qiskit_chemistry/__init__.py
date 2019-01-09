@@ -28,7 +28,7 @@ from ._logging import (get_logging_level,
                        get_qiskit_chemistry_logging,
                        set_qiskit_chemistry_logging)
 
-__version__ = '0.4.1'
+__version__ = '0.4.2'
 
 __all__ = ['QiskitChemistryError',
            'Preferences',

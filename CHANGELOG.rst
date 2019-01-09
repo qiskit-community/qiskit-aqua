@@ -18,6 +18,21 @@ The format is based on `Keep a Changelog`_.
 `UNRELEASED`_
 =============
 
+`0.4.2`_ - 2019-01-09
+=====================
+
+Added
+-------
+
+- Programming API for drivers simplified. Molecular config is now supplied on constructor
+  consistent with other algorithms and components in Aqua.
+- UCCSD and HartreeFock components now are registered to Aqua using the setuptools mechanism
+  now supported by Aqua.
+- Z-Matrix support, as added to PySCF and PyQuante drivers in 0.4.0, now allows dummy atoms to
+  included so linear molecules can be specified. Also dummy atoms may be used to simplify
+  the Z-Matrix specification of the molecule by appropriate choice of dummy atom(s).
+- HartreeFock state now uses a bitordering which is consistent with Qiskit Terra result ordering.
+
 `0.4.1`_ - 2018-12-21
 =====================
 
@@ -113,7 +128,8 @@ Changed
 - Changed description and change package name to dashes in setup.py.
 - Update description and fixed links in readme
 
-.. _UNRELEASED: https://github.com/Qiskit/qiskit-chemistry/compare/0.4.1...HEAD
+.. _UNRELEASED: https://github.com/Qiskit/qiskit-chemistry/compare/0.4.2...HEAD
+.. _0.4.2: https://github.com/Qiskit/qiskit-chemistry/compare/0.4.1...0.4.2
 .. _0.4.1: https://github.com/Qiskit/qiskit-chemistry/compare/0.4.0...0.4.1
 .. _0.4.0: https://github.com/Qiskit/qiskit-chemistry/compare/0.3.0...0.4.0
 .. _0.3.0: https://github.com/Qiskit/qiskit-chemistry/compare/0.2.0...0.3.0

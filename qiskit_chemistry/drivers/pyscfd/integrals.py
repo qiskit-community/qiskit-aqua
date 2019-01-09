@@ -30,27 +30,22 @@ except ImportError:
     logger.info("PySCF is not installed. Use 'pip install pyscf'")
 
 
-def compute_integrals(config):
+def compute_integrals(atom,
+                      unit,
+                      charge,
+                      spin,
+                      basis,
+                      max_memory,
+                      calc_type='rhf'):
     # Get config from input parameters
     # molecule is in PySCF atom string format e.g. "H .0 .0 .0; H .0 .0 0.2"
     #          or in Z-Matrix format e.g. "H; O 1 1.08; H 2 1.08 1 107.5"
     # other parameters are as per PySCF got.Mole format
 
-    if 'atom' not in config:
-        raise QiskitChemistryError('Atom is missing')
-    val = config['atom']
-    if val is None:
-        raise QiskitChemistryError('Atom value is missing')
-
-    atom = _check_molecule_format(val)
-    basis = config.get('basis', 'sto3g')
-    unit = config.get('unit', 'Angstrom')
-    charge = int(config.get('charge', '0'))
-    spin = int(config.get('spin', '0'))
-    max_memory = config.get('max_memory')
+    atom = _check_molecule_format(atom)
     if max_memory is None:
         max_memory = param.MAX_MEMORY
-    calc_type = config.get('calc_type', 'rhf').lower()
+    calc_type = calc_type.lower()
 
     try:
         mol = gto.Mole(atom=atom, unit=unit, basis=basis, max_memory=max_memory, verbose=pylogger.QUIET)
@@ -105,11 +100,16 @@ def _check_molecule_format(val):
     if atoms is None or len(atoms) < 1:
         raise QiskitChemistryError('Molecule format error: ' + val)
 
-    # Anx xyz format has 4 parts in each atom, if not then do zmatrix convert
+    # An xyz format has 4 parts in each atom, if not then do zmatrix convert
+    # Allows dummy atoms, using symbol 'X' in zmatrix format for coord computation to xyz
     parts = [x.strip() for x in atoms[0].split(' ')]
     if len(parts) != 4:
         try:
-            return gto.mole.from_zmatrix(val)
+            newval = []
+            for entry in gto.mole.from_zmatrix(val):
+                if entry[0].upper() != 'X':
+                    newval.append(entry)
+            return newval
         except Exception as exc:
             raise QiskitChemistryError('Failed to convert atom string: ' + val) from exc
 

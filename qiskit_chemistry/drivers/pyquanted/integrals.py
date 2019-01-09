@@ -33,7 +33,12 @@ except ImportError:
     logger.info('PyQuante2 is not installed. See https://github.com/rpmuller/pyquante2')
 
 
-def compute_integrals(config):
+def compute_integrals(atoms,
+                      units,
+                      charge,
+                      multiplicity,
+                      basis,
+                      calc_type='rhf'):
     # Get config from input parameters
     # Molecule is in this format xyz as below or in Z-matrix e.g "H; O 1 1.08; H 2 1.08 1 107.5":
     # atoms=H .0 .0 .0; H .0 .0 0.2
@@ -42,18 +47,9 @@ def compute_integrals(config):
     # multiplicity=1
     # where we support symbol for atom as well as number
 
-    if 'atoms' not in config:
-        raise QiskitChemistryError('Atoms is missing')
-    val = config['atoms']
-    if val is None:
-        raise QiskitChemistryError('Atoms value is missing')
-
-    charge = int(config.get('charge', '0'))
-    multiplicity = int(config.get('multiplicity', '1'))
-    units = _check_units(config.get('units', 'Angstrom'))
-    mol = _parse_molecule(val, units, charge, multiplicity)
-    basis = config.get('basis', 'sto3g')
-    calc_type = config.get('calc_type', 'rhf').lower()
+    units = _check_units(units)
+    mol = _parse_molecule(atoms, units, charge, multiplicity)
+    calc_type = calc_type.lower()
 
     try:
         ehf, enuke, norbs, mohij, mohijkl, orbs, orbs_energy = _calculate_integrals(mol, basis, calc_type)
@@ -173,7 +169,8 @@ def _check_molecule_format(val):
     if atoms is None or len(atoms) < 1:
         raise QiskitChemistryError('Molecule format error: ' + val)
 
-    # Anx xyz format has 4 parts in each atom, if not then do zmatrix convert
+    # An xyz format has 4 parts in each atom, if not then do zmatrix convert
+    # Allows dummy atoms, using symbol 'X' in zmatrix format for coord computation to xyz
     parts = [x.strip() for x in atoms[0].split(' ')]
     if len(parts) != 4:
         try:
@@ -189,7 +186,9 @@ def _check_molecule_format(val):
             new_val = ""
             for i in range(len(xyz)):
                 atm = xyz[i]
-                if i > 0:
+                if atm[0].upper() == 'X':
+                    continue
+                if len(new_val) > 0:
                     new_val += "; "
                 new_val += "{} {} {} {}".format(atm[0], atm[1], atm[2], atm[3])
             return new_val

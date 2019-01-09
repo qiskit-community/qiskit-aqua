@@ -24,7 +24,7 @@ Dynamically Discovered Components
 
 Researchers and developers can contribute to Qiskit Chemistry
 by providing new components, which will be automatically discovered and loaded by Aqua at run time.
-Each component should derive from the corresponding base class, as explained below.  There are three
+Each component should derive from the corresponding base class, as explained below.  There are two
 ways for a component to be dynamically discovered and loaded by Qiskit Chemistry at run time:
 
 1. The class implementing the component should be placed in the appropriate folder in the file system,
@@ -36,58 +36,23 @@ ways for a component to be dynamically discovered and loaded by Qiskit Chemistry
 
 2. Alternatively, a developer extending Qiskit Chemistry with a new component can simply create a dedicated
    repository with its own versioning.  This repository must be locally installable with the package that was
-   created.  Once the repository has been installed, for example via the ``pip install -e`` command,
-   the user can access the
-   Qiskit Chemistry :ref:`qiskit-chemistry-gui`
-   and add the package's name to the list of packages in the **Preferences** panel.
-   From that moment on, any custom component found below that package will be dynamically added to
-   ``qiskit-chemistry`` upon initialization.
-
-3. There is yet another way to achieve the same goal, and that simply consists of customizing the
-   ``setup.py`` file of the new component in order to add the package's name to ``qiskit-chemistry``
-   when someone installs the package, without the need of using the GUI to enter it later.  This is an example
-   of what ``setup.py`` would look like:
+   created.  It simply consists of customizing the
+   ``setup.py`` fadding the entry points for ``qiskit.chemistry.drivers`` and or
+   ``qiskit.chemistry.operators`` as shown below.
+   The format is: ``anyname = full_package:class_name``. Each class must be included separately.
+   When someone installs the package, the extensions will be automatically registered:
 
    .. code:: python
 
        import setuptools
-       from setuptools.command.install import install
-       from setuptools.command.develop import develop
-       from setuptools.command.egg_info import egg_info
-       import atexit
 
        long_description = """New Package for Qiskit Chemistry Component"""
     
        requirements = [
-          "qiskit-chemistry>=0.4.1",
+          "qiskit-chemistry>=0.4.2",
           "qiskit-terra>=0.7.0,<0.8",
           "numpy>=1.13"
        ]
-
-       def _post_install():
-          from qiskit_chemistry.preferences import Preferences
-          preferences = Preferences()
-          # if your package contains classes derived from BaseDriver
-          preferences.add_package(Preferences.PACKAGE_TYPE_DRIVERS,'qiskit_chemistry_custom_component_package')
-          # if your package contains classes derived from ChemistryOperator
-          preferences.add_package(Preferences.PACKAGE_TYPE_CHEMISTRY,'qiskit_chemistry_custom_component_package')
-          preferences.save()
-      
-
-       class CustomInstallCommand(install):
-          def run(self):
-          atexit.register(_post_install)
-          install.run(self)
-        
-       class CustomDevelopCommand(develop):
-          def run(self):
-          atexit.register(_post_install)
-          develop.run(self)
-        
-       class CustomEggInfoCommand(egg_info):
-          def run(self):
-          atexit.register(_post_install)
-          egg_info.run(self)
     
        setuptools.setup(
           name = 'qiskit_chemistry_custom_component_package',
@@ -116,11 +81,14 @@ ways for a component to be dynamically discovered and loaded by Qiskit Chemistry
           install_requires = requirements,
           include_package_data = True,
           python_requires = ">=3.5",
-          cmdclass = {
-             'install': CustomInstallCommand,
-             'develop': CustomDevelopCommand,
-             'egg_info': CustomEggInfoCommand
-          }
+          entry_points={
+               'qiskit.chemistry.operators': [
+                  'MyOperator = qiskit_chemistry_custom_component_package:MyOperatorClass',
+               ],
+               'qiskit.chemistry.drivers': [
+                  'MyDriver = qiskit_chemistry_custom_component_package:MyDriverClass',
+               ],
+         },
        )
 
 

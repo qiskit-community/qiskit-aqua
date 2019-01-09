@@ -20,8 +20,7 @@ import tempfile
 import os
 import subprocess
 import logging
-from qiskit_chemistry import QMolecule
-from qiskit_chemistry import QiskitChemistryError
+from qiskit_chemistry import QMolecule, QiskitChemistryError
 import sys
 from shutil import which
 
@@ -46,15 +45,45 @@ class PSI4Driver(BaseDriver):
         }
     }
 
-    def __init__(self):
+    def __init__(self, config):
+        """
+        Initializer
+        Args:
+            config (str or list): driver configuration
+        """
+        if not isinstance(config, list) and not isinstance(config, str):
+            raise QiskitChemistryError("Invalid input for PSI4 Driver '{}'".format(config))
+
+        if isinstance(config, list):
+            config = '\n'.join(config)
+
         super().__init__()
+        self._config = config
 
     @staticmethod
     def check_driver_valid():
         if psi4 is None:
             raise QiskitChemistryError("Could not locate {}".format(PSI4))
 
-    def run(self, section):
+    @classmethod
+    def init_from_input(cls, section):
+        """
+        Initialize via section dictionary.
+
+        Args:
+            params (dict): section dictionary
+
+        Returns:
+            Driver: Driver object
+        """
+        if 'data' not in section:
+            raise QiskitChemistryError('Missing data section')
+
+        kwargs = {'config': section['data']}
+        logger.debug('init_from_input: {}'.format(kwargs))
+        return cls(**kwargs)
+
+    def run(self):
         # create input
         psi4d_directory = os.path.dirname(os.path.realpath(__file__))
         template_file = psi4d_directory + '/_template.txt'
@@ -62,7 +91,7 @@ class PSI4Driver(BaseDriver):
 
         molecule = QMolecule()
 
-        input_text = section['data'] + '\n'
+        input_text = self._config + '\n'
         input_text += 'import sys\n'
         syspath = '[\'' + qiskit_chemistry_directory + '\',\'' + '\',\''.join(sys.path) + '\']'
 

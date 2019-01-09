@@ -15,7 +15,7 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit_chemistry.drivers import BaseDriver
+from qiskit_chemistry.drivers import BaseDriver, UnitsType
 from qiskit_chemistry import QiskitChemistryError
 from qiskit_chemistry.drivers.pyscfd.integrals import compute_integrals
 import importlib
@@ -41,9 +41,12 @@ class PySCFDriver(BaseDriver):
                 },
                 "unit": {
                     "type": "string",
-                    "default": "Angstrom",
+                    "default": UnitsType.ANGSTROM.value,
                     "oneOf": [
-                        {"enum": ["Angstrom", "Bohr"]}
+                        {"enum": [
+                            UnitsType.ANGSTROM.value,
+                            UnitsType.BOHR.value,
+                        ]}
                     ]
                 },
                 "charge": {
@@ -67,8 +70,40 @@ class PySCFDriver(BaseDriver):
         }
     }
 
-    def __init__(self):
+    def __init__(self,
+                 atom,
+                 unit=UnitsType.ANGSTROM,
+                 charge=0,
+                 spin=0,
+                 basis='sto3g',
+                 max_memory=None):
+        """
+        Initializer
+        Args:
+            atom (str or list): atom list or string separated by semicolons or line breaks
+            unit (UnitsType): angstrom or bohr
+            charge (int): charge
+            spin (int): spin
+            basis (str): basis set
+            max_memory (int): maximum memory
+        """
+        if not isinstance(atom, list) and not isinstance(atom, str):
+            raise QiskitChemistryError("Invalid atom input for PYSCF Driver '{}'".format(atom))
+
+        if isinstance(atom, list):
+            atom = ';'.join(atom)
+        else:
+            atom = atom.replace('\n', ';')
+
+        unit = unit.value
+        self.validate(locals())
         super().__init__()
+        self._atom = atom
+        self._unit = unit
+        self._charge = charge
+        self._spin = spin
+        self._basis = basis
+        self._max_memory = max_memory
 
     @staticmethod
     def check_driver_valid():
@@ -83,5 +118,35 @@ class PySCFDriver(BaseDriver):
 
         raise QiskitChemistryError(err_msg)
 
-    def run(self, section):
-        return compute_integrals(section['properties'])
+    @classmethod
+    def init_from_input(cls, section):
+        """
+        Initialize via section dictionary.
+
+        Args:
+            params (dict): section dictionary
+
+        Returns:
+            Driver: Driver object
+        """
+        if 'properties' not in section or len(section['properties']) == 0:
+            raise QiskitChemistryError('Missing or empty properties section')
+
+        params = section['properties']
+        kwargs = {}
+        for k, v in params.items():
+            if k == 'unit':
+                v = UnitsType(v)
+
+            kwargs[k] = v
+
+        logger.debug('init_from_input: {}'.format(kwargs))
+        return cls(**kwargs)
+
+    def run(self):
+        return compute_integrals(atom=self._atom,
+                                 unit=self._unit,
+                                 charge=self._charge,
+                                 spin=self._spin,
+                                 basis=self._basis,
+                                 max_memory=self._max_memory)
