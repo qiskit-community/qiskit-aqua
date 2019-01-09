@@ -64,8 +64,8 @@ class TestHHL(QiskitAquaTestCase):
             }
         }
 
-    def test_hhl_diagonal(self):
-        self.log.debug('Testing HHL simple test')
+    def test_hhl_diagonal_sv(self):
+        self.log.debug('Testing HHL simple test with statevector simulator')
 
         matrix = [[1, 0], [0, 3]]
         vector = [1, 0]
@@ -93,7 +93,39 @@ class TestHHL(QiskitAquaTestCase):
         self.log.debug('probability of result:     {}'.
                        format(result["probability_result"]))
 
-    def test_hhl_negative_eigs(self):
+    def test_hhl_diagonal_qasm(self):
+        self.log.debug('Testing HHL simple test with qasm simulator')
+
+        qasm_params = self.params
+        matrix = [[1, 0], [0, 3]]
+        vector = [1, 0]
+        qasm_params["input"] = {
+            "name": "LinearSystemInput",
+            "matrix": matrix,
+            "vector": vector
+        }
+        qasm_params["backend"]["name"] = "qasm_simulator"
+        qasm_params["backend"]["shots"] = 200
+
+        # run hhl
+        result = run_algorithm(qasm_params)
+        hhl_solution = result["solution_scaled"]
+        hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
+        # linear algebra solution
+        linalg_solution = np.linalg.solve(matrix, vector)
+        linalg_normed = linalg_solution/np.linalg.norm(linalg_solution)
+
+        # compare result
+        fidelity = abs(linalg_normed.dot(hhl_normed.conj()))**2
+        np.testing.assert_approx_equal(fidelity, 1, significant=2)
+
+        self.log.debug('HHL solution vector:       {}'.format(hhl_solution))
+        self.log.debug('algebraic solution vector: {}'.format(linalg_solution))
+        self.log.debug('fidelity HHL to algebraic: {}'.format(fidelity))
+        self.log.debug('probability of result:     {}'.
+                       format(result["probability_result"]))
+
+    def test_hhl_negative_eigs_sv(self):
         self.log.debug('Testing HHL with matrix with negative eigenvalues')
 
         neg_params = self.params
@@ -127,7 +159,7 @@ class TestHHL(QiskitAquaTestCase):
         self.log.debug('probability of result:     {}'.
                        format(result["probability_result"]))
 
-    def test_hhl_random_hermitian(self):
+    def test_hhl_random_hermitian_sv(self):
         self.log.debug('Testing HHL with random hermitian matrix')
 
         hermitian_params = self.params
