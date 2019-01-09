@@ -119,10 +119,10 @@ class LookupRotation(Reciprocal):
 
     @staticmethod
     def classic_approx(k, n, m, negative_evals=False):
-        """Approximate arcsin rotation classically.
+        """Approximate arcsin(1/x) controlled-rotation classically.
 
-            This method calculates the error of arcsin function using k bits
-            fixed point numbers and n bit accuracy.
+            This method calculates the error of arcsin(1/x) function using k
+            bits fixed point numbers and n bit accuracy.
 
             Args:
                 k (int): register length
