@@ -693,16 +693,18 @@ certain properties. These are accessible by using problem-specific operators. An
 In addition to requiring QPE, matrix inversion method (:ref:`reciprocals`) and a matrix /  initial state as part of its
 configuration, HHL also exposes the following parameter settings:
 
-- The run mode:
+- The run modes:
 
-  .. code:: python
+   .. code:: python
 
-      mode = "state_tomography" | "circuit" | "swap_test"
+      mode = "circuit" | "evaluate"
 
-  These different modes allow testing different settings on a simulator or
-  executing the algorithm in a real use case. Via ``"state_tomography"``, the solution vector is reconstructed using repetitive measurements (or reading out the state vector on the simulator).
-  The ``"swap_test"`` setting triggers a swap test in which the fidelity between the HHL result and the classical result is calculated.
-
+   These different modes allow generating the circuit in mode
+   ``"circuit"`` or evaluating the solution vector in mode ``"evaluate"``
+   either by running a simulator backend or on the real hardware backend. It
+   reads out the statevector in case a statevector simulator is selected and
+   executes state tomography if a qasm simulator or real hardware backend is
+   selected.
 
 .. topic:: Declarative Name
 
