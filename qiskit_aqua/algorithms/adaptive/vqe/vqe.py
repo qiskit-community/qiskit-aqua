@@ -52,7 +52,7 @@ class VQE(QuantumAlgorithm):
                     'type': 'string',
                     'default': 'matrix',
                     'oneOf': [
-                        {'enum': ['matrix', 'paulis', 'grouped_paulis']}
+                        {'enum': ['matrix', 'paulis', 'grouped_paulis', 'special']}
                     ]
                 },
                 'initial_point': {
@@ -91,9 +91,10 @@ class VQE(QuantumAlgorithm):
         Args:
             operator (Operator): Qubit operator
             operator_mode (str): operator mode, used for eval of operator
-            var_form (VariationalForm) : parametrized variational form.
-            optimizer (Optimizer) : the classical optimization algorithm.
-            initial_point (numpy.ndarray) : optimizer initial point.
+            var_form (VariationalForm): parametrized variational form.
+            optimizer (Optimizer): the classical optimization algorithm.
+            initial_point (numpy.ndarray): optimizer initial point.
+            batch_mode (boolean): evaluate parameter sets in parallel.
             aux_operators ([Operator]): Auxiliary operators to be evaluated at each eigenvalue
         """
         self.validate(locals())
@@ -113,6 +114,7 @@ class VQE(QuantumAlgorithm):
         self._ret = {}
         self._eval_count = 0
         self._eval_time = 0
+        self._directly_exp_eval = True if operator_mode == 'special' else False
         logger.info(self.print_setting())
 
     @classmethod
@@ -209,7 +211,8 @@ class VQE(QuantumAlgorithm):
             else:
                 temp_backend_name = 'qasm_simulator'
             backend = BasicAer.get_backend(temp_backend_name)
-            warning_msg += "since operator_mode is '{}', '{}' backend is used.".format(self._operator_mode, temp_backend_name)
+            warning_msg += "since operator_mode is '{}', '{}' backend is used.".format(
+                self._operator_mode, temp_backend_name)
             logger.warning(warning_msg)
         circuit = self._operator.construct_evaluation_circuit(self._operator_mode,
                                                               input_circuit, backend)
@@ -293,22 +296,36 @@ class VQE(QuantumAlgorithm):
         num_parameter_sets = len(parameters) // self._var_form.num_parameters
         circuits = []
         parameter_sets = np.split(parameters, num_parameter_sets)
-        for idx in range(len(parameter_sets)):
-            parameter = parameter_sets[idx]
-            circuit = self.construct_circuit(parameter, self._quantum_instance.backend)
-            circuits.append(circuit)
-
-        to_be_simulated_circuits = functools.reduce(lambda x, y: x + y, circuits)
-        result = self._quantum_instance.execute(to_be_simulated_circuits)
         mean_energy = []
         std_energy = []
-        for idx in range(len(parameter_sets)):
-            mean, std = self._operator.evaluate_with_result(
-                self._operator_mode, circuits[idx], self._quantum_instance.backend, result)
-            mean_energy.append(np.real(mean))
-            std_energy.append(np.real(std))
-            self._eval_count += 1
-            logger.info('Energy evaluation {} returned {}'.format(self._eval_count, np.real(mean)))
+        if self._directly_exp_eval:
+            circuits = [self._var_form.construct_circuit(parameter) for parameter in parameter_sets]
+            mean_temp, std_temp = self._operator.evaluate_with_expectation(circuits, self._quantum_instance.backend,
+                                                                           self._quantum_instance.backend_config,
+                                                                           self._quantum_instance.compile_config,
+                                                                           self._quantum_instance.run_config,
+                                                                           self._quantum_instance.qjob_config,
+                                                                           self._quantum_instance.noise_config)
+            for mean, std in zip(mean_temp, std_temp):
+                mean_energy.append(np.real(mean))
+                std_energy.append(np.real(std))
+                self._eval_count += 1
+                logger.info('Energy evaluation {} returned {}'.format(self._eval_count, np.real(mean)))
+        else:
+            for idx in range(len(parameter_sets)):
+                parameter = parameter_sets[idx]
+                circuit = self.construct_circuit(parameter, self._quantum_instance.backend)
+                circuits.append(circuit)
+
+            to_be_simulated_circuits = functools.reduce(lambda x, y: x + y, circuits)
+            result = self._quantum_instance.execute(to_be_simulated_circuits)
+            for idx in range(len(parameter_sets)):
+                mean, std = self._operator.evaluate_with_result(
+                    self._operator_mode, circuits[idx], self._quantum_instance.backend, result)
+                mean_energy.append(np.real(mean))
+                std_energy.append(np.real(std))
+                self._eval_count += 1
+                logger.info('Energy evaluation {} returned {}'.format(self._eval_count, np.real(mean)))
 
         return mean_energy if len(mean_energy) > 1 else mean_energy[0]
 

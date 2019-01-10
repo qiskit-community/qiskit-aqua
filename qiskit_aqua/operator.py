@@ -731,7 +731,45 @@ class Operator(object):
             avg = np.vdot(quantum_state, self._matrix.dot(quantum_state))
         return avg
 
-    def eval(self, operator_mode, input_circuit, backend, backend_config=None, compile_config=None, run_config=None, qjob_config=None):
+    def prepare_aer_paulis(self):
+        self.to_paulis()
+        pauli_params = []
+        for coeff, p in self._paulis:
+            new_coeff = [coeff.real, coeff.imag]
+            new_p = p.to_label()
+            pauli_params.append([new_coeff, new_p])
+
+        return pauli_params
+
+    def evaluate_with_expectation(self, input_circuit, backend, backend_config=None,
+                                  compile_config=None, run_config=None, qjob_config=None,
+                                  noise_config=None):
+
+        if not isinstance(input_circuit, list):
+            input_circuit = [input_circuit]
+
+        # prepare pauli list
+        backend_config = backend_config or {}
+        compile_config = compile_config or {}
+        run_config = run_config or {}
+        qjob_config = qjob_config or {}
+        noise_config = noise_config or {}
+
+        pauli_params = self.prepare_aer_paulis()
+        result = compile_and_run_circuits(input_circuit, backend=backend, backend_config=backend_config,
+                                          compile_config=compile_config, run_config=run_config,
+                                          qjob_config=qjob_config, noise_config=noise_config,
+                                          expectation={'params': pauli_params, 'num_qubits': self.num_qubits})
+
+        temp = [result.data(input_circuit[i])['snapshots']['expectation_value']['test'][0]['value']
+                for i in range(len(input_circuit))]
+        avg = [x[0] + 1j * x[1] for x in temp]
+        std = [0.0] * len(avg)
+
+        return avg, std
+
+    def eval(self, operator_mode, input_circuit, backend, backend_config=None, compile_config=None,
+             run_config=None, qjob_config=None, noise_model=None):
         """
         Supporting three ways to evaluate the given circuits with the operator.
         1. If `input_circuit` is a numpy.ndarray, it will directly perform inner product with the operator.
@@ -756,6 +794,7 @@ class Operator(object):
         compile_config = compile_config or {}
         run_config = run_config or {}
         qjob_config = qjob_config or {}
+        noise_config = noise_config or {}
 
         if isinstance(input_circuit, np.ndarray):
             avg = self._eval_directly(input_circuit)
@@ -773,7 +812,7 @@ class Operator(object):
             circuits = self.construct_evaluation_circuit(operator_mode, input_circuit, backend)
             result = compile_and_run_circuits(circuits, backend=backend, backend_config=backend_config,
                                               compile_config=compile_config, run_config=run_config,
-                                              qjob_config=qjob_config, show_circuit_summary=self._summarize_circuits,
+                                              qjob_config=qjob_config, noise_config=noise_config, show_circuit_summary=self._summarize_circuits,
                                               has_shared_circuits=has_shared_circuits)
             avg, std_dev = self.evaluate_with_result(operator_mode, circuits, backend, result)
 

@@ -126,7 +126,7 @@ def _combine_result_objects(results):
 def compile_and_run_circuits(circuits, backend, backend_config, compile_config, run_config,
                              qjob_config=None, backend_options=None,
                              noise_config=None, show_circuit_summary=False,
-                             has_shared_circuits=False):
+                             has_shared_circuits=False, **kwargs):
     """
     An execution wrapper with Qiskit-Terra, with job auto recover capability.
 
@@ -187,6 +187,15 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
                                 max_circuits_per_job:(i + 1) * max_circuits_per_job]
         qobj = q_compile(sub_circuits, backend, **backend_config,
                          **compile_config, **run_config)
+        if 'expectation' in kwargs:
+            from qiskit.providers.aer.utils.qobj_utils import snapshot_instr, append_instr
+            # add others, how to derive the correct used number of qubits?
+            # the compiled qobj could be wrong if coupling map is used.
+            params = kwargs['expectation']['params']
+            num_qubits = kwargs['expectation']['num_qubits']
+            new_ins = snapshot_instr('expectation_value_pauli', 'test', range(num_qubits), params=params)
+            for ii in range(len(sub_circuits)):
+                qobj = append_instr(qobj, ii, new_ins)
         # assure get job ids
         while True:
             job = backend.run(qobj, **backend_options, **noise_config)
