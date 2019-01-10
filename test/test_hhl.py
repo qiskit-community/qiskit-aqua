@@ -77,7 +77,7 @@ class TestHHL(QiskitAquaTestCase):
 
         # run hhl
         result = run_algorithm(self.params)
-        hhl_solution = result["solution_scaled"]
+        hhl_solution = result["solution_hhl"]
         hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
         # linear algebra solution
         linalg_solution = np.linalg.solve(matrix, vector)
@@ -109,7 +109,7 @@ class TestHHL(QiskitAquaTestCase):
 
         # run hhl
         result = run_algorithm(qasm_params)
-        hhl_solution = result["solution_scaled"]
+        hhl_solution = result["solution_hhl"]
         hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
         # linear algebra solution
         linalg_solution = np.linalg.solve(matrix, vector)
@@ -142,7 +142,7 @@ class TestHHL(QiskitAquaTestCase):
 
         # run hhl
         result = run_algorithm(swap_params)
-        hhl_solution = result["solution_scaled"]
+        hhl_solution = result["solution_hhl"]
         hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
         # linear algebra solution
         linalg_solution = np.linalg.solve(matrix, vector)
@@ -176,7 +176,7 @@ class TestHHL(QiskitAquaTestCase):
 
         # run hhl
         result = run_algorithm(neg_params, algo_input)
-        hhl_solution = result["solution_scaled"]
+        hhl_solution = result["solution_hhl"]
         hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
         # linear algebra solution
         linalg_solution = np.linalg.solve(matrix, vector)
@@ -208,7 +208,7 @@ class TestHHL(QiskitAquaTestCase):
 
         # run hhl
         result = run_algorithm(hermitian_params, algo_input)
-        hhl_solution = result["solution_scaled"]
+        hhl_solution = result["solution_hhl"]
         hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
         # linear algebra solution
         linalg_solution = np.linalg.solve(matrix, vector)
