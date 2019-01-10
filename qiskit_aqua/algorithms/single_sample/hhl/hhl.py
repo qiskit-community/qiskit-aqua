@@ -309,7 +309,6 @@ class HHL(QuantumAlgorithm):
         self._construct_circuit()
         # Handling the modes
         if self._mode == "circuit":
-            self._ret["circuit"] = self._circuit
             regs = {
                 "io_register": self._io_register,
                 "eigenvalue_register": self._eigenvalue_register,
