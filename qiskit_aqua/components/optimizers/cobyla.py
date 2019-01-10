@@ -67,9 +67,25 @@ class COBYLA(Optimizer):
         'optimizer': ['local']
     }
 
-    def __init__(self, tol=None):
+    def __init__(self, maxiter=1000, disp=False, rhobeg=1.0, tol=None):
+        """
+        Constructor.
+
+        For details, please refer to
+        https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html.
+
+        Args:
+            maxiter (int): Maximum number of function evaluations.
+            disp (bool): Set to True to print convergence messages.
+            rhobeg (float): Reasonable initial changes to the variables.
+            tol (float): Final accuracy in the optimization (not precisely guaranteed).
+                         This is a lower bound on the size of the trust region.
+        """
         self.validate(locals())
         super().__init__()
+        for k, v in locals().items():
+            if k in self._configuration['options']:
+                self._options[k] = v
         self._tol = tol
 
     def optimize(self, num_vars, objective_function, gradient_function=None, variable_bounds=None, initial_point=None):

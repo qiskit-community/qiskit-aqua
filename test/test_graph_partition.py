@@ -30,6 +30,7 @@ class TestGraphPartition(QiskitAquaTestCase):
     """Cplex Ising tests."""
 
     def setUp(self):
+        super().setUp()
         np.random.seed(100)
         self.num_nodes = 4
         self.w = graphpartition.random_graph(self.num_nodes, edge_prob=0.8, weight_range=10)
@@ -83,7 +84,8 @@ class TestGraphPartition(QiskitAquaTestCase):
     def test_graph_partition_vqe(self):
         algorithm_cfg = {
             'name': 'VQE',
-            'operator_mode': 'matrix'
+            'operator_mode': 'matrix',
+            'batch_mode': True
         }
 
         optimizer_cfg = {

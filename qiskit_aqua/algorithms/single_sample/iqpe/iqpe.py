@@ -112,6 +112,7 @@ class IQPE(QuantumAlgorithm):
         self._expansion_order = expansion_order
         self._shallow_circuit_concat = shallow_circuit_concat
         self._ret = {}
+        self._setup()
 
     @classmethod
     def init_params(cls, params, algo_input):
@@ -143,74 +144,7 @@ class IQPE(QuantumAlgorithm):
                    paulis_grouping=paulis_grouping, expansion_mode=expansion_mode,
                    expansion_order=expansion_order)
 
-    def _construct_kth_evolution(self, slice_pauli_list, k, omega):
-        """Construct the kth iteration Quantum Phase Estimation circuit"""
-        a = QuantumRegister(1, name='a')
-        c = ClassicalRegister(1, name='c')
-        q = QuantumRegister(self._operator.num_qubits, name='q')
-        qc = self._state_in.construct_circuit('circuit', q)
-        # hadamard on a[0]
-        qc.add_register(a)
-        qc.u2(0, np.pi, a[0])
-        # controlled-U
-        qc_evolutions = Operator.construct_evolution_circuit(
-            slice_pauli_list, -2 * np.pi, self._num_time_slices, q, a, unitary_power=2 ** (k - 1),
-            shallow_slicing=self._shallow_circuit_concat
-        )
-        if self._shallow_circuit_concat:
-            qc.data += qc_evolutions.data
-        else:
-            qc += qc_evolutions
-        # global phase due to identity pauli
-        qc.u1(2 * np.pi * self._ancilla_phase_coef * (2 ** (k - 1)), a[0])
-        # rz on a[0]
-        qc.u1(omega, a[0])
-        # hadamard on a[0]
-        qc.u2(0, np.pi, a[0])
-        qc.add_register(c)
-        qc.barrier(a)
-        qc.measure(a, c)
-        return qc
-
-    def _estimate_phase_iteratively(self):
-        """Iteratively construct the different order of controlled evolution circuit to carry out phase estimation"""
-        if self._quantum_instance.is_statevector:
-            raise ValueError('Selected backend does not support measurements.')
-
-        pauli_list = self._operator.reorder_paulis(grouping=self._paulis_grouping)
-        if len(pauli_list) == 1:
-            slice_pauli_list = pauli_list
-        else:
-            if self._expansion_mode == 'trotter':
-                slice_pauli_list = pauli_list
-            else:
-                slice_pauli_list = Operator._suzuki_expansion_slice_pauli_list(pauli_list, 1, self._expansion_order)
-
-        self._ret['top_measurement_label'] = ''
-
-        omega_coef = 0
-        # k runs from the number of iterations back to 1
-        for k in range(self._num_iterations, 0, -1):
-            omega_coef /= 2
-            qc = self._construct_kth_evolution(slice_pauli_list, k, -2 * np.pi * omega_coef)
-            measurements = self._quantum_instance.execute(qc).get_counts(qc)
-
-            if '0' not in measurements:
-                if '1' in measurements:
-                    x = 1
-                else:
-                    raise RuntimeError('Unexpected measurement {}.'.format(measurements))
-            else:
-                if '1' not in measurements:
-                    x = 0
-                else:
-                    x = 1 if measurements['1'] > measurements['0'] else 0
-            self._ret['top_measurement_label'] = '{}{}'.format(x, self._ret['top_measurement_label'])
-            omega_coef = omega_coef + x / 2
-            logger.info('Reverse iteration {} of {} with measured bit {}'.format(k, self._num_iterations, x))
-        return omega_coef
-
-    def _compute_energy(self):
+    def _setup(self):
         self._operator.to_paulis()
         self._ret['translation'] = sum([abs(p[0]) for p in self._operator.paulis])
         self._ret['stretch'] = 0.5 / self._ret['translation']
@@ -233,6 +167,85 @@ class IQPE(QuantumAlgorithm):
         for p in self._operator._paulis:
             p[0] = p[0] * self._ret['stretch']
 
+        pauli_list = self._operator.reorder_paulis(grouping=self._paulis_grouping)
+        if len(pauli_list) == 1:
+            slice_pauli_list = pauli_list
+        else:
+            if self._expansion_mode == 'trotter':
+                slice_pauli_list = pauli_list
+            else:
+                slice_pauli_list = Operator._suzuki_expansion_slice_pauli_list(pauli_list, 1, self._expansion_order)
+        self._slice_pauli_list = slice_pauli_list
+
+    def construct_circuit(self, k=None, omega=0):
+        """Construct the kth iteration Quantum Phase Estimation circuit.
+
+        For details of parameters, please see Fig. 2 in https://arxiv.org/pdf/quant-ph/0610214.pdf.
+
+        Args:
+            k (int): the iteration idx.
+            omega (float): the feedback angle.
+        Returns:
+            QuantumCircuit: the quantum circuit per iteration
+        """
+        k = self._num_iterations if k is None else k
+        a = QuantumRegister(1, name='a')
+        c = ClassicalRegister(1, name='c')
+        q = QuantumRegister(self._operator.num_qubits, name='q')
+        qc = self._state_in.construct_circuit('circuit', q)
+        # hadamard on a[0]
+        qc.add_register(a)
+        qc.u2(0, np.pi, a[0])
+        # controlled-U
+        qc_evolutions = Operator.construct_evolution_circuit(
+            self._slice_pauli_list, -2 * np.pi, self._num_time_slices, q, a, unitary_power=2 ** (k - 1),
+            shallow_slicing=self._shallow_circuit_concat
+        )
+        if self._shallow_circuit_concat:
+            qc.data += qc_evolutions.data
+        else:
+            qc += qc_evolutions
+        # global phase due to identity pauli
+        qc.u1(2 * np.pi * self._ancilla_phase_coef * (2 ** (k - 1)), a[0])
+        # rz on a[0]
+        qc.u1(omega, a[0])
+        # hadamard on a[0]
+        qc.u2(0, np.pi, a[0])
+        qc.add_register(c)
+        qc.barrier(a)
+        qc.measure(a, c)
+        return qc
+
+    def _estimate_phase_iteratively(self):
+        """Iteratively construct the different order of controlled evolution circuit to carry out phase estimation"""
+        if self._quantum_instance.is_statevector:
+            raise ValueError('Selected backend does not support measurements.')
+
+        self._ret['top_measurement_label'] = ''
+
+        omega_coef = 0
+        # k runs from the number of iterations back to 1
+        for k in range(self._num_iterations, 0, -1):
+            omega_coef /= 2
+            qc = self.construct_circuit(k, -2 * np.pi * omega_coef)
+            measurements = self._quantum_instance.execute(qc).get_counts(qc)
+
+            if '0' not in measurements:
+                if '1' in measurements:
+                    x = 1
+                else:
+                    raise RuntimeError('Unexpected measurement {}.'.format(measurements))
+            else:
+                if '1' not in measurements:
+                    x = 0
+                else:
+                    x = 1 if measurements['1'] > measurements['0'] else 0
+            self._ret['top_measurement_label'] = '{}{}'.format(x, self._ret['top_measurement_label'])
+            omega_coef = omega_coef + x / 2
+            logger.info('Reverse iteration {} of {} with measured bit {}'.format(k, self._num_iterations, x))
+        return omega_coef
+
+    def _compute_energy(self):
         # check for identify paulis to get its coef for applying global phase shift on ancilla later
         num_identities = 0
         for p in self._operator.paulis:

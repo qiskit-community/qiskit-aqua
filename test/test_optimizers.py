@@ -28,6 +28,7 @@ from qiskit_aqua.components.optimizers import (CG, COBYLA, L_BFGS_B, NELDER_MEAD
 class TestOptimizers(QiskitAquaTestCase):
 
     def setUp(self):
+        super().setUp()
         np.random.seed(50)
         pass
 
@@ -38,38 +39,32 @@ class TestOptimizers(QiskitAquaTestCase):
         return res
 
     def test_cg(self):
-        optimizer = CG(tol=1e-06)
-        optimizer.set_options(**{'maxiter': 1000})
+        optimizer = CG(maxiter=1000, tol=1e-06)
         res = self._optimize(optimizer)
         self.assertLessEqual(res[2], 10000)
 
     def test_cobyla(self):
-        optimizer = COBYLA(tol=1e-06)
-        optimizer.set_options(**{'maxiter': 100000})
+        optimizer = COBYLA(maxiter=100000, tol=1e-06)
         res = self._optimize(optimizer)
         self.assertLessEqual(res[2], 100000)
 
     def test_l_bfgs_b(self):
-        optimizer = L_BFGS_B()
-        optimizer.set_options(**{'maxfun': 1000})
+        optimizer = L_BFGS_B(maxfun=1000)
         res = self._optimize(optimizer)
         self.assertLessEqual(res[2], 10000)
 
     def test_nelder_mead(self):
-        optimizer = NELDER_MEAD(tol=1e-06)
-        optimizer.set_options(**{'maxfev': 10000})
+        optimizer = NELDER_MEAD(maxfev=10000, tol=1e-06)
         res = self._optimize(optimizer)
         self.assertLessEqual(res[2], 10000)
 
     def test_powell(self):
-        optimizer = POWELL(tol=1e-06)
-        optimizer.set_options(**{'maxfev': 10000})
+        optimizer = POWELL(maxfev=10000, tol=1e-06)
         res = self._optimize(optimizer)
         self.assertLessEqual(res[2], 10000)
 
     def test_slsqp(self):
-        optimizer = SLSQP(tol=1e-06)
-        optimizer.set_options(**{'maxiter': 1000})
+        optimizer = SLSQP(maxiter=1000, tol=1e-06)
         res = self._optimize(optimizer)
         self.assertLessEqual(res[2], 10000)
 
@@ -80,8 +75,7 @@ class TestOptimizers(QiskitAquaTestCase):
         self.assertLessEqual(res[2], 100000)
 
     def test_tnc(self):
-        optimizer = TNC(tol=1e-06)
-        optimizer.set_options(**{'maxiter': 1000})
+        optimizer = TNC(maxiter=1000, tol=1e-06)
         res = self._optimize(optimizer)
         self.assertLessEqual(res[2], 10000)
 

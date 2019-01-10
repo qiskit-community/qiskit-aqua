@@ -22,7 +22,7 @@ from collections import OrderedDict
 import numpy as np
 from qiskit.quantum_info import Pauli
 
-from qiskit_aqua.operator import Operator
+from qiskit_aqua import Operator
 
 from sklearn.datasets import make_spd_matrix
 

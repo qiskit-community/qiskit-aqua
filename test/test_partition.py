@@ -30,6 +30,7 @@ class TestSetPacking(QiskitAquaTestCase):
     """Cplex Ising tests."""
 
     def setUp(self):
+        super().setUp()
         input_file = self._get_resource_path('sample.partition')
         number_list = partition.read_numbers_from_file(input_file)
         qubitOp, offset = partition.get_partition_qubitops(number_list)
@@ -54,7 +55,8 @@ class TestSetPacking(QiskitAquaTestCase):
     def test_partition_vqe(self):
         algorithm_cfg = {
             'name': 'VQE',
-            'operator_mode': 'paulis'
+            'operator_mode': 'grouped_paulis',
+            'batch_mode': True
 
         }
 

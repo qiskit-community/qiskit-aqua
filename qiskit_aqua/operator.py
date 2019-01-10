@@ -404,18 +404,19 @@ class Operator(object):
             return int(np.log2(self._matrix.shape[0]))
 
     @staticmethod
-    def load_from_file(file_name):
+    def load_from_file(file_name, before_04=False):
         """
         Load paulis in a file to construct an Operator.
 
         Args:
             file_name (str): path to the file, which contains a list of Paulis and coefficients.
+            before_04 (bool): support the format < 0.4.
 
         Returns:
             Operator class: the loaded operator.
         """
         with open(file_name, 'r') as file:
-            return Operator.load_from_dict(json.load(file))
+            return Operator.load_from_dict(json.load(file), before_04=before_04)
 
     def save_to_file(self, file_name):
         """
@@ -429,7 +430,7 @@ class Operator(object):
             json.dump(self.save_to_dict(), f)
 
     @staticmethod
-    def load_from_dict(dictionary):
+    def load_from_dict(dictionary, before_04=False):
         """
         Load paulis in a dict to construct an Operator, \
         the dict must be represented as follows: label and coeff (real and imag). \
@@ -446,6 +447,7 @@ class Operator(object):
 
         Args:
             dictionary (dict): dictionary, which contains a list of Paulis and coefficients.
+            before_04 (bool): support the format < 0.4.
 
         Returns:
             Operator: the loaded operator.
@@ -470,6 +472,7 @@ class Operator(object):
             if 'imag' in pauli_coeff:
                 coeff = complex(pauli_coeff['real'], pauli_coeff['imag'])
 
+            pauli_label = pauli_label[::-1] if before_04 else pauli_label
             paulis.append([coeff, Pauli.from_label(pauli_label)])
 
         return Operator(paulis=paulis)
@@ -596,8 +599,8 @@ class Operator(object):
                             else:
                                 # Measure X
                                 circuit.u2(0.0, np.pi, q[qubit_idx])  # h
-                        circuit.barrier(q[qubit_idx])
-                        circuit.measure(q[qubit_idx], c[qubit_idx])
+                    circuit.barrier(q)
+                    circuit.measure(q, c)
                     circuits.append(circuit)
             else:
                 self._check_representation("grouped_paulis")
@@ -764,10 +767,6 @@ class Operator(object):
 
                 if operator_mode == 'matrix':
                     has_shared_circuits = False
-
-                if 'config' in backend_config:
-                    if 'noise_params' in backend_config['config']:
-                        has_shared_circuits = False
             else:
                 has_shared_circuits = False
 
