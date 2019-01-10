@@ -771,7 +771,7 @@ class Operator(object):
         return avg, std
 
     def eval(self, operator_mode, input_circuit, backend, backend_config=None, compile_config=None,
-             run_config=None, qjob_config=None, noise_model=None):
+             run_config=None, qjob_config=None, noise_config=None):
         """
         Supporting three ways to evaluate the given circuits with the operator.
         1. If `input_circuit` is a numpy.ndarray, it will directly perform inner product with the operator.
