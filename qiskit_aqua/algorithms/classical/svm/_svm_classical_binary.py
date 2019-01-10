@@ -89,9 +89,9 @@ class _SVM_Classical_Binary(_SVM_Classical_ABC):
             lsign[tin] = (np.sign(ltot + bias) + 1.) / 2.
 
             logger.debug("\n=============================================")
-            logger.debug('classifying' + str(data[tin]))
-            logger.debug('Label should be ' + str(self.label_to_class[np.int(labels[tin])]))
-            logger.debug('Predicted label is ' + self.label_to_class[np.int(lsign[tin])])
+            logger.debug('classifying {}.'.format(data[tin]))
+            logger.debug('Label should be {}.'.format(self.label_to_class[np.int(labels[tin])]))
+            logger.debug('Predicted label is {}.'.format(self.label_to_class[np.int(lsign[tin])]))
             if np.int(labels[tin]) == np.int(lsign[tin]):
                 logger.debug('CORRECT')
             else:
@@ -99,7 +99,7 @@ class _SVM_Classical_Binary(_SVM_Classical_ABC):
             if lsign[tin] == labels[tin]:
                 success_ratio += 1
         final_success_ratio = success_ratio / total_num_points
-        logger.debug('Classification success is %s %% \n' % (100 * final_success_ratio))
+        logger.debug('Classification success is {} %% \n'.format(100 * final_success_ratio))
         self._ret['test_success_ratio'] = final_success_ratio
         self._ret['testing_accuracy'] = final_success_ratio
 
