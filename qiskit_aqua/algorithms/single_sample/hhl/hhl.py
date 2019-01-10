@@ -172,7 +172,8 @@ class HHL(QuantumAlgorithm):
         qc += self._eigs.construct_inverse("circuit")
 
         # Measurement of the ancilla qubit
-        if not self._quantum_instance.is_statevector_backend:
+        if not self._quantum_instance.is_statevector_backend(
+                    self._quantum_instance._backend):
             c = ClassicalRegister(1)
             qc.add_register(c)
             qc.measure(s, c)
@@ -251,11 +252,12 @@ class HHL(QuantumAlgorithm):
         self._construct_circuit()
         # Handling the modes
         if self._mode == "circuit":
+            self._ret["circuit"] = self._circuit.name
             regs = {
                 "io_register": self._io_register,
                 "eigenvalue_register": self._eigenvalue_register,
                 "ancilla_register": self._ancilla_register,
-                "self._success_bit": self._success_bit
+                "_success_bit": self._success_bit
             }
             self._ret["regs"] = regs
         elif self._mode == "evaluate":
