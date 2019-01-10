@@ -108,7 +108,6 @@ class HartreeFock(InitialState):
         self._bitstr = None
 
     def _build_bitstr(self):
-        self._num_particles = self._num_particles
 
         half_orbitals = self._num_orbitals // 2
         bitstr = np.zeros(self._num_orbitals, np.bool)
@@ -137,10 +136,10 @@ class HartreeFock(InitialState):
             bitstr = new_bitstr.astype(np.bool)
 
         if self._qubit_tapering:
-            sq_list = np.asarray(self._sq_list)
+            sq_list = len(bitstr) - np.asarray(self._sq_list)
             bitstr = np.delete(bitstr, sq_list)
 
-        self._bitstr = bitstr
+        self._bitstr = bitstr.astype(np.bool)
 
     def construct_circuit(self, mode, register=None):
         """
