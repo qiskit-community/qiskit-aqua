@@ -732,14 +732,16 @@ class Operator(object):
         return avg
 
     def prepare_aer_paulis(self):
-        self.to_paulis()
-        pauli_params = []
-        for coeff, p in self._paulis:
-            new_coeff = [coeff.real, coeff.imag]
-            new_p = p.to_label()
-            pauli_params.append([new_coeff, new_p])
 
-        return pauli_params
+        if getattr(self, '_aer_paulis', None) is None:
+            self.to_paulis()
+            pauli_params = []
+            for coeff, p in self._paulis:
+                new_coeff = [coeff.real, coeff.imag]
+                new_p = p.to_label()
+                pauli_params.append([new_coeff, new_p])
+            self._aer_paulis = pauli_params
+        return self._aer_paulis
 
     def evaluate_with_expectation(self, input_circuit, backend, backend_config=None,
                                   compile_config=None, run_config=None, qjob_config=None,
