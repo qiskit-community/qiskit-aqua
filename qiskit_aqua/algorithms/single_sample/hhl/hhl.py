@@ -48,7 +48,7 @@ class HHL(QuantumAlgorithm):
                     'oneOf': [
                         {'enum': [
                             'circuit',
-                            'state_tomography',
+                            'evaluate',
                             'swap_test'
                         ]}
                     ],
@@ -112,25 +112,22 @@ class HHL(QuantumAlgorithm):
         if not isinstance(vector, np.ndarray):
             vector = np.array(vector)
 
-        # extending the matrix and the vector
+        # extend vector and matrix for nonhermitian/non 2**n size matrices
         if np.log2(matrix.shape[0]) % 1 != 0:
             next_higher = int(np.ceil(np.log2(matrix.shape[0])))
             new_matrix = np.identity(2**next_higher)
             new_matrix = np.array(new_matrix, dtype=complex)
             new_matrix[:matrix.shape[0], :matrix.shape[0]] = matrix[:, :]
             matrix = new_matrix
-
             new_vector = np.ones((1, 2**next_higher))
             new_vector[0, :vector.shape[0]] = vector
             vector = new_vector.reshape(np.shape(new_vector)[1])
-
-        hhl_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM) or {}
-        mode = hhl_params.get(HHL.PROP_MODE)
-
-        # Fix vector for nonhermitian/non 2**n size matrices
         if matrix.shape[0] != len(vector):
             raise ValueError("Input vector dimension does not match input "
                              "matrix dimension!")
+
+        hhl_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM) or {}
+        mode = hhl_params.get(HHL.PROP_MODE)
 
         # Initialize eigenvalue finding module
         eigs_params = params.get(QuantumAlgorithm.SECTION_KEY_EIGS) or {}
@@ -147,28 +144,13 @@ class HHL(QuantumAlgorithm):
                                          init_state_params['name']).init_params(init_state_params)
 
         # Initialize reciprocal rotation module
-        reciprocal_params = \
-            params.get(QuantumAlgorithm.SECTION_KEY_RECIPROCAL) or {}
+        reciprocal_params = params.get(QuantumAlgorithm.SECTION_KEY_RECIPROCAL) or {}
         reciprocal_params["negative_evals"] = eigs._negative_evals
         reciprocal_params["evo_time"] = eigs._evo_time
         reci = get_pluggable_class(PluggableType.RECIPROCAL,
                                    reciprocal_params['name']).init_params(reciprocal_params)
 
         return cls(matrix, vector, eigs, init_state, reci, mode, num_q, num_a)
-
-    def _handle_modes(self):
-        # Handle different modes
-        if self._mode == 'state_tomography':
-            if self._quantum_instance.is_statevector_backend(
-                    self._quantum_instance._backend):
-                exact = True
-        else:
-            exact = False
-        if self._mode == 'swap_test':
-            if self._quantum_instance.is_statevector_backend(
-                    self._quantum_instance._backend):
-                raise AquaError("Measurement required")
-        self._exact = exact
 
     def _construct_circuit(self):
         """ Constructing the HHL circuit """
@@ -191,7 +173,7 @@ class HHL(QuantumAlgorithm):
         qc += self._eigs.construct_inverse("circuit")
 
         # Measurement of the ancilla qubit
-        if not self._exact:
+        if not self._quantum_instance.is_statevector_backend:
             c = ClassicalRegister(1)
             qc.add_register(c)
             qc.measure(s, c)
@@ -202,26 +184,19 @@ class HHL(QuantumAlgorithm):
         self._ancilla_register = s
         self._circuit = qc
 
-    def _exact_simulation(self):
+    def _statevector_simulation(self):
         """
-        The exact simulation mode: The result of the HHL gets extracted from
-        the statevector. Only possible with statevector simulators
+        The statevector simulation mode: The result of the HHL gets extracted
+        from the statevector.
         """
-        # Handle different backends
-        if self._quantum_instance.is_statevector:
-            res = self._quantum_instance.execute(self._circuit)
-            sv = res.get_statevector()
-        elif self._quantum_instance.backend_name == "qasm_simulator":
-            self._circuit.snapshot("5")
-            res = self._quantum_instance.execute(self._circuit)
-            sv = res.data(0)['snapshots']['5']['statevector'][0]
-
+        res = self._quantum_instance.execute(self._circuit)
+        sv = res.get_statevector()
         # Extract output vector
         half = int(len(sv)/2)
         vec = sv[half:half+2**self._num_q]
         self._ret["probability_result"] = vec.dot(vec.conj())
         vec = vec/np.linalg.norm(vec)
-        self._ret["result_hhl"] = vec
+        self._ret["output_hhl"] = vec
         # Calculating the fidelity
         theo = np.linalg.solve(self._matrix, self._vector)
         theo = theo/np.linalg.norm(theo)
@@ -229,12 +204,13 @@ class HHL(QuantumAlgorithm):
         tmp_vec = self._matrix.dot(vec)
         f1 = np.linalg.norm(self._vector)/np.linalg.norm(tmp_vec)
         f2 = sum(np.angle(self._vector*tmp_vec.conj()-1+1))/self._num_q # "-1+1" to fix angle error for -0.+0.j
-        self._ret["solution_scaled"] = f1*vec*np.exp(-1j*f2)
+        self._ret["solution_hhl"] = f1*vec*np.exp(-1j*f2)
 
     def _state_tomography(self):
         """
-        Extracting the solution vector information via state tomography.
-        Inefficient, uses 3**n*shots executions of the circuit.
+        The state tomography mode. Extracting the solution vector information
+        via state tomography. Inefficient, uses 3**n*shots executions of the
+        circuit.
         """
         # Preparing the state tomography circuits
         c = ClassicalRegister(self._num_q)
@@ -257,12 +233,11 @@ class HHL(QuantumAlgorithm):
                     f += v
             probs.append(s/(f+s))
         self._ret["probability_result"] = probs
-
         # Fitting the tomography data
         tomo_data = tomo.tomography_data(result, "master", tomo_set)
         rho_fit = tomo.fit_tomography_data(tomo_data)
         vec = rho_fit[:, 0]/np.sqrt(rho_fit[0, 0])
-        self._ret["result_hhl"] = vec
+        self._ret["output_hhl"] = vec
         # Calculating the fidelity with the classical solution
         theo = np.linalg.solve(self._matrix, self._vector)
         theo = theo/np.linalg.norm(theo)
@@ -271,7 +246,7 @@ class HHL(QuantumAlgorithm):
         tmp_vec = self._matrix.dot(vec)
         f1 = np.linalg.norm(self._vector)/np.linalg.norm(tmp_vec)
         f2 = sum(np.angle(self._vector*tmp_vec.conj()-1+1))/self._num_q # "-1+1" to fix angle error for -0.+0.j
-        self._ret["solution_scaled"] = f1*vec*np.exp(-1j*f2)
+        self._ret["solution_hhl"] = f1*vec*np.exp(-1j*f2)
 
     def _swap_test(self):
         """
@@ -331,7 +306,6 @@ class HHL(QuantumAlgorithm):
         self._ret["result_counts"] = res.get_counts()
 
     def _run(self):
-        self._handle_modes()
         self._construct_circuit()
         # Handling the modes
         if self._mode == "circuit":
@@ -343,17 +317,23 @@ class HHL(QuantumAlgorithm):
                 "self._success_bit": self._success_bit
             }
             self._ret["regs"] = regs
-        elif self._mode == "state_tomography":
-            if self._exact:
-                self._exact_simulation()
+        elif self._mode == "evaluate":
+            if self._quantum_instance.is_statevector_backend(
+                    self._quantum_instance._backend):
+                self._statevector_simulation()
             else:
                 self._state_tomography()
         elif self._mode == "swap_test":
+            if self._quantum_instance.is_statevector_backend(
+                    self._quantum_instance._backend):
+                raise AquaError("HHL mode swap_test not possible with "
+                                "statevector simulator backend.")
             self._swap_test()
-        # Adding a bit of general information
+        # Adding a bit of general result information
         self._ret["input_matrix"] = self._matrix
         self._ret["input_vector"] = self._vector
-        self._ret["eigenvalues_calculated"] = np.linalg.eig(self._matrix)[0]
+        self._ret["eigenvalues_classical"] = np.linalg.eig(self._matrix)[0]
+        self._ret["solution_classical"] = list(np.linalg.solve(self._matrix, self._vector))
         self._ret["qubits_used_total"] = self._io_register.size + \
                                          self._eigenvalue_register.size + \
                                          self._ancilla_register.size

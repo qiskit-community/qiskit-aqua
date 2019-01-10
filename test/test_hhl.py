@@ -36,7 +36,7 @@ class TestHHL(QiskitAquaTestCase):
                 "name": "linear_system",
             },
             "algorithm": {
-                "mode": "state_tomography",
+                "mode": "evaluate",
                 "name": "HHL"
             },
             "eigs": {
@@ -125,7 +125,7 @@ class TestHHL(QiskitAquaTestCase):
         self.log.debug('probability of result:     {}'.
                        format(result["probability_result"]))
 
-    def test_hhl_diagonal_qasm(self):
+    def test_hhl_diagonal_swap(self):
         self.log.debug('Testing HHL simple test in swap_test mode')
 
         swap_params = self.params
