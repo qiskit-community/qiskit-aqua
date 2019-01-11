@@ -17,6 +17,10 @@
 
 from .oracle import Oracle
 from .sat import SAT
+from .deutsch_jozsa_oracle import DeutschJozsaOracle
+from .bernstein_vazirani_oracle import BernsteinVaziraniOracle
 
 __all__ = ['Oracle',
-           'SAT']
+           'SAT',
+           'DeutschJozsaOracle',
+           'BernsteinVaziraniOracle']
