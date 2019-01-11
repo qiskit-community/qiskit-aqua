@@ -51,7 +51,7 @@ class LongDivision(Reciprocal):
                     'default': 1,
                 },
                 PROP_PRECISION:{
-                    'type': ['number', 'null'],
+                    'type': ['integer', 'null'],
                     'default': None,                    
                 },
                 PROP_EVO_TIME: {
@@ -69,7 +69,7 @@ class LongDivision(Reciprocal):
         }
 
     def __init__(self, num_ancillae=None, scale=1, precision=None,
-                evo_time=None, lambda_min=None, negative_evals=False):
+                 evo_time=None, lambda_min=None, negative_evals=False):
         self.validate(locals())
         super().__init__()
         self._num_ancillae = num_ancillae
@@ -98,7 +98,6 @@ class LongDivision(Reciprocal):
         return cls(num_ancillae=num_ancillae, negative_evals=negative_evals,
                    scale=scale, precision=precision, evo_time=evo_time,
                    lambda_min=lambda_min)
-
 
     def _ld_circuit(self):
         
@@ -207,35 +206,36 @@ class LongDivision(Reciprocal):
                 qc.x(anc[i])
                               
         def shift_one_left(qc, b, n):   
-            for i in  np.arange(n-1,0, -1):
+            for i in np.arange(n-1,0, -1):
                 i = int(i)
                 qc.cx(b[i-1], b[i]) 
                 qc.cx(b[i], b[i-1])            
-        
-                
-        def shift_one_leftc(qc, b, ctrl, n):   
-            for i in  np.arange(n-2,0, -1):
+
+        def shift_one_leftc(qc, b, ctrl, n):
+            for i in np.arange(n-2,0, -1):
                 i = int(i)
                 qc.ccx(ctrl, b[i-1], b[i])
                 qc.ccx(ctrl, b[i], b[i-1])                            
             return qc
         
         def shift_one_rightc(qc, b, ctrl, n):                   
-            for i in  np.arange(0, n-1):
+            for i in np.arange(0, n-1):
                 i = int(i)
                 qc.ccx(ctrl, b[n-2-i+self._neg_offset], b[n-1-i+self._neg_offset])
                 qc.ccx(ctrl, b[n-1-i+self._neg_offset], b[n-2-i+self._neg_offset])
                   
         # executing long division:
         self._circuit.x(self._a[self._n-2])
-        shift_to_one(self._circuit, self._ev, self._anc1, self._n)                  #initial alignment of most significant bits
-        
-        for rj in range(self._precision):                                           #iterated subtraction and shifting
-            self._circuit += subtract(self._a, self._ev, self._b0, self._c, self._z,self._rec, rj, self._n)                       
+        shift_to_one(self._circuit, self._ev, self._anc1, self._n)  #initial alignment of most significant bits
+
+        for rj in range(self._precision): #iterated subtraction and shifting
+            self._circuit += subtract(self._a, self._ev, self._b0, self._c,
+                                      self._z, self._rec, rj, self._n)
             shift_one_left(self._circuit, self._a, self._n)
                
-        for ish in range(self._n-2):                                                #unshifting due to initial alignment
-            shift_one_leftc(self._circuit, self._rec, self._anc1[ish] , self._precision +self._num_ancillae)   
+        for ish in range(self._n-2): #unshifting due to initial alignment
+            shift_one_leftc(self._circuit, self._rec, self._anc1[ish],
+                            self._precision + self._num_ancillae)
             self._circuit.x(self._anc1[ish])
             shift_one_rightc(self._circuit, self._ev, self._anc1[ish], self._num_ancillae)
             self._circuit.x(self._anc1[ish])
@@ -248,7 +248,7 @@ class LongDivision(Reciprocal):
         if self._negative_evals:
             for i in range(0, self._precision + self._num_ancillae):
                 qc.cu3(self._scale*2**(-i), 0, 0, rec_reg[i], ancilla)
-            qc.cu3(2*np.pi,0,0,self._ev[0], ancilla)                    #correcting the sign
+            qc.cu3(2*np.pi, 0, 0,self._ev[0], ancilla)  #correcting the sign
         else:
             for i in range(0, self._precision + self._num_ancillae):
                 qc.cu3(self._scale*2**(-i), 0, 0, rec_reg[i], ancilla)
@@ -275,12 +275,12 @@ class LongDivision(Reciprocal):
         if self._precision is None:
             self._precision = self._num_ancillae 
                   
-        self._a = QuantumRegister(self._n, 'one')                             #register storing 1
-        self._b0 = QuantumRegister(1, 'b0')                                   #extension of b - required by subtraction
-        self._anc1 = QuantumRegister(self._num_ancillae-1, 'aligning_ancilla')#ancilla for the initial shifting
-        self._z = QuantumRegister(1, 'z')                                     #subtraction overflow
-        self._c = QuantumRegister(1, 'c')                                     #carry
-        self._rec = QuantumRegister(self._precision + self._num_ancillae, 'res')             #reciprocal result
+        self._a = QuantumRegister(self._n, 'one') #register storing 1
+        self._b0 = QuantumRegister(1, 'b0') #extension of b - required by subtraction
+        self._anc1 = QuantumRegister(self._num_ancillae-1, 'algn_anc') # ancilla for the initial shifting
+        self._z = QuantumRegister(1, 'z') #subtraction overflow
+        self._c = QuantumRegister(1, 'c') #carry
+        self._rec = QuantumRegister(self._precision + self._num_ancillae, 'res') #reciprocal result
         self._anc = QuantumRegister(1, 'anc')                        
         qc = QuantumCircuit(self._a, self._b0, self._ev, self._anc1, self._c, 
                             self._z, self._rec, self._anc)

@@ -188,13 +188,13 @@ class HHL(QuantumAlgorithm):
         from the statevector.
         """
         res = self._quantum_instance.execute(self._circuit)
-        sv = res.get_statevector()
+        sv = res.get_statevector(self._circuit)
         # Extract output vector
         half = int(len(sv)/2)
+        #half = 71232
         vec = sv[half:half+2**self._num_q]
         self._ret["probability_result"] = vec.dot(vec.conj())
         vec = vec/np.linalg.norm(vec)
-
         self._hhl_results(vec)
 
     def _state_tomography(self):
@@ -227,7 +227,6 @@ class HHL(QuantumAlgorithm):
         tomo_data = tomo.tomography_data(result, self._circuit.name, tomo_set)
         rho_fit = tomo.fit_tomography_data(tomo_data)
         vec = rho_fit[:, 0]/np.sqrt(rho_fit[0, 0])
-
         self._hhl_results(vec)
 
     def _hhl_results(self, vec):
@@ -265,9 +264,7 @@ class HHL(QuantumAlgorithm):
         self._ret["input_vector"] = self._vector
         self._ret["eigenvalues_classical"] = np.linalg.eig(self._matrix)[0]
         self._ret["solution_classical"] = list(np.linalg.solve(self._matrix, self._vector))
-        self._ret["qubits_used_total"] = self._io_register.size + \
-                                         self._eigenvalue_register.size + \
-                                         self._ancilla_register.size
+        self._ret["circuit_width"] = self._circuit.width()
+        self._ret["circuit_depth"] = self._circuit.depth()
         self._ret["gate_count_total"] = self._circuit.number_atomic_gates()
-        # TODO print depth of worst qubit
         return self._ret
