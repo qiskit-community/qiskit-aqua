@@ -16,27 +16,29 @@
 # =============================================================================
 
 import unittest
-from test.common import QiskitAquaTestCase
-
 from parameterized import parameterized
 
 from qiskit_aqua.components.oracles import BernsteinVaziraniOracle
 from qiskit_aqua.algorithms import BernsteinVazirani
 from qiskit_aqua import get_aer_backend
 
+from test.common import QiskitAquaTestCase
+
+
 class TestBernsteinVazirani(QiskitAquaTestCase):
-
     @parameterized.expand([
-        [{'000':'0','001':'0','010':'1','011':'1','100':'1','101':'1','110':'0','111':'0'}],
-        [{'000':'0','001':'1','010':'0','011':'1','100':'1','101':'0','110': '1','111':'0'}]
+        [{'000': '0', '001': '0', '010': '1', '011': '1',
+          '100': '1', '101': '1', '110': '0', '111': '0'}],
+        [{'000': '0', '001': '1', '010': '0', '011': '1',
+          '100': '1', '101': '0', '110': '1', '111': '0'}]
     ])
-
     def test_bernsteinvazirani(self, bv_input):
         backend = get_aer_backend('qasm_simulator')
         oracle = BernsteinVaziraniOracle(bv_input)
         algorithm = BernsteinVazirani(oracle)
         result = algorithm.run(backend)
         self.assertTrue(result['oracle_evaluation'])
+
 
 if __name__ == '__main__':
     unittest.main()

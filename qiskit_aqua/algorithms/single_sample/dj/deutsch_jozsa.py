@@ -19,15 +19,18 @@ The Deutsch-Jozsa algorithm.
 """
 
 import logging
+
+from qiskit import ClassicalRegister, QuantumCircuit
+
 from qiskit_aqua.algorithms import QuantumAlgorithm
 from qiskit_aqua import AquaError, PluggableType, get_pluggable_class
-from qiskit import ClassicalRegister, QuantumCircuit 
 
 logger = logging.getLogger(__name__)
 
+
 class DeutschJozsa(QuantumAlgorithm):
     """The Deutsch-Jozsa algorithm."""
-        
+
     CONFIGURATION = {
         'name': 'DeutschJozsa',
         'description': 'DeutschJozsa',
@@ -54,7 +57,7 @@ class DeutschJozsa(QuantumAlgorithm):
 
         self._oracle = oracle
         self._circuit = None
-        self._return = {}
+        self._ret = {}
 
     @classmethod
     def init_params(cls, params, algo_input):
@@ -62,26 +65,27 @@ class DeutschJozsa(QuantumAlgorithm):
             raise AquaError("Unexpected Input instance.")
 
         dj_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
- 
+
         oracle_params = params.get(QuantumAlgorithm.SECTION_KEY_ORACLE)
-        oracle = get_pluggable_class(PluggableType.ORACLE,
-                                     oracle_params['name']).init_params(oracle_params)
+        oracle = get_pluggable_class(
+            PluggableType.ORACLE,
+            oracle_params['name']).init_params(oracle_params)
         return cls(oracle)
 
-    def construct_circuit(self):        
+    def construct_circuit(self):
         if self._circuit is not None:
             return self._circuit
- 
+
         # preoracle circuit
         qc_preoracle = QuantumCircuit(
             self._oracle.variable_register(),
             self._oracle.ancillary_register(),
         )
-        qc_preoracle.h(self._oracle.variable_register())        
-        qc_preoracle.x(self._oracle.ancillary_register())        
-        qc_preoracle.h(self._oracle.ancillary_register())                
+        qc_preoracle.h(self._oracle.variable_register())
+        qc_preoracle.x(self._oracle.ancillary_register())
+        qc_preoracle.h(self._oracle.ancillary_register())
         qc_preoracle.barrier()
-        
+
         # oracle circuit
         qc_oracle = self._oracle.construct_circuit()
         qc_oracle.barrier()
@@ -91,28 +95,33 @@ class DeutschJozsa(QuantumAlgorithm):
             self._oracle.variable_register(),
             self._oracle.ancillary_register(),
         )
-        qc_postoracle.h(self._oracle.variable_register())        
+        qc_postoracle.h(self._oracle.variable_register())
         qc_postoracle.barrier()
 
         # measurement circuit
-        measurement_cr = ClassicalRegister(len(self._oracle.variable_register()), name='m')
+        measurement_cr = ClassicalRegister(len(
+            self._oracle.variable_register()), name='m')
 
         qc_measurement = QuantumCircuit(
             self._oracle.variable_register(),
             measurement_cr
         )
         qc_measurement.barrier(self._oracle.variable_register())
-        qc_measurement.measure(self._oracle.variable_register(), measurement_cr)
-        
-        self._circuit = qc_preoracle + qc_oracle + qc_postoracle + qc_measurement
+        qc_measurement.measure(
+            self._oracle.variable_register(), measurement_cr)
+
+        self._circuit = qc_preoracle+qc_oracle+qc_postoracle+qc_measurement
         return self._circuit
-        
+
     def _run(self):
         qc = self.construct_circuit()
-        
-        self._return['circuit'] = qc
-        self._return['measurements'] = self._quantum_instance.execute(qc).get_counts(qc)
-        self._return['result'] = self._oracle.interpret_measurement(self._return['measurements'])
-        self._return['oracle_evaluation'] = self._oracle.evaluate_classically(self._return['result'])
-        
-        return self._return
+
+        self._ret['circuit'] = qc
+        self._ret['measurements'] = self._quantum_instance.execute(
+            qc).get_counts(qc)
+        self._ret['result'] = self._oracle.interpret_measurement(
+            self._ret['measurements'])
+        self._ret['oracle_evaluation'] = self._oracle.evaluate_classically(
+            self._ret['result'])
+
+        return self._ret
