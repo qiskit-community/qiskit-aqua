@@ -20,14 +20,14 @@ import numpy as np
 from scipy.linalg import sqrtm
 
 
-# def get_subsystem_statevector(statevector, trace_systems):
-#     # trace system is a list of qubits one wants to trace. E.g.
-#     # to trace qubits 0 and 4 trace_systems = [0,4]
-#     rho = np.outer(statevector, statevector)
-#     rho_sub = partial_trace(rho, trace_systems)
-#     u, s, v = np.linalg.svd(rho_sub)
-#     state_sub = np.transpose(np.conj(np.dot(u, s)))
-#     return state_sub
+def get_subsystem_statevector(statevector, trace_systems):
+    # trace system is a list of qubits one wants to trace. E.g.
+    # to trace qubits 0 and 4 trace_systems = [0,4]
+    rho = np.outer(statevector, statevector)
+    rho_sub = partial_trace(rho, trace_systems)
+    u, s, v = np.linalg.svd(rho_sub)
+    state_sub = np.transpose(np.conj(np.dot(u, s)))
+    return state_sub
 
 
 def get_subsystem_fidelity(statevector, trace_systems, subsystem_state):
