@@ -16,9 +16,8 @@
 # =============================================================================
 
 from qiskit import QuantumRegister, QuantumCircuit
-
 import sys
-sys.path.append('../')
+
 from qiskit_aqua.components.reciprocals import Reciprocal
 from qiskit_aqua.utils import cnx_na
 import numpy as np
@@ -72,33 +71,45 @@ class LongDivision(Reciprocal):
         },
         }
 
-    def __init__(self):
+    def __init__(self, num_ancillae=0, scale=0, precision = None,
+                  evo_time = None, lambda_min = None, negative_evals=False):
         super().__init__()
-        self._num_ancillae = None
+        super().validate({
+            LongDivision.PROP_NUM_ANCILLAE: num_ancillae,
+            LongDivision.PROP_NEGATIVE_EVALS: negative_evals,
+            LongDivision.PROP_SCALE: scale,
+            LongDivision.PROP_PRECISION: precision,
+            LongDivision.PROP_EVO_TIME: evo_time,
+            LongDivision.PROP_LAMBDA_MIN: lambda_min
+        })
         self._circuit = None
         self._ev = None
         self._rec = None
         self._anc = None
         self._reg_size = 0
-        self._negative_evals = False
-        self._scale = 0
-        self._lambda_min = None
-        self._evo_time = None
         self._neg_offset = 0
-        self._precision = None
         self._n = 0
-        
-        
-    def init_args(self, num_ancillae=0, scale=0,precision = None,
-                  evo_time = None, lambda_min = None, negative_evals=False):
         self._num_ancillae = num_ancillae
         self._negative_evals = negative_evals
         self._scale = scale
+        self._precision = precision
         self._evo_time = evo_time
         self._lambda_min = lambda_min
-        self._precision = precision
-       
         
+    @classmethod
+    def init_params(cls, params):
+        num_ancillae = params.get(LongDivision.PROP_NUM_ANCILLAE)
+        negative_evals = params.get(LongDivision.PROP_NEGATIVE_EVALS)
+        scale = params.get(LongDivision.PROP_SCALE)
+        precision = params.get(LongDivision.PROP_PRECISION)
+        evo_time = params.get(LongDivision.PROP_EVO_TIME)
+        lambda_min = params.get(LongDivision.PROP_LAMBDA_MIN)
+
+        return cls(num_ancillae=num_ancillae, negative_evals=negative_evals,
+                   scale=scale, precision=precision, evo_time=evo_time,
+                   lambda_min=lambda_min)
+
+
     def _ld_circuit(self):
         
         def subtract(a, b,b0, c, z,r, rj,n):                         
@@ -246,11 +257,11 @@ class LongDivision(Reciprocal):
 
         if self._negative_evals:
             for i in range(0, self._precision + self._num_ancillae):
-	            qc.cu3(self._scale*2**(-i), 0, 0, rec_reg[i], ancilla)
+                qc.cu3(self._scale*2**(-i), 0, 0, rec_reg[i], ancilla)
             qc.cu3(2*np.pi,0,0,self._ev[0], ancilla)                    #correcting the sign
         else:
             for i in range(0, self._precision + self._num_ancillae):
-	            qc.cu3(self._scale*2**(-i), 0, 0, rec_reg[i], ancilla)
+                qc.cu3(self._scale*2**(-i), 0, 0, rec_reg[i], ancilla)
                 
         self._circuit = qc
         self._rec = rec_reg
@@ -263,9 +274,8 @@ class LongDivision(Reciprocal):
         self._ev = inreg
         
         if self._negative_evals:
-            self._neg_offset = 1 
-            
-            
+            self._neg_offset = 1
+
         self._num_ancillae = len(self._ev) - self._neg_offset
         self._n = self._num_ancillae + 1  
         
