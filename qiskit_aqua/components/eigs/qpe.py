@@ -104,24 +104,14 @@ class QPE(Eigenvalues):
         },
     }
 
-    def __init__(self, operator, iqft, num_time_slices, num_ancillae,
-            paulis_grouping=None, expansion_mode=None,
+    def __init__(self, operator, iqft, num_time_slices=1, num_ancillae=1,
+            paulis_grouping="random", expansion_mode="trotter",
             expansion_order=1, evo_time=None,
             use_basis_gates=True, hermitian_matrix=True,
             negative_evals=False, ne_qfts=[None, None]):
 
         super().__init__()
-        super().validate({
-            QPE.PROP_NUM_TIME_SLICES: num_time_slices,
-            QPE.PROP_PAULIS_GROUPING: paulis_grouping,
-            QPE.PROP_EXPANSION_MODE: expansion_mode,
-            QPE.PROP_EXPANSION_ORDER: expansion_order,
-            QPE.PROP_NUM_ANCILLAE: num_ancillae,
-            QPE.PROP_EVO_TIME: evo_time,
-            QPE.PROP_USE_BASIS_GATES: use_basis_gates,
-            QPE.PROP_HERMITIAN_MATRIX: hermitian_matrix,
-            QPE.PROP_NEGATIVE_EVALS: negative_evals
-        })
+        super().validate(locals())
         self._iqft = iqft
         self._operator = operator
         self._num_time_slices = num_time_slices

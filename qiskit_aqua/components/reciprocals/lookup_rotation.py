@@ -83,26 +83,19 @@ class LookupRotation(Reciprocal):
     def __init__(self, pat_length=None, subpat_length=None, scale=0,
                   negative_evals=False, evo_time=None, lambda_min=None):
         super().__init__()
-        super().validate({
-            LookupRotation.PROP_PAT_LENGTH: pat_length,
-            LookupRotation.PROP_SUBPAT_LENGTH: subpat_length,
-            LookupRotation.PROP_NEGATIVE_EVALS: negative_evals,
-            LookupRotation.PROP_SCALE: scale,
-            LookupRotation.PROP_EVO_TIME: evo_time,
-            LookupRotation.PROP_LAMBDA_MIN: lambda_min
-        })
-        self._anc = None
-        self._workq = None
-        self._msq = None
-        self._ev = None
-        self._circuit = None
-        self._reg_size = 0
+        super().validate(locals())
         self._pat_length = pat_length
         self._subpat_length = subpat_length
         self._negative_evals = negative_evals
         self._scale = scale
         self._evo_time = evo_time
         self._lambda_min = lambda_min
+        self._anc = None
+        self._workq = None
+        self._msq = None
+        self._ev = None
+        self._circuit = None
+        self._reg_size = 0
 
     @classmethod
     def init_params(cls, params):

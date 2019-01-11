@@ -71,17 +71,16 @@ class LongDivision(Reciprocal):
         },
         }
 
-    def __init__(self, num_ancillae=0, scale=0, precision = None,
-                  evo_time = None, lambda_min = None, negative_evals=False):
+    def __init__(self, num_ancillae=None, scale=1, precision=None,
+                  evo_time=None, lambda_min=None, negative_evals=False):
         super().__init__()
-        super().validate({
-            LongDivision.PROP_NUM_ANCILLAE: num_ancillae,
-            LongDivision.PROP_NEGATIVE_EVALS: negative_evals,
-            LongDivision.PROP_SCALE: scale,
-            LongDivision.PROP_PRECISION: precision,
-            LongDivision.PROP_EVO_TIME: evo_time,
-            LongDivision.PROP_LAMBDA_MIN: lambda_min
-        })
+        super.validate(locals())
+        self._num_ancillae = num_ancillae
+        self._negative_evals = negative_evals
+        self._scale = scale
+        self._precision = precision
+        self._evo_time = evo_time
+        self._lambda_min = lambda_min
         self._circuit = None
         self._ev = None
         self._rec = None
@@ -89,12 +88,6 @@ class LongDivision(Reciprocal):
         self._reg_size = 0
         self._neg_offset = 0
         self._n = 0
-        self._num_ancillae = num_ancillae
-        self._negative_evals = negative_evals
-        self._scale = scale
-        self._precision = precision
-        self._evo_time = evo_time
-        self._lambda_min = lambda_min
         
     @classmethod
     def init_params(cls, params):

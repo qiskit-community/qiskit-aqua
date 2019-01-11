@@ -76,9 +76,7 @@ class HHL(QuantumAlgorithm):
     def __init__(self, matrix=None, vector=None, eigs=None, init_state=None,
                  reciprocal=None, mode='circuit', num_q=0, num_a=0):
         super().__init__()
-        super().validate({
-            HHL.PROP_MODE: mode
-        })
+        super().validate(locals())
         self._matrix = matrix
         self._vector = vector
         self._eigs = eigs
@@ -204,7 +202,7 @@ class HHL(QuantumAlgorithm):
         self._ret["fidelity_hhl_to_classical"] = abs(theo.dot(vec.conj()))**2
         tmp_vec = self._matrix.dot(vec)
         f1 = np.linalg.norm(self._vector)/np.linalg.norm(tmp_vec)
-        f2 = sum(np.angle(self._vector*tmp_vec.conj()-1+1))/self._num_q # "-1+1" to fix angle error for -0.+0.j
+        f2 = sum(np.angle(self._vector*tmp_vec.conj()-1+1))/self._num_q # "-1+1" to fix angle error for -0.-0.j
         self._ret["solution_hhl"] = f1*vec*np.exp(-1j*f2)
 
     def _state_tomography(self):
