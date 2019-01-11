@@ -28,6 +28,8 @@ class CNXGate(CompositeGate):
 
     def __init__(self, ctls, tgt, circ=None):
         """Create new CNX gate."""
+        self._ctl_bits = ctls
+        self._tgt_bits = tgt
         qubits = [v for v in ctls] + [tgt]
         n_c = len(ctls)
         super(CNXGate, self).__init__("cnx", [n_c], qubits, circ)
@@ -41,9 +43,7 @@ class CNXGate(CompositeGate):
 
     def reapply(self, circ):
         """Reapply this gate to corresponding qubits in circ."""
-        ctl_bits = [x for x in self.arg[:self.param[0]]]
-        tgt_bits = self.arg[-1]
-        self._modifiers(circ.cnx_na(ctl_bits, tgt_bits))
+        self._modifiers(circ.cnx_na(self._ctl_bits, self._tgt_bits))
 
     def apply_cnx_na(self, ctls, tgt, circuit):
         circuit.h(tgt)
