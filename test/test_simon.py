@@ -16,27 +16,29 @@
 # =============================================================================
 
 import unittest
-from test.common import QiskitAquaTestCase
-
 from parameterized import parameterized
 
 from qiskit_aqua.components.oracles import SimonOracle
 from qiskit_aqua.algorithms import Simon
 from qiskit_aqua import get_aer_backend
 
+from test.common import QiskitAquaTestCase
+
+
 class TestSimon(QiskitAquaTestCase):
-
     @parameterized.expand([
-        [{'000':'001','001':'010','010':'011','011':'100','100':'101','101':'110','110':'111','111':'000'}],
-        [{'000':'101','001':'010','010':'000','011':'110','100':'000','101':'110','110':'101','111':'010'}]
+        [{'000': '001', '001': '010', '010': '011', '011': '100',
+          '100': '101', '101': '110', '110': '111', '111': '000'}],
+        [{'000': '101', '001': '010', '010': '000', '011': '110',
+          '100': '000', '101': '110', '110': '101', '111': '010'}]
     ])
-
     def test_simon(self, simon_input):
         backend = get_aer_backend('qasm_simulator')
         oracle = SimonOracle(simon_input)
         algorithm = Simon(oracle)
         result = algorithm.run(backend)
         self.assertTrue(result['oracle_evaluation'])
+
 
 if __name__ == '__main__':
     unittest.main()
