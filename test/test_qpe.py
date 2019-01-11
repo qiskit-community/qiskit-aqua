@@ -56,7 +56,7 @@ class TestQPE(QiskitAquaTestCase):
     """QPE tests."""
 
     @parameterized.expand([
-        [qubitOp_simple],
+        # [qubitOp_simple],
         [qubitOp_h2_with_2_qubit_reduction],
     ])
     def test_qpe(self, qubitOp):
@@ -95,7 +95,7 @@ class TestQPE(QiskitAquaTestCase):
                   paulis_grouping='random', expansion_mode='suzuki', expansion_order=2,
                   shallow_circuit_concat=True)
 
-        backend = get_aer_backend('qasm_simulator')
+        backend = get_aer_backend('statevector_simulator')
         quantum_instance = QuantumInstance(backend, shots=100, pass_manager=PassManager())
 
         # run qpe
@@ -103,7 +103,6 @@ class TestQPE(QiskitAquaTestCase):
         # self.log.debug('transformed operator paulis:\n{}'.format(self.qubitOp.print_operators('paulis')))
 
         # report result
-        self.log.debug('measurement results:          {}'.format(result['measurements']))
         self.log.debug('top result str label:         {}'.format(result['top_measurement_label']))
         self.log.debug('top result in decimal:        {}'.format(result['top_measurement_decimal']))
         self.log.debug('stretch:                      {}'.format(result['stretch']))

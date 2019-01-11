@@ -21,10 +21,14 @@ The Quantum Phase Estimation Algorithm.
 import copy
 import logging
 import numpy as np
+
 from qiskit.quantum_info import Pauli
+
 from qiskit_aqua.algorithms import QuantumAlgorithm
 from qiskit_aqua import Operator, AquaError
 from qiskit_aqua import PluggableType, get_pluggable_class
+from qiskit_aqua import get_subsystem_statevector
+
 from .phase_estimation import PhaseEstimation
 
 
@@ -120,6 +124,7 @@ class QPE(QuantumAlgorithm):
         self.validate(locals())
         super().__init__()
 
+        self._num_ancillae = num_ancillae
         self._ret = {}
         self._operator = copy.deepcopy(operator)
         self._operator.to_paulis()
@@ -186,27 +191,37 @@ class QPE(QuantumAlgorithm):
                    paulis_grouping=paulis_grouping, expansion_mode=expansion_mode,
                    expansion_order=expansion_order)
 
-    def construct_circuit(self):
+    def construct_circuit(self, measure=False):
         """Construct circuit.
 
         Returns:
             QuantumCircuit: quantum circuit.
         """
-        qc = self._phase_estimation_component.construct_circuit(measure=True)
+        qc = self._phase_estimation_component.construct_circuit(measure=measure)
         return qc
 
     def _compute_energy(self):
         if self._quantum_instance.is_statevector:
-            raise ValueError('Selected backend does not support measurements.')
+            qc = self.construct_circuit(measure=False)
+            result = self._quantum_instance.execute(qc)
+            complete_state_vec = result.get_statevector(qc, decimals=16)
+            state_vec = get_subsystem_statevector(
+                complete_state_vec,
+                range(self._num_ancillae, self._num_ancillae + self._operator.num_qubits)
+            )
 
-        qc = self.construct_circuit()
-        result = self._quantum_instance.execute(qc)
-        rd = result.get_counts(qc)
-        rets = sorted([(rd[k], k) for k in rd])[::-1]
-        ret = rets[0][-1][::-1]
+            x = max(state_vec.min(), state_vec.max(), key=abs)
+            idx = np.where(state_vec == x)[0][0]
+            ret = format(idx, '0{}b'.format(self._num_ancillae))[::-1]
+        else:
+            qc = self.construct_circuit(measure=True)
+            result = self._quantum_instance.execute(qc)
+            rd = result.get_counts(qc)
+            rets = sorted([(rd[k], k) for k in rd])[::-1]
+            ret = rets[0][-1][::-1]
+
         retval = sum([t[0] * t[1] for t in zip(self._binary_fractions, [int(n) for n in ret])])
 
-        self._ret['measurements'] = rets
         self._ret['top_measurement_label'] = ret
         self._ret['top_measurement_decimal'] = retval
         self._ret['energy'] = retval / self._ret['stretch'] - self._ret['translation']
