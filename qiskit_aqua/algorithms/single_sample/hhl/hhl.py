@@ -195,15 +195,7 @@ class HHL(QuantumAlgorithm):
         self._ret["probability_result"] = vec.dot(vec.conj())
         vec = vec/np.linalg.norm(vec)
 
-        self._ret["output_hhl"] = vec
-        # Calculating the fidelity
-        theo = np.linalg.solve(self._matrix, self._vector)
-        theo = theo/np.linalg.norm(theo)
-        self._ret["fidelity_hhl_to_classical"] = abs(theo.dot(vec.conj()))**2
-        tmp_vec = self._matrix.dot(vec)
-        f1 = np.linalg.norm(self._vector)/np.linalg.norm(tmp_vec)
-        f2 = sum(np.angle(self._vector*tmp_vec.conj()-1+1))/self._num_q # "-1+1" to fix angle error for -0.-0.j
-        self._ret["solution_hhl"] = f1*vec*np.exp(-1j*f2)
+        self._hhl_results(vec)
 
     def _state_tomography(self):
         """
@@ -236,6 +228,9 @@ class HHL(QuantumAlgorithm):
         rho_fit = tomo.fit_tomography_data(tomo_data)
         vec = rho_fit[:, 0]/np.sqrt(rho_fit[0, 0])
 
+        self._hhl_results(vec)
+
+    def _hhl_results(self, vec):
         self._ret["output_hhl"] = vec
         # Calculating the fidelity with the classical solution
         theo = np.linalg.solve(self._matrix, self._vector)
@@ -244,7 +239,7 @@ class HHL(QuantumAlgorithm):
         # Rescaling the output vector to the real solution vector
         tmp_vec = self._matrix.dot(vec)
         f1 = np.linalg.norm(self._vector)/np.linalg.norm(tmp_vec)
-        f2 = sum(np.angle(self._vector*tmp_vec.conj()-1+1))/self._num_q # "-1+1" to fix angle error for -0.+0.j
+        f2 = sum(np.angle(self._vector*tmp_vec.conj()-1+1))/self._num_q # "-1+1" to fix angle error for -0.-0.j
         self._ret["solution_hhl"] = f1*vec*np.exp(-1j*f2)
 
     def _run(self):
