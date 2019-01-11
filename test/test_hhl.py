@@ -65,7 +65,8 @@ class TestHHL(QiskitAquaTestCase):
         }
 
     def test_hhl_diagonal_sv(self):
-        self.log.debug('Testing HHL simple test with statevector simulator')
+        self.log.debug('Testing HHL simple test in mode Lookup with '
+                       'statevector simulator')
 
         matrix = [[1, 0], [0, 3]]
         vector = [1, 0]
@@ -77,6 +78,39 @@ class TestHHL(QiskitAquaTestCase):
 
         # run hhl
         result = run_algorithm(self.params)
+        hhl_solution = result["solution_hhl"]
+        hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
+        # linear algebra solution
+        linalg_solution = np.linalg.solve(matrix, vector)
+        linalg_normed = linalg_solution/np.linalg.norm(linalg_solution)
+
+        # compare result
+        fidelity = abs(linalg_normed.dot(hhl_normed.conj()))**2
+        np.testing.assert_approx_equal(fidelity, 1, significant=5)
+
+        self.log.debug('HHL solution vector:       {}'.format(hhl_solution))
+        self.log.debug('algebraic solution vector: {}'.format(linalg_solution))
+        self.log.debug('fidelity HHL to algebraic: {}'.format(fidelity))
+        self.log.debug('probability of result:     {}'.
+                       format(result["probability_result"]))
+
+    def test_hhl_diagonal_longdivison_sv(self):
+        self.log.debug('Testing HHL simple test in mode LongDivision and '
+                       'statevector simulator')
+
+        ld_params = self.params
+        matrix = [[1, 0], [0, 3]]
+        vector = [1, 0]
+        ld_params["input"] = {
+            "name": "LinearSystemInput",
+            "matrix": matrix,
+            "vector": vector
+        }
+        ld_params["reciprocal"]["name"] = "LongDivision"
+        ld_params["reciprocal"]["scale"] = 1.0
+
+        # run hhl
+        result = run_algorithm(ld_params)
         hhl_solution = result["solution_hhl"]
         hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
         # linear algebra solution
@@ -125,7 +159,7 @@ class TestHHL(QiskitAquaTestCase):
         self.log.debug('probability of result:     {}'.
                        format(result["probability_result"]))
 
-    def test_hhl_diagonal_2x2_circuit(self):
+    def test_hhl_circuit_diagonal_2x2(self):
         self.log.debug('Testing HHL simple test with qasm simulator')
 
         circ_params = self.params
@@ -145,7 +179,7 @@ class TestHHL(QiskitAquaTestCase):
 
         self.log.debug('HHL total gate count:       {}'.format(gate_count))
 
-    def test_hhl_diagonal_8x8_circuit(self):
+    def test_hhl_circuit_diagonal_8x8(self):
         self.log.debug('Testing HHL simple test with qasm simulator')
 
         circ_params = self.params
