@@ -262,7 +262,10 @@ class LongDivision(Reciprocal):
         if mode == "vector":
             raise NotImplementedError("mode vector not supported")
         self._ev = inreg
-        
+
+        if self._scale == 0:
+            self._scale = 2**-len(inreg)
+
         if self._negative_evals:
             self._neg_offset = 1
 
