@@ -196,6 +196,7 @@ class HHL(QuantumAlgorithm):
         vec = sv[half:half+2**self._num_q]
         self._ret["probability_result"] = vec.dot(vec.conj())
         vec = vec/np.linalg.norm(vec)
+
         self._ret["output_hhl"] = vec
         # Calculating the fidelity
         theo = np.linalg.solve(self._matrix, self._vector)
@@ -216,6 +217,8 @@ class HHL(QuantumAlgorithm):
         c = ClassicalRegister(self._num_q)
         self._circuit.add_register(c)
         qc = QuantumCircuit(c, name="master")
+        qc = self._circuit
+        qc.name = "master"
         tomo_set = tomo.state_tomography_set(list(range(self._num_q)))
         tomo_circuits = \
             tomo.create_tomography_circuits(qc, self._io_register, c, tomo_set)
@@ -235,8 +238,18 @@ class HHL(QuantumAlgorithm):
         self._ret["probability_result"] = probs
         # Fitting the tomography data
         tomo_data = tomo.tomography_data(result, "master", tomo_set)
+        tomo_data = tomo.tomography_data(result, self._circuit.name, tomo_set)
         rho_fit = tomo.fit_tomography_data(tomo_data)
+        we, stateall = np.linalg.eigh(rho_fit)
+        probmix = we.max()
+        prob_location = we.argmax()
+        if probmix > 0.001:
+            sv = stateall[:, prob_location]
+
         vec = rho_fit[:, 0]/np.sqrt(rho_fit[0, 0])
+        vec = np.array([0.+0.j, 1.+0.j])
+        vec = sv
+
         self._ret["output_hhl"] = vec
         # Calculating the fidelity with the classical solution
         theo = np.linalg.solve(self._matrix, self._vector)
