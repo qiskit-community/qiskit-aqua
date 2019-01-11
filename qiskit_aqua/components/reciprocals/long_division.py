@@ -16,10 +16,7 @@
 # =============================================================================
 
 from qiskit import QuantumRegister, QuantumCircuit
-import sys
-
 from qiskit_aqua.components.reciprocals import Reciprocal
-from qiskit_aqua.utils import cnx_na
 import numpy as np
 
 
@@ -51,7 +48,7 @@ class LongDivision(Reciprocal):
                 },
                 PROP_SCALE:{
                     'type': 'number',
-                    'default':1,                    
+                    'default': 1,
                 },
                 PROP_PRECISION:{
                     'type': ['number', 'null'],
@@ -105,11 +102,11 @@ class LongDivision(Reciprocal):
 
     def _ld_circuit(self):
         
-        def subtract(a, b,b0, c, z,r, rj,n):                         
+        def subtract(a, b, b0, c, z,r, rj, n):
             qc = QuantumCircuit(a, b0, b, c, z, r)
             qc2 = QuantumCircuit(a, b0, b ,c, z,r)                
                
-            def subtract_in(qc, a, b, b0, c ,z, r,n):
+            def subtract_in(qc, a, b, b0, c , z, r, n):
                 """subtraction realized with ripple carry adder"""
                 
                 def maj(p, a, b, c):
@@ -143,17 +140,17 @@ class LongDivision(Reciprocal):
                 
                 qc.x(z[0])             
                         
-            def u_maj(p, a, b, c,r):
+            def u_maj(p, a, b, c, r):
                 p.ccx(c, r, b)
                 p.ccx(c, r, a)
-                cnx_na(p,[r, a, b], c)
+                p.cnx_na([r, a, b], c)
                 
             def u_uma(p, a, b, c, r):
-                cnx_na(p,[r, a, b], c)
+                p.cnx_na([r, a, b], c)
                 p.ccx(c,r, a)
                 p.ccx(a, r, b)
             
-            def unsubtract(qc2, a, b, b0, c ,z, r,n): 
+            def unsubtract(qc2, a, b, b0, c, z, r, n):
                 """controlled inverse subtraction to uncompute the registers(when
                 the result of the subtraction is negative)"""
                 
@@ -181,18 +178,18 @@ class LongDivision(Reciprocal):
                 return un_qc
             
             #ASSEMBLING CIRCUIT FOR CONTROLLED SUBTRACTION:
-            subtract_in(qc, a, b, b0, c, z, r[rj],n)
+            subtract_in(qc, a, b, b0, c, z, r[rj], n)
             qc.x(a[n-1])
             qc.cx(a[n-1], r[rj])
             qc.x(a[n-1])
             
             qc.x(r[rj])
-            qc += unsubtract(qc2, a, b, b0, c, z, r[rj],n)
+            qc += unsubtract(qc2, a, b, b0, c, z, r[rj], n)
             qc.x(r[rj])
             
             return qc       
     
-        def shift_to_one(qc,b, anc, n):           
+        def shift_to_one(qc, b, anc, n):
             '''controlled bit shifting for the initial alignment of the most 
             significant bits'''
             
@@ -229,7 +226,7 @@ class LongDivision(Reciprocal):
                 qc.ccx(ctrl, b[n-2-i+self._neg_offset], b[n-1-i+self._neg_offset])
                 qc.ccx(ctrl, b[n-1-i+self._neg_offset], b[n-2-i+self._neg_offset])
                   
-        #ECXECUTING THE LONG DIVISION: 
+        # executing long division:
         self._circuit.x(self._a[self._n-2])
         shift_to_one(self._circuit, self._ev, self._anc1, self._n)                  #initial alignment of most significant bits
         
@@ -286,7 +283,7 @@ class LongDivision(Reciprocal):
         self._rec = QuantumRegister(self._precision + self._num_ancillae, 'res')             #reciprocal result
         self._anc = QuantumRegister(1, 'anc')                        
         qc = QuantumCircuit(self._a, self._b0, self._ev, self._anc1, self._c, 
-                            self._z,self._rec, self._anc)
+                            self._z, self._rec, self._anc)
        
         self._circuit = qc
         self._ld_circuit()
