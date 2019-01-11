@@ -54,7 +54,7 @@ class LongDivision(Reciprocal):
                     'default':1,                    
                 },
                 PROP_PRECISION:{
-                    'type': 'integer',
+                    'type': ['number', 'null'],
                     'default': None,                    
                 },
                 PROP_EVO_TIME: {
@@ -72,9 +72,9 @@ class LongDivision(Reciprocal):
         }
 
     def __init__(self, num_ancillae=None, scale=1, precision=None,
-                  evo_time=None, lambda_min=None, negative_evals=False):
+                evo_time=None, lambda_min=None, negative_evals=False):
+        self.validate(locals())
         super().__init__()
-        super.validate(locals())
         self._num_ancillae = num_ancillae
         self._negative_evals = negative_evals
         self._scale = scale

@@ -81,9 +81,9 @@ class LookupRotation(Reciprocal):
     }
 
     def __init__(self, pat_length=None, subpat_length=None, scale=0,
-                  negative_evals=False, evo_time=None, lambda_min=None):
+                 negative_evals=False, evo_time=None, lambda_min=None):
+        self.validate(locals())
         super().__init__()
-        super().validate(locals())
         self._pat_length = pat_length
         self._subpat_length = subpat_length
         self._negative_evals = negative_evals
