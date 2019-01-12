@@ -56,10 +56,10 @@ class TestQPE(QiskitAquaTestCase):
     """QPE tests."""
 
     @parameterized.expand([
-        # [qubitOp_simple],
-        [qubitOp_h2_with_2_qubit_reduction],
+        [qubitOp_simple, 'qasm_simulator'],
+        [qubitOp_h2_with_2_qubit_reduction, 'statevector_simulator'],
     ])
-    def test_qpe(self, qubitOp):
+    def test_qpe(self, qubitOp, simulator):
         self.algorithm = 'QPE'
         self.log.debug('Testing QPE')
 
@@ -95,7 +95,7 @@ class TestQPE(QiskitAquaTestCase):
                   paulis_grouping='random', expansion_mode='suzuki', expansion_order=2,
                   shallow_circuit_concat=True)
 
-        backend = get_aer_backend('statevector_simulator')
+        backend = get_aer_backend(simulator)
         quantum_instance = QuantumInstance(backend, shots=100, pass_manager=PassManager())
 
         # run qpe
