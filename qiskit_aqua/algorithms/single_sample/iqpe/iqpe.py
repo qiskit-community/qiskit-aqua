@@ -20,13 +20,16 @@ See https://arxiv.org/abs/quant-ph/0610214
 """
 
 import logging
-
 import numpy as np
+
 from qiskit import QuantumRegister, ClassicalRegister
 from qiskit.quantum_info import Pauli
-from qiskit_aqua.algorithms import QuantumAlgorithm
+
 from qiskit_aqua import Operator, AquaError
 from qiskit_aqua import PluggableType, get_pluggable_class
+from qiskit_aqua import get_subsystem_statevector
+from qiskit_aqua.algorithms import QuantumAlgorithm
+
 
 logger = logging.getLogger(__name__)
 
@@ -111,6 +114,8 @@ class IQPE(QuantumAlgorithm):
         self._expansion_mode = expansion_mode
         self._expansion_order = expansion_order
         self._shallow_circuit_concat = shallow_circuit_concat
+        self._state_register = None
+        self._ancillary_register = None
         self._ret = {}
         self._setup()
 
@@ -190,8 +195,9 @@ class IQPE(QuantumAlgorithm):
         """
         k = self._num_iterations if k is None else k
         a = QuantumRegister(1, name='a')
-        c = ClassicalRegister(1, name='c')
         q = QuantumRegister(self._operator.num_qubits, name='q')
+        self._ancillary_register = a
+        self._state_register = q
         qc = self._state_in.construct_circuit('circuit', q)
         # hadamard on a[0]
         qc.add_register(a)
@@ -211,16 +217,10 @@ class IQPE(QuantumAlgorithm):
         qc.u1(omega, a[0])
         # hadamard on a[0]
         qc.u2(0, np.pi, a[0])
-        qc.add_register(c)
-        qc.barrier(a)
-        qc.measure(a, c)
         return qc
 
     def _estimate_phase_iteratively(self):
         """Iteratively construct the different order of controlled evolution circuit to carry out phase estimation"""
-        if self._quantum_instance.is_statevector:
-            raise ValueError('Selected backend does not support measurements.')
-
         self._ret['top_measurement_label'] = ''
 
         omega_coef = 0
@@ -228,18 +228,32 @@ class IQPE(QuantumAlgorithm):
         for k in range(self._num_iterations, 0, -1):
             omega_coef /= 2
             qc = self.construct_circuit(k, -2 * np.pi * omega_coef)
-            measurements = self._quantum_instance.execute(qc).get_counts(qc)
-
-            if '0' not in measurements:
-                if '1' in measurements:
-                    x = 1
-                else:
-                    raise RuntimeError('Unexpected measurement {}.'.format(measurements))
+            if self._quantum_instance.is_statevector:
+                result = self._quantum_instance.execute(qc)
+                complete_state_vec = result.get_statevector(qc, decimals=16)
+                state_vec = get_subsystem_statevector(
+                    complete_state_vec,
+                    range(self._operator.num_qubits)
+                )
+                max_amplitude = max(state_vec.min(), state_vec.max(), key=abs)
+                x = np.where(state_vec == max_amplitude)[0][0]
             else:
-                if '1' not in measurements:
-                    x = 0
+                c = ClassicalRegister(1, name='c')
+                qc.add_register(c)
+                qc.barrier(self._ancillary_register)
+                qc.measure(self._ancillary_register, c)
+                measurements = self._quantum_instance.execute(qc).get_counts(qc)
+
+                if '0' not in measurements:
+                    if '1' in measurements:
+                        x = 1
+                    else:
+                        raise RuntimeError('Unexpected measurement {}.'.format(measurements))
                 else:
-                    x = 1 if measurements['1'] > measurements['0'] else 0
+                    if '1' not in measurements:
+                        x = 0
+                    else:
+                        x = 1 if measurements['1'] > measurements['0'] else 0
             self._ret['top_measurement_label'] = '{}{}'.format(x, self._ret['top_measurement_label'])
             omega_coef = omega_coef + x / 2
             logger.info('Reverse iteration {} of {} with measured bit {}'.format(k, self._num_iterations, x))
