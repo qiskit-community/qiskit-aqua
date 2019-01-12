@@ -141,15 +141,15 @@ class Grover(QuantumAlgorithm):
         if self._oracle.ancillary_register():
             qc_prefix = QuantumCircuit(
                 self._oracle.variable_register(),
-                self._oracle.ancillary_register(),
+                self._oracle.ancillary_register()
             )
             qc_amplitude_amplification_single_iteration = QuantumCircuit(
                 self._oracle.variable_register(),
-                self._oracle.ancillary_register(),
+                self._oracle.ancillary_register()
             )
         else:
             qc_prefix = QuantumCircuit(
-                self._oracle.variable_register(),
+                self._oracle.variable_register()
             )
             qc_amplitude_amplification_single_iteration = QuantumCircuit(
                 self._oracle.variable_register()
