@@ -27,7 +27,6 @@ from qiskit.quantum_info import Pauli
 from qiskit_aqua.algorithms import QuantumAlgorithm
 from qiskit_aqua import Operator, AquaError
 from qiskit_aqua import PluggableType, get_pluggable_class
-from qiskit_aqua import get_subsystem_statevector
 
 from .phase_estimation import PhaseEstimation
 
@@ -201,20 +200,19 @@ class QPE(QuantumAlgorithm):
         return qc
 
     def _compute_energy(self):
+        qc = self.construct_circuit()
         if self._quantum_instance.is_statevector:
-            qc = self.construct_circuit()
             result = self._quantum_instance.execute(qc)
             complete_state_vec = result.get_statevector(qc, decimals=16)
+            from qiskit_aqua import get_subsystem_statevector
             state_vec = get_subsystem_statevector(
                 complete_state_vec,
                 range(self._num_ancillae, self._num_ancillae + self._operator.num_qubits)
             )
-
-            x = max(state_vec.min(), state_vec.max(), key=abs)
-            idx = np.where(state_vec == x)[0][0]
+            max_amplitude = max(state_vec.min(), state_vec.max(), key=abs)
+            idx = np.where(state_vec == max_amplitude)[0][0]
             ret = format(idx, '0{}b'.format(self._num_ancillae))[::-1]
         else:
-            qc = self.construct_circuit()
             from qiskit import ClassicalRegister
             c = ClassicalRegister(self._num_ancillae, name='c')
             qc.add_register(c)
