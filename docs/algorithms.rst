@@ -330,10 +330,6 @@ functions.
     Consult the documentation on :ref:`iqfts` and :ref:`initial-states`
     for more details.
 
-.. warning::
-
-    This algorithm does not support the local state vector simulator.
-
 In addition to requiring an IQFT and an initial state as part of its
 configuration, QPE also exposes the following parameter settings:
 
@@ -401,10 +397,6 @@ It takes in the same set of parameters as `QPE <#quantum-phase-estimation-qpe>`_
 ancillary qubits ``num_ancillae``, which is replaced by
 ``num_iterations`` (a positive ``int``, also defaulted to ``1``), and for the fact that an
 Inverse Quantum Fourier Transform (IQFT) is not used for IQPE.
-
-.. warning::
-
-    This algorithm does not support the local state vector simulator.
 
 .. seealso::
 
