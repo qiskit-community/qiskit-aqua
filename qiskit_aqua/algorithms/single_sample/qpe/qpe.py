@@ -191,18 +191,18 @@ class QPE(QuantumAlgorithm):
                    paulis_grouping=paulis_grouping, expansion_mode=expansion_mode,
                    expansion_order=expansion_order)
 
-    def construct_circuit(self, measure=False):
+    def construct_circuit(self):
         """Construct circuit.
 
         Returns:
             QuantumCircuit: quantum circuit.
         """
-        qc = self._phase_estimation_component.construct_circuit(measure=measure)
+        qc = self._phase_estimation_component.construct_circuit()
         return qc
 
     def _compute_energy(self):
         if self._quantum_instance.is_statevector:
-            qc = self.construct_circuit(measure=False)
+            qc = self.construct_circuit()
             result = self._quantum_instance.execute(qc)
             complete_state_vec = result.get_statevector(qc, decimals=16)
             state_vec = get_subsystem_statevector(
@@ -214,7 +214,12 @@ class QPE(QuantumAlgorithm):
             idx = np.where(state_vec == x)[0][0]
             ret = format(idx, '0{}b'.format(self._num_ancillae))[::-1]
         else:
-            qc = self.construct_circuit(measure=True)
+            qc = self.construct_circuit()
+            from qiskit import ClassicalRegister
+            c = ClassicalRegister(self._num_ancillae, name='c')
+            qc.add_register(c)
+            qc.barrier(self._phase_estimation_component.ancillary_register)
+            qc.measure(self._phase_estimation_component.ancillary_register, c)
             result = self._quantum_instance.execute(qc)
             rd = result.get_counts(qc)
             rets = sorted([(rd[k], k) for k in rd])[::-1]
