@@ -24,9 +24,10 @@ import numpy as np
 
 from qiskit.quantum_info import Pauli
 
-from qiskit_aqua.algorithms import QuantumAlgorithm
 from qiskit_aqua import Operator, AquaError
 from qiskit_aqua import PluggableType, get_pluggable_class
+from qiskit_aqua import get_subsystem_statevector, get_subsystems_counts
+from qiskit_aqua.algorithms import QuantumAlgorithm
 
 from .phase_estimation import PhaseEstimation
 
@@ -199,36 +200,56 @@ class QPE(QuantumAlgorithm):
         qc = self._phase_estimation_component.construct_circuit()
         return qc
 
-    def _compute_energy(self):
+    def _compute_energy(self, compute_eigenstate=False):
         qc = self.construct_circuit()
         if self._quantum_instance.is_statevector:
             result = self._quantum_instance.execute(qc)
             complete_state_vec = result.get_statevector(qc, decimals=16)
-            from qiskit_aqua import get_subsystem_statevector
-            state_vec = get_subsystem_statevector(
+            # TODO: doesn't seem to return good eigenstate
+            if compute_eigenstate:
+                state_vec = get_subsystem_statevector(
+                    complete_state_vec,
+                    range(self._num_ancillae)
+                )
+                self._ret['eigvecs'] = np.asanyarray([state_vec])
+            ancilla_vec = get_subsystem_statevector(
                 complete_state_vec,
                 range(self._num_ancillae, self._num_ancillae + self._operator.num_qubits)
             )
-            max_amplitude = max(state_vec.min(), state_vec.max(), key=abs)
-            idx = np.where(state_vec == max_amplitude)[0][0]
-            ret = format(idx, '0{}b'.format(self._num_ancillae))[::-1]
+            max_amplitude = max(ancilla_vec.min(), ancilla_vec.max(), key=abs)
+            max_amplitude_idx = np.where(ancilla_vec == max_amplitude)[0][0]
+            top_measurement_label = format(max_amplitude_idx, '0{}b'.format(self._num_ancillae))[::-1]
         else:
             from qiskit import ClassicalRegister
-            c = ClassicalRegister(self._num_ancillae, name='c')
-            qc.add_register(c)
+            if compute_eigenstate:
+                c_state = ClassicalRegister(self._operator.num_qubits, name='cs')
+                qc.add_register(c_state)
+                qc.barrier(self._phase_estimation_component.state_register)
+                qc.measure(self._phase_estimation_component.state_register, c_state)
+            c_ancilla = ClassicalRegister(self._num_ancillae, name='ca')
+            qc.add_register(c_ancilla)
             qc.barrier(self._phase_estimation_component.ancillary_register)
-            qc.measure(self._phase_estimation_component.ancillary_register, c)
+            qc.measure(self._phase_estimation_component.ancillary_register, c_ancilla)
             result = self._quantum_instance.execute(qc)
-            rd = result.get_counts(qc)
-            rets = sorted([(rd[k], k) for k in rd])[::-1]
-            ret = rets[0][-1][::-1]
+            counts = result.get_counts(qc)
+            if compute_eigenstate:
+                subsystems_counts = get_subsystems_counts(counts)
+                ancilla_counts, state_counts = subsystems_counts[0], subsystems_counts[1]
+                # TODO: how to convert from counts to statevector?
+                self._ret['eigvecs'] = np.asarray([state_counts])
+            else:
+                ancilla_counts = counts
+            top_measurement_label = sorted([(ancilla_counts[k], k) for k in ancilla_counts])[::-1][0][-1][::-1]
 
-        retval = sum([t[0] * t[1] for t in zip(self._binary_fractions, [int(n) for n in ret])])
+        top_measurement_decimal = sum(
+            [t[0] * t[1] for t in zip(self._binary_fractions, [int(n) for n in top_measurement_label])]
+        )
 
-        self._ret['top_measurement_label'] = ret
-        self._ret['top_measurement_decimal'] = retval
-        self._ret['energy'] = retval / self._ret['stretch'] - self._ret['translation']
+        self._ret['top_measurement_label'] = top_measurement_label
+        self._ret['top_measurement_decimal'] = top_measurement_decimal
+        self._ret['eigvals'] = [top_measurement_decimal / self._ret['stretch'] - self._ret['translation']]
+        self._ret['energy'] = self._ret['eigvals'][0]
 
     def _run(self):
-        self._compute_energy()
+        self._compute_energy(compute_eigenstate=False)
         return self._ret

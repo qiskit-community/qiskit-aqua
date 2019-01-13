@@ -16,21 +16,24 @@
 # =============================================================================
 
 import unittest
-
 import numpy as np
 from parameterized import parameterized
-from scipy.linalg import expm
 from scipy import sparse
-from qiskit_aqua import get_aer_backend
-from qiskit.transpiler import PassManager
+from scipy.linalg import expm
 
-from test.common import QiskitAquaTestCase
+from qiskit.transpiler import PassManager
+from qiskit.quantum_info import state_fidelity
+
+from qiskit_aqua import get_aer_backend
 from qiskit_aqua import Operator, QuantumInstance
 from qiskit_aqua.utils import decimal_to_binary
 from qiskit_aqua.algorithms import ExactEigensolver
+from qiskit_aqua.algorithms import QPE
 from qiskit_aqua.components.iqfts import Standard
 from qiskit_aqua.components.initial_states import Custom
-from qiskit_aqua.algorithms import QPE
+
+from test.common import QiskitAquaTestCase
+
 
 X = np.array([[0, 1], [1, 0]])
 Y = np.array([[0, -1j], [1j, 0]])
@@ -56,8 +59,8 @@ class TestQPE(QiskitAquaTestCase):
     """QPE tests."""
 
     @parameterized.expand([
-        [qubitOp_simple, 'qasm_simulator'],
-        [qubitOp_h2_with_2_qubit_reduction, 'statevector_simulator'],
+        [qubitOp_simple, 'statevector_simulator'],
+        [qubitOp_h2_with_2_qubit_reduction, 'qasm_simulator'],
     ])
     def test_qpe(self, qubitOp, simulator):
         self.algorithm = 'QPE'
@@ -103,6 +106,11 @@ class TestQPE(QiskitAquaTestCase):
         # self.log.debug('transformed operator paulis:\n{}'.format(self.qubitOp.print_operators('paulis')))
 
         # report result
+        if 'eigvecs' in result:
+            self.log.debug('output eigenvector:           {}'.format(result['eigvecs'][0]))
+            self.log.debug('output eigenvector fidelity:  {}'.format(
+                state_fidelity(self.ref_eigenvec, result['eigvecs'][0]))
+            )
         self.log.debug('top result str label:         {}'.format(result['top_measurement_label']))
         self.log.debug('top result in decimal:        {}'.format(result['top_measurement_decimal']))
         self.log.debug('stretch:                      {}'.format(result['stretch']))
