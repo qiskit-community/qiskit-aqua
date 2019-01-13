@@ -15,9 +15,11 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit.tools.qi.qi import partial_trace
 import numpy as np
 from scipy.linalg import sqrtm
+from collections import defaultdict
+
+from qiskit.tools.qi.qi import partial_trace
 
 
 def get_subsystem_statevector(statevector, trace_systems):
@@ -43,3 +45,13 @@ def get_subsystem_fidelity(statevector, trace_systems, subsystem_state):
         )
     ) ** 2
     return fidelity
+
+
+def get_subsystems_counts(entire_system_counts):
+    mixed_measurements = list(entire_system_counts)
+    subsystems_counts = [defaultdict(int) for _ in mixed_measurements[0].split()]
+    for mixed_measurement in mixed_measurements:
+        count = entire_system_counts[mixed_measurement]
+        for k, d in zip(mixed_measurement.split(), subsystems_counts):
+            d[k] += count
+    return [dict(d) for d in subsystems_counts]
