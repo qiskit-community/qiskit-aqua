@@ -22,25 +22,6 @@ from collections import defaultdict
 from qiskit.tools.qi.qi import partial_trace
 
 
-# def get_subsystem_statevector(statevector, trace_systems):
-#     """
-#     Compute the statevector of the quantum subsystem.
-#
-#     Args:
-#         statevector (list|array): The state vector of the complete system
-#         trace_systems (list|range): The indices of the qubits to be traced.
-#             to trace qubits 0 and 4 trace_systems = [0,4]
-#
-#     Returns:
-#         The state vector of the desired subsystem
-#     """
-#     rho = np.outer(statevector, statevector)
-#     rho_sub = partial_trace(rho, trace_systems)
-#     u, s, v = np.linalg.svd(rho_sub)
-#     state_sub = np.dot(s, v)
-#     return state_sub
-
-
 def get_subsystem_density_matrix(statevector, trace_systems):
     """
     Compute the reduced density matrix of a quantum subsystem.
