@@ -22,23 +22,39 @@ from collections import defaultdict
 from qiskit.tools.qi.qi import partial_trace
 
 
-def get_subsystem_statevector(statevector, trace_systems):
+# def get_subsystem_statevector(statevector, trace_systems):
+#     """
+#     Compute the statevector of the quantum subsystem.
+#
+#     Args:
+#         statevector (list|array): The state vector of the complete system
+#         trace_systems (list|range): The indices of the qubits to be traced.
+#             to trace qubits 0 and 4 trace_systems = [0,4]
+#
+#     Returns:
+#         The state vector of the desired subsystem
+#     """
+#     rho = np.outer(statevector, statevector)
+#     rho_sub = partial_trace(rho, trace_systems)
+#     u, s, v = np.linalg.svd(rho_sub)
+#     state_sub = np.dot(s, v)
+#     return state_sub
+
+
+def get_subsystem_density_matrix(statevector, trace_systems):
     """
-    Compute the statevector of the quantum subsystem.
+    Compute the reduced density matrix of a quantum subsystem.
 
     Args:
         statevector (list|array): The state vector of the complete system
-        trace_systems (list|range): The indices of the qubits to be traced.
-            to trace qubits 0 and 4 trace_systems = [0,4]
+        trace_systems (list|range): The indices of the qubits to be traced out.
 
     Returns:
-        The state vector of the desired subsystem
+        The reduced density matrix for the desired subsystem
     """
-    rho = np.outer(statevector, statevector)
+    rho = np.outer(statevector, np.conj(statevector))
     rho_sub = partial_trace(rho, trace_systems)
-    u, s, v = np.linalg.svd(rho_sub)
-    state_sub = np.transpose(np.conj(np.dot(u, s)))
-    return state_sub
+    return rho_sub
 
 
 def get_subsystem_fidelity(statevector, trace_systems, subsystem_state):
