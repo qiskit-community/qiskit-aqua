@@ -194,8 +194,8 @@ class Grover(QuantumAlgorithm):
                 range(len(self._oracle.variable_register()), qc.width())
             )
             max_amplitude = max(state_vec.min(), state_vec.max(), key=abs)
-            idx = np.where(state_vec == max_amplitude)[0][0]
-            top_measurement = format(idx, '0{}b'.format(len(self._oracle.variable_register())))
+            max_amplitude_idx = np.where(state_vec == max_amplitude)[0][0]
+            top_measurement = format(max_amplitude_idx, '0{}b'.format(len(self._oracle.variable_register())))
         else:
             measurement_cr = ClassicalRegister(len(self._oracle.variable_register()), name='m')
             qc.add_register(measurement_cr)
