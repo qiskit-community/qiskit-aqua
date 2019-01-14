@@ -90,7 +90,8 @@ class TestQPE(QiskitAquaTestCase):
         self.log.debug('The corresponding eigenvector: {}'.format(self.ref_eigenvec))
 
         num_time_slices = 50
-        n_ancillae = 9
+        n_ancillae = 6
+
         state_in = Custom(self.qubitOp.num_qubits, state_vector=self.ref_eigenvec)
         iqft = Standard(n_ancillae)
 
@@ -106,11 +107,6 @@ class TestQPE(QiskitAquaTestCase):
         # self.log.debug('transformed operator paulis:\n{}'.format(self.qubitOp.print_operators('paulis')))
 
         # report result
-        if 'eigvecs' in result:
-            self.log.debug('output eigenvector:           {}'.format(result['eigvecs'][0]))
-            self.log.debug('output eigenvector fidelity:  {}'.format(
-                state_fidelity(self.ref_eigenvec, result['eigvecs'][0]))
-            )
         self.log.debug('top result str label:         {}'.format(result['top_measurement_label']))
         self.log.debug('top result in decimal:        {}'.format(result['top_measurement_decimal']))
         self.log.debug('stretch:                      {}'.format(result['stretch']))
