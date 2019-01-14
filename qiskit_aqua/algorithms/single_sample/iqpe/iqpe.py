@@ -27,7 +27,7 @@ from qiskit.quantum_info import Pauli
 
 from qiskit_aqua import Operator, AquaError
 from qiskit_aqua import PluggableType, get_pluggable_class
-from qiskit_aqua import get_subsystem_statevector
+from qiskit_aqua import get_subsystem_density_matrix
 from qiskit_aqua.algorithms import QuantumAlgorithm
 
 
@@ -231,12 +231,13 @@ class IQPE(QuantumAlgorithm):
             if self._quantum_instance.is_statevector:
                 result = self._quantum_instance.execute(qc)
                 complete_state_vec = result.get_statevector(qc, decimals=16)
-                state_vec = get_subsystem_statevector(
+                ancilla_density_mat = get_subsystem_density_matrix(
                     complete_state_vec,
                     range(self._operator.num_qubits)
                 )
-                max_amplitude = max(state_vec.min(), state_vec.max(), key=abs)
-                x = np.where(state_vec == max_amplitude)[0][0]
+                ancilla_density_mat_diag = np.diag(ancilla_density_mat)
+                max_amplitude = max(ancilla_density_mat_diag.min(), ancilla_density_mat_diag.max(), key=abs)
+                x = np.where(ancilla_density_mat_diag == max_amplitude)[0][0]
             else:
                 c = ClassicalRegister(1, name='c')
                 qc.add_register(c)

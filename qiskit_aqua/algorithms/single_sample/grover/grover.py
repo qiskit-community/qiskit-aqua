@@ -26,7 +26,7 @@ from qiskit import ClassicalRegister, QuantumCircuit
 from qiskit.qasm import pi
 
 from qiskit_aqua import AquaError, PluggableType, get_pluggable_class
-from qiskit_aqua import get_subsystem_statevector
+from qiskit_aqua import get_subsystem_density_matrix
 from qiskit_aqua.algorithms import QuantumAlgorithm
 
 
@@ -189,12 +189,17 @@ class Grover(QuantumAlgorithm):
         if self._quantum_instance.is_statevector:
             result = self._quantum_instance.execute(qc)
             complete_state_vec = result.get_statevector(qc, decimals=16)
-            state_vec = get_subsystem_statevector(
+            variable_register_density_matrix = get_subsystem_density_matrix(
                 complete_state_vec,
                 range(len(self._oracle.variable_register()), qc.width())
             )
-            max_amplitude = max(state_vec.min(), state_vec.max(), key=abs)
-            max_amplitude_idx = np.where(state_vec == max_amplitude)[0][0]
+            variable_register_density_matrix_diag = np.diag(variable_register_density_matrix)
+            max_amplitude = max(
+                variable_register_density_matrix_diag.min(),
+                variable_register_density_matrix_diag.max(),
+                key=abs
+            )
+            max_amplitude_idx = np.where(variable_register_density_matrix_diag == max_amplitude)[0][0]
             top_measurement = format(max_amplitude_idx, '0{}b'.format(len(self._oracle.variable_register())))
         else:
             measurement_cr = ClassicalRegister(len(self._oracle.variable_register()), name='m')
