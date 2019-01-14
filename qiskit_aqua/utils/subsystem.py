@@ -47,11 +47,11 @@ def get_subsystem_fidelity(statevector, trace_systems, subsystem_state):
     return fidelity
 
 
-def get_subsystems_counts(entire_system_counts):
-    mixed_measurements = list(entire_system_counts)
+def get_subsystems_counts(complete_system_counts):
+    mixed_measurements = list(complete_system_counts)
     subsystems_counts = [defaultdict(int) for _ in mixed_measurements[0].split()]
     for mixed_measurement in mixed_measurements:
-        count = entire_system_counts[mixed_measurement]
+        count = complete_system_counts[mixed_measurement]
         for k, d in zip(mixed_measurement.split(), subsystems_counts):
             d[k] += count
     return [dict(d) for d in subsystems_counts]
