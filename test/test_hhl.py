@@ -19,7 +19,7 @@ import unittest
 
 import numpy as np
 from numpy.random import random
-
+from parameterized import parameterized
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import run_algorithm
 from qiskit_aqua.input import LinearSystemInput
@@ -64,12 +64,12 @@ class TestHHL(QiskitAquaTestCase):
             }
         }
 
-    def test_hhl_diagonal_sv(self):
+    @parameterized.expand([[[0, 1]], [[1, 0]], [[1, 1]], [[1, 10]]])
+    def test_hhl_diagonal_sv(self, vector):
         self.log.debug('Testing HHL simple test in mode Lookup with '
                        'statevector simulator')
 
-        matrix = [[1, 0], [0, 3]]
-        vector = [1, 0]
+        matrix = [[1, 0], [0, 1]]
         self.params["input"] = {
             "name": "LinearSystemInput",
             "matrix": matrix,
@@ -94,13 +94,13 @@ class TestHHL(QiskitAquaTestCase):
         self.log.debug('probability of result:     {}'.
                        format(result["probability_result"]))
 
-    def test_hhl_diagonal_longdivison_sv(self):
+    @parameterized.expand([[[0, 1]], [[1, 0]], [[1, 1]], [[1, 10]]])
+    def test_hhl_diagonal_longdivison_sv(self, vector):
         self.log.debug('Testing HHL simple test in mode LongDivision and '
                        'statevector simulator')
 
         ld_params = self.params
-        matrix = [[1, 0], [0, 3]]
-        vector = [1, 0]
+        matrix = [[1, 0], [0, 1]]
         ld_params["input"] = {
             "name": "LinearSystemInput",
             "matrix": matrix,
@@ -127,12 +127,12 @@ class TestHHL(QiskitAquaTestCase):
         self.log.debug('probability of result:     {}'.
                        format(result["probability_result"]))
 
-    def test_hhl_diagonal_qasm(self):
+    @parameterized.expand([[[0, 1]], [[1, 0]], [[1, 1]], [[1, 10]]])
+    def test_hhl_diagonal_qasm(self, vector):
         self.log.debug('Testing HHL simple test with qasm simulator')
 
         qasm_params = self.params
-        matrix = [[1, 0], [0, 3]]
-        vector = [1, 0]
+        matrix = [[1, 0], [0, 1]]
         qasm_params["input"] = {
             "name": "LinearSystemInput",
             "matrix": matrix,
