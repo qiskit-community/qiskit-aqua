@@ -16,8 +16,10 @@
 # =============================================================================
 
 """ A utility for caching and reparameterizing circuits, rather than compiling from scratch
-with each iteration. Note that caching only works when transpilation is off
-(aqua_dict['backend']['skip_transpiler'] = True).
+with each iteration. Note that if the circuit is transpiled aggressively such that rotation parameters
+cannot be easily mapped from the uncompiled to compiled circuit, caching will fail gracefully to
+standard compilation. This will be noted by multiple cache misses in the DEBUG log. It is generally safer to
+skip the transpiler (aqua_dict['backend']['skip_transpiler'] = True) when using caching.
 
 Caching is controlled via the aqua_dict['problem']['circuit_caching'] parameter. Caching naughty
 mode bypasses qobj validation before compiling and reuses the same qobj object over and over to
@@ -34,12 +36,14 @@ that caching should be disabled."""
 
 import numpy as np
 import copy
-from qiskit_aqua.aqua_error import AquaError
-from qiskit import QuantumRegister
-from qiskit.circuit import CompositeGate
 import pickle
 import logging
+
+from qiskit import QuantumRegister
+from qiskit.circuit import CompositeGate
 from qiskit.qobj import qobj_to_dict, Qobj
+
+from qiskit_aqua.aqua_error import AquaError
 
 logger = logging.getLogger(__name__)
 

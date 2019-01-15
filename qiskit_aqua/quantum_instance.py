@@ -64,7 +64,7 @@ class QuantumInstance:
             noise_model (qiskit.provider.aer.noise.noise_model.NoiseModel): noise model for simulator
             timeout (float or None): seconds to wait for job. If None, wait indefinitely.
             wait (float): seconds between queries to result
-            cache_config (dict): A dictionary with kwargs to init an instance of CircuitCache
+            circuit_cache (CircuitCache): A CircuitCache to use when calling compile_and_run_circuits
         """
         self._backend = backend
 

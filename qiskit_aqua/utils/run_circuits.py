@@ -129,7 +129,7 @@ def _combine_result_objects(results):
 def compile_and_run_circuits(circuits, backend, backend_config, compile_config, run_config,
                              qjob_config=None, backend_options=None,
                              noise_config=None, show_circuit_summary=False,
-                             has_shared_circuits=False, circuit_cache = None):
+                             has_shared_circuits=False, circuit_cache=None):
     """
     An execution wrapper with Qiskit-Terra, with job auto recover capability.
 
@@ -324,7 +324,7 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
     return result
 
 # Skip_validation = True does what backend.run and aerjob.submit do, but without qobj validation.
-def run_on_backend(backend, qobj, backend_options = None, noise_config = None, skip_validation = False):
+def run_on_backend(backend, qobj, backend_options=None, noise_config=None, skip_validation=False):
     if skip_validation:
         job_id = str(uuid.uuid4())
         if backend.configuration().simulator:

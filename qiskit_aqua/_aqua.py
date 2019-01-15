@@ -119,9 +119,9 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
 
         use_caching = inputparser.get_section_property(JSONSchema.PROBLEM, 'circuit_caching')
         if use_caching:
-            caching_naughty_mode = inputparser.get_section_property(JSONSchema.PROBLEM, 'caching_naughty_mode')
+            naughty_mode = inputparser.get_section_property(JSONSchema.PROBLEM, 'caching_reuse_qobj_skip_validation')
             cache_file = inputparser.get_section_property(JSONSchema.PROBLEM, 'circuit_cache_file')
-            backend_cfg['circuit_cache'] = CircuitCache(caching_naughty_mode=caching_naughty_mode, cache_file=cache_file)
+            backend_cfg['circuit_cache'] = CircuitCache(caching_naughty_mode=naughty_mode, cache_file=cache_file)
 
         quantum_instance = QuantumInstance(**backend_cfg)
 

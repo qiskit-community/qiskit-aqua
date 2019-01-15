@@ -18,7 +18,7 @@
                     "type": "boolean",
                     "default": false
                 },
-                "caching_naughty_mode": {
+                "caching_reuse_qobj_skip_validation": {
                     "type": "boolean",
                     "default": false
                 },
