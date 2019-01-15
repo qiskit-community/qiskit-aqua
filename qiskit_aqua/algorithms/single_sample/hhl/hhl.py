@@ -171,7 +171,6 @@ class HHL(QuantumAlgorithm):
 
         # Measurement of the ancilla qubit
         if not self._quantum_instance.is_statevector:
-        #if self._mode == "circuit":
             c = ClassicalRegister(1)
             qc.add_register(c)
             qc.measure(s, c)
