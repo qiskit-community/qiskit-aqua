@@ -170,8 +170,8 @@ class HHL(QuantumAlgorithm):
         qc += self._eigs.construct_inverse("circuit")
 
         # Measurement of the ancilla qubit
-        if not self._quantum_instance.is_statevector_backend(
-                    self._quantum_instance._backend):
+        if not self._quantum_instance.is_statevector:
+        #if self._mode == "circuit":
             c = ClassicalRegister(1)
             qc.add_register(c)
             qc.measure(s, c)
@@ -211,9 +211,12 @@ class HHL(QuantumAlgorithm):
         # Preparing the state tomography circuits
         c = ClassicalRegister(self._num_q)
         self._circuit.add_register(c)
-        tomo_set = tomo.state_tomography_set(list(range(self._num_q)))
+        tomo_qbits = list(range(self._num_q))
+        #tomo_qbits.extend([6])
+        tomo_set = tomo.state_tomography_set(tomo_qbits)
         tomo_circuits = \
-            tomo.create_tomography_circuits(self._circuit, self._io_register,
+            tomo.create_tomography_circuits(self._circuit,
+                                            self._io_register,
                                             c, tomo_set)
         # Handling the results
         result = self._quantum_instance.execute(tomo_circuits)
@@ -228,11 +231,55 @@ class HHL(QuantumAlgorithm):
                     f += v
             probs.append(s/(f+s))
         self._ret["probability_result"] = probs
+        # Filtering the tomo data for valid results, i.e. c0==1
+        tomo_data = self._tomo_postselect(result, self._circuit.name,
+                                          tomo_set, self._success_bit)
         # Fitting the tomography data
-        tomo_data = tomo.tomography_data(result, self._circuit.name, tomo_set)
         rho_fit = tomo.fit_tomography_data(tomo_data)
         vec = rho_fit[:, 0]/np.sqrt(rho_fit[0, 0])
         self._hhl_results(vec)
+
+    def _tomo_postselect(self, results, name, tomoset, select):
+        # this postselect is based on tomo.tomography_data
+        labels = tomo.tomography_circuit_names(tomoset, name)
+        circuits = tomoset['circuits']
+        data = []
+        prep = None
+        for j, _ in enumerate(labels):
+            select_bitpos = None
+            for cbit_label in results.results[j].header.clbit_labels:
+                if cbit_label[0] == select.name:
+                    select_bitpos = cbit_label[1]
+            all_counts = results.get_counts(labels[j])
+            filt_counts = []
+            filt_keys = []
+            for k, v in all_counts.items():
+                if int(k[-1-select_bitpos]) == 1:
+                    filt_keys.append(k[:select_bitpos-2])
+                    filt_counts.append(v)
+            filt_labels = dict(zip(filt_keys, filt_counts))
+            if filt_labels == {}:
+                filt_labels = {'0': 0}
+            counts = tomo.marginal_counts(filt_labels, tomoset['qubits'])
+            shots = sum(counts.values())
+            meas = circuits[j]['meas']
+            prep = circuits[j].get('prep', None)
+            meas_qubits = sorted(meas.keys())
+            if prep:
+                prep_qubits = sorted(prep.keys())
+            circuit = {}
+            for c in counts.keys():
+                circuit[c] = {}
+                circuit[c]['meas'] = [(meas[meas_qubits[k]], int(c[-1 - k]))
+                                      for k in range(len(meas_qubits))]
+                if prep:
+                    circuit[c]['prep'] = [prep[prep_qubits[k]] for k in
+                                          range(len(prep_qubits))]
+            data.append({'counts': counts, 'shots': shots, 'circuit': circuit})
+        ret = {'data': data, 'meas_basis': tomoset['meas_basis']}
+        if prep:
+            ret['prep_basis'] = tomoset['prep_basis']
+        return ret
 
     def _hhl_results(self, vec):
         self._ret["output_hhl"] = vec
@@ -259,8 +306,7 @@ class HHL(QuantumAlgorithm):
             }
             self._ret["regs"] = regs
         elif self._mode == "evaluate":
-            if self._quantum_instance.is_statevector_backend(
-                    self._quantum_instance._backend):
+            if self._quantum_instance.is_statevector:
                 self._statevector_simulation()
             else:
                 self._state_tomography()
