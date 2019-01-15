@@ -23,8 +23,7 @@ skip the transpiler (aqua_dict['backend']['skip_transpiler'] = True) when using 
 
 Caching is controlled via the aqua_dict['problem']['circuit_caching'] parameter. Caching naughty
 mode bypasses qobj validation before compiling and reuses the same qobj object over and over to
-avoid deepcopying. It is controlled via the aqua_dict['problem']['caching_naughty_mode'] parameter.
-Note that naughty mode only works for local simulation.
+avoid deepcopying. It is controlled via the aqua_dict['problem']['caching_reuse_qobj_skip_validation'] parameter.
 
 You may also specify a filename into which to store the cache as a pickle file, for circuits which
 are expensive to compile even the first time. The filename is set in aqua_dict['problem']['circuit_cache_file'].
