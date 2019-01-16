@@ -16,9 +16,10 @@
 # =============================================================================
 
 import itertools
-import operator
 import logging
+
 from qiskit import QuantumRegister, QuantumCircuit
+
 from qiskit_aqua.components.oracles import Oracle
 
 logger = logging.getLogger(__name__)
@@ -161,6 +162,5 @@ class SAT(Oracle):
                 return False
         return True
 
-    def interpret_measurement(self, measurement, *args, **kwargs):
-        top_measurement = max(measurement.items(), key=operator.itemgetter(1))[0]
+    def interpret_measurement(self, top_measurement=None):
         return [(var + 1) * (int(tf) * 2 - 1) for tf, var in zip(top_measurement[::-1], range(len(top_measurement)))]

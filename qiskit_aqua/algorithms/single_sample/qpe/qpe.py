@@ -21,10 +21,14 @@ The Quantum Phase Estimation Algorithm.
 import copy
 import logging
 import numpy as np
+
 from qiskit.quantum_info import Pauli
-from qiskit_aqua.algorithms import QuantumAlgorithm
+
 from qiskit_aqua import Operator, AquaError
 from qiskit_aqua import PluggableType, get_pluggable_class
+from qiskit_aqua import get_subsystem_density_matrix
+from qiskit_aqua.algorithms import QuantumAlgorithm
+
 from .phase_estimation import PhaseEstimation
 
 
@@ -120,6 +124,7 @@ class QPE(QuantumAlgorithm):
         self.validate(locals())
         super().__init__()
 
+        self._num_ancillae = num_ancillae
         self._ret = {}
         self._operator = copy.deepcopy(operator)
         self._operator.to_paulis()
@@ -192,24 +197,40 @@ class QPE(QuantumAlgorithm):
         Returns:
             QuantumCircuit: quantum circuit.
         """
-        qc = self._phase_estimation_component.construct_circuit(measure=True)
+        qc = self._phase_estimation_component.construct_circuit()
         return qc
 
     def _compute_energy(self):
-        if self._quantum_instance.is_statevector:
-            raise ValueError('Selected backend does not support measurements.')
-
         qc = self.construct_circuit()
-        result = self._quantum_instance.execute(qc)
-        rd = result.get_counts(qc)
-        rets = sorted([(rd[k], k) for k in rd])[::-1]
-        ret = rets[0][-1][::-1]
-        retval = sum([t[0] * t[1] for t in zip(self._binary_fractions, [int(n) for n in ret])])
+        if self._quantum_instance.is_statevector:
+            result = self._quantum_instance.execute(qc)
+            complete_state_vec = result.get_statevector(qc, decimals=16)
+            ancilla_density_mat = get_subsystem_density_matrix(
+                complete_state_vec,
+                range(self._num_ancillae, self._num_ancillae + self._operator.num_qubits)
+            )
+            ancilla_density_mat_diag = np.diag(ancilla_density_mat)
+            max_amplitude = max(ancilla_density_mat_diag.min(), ancilla_density_mat_diag.max(), key=abs)
+            max_amplitude_idx = np.where(ancilla_density_mat_diag == max_amplitude)[0][0]
+            top_measurement_label = format(max_amplitude_idx, '0{}b'.format(self._num_ancillae))[::-1]
+        else:
+            from qiskit import ClassicalRegister
+            c_ancilla = ClassicalRegister(self._num_ancillae, name='ca')
+            qc.add_register(c_ancilla)
+            qc.barrier(self._phase_estimation_component.ancillary_register)
+            qc.measure(self._phase_estimation_component.ancillary_register, c_ancilla)
+            result = self._quantum_instance.execute(qc)
+            ancilla_counts = result.get_counts(qc)
+            top_measurement_label = sorted([(ancilla_counts[k], k) for k in ancilla_counts])[::-1][0][-1][::-1]
 
-        self._ret['measurements'] = rets
-        self._ret['top_measurement_label'] = ret
-        self._ret['top_measurement_decimal'] = retval
-        self._ret['energy'] = retval / self._ret['stretch'] - self._ret['translation']
+        top_measurement_decimal = sum(
+            [t[0] * t[1] for t in zip(self._binary_fractions, [int(n) for n in top_measurement_label])]
+        )
+
+        self._ret['top_measurement_label'] = top_measurement_label
+        self._ret['top_measurement_decimal'] = top_measurement_decimal
+        self._ret['eigvals'] = [top_measurement_decimal / self._ret['stretch'] - self._ret['translation']]
+        self._ret['energy'] = self._ret['eigvals'][0]
 
     def _run(self):
         self._compute_energy()

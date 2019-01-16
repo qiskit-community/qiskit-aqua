@@ -36,6 +36,7 @@ from .utils.backend_utils import (get_aer_backend,
                                   disable_ibmq_account)
 from .pluggable import Pluggable
 from .utils.cnx import cnx
+from .utils.subsystem import get_subsystem_density_matrix, get_subsystems_counts
 from .quantum_instance import QuantumInstance
 from .operator import Operator
 from .algorithms import QuantumAlgorithm
@@ -63,6 +64,9 @@ __all__ = ['AquaError',
            'get_provider_from_backend',
            'enable_ibmq_account',
            'disable_ibmq_account',
+           'cnx',
+           'get_subsystem_density_matrix',
+           'get_subsystems_counts',
            'local_pluggables_types',
            'local_pluggables',
            'get_pluggable_class',
