@@ -173,7 +173,15 @@ def _multicx(qc, qrs, qancilla=None):
 
 
 def cnx(self, q_controls, q_target, q_ancilla, mode='basic'):
-    """Apply CNX to circuit."""
+    """
+    Apply multiple-controlled-NOT operation
+    Args:
+        q_controls: The list of control qubits
+        q_target: The target qubit
+        q_ancilla: The list of ancillary qubits
+        mode (string): The implementation mode to use
+    """
+
     if len(q_controls) == 1:  # cx
         self.cx(q_controls[0], q_target)
     elif len(q_controls) == 2:  # ccx

@@ -79,5 +79,5 @@ class Oracle(Pluggable):
         raise NotImplementedError
 
     @abstractmethod
-    def interpret_measurement(self, measurement, *args, **kwargs):
+    def interpret_measurement(self, *args, **kwargs):
         raise NotImplementedError
