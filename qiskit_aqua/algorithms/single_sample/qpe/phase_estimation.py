@@ -32,6 +32,7 @@ class PhaseEstimation:
             paulis_grouping='random',
             expansion_mode='trotter',
             expansion_order=1,
+            evo_time=2*np.pi,
             state_in_circuit_factory=None,
             unitary_circuit_factory=None,
             shallow_circuit_concat=False):
@@ -47,6 +48,7 @@ class PhaseEstimation:
             paulis_grouping (str): the pauli term grouping mode
             expansion_mode (str): the expansion mode (trotter|suzuki)
             expansion_order (int): the suzuki expansion order
+            evo_time (float): the evolution time
             state_in_circuit_factory (CircuitFactory): the initial state represented by a CircuitFactory object
             unitary_circuit_factory (CircuitFactory): the problem unitary represented by a CircuitFactory object
             shallow_circuit_concat (bool): indicate whether to use shallow (cheap) mode for circuit concatenation
@@ -69,6 +71,7 @@ class PhaseEstimation:
         self._paulis_grouping = paulis_grouping
         self._expansion_mode = expansion_mode
         self._expansion_order = expansion_order
+        self._evo_time = evo_time
         self._shallow_circuit_concat = shallow_circuit_concat
         self._ancilla_phase_coef = 1
         self._circuit = {True: None, False: None}
@@ -135,7 +138,8 @@ class PhaseEstimation:
             elif self._state_in_circuit_factory is not None:
                 self._state_in_circuit_factory.build(qc, q, aux)
             else:
-                raise RuntimeError('Missing initial state specification.')
+                pass
+                #raise RuntimeError('Missing initial state specification.')
 
             # Put all ancillae in uniform superposition
             qc.u2(0, np.pi, a)
@@ -158,7 +162,8 @@ class PhaseEstimation:
                         raise ValueError('Unrecognized expansion mode {}.'.format(self._expansion_mode))
                 for i in range(self._num_ancillae):
                     qc_evolutions = Operator.construct_evolution_circuit(
-                        slice_pauli_list, -2 * np.pi, self._num_time_slices, q, a, ctl_idx=i,
+                        slice_pauli_list, -self._evo_time,
+                        self._num_time_slices, q, a, ctl_idx=i,
                         shallow_slicing=self._shallow_circuit_concat
                     )
                     if self._shallow_circuit_concat:
@@ -166,7 +171,7 @@ class PhaseEstimation:
                     else:
                         qc += qc_evolutions
                     # global phase shift for the ancilla due to the identity pauli term
-                    qc.u1(2 * np.pi * self._ancilla_phase_coef * (2 ** i), a[i])
+                    qc.u1(self._evo_time * self._ancilla_phase_coef * (2 ** i), a[i])
             elif self._unitary_circuit_factory is not None:
                 for i in range(self._num_ancillae):
                     self._unitary_circuit_factory.build_controlled_power(qc, q, a[i], 2 ** i, aux)
