@@ -48,7 +48,8 @@ class QuantumInstance:
 
     def __init__(self, backend, shots=1024, max_credits=10, seed=None,
                  initial_layout=None, pass_manager=None, seed_mapper=None, memory=False,
-                 backend_options=None, noise_model=None, timeout=None, wait=5, circuit_cache=None):
+                 backend_options=None, noise_model=None, timeout=None, wait=5, circuit_cache=None,
+                 skip_qobj_validation=False):
         """Constructor.
 
         Args:
@@ -65,6 +66,7 @@ class QuantumInstance:
             timeout (float or None): seconds to wait for job. If None, wait indefinitely.
             wait (float): seconds between queries to result
             circuit_cache (CircuitCache): A CircuitCache to use when calling compile_and_run_circuits
+            skip_qobj_validation (bool): Bypass Qobj validation to decrease submission time
         """
         self._backend = backend
 
@@ -129,7 +131,8 @@ class QuantumInstance:
 
         self._shared_circuits = False
         self._circuit_summary = False
-        self.circuit_cache = circuit_cache
+        self._circuit_cache = circuit_cache
+        self._skip_qobj_validation = skip_qobj_validation
 
         logger.info(self)
 
@@ -162,7 +165,8 @@ class QuantumInstance:
                                           noise_config=self._noise_config,
                                           show_circuit_summary=self._circuit_summary,
                                           has_shared_circuits=self._shared_circuits,
-                                          circuit_cache = self.circuit_cache)
+                                          circuit_cache = self._circuit_cache,
+                                          skip_qobj_validation=self._skip_qobj_validation)
         if self._circuit_summary:
             self._circuit_summary = False
 

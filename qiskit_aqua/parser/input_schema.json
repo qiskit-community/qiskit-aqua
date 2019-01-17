@@ -18,13 +18,17 @@
                     "type": "boolean",
                     "default": false
                 },
-                "caching_reuse_qobj_skip_validation": {
+                "skip_qobj_deepcopy": {
                     "type": "boolean",
                     "default": false
                 },
                 "circuit_cache_file": {
                     "type": "string",
                     "default": null
+                },
+                "skip_qobj_validation": {
+                    "type": "boolean",
+                    "default": false
                 }
             },
             "required": ["name"],

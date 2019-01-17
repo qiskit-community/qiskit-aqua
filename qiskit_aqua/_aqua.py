@@ -117,11 +117,13 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
         else:
             logger.warning("Change basis_gates and coupling_map on a real device is disallowed.")
 
+        backend_cfg['skip_qobj_validation'] = inputparser.get_section_property(JSONSchema.PROBLEM,
+                                                                               'skip_qobj_validation')
         use_caching = inputparser.get_section_property(JSONSchema.PROBLEM, 'circuit_caching')
         if use_caching:
-            naughty_mode = inputparser.get_section_property(JSONSchema.PROBLEM, 'caching_reuse_qobj_skip_validation')
+            deepcopy_qobj = inputparser.get_section_property(JSONSchema.PROBLEM, 'skip_qobj_deepcopy')
             cache_file = inputparser.get_section_property(JSONSchema.PROBLEM, 'circuit_cache_file')
-            backend_cfg['circuit_cache'] = CircuitCache(caching_naughty_mode=naughty_mode, cache_file=cache_file)
+            backend_cfg['circuit_cache'] = CircuitCache(skip_qobj_deepcopy=deepcopy_qobj, cache_file=cache_file)
 
         quantum_instance = QuantumInstance(**backend_cfg)
 

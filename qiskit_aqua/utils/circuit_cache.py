@@ -21,9 +21,9 @@ cannot be easily mapped from the uncompiled to compiled circuit, caching will fa
 standard compilation. This will be noted by multiple cache misses in the DEBUG log. It is generally safer to
 skip the transpiler (aqua_dict['backend']['skip_transpiler'] = True) when using caching.
 
-Caching is controlled via the aqua_dict['problem']['circuit_caching'] parameter. Caching naughty
-mode bypasses qobj validation before compiling and reuses the same qobj object over and over to
-avoid deepcopying. It is controlled via the aqua_dict['problem']['caching_reuse_qobj_skip_validation'] parameter.
+Caching is controlled via the aqua_dict['problem']['circuit_caching'] parameter. Setting skip_qobj_deepcopy = True
+reuses the same qobj object over and over to avoid deepcopying. It is controlled via the aqua_dict['problem'][
+'skip_qobj_deepcopy'] parameter.
 
 You may also specify a filename into which to store the cache as a pickle file, for circuits which
 are expensive to compile even the first time. The filename is set in aqua_dict['problem']['circuit_cache_file'].
@@ -49,10 +49,10 @@ logger = logging.getLogger(__name__)
 class CircuitCache:
 
     def __init__(self,
-                 caching_naughty_mode = False,
+                 skip_qobj_deepcopy = False,
                  cache_file = None,
                  allowed_misses = 3):
-        self.naughty_mode = caching_naughty_mode
+        self.skip_qobj_deepcopy = skip_qobj_deepcopy
         self.cache_file = cache_file
         self.misses = 0
         self.qobjs = []
@@ -183,7 +183,7 @@ class CircuitCache:
                                                                  gate_num, compiled_gate.name, len(compiled_gate.params)))
                 compiled_gate.params = np.array(uncompiled_gate.param, dtype=float).tolist()
         exec_qobj = copy.copy(self.qobjs[chunk])
-        if self.naughty_mode: exec_qobj.experiments = self.qobjs[chunk].experiments[0:len(circuits)]
+        if self.skip_qobj_deepcopy: exec_qobj.experiments = self.qobjs[chunk].experiments[0:len(circuits)]
         else: exec_qobj.experiments = copy.deepcopy(self.qobjs[chunk].experiments[0:len(circuits)])
 
         if not run_config: run_config = {}

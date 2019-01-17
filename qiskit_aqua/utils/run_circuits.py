@@ -129,7 +129,8 @@ def _combine_result_objects(results):
 def compile_and_run_circuits(circuits, backend, backend_config, compile_config, run_config,
                              qjob_config=None, backend_options=None,
                              noise_config=None, show_circuit_summary=False,
-                             has_shared_circuits=False, circuit_cache=None):
+                             has_shared_circuits=False, circuit_cache=None,
+                             skip_qobj_validation=False):
     """
     An execution wrapper with Qiskit-Terra, with job auto recover capability.
 
@@ -212,10 +213,10 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
             qobj = q_compile(sub_circuits, backend, **backend_config,
                              **compile_config, **run_config)
 
-        skip_validation = circuit_cache is not None and circuit_cache.naughty_mode
         # assure get job ids
         while True:
-            job = run_on_backend(backend, qobj, backend_options=backend_options, noise_config=noise_config, skip_validation=skip_validation)
+            job = run_on_backend(backend, qobj, backend_options=backend_options, noise_config=noise_config,
+                                 skip_qobj_validation=skip_qobj_validation)
             try:
                 job_id = job.job_id()
                 break
@@ -300,7 +301,7 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
                         job = run_on_backend(backend, qobj,
                                              backend_options=backend_options,
                                              noise_config=noise_config,
-                                             skip_validation=skip_validation)
+                                             skip_qobj_validation=skip_qobj_validation)
                         try:
                             job_id = job.job_id()
                             break
@@ -323,9 +324,9 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
 
     return result
 
-# Skip_validation = True does what backend.run and aerjob.submit do, but without qobj validation.
-def run_on_backend(backend, qobj, backend_options=None, noise_config=None, skip_validation=False):
-    if skip_validation:
+# skip_qobj_validation = True does what backend.run and aerjob.submit do, but without qobj validation.
+def run_on_backend(backend, qobj, backend_options=None, noise_config=None, skip_qobj_validation=False):
+    if skip_qobj_validation:
         job_id = str(uuid.uuid4())
         if backend.configuration().simulator:
             if type(backend.provider()).__name__ == 'AerProvider':
