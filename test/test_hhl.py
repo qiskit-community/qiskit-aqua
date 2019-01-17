@@ -183,7 +183,10 @@ class TestHHL(QiskitAquaTestCase):
         self.log.debug('Testing HHL simple test with qasm simulator')
 
         circ_params = self.params
-        matrix = [[1, 0, 0, 0, 0, 0, 2, 0], [0, 2, 0, 0, 0, 0, 0, 1], [0, 0, 3, 0, 0, 0, 0, 0], [0, 0, 0, 4, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 2, 0, 0], [0, 0, 0, 0, 0, 0, 3, 0], [0, 0, 0, 0, 0, 0, 0, 4]]
+        matrix = [[1, 0, 0, 0, 0, 0, 0, 0], [0, 2, 0, 0, 0, 0, 0, 0],
+                  [0, 0, 3, 0, 0, 0, 0, 0], [0, 0, 0, 4, 0, 0, 0, 0],
+                  [0, 0, 0, 0, 5, 0, 0, 0], [0, 0, 0, 0, 0, 6, 0, 0],
+                  [0, 0, 0, 0, 0, 0, 7, 0], [0, 0, 0, 0, 0, 0, 0, 8]]
         vector = [1, 0, 1, 0, 1, 0, 1, 0]
         circ_params["input"] = {
             "name": "LinearSystemInput",
@@ -195,7 +198,7 @@ class TestHHL(QiskitAquaTestCase):
         # run hhl
         result = run_algorithm(circ_params)
         gate_count = result["gate_count_total"]
-        self.assertEqual(gate_count, 288668)
+        self.assertEqual(gate_count, 36668)
 
         self.log.debug('HHL total gate count:       {}'.format(gate_count))
 
