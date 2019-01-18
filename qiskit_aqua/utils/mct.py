@@ -16,15 +16,17 @@
 # =============================================================================
 
 """
-Multiple-(N)-Controlled-Not Operation.
+Multiply-Controlled Toffoli.
 """
 
+from warnings import warn
 from math import pi, ceil
+
 from qiskit import QuantumCircuit, QuantumRegister
 
 
 def _ccx_v_chain(qc, control_qubits, target_qubit, ancillary_qubits):
-    """Create new CNX circuit by chaining ccx gates into a V shape."""
+    """Create new MCT circuit by chaining ccx gates into a V shape."""
     anci_idx = 0
     qc.ccx(control_qubits[0], control_qubits[1], ancillary_qubits[anci_idx])
     for idx in range(2, len(control_qubits) - 1):
@@ -172,9 +174,9 @@ def _multicx(qc, qrs, qancilla=None):
         _multicx(qc, [*qrs[m1:m1 + m2 - 1], qancilla, qrs[n - 2]], qrs[m1 - 1])
 
 
-def cnx(self, q_controls, q_target, q_ancilla, mode='basic'):
+def mct(self, q_controls, q_target, q_ancilla, mode='basic'):
     """
-    Apply multiple-controlled-NOT operation
+    Apply Multiply-Controlled Toffoli operation
     Args:
         q_controls: The list of control qubits
         q_target: The target qubit
@@ -193,13 +195,13 @@ def cnx(self, q_controls, q_target, q_ancilla, mode='basic'):
         elif isinstance(q_controls, list):
             control_qubits = q_controls
         else:
-            raise ValueError('CNX needs a list of qubits or a quantum register for controls.')
+            raise ValueError('MCT needs a list of qubits or a quantum register for controls.')
 
         # check target
         if isinstance(q_target, tuple):
             target_qubit = q_target
         else:
-            raise ValueError('CNX needs a single qubit as target.')
+            raise ValueError('MCT needs a single qubit as target.')
 
         # check ancilla
         if q_ancilla is None:
@@ -209,7 +211,7 @@ def cnx(self, q_controls, q_target, q_ancilla, mode='basic'):
         elif isinstance(q_ancilla, list):
             ancillary_qubits = q_ancilla
         else:
-            raise ValueError('CNX needs None or a list of qubits or a quantum register for ancilla.')
+            raise ValueError('MCT needs None or a list of qubits or a quantum register for ancilla.')
 
         all_qubits = control_qubits + [target_qubit] + ancillary_qubits
         for qubit in all_qubits:
@@ -221,7 +223,13 @@ def cnx(self, q_controls, q_target, q_ancilla, mode='basic'):
         elif mode == 'advanced':
             _multicx(self, [*control_qubits, target_qubit], ancillary_qubits[0] if ancillary_qubits else None)
         else:
-            raise ValueError('Unrecognized mode for building CNX circuit: {}.'.format(mode))
+            raise ValueError('Unrecognized mode for building MCT circuit: {}.'.format(mode))
 
 
+def cnx(self, *args, **kwargs):
+    warn("The gate name 'cnx' will be deprecated. Please use 'mct' (Multiply-Controlled Toffoli) instead.")
+    return mct(self, *args, **kwargs)
+
+
+QuantumCircuit.mct = mct
 QuantumCircuit.cnx = cnx
