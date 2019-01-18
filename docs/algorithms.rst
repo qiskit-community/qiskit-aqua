@@ -58,34 +58,34 @@ quantum algorithms:
     details on how to extend Aqua with new components.
 
 
-.. _cnx:
+.. _mct:
 
-.. topic:: Multiple-Controlled-NOT (CNX) Operations
+.. topic:: Multiply-Controlled Toffoli (MCT) Operation
 
-    The *Multiple-Controlled-NOT (cnx)* operation, as the name suggests, is
-    a generalization of the quantum operation where one target qubit is
-    controlled by a number *n* of control qubits for a NOT (`x`) operation.
-    The multiple-controlled-NOT operation can be used as the building block
+    The *Multiply-Controlled Toffoli (mct)* operation, as the name suggests, is
+    a generalization of the quantum Toffoli gate s.t. one target qubit is
+    controlled by an arbitrary number of control qubits for a NOT (`x`) operation.
+    The MCT operation can be used as the building block
     for implementing various different quantum algorithms, such as Grover's
     search algorithm.
 
     For the different numbers 0, 1, 2, … of controls, we have corresponding
     quantum gates ``x``, ``cx``, ``ccx``, ... The first three are basic/well-known
-    quantum gates. In Aqua, the cnx operation provides support for arbitrary
+    quantum gates. In Aqua, the mct operation provides support for arbitrary
     numbers of controls, in particular, 3 or above.
 
     Currently two different implementation strategies are included: *basic*
     and *advanced*. The basic mode employs a textbook implementation, where
     a series of ``ccx`` Toffoli gates are linked together in a ``V`` shape to
-    achieve the desired multiple-controlled-NOT operation. This mode
+    achieve the desired multiply-controlled Toffoli operation. This mode
     requires :math:`n-2` ancillary qubits, where :math:`n` is the number of controls. For
     the advanced mode, the ``cccx`` and ``ccccx`` operations are achieved without
-    needing ancillary qubits. Multiple-controlled-NOT operations for higher
+    needing ancillary qubits. Multiply-Controlled Toffoli operations for higher
     number of controls (5 and above) are implemented recursively using these
     lower-number-of-control cases.
 
-    Aqua's cnx operation can be invoked from a ``QuantumCircuit`` object
-    using the ``cnx`` API, which expects a list ``q_controls`` of control qubits,
+    Aqua's mct operation can be invoked from a ``QuantumCircuit`` object
+    using the ``mct`` API, which expects a list ``q_controls`` of control qubits,
     a target qubit ``q_target``, and a list ``q_ancilla`` of ancillary qubits.
     An optional keyword
     argument ``mode`` can also be passed in to indicate whether the ``'basic'`` or
