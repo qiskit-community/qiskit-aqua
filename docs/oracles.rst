@@ -68,7 +68,7 @@ format <http://www.satcompetition.org/2009/format-benchmarks2009.html>`__.
 Once it receives a CNF as an input, the SAT oracle constructs the corresponding quantum search circuit
 for Grover's Search Algorithm to operate upon.
 
-Internally, SAT relies on ``mct``, the Multiple-Controlled Toffoli operation, for circuit construction.
+Internally, SAT relies on ``mct``, the Multiple-Control Toffoli operation, for circuit construction.
 Aqua includes two different modes for ``mct``, namely ``'basic'`` and ``'advanced'``:
 
 .. code:: python

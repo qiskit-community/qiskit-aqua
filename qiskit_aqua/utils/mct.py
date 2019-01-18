@@ -16,7 +16,7 @@
 # =============================================================================
 
 """
-Multiply-Controlled Toffoli.
+Multiple-Control Toffoli.
 """
 
 from warnings import warn
@@ -176,7 +176,7 @@ def _multicx(qc, qrs, qancilla=None):
 
 def mct(self, q_controls, q_target, q_ancilla, mode='basic'):
     """
-    Apply Multiply-Controlled Toffoli operation
+    Apply Multiple-Control Toffoli operation
     Args:
         q_controls: The list of control qubits
         q_target: The target qubit
@@ -227,7 +227,7 @@ def mct(self, q_controls, q_target, q_ancilla, mode='basic'):
 
 
 def cnx(self, *args, **kwargs):
-    warn("The gate name 'cnx' will be deprecated. Please use 'mct' (Multiply-Controlled Toffoli) instead.")
+    warn("The gate name 'cnx' will be deprecated. Please use 'mct' (Multiple-Control Toffoli) instead.")
     return mct(self, *args, **kwargs)
 
 

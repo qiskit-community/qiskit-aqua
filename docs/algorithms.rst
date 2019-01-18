@@ -60,9 +60,9 @@ quantum algorithms:
 
 .. _mct:
 
-.. topic:: Multiply-Controlled Toffoli (MCT) Operation
+.. topic:: Multiple-Control Toffoli (MCT) Operation
 
-    The *Multiply-Controlled Toffoli (mct)* operation, as the name suggests, is
+    The *Multiple-Control Toffoli (mct)* operation, as the name suggests, is
     a generalization of the quantum Toffoli gate s.t. one target qubit is
     controlled by an arbitrary number of control qubits for a NOT (`x`) operation.
     The MCT operation can be used as the building block
@@ -77,10 +77,10 @@ quantum algorithms:
     Currently two different implementation strategies are included: *basic*
     and *advanced*. The basic mode employs a textbook implementation, where
     a series of ``ccx`` Toffoli gates are linked together in a ``V`` shape to
-    achieve the desired multiply-controlled Toffoli operation. This mode
+    achieve the desired Multiple-Control Toffoli operation. This mode
     requires :math:`n-2` ancillary qubits, where :math:`n` is the number of controls. For
     the advanced mode, the ``cccx`` and ``ccccx`` operations are achieved without
-    needing ancillary qubits. Multiply-Controlled Toffoli operations for higher
+    needing ancillary qubits. Multiple-Control Toffoli operations for higher
     number of controls (5 and above) are implemented recursively using these
     lower-number-of-control cases.
 
