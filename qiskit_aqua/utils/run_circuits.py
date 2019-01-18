@@ -332,18 +332,12 @@ def run_on_backend(backend, qobj, backend_options=None, noise_config=None, skip_
             if type(backend.provider()).__name__ == 'AerProvider':
                 from qiskit.providers.aer.aerjob import AerJob
                 job = AerJob(backend, job_id, backend._run_job, qobj, backend_options, noise_config)
-                if job._future is not None:
-                    raise JobError("We have already submitted the job!")
                 job._future = job._executor.submit(job._fn, job._job_id, job._qobj, backend_options, noise_config)
             else:
                 job = SimulatorsJob(backend, job_id, backend._run_job, qobj)
-                if job._future is not None:
-                    raise JobError("We have already submitted the job!")
                 job._future = job._executor.submit(job._fn, job._job_id, job._qobj)
         else:
             job = IBMQJob(backend, None, backend._api, not backend.configuration().simulator, qobj=qobj)
-            if job._future is not None:
-                raise JobError("We have already submitted the job!")
             job._future = job._executor.submit(job._fn, job._job_id, job._qobj)
         return job
     else:
