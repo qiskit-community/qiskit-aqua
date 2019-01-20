@@ -46,7 +46,7 @@ class Grover(QuantumAlgorithm):
 
     PROP_INCREMENTAL = 'incremental'
     PROP_NUM_ITERATIONS = 'num_iterations'
-    PROP_CNX_MODE = 'cnx_mode'
+    PROP_MCT_MODE = 'mct_mode'
 
     CONFIGURATION = {
         'name': 'Grover',
@@ -65,7 +65,7 @@ class Grover(QuantumAlgorithm):
                     'default': 1,
                     'minimum': 1
                 },
-                PROP_CNX_MODE: {
+                PROP_MCT_MODE: {
                     'type': 'string',
                     'default': 'basic',
                     'oneOf': [
@@ -88,7 +88,7 @@ class Grover(QuantumAlgorithm):
         }
     }
 
-    def __init__(self, oracle, incremental=False, num_iterations=1, cnx_mode='basic'):
+    def __init__(self, oracle, incremental=False, num_iterations=1, mct_mode='basic'):
         """
         Constructor.
 
@@ -103,7 +103,7 @@ class Grover(QuantumAlgorithm):
         self._max_num_iterations = 2 ** (len(self._oracle.variable_register()) / 2)
         self._incremental = incremental
         self._num_iterations = num_iterations if not incremental else 1
-        self._cnx_mode = cnx_mode
+        self._mct_mode = mct_mode
         self.validate(locals())
         if incremental:
             logger.debug('Incremental mode specified, ignoring "num_iterations".')
@@ -130,12 +130,12 @@ class Grover(QuantumAlgorithm):
         grover_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
         incremental = grover_params.get(Grover.PROP_INCREMENTAL)
         num_iterations = grover_params.get(Grover.PROP_NUM_ITERATIONS)
-        cnx_mode = grover_params.get(Grover.PROP_CNX_MODE)
+        mct_mode = grover_params.get(Grover.PROP_MCT_MODE)
 
         oracle_params = params.get(QuantumAlgorithm.SECTION_KEY_ORACLE)
         oracle = get_pluggable_class(PluggableType.ORACLE,
                                      oracle_params['name']).init_params(oracle_params)
-        return cls(oracle, incremental=incremental, num_iterations=num_iterations, cnx_mode=cnx_mode)
+        return cls(oracle, incremental=incremental, num_iterations=num_iterations, mct_mode=mct_mode)
 
     def _construct_circuit_components(self):
         if self._oracle.ancillary_register():
@@ -162,18 +162,18 @@ class Grover(QuantumAlgorithm):
         qc_amplitude_amplification_single_iteration.u3(pi, 0, pi, self._oracle.outcome_register())  # x
         qc_amplitude_amplification_single_iteration.u2(0, pi, self._oracle.outcome_register())  # h
         if self._oracle.ancillary_register():
-            qc_amplitude_amplification_single_iteration.cnx(
+            qc_amplitude_amplification_single_iteration.mct(
                 [self._oracle.variable_register()[i] for i in range(len(self._oracle.variable_register()))],
                 self._oracle.outcome_register()[0],
                 [self._oracle.ancillary_register()[i] for i in range(len(self._oracle.ancillary_register()))],
-                mode=self._cnx_mode
+                mode=self._mct_mode
             )
         else:
-            qc_amplitude_amplification_single_iteration.cnx(
+            qc_amplitude_amplification_single_iteration.mct(
                 [self._oracle.variable_register()[i] for i in range(len(self._oracle.variable_register()))],
                 self._oracle.outcome_register()[0],
                 [],
-                mode=self._cnx_mode
+                mode=self._mct_mode
             )
         qc_amplitude_amplification_single_iteration.u2(0, pi, self._oracle.outcome_register())  # h
         qc_amplitude_amplification_single_iteration.u3(pi, 0, pi, self._oracle.variable_register())  # x

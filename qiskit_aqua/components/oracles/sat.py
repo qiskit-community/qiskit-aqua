@@ -38,7 +38,7 @@ class SAT(Oracle):
                 'cnf': {
                     'type': 'string',
                 },
-                'cnx_mode': {
+                'mct_mode': {
                     'type': 'string',
                     'default': 'basic',
                     'oneOf': [
@@ -53,12 +53,12 @@ class SAT(Oracle):
         }
     }
 
-    def __init__(self, cnf, cnx_mode='basic'):
+    def __init__(self, cnf, mct_mode='basic'):
         self.validate(locals())
         super().__init__()
 
         self._cnf = None
-        self._cnx_mode = cnx_mode
+        self._mct_mode = mct_mode
         self._qr_ancilla = None
         self._qr_clause = None
         self._qr_outcome = None
@@ -102,12 +102,12 @@ class SAT(Oracle):
         self._qr_variable = QuantumRegister(nv, name='v')
         self._qr_clause = QuantumRegister(nc, name='c')
 
-        self._cnx_mode = cnx_mode
+        self._mct_mode = mct_mode
         max_num_ancillae = max(max(nc, nv) - 2, 0)
-        if self._cnx_mode == 'basic':
+        if self._mct_mode == 'basic':
             if max_num_ancillae > 0:
                 self._qr_ancilla = QuantumRegister(max_num_ancillae, name='a')
-        elif self._cnx_mode == 'advanced':
+        elif self._mct_mode == 'advanced':
             if max_num_ancillae >= 3:
                 self._qr_ancilla = QuantumRegister(1, name='a')
 
@@ -127,7 +127,7 @@ class SAT(Oracle):
         tgt_bits = self._qr_clause[conj_index]
         for idx in [v for v in conj_expr if v > 0]:
             circuit.x(self._qr_variable[idx - 1])
-        circuit.cnx(ctl_bits, tgt_bits, anc_bits, mode=self._cnx_mode)
+        circuit.mct(ctl_bits, tgt_bits, anc_bits, mode=self._mct_mode)
         for idx in [v for v in conj_expr if v > 0]:
             circuit.x(self._qr_variable[idx - 1])
 
@@ -144,11 +144,11 @@ class SAT(Oracle):
         for conj_index, conj_expr in enumerate(self._cnf):
             self._logic_or(qc, conj_expr, conj_index)
         # keep results
-        qc.cnx(
+        qc.mct(
             [self._qr_clause[i] for i in range(len(self._qr_clause))],
             self._qr_outcome[0],
             [self._qr_ancilla[i] for i in range(len(self._qr_ancilla))] if self._qr_ancilla else [],
-            mode=self._cnx_mode
+            mode=self._mct_mode
         )
         # reverse, de-entanglement
         for conj_index, conj_expr in reversed(list(enumerate(self._cnf))):
