@@ -4,6 +4,59 @@
 Oracles
 =======
 
+An oracle is a black box operation used as input to another algorithm.
+They encode a function :math:`f:\{0,1\}^n \rightarrow \{0,1\}^m`
+where the goal of the algorithm is to determine some property of :math:`f`.
+More specfically, quantum oracles perform the unitary function 
+:math:`\tilde{f}:\{0,1\}^n \times \{0,1\}^n \rightarrow \{0,1\}^n \times \{0,1\}^n
+:(\mathbf{x},\mathbf{y}) \rightarrow (\mathbf{x},\mathbf{y} \oplus f(\mathbf{x}))`.
+
+The following `quantum oracles <#quantum-oracles>`__ are part of Aqua:
+
+-  :ref:`SATisfiability Grover Oracle`
+-  :ref:`Deutsch-Jozsa Oracle`
+-  :ref:`Bernstein-Vazirani Oracle`
+-  :ref:`Simon Oracle`
+
+.. topic:: Extending the Oracle Library
+
+    Consistent with its unique design, Aqua has a modular and extensible
+    architecture. Algorithms and their supporting objects, such as oracles 
+    for Grover's Search Algorithm, are pluggable modules in Aqua.
+
+    New oracles are typically installed in the ``qiskit_aqua/components/oracles``
+    folder and derive from the ``Oracle`` class. Aqua also allows for
+    :ref:`aqua-dynamically-discovered-components`: new components can register
+    themselves as Aqua extensions and be dynamically discovered at run time 
+    independent of their location in the file system. This is done in order to 
+    encourage researchers and developers interested in :ref:`aqua-extending` to 
+    extend the Aqua framework with their novel research contributions.
+
+.. seealso::
+
+    :ref:`aqua-extending` provides more details on how to extend Aqua with new
+    components.
+
+.. _quantum-oracles:
+
+---------------
+Quantum Oracles
+---------------
+
+In this section, we describe the quantum oracles currently available in Aqua.
+
+.. note::
+
+    Each of the quantum oracles is created to be used with their respective 
+    :ref:`quantum-algorithms`. 
+
+
+.. _sat:
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+SATisfiability Grover Oracle
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 Grover’s Search is a well known quantum algorithm for searching through
 unstructured collections of records for particular targets with quadratic
 speedups.
@@ -21,7 +74,7 @@ Instead, in an unstructured-search problem, there is no  prior knowledge about t
 of the database.  With classical circuits, there is no alternative but
 to perform a linear number of queries to find the target element.
 Conversely, Grover’s Search algorithm allows to solve the unstructured-search problem
-on a quantum computer in :math:`\mathcal{O}(\sqrt{N})` queries. 
+on a quantum computer in :math:`\mathcal{O}(\sqrt{N})` queries.
 
 All that is needed for carrying out a search is an oracle from Aqua's oracles library for
 specifying the search criterion, which basically indicates a hit or miss
@@ -29,25 +82,6 @@ for any given record.  More formally, an *oracle* :math:`O_f` is an object imple
 :math:`f` as specified above.  Given an input :math:`x \in X`, :math:`O_f` returns :math:`f(x)`.  The
 details of how :math:`O_f` works are unimportant; Grover's search algorithm treats an oracle as a black
 box.
-
-.. topic:: Extending the Oracle Library
-
-    Consistent with its unique  design, Aqua has a modular and
-    extensible architecture. Algorithms and their supporting objects, such as oracles for Grover's Search Algorithm,
-    are pluggable modules in Aqua.
-    New oracles are typically installed in the ``qiskit_aqua/utils/oracles`` folder and derive from
-    the ``Oracle`` class.  Aqua also allows for
-    :ref:`aqua-dynamically-discovered-components`: new components can register themselves
-    as Aqua extensions and be dynamically discovered at run time independent of their
-    location in the file system.
-    This is done in order to encourage researchers and
-    developers interested in
-    :ref:`aqua-extending` to extend the Aqua framework with their novel research contributions.
-
-.. seealso::
-
-    `Section :ref:`aqua-extending` provides more
-    details on how to extend Aqua with new components.
 
 Currently, Aqua provides the SATisfiability (SAT) oracle
 implementation, which takes as input an SAT problem
@@ -108,6 +142,57 @@ for solutions to SAT problems are available in the ``optimization`` folder of th
 
 .. topic:: Declarative Name
 
-   When referring to the SAT oracle declaratively inside Aqua, its code ``name``, by which Aqua dynamically discovers and loads it,
-   is ``SAT``.
+   When referring to the SAT oracle declaratively inside Aqua, its code ``name``, by which Aqua dynamically discovers and loads it, is ``SAT``.
 
+.. _djoracle:
+
+^^^^^^^^^^^^^^^^^^^^
+Deutsch-Jozsa Oracle
+^^^^^^^^^^^^^^^^^^^^
+
+The Deutsch-Jozsa oracle implements a function :math:`f:\{0,1\}^n \rightarrow \{0,1\}`.
+The function must be either balanced (0 for half the ouputs and 1 for the other half) 
+or constant (0 for all outputs or 1 for all outputs). It is built from the input to
+:ref:`djalgorithm`.
+
+.. topic:: Declarative Name
+
+   When referring to the Deutsch-Jozsa oracle declaratively inside Aqua, its code
+   ``name``, by which Aqua dynamically discovers and loads it, is ``DeutschJozsaOracle``.
+
+
+.. _bvoracle:
+
+^^^^^^^^^^^^^^^^^^^^^^^^^
+Bernstein-Vazirani Oracle
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The Bernstein-Vazirani oracle implements a function :math:`f:\{0,1\}^n \rightarrow \{0,1\}`,
+such that :math:`f(x)=s \cdot x (\bmod 2)` for some :math:`s \in \{0,1\}^n`. 
+It is built from the input to :ref:`bvalgorithm`.
+
+
+.. topic:: Declarative Name
+
+   When referring to the Bernstein-Vazirani oracle declaratively inside Aqua, its code
+   ``name``, by which Aqua dynamically discovers and loads it, is ``BernsteinVaziraniOracle``.
+
+.. _bvoracle:
+
+^^^^^^^^^^^^^^^^^^^^^^^^^
+Simon Oracle
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The Simon oracle implements a function :math:`f:\{0,1\}^n \rightarrow \{0,1\}^n`, 
+such that either:
+
+1. :math:`f` is one-to-one (a permuation). or
+2. :math:`f` is two-to-one where :math:`f(\mathbf{x}) = f(\mathbf{y}) \Leftrightarrow \mathbf{y} \oplus \mathbf{x} = \mathbf{s}`. 
+
+Note that (1) is a special case of (2) with :math:`\mathbf{s} = \mathbf{0}`.
+The oracle is built from the input to :ref:`simonalgorithm`.
+
+.. topic:: Declarative Name
+
+   When referring to the Simon oracle declaratively inside Aqua, its code
+   ``name``, by which Aqua dynamically discovers and loads it, is ``SimonOracle``.

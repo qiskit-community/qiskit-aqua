@@ -24,7 +24,7 @@ from abc import abstractmethod
 class Oracle(Pluggable):
 
     """
-        Base class for oracles to be used with the Grover algorithm.
+        Base class for oracles.
 
         This method should initialize the module and its configuration, and
         use an exception if a component of the module is
@@ -74,7 +74,7 @@ class Oracle(Pluggable):
             assignment (list of bools) : a particular variable assignment
 
         Returns:
-            The True|False value of the oracle under the given variable assignment
+            The True|False value of the oracle under the given assignment
         """
         raise NotImplementedError
 

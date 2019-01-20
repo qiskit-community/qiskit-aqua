@@ -20,6 +20,9 @@ The following `quantum algorithms <#quantum-algorithms>`__ are part of Aqua:
 -  :ref:`Iterative Quantum Phase Estimation (IQPE)`
 -  :ref:`Amplitude Estimation`
 -  :ref:`Quantum Grover Search`
+-  :ref:`Deutsch Jozsa`
+-  :ref:`Bernstein Vazirani`
+-  :ref:`Simon`
 -  :ref:`Support Vector Machine Quantum Kernel (QSVM Kernel)`
 -  :ref:`Support Vector Machine Variational (QSVM Variational)`
 
@@ -559,6 +562,56 @@ Grover is configured with the following parameter settings:
 .. topic:: Problems Supported
 
    In Aqua, Grover's Search algorithm supports the ``search`` problem.
+
+.. _djalgorithm:
+
+^^^^^^^^^^^^^
+Deutsch Jozsa
+^^^^^^^^^^^^^
+
+The Deutsch-Jozsa algorithm was one of the first known quantum algorithms that
+showed an exponential speedup compared to a deterministic (non-probabilistic)
+classical algorithm, given a black box oracle function. 
+
+.. topic:: Declarative Name
+
+   When referring to Deutsch Jozsa declaratively inside Aqua, its code ``name``,
+   by which Aqua dynamically discovers and loads it, is ``DeutschJozsa``.
+
+.. topic:: Problems Supported
+
+   In Aqua, the Deutsch Jozsa algorithm supports the ``functionevaluation`` problem.
+
+.. _bvalgorithm:
+
+^^^^^^^^^^^^^^^^^^
+Bernstein Vazirani
+^^^^^^^^^^^^^^^^^^
+
+.. topic:: Declarative Name
+
+   When referring to Bernstein Vazirani declaratively inside Aqua, its code ``name``,
+   by which Aqua dynamically discovers and loads it, is ``BernsteinVazirani``.
+
+.. topic:: Problems Supported
+
+   In Aqua, the Bernstein Vazirani algorithm supports the ``hiddenstringfinding`` problem.
+
+.. _simonalgorithm:
+
+^^^^^
+Simon
+^^^^^
+
+.. topic:: Declarative Name
+
+   When referring to Simon declaratively inside Aqua, its code ``name``, by which
+   Aqua dynamically discovers and loads it, is ``Simon``.
+
+.. topic:: Problems Supported
+
+   In Aqua, the Simon algorithm supports the ``periodfinding`` problem.
+
 
 .. _svm-q-kernel:
 
