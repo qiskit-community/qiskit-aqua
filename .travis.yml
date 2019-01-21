@@ -39,6 +39,13 @@ stage_dependencies: &stage_dependencies
         pip install -U -r /tmp/qiskit-terra-master/requirements-dev.txt
         # Install local Qiskit Terra
         pip install -e /tmp/qiskit-terra-master
+        wget https://codeload.github.com/Qiskit/qiskit-ibmq-provider/zip/master -O /tmp/qiskit-ibmq-provider.zip
+        unzip /tmp/qiskit-ibmq-provider.zip -d /tmp/
+        # Install Qiskit IBMQ Provider requirements.
+        pip install -U -r /tmp/qiskit-ibmq-provider-master/requirements.txt
+        pip install -U -r /tmp/qiskit-ibmq-provider/requirements-dev.txt
+        # Install local Qiskit IBMQ Provider
+        pip install -e /tmp/qiskit-ibmq-provider-master
       fi
   install:
     # install Aqua and dev requirements
