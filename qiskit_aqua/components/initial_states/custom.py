@@ -101,15 +101,15 @@ class Custom(InitialState):
         elif isinstance(gates, CompositeGate):
             gates_data = [Custom._convert_to_basis_gates(
                 gate) for gate in gates.data]
-            gates = CompositeGate(gates.name, gates.param,
+            gates = CompositeGate(gates.name, gates.params,
                                   gates.qargs, circuit=gates.circuit)
             gates.data = gates_data
             return gates
         else:
             if isinstance(gates, RYGate):
-                return U3Gate(gates.param[0], 0, 0, gates.qargs[0])
+                return U3Gate(gates.params[0], 0, 0, gates.qargs[0])
             elif isinstance(gates, RZGate):
-                return U1Gate(gates.param[0], gates.qargs[0])
+                return U1Gate(gates.params[0], gates.qargs[0])
             elif isinstance(gates, CnotGate):
                 return gates
             else:
