@@ -43,7 +43,7 @@ class TestGrover(QiskitAquaTestCase):
         ['test_grover_no_solution.cnf', True, 1, 'basic', 'statevector_simulator'],
         ['test_grover_no_solution.cnf', True, 1, 'advanced', 'statevector_simulator'],
     ])
-    def test_grover(self, input_file, incremental, num_iterations, cnx_mode, simulator):
+    def test_grover(self, input_file, incremental, num_iterations, mct_mode, simulator):
         input_file = self._get_resource_path(input_file)
         # get ground-truth
         with open(input_file) as f:
@@ -67,7 +67,7 @@ class TestGrover(QiskitAquaTestCase):
         ]
         backend = get_aer_backend(simulator)
         sat_oracle = SAT(buf)
-        grover = Grover(sat_oracle, num_iterations=num_iterations, incremental=incremental, cnx_mode=cnx_mode)
+        grover = Grover(sat_oracle, num_iterations=num_iterations, incremental=incremental, mct_mode=mct_mode)
         quantum_instance = QuantumInstance(backend, shots=100)
 
         ret = grover.run(quantum_instance)
