@@ -13,6 +13,22 @@
                 "random_seed": {
                     "type": ["integer", "null"],
                     "default": null
+                },
+                "circuit_caching": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "skip_qobj_deepcopy": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "circuit_cache_file": {
+                    "type": "string",
+                    "default": null
+                },
+                "skip_qobj_validation": {
+                    "type": "boolean",
+                    "default": false
                 }
             },
             "required": ["name"],
