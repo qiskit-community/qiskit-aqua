@@ -20,6 +20,7 @@ from qiskit import QuantumRegister, QuantumCircuit
 from qiskit_aqua import Operator, AquaError
 from qiskit_aqua import PluggableType, get_pluggable_class
 from qiskit_aqua.components.eigs import Eigenvalues
+from qiskit_aqua.algorithms.single_sample import PhaseEstimation
 
 
 class QPE(Eigenvalues):
@@ -231,43 +232,22 @@ class QPE(Eigenvalues):
     def construct_circuit(self, mode, register):
         """Implement the Quantum Phase Estimation algorithm"""
 
+        pe = PhaseEstimation(operator=self._operator,
+                             state_in=None, iqft=self._iqft,
+                             num_time_slices=self._num_time_slices,
+                             num_ancillae=self._num_ancillae,
+                             paulis_grouping=self._paulis_grouping,
+                             expansion_mode=self._expansion_mode,
+                             expansion_order=self._expansion_order,
+                             evo_time=self._evo_time)
+
         if mode == 'vector':
             raise ValueError("QPE only posslible as circuit not vector.")
 
         a = QuantumRegister(self._num_ancillae)
         q = register
 
-        qc = QuantumCircuit(a, q)
-
-        # Put all ancillae in uniform superposition
-        qc.u2(0, np.pi, a)
-
-        # phase kickbacks via dynamics
-        pauli_list = self._operator.reorder_paulis(grouping=self._paulis_grouping)
-        if len(pauli_list) == 1:
-            slice_pauli_list = pauli_list
-        else:
-            if self._expansion_mode == 'trotter':
-                slice_pauli_list = pauli_list
-            elif self._expansion_mode == 'suzuki':
-                slice_pauli_list = Operator._suzuki_expansion_slice_pauli_list(
-                    pauli_list,
-                    1,
-                    self._expansion_order
-                )
-            else:
-                raise ValueError('Unrecognized expansion mode {}.'.format(self._expansion_mode))
-        for i in range(self._num_ancillae):
-            qc += self._operator.construct_evolution_circuit(
-                slice_pauli_list, -self._evo_time, self._num_time_slices, q, a,
-                ctl_idx=i, use_basis_gates=self._use_basis_gates
-            )
-            # global phase shift for the ancilla due to the identity pauli term
-            if self._ancilla_phase_coef != 0:
-                qc.u1(self._evo_time * self._ancilla_phase_coef * (2 ** i), a[i])
-
-        # inverse qft on ancillae
-        self._iqft.construct_circuit('circuit', a, qc)
+        qc = pe.construct_circuit(state_register=q, ancillary_register=a)
 
         # handle negative eigenvalues
         if self._negative_evals:
