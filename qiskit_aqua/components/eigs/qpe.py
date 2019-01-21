@@ -247,8 +247,7 @@ class QPE(Eigenvalues):
         a = QuantumRegister(self._num_ancillae)
         q = register
 
-        qc = pe.construct_circuit(state_register=q, ancilla_register=a,
-                                  measure=False)
+        qc = pe.construct_circuit(state_register=q, ancillary_register=a)
 
         # handle negative eigenvalues
         if self._negative_evals:
