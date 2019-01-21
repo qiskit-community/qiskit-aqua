@@ -16,6 +16,8 @@
 # =============================================================================
 
 from qiskit import QuantumRegister, QuantumCircuit, transpiler
+from qiskit.transpiler.passes import Unroller
+from qiskit.transpiler import PassManager
 from qiskit.circuit import CompositeGate
 from qiskit.extensions.standard.ry import RYGate
 from qiskit.extensions.standard.rz import RZGate
@@ -98,8 +100,10 @@ class Custom(InitialState):
     @staticmethod
     def _convert_to_basis_gates(circuit):
         # get the circuits from compiled circuit
+        unroller = Unroller(basis=['u1', 'u2', 'u3', 'cx', 'id'])
+        pm = PassManager(passes=[unroller])
         qc = transpiler.transpile(circuit, get_aer_backend('qasm_simulator'),
-                                  basis_gates='u1,u2,u3,cx,id')
+                                  pass_manager=pm)
         return qc
 
     def construct_circuit(self, mode, register=None):

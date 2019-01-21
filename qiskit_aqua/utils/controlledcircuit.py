@@ -16,10 +16,11 @@
 # =============================================================================
 
 import numpy as np
+from qiskit import QuantumCircuit, transpiler
+from qiskit.transpiler.passes import Unroller
+from qiskit.transpiler import PassManager
 
-from qiskit import QuantumCircuit
 from .backend_utils import get_aer_backend
-from qiskit import transpiler
 
 
 def apply_cu1(circuit, lam, c, t, use_basis_gates=True):
@@ -100,10 +101,12 @@ def get_controlled_circuit(circuit, ctl_qubit, tgt_circuit=None, use_basis_gates
         clbits.extend(cregs[name])
 
     # get all operations from compiled circuit
+    unroller = Unroller(basis=['u1', 'u2', 'u3', 'cx', 'id'])
+    pm = PassManager(passes=[unroller])
     ops = transpiler.transpile(
         circuit,
         get_aer_backend('qasm_simulator'),
-        basis_gates='u1,u2,u3,cx,id'
+        pass_manager=pm
     )['circuits'][0]['compiled_circuit']['operations']
 
     # process all basis gates to add control
