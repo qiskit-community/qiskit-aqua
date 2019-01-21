@@ -35,7 +35,8 @@ from .utils.backend_utils import (get_aer_backend,
                                   enable_ibmq_account,
                                   disable_ibmq_account)
 from .pluggable import Pluggable
-from .utils.cnx import cnx
+from .utils.mct import mct
+from .utils.subsystem import get_subsystem_density_matrix, get_subsystems_counts
 from .utils.cnx_no_anc import cnx_na
 from .utils.cnu1 import cnu1
 from .utils.cnu3 import cnu3
@@ -66,6 +67,9 @@ __all__ = ['AquaError',
            'get_provider_from_backend',
            'enable_ibmq_account',
            'disable_ibmq_account',
+           'mct',
+           'get_subsystem_density_matrix',
+           'get_subsystems_counts',
            'local_pluggables_types',
            'local_pluggables',
            'get_pluggable_class',

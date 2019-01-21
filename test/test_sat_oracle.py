@@ -63,8 +63,8 @@ class TestSATOracle(QiskitAquaTestCase):
     ])
     def test_sat_oracle(self, cnf_str, sols):
         num_shots = 1024
-        for cnx_mode in ['basic', 'advanced']:
-            sat = SAT(cnf_str, cnx_mode=cnx_mode)
+        for mct_mode in ['basic', 'advanced']:
+            sat = SAT(cnf_str, mct_mode=mct_mode)
             sat_circuit = sat.construct_circuit()
             m = ClassicalRegister(1, name='m')
             for assignment in itertools.product([True, False], repeat=len(sat.variable_register())):

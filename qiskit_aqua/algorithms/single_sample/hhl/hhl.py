@@ -211,7 +211,6 @@ class HHL(QuantumAlgorithm):
         c = ClassicalRegister(self._num_q)
         self._circuit.add_register(c)
         tomo_qbits = list(range(self._num_q))
-        #tomo_qbits.extend([6])
         tomo_set = tomo.state_tomography_set(tomo_qbits)
         tomo_circuits = \
             tomo.create_tomography_circuits(self._circuit,

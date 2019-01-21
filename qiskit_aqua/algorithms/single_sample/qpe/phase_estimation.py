@@ -74,24 +74,26 @@ class PhaseEstimation:
         self._evo_time = evo_time
         self._shallow_circuit_concat = shallow_circuit_concat
         self._ancilla_phase_coef = 1
-        self._circuit = {True: None, False: None}
+        self._state_register = None
+        self._ancillary_register = None
+        self._auxiliary_register = None
+        self._circuit = None
         self._ret = {}
 
-    def construct_circuit(self, state_register=None, ancilla_register=None, aux_register=None, measure=False):
+    def construct_circuit(self, state_register=None, ancillary_register=None, auxiliary_register=None):
         """
         Construct the Phase Estimation circuit
 
         Args:
             state_register (QuantumRegister): the optional register to use for the quantum state
-            ancilla_register (QuantumRegister): the optional register to use for the ancillary measurement qubits
-            aux_register (QuantumRegister): an optional auxiliary quantum register
-            measure (bool): boolean flag to indicate if the built circuit should include ancilla measurement
+            ancillary_register (QuantumRegister): the optional register to use for the ancillary measurement qubits
+            auxiliary_register (QuantumRegister): an optional auxiliary quantum register
 
         Returns:
             the QuantumCircuit object for the constructed circuit
         """
 
-        if self._circuit[measure] is None:
+        if self._circuit is None:
             if self._operator is not None:
                 # check for identify paulis to get its coef for applying global phase shift on ancillae later
                 num_identities = 0
@@ -102,10 +104,11 @@ class PhaseEstimation:
                             raise RuntimeError('Multiple identity pauli terms are present.')
                         self._ancilla_phase_coef = p[0].real if isinstance(p[0], complex) else p[0]
 
-            if ancilla_register is None:
+            if ancillary_register is None:
                 a = QuantumRegister(self._num_ancillae, name='a')
             else:
-                a = ancilla_register
+                a = ancillary_register
+            self._ancillary_register = a
 
             if state_register is None:
                 if self._operator is not None:
@@ -116,9 +119,11 @@ class PhaseEstimation:
                     raise RuntimeError('Missing operator specification.')
             else:
                 q = state_register
+            self._state_register = q
+
             qc = QuantumCircuit(a, q)
 
-            if aux_register is None:
+            if auxiliary_register is None:
                 num_aux_qubits, aux = 0, None
                 if self._state_in_circuit_factory is not None:
                     num_aux_qubits = self._state_in_circuit_factory.required_ancillas()
@@ -129,7 +134,7 @@ class PhaseEstimation:
                     aux = QuantumRegister(num_aux_qubits, name='aux')
                     qc.add_register(aux)
             else:
-                aux = aux_register
+                aux = auxiliary_register
                 qc.add_register(aux)
 
             # initialize state_in
@@ -179,13 +184,18 @@ class PhaseEstimation:
             # inverse qft on ancillae
             self._iqft.construct_circuit('circuit', a, qc)
 
-            # measuring ancillae
-            if measure:
-                c = ClassicalRegister(self._num_ancillae, name='c')
-                qc.add_register(c)
-                qc.barrier(a)
-                qc.measure(a, c)
+            self._circuit = qc
 
-            self._circuit[measure] = qc
+        return self._circuit
 
-        return self._circuit[measure]
+    @property
+    def state_register(self):
+        return self._state_register
+
+    @property
+    def ancillary_register(self):
+        return self._ancillary_register
+
+    @property
+    def auxiliary_register(self):
+        return self._auxiliary_register
