@@ -100,7 +100,7 @@ def get_controlled_circuit(circuit, ctl_qubit, tgt_circuit=None, use_basis_gates
         clbits.extend(cregs[name])
 
     # get all operations from compiled circuit
-    ops = transpiler.compile(
+    ops = transpiler.transpile(
         circuit,
         get_aer_backend('qasm_simulator'),
         basis_gates='u1,u2,u3,cx,id'
