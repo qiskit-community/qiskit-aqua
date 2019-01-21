@@ -27,7 +27,7 @@ from qiskit.quantum_info import state_fidelity
 from test.common import QiskitAquaTestCase
 
 
-class TestCNX(QiskitAquaTestCase):
+class TestMCT(QiskitAquaTestCase):
     @parameterized.expand([
         [1],
         [2],
@@ -37,7 +37,7 @@ class TestCNX(QiskitAquaTestCase):
         [6],
         [7],
     ])
-    def test_cnx(self, num_controls):
+    def test_mct(self, num_controls):
         c = QuantumRegister(num_controls, name='c')
         o = QuantumRegister(1, name='o')
         allsubsets = list(chain(*[combinations(range(num_controls), ni) for ni in range(num_controls + 1)]))

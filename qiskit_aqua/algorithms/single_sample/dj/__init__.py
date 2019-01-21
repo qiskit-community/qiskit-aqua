@@ -14,24 +14,3 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-
-from .grover.grover import Grover
-from .iqpe.iqpe import IQPE
-from .qpe.qpe import QPE
-from .qpe.phase_estimation import PhaseEstimation
-from .ae.ae import AmplitudeEstimation
-from .simon.simon import Simon
-from .dj.deutsch_jozsa import DeutschJozsa
-from .bv.bernstein_vazirani import BernsteinVazirani
-from .hhl.hhl import HHL
-
-
-__all__ = ['Grover',
-           'IQPE',
-           'QPE',
-           'PhaseEstimation',
-           'AmplitudeEstimation',
-           'Simon',
-           'DeutschJozsa',
-           'BernsteinVazirani'
-           'HHL']
