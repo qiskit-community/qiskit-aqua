@@ -22,8 +22,7 @@ from scipy import sparse
 from scipy.linalg import expm
 
 from qiskit.transpiler import PassManager
-from qiskit.quantum_info import state_fidelity
-
+from qiskit.qobj import RunConfig
 from qiskit_aqua import get_aer_backend
 from qiskit_aqua import Operator, QuantumInstance
 from qiskit_aqua.utils import decimal_to_binary
@@ -100,7 +99,8 @@ class TestQPE(QiskitAquaTestCase):
                   shallow_circuit_concat=True)
 
         backend = get_aer_backend(simulator)
-        quantum_instance = QuantumInstance(backend, shots=100, pass_manager=PassManager())
+        run_config = RunConfig(shots=100, max_credits=10, memory=False)
+        quantum_instance = QuantumInstance(backend, run_config, pass_manager=PassManager())
 
         # run qpe
         result = qpe.run(quantum_instance)

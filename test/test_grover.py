@@ -16,11 +16,10 @@
 # =============================================================================
 
 import unittest
-import operator
 
 from parameterized import parameterized
 from qiskit_aqua import get_aer_backend
-
+from qiskit.qobj import RunConfig
 from test.common import QiskitAquaTestCase
 from qiskit_aqua.components.oracles import SAT
 from qiskit_aqua.algorithms import Grover
@@ -68,7 +67,8 @@ class TestGrover(QiskitAquaTestCase):
         backend = get_aer_backend(simulator)
         sat_oracle = SAT(buf)
         grover = Grover(sat_oracle, num_iterations=num_iterations, incremental=incremental, mct_mode=mct_mode)
-        quantum_instance = QuantumInstance(backend, shots=100)
+        run_config = RunConfig(shots=100, max_credits=10, memory=False)
+        quantum_instance = QuantumInstance(backend, run_config)
 
         ret = grover.run(quantum_instance)
 
