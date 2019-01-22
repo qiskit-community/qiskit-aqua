@@ -64,6 +64,7 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
 
     return value
 
+
 def build_algorithm_from_dict(params, algo_input=None, backend=None):
     """
         Construct algorithm as named in params, using params and algo_input as input data
@@ -75,7 +76,8 @@ def build_algorithm_from_dict(params, algo_input=None, backend=None):
             backend (BaseBackend): Backend object to be used in place of backend name
 
         Returns:
-            Ready-to-run QuantumAlgorithm and QuantumInstance as specified in input parameters
+            Ready-to-run QuantumAlgorithm and QuantumInstance as specified in input parameters. Note that
+            no QuantumInstance will be returned if none is specified - None will be returned instead.
         """
     _discover_on_demand()
 
@@ -159,7 +161,8 @@ def build_algorithm_from_dict(params, algo_input=None, backend=None):
 
         quantum_instance = QuantumInstance(**backend_cfg)
 
-        return algorithm, quantum_instance
+    # Note that quantum_instance can be None if none is specified
+    return algorithm, quantum_instance
 
 
 def run_algorithm_to_json(params, algo_input=None, jsonfile='algorithm.json'):
