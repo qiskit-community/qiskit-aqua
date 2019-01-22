@@ -35,7 +35,7 @@ requirements = [
 
 setuptools.setup(
     name='qiskit-chemistry',
-    version="0.4.2",  # this should match __init__.__version__
+    version="0.4.3",  # this should match __init__.__version__
     description='Qiskit Chemistry: Experiment with chemistry applications on a quantum machine',
     long_description=long_description,
     long_description_content_type="text/markdown",
