@@ -47,7 +47,7 @@ class QuantumInstance:
                        "max_parallel_experiments", "statevector_parallel_threshold",
                        "statevector_hpc_gate_opt"] + BACKEND_OPTIONS_QASM_ONLY
 
-    def __init__(self, backend, run_config, initial_layout=None, pass_manager=None, seed_mapper=None,
+    def __init__(self, backend, run_config=None, initial_layout=None, pass_manager=None, seed_mapper=None,
                  backend_options=None, noise_model=None, timeout=None, wait=5, circuit_cache=None,
                  skip_qobj_validation=False):
         """Constructor.
@@ -68,7 +68,7 @@ class QuantumInstance:
         self._backend = backend
         # setup run config
         if run_config is None:
-            run_config = RunConfig(shots=1024, max_credits=10, memory=False, seed=None)
+            run_config = RunConfig(shots=1024, max_credits=10, memory=False)
         if self.is_statevector and run_config.shots != 1:
             logger.info("statevector backend only works with shot=1, change "
                         "shots from {} to 1.".format(run_config.shots))
