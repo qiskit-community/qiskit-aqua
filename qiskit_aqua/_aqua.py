@@ -121,8 +121,10 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
         seed = random_seed
         max_credits = backend_cfg.pop('max_credits', 10)
         memory = backend_cfg.pop('memory', False)
-
-        backend_cfg['run_config'] = RunConfig(shots=shots, seed=seed, max_credits=max_credits, memory=memory)
+        run_config = RunConfig(shots=shots, max_credits=max_credits, memory=memory)
+        if seed is not None:
+            run_config.seed = seed
+        backend_cfg['run_config'] = run_config
 
         backend_cfg['skip_qobj_validation'] = inputparser.get_section_property(JSONSchema.PROBLEM,
                                                                                'skip_qobj_validation')
