@@ -335,8 +335,8 @@ class QSVMVariational(QuantumAlgorithm):
             data (numpy.ndarray): NxD array, N is number of data, D is data dimension
             quantum_instance (QuantumInstance): quantum backend with all setting
         Returns:
-            [dict]: for each data point, generates the predicted probability for each class
-            list: for each data point, generates the predicted label, which with the highest prob
+            list: for each data point, generates the predicted probability for each class
+            list: for each data point, generates the predicted label (that with the highest prob)
         """
         batches, _ = self.batch_data(data, None)
         predicted_probs = None
