@@ -43,9 +43,6 @@ class Standard(QFT):
         super().__init__()
         self._num_qubits = num_qubits
 
-    #def init_args(self, num_qubits):
-    #    self._num_qubits = num_qubits
-
     def construct_circuit(self, mode, register=None, circuit=None):
         if mode == 'vector':
             return linalg.dft(2 ** self._num_qubits, scale='sqrtn')

@@ -38,7 +38,7 @@ class Approximate(QFT):
                 'degree': {
                     'type': 'integer',
                     'default': 0,
-                    'minimum':  0
+                    'minimum': 0
                 },
             },
             'additionalProperties': False
@@ -50,10 +50,6 @@ class Approximate(QFT):
         super().__init__()
         self._num_qubits = num_qubits
         self._degree = degree
-
-    #def init_args(self, num_qubits, degree=1):
-    #    self._num_qubits = num_qubits
-    #    self._degree = degree
 
     def construct_circuit(self, mode, register=None, circuit=None):
         if mode == 'vector':

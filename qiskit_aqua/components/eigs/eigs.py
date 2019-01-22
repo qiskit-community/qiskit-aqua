@@ -22,17 +22,10 @@ from abc import abstractmethod
 
 from qiskit import QuantumCircuit
 
+
 class Eigenvalues(Pluggable):
-
     """
-        Base class for Eigenvalues.
-
-        This method should initialize the module and its configuration, and
-        use an exception if a component of the module is
-        available.
-
-        Args:
-            configuration (dict): configuration dictionary
+    Base class for eigenvalue estimation.
     """
     
     @abstractmethod
@@ -60,18 +53,13 @@ class Eigenvalues(Pluggable):
     @abstractmethod
     def construct_circuit(self, mode, register=None):
         """
-            Construct the eigenvalue estmiation circuit.
-
+        Construct the eigenvalue estimation quantum circuit.
         Args:
             mode (str): 'vector' or 'circuit'
-            eigs_register (QuantumRegister): register for circuit construction
+            register (QuantumRegister): register for circuit construction
                         where eigenvalues will be stored.
-            computation_register (QuantumRegister): register for circuit construction
-                        where inputvector is prepared.
-            circuit (QuantumCircuit): circuit for construction.
-
         Returns:
-            The iqft circuit.
+            the QuantumCircuit object for the eigenvalue estimation circuit.
         """
         raise NotImplementedError()
 
