@@ -64,9 +64,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
 
         self.assertEqual(result['testing_accuracy'], 1.0)
 
-    # comment for now for test failure
-
-    def no_test_qsvm_variational_directly(self):
+    def test_qsvm_variational_directly(self):
         np.random.seed(self.random_seed)
         backend = get_aer_backend('qasm_simulator')
 
@@ -77,7 +75,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
 
         svm = QSVMVariational(optimizer, feature_map, var_form, self.training_data, self.testing_data)
         svm.random_seed = self.random_seed
-        run_config = RunConfig(shots=1024, max_credits=10, memory=False)
+        run_config = RunConfig(shots=1024, max_credits=10, memory=False, seed=self.random_seed)
         quantum_instance = QuantumInstance(backend, run_config, seed_mapper=self.random_seed)
         result = svm.run(quantum_instance)
 
