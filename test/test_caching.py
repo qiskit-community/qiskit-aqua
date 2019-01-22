@@ -94,6 +94,7 @@ class TestCaching(QiskitAquaTestCase):
         circuit_cache = CircuitCache(skip_qobj_deepcopy=True)
         quantum_instance_caching = QuantumInstance(backend, circuit_cache=circuit_cache, skip_qobj_validation=True)
         result_caching = algo.run(quantum_instance_caching)
+        self.assertLessEqual(circuit_cache.misses, 1)
         self.assertAlmostEqual(self.reference_vqe_result['statevector_simulator']['energy'], result_caching['energy'])
 
 if __name__ == '__main__':
