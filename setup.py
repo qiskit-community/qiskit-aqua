@@ -22,7 +22,7 @@ long_description = """<a href="https://qiskit.org/aqua" rel=nofollow>Qiskit Chem
  tools and APIs for experimenting with real-world chemistry applications on near-term quantum devices."""
 
 requirements = [
-    "qiskit-aqua>=0.4.1",
+    "qiskit-aqua>=0.4.2",
     "numpy>=1.13",
     "h5py",
     "psutil>=5",

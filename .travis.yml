@@ -40,6 +40,13 @@ before_install:
         pip install -U -r /tmp/qiskit-terra-master/requirements-dev.txt
         # Install local Qiskit Terra
         pip install -e /tmp/qiskit-terra-master
+        wget https://codeload.github.com/Qiskit/qiskit-ibmq-provider/zip/master -O /tmp/qiskit-ibmq-provider.zip
+        unzip /tmp/qiskit-ibmq-provider.zip -d /tmp/
+        # Install Qiskit IBMQ Provider requirements.
+        pip install -U -r /tmp/qiskit-ibmq-provider-master/requirements.txt
+        pip install -U -r /tmp/qiskit-ibmq-provider-master/requirements-dev.txt
+        # Install local Qiskit IBMQ Provider
+        pip install -e /tmp/qiskit-ibmq-provider-master
       fi
     # download Qiskit Aqua and unzip it
     - wget https://codeload.github.com/Qiskit/qiskit-aqua/zip/$DEP_BRANCH -O /tmp/qiskit-aqua.zip
