@@ -64,7 +64,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
 
         self.assertEqual(result['testing_accuracy'], 1.0)
 
-    def test_qsvm_variational_with_minbatching(self):
+    def test_qsvm_variational_with_minibatching(self):
         np.random.seed(self.random_seed)
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
