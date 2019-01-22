@@ -18,10 +18,10 @@
 import copy
 from collections import OrderedDict
 from qiskit.providers.ibmq.ibmqprovider import QE_URL
-from qiskit.providers.ibmq.credentials import (store_credentials,
+from qiskit.providers.ibmq.credentials import (read_credentials_from_qiskitrc,
+                                               store_credentials,
                                                Credentials)
-from qiskit.providers.ibmq.credentials._configrc import (remove_credentials,
-                                                         read_credentials_from_qiskitrc)
+from qiskit.providers.ibmq.credentials.configrc import remove_credentials
 
 
 class CredentialsPreferences(object):
