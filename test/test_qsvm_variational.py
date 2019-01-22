@@ -68,7 +68,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
         np.random.seed(self.random_seed)
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
-            'algorithm': {'name': 'QSVM.Variational', 'minibatch_size': 10},
+            'algorithm': {'name': 'QSVM.Variational', 'minibatch_size': 2},
             'backend': {'name': 'qasm_simulator', 'shots': 1024},
             'optimizer': {'name': 'SPSA', 'max_trials': 30, 'save_steps': 1},
             'variational_form': {'name': 'RYRZ', 'depth': 3},
@@ -78,15 +78,15 @@ class TestQSVMVariational(QiskitAquaTestCase):
 
         # The results will differ from the above even though the batch size is larger than the trainingset size due
         # to the shuffle during minibatching
-        minibatching_ref_opt_params = np.asarray([  3.8294,   0.8499, -10.3114,   1.4568,  -1.922 ,  -0.959,
-                                                    9.5507,  -4.5817,   3.4706,  -3.0028,   1.6618,  -0.4632,
-                                                   -3.8126,   5.2131,   7.6821,   0.6334])
-        minibatching_ref_train_loss = 0.18195089
+        minibatching_ref_opt_params = np.asarray([3.3604,   1.9649,   7.8314,  -4.738,  -3.1619,  15.6005,  -4.918,
+                                                  10.811,   9.3323,   7.1805,  13.5328,   9.3692,  -7.2276,
+                                                  -2.0618,  -0.2071, -11.6123])
+        minibatching_ref_train_loss = 0.66402647
 
         np.testing.assert_array_almost_equal(result['opt_params'], minibatching_ref_opt_params, decimal=4)
         np.testing.assert_array_almost_equal(result['training_loss'], minibatching_ref_train_loss, decimal=8)
 
-        self.assertEqual(result['testing_accuracy'], 0.0)
+        self.assertEqual(result['testing_accuracy'], 1.0)
 
     def test_qsvm_variational_directly(self):
         np.random.seed(self.random_seed)
@@ -121,6 +121,11 @@ class TestQSVMVariational(QiskitAquaTestCase):
 
         loaded_test_acc = loaded_svm.test(svm.test_dataset[0], svm.test_dataset[1], quantum_instance)
         self.assertEqual(result['testing_accuracy'], loaded_test_acc)
+
+        predicted_probs, predicted_labels = loaded_svm.predict(self.testing_data['A'], quantum_instance)
+        print(predicted_probs)
+        print(predicted_labels)
+        np.testing.assert_array_almost_equal(prediction, [0, 1], decimal=8)
 
         if os.path.exists(file_path):
             try:

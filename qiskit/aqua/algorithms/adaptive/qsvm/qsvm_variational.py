@@ -238,6 +238,31 @@ class QSVMVariational(QuantumAlgorithm):
 
         return predicted_probs, predicted_labels
 
+    # Breaks data into minibatches. Labels are optional, but will be broken into batches if included.
+    def batch_data(self, data, labels=None):
+        label_batches = None
+
+        if self._minibatch_size > 0 and self._minibatch_size < len(data):
+            batch_size = min(self._minibatch_size, len(data))
+            if labels is not None:
+                shuffled_samples, shuffled_labels = shuffle(data, labels)
+                label_batches = np.array_split(shuffled_labels, batch_size)
+                # Concat last two batches if last batch is incomplete to avoid tiny batches
+                if not len(label_batches[-1]) == len(label_batches[0]):
+                    last = label_batches.pop(-1)
+                    label_batches[-1].append(last)
+            else:
+                shuffled_samples = shuffle(data)
+            batches = np.array_split(shuffled_samples, batch_size)
+            # Concat last two batches if last batch is incomplete to avoid tiny batches
+            if not len(batches[-1]) == len(batches[0]):
+                last = batches.pop(-1)
+                batches[-1].append(last)
+        else:
+            batches = np.array([data])
+            label_batches = np.array([labels])
+        return batches, label_batches
+
     def train(self, data, labels, quantum_instance=None):
         """Train the models, and save results.
 
@@ -247,24 +272,20 @@ class QSVMVariational(QuantumAlgorithm):
             quantum_instance (QuantumInstance): quantum backend with all setting
         """
         self._quantum_instance = self._quantum_instance if quantum_instance is None else quantum_instance
-        batches = np.reshape(shuffle(data, labels), newshape=)
-        current_batch = 0
+        batches, label_batches = self.batch_data(data, labels)
+        self.batch_num = 0
 
         def _cost_function_wrapper(theta):
-            if self._minibatch_size > 0 :
-                batch, batch_labels = shuffle(data, labels)
-                batch_size = min(self._minibatch_size, len(data))
-            else :
-                batch, batch_labels = data, labels
-                batch_size = len(data)
-
-            predicted_probs, predicted_labels = self._get_prediction(batch[0:batch_size], theta)
+            batch_num = self.batch_num % len(batches)
+            predicted_probs, predicted_labels = self._get_prediction(batches[batch_num], theta)
+            self.batch_num += 1
             total_cost = []
             if isinstance(predicted_probs, list):
                 for predicted_prob in predicted_probs:
-                    total_cost.append(self._cost_function(predicted_prob, labels))
+                    total_cost.append(self._cost_function(predicted_prob, label_batches[batch_num]))
             else:
-                total_cost.append(self._cost_function(predicted_probs, batch_labels[0:batch_size]))
+                total_cost.append(self._cost_function(predicted_probs, label_batches[batch_num]))
+            logger.debug('Intermediate batch cost: {:.2f}%'.format(sum(total_cost) * 100.0))
             return total_cost if len(total_cost) > 1 else total_cost[0]
 
         initial_theta = self.random.randn(self._var_form.num_parameters)
@@ -286,16 +307,26 @@ class QSVMVariational(QuantumAlgorithm):
         Returns:
             float: classification accuracy
         """
-        #TODO minibatch testing, and logger.debug the running total, and logger.info the final
+        batches, label_batches = self.batch_data(data, labels)
+        self.batch_num = 0
+        total_cost = 0
+        total_error = 0
+        total_samples = 0
+
         self._quantum_instance = self._quantum_instance if quantum_instance is None else quantum_instance
-        predicted_probs, predicted_labels = self._get_prediction(data, self._ret['opt_params'])
-        total_cost = self._cost_function(predicted_probs, labels)
-        accuracy = np.sum((np.argmax(predicted_probs, axis=1) == labels)) / labels.shape[0]
-        logger.debug('Accuracy is {:.2f}%'.format(accuracy * 100.0))
-        self._ret['testing_accuracy'] = accuracy
-        self._ret['test_success_ratio'] = accuracy
+        for batch, label_batch in zip(batches, label_batches):
+            predicted_probs, predicted_labels = self._get_prediction(batch, self._ret['opt_params'])
+            total_cost = self._cost_function(predicted_probs, label_batch)
+            total_error += np.sum((np.argmax(predicted_probs, axis=1) == label_batch))
+            total_samples += label_batch.shape[0]
+            int_accuracy = np.sum((np.argmax(predicted_probs, axis=1) == label_batch)) / label_batch.shape[0]
+            logger.debug('Intermediate batch accuracy: {:.2f}%'.format(int_accuracy * 100.0))
+        total_accuracy = total_error / total_samples
+        logger.info('Accuracy is {:.2f}%'.format(total_accuracy * 100.0))
+        self._ret['testing_accuracy'] = total_accuracy
+        self._ret['test_success_ratio'] = total_accuracy
         self._ret['testing_loss'] = total_cost
-        return accuracy
+        return total_accuracy
 
     def predict(self, data, quantum_instance=None):
         """Predict the labels for the data.
@@ -307,9 +338,21 @@ class QSVMVariational(QuantumAlgorithm):
             [dict]: for each data point, generates the predicted probability for each class
             list: for each data point, generates the predicted label, which with the highest prob
         """
-        # TODO minbatch
+        batches, _ = self.batch_data(data, None)
+        predicted_probs = None
+        predicted_labels = None
+
         self._quantum_instance = self._quantum_instance if quantum_instance is None else quantum_instance
-        predicted_probs, predicted_labels = self._get_prediction(data, self._ret['opt_params'])
+        for i, batch in enumerate(batches):
+            if len(batches) > 0:
+                logger.debug('Predicting batch {}'.format(i))
+            batch_probs, batch_labels = self._get_prediction(batch, self._ret['opt_params'])
+            if not predicted_probs and not predicted_labels:
+                predicted_probs = batch_probs
+                predicted_labels = batch_labels
+            else:
+                np.concatenate((predicted_probs, batch_probs))
+                np.concatenate((predicted_labels, batch_labels))
         self._ret['predicted_probs'] = predicted_probs
         self._ret['predicted_labels'] = predicted_labels
         return predicted_probs, predicted_labels
