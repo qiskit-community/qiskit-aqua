@@ -23,11 +23,8 @@ import tkinter.filedialog as tkfd
 from tkinter import font
 import webbrowser
 from ._controller import Controller
-from ._sectionsview import SectionsView
-from ._sectionpropertiesview import SectionPropertiesView
-from ._sectiontextview import SectionTextView
-from ._threadsafeoutputview import ThreadSafeOutputView
-from ._emptyview import EmptyView
+from ._chemsectionpropertiesview import ChemSectionPropertiesView
+from qiskit_aqua_ui import ThreadSafeOutputView, EmptyView, SectionsView, SectionTextView
 from ._preferencesdialog import PreferencesDialog
 from ._uipreferences import UIPreferences
 import os
@@ -243,7 +240,7 @@ class MainView(ttk.Frame):
         self._controller._textView = SectionTextView(self._controller, container)
         self._controller._textView.grid(row=0, column=0, sticky='nsew')
 
-        self._controller._propertiesView = SectionPropertiesView(self._controller, container)
+        self._controller._propertiesView = ChemSectionPropertiesView(self._controller, container)
         self._controller._propertiesView.grid(row=0, column=0, sticky='nsew')
         self._controller._emptyView.tkraise()
         top_pane.add(main_container, weight=1)

@@ -16,7 +16,7 @@
 # =============================================================================
 
 from ._model import Model
-from ._customwidgets import (EntryPopup, ComboboxPopup, TextPopup)
+from qiskit_aqua_ui import (EntryPopup, ComboboxPopup, TextPopup)
 import psutil
 import os
 import subprocess

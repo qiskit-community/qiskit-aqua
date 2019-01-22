@@ -17,9 +17,8 @@
 
 import tkinter as tk
 import tkinter.ttk as ttk
-from ._dialog import Dialog
+from qiskit_aqua_ui import Dialog, CredentialsView
 from collections import OrderedDict
-from qiskit_aqua_ui.run import CredentialsView
 from ._uipreferences import UIPreferences
 import logging
 
