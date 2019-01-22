@@ -154,7 +154,7 @@ class QSVMVariational(QuantumAlgorithm):
 
     def construct_circuit(self, x, theta, measurement=False):
         """
-        Construct circuit based on data and paramters in variaitonal form.
+        Construct circuit based on data and parameters in variational form.
 
         Args:
             x (numpy.ndarray): 1-D array with D dimension
