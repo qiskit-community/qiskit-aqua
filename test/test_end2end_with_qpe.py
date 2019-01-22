@@ -84,8 +84,8 @@ class TestEnd2EndWithQPE(QiskitAquaChemistryTestCase):
         run_config = RunConfig(shots=100, max_credits=10, memory=False)
         quantum_instance = QuantumInstance(backend, run_config, pass_manager=PassManager())
         result = qpe.run(quantum_instance)
-
-        self.log.debug('measurement results:      {}'.format(result['measurements']))
+        
+        self.log.debug('eigvals:                  {}'.format(result['eigvals']))
         self.log.debug('top result str label:     {}'.format(result['top_measurement_label']))
         self.log.debug('top result in decimal:    {}'.format(result['top_measurement_decimal']))
         self.log.debug('stretch:                  {}'.format(result['stretch']))
