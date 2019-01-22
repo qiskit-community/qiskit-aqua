@@ -44,6 +44,8 @@ class TestQSVMVariational(QiskitAquaTestCase):
                                         4.48499251,  0.21433137, -1.76288916, -0.15767913,  1.86321388,
                                         0.27216782])
         self.ref_train_loss = 1.4088445273265953
+        self.ref_prediction_a_probs = [[0.53710938, 0.46289062]]
+        self.ref_prediction_a_label = [0]
 
         self.svm_input = SVMInput(self.training_data, self.testing_data)
 
@@ -123,9 +125,8 @@ class TestQSVMVariational(QiskitAquaTestCase):
         self.assertEqual(result['testing_accuracy'], loaded_test_acc)
 
         predicted_probs, predicted_labels = loaded_svm.predict(self.testing_data['A'], quantum_instance)
-        print(predicted_probs)
-        print(predicted_labels)
-        np.testing.assert_array_almost_equal(prediction, [0, 1], decimal=8)
+        np.testing.assert_array_almost_equal(predicted_probs, self.ref_prediction_a_probs, decimal=8)
+        np.testing.assert_array_equal(predicted_labels, self.ref_prediction_a_label)
 
         if os.path.exists(file_path):
             try:
