@@ -24,6 +24,7 @@ from qiskit_aqua import run_algorithm, QuantumInstance
 from qiskit_aqua.input import SVMInput
 from qiskit_aqua.components.feature_maps import SecondOrderExpansion
 from qiskit_aqua.algorithms import QSVMKernel
+from qiskit.qobj import RunConfig
 
 
 class TestQSVMKernel(QiskitAquaTestCase):
@@ -95,8 +96,8 @@ class TestQSVMKernel(QiskitAquaTestCase):
         feature_map = SecondOrderExpansion(num_qubits=num_qubits, depth=2, entangler_map={0: [1]})
         svm = QSVMKernel(feature_map, self.training_data, self.testing_data, None)
         svm.random_seed = self.random_seed
-        quantum_instance = QuantumInstance(backend, shots=self.shots,
-                                           seed=self.random_seed, seed_mapper=self.random_seed)
+        run_config = RunConfig(shots=self.shots, max_credits=10, memory=False)
+        quantum_instance = QuantumInstance(backend, run_config, seed_mapper=self.random_seed)
 
         result = svm.run(quantum_instance)
         np.testing.assert_array_almost_equal(
