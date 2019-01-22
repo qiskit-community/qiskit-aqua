@@ -18,13 +18,14 @@
 import logging
 
 import numpy as np
+from sklearn.utils import shuffle
+
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua import AquaError, PluggableType, get_pluggable_class
 from qiskit.aqua.algorithms.adaptive.qsvm import (cost_estimate, return_probabilities)
 from qiskit.aqua.utils import (get_feature_dimension, map_label_to_class_name,
                                split_dataset_to_data_and_labels)
-from sklearn.utils import shuffle
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +74,7 @@ class QSVMVariational(QuantumAlgorithm):
 
     def __init__(self, optimizer, feature_map, var_form, training_dataset,
                  test_dataset=None, datapoints=None, batch_mode=False,
-                 minibatch_size = -1):
+                 minibatch_size=-1):
         """Initialize the object
         Args:
             training_dataset (dict): {'A': numpy.ndarray, 'B': numpy.ndarray, ...}
@@ -246,6 +247,8 @@ class QSVMVariational(QuantumAlgorithm):
             quantum_instance (QuantumInstance): quantum backend with all setting
         """
         self._quantum_instance = self._quantum_instance if quantum_instance is None else quantum_instance
+        batches = np.reshape(shuffle(data, labels), newshape=)
+        current_batch = 0
 
         def _cost_function_wrapper(theta):
             if self._minibatch_size > 0 :
@@ -273,7 +276,7 @@ class QSVMVariational(QuantumAlgorithm):
         self._ret['opt_params'] = theta_best
         self._ret['training_loss'] = cost_final
 
-    def test(self, data, labels, quantum_instance=None):
+    def test(self, data, labels, quantum_instance=None, minibatch_size=-1):
         """Predict the labels for the data, and test against with ground truth labels.
 
         Args:
@@ -283,6 +286,7 @@ class QSVMVariational(QuantumAlgorithm):
         Returns:
             float: classification accuracy
         """
+        #TODO minibatch testing, and logger.debug the running total, and logger.info the final
         self._quantum_instance = self._quantum_instance if quantum_instance is None else quantum_instance
         predicted_probs, predicted_labels = self._get_prediction(data, self._ret['opt_params'])
         total_cost = self._cost_function(predicted_probs, labels)
@@ -303,6 +307,7 @@ class QSVMVariational(QuantumAlgorithm):
             [dict]: for each data point, generates the predicted probability for each class
             list: for each data point, generates the predicted label, which with the highest prob
         """
+        # TODO minbatch
         self._quantum_instance = self._quantum_instance if quantum_instance is None else quantum_instance
         predicted_probs, predicted_labels = self._get_prediction(data, self._ret['opt_params'])
         self._ret['predicted_probs'] = predicted_probs
