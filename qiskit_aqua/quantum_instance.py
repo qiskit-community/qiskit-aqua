@@ -69,15 +69,18 @@ class QuantumInstance:
         # setup run config
         if run_config is None:
             run_config = RunConfig(shots=1024, max_credits=10, memory=False)
-        if self.is_statevector and run_config.shots != 1:
-            logger.info("statevector backend only works with shot=1, change "
-                        "shots from {} to 1.".format(run_config.shots))
-            run_config.shots = 1
 
-        if not self.is_simulator and run_config.memory is True:
-            logger.info("The memory flag only supports simulator rather than real device. "
-                        "Change it to from {} to False.".format(run_config.memory))
-            run_config.memory = False
+        if getattr(run_config, 'shots', None) is not None:
+            if self.is_statevector and run_config.shots == 1:
+                logger.info("statevector backend only works with shot=1, change "
+                            "shots from {} to 1.".format(run_config.shots))
+                run_config.shots = 1
+
+        if getattr(run_config, 'memory', None) is not None:
+            if not self.is_simulator and run_config.memory is True:
+                logger.info("The memory flag only supports simulator rather than real device. "
+                            "Change it to from {} to False.".format(run_config.memory))
+                run_config.memory = False
         self._run_config = run_config
 
         # setup backend config
