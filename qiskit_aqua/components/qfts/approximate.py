@@ -29,7 +29,7 @@ class Approximate(QFT):
 
     CONFIGURATION = {
         'name': 'APPROXIMATE',
-        'description': 'Approximate inverse QFT',
+        'description': 'Approximate QFT',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
             'id': 'aqft_schema',
