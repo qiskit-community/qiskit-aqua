@@ -25,7 +25,7 @@ from qiskit_aqua.utils import decimal_to_binary
 from qiskit_aqua import QuantumInstance
 from qiskit_aqua.algorithms.single_sample import IQPE
 from qiskit_aqua.algorithms.classical import ExactEigensolver
-
+from qiskit.qobj import RunConfig
 from test.common import QiskitAquaChemistryTestCase
 from qiskit_chemistry.drivers import PySCFDriver, UnitsType
 from qiskit_chemistry import FermionicOperator, QiskitChemistryError
@@ -74,7 +74,8 @@ class TestIQPE(QiskitAquaChemistryTestCase):
                     paulis_grouping='random', expansion_mode='suzuki', expansion_order=2,
                     shallow_circuit_concat=True)
         backend = qiskit.Aer.get_backend('qasm_simulator')
-        quantum_instance = QuantumInstance(backend, shots=100, pass_manager=PassManager())
+        run_config = RunConfig(shots=100, max_credits=10, memory=False)
+        quantum_instance = QuantumInstance(backend, run_config, pass_manager=PassManager())
 
         result = iqpe.run(quantum_instance)
 
