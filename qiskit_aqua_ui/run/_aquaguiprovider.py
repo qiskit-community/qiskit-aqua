@@ -16,20 +16,17 @@
 # =============================================================================
 
 from qiskit_aqua_ui import GUIProvider
-from ._controller import Controller
 from qiskit_aqua_ui._uipreferences import UIPreferences
 from ._sectionpropertiesview import SectionPropertiesView
 
 
 class AquaGUIProvider(GUIProvider):
     """
-    Aqua GUIProvider.
+    Aqua GUIProvider
     """
 
     def __init__(self, controller):
         super().__init__(controller)
-        self._preferences = None
-        self._uipreferences = UIPreferences()
 
     @property
     def title(self):
@@ -47,19 +44,14 @@ class AquaGUIProvider(GUIProvider):
         """Return provider help hyperlink."""
         return 'http://qiskit.org/documentation/aqua/'
 
-    @property
-    def preferences(self):
-        """Return provider preferences."""
+    def create_preferences(self):
+        """Creates provider preferences."""
         from qiskit_aqua_cmd import Preferences
-        if self._preferences is None:
-            self._preferences = Preferences()
+        return Preferences()
 
-        return self._preferences
-
-    @property
-    def uipreferences(self):
-        """Return provider UI preferences."""
-        return self._uipreferences
+    def create_uipreferences(self):
+        """Creates provider UI preferences."""
+        return UIPreferences()
 
     def get_logging_level(self):
         """get level for the named logger."""
@@ -83,6 +75,12 @@ class AquaGUIProvider(GUIProvider):
         Creates provider section properties view
         """
         return SectionPropertiesView(self.controller, parent)
+
+    def add_toolbar_items(self, toolbar):
+        """
+        Add items to toolbar
+        """
+        pass
 
     def add_file_menu_items(self, file_menu):
         """

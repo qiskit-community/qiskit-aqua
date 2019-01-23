@@ -55,6 +55,8 @@ class Controller(object):
         self._thread = None
         self._command = Controller._START
         self._process_stop = False
+        self._validate_integer_command = None
+        self._validate_float_command = None
 
     @property
     def view(self):

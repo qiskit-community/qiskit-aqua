@@ -50,16 +50,14 @@ class GUIProvider(ABC):
         """Return provider controller."""
         return self._controller
 
-    @property
     @abstractmethod
-    def preferences(self):
-        """Return provider preferences."""
+    def create_preferences(self):
+        """Creates provider preferences."""
         pass
 
-    @property
     @abstractmethod
-    def uipreferences(self):
-        """Return provider UI preferences."""
+    def create_uipreferences(self):
+        """Creates provider UI preferences."""
         pass
 
     @abstractmethod
@@ -83,6 +81,13 @@ class GUIProvider(ABC):
     def create_section_properties_view(self, parent):
         """
         Creates provider section properties view
+        """
+        pass
+
+    @abstractmethod
+    def add_toolbar_items(self, toolbar):
+        """
+        Add items to toolbar
         """
         pass
 

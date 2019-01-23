@@ -54,7 +54,8 @@ def main():
     root.update_idletasks()
 
     guiProvider = AquaGUIProvider(Controller())
-    geometry = guiProvider.uipreferences.get_geometry()
+    preferences = guiProvider.create_uipreferences()
+    geometry = preferences.get_geometry()
     if geometry is None:
         ws = root.winfo_screenwidth()
         hs = root.winfo_screenheight()
@@ -63,8 +64,8 @@ def main():
         x = int(ws / 2 - w / 2)
         y = int(hs / 2 - h / 2)
         geometry = '{}x{}+{}+{}'.format(w, h, x, y)
-        guiProvider.uipreferences.set_geometry(geometry)
-        guiProvider.uipreferences.save()
+        preferences.set_geometry(geometry)
+        preferences.save()
 
     root.geometry(geometry)
 

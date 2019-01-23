@@ -27,7 +27,6 @@ from ._sectiontextview import SectionTextView
 from ._threadsafeoutputview import ThreadSafeOutputView
 from ._emptyview import EmptyView
 from ._preferencesdialog import PreferencesDialog
-from qiskit_aqua_ui._uipreferences import UIPreferences
 import os
 
 
@@ -50,8 +49,8 @@ class MainView(ttk.Frame):
     def _show_preferences(self):
         dialog = PreferencesDialog(self._guiprovider.controller,
                                    self,
-                                   self._guiprovider.uipreferences,
-                                   self._guiprovider.preferences,
+                                   self._guiprovider.create_uipreferences(),
+                                   self._guiprovider.create_preferences(),
                                    self._guiprovider.get_logging_level,
                                    self._guiprovider.set_logging_config,
                                    self._guiprovider.build_logging_config)
@@ -73,8 +72,8 @@ class MainView(ttk.Frame):
                                                                 state='disabled',
                                                                 command=self._guiprovider.controller.toggle)
         self._guiprovider.controller._start_button.pack(side=tk.LEFT)
-        self._guiprovider.controller._progress = ttk.Progressbar(toolbar,
-                                                                 orient=tk.HORIZONTAL)
+        self._guiprovider.add_toolbar_items(toolbar)
+        self._guiprovider.controller._progress = ttk.Progressbar(toolbar, orient=tk.HORIZONTAL)
         self._guiprovider.controller._progress.pack(side=tk.RIGHT, fill=tk.BOTH, expand=tk.TRUE)
 
     def _makeMenuBar(self):
@@ -123,8 +122,8 @@ class MainView(ttk.Frame):
         return file_menu
 
     def _recent_files_menu(self):
-        preferences = UIPreferences()
         recent_menu = tk.Menu(self._guiprovider.controller._filemenu, tearoff=False)
+        preferences = self._guiprovider.create_uipreferences()
         for file in preferences.get_recent_files():
             recent_menu.add_command(label=file, command=lambda f=file: self._open_recent_file(f))
 
@@ -136,7 +135,7 @@ class MainView(ttk.Frame):
         self._guiprovider.controller.new_input()
 
     def _open_file(self):
-        preferences = UIPreferences()
+        preferences = self._guiprovider.create_uipreferences()
         filename = tkfd.askopenfilename(parent=self,
                                         title='Open File',
                                         initialdir=preferences.get_openfile_initialdir())
@@ -149,7 +148,7 @@ class MainView(ttk.Frame):
         self._guiprovider.controller.open_file(filename)
 
     def _clear_recent(self):
-        preferences = UIPreferences()
+        preferences = self._guiprovider.create_uipreferences()
         preferences.clear_recent_files()
         preferences.save()
 
@@ -161,7 +160,7 @@ class MainView(ttk.Frame):
             self._guiprovider.controller._outputView.write_line("No data to save.")
             return
 
-        preferences = UIPreferences()
+        preferences = self._guiprovider.create_uipreferences()
         filename = tkfd.asksaveasfilename(parent=self,
                                           title='Save File',
                                           initialdir=preferences.get_savefile_initialdir())
@@ -240,13 +239,14 @@ class MainView(ttk.Frame):
         self._guiprovider.controller._emptyView.set_toolbar_size(self._guiprovider.controller._sectionsView.get_toolbar_size())
 
     def _set_preferences_logging(self):
-        config = self._guiprovider.preferences.get_logging_config()
+        preferences = self._guiprovider.create_preferences()
+        config = preferences.get_logging_config()
         if config is not None:
             self._guiprovider.set_logging_config(config)
 
     def quit(self):
         if tkmb.askyesno('Verify quit', 'Are you sure you want to quit?'):
-            preferences = UIPreferences()
+            preferences = self._guiprovider.create_uipreferences()
             preferences.set_geometry(self.master.winfo_geometry())
             preferences.save()
             self._guiprovider.controller.stop()

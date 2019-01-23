@@ -16,33 +16,15 @@
 # =============================================================================
 
 from .guiprovider import GUIProvider
-from .run._credentialsview import CredentialsView
-from .run._customwidgets import (EntryCustom, TextCustom, EntryPopup, ComboboxPopup,
-                                 TextPopup, PropertyEntryDialog, PropertyComboDialog, SectionComboDialog)
-from .run._emptyview import EmptyView
-from .run._dialog import Dialog
-from .run._toolbarview import ToolbarView
+from .run._customwidgets import (EntryPopup, ComboboxPopup, TextPopup)
 from .run._sectionsview import SectionsView
 from .run._sectionpropertiesview import SectionPropertiesView
-from .run._sectiontextview import SectionTextView
-from .run._threadsafeoutputview import ThreadSafeOutputView
-from .run._preferencesdialog import PreferencesDialog
+from .run._mainview import MainView
 
 __all__ = ['GUIProvider',
-           'CredentialsView',
-           'EntryCustom',
-           'TextCustom',
            'EntryPopup',
            'ComboboxPopup',
            'TextPopup',
-           'PropertyEntryDialog',
-           'PropertyComboDialog',
-           'SectionComboDialog',
-           'EmptyView',
-           'Dialog',
-           'ToolbarView',
            'SectionsView',
            'SectionPropertiesView',
-           'SectionTextView',
-           'ThreadSafeOutputView',
-           'PreferencesDialog']
+           'MainView']
