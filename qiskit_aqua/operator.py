@@ -30,6 +30,7 @@ from scipy import linalg as scila
 from qiskit import ClassicalRegister, QuantumCircuit
 from qiskit.quantum_info import Pauli
 from qiskit.qasm import pi
+from qiskit.qobj import RunConfig
 
 from qiskit_aqua import AquaError, QuantumInstance
 from qiskit_aqua.utils import PauliGraph, compile_and_run_circuits, find_regs_by_name
@@ -786,7 +787,7 @@ class Operator(object):
             backend (BaseBackend): backend selection for quantum machine.
             backend_config (dict): configuration for backend
             compile_config (dict): configuration for compilation
-            run_config (dict): configuration for running a circuit
+            run_config (RunConfig): configuration for running a circuit
             qjob_config (dict): the setting to retrieve results from quantum backend, including timeout and wait.
 
         Returns:
@@ -794,7 +795,11 @@ class Operator(object):
         """
         backend_config = backend_config or {}
         compile_config = compile_config or {}
-        run_config = run_config or {}
+        if run_config is not None:
+            if isinstance(run_config, dict):
+                run_config = RunConfig(**run_config)
+        else:
+            run_config = RunConfig()
         qjob_config = qjob_config or {}
         noise_config = noise_config or {}
 
@@ -803,7 +808,7 @@ class Operator(object):
             std_dev = 0.0
         else:
             if QuantumInstance.is_statevector_backend(backend):
-                run_config['shots'] = 1
+                run_config.shots = 1
                 has_shared_circuits = True
 
                 if operator_mode == 'matrix':

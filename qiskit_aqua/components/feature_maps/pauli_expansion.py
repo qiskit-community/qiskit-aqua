@@ -147,7 +147,7 @@ class PauliExpansion(FeatureMap):
         qc = self.construct_circuit(x, qr)
 
         for index in range(len(qc.data)):
-            gate_param = qc.data[index].param
+            gate_param = qc.data[index].params
             param_sub_pos = []
             for x in range(len(gate_param)):
                 if isinstance(gate_param[x], NaN):
@@ -168,7 +168,7 @@ class PauliExpansion(FeatureMap):
         for key, value in self._param_pos.items():
             new_param = coeffs[data_idx]
             for pos in value:
-                qc.data[key].param[pos] = Float(2. * new_param)  # rotation angle is 2x
+                qc.data[key].params[pos] = Float(2. * new_param)  # rotation angle is 2x
             data_idx += 1
         return qc
 

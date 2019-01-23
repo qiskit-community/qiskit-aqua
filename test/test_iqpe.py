@@ -23,13 +23,21 @@ from scipy.linalg import expm
 from scipy import sparse
 from qiskit.transpiler import PassManager
 from qiskit_aqua import get_aer_backend
-
+from qiskit.qobj import RunConfig
 from test.common import QiskitAquaTestCase
 from qiskit_aqua import Operator, QuantumInstance
 from qiskit_aqua.utils import decimal_to_binary
 from qiskit_aqua.algorithms import IQPE
 from qiskit_aqua.algorithms import ExactEigensolver
 from qiskit_aqua.components.initial_states import Custom
+
+
+X = np.array([[0, 1], [1, 0]])
+Y = np.array([[0, -1j], [1j, 0]])
+Z = np.array([[1, 0], [0, -1]])
+I = np.array([[1, 0], [0, 1]])
+h1 = X + Y + Z + I
+qubitOp_simple = Operator(matrix=h1)
 
 
 pauli_dict = {
@@ -48,9 +56,10 @@ class TestIQPE(QiskitAquaTestCase):
     """IQPE tests."""
 
     @parameterized.expand([
-        [qubitOp_h2_with_2_qubit_reduction],
+        [qubitOp_simple, 'qasm_simulator'],
+        [qubitOp_h2_with_2_qubit_reduction, 'statevector_simulator'],
     ])
-    def test_iqpe(self, qubitOp):
+    def test_iqpe(self, qubitOp, simulator):
         self.algorithm = 'IQPE'
         self.log.debug('Testing IQPE')
 
@@ -78,13 +87,14 @@ class TestIQPE(QiskitAquaTestCase):
         self.log.debug('The corresponding eigenvector: {}'.format(self.ref_eigenvec))
 
         num_time_slices = 50
-        num_iterations = 12
+        num_iterations = 6
         state_in = Custom(self.qubitOp.num_qubits, state_vector=self.ref_eigenvec)
         iqpe = IQPE(self.qubitOp, state_in, num_time_slices, num_iterations,
                     paulis_grouping='random', expansion_mode='suzuki', expansion_order=2, shallow_circuit_concat=True)
 
-        backend = get_aer_backend('qasm_simulator')
-        quantum_instance = QuantumInstance(backend, shots=100, pass_manager=PassManager())
+        backend = get_aer_backend(simulator)
+        run_config = RunConfig(shots=100, max_credits=10, memory=False)
+        quantum_instance = QuantumInstance(backend, run_config, pass_manager=PassManager())
 
         result = iqpe.run(quantum_instance)
 
