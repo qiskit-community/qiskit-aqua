@@ -56,13 +56,13 @@ class UIPreferences(object):
     def set_browser_geometry(self, geometry):
         self._preferences['browser_geometry'] = geometry
 
-    def get_run_geometry(self, default_value=None):
+    def get_geometry(self, default_value=None):
         if 'run_geometry' in self._preferences:
             return self._preferences['run_geometry']
 
         return default_value
 
-    def set_run_geometry(self, geometry):
+    def set_geometry(self, geometry):
         self._preferences['run_geometry'] = geometry
 
     def get_openfile_initialdir(self):

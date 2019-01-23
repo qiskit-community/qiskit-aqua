@@ -22,9 +22,7 @@ import tkinter.ttk as ttk
 import tkinter.filedialog as tkfd
 from tkinter import font
 import webbrowser
-from ._controller import Controller
 from ._sectionsview import SectionsView
-from ._sectionpropertiesview import SectionPropertiesView
 from ._sectiontextview import SectionTextView
 from ._threadsafeoutputview import ThreadSafeOutputView
 from ._emptyview import EmptyView
@@ -35,24 +33,28 @@ import os
 
 class MainView(ttk.Frame):
 
-    _HELP_LINK = 'http://qiskit.org/documentation/aqua/'
-
-    def __init__(self, parent=None):
+    def __init__(self, parent, guiprovider):
         """Create MainView object."""
         super(MainView, self).__init__(parent)
-        self._controller = Controller(self)
+        self._guiprovider = guiprovider
+        self._guiprovider.controller.view = self
         self.pack(expand=tk.YES, fill=tk.BOTH)
         self._create_widgets()
-        self.master.title('Qiskit Aqua')
+        self.master.title(self._guiprovider.title)
         if parent is not None:
             parent.protocol('WM_DELETE_WINDOW', self.quit)
 
     def _show_about_dialog(self):
-        from qiskit_aqua import __version__
-        tkmb.showinfo(message='Qiskit Aqua {}'.format(__version__))
+        tkmb.showinfo(message='{} {}'.format(self._guiprovider.title, self._guiprovider.version))
 
     def _show_preferences(self):
-        dialog = PreferencesDialog(self._controller, self)
+        dialog = PreferencesDialog(self._guiprovider.controller,
+                                   self,
+                                   self._guiprovider.uipreferences,
+                                   self._guiprovider.preferences,
+                                   self._guiprovider.get_logging_level,
+                                   self._guiprovider.set_logging_config,
+                                   self._guiprovider.build_logging_config)
         dialog.do_init(tk.LEFT)
         dialog.do_modal()
 
@@ -64,60 +66,55 @@ class MainView(ttk.Frame):
     def _makeToolBar(self):
         toolbar = ttk.Frame(self, relief=tk.SUNKEN, borderwidth=2)
         toolbar.pack(side=tk.BOTTOM, fill=tk.X)
-        self._controller._button_text = tk.StringVar()
-        self._controller._button_text.set(self._controller._command)
-        self._controller._start_button = ttk.Button(toolbar,
-                                                    textvariable=self._controller._button_text,
-                                                    state='disabled',
-                                                    command=self._controller.toggle)
-        self._controller._start_button.pack(side=tk.LEFT)
-        self._controller._progress = ttk.Progressbar(toolbar,
-                                                     orient=tk.HORIZONTAL)
-        self._controller._progress.pack(
-            side=tk.RIGHT, fill=tk.BOTH, expand=tk.TRUE)
+        self._guiprovider.controller._button_text = tk.StringVar()
+        self._guiprovider.controller._button_text.set(self._guiprovider.controller._command)
+        self._guiprovider.controller._start_button = ttk.Button(toolbar,
+                                                                textvariable=self._guiprovider.controller._button_text,
+                                                                state='disabled',
+                                                                command=self._guiprovider.controller.toggle)
+        self._guiprovider.controller._start_button.pack(side=tk.LEFT)
+        self._guiprovider.controller._progress = ttk.Progressbar(toolbar,
+                                                                 orient=tk.HORIZONTAL)
+        self._guiprovider.controller._progress.pack(side=tk.RIGHT, fill=tk.BOTH, expand=tk.TRUE)
 
     def _makeMenuBar(self):
         menubar = tk.Menu(self.master)
         if sys.platform == 'darwin':
             app_menu = tk.Menu(menubar, name='apple')
             menubar.add_cascade(menu=app_menu)
-            app_menu.add_command(label='About Qiskit Aqua',
-                                 command=self._show_about_dialog)
-            self.master.createcommand(
-                'tk::mac::ShowPreferences', self._show_preferences)
+            app_menu.add_command(label='About {}'.format(self._guiprovider.title), command=self._show_about_dialog)
+            self.master.createcommand('tk::mac::ShowPreferences', self._show_preferences)
             self.master.createcommand('tk::mac::Quit', self.quit)
 
         self.master.config(menu=menubar)
-        self._controller._filemenu = self._fileMenu(menubar)
+        self._guiprovider.controller._filemenu = self._fileMenu(menubar)
 
         if sys.platform != 'darwin':
             tools_menu = tk.Menu(menubar, tearoff=False)
-            tools_menu.add_command(
-                label='Options', command=self._show_preferences)
+            tools_menu.add_command(label='Options', command=self._show_preferences)
             menubar.add_cascade(label='Tools', menu=tools_menu)
 
         help_menu = tk.Menu(menubar, tearoff=False)
         if sys.platform != 'darwin':
-            help_menu.add_command(label='About Qiskit Aqua',
-                                  command=self._show_about_dialog)
+            help_menu.add_command(label='About {}'.format(self._guiprovider.title), command=self._show_about_dialog)
 
-        help_menu.add_command(label='Open Help Center',
-                              command=self._open_help_center)
+        help_menu.add_command(label='Open Help Center', command=self._open_help_center)
         menubar.add_cascade(label='Help', menu=help_menu)
 
     def _open_help_center(self):
-        webbrowser.open(MainView._HELP_LINK)
+        webbrowser.open(self._guiprovider.help_hyperlink)
 
     def _fileMenu(self, menubar):
-        file_menu = tk.Menu(menubar, tearoff=False,
-                            postcommand=self._recent_files_menu)
+        file_menu = tk.Menu(menubar, tearoff=False, postcommand=self._recent_files_menu)
         file_menu.add_command(label='New', command=self._new_input)
         file_menu.add_command(label='Open...', command=self._open_file)
-        file_menu.add_cascade(label='Open Recent',
-                              menu=tk.Menu(file_menu, tearoff=False))
+        file_menu.add_cascade(label='Open Recent', menu=tk.Menu(file_menu, tearoff=False))
         file_menu.add_separator()
         file_menu.add_command(label='Save', command=self._save_file)
         file_menu.add_command(label='Save As...', command=self._save_file_as)
+
+        self._guiprovider.add_file_menu_items(file_menu)
+
         if sys.platform != 'darwin':
             file_menu.add_separator()
             file_menu.add_command(label='Exit', command=self.quit)
@@ -127,30 +124,29 @@ class MainView(ttk.Frame):
 
     def _recent_files_menu(self):
         preferences = UIPreferences()
-        recent_menu = tk.Menu(self._controller._filemenu, tearoff=False)
+        recent_menu = tk.Menu(self._guiprovider.controller._filemenu, tearoff=False)
         for file in preferences.get_recent_files():
-            recent_menu.add_command(
-                label=file, command=lambda f=file: self._open_recent_file(f))
+            recent_menu.add_command(label=file, command=lambda f=file: self._open_recent_file(f))
 
         recent_menu.add_separator()
         recent_menu.add_command(label='Clear', command=self._clear_recent)
-        self._controller._filemenu.entryconfig(2, menu=recent_menu)
+        self._guiprovider.controller._filemenu.entryconfig(2, menu=recent_menu)
 
     def _new_input(self):
-        self._controller.new_input()
+        self._guiprovider.controller.new_input()
 
     def _open_file(self):
         preferences = UIPreferences()
         filename = tkfd.askopenfilename(parent=self,
-                                        title='Open Aqua File',
+                                        title='Open File',
                                         initialdir=preferences.get_openfile_initialdir())
-        if filename and self._controller.open_file(filename):
+        if filename and self._guiprovider.controller.open_file(filename):
             preferences.add_recent_file(filename)
             preferences.set_openfile_initialdir(os.path.dirname(filename))
             preferences.save()
 
     def _open_recent_file(self, filename):
-        self._controller.open_file(filename)
+        self._guiprovider.controller.open_file(filename)
 
     def _clear_recent(self):
         preferences = UIPreferences()
@@ -158,18 +154,18 @@ class MainView(ttk.Frame):
         preferences.save()
 
     def _save_file(self):
-        self._controller.save_file()
+        self._guiprovider.controller.save_file()
 
     def _save_file_as(self):
-        if self._controller.is_empty():
-            self._controller._outputView.write_line("No data to save.")
+        if self._guiprovider.controller.is_empty():
+            self._guiprovider.controller._outputView.write_line("No data to save.")
             return
 
         preferences = UIPreferences()
         filename = tkfd.asksaveasfilename(parent=self,
-                                          title='Save Aqua File',
+                                          title='Save File',
                                           initialdir=preferences.get_savefile_initialdir())
-        if filename and self._controller.save_file_as(filename):
+        if filename and self._guiprovider.controller.save_file_as(filename):
             preferences.add_recent_file(filename)
             preferences.set_savefile_initialdir(os.path.dirname(filename))
             preferences.save()
@@ -185,7 +181,7 @@ class MainView(ttk.Frame):
         label = ttk.Label(self,
                           style='Title.TLabel',
                           padding=(5, 5, 5, 5),
-                          textvariable=self._controller._title)
+                          textvariable=self._guiprovider.controller._title)
         label['font'] = label_font
         label.pack(side=tk.TOP, expand=tk.NO, fill=tk.X)
         main_pane = ttk.PanedWindow(self, orient=tk.VERTICAL)
@@ -194,10 +190,9 @@ class MainView(ttk.Frame):
         top_pane.pack(expand=tk.YES, fill=tk.BOTH)
         main_pane.add(top_pane)
 
-        self._controller._sectionsView = SectionsView(
-            self._controller, top_pane)
-        self._controller._sectionsView.pack(expand=tk.YES, fill=tk.BOTH)
-        top_pane.add(self._controller._sectionsView, weight=1)
+        self._guiprovider.controller._sectionsView = SectionsView(self._guiprovider.controller, top_pane)
+        self._guiprovider.controller._sectionsView.pack(expand=tk.YES, fill=tk.BOTH)
+        top_pane.add(self._guiprovider.controller._sectionsView, weight=1)
 
         main_container = tk.Frame(top_pane)
         main_container.pack(expand=tk.YES, fill=tk.BOTH)
@@ -209,7 +204,7 @@ class MainView(ttk.Frame):
         label = ttk.Label(main_container,
                           style='PropViewTitle.TLabel',
                           padding=(5, 5, 5, 5),
-                          textvariable=self._controller._sectionView_title)
+                          textvariable=self._guiprovider.controller._sectionView_title)
         label['font'] = label_font
 
         label.pack(side=tk.TOP, expand=tk.NO, fill=tk.X)
@@ -217,50 +212,44 @@ class MainView(ttk.Frame):
         container.pack(side=tk.BOTTOM, expand=tk.YES, fill=tk.BOTH)
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
-        self._controller._emptyView = EmptyView(container)
-        self._controller._emptyView.grid(row=0, column=0, sticky='nsew')
+        self._guiprovider.controller._emptyView = EmptyView(container)
+        self._guiprovider.controller._emptyView.grid(row=0, column=0, sticky='nsew')
 
-        self._controller._textView = SectionTextView(
-            self._controller, container)
-        self._controller._textView.grid(row=0, column=0, sticky='nsew')
+        self._guiprovider.controller._textView = SectionTextView(self._guiprovider.controller, container)
+        self._guiprovider.controller._textView.grid(row=0, column=0, sticky='nsew')
 
-        self._controller._propertiesView = SectionPropertiesView(
-            self._controller, container)
-        self._controller._propertiesView.grid(row=0, column=0, sticky='nsew')
-        self._controller._emptyView.tkraise()
+        self._guiprovider.controller._propertiesView = self._guiprovider.create_section_properties_view(container)
+        self._guiprovider.controller._propertiesView.grid(row=0, column=0, sticky='nsew')
+        self._guiprovider.controller._emptyView.tkraise()
         top_pane.add(main_container, weight=1)
 
-        self._controller._outputView = ThreadSafeOutputView(main_pane)
-        self._controller._outputView.pack(expand=tk.YES, fill=tk.BOTH)
-        main_pane.add(self._controller._outputView)
+        self._guiprovider.controller._outputView = ThreadSafeOutputView(main_pane)
+        self._guiprovider.controller._outputView.pack(expand=tk.YES, fill=tk.BOTH)
+        main_pane.add(self._guiprovider.controller._outputView)
 
         # redirect output
-        sys.stdout = self._controller._outputView
-        sys.stderr = self._controller._outputView
+        sys.stdout = self._guiprovider.controller._outputView
+        sys.stderr = self._guiprovider.controller._outputView
         # reupdate logging after redirect
         self.after(0, self._set_preferences_logging)
 
         self.update_idletasks()
-        self._controller._sectionsView.show_add_button(False)
-        self._controller._sectionsView.show_remove_button(False)
-        self._controller._sectionsView.show_defaults_button(False)
-        self._controller._emptyView.set_toolbar_size(
-            self._controller._sectionsView.get_toolbar_size())
+        self._guiprovider.controller._sectionsView.show_add_button(False)
+        self._guiprovider.controller._sectionsView.show_remove_button(False)
+        self._guiprovider.controller._sectionsView.show_defaults_button(False)
+        self._guiprovider.controller._emptyView.set_toolbar_size(self._guiprovider.controller._sectionsView.get_toolbar_size())
 
     def _set_preferences_logging(self):
-        from qiskit_aqua_cmd.preferences import Preferences
-        from qiskit_aqua._logging import set_logging_config
-        preferences = Preferences()
-        config = preferences.get_logging_config()
+        config = self._guiprovider.preferences.get_logging_config()
         if config is not None:
-            set_logging_config(config)
+            self._guiprovider.set_logging_config(config)
 
     def quit(self):
         if tkmb.askyesno('Verify quit', 'Are you sure you want to quit?'):
             preferences = UIPreferences()
-            preferences.set_run_geometry(self.master.winfo_geometry())
+            preferences.set_geometry(self.master.winfo_geometry())
             preferences.save()
-            self._controller.stop()
+            self._guiprovider.controller.stop()
             ttk.Frame.quit(self)
             return True
 

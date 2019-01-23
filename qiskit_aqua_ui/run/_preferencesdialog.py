@@ -20,7 +20,6 @@ import tkinter.ttk as ttk
 from ._dialog import Dialog
 from collections import OrderedDict
 from ._credentialsview import CredentialsView
-from qiskit_aqua_ui._uipreferences import UIPreferences
 import logging
 
 
@@ -35,25 +34,32 @@ class PreferencesDialog(Dialog):
          (logging.NOTSET, logging.getLevelName(logging.NOTSET))]
     )
 
-    def __init__(self, controller, parent):
+    def __init__(self,
+                 controller,
+                 parent,
+                 uiPreferences,
+                 preferences,
+                 get_logging_level,
+                 set_logging_config,
+                 build_logging_config):
         super(PreferencesDialog, self).__init__(
             controller, parent, 'Preferences')
+        self._uiPreferences = uiPreferences
+        self._preferences = preferences
+        self._get_logging_level = get_logging_level
+        self._set_logging_config = set_logging_config
+        self._build_logging_config = build_logging_config
         self._credentialsview = None
         self._levelCombo = None
         self._checkButton = None
         self._populateDefaults = tk.IntVar()
 
     def body(self, parent, options):
-        from qiskit_aqua._logging import (get_logging_level,
-                                          set_logging_config)
-        from qiskit_aqua_cmd import Preferences
-        preferences = Preferences()
-        logging_config = preferences.get_logging_config()
+        logging_config = self._preferences.get_logging_config()
         if logging_config is not None:
-            set_logging_config(logging_config)
+            self._set_logging_config(logging_config)
 
-        uipreferences = UIPreferences()
-        populate = uipreferences.get_populate_defaults(True)
+        populate = self._uiPreferences.get_populate_defaults(True)
         self._populateDefaults.set(1 if populate else 0)
 
         credentialsGroup = ttk.LabelFrame(parent,
@@ -86,7 +92,7 @@ class PreferencesDialog(Dialog):
         loggingGroup.grid(padx=(7, 7), pady=6, row=2, column=0, sticky='nsw')
         loggingGroup.columnconfigure(1, pad=7)
 
-        loglevel = get_logging_level()
+        loglevel = self._get_logging_level()
 
         ttk.Label(loggingGroup,
                   text="Level:",
@@ -114,8 +120,6 @@ class PreferencesDialog(Dialog):
     def apply(self):
         from qiskit_aqua_cmd import Preferences
         from qiskit_aqua import disable_ibmq_account
-        from qiskit_aqua._logging import (build_logging_config,
-                                          set_logging_config)
         try:
             level_name = self._levelCombo.get()
             levels = [key for key, value in PreferencesDialog._LOG_LEVELS.items() if value == level_name]
@@ -126,18 +130,16 @@ class PreferencesDialog(Dialog):
             self._credentialsview.apply(preferences)
             preferences.save()
 
-            logging_config = build_logging_config(loglevel)
+            logging_config = self._build_logging_config(loglevel)
 
-            preferences = Preferences()
-            preferences.set_logging_config(logging_config)
-            preferences.save()
+            self._preferences.set_logging_config(logging_config)
+            self._preferences.save()
 
-            set_logging_config(logging_config)
+            self._set_logging_config(logging_config)
 
-            uipreferences = UIPreferences()
             populate = self._populateDefaults.get()
-            uipreferences.set_populate_defaults(False if populate == 0 else True)
-            uipreferences.save()
+            self._uiPreferences.set_populate_defaults(False if populate == 0 else True)
+            self._uiPreferences.save()
 
             self._controller.model.get_available_providers()
         except Exception as e:

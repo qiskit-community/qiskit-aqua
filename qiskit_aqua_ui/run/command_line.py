@@ -18,7 +18,8 @@
 import sys
 import logging
 import tkinter as tk
-from qiskit_aqua_ui._uipreferences import UIPreferences
+from ._controller import Controller
+from ._aquaguiprovider import AquaGUIProvider
 from ._mainview import MainView
 
 
@@ -52,8 +53,8 @@ def main():
     root.withdraw()
     root.update_idletasks()
 
-    preferences = UIPreferences()
-    geometry = preferences.get_run_geometry()
+    guiProvider = AquaGUIProvider(Controller())
+    geometry = guiProvider.uipreferences.get_geometry()
     if geometry is None:
         ws = root.winfo_screenwidth()
         hs = root.winfo_screenheight()
@@ -62,12 +63,12 @@ def main():
         x = int(ws / 2 - w / 2)
         y = int(hs / 2 - h / 2)
         geometry = '{}x{}+{}+{}'.format(w, h, x, y)
-        preferences.set_run_geometry(geometry)
-        preferences.save()
+        guiProvider.uipreferences.set_geometry(geometry)
+        guiProvider.uipreferences.save()
 
     root.geometry(geometry)
 
-    MainView(root)
+    MainView(root, guiProvider)
     root.after(0, root.deiconify)
     root.after(0, set_preferences_logging)
     root.mainloop()

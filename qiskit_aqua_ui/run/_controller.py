@@ -37,8 +37,8 @@ class Controller(object):
 
     _START, _STOP = 'Start', 'Stop'
 
-    def __init__(self, view):
-        self._view = view
+    def __init__(self):
+        self._view = None
         self._model = Model()
         self._filemenu = None
         self._title = tk.StringVar()
@@ -55,6 +55,16 @@ class Controller(object):
         self._thread = None
         self._command = Controller._START
         self._process_stop = False
+
+    @property
+    def view(self):
+        """Return controller view."""
+        return self._view
+
+    @view.setter
+    def view(self, val):
+        """Sets controller view."""
+        self._view = val
         self._validate_integer_command = self._view.register(Controller._validate_integer)
         self._validate_float_command = self._view.register(Controller._validate_float)
 

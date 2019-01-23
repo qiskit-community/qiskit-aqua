@@ -15,6 +15,7 @@
 # limitations under the License.
 # =============================================================================
 
+from .guiprovider import GUIProvider
 from .run._credentialsview import CredentialsView
 from .run._customwidgets import (EntryCustom, TextCustom, EntryPopup, ComboboxPopup,
                                  TextPopup, PropertyEntryDialog, PropertyComboDialog, SectionComboDialog)
@@ -25,8 +26,10 @@ from .run._sectionsview import SectionsView
 from .run._sectionpropertiesview import SectionPropertiesView
 from .run._sectiontextview import SectionTextView
 from .run._threadsafeoutputview import ThreadSafeOutputView
+from .run._preferencesdialog import PreferencesDialog
 
-__all__ = ['CredentialsView',
+__all__ = ['GUIProvider',
+           'CredentialsView',
            'EntryCustom',
            'TextCustom',
            'EntryPopup',
@@ -41,4 +44,5 @@ __all__ = ['CredentialsView',
            'SectionsView',
            'SectionPropertiesView',
            'SectionTextView',
-           'ThreadSafeOutputView']
+           'ThreadSafeOutputView',
+           'PreferencesDialog']
