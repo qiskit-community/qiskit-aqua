@@ -17,7 +17,8 @@
 
 from .chemistry_operator import ChemistryOperator
 from .hamiltonian import Hamiltonian, TransformationType, QubitMappingType
-from ._discover_chemoperator import (refresh_operators,
+from ._discover_chemoperator import (OPERATORS_ENTRY_POINT,
+                                     refresh_operators,
                                      register_chemistry_operator,
                                      deregister_chemistry_operator,
                                      get_chemistry_operator_class,
@@ -28,6 +29,7 @@ __all__ = ['ChemistryOperator',
            'Hamiltonian',
            'TransformationType',
            'QubitMappingType',
+           'OPERATORS_ENTRY_POINT',
            'refresh_operators',
            'register_chemistry_operator',
            'deregister_chemistry_operator',

@@ -24,8 +24,7 @@ from tkinter import font
 import webbrowser
 from ._controller import Controller
 from ._chemsectionpropertiesview import ChemSectionPropertiesView
-from qiskit_aqua_ui import ThreadSafeOutputView, EmptyView, SectionsView, SectionTextView
-from ._preferencesdialog import PreferencesDialog
+from qiskit_aqua_ui import ThreadSafeOutputView, EmptyView, SectionsView, SectionTextView, PreferencesDialog
 from ._uipreferences import UIPreferences
 import os
 
@@ -49,7 +48,15 @@ class MainView(ttk.Frame):
         tkmb.showinfo(message='Qiskit Chemistry {}'.format(__version__))
 
     def _show_preferences(self):
-        dialog = PreferencesDialog(self._controller, self)
+        from qiskit_chemistry.preferences import Preferences
+        from qiskit_chemistry._logging import (get_logging_level, set_logging_config, build_logging_config)
+        dialog = PreferencesDialog(self._controller,
+                                   self,
+                                   UIPreferences(),
+                                   Preferences(),
+                                   get_logging_level,
+                                   set_logging_config,
+                                   build_logging_config)
         dialog.do_init(tk.LEFT)
         dialog.do_modal()
 

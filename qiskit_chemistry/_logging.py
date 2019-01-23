@@ -20,8 +20,10 @@ import copy
 import logging
 from logging.config import dictConfig
 from collections import OrderedDict
-from qiskit_aqua_cmd import Preferences as AquaPreferences
-from qiskit_chemistry import Preferences as ChemistryPreferences
+from qiskit_chemistry.core import OPERATORS_ENTRY_POINT
+from qiskit_chemistry.drivers import DRIVERS_ENTRY_POINT
+import pkg_resources
+import itertools
 
 _QISKIT_CHEMISTRY_LOGGING_CONFIG = {
     'version': 1,
@@ -42,25 +44,15 @@ _QISKIT_CHEMISTRY_LOGGING_CONFIG = {
 
 
 def _get_logging_names():
+    from qiskit_aqua import PLUGGABLES_ENTRY_POINT
     names = OrderedDict()
     names['qiskit_chemistry'] = None
-    preferences = ChemistryPreferences()
-    packages = preferences.get_packages(
-        ChemistryPreferences.PACKAGE_TYPE_DRIVERS, [])
-    for package in packages:
-        names[package] = None
-
-    packages = preferences.get_packages(
-        ChemistryPreferences.PACKAGE_TYPE_CHEMISTRY, [])
-    for package in packages:
-        names[package] = None
+    for entry_point in itertools.chain(pkg_resources.iter_entry_points(PLUGGABLES_ENTRY_POINT),
+                                       pkg_resources.iter_entry_points(OPERATORS_ENTRY_POINT),
+                                       pkg_resources.iter_entry_points(DRIVERS_ENTRY_POINT)):
+        names[entry_point.module_name] = None
 
     names['qiskit_aqua'] = None
-    preferences = AquaPreferences()
-    packages = preferences.get_packages([])
-    for package in packages:
-        names[package] = None
-
     return list(names.keys())
 
 

@@ -23,12 +23,13 @@ import importlib
 import inspect
 import copy
 from ._basedriver import BaseDriver
-from qiskit_chemistry.preferences import Preferences
 from collections import namedtuple
 from qiskit_chemistry import QiskitChemistryError
 import pkg_resources
 
 logger = logging.getLogger(__name__)
+
+DRIVERS_ENTRY_POINT = 'qiskit.chemistry.drivers'
 
 _NAMES_TO_EXCLUDE = ['_discover_driver']
 
@@ -52,7 +53,6 @@ def refresh_drivers():
     _DISCOVERED = True
     _discover_local_drivers()
     _discover_entry_point_chemistry_drivers()
-    _discover_preferences_drivers()
     if logger.isEnabledFor(logging.DEBUG):
         logger.debug("Found: drivers {} ".format(local_drivers()))
 
@@ -68,7 +68,6 @@ def _discover_on_demand():
         _REGISTERED_DRIVERS = {}
         _discover_local_drivers()
         _discover_entry_point_chemistry_drivers()
-        _discover_preferences_drivers()
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug("Found: has drivers {} ".format(local_drivers()))
 
@@ -78,7 +77,7 @@ def _discover_entry_point_chemistry_drivers():
     Discovers the chemistry driver modules defined by entry_points in setup
     and attempts to register them. Chem.Drivers modules should subclass BaseDriver Base class.
     """
-    for entry_point in pkg_resources.iter_entry_points('qiskit.chemistry.drivers'):
+    for entry_point in pkg_resources.iter_entry_points(DRIVERS_ENTRY_POINT):
         try:
             ep = entry_point.load()
             _registered = False
@@ -96,31 +95,6 @@ def _discover_entry_point_chemistry_drivers():
             # Ignore entry point that could not be initialized.
             # print("Failed to load entry point '{}' error {}".format(entry_point, str(e)))
             logger.debug("Failed to load entry point '{}' error {}".format(entry_point, str(e)))
-
-
-def _discover_preferences_drivers():
-    """
-    Discovers the chemistry drivers on the directory and subdirectories of the preferences package
-    and attempts to register them. Drivers modules should subclass BaseDriver Base class.
-    """
-    preferences = Preferences()
-    packages = preferences.get_packages(Preferences.PACKAGE_TYPE_DRIVERS, [])
-    for package in packages:
-        try:
-            mod = importlib.import_module(package)
-            if mod is not None:
-                _discover_local_drivers_in_dirs(os.path.dirname(mod.__file__),
-                                                mod.__name__,
-                                                names_to_exclude=[
-                    '__main__'],
-                    folders_to_exclude=['__pycache__'])
-            else:
-                # Ignore package that could not be initialized.
-                logger.debug('Failed to import package {}'.format(package))
-        except Exception as e:
-            # Ignore package that could not be initialized.
-            logger.debug(
-                'Failed to load package {} error {}'.format(package, str(e)))
 
 
 def _discover_local_drivers_in_dirs(directory,
