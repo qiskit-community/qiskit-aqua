@@ -40,8 +40,8 @@ class Controller(object):
 
     _START, _STOP = 'Start', 'Stop'
 
-    def __init__(self, view):
-        self._view = view
+    def __init__(self):
+        self._view = None
         self._model = Model()
         self._filemenu = None
         self._title = tk.StringVar()
@@ -62,6 +62,18 @@ class Controller(object):
         self._driver_names = None
 
         self._process_stop = False
+        self._validate_integer_command = None
+        self._validate_float_command = None
+
+    @property
+    def view(self):
+        """Return controller view."""
+        return self._view
+
+    @view.setter
+    def view(self, val):
+        """Sets controller view."""
+        self._view = val
         self._validate_integer_command = self._view.register(Controller._validate_integer)
         self._validate_float_command = self._view.register(Controller._validate_float)
 
@@ -225,12 +237,12 @@ class Controller(object):
 
         return False
 
-    def export_dictionary_to_clipboard(self, window):
+    def export_dictionary_to_clipboard(self):
         try:
             value = json.loads(json.dumps(self.model.get_dictionary()))
             value = pprint.pformat(value, indent=4)
-            window.clipboard_clear()
-            window.clipboard_append(value)
+            self.view.clipboard_clear()
+            self.view.clipboard_append(value)
             self._outputView.write_line("Exported to clibpoard.")
             return dict
         except Exception as e:

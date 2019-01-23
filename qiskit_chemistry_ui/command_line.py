@@ -18,8 +18,9 @@
 import sys
 import logging
 import tkinter as tk
-from ._uipreferences import UIPreferences
-from ._mainview import MainView
+from ._controller import Controller
+from ._chemguiprovider import ChemistryGUIProvider
+from qiskit_aqua_ui import MainView
 
 
 def set_preferences_logging():
@@ -50,7 +51,8 @@ def main():
     root.withdraw()
     root.update_idletasks()
 
-    preferences = UIPreferences()
+    guiProvider = ChemistryGUIProvider(Controller())
+    preferences = guiProvider.create_uipreferences()
     geometry = preferences.get_geometry()
     if geometry is None:
         ws = root.winfo_screenwidth()
@@ -65,7 +67,7 @@ def main():
 
     root.geometry(geometry)
 
-    MainView(root)
+    MainView(root, guiProvider)
     root.after(0, root.deiconify)
     root.after(0, set_preferences_logging)
     root.mainloop()
