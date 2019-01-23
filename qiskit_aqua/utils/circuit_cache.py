@@ -104,7 +104,7 @@ class CircuitCache:
                 else: raw_gates += [gate]
 
             for i, uncompiled_gate in enumerate(raw_gates):
-                if not hasattr(uncompiled_gate, 'param') or len(uncompiled_gate.param) < 1: continue
+                if not hasattr(uncompiled_gate, 'params') or len(uncompiled_gate.params) < 1: continue
                 regs = [(reg, qubit) for (reg, qubit) in uncompiled_gate.qargs]
                 qubits = [qubit+qreg_indeces[reg.name] for reg, qubit in regs if isinstance(reg, QuantumRegister)]
                 gate_type = uncompiled_gate.name
@@ -175,13 +175,13 @@ class CircuitCache:
                 uncompiled_gate = raw_gates[cache_index]
 
                 # Need the 'getattr' wrapper because measure has no 'params' field and breaks this.
-                if not len(getattr(compiled_gate, 'params', [])) == len(getattr(uncompiled_gate, 'param', [])) or \
+                if not len(getattr(compiled_gate, 'params', [])) == len(getattr(uncompiled_gate, 'params', [])) or \
                     not compiled_gate.name == uncompiled_gate.name:
                     raise AquaError('Gate mismatch at gate {0} ({1}, {2} params) of circuit against '
                                          'gate {3} ({4}, {5} params) '
-                                         'of cached qobj'.format(cache_index, uncompiled_gate.name, len(uncompiled_gate.param),
+                                         'of cached qobj'.format(cache_index, uncompiled_gate.name, len(uncompiled_gate.params),
                                                                  gate_num, compiled_gate.name, len(compiled_gate.params)))
-                compiled_gate.params = np.array(uncompiled_gate.param, dtype=float).tolist()
+                compiled_gate.params = np.array(uncompiled_gate.params, dtype=float).tolist()
         exec_qobj = copy.copy(self.qobjs[chunk])
         if self.skip_qobj_deepcopy: exec_qobj.experiments = self.qobjs[chunk].experiments[0:len(circuits)]
         else: exec_qobj.experiments = copy.deepcopy(self.qobjs[chunk].experiments[0:len(circuits)])

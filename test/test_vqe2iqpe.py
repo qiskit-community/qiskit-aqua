@@ -30,6 +30,7 @@ from qiskit_aqua.components.variational_forms import RYRZ
 from qiskit_aqua.components.optimizers import SPSA
 from qiskit_aqua.algorithms import VQE
 from qiskit_aqua.algorithms import IQPE
+from qiskit.qobj import RunConfig
 
 
 class TestVQE2IQPE(QiskitAquaTestCase):
@@ -69,8 +70,8 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         state_in = VarFormBased(var_form, result['opt_params'])
         iqpe = IQPE(self.algo_input.qubit_op, state_in, num_time_slices, num_iterations,
                     paulis_grouping='random', expansion_mode='suzuki', expansion_order=2, shallow_circuit_concat=True)
-        quantum_instance = QuantumInstance(backend, shots=100, pass_manager=PassManager(),
-                                       seed=self.random_seed, seed_mapper=self.random_seed)
+        run_config = RunConfig(shots=100, max_credits=10, memory=False)
+        quantum_instance = QuantumInstance(backend, run_config, pass_manager=PassManager(), seed_mapper=self.random_seed)
         result = iqpe.run(quantum_instance)
 
         self.log.debug('top result str label:         {}'.format(result['top_measurement_label']))

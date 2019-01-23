@@ -142,7 +142,7 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
         backend (BaseBackend): backend instance
         backend_config (dict): configuration for backend
         compile_config (dict): configuration for compilation
-        run_config (dict): configuration for running a circuit
+        run_config (RunConfig): configuration for running a circuit
         qjob_config (dict): configuration for quantum job object
         backend_options (dict): configuration for simulator
         noise_config (dict): configuration for noise model
@@ -206,12 +206,12 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
                 circuit_cache.clear_cache()
                 logger.debug('Circuit cache miss, recompiling. Cache miss reason: ' + repr(e))
                 qobj = q_compile(sub_circuits, backend, **backend_config,
-                         **compile_config, **run_config)
+                         **compile_config, **run_config.to_dict())
                 circuit_cache.cache_circuit(qobj, sub_circuits, i)
                 circuit_cache.misses += 1
         else:
             qobj = q_compile(sub_circuits, backend, **backend_config,
-                             **compile_config, **run_config)
+                             **compile_config, **run_config.to_dict())
 
         # assure get job ids
         while True:

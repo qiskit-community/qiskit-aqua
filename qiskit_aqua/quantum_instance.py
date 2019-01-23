@@ -19,6 +19,7 @@ import logging
 
 from qiskit import __version__ as terra_version
 from qiskit.providers.ibmq import IBMQProvider
+from qiskit.qobj import RunConfig
 try:
     from qiskit.providers.aer import AerProvider
     HAS_AER = True
@@ -46,21 +47,17 @@ class QuantumInstance:
                        "max_parallel_experiments", "statevector_parallel_threshold",
                        "statevector_hpc_gate_opt"] + BACKEND_OPTIONS_QASM_ONLY
 
-    def __init__(self, backend, shots=1024, max_credits=10, seed=None,
-                 initial_layout=None, pass_manager=None, seed_mapper=None, memory=False,
+    def __init__(self, backend, run_config=None, initial_layout=None, pass_manager=None, seed_mapper=None,
                  backend_options=None, noise_model=None, timeout=None, wait=5, circuit_cache=None,
                  skip_qobj_validation=False):
         """Constructor.
 
         Args:
             backend (BaseBackend): instance of selected backend
-            shots (int): number of shots for the backend
-            max_credits (int): maximum credits to use
-            seed (int): the random seed for simulator
+            run_config (RunConfig): the run config see https://github.com/Qiskit/qiskit-terra/blob/master/qiskit/qobj/run_config.py
             initial_layout (dict): initial layout of qubits in mapping
             pass_manager (PassManager): pass manager to handle how to compile the circuits
             seed_mapper (int): the random seed for circuit mapper
-            memory (bool): if True, per-shot measurement bitstrings are returned as well
             backend_options (dict): all config setting for backend
             noise_model (qiskit.provider.aer.noise.noise_model.NoiseModel): noise model for simulator
             timeout (float or None): seconds to wait for job. If None, wait indefinitely.
@@ -69,23 +66,36 @@ class QuantumInstance:
             skip_qobj_validation (bool): Bypass Qobj validation to decrease submission time
         """
         self._backend = backend
+        # setup run config
+        if run_config is None:
+            run_config = RunConfig(shots=1024, max_credits=10, memory=False)
 
-        if self.is_statevector and shots != 1:
-            logger.info("statevector backend only works with shot=1, change "
-                        "shots from {} to 1.".format(shots))
-            shots = 1
+        if getattr(run_config, 'shots', None) is not None:
+            if self.is_statevector and run_config.shots == 1:
+                logger.info("statevector backend only works with shot=1, change "
+                            "shots from {} to 1.".format(run_config.shots))
+                run_config.shots = 1
 
-        if not self.is_simulator and memory is True:
-            logger.info("The memory flag only supports simulator rather than real device. "
-                        "Change it to from {} to False.".format(memory))
-            memory = False
+        if getattr(run_config, 'memory', None) is not None:
+            if not self.is_simulator and run_config.memory is True:
+                logger.info("The memory flag only supports simulator rather than real device. "
+                            "Change it to from {} to False.".format(run_config.memory))
+                run_config.memory = False
+        self._run_config = run_config
 
+        # setup backend config
         coupling_map = getattr(backend.configuration(), 'coupling_map', None)
         # TODO: basis gates will be [str] rather than comma-separated str
         basis_gates = backend.configuration().basis_gates
         if isinstance(basis_gates, list):
             basis_gates = ','.join(basis_gates)
 
+        self._backend_config = {
+            'basis_gates': basis_gates,
+            'coupling_map': coupling_map
+        }
+
+        # setup noise config
         noise_config = None
         if noise_model is not None:
             if HAS_AER:
@@ -97,12 +107,9 @@ class QuantumInstance:
             else:
                 logger.info("The noise model can be only used with Qiskit Aer. "
                             "Please install it.")
+        self._noise_config = {} if noise_config is None else {'noise_model': noise_config}
 
-        self._backend_config = {
-            'basis_gates': basis_gates,
-            'coupling_map': coupling_map
-        }
-
+        # setup compile config
         self._compile_config = {
             'pass_manager': pass_manager,
             'initial_layout': initial_layout,
@@ -110,18 +117,11 @@ class QuantumInstance:
             'qobj_id': None
         }
 
-        self._run_config = {
-            'shots': shots,
-            'max_credits': max_credits,
-            'seed': seed,
-            'memory': memory
-        }
-
-        self._noise_config = {} if noise_config is None else {'noise_model': noise_config}
-
+        # setup job config
         self._qjob_config = {'timeout': timeout} if self.is_local \
             else {'timeout': timeout, 'wait': wait}
 
+        # setup backend options for run
         self._backend_options = {}
         if isinstance(self._backend.provider(), IBMQProvider):
             logger.info("backend_options can not used with the backends in IBMQ provider.")
@@ -165,7 +165,7 @@ class QuantumInstance:
                                           noise_config=self._noise_config,
                                           show_circuit_summary=self._circuit_summary,
                                           has_shared_circuits=self._shared_circuits,
-                                          circuit_cache = self._circuit_cache,
+                                          circuit_cache=self._circuit_cache,
                                           skip_qobj_validation=self._skip_qobj_validation)
         if self._circuit_summary:
             self._circuit_summary = False
@@ -176,7 +176,7 @@ class QuantumInstance:
         """Set configurations for the quantum instance."""
         for k, v in kwargs.items():
             if k in QuantumInstance.RUN_CONFIG:
-                self._run_config[k] = v
+                setattr(self._run_config, k, v)
             elif k in QuantumInstance.QJOB_CONFIG:
                 self._qjob_config[k] = v
             elif k in QuantumInstance.COMPILE_CONFIG:
