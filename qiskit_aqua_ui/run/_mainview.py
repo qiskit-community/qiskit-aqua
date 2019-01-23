@@ -47,13 +47,7 @@ class MainView(ttk.Frame):
         tkmb.showinfo(message='{} {}'.format(self._guiprovider.title, self._guiprovider.version))
 
     def _show_preferences(self):
-        dialog = PreferencesDialog(self._guiprovider.controller,
-                                   self,
-                                   self._guiprovider.create_uipreferences(),
-                                   self._guiprovider.create_preferences(),
-                                   self._guiprovider.get_logging_level,
-                                   self._guiprovider.set_logging_config,
-                                   self._guiprovider.build_logging_config)
+        dialog = PreferencesDialog(self, self._guiprovider)
         dialog.do_init(tk.LEFT)
         dialog.do_modal()
 
