@@ -23,9 +23,11 @@ class GUIProvider(ABC):
     Base class for GUIProviders.
     """
 
+    START, STOP = 'Start', 'Stop'
+
     @abstractmethod
-    def __init__(self, controller):
-        self._controller = controller
+    def __init__(self):
+        pass
 
     @property
     @abstractmethod
@@ -46,9 +48,10 @@ class GUIProvider(ABC):
         pass
 
     @property
+    @abstractmethod
     def controller(self):
         """Return provider controller."""
-        return self._controller
+        pass
 
     @abstractmethod
     def create_preferences(self):
@@ -95,5 +98,12 @@ class GUIProvider(ABC):
     def add_file_menu_items(self, file_menu):
         """
         Add items to file menu
+        """
+        pass
+
+    @abstractmethod
+    def  create_run_thread(self, model, outputview, thread_queue):
+        """
+        Creates run thread
         """
         pass

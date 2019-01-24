@@ -18,7 +18,6 @@
 import sys
 import logging
 import tkinter as tk
-from ._controller import Controller
 from ._aquaguiprovider import AquaGUIProvider
 from ._mainview import MainView
 
@@ -53,7 +52,7 @@ def main():
     root.withdraw()
     root.update_idletasks()
 
-    guiProvider = AquaGUIProvider(Controller())
+    guiProvider = AquaGUIProvider()
     preferences = guiProvider.create_uipreferences()
     geometry = preferences.get_geometry()
     if geometry is None:

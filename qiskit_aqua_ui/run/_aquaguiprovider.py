@@ -18,15 +18,17 @@
 from qiskit_aqua_ui import GUIProvider
 from qiskit_aqua_ui._uipreferences import UIPreferences
 from ._sectionpropertiesview import SectionPropertiesView
-
+from ._aquathread import AquaThread
+from ._controller import Controller
 
 class AquaGUIProvider(GUIProvider):
     """
     Aqua GUIProvider
     """
 
-    def __init__(self, controller):
-        super().__init__(controller)
+    def __init__(self):
+        super().__init__()
+        self._controller = Controller(self)
 
     @property
     def title(self):
@@ -43,6 +45,11 @@ class AquaGUIProvider(GUIProvider):
     def help_hyperlink(self):
         """Return provider help hyperlink."""
         return 'http://qiskit.org/documentation/aqua/'
+
+    @property
+    def controller(self):
+        """Return provider controller."""
+        return self._controller
 
     def create_preferences(self):
         """Creates provider preferences."""
@@ -87,3 +94,9 @@ class AquaGUIProvider(GUIProvider):
         Add items to file menu
         """
         pass
+
+    def create_run_thread(self, model, outputview, thread_queue):
+        """
+        Creates run thread
+        """
+        return AquaThread(model, outputview, thread_queue)
