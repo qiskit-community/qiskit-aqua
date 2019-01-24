@@ -40,7 +40,7 @@ class MCU3Gate(CompositeGate):
                                        circ)
 
         if n_c == 1: # cx
-            self.cu3(theta, phi, lam, ctls[0], tgt)
+            apply_cu3(circ, theta, phi, lam, ctls[0], tgt)
         else:
             self.apply_mcu3(theta, phi, lam, ctls, tgt, circ)
 
