@@ -49,7 +49,7 @@ class Model(object):
 
         self._register_ibmq_and_get_known_providers = register_ibmq_and_get_known_providers
         self._backendsthread = threading.Thread(target=self._get_available_providers,
-                                                name='Aqua available providers')
+                                                name='Available providers')
         self._backendsthread.daemon = True
         self._backendsthread.start()
 
@@ -171,7 +171,7 @@ class Model(object):
     def default_properties_equals_properties(self, section_name):
         from qiskit_aqua.parser import JSONSchema
         if self.section_is_text(section_name):
-            return self.get_section_default_properties(section_name) == self.get_section_data(section_name)
+            return self.get_section_default_properties(section_name) == self.get_section_text(section_name)
 
         default_properties = self.get_section_default_properties(section_name)
         if isinstance(default_properties, OrderedDict):
