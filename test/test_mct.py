@@ -49,13 +49,13 @@ class TestMCT(QiskitAquaTestCase):
                         num_ancillae = 0
                     else:
                         num_ancillae = num_controls - 2
-                elif mode == 'advanced':
+                elif mode == 'noancilla':
+                    num_ancillae = 0
+                else:
                     if num_controls <= 4:
                         num_ancillae = 0
                     else:
                         num_ancillae = 1
-                else:
-                    num_ancillae = 0
                 if num_ancillae > 0:
                     a = QuantumRegister(num_ancillae, name='a')
                     qc.add_register(a)
