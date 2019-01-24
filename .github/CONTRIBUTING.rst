@@ -175,9 +175,9 @@ that all the Qiskit elements and relevant components are installed from source. 
 correctly achieved by first uninstalling them from the Python environment in which you
 have Qiskit (if they were previously installed),
 using the ``pip uninstall`` command for each of them.  Next, after cloning the
-`Qiskit Terra <https://github.com/Qiskit/qiskit-terra>__`, `Qiskit Aer <https://github.com/Qiskit/qiskit-aer>__`
+`Qiskit Terra <https://github.com/Qiskit/qiskit-terra>`__, `Qiskit Aer <https://github.com/Qiskit/qiskit-aer>`__
 `Qiskit IBMQ Provider <https://github.com/Qiskit/qiskit-ibmq-provider>`__ and
-`Qiskit Aqus <https://github.com/Qiskit/qiskit-aqua>`__ repositories, you can install them
+`Qiskit Aqua <https://github.com/Qiskit/qiskit-aqua>`__ repositories, you can install them
 from source in the same Python environment by issuing the following command from the root
 directories of those repository clones: 
 
