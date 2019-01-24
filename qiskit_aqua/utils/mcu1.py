@@ -15,51 +15,47 @@
 # limitations under the License.
 # =============================================================================
 """
-CNU3 gate. N Controlled-U3 Gate. Not Using ancilla qubits.
+Multiple-Control U1 gate. Not using ancillary qubits.
 """
 
 from sympy.combinatorics.graycode import GrayCode
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.circuit import CompositeGate
-from qiskit_aqua.utils.controlledcircuit import apply_cu3
+from qiskit_aqua.utils.controlledcircuit import apply_cu1
 from numpy import angle
 
 
-class CNU3Gate(CompositeGate):
-    """CNU3 gate."""
+class MCU1Gate(CompositeGate):
+    """MCU1 gate."""
 
-    def __init__(self, theta, phi, lam, ctls, tgt, circ=None):
-        """Create new CNU3 gate."""
+    def __init__(self, theta, ctls, tgt, circ=None):
+        """Create new MCU1 gate."""
         self._ctl_bits = ctls
         self._tgt_bits = tgt
         self._theta = theta
-        self._phi = phi
-        self._lambda = lam
         qubits = [v for v in ctls] + [tgt]
         n_c = len(ctls)
-        super(CNU3Gate, self).__init__("cnu3", (theta, phi, lam, n_c), qubits, circ)
+        super(MCU1Gate, self).__init__("mcu1", (theta, n_c), qubits, circ)
 
         if n_c == 1: # cx
-            self.cu3(theta, phi, lam, ctls[0], tgt)
+            self.cu1(theta, ctls[0], tgt)
         else:
-            self.apply_cnu3(theta, phi, lam, ctls, tgt, circ)
+            self.apply_mcu1(theta, ctls, tgt, circ)
 
     def reapply(self, circ):
         """Reapply this gate to corresponding qubits in circ."""
-        self._modifiers(circ.cnu3(self._theta, self._phi, self._lambda,
-                                  self._ctl_bits, self._tgt_bits))
+        self._modifiers(circ.mcu1(self._theta, self._ctl_bits, self._tgt_bits))
 
-    def apply_cnu3(self, theta, phi, lam, ctls, tgt, circuit):
-        """Apply n-controlled u1 gate from ctls to tgt with angle theta."""
-        
+    def apply_mcu1(self, theta, ctls, tgt, circuit, global_phase=0):
+        """Apply multi-controlled u1 gate from ctls to tgt with angle theta."""
+
         n = len(ctls)
 
         gray_code = list(GrayCode(n).generate_gray())
         last_pattern = None
 
         theta_angle = theta*(1/(2**(n-1)))
-        phi_angle = phi*(1/(2**(n-1)))
-        lam_angle = lam*(1/(2**(n-1)))
+        gp_angle = angle(global_phase)*(1/(2**(n-1)))
 
         for pattern in gray_code:
             if not '1' in pattern:
@@ -85,16 +81,18 @@ class CNU3Gate(CompositeGate):
             #check parity
             if pattern.count('1') % 2 == 0:
                 #inverse
-                apply_cu3(circuit, -theta_angle, phi_angle, lam_angle,
-                          ctls[lm_pos], tgt)
+                apply_cu1(circuit, -theta_angle, ctls[lm_pos], tgt)
+                if global_phase:
+                    circuit.u1(-gp_angle, ctls[lm_pos])
             else:
-                apply_cu3(circuit, theta_angle, phi_angle, lam_angle,
-                          ctls[lm_pos], tgt)
+                apply_cu1(circuit, theta_angle, ctls[lm_pos], tgt)
+                if global_phase:
+                    circuit.u1(gp_angle, ctls[lm_pos])
             last_pattern = pattern
 
 
-def cnu3(self, theta, phi, lam, control_qubits, target_qubit):
-    """Apply CNU3 to circuit."""
+def mcu1(self, theta, control_qubits, target_qubit):
+    """Apply MCU1 to circuit."""
     if isinstance(target_qubit, QuantumRegister) and len(target_qubit) == 1:
         target_qubit = target_qubit[0]
     temp = []
@@ -104,7 +102,7 @@ def cnu3(self, theta, phi, lam, control_qubits, target_qubit):
     self._check_qubit(target_qubit)
     temp.append(target_qubit)
     self._check_dups(temp)
-    return self._attach(CNU3Gate(theta, phi, lam, control_qubits, target_qubit, self))
+    return self._attach(MCU1Gate(theta, control_qubits, target_qubit, self))
 
 
-QuantumCircuit.cnu3 = cnu3
+QuantumCircuit.mcu1 = mcu1

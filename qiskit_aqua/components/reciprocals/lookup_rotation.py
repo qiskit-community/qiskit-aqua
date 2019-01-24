@@ -369,12 +369,12 @@ class LookupRotation(Reciprocal):
 
                     # rotation is happening here
                     # 1. rotate by half angle
-                    qc.cnu3(theta / 2, 0, 0, [self._workq[0], self._msq[0]],
+                    qc.mcu3(theta / 2, 0, 0, [self._workq[0], self._msq[0]],
                             self._anc[0])
                     # 2. cnx_na gate to reverse rotation direction
                     self._set_bit_pattern(subpattern, self._anc[0], offset)
                     # 3. rotate by inverse of halfangle to uncompute / complete
-                    qc.cnu3(-theta / 2, 0, 0, [self._workq[0], self._msq[0]],
+                    qc.mcu3(-theta / 2, 0, 0, [self._workq[0], self._msq[0]],
                             self._anc[0])
                     # 4. cnx_na gate to uncompute first cnx_na gate
                     self._set_bit_pattern(subpattern, self._anc[0], offset)

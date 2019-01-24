@@ -47,7 +47,7 @@ class CNXGate(CompositeGate):
 
     def apply_cnx_na(self, ctls, tgt, circuit):
         circuit.h(tgt)
-        circuit.cnu1(pi, ctls, tgt)
+        circuit.mcu1(pi, ctls, tgt)
         circuit.h(tgt)
 
 def cnx_na(self, control_qubits, target_qubit):
