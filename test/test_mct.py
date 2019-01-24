@@ -42,18 +42,20 @@ class TestMCT(QiskitAquaTestCase):
         o = QuantumRegister(1, name='o')
         allsubsets = list(chain(*[combinations(range(num_controls), ni) for ni in range(num_controls + 1)]))
         for subset in allsubsets:
-            for mode in ['basic', 'advanced']:
+            for mode in ['basic', 'advanced', 'noancilla']:
                 qc = QuantumCircuit(o, c)
                 if mode == 'basic':
                     if num_controls <= 2:
                         num_ancillae = 0
                     else:
                         num_ancillae = num_controls - 2
-                else:
+                elif mode == 'advanced':
                     if num_controls <= 4:
                         num_ancillae = 0
                     else:
                         num_ancillae = 1
+                else:
+                    num_ancillae = 0
                 if num_ancillae > 0:
                     a = QuantumRegister(num_ancillae, name='a')
                     qc.add_register(a)
