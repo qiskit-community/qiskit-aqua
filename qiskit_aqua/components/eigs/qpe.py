@@ -217,7 +217,7 @@ class QPE(Eigenvalues):
         # check for identify paulis to get its coef for applying global phase shift on ancillae later
         num_identities = 0
         for p in self._operator.paulis:
-            if np.all(p[1].v == 0) and np.all(p[1].w == 0):
+            if np.all(p[1].z == 0) and np.all(p[1].x == 0):
                 num_identities += 1
                 if num_identities > 1:
                     raise RuntimeError('Multiple identity pauli terms are present.')
