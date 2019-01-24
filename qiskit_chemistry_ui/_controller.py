@@ -17,31 +17,24 @@
 
 from ._model import Model
 from qiskit_aqua_ui import (EntryPopup, ComboboxPopup, TextPopup)
-import psutil
 import os
-import subprocess
 import threading
 import queue
-import tempfile
 import tkinter as tk
 from tkinter import messagebox
-import tkinter.filedialog as tkfd
 import json
-from ._uipreferences import UIPreferences
 import ast
-import pprint
-import sys
 import logging
+from qiskit_aqua_ui import GUIProvider
 
 logger = logging.getLogger(__name__)
 
 
 class Controller(object):
 
-    _START, _STOP = 'Start', 'Stop'
-
-    def __init__(self):
+    def __init__(self, guiprovider):
         self._view = None
+        self._guiprovider = guiprovider
         self._model = Model()
         self._filemenu = None
         self._title = tk.StringVar()
@@ -54,13 +47,9 @@ class Controller(object):
         self._progress = None
         self._button_text = None
         self._start_button = None
-        self._save_algo_json = tk.IntVar()
-        self._save_algo_json.set(0)
         self._thread_queue = queue.Queue()
         self._thread = None
-        self._command = Controller._START
-        self._driver_names = None
-
+        self._command = GUIProvider.START
         self._process_stop = False
         self._validate_integer_command = None
         self._validate_float_command = None
@@ -76,14 +65,6 @@ class Controller(object):
         self._view = val
         self._validate_integer_command = self._view.register(Controller._validate_integer)
         self._validate_float_command = self._view.register(Controller._validate_float)
-
-    @property
-    def driver_names(self):
-        from qiskit_chemistry.drivers import local_drivers
-        if self._driver_names is None:
-            self._driver_names = local_drivers()
-
-        return self._driver_names
 
     @staticmethod
     def _validate_integer(action, index, value_if_allowed,
@@ -237,36 +218,11 @@ class Controller(object):
 
         return False
 
-    def export_dictionary_to_clipboard(self):
-        try:
-            value = json.loads(json.dumps(self.model.get_dictionary()))
-            value = pprint.pformat(value, indent=4)
-            self.view.clipboard_clear()
-            self.view.clipboard_append(value)
-            self._outputView.write_line("Exported to clibpoard.")
-            return dict
-        except Exception as e:
-            messagebox.showerror("Error", str(e))
-
-        return {}
-
-    def export_dictionary_to_file(self, filename):
-        try:
-            self.model.export_dictionary(filename)
-            self._outputView.write_line(
-                "Exported to file: {}".format(filename))
-            return True
-        except Exception as e:
-            messagebox.showerror("Error", str(e))
-
-        return False
-
     def on_section_select(self, section_name):
         self._sectionsView.show_remove_button(True)
         self._sectionView_title.set(section_name)
         if self.model.section_is_text(section_name):
-            text = self.model.get_section_text(section_name)
-            self._textView.populate(text)
+            self._textView.populate(self.model.get_section_text(section_name))
             self._textView.section_name = section_name
             self._textView.show_add_button(False)
             self._textView.show_remove_button(False)
@@ -373,8 +329,7 @@ class Controller(object):
 
     def on_property_add(self, section_name, property_name):
         try:
-            value = self.model.get_property_default_value(
-                section_name, property_name)
+            value = self.model.get_property_default_value(section_name, property_name)
             if value is None:
                 value = ''
 
@@ -387,8 +342,7 @@ class Controller(object):
     def on_property_set(self, section_name, property_name, value):
         from qiskit_aqua.parser import JSONSchema
         try:
-            self.model.set_section_property(
-                section_name, property_name, value)
+            self.model.set_section_property(section_name, property_name, value)
         except Exception as e:
             messagebox.showerror("Error", str(e))
             return False
@@ -443,13 +397,14 @@ class Controller(object):
     def create_popup(self, section_name, property_name, parent, value):
         from qiskit_chemistry.parser import InputParser
         from qiskit_aqua.parser import JSONSchema
+        from qiskit_chemistry.drivers import local_drivers
         values = None
         types = ['string']
         combobox_state = 'readonly'
         if InputParser.OPERATOR == section_name and JSONSchema.NAME == property_name:
             values = self.model.get_operator_section_names()
         elif InputParser.DRIVER == section_name and JSONSchema.NAME == property_name:
-            values = self.driver_names
+            values = local_drivers
         elif JSONSchema.NAME == property_name and Model.is_pluggable_section(section_name):
             values = self.model.get_pluggable_section_names(section_name)
         elif JSONSchema.BACKEND == section_name and \
@@ -530,30 +485,18 @@ class Controller(object):
         self._filemenu.entryconfig(2, state='disabled')
         self._view.after(100, self._process_thread_queue)
         try:
-            if self._command is Controller._START:
+            if self._command is GUIProvider.START:
                 self._outputView.clear()
-                filename = None
-                if self._save_algo_json.get() != 0:
-                    preferences = UIPreferences()
-                    filename = tkfd.asksaveasfilename(parent=self._view,
-                                                      title='Algorithm Input',
-                                                      initialdir=preferences.get_savefile_initialdir())
-                    if not filename:
-                        self._thread_queue.put(None)
-                        self._start_button.state(['!disabled'])
-                        self._filemenu.entryconfig(0, state='normal')
-                        self._filemenu.entryconfig(1, state='normal')
-                        self._filemenu.entryconfig(2, state='normal')
-                        return
-
-                    preferences.set_savefile_initialdir(
-                        os.path.dirname(filename))
-                    preferences.save()
-
-                self._thread = AquaChemistryThread(
-                    self.model, self._outputView, self._thread_queue, filename)
-                self._thread.daemon = True
-                self._thread.start()
+                self._thread = self._guiprovider.create_run_thread(self.model, self._outputView, self._thread_queue)
+                if self._thread is not None:
+                    self._thread.daemon = True
+                    self._thread.start()
+                else:
+                    self._thread_queue.put(None)
+                    self._start_button.state(['!disabled'])
+                    self._filemenu.entryconfig(0, state='normal')
+                    self._filemenu.entryconfig(1, state='normal')
+                    self._filemenu.entryconfig(2, state='normal')
             else:
                 self.stop()
         except Exception as e:
@@ -569,13 +512,13 @@ class Controller(object):
         if self._thread is not None:
             stopthread = threading.Thread(target=Controller._stop,
                                           args=(self._thread,),
-                                          name='Chemistry stop thread')
+                                          name='Stop thread')
             stopthread.daemon = True
             stopthread.start()
             self._outputView.clear_buffer()
             self._thread = None
             self._process_stop = True
-            self._thread_queue.put(Controller._STOP)
+            self._thread_queue.put(GUIProvider.STOP)
 
     @staticmethod
     def _stop(thread):
@@ -590,19 +533,19 @@ class Controller(object):
             line = self._thread_queue.get_nowait()
             if line is None:
                 return
-            elif line is Controller._START:
+            elif line is GUIProvider.START:
                 self._progress.start(500)
-                self._command = Controller._STOP
+                self._command = GUIProvider.STOP
                 self._button_text.set(self._command)
                 self._start_button.state(['!disabled'])
-            elif line is Controller._STOP:
+            elif line is GUIProvider.STOP:
                 if not self._outputView.buffer_empty():
                     # repost stop
-                    self._thread_queue.put(Controller._STOP)
+                    self._thread_queue.put(GUIProvider.STOP)
                 else:
                     self._thread = None
                     self._progress.stop()
-                    self._command = Controller._START
+                    self._command = GUIProvider.START
                     self._button_text.set(self._command)
                     self._start_button.state(['!disabled'])
                     self._filemenu.entryconfig(0, state='normal')
@@ -618,120 +561,3 @@ class Controller(object):
             pass
 
         self._view.after(100, self._process_thread_queue)
-
-
-class AquaChemistryThread(threading.Thread):
-
-    def __init__(self, model, output, queue, filename):
-        super(AquaChemistryThread, self).__init__(name='Chemistry run thread')
-        self.model = model
-        self._output = output
-        self._thread_queue = queue
-        self._json_algo_file = filename
-        self._popen = None
-
-    def stop(self):
-        self._output = None
-        self._thread_queue = None
-        if self._popen is not None:
-            p = self._popen
-            self._kill(p.pid)
-            p.stdout.close()
-
-    def _kill(self, proc_pid):
-        try:
-            process = psutil.Process(proc_pid)
-            for proc in process.children(recursive=True):
-                proc.kill()
-            process.kill()
-        except Exception as e:
-            if self._output is not None:
-                self._output.write_line(
-                    'Process kill has failed: {}'.format(str(e)))
-
-    def run(self):
-        input_file = None
-        output_file = None
-        temp_input = False
-        try:
-            qiskit_chemistry_directory = os.path.dirname(
-                os.path.realpath(__file__))
-            qiskit_chemistry_directory = os.path.abspath(
-                os.path.join(qiskit_chemistry_directory, '../qiskit_chemistry_cmd'))
-            input_file = self.model.get_filename()
-            if input_file is None or self.model.is_modified():
-                fd, input_file = tempfile.mkstemp(suffix='.in')
-                os.close(fd)
-                temp_input = True
-                self.model.save_to_file(input_file)
-
-            startupinfo = None
-            process_name = psutil.Process().exe()
-            if process_name is None or len(process_name) == 0:
-                process_name = 'python'
-            else:
-                if sys.platform == 'win32' and process_name.endswith('pythonw.exe'):
-                    path = os.path.dirname(process_name)
-                    files = [f for f in os.listdir(path) if f != 'pythonw.exe' and f.startswith(
-                        'python') and f.endswith('.exe')]
-                    # sort reverse to have the python versions first: python3.exe before python2.exe
-                    files = sorted(files, key=str.lower, reverse=True)
-                    new_process = None
-                    for file in files:
-                        p = os.path.join(path, file)
-                        if os.path.isfile(p):
-                            # python.exe takes precedence
-                            if file.lower() == 'python.exe':
-                                new_process = p
-                                break
-
-                            # use first found
-                            if new_process is None:
-                                new_process = p
-
-                    if new_process is not None:
-                        startupinfo = subprocess.STARTUPINFO()
-                        startupinfo.dwFlags = subprocess.STARTF_USESHOWWINDOW
-                        startupinfo.wShowWindow = subprocess.SW_HIDE
-                        process_name = new_process
-
-            input_array = [process_name, qiskit_chemistry_directory, input_file]
-            if self._json_algo_file:
-                input_array.extend(['-jo', self._json_algo_file])
-            else:
-                fd, output_file = tempfile.mkstemp(suffix='.out')
-                os.close(fd)
-                input_array.extend(['-o', output_file])
-
-            if self._output is not None and logger.getEffectiveLevel() == logging.DEBUG:
-                self._output.write('Process: {}\n'.format(process_name))
-
-            self._popen = subprocess.Popen(input_array,
-                                           stdin=subprocess.DEVNULL,
-                                           stdout=subprocess.PIPE,
-                                           stderr=subprocess.STDOUT,
-                                           universal_newlines=True,
-                                           startupinfo=startupinfo)
-            if self._thread_queue is not None:
-                self._thread_queue.put(Controller._START)
-            for line in iter(self._popen.stdout.readline, ''):
-                if self._output is not None:
-                    self._output.write(str(line))
-            self._popen.stdout.close()
-            self._popen.wait()
-        except Exception as e:
-            if self._output is not None:
-                self._output.write('Process has failed: {}'.format(str(e)))
-        finally:
-            self._popen = None
-            if self._thread_queue is not None:
-                self._thread_queue.put(Controller._STOP)
-            try:
-                if temp_input and input_file is not None:
-                    os.remove(input_file)
-
-                input_file = None
-            finally:
-                if output_file is not None:
-                    os.remove(output_file)
-                    output_file = None

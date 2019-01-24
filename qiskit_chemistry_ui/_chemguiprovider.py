@@ -18,10 +18,15 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 import tkinter.filedialog as tkfd
+from tkinter import messagebox
 import os
+import json
+import pprint
 from qiskit_aqua_ui import GUIProvider
 from ._uipreferences import UIPreferences
 from ._chemsectionpropertiesview import ChemSectionPropertiesView
+from ._chemthread import ChemistryThread
+from ._controller import Controller
 
 
 class ChemistryGUIProvider(GUIProvider):
@@ -29,9 +34,11 @@ class ChemistryGUIProvider(GUIProvider):
     Chemistry GUIProvider
     """
 
-    def __init__(self, controller):
-        super().__init__(controller)
-        self._preferences = None
+    def __init__(self):
+        super().__init__()
+        self._save_algo_json = tk.IntVar()
+        self._save_algo_json.set(0)
+        self._controller = Controller(self)
 
     @property
     def title(self):
@@ -48,6 +55,11 @@ class ChemistryGUIProvider(GUIProvider):
     def help_hyperlink(self):
         """Return provider help hyperlink."""
         return 'http://qiskit.org/documentation/aqua/'
+
+    @property
+    def controller(self):
+        """Return provider controller."""
+        return self._controller
 
     def create_preferences(self):
         """Creates provider preferences."""
@@ -87,7 +99,7 @@ class ChemistryGUIProvider(GUIProvider):
         """
         checkButton = ttk.Checkbutton(toolbar,
                                       text="Generate Algorithm Input",
-                                      variable=self.controller._save_algo_json)
+                                      variable=self._save_algo_json)
         checkButton.pack(side=tk.LEFT)
 
     def add_file_menu_items(self, file_menu):
@@ -99,22 +111,52 @@ class ChemistryGUIProvider(GUIProvider):
         dict_menu.add_command(label='Clipboard', command=self._export_dictionary_to_clipboard)
         dict_menu.add_command(label='File...', command=self._export_dictionary_to_file)
 
+    def create_run_thread(self, model, outputview, thread_queue):
+        """
+        Creates run thread
+        """
+        filename = None
+        if self._save_algo_json.get() != 0:
+            preferences = self.create_uipreferences()
+            filename = tkfd.asksaveasfilename(parent=self.controller.view,
+                                              title='Algorithm Input',
+                                              initialdir=preferences.get_savefile_initialdir())
+            if not filename:
+                return None
+
+            preferences.set_savefile_initialdir(os.path.dirname(filename))
+            preferences.save()
+
+        return ChemistryThread(model, outputview, thread_queue, filename)
+
     def _export_dictionary_to_clipboard(self):
         if self.controller.is_empty():
-            self.controller._outputView.write_line("No data to export.")
+            self.controller.outputview.write_line("No data to export.")
             return
 
-        self.controller.export_dictionary_to_clipboard()
+        try:
+            value = json.loads(json.dumps(self.controller.model.get_dictionary()))
+            value = pprint.pformat(value, indent=4)
+            self.controller.view.clipboard_clear()
+            self.controller.view.clipboard_append(value)
+            self.controller.outputview.write_line("Exported to clibpoard.")
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
 
     def _export_dictionary_to_file(self):
         if self.controller.is_empty():
-            self.controller._outputView.write_line("No data to export.")
+            self.controller.outputview.write_line("No data to export.")
             return
 
         preferences = self.create_uipreferences()
         filename = tkfd.asksaveasfilename(parent=self.controller.view,
                                           title='Export Chemistry Input',
                                           initialdir=preferences.get_savefile_initialdir())
-        if filename and self.controller.export_dictionary_to_file(filename):
-            preferences.set_savefile_initialdir(os.path.dirname(filename))
-            preferences.save()
+        if filename:
+            try:
+                self.controller.model.export_dictionary(filename)
+                self.controller.outputview.write_line("Exported to file: {}".format(filename))
+                preferences.set_savefile_initialdir(os.path.dirname(filename))
+                preferences.save()
+            except Exception as e:
+                messagebox.showerror("Error", str(e))

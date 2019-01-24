@@ -18,7 +18,6 @@
 import sys
 import logging
 import tkinter as tk
-from ._controller import Controller
 from ._chemguiprovider import ChemistryGUIProvider
 from qiskit_aqua_ui import MainView
 
@@ -51,7 +50,7 @@ def main():
     root.withdraw()
     root.update_idletasks()
 
-    guiProvider = ChemistryGUIProvider(Controller())
+    guiProvider = ChemistryGUIProvider()
     preferences = guiProvider.create_uipreferences()
     geometry = preferences.get_geometry()
     if geometry is None:
