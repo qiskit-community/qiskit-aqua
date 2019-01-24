@@ -24,6 +24,7 @@ from qiskit_aqua import run_algorithm, QuantumInstance
 from qiskit_aqua.input import SVMInput
 from qiskit_aqua.components.feature_maps import SecondOrderExpansion
 from qiskit_aqua.algorithms import QSVMKernel
+from qiskit.qobj import RunConfig
 
 
 class TestQSVMKernel(QiskitAquaTestCase):
@@ -73,7 +74,6 @@ class TestQSVMKernel(QiskitAquaTestCase):
         self.assertEqual(result['testing_accuracy'], 0.6)
         self.assertEqual(result['predicted_classes'], ['A', 'A', 'A', 'A', 'A',
                                                        'A', 'B', 'A', 'A', 'A'])
-
     def test_qsvm_kernel_binary_directly(self):
 
         ref_kernel_training = np.array([[1., 0.85366667, 0.12341667, 0.36408333],
@@ -95,8 +95,8 @@ class TestQSVMKernel(QiskitAquaTestCase):
         feature_map = SecondOrderExpansion(num_qubits=num_qubits, depth=2, entangler_map={0: [1]})
         svm = QSVMKernel(feature_map, self.training_data, self.testing_data, None)
         svm.random_seed = self.random_seed
-        quantum_instance = QuantumInstance(backend, shots=self.shots,
-                                           seed=self.random_seed, seed_mapper=self.random_seed)
+        run_config = RunConfig(shots=self.shots, max_credits=10, memory=False, seed=self.random_seed)
+        quantum_instance = QuantumInstance(backend, run_config, seed_mapper=self.random_seed)
 
         result = svm.run(quantum_instance)
         np.testing.assert_array_almost_equal(
@@ -127,7 +127,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
         svm = QSVMKernel(feature_map, self.training_data, self.testing_data, None)
         svm.random_seed = self.random_seed
 
-        quantum_instance = QuantumInstance(backend, seed=self.random_seed, seed_mapper=self.random_seed)
+        quantum_instance = QuantumInstance(backend, seed_mapper=self.random_seed)
         result = svm.run(quantum_instance)
 
         ori_alphas = result['svm']['alphas']

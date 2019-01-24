@@ -20,6 +20,9 @@ The following `quantum algorithms <#quantum-algorithms>`__ are part of Aqua:
 -  :ref:`Iterative Quantum Phase Estimation (IQPE)`
 -  :ref:`Amplitude Estimation`
 -  :ref:`Quantum Grover Search`
+-  :ref:`Deutsch Jozsa`
+-  :ref:`Bernstein Vazirani`
+-  :ref:`Simon`
 -  :ref:`Support Vector Machine Quantum Kernel (QSVM Kernel)`
 -  :ref:`Support Vector Machine Variational (QSVM Variational)`
 -  :ref:`HHL algorithm for solving linear systems (HHL)`
@@ -493,35 +496,38 @@ Quantum Grover Search
 
 Grover’s Search is a well known quantum algorithm for searching through
 unstructured collections of records for particular targets with quadratic
-speedups.
+speedup compared to classical algorithms.
 
-Given a set :math:`X` of :math:`N` elements
-:math:`X=\{x_1,x_2,\ldots,x_N\}` and a boolean function :math:`f : X \rightarrow \{0,1\}`,
-the goal on an *unstructured-search problem* is to find an
-element :math:`x^* \in X` such that :math:`f(x^*)=1`.
-Unstructured  search  is  often  alternatively  formulated  as  a  database  search  problem, in
-which, given a database, the goal is to find in it an item that meets some specification.
-The search is called *unstructured* because there are no guarantees as to how the
-database is ordered.  On a sorted database, for instance, one could perform
-binary  search  to  find  an  element in :math:`\mathbb{O}(\log N)` worst-case time.
-Instead, in an unstructured-search problem, there is no  prior knowledge about the contents
-of the database.  With classical circuits, there is no alternative but
-to perform a linear number of queries to find the target element.
-Conversely, Grover’s Search algorithm allows to solve the unstructured-search problem
-on a quantum computer in :math:`\mathcal{O}(\sqrt{N})` queries. 
+Given a set :math:`X` of :math:`N` elements :math:`X=\{x_1,x_2,\ldots,x_N\}`
+and a boolean function :math:`f : X \rightarrow \{0,1\}`, the goal on an
+*unstructured-search problem* is to find an element :math:`x^* \in X` such
+that :math:`f(x^*)=1`.
+Unstructured search is often alternatively formulated as a database search
+problem, in which, given a database, the goal is to find in it an item that
+meets some specification.
+The search is called *unstructured* because there are no guarantees as to how
+the database is ordered.  On a sorted database, for instance, one could perform
+binary search to find an element in :math:`\mathbb{O}(\log N)` worst-case time.
+Instead, in an unstructured-search problem, there is no prior knowledge about
+the contents of the database. With classical circuits, there is no alternative
+but to perform a linear number of queries to find the target element. 
+Conversely, Grover’s Search algorithm allows to solve the unstructured-search
+problem on a quantum computer in :math:`\mathcal{O}(\sqrt{N})` queries.
 
-All that is needed for carrying out a search is an oracle from Aqua's :ref:`oracles` library for
-specifying the search criterion, which basically indicates a hit or miss
-for any given record.  More formally, an *oracle* :math:`O_f` is an object implementing a boolean function
-:math:`f` as specified above.  Given an input :math:`x \in X`, :math:`O_f` returns :math:`f(x)`.  The
-details of how :math:`O_f` works are unimportant; Grover's search algorithm treats an oracle as a black
-box.  Currently, Aqua provides the satisfiability (SAT) oracle
-implementation, which takes as input an SAT problem in
+All that is needed for carrying out a search is an Grover oracle from Aqua's
+:ref:`oracles` library for specifying the search criterion, which basically
+indicates a hit or miss for any given record.  More formally, an Grover
+*oracle* :math:`O_f` is an object implementing a boolean function
+:math:`f` as specified above.  Given an input :math:`x \in X`,
+:math:`O_f` returns :math:`f(x)`.  The details of how :math:`O_f` works are
+unimportant; Grover's search algorithm treats the oracle as a black box.
+Currently, Aqua provides the :ref:`sat`, which takes as input a SAT problem in
 `DIMACS CNF
 format <http://www.satcompetition.org/2009/format-benchmarks2009.html>`__
-and constructs the corresponding quantum circuit.  Oracles are treated as pluggable components
-in Aqua; researchers interested in :ref:`aqua-extending` can design and implement new
-oracles and extend Aqua's oracle library.
+and constructs the corresponding quantum circuit.  Grover oracles are treated
+as pluggable components in Aqua; researchers interested in
+:ref:`aqua-extending` can design and implement new Grover oracles and extend
+Aqua's Grover oracle library.
 
 Grover is configured with the following parameter settings:
 
@@ -531,8 +537,10 @@ Grover is configured with the following parameter settings:
 
        num_iterations = 1 | 2 | ...
 
-   For the conventional Grover's search algorithm, the parameter ``num_iterations`` is used to specify
-   how many times the marking and reflection phase sub-circuit is repeated to amplify the amplitude(s) of the target(s).
+   For the conventional Grover's search algorithm, the parameter
+   ``num_iterations`` is used to specify how many times the marking and
+   reflection phase sub-circuit is repeated to amplify the amplitude(s) of
+   the target(s).
    A positive ``int`` value is expected. The default value is ``1``.
 
 -  Incremental mode flag:
@@ -541,25 +549,100 @@ Grover is configured with the following parameter settings:
 
        incremental = False | True
 
-   When run in ``incremental`` mode,
-   the search task will be carried out in successive rounds,
-   using circuits built with incrementally higher number of iterations for the repetition of the amplitude amplification
-   until a target is found
-   or the maximal number :math:`\log N` (:math:`N` being the total number of elements in the set from the oracle used)
-   of iterations is reached.
-   The implementation follows Section 4 of `Boyer et al. <https://arxiv.org/abs/quant-ph/9605034>`__
+   When run in ``incremental`` mode, the search task will be carried out in
+   successive rounds, using circuits built with incrementally higher number
+   of iterations for the repetition of the amplitude amplification until a
+   target is found or the maximal number :math:`\log N` (:math:`N` being the
+   total number of elements in the set from the oracle used) of iterations is
+   reached.
+   The implementation follows Section 4 of
+   `Boyer et al. <https://arxiv.org/abs/quant-ph/9605034>`__
    The ``incremental`` boolean flag defaults to ``False``.
    When set ``True``, the other parameter ``num_iterations`` will be ignored.
 
 
 .. topic:: Declarative Name
 
-   When referring to Quantum Grover Search declaratively inside Aqua, its code ``name``, by which
-   Aqua dynamically discovers and loads it, is ``Grover``.
+   When referring to Quantum Grover Search declaratively inside Aqua, its code
+   ``name``, by which Aqua dynamically discovers and loads it, is ``Grover``.
 
 .. topic:: Problems Supported
 
    In Aqua, Grover's Search algorithm supports the ``search`` problem.
+
+.. _djalgorithm:
+
+^^^^^^^^^^^^^
+Deutsch-Jozsa
+^^^^^^^^^^^^^
+
+The Deutsch-Jozsa algorithm was one of the first known quantum algorithms that
+showed an exponential speedup compared to a deterministic (non-probabilistic)
+classical algorithm, given a black box oracle function.
+The algorithm determines whether the given function
+:math:`f:\{0,1\}^n \rightarrow \{0,1\}` is constant or balanced. A constant
+function maps all inputs to 0 or 1, and a balanced function maps half of its
+inputs to 0 and the other half to 1. The oracle implementation can be found
+at :ref:`djoracle`
+
+.. topic:: Declarative Name
+
+   When referring to Deutsch-Jozsa declaratively inside Aqua, its code
+   ``name``, by which Aqua dynamically discovers and loads it, is
+   ``DeutschJozsa``.
+
+.. topic:: Problems Supported
+
+   In Aqua, the Deutsch-Jozsa algorithm supports the ``functionevaluation``
+   problem.
+
+.. _bvalgorithm:
+
+^^^^^^^^^^^^^^^^^^
+Bernstein-Vazirani
+^^^^^^^^^^^^^^^^^^
+
+The Bernstein-Vazirani algorithm is an extension / restriction of the
+Deutsch-Jozsa algorithm. The goal of the algorithm is to determine a secret
+string :math:`s \in \{0,1\}^n`, given a black box oracle function
+that maps :math:`f:\{0,1\}^n \rightarrow \{0,1\}` such that
+:math:`f(x)=s \cdot x (\bmod 2)`. The oracle implementation can be found at
+:ref:`bvoracle`.
+
+.. topic:: Declarative Name
+
+   When referring to Bernstein-Vazirani declaratively inside Aqua, its code
+   ``name``, by which Aqua dynamically discovers and loads it, is
+   ``BernsteinVazirani``.
+
+.. topic:: Problems Supported
+
+   In Aqua, the Bernstein-Vazirani algorithm supports the
+   ``hiddenstringfinding`` problem.
+
+.. _simonalgorithm:
+
+^^^^^
+Simon
+^^^^^
+
+The Simon algorithm finds a hidden integer :math:`s \in \{0,1\}^n`
+from an oracle :math:`f_s` that satisfies :math:`f_s(x) = f_s(y)` if and only
+if :math:`y=x \oplus s` for all :math:`x \in \{0,1\}^n`. Thus, if
+:math:`s = 0\ldots 0`, i.e., the all-zero bitstring, then :math:`f_s` is a
+1-to-1 (or, permutation) function. Otherwise, if :math:`s \neq 0\ldots 0`,
+then :math:`f_s` is a 2-to-1 function. The oracle implementation can be found 
+at :ref:`simonoracle`.
+
+.. topic:: Declarative Name
+
+   When referring to Simon declaratively inside Aqua, its code ``name``,
+   by which Aqua dynamically discovers and loads it, is ``Simon``.
+
+.. topic:: Problems Supported
+
+   In Aqua, the Simon algorithm supports the ``periodfinding`` problem.
+
 
 .. _svm-q-kernel:
 

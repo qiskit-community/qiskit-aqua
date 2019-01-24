@@ -35,6 +35,7 @@ from .dataset_helper import (get_feature_dimension, get_num_classes,
 from .qpsolver import optimize_svm
 from .circuit_factory import CircuitFactory
 from .run_circuits import compile_and_run_circuits, find_regs_by_name
+from .circuit_cache import CircuitCache
 
 
 __all__ = ['tensorproduct',
@@ -64,4 +65,6 @@ __all__ = ['tensorproduct',
            'optimize_svm',
            'CircuitFactory',
            'compile_and_run_circuits',
-           'find_regs_by_name']
+           'find_regs_by_name',
+           'CircuitCache',
+           ]

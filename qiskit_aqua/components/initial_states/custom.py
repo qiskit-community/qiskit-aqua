@@ -15,7 +15,9 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit import QuantumRegister, QuantumCircuit
+from qiskit import QuantumRegister, QuantumCircuit, transpiler
+from qiskit.transpiler.passes import Unroller
+from qiskit.transpiler import PassManager
 from qiskit.circuit import CompositeGate
 from qiskit.extensions.standard.ry import RYGate
 from qiskit.extensions.standard.rz import RZGate
@@ -25,6 +27,7 @@ from qiskit.extensions.standard.u3 import U3Gate
 import numpy as np
 
 from qiskit_aqua.components.initial_states import InitialState
+from qiskit_aqua.utils.backend_utils import get_aer_backend
 
 
 class Custom(InitialState):
@@ -100,26 +103,13 @@ class Custom(InitialState):
         return vector / np.linalg.norm(vector)
 
     @staticmethod
-    def _convert_to_basis_gates(gates):
-        if isinstance(gates, list):
-            return [Custom._convert_to_basis_gates(gate) for gate in gates]
-        elif isinstance(gates, CompositeGate):
-            gates_data = [Custom._convert_to_basis_gates(
-                gate) for gate in gates.data]
-            gates = CompositeGate(gates.name, gates.param,
-                                  gates.qargs, circuit=gates.circuit)
-            gates.data = gates_data
-            return gates
-        else:
-            if isinstance(gates, RYGate):
-                return U3Gate(gates.param[0], 0, 0, gates.qargs[0])
-            elif isinstance(gates, RZGate):
-                return U1Gate(gates.param[0], gates.qargs[0])
-            elif isinstance(gates, CnotGate):
-                return gates
-            else:
-                raise RuntimeError(
-                    'Unexpected component {} from the initialization circuit.'.format(gates.qasm()))
+    def _convert_to_basis_gates(circuit):
+        # get the circuits from compiled circuit
+        unroller = Unroller(basis=['u1', 'u2', 'u3', 'cx', 'id'])
+        pm = PassManager(passes=[unroller])
+        qc = transpiler.transpile(circuit, get_aer_backend('qasm_simulator'),
+                                  pass_manager=pm)
+        return qc
 
     def construct_circuit(self, mode, register=None):
         """
@@ -154,7 +144,7 @@ class Custom(InitialState):
             if self._state is None or self._state == 'random':
                 circuit.initialize(self._state_vector, [
                                    register[i] for i in range(self._num_qubits)])
-                circuit.data = Custom._convert_to_basis_gates(circuit.data)
+                circuit = Custom._convert_to_basis_gates(circuit)
             elif self._state == 'zero':
                 pass
             elif self._state == 'uniform':

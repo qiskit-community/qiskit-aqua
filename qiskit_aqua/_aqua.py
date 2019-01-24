@@ -23,6 +23,7 @@ import logging
 
 from qiskit.providers import BaseBackend
 from qiskit.transpiler import PassManager
+from qiskit.qobj import RunConfig
 
 from qiskit_aqua.aqua_error import AquaError
 from qiskit_aqua._discover import (_discover_on_demand,
@@ -30,6 +31,7 @@ from qiskit_aqua._discover import (_discover_on_demand,
                                    PluggableType,
                                    get_pluggable_class)
 from qiskit_aqua.utils.jsonutils import convert_dict_to_json, convert_json_to_dict
+from qiskit_aqua.utils import CircuitCache
 from qiskit_aqua.parser._inputparser import InputParser
 from qiskit_aqua.parser import JSONSchema
 from qiskit_aqua import (QuantumInstance,
@@ -41,8 +43,9 @@ logger = logging.getLogger(__name__)
 
 def run_algorithm(params, algo_input=None, json_output=False, backend=None):
     """
-    Run algorithm as named in params, using params and algo_input as input data
-    and returning a result dictionary
+    Run algorithm as named in params.
+
+    Using params and algo_input as input data and returning a result dictionary
 
     Args:
         params (dict): Dictionary of params for algo and dependent objects
@@ -94,8 +97,6 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
     if backend_provider is not None and backend_name is not None:  # quantum algorithm
         backend_cfg = {k: v for k, v in inputparser.get_section(JSONSchema.BACKEND).items() if k not in [JSONSchema.PROVIDER, JSONSchema.NAME]}
         # TODO, how to build the noise model from a dictionary?
-        # backend_cfg.pop('noise_params', None)
-        backend_cfg['seed'] = random_seed
         backend_cfg['seed_mapper'] = random_seed
         pass_manager = PassManager() if backend_cfg.pop('skip_transpiler', False) else None
         if pass_manager is not None:
@@ -116,6 +117,23 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
         else:
             logger.warning("Change basis_gates and coupling_map on a real device is disallowed.")
 
+        shots = backend_cfg.pop('shots', 1024)
+        seed = random_seed
+        max_credits = backend_cfg.pop('max_credits', 10)
+        memory = backend_cfg.pop('memory', False)
+        run_config = RunConfig(shots=shots, max_credits=max_credits, memory=memory)
+        if seed is not None:
+            run_config.seed = seed
+        backend_cfg['run_config'] = run_config
+
+        backend_cfg['skip_qobj_validation'] = inputparser.get_section_property(JSONSchema.PROBLEM,
+                                                                               'skip_qobj_validation')
+        use_caching = inputparser.get_section_property(JSONSchema.PROBLEM, 'circuit_caching')
+        if use_caching:
+            deepcopy_qobj = inputparser.get_section_property(JSONSchema.PROBLEM, 'skip_qobj_deepcopy')
+            cache_file = inputparser.get_section_property(JSONSchema.PROBLEM, 'circuit_cache_file')
+            backend_cfg['circuit_cache'] = CircuitCache(skip_qobj_deepcopy=deepcopy_qobj, cache_file=cache_file)
+
         quantum_instance = QuantumInstance(**backend_cfg)
 
     value = algorithm.run(quantum_instance)
@@ -127,7 +145,9 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
 
 def run_algorithm_to_json(params, algo_input=None, jsonfile='algorithm.json'):
     """
-    Run algorithm as named in params, using params and algo_input as input data
+    Run algorithm as named in params.
+
+    Using params and algo_input as input data
     and save the combined input as a json file. This json is self-contained and
     can later be used as a basis to call run_algorithm
 
