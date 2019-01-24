@@ -166,17 +166,28 @@ you need to have some libraries, which can be installed in this way:
     pip install -r requirements.txt
     pip install -r requirements-dev.txt
 
-To install Qiskit Aqua locally, execute the following command from the `qiskit-aqua` root
-directory on your machine:
+To better contribute to Qiskit Aqua, we recommend that you clone the Qiskit Aqua repository
+and then install Qiskit Aqua from source.  This will give you the ability to inspect and extend
+the Aqua code more efficiently.  The version of Qiskit Aqua in the repository's ``master``
+branch is typically ahead of the version in the Python Package Index (PyPI) repository, and
+we strive to always keep Aqua in sync with the other Qiskit elements.  Therefore, it is crucial
+that all the Qiskit elements and relevant components are installed from source.  This can be
+correctly achieved by first uninstalling them from the Python environment in which you
+have Qiskit (if they were previously installed),
+using the ``pip uninstall`` command for each of them.  Next, after cloning the
+`Qiskit Terra <https://github.com/Qiskit/qiskit-terra>__`, `Qiskit Aer <https://github.com/Qiskit/qiskit-aer>__`
+`Qiskit IBMQ Provider <https://github.com/Qiskit/qiskit-ibmq-provider>`__ and
+`Qiskit Aqus <https://github.com/Qiskit/qiskit-aqua>`__ repositories, you can install them
+from source in the same Python environment by issuing the following command from the root
+directories of those repository clones: 
 
 .. code:: sh
 
     $ pip install -e .
 
-Installing Aqua will automatically install `Terra <https://github.com/Qiskit/qiskit-terra>`__
-as one of its dependencies.  We recommend that you also set up
-`Aer <https://github.com/Qiskit/qiskit-aer>`__ to get more advanced simulators.
-Refer to the installation instructions of both Terra and Aer for more details.
+exactly in the order specified above: Qiskit Terra, Qiskit Aer, Qiskit IBMQ Provider, and Qiskit Aqua.
+All the other dependencies will be installed automatically.  This process may have to be repeated often
+as the ``master`` branch of Aqua is updated frequently.
 
 Style guide
 ~~~~~~~~~~~
