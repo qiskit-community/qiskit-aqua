@@ -68,28 +68,33 @@ class QAOA(VQE):
             'additionalProperties': False
         },
         'problems': ['ising'],
-        'depends': ['optimizer'],
+        'depends': ['optimizer', 'initial_state'],
         'defaults': {
             'optimizer': {
                 'name': 'COBYLA'
             },
+            'initial_state': {
+                'name': 'ZERO'
+            }
         }
     }
 
-    def __init__(self, operator, optimizer, p=1, operator_mode='matrix', initial_point=None,
+    def __init__(self, operator, optimizer, p=1, initial_state=None, operator_mode='matrix', initial_point=None,
                  batch_mode=False, aux_operators=None):
         """
         Args:
             operator (Operator): Qubit operator
             operator_mode (str): operator mode, used for eval of operator
             p (int) : the integer parameter p as specified in https://arxiv.org/abs/1411.4028
+            initial_state (InitialState): the initial state to prepend the QAOA circuit with
             optimizer (Optimizer) : the classical optimization algorithm.
             initial_point (numpy.ndarray) : optimizer initial point.
         """
         self.validate(locals())
-        var_form = QAOAVarForm(operator, p)
+        var_form = QAOAVarForm(operator, p, initial_state=initial_state)
         super().__init__(operator, var_form, optimizer,
-                         operator_mode=operator_mode, initial_point=initial_point)
+                         operator_mode=operator_mode, initial_point=initial_point,
+                         batch_mode=batch_mode, aux_operators=aux_operators)
 
     @classmethod
     def init_params(cls, params, algo_input):
@@ -111,11 +116,16 @@ class QAOA(VQE):
         initial_point = qaoa_params.get('initial_point')
         batch_mode = qaoa_params.get('batch_mode')
 
+        init_state_params = params.get(QuantumAlgorithm.SECTION_KEY_INITIAL_STATE)
+        init_state_params['num_qubits'] = operator.num_qubits
+        init_state = get_pluggable_class(PluggableType.INITIAL_STATE,
+                                         init_state_params['name']).init_params(init_state_params)
+
         # Set up optimizer
         opt_params = params.get(QuantumAlgorithm.SECTION_KEY_OPTIMIZER)
         optimizer = get_pluggable_class(PluggableType.OPTIMIZER,
                                         opt_params['name']).init_params(opt_params)
 
-        return cls(operator, optimizer, p=p, operator_mode=operator_mode,
+        return cls(operator, optimizer, p=p, initial_state=init_state, operator_mode=operator_mode,
                    initial_point=initial_point, batch_mode=batch_mode,
                    aux_operators=algo_input.aux_ops)
