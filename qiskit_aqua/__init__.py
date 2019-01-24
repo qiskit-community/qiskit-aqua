@@ -38,7 +38,6 @@ from .pluggable import Pluggable
 from .utils.mct import mct
 from .utils.mcu3 import mcu3
 from .utils.subsystem import get_subsystem_density_matrix, get_subsystems_counts
-from .utils.cnx_no_anc import cnx_na
 from .utils.mcu1 import mcu1
 from .quantum_instance import QuantumInstance
 from .operator import Operator
