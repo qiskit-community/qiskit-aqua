@@ -168,17 +168,18 @@ you need to have some libraries, which can be installed in this way:
 
 To better contribute to Qiskit Aqua, we recommend that you clone the Qiskit Aqua repository
 and then install Qiskit Aqua from source.  This will give you the ability to inspect and extend
-the Aqua code more efficiently.  The version of Qiskit Aqua in the repository's ``master``
+the latest version of the Aqua code more efficiently.  The version of Qiskit Aqua in the repository's ``master``
 branch is typically ahead of the version in the Python Package Index (PyPI) repository, and
-we strive to always keep Aqua in sync with the other Qiskit elements.  Therefore, it is crucial
-that all the Qiskit elements and relevant components are installed from source.  This can be
+we strive to always keep Aqua in sync with the development versions of the Qiskit elements,
+each available in the ``master`` branch of the corresponding repository.  Therefore,
+all the Qiskit elements and relevant components should be installed from source.  This can be
 correctly achieved by first uninstalling them from the Python environment in which you
 have Qiskit (if they were previously installed),
 using the ``pip uninstall`` command for each of them.  Next, after cloning the
 `Qiskit Terra <https://github.com/Qiskit/qiskit-terra>`__, `Qiskit Aer <https://github.com/Qiskit/qiskit-aer>`__
 `Qiskit IBMQ Provider <https://github.com/Qiskit/qiskit-ibmq-provider>`__ and
 `Qiskit Aqua <https://github.com/Qiskit/qiskit-aqua>`__ repositories, you can install them
-from source in the same Python environment by issuing the following command from the root
+from source in the same Python environment by issuing the following command repeatedly, from each of the root
 directories of those repository clones: 
 
 .. code:: sh
