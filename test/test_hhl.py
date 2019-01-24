@@ -94,6 +94,40 @@ class TestHHL(QiskitAquaTestCase):
         self.log.debug('probability of result:     {}'.
                        format(result["probability_result"]))
 
+    @parameterized.expand([[[-1, 0]], [[0, -1]], [[-1, -1]]])
+    def test_hhl_diagonal_negative_sv(self, vector):
+        self.log.debug('Testing HHL simple test in mode Lookup with '
+                       'statevector simulator')
+
+        neg_params = self.params
+        matrix = [[1, 0], [0, 1]]
+        neg_params["input"] = {
+            "name": "LinearSystemInput",
+            "matrix": matrix,
+            "vector": vector
+        }
+        neg_params["eigs"]["negative_evals"] = "true"
+        neg_params["reciprocal"]["negative_evals"] = "true"
+        neg_params["eigs"]["num_ancillae"] = 4
+
+        # run hhl
+        result = run_algorithm(neg_params)
+        hhl_solution = result["solution_hhl"]
+        hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
+        # linear algebra solution
+        linalg_solution = np.linalg.solve(matrix, vector)
+        linalg_normed = linalg_solution/np.linalg.norm(linalg_solution)
+
+        # compare result
+        fidelity = abs(linalg_normed.dot(hhl_normed.conj()))**2
+        np.testing.assert_approx_equal(fidelity, 1, significant=5)
+
+        self.log.debug('HHL solution vector:       {}'.format(hhl_solution))
+        self.log.debug('algebraic solution vector: {}'.format(linalg_solution))
+        self.log.debug('fidelity HHL to algebraic: {}'.format(fidelity))
+        self.log.debug('probability of result:     {}'.
+                       format(result["probability_result"]))
+
     @parameterized.expand([[[0, 1]], [[1, 0]], [[1, 1]], [[1, 10]]])
     def test_hhl_diagonal_longdivison_sv(self, vector):
         self.log.debug('Testing HHL simple test in mode LongDivision and '
