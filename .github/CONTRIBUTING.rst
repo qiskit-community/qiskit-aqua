@@ -167,19 +167,30 @@ you need to have some libraries, which can be installed in this way:
     pip install -r requirements.txt
     pip install -r requirements-dev.txt
 
-To install Qiskit Chemistry locally, execute the following command from the `qiskit-chemistry` root
-directory on your machine:
+To better contribute to Qiskit Chemistry, we recommend that you clone the Qiskit Chemistry repository
+and then install Qiskit Chemistry from source.  This will give you the ability to inspect and extend
+the latest version of the Qiskit Chemistry code more efficiently.  The version of Qiskit Chemistry in the repository's ``master``
+branch is typically ahead of the version in the Python Package Index (PyPI) repository, and
+we strive to always keep Qiskit Chemistry in sync with the development versions of the Qiskit elements,
+each available in the ``master`` branch of the corresponding repository.  Therefore,
+all the Qiskit elements and relevant components should be installed from source.  This can be
+correctly achieved by first uninstalling them from the Python environment in which you
+have Qiskit (if they were previously installed),
+using the ``pip uninstall`` command for each of them.  Next, after cloning the
+`Qiskit Terra <https://github.com/Qiskit/qiskit-terra>`__, `Qiskit Aer <https://github.com/Qiskit/qiskit-aer>`__
+`Qiskit IBMQ Provider <https://github.com/Qiskit/qiskit-ibmq-provider>`__,
+`Qiskit Aqua <https://github.com/Qiskit/qiskit-aqua>`__, and
+`Qiskit Chemistry <https://github.com/Qiskit/qiskit-chemistry>`__ repositories, you can install them
+from source in the same Python environment by issuing the following command repeatedly, from each of the root
+directories of those repository clones: 
 
 .. code:: sh
 
     $ pip install -e .
 
-Installing Qiskit Chemistry will automatically install
-`Aqua <https://github.com/Qiskit/qiskit-aqua>`__ and
-`Terra <https://github.com/Qiskit/qiskit-terra>`__
-as two of its dependencies.  We recommend that you also set up
-`Aer <https://github.com/Qiskit/qiskit-aer>`__ to get more advanced simulators.
-Refer to the installation instructions of Aqua, Terra and Aer for more details.
+exactly in the order specified above: Qiskit Terra, Qiskit Aer, Qiskit IBMQ Provider, Qiskit Aqua, and Qiskit Chemistry.
+All the other dependencies will be installed automatically.  This process may have to be repeated often
+as the ``master`` branch of Qiskit Chemistry is updated frequently.
 
 To run chemistry experiments using Qiskit Chemistry, it is recommended that you to install a classical
 computation chemistry software program interfaced by Qiskit Chemistry.
