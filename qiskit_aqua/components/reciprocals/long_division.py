@@ -142,10 +142,10 @@ class LongDivision(Reciprocal):
             def u_maj(p, a, b, c, r):
                 p.ccx(c, r, b)
                 p.ccx(c, r, a)
-                p.cnx_na([r, a, b], c)
+                p.mct([r, a, b], c, None, mode='noancilla')
                 
             def u_uma(p, a, b, c, r):
-                p.cnx_na([r, a, b], c)
+                p.mct([r, a, b], c, None, mode='noancilla')
                 p.ccx(c,r, a)
                 p.ccx(a, r, b)
             

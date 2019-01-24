@@ -236,7 +236,7 @@ class LookupRotation(Reciprocal):
             elif fo_pos > 2:
                 for idx in range(fo_pos):
                     qc.x(ev[idx])
-                qc.cnx_na(ev[:fo_pos], msq[0])
+                qc.mct(ev[:fo_pos], msq[0], None, mode='noancilla')
                 for idx in range(fo_pos):
                     qc.x(ev[idx])
             else:
@@ -250,7 +250,7 @@ class LookupRotation(Reciprocal):
         elif fo_pos > 1:
             for idx in range(fo_pos):
                 qc.x(ev[idx])
-            qc.cnx_na(ev[:fo_pos + 1], msq[0])
+            qc.mct(ev[:fo_pos + 1], msq[0], None, mode='noancilla')
             for idx in range(fo_pos):
                 qc.x(ev[idx])
         else:
@@ -272,7 +272,7 @@ class LookupRotation(Reciprocal):
         if len(pattern) > 2:
             temp_reg = [self._ev[i]
                         for i in range(offset, offset+len(pattern))]
-            qc.cnx_na(temp_reg, tgt)
+            qc.mct(temp_reg, tgt, None, mode='noancilla')
         elif len(pattern) == 2:
             qc.ccx(self._ev[offset], self._ev[offset + 1], tgt)
         elif len(pattern) == 1:
@@ -371,12 +371,12 @@ class LookupRotation(Reciprocal):
                     # 1. rotate by half angle
                     qc.mcu3(theta / 2, 0, 0, [self._workq[0], self._msq[0]],
                             self._anc[0])
-                    # 2. cnx_na gate to reverse rotation direction
+                    # 2. mct gate to reverse rotation direction
                     self._set_bit_pattern(subpattern, self._anc[0], offset)
                     # 3. rotate by inverse of halfangle to uncompute / complete
                     qc.mcu3(-theta / 2, 0, 0, [self._workq[0], self._msq[0]],
                             self._anc[0])
-                    # 4. cnx_na gate to uncompute first cnx_na gate
+                    # 4. mct gate to uncompute first mct gate
                     self._set_bit_pattern(subpattern, self._anc[0], offset)
                 # uncompute m-bit pattern
                 self._set_bit_pattern(mainpat, self._workq[0], offset_mpat + 1)
