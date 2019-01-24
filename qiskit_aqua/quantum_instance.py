@@ -148,7 +148,7 @@ class QuantumInstance:
             self._run_config, self._qjob_config, self._backend_options, self._noise_config)
         return info
 
-    def execute(self, circuits):
+    def execute(self, circuits, **kwargs):
         """
         A wrapper to interface with quantum backend.
 
@@ -166,7 +166,7 @@ class QuantumInstance:
                                           show_circuit_summary=self._circuit_summary,
                                           has_shared_circuits=self._shared_circuits,
                                           circuit_cache=self._circuit_cache,
-                                          skip_qobj_validation=self._skip_qobj_validation)
+                                          skip_qobj_validation=self._skip_qobj_validation, **kwargs)
         if self._circuit_summary:
             self._circuit_summary = False
 

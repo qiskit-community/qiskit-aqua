@@ -308,6 +308,18 @@ class Operator(object):
         """Setter of method of grouping paulis"""
         self._coloring = new_coloring
 
+    @property
+    def aer_paulis(self):
+        if getattr(self, '_aer_paulis', None) is None:
+            self.to_paulis()
+            aer_paulis = []
+            for coeff, p in self._paulis:
+                new_coeff = [coeff.real, coeff.imag]
+                new_p = p.to_label()
+                aer_paulis.append([new_coeff, new_p])
+            self._aer_paulis = aer_paulis
+        return self._aer_paulis
+
     def _to_dia_matrix(self, mode):
         """
         Convert the reprenetations into diagonal matrix if possible and then store it back.
@@ -539,7 +551,7 @@ class Operator(object):
             raise ValueError('Mode should be one of "matrix", "paulis", "grouped_paulis"')
         return ret
 
-    def construct_evaluation_circuit(self, operator_mode, input_circuit, backend):
+    def construct_evaluation_circuit(self, operator_mode, input_circuit, backend, has_aer=False):
         """
         Construct the circuits for evaluation.
 
@@ -547,6 +559,8 @@ class Operator(object):
             operator_mode (str): representation of operator, including paulis, grouped_paulis and matrix
             input_circuit (QuantumCircuit): the quantum circuit.
             backend (BaseBackend): backend selection for quantum machine.
+            has_aer (bool): if aer_provider is available, we can do faster
+                                     evaluation for pauli mode on statevector simualtion
 
         Returns:
             [QuantumCircuit]: the circuits for evaluation.
@@ -556,21 +570,24 @@ class Operator(object):
                 circuits = [input_circuit]
             else:
                 self._check_representation("paulis")
-                n_qubits = self.num_qubits
-                q = find_regs_by_name(input_circuit, 'q')
-                circuits = [input_circuit]
-                for idx, pauli in enumerate(self._paulis):
-                    circuit = QuantumCircuit() + input_circuit
-                    if np.all(np.logical_not(pauli[1].z)) and np.all(np.logical_not(pauli[1].x)):  # all I
-                        continue
-                    for qubit_idx in range(n_qubits):
-                        if not pauli[1].z[qubit_idx] and pauli[1].x[qubit_idx]:
-                            circuit.u3(np.pi, 0.0, np.pi, q[qubit_idx])  # x
-                        elif pauli[1].z[qubit_idx] and not pauli[1].x[qubit_idx]:
-                            circuit.u1(np.pi, q[qubit_idx])  # z
-                        elif pauli[1].z[qubit_idx] and pauli[1].x[qubit_idx]:
-                            circuit.u3(np.pi, np.pi/2, np.pi/2, q[qubit_idx])  # y
-                    circuits.append(circuit)
+                if has_aer:
+                    circuits = [input_circuit]
+                else:
+                    n_qubits = self.num_qubits
+                    q = find_regs_by_name(input_circuit, 'q')
+                    circuits = [input_circuit]
+                    for idx, pauli in enumerate(self._paulis):
+                        circuit = QuantumCircuit() + input_circuit
+                        if np.all(np.logical_not(pauli[1].z)) and np.all(np.logical_not(pauli[1].x)):  # all I
+                            continue
+                        for qubit_idx in range(n_qubits):
+                            if not pauli[1].z[qubit_idx] and pauli[1].x[qubit_idx]:
+                                circuit.u3(np.pi, 0.0, np.pi, q[qubit_idx])  # x
+                            elif pauli[1].z[qubit_idx] and not pauli[1].x[qubit_idx]:
+                                circuit.u1(np.pi, q[qubit_idx])  # z
+                            elif pauli[1].z[qubit_idx] and pauli[1].x[qubit_idx]:
+                                circuit.u3(np.pi, np.pi/2, np.pi/2, q[qubit_idx])  # y
+                        circuits.append(circuit)
         else:
             if operator_mode == 'matrix':
                 raise AquaError("matrix mode can not be used with non-statevector simulator.")
@@ -624,16 +641,17 @@ class Operator(object):
                     circuits.append(circuit)
         return circuits
 
-    def evaluate_with_result(self, operator_mode, circuits, backend, result):
+    def evaluate_with_result(self, operator_mode, circuits, backend, result, has_aer):
         """
         Use the executed result with operator to get the evaluated value.
 
         Args:
             operator_mode (str): representation of operator, including paulis, grouped_paulis and matrix
-            circuits ([QuantumCircuit]): the quantum circuits.
+            circuits (list of qiskit.QuantumCircuit): the quantum circuits.
             backend (str): backend selection for quantum machine.
             result (Result): the result from the backend.
-
+            has_aer (bool): if aer_provider is available, we can do faster
+                            evaluation for pauli mode on statevector simualtion
         Returns:
             float: the mean value
             float: the standard deviation
@@ -651,15 +669,19 @@ class Operator(object):
                     avg = np.vdot(quantum_state, self._matrix.dot(quantum_state))
             else:
                 self._check_representation("paulis")
-                quantum_state = np.asarray(result.get_statevector(circuits[0], decimals=16))
-                circuit_idx = 1
-                for idx, pauli in enumerate(self._paulis):
-                    if np.all(np.logical_not(pauli[1].z)) and np.all(np.logical_not(pauli[1].x)):
-                        avg += pauli[0]
-                    else:
-                        quantum_state_i = np.asarray(result.get_statevector(circuits[circuit_idx], decimals=16))
-                        avg += pauli[0] * (np.vdot(quantum_state, quantum_state_i))
-                        circuit_idx += 1
+                if has_aer:
+                    temp = result.data(circuits[0])['snapshots']['expectation_value']['test'][0]['value']
+                    avg = temp[0] + 1j * temp[1]
+                else:
+                    quantum_state = np.asarray(result.get_statevector(circuits[0], decimals=16))
+                    circuit_idx = 1
+                    for idx, pauli in enumerate(self._paulis):
+                        if np.all(np.logical_not(pauli[1].z)) and np.all(np.logical_not(pauli[1].x)):
+                            avg += pauli[0]
+                        else:
+                            quantum_state_i = np.asarray(result.get_statevector(circuits[circuit_idx], decimals=16))
+                            avg += pauli[0] * (np.vdot(quantum_state, quantum_state_i))
+                            circuit_idx += 1
         else:
             cpu_count = psutil.cpu_count()
             num_shots = sum(list(result.get_counts(circuits[0]).values()))
@@ -731,45 +753,6 @@ class Operator(object):
         else:
             avg = np.vdot(quantum_state, self._matrix.dot(quantum_state))
         return avg
-
-    def prepare_aer_paulis(self):
-
-        if getattr(self, '_aer_paulis', None) is None:
-            self.to_paulis()
-            pauli_params = []
-            for coeff, p in self._paulis:
-                new_coeff = [coeff.real, coeff.imag]
-                new_p = p.to_label()
-                pauli_params.append([new_coeff, new_p])
-            self._aer_paulis = pauli_params
-        return self._aer_paulis
-
-    def evaluate_with_expectation(self, input_circuit, backend, backend_config=None,
-                                  compile_config=None, run_config=None, qjob_config=None,
-                                  noise_config=None):
-
-        if not isinstance(input_circuit, list):
-            input_circuit = [input_circuit]
-
-        # prepare pauli list
-        backend_config = backend_config or {}
-        compile_config = compile_config or {}
-        run_config = run_config or {}
-        qjob_config = qjob_config or {}
-        noise_config = noise_config or {}
-
-        pauli_params = self.prepare_aer_paulis()
-        result = compile_and_run_circuits(input_circuit, backend=backend, backend_config=backend_config,
-                                          compile_config=compile_config, run_config=run_config,
-                                          qjob_config=qjob_config, noise_config=noise_config,
-                                          expectation={'params': pauli_params, 'num_qubits': self.num_qubits})
-
-        temp = [result.data(input_circuit[i])['snapshots']['expectation_value']['test'][0]['value']
-                for i in range(len(input_circuit))]
-        avg = [x[0] + 1j * x[1] for x in temp]
-        std = [0.0] * len(avg)
-
-        return avg, std
 
     def eval(self, operator_mode, input_circuit, backend, backend_config=None, compile_config=None,
              run_config=None, qjob_config=None, noise_config=None):

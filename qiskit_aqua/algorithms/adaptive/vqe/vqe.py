@@ -25,6 +25,12 @@ import functools
 
 import numpy as np
 from qiskit import ClassicalRegister
+try:
+    import qiskit.providers.aer
+    HAS_AER = True
+except ImportError:
+    HAS_AER = False
+    pass
 
 from qiskit_aqua.algorithms import QuantumAlgorithm
 from qiskit_aqua import AquaError, PluggableType, get_pluggable_class
@@ -52,7 +58,7 @@ class VQE(QuantumAlgorithm):
                     'type': 'string',
                     'default': 'matrix',
                     'oneOf': [
-                        {'enum': ['matrix', 'paulis', 'grouped_paulis', 'special']}
+                        {'enum': ['matrix', 'paulis', 'grouped_paulis']}
                     ]
                 },
                 'initial_point': {
@@ -89,13 +95,13 @@ class VQE(QuantumAlgorithm):
         """Constructor.
 
         Args:
-            operator (Operator): Qubit operator
+            operator (qiskit_aqua.Operator): Qubit operator
             operator_mode (str): operator mode, used for eval of operator
-            var_form (VariationalForm): parametrized variational form.
-            optimizer (Optimizer): the classical optimization algorithm.
+            var_form (qiskit_aqua.components.variational_forms.VariationalForm): parametrized variational form.
+            optimizer (qiskit_aqua.components.optimizers.Optimizer): the classical optimization algorithm.
             initial_point (numpy.ndarray): optimizer initial point.
-            batch_mode (boolean): evaluate parameter sets in parallel.
-            aux_operators ([Operator]): Auxiliary operators to be evaluated at each eigenvalue
+            batch_mode (bool): evaluate parameter sets in parallel.
+            aux_operators (list of qiskit_aqua.Operator): Auxiliary operators to be evaluated at each eigenvalue
         """
         self.validate(locals())
         super().__init__()
@@ -114,7 +120,6 @@ class VQE(QuantumAlgorithm):
         self._ret = {}
         self._eval_count = 0
         self._eval_time = 0
-        self._directly_exp_eval = True if operator_mode == 'special' else False
         logger.info(self.print_setting())
 
     @classmethod
@@ -215,7 +220,7 @@ class VQE(QuantumAlgorithm):
                 self._operator_mode, temp_backend_name)
             logger.warning(warning_msg)
         circuit = self._operator.construct_evaluation_circuit(self._operator_mode,
-                                                              input_circuit, backend)
+                                                              input_circuit, backend, HAS_AER)
         return circuit
 
     def _solve(self):
@@ -291,41 +296,36 @@ class VQE(QuantumAlgorithm):
             parameters (numpy.ndarray): parameters for variational form.
 
         Returns:
-            float or [float]: energy of the hamiltonian of each parameter.
+            float or list of float: energy of the hamiltonian of each parameter.
         """
         num_parameter_sets = len(parameters) // self._var_form.num_parameters
         circuits = []
         parameter_sets = np.split(parameters, num_parameter_sets)
         mean_energy = []
         std_energy = []
-        if self._directly_exp_eval:
-            circuits = [self._var_form.construct_circuit(parameter) for parameter in parameter_sets]
-            mean_temp, std_temp = self._operator.evaluate_with_expectation(circuits, self._quantum_instance.backend,
-                                                                           self._quantum_instance.backend_config,
-                                                                           self._quantum_instance.compile_config,
-                                                                           self._quantum_instance.run_config,
-                                                                           self._quantum_instance.qjob_config,
-                                                                           self._quantum_instance.noise_config)
-            for mean, std in zip(mean_temp, std_temp):
-                mean_energy.append(np.real(mean))
-                std_energy.append(np.real(std))
-                self._eval_count += 1
-                logger.info('Energy evaluation {} returned {}'.format(self._eval_count, np.real(mean)))
-        else:
-            for idx in range(len(parameter_sets)):
-                parameter = parameter_sets[idx]
-                circuit = self.construct_circuit(parameter, self._quantum_instance.backend)
-                circuits.append(circuit)
 
-            to_be_simulated_circuits = functools.reduce(lambda x, y: x + y, circuits)
-            result = self._quantum_instance.execute(to_be_simulated_circuits)
-            for idx in range(len(parameter_sets)):
-                mean, std = self._operator.evaluate_with_result(
-                    self._operator_mode, circuits[idx], self._quantum_instance.backend, result)
-                mean_energy.append(np.real(mean))
-                std_energy.append(np.real(std))
-                self._eval_count += 1
-                logger.info('Energy evaluation {} returned {}'.format(self._eval_count, np.real(mean)))
+        for idx in range(len(parameter_sets)):
+            parameter = parameter_sets[idx]
+            circuit = self.construct_circuit(parameter, self._quantum_instance.backend)
+            circuits.append(circuit)
+
+        to_be_simulated_circuits = functools.reduce(lambda x, y: x + y, circuits)
+        if HAS_AER:
+            extra_args = {'expectation': {
+                'params': self._operator.aer_paulis,
+                'num_qubits': self._operator.num_qubits}
+            }
+        else:
+            extra_args = {}
+        result = self._quantum_instance.execute(to_be_simulated_circuits, **extra_args)
+
+        for idx in range(len(parameter_sets)):
+            mean, std = self._operator.evaluate_with_result(
+                self._operator_mode, circuits[idx], self._quantum_instance.backend, result, HAS_AER)
+            mean_energy.append(np.real(mean))
+            std_energy.append(np.real(std))
+            self._eval_count += 1
+            logger.info('Energy evaluation {} returned {}'.format(self._eval_count, np.real(mean)))
 
         return mean_energy if len(mean_energy) > 1 else mean_energy[0]
 
