@@ -129,10 +129,10 @@ class PySCFDriver(BaseDriver):
         Returns:
             Driver: Driver object
         """
-        if 'properties' not in section or len(section['properties']) == 0:
-            raise QiskitChemistryError('Missing or empty properties section')
+        if section is None or not isinstance(section, dict):
+            raise QiskitChemistryError('Invalid or missing section {}'.format(section))
 
-        params = section['properties']
+        params = section
         kwargs = {}
         for k, v in params.items():
             if k == 'unit':

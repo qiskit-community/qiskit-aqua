@@ -184,13 +184,13 @@ class QiskitChemistry(object):
                 p.set_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER, get_provider_from_backend(backend_name))
 
         p.validate_merge_defaults()
-        # logger.debug('ALgorithm Input Schema: {}'.format(json.dumps(p.to_JSON(), sort_keys=True, indent=4)))
+        # logger.debug('ALgorithm Input Schema: {}'.format(json.dumps(p..get_sections(), sort_keys=True, indent=4)))
 
         experiment_name = "-- no &NAME section found --"
         if JSONSchema.NAME in p.get_section_names():
             name_sect = p.get_section(JSONSchema.NAME)
-            if 'data' in name_sect:
-                experiment_name = name_sect['data']
+            if name_sect is not None:
+                experiment_name = str(name_sect)
         logger.info('Running chemistry problem from input file: {}'.format(p.get_filename()))
         logger.info('Experiment description: {}'.format(experiment_name.rstrip()))
 
@@ -200,10 +200,6 @@ class QiskitChemistry(object):
 
         hdf5_file = p.get_section_property(InputParser.DRIVER, QiskitChemistry.KEY_HDF5_OUTPUT)
 
-        section = p.get_section(driver_name)
-        if 'data' not in section:
-            raise QiskitChemistryError('Property "data" missing in section "{0}"'.format(driver_name))
-
         if driver_name not in local_drivers():
             raise QiskitChemistryError('Driver "{0}" missing in local drivers'.format(driver_name))
 
@@ -212,6 +208,7 @@ class QiskitChemistry(object):
         if input_file is not None:
             work_path = os.path.dirname(os.path.realpath(input_file))
 
+        section = p.get_section(driver_name)
         driver = get_driver_class(driver_name).init_from_input(section)
         driver.work_path = work_path
         molecule = driver.run()
@@ -223,7 +220,7 @@ class QiskitChemistry(object):
 
         if hdf5_file is not None:
             molecule._origin_driver_name = driver_name
-            molecule._origin_driver_config = section['data']
+            molecule._origin_driver_config = section if isinstance(section, str) else json.dumps(section, sort_keys=True, indent=4)
             molecule.save(hdf5_file)
             text = "HDF5 file saved '{}'".format(hdf5_file)
             logger.info(text)
@@ -246,12 +243,11 @@ class QiskitChemistry(object):
                section_name == InputParser.DRIVER or \
                section_name == driver_name.lower() or \
                section_name == InputParser.OPERATOR or \
-               'properties' not in section:
+               not isinstance(section, dict):
                 continue
 
-            params[section_name] = copy.deepcopy(section['properties'])
-            if JSONSchema.PROBLEM == section_name and \
-                    InputParser.AUTO_SUBSTITUTIONS in params[section_name]:
+            params[section_name] = copy.deepcopy(section)
+            if JSONSchema.PROBLEM == section_name and InputParser.AUTO_SUBSTITUTIONS in params[section_name]:
                 del params[section_name][InputParser.AUTO_SUBSTITUTIONS]
 
         return QiskitChemistry._DRIVER_RUN_TO_ALGO_INPUT, params, input_object

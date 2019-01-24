@@ -76,10 +76,10 @@ class PSI4Driver(BaseDriver):
         Returns:
             Driver: Driver object
         """
-        if 'data' not in section:
-            raise QiskitChemistryError('Missing data section')
+        if not isinstance(section, str):
+            raise QiskitChemistryError('Invalid or missing section {}'.format(section))
 
-        kwargs = {'config': section['data']}
+        kwargs = {'config': section}
         logger.debug('init_from_input: {}'.format(kwargs))
         return cls(**kwargs)
 

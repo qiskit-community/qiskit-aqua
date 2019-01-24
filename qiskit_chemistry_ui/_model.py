@@ -49,7 +49,7 @@ class Model(object):
 
         self._register_ibmq_and_get_known_providers = register_ibmq_and_get_known_providers
         self._backendsthread = threading.Thread(target=self._get_available_providers,
-                                                name='Aqua Chemistry available providers')
+                                                name='Available providers')
         self._backendsthread.daemon = True
         self._backendsthread.start()
 
@@ -135,18 +135,6 @@ class Model(object):
 
         self._parser.save_to_file(filename)
 
-    def get_dictionary(self):
-        if self.is_empty():
-            raise Exception("Empty input data.")
-
-        return self._parser.to_dictionary()
-
-    def export_dictionary(self, filename):
-        if self.is_empty():
-            raise Exception("Empty input data.")
-
-        self._parser.export_dictionary(filename)
-
     def get_section_names(self):
         if self._parser is None:
             return []
@@ -165,17 +153,14 @@ class Model(object):
 
         return self._parser.section_is_text(section_name)
 
+    def get_section(self, section_name):
+        return self._parser.get_section(section_name) if self._parser is not None else None
+
     def get_section_text(self, section_name):
         if self._parser is None:
             return ''
 
         return self._parser.get_section_text(section_name)
-
-    def get_section_data(self, section_name):
-        if self._parser is None:
-            return None
-
-        return self._parser.get_section_data(section_name)
 
     def get_section_properties(self, section_name):
         if self._parser is None:
@@ -197,7 +182,7 @@ class Model(object):
     def default_properties_equals_properties(self, section_name):
         from qiskit_aqua.parser import JSONSchema
         if self.section_is_text(section_name):
-            return self.get_section_default_properties(section_name) == self.get_section_data(section_name)
+            return self.get_section_default_properties(section_name) == self._parser.get_section_text(section_name)
 
         default_properties = self.get_section_default_properties(section_name)
         properties = self.get_section_properties(section_name)
@@ -227,9 +212,6 @@ class Model(object):
             return None
 
         return self._parser.get_section_property(section_name, property_name)
-
-    def get_section(self, section_name):
-        return self._parser.get_section(section_name) if self._parser is not None else None
 
     def set_section(self, section_name):
         if self._parser is None:
@@ -291,8 +273,8 @@ class Model(object):
         return InputParser.is_pluggable_section(section_name)
 
     def get_operator_section_names(self):
-        from qiskit_aqua.parser import JSONSchema
         from qiskit_chemistry.parser import InputParser
+        from qiskit_aqua.parser import JSONSchema
         from qiskit_chemistry.core import local_chemistry_operators
         problem_name = None
         if self._parser is not None:
@@ -312,9 +294,9 @@ class Model(object):
         return operator_names
 
     def get_pluggable_section_names(self, section_name):
-        from qiskit_aqua.parser import JSONSchema
-        from qiskit_aqua import PluggableType, local_pluggables
         from qiskit_chemistry.parser import InputParser
+        from qiskit_aqua import PluggableType, local_pluggables
+        from qiskit_aqua.parser import JSONSchema
         if not Model.is_pluggable_section(section_name):
             return []
 
@@ -375,8 +357,8 @@ class Model(object):
         return self._parser.get_property_types(section_name, property_name)
 
     def set_section_property(self, section_name, property_name, value):
-        from qiskit_aqua.parser import JSONSchema
         from qiskit_chemistry.parser import InputParser
+        from qiskit_aqua.parser import JSONSchema
         from qiskit_aqua import get_backends_from_provider
         if self._parser is None:
             raise Exception('Input not initialized.')
@@ -398,8 +380,8 @@ class Model(object):
             self._parser.set_section_property(section_name, JSONSchema.NAME, backend)
 
     def delete_section_property(self, section_name, property_name):
-        from qiskit_aqua.parser import JSONSchema
         from qiskit_chemistry.parser import InputParser
+        from qiskit_aqua.parser import JSONSchema
         if self._parser is None:
             raise Exception('Input not initialized.')
 
@@ -420,3 +402,15 @@ class Model(object):
             raise Exception('Input not initialized.')
 
         self._parser.delete_section_text(section_name)
+
+    def get_dictionary(self):
+        if self.is_empty():
+            raise Exception("Empty input data.")
+
+        return self._parser.to_dictionary()
+
+    def export_dictionary(self, filename):
+        if self.is_empty():
+            raise Exception("Empty input data.")
+
+        self._parser.export_dictionary(filename)

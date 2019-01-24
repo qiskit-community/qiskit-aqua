@@ -404,7 +404,7 @@ class Controller(object):
         if InputParser.OPERATOR == section_name and JSONSchema.NAME == property_name:
             values = self.model.get_operator_section_names()
         elif InputParser.DRIVER == section_name and JSONSchema.NAME == property_name:
-            values = local_drivers
+            values = local_drivers()
         elif JSONSchema.NAME == property_name and Model.is_pluggable_section(section_name):
             values = self.model.get_pluggable_section_names(section_name)
         elif JSONSchema.BACKEND == section_name and \

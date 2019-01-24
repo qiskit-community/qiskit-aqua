@@ -47,7 +47,7 @@ class TestInputParser(QiskitAquaChemistryTestCase):
         self.assertEqual(dict1, dict2)
 
     def test_load_from_dict(self):
-        json_dict = self.parser.to_JSON()
+        json_dict = self.parser.get_sections()
 
         p = InputParser(json_dict)
         p.parse()
@@ -56,7 +56,7 @@ class TestInputParser(QiskitAquaChemistryTestCase):
         self.assertEqual(dict1, dict2)
 
     def test_is_modified(self):
-        json_dict = self.parser.to_JSON()
+        json_dict = self.parser.get_sections()
 
         p = InputParser(json_dict)
         p.parse()
@@ -65,7 +65,7 @@ class TestInputParser(QiskitAquaChemistryTestCase):
         self.assertEqual(p.get_section_property('optimizer', 'maxfun'), 1002)
 
     def test_validate(self):
-        json_dict = self.parser.to_JSON()
+        json_dict = self.parser.get_sections()
 
         p = InputParser(json_dict)
         p.parse()

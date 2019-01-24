@@ -86,10 +86,10 @@ class GaussianDriver(BaseDriver):
         Returns:
             Driver: Driver object
         """
-        if 'data' not in section:
-            raise QiskitChemistryError('Missing data section')
+        if not isinstance(section, str):
+            raise QiskitChemistryError('Invalid or missing section {}'.format(section))
 
-        kwargs = {'config': section['data']}
+        kwargs = {'config': section}
         logger.debug('init_from_input: {}'.format(kwargs))
         return cls(**kwargs)
 
@@ -101,7 +101,7 @@ class GaussianDriver(BaseDriver):
         logger.debug("User supplied configuration raw: '{}'".format(cfg.replace('\r', '\\r').replace('\n', '\\n')))
         logger.debug('User supplied configuration\n{}'.format(cfg))
 
-        # To the Gaussian section of the input file passed here as section['data']
+        # To the Gaussian section of the input file passed here as section string
         # add line '# Symm=NoInt output=(matrix,i4labels,mo2el) tran=full'
         # NB: Line above needs to be added in right context, i.e after any lines
         #     beginning with % along with any others that start with #
