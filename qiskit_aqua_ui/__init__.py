@@ -16,12 +16,16 @@
 # =============================================================================
 
 from .guiprovider import GUIProvider
+from .run.base_controller import BaseController
+from .run.base_model import BaseModel
 from .run._customwidgets import (EntryPopup, ComboboxPopup, TextPopup)
 from .run._sectionsview import SectionsView
 from .run._sectionpropertiesview import SectionPropertiesView
 from .run._mainview import MainView
 
 __all__ = ['GUIProvider',
+           'BaseController',
+           'BaseModel',
            'EntryPopup',
            'ComboboxPopup',
            'TextPopup',
