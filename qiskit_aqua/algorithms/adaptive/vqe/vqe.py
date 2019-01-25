@@ -90,13 +90,13 @@ class VQE(QuantumAlgorithm):
         """Constructor.
 
         Args:
-            operator (qiskit_aqua.Operator): Qubit operator
+            operator (Operator): Qubit operator
             operator_mode (str): operator mode, used for eval of operator
-            var_form (qiskit_aqua.components.variational_forms.VariationalForm): parametrized variational form.
-            optimizer (qiskit_aqua.components.optimizers.Optimizer): the classical optimization algorithm.
+            var_form (VariationalForm): parametrized variational form.
+            optimizer (Optimizer): the classical optimization algorithm.
             initial_point (numpy.ndarray): optimizer initial point.
             batch_mode (bool): evaluate parameter sets in parallel.
-            aux_operators (list of qiskit_aqua.Operator): Auxiliary operators to be evaluated at each eigenvalue
+            aux_operators (list of Operator): Auxiliary operators to be evaluated at each eigenvalue
         """
         self.validate(locals())
         super().__init__()
