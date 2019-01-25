@@ -24,7 +24,7 @@ import logging
 import functools
 
 import numpy as np
-from qiskit import ClassicalRegister
+from qiskit import ClassicalRegister, QuantumCircuit
 
 from qiskit_aqua.algorithms import QuantumAlgorithm
 from qiskit_aqua import AquaError, PluggableType, get_pluggable_class
@@ -192,13 +192,13 @@ class VQE(QuantumAlgorithm):
         ret += "===============================================================\n"
         return ret
 
-    def construct_circuit(self, parameter, backend=None, is_aer=False):
+    def construct_circuit(self, parameter, backend=None, use_simulator_operator_mode=False):
         """Generate the circuits.
 
         Args:
             parameters (numpy.ndarray): parameters for variational form.
             backend (qiskit.BaseBackend): backend object.
-            is_aer (bool): is backend from AerProvider, if True and mode is paulis,
+            use_simulator_operator_mode (bool): is backend from AerProvider, if True and mode is paulis,
                            single circuit is generated.
 
         Returns:
@@ -217,7 +217,7 @@ class VQE(QuantumAlgorithm):
                 self._operator_mode, temp_backend_name)
             logger.warning(warning_msg)
         circuit = self._operator.construct_evaluation_circuit(self._operator_mode,
-                                                              input_circuit, backend, is_aer)
+                                                              input_circuit, backend, use_simulator_operator_mode)
         return circuit
 
     def _solve(self):
@@ -227,7 +227,7 @@ class VQE(QuantumAlgorithm):
         qc = self._var_form.construct_circuit(self._ret['opt_params'])
         if self._quantum_instance.is_statevector:
             ret = self._quantum_instance.execute(qc)
-            self._ret['eigvecs'] = np.asarray([ret.get_statevector(qc, decimals=16)])
+            self._ret['eigvecs'] = np.asarray([ret.get_statevector(qc)])
         else:
             c = ClassicalRegister(self._operator.num_qubits, name='c')
             q = find_regs_by_name(qc, 'q')
@@ -246,17 +246,40 @@ class VQE(QuantumAlgorithm):
         if 'opt_params' not in self._ret:
             self._get_ground_state_energy()
         wavefn_circuit = self._var_form.construct_circuit(self._ret['opt_params'])
-        values = []
+        circuits = []
+        params = []
         for operator in self._aux_operators:
-            mean, std = 0.0, 0.0
             if not operator.is_empty():
-                circuit = operator.construct_evaluation_circuit(self._operator_mode,
-                                                                wavefn_circuit, self._quantum_instance.backend)
-                result = self._quantum_instance.execute(circuit)
+                temp_circuit = QuantumCircuit() + wavefn_circuit
+                circuit = operator.construct_evaluation_circuit(self._operator_mode, temp_circuit,
+                                                                self._quantum_instance.backend,
+                                                                self._use_simulator_operator_mode)
+                params.append(operator.aer_paulis)
+            else:
+                circuit = None
+            circuits.append(circuit)
+
+        to_be_simulated_circuits = functools.reduce(lambda x, y: x + y, [c for c in circuits if c is not None])
+        if self._use_simulator_operator_mode:
+            extra_args = {'expectation': {
+                'params': params,
+                'num_qubits': self._operator.num_qubits}
+            }
+        else:
+            extra_args = {}
+        result = self._quantum_instance.execute(to_be_simulated_circuits, **extra_args)
+
+        values = []
+        for operator, circuit in zip(self._aux_operators, circuits):
+            if circuit is None:
+                mean, std = 0.0, 0.0
+            else:
                 mean, std = operator.evaluate_with_result(self._operator_mode,
-                                                          circuit, self._quantum_instance.backend, result)
-                mean = mean.real if abs(mean.real) > threshold else 0.0
-                std = std.real if abs(std.real) > threshold else 0.0
+                                                          circuit, self._quantum_instance.backend,
+                                                          result, self._use_simulator_operator_mode)
+            print(mean, std)
+            mean = mean.real if abs(mean.real) > threshold else 0.0
+            std = std.real if abs(std.real) > threshold else 0.0
             values.append((mean, std))
         if len(values) > 0:
             aux_op_vals = np.empty([1, len(self._aux_operators), 2])
@@ -275,9 +298,7 @@ class VQE(QuantumAlgorithm):
                            'the operator_mode to "paulis"'.format(self._operator_mode))
             self._operator_mode = 'paulis'
 
-        self._is_aer_statevector = False
-        if is_aer_statevector_backend(self._quantum_instance.backend):
-            self._is_aer_statevector = True
+        self._use_simulator_operator_mode = is_aer_statevector_backend(self._quantum_instance.backend) and self._operator_mode == 'paulis'
 
         self._quantum_instance.circuit_summary = True
         self._eval_count = 0
@@ -307,13 +328,13 @@ class VQE(QuantumAlgorithm):
 
         for idx in range(len(parameter_sets)):
             parameter = parameter_sets[idx]
-            circuit = self.construct_circuit(parameter, self._quantum_instance.backend, self._is_aer_statevector)
+            circuit = self.construct_circuit(parameter, self._quantum_instance.backend, self._use_simulator_operator_mode)
             circuits.append(circuit)
 
         to_be_simulated_circuits = functools.reduce(lambda x, y: x + y, circuits)
-        if self._is_aer_statevector:
+        if self._use_simulator_operator_mode:
             extra_args = {'expectation': {
-                'params': self._operator.aer_paulis,
+                'params': [self._operator.aer_paulis],
                 'num_qubits': self._operator.num_qubits}
             }
         else:
@@ -322,7 +343,7 @@ class VQE(QuantumAlgorithm):
 
         for idx in range(len(parameter_sets)):
             mean, std = self._operator.evaluate_with_result(
-                self._operator_mode, circuits[idx], self._quantum_instance.backend, result, self._is_aer_statevector)
+                self._operator_mode, circuits[idx], self._quantum_instance.backend, result, self._use_simulator_operator_mode)
             mean_energy.append(np.real(mean))
             std_energy.append(np.real(std))
             self._eval_count += 1

@@ -663,7 +663,7 @@ class Operator(object):
                 self._check_representation("matrix")
                 if self._dia_matrix is None:
                     self._to_dia_matrix(mode='matrix')
-                quantum_state = np.asarray(result.get_statevector(circuits[0], decimals=16))
+                quantum_state = np.asarray(result.get_statevector(circuits[0]))
                 if self._dia_matrix is not None:
                     avg = np.sum(self._dia_matrix * np.absolute(quantum_state) ** 2)
                 else:
@@ -674,13 +674,13 @@ class Operator(object):
                     temp = result.data(circuits[0])['snapshots']['expectation_value']['test'][0]['value']
                     avg = temp[0] + 1j * temp[1]
                 else:
-                    quantum_state = np.asarray(result.get_statevector(circuits[0], decimals=16))
+                    quantum_state = np.asarray(result.get_statevector(circuits[0]))
                     circuit_idx = 1
                     for idx, pauli in enumerate(self._paulis):
                         if np.all(np.logical_not(pauli[1].z)) and np.all(np.logical_not(pauli[1].x)):
                             avg += pauli[0]
                         else:
-                            quantum_state_i = np.asarray(result.get_statevector(circuits[circuit_idx], decimals=16))
+                            quantum_state_i = np.asarray(result.get_statevector(circuits[circuit_idx]))
                             avg += pauli[0] * (np.vdot(quantum_state, quantum_state_i))
                             circuit_idx += 1
         else:

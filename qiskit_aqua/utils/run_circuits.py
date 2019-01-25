@@ -94,7 +94,7 @@ def _reuse_shared_circuits(circuits, backend, backend_config, compile_config, ru
 
     if len(circuits) == 1:
         return shared_result
-    shared_quantum_state = np.asarray(shared_result.get_statevector(shared_circuit, decimals=16))
+    shared_quantum_state = np.asarray(shared_result.get_statevector(shared_circuit))
     # extract different of circuits
     for circuit in circuits[1:]:
         circuit.data = circuit.data[len(shared_circuit):]
@@ -220,11 +220,18 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
             from qiskit.providers.aer.utils.qobj_utils import snapshot_instr, append_instr
             # add others, how to derive the correct used number of qubits?
             # the compiled qobj could be wrong if coupling map is used.
+            # if mulitple params are provided, we assume that each circuit is corresponding one param
+            # otherwise, params are used for all circuits.
             params = kwargs['expectation']['params']
             num_qubits = kwargs['expectation']['num_qubits']
-            new_ins = snapshot_instr('expectation_value_pauli', 'test', range(num_qubits), params=params)
-            for ii in range(len(sub_circuits)):
-                qobj = append_instr(qobj, ii, new_ins)
+            if len(params) == 1:
+                new_ins = snapshot_instr('expectation_value_pauli', 'test', range(num_qubits), params=params[0])
+                for ii in range(len(sub_circuits)):
+                    qobj = append_instr(qobj, ii, new_ins)
+            else:
+                for ii in range(len(sub_circuits)):
+                    new_ins = snapshot_instr('expectation_value_pauli', 'test', range(num_qubits), params=params[ii])
+                    qobj = append_instr(qobj, ii, new_ins)
         # assure get job ids
         while True:
             job = run_on_backend(backend, qobj, backend_options=backend_options, noise_config=noise_config,

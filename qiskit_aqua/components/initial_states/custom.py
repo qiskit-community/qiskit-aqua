@@ -134,7 +134,7 @@ class Custom(InitialState):
             if self._state_vector is None:
                 if self._circuit is not None:
                     self._state_vector = np.asarray(q_execute(self._circuit, get_aer_backend(
-                        'statevector_simulator')).result().get_statevector(self._circuit, decimals=16))
+                        'statevector_simulator')).result().get_statevector(self._circuit))
             return self._state_vector
         elif mode == 'circuit':
             if self._circuit is None:
