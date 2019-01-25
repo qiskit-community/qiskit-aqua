@@ -317,7 +317,7 @@ class VQE(QuantumAlgorithm):
             circuits.append(circuit)
 
         to_be_simulated_circuits = functools.reduce(lambda x, y: x + y, circuits)
-        if HAS_AER:
+        if self._is_aer:
             extra_args = {'expectation': {
                 'params': self._operator.aer_paulis,
                 'num_qubits': self._operator.num_qubits}
