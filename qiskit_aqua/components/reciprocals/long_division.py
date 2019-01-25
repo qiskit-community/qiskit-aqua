@@ -68,7 +68,7 @@ class LongDivision(Reciprocal):
         },
         }
 
-    def __init__(self, num_ancillae=None, scale=1, precision=None,
+    def __init__(self, num_ancillae=None, scale=0, precision=None,
                  evo_time=None, lambda_min=None, negative_evals=False):
         self.validate(locals())
         super().__init__()
@@ -248,7 +248,7 @@ class LongDivision(Reciprocal):
         if self._negative_evals:
             for i in range(0, self._precision + self._num_ancillae):
                 qc.cu3(self._scale*2**(-i), 0, 0, rec_reg[i], ancilla)
-            qc.cu3(2*np.pi, 0, 0,self._ev[0], ancilla)  #correcting the sign
+            qc.cu3(2*np.pi, 0, 0, self._ev[0], ancilla)  #correcting the sign
         else:
             for i in range(0, self._precision + self._num_ancillae):
                 qc.cu3(self._scale*2**(-i), 0, 0, rec_reg[i], ancilla)
