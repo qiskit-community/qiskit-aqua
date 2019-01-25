@@ -222,7 +222,7 @@ class VQE(QuantumAlgorithm):
                 self._operator_mode, temp_backend_name)
             logger.warning(warning_msg)
         circuit = self._operator.construct_evaluation_circuit(self._operator_mode,
-                                                              input_circuit, backend, HAS_AER)
+                                                              input_circuit, backend, is_aer)
         return circuit
 
     def _solve(self):
