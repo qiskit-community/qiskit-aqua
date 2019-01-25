@@ -175,6 +175,33 @@ def _multicx(qc, qrs, qancilla=None):
         _multicx(qc, [*qrs[:m1], qancilla], qrs[m1])
         _multicx(qc, [*qrs[m1:m1 + m2 - 1], qancilla, qrs[n - 2]], qrs[m1 - 1])
 
+def _multicx_noancilla(qc, qrs):
+    """
+        construct a circuit for multi-qubit controlled not without ancillary
+        qubits
+        Parameters:
+            qc:
+                quantum circuit
+            qrs:
+                list of quantum registers of at least length 1
+
+        Returns:
+            qc:
+                a circuit appended with multi-qubit cnot
+    """
+    if len(qrs) <= 0:
+        pass
+    elif len(qrs) == 1:
+        qc.x(qrs[0])
+    elif len(qrs) == 2:
+        qc.cx(qrs[0], qrs[1])
+    else:
+        # qrs[0], qrs[n-2] is the controls, qrs[n-1] is the target
+        ctls = qrs[:-2]
+        tgt = qrs[-1]
+        qc.h(tgt)
+        qc.mcu1(pi, ctls, tgt)
+        qc.h(tgt)
 
 def mct(self, q_controls, q_target, q_ancilla, mode='basic'):
     """
@@ -224,6 +251,8 @@ def mct(self, q_controls, q_target, q_ancilla, mode='basic'):
             _ccx_v_chain(self, control_qubits, target_qubit, ancillary_qubits)
         elif mode == 'advanced':
             _multicx(self, [*control_qubits, target_qubit], ancillary_qubits[0] if ancillary_qubits else None)
+        elif mode == 'noancilla':
+            _multicx_noancilla(self, [*control_qubits, target_qubit])
         else:
             raise ValueError('Unrecognized mode for building MCT circuit: {}.'.format(mode))
 
