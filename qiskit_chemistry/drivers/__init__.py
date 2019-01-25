@@ -16,7 +16,8 @@
 # =============================================================================
 
 from ._basedriver import BaseDriver, UnitsType
-from ._discover_driver import (refresh_drivers,
+from ._discover_driver import (DRIVERS_ENTRY_POINT,
+                               refresh_drivers,
                                register_driver,
                                deregister_driver,
                                get_driver_class,
@@ -30,6 +31,7 @@ from .pyscfd import PySCFDriver
 
 __all__ = ['BaseDriver',
            'UnitsType',
+           'DRIVERS_ENTRY_POINT',
            'refresh_drivers',
            'register_driver',
            'deregister_driver',

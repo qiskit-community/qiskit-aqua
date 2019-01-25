@@ -26,13 +26,14 @@ import inspect
 from collections import namedtuple
 from .chemistry_operator import ChemistryOperator
 from qiskit_chemistry import QiskitChemistryError
-from qiskit_chemistry.preferences import Preferences
 import logging
 import sys
 import copy
 import pkg_resources
 
 logger = logging.getLogger(__name__)
+
+OPERATORS_ENTRY_POINT = 'qiskit.chemistry.operators'
 
 _NAMES_TO_EXCLUDE = ['_discover_chemoperator']
 
@@ -56,7 +57,6 @@ def refresh_operators():
     _DISCOVERED = True
     _discover_local_chemistry_operators()
     _discover_entry_point_chemistry_operators()
-    _discover_preferences_chemistry_operators()
     if logger.isEnabledFor(logging.DEBUG):
         logger.debug("Found: chemistry operators {} ".format(
             local_chemistry_operators()))
@@ -73,7 +73,6 @@ def _discover_on_demand():
         _REGISTERED_CHEMISTRY_OPERATORS = {}
         _discover_local_chemistry_operators()
         _discover_entry_point_chemistry_operators()
-        _discover_preferences_chemistry_operators()
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug("Found: chemistry operators {} ".format(
                 local_chemistry_operators()))
@@ -84,7 +83,7 @@ def _discover_entry_point_chemistry_operators():
     Discovers the chemistry operators modules defined by entry_points in setup
     and attempts to register them. Chem.Operator modules should subclass ChemistryOperator Base class.
     """
-    for entry_point in pkg_resources.iter_entry_points('qiskit.chemistry.operators'):
+    for entry_point in pkg_resources.iter_entry_points(OPERATORS_ENTRY_POINT):
         try:
             ep = entry_point.load()
             _registered = False
@@ -102,31 +101,6 @@ def _discover_entry_point_chemistry_operators():
             # Ignore entry point that could not be initialized.
             # print("Failed to load entry point '{}' error {}".format(entry_point, str(e)))
             logger.debug("Failed to load entry point '{}' error {}".format(entry_point, str(e)))
-
-
-def _discover_preferences_chemistry_operators():
-    """
-    Discovers the chemistry operators on the directory and subdirectories of the preferences package
-    and attempts to register them. Chem.Operator modules should subclass ChemistryOperator Base class.
-    """
-    preferences = Preferences()
-    packages = preferences.get_packages(Preferences.PACKAGE_TYPE_CHEMISTRY, [])
-    for package in packages:
-        try:
-            mod = importlib.import_module(package)
-            if mod is not None:
-                _discover_local_chemistry_operators_in_dirs(os.path.dirname(mod.__file__),
-                                                            mod.__name__,
-                                                            names_to_exclude=[
-                    '__main__'],
-                    folders_to_exclude=['__pycache__'])
-            else:
-                # Ignore package that could not be initialized.
-                logger.debug('Failed to import package {}'.format(package))
-        except Exception as e:
-            # Ignore package that could not be initialized.
-            logger.debug(
-                'Failed to load package {} error {}'.format(package, str(e)))
 
 
 def _discover_local_chemistry_operators_in_dirs(directory,

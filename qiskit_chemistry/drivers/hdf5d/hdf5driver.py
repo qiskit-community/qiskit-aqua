@@ -66,10 +66,10 @@ class HDF5Driver(BaseDriver):
         Returns:
             Driver: Driver object
         """
-        if 'properties' not in section or len(section['properties']) == 0:
-            raise QiskitChemistryError('Missing or empty properties section')
+        if section is None or not isinstance(section, dict):
+            raise QiskitChemistryError('Invalid or missing section {}'.format(section))
 
-        kwargs = section['properties']
+        kwargs = section
         logger.debug('init_from_input: {}'.format(kwargs))
         return cls(**kwargs)
 
