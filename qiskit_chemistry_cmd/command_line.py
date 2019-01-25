@@ -34,9 +34,9 @@ def main():
 
 def main_chemistry():
     try:
-        from qiskit_chemistry import QiskitChemistry
-        from qiskit_chemistry._logging import get_logging_level, build_logging_config, set_logging_config
-        from qiskit_chemistry.preferences import Preferences
+        from qiskit.chemistry import QiskitChemistry
+        from qiskit.chemistry._logging import get_logging_level, build_logging_config, set_logging_config
+        from qiskit.chemistry.preferences import Preferences
         parser = argparse.ArgumentParser(description='Qiskit Chemistry Command Line Tool')
         parser.add_argument('input',
                             metavar='input',

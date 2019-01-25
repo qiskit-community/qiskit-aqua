@@ -30,14 +30,14 @@ class Model(BaseModel):
         super().__init__()
 
     def new(self):
-        from qiskit_chemistry.parser import InputParser
+        from qiskit.chemistry.parser import InputParser
         uipreferences = UIPreferences()
         return super().new(InputParser,
                            os.path.join(os.path.dirname(__file__), 'input_template.json'),
                            uipreferences.get_populate_defaults(True))
 
     def load_file(self, filename):
-        from qiskit_chemistry.parser import InputParser
+        from qiskit.chemistry.parser import InputParser
         uipreferences = UIPreferences()
         return super().load_file(filename, InputParser, uipreferences.get_populate_defaults(True))
 
@@ -93,9 +93,9 @@ class Model(BaseModel):
         return properties_with_substitution
 
     def get_operator_section_names(self):
-        from qiskit_chemistry.parser import InputParser
+        from qiskit.chemistry.parser import InputParser
         from qiskit_aqua.parser import JSONSchema
-        from qiskit_chemistry.core import local_chemistry_operators
+        from qiskit.chemistry.core import local_chemistry_operators
         problem_name = None
         if self._parser is not None:
             problem_name = self.get_section_property(JSONSchema.PROBLEM, JSONSchema.NAME)

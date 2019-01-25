@@ -21,9 +21,8 @@ import numpy as np
 from qiskit_aqua.utils import random_unitary
 
 from test.common import QiskitAquaChemistryTestCase
-from qiskit_chemistry import FermionicOperator, QiskitChemistryError
-from qiskit_chemistry.drivers import PySCFDriver, UnitsType
-from qiskit_chemistry.core import QubitMappingType
+from qiskit.chemistry import FermionicOperator, QiskitChemistryError
+from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 
 
 def h2_transform_slow(h2, unitary_matrix):

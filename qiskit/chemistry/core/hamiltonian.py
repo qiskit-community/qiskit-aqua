@@ -20,8 +20,8 @@ energy of the electrons and nuclei in a molecule.
 """
 
 from .chemistry_operator import ChemistryOperator
-from qiskit_chemistry import QMolecule
-from qiskit_chemistry.fermionic_operator import FermionicOperator
+from qiskit.chemistry import QMolecule
+from qiskit.chemistry.fermionic_operator import FermionicOperator
 from qiskit_aqua.input import EnergyInput
 import numpy as np
 from enum import Enum

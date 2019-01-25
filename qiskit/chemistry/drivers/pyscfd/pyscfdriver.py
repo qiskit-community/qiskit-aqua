@@ -15,68 +15,55 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit_chemistry.drivers import BaseDriver, UnitsType
-from qiskit_chemistry import QiskitChemistryError
-from qiskit_chemistry.drivers.pyquanted.integrals import compute_integrals
+from qiskit.chemistry.drivers import BaseDriver, UnitsType
+from qiskit.chemistry import QiskitChemistryError
+from qiskit.chemistry.drivers.pyscfd.integrals import compute_integrals
 import importlib
-from enum import Enum
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-class BasisType(Enum):
-    BSTO3G = 'sto3g'
-    B631G = '6-31g'
-    B631GSS = '6-31g**'
-
-
-class PyQuanteDriver(BaseDriver):
-    """Python implementation of a PyQuante driver."""
-
-    KEY_UNITS = 'units'
-    KEY_BASIS = 'basis'
+class PySCFDriver(BaseDriver):
+    """Python implementation of a PySCF driver."""
 
     CONFIGURATION = {
-        "name": "PYQUANTE",
-        "description": "PyQuante Driver",
+        "name": "PYSCF",
+        "description": "PYSCF Driver",
         "input_schema": {
             "$schema": "http://json-schema.org/schema#",
-            "id": "pyquante_schema",
+            "id": "pyscf_schema",
             "type": "object",
             "properties": {
-                "atoms": {
+                "atom": {
                     "type": "string",
                     "default": "H 0.0 0.0 0.0; H 0.0 0.0 0.735"
                 },
-                KEY_UNITS: {
+                "unit": {
                     "type": "string",
                     "default": UnitsType.ANGSTROM.value,
                     "oneOf": [
-                         {"enum": [
+                        {"enum": [
                             UnitsType.ANGSTROM.value,
                             UnitsType.BOHR.value,
-                         ]}
+                        ]}
                     ]
                 },
                 "charge": {
                     "type": "integer",
                     "default": 0
                 },
-                "multiplicity": {
+                "spin": {
                     "type": "integer",
-                    "default": 1
+                    "default": 0
                 },
-                KEY_BASIS: {
+                "basis": {
                     "type": "string",
-                    "default": BasisType.BSTO3G.value,
-                    "oneOf": [
-                         {"enum": [
-                             BasisType.BSTO3G.value,
-                             BasisType.B631G.value,
-                             BasisType.B631GSS.value,
-                         ]}
-                    ]
+                    "default": "sto3g"
+                },
+                "max_memory": {
+                    "type": ["integer", "null"],
+                    "default": None
                 }
             },
             "additionalProperties": False
@@ -84,48 +71,49 @@ class PyQuanteDriver(BaseDriver):
     }
 
     def __init__(self,
-                 atoms,
-                 units=UnitsType.ANGSTROM,
+                 atom,
+                 unit=UnitsType.ANGSTROM,
                  charge=0,
-                 multiplicity=1,
-                 basis=BasisType.BSTO3G):
+                 spin=0,
+                 basis='sto3g',
+                 max_memory=None):
         """
         Initializer
         Args:
-            atoms (str or list): atoms list or string separated by semicolons or line breaks
-            units (UnitsType): angstrom or bohr
+            atom (str or list): atom list or string separated by semicolons or line breaks
+            unit (UnitsType): angstrom or bohr
             charge (int): charge
-            multiplicity (int): spin multiplicity
-            basis (BasisType): sto3g or 6-31g or 6-31g**
+            spin (int): spin
+            basis (str): basis set
+            max_memory (int): maximum memory
         """
-        if not isinstance(atoms, list) and not isinstance(atoms, str):
-            raise QiskitChemistryError("Invalid atom input for PYQUANTE Driver '{}'".format(atoms))
+        if not isinstance(atom, list) and not isinstance(atom, str):
+            raise QiskitChemistryError("Invalid atom input for PYSCF Driver '{}'".format(atom))
 
-        if isinstance(atoms, list):
-            atoms = ';'.join(atoms)
+        if isinstance(atom, list):
+            atom = ';'.join(atom)
         else:
-            atoms = atoms.replace('\n', ';')
+            atom = atom.replace('\n', ';')
 
-        units = units.value
-        basis = basis.value
-
+        unit = unit.value
         self.validate(locals())
         super().__init__()
-        self._atoms = atoms
-        self._units = units
+        self._atom = atom
+        self._unit = unit
         self._charge = charge
-        self._multiplicity = multiplicity
+        self._spin = spin
         self._basis = basis
+        self._max_memory = max_memory
 
     @staticmethod
     def check_driver_valid():
-        err_msg = 'PyQuante2 is not installed. See https://github.com/rpmuller/pyquante2'
+        err_msg = "PySCF is not installed. Use 'pip install pyscf'"
         try:
-            spec = importlib.util.find_spec('pyquante2')
+            spec = importlib.util.find_spec('pyscf')
             if spec is not None:
                 return
         except Exception as e:
-            logger.debug('PyQuante2 check error {}'.format(str(e)))
+            logger.debug('PySCF check error {}'.format(str(e)))
             raise QiskitChemistryError(err_msg) from e
 
         raise QiskitChemistryError(err_msg)
@@ -147,10 +135,8 @@ class PyQuanteDriver(BaseDriver):
         params = section
         kwargs = {}
         for k, v in params.items():
-            if k == PyQuanteDriver.KEY_UNITS:
+            if k == 'unit':
                 v = UnitsType(v)
-            elif k == PyQuanteDriver.KEY_BASIS:
-                v = BasisType(v)
 
             kwargs[k] = v
 
@@ -158,8 +144,9 @@ class PyQuanteDriver(BaseDriver):
         return cls(**kwargs)
 
     def run(self):
-        return compute_integrals(atoms=self._atoms,
-                                 units=self._units,
+        return compute_integrals(atom=self._atom,
+                                 unit=self._unit,
                                  charge=self._charge,
-                                 multiplicity=self._multiplicity,
-                                 basis=self._basis)
+                                 spin=self._spin,
+                                 basis=self._basis,
+                                 max_memory=self._max_memory)

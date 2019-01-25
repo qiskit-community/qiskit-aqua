@@ -27,10 +27,10 @@ from qiskit_aqua import (local_pluggables_types,
 import pprint
 import ast
 from qiskit_aqua.aqua_error import AquaError
-from qiskit_chemistry import QiskitChemistryError
+from qiskit.chemistry import QiskitChemistryError
 from qiskit_aqua.parser import JSONSchema
-from qiskit_chemistry.core import local_chemistry_operators, get_chemistry_operator_configuration
-from qiskit_chemistry.drivers import local_drivers, get_driver_configuration
+from qiskit.chemistry.core import local_chemistry_operators, get_chemistry_operator_configuration
+from qiskit.chemistry.drivers import local_drivers, get_driver_configuration
 
 logger = logging.getLogger(__name__)
 

@@ -68,8 +68,8 @@ setuptools.setup(
             'qiskit_chemistry_ui=qiskit_chemistry_ui.command_line:main'
         ],
         'qiskit.aqua.pluggables': [
-            'HartreeFock = qiskit_chemistry.aqua_extensions.components.initial_states:HartreeFock',
-            'UCCSD = qiskit_chemistry.aqua_extensions.components.variational_forms:UCCSD',
+            'HartreeFock = qiskit.chemistry.aqua_extensions.components.initial_states:HartreeFock',
+            'UCCSD = qiskit.chemistry.aqua_extensions.components.variational_forms:UCCSD',
         ],
     },
 )

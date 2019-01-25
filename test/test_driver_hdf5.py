@@ -17,7 +17,7 @@
 
 import unittest
 from test.common import QiskitAquaChemistryTestCase
-from qiskit_chemistry.drivers import HDF5Driver
+from qiskit.chemistry.drivers import HDF5Driver
 from test.test_driver import TestDriver
 
 

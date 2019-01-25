@@ -15,12 +15,12 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit_chemistry.drivers import BaseDriver
+from qiskit.chemistry.drivers import BaseDriver
 import tempfile
 import os
 import subprocess
 import logging
-from qiskit_chemistry import QMolecule, QiskitChemistryError
+from qiskit.chemistry import QMolecule, QiskitChemistryError
 import sys
 from shutil import which
 

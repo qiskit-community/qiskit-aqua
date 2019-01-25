@@ -20,7 +20,7 @@ import unittest
 import numpy as np
 
 from test.common import QiskitAquaChemistryTestCase
-from qiskit_chemistry.aqua_extensions.components.initial_states import HartreeFock
+from qiskit.chemistry.aqua_extensions.components.initial_states import HartreeFock
 
 
 class TestInitialStateHartreeFock(QiskitAquaChemistryTestCase):

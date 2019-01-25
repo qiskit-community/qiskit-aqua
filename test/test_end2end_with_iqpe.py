@@ -27,9 +27,9 @@ from qiskit_aqua.algorithms.single_sample import IQPE
 from qiskit_aqua.algorithms.classical import ExactEigensolver
 from qiskit.qobj import RunConfig
 from test.common import QiskitAquaChemistryTestCase
-from qiskit_chemistry.drivers import PySCFDriver, UnitsType
-from qiskit_chemistry import FermionicOperator, QiskitChemistryError
-from qiskit_chemistry.aqua_extensions.components.initial_states import HartreeFock
+from qiskit.chemistry.drivers import PySCFDriver, UnitsType
+from qiskit.chemistry import FermionicOperator, QiskitChemistryError
+from qiskit.chemistry.aqua_extensions.components.initial_states import HartreeFock
 
 
 class TestIQPE(QiskitAquaChemistryTestCase):

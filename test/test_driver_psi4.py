@@ -18,8 +18,8 @@
 import unittest
 
 from test.common import QiskitAquaChemistryTestCase
-from qiskit_chemistry import QiskitChemistryError
-from qiskit_chemistry.drivers import PSI4Driver
+from qiskit.chemistry import QiskitChemistryError
+from qiskit.chemistry.drivers import PSI4Driver
 from test.test_driver import TestDriver
 
 

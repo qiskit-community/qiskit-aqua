@@ -68,8 +68,8 @@ To install from source, follow the instructions in the [contribution guidelines]
 Now that Qiskit Chemistry is installed, it's time to begin working with it.  We are ready to try out an experiment using Qiskit Chemistry:
 
 ```python
-from qiskit_chemistry import FermionicOperator
-from qiskit_chemistry.drivers import PySCFDriver, UnitsType
+from qiskit.chemistry import FermionicOperator
+from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 
 # Use PySCF, a classical computational chemistry software package, to compute the one-body and two-body integrals in
 # molecular-orbital basis, necessary to form the Fermionic operator
@@ -96,7 +96,7 @@ from qiskit_aqua.components.optimizers import L_BFGS_B
 optimizer = L_BFGS_B()
 
 # setup the initial state for the variational form
-from qiskit_chemistry.aqua_extensions.components.initial_states import HartreeFock
+from qiskit.chemistry.aqua_extensions.components.initial_states import HartreeFock
 init_state = HartreeFock(num_qubits, num_spin_orbitals, num_particles)
 
 # setup the variational form for VQE
@@ -191,7 +191,7 @@ This project uses the [Apache License 2.0](LICENSE.txt).
 
 Some of the code embedded in Qiskit Chemistry to interface some of the computational chemistry
 software drivers requires additional licensing:
-* The [Gaussian 16 driver](qiskit_chemistry/drivers/gaussiand/README.md) contains work licensed under the
-[Gaussian Open-Source Public License](qiskit_chemistry/drivers/gaussiand/gauopen/LICENSE.txt).
-* The [Pyquante driver](qiskit_chemistry/drivers/pyquanted/README.md) contains work licensed under the
-[modified BSD license](qiskit_chemistry/drivers/pyquanted/LICENSE.txt).```
+* The [Gaussian 16 driver](qiskit/chemistry/drivers/gaussiand/README.md) contains work licensed under the
+[Gaussian Open-Source Public License](qiskit/chemistry/drivers/gaussiand/gauopen/LICENSE.txt).
+* The [Pyquante driver](qiskit/chemistry/drivers/pyquanted/README.md) contains work licensed under the
+[modified BSD license](qiskit/chemistry/drivers/pyquanted/LICENSE.txt).```

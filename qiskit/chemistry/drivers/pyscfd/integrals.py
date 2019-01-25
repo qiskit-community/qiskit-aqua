@@ -16,8 +16,8 @@
 # =============================================================================#
 
 import logging
-from qiskit_chemistry import QiskitChemistryError
-from qiskit_chemistry import QMolecule
+from qiskit.chemistry import QiskitChemistryError
+from qiskit.chemistry import QMolecule
 import numpy as np
 
 logger = logging.getLogger(__name__)
