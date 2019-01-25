@@ -347,7 +347,7 @@ def run_on_backend(backend, qobj, backend_options=None, noise_config=None, skip_
                 job = SimulatorsJob(backend, job_id, backend._run_job, qobj)
                 job._future = job._executor.submit(job._fn, job._job_id, job._qobj)
         elif is_ibmq_provider(backend):
-            job = IBMQJob(backend, None, backend._api, not backend.configuration().simulator, qobj=qobj)
+            job = IBMQJob(backend, None, backend._api, not is_simulator_backend(backend), qobj=qobj)
             job._future = job._executor.submit(job._fn, job._job_id, job._qobj)
         else:
             logger.info("Can not skip qobj validation for the third-party provider.")
