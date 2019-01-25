@@ -19,10 +19,12 @@
 Multiple-Control Toffoli.
 """
 
-from warnings import warn
+import logging
 from math import pi, ceil
 
 from qiskit import QuantumCircuit, QuantumRegister
+
+logger = logging.getLogger(__name__)
 
 
 def _ccx_v_chain(qc, control_qubits, target_qubit, ancillary_qubits):
@@ -227,7 +229,7 @@ def mct(self, q_controls, q_target, q_ancilla, mode='basic'):
 
 
 def cnx(self, *args, **kwargs):
-    warn("The gate name 'cnx' will be deprecated. Please use 'mct' (Multiple-Control Toffoli) instead.")
+    logger.warning("The gate name 'cnx' will be deprecated. Please use 'mct' (Multiple-Control Toffoli) instead.")
     return mct(self, *args, **kwargs)
 
 
