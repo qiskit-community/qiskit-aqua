@@ -56,6 +56,29 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
     Returns:
         Result dictionary containing result of algorithm computation
     """
+    algorithm, quantum_instance = build_algorithm_from_dict(params, algo_input, backend)
+
+    value = algorithm.run(quantum_instance)
+    if isinstance(value, dict) and json_output:
+        convert_dict_to_json(value)
+
+    return value
+
+
+def build_algorithm_from_dict(params, algo_input=None, backend=None):
+    """
+        Construct algorithm as named in params, using params and algo_input as input data
+        and returning a QuantumAlgorithm and QuantumInstance instance
+
+        Args:
+            params (dict): Dictionary of params for algo and dependent objects
+            algo_input (AlgorithmInput): Main input data for algorithm. Optional, an algo may run entirely from params
+            backend (BaseBackend): Backend object to be used in place of backend name
+
+        Returns:
+            Ready-to-run QuantumAlgorithm and QuantumInstance as specified in input parameters. Note that
+            no QuantumInstance will be returned if none is specified - None will be returned instead.
+        """
     _discover_on_demand()
 
     inputparser = InputParser(params)
@@ -65,7 +88,8 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
     if backend is None and inputparser.get_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER) is None:
         backend_name = inputparser.get_section_property(JSONSchema.BACKEND, JSONSchema.NAME)
         if backend_name is not None:
-            inputparser.set_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER, get_provider_from_backend(backend_name))
+            inputparser.set_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER,
+                                             get_provider_from_backend(backend_name))
 
     inputparser.validate_merge_defaults()
     logger.debug('Algorithm Input: {}'.format(json.dumps(inputparser.get_sections(), sort_keys=True, indent=4)))
@@ -95,7 +119,8 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
     backend_provider = inputparser.get_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER)
     backend_name = inputparser.get_section_property(JSONSchema.BACKEND, JSONSchema.NAME)
     if backend_provider is not None and backend_name is not None:  # quantum algorithm
-        backend_cfg = {k: v for k, v in inputparser.get_section(JSONSchema.BACKEND).items() if k not in [JSONSchema.PROVIDER, JSONSchema.NAME]}
+        backend_cfg = {k: v for k, v in inputparser.get_section(JSONSchema.BACKEND).items() if
+                       k not in [JSONSchema.PROVIDER, JSONSchema.NAME]}
         # TODO, how to build the noise model from a dictionary?
         backend_cfg['seed_mapper'] = random_seed
         pass_manager = PassManager() if backend_cfg.pop('skip_transpiler', False) else None
@@ -136,11 +161,8 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
 
         quantum_instance = QuantumInstance(**backend_cfg)
 
-    value = algorithm.run(quantum_instance)
-    if isinstance(value, dict) and json_output:
-        convert_dict_to_json(value)
-
-    return value
+    # Note that quantum_instance can be None if none is specified
+    return algorithm, quantum_instance
 
 
 def run_algorithm_to_json(params, algo_input=None, jsonfile='algorithm.json'):
