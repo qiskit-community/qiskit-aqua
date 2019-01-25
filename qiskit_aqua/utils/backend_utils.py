@@ -21,7 +21,7 @@ import logging
 
 from qiskit import IBMQ
 from qiskit.providers.ibmq.credentials import Credentials
-from qiskit.providers.ibmq import IBMQProvder
+from qiskit.providers.ibmq import IBMQProvider
 try:
     from qiskit.providers.aer import AerProvider
     HAS_AER = True
@@ -109,7 +109,7 @@ def is_ibmq_provider(backend):
         Result (boolean): True is statevector
     """
     if HAS_AER:
-        return isinstance(backend.provider(), IBMQProvder)
+        return isinstance(backend.provider(), IBMQProvider)
     else:
         return False
 
