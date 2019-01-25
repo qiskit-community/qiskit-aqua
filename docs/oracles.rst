@@ -88,7 +88,7 @@ circuit construction. Aqua includes three different modes for ``mct``, namely
 
     mct_mode : str = 'basic' | 'advanced' | 'noancilla'
 
-More information on ``mct`` and its two modes can be found at :ref:`mct`.
+More information on ``mct`` and its three modes can be found at :ref:`mct`.
 
 The following is an example of a CNF expressed in DIMACS CNF format:
 

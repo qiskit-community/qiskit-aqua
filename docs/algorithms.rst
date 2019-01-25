@@ -77,7 +77,7 @@ quantum algorithms:
     quantum gates. In Aqua, the mct operation provides support for arbitrary
     numbers of controls, in particular, 3 or above.
 
-    Currently two different implementation strategies are included: *basic*,
+    Currently three different implementation strategies are included: *basic*,
     *advanced*, and *noancilla*. The basic mode employs a textbook
     implementation, where a series of ``ccx`` Toffoli gates are linked
     together in a ``V`` shape to achieve the desired Multiple-Control Toffoli
