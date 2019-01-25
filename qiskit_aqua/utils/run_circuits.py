@@ -30,6 +30,7 @@ from qiskit.providers.ibmq.ibmqjob import IBMQJob
 
 from qiskit_aqua.aqua_error import AquaError
 from qiskit_aqua.utils import summarize_circuits
+from qiskit_aqua.utils.backend_utils import is_aer_provider, is_simulator_backend
 
 MAX_CIRCUITS_PER_JOB = os.environ.get('QISKIT_AQUA_MAX_CIRCUITS_PER_JOB', None)
 
@@ -337,8 +338,8 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
 def run_on_backend(backend, qobj, backend_options=None, noise_config=None, skip_qobj_validation=False):
     if skip_qobj_validation:
         job_id = str(uuid.uuid4())
-        if backend.configuration().simulator:
-            if type(backend.provider()).__name__ == 'AerProvider':
+        if is_simulator_backend(backend):
+            if is_aer_provider(backend):
                 from qiskit.providers.aer.aerjob import AerJob
                 job = AerJob(backend, job_id, backend._run_job, qobj, backend_options, noise_config)
                 job._future = job._executor.submit(job._fn, job._job_id, job._qobj, backend_options, noise_config)

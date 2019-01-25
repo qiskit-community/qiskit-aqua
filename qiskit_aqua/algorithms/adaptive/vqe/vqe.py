@@ -25,16 +25,11 @@ import functools
 
 import numpy as np
 from qiskit import ClassicalRegister
-try:
-    from qiskit.providers.aer import AerProvider
-    HAS_AER = True
-except ImportError:
-    HAS_AER = False
-    pass
 
 from qiskit_aqua.algorithms import QuantumAlgorithm
 from qiskit_aqua import AquaError, PluggableType, get_pluggable_class
 from qiskit_aqua.utils import find_regs_by_name
+from qiskit_aqua.utils.backend_utils import is_aer_statevector_backend
 
 logger = logging.getLogger(__name__)
 
@@ -280,10 +275,9 @@ class VQE(QuantumAlgorithm):
                            'the operator_mode to "paulis"'.format(self._operator_mode))
             self._operator_mode = 'paulis'
 
-        self._is_aer = False
-        if HAS_AER:
-            if isinstance(self._quantum_instance.backend.provider(), AerProvider):
-                self._is_aer = True
+        self._is_aer_statevector = False
+        if is_aer_statevector_backend(self._quantum_instance.backend):
+            self._is_aer_statevector = True
 
         self._quantum_instance.circuit_summary = True
         self._eval_count = 0
@@ -313,11 +307,11 @@ class VQE(QuantumAlgorithm):
 
         for idx in range(len(parameter_sets)):
             parameter = parameter_sets[idx]
-            circuit = self.construct_circuit(parameter, self._quantum_instance.backend, self._is_aer)
+            circuit = self.construct_circuit(parameter, self._quantum_instance.backend, self._is_aer_statevector)
             circuits.append(circuit)
 
         to_be_simulated_circuits = functools.reduce(lambda x, y: x + y, circuits)
-        if self._is_aer:
+        if self._is_aer_statevector:
             extra_args = {'expectation': {
                 'params': self._operator.aer_paulis,
                 'num_qubits': self._operator.num_qubits}
@@ -328,7 +322,7 @@ class VQE(QuantumAlgorithm):
 
         for idx in range(len(parameter_sets)):
             mean, std = self._operator.evaluate_with_result(
-                self._operator_mode, circuits[idx], self._quantum_instance.backend, result, self._is_aer)
+                self._operator_mode, circuits[idx], self._quantum_instance.backend, result, self._is_aer_statevector)
             mean_energy.append(np.real(mean))
             std_energy.append(np.real(std))
             self._eval_count += 1
