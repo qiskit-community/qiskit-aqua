@@ -209,6 +209,8 @@ QAOA uses its own fine-tuned variational form, which comprises :math:`p` paramet
 As a result, unlike VQE, QAOA does not need to have a variational form specified as an input parameter,
 and is configured mainly by a single integer parameter, ``p``,
 which dictates the depth of the variational form, and thus affects the approximation quality.
+An initial state from Aqua's :ref:`initial-states` library may be supplied as well.
+
 
 .. seealso::
 
