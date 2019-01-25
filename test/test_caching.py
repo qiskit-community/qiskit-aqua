@@ -34,7 +34,7 @@ class TestCaching(QiskitAquaTestCase):
         res = {}
         for backend in backends:
             params_no_caching = {
-                'algorithm': {'name': 'VQE'},
+                'algorithm': {'name': 'VQE', 'operator_mode': 'matrix' if backend == 'statevector_simulator' else 'paulis'},
                 'problem': {'name': 'energy',
                             'random_seed': 50,
                             'circuit_caching': False,
@@ -55,7 +55,7 @@ class TestCaching(QiskitAquaTestCase):
     ])
     def test_vqe_caching_via_run_algorithm(self, backend, caching, skip_qobj_deepcopy, skip_validation):
         params_caching = {
-            'algorithm': {'name': 'VQE'},
+            'algorithm': {'name': 'VQE', 'operator_mode': 'matrix' if backend == 'statevector_simulator' else 'paulis'},
             'problem': {'name': 'energy',
                         'random_seed': 50,
                         'circuit_caching': caching,

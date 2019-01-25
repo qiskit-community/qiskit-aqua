@@ -15,16 +15,108 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit import IBMQ
-from qiskit_aqua_cmd import Preferences
-import logging
 from collections import OrderedDict
-from qiskit.providers.ibmq.credentials import Credentials
 import importlib
+import logging
+
+try:
+    from qiskit import IBMQ
+    from qiskit.providers.ibmq.credentials import Credentials
+    from qiskit.providers.ibmq import IBMQProvider
+    HAS_IBMQ = True
+except:
+    HAS_IBMQ = False
+    pass
+try:
+    from qiskit.providers.aer import AerProvider
+    HAS_AER = True
+except ImportError:
+    HAS_AER = False
+    pass
+
+from qiskit_aqua_cmd import Preferences
+
 
 logger = logging.getLogger(__name__)
 
+
 _UNSUPPORTED_BACKENDS = ['unitary_simulator', 'clifford_simulator']
+
+
+def is_aer_provider(backend):
+    """Detect whether or not backend is from Aer provider.
+
+    Args:
+        backend (BaseBackend): backend instance
+    Returns:
+        bool: True is statevector
+    """
+    if HAS_AER:
+        return isinstance(backend.provider(), AerProvider)
+    else:
+        return False
+
+
+def is_aer_statevector_backend(backend):
+    """
+    Return True if backend object is statevector and from Aer provider.
+
+    Args:
+        backend (BaseBackend): backend instance
+    Returns:
+        bool: True is statevector
+    """
+    return is_statevector_backend(backend) and is_aer_provider(backend)
+
+
+def is_statevector_backend(backend):
+    """
+    Return True if backend object is statevector.
+
+    Args:
+        backend (BaseBackend): backend instance
+    Returns:
+        bool: True is statevector
+    """
+    return backend.name().startswith('statevector') if backend is not None else False
+
+
+def is_simulator_backend(backend):
+    """
+    Return True if backend is a simulator.
+
+    Args:
+        backend (BaseBackend): backend instance
+    Returns:
+        bool: True is a simulator
+    """
+    return backend.configuration().simulator
+
+
+def is_local_backend(backend):
+    """
+    Return True if backend is a local backend.
+
+    Args:
+        backend (BaseBackend): backend instance
+    Returns:
+        bool: True is a local backend
+    """
+    return backend.configuration().local
+
+
+def is_ibmq_provider(backend):
+    """Detect whether or not backend is from IBMQ provider.
+
+    Args:
+        backend (BaseBackend): backend instance
+    Returns:
+        bool: True is statevector
+    """
+    if HAS_IBMQ:
+        return isinstance(backend.provider(), IBMQProvider)
+    else:
+        return False
 
 
 def get_aer_backend(backend_name):
@@ -40,7 +132,8 @@ def get_aer_backend(backend_name):
 
 def get_backends_from_provider(provider_name):
     """
-    Backends access method
+    Backends access method.
+
     Args:
         provider_name (str): Fullname of provider instance global property or class
     Returns:
@@ -76,12 +169,13 @@ def get_backends_from_provider(provider_name):
 
 def get_backend_from_provider(provider_name, backend_name):
     """
-    Backend access method
+    Backend access method.
+
     Args:
         provider_name (str): Fullname of provider instance global property or class
-        backend_name (str): name of backend for tgis provider
+        backend_name (str): name of backend for this provider
     Returns:
-        object: backend object
+        BaseBackend: backend object
     Raises:
         ImportError: Invalid provider name or failed to find provider
     """
@@ -127,7 +221,7 @@ def get_local_providers():
 
 
 def register_ibmq_and_get_known_providers():
-    """Gets known local providers and registers IBMQ"""
+    """Gets known local providers and registers IBMQ."""
     providers = get_local_providers()
     providers.update(_get_ibmq_provider())
     return providers
@@ -135,13 +229,14 @@ def register_ibmq_and_get_known_providers():
 
 def get_provider_from_backend(backend_name):
     """
-        Attempts to find a known provider that provides this backend
-        Args:
-            backend_name (str): name of backend for tgis provider
-        Returns:
-            str: provider name
-        Raises:
-            ImportError: Failed to find provider
+    Attempts to find a known provider that provides this backend.
+
+    Args:
+        backend_name (str): name of backend for tgis provider
+    Returns:
+        str: provider name
+    Raises:
+        ImportError: Failed to find provider
     """
     providers = ['qiskit.Aer', 'qiskit.BasicAer', 'qiskit.IBMQ']
     for provider in providers:
@@ -180,7 +275,7 @@ def _load_provider(provider_name):
 
 def enable_ibmq_account(url, token, proxies):
     """
-    Enable IBMQ account, if not alreay enabled
+    Enable IBMQ account, if not alreay enabled.
     """
     try:
         url = url or ''
@@ -197,15 +292,15 @@ def enable_ibmq_account(url, token, proxies):
 
             if unique_id not in IBMQ._accounts:
                 IBMQ.enable_account(token, url=url, proxies=proxies)
-                logger.info("Enabled IBMQ account. Url:'{}' Token:'{}' Proxies:'{}'".format(url, token, proxies))
+                logger.info("Enabled IBMQ account. Url:'{}' Token:'{}' "
+                            "Proxies:'{}'".format(url, token, proxies))
     except Exception as e:
-        logger.warning("Failed to enable IBMQ account. Url:'{}' Token:'{}' Proxies:'{}' :{}".format(url, token, proxies, str(e)))
+        logger.warning("Failed to enable IBMQ account. Url:'{}' Token:'{}' "
+                       "Proxies:'{}' :{}".format(url, token, proxies, str(e)))
 
 
 def disable_ibmq_account(url, token, proxies):
-    """
-    Disable IBMQ account
-    """
+    """Disable IBMQ account."""
     try:
         url = url or ''
         token = token or ''
@@ -215,15 +310,18 @@ def disable_ibmq_account(url, token, proxies):
             unique_id = credentials.unique_id()
             if unique_id in IBMQ._accounts:
                 del IBMQ._accounts[unique_id]
-                logger.info("Disabled IBMQ account. Url:'{}' Token:'{}' Proxies:'{}'".format(url, token, proxies))
+                logger.info("Disabled IBMQ account. Url:'{}' "
+                            "Token:'{}' Proxies:'{}'".format(url, token, proxies))
             else:
-                logger.info("IBMQ account is not active. Not disabled. Url:'{}' Token:'{}' Proxies:'{}'".format(url, token, proxies))
+                logger.info("IBMQ account is not active. Not disabled. "
+                            "Url:'{}' Token:'{}' Proxies:'{}'".format(url, token, proxies))
     except Exception as e:
-        logger.warning("Failed to disable IBMQ account. Url:'{}' Token:'{}' Proxies:'{}' :{}".format(url, token, proxies, str(e)))
+        logger.warning("Failed to disable IBMQ account. Url:'{}' "
+                       "Token:'{}' Proxies:'{}' :{}".format(url, token, proxies, str(e)))
 
 
 def _get_ibmq_provider():
-    """Registers IBMQ and return it"""
+    """Registers IBMQ and return it."""
     providers = OrderedDict()
     try:
         providers['qiskit.IBMQ'] = get_backends_from_provider('qiskit.IBMQ')
