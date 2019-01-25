@@ -19,9 +19,14 @@ from collections import OrderedDict
 import importlib
 import logging
 
-from qiskit import IBMQ
-from qiskit.providers.ibmq.credentials import Credentials
-from qiskit.providers.ibmq import IBMQProvider
+try:
+    from qiskit import IBMQ
+    from qiskit.providers.ibmq.credentials import Credentials
+    from qiskit.providers.ibmq import IBMQProvider
+    HAS_IBMQ = True
+except:
+    HAS_IBMQ = False
+    pass
 try:
     from qiskit.providers.aer import AerProvider
     HAS_AER = True
@@ -44,7 +49,7 @@ def is_aer_provider(backend):
     Args:
         backend (BaseBackend): backend instance
     Returns:
-        Result (boolean): True is statevector
+        bool: True is statevector
     """
     if HAS_AER:
         return isinstance(backend.provider(), AerProvider)
@@ -59,7 +64,7 @@ def is_aer_statevector_backend(backend):
     Args:
         backend (BaseBackend): backend instance
     Returns:
-        Result (boolean): True is statevector
+        bool: True is statevector
     """
     return is_statevector_backend(backend) and is_aer_provider(backend)
 
@@ -71,7 +76,7 @@ def is_statevector_backend(backend):
     Args:
         backend (BaseBackend): backend instance
     Returns:
-        Result (boolean): True is statevector
+        bool: True is statevector
     """
     return backend.name().startswith('statevector') if backend is not None else False
 
@@ -83,7 +88,7 @@ def is_simulator_backend(backend):
     Args:
         backend (BaseBackend): backend instance
     Returns:
-        Result (boolean): True is a simulator
+        bool: True is a simulator
     """
     return backend.configuration().simulator
 
@@ -95,7 +100,7 @@ def is_local_backend(backend):
     Args:
         backend (BaseBackend): backend instance
     Returns:
-        Result (boolean): True is a local backend
+        bool: True is a local backend
     """
     return backend.configuration().local
 
@@ -106,9 +111,9 @@ def is_ibmq_provider(backend):
     Args:
         backend (BaseBackend): backend instance
     Returns:
-        Result (boolean): True is statevector
+        bool: True is statevector
     """
-    if HAS_AER:
+    if HAS_IBMQ:
         return isinstance(backend.provider(), IBMQProvider)
     else:
         return False
@@ -168,9 +173,9 @@ def get_backend_from_provider(provider_name, backend_name):
 
     Args:
         provider_name (str): Fullname of provider instance global property or class
-        backend_name (str): name of backend for tgis provider
+        backend_name (str): name of backend for this provider
     Returns:
-        object: backend object
+        BaseBackend: backend object
     Raises:
         ImportError: Invalid provider name or failed to find provider
     """
@@ -270,7 +275,7 @@ def _load_provider(provider_name):
 
 def enable_ibmq_account(url, token, proxies):
     """
-    Enable IBMQ account, if not alreay enabled
+    Enable IBMQ account, if not alreay enabled.
     """
     try:
         url = url or ''
@@ -316,7 +321,7 @@ def disable_ibmq_account(url, token, proxies):
 
 
 def _get_ibmq_provider():
-    """Registers IBMQ and return it"""
+    """Registers IBMQ and return it."""
     providers = OrderedDict()
     try:
         providers['qiskit.IBMQ'] = get_backends_from_provider('qiskit.IBMQ')
