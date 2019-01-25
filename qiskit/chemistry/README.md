@@ -4,9 +4,9 @@ Qiskit Chemistry is a set of tools, algorithms and software for use with quantum
 to carry out research and investigate how to take advantage of quantum computing power to solve chemistry
 problems.
 
-If you need introductory material see the main [readme](../README.md) which has
-[installation](../README.md#installation) instructions and information on how to use Qiskit Chemistry for 
-[running a chemistry experiment](../README.md#running-a-chemistry-experiment).
+If you need introductory material see the main [readme](../../README.md) which has
+[installation](../../README.md#installation) instructions and information on how to use Qiskit Chemistry for 
+[running a chemistry experiment](../../README.md#running-a-chemistry-experiment).
 
 This readme contains the following sections: 
 
@@ -45,13 +45,13 @@ Ground state energy computed via Variational Quantum Eigensolver
 DRIVER is a mandatory section. This section defines the molecule and associated configuration for the electronic
 structure computation by the chosen driver via its external chemistry program or library. The exact form on the
 configuration depends on the specific driver being used. See the chemistry drivers
-[readme](/drivers/README.md) for more information about the drivers and their configuration.
+[readme](drivers/README.md) for more information about the drivers and their configuration.
 
 You will need to look at the readme of the driver you are using to find out about its specific configuration.
 Here are a couple of examples. Note that the DRIVER section names which specific chemistry driver will be used and
 that a subsequent section, in the name of the driver, then supplies the driver specific configuration.
 
-Here is an example using the [PYSCF driver](/drivers/pyscfd/README.md).
+Here is an example using the [PYSCF driver](drivers/pyscfd/README.md).
 The DRIVER section names PYSCF as the driver and then a PYSCF section, corresponding to the name, provides the
 molecule and basis set that will be used by the PYSCF driver and hence the PySCF library to compute the electronic
 structure.
@@ -67,7 +67,7 @@ structure.
 &END
 ```
 
-Here is another example using the [PSI4 driver](/drivers/psi4d/README.md). Here PSI4 is named
+Here is another example using the [PSI4 driver](drivers/psi4d/README.md). Here PSI4 is named
 as the driver to be used and the PSI4 section contains the molecule and basis set directly in a form that PSI4
 understands. This is the Psithon input file language for PSI4, and thus should be familiar to existing users of PSI4.
 
@@ -279,7 +279,7 @@ result = solver.run(qiskit_chemistry_dict)
 print('Ground state energy {}'.format(result['energy']))
 ```
 
-Note: the [GUI](../README.md#gui) tool can export a dictionary from an [input file](#input-file). You can load an
+Note: the [GUI](../../README.md#gui) tool can export a dictionary from an [input file](#input-file). You can load an
 existing input file or create a new one and then simply export it as a dictionary for use in a program.
 
 ### Result dictionary

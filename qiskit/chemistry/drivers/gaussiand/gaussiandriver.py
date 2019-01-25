@@ -22,8 +22,8 @@ from shutil import which
 import tempfile
 import numpy as np
 
-from qiskit_chemistry import QMolecule, QiskitChemistryError
-from qiskit_chemistry.drivers import BaseDriver, get_driver_class
+from qiskit.chemistry import QMolecule, QiskitChemistryError
+from qiskit.chemistry.drivers import BaseDriver, get_driver_class
 
 logger = logging.getLogger(__name__)
 

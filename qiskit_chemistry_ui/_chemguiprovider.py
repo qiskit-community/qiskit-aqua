@@ -48,7 +48,7 @@ class ChemistryGUIProvider(GUIProvider):
     @property
     def version(self):
         """Return provider version."""
-        from qiskit_chemistry import __version__
+        from qiskit.chemistry import __version__
         return __version__
 
     @property
@@ -63,7 +63,7 @@ class ChemistryGUIProvider(GUIProvider):
 
     def create_preferences(self):
         """Creates provider preferences."""
-        from qiskit_aqua_cmd import Preferences
+        from qiskit.chemistry import Preferences
         return Preferences()
 
     def create_uipreferences(self):
@@ -72,19 +72,19 @@ class ChemistryGUIProvider(GUIProvider):
 
     def get_logging_level(self):
         """get level for the named logger."""
-        from qiskit_chemistry._logging import get_logging_level as chem_get_logging_level
+        from qiskit.chemistry._logging import get_logging_level as chem_get_logging_level
         return chem_get_logging_level()
 
     def set_logging_config(self, logging_config):
         """Update logger configurations using a SDK default one."""
-        from qiskit_chemistry._logging import set_logging_config as chem_set_logging_config
+        from qiskit.chemistry._logging import set_logging_config as chem_set_logging_config
         chem_set_logging_config(logging_config)
 
     def build_logging_config(self, level):
         """
          Creates a the configuration dict of the named loggers
         """
-        from qiskit_chemistry._logging import build_logging_config as chem_build_logging_config
+        from qiskit.chemistry._logging import build_logging_config as chem_build_logging_config
         return chem_build_logging_config(level)
 
     def create_section_properties_view(self, parent):

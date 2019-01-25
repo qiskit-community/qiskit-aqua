@@ -15,18 +15,18 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit_chemistry import QiskitChemistryError
-from qiskit_chemistry.drivers import local_drivers, get_driver_class
+from .qiskit_chemistry_error import QiskitChemistryError
+from qiskit.chemistry.drivers import local_drivers, get_driver_class
 from qiskit_aqua import run_algorithm, get_provider_from_backend
 from qiskit_aqua.utils import convert_json_to_dict
-from qiskit_chemistry.parser import InputParser
+from qiskit.chemistry.parser import InputParser
 from qiskit_aqua.parser import JSONSchema
 import json
 import os
 import copy
 import pprint
 import logging
-from qiskit_chemistry.core import get_chemistry_operator_class
+from qiskit.chemistry.core import get_chemistry_operator_class
 
 logger = logging.getLogger(__name__)
 

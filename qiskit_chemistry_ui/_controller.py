@@ -51,7 +51,7 @@ class Controller(BaseController):
             self._propertiesView.tkraise()
 
     def on_section_defaults(self, section_name):
-        from qiskit_chemistry.parser import InputParser
+        from qiskit.chemistry.parser import InputParser
         try:
             self.model.set_default_properties_for_name(section_name)
             if section_name == InputParser.DRIVER:
@@ -103,9 +103,9 @@ class Controller(BaseController):
             self._outputView.write_line(str(e))
 
     def create_popup(self, section_name, property_name, parent, value):
-        from qiskit_chemistry.parser import InputParser
+        from qiskit.chemistry.parser import InputParser
         from qiskit_aqua.parser import JSONSchema
-        from qiskit_chemistry.drivers import local_drivers
+        from qiskit.chemistry.drivers import local_drivers
         values = None
         types = ['string']
         combobox_state = 'readonly'

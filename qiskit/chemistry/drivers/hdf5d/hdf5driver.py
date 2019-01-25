@@ -15,9 +15,9 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit_chemistry.drivers import BaseDriver
+from qiskit.chemistry.drivers import BaseDriver
 import logging
-from qiskit_chemistry import QMolecule, QiskitChemistryError
+from qiskit.chemistry import QMolecule, QiskitChemistryError
 import os
 
 logger = logging.getLogger(__name__)

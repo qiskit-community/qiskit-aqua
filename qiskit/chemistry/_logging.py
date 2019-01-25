@@ -20,8 +20,8 @@ import copy
 import logging
 from logging.config import dictConfig
 from collections import OrderedDict
-from qiskit_chemistry.core import OPERATORS_ENTRY_POINT
-from qiskit_chemistry.drivers import DRIVERS_ENTRY_POINT
+from qiskit.chemistry.core import OPERATORS_ENTRY_POINT
+from qiskit.chemistry.drivers import DRIVERS_ENTRY_POINT
 import pkg_resources
 import itertools
 
@@ -46,7 +46,7 @@ _QISKIT_CHEMISTRY_LOGGING_CONFIG = {
 def _get_logging_names():
     from qiskit_aqua import PLUGGABLES_ENTRY_POINT
     names = OrderedDict()
-    names['qiskit_chemistry'] = None
+    names['qiskit.chemistry'] = None
     for entry_point in itertools.chain(pkg_resources.iter_entry_points(PLUGGABLES_ENTRY_POINT),
                                        pkg_resources.iter_entry_points(OPERATORS_ENTRY_POINT),
                                        pkg_resources.iter_entry_points(DRIVERS_ENTRY_POINT)):
@@ -77,7 +77,7 @@ def build_logging_config(level):
 
 def get_logging_level():
     """get level for the named logger."""
-    return logging.getLogger('qiskit_chemistry').getEffectiveLevel()
+    return logging.getLogger('qiskit.chemistry').getEffectiveLevel()
 
 
 def set_logging_config(logging_config):

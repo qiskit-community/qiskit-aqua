@@ -26,8 +26,8 @@ __pycache__/
 *.so.dSYM
 *.dll
 #Allow
-!qiskit_chemistry/drivers/gaussiand/gauopen/*.so
-!qiskit_chemistry/drivers/gaussiand/gauopen/*.pyd
+!qiskit/chemistry/drivers/gaussiand/gauopen/*.so
+!qiskit/chemistry/drivers/gaussiand/gauopen/*.pyd
 
 
 # Distribution / packaging

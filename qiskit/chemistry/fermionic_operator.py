@@ -19,15 +19,12 @@ import itertools
 import logging
 import multiprocessing
 import concurrent.futures
-
 import numpy as np
 from qiskit.quantum_info import Pauli
 from qiskit_aqua import Operator
-
-from qiskit_chemistry import QiskitChemistryError
-from qiskit_chemistry.bksf import bksf_mapping
-from qiskit_chemistry.particle_hole import particle_hole_transformation
-
+from .qiskit_chemistry_error import QiskitChemistryError
+from .bksf import bksf_mapping
+from .particle_hole import particle_hole_transformation
 
 logger = logging.getLogger(__name__)
 

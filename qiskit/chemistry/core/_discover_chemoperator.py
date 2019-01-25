@@ -25,7 +25,7 @@ import importlib
 import inspect
 from collections import namedtuple
 from .chemistry_operator import ChemistryOperator
-from qiskit_chemistry import QiskitChemistryError
+from qiskit.chemistry import QiskitChemistryError
 import logging
 import sys
 import copy

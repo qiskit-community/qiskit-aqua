@@ -24,7 +24,7 @@ import inspect
 import copy
 from ._basedriver import BaseDriver
 from collections import namedtuple
-from qiskit_chemistry import QiskitChemistryError
+from qiskit.chemistry import QiskitChemistryError
 import pkg_resources
 
 logger = logging.getLogger(__name__)

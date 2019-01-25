@@ -61,8 +61,7 @@ class ChemistryThread(threading.Thread):
         output_file = None
         temp_input = False
         try:
-            qiskit_chemistry_directory = os.path.dirname(
-                os.path.realpath(__file__))
+            qiskit_chemistry_directory = os.path.dirname(os.path.realpath(__file__))
             qiskit_chemistry_directory = os.path.abspath(
                 os.path.join(qiskit_chemistry_directory, '../qiskit_chemistry_cmd'))
             input_file = self.model.get_filename()

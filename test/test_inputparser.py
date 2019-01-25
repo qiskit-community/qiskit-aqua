@@ -22,7 +22,7 @@ InputParser test.
 import unittest
 from test.common import QiskitAquaChemistryTestCase
 from qiskit_aqua import AquaError
-from qiskit_chemistry.parser import InputParser
+from qiskit.chemistry.parser import InputParser
 import os
 import json
 

@@ -17,8 +17,8 @@
 
 import unittest
 from test.common import QiskitAquaChemistryTestCase
-from qiskit_chemistry import QiskitChemistryError
-from qiskit_chemistry.drivers import PySCFDriver, UnitsType
+from qiskit.chemistry import QiskitChemistryError
+from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from test.test_driver import TestDriver
 
 
