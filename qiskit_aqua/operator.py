@@ -559,8 +559,8 @@ class Operator(object):
             operator_mode (str): representation of operator, including paulis, grouped_paulis and matrix
             input_circuit (QuantumCircuit): the quantum circuit.
             backend (BaseBackend): backend selection for quantum machine.
-            is_aer (bool): if aer_provider is available, we can do faster
-                                     evaluation for pauli mode on statevector simualtion
+            is_aer (bool): if aer_provider is used, we can do faster
+                           evaluation for pauli mode on statevector simualtion
 
         Returns:
             [QuantumCircuit]: the circuits for evaluation.
@@ -649,9 +649,9 @@ class Operator(object):
             operator_mode (str): representation of operator, including paulis, grouped_paulis and matrix
             circuits (list of qiskit.QuantumCircuit): the quantum circuits.
             backend (str): backend selection for quantum machine.
-            result (Result): the result from the backend.
-            is_aer (bool): if aer_provider is available, we can do faster
-                            evaluation for pauli mode on statevector simualtion
+            result (qiskit.Result): the result from the backend.
+            is_aer (bool): if aer_provider is used, we can do faster
+                           evaluation for pauli mode on statevector simualtion
         Returns:
             float: the mean value
             float: the standard deviation
