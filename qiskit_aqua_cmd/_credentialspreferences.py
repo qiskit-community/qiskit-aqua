@@ -23,6 +23,7 @@ from qiskit.providers.ibmq.credentials import (read_credentials_from_qiskitrc,
                                                Credentials)
 from qiskit.providers.ibmq.credentials.configrc import remove_credentials
 
+
 class CredentialsPreferences(object):
 
     URL = QE_URL
