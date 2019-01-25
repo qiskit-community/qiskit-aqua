@@ -53,8 +53,7 @@ class QAOAVarForm:
         circuit = QuantumCircuit(q)
         if self._initial_state:
             circuit += self._initial_state.construct_circuit('circuit', q)
-        else:
-            circuit.u2(0, np.pi, q)
+        circuit.u2(0, np.pi, q)
         for idx in range(self._p):
             beta, gamma = angles[idx], angles[idx + self._p]
             circuit += self._cost_operator.evolve(None, gamma, 'circuit', 1, quantum_registers=q)

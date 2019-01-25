@@ -17,9 +17,9 @@
 
 import unittest
 import copy
-
 import numpy as np
-from qiskit import QuantumRegister
+
+from qiskit import QuantumRegister, QuantumCircuit
 from qiskit_aqua import get_aer_backend
 from qiskit import execute as q_execute
 from qiskit.quantum_info import state_fidelity
@@ -95,8 +95,9 @@ class TestEvolution(QiskitAquaTestCase):
                         expansion_order=expansion_order
                     )
 
-                    quantum_registers = QuantumRegister(qubit_op.num_qubits)
-                    qc = state_in.construct_circuit(
+                    quantum_registers = QuantumRegister(qubit_op.num_qubits, name='q')
+                    qc = QuantumCircuit(quantum_registers)
+                    qc += state_in.construct_circuit(
                         'circuit', quantum_registers)
                     qc += qubit_op.evolve(
                         None, evo_time, 'circuit', num_time_slices,
