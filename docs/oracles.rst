@@ -81,14 +81,14 @@ Once it receives a CNF as an input, the SAT oracle constructs the corresponding
 quantum search circuit for Grover's Search Algorithm to operate upon.
 
 Internally, SAT relies on ``mct``, the Multiple-Control Toffoli operation, for
-circuit construction. Aqua includes two different modes for ``mct``, namely
-``'basic'`` and ``'advanced'``:
+circuit construction. Aqua includes three different modes for ``mct``, namely
+``'basic'``, ``'advanced'``, and ``'noancilla'``:
 
 .. code:: python
 
-    mct_mode : str = 'basic' | 'advanced'
+    mct_mode : str = 'basic' | 'advanced' | 'noancilla'
 
-More information on ``mct`` and its two modes can be found at :ref:`mct`.
+More information on ``mct`` and its three modes can be found at :ref:`mct`.
 
 The following is an example of a CNF expressed in DIMACS CNF format:
 
