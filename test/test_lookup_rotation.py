@@ -28,8 +28,8 @@ class TestLookupRotation(QiskitAquaTestCase):
 
     #def setUp(self):
 
-    @parameterized.expand([[3, 344], [5, 1540], [7, 6878],
-                           [9, 11974], [11, 18342]])
+    @parameterized.expand([[3, 344], [5, 1540], [7, 5678],
+                           [9, 9728], [11, 14428]])
     def test_lookup_rotation(self, reg_size, gate_cnt):
         self.log.debug('Testing Lookup Rotation with positive eigenvalues')
 
@@ -42,8 +42,8 @@ class TestLookupRotation(QiskitAquaTestCase):
         self.log.debug('Lookup rotation register size: {}'.format(reg_size))
         self.log.debug('Lookup rotation gate count:    {}'.format(circuit_cnt))
 
-    @parameterized.expand([[3, 193], [5, 793], [7, 4617],
-                           [9, 9425], [11, 14921]])
+    @parameterized.expand([[3, 193], [5, 793], [7, 3817],
+                           [9, 7725], [11, 11985]])
     def test_lookup_rotation_neg(self, reg_size, gate_cnt):
         self.log.debug('Testing Lookup Rotation with support for negative '
                        'eigenvalues')
