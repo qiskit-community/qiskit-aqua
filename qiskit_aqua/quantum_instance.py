@@ -20,14 +20,12 @@ import logging
 from qiskit import __version__ as terra_version
 from qiskit.providers.ibmq import IBMQProvider
 from qiskit.qobj import RunConfig
-try:
-    from qiskit.providers.aer import AerProvider
-    HAS_AER = True
-except ImportError:
-    HAS_AER = False
-    pass
 
 from qiskit_aqua.utils import compile_and_run_circuits
+from qiskit_aqua.utils.backend_utils import (is_aer_provider,
+                                             is_statevector_backend,
+                                             is_simulator_backend,
+                                             is_local_backend)
 
 logger = logging.getLogger(__name__)
 
@@ -98,8 +96,8 @@ class QuantumInstance:
         # setup noise config
         noise_config = None
         if noise_model is not None:
-            if HAS_AER:
-                if isinstance(self._backend.provider(), AerProvider) and not self.is_statevector:
+            if is_aer_provider(self._backend):
+                if not self.is_statevector:
                     noise_config = noise_model
                 else:
                     logger.info("The noise model can be only used with Aer qasm simulator. "
@@ -148,7 +146,7 @@ class QuantumInstance:
             self._run_config, self._qjob_config, self._backend_options, self._noise_config)
         return info
 
-    def execute(self, circuits):
+    def execute(self, circuits, **kwargs):
         """
         A wrapper to interface with quantum backend.
 
@@ -166,7 +164,7 @@ class QuantumInstance:
                                           show_circuit_summary=self._circuit_summary,
                                           has_shared_circuits=self._shared_circuits,
                                           circuit_cache=self._circuit_cache,
-                                          skip_qobj_validation=self._skip_qobj_validation)
+                                          skip_qobj_validation=self._skip_qobj_validation, **kwargs)
         if self._circuit_summary:
             self._circuit_summary = False
 
@@ -240,6 +238,7 @@ class QuantumInstance:
 
     @property
     def circuit_summary(self):
+        """Getter of circuit summary."""
         return self._circuit_summary
 
     @circuit_summary.setter
@@ -259,50 +258,14 @@ class QuantumInstance:
     @property
     def is_statevector(self):
         """Return True if backend is a statevector-type simulator."""
-        return QuantumInstance.is_statevector_backend(self._backend)
+        return is_statevector_backend(self._backend)
 
     @property
     def is_simulator(self):
         """Return True if backend is a simulator."""
-        return QuantumInstance.is_simulator_backend(self._backend)
+        return is_simulator_backend(self._backend)
 
     @property
     def is_local(self):
         """Return True if backend is a local backend."""
-        return QuantumInstance.is_local_backend(self._backend)
-
-    @staticmethod
-    def is_statevector_backend(backend):
-        """
-        Return True if backend object is statevector.
-
-        Args:
-            backend (BaseBackend): backend instance
-        Returns:
-            Result (Boolean): True is statevector
-        """
-        return backend.name().startswith('statevector') if backend is not None else False
-
-    @staticmethod
-    def is_simulator_backend(backend):
-        """
-        Return True if backend is a simulator.
-
-        Args:
-            backend (BaseBackend): backend instance
-        Returns:
-            Result (Boolean): True is a simulator
-        """
-        return backend.configuration().simulator
-
-    @staticmethod
-    def is_local_backend(backend):
-        """
-        Return True if backend is a local backend.
-
-        Args:
-            backend (BaseBackend): backend instance
-        Returns:
-            Result (Boolean): True is a local backend
-        """
-        return backend.configuration().local
+        return is_local_backend(self._backend)

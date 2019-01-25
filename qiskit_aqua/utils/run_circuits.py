@@ -30,6 +30,8 @@ from qiskit.providers.ibmq.ibmqjob import IBMQJob
 
 from qiskit_aqua.aqua_error import AquaError
 from qiskit_aqua.utils import summarize_circuits
+from qiskit_aqua.utils.backend_utils import (is_aer_provider,
+                                             is_simulator_backend, is_ibmq_provider)
 
 MAX_CIRCUITS_PER_JOB = os.environ.get('QISKIT_AQUA_MAX_CIRCUITS_PER_JOB', None)
 
@@ -130,7 +132,7 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
                              qjob_config=None, backend_options=None,
                              noise_config=None, show_circuit_summary=False,
                              has_shared_circuits=False, circuit_cache=None,
-                             skip_qobj_validation=False):
+                             skip_qobj_validation=False, **kwargs):
     """
     An execution wrapper with Qiskit-Terra, with job auto recover capability.
 
@@ -184,8 +186,9 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
 
     if circuit_cache is not None and circuit_cache.try_reusing_qobjs:
         # Check if all circuits are the same length. If not, don't try to use the same qobj.experiment for all of them.
-        if len(set([len(circ.data) for circ in circuits])) > 1: circuit_cache.try_reusing_qobjs = False
-        else: # Try setting up the reusable qobj
+        if len(set([len(circ.data) for circ in circuits])) > 1:
+            circuit_cache.try_reusing_qobjs = False
+        else:  # Try setting up the reusable qobj
             # Compile and cache first circuit if cache is empty. The load method will try to reuse it
             if circuit_cache.try_reusing_qobjs and circuit_cache.qobjs is None:
                 qobj = q_compile([circuits[0]], backend, **execute_config)
@@ -206,13 +209,22 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
                 circuit_cache.clear_cache()
                 logger.debug('Circuit cache miss, recompiling. Cache miss reason: ' + repr(e))
                 qobj = q_compile(sub_circuits, backend, **backend_config,
-                         **compile_config, **run_config.to_dict())
+                                 **compile_config, **run_config.to_dict())
                 circuit_cache.cache_circuit(qobj, sub_circuits, i)
                 circuit_cache.misses += 1
         else:
             qobj = q_compile(sub_circuits, backend, **backend_config,
                              **compile_config, **run_config.to_dict())
 
+        if 'expectation' in kwargs:
+            from qiskit.providers.aer.utils.qobj_utils import snapshot_instr, append_instr
+            # add others, how to derive the correct used number of qubits?
+            # the compiled qobj could be wrong if coupling map is used.
+            params = kwargs['expectation']['params']
+            num_qubits = kwargs['expectation']['num_qubits']
+            new_ins = snapshot_instr('expectation_value_pauli', 'test', range(num_qubits), params=params)
+            for ii in range(len(sub_circuits)):
+                qobj = append_instr(qobj, ii, new_ins)
         # assure get job ids
         while True:
             job = run_on_backend(backend, qobj, backend_options=backend_options, noise_config=noise_config,
@@ -328,17 +340,18 @@ def compile_and_run_circuits(circuits, backend, backend_config, compile_config, 
 def run_on_backend(backend, qobj, backend_options=None, noise_config=None, skip_qobj_validation=False):
     if skip_qobj_validation:
         job_id = str(uuid.uuid4())
-        if backend.configuration().simulator:
-            if type(backend.provider()).__name__ == 'AerProvider':
-                from qiskit.providers.aer.aerjob import AerJob
-                job = AerJob(backend, job_id, backend._run_job, qobj, backend_options, noise_config)
-                job._future = job._executor.submit(job._fn, job._job_id, job._qobj, backend_options, noise_config)
+        if is_simulator_backend(backend):
+            if is_aer_provider(backend):
+                job = backend.run(qobj, **backend_options, **noise_config, validate=False)
             else:
                 job = SimulatorsJob(backend, job_id, backend._run_job, qobj)
                 job._future = job._executor.submit(job._fn, job._job_id, job._qobj)
-        else:
-            job = IBMQJob(backend, None, backend._api, not backend.configuration().simulator, qobj=qobj)
+        elif is_ibmq_provider(backend):
+            job = IBMQJob(backend, None, backend._api, not is_simulator_backend(backend), qobj=qobj)
             job._future = job._executor.submit(job._fn, job._job_id, job._qobj)
+        else:
+            logger.info("Can not skip qobj validation for the third-party provider.")
+            job = backend.run(qobj, **backend_options, **noise_config)
         return job
     else:
         job = backend.run(qobj, **backend_options, **noise_config)
