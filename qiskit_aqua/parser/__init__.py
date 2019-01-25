@@ -16,5 +16,7 @@
 # =============================================================================
 
 from .jsonschema import JSONSchema
+from .base_parser import BaseParser
 
-__all__ = ['JSONSchema']
+__all__ = ['JSONSchema',
+           'BaseParser']

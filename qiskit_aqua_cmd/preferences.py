@@ -17,7 +17,6 @@
 
 import os
 import json
-import copy
 
 
 class Preferences(object):
@@ -31,7 +30,6 @@ class Preferences(object):
         self._preferences = {
             'version': Preferences._VERSION
         }
-        self._packages_changed = False
         self._logging_config_changed = False
         self._credentials_preferences = None
 
@@ -40,11 +38,14 @@ class Preferences(object):
         try:
             with open(self._filepath) as json_pref:
                 self._preferences = json.load(json_pref)
+                # remove old packages entry
+                if 'packages' in self._preferences:
+                    del self._preferences['packages']
         except:
             pass
 
     def save(self):
-        pref_changed = self._logging_config_changed or self._packages_changed
+        pref_changed = self._logging_config_changed
         if self._credentials_preferences is not None:
             self.credentials_preferences.save()
             selected_credentials = self.credentials_preferences.selected_credentials
@@ -64,7 +65,6 @@ class Preferences(object):
                 json.dump(self._preferences, fp, sort_keys=True, indent=4)
 
         self._logging_config_changed = False
-        self._packages_changed = False
 
     def get_version(self):
         if 'version' in self._preferences:
@@ -94,31 +94,6 @@ class Preferences(object):
 
     def get_proxy_urls(self, default_value=None):
         return self.credentials_preferences.get_proxy_urls(default_value)
-
-    def get_packages(self, default_value=None):
-        if 'packages' in self._preferences and \
-           self._preferences['packages'] is not None:
-            return copy.deepcopy(self._preferences['packages'])
-
-        return default_value
-
-    def add_package(self, package):
-        if package is not None and isinstance(package, str):
-            packages = self.get_packages([])
-            if package not in packages:
-                packages.append(package)
-                self.set_packages(packages)
-
-    def remove_package(self, package):
-        if package is not None and isinstance(package, str):
-            packages = self.get_packages([])
-            if package in packages:
-                packages.remove(package)
-                self.set_packages(packages)
-
-    def set_packages(self, packages):
-        self._packages_changed = True
-        self._preferences['packages'] = packages
 
     def get_logging_config(self, default_value=None):
         if 'logging_config' in self._preferences:
