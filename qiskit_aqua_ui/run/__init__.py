@@ -15,6 +15,3 @@
 # limitations under the License.
 # =============================================================================
 
-from ._credentialsview import CredentialsView
-
-__all__ = ['CredentialsView']
