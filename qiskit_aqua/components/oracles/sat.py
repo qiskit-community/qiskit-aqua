@@ -36,7 +36,7 @@ class SAT(Oracle):
             'id': 'sat_oracle_schema',
             'type': 'object',
             'properties': {
-                'cnf_str': {
+                'dimacs_cnf': {
                     'type': 'string',
                 },
                 'mct_mode': {
@@ -54,13 +54,13 @@ class SAT(Oracle):
         }
     }
 
-    def __init__(self, cnf_str, mct_mode='basic'):
+    def __init__(self, dimacs_cnf, mct_mode='basic'):
         self.validate(locals())
         super().__init__()
         self._mct_mode = mct_mode
 
         ls = [
-            l.strip() for l in cnf_str.split('\n')
+            l.strip() for l in dimacs_cnf.split('\n')
             if len(l) > 0 and not l.strip()[0] == 'c'
         ]
         headers = [l for l in ls if l[0] == 'p']
