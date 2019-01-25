@@ -33,6 +33,8 @@ import pkg_resources
 
 logger = logging.getLogger(__name__)
 
+PLUGGABLES_ENTRY_POINT = 'qiskit.aqua.pluggables'
+
 
 class PluggableType(Enum):
     ALGORITHM = 'algorithm'
@@ -124,7 +126,6 @@ def refresh_pluggables():
     _DISCOVERED = True
     _discover_local_pluggables()
     _discover_entry_point_pluggables()
-    _discover_preferences_pluggables()
     if logger.isEnabledFor(logging.DEBUG):
         for ptype in local_pluggables_types():
             logger.debug("Found: '{}' has pluggables {} ".format(ptype.value, local_pluggables(ptype)))
@@ -139,7 +140,6 @@ def _discover_on_demand():
         _DISCOVERED = True
         _discover_local_pluggables()
         _discover_entry_point_pluggables()
-        _discover_preferences_pluggables()
         if logger.isEnabledFor(logging.DEBUG):
             for ptype in local_pluggables_types():
                 logger.debug("Found: '{}' has pluggables {} ".format(ptype.value, local_pluggables(ptype)))
@@ -150,7 +150,7 @@ def _discover_entry_point_pluggables():
     Discovers the pluggable modules defined by entry_points in setup
     and attempts to register them. Pluggable modules should subclass Pluggable Base classes.
     """
-    for entry_point in pkg_resources.iter_entry_points('qiskit.aqua.pluggables'):
+    for entry_point in pkg_resources.iter_entry_points(PLUGGABLES_ENTRY_POINT):
         try:
             ep = entry_point.load()
             _registered = False
@@ -169,32 +169,6 @@ def _discover_entry_point_pluggables():
             # Ignore entry point that could not be initialized.
             # print("Failed to load entry point '{}' error {}".format(entry_point, str(e)))
             logger.debug("Failed to load entry point '{}' error {}".format(entry_point, str(e)))
-
-
-def _discover_preferences_pluggables():
-    """
-    Discovers the pluggable modules on the directory and subdirectories of the preferences package
-    and attempts to register them. Pluggable modules should subclass Pluggable Base classes.
-    """
-    from qiskit_aqua_cmd import Preferences
-    preferences = Preferences()
-    packages = preferences.get_packages([])
-    for package in packages:
-        try:
-            mod = importlib.import_module(package)
-            if mod is not None:
-                _discover_local_pluggables_in_dirs(os.path.dirname(mod.__file__),
-                                                   mod.__name__,
-                                                   names_to_exclude=['__main__'],
-                                                   folders_to_exclude=['__pycache__'])
-            else:
-                # Ignore package that could not be initialized.
-                # print('Failed to import package {}'.format(package))
-                logger.debug('Failed to import package {}'.format(package))
-        except Exception as e:
-            # Ignore package that could not be initialized.
-            # print('Failed to load package {} error {}'.format(package, str(e)))
-            logger.debug('Failed to load package {} error {}'.format(package, str(e)))
 
 
 def _discover_local_pluggables_in_dirs(directory,
