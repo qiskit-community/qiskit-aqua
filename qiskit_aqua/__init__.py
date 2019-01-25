@@ -43,7 +43,7 @@ from .utils.subsystem import get_subsystem_density_matrix, get_subsystems_counts
 from .quantum_instance import QuantumInstance
 from .operator import Operator
 from .algorithms import QuantumAlgorithm
-from ._aqua import run_algorithm, run_algorithm_to_json
+from ._aqua import run_algorithm, run_algorithm_to_json, build_algorithm_from_dict
 from ._logging import (get_logging_level,
                        build_logging_config,
                        set_logging_config,
@@ -81,6 +81,7 @@ __all__ = ['AquaError',
            'deregister_pluggable',
            'run_algorithm',
            'run_algorithm_to_json',
+           'build_algorithm_from_dict',
            'get_logging_level',
            'build_logging_config',
            'set_logging_config',
