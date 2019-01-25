@@ -551,7 +551,7 @@ class Operator(object):
             raise ValueError('Mode should be one of "matrix", "paulis", "grouped_paulis"')
         return ret
 
-    def construct_evaluation_circuit(self, operator_mode, input_circuit, backend, has_aer=False):
+    def construct_evaluation_circuit(self, operator_mode, input_circuit, backend, is_aer=False):
         """
         Construct the circuits for evaluation.
 
@@ -559,7 +559,7 @@ class Operator(object):
             operator_mode (str): representation of operator, including paulis, grouped_paulis and matrix
             input_circuit (QuantumCircuit): the quantum circuit.
             backend (BaseBackend): backend selection for quantum machine.
-            has_aer (bool): if aer_provider is available, we can do faster
+            is_aer (bool): if aer_provider is available, we can do faster
                                      evaluation for pauli mode on statevector simualtion
 
         Returns:
@@ -570,7 +570,7 @@ class Operator(object):
                 circuits = [input_circuit]
             else:
                 self._check_representation("paulis")
-                if has_aer:
+                if is_aer:
                     circuits = [input_circuit]
                 else:
                     n_qubits = self.num_qubits
@@ -641,7 +641,7 @@ class Operator(object):
                     circuits.append(circuit)
         return circuits
 
-    def evaluate_with_result(self, operator_mode, circuits, backend, result, has_aer):
+    def evaluate_with_result(self, operator_mode, circuits, backend, result, is_aer):
         """
         Use the executed result with operator to get the evaluated value.
 
@@ -650,7 +650,7 @@ class Operator(object):
             circuits (list of qiskit.QuantumCircuit): the quantum circuits.
             backend (str): backend selection for quantum machine.
             result (Result): the result from the backend.
-            has_aer (bool): if aer_provider is available, we can do faster
+            is_aer (bool): if aer_provider is available, we can do faster
                             evaluation for pauli mode on statevector simualtion
         Returns:
             float: the mean value
@@ -669,7 +669,7 @@ class Operator(object):
                     avg = np.vdot(quantum_state, self._matrix.dot(quantum_state))
             else:
                 self._check_representation("paulis")
-                if has_aer:
+                if is_aer:
                     temp = result.data(circuits[0])['snapshots']['expectation_value']['test'][0]['value']
                     avg = temp[0] + 1j * temp[1]
                 else:

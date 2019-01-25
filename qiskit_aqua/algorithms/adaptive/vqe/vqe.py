@@ -26,7 +26,7 @@ import functools
 import numpy as np
 from qiskit import ClassicalRegister
 try:
-    import qiskit.providers.aer
+    from qiskit.providers.aer import AerProvider
     HAS_AER = True
 except ImportError:
     HAS_AER = False
@@ -197,12 +197,14 @@ class VQE(QuantumAlgorithm):
         ret += "===============================================================\n"
         return ret
 
-    def construct_circuit(self, parameter, backend=None):
+    def construct_circuit(self, parameter, backend=None, is_aer=False):
         """Generate the circuits.
 
         Args:
             parameters (numpy.ndarray): parameters for variational form.
-            backend (BaseBackend): backend object.
+            backend (qiskit.BaseBackend): backend object.
+            is_aer (bool): is backend from AerProvider, if True and mode is paulis,
+                           single circuit is generated.
 
         Returns:
             [QuantumCircuit]: the generated circuits with Hamiltonian.
@@ -278,6 +280,11 @@ class VQE(QuantumAlgorithm):
                            'the operator_mode to "paulis"'.format(self._operator_mode))
             self._operator_mode = 'paulis'
 
+        self._is_aer = False
+        if HAS_AER:
+            if isinstance(self._quantum_instance.backend.provider(), AerProvider):
+                self._is_aer = True
+
         self._quantum_instance.circuit_summary = True
         self._eval_count = 0
         self._solve()
@@ -306,7 +313,7 @@ class VQE(QuantumAlgorithm):
 
         for idx in range(len(parameter_sets)):
             parameter = parameter_sets[idx]
-            circuit = self.construct_circuit(parameter, self._quantum_instance.backend)
+            circuit = self.construct_circuit(parameter, self._quantum_instance.backend, self._is_aer)
             circuits.append(circuit)
 
         to_be_simulated_circuits = functools.reduce(lambda x, y: x + y, circuits)
@@ -321,7 +328,7 @@ class VQE(QuantumAlgorithm):
 
         for idx in range(len(parameter_sets)):
             mean, std = self._operator.evaluate_with_result(
-                self._operator_mode, circuits[idx], self._quantum_instance.backend, result, HAS_AER)
+                self._operator_mode, circuits[idx], self._quantum_instance.backend, result, self._is_aer)
             mean_energy.append(np.real(mean))
             std_energy.append(np.real(std))
             self._eval_count += 1
