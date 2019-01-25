@@ -20,7 +20,7 @@ import copy
 import logging
 from logging.config import dictConfig
 from collections import OrderedDict
-from qiskit_aqua_cmd import Preferences as AquaPreferences
+import pkg_resources
 
 _ALGO_LOGGING_CONFIG = {
     'version': 1,
@@ -41,12 +41,11 @@ _ALGO_LOGGING_CONFIG = {
 
 
 def _get_logging_names():
+    from qiskit_aqua import PLUGGABLES_ENTRY_POINT
     names = OrderedDict()
     names['qiskit_aqua'] = None
-    preferences = AquaPreferences()
-    packages = preferences.get_packages([])
-    for package in packages:
-        names[package] = None
+    for entry_point in pkg_resources.iter_entry_points(PLUGGABLES_ENTRY_POINT):
+        names[entry_point.module_name] = None
 
     return list(names.keys())
 

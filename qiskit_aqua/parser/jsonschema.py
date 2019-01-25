@@ -442,8 +442,7 @@ class JSONSchema(object):
                     break
 
             if not valid:
-                raise AquaError("{}: Value '{}' is not of types: '{}'".format(
-                    section_name, value, types))
+                raise AquaError("{}: Value '{}' is not of types: '{}'".format(section_name, value, types))
 
         return value
 

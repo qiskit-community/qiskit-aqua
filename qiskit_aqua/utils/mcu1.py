@@ -38,7 +38,7 @@ class MCU1Gate(CompositeGate):
         super(MCU1Gate, self).__init__("mcu1", (theta, n_c), qubits, circ)
 
         if n_c == 1: # cx
-            self.cu1(theta, ctls[0], tgt)
+            apply_cu1(circ, theta, ctls[0], tgt)
         else:
             self.apply_mcu1(theta, ctls, tgt, circ)
 
