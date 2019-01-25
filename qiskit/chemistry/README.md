@@ -4,9 +4,9 @@ Qiskit Chemistry is a set of tools, algorithms and software for use with quantum
 to carry out research and investigate how to take advantage of quantum computing power to solve chemistry
 problems.
 
-If you need introductory material see the main [readme](../README.md) which has
-[installation](../README.md#installation) instructions and information on how to use Qiskit Chemistry for 
-[running a chemistry experiment](../README.md#running-a-chemistry-experiment).
+If you need introductory material see the main [readme](../../README.md) which has
+[installation](../../README.md#installation) instructions and information on how to use Qiskit Chemistry for 
+[running a chemistry experiment](../../README.md#running-a-chemistry-experiment).
 
 This readme contains the following sections: 
 
