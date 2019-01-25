@@ -641,7 +641,7 @@ class Operator(object):
                     circuits.append(circuit)
         return circuits
 
-    def evaluate_with_result(self, operator_mode, circuits, backend, result, is_aer):
+    def evaluate_with_result(self, operator_mode, circuits, backend, result, is_aer=False):
         """
         Use the executed result with operator to get the evaluated value.
 
