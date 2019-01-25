@@ -26,7 +26,7 @@ from qiskit import ClassicalRegister, QuantumCircuit
 from qiskit.qasm import pi
 
 from qiskit_aqua import AquaError, PluggableType, get_pluggable_class
-from qiskit_aqua import get_subsystem_density_matrix
+from qiskit_aqua.utils import get_subsystem_density_matrix
 from qiskit_aqua.algorithms import QuantumAlgorithm
 
 
