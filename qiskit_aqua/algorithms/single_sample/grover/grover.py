@@ -100,7 +100,8 @@ class Grover(QuantumAlgorithm):
         self.validate(locals())
         super().__init__()
         self._oracle = oracle
-        self._max_num_iterations = 2 ** (len(self._oracle.variable_register()) / 2)
+        self._oracle_circuit = oracle.construct_circuit()
+        self._max_num_iterations = 2 ** (len(self._oracle.variable_register) / 2)
         self._incremental = incremental
         self._num_iterations = num_iterations if not incremental else 1
         self._mct_mode = mct_mode
@@ -138,48 +139,48 @@ class Grover(QuantumAlgorithm):
         return cls(oracle, incremental=incremental, num_iterations=num_iterations, mct_mode=mct_mode)
 
     def _construct_circuit_components(self):
-        if self._oracle.ancillary_register():
+        if self._oracle.ancillary_register:
             qc_prefix = QuantumCircuit(
-                self._oracle.variable_register(),
-                self._oracle.ancillary_register()
+                self._oracle.variable_register,
+                self._oracle.ancillary_register
             )
             qc_amplitude_amplification_single_iteration = QuantumCircuit(
-                self._oracle.variable_register(),
-                self._oracle.ancillary_register()
+                self._oracle.variable_register,
+                self._oracle.ancillary_register
             )
         else:
             qc_prefix = QuantumCircuit(
-                self._oracle.variable_register()
+                self._oracle.variable_register
             )
             qc_amplitude_amplification_single_iteration = QuantumCircuit(
-                self._oracle.variable_register()
+                self._oracle.variable_register
             )
-        qc_prefix.u2(0, pi, self._oracle.variable_register())  # h
+        qc_prefix.u2(0, pi, self._oracle.variable_register)  # h
 
-        qc_amplitude_amplification_single_iteration += self._oracle.construct_circuit()
-        qc_amplitude_amplification_single_iteration.u2(0, pi, self._oracle.variable_register())  # h
-        qc_amplitude_amplification_single_iteration.u3(pi, 0, pi, self._oracle.variable_register())  # x
-        qc_amplitude_amplification_single_iteration.u3(pi, 0, pi, self._oracle.outcome_register())  # x
-        qc_amplitude_amplification_single_iteration.u2(0, pi, self._oracle.outcome_register())  # h
-        if self._oracle.ancillary_register():
+        qc_amplitude_amplification_single_iteration += self._oracle_circuit
+        qc_amplitude_amplification_single_iteration.u2(0, pi, self._oracle.variable_register)  # h
+        qc_amplitude_amplification_single_iteration.u3(pi, 0, pi, self._oracle.variable_register)  # x
+        qc_amplitude_amplification_single_iteration.u3(pi, 0, pi, self._oracle.outcome_register)  # x
+        qc_amplitude_amplification_single_iteration.u2(0, pi, self._oracle.outcome_register)  # h
+        if self._oracle.ancillary_register:
             qc_amplitude_amplification_single_iteration.mct(
-                [self._oracle.variable_register()[i] for i in range(len(self._oracle.variable_register()))],
-                self._oracle.outcome_register()[0],
-                [self._oracle.ancillary_register()[i] for i in range(len(self._oracle.ancillary_register()))],
+                [self._oracle.variable_register[i] for i in range(len(self._oracle.variable_register))],
+                self._oracle.outcome_register[0],
+                [self._oracle.ancillary_register[i] for i in range(len(self._oracle.ancillary_register))],
                 mode=self._mct_mode
             )
         else:
             qc_amplitude_amplification_single_iteration.mct(
-                [self._oracle.variable_register()[i] for i in range(len(self._oracle.variable_register()))],
-                self._oracle.outcome_register()[0],
+                [self._oracle.variable_register[i] for i in range(len(self._oracle.variable_register))],
+                self._oracle.outcome_register[0],
                 [],
                 mode=self._mct_mode
             )
-        qc_amplitude_amplification_single_iteration.u2(0, pi, self._oracle.outcome_register())  # h
-        qc_amplitude_amplification_single_iteration.u3(pi, 0, pi, self._oracle.variable_register())  # x
-        qc_amplitude_amplification_single_iteration.u3(pi, 0, pi, self._oracle.outcome_register())  # x
-        qc_amplitude_amplification_single_iteration.u2(0, pi, self._oracle.variable_register())  # h
-        qc_amplitude_amplification_single_iteration.u2(0, pi, self._oracle.outcome_register())  # h
+        qc_amplitude_amplification_single_iteration.u2(0, pi, self._oracle.outcome_register)  # h
+        qc_amplitude_amplification_single_iteration.u3(pi, 0, pi, self._oracle.variable_register)  # x
+        qc_amplitude_amplification_single_iteration.u3(pi, 0, pi, self._oracle.outcome_register)  # x
+        qc_amplitude_amplification_single_iteration.u2(0, pi, self._oracle.variable_register)  # h
+        qc_amplitude_amplification_single_iteration.u2(0, pi, self._oracle.outcome_register)  # h
 
         self._qc_prefix = qc_prefix
         self._qc_amplitude_amplification_single_iteration = qc_amplitude_amplification_single_iteration
@@ -191,7 +192,7 @@ class Grover(QuantumAlgorithm):
             complete_state_vec = result.get_statevector(qc, decimals=16)
             variable_register_density_matrix = get_subsystem_density_matrix(
                 complete_state_vec,
-                range(len(self._oracle.variable_register()), qc.width())
+                range(len(self._oracle.variable_register), qc.width())
             )
             variable_register_density_matrix_diag = np.diag(variable_register_density_matrix)
             max_amplitude = max(
@@ -200,12 +201,12 @@ class Grover(QuantumAlgorithm):
                 key=abs
             )
             max_amplitude_idx = np.where(variable_register_density_matrix_diag == max_amplitude)[0][0]
-            top_measurement = format(max_amplitude_idx, '0{}b'.format(len(self._oracle.variable_register())))
+            top_measurement = format(max_amplitude_idx, '0{}b'.format(len(self._oracle.variable_register)))
         else:
-            measurement_cr = ClassicalRegister(len(self._oracle.variable_register()), name='m')
+            measurement_cr = ClassicalRegister(len(self._oracle.variable_register), name='m')
             qc.add_register(measurement_cr)
-            qc.barrier(self._oracle.variable_register())
-            qc.measure(self._oracle.variable_register(), measurement_cr)
+            qc.barrier(self._oracle.variable_register)
+            qc.measure(self._oracle.variable_register, measurement_cr)
             measurement = self._quantum_instance.execute(qc).get_counts(qc)
             top_measurement = max(measurement.items(), key=operator.itemgetter(1))[0]
 
