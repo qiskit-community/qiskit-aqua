@@ -90,8 +90,6 @@ class CircuitCache:
 
         self.mappings.insert(chunk, [[] for i in range(len(circuits))])
         for circ_num, input_circuit in enumerate(circuits):
-            # Delete qasm text, because it will be incorrect
-            del self.qobjs[chunk].experiments[circ_num].header.compiled_circuit_qasm
 
             qreg_sizes = [reg.size for reg in input_circuit.qregs if isinstance(reg, QuantumRegister)]
             qreg_indeces = {reg.name: sum(qreg_sizes[0:i]) for i, reg in enumerate(input_circuit.qregs)}

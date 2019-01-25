@@ -18,7 +18,8 @@
 """Algorithm discovery methods, Error and Base classes"""
 
 from .aqua_error import AquaError
-from ._discover import (PluggableType,
+from ._discover import (PLUGGABLES_ENTRY_POINT,
+                        PluggableType,
                         refresh_pluggables,
                         local_pluggables_types,
                         local_pluggables,
@@ -53,6 +54,7 @@ __all__ = ['AquaError',
            'Pluggable',
            'Operator',
            'QuantumAlgorithm',
+           'PLUGGABLES_ENTRY_POINT',
            'PluggableType',
            'refresh_pluggables',
            'QuantumInstance',
