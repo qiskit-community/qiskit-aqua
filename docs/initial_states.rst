@@ -165,7 +165,8 @@ Custom
 
 Should the :ref:`zero` and :ref:`hartree-fock` pre-defined initial states not meet the user's
 needs for a particular quantum experiment, this option allows the user of Aqua to fully customize the initial state
-for :ref:`variational-forms` and the :ref:`qpe` algorithm by directly configuring a *custom probability distribution* for the state vector.
+(e.g. for :ref:`variational-forms` and the :ref:`qpe` algorithm) by directly configuring a *custom probability distribution* for the state vector
+or even providing the desired *custom quantum circuit*.
 No matter what custom probability distribution the user chooses, the state vector will be normalized by Aqua,
 so the total probability represented is :math:`1.0`.
 Setting up a custom probability distribution requires assigning a value to the following parameters:
@@ -185,7 +186,7 @@ Setting up a custom probability distribution requires assigning a value to the f
       a measurement will have equal probabilities to become :math:`1` or :math:`0`.
   3.  ``"random"`` --- This setting assigns the elements of the state vector according to a random probability distribution.
 
-- The state vector itself:
+- The state vector:
 
   .. code:: python
 
@@ -194,9 +195,15 @@ Setting up a custom probability distribution requires assigning a value to the f
   The ``state_vector`` parameter allows a specific custom initial state to be defined as a
   list of ``complex`` numbers. The length of the list must be :math:`2^q`, where :math:`q` is the total number of qubits.
 
+- The custom Quantum Circuit:
+
+  .. code:: python
+
+      circuit: QuantumCircuit
+
   .. warning::
 
-     The ``InitialState`` Application Programming Interface (API) exposes an initialization method, ``init_args``, that allows for
+     The ``InitialState`` Application Programming Interface (API) exposes a constructor that allows for
      programmatically setting ``num_qubits``, the number of qubits in the ``InitialState`` object.  However, when configured declaratively,
      Aqua and its domain specific applications
      (:ref:`aqua-chemistry`, :ref:`aqua-ai`, and :ref:`aqua-optimization`) do not expose a configuration parameter in
@@ -204,14 +211,16 @@ Setting up a custom probability distribution requires assigning a value to the f
      the number of qubits to use in an experiment.  This is because, when it is used as a tool to execute experiments,
      Aqua is working at a higher, more abstract level.  In such cases, the number of qubits
      is computed internally at run time based on the particular experiment, and passed programmatically to
-     ``init_args``.  Manually configuring the state vector, therefore,
+     the constructor.  Manually configuring the state vector, therefore,
      requires knowing the number of qubits :math:`q`, since the length of the state vector is :math:`2^q`.  Providing a state vector of the wrong
      size will generate a run-time error.  Therefore, caution should be used when manually configuring the state vector.
+     The same also applies when the actual custom circuit is directly supplied.
 
   .. note::
 
-     When the state vector is manually configured, any value assigned to the ``state`` parameter to
-     specify a custom probability distribution will be ignored.
+     The multiple ways of manually configuring an initial state abide to the following priority order:
+     `circuit > state_vector > state`. So, when a higher order item is supplied, the lower-order item(s) will be ignored
+     if also supplied.
 
 .. topic:: Declarative Name
 

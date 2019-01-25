@@ -15,16 +15,13 @@
 # limitations under the License.
 # =============================================================================
 
+import numpy as np
+from warnings import warn
+
 from qiskit import QuantumRegister, QuantumCircuit, transpiler
+from qiskit import execute as q_execute
 from qiskit.transpiler.passes import Unroller
 from qiskit.transpiler import PassManager
-from qiskit.circuit import CompositeGate
-from qiskit.extensions.standard.ry import RYGate
-from qiskit.extensions.standard.rz import RZGate
-from qiskit.extensions.standard.cx import CnotGate
-from qiskit.extensions.standard.u1 import U1Gate
-from qiskit.extensions.standard.u3 import U3Gate
-import numpy as np
 
 from qiskit_aqua.components.initial_states import InitialState
 from qiskit_aqua.utils.backend_utils import get_aer_backend
@@ -51,10 +48,7 @@ class Custom(InitialState):
                 'state_vector': {
                     'type': ['array', 'null'],
                     "items": {
-                        "type": ['array', 'number'],
-                        'items': {
-                            'type': 'number'
-                        }
+                        "type": "number"
                     },
                     'default': None
                 }
@@ -63,40 +57,49 @@ class Custom(InitialState):
         }
     }
 
-    def __init__(self, num_qubits, state="zero", state_vector=None):
+    def __init__(self, num_qubits, state="zero", state_vector=None, circuit=None):
         """Constructor.
 
         Args:
             num_qubits (int): number of qubits
             state (str): `zero`, `uniform` or `random`
             state_vector: customized vector
+            circuit (QuantumCircuit): the actual custom circuit for the desired initial state
         """
         loc = locals().copy()
+        # since state_vector is a numpy array of complex numbers which aren't json valid,
+        # remove it from validation
         del loc['state_vector']
         self.validate(loc)
         super().__init__()
-        # since state_vector is a numpy array of complex numbers which aren't json valid,
-        # remove it from validation
         self._num_qubits = num_qubits
         self._state = state
         size = np.power(2, self._num_qubits)
-        if state_vector is None:
-            if self._state == 'zero':
-                self._state_vector = np.array([1.0] + [0.0] * (size - 1))
-            elif self._state == 'uniform':
-                self._state_vector = np.array([1.0 / np.sqrt(size)] * size)
-            elif self._state == 'random':
-                self._state_vector = Custom._normalize(np.random.rand(size))
-            else:
-                raise ValueError('Unknown state {}'.format(self._state))
+        self._circuit = None
+        if circuit is not None:
+            if circuit.width() != num_qubits:
+                warn('The specified num_qubits and the provided custom circuit do not match.')
+            self._circuit = Custom._convert_to_basis_gates(circuit)
+            if state_vector is not None:
+                self._state = None
+                self._state_vector = None
+                warn('The provided state_vector is ignored in favor of the provided custom circuit.')
         else:
-            if len(state_vector) != np.power(2, self._num_qubits):
-                raise ValueError('State vector length {} incompatible with num qubits {}'
-                                 .format(len(state_vector), self._num_qubits))
-            state_vector = list(map(lambda x: x[0]+1j*x[1] if isinstance(x, list) else x,
-                state_vector))
-            self._state_vector = Custom._normalize(state_vector)
-            self._state = None
+            if state_vector is None:
+                if self._state == 'zero':
+                    self._state_vector = np.array([1.0] + [0.0] * (size - 1))
+                elif self._state == 'uniform':
+                    self._state_vector = np.array([1.0 / np.sqrt(size)] * size)
+                elif self._state == 'random':
+                    self._state_vector = Custom._normalize(np.random.rand(size))
+                else:
+                    raise ValueError('Unknown state {}'.format(self._state))
+            else:
+                if len(state_vector) != np.power(2, self._num_qubits):
+                    raise ValueError('State vector length {} incompatible with num qubits {}'
+                                     .format(len(state_vector), self._num_qubits))
+                self._state_vector = Custom._normalize(state_vector)
+                self._state = None
 
     @staticmethod
     def _normalize(vector):
@@ -128,31 +131,28 @@ class Custom(InitialState):
             ValueError: when mode is not 'vector' or 'circuit'.
         """
         if mode == 'vector':
+            if self._state_vector is None:
+                if self._circuit is not None:
+                    self._state_vector = np.asarray(q_execute(self._circuit, get_aer_backend(
+                        'statevector_simulator')).result().get_statevector(self._circuit, decimals=16))
             return self._state_vector
         elif mode == 'circuit':
-            if register is None:
-                registers = [QuantumRegister(self._num_qubits, name='q')]
-            elif not isinstance(register, QuantumRegister):
-                registers = []
-                for qubit in register:
-                    if not qubit[0] in registers:
-                        registers.append(qubit[0])
-            else:
-                registers = [register]
-            circuit = QuantumCircuit(*registers)
-
-            if self._state is None or self._state == 'random':
-                circuit.initialize(self._state_vector, [
-                                   register[i] for i in range(self._num_qubits)])
-                circuit = Custom._convert_to_basis_gates(circuit)
-            elif self._state == 'zero':
-                pass
-            elif self._state == 'uniform':
-                for i in range(self._num_qubits):
-                    circuit.u2(0.0, np.pi, register[i])
-            else:
-                pass
-
-            return circuit
+            if self._circuit is None:
+                if register is None:
+                    register = QuantumRegister(self._num_qubits, name='q')
+                circuit = QuantumCircuit(register)
+                if self._state is None or self._state == 'random':
+                    circuit.initialize(self._state_vector, [
+                                       register[i] for i in range(self._num_qubits)])
+                    circuit = Custom._convert_to_basis_gates(circuit)
+                elif self._state == 'zero':
+                    pass
+                elif self._state == 'uniform':
+                    for i in range(self._num_qubits):
+                        circuit.u2(0.0, np.pi, register[i])
+                else:
+                    pass
+                self._circuit = circuit
+            return self._circuit
         else:
             raise ValueError('Mode should be either "vector" or "circuit"')

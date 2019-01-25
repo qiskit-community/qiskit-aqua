@@ -22,7 +22,7 @@ See https://arxiv.org/abs/quant-ph/0610214
 import logging
 import numpy as np
 
-from qiskit import QuantumRegister, ClassicalRegister
+from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.quantum_info import Pauli
 
 from qiskit_aqua import Operator, AquaError
@@ -198,7 +198,8 @@ class IQPE(QuantumAlgorithm):
         q = QuantumRegister(self._operator.num_qubits, name='q')
         self._ancillary_register = a
         self._state_register = q
-        qc = self._state_in.construct_circuit('circuit', q)
+        qc = QuantumCircuit(q)
+        qc += self._state_in.construct_circuit('circuit', q)
         # hadamard on a[0]
         qc.add_register(a)
         qc.u2(0, np.pi, a[0])
