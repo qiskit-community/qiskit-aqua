@@ -38,6 +38,7 @@ from .utils.backend_utils import (get_aer_backend,
 from .pluggable import Pluggable
 from .utils.mct import mct
 from .utils.subsystem import get_subsystem_density_matrix, get_subsystems_counts
+from .utils.boolean_logic import CNF, DNF
 from .quantum_instance import QuantumInstance
 from .operator import Operator
 from .algorithms import QuantumAlgorithm
@@ -69,6 +70,8 @@ __all__ = ['AquaError',
            'mct',
            'get_subsystem_density_matrix',
            'get_subsystems_counts',
+           'CNF',
+           'DNF',
            'local_pluggables_types',
            'local_pluggables',
            'get_pluggable_class',

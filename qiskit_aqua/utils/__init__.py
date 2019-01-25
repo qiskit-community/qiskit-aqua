@@ -33,6 +33,7 @@ from .qpsolver import optimize_svm
 from .circuit_factory import CircuitFactory
 from .run_circuits import compile_and_run_circuits, find_regs_by_name
 from .circuit_cache import CircuitCache
+from .boolean_logic import CNF, DNF
 
 
 __all__ = ['tensorproduct',
@@ -61,4 +62,6 @@ __all__ = ['tensorproduct',
            'compile_and_run_circuits',
            'find_regs_by_name',
            'CircuitCache',
+           'CNF',
+           'DNF',
            ]
