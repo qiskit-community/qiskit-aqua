@@ -160,7 +160,7 @@ class QSVMKernel(QuantumAlgorithm):
     @staticmethod
     def _compute_overlap(results, circuit, is_statevector_sim, measurement_basis):
         if is_statevector_sim:
-            temp = results.get_statevector(circuit, decimals=16)[0]
+            temp = results.get_statevector(circuit)[0]
             #  |<0|Psi^daggar(y) x Psi(x)|0>|^2,
             kernel_value = np.dot(temp.T.conj(), temp).real
         else:

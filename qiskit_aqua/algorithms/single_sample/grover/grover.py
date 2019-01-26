@@ -189,7 +189,7 @@ class Grover(QuantumAlgorithm):
         qc = self.construct_circuit()
         if self._quantum_instance.is_statevector:
             result = self._quantum_instance.execute(qc)
-            complete_state_vec = result.get_statevector(qc, decimals=16)
+            complete_state_vec = result.get_statevector(qc)
             variable_register_density_matrix = get_subsystem_density_matrix(
                 complete_state_vec,
                 range(len(self._oracle.variable_register), qc.width())
