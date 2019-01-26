@@ -204,7 +204,7 @@ class QPE(QuantumAlgorithm):
         qc = self.construct_circuit()
         if self._quantum_instance.is_statevector:
             result = self._quantum_instance.execute(qc)
-            complete_state_vec = result.get_statevector(qc, decimals=16)
+            complete_state_vec = result.get_statevector(qc)
             ancilla_density_mat = get_subsystem_density_matrix(
                 complete_state_vec,
                 range(self._num_ancillae, self._num_ancillae + self._operator.num_qubits)

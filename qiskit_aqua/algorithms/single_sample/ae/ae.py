@@ -174,7 +174,7 @@ class AmplitudeEstimation(QuantumAlgorithm):
         if self._quantum_instance.is_statevector:
             # run circuit on statevector simlator
             ret = self._quantum_instance.execute(self._circuit)
-            state_vector = np.asarray([ret.get_statevector(self._circuit, decimals=16)])
+            state_vector = np.asarray([ret.get_statevector(self._circuit)])
             self._ret['statevector'] = state_vector
 
             # get state probabilities
