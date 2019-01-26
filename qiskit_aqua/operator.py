@@ -1458,6 +1458,7 @@ class Operator(object):
             if self._paulis is None:
                 if self._matrix is not None:
                     self._matrix_to_paulis()
+                    self._simplify_paulis()
                 elif self._grouped_paulis is not None:
                     self._grouped_paulis_to_paulis()
                 else:

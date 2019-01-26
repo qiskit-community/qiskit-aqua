@@ -155,7 +155,6 @@ class IQPE(QuantumAlgorithm):
         self._ret['stretch'] = 0.5 / self._ret['translation']
 
         # translate the operator
-        self._operator._simplify_paulis()
         translation_op = Operator([
             [
                 self._ret['translation'],
@@ -165,7 +164,6 @@ class IQPE(QuantumAlgorithm):
                 )
             ]
         ])
-        translation_op._simplify_paulis()
         self._operator += translation_op
 
         # stretch the operator
