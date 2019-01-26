@@ -363,11 +363,13 @@ class Operator(object):
     @property
     def paulis(self):
         """Getter of Pauli list."""
+        self._check_representation('paulis')
         return self._paulis
 
     @property
     def grouped_paulis(self):
         """Getter of grouped Pauli list."""
+        self._check_representation('grouped_paulis')
         return self._grouped_paulis
 
     @property
