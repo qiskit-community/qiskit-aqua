@@ -247,6 +247,7 @@ class VQE(QuantumAlgorithm):
             self._get_ground_state_energy()
         wavefn_circuit = self._var_form.construct_circuit(self._ret['opt_params'])
         circuits = []
+        values = []
         params = []
         for operator in self._aux_operators:
             if not operator.is_empty():
@@ -259,28 +260,27 @@ class VQE(QuantumAlgorithm):
                 circuit = None
             circuits.append(circuit)
 
-        to_be_simulated_circuits = functools.reduce(lambda x, y: x + y, [c for c in circuits if c is not None])
-        if self._use_simulator_operator_mode:
-            extra_args = {'expectation': {
-                'params': params,
-                'num_qubits': self._operator.num_qubits}
-            }
-        else:
-            extra_args = {}
-        result = self._quantum_instance.execute(to_be_simulated_circuits, **extra_args)
-
-        values = []
-        for operator, circuit in zip(self._aux_operators, circuits):
-            if circuit is None:
-                mean, std = 0.0, 0.0
+        if len(circuits) > 0:
+            to_be_simulated_circuits = functools.reduce(lambda x, y: x + y, [c for c in circuits if c is not None])
+            if self._use_simulator_operator_mode:
+                extra_args = {'expectation': {
+                    'params': params,
+                    'num_qubits': self._operator.num_qubits}
+                }
             else:
-                mean, std = operator.evaluate_with_result(self._operator_mode,
-                                                          circuit, self._quantum_instance.backend,
-                                                          result, self._use_simulator_operator_mode)
-            print(mean, std)
-            mean = mean.real if abs(mean.real) > threshold else 0.0
-            std = std.real if abs(std.real) > threshold else 0.0
-            values.append((mean, std))
+                extra_args = {}
+            result = self._quantum_instance.execute(to_be_simulated_circuits, **extra_args)
+
+            for operator, circuit in zip(self._aux_operators, circuits):
+                if circuit is None:
+                    mean, std = 0.0, 0.0
+                else:
+                    mean, std = operator.evaluate_with_result(self._operator_mode,
+                                                              circuit, self._quantum_instance.backend,
+                                                              result, self._use_simulator_operator_mode)
+                mean = mean.real if abs(mean.real) > threshold else 0.0
+                std = std.real if abs(std.real) > threshold else 0.0
+                values.append((mean, std))
         if len(values) > 0:
             aux_op_vals = np.empty([1, len(self._aux_operators), 2])
             aux_op_vals[0, :] = np.asarray(values)
