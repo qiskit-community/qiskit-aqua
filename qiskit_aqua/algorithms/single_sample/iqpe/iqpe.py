@@ -167,7 +167,7 @@ class IQPE(QuantumAlgorithm):
         self._operator += translation_op
 
         # stretch the operator
-        for p in self._operator._paulis:
+        for p in self._operator.paulis:
             p[0] = p[0] * self._ret['stretch']
 
         pauli_list = self._operator.reorder_paulis(grouping=self._paulis_grouping)
