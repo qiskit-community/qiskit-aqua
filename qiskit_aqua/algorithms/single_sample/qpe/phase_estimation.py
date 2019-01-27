@@ -29,12 +29,13 @@ class PhaseEstimation:
             self, operator, state_in, iqft,
             num_time_slices=1,
             num_ancillae=1,
-            paulis_grouping='random',
             expansion_mode='trotter',
             expansion_order=1,
             state_in_circuit_factory=None,
             unitary_circuit_factory=None,
-            shallow_circuit_concat=False):
+            shallow_circuit_concat=False,
+            pauli_list=None
+    ):
         """
         Constructor.
 
@@ -44,12 +45,12 @@ class PhaseEstimation:
             iqft (IQFT): the Inverse Quantum Fourier Transform pluggable component
             num_time_slices (int): the number of time slices
             num_ancillae (int): the number of ancillary qubits to use for the measurement
-            paulis_grouping (str): the pauli term grouping mode
             expansion_mode (str): the expansion mode (trotter|suzuki)
             expansion_order (int): the suzuki expansion order
             state_in_circuit_factory (CircuitFactory): the initial state represented by a CircuitFactory object
             unitary_circuit_factory (CircuitFactory): the problem unitary represented by a CircuitFactory object
             shallow_circuit_concat (bool): indicate whether to use shallow (cheap) mode for circuit concatenation
+            pauli_list ([Pauli]): the flat list of paulis for the operator
         """
 
         if (
@@ -60,13 +61,14 @@ class PhaseEstimation:
             raise AquaError('Please supply either an operator or a unitary circuit factory but not both.')
 
         self._operator = operator
+        if operator is not None:
+            self._pauli_list = operator.get_flat_pauli_list() if pauli_list is None else pauli_list
         self._unitary_circuit_factory = unitary_circuit_factory
         self._state_in = state_in
         self._state_in_circuit_factory = state_in_circuit_factory
         self._iqft = iqft
         self._num_time_slices = num_time_slices
         self._num_ancillae = num_ancillae
-        self._paulis_grouping = paulis_grouping
         self._expansion_mode = expansion_mode
         self._expansion_order = expansion_order
         self._shallow_circuit_concat = shallow_circuit_concat
@@ -91,16 +93,6 @@ class PhaseEstimation:
         """
 
         if self._circuit is None:
-            if self._operator is not None:
-                # check for identify paulis to get its coef for applying global phase shift on ancillae later
-                num_identities = 0
-                for p in self._operator.paulis:
-                    if np.all(np.logical_not(p[1].z)) and np.all(np.logical_not(p[1].x)):
-                        num_identities += 1
-                        if num_identities > 1:
-                            raise RuntimeError('Multiple identity pauli terms are present.')
-                        self._ancilla_phase_coef = p[0].real if isinstance(p[0], complex) else p[0]
-
             if ancillary_register is None:
                 a = QuantumRegister(self._num_ancillae, name='a')
             else:
@@ -147,15 +139,23 @@ class PhaseEstimation:
 
             # phase kickbacks via dynamics
             if self._operator is not None:
-                pauli_list = self._operator.reorder_paulis(grouping=self._paulis_grouping)
-                if len(pauli_list) == 1:
-                    slice_pauli_list = pauli_list
+                # check for identify paulis to get its coef for applying global phase shift on ancillae later
+                num_identities = 0
+                for p in self._pauli_list:
+                    if np.all(np.logical_not(p[1].z)) and np.all(np.logical_not(p[1].x)):
+                        num_identities += 1
+                        if num_identities > 1:
+                            raise RuntimeError('Multiple identity pauli terms are present.')
+                        self._ancilla_phase_coef = p[0].real if isinstance(p[0], complex) else p[0]
+
+                if len(self._pauli_list) == 1:
+                    slice_pauli_list = self._pauli_list
                 else:
                     if self._expansion_mode == 'trotter':
-                        slice_pauli_list = pauli_list
+                        slice_pauli_list = self._pauli_list
                     elif self._expansion_mode == 'suzuki':
                         slice_pauli_list = Operator._suzuki_expansion_slice_pauli_list(
-                            pauli_list,
+                            self._pauli_list,
                             1,
                             self._expansion_order
                         )

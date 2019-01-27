@@ -35,7 +35,6 @@ class EOH(QuantumAlgorithm):
     PROP_OPERATOR_MODE = 'operator_mode'
     PROP_EVO_TIME = 'evo_time'
     PROP_NUM_TIME_SLICES = 'num_time_slices'
-    PROP_PAULIS_GROUPING = 'paulis_grouping'
     PROP_EXPANSION_MODE = 'expansion_mode'
     PROP_EXPANSION_ORDER = 'expansion_order'
 
@@ -68,16 +67,6 @@ class EOH(QuantumAlgorithm):
                     'default': 1,
                     'minimum': 0
                 },
-                PROP_PAULIS_GROUPING: {
-                    'type': 'string',
-                    'default': 'random',
-                    'oneOf': [
-                        {'enum': [
-                            'default',
-                            'random'
-                        ]}
-                    ]
-                },
                 PROP_EXPANSION_MODE: {
                     'type': 'string',
                     'default': 'trotter',
@@ -106,7 +95,7 @@ class EOH(QuantumAlgorithm):
     }
 
     def __init__(self, operator, initial_state, evo_operator, operator_mode='paulis', evo_time=1, num_time_slices=1,
-                 paulis_grouping='random', expansion_mode='trotter', expansion_order=1):
+                 expansion_mode='trotter', expansion_order=1):
         self.validate(locals())
         super().__init__()
         self._operator = operator
@@ -115,7 +104,6 @@ class EOH(QuantumAlgorithm):
         self._evo_operator = evo_operator
         self._evo_time = evo_time
         self._num_time_slices = num_time_slices
-        self._paulis_grouping = paulis_grouping
         self._expansion_mode = expansion_mode
         self._expansion_order = expansion_order
         self._ret = {}
@@ -144,7 +132,6 @@ class EOH(QuantumAlgorithm):
         operator_mode = dynamics_params.get(EOH.PROP_OPERATOR_MODE)
         evo_time = dynamics_params.get(EOH.PROP_EVO_TIME)
         num_time_slices = dynamics_params.get(EOH.PROP_NUM_TIME_SLICES)
-        paulis_grouping = dynamics_params.get(EOH.PROP_PAULIS_GROUPING)
         expansion_mode = dynamics_params.get(EOH.PROP_EXPANSION_MODE)
         expansion_order = dynamics_params.get(EOH.PROP_EXPANSION_ORDER)
 
@@ -155,7 +142,7 @@ class EOH(QuantumAlgorithm):
                                             initial_state_params['name']).init_params(initial_state_params)
 
         return cls(operator, initial_state, evo_operator, operator_mode, evo_time, num_time_slices,
-                   paulis_grouping=paulis_grouping, expansion_mode=expansion_mode,
+                   expansion_mode=expansion_mode,
                    expansion_order=expansion_order)
 
     def construct_circuit(self):
@@ -174,7 +161,6 @@ class EOH(QuantumAlgorithm):
             'circuit',
             self._num_time_slices,
             quantum_registers=quantum_registers,
-            paulis_grouping=self._paulis_grouping,
             expansion_mode=self._expansion_mode,
             expansion_order=self._expansion_order,
         )

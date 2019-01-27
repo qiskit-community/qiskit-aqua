@@ -1122,27 +1122,21 @@ class Operator(object):
 
         return operator_out
 
-    def reorder_paulis(self, grouping=None):
+    def get_flat_pauli_list(self):
         """
-        Reorder the pauli terms according to the specified grouping.
-
-        Args:
-            grouping (str): The name of the grouping, currently supports 'random' and 'default'.
-                'random' corresponds to the order of Operator.paulis;
-                'default' corresponds to the grouping as specified by Operator.grouped_paulis
+        Get the flat list of paulis
 
         Returns:
-            list: The list of pauli terms as ordered per the specified grouping
+            list: The list of pauli terms
         """
-        self._check_representation("paulis")
-        if grouping == 'random':
-            return self._paulis
-        elif grouping == 'default':
-            if self.grouped_paulis is None:
-                self._paulis_to_grouped_paulis()
-            return [pauli for group in self._grouped_paulis for pauli in group[1:]]
+        if self._paulis is not None:
+            return [] + self._paulis
         else:
-            raise ValueError('Unrecognized grouping {}.'.format(grouping))
+            if self._grouped_paulis is not None:
+                return [pauli for group in self._grouped_paulis for pauli in group[1:]]
+            elif self._matrix is not None:
+                self._check_representation('paulis')
+                return [] + self._paulis
 
     @staticmethod
     def construct_evolution_circuit(slice_pauli_list, evo_time, num_time_slices, state_registers,
@@ -1340,7 +1334,7 @@ class Operator(object):
             return side + middle + side
 
     def evolve(self, state_in, evo_time, evo_mode, num_time_slices, quantum_registers=None,
-               paulis_grouping='random', expansion_mode='trotter', expansion_order=1):
+               expansion_mode='trotter', expansion_order=1):
         """
         Carry out the eoh evolution for the operator under supplied specifications.
 
@@ -1351,8 +1345,6 @@ class Operator(object):
                 Currently only support 'matrix' or 'circuit'
             num_time_slices (int): The number of time slices for the expansion
             quantum_registers (QuantumRegister): The QuantumRegister to build the QuantumCircuit off of
-            paulis_grouping (str): The grouping to dictate the ordering of the pauli terms.
-                See reorder_paulis method for more details.
             expansion_mode (str): The mode under which the expansion is to be done.
                 Currently support 'trotter', which follows the expansion as discussed in
                 http://science.sciencemag.org/content/273/5278/1073,
@@ -1370,7 +1362,7 @@ class Operator(object):
         if not (expansion_mode == 'trotter' or expansion_mode == 'suzuki'):
             raise NotImplementedError('Expansion mode {} not supported.'.format(expansion_mode))
 
-        pauli_list = self.reorder_paulis(grouping=paulis_grouping)
+        pauli_list = self.get_flat_pauli_list()
 
         if evo_mode == 'matrix':
             self._check_representation("matrix")
