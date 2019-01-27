@@ -39,7 +39,6 @@ class QPE(QuantumAlgorithm):
     """The Quantum Phase Estimation algorithm."""
 
     PROP_NUM_TIME_SLICES = 'num_time_slices'
-    PROP_PAULIS_GROUPING = 'paulis_grouping'
     PROP_EXPANSION_MODE = 'expansion_mode'
     PROP_EXPANSION_ORDER = 'expansion_order'
     PROP_NUM_ANCILLAE = 'num_ancillae'
@@ -56,16 +55,6 @@ class QPE(QuantumAlgorithm):
                     'type': 'integer',
                     'default': 1,
                     'minimum': 1
-                },
-                PROP_PAULIS_GROUPING: {
-                    'type': 'string',
-                    'default': 'random',
-                    'oneOf': [
-                        {'enum': [
-                            'random',
-                            'default'
-                        ]}
-                    ]
                 },
                 PROP_EXPANSION_MODE: {
                     'type': 'string',
@@ -104,7 +93,7 @@ class QPE(QuantumAlgorithm):
 
     def __init__(
             self, operator, state_in, iqft, num_time_slices=1, num_ancillae=1,
-            paulis_grouping='random', expansion_mode='trotter', expansion_order=1,
+            expansion_mode='trotter', expansion_order=1,
             shallow_circuit_concat=False
     ):
         """
@@ -116,7 +105,6 @@ class QPE(QuantumAlgorithm):
             iqft (IQFT): the Inverse Quantum Fourier Transform pluggable component
             num_time_slices (int): the number of time slices
             num_ancillae (int): the number of ancillary qubits to use for the measurement
-            paulis_grouping (str): the pauli term grouping mode
             expansion_mode (str): the expansion mode (trotter|suzuki)
             expansion_order (int): the suzuki expansion order
             shallow_circuit_concat (bool): indicate whether to use shallow (cheap) mode for circuit concatenation
@@ -127,8 +115,8 @@ class QPE(QuantumAlgorithm):
         self._num_ancillae = num_ancillae
         self._ret = {}
         self._operator = copy.deepcopy(operator)
-        self._operator.to_paulis()
-        self._ret['translation'] = sum([abs(p[0]) for p in self._operator.paulis])
+        self._pauli_list = self._operator.get_flat_pauli_list()
+        self._ret['translation'] = sum([abs(p[0]) for p in self._pauli_list])
         self._ret['stretch'] = 0.5 / self._ret['translation']
 
         # translate the operator
@@ -146,13 +134,13 @@ class QPE(QuantumAlgorithm):
         self._operator += translation_op
 
         # stretch the operator
-        for p in self._operator._paulis:
+        for p in self._pauli_list:
             p[0] = p[0] * self._ret['stretch']
 
         self._phase_estimation_component = PhaseEstimation(
             self._operator, state_in, iqft, num_time_slices=num_time_slices, num_ancillae=num_ancillae,
-            paulis_grouping=paulis_grouping, expansion_mode=expansion_mode, expansion_order=expansion_order,
-            shallow_circuit_concat=shallow_circuit_concat
+            expansion_mode=expansion_mode, expansion_order=expansion_order,
+            shallow_circuit_concat=shallow_circuit_concat, pauli_list=self._pauli_list
         )
         self._binary_fractions = [1 / 2 ** p for p in range(1, num_ancillae + 1)]
 
@@ -171,7 +159,6 @@ class QPE(QuantumAlgorithm):
 
         qpe_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
         num_time_slices = qpe_params.get(QPE.PROP_NUM_TIME_SLICES)
-        paulis_grouping = qpe_params.get(QPE.PROP_PAULIS_GROUPING)
         expansion_mode = qpe_params.get(QPE.PROP_EXPANSION_MODE)
         expansion_order = qpe_params.get(QPE.PROP_EXPANSION_ORDER)
         num_ancillae = qpe_params.get(QPE.PROP_NUM_ANCILLAE)
@@ -188,7 +175,7 @@ class QPE(QuantumAlgorithm):
         iqft = get_pluggable_class(PluggableType.IQFT, iqft_params['name']).init_params(iqft_params)
 
         return cls(operator, init_state, iqft, num_time_slices, num_ancillae,
-                   paulis_grouping=paulis_grouping, expansion_mode=expansion_mode,
+                   expansion_mode=expansion_mode,
                    expansion_order=expansion_order)
 
     def construct_circuit(self):

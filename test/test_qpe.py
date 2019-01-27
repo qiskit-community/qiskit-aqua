@@ -95,7 +95,7 @@ class TestQPE(QiskitAquaTestCase):
         iqft = Standard(n_ancillae)
 
         qpe = QPE(self.qubitOp, state_in, iqft, num_time_slices, n_ancillae,
-                  paulis_grouping='random', expansion_mode='suzuki', expansion_order=2,
+                  expansion_mode='suzuki', expansion_order=2,
                   shallow_circuit_concat=True)
 
         backend = get_aer_backend(simulator)

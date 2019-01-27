@@ -90,7 +90,7 @@ class TestIQPE(QiskitAquaTestCase):
         num_iterations = 6
         state_in = Custom(self.qubitOp.num_qubits, state_vector=self.ref_eigenvec)
         iqpe = IQPE(self.qubitOp, state_in, num_time_slices, num_iterations,
-                    paulis_grouping='random', expansion_mode='suzuki', expansion_order=2, shallow_circuit_concat=True)
+                    expansion_mode='suzuki', expansion_order=2, shallow_circuit_concat=True)
 
         backend = get_aer_backend(simulator)
         run_config = RunConfig(shots=100, max_credits=10, memory=False)

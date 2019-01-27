@@ -61,7 +61,7 @@ class TestMCT(QiskitAquaTestCase):
                     qc.add_register(a)
                 for idx in subset:
                     qc.x(c[idx])
-                qc.cnx(
+                qc.mct(
                     [c[i] for i in range(num_controls)],
                     o[0],
                     [a[i] for i in range(num_ancillae)],

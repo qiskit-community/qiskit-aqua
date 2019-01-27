@@ -299,15 +299,6 @@ EOH can be configured with the following parameter settings:
 
    This has to be a non-negative ``int`` value.  The default is ``1``.
 
--  Paulis grouping mode:
-
-   .. code:: python
-
-       paulis_grouping = "default" | "random"
-
-   Two ``str`` values are permitted: ``"default"`` or ``"random"``, with ``"default"`` being the default and indicating
-   that the Paulis should be grouped.
-
 -  The expansion mode:
 
    .. code:: python
@@ -370,15 +361,6 @@ configuration, QPE also exposes the following parameter settings:
        num_time_slices = 0 | 1 | ...
 
    This has to be a non-negative ``int`` value.  The default value is ``1``.
-
--  Paulis grouping mode:
-
-   .. code:: python
-
-       paulis_grouping = "default" | "random"
-
-   Two string values are permitted: ``"default"`` or ``"random"``, with ``"default"``
-   being the default and indicating that the Paulis should be grouped.
 
 -  The expansion mode:
 

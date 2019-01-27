@@ -76,50 +76,46 @@ class TestEvolution(QiskitAquaTestCase):
             state_in.construct_circuit('vector'), evo_time, 'matrix', 0)
         # self.log.debug('exact:\n{}'.format(state_out_exact))
         qubit_op_temp = copy.deepcopy(qubit_op)
-        for grouping in ['default', 'random']:
-            self.log.debug('Under {} paulis grouping:'.format(grouping))
-            for expansion_mode in ['trotter', 'suzuki']:
-                self.log.debug(
-                    'Under {} expansion mode:'.format(expansion_mode))
-                for expansion_order in [1, 2, 3, 4] if expansion_mode == 'suzuki' else [1]:
-                    # assure every time the operator from the original one
-                    qubit_op = copy.deepcopy(qubit_op_temp)
-                    if expansion_mode == 'suzuki':
-                        self.log.debug(
-                            'With expansion order {}:'.format(expansion_order))
-                    state_out_matrix = qubit_op.evolve(
-                        state_in.construct_circuit(
-                            'vector'), evo_time, 'matrix', num_time_slices,
-                        paulis_grouping=grouping,
-                        expansion_mode=expansion_mode,
-                        expansion_order=expansion_order
-                    )
-
-                    quantum_registers = QuantumRegister(qubit_op.num_qubits, name='q')
-                    qc = QuantumCircuit(quantum_registers)
-                    qc += state_in.construct_circuit(
-                        'circuit', quantum_registers)
-                    qc += qubit_op.evolve(
-                        None, evo_time, 'circuit', num_time_slices,
-                        quantum_registers=quantum_registers,
-                        paulis_grouping=grouping,
-                        expansion_mode=expansion_mode,
-                        expansion_order=expansion_order,
-                    )
-                    job = q_execute(qc, get_aer_backend('statevector_simulator'))
-                    state_out_circuit = np.asarray(
-                        job.result().get_statevector(qc, decimals=16))
-
-                    self.log.debug('The fidelity between exact and matrix:   {}'.format(
-                        state_fidelity(state_out_exact, state_out_matrix)
-                    ))
-                    self.log.debug('The fidelity between exact and circuit:  {}'.format(
-                        state_fidelity(state_out_exact, state_out_circuit)
-                    ))
-                    f_mc = state_fidelity(state_out_matrix, state_out_circuit)
+        for expansion_mode in ['trotter', 'suzuki']:
+            self.log.debug(
+                'Under {} expansion mode:'.format(expansion_mode))
+            for expansion_order in [1, 2, 3, 4] if expansion_mode == 'suzuki' else [1]:
+                # assure every time the operator from the original one
+                qubit_op = copy.deepcopy(qubit_op_temp)
+                if expansion_mode == 'suzuki':
                     self.log.debug(
-                        'The fidelity between matrix and circuit: {}'.format(f_mc))
-                    self.assertAlmostEqual(f_mc, 1)
+                        'With expansion order {}:'.format(expansion_order))
+                state_out_matrix = qubit_op.evolve(
+                    state_in.construct_circuit(
+                        'vector'), evo_time, 'matrix', num_time_slices,
+                    expansion_mode=expansion_mode,
+                    expansion_order=expansion_order
+                )
+
+                quantum_registers = QuantumRegister(qubit_op.num_qubits, name='q')
+                qc = QuantumCircuit(quantum_registers)
+                qc += state_in.construct_circuit(
+                    'circuit', quantum_registers)
+                qc += qubit_op.evolve(
+                    None, evo_time, 'circuit', num_time_slices,
+                    quantum_registers=quantum_registers,
+                    expansion_mode=expansion_mode,
+                    expansion_order=expansion_order,
+                )
+                job = q_execute(qc, get_aer_backend('statevector_simulator'))
+                state_out_circuit = np.asarray(
+                    job.result().get_statevector(qc, decimals=16))
+
+                self.log.debug('The fidelity between exact and matrix:   {}'.format(
+                    state_fidelity(state_out_exact, state_out_matrix)
+                ))
+                self.log.debug('The fidelity between exact and circuit:  {}'.format(
+                    state_fidelity(state_out_exact, state_out_circuit)
+                ))
+                f_mc = state_fidelity(state_out_matrix, state_out_circuit)
+                self.log.debug(
+                    'The fidelity between matrix and circuit: {}'.format(f_mc))
+                self.assertAlmostEqual(f_mc, 1)
 
 
 if __name__ == '__main__':
