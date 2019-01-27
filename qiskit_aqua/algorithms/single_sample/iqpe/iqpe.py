@@ -21,6 +21,7 @@ See https://arxiv.org/abs/quant-ph/0610214
 
 import logging
 import numpy as np
+import copy
 
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.quantum_info import Pauli
@@ -41,7 +42,6 @@ class IQPE(QuantumAlgorithm):
     """
 
     PROP_NUM_TIME_SLICES = 'num_time_slices'
-    PROP_PAULIS_GROUPING = 'paulis_grouping'
     PROP_EXPANSION_MODE = 'expansion_mode'
     PROP_EXPANSION_ORDER = 'expansion_order'
     PROP_NUM_ITERATIONS = 'num_iterations'
@@ -58,16 +58,6 @@ class IQPE(QuantumAlgorithm):
                     'type': 'integer',
                     'default': 1,
                     'minimum': 1
-                },
-                PROP_PAULIS_GROUPING: {
-                    'type': 'string',
-                    'default': 'default',
-                    'oneOf': [
-                        {'enum': [
-                            'random',
-                            'default'
-                        ]}
-                    ]
                 },
                 PROP_EXPANSION_MODE: {
                     'type': 'string',
@@ -102,20 +92,20 @@ class IQPE(QuantumAlgorithm):
     }
 
     def __init__(self, operator, state_in, num_time_slices=1, num_iterations=1,
-                 paulis_grouping='default', expansion_mode='suzuki', expansion_order=2,
+                 expansion_mode='suzuki', expansion_order=2,
                  shallow_circuit_concat=False):
         self.validate(locals())
         super().__init__()
-        self._operator = operator
+        self._operator = copy.deepcopy(operator)
         self._state_in = state_in
         self._num_time_slices = num_time_slices
         self._num_iterations = num_iterations
-        self._paulis_grouping = paulis_grouping
         self._expansion_mode = expansion_mode
         self._expansion_order = expansion_order
         self._shallow_circuit_concat = shallow_circuit_concat
         self._state_register = None
         self._ancillary_register = None
+        self._pauli_list = None
         self._ret = {}
         self._setup()
 
@@ -134,7 +124,6 @@ class IQPE(QuantumAlgorithm):
 
         iqpe_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
         num_time_slices = iqpe_params.get(IQPE.PROP_NUM_TIME_SLICES)
-        paulis_grouping = iqpe_params.get(IQPE.PROP_PAULIS_GROUPING)
         expansion_mode = iqpe_params.get(IQPE.PROP_EXPANSION_MODE)
         expansion_order = iqpe_params.get(IQPE.PROP_EXPANSION_ORDER)
         num_iterations = iqpe_params.get(IQPE.PROP_NUM_ITERATIONS)
@@ -146,12 +135,12 @@ class IQPE(QuantumAlgorithm):
                                          init_state_params['name']).init_params(init_state_params)
 
         return cls(operator, init_state, num_time_slices=num_time_slices, num_iterations=num_iterations,
-                   paulis_grouping=paulis_grouping, expansion_mode=expansion_mode,
+                   expansion_mode=expansion_mode,
                    expansion_order=expansion_order)
 
     def _setup(self):
-        self._operator.to_paulis()
-        self._ret['translation'] = sum([abs(p[0]) for p in self._operator.paulis])
+        self._pauli_list = self._operator.get_flat_pauli_list()
+        self._ret['translation'] = sum([abs(p[0]) for p in self._pauli_list])
         self._ret['stretch'] = 0.5 / self._ret['translation']
 
         # translate the operator
@@ -169,17 +158,16 @@ class IQPE(QuantumAlgorithm):
         self._operator += translation_op
 
         # stretch the operator
-        for p in self._operator._paulis:
+        for p in self._pauli_list:
             p[0] = p[0] * self._ret['stretch']
 
-        pauli_list = self._operator.reorder_paulis(grouping=self._paulis_grouping)
-        if len(pauli_list) == 1:
-            slice_pauli_list = pauli_list
+        if len(self._pauli_list) == 1:
+            slice_pauli_list = self._pauli_list
         else:
             if self._expansion_mode == 'trotter':
-                slice_pauli_list = pauli_list
+                slice_pauli_list = self._pauli_list
             else:
-                slice_pauli_list = Operator._suzuki_expansion_slice_pauli_list(pauli_list, 1, self._expansion_order)
+                slice_pauli_list = Operator._suzuki_expansion_slice_pauli_list(self._pauli_list, 1, self._expansion_order)
         self._slice_pauli_list = slice_pauli_list
 
     def construct_circuit(self, k=None, omega=0):
@@ -264,7 +252,8 @@ class IQPE(QuantumAlgorithm):
     def _compute_energy(self):
         # check for identify paulis to get its coef for applying global phase shift on ancilla later
         num_identities = 0
-        for p in self._operator.paulis:
+        self._pauli_list = self._operator.get_flat_pauli_list()
+        for p in self._pauli_list:
             if np.all(np.logical_not(p[1].z)) and np.all(np.logical_not(p[1].x)):
                 num_identities += 1
                 if num_identities > 1:
