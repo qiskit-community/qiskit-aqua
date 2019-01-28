@@ -42,7 +42,7 @@ class Model(BaseModel):
         return super().load_file(filename, InputParser, uipreferences.get_populate_defaults(True))
 
     def default_properties_equals_properties(self, section_name):
-        from qiskit_aqua.parser import JSONSchema
+        from qiskit.aqua.parser import JSONSchema
         if self.section_is_text(section_name):
             return self.get_section_default_properties(section_name) == self._parser.get_section_text(section_name)
 
@@ -94,7 +94,7 @@ class Model(BaseModel):
 
     def get_operator_section_names(self):
         from qiskit.chemistry.parser import InputParser
-        from qiskit_aqua.parser import JSONSchema
+        from qiskit.aqua.parser import JSONSchema
         from qiskit.chemistry.core import local_chemistry_operators
         problem_name = None
         if self._parser is not None:

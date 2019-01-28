@@ -21,7 +21,7 @@ import multiprocessing
 import concurrent.futures
 import numpy as np
 from qiskit.quantum_info import Pauli
-from qiskit_aqua import Operator
+from qiskit.aqua import Operator
 from .qiskit_chemistry_error import QiskitChemistryError
 from .bksf import bksf_mapping
 from .particle_hole import particle_hole_transformation

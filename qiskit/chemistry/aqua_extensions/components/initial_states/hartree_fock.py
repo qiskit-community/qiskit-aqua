@@ -20,7 +20,7 @@ import logging
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 
-from qiskit_aqua.components.initial_states import InitialState
+from qiskit.aqua.components.initial_states import InitialState
 
 logger = logging.getLogger(__name__)
 

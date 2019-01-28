@@ -20,11 +20,11 @@ from parameterized import parameterized
 import numpy as np
 import qiskit
 from qiskit.transpiler import PassManager
-from qiskit_aqua.utils import decimal_to_binary
-from qiskit_aqua import QuantumInstance
-from qiskit_aqua.algorithms.single_sample import QPE
-from qiskit_aqua.algorithms.classical import ExactEigensolver
-from qiskit_aqua.components.iqfts import Standard
+from qiskit.aqua.utils import decimal_to_binary
+from qiskit.aqua import QuantumInstance
+from qiskit.aqua.algorithms.single_sample import QPE
+from qiskit.aqua.algorithms.classical import ExactEigensolver
+from qiskit.aqua.components.iqfts import Standard
 from qiskit.qobj import RunConfig
 from test.common import QiskitAquaChemistryTestCase
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType

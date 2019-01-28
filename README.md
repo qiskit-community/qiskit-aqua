@@ -92,7 +92,7 @@ from qiskit import Aer
 backend = Aer.get_backend('statevector_simulator')
 
 # setup a classical optimizer for VQE
-from qiskit_aqua.components.optimizers import L_BFGS_B
+from qiskit.aqua.components.optimizers import L_BFGS_B
 optimizer = L_BFGS_B()
 
 # setup the initial state for the variational form
@@ -100,11 +100,11 @@ from qiskit.chemistry.aqua_extensions.components.initial_states import HartreeFo
 init_state = HartreeFock(num_qubits, num_spin_orbitals, num_particles)
 
 # setup the variational form for VQE
-from qiskit_aqua.components.variational_forms import RYRZ
+from qiskit.aqua.components.variational_forms import RYRZ
 var_form = RYRZ(num_qubits, initial_state=init_state)
 
 # setup and run VQE
-from qiskit_aqua.algorithms import VQE
+from qiskit.aqua.algorithms import VQE
 algorithm = VQE(qubitOp, var_form, optimizer)
 result = algorithm.run(backend)
 print(result['energy'])

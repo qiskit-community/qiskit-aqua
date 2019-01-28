@@ -18,7 +18,7 @@
 import copy
 import unittest
 import numpy as np
-from qiskit_aqua.utils import random_unitary
+from qiskit.aqua.utils import random_unitary
 
 from test.common import QiskitAquaChemistryTestCase
 from qiskit.chemistry import FermionicOperator, QiskitChemistryError

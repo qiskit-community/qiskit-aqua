@@ -44,7 +44,7 @@ _QISKIT_CHEMISTRY_LOGGING_CONFIG = {
 
 
 def _get_logging_names():
-    from qiskit_aqua import PLUGGABLES_ENTRY_POINT
+    from qiskit.aqua import PLUGGABLES_ENTRY_POINT
     names = OrderedDict()
     names['qiskit.chemistry'] = None
     for entry_point in itertools.chain(pkg_resources.iter_entry_points(PLUGGABLES_ENTRY_POINT),
@@ -52,7 +52,7 @@ def _get_logging_names():
                                        pkg_resources.iter_entry_points(DRIVERS_ENTRY_POINT)):
         names[entry_point.module_name] = None
 
-    names['qiskit_aqua'] = None
+    names['qiskit.aqua'] = None
     return list(names.keys())
 
 

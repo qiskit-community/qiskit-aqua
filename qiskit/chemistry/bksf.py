@@ -21,7 +21,7 @@ import itertools
 import networkx
 import numpy as np
 from qiskit.quantum_info import Pauli
-from qiskit_aqua import Operator
+from qiskit.aqua import Operator
 
 
 def _one_body(edge_list, p, q, h1_pq):
