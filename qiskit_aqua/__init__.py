@@ -39,7 +39,6 @@ from .pluggable import Pluggable
 from .utils.mct import mct
 from .utils.mcu1 import mcu1
 from .utils.mcu3 import mcu3
-from .utils.subsystem import get_subsystem_density_matrix, get_subsystems_counts
 from .quantum_instance import QuantumInstance
 from .operator import Operator
 from .algorithms import QuantumAlgorithm
@@ -71,8 +70,6 @@ __all__ = ['AquaError',
            'mct',
            'mcu1',
            'mcu3',
-           'get_subsystem_density_matrix',
-           'get_subsystems_counts',
            'local_pluggables_types',
            'local_pluggables',
            'get_pluggable_class',

@@ -27,7 +27,7 @@ from test.common import QiskitAquaTestCase
 from qiskit_aqua.components.oracles import SAT
 
 
-cnf_str_1 = '''
+dimacs_cnf_1 = '''
 p cnf 2 4
 1 2 0
 1 -2 0
@@ -36,7 +36,7 @@ p cnf 2 4
 '''
 sols_1 = []
 
-cnf_str_2 = '''
+dimacs_cnf_2 = '''
 p cnf 2 3
 1 2 0
 1 -2 0
@@ -44,37 +44,36 @@ p cnf 2 3
 '''
 sols_2 = [(True, True)]
 
-cnf_str_3 = '''
-p cnf 3 5
--1 -2 -3 0
+dimacs_cnf_3 = '''
+p cnf 3 4
 1 -2 3 0
 1 2 -3 0
 1 -2 -3 0
 -1 2 3 0
 '''
-sols_3 = [(True, False, True), (False, False, False), (True, True, False)]
+sols_3 = [(True, True, True), (True, False, True), (False, False, False), (True, True, False)]
 
 
 class TestSATOracle(QiskitAquaTestCase):
     @parameterized.expand([
-        [cnf_str_1, sols_1],
-        [cnf_str_2, sols_2],
-        [cnf_str_3, sols_3],
+        [dimacs_cnf_1, sols_1],
+        [dimacs_cnf_2, sols_2],
+        [dimacs_cnf_3, sols_3],
     ])
-    def test_sat_oracle(self, cnf_str, sols):
+    def test_sat_oracle(self, dimacs_cnf, sols):
         num_shots = 1024
         for mct_mode in ['basic', 'advanced']:
-            sat = SAT(cnf_str, mct_mode=mct_mode)
+            sat = SAT(dimacs_cnf, mct_mode=mct_mode)
             sat_circuit = sat.construct_circuit()
             m = ClassicalRegister(1, name='m')
-            for assignment in itertools.product([True, False], repeat=len(sat.variable_register())):
-                qc = QuantumCircuit(m, sat.variable_register())
+            for assignment in itertools.product([True, False], repeat=len(sat.variable_register)):
+                qc = QuantumCircuit(m, sat.variable_register)
                 for idx, tf in enumerate(assignment):
                     if tf:
-                        qc.x(sat.variable_register()[idx])
+                        qc.x(sat.variable_register[idx])
                 qc += sat_circuit
-                qc.barrier(sat._qr_outcome)
-                qc.measure(sat._qr_outcome, m)
+                qc.barrier(sat.outcome_register)
+                qc.measure(sat.outcome_register, m)
                 counts = q_execute(qc, get_aer_backend(
                     'qasm_simulator'), shots=num_shots).result().get_counts(qc)
                 if assignment in sols:

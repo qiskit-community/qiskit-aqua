@@ -16,7 +16,7 @@
 # =============================================================================
 
 import numpy as np
-from warnings import warn
+import logging
 
 from qiskit import QuantumRegister, QuantumCircuit, transpiler
 from qiskit import execute as q_execute
@@ -25,6 +25,8 @@ from qiskit.transpiler import PassManager
 
 from qiskit_aqua.components.initial_states import InitialState
 from qiskit_aqua.utils.backend_utils import get_aer_backend
+
+logger = logging.getLogger(__name__)
 
 
 class Custom(InitialState):
@@ -78,12 +80,12 @@ class Custom(InitialState):
         self._circuit = None
         if circuit is not None:
             if circuit.width() != num_qubits:
-                warn('The specified num_qubits and the provided custom circuit do not match.')
+                logger.warning('The specified num_qubits and the provided custom circuit do not match.')
             self._circuit = Custom._convert_to_basis_gates(circuit)
             if state_vector is not None:
                 self._state = None
                 self._state_vector = None
-                warn('The provided state_vector is ignored in favor of the provided custom circuit.')
+                logger.warning('The provided state_vector is ignored in favor of the provided custom circuit.')
         else:
             if state_vector is None:
                 if self._state == 'zero':

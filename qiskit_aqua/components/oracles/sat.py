@@ -14,13 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+"""
+The SAT (Satisfiability) Quantum Oracle.
+"""
 
-import itertools
 import logging
 
-from qiskit import QuantumRegister, QuantumCircuit
-
 from qiskit_aqua.components.oracles import Oracle
+from qiskit_aqua.utils import CNF
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +36,7 @@ class SAT(Oracle):
             'id': 'sat_oracle_schema',
             'type': 'object',
             'properties': {
-                'cnf': {
+                'dimacs_cnf': {
                     'type': 'string',
                 },
                 'mct_mode': {
@@ -53,19 +54,13 @@ class SAT(Oracle):
         }
     }
 
-    def __init__(self, cnf, mct_mode='basic'):
+    def __init__(self, dimacs_cnf, mct_mode='basic'):
         self.validate(locals())
         super().__init__()
-
-        self._cnf = None
         self._mct_mode = mct_mode
-        self._qr_ancilla = None
-        self._qr_clause = None
-        self._qr_outcome = None
-        self._qr_variable = None
 
         ls = [
-            l.strip() for l in cnf.split('\n')
+            l.strip() for l in dimacs_cnf.split('\n')
             if len(l) > 0 and not l.strip()[0] == 'c'
         ]
         headers = [l for l in ls if l[0] == 'p']
@@ -81,7 +76,7 @@ class SAT(Oracle):
                 [l for l in ls if not l[0] == 'p']
             ).split(' 0') if len(c) > 0
         ]
-        self._cnf = [
+        cnf_expr = [
             [int(v) for v in c.split() if not int(v) == 0]
             for c in cs
             if (
@@ -90,74 +85,31 @@ class SAT(Oracle):
                 '0' <= c[0] <= '9' or c[0] == '-'
             )
         ]
+        self._cnf = CNF(cnf_expr)
 
-        nv = max(set([abs(v) for v in list(itertools.chain.from_iterable(self._cnf))]))
-        nc = len(self._cnf)
-        if not h_nv == nv:
+        if not h_nv == self._cnf.num_variables:
             logger.warning('Inaccurate variable count {} in cnf header, actual count is {}.'.format(h_nv, nv))
-        if not h_nc == nc:
+        if not h_nc == self._cnf.num_clauses:
             logger.warning('Inaccurate clause count {} in cnf header, actual count is {}.'.format(h_nc, nc))
 
-        self._qr_outcome = QuantumRegister(1, name='o')
-        self._qr_variable = QuantumRegister(nv, name='v')
-        self._qr_clause = QuantumRegister(nc, name='c')
-
-        self._mct_mode = mct_mode
-        max_num_ancillae = max(max(nc, nv) - 2, 0)
-        if self._mct_mode == 'basic':
-            if max_num_ancillae > 0:
-                self._qr_ancilla = QuantumRegister(max_num_ancillae, name='a')
-        elif self._mct_mode == 'advanced':
-            if max_num_ancillae >= 3:
-                self._qr_ancilla = QuantumRegister(1, name='a')
-
+    @property
     def variable_register(self):
-        return self._qr_variable
+        return self._cnf.qr_variable
 
+    @property
     def ancillary_register(self):
-        return self._qr_ancilla
+        return self._cnf.qr_ancilla
 
+    @property
     def outcome_register(self):
-        return self._qr_outcome
-
-    def _logic_or(self, circuit, conj_expr, conj_index):
-        qs = [abs(v) for v in conj_expr]
-        ctl_bits = [self._qr_variable[idx - 1] for idx in qs]
-        anc_bits = [self._qr_ancilla[idx] for idx in range(len(qs) - 2)]
-        tgt_bits = self._qr_clause[conj_index]
-        for idx in [v for v in conj_expr if v > 0]:
-            circuit.x(self._qr_variable[idx - 1])
-        circuit.mct(ctl_bits, tgt_bits, anc_bits, mode=self._mct_mode)
-        for idx in [v for v in conj_expr if v > 0]:
-            circuit.x(self._qr_variable[idx - 1])
+        return self._cnf.qr_outcome
 
     def construct_circuit(self):
-        if self._qr_ancilla:
-            qc = QuantumCircuit(self._qr_variable, self._qr_clause, self._qr_ancilla, self._qr_outcome)
-        else:
-            qc = QuantumCircuit(self._qr_variable, self._qr_clause, self._qr_outcome)
-
-        # init all clause qubit to 1:
-        qc.x(self._qr_clause)
-
-        # build all clause
-        for conj_index, conj_expr in enumerate(self._cnf):
-            self._logic_or(qc, conj_expr, conj_index)
-        # keep results
-        qc.mct(
-            [self._qr_clause[i] for i in range(len(self._qr_clause))],
-            self._qr_outcome[0],
-            [self._qr_ancilla[i] for i in range(len(self._qr_ancilla))] if self._qr_ancilla else [],
-            mode=self._mct_mode
-        )
-        # reverse, de-entanglement
-        for conj_index, conj_expr in reversed(list(enumerate(self._cnf))):
-            self._logic_or(qc, conj_expr, conj_index)
-        return qc
+        return self._cnf.construct_circuit(mct_mode=self._mct_mode)
 
     def evaluate_classically(self, assignment):
         assignment_set = set(assignment)
-        for clause in self._cnf:
+        for clause in self._cnf.expr:
             if assignment_set.isdisjoint(clause):
                 return False
         return True

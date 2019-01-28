@@ -28,7 +28,7 @@ from qiskit.quantum_info import Pauli
 
 from qiskit_aqua import Operator, AquaError
 from qiskit_aqua import PluggableType, get_pluggable_class
-from qiskit_aqua import get_subsystem_density_matrix
+from qiskit_aqua.utils import get_subsystem_density_matrix
 from qiskit_aqua.algorithms import QuantumAlgorithm
 
 
