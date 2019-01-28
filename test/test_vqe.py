@@ -19,15 +19,15 @@ import unittest
 
 import numpy as np
 from parameterized import parameterized
-from qiskit_aqua import get_aer_backend
+from qiskit.aqua import get_aer_backend
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import Operator, run_algorithm, QuantumInstance
-from qiskit_aqua.input import EnergyInput
-from qiskit_aqua.components.variational_forms import RY
-from qiskit_aqua.components.optimizers import L_BFGS_B
-from qiskit_aqua.components.initial_states import Zero
-from qiskit_aqua.algorithms import VQE
+from qiskit.aqua import Operator, run_algorithm, QuantumInstance
+from qiskit.aqua.input import EnergyInput
+from qiskit.aqua.components.variational_forms import RY
+from qiskit.aqua.components.optimizers import L_BFGS_B
+from qiskit.aqua.components.initial_states import Zero
+from qiskit.aqua.algorithms import VQE
 
 
 class TestVQE(QiskitAquaTestCase):

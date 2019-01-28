@@ -31,19 +31,19 @@ class Model(BaseModel):
         super().__init__()
 
     def new(self):
-        from qiskit_aqua.parser._inputparser import InputParser
+        from qiskit.aqua.parser._inputparser import InputParser
         uipreferences = UIPreferences()
         return super().new(InputParser,
                            os.path.join(os.path.dirname(__file__), 'input_template.json'),
                            uipreferences.get_populate_defaults(True))
 
     def load_file(self, filename):
-        from qiskit_aqua.parser._inputparser import InputParser
+        from qiskit.aqua.parser._inputparser import InputParser
         uipreferences = UIPreferences()
         return super().load_file(filename, InputParser, uipreferences.get_populate_defaults(True))
 
     def default_properties_equals_properties(self, section_name):
-        from qiskit_aqua.parser import JSONSchema
+        from qiskit.aqua.parser import JSONSchema
         if self.section_is_text(section_name):
             return self.get_section_default_properties(section_name) == self.get_section_text(section_name)
 
@@ -64,9 +64,9 @@ class Model(BaseModel):
         return default_properties == properties
 
     def get_input_section_names(self):
-        from qiskit_aqua.parser._inputparser import InputParser
-        from qiskit_aqua import local_pluggables, PluggableType
-        from qiskit_aqua.parser import JSONSchema
+        from qiskit.aqua.parser._inputparser import InputParser
+        from qiskit.aqua import local_pluggables, PluggableType
+        from qiskit.aqua.parser import JSONSchema
         problem_name = None
         if self._parser is not None:
             problem_name = self.get_section_property(JSONSchema.PROBLEM, JSONSchema.NAME)

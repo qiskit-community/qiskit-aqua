@@ -19,13 +19,13 @@ import unittest
 
 import numpy as np
 from parameterized import parameterized
-from qiskit_aqua import get_aer_backend
+from qiskit.aqua import get_aer_backend
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua.translators.ising import maxcut
-from qiskit_aqua.components.optimizers import COBYLA
-from qiskit_aqua.algorithms import QAOA
-from qiskit_aqua import QuantumInstance
+from qiskit.aqua.translators.ising import maxcut
+from qiskit.aqua.components.optimizers import COBYLA
+from qiskit.aqua.algorithms import QAOA
+from qiskit.aqua import QuantumInstance
 
 w1 = np.array([
     [0, 1, 0, 1],

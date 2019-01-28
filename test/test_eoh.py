@@ -19,12 +19,12 @@ import unittest
 
 import numpy as np
 from qiskit.transpiler import PassManager
-from qiskit_aqua import get_aer_backend
+from qiskit.aqua import get_aer_backend
 from qiskit.qobj import RunConfig
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import Operator, QuantumInstance
-from qiskit_aqua.components.initial_states import Custom
-from qiskit_aqua.algorithms import EOH
+from qiskit.aqua import Operator, QuantumInstance
+from qiskit.aqua.components.initial_states import Custom
+from qiskit.aqua.algorithms import EOH
 
 
 class TestEOH(QiskitAquaTestCase):

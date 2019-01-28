@@ -21,7 +21,7 @@ from scipy.optimize import rosen
 import numpy as np
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua.components.optimizers import (CG, COBYLA, L_BFGS_B, NELDER_MEAD,
+from qiskit.aqua.components.optimizers import (CG, COBYLA, L_BFGS_B, NELDER_MEAD,
                                                POWELL, SLSQP, SPSA, TNC)
 
 

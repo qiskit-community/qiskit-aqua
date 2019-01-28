@@ -23,13 +23,13 @@ from scipy.linalg import expm
 
 from qiskit.transpiler import PassManager
 from qiskit.qobj import RunConfig
-from qiskit_aqua import get_aer_backend
-from qiskit_aqua import Operator, QuantumInstance
-from qiskit_aqua.utils import decimal_to_binary
-from qiskit_aqua.algorithms import ExactEigensolver
-from qiskit_aqua.algorithms import QPE
-from qiskit_aqua.components.iqfts import Standard
-from qiskit_aqua.components.initial_states import Custom
+from qiskit.aqua import get_aer_backend
+from qiskit.aqua import Operator, QuantumInstance
+from qiskit.aqua.utils import decimal_to_binary
+from qiskit.aqua.algorithms import ExactEigensolver
+from qiskit.aqua.algorithms import QPE
+from qiskit.aqua.components.iqfts import Standard
+from qiskit.aqua.components.initial_states import Custom
 
 from test.common import QiskitAquaTestCase
 

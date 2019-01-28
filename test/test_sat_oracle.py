@@ -21,10 +21,10 @@ import unittest
 from parameterized import parameterized
 from qiskit import execute as q_execute
 from qiskit import QuantumCircuit, ClassicalRegister
-from qiskit_aqua import get_aer_backend
+from qiskit.aqua import get_aer_backend
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua.components.oracles import SAT
+from qiskit.aqua.components.oracles import SAT
 
 
 dimacs_cnf_1 = '''

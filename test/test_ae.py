@@ -20,10 +20,10 @@ import unittest
 import numpy as np
 from parameterized import parameterized
 
-from qiskit_aqua import get_aer_backend
-from qiskit_aqua.algorithms import AmplitudeEstimation
-from qiskit_aqua.components.uncertainty_problems import EuropeanCallExpectedValue, EuropeanCallDelta, FixedIncomeExpectedValue
-from qiskit_aqua.components.random_distributions import LogNormalDistribution, MultivariateNormalDistribution
+from qiskit.aqua import get_aer_backend
+from qiskit.aqua.algorithms import AmplitudeEstimation
+from qiskit.aqua.components.uncertainty_problems import EuropeanCallExpectedValue, EuropeanCallDelta, FixedIncomeExpectedValue
+from qiskit.aqua.components.random_distributions import LogNormalDistribution, MultivariateNormalDistribution
 
 from test.common import QiskitAquaTestCase
 

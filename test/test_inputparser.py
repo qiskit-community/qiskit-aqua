@@ -24,9 +24,9 @@ import os
 import json
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import AquaError
-from qiskit_aqua import run_algorithm
-from qiskit_aqua.parser._inputparser import InputParser
+from qiskit.aqua import AquaError
+from qiskit.aqua import run_algorithm
+from qiskit.aqua.parser._inputparser import InputParser
 
 
 class TestInputParser(QiskitAquaTestCase):

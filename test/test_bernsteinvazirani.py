@@ -18,9 +18,9 @@
 import unittest
 from parameterized import parameterized
 
-from qiskit_aqua.components.oracles import BernsteinVaziraniOracle
-from qiskit_aqua.algorithms import BernsteinVazirani
-from qiskit_aqua import get_aer_backend
+from qiskit.aqua.components.oracles import BernsteinVaziraniOracle
+from qiskit.aqua.algorithms import BernsteinVazirani
+from qiskit.aqua import get_aer_backend
 
 from test.common import QiskitAquaTestCase
 
