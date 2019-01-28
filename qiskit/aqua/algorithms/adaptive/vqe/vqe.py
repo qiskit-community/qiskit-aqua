@@ -298,7 +298,9 @@ class VQE(QuantumAlgorithm):
                            'the operator_mode to "paulis"'.format(self._operator_mode))
             self._operator_mode = 'paulis'
 
-        self._use_simulator_operator_mode = is_aer_statevector_backend(self._quantum_instance.backend) and self._operator_mode == 'paulis'
+        self._use_simulator_operator_mode = \
+            is_aer_statevector_backend(self._quantum_instance.backend) \
+            and self._operator_mode != 'matrix'
 
         self._quantum_instance.circuit_summary = True
         self._eval_count = 0
