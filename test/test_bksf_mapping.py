@@ -19,7 +19,7 @@ import unittest
 
 import numpy as np
 from qiskit.quantum_info import Pauli
-from qiskit_aqua import Operator
+from qiskit.aqua import Operator
 
 from test.common import QiskitAquaChemistryTestCase
 from qiskit.chemistry.bksf import edge_operator_aij, edge_operator_bi

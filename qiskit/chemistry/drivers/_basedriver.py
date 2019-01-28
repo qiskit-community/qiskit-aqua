@@ -24,7 +24,7 @@ Doing so requires that the required driver interface is implemented.
 
 from abc import ABC, abstractmethod
 import copy
-from qiskit_aqua.parser import JSONSchema
+from qiskit.aqua.parser import JSONSchema
 from enum import Enum
 import logging
 

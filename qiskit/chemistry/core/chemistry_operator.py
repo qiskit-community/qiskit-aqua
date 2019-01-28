@@ -22,7 +22,7 @@ a quantum algorithm
 from abc import ABC, abstractmethod
 import logging
 import copy
-from qiskit_aqua.parser import JSONSchema
+from qiskit.aqua.parser import JSONSchema
 
 logger = logging.getLogger(__name__)
 

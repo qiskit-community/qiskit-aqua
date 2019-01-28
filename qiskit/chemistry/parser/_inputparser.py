@@ -15,20 +15,20 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit_aqua.parser import BaseParser
+from qiskit.aqua.parser import BaseParser
 import json
 from collections import OrderedDict
 import logging
 import os
 import copy
-from qiskit_aqua import (local_pluggables_types,
+from qiskit.aqua import (local_pluggables_types,
                          PluggableType,
                          get_backends_from_provider)
 import pprint
 import ast
-from qiskit_aqua.aqua_error import AquaError
+from qiskit.aqua.aqua_error import AquaError
 from qiskit.chemistry import QiskitChemistryError
-from qiskit_aqua.parser import JSONSchema
+from qiskit.aqua.parser import JSONSchema
 from qiskit.chemistry.core import local_chemistry_operators, get_chemistry_operator_configuration
 from qiskit.chemistry.drivers import local_drivers, get_driver_configuration
 

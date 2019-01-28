@@ -17,10 +17,10 @@
 
 from .qiskit_chemistry_error import QiskitChemistryError
 from qiskit.chemistry.drivers import local_drivers, get_driver_class
-from qiskit_aqua import run_algorithm, get_provider_from_backend
-from qiskit_aqua.utils import convert_json_to_dict
+from qiskit.aqua import run_algorithm, get_provider_from_backend
+from qiskit.aqua.utils import convert_json_to_dict
 from qiskit.chemistry.parser import InputParser
-from qiskit_aqua.parser import JSONSchema
+from qiskit.aqua.parser import JSONSchema
 import json
 import os
 import copy

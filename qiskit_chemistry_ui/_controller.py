@@ -68,7 +68,7 @@ class Controller(BaseController):
         return False
 
     def on_property_set(self, section_name, property_name, value):
-        from qiskit_aqua.parser import JSONSchema
+        from qiskit.aqua.parser import JSONSchema
         try:
             self.model.set_section_property(section_name, property_name, value)
         except Exception as e:
@@ -104,7 +104,7 @@ class Controller(BaseController):
 
     def create_popup(self, section_name, property_name, parent, value):
         from qiskit.chemistry.parser import InputParser
-        from qiskit_aqua.parser import JSONSchema
+        from qiskit.aqua.parser import JSONSchema
         from qiskit.chemistry.drivers import local_drivers
         values = None
         types = ['string']

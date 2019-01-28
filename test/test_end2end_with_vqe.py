@@ -18,10 +18,10 @@
 import unittest
 from parameterized import parameterized
 import qiskit
-from qiskit_aqua import QuantumInstance
-from qiskit_aqua.algorithms.adaptive import VQE
-from qiskit_aqua.components.variational_forms import RYRZ
-from qiskit_aqua.components.optimizers import COBYLA, SPSA
+from qiskit.aqua import QuantumInstance
+from qiskit.aqua.algorithms.adaptive import VQE
+from qiskit.aqua.components.variational_forms import RYRZ
+from qiskit.aqua.components.optimizers import COBYLA, SPSA
 from qiskit.qobj import RunConfig
 from test.common import QiskitAquaChemistryTestCase
 from qiskit.chemistry.drivers import HDF5Driver
