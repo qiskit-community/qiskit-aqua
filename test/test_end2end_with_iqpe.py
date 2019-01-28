@@ -71,7 +71,7 @@ class TestIQPE(QiskitAquaChemistryTestCase):
         state_in = HartreeFock(self.qubit_op.num_qubits, num_orbitals,
                                num_particles, qubit_mapping, two_qubit_reduction)
         iqpe = IQPE(self.qubit_op, state_in, num_time_slices, num_iterations,
-                    paulis_grouping='random', expansion_mode='suzuki', expansion_order=2,
+                    expansion_mode='suzuki', expansion_order=2,
                     shallow_circuit_concat=True)
         backend = qiskit.Aer.get_backend('qasm_simulator')
         run_config = RunConfig(shots=100, max_credits=10, memory=False)
