@@ -97,6 +97,8 @@ class QSVMVariational(QuantumAlgorithm):
         else:
             self._test_dataset = test_dataset
 
+        if not isinstance(datapoints, np.ndarray):
+            datapoints = np.asarray(datapoints)
         self._datapoints = datapoints
         self._optimizer = optimizer
         self._feature_map = feature_map
