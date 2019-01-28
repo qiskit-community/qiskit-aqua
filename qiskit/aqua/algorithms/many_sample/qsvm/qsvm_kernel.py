@@ -107,7 +107,7 @@ class QSVMKernel(QuantumAlgorithm):
                                in self.class_to_label.items()}
         self.num_classes = len(list(self.class_to_label.keys()))
 
-        if not isinstance(datapoints, np.ndarray):
+        if datapoints is not None and not isinstance(datapoints, np.ndarray):
             datapoints = np.asarray(datapoints)
         self.datapoints = datapoints
 
