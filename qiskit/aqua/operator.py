@@ -187,6 +187,10 @@ class Operator(object):
 
         return ret
 
+    def copy(self):
+        """Get a copy of self."""
+        return copy.deepcopy(self)
+
     def chop(self, threshold=1e-15):
         """
         Eliminate the real and imagine part of coeff in each pauli by `threshold`.
@@ -773,6 +777,7 @@ class Operator(object):
             compile_config (dict): configuration for compilation
             run_config (RunConfig): configuration for running a circuit
             qjob_config (dict): the setting to retrieve results from quantum backend, including timeout and wait.
+            noise_config (dict) the setting of noise model for the qasm simulator in the Aer provider.
 
         Returns:
             float, float: mean and standard deviation of avg

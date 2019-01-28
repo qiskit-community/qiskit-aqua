@@ -21,7 +21,6 @@ See https://arxiv.org/abs/quant-ph/0610214
 
 import logging
 import numpy as np
-import copy
 
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.quantum_info import Pauli
@@ -38,6 +37,7 @@ logger = logging.getLogger(__name__)
 class IQPE(QuantumAlgorithm):
     """
     The Iterative Quantum Phase Estimation algorithm.
+
     See https://arxiv.org/abs/quant-ph/0610214
     """
 
@@ -94,9 +94,21 @@ class IQPE(QuantumAlgorithm):
     def __init__(self, operator, state_in, num_time_slices=1, num_iterations=1,
                  expansion_mode='suzuki', expansion_order=2,
                  shallow_circuit_concat=False):
+        """
+        Constructor.
+
+        Args:
+            operator (Operator): the hamiltonian Operator object
+            state_in (InitialState): the InitialState pluggable component representing the initial quantum state
+            num_time_slices (int): the number of time slices
+            num_iterations (int): the number of iterations
+            expansion_mode (str): the expansion mode (trotter|suzuki)
+            expansion_order (int): the suzuki expansion order
+            shallow_circuit_concat (bool): indicate whether to use shallow (cheap) mode for circuit concatenation
+        """
         self.validate(locals())
         super().__init__()
-        self._operator = copy.deepcopy(operator)
+        self._operator = operator
         self._state_in = state_in
         self._num_time_slices = num_time_slices
         self._num_iterations = num_iterations
@@ -112,7 +124,8 @@ class IQPE(QuantumAlgorithm):
     @classmethod
     def init_params(cls, params, algo_input):
         """
-        Initialize via parameters dictionary and algorithm input instance
+        Initialize via parameters dictionary and algorithm input instance.
+
         Args:
             params: parameters dictionary
             algo_input: EnergyInput instance
@@ -209,7 +222,7 @@ class IQPE(QuantumAlgorithm):
         return qc
 
     def _estimate_phase_iteratively(self):
-        """Iteratively construct the different order of controlled evolution circuit to carry out phase estimation"""
+        """Iteratively construct the different order of controlled evolution circuit to carry out phase estimation."""
         self._ret['top_measurement_label'] = ''
 
         omega_coef = 0

@@ -18,7 +18,6 @@
 The Quantum Phase Estimation Algorithm.
 """
 
-import copy
 import logging
 import numpy as np
 
@@ -114,7 +113,7 @@ class QPE(QuantumAlgorithm):
 
         self._num_ancillae = num_ancillae
         self._ret = {}
-        self._operator = copy.deepcopy(operator)
+        self._operator = operator
         self._pauli_list = self._operator.get_flat_pauli_list()
         self._ret['translation'] = sum([abs(p[0]) for p in self._pauli_list])
         self._ret['stretch'] = 0.5 / self._ret['translation']
@@ -147,7 +146,8 @@ class QPE(QuantumAlgorithm):
     @classmethod
     def init_params(cls, params, algo_input):
         """
-        Initialize via parameters dictionary and algorithm input instance
+        Initialize via parameters dictionary and algorithm input instance.
+
         Args:
             params: parameters dictionary
             algo_input: EnergyInput instance
