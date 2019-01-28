@@ -20,13 +20,13 @@ import copy
 import numpy as np
 
 from qiskit import QuantumRegister, QuantumCircuit
-from qiskit_aqua import get_aer_backend
+from qiskit.aqua import get_aer_backend
 from qiskit import execute as q_execute
 from qiskit.quantum_info import state_fidelity
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import Operator
-from qiskit_aqua.components.initial_states import Custom
+from qiskit.aqua import Operator
+from qiskit.aqua.components.initial_states import Custom
 
 
 class TestEvolution(QiskitAquaTestCase):

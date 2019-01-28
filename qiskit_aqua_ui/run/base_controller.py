@@ -219,7 +219,7 @@ class BaseController(ABC):
         pass
 
     def on_property_select(self, section_name, property_name):
-        from qiskit_aqua.parser import JSONSchema
+        from qiskit.aqua.parser import JSONSchema
         _show_remove = property_name != JSONSchema.PROVIDER and property_name != JSONSchema.NAME \
             if section_name == JSONSchema.BACKEND else property_name != JSONSchema.NAME
         self._propertiesView.show_remove_button(_show_remove)

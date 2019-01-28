@@ -17,7 +17,6 @@
 
 from abc import ABC, abstractmethod
 import json
-from qiskit_aqua_ui._uipreferences import UIPreferences
 from collections import OrderedDict
 import copy
 import threading
@@ -44,7 +43,7 @@ class BaseModel(ABC):
         return providers
 
     def get_available_providers(self):
-        from qiskit_aqua import register_ibmq_and_get_known_providers
+        from qiskit.aqua import register_ibmq_and_get_known_providers
         if self._backendsthread is not None:
             return
 
@@ -87,8 +86,8 @@ class BaseModel(ABC):
 
     @abstractmethod
     def load_file(self, filename, parser_class, populate_defaults):
-        from qiskit_aqua.parser import JSONSchema
-        from qiskit_aqua import get_provider_from_backend, get_backends_from_provider
+        from qiskit.aqua.parser import JSONSchema
+        from qiskit.aqua import get_provider_from_backend, get_backends_from_provider
         if filename is None:
             return []
         try:
@@ -205,7 +204,7 @@ class BaseModel(ABC):
             self._parser.set_section_data(section_name, value)
 
     def set_default_properties_for_name(self, section_name):
-        from qiskit_aqua.parser import JSONSchema
+        from qiskit.aqua.parser import JSONSchema
         if self._parser is None:
             raise Exception('Input not initialized.')
 
@@ -233,13 +232,13 @@ class BaseModel(ABC):
 
     @staticmethod
     def is_pluggable_section(section_name):
-        from qiskit_aqua.parser import BaseParser
+        from qiskit.aqua.parser import BaseParser
         return BaseParser.is_pluggable_section(section_name)
 
     def get_pluggable_section_names(self, section_name):
-        from qiskit_aqua.parser import BaseParser
-        from qiskit_aqua import PluggableType, local_pluggables
-        from qiskit_aqua.parser import JSONSchema
+        from qiskit.aqua.parser import BaseParser
+        from qiskit.aqua import PluggableType, local_pluggables
+        from qiskit.aqua.parser import JSONSchema
         if not BaseModel.is_pluggable_section(section_name):
             return []
 
@@ -300,9 +299,9 @@ class BaseModel(ABC):
         return self._parser.get_property_types(section_name, property_name)
 
     def set_section_property(self, section_name, property_name, value):
-        from qiskit_aqua.parser import BaseParser
-        from qiskit_aqua.parser import JSONSchema
-        from qiskit_aqua import get_backends_from_provider
+        from qiskit.aqua.parser import BaseParser
+        from qiskit.aqua.parser import JSONSchema
+        from qiskit.aqua import get_backends_from_provider
         if self._parser is None:
             raise Exception('Input not initialized.')
 
@@ -323,8 +322,8 @@ class BaseModel(ABC):
             self._parser.set_section_property(section_name, JSONSchema.NAME, backend)
 
     def delete_section_property(self, section_name, property_name):
-        from qiskit_aqua.parser import BaseParser
-        from qiskit_aqua.parser import JSONSchema
+        from qiskit.aqua.parser import BaseParser
+        from qiskit.aqua.parser import JSONSchema
         if self._parser is None:
             raise Exception('Input not initialized.')
 

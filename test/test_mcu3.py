@@ -21,7 +21,7 @@ from itertools import combinations, chain
 import numpy as np
 from parameterized import parameterized
 from qiskit import QuantumCircuit, QuantumRegister
-from qiskit_aqua import get_aer_backend
+from qiskit.aqua import get_aer_backend
 from qiskit import execute as q_execute
 from qiskit.quantum_info import state_fidelity
 from test.common import QiskitAquaTestCase

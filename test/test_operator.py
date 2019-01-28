@@ -20,14 +20,14 @@ import copy
 import itertools
 import os
 
-from qiskit_aqua import get_aer_backend
+from qiskit.aqua import get_aer_backend
 import numpy as np
 from qiskit.quantum_info import Pauli
 from qiskit.transpiler import PassManager
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import Operator
-from qiskit_aqua.components.variational_forms import RYRZ
+from qiskit.aqua import Operator
+from qiskit.aqua.components.variational_forms import RYRZ
 
 
 class TestOperator(QiskitAquaTestCase):

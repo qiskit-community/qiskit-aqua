@@ -18,15 +18,15 @@
 import os
 
 import numpy as np
-from qiskit_aqua import get_aer_backend
+from qiskit.aqua import get_aer_backend
 from qiskit.qobj import RunConfig
 from test.common import QiskitAquaTestCase
-from qiskit_aqua.input import SVMInput
-from qiskit_aqua import run_algorithm, QuantumInstance
-from qiskit_aqua.algorithms import QSVMVariational
-from qiskit_aqua.components.optimizers import SPSA
-from qiskit_aqua.components.feature_maps import SecondOrderExpansion
-from qiskit_aqua.components.variational_forms import RYRZ
+from qiskit.aqua.input import SVMInput
+from qiskit.aqua import run_algorithm, QuantumInstance
+from qiskit.aqua.algorithms import QSVMVariational
+from qiskit.aqua.components.optimizers import SPSA
+from qiskit.aqua.components.feature_maps import SecondOrderExpansion
+from qiskit.aqua.components.variational_forms import RYRZ
 
 
 class TestQSVMVariational(QiskitAquaTestCase):

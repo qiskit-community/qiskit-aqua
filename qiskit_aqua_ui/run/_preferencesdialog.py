@@ -109,7 +109,7 @@ class PreferencesDialog(Dialog):
 
     def apply(self):
         from qiskit_aqua_cmd import Preferences
-        from qiskit_aqua import disable_ibmq_account
+        from qiskit.aqua import disable_ibmq_account
         try:
             level_name = self._levelCombo.get()
             levels = [key for key, value in PreferencesDialog._LOG_LEVELS.items() if value == level_name]

@@ -22,14 +22,14 @@ from parameterized import parameterized
 from scipy.linalg import expm
 from scipy import sparse
 from qiskit.transpiler import PassManager
-from qiskit_aqua import get_aer_backend
+from qiskit.aqua import get_aer_backend
 from qiskit.qobj import RunConfig
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import Operator, QuantumInstance
-from qiskit_aqua.utils import decimal_to_binary
-from qiskit_aqua.algorithms import IQPE
-from qiskit_aqua.algorithms import ExactEigensolver
-from qiskit_aqua.components.initial_states import Custom
+from qiskit.aqua import Operator, QuantumInstance
+from qiskit.aqua.utils import decimal_to_binary
+from qiskit.aqua.algorithms import IQPE
+from qiskit.aqua.algorithms import ExactEigensolver
+from qiskit.aqua.components.initial_states import Custom
 
 
 X = np.array([[0, 1], [1, 0]])

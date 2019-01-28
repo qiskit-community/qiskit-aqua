@@ -29,7 +29,7 @@ class Model(object):
         if self._data_loaded:
             return
 
-        from qiskit_aqua import (local_pluggables_types,
+        from qiskit.aqua import (local_pluggables_types,
                                  local_pluggables,
                                  get_pluggable_configuration)
 

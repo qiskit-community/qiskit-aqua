@@ -18,18 +18,18 @@
 import unittest
 
 import numpy as np
-from qiskit_aqua import get_aer_backend
+from qiskit.aqua import get_aer_backend
 from qiskit.transpiler import PassManager
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import Operator, QuantumInstance
-from qiskit_aqua.input import EnergyInput
-from qiskit_aqua.utils import decimal_to_binary
-from qiskit_aqua.components.initial_states import VarFormBased
-from qiskit_aqua.components.variational_forms import RYRZ
-from qiskit_aqua.components.optimizers import SPSA
-from qiskit_aqua.algorithms import VQE
-from qiskit_aqua.algorithms import IQPE
+from qiskit.aqua import Operator, QuantumInstance
+from qiskit.aqua.input import EnergyInput
+from qiskit.aqua.utils import decimal_to_binary
+from qiskit.aqua.components.initial_states import VarFormBased
+from qiskit.aqua.components.variational_forms import RYRZ
+from qiskit.aqua.components.optimizers import SPSA
+from qiskit.aqua.algorithms import VQE
+from qiskit.aqua.algorithms import IQPE
 from qiskit.qobj import RunConfig
 
 

@@ -43,7 +43,7 @@ class MainView(ttk.Frame):
             parent.protocol('WM_DELETE_WINDOW', self.quit)
 
     def _show_about_dialog(self):
-        from qiskit_aqua import __version__
+        from qiskit.aqua import __version__
         tkmb.showinfo(message='Qiskit Aqua {}'.format(__version__))
 
     def _create_widgets(self):

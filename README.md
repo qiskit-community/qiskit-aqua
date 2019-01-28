@@ -42,8 +42,8 @@ $ python
 
 ```python
 >>> from qiskit import Aer
->>> from qiskit_aqua.components.oracles import SAT
->>> from qiskit_aqua.algorithms import Grover
+>>> from qiskit.aqua.components.oracles import SAT
+>>> from qiskit.aqua.algorithms import Grover
 >>> sat_cnf = """
 >>> c Example DIMACS 3-sat
 >>> p cnf 3 5

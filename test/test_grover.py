@@ -18,12 +18,12 @@
 import unittest
 
 from parameterized import parameterized
-from qiskit_aqua import get_aer_backend
+from qiskit.aqua import get_aer_backend
 from qiskit.qobj import RunConfig
 from test.common import QiskitAquaTestCase
-from qiskit_aqua.components.oracles import SAT
-from qiskit_aqua.algorithms import Grover
-from qiskit_aqua import QuantumInstance
+from qiskit.aqua.components.oracles import SAT
+from qiskit.aqua.algorithms import Grover
+from qiskit.aqua import QuantumInstance
 
 
 class TestGrover(QiskitAquaTestCase):

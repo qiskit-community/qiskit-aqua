@@ -18,12 +18,12 @@
 import os
 
 import numpy as np
-from qiskit_aqua import get_aer_backend
+from qiskit.aqua import get_aer_backend
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import run_algorithm, QuantumInstance
-from qiskit_aqua.input import SVMInput
-from qiskit_aqua.components.feature_maps import SecondOrderExpansion
-from qiskit_aqua.algorithms import QSVMKernel
+from qiskit.aqua import run_algorithm, QuantumInstance
+from qiskit.aqua.input import SVMInput
+from qiskit.aqua.components.feature_maps import SecondOrderExpansion
+from qiskit.aqua.algorithms import QSVMKernel
 from qiskit.qobj import RunConfig
 
 
