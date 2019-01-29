@@ -62,8 +62,8 @@ class CircuitCache:
         self.allowed_misses = allowed_misses
         try:
             self.try_loading_cache_from_file()
-        except (FileNotFoundError):
-            pass
+        except(EOFError, FileNotFoundError) as e:
+            logger.warning("Error loading cache from file {0}: {1}".format(self.cache_file, repr(e)))
 
     def cache_circuit(self, qobj, circuits, chunk):
         """

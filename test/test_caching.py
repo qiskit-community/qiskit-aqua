@@ -96,6 +96,9 @@ class TestCaching(QiskitAquaTestCase):
         result_caching = algo.run(quantum_instance_caching)
         self.assertLessEqual(circuit_cache.misses, 0)
         self.assertAlmostEqual(self.reference_vqe_result['statevector_simulator']['energy'], result_caching['energy'])
+        speedup_check = 3
+        self.log.info(result_caching['eval_time'],
+                        self.reference_vqe_result['statevector_simulator']['eval_time']/speedup_check)
 
 if __name__ == '__main__':
     unittest.main()
