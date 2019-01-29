@@ -75,7 +75,7 @@ class TestCaching(QiskitAquaTestCase):
                                              result_caching['eigvals'], 5)
         np.testing.assert_array_almost_equal(self.reference_vqe_result[backend]['opt_params'],
                                              result_caching['opt_params'], 5)
-        if quantum_instance._circuit_cache:
+        if quantum_instance.has_circuit_caching:
             self.assertEqual(quantum_instance._circuit_cache.misses, 0)
         self.assertIn('eval_count', result_caching)
         self.assertIn('eval_time', result_caching)
