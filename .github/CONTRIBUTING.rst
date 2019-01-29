@@ -228,21 +228,23 @@ your changes respect the style guidelines, run the next commands (all platforms)
 Documentation
 -------------
 
-The documentation for the project is in the ``doc`` directory. The
-documentation for the python SDK is auto-generated from python
-docstrings using `Sphinx <http://www.sphinx-doc.org>`_ for generating the
-documentation. Please follow `Google's Python Style
+Documentation
+-------------
+
+The documentation source code for the project is located in the ``docs`` directory of the general
+`Qiskit repository <https://github.com/Qiskit/qiskit>`__ and automatically rendered on the
+`Qiskit documentation Web site <https://qiskit.org/documentation/>`__. The
+documentation for the Python SDK is auto-generated from Python
+docstrings using `Sphinx <http://www.sphinx-doc.org>`_. Please follow `Google's Python Style
 Guide <https://google.github.io/styleguide/pyguide.html?showone=Comments#Comments>`_
 for docstrings. A good example of the style can also be found with
-`sphinx's napolean converter
+`Sphinx's napolean converter
 documentation <http://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html>`_.
 
-To generate the documentation, we need to invoke CMake first in order to generate
+To generate the documentation, you need to invoke CMake first in order to generate
 all specific files for our current platform.
 See the `instructions <https://github.com/Qiskit/qiskit-terra/blob/master/.github/CONTRIBUTING.rst#dependencies>`__
 in the Terra repository for details on how to install and run CMake.
-The docunentation can then be built using the instructions available in the
-`docs folder's README file <../docs/README.md>`__.
 
 
 Development Cycle
