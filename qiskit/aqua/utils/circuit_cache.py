@@ -40,7 +40,7 @@ import logging
 
 from qiskit import QuantumRegister
 from qiskit.circuit import CompositeGate
-from qiskit.qobj import qobj_to_dict, Qobj
+from qiskit.qobj import qobj_to_dict, Qobj, RunConfig
 
 from qiskit.aqua.aqua_error import AquaError
 
@@ -89,7 +89,7 @@ class CircuitCache:
 
         self.qobjs.insert(chunk, copy.deepcopy(qobj))
 
-        self.mappings.insert(chunk, [[] for i in range(len(circuits))])
+        self.mappings.insert(chunk, [{} for i in range(len(circuits))])
         for circ_num, input_circuit in enumerate(circuits):
 
             qreg_sizes = [reg.size for reg in input_circuit.qregs if isinstance(reg, QuantumRegister)]
@@ -110,7 +110,7 @@ class CircuitCache:
                 type_and_qubits = gate_type + qubits.__str__()
                 op_graph[type_and_qubits] = \
                     op_graph.get(type_and_qubits, []) + [i]
-            mapping = []
+            mapping = {}
             for compiled_gate_index, compiled_gate in enumerate(qobj.experiments[circ_num].instructions):
                 if not hasattr(compiled_gate, 'params') or len(compiled_gate.params) < 1: continue
                 type_and_qubits = compiled_gate.name + compiled_gate.qubits.__str__()
@@ -121,7 +121,7 @@ class CircuitCache:
                     qubits = [qubit + qreg_indeces[reg.name] for reg, qubit in regs if isinstance(reg, QuantumRegister)]
                     if (compiled_gate.name == uncompiled_gate.name) and (compiled_gate.qubits.__str__() ==
                                                                          qubits.__str__()):
-                        mapping.insert(compiled_gate_index, uncompiled_gate_index)
+                        mapping[compiled_gate_index] = uncompiled_gate_index
                 else: raise Exception("Circuit shape does not match qobj, found extra {} instruction in qobj".format(
                     type_and_qubits))
             self.mappings[chunk][circ_num] = mapping
@@ -155,7 +155,8 @@ class CircuitCache:
         for circ_num, input_circuit in enumerate(circuits):
 
             # If there are too few experiments in the cache, try reusing the first experiment.
-            # Only do this for the first chunk. Subsequent chunks should rely on these copies through the deepcopy above.
+            # Only do this for the first chunk. Subsequent chunks should rely on these copies
+            # through the deepcopy above.
             if self.try_reusing_qobjs and chunk == 0 and circ_num > 0 and len(self.qobjs[chunk].experiments) <= \
                     circ_num:
                 self.qobjs[0].experiments.insert(circ_num, copy.deepcopy(self.qobjs[0].experiments[0]))
@@ -176,27 +177,26 @@ class CircuitCache:
                 # Need the 'getattr' wrapper because measure has no 'params' field and breaks this.
                 if not len(getattr(compiled_gate, 'params', [])) == len(getattr(uncompiled_gate, 'params', [])) or \
                     not compiled_gate.name == uncompiled_gate.name:
-                    raise AquaError('Gate mismatch at gate {0} ({1}, {2} params) of circuit against '
-                                         'gate {3} ({4}, {5} params) '
-                                         'of cached qobj'.format(cache_index, uncompiled_gate.name, len(uncompiled_gate.params),
-                                                                 gate_num, compiled_gate.name, len(compiled_gate.params)))
+                    raise AquaError('Gate mismatch at gate {0} ({1}, {2} params) of circuit against gate {3} ({4}, '
+                                    '{5} params) of cached qobj'.format(cache_index,
+                                                                 uncompiled_gate.name,
+                                                                 len(uncompiled_gate.params),
+                                                                 gate_num,
+                                                                 compiled_gate.name,
+                                                                 len(compiled_gate.params)))
                 compiled_gate.params = np.array(uncompiled_gate.params, dtype=float).tolist()
         exec_qobj = copy.copy(self.qobjs[chunk])
         if self.skip_qobj_deepcopy: exec_qobj.experiments = self.qobjs[chunk].experiments[0:len(circuits)]
         else: exec_qobj.experiments = copy.deepcopy(self.qobjs[chunk].experiments[0:len(circuits)])
 
-        if not run_config: run_config = {}
-        exec_qobj.config.shots = run_config.get('shots', 1024)
-        exec_qobj.config.max_credits = run_config.get('max_credits', 10)
-        exec_qobj.config.memory = run_config.get('memory', False)
-        exec_qobj.config.memory_slots = max(experiment.config.memory_slots for
-                                        experiment in exec_qobj.experiments)
-        exec_qobj.config.n_qubits = max(experiment.config.n_qubits for
-                                    experiment in exec_qobj.experiments)
+        if run_config is None:
+            run_config = RunConfig(shots=1024, max_credits=10, memory=False)
+            exec_qobj.config = run_config
+        exec_qobj.config.memory_slots = max(experiment.config.memory_slots for experiment in exec_qobj.experiments)
+        exec_qobj.config.n_qubits = max(experiment.config.n_qubits for experiment in exec_qobj.experiments)
         return exec_qobj
 
     def clear_cache(self):
         self.qobjs = []
         self.mappings = []
-        self.misses = 0
         self.try_reusing_qobjs = True

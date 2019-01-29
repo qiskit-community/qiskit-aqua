@@ -76,7 +76,7 @@ class TestCaching(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(self.reference_vqe_result[backend]['opt_params'],
                                              result_caching['opt_params'], 5)
         if quantum_instance._circuit_cache:
-            self.assertEqual(quantum_instance._circuit_cache.misses, 1)
+            self.assertEqual(quantum_instance._circuit_cache.misses, 0)
         self.assertIn('eval_count', result_caching)
         self.assertIn('eval_time', result_caching)
 
@@ -84,7 +84,7 @@ class TestCaching(QiskitAquaTestCase):
         [True],
         [False]
     ])
-    def test_vqe_caching_direct(self, batch_mode):
+    def test_vqe_caching_direct(self, batch_mode=True):
         backend = get_aer_backend('statevector_simulator')
         num_qubits = self.algo_input.qubit_op.num_qubits
         init_state = Zero(num_qubits)
@@ -94,7 +94,7 @@ class TestCaching(QiskitAquaTestCase):
         circuit_cache = CircuitCache(skip_qobj_deepcopy=True)
         quantum_instance_caching = QuantumInstance(backend, circuit_cache=circuit_cache, skip_qobj_validation=True)
         result_caching = algo.run(quantum_instance_caching)
-        self.assertLessEqual(circuit_cache.misses, 1)
+        self.assertLessEqual(circuit_cache.misses, 0)
         self.assertAlmostEqual(self.reference_vqe_result['statevector_simulator']['energy'], result_caching['energy'])
 
 if __name__ == '__main__':
