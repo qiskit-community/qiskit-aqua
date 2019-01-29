@@ -80,15 +80,15 @@ class TestQSVMVariational(QiskitAquaTestCase):
 
         # The results will differ from the above even though the batch size is larger than the trainingset size due
         # to the shuffle during minibatching
-        minibatching_ref_opt_params = np.asarray([3.3604,   1.9649,   7.8314,  -4.738,  -3.1619,  15.6005,  -4.918,
-                                                  10.811,   9.3323,   7.1805,  13.5328,   9.3692,  -7.2276,
-                                                  -2.0618,  -0.2071, -11.6123])
-        minibatching_ref_train_loss = 0.66402647
+        minibatching_ref_opt_params = np.asarray([-18.8965, -36.9197,   2.3568,  14.9087,  43.8633,   7.1394,
+                                                  12.1298,  23.7219,  36.5693,  21.0561,  37.5775, -22.4538,
+                                                  41.1386, -54.3177, -27.3063,  31.3858])
+        minibatching_ref_train_loss = 1.02335933
 
         np.testing.assert_array_almost_equal(result['opt_params'], minibatching_ref_opt_params, decimal=4)
         np.testing.assert_array_almost_equal(result['training_loss'], minibatching_ref_train_loss, decimal=8)
 
-        self.assertEqual(result['testing_accuracy'], 1.0)
+        self.assertEqual(result['testing_accuracy'], .5)
 
     def test_qsvm_variational_directly(self):
         np.random.seed(self.random_seed)
