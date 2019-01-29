@@ -305,18 +305,18 @@ class QSVMVariational(QuantumAlgorithm):
         batches, label_batches = self.batch_data(data, labels, minibatch_size)
         self.batch_num = 0
         total_cost = 0
-        total_error = 0
+        total_correct = 0
         total_samples = 0
 
         self._quantum_instance = self._quantum_instance if quantum_instance is None else quantum_instance
         for batch, label_batch in zip(batches, label_batches):
             predicted_probs, predicted_labels = self._get_prediction(batch, self._ret['opt_params'])
             total_cost += self._cost_function(predicted_probs, label_batch)
-            total_error += np.sum((np.argmax(predicted_probs, axis=1) == label_batch))
+            total_correct += np.sum((np.argmax(predicted_probs, axis=1) == label_batch))
             total_samples += label_batch.shape[0]
             int_accuracy = np.sum((np.argmax(predicted_probs, axis=1) == label_batch)) / label_batch.shape[0]
             logger.debug('Intermediate batch accuracy: {:.2f}%'.format(int_accuracy * 100.0))
-        total_accuracy = total_error / total_samples
+        total_accuracy = total_correct / total_samples
         logger.info('Accuracy is {:.2f}%'.format(total_accuracy * 100.0))
         self._ret['testing_accuracy'] = total_accuracy
         self._ret['test_success_ratio'] = total_accuracy
