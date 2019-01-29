@@ -209,7 +209,7 @@ your changes respect the style guidelines, run the next commands (all platforms)
 Documentation
 -------------
 
-The documentation source code for the project is located in the ``doc`` directory of the general
+The documentation source code for the project is located in the ``docs`` directory of the general
 `Qiskit repository <https://github.com/Qiskit/qiskit>`__ and automatically rendered on the
 `Qiskit documentation Web site <https://qiskit.org/documentation/>`__. The
 documentation for the Python SDK is auto-generated from Python
