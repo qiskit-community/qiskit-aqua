@@ -18,6 +18,8 @@
 import logging
 
 import numpy as np
+from sklearn.utils import shuffle
+
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua import AquaError, PluggableType, get_pluggable_class
@@ -45,6 +47,10 @@ class QSVMVariational(QuantumAlgorithm):
                 'batch_mode': {
                     'type': 'boolean',
                     'default': False
+                },
+                'minibatch_size': {
+                    'type': 'integer',
+                    'default': -1
                 }
             },
             'additionalProperties': False
@@ -67,7 +73,8 @@ class QSVMVariational(QuantumAlgorithm):
     }
 
     def __init__(self, optimizer, feature_map, var_form, training_dataset,
-                 test_dataset=None, datapoints=None, batch_mode=False):
+                 test_dataset=None, datapoints=None, batch_mode=False,
+                 minibatch_size=-1):
         """Initialize the object
         Args:
             training_dataset (dict): {'A': numpy.ndarray, 'B': numpy.ndarray, ...}
@@ -105,6 +112,7 @@ class QSVMVariational(QuantumAlgorithm):
         self._var_form = var_form
         self._num_qubits = self._feature_map.num_qubits
         self._optimizer.set_batch_mode(batch_mode)
+        self._minibatch_size = minibatch_size
         self._ret = {}
 
     @classmethod
@@ -112,6 +120,7 @@ class QSVMVariational(QuantumAlgorithm):
         algo_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
         override_spsa_params = algo_params.get('override_SPSA_params')
         batch_mode = algo_params.get('batch_mode')
+        minibatch_size = algo_params.get('minibatch_size')
 
         # Set up optimizer
         opt_params = params.get(QuantumAlgorithm.SECTION_KEY_OPTIMIZER)
@@ -140,11 +149,12 @@ class QSVMVariational(QuantumAlgorithm):
                                        var_form_params['name']).init_params(var_form_params)
 
         return cls(optimizer, feature_map, var_form, algo_input.training_dataset,
-                   algo_input.test_dataset, algo_input.datapoints, batch_mode)
+                   algo_input.test_dataset, algo_input.datapoints, batch_mode,
+                   minibatch_size)
 
     def construct_circuit(self, x, theta, measurement=False):
         """
-        Construct circuit based on data and paramters in variaitonal form.
+        Construct circuit based on data and parameters in variational form.
 
         Args:
             x (numpy.ndarray): 1-D array with D dimension
@@ -228,6 +238,23 @@ class QSVMVariational(QuantumAlgorithm):
 
         return predicted_probs, predicted_labels
 
+    # Breaks data into minibatches. Labels are optional, but will be broken into batches if included.
+    def batch_data(self, data, labels=None, minibatch_size=-1):
+        label_batches = None
+
+        if minibatch_size > 0 and minibatch_size < len(data):
+            batch_size = min(minibatch_size, len(data))
+            if labels is not None:
+                shuffled_samples, shuffled_labels = shuffle(data, labels, random_state=self.random)
+                label_batches = np.array_split(shuffled_labels, batch_size)
+            else:
+                shuffled_samples = shuffle(data, random_state=self.random)
+            batches = np.array_split(shuffled_samples, batch_size)
+        else:
+            batches = np.asarray([data])
+            label_batches = np.asarray([labels])
+        return batches, label_batches
+
     def train(self, data, labels, quantum_instance=None):
         """Train the models, and save results.
 
@@ -237,15 +264,20 @@ class QSVMVariational(QuantumAlgorithm):
             quantum_instance (QuantumInstance): quantum backend with all setting
         """
         self._quantum_instance = self._quantum_instance if quantum_instance is None else quantum_instance
+        batches, label_batches = self.batch_data(data, labels, self._minibatch_size)
+        self.batch_num = 0
 
         def _cost_function_wrapper(theta):
-            predicted_probs, predicted_labels = self._get_prediction(data, theta)
+            batch_num = self.batch_num % len(batches)
+            predicted_probs, predicted_labels = self._get_prediction(batches[batch_num], theta)
+            self.batch_num += 1
             total_cost = []
             if isinstance(predicted_probs, list):
                 for predicted_prob in predicted_probs:
-                    total_cost.append(self._cost_function(predicted_prob, labels))
+                    total_cost.append(self._cost_function(predicted_prob, label_batches[batch_num]))
             else:
-                total_cost.append(self._cost_function(predicted_probs, labels))
+                total_cost.append(self._cost_function(predicted_probs, label_batches[batch_num]))
+            logger.debug('Intermediate batch cost: {:.2f}%'.format(sum(total_cost) * 100.0))
             return total_cost if len(total_cost) > 1 else total_cost[0]
 
         initial_theta = self.random.randn(self._var_form.num_parameters)
@@ -257,7 +289,7 @@ class QSVMVariational(QuantumAlgorithm):
         self._ret['opt_params'] = theta_best
         self._ret['training_loss'] = cost_final
 
-    def test(self, data, labels, quantum_instance=None):
+    def test(self, data, labels, quantum_instance=None, minibatch_size=-1):
         """Predict the labels for the data, and test against with ground truth labels.
 
         Args:
@@ -267,28 +299,58 @@ class QSVMVariational(QuantumAlgorithm):
         Returns:
             float: classification accuracy
         """
-        self._quantum_instance = self._quantum_instance if quantum_instance is None else quantum_instance
-        predicted_probs, predicted_labels = self._get_prediction(data, self._ret['opt_params'])
-        total_cost = self._cost_function(predicted_probs, labels)
-        accuracy = np.sum((np.argmax(predicted_probs, axis=1) == labels)) / labels.shape[0]
-        logger.debug('Accuracy is {:.2f}%'.format(accuracy * 100.0))
-        self._ret['testing_accuracy'] = accuracy
-        self._ret['test_success_ratio'] = accuracy
-        self._ret['testing_loss'] = total_cost
-        return accuracy
+        # minibatch size defaults to setting in instance variable if not set
+        minibatch_size = minibatch_size if minibatch_size > 0 else self._minibatch_size
 
-    def predict(self, data, quantum_instance=None):
+        batches, label_batches = self.batch_data(data, labels, minibatch_size)
+        self.batch_num = 0
+        total_cost = 0
+        total_correct = 0
+        total_samples = 0
+
+        self._quantum_instance = self._quantum_instance if quantum_instance is None else quantum_instance
+        for batch, label_batch in zip(batches, label_batches):
+            predicted_probs, predicted_labels = self._get_prediction(batch, self._ret['opt_params'])
+            total_cost += self._cost_function(predicted_probs, label_batch)
+            total_correct += np.sum((np.argmax(predicted_probs, axis=1) == label_batch))
+            total_samples += label_batch.shape[0]
+            int_accuracy = np.sum((np.argmax(predicted_probs, axis=1) == label_batch)) / label_batch.shape[0]
+            logger.debug('Intermediate batch accuracy: {:.2f}%'.format(int_accuracy * 100.0))
+        total_accuracy = total_correct / total_samples
+        logger.info('Accuracy is {:.2f}%'.format(total_accuracy * 100.0))
+        self._ret['testing_accuracy'] = total_accuracy
+        self._ret['test_success_ratio'] = total_accuracy
+        self._ret['testing_loss'] = total_cost / len(batches)
+        return total_accuracy
+
+    def predict(self, data, quantum_instance=None, minibatch_size=-1):
         """Predict the labels for the data.
 
         Args:
             data (numpy.ndarray): NxD array, N is number of data, D is data dimension
             quantum_instance (QuantumInstance): quantum backend with all setting
         Returns:
-            [dict]: for each data point, generates the predicted probability for each class
-            list: for each data point, generates the predicted label, which with the highest prob
+            list: for each data point, generates the predicted probability for each class
+            list: for each data point, generates the predicted label (that with the highest prob)
         """
+
+        # minibatch size defaults to setting in instance variable if not set
+        minibatch_size = minibatch_size if minibatch_size > 0 else self._minibatch_size
+        batches, _ = self.batch_data(data, None, minibatch_size)
+        predicted_probs = None
+        predicted_labels = None
+
         self._quantum_instance = self._quantum_instance if quantum_instance is None else quantum_instance
-        predicted_probs, predicted_labels = self._get_prediction(data, self._ret['opt_params'])
+        for i, batch in enumerate(batches):
+            if len(batches) > 0:
+                logger.debug('Predicting batch {}'.format(i))
+            batch_probs, batch_labels = self._get_prediction(batch, self._ret['opt_params'])
+            if not predicted_probs and not predicted_labels:
+                predicted_probs = batch_probs
+                predicted_labels = batch_labels
+            else:
+                np.concatenate((predicted_probs, batch_probs))
+                np.concatenate((predicted_labels, batch_labels))
         self._ret['predicted_probs'] = predicted_probs
         self._ret['predicted_labels'] = predicted_labels
         return predicted_probs, predicted_labels
