@@ -22,11 +22,9 @@ import logging
 import os
 import copy
 from qiskit.aqua import (local_pluggables_types,
-                         PluggableType,
-                         get_backends_from_provider)
+                         PluggableType)
 import pprint
 import ast
-from qiskit.aqua.aqua_error import AquaError
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.aqua.parser import JSONSchema
 from qiskit.chemistry.core import local_chemistry_operators, get_chemistry_operator_configuration
@@ -150,15 +148,15 @@ class InputParser(BaseParser):
             self.delete_section_property(JSONSchema.PROBLEM, InputParser._OLD_ENABLE_SUBSTITUTIONS)
             self.set_section_property(JSONSchema.PROBLEM, InputParser.AUTO_SUBSTITUTIONS, old_enable_substitutions)
 
-        self._json_schema.update_backend_schema()
-        self._json_schema.update_pluggable_input_schemas(self)
+        self.json_schema.update_backend_schema()
+        self.json_schema.update_pluggable_schemas(self)
         self._update_driver_input_schemas()
         self._update_operator_input_schema()
         self._sections = self._order_sections(self._sections)
         self._original_sections = copy.deepcopy(self._sections)
 
     def get_default_sections(self):
-        properties = self._json_schema.get_default_sections()
+        properties = self.json_schema.get_default_sections()
         driver_name = self.get_section_property(InputParser.DRIVER, JSONSchema.NAME)
         if driver_name is not None:
             properties[driver_name.lower()] = {
@@ -166,7 +164,7 @@ class InputParser(BaseParser):
             }
         return properties
 
-    def _merge_default_values(self):
+    def merge_default_values(self):
         section_names = self.get_section_names()
         if JSONSchema.NAME not in section_names:
             self.set_section(JSONSchema.NAME)
@@ -175,8 +173,8 @@ class InputParser(BaseParser):
             if JSONSchema.PROBLEM not in section_names:
                 self.set_section(JSONSchema.PROBLEM)
 
-        self._json_schema.update_backend_schema()
-        self._json_schema.update_pluggable_input_schemas(self)
+        self.json_schema.update_backend_schema()
+        self.json_schema.update_pluggable_schemas(self)
         self._merge_dependencies()
         self._update_driver_sections()
         self._update_driver_input_schemas()
@@ -260,24 +258,11 @@ class InputParser(BaseParser):
         self._update_driver_input_schemas()
         self._update_operator_input_schema()
 
-    def set_section_property(self, section_name, property_name, value):
-        section_name = JSONSchema.format_section_name(section_name).lower()
+    def post_set_section_property(self, section_name, property_name):
         property_name = JSONSchema.format_property_name(property_name)
-        value = self._json_schema.check_property_value(section_name, property_name, value)
-        types = self.get_property_types(section_name, property_name)
-
-        sections_temp = copy.deepcopy(self._sections)
-        InputParser._set_section_property(sections_temp, section_name, property_name, value, types)
-        msg = self._json_schema.validate_property(sections_temp, section_name, property_name)
-        if msg is not None:
-            raise AquaError("{}.{}: Value '{}': '{}'".format(section_name, property_name, value, msg))
-
-        # check if this provider is loadable and valid
-        if JSONSchema.BACKEND == section_name and property_name == JSONSchema.PROVIDER:
-            get_backends_from_provider(value)
-
-        InputParser._set_section_property(self._sections, section_name, property_name, value, types)
         if property_name == JSONSchema.NAME:
+            section_name = JSONSchema.format_section_name(section_name).lower()
+            value = self.get_section_property(section_name, property_name)
             if InputParser.OPERATOR == section_name:
                 self._update_operator_input_schema()
                 # remove properties that are not valid for this section
@@ -288,29 +273,12 @@ class InputParser(BaseParser):
                         if property_name != JSONSchema.NAME and property_name not in default_properties:
                             self.delete_section_property(section_name, property_name)
             elif JSONSchema.PROBLEM == section_name:
-                self._update_algorithm_problem()
                 self._update_operator_problem()
-            elif JSONSchema.BACKEND == section_name:
-                self._json_schema.update_backend_schema()
-            elif InputParser.is_pluggable_section(section_name):
-                self._json_schema.update_pluggable_input_schemas(self)
-                # remove properties that are not valid for this section
-                default_properties = self.get_section_default_properties(section_name)
-                if isinstance(default_properties, dict):
-                    properties = self.get_section_properties(section_name)
-                    for property_name in list(properties.keys()):
-                        if property_name != JSONSchema.NAME and property_name not in default_properties:
-                            self.delete_section_property(section_name, property_name)
-
-                if section_name == PluggableType.ALGORITHM.value:
-                    self._update_dependency_sections()
             elif value is not None:
                 value = str(value).lower().strip()
                 if len(value) > 0 and self.section_is_driver(value):
                     self._update_driver_input_schemas()
                     self._update_driver_sections()
-
-        self._sections = self._order_sections(self._sections)
 
     def is_substitution_allowed(self):
         auto_substitutions = self.get_property_default_value(
@@ -497,8 +465,8 @@ class InputParser(BaseParser):
 
         if operator_name is None:
             # just remove fromm schema if none solves the problem
-            if InputParser.OPERATOR in self._json_schema.schema['properties']:
-                del self._json_schema.schema['properties'][InputParser.OPERATOR]
+            if InputParser.OPERATOR in self.json_schema.schema['properties']:
+                del self.json_schema.schema['properties'][InputParser.OPERATOR]
 
             return
 
@@ -520,12 +488,12 @@ class InputParser(BaseParser):
             properties[JSONSchema.NAME]['default'] = default_name
             required.append(JSONSchema.NAME)
 
-        if InputParser.OPERATOR not in self._json_schema.schema['properties']:
-            self._json_schema.schema['properties'][InputParser.OPERATOR] = {'type': 'object'}
+        if InputParser.OPERATOR not in self.json_schema.schema['properties']:
+            self.json_schema.schema['properties'][InputParser.OPERATOR] = {'type': 'object'}
 
-        self._json_schema.schema['properties'][InputParser.OPERATOR]['properties'] = properties
-        self._json_schema.schema['properties'][InputParser.OPERATOR]['required'] = required
-        self._json_schema.schema['properties'][InputParser.OPERATOR]['additionalProperties'] = additionalProperties
+        self.json_schema.schema['properties'][InputParser.OPERATOR]['properties'] = properties
+        self.json_schema.schema['properties'][InputParser.OPERATOR]['required'] = required
+        self.json_schema.schema['properties'][InputParser.OPERATOR]['additionalProperties'] = additionalProperties
 
     def _update_driver_input_schemas(self):
         # find driver name
@@ -545,10 +513,10 @@ class InputParser(BaseParser):
                 if 'id' in input_schema:
                     del input_schema['id']
 
-                self._json_schema.schema['properties'][driver_name] = input_schema
+                self.json_schema.schema['properties'][driver_name] = input_schema
             else:
-                if name in self._json_schema.schema['properties']:
-                    del self._json_schema.schema['properties'][name]
+                if name in self.json_schema.schema['properties']:
+                    del self.json_schema.schema['properties'][name]
 
     @staticmethod
     def _load_driver_names():
