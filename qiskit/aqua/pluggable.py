@@ -55,7 +55,7 @@ class Pluggable(ABC):
         pass
 
     def validate(self, args_dict):
-        schema_dict = self.CONFIGURATION.get('input_schema', None)
+        schema_dict = self.CONFIGURATION.get('input_schema')
         if schema_dict is None:
             return
 

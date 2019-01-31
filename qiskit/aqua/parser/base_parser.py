@@ -135,12 +135,12 @@ class BaseParser(ABC):
 
         section_names = self.get_section_names()
         for pluggable_type_dict in pluggable_dependencies:
-            pluggable_type = pluggable_type_dict.get('pluggable_type', None)
+            pluggable_type = pluggable_type_dict.get('pluggable_type')
             if pluggable_type is None:
                 continue
 
             pluggable_name = None
-            pluggable_defaults = pluggable_type_dict.get('default', None)
+            pluggable_defaults = pluggable_type_dict.get('default')
             new_properties = {}
             if pluggable_defaults is not None:
                 for key, value in pluggable_defaults.items():
@@ -396,14 +396,14 @@ class BaseParser(ABC):
     def _update_dependencies(self, pluggable_dependencies):
         # update sections with dependencies recursevely
         for pluggable_type_dict in pluggable_dependencies:
-            pluggable_type = pluggable_type_dict.get('pluggable_type', None)
+            pluggable_type = pluggable_type_dict.get('pluggable_type')
             if pluggable_type is None:
                 continue
 
             pluggable_name = None
-            pluggable_defaults = pluggable_type_dict.get('default', None)
+            pluggable_defaults = pluggable_type_dict.get('default')
             if pluggable_defaults is not None:
-                pluggable_name = pluggable_defaults.get(JSONSchema.NAME, None)
+                pluggable_name = pluggable_defaults.get(JSONSchema.NAME)
 
             if pluggable_name is not None:
                 if pluggable_type not in self._sections:
