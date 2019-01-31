@@ -55,15 +55,19 @@ class AmplitudeEstimation(QuantumAlgorithm):
             'additionalProperties': False
         },
         'problems': ['uncertainty'],
-        'depends': ['uncertainty_problem', 'uncertainty_model', 'iqft'],
-        'defaults': {
-            'uncertainty_model': {
-                'name': 'NormalDistribution'
-            },
-            'iqft': {
-                'name': 'STANDARD'
-            }
-        }
+        'depends': [
+            {'pluggable_type': 'uncertainty_problem', },
+            {'pluggable_type': 'uncertainty_model',
+             'default': {
+                     'name': 'NormalDistribution'
+                }
+             },
+            {'pluggable_type': 'iqft',
+             'default': {
+                     'name': 'STANDARD',
+                }
+             },
+        ],
     }
 
     def __init__(self, num_eval_qubits, a_factory, q_factory=None, iqft=None):

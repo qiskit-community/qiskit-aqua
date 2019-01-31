@@ -43,12 +43,13 @@ class DeutschJozsa(QuantumAlgorithm):
             'additionalProperties': False
         },
         'problems': ['functionevaluation'],
-        'depends': ['oracle'],
-        'defaults': {
-            'oracle': {
-                'name': 'DeutschJozsaOracle'
-            }
-        }
+        'depends': [
+            {'pluggable_type': 'oracle',
+             'default': {
+                     'name': 'DeutschJozsaOracle',
+                },
+             },
+        ],
     }
 
     def __init__(self, oracle):

@@ -71,18 +71,18 @@ class VQE(QuantumAlgorithm):
             'additionalProperties': False
         },
         'problems': ['energy', 'ising'],
-        'depends': ['optimizer', 'variational_form', 'initial_state'],
-        'defaults': {
-            'optimizer': {
-                'name': 'L_BFGS_B'
-            },
-            'variational_form': {
-                'name': 'RYRZ'
-            },
-            'initial_state': {
-                'name': 'ZERO'
-            }
-        }
+        'depends': [
+            {'pluggable_type': 'optimizer',
+             'default': {
+                     'name': 'L_BFGS_B'
+                }
+             },
+            {'pluggable_type': 'variational_form',
+             'default': {
+                     'name': 'RYRZ'
+                }
+             },
+        ],
     }
 
     def __init__(self, operator, var_form, optimizer, operator_mode='matrix',

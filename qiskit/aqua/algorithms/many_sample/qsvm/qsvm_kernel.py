@@ -53,14 +53,16 @@ class QSVMKernel(QuantumAlgorithm):
             },
             'additionalProperties': False
         },
-        'depends': ['multiclass_extension', 'feature_map'],
         'problems': ['svm_classification'],
-        'defaults': {
-            'feature_map': {
-                'name': 'SecondOrderExpansion',
-                'depth': 2
-            }
-        }
+        'depends': [
+            {'pluggable_type': 'multiclass_extension'},
+            {'pluggable_type': 'feature_map',
+             'default': {
+                     'name': 'SecondOrderExpansion',
+                     'depth': 2
+                }
+             },
+        ],
     }
 
     BATCH_SIZE = 1000

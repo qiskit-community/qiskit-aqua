@@ -68,15 +68,18 @@ class QAOA(VQE):
             'additionalProperties': False
         },
         'problems': ['ising'],
-        'depends': ['optimizer', 'initial_state'],
-        'defaults': {
-            'optimizer': {
-                'name': 'COBYLA'
-            },
-            'initial_state': {
-                'name': 'ZERO'
-            }
-        }
+        'depends': [
+            {'pluggable_type': 'optimizer',
+             'default': {
+                     'name': 'COBYLA',
+                },
+             },
+            {'pluggable_type': 'initial_state',
+             'default': {
+                     'name': 'ZERO',
+                },
+             },
+        ],
     }
 
     def __init__(self, operator, optimizer, p=1, initial_state=None, operator_mode='matrix', initial_point=None,

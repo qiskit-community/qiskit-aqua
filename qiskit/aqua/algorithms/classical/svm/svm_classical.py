@@ -50,8 +50,10 @@ class SVM_Classical(QuantumAlgorithm):
             },
             'additionalProperties': False
         },
-        'depends': ['multiclass_extension'],
-        'problems': ['svm_classification']
+        'problems': ['svm_classification'],
+        'depends': [
+            {'pluggable_type': 'multiclass_extension'},
+        ],
     }
 
     def __init__(self, training_dataset, test_dataset=None, datapoints=None,

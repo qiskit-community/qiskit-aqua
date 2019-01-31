@@ -102,8 +102,7 @@ class JSONSchema(object):
         """
         section_name = JSONSchema.format_section_name(section_name)
         if self.aqua_jsonschema is None:
-            self.aqua_jsonschema = JSONSchema(os.path.join(
-                os.path.dirname(__file__), 'input_schema.json'))
+            self.aqua_jsonschema = JSONSchema(os.path.join(os.path.dirname(__file__), 'input_schema.json'))
 
         if section_name in self.aqua_jsonschema.schema['properties']:
             self._schema['properties'][section_name] = self.aqua_jsonschema.schema['properties'][section_name]
@@ -201,8 +200,7 @@ class JSONSchema(object):
         if section_name not in self._schema['properties']:
             return None
 
-        types = [self._schema['properties'][section_name]['type']
-                 ] if 'type' in self._schema['properties'][section_name] else []
+        types = [self._schema['properties'][section_name]['type']] if 'type' in self._schema['properties'][section_name] else []
 
         if 'default' in self._schema['properties'][section_name]:
             return JSONSchema.get_value(self._schema['properties'][section_name]['default'], types)
@@ -217,8 +215,7 @@ class JSONSchema(object):
         for property_name, values in self._schema['properties'][section_name]['properties'].items():
             types = [values['type']] if 'type' in values else []
             default_value = values['default'] if 'default' in values else None
-            properties[property_name] = JSONSchema.get_value(
-                default_value, types)
+            properties[property_name] = JSONSchema.get_value(default_value, types)
 
         return properties
 
@@ -330,7 +327,7 @@ class JSONSchema(object):
                 default_backend = provider_tuple[1][0] if len(provider_tuple[1]) > 0 else ''
             self._schema['properties'][JSONSchema.BACKEND]['properties'][JSONSchema.NAME]['default'] = default_backend
 
-    def update_pluggable_input_schemas(self, input_parser):
+    def update_pluggable_schemas(self, input_parser):
         """
         Updates schemas of all pluggables
 
@@ -343,22 +340,11 @@ class JSONSchema(object):
 
         # update algorithm scheme
         if algo_name is not None:
-            self._update_pluggable_input_schema(PluggableType.ALGORITHM.value, algo_name, default_algo_name)
+            self._update_pluggable_schema(PluggableType.ALGORITHM.value, algo_name, default_algo_name)
 
-        # update algorithm depoendencies scheme
+        # update algorithm dependencies scheme
         config = {} if algo_name is None else get_pluggable_configuration(PluggableType.ALGORITHM, algo_name)
-        classical = config['classical'] if 'classical' in config else False
-        pluggable_dependencies = [] if 'depends' not in config else config['depends']
-        pluggable_defaults = {
-        } if 'defaults' not in config else config['defaults']
-        pluggable_types = local_pluggables_types()
-        for pluggable_type in pluggable_types:
-            if pluggable_type not in [PluggableType.INPUT, PluggableType.ALGORITHM] and \
-                    pluggable_type.value not in pluggable_dependencies:
-                # remove pluggables from schema that ate not in the dependencies
-                if pluggable_type.value in self._schema['properties']:
-                    del self._schema['properties'][pluggable_type.value]
-
+        classical = config.get('classical', False)
         # update algorithm backend from schema if it is classical or not
         if classical:
             if JSONSchema.BACKEND in self._schema['properties']:
@@ -367,14 +353,32 @@ class JSONSchema(object):
             if JSONSchema.BACKEND not in self._schema['properties']:
                 self._schema['properties'][JSONSchema.BACKEND] = self._original_schema['properties'][JSONSchema.BACKEND]
 
-        # update schema with dependencies
-        for pluggable_type in pluggable_dependencies:
+        pluggable_dependencies = config.get('depends', [])
+
+        # remove pluggables from schema that are not in the dependencies of algorithm
+        pluggable_dependency_names = [item['pluggable_type'] for item in pluggable_dependencies if 'pluggable_type' in item]
+        for pluggable_type in local_pluggables_types():
+            if pluggable_type not in [PluggableType.INPUT, PluggableType.ALGORITHM] and \
+               pluggable_type.value not in pluggable_dependency_names and \
+               pluggable_type.value in self._schema['properties']:
+                del self._schema['properties'][pluggable_type.value]
+
+        self._update_dependency_schemas(pluggable_dependencies, input_parser)
+
+    def _update_dependency_schemas(self, pluggable_dependencies, input_parser):
+        # update schema with dependencies recursevely
+        for pluggable_type_dict in pluggable_dependencies:
+            pluggable_type = pluggable_type_dict.get('pluggable_type')
+            if pluggable_type is None:
+                continue
+
             pluggable_name = None
+            pluggable_defaults = pluggable_type_dict.get('default')
             default_properties = {}
-            if pluggable_type in pluggable_defaults:
-                for key, value in pluggable_defaults[pluggable_type].items():
+            if pluggable_defaults is not None:
+                for key, value in pluggable_defaults.items():
                     if key == JSONSchema.NAME:
-                        pluggable_name = pluggable_defaults[pluggable_type][key]
+                        pluggable_name = value
                     else:
                         default_properties[key] = value
 
@@ -382,13 +386,16 @@ class JSONSchema(object):
             pluggable_name = input_parser.get_section_property(pluggable_type, JSONSchema.NAME, pluggable_name)
 
             # update dependency schema
-            self._update_pluggable_input_schema(
-                pluggable_type, pluggable_name, default_name)
+            self._update_pluggable_schema(pluggable_type, pluggable_name, default_name)
             for property_name in self._schema['properties'][pluggable_type]['properties'].keys():
                 if property_name in default_properties:
                     self._schema['properties'][pluggable_type]['properties'][property_name]['default'] = default_properties[property_name]
 
-    def _update_pluggable_input_schema(self, pluggable_type, pluggable_name, default_name):
+            if pluggable_name is not None:
+                config = get_pluggable_configuration(pluggable_type, pluggable_name)
+                self._update_dependency_schemas(config.get('depends', []), input_parser)
+
+    def _update_pluggable_schema(self, pluggable_type, pluggable_name, default_name):
         config = {}
         try:
             if pluggable_type is not None and pluggable_name is not None:
@@ -396,13 +403,10 @@ class JSONSchema(object):
         except:
             pass
 
-        input_schema = config['input_schema'] if 'input_schema' in config else {
-        }
-        properties = input_schema['properties'] if 'properties' in input_schema else {
-        }
+        input_schema = config['input_schema'] if 'input_schema' in config else {}
+        properties = input_schema['properties'] if 'properties' in input_schema else {}
         properties[JSONSchema.NAME] = {'type': 'string'}
-        required = input_schema['required'] if 'required' in input_schema else [
-        ]
+        required = input_schema['required'] if 'required' in input_schema else []
         additionalProperties = input_schema['additionalProperties'] if 'additionalProperties' in input_schema else True
         if default_name is not None:
             properties[JSONSchema.NAME]['default'] = default_name
@@ -622,15 +626,13 @@ class JSONSchema(object):
                     if ref_schema:
                         return ref_schema[1]
 
-                resolved_ref = JSONSchema._resolve_schema_references(
-                    value, resolver)
+                resolved_ref = JSONSchema._resolve_schema_references(value, resolver)
                 if resolved_ref:
                     schema[key] = resolved_ref
 
         elif isinstance(schema, list):
             for (idx, value) in enumerate(schema):
-                resolved_ref = JSONSchema._resolve_schema_references(
-                    value, resolver)
+                resolved_ref = JSONSchema._resolve_schema_references(value, resolver)
                 if resolved_ref:
                     schema[idx] = resolved_ref
 

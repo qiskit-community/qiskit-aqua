@@ -86,12 +86,13 @@ class EOH(QuantumAlgorithm):
             'additionalProperties': False
         },
         'problems': ['eoh'],
-        'depends': ['initial_state'],
-        'defaults': {
-            'initial_state': {
-                'name': 'ZERO'
-            }
-        }
+        'depends': [
+            {'pluggable_type': 'initial_state',
+             'default': {
+                     'name': 'ZERO'
+                }
+             },
+        ],
     }
 
     def __init__(self, operator, initial_state, evo_operator, operator_mode='paulis', evo_time=1, num_time_slices=1,
