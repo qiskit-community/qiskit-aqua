@@ -43,12 +43,13 @@ class BernsteinVazirani(QuantumAlgorithm):
             'additionalProperties': False
         },
         'problems': ['hiddenstringfinding'],
-        'depends': ['oracle'],
-        'defaults': {
-            'oracle': {
-                'name': 'BernsteinVaziraniOracle'
-            }
-        }
+        'depends': [
+            {'pluggable_type': 'oracle',
+             'default': {
+                     'name': 'BernsteinVaziraniOracle',
+                },
+             },
+        ],
     }
 
     def __init__(self, oracle):

@@ -23,8 +23,7 @@ import copy
 from qiskit.aqua import (local_pluggables_types,
                          PluggableType,
                          get_pluggable_configuration,
-                         local_pluggables,
-                         get_backends_from_provider)
+                         local_pluggables)
 from qiskit.aqua.aqua_error import AquaError
 from .jsonschema import JSONSchema
 
@@ -63,23 +62,23 @@ class InputParser(BaseParser):
             with open(self._filename) as json_file:
                 self._sections = json.load(json_file)
 
-        self._json_schema.update_backend_schema()
-        self._json_schema.update_pluggable_input_schemas(self)
+        self.json_schema.update_backend_schema()
+        self.json_schema.update_pluggable_schemas(self)
         self._update_algorithm_input_schema()
         self._sections = self._order_sections(self._sections)
         self._original_sections = copy.deepcopy(self._sections)
 
     def get_default_sections(self):
-        return self._json_schema.get_default_sections()
+        return self.json_schema.get_default_sections()
 
-    def _merge_default_values(self):
+    def merge_default_values(self):
         section_names = self.get_section_names()
         if PluggableType.ALGORITHM.value in section_names:
             if JSONSchema.PROBLEM not in section_names:
                 self.set_section(JSONSchema.PROBLEM)
 
-        self._json_schema.update_backend_schema()
-        self._json_schema.update_pluggable_input_schemas(self)
+        self.json_schema.update_backend_schema()
+        self.json_schema.update_pluggable_schemas(self)
         self._update_algorithm_input_schema()
         self._merge_dependencies()
 
@@ -137,24 +136,10 @@ class InputParser(BaseParser):
         super().delete_section(section_name)
         self._update_algorithm_input_schema()
 
-    def set_section_property(self, section_name, property_name, value):
-        section_name = JSONSchema.format_section_name(section_name).lower()
+    def post_set_section_property(self, section_name, property_name):
         property_name = JSONSchema.format_property_name(property_name)
-        value = self._json_schema.check_property_value(section_name, property_name, value)
-        types = self.get_property_types(section_name, property_name)
-
-        sections_temp = copy.deepcopy(self._sections)
-        InputParser._set_section_property(sections_temp, section_name, property_name, value, types)
-        msg = self._json_schema.validate_property(sections_temp, section_name, property_name)
-        if msg is not None:
-            raise AquaError("{}.{}: Value '{}': '{}'".format(section_name, property_name, value, msg))
-
-        # check if this provider is loadable and valid
-        if JSONSchema.BACKEND == section_name and property_name == JSONSchema.PROVIDER:
-            get_backends_from_provider(value)
-
-        InputParser._set_section_property(self._sections, section_name, property_name, value, types)
         if property_name == JSONSchema.NAME:
+            section_name = JSONSchema.format_section_name(section_name).lower()
             if PluggableType.INPUT.value == section_name:
                 self._update_algorithm_input_schema()
                 # remove properties that are not valid for this section
@@ -165,24 +150,7 @@ class InputParser(BaseParser):
                         if property_name != JSONSchema.NAME and property_name not in default_properties:
                             self.delete_section_property(section_name, property_name)
             elif JSONSchema.PROBLEM == section_name:
-                self._update_algorithm_problem()
                 self._update_input_problem()
-            elif JSONSchema.BACKEND == section_name:
-                self._json_schema.update_backend_schema()
-            elif InputParser.is_pluggable_section(section_name):
-                self._json_schema.update_pluggable_input_schemas(self)
-                # remove properties that are not valid for this section
-                default_properties = self.get_section_default_properties(section_name)
-                if isinstance(default_properties, dict):
-                    properties = self.get_section_properties(section_name)
-                    for property_name in list(properties.keys()):
-                        if property_name != JSONSchema.NAME and property_name not in default_properties:
-                            self.delete_section_property(section_name, property_name)
-
-                if section_name == PluggableType.ALGORITHM.value:
-                    self._update_dependency_sections()
-
-        self._sections = self._order_sections(self._sections)
 
     @staticmethod
     def get_input_problems(input_name):
@@ -213,8 +181,8 @@ class InputParser(BaseParser):
 
         if input_name is None:
             # just remove fromm schema if none solves the problem
-            if PluggableType.INPUT.value in self._json_schema.schema['properties']:
-                del self._json_schema.schema['properties'][PluggableType.INPUT.value]
+            if PluggableType.INPUT.value in self.json_schema.schema['properties']:
+                del self.json_schema.schema['properties'][PluggableType.INPUT.value]
             return
 
         if default_name is None:
@@ -235,12 +203,12 @@ class InputParser(BaseParser):
             properties[JSONSchema.NAME]['default'] = default_name
             required.append(JSONSchema.NAME)
 
-        if PluggableType.INPUT.value not in self._json_schema.schema['properties']:
-            self._json_schema.schema['properties'][PluggableType.INPUT.value] = {'type': 'object'}
+        if PluggableType.INPUT.value not in self.json_schema.schema['properties']:
+            self.json_schema.schema['properties'][PluggableType.INPUT.value] = {'type': 'object'}
 
-        self._json_schema.schema['properties'][PluggableType.INPUT.value]['properties'] = properties
-        self._json_schema.schema['properties'][PluggableType.INPUT.value]['required'] = required
-        self._json_schema.schema['properties'][PluggableType.INPUT.value]['additionalProperties'] = additionalProperties
+        self.json_schema.schema['properties'][PluggableType.INPUT.value]['properties'] = properties
+        self.json_schema.schema['properties'][PluggableType.INPUT.value]['required'] = required
+        self.json_schema.schema['properties'][PluggableType.INPUT.value]['additionalProperties'] = additionalProperties
 
     def _validate_input_problem(self):
         input_name = self.get_section_property(PluggableType.INPUT.value, JSONSchema.NAME)

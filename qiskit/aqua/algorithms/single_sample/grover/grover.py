@@ -80,12 +80,13 @@ class Grover(QuantumAlgorithm):
             'additionalProperties': False
         },
         'problems': ['search'],
-        'depends': ['oracle'],
-        'defaults': {
-            'oracle': {
-                'name': 'SAT'
-            }
-        }
+        'depends': [
+            {'pluggable_type': 'oracle',
+             'default': {
+                     'name': 'SAT',
+                },
+             },
+        ],
     }
 
     def __init__(self, oracle, incremental=False, num_iterations=1, mct_mode='basic'):

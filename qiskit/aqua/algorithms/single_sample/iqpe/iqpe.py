@@ -83,12 +83,13 @@ class IQPE(QuantumAlgorithm):
             'additionalProperties': False
         },
         'problems': ['energy'],
-        'depends': ['initial_state'],
-        'defaults': {
-            'initial_state': {
-                'name': 'ZERO'
-            },
-        }
+        'depends': [
+            {'pluggable_type': 'initial_state',
+             'default': {
+                     'name': 'ZERO',
+                },
+             },
+        ],
     }
 
     def __init__(self, operator, state_in, num_time_slices=1, num_iterations=1,

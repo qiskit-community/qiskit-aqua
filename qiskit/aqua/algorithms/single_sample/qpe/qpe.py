@@ -79,15 +79,18 @@ class QPE(QuantumAlgorithm):
             'additionalProperties': False
         },
         'problems': ['energy'],
-        'depends': ['initial_state', 'iqft'],
-        'defaults': {
-            'initial_state': {
-                'name': 'ZERO'
-            },
-            'iqft': {
-                'name': 'STANDARD'
-            }
-        }
+        'depends': [
+            {'pluggable_type': 'initial_state',
+             'default': {
+                     'name': 'ZERO'
+                }
+             },
+            {'pluggable_type': 'iqft',
+             'default': {
+                     'name': 'STANDARD',
+                }
+             },
+        ],
     }
 
     def __init__(

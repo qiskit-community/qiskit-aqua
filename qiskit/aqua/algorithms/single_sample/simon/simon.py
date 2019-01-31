@@ -39,12 +39,13 @@ class Simon(QuantumAlgorithm):
             'additionalProperties': False
         },
         'problems': ['periodfinding'],
-        'depends': ['oracle'],
-        'defaults': {
-            'oracle': {
-                'name': 'simon'
-            }
-        }
+        'depends': [
+            {'pluggable_type': 'oracle',
+             'default': {
+                     'name': 'simon',
+                },
+             },
+        ],
     }
 
     def __init__(self, oracle):

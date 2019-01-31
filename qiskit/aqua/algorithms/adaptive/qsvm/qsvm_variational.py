@@ -55,21 +55,26 @@ class QSVMVariational(QuantumAlgorithm):
             },
             'additionalProperties': False
         },
-        'depends': ['optimizer', 'feature_map', 'variational_form'],
         'problems': ['svm_classification'],
-        'defaults': {
-            'optimizer': {
-                'name': 'SPSA'
-            },
-            'feature_map': {
-                'name': 'SecondOrderExpansion',
-                'depth': 2
-            },
-            'variational_form': {
-                'name': 'RYRZ',
-                'depth': 3
-            }
-        }
+        'depends': [
+            {'pluggable_type': 'optimizer',
+             'default': {
+                     'name': 'SPSA'
+                },
+             },
+            {'pluggable_type': 'feature_map',
+             'default': {
+                     'name': 'SecondOrderExpansion',
+                     'depth': 2
+                },
+             },
+            {'pluggable_type': 'variational_form',
+             'default': {
+                     'name': 'RYRZ',
+                     'depth': 3
+                },
+             },
+        ],
     }
 
     def __init__(self, optimizer, feature_map, var_form, training_dataset,
