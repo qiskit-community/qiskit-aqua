@@ -49,10 +49,16 @@ class QAOAVarForm:
             raise ValueError('Incorrect number of angles: expecting {}, but {} given.'.format(
                 self.num_parameters, len(angles)
             ))
-        q = QuantumRegister(self._cost_operator.num_qubits, name='q')
-        circuit = QuantumCircuit(q)
+        circuit = QuantumCircuit()
         if self._initial_state:
-            circuit += self._initial_state.construct_circuit('circuit', q)
+            circuit += self._initial_state.construct_circuit('circuit')
+        if len(circuit.qregs) == 0:
+            q = QuantumRegister(self._cost_operator.num_qubits, name='q')
+            circuit.add_register(q)
+        elif len(circuit.qregs) == 1:
+            q = circuit.qregs[0]
+        else:
+            raise NotImplementedError
         circuit.u2(0, np.pi, q)
         for idx in range(self._p):
             beta, gamma = angles[idx], angles[idx + self._p]
