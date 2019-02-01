@@ -87,7 +87,14 @@ class UCCSD(VariationalForm):
                 },
             },
             'additionalProperties': False
-        }
+        },
+        'depends': [
+            {'pluggable_type': 'initial_state',
+             'default': {
+                     'name': 'HartreeFock',
+                }
+             },
+        ],
     }
 
     def __init__(self, num_qubits, depth, num_orbitals, num_particles,

@@ -30,5 +30,5 @@
         "driver":           { "$ref": "#/definitions/driver" }
     },
     "required": ["driver"],
-    "additionalProperties": true
+    "additionalProperties": false
 }
