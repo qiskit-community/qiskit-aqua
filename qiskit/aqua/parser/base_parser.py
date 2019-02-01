@@ -339,8 +339,16 @@ class BaseParser(ABC):
         if msg is not None:
             raise AquaError("{}.{}: Value '{}': '{}'".format(section_name, property_name, value, msg))
 
-        old_value = self.get_section_property(section_name, property_name)
-        if old_value == value:
+        value_changed = False
+        if section_name not in self._sections:
+            value_changed = True
+        elif property_name not in self._sections[section_name]:
+            value_changed = True
+        else:
+            old_value = self.get_section_property(section_name, property_name)
+            value_changed = (old_value != value)
+
+        if not value_changed:
             # nothing changed
             return
 
