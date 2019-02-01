@@ -42,7 +42,7 @@ class TestMCT(QiskitAquaTestCase):
         o = QuantumRegister(1, name='o')
         allsubsets = list(chain(*[combinations(range(num_controls), ni) for ni in range(num_controls + 1)]))
         for subset in allsubsets:
-            for mode in ['basic', 'advanced', 'noancilla']:
+            for mode in ['basic', 'advanced']:
                 qc = QuantumCircuit(o, c)
                 if mode == 'basic':
                     if num_controls <= 2:
@@ -76,7 +76,6 @@ class TestMCT(QiskitAquaTestCase):
                 # print(vec, np.array(vec_o + [0] * (2 ** (num_controls + num_ancillae + 1) - 2)))
                 f = state_fidelity(vec, np.array(vec_o + [0] * (2 ** (num_controls + num_ancillae + 1) - 2)))
                 self.assertAlmostEqual(f, 1)
-            return
 
 
 if __name__ == '__main__':
