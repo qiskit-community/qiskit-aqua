@@ -105,15 +105,19 @@ class BaseModel(ABC):
                         self._custom_providers[provider] = get_backends_from_provider(provider)
                 except Exception as e:
                     logger.debug(str(e))
-
-            if populate_defaults:
-                self._parser.validate_merge_defaults()
-                self._parser.commit_changes()
-
-            return self._parser.get_section_names()
         except:
             self._parser = None
             raise
+
+        try:
+            if populate_defaults:
+                self._parser.validate_merge_defaults()
+
+            return self.get_section_names()
+        except:
+            raise
+        finally:
+            self._parser.commit_changes()
 
     def get_filename(self):
         if self._parser is None:
