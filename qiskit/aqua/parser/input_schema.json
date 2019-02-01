@@ -23,7 +23,7 @@
                     "default": false
                 },
                 "circuit_cache_file": {
-                    "type": "string",
+                    "type": ["string", "null"],
                     "default": null
                 },
                 "skip_qobj_validation": {
