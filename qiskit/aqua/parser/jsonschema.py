@@ -403,11 +403,11 @@ class JSONSchema(object):
         except:
             pass
 
-        input_schema = config['input_schema'] if 'input_schema' in config else {}
-        properties = input_schema['properties'] if 'properties' in input_schema else {}
+        input_schema = config.get('input_schema', {})
+        properties = input_schema.get('properties', {})
         properties[JSONSchema.NAME] = {'type': 'string'}
-        required = input_schema['required'] if 'required' in input_schema else []
-        additionalProperties = input_schema['additionalProperties'] if 'additionalProperties' in input_schema else True
+        required = input_schema.get('required', [])
+        additionalProperties = input_schema.get('additionalProperties', True)
         if default_name is not None:
             properties[JSONSchema.NAME]['default'] = default_name
             required.append(JSONSchema.NAME)
@@ -482,10 +482,8 @@ class JSONSchema(object):
 
     def validate(self, sections_json):
         try:
-            logger.debug('JSON Input: {}'.format(
-                json.dumps(sections_json, sort_keys=True, indent=4)))
-            logger.debug('Aqua Input Schema: {}'.format(
-                json.dumps(self._schema, sort_keys=True, indent=4)))
+            logger.debug('Input: {}'.format(json.dumps(sections_json, sort_keys=True, indent=4)))
+            logger.debug('Input Schema: {}'.format(json.dumps(self._schema, sort_keys=True, indent=4)))
             jsonschema.validate(sections_json, self._schema)
         except jsonschema.exceptions.ValidationError as ve:
             logger.info('JSON Validation error: {}'.format(str(ve)))

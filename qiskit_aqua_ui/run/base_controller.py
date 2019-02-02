@@ -169,7 +169,13 @@ class BaseController(ABC):
             self._propertiesView.show_remove_button(False)
             self._emptyView.tkraise()
 
-            section_names = self.model.load_file(filename)
+            try:
+                self.model.load_file(filename)
+            except Exception as e:
+                self._outputView.clear()
+                messagebox.showerror("Error", str(e))
+
+            section_names = self.model.get_section_names()
             self._title.set(os.path.basename(filename))
             if len(section_names) == 0:
                 self._outputView.write_line('No sections found on file')

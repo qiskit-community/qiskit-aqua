@@ -16,14 +16,14 @@
 # =============================================================================
 
 import unittest
-from itertools import combinations, chain
 
 import numpy as np
 from parameterized import parameterized
 from qiskit import QuantumCircuit, QuantumRegister
-from qiskit.aqua import get_aer_backend
 from qiskit import execute as q_execute
 from qiskit.quantum_info import state_fidelity
+
+from qiskit.aqua import get_aer_backend
 from test.common import QiskitAquaTestCase
 
 
@@ -40,8 +40,8 @@ class TestMCT(QiskitAquaTestCase):
     def test_mct(self, num_controls):
         c = QuantumRegister(num_controls, name='c')
         o = QuantumRegister(1, name='o')
-        allsubsets = list(chain(*[combinations(range(num_controls), ni) for ni in range(num_controls + 1)]))
-        for subset in allsubsets:
+        subsets = [tuple(range(i)) for i in range(num_controls + 1)]
+        for subset in subsets:
             for mode in ['basic', 'advanced']:
                 qc = QuantumCircuit(o, c)
                 if mode == 'basic':
@@ -71,7 +71,6 @@ class TestMCT(QiskitAquaTestCase):
                 vec = np.asarray(q_execute(qc, get_aer_backend(
                     'statevector_simulator')).result().get_statevector(qc, decimals=16))
                 vec_o = [0, 1] if len(subset) == num_controls else [1, 0]
-                # print(vec, np.array(vec_o + [0] * (2 ** (num_controls + num_ancillae + 1) - 2)))
                 f = state_fidelity(vec, np.array(vec_o + [0] * (2 ** (num_controls + num_ancillae + 1) - 2)))
                 self.assertAlmostEqual(f, 1)
 
