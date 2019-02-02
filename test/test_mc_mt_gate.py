@@ -16,8 +16,6 @@
 # =============================================================================
 
 import unittest
-import logging
-from itertools import combinations, chain
 
 import numpy as np
 from parameterized import parameterized
@@ -27,178 +25,118 @@ from qiskit import execute as q_execute
 from qiskit.quantum_info import state_fidelity
 from test.common import QiskitAquaTestCase
 
-import logging
 
-logger = logging.getLogger(__name__)
-handler = logging.StreamHandler()
-formatter = logging.Formatter(
-    '%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
-handler.setFormatter(formatter)
-if (logger.hasHandlers()):
-    logger.handlers.clear()
-logger.addHandler(handler)
-logger.setLevel(logging.DEBUG)
+class TestMCMTGate(QiskitAquaTestCase):
+    @parameterized.expand([
+        (1, 1, QuantumCircuit.ch),
+        (2, 1, QuantumCircuit.ch),
+        (2, 2, QuantumCircuit.ch),
+        (2, 3, QuantumCircuit.ch),
+        (3, 1, QuantumCircuit.ch),
+        (3, 2, QuantumCircuit.ch),
+        (3, 3, QuantumCircuit.ch),
+        (3, 4, QuantumCircuit.ch),
+        (4, 1, QuantumCircuit.ch),
+        (4, 2, QuantumCircuit.ch),
+        (4, 3, QuantumCircuit.ch),
+        (5, 3, QuantumCircuit.ch),
+        (5, 4, QuantumCircuit.ch),
+        (6, 3, QuantumCircuit.ch),
+        (6, 4, QuantumCircuit.ch),
+        (7, 1, QuantumCircuit.ch),
+        (7, 3, QuantumCircuit.ch),
+        (2, 1, QuantumCircuit.cz),
+        (2, 2, QuantumCircuit.cz),
+        (2, 3, QuantumCircuit.cz),
+        (3, 1, QuantumCircuit.cz),
+        (3, 2, QuantumCircuit.cz),
+        (3, 3, QuantumCircuit.cz),
+        (3, 4, QuantumCircuit.cz),
+        (4, 2, QuantumCircuit.cz),
+        (4, 3, QuantumCircuit.cz),
+        (4, 4, QuantumCircuit.cz),
+        (5, 2, QuantumCircuit.cz),
+        (5, 1, QuantumCircuit.cz),
+        (6, 1, QuantumCircuit.cz),
+        (6, 5, QuantumCircuit.cz),
+        (7, 2, QuantumCircuit.cz),
+        (7, 4, QuantumCircuit.cz),
+    ])
+    def test_mc_mt_gate(self, num_controls, num_targets,
+                        single_control_gate_function):
 
-
-class TestMCGate(QiskitAquaTestCase):
-    @parameterized.expand([(3, QuantumCircuit.cz), (4, QuantumCircuit.cz),
-                           (5, QuantumCircuit.cz)])
-    def test_mc_gate(self, num_controls, single_control_gate_function):
-        logger.debug("test_mc_gate -> Num controls = {0}".format(num_controls))
-        logger.debug("test_mc_gate -> Gate function is {0}".format(
-            single_control_gate_function.__name__))
         c = QuantumRegister(num_controls, name='c')
-        o = QuantumRegister(1, name='o')
+        o = QuantumRegister(num_targets, name='o')
 
-        allsubsets = list(
-            chain(*[
-                combinations(range(num_controls), ni)
-                for ni in range(num_controls + 1)
-            ]))
-        for subset in allsubsets:
-            logger.debug("test_mc_gate -> Subset is {0}".format(subset))
+        subsets = [tuple(range(i)) for i in range(num_controls + 1)]
+        for subset in subsets:
+            # Expecting some other modes
             for mode in ['basic']:
-                logger.debug("test_mc_gate -> Mode is {0}".format(mode))
+                self.log.debug("Subset is {0}".format(subset))
+                self.log.debug("Num controls = {0}".format(num_controls))
+                self.log.debug("Num targets = {0}".format(num_targets))
+                self.log.debug("Gate function is {0}".format(
+                    single_control_gate_function.__name__))
+                self.log.debug("Mode is {0}".format(mode))
                 qc = QuantumCircuit(o, c)
-                # TODO just for cz, generalize
+                # Initialize all targets to 1, just to be sure that
+                # the generic gate has some effect (f.e. Z gate has no effect
+                # on a 0 state)
                 qc.x(o)
 
                 if mode == 'basic':
-                    num_ancillae = num_controls - 1
-                    logger.debug("test_mc_gate -> Num ancillae is {0} ".format(
-                        num_ancillae))
+                    if num_controls <= 1:
+                        num_ancillae = 0
+                    else:
+                        num_ancillae = num_controls - 1
+                    self.log.debug("Num ancillae is {0} ".format(num_ancillae))
+
+                if num_ancillae > 0:
                     a = QuantumRegister(num_ancillae, name='a')
                     qc.add_register(a)
+
                 for idx in subset:
                     qc.x(c[idx])
-                qc.mc_gate([c[i] for i in range(num_controls)],
-                           [a[i] for i in range(num_ancillae)],
-                           single_control_gate_function,
-                           o[0],
-                           mode=mode)
+                qc.mc_mt_gate([c[i] for i in range(num_controls)],
+                              [a[i] for i in range(num_ancillae)],
+                              single_control_gate_function,
+                              o,
+                              mode=mode)
                 for idx in subset:
                     qc.x(c[idx])
 
                 vec = np.asarray(
                     q_execute(qc, get_aer_backend('statevector_simulator')).
                     result().get_statevector(qc, decimals=16))
-                vec_o = [0, -1] if len(subset) == num_controls else [0, 1]
-                tmp = np.array(vec_o + [0] *
-                               (2**(num_controls + num_ancillae + 1) - 2))
-                f = state_fidelity(vec, tmp)
-
-                logger.debug("test_mc_gate -> drawing")
-                file_path = "imgs/multi_ctrl_{0}_{1}_{2}_{3}".format(
-                    single_control_gate_function.__name__, num_controls,
-                    subset, mode)
-                draw_circuit(qc, file_path)
+                # target register is initially |11...1>, with length equal to 2**(n_targets)
+                vec_exp = np.array([0] * (2**(num_targets) - 1) + [1])
+                if (single_control_gate_function.__name__ == "cz"):
+                    # Z gate flips the last qubit only if it's applied an odd
+                    # number of times
+                    if (len(subset) == num_controls
+                            and (num_controls % 2) == 1):
+                        vec_exp[-1] = -1
+                elif (single_control_gate_function.__name__ == "ch"):
+                    # if all the control qubits have been activated,
+                    # we repeatedly apply the kronecker product of the Hadamard
+                    # with itself and then multiply the results for the original
+                    # state of the target qubits
+                    if (len(subset) == num_controls):
+                        h = 1 / np.sqrt(2) * np.array([[1, 1], [1, -1]])
+                        h_tot = np.array([1])
+                        for i in range(num_targets):
+                            h_tot = np.kron(h_tot, h)
+                        vec_exp = np.dot(h_tot, vec_exp)
+                else:
+                    raise ValueError("Gate {0} not implementend yet".format(
+                        single_control_gate_function.__name__))
+                # append the remaining part of the state
+                vec_exp = np.concatenate(
+                    (vec_exp,
+                     [0] * (2**(num_controls + num_ancillae + num_targets) -
+                            vec_exp.size)))
+                f = state_fidelity(vec, vec_exp)
                 self.assertAlmostEqual(f, 1)
-                # try:
-                #     self.assertAlmostEqual(f, 1)
-                # except AssertionError:
-                #     file_path = "imgs/multi_ctrl_{0}_{1}_{2}_{3}".format(
-                #         single_control_gate_function.__name__, num_controls,
-                #         subset, mode)
-                #     draw_circuit(qc, file_path)
-                #     raise
-
-
-class TestMCMTGate(QiskitAquaTestCase):
-    @parameterized.expand([
-        # [1],
-        # [2],
-        (3, 2, QuantumCircuit.cz),
-        # (3, 3, QuantumCircuit.cz),
-        # (3, 4, QuantumCircuit.cz),
-        # [5],
-        # [6],
-        # [7],
-        # [12],
-    ])
-    @unittest.skip('No reason')
-    def test_mc_mt_gate(self, num_controls, num_targets,
-                        single_control_gate_function):
-        logger.debug(
-            "test_mc_mt_gate -> Num controls = {0}".format(num_controls))
-        logger.debug(
-            "test_mc_mt_gate -> Num targets = {0}".format(num_targets))
-        logger.debug("test_mc_mt_gate -> Gate function is {0}".format(
-            single_control_gate_function.__name__))
-        c = QuantumRegister(num_controls, name='c')
-        o = QuantumRegister(num_targets, name='o')
-
-        # all possible combinations of controls set to 1
-        allsubsets = list(
-            chain(*[
-                combinations(range(num_controls), ni)
-                for ni in range(num_controls + 1)
-            ]))
-        for subset in allsubsets:
-            logger.debug("test_mc_mt_gate -> Subset is {0}".format(subset))
-            for mode in ['basic']:
-                logger.debug("test_mc_mt_gate -> Mode is {0}".format(mode))
-                qc = QuantumCircuit(o, c)
-                # TODO just for cz, generalize
-                qc.x(o)
-
-                if mode == 'basic':
-                    if num_controls <= 2:
-                        num_ancillae = 0
-                    else:
-                        num_ancillae = num_controls - 1
-                    logger.debug("Num ancillae is {0} ".format(num_ancillae))
-                if num_ancillae > 0:
-                    a = QuantumRegister(num_ancillae, name='a')
-                    qc.add_register(a)
-                for idx in subset:
-                    qc.x(c[idx])
-                qc.mc_mt_gate([c[i] for i in range(num_controls)],
-                              a[num_ancillae - 1],
-                              [a[i] for i in range(num_ancillae)],
-                              single_control_gate_function,
-                              o[0],
-                              mode=mode)
-                for idx in subset:
-                    qc.x(c[idx])
-
-                logger.debug("test_mc_mt_gate -> drawing")
-                file_path = "imgs/mctrl_mtgt_{0}_{1}_{2}_{3}".format(
-                    single_control_gate_function.__name__, num_controls, mode)
-                draw_circuit(qc, file_path)
-                assert (True)
-
-
-def draw_circuit(qc, file_path):
-    style_mpl = {
-        'cregbundle': True,
-        'compress': True,
-        'usepiformat': True,
-        'subfontsize': 12,
-        'fold': 100,
-        'showindex': True,
-        "displaycolor": {
-            "id": "#ffca64",
-            "u0": "#f69458",
-            "u1": "#f69458",
-            "u2": "#f69458",
-            "u3": "#f69458",
-            "x": "#a6ce38",
-            "y": "#a6ce38",
-            "z": "#a6ce38",
-            "h": "#00bff2",
-            "s": "#00bff2",
-            "sdg": "#00bff2",
-            "t": "#ff6666",
-            "tdg": "#ff6666",
-            "rx": "#ffca64",
-            "ry": "#ffca64",
-            "rz": "#ffca64",
-            "reset": "#d7ddda",
-            "target": "#00bff2",
-            "meas": "#f070aa"
-        }
-    }
-    circuit_drawer(qc, filename=file_path, style=style_mpl, output='mpl')
 
 
 if __name__ == '__main__':
