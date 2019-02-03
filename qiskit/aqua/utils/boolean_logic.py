@@ -48,7 +48,11 @@ def _and(clause_expr, clause_index, circuit, qr_variable, qr_clause, qr_ancilla,
     ctl_bits = [qr_variable[idx - 1] for idx in qs]
     anc_bits = [qr_ancilla[idx] for idx in range(len(qs) - 2)] if qr_ancilla else None
     tgt_bits = qr_clause[clause_index]
+    for idx in [v for v in clause_expr if v < 0]:
+        circuit.u3(pi, 0, pi, qr_variable[-idx - 1])
     circuit.mct(ctl_bits, tgt_bits, anc_bits, mode=mct_mode)
+    for idx in [v for v in clause_expr if v < 0]:
+        circuit.u3(pi, 0, pi, qr_variable[-idx - 1])
 
 
 def _set_up_register(num_qubits_needed, provided_register, description):
