@@ -28,7 +28,7 @@ from qiskit.aqua import PluggableType, get_pluggable_class
 from qiskit.aqua.utils import get_subsystem_density_matrix
 from qiskit.aqua.algorithms import QuantumAlgorithm
 
-from .phase_estimation import PhaseEstimation
+from .phase_estimation import PhaseEstimationCircuit
 
 
 logger = logging.getLogger(__name__)
@@ -139,7 +139,7 @@ class QPE(QuantumAlgorithm):
         for p in self._pauli_list:
             p[0] = p[0] * self._ret['stretch']
 
-        self._phase_estimation_component = PhaseEstimation(
+        self._phase_estimation_circuit = PhaseEstimationCircuit(
             self._operator, state_in, iqft, num_time_slices=num_time_slices, num_ancillae=num_ancillae,
             expansion_mode=expansion_mode, expansion_order=expansion_order,
             shallow_circuit_concat=shallow_circuit_concat, pauli_list=self._pauli_list
@@ -187,7 +187,7 @@ class QPE(QuantumAlgorithm):
         Returns:
             QuantumCircuit: quantum circuit.
         """
-        qc = self._phase_estimation_component.construct_circuit()
+        qc = self._phase_estimation_circuit.construct_circuit()
         return qc
 
     def _compute_energy(self):
@@ -207,8 +207,8 @@ class QPE(QuantumAlgorithm):
             from qiskit import ClassicalRegister
             c_ancilla = ClassicalRegister(self._num_ancillae, name='ca')
             qc.add_register(c_ancilla)
-            qc.barrier(self._phase_estimation_component.ancillary_register)
-            qc.measure(self._phase_estimation_component.ancillary_register, c_ancilla)
+            qc.barrier(self._phase_estimation_circuit.ancillary_register)
+            qc.measure(self._phase_estimation_circuit.ancillary_register, c_ancilla)
             result = self._quantum_instance.execute(qc)
             ancilla_counts = result.get_counts(qc)
             top_measurement_label = sorted([(ancilla_counts[k], k) for k in ancilla_counts])[::-1][0][-1][::-1]

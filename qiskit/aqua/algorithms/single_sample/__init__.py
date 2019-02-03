@@ -18,7 +18,7 @@
 from .grover.grover import Grover
 from .iqpe.iqpe import IQPE
 from .qpe.qpe import QPE
-from .qpe.phase_estimation import PhaseEstimation
+from .qpe.phase_estimation import PhaseEstimationCircuit
 from .ae.ae import AmplitudeEstimation
 from .simon.simon import Simon
 from .dj.deutsch_jozsa import DeutschJozsa
@@ -28,7 +28,7 @@ from .bv.bernstein_vazirani import BernsteinVazirani
 __all__ = ['Grover',
            'IQPE',
            'QPE',
-           'PhaseEstimation',
+           'PhaseEstimationCircuit',
            'AmplitudeEstimation',
            'Simon',
            'DeutschJozsa',
