@@ -95,17 +95,6 @@ instance/
 # Scrapy stuff:
 .scrapy
 
-# Sphinx documentation
-docs/_build/
-docs/*.rst
-#Allow
-!docs/dev_introduction.rst
-!docs/index.rst
-!docs/releases.rst
-!docs/aqua_chemistry.rst
-!docs/aqua_chemistry_*.rst
-!docs/release_history.rst
-
 # PyBuilder
 target/
 
