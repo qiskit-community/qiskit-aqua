@@ -55,7 +55,7 @@ class DeutschJozsaOracle(Oracle):
         # checks that the input bitstring length is a power of two
         nbits = math.log(len(bitmap), 2)
         if math.ceil(nbits) != math.floor(nbits):
-            raise AquaError('Input not the right length')
+            raise AquaError('Length of input map must be a power of 2.')
         self._nbits = int(nbits)
 
         # checks the input bitstring represents a constant or balanced function
@@ -69,8 +69,7 @@ class DeutschJozsaOracle(Oracle):
             self._function = "balanced"
             function = True
         if not function:
-            raise AquaError(
-                'Input is not a balanced or constant function')
+            raise AquaError('Input is not a balanced or constant function.')
 
         def _(bbs):
             return [i[-1] if i[0] == '1' else -i[-1] for i in list(zip(bbs, list(range(1, len(bbs) + 1))))]
@@ -84,7 +83,7 @@ class DeutschJozsaOracle(Oracle):
             self._ancillary_register = self._dnf.qr_ancilla
         else:
             self._dnf = None
-            self._variable_register = QuantumRegister(int(nbits), name='v')
+            self._variable_register = QuantumRegister(self._nbits, name='v')
             self._outcome_register = QuantumRegister(1, name='o')
             self._ancillary_register = None
 
