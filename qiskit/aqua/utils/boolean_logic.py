@@ -72,8 +72,8 @@ def _set_up_register(num_qubits_needed, provided_register, description):
 
 
 class BooleanLogicNormalForm(ABC):
-    def __init__(self, cnf_expr):
-        self._expr = cnf_expr
+    def __init__(self, expr):
+        self._expr = expr
         self._num_variables = max(set([abs(v) for v in list(itertools.chain.from_iterable(self._expr))]))
         self._num_clauses = len(self._expr)
         self._qr_variable = None
