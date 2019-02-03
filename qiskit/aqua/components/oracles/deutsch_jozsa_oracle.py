@@ -40,7 +40,7 @@ class DeutschJozsaOracle(Oracle):
             'type': 'object',
             'properties': {
                 'bitmap': {
-                    "type": ["object", "null"],
+                    "type": ["object"],
                 }
             },
             'additionalProperties': False
