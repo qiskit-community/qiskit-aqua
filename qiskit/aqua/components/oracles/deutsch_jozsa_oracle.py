@@ -17,7 +17,6 @@
 
 import logging
 import math
-import numpy
 import operator
 
 from qiskit import QuantumRegister, QuantumCircuit
