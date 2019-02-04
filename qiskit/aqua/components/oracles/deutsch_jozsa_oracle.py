@@ -105,9 +105,6 @@ class DeutschJozsaOracle(Oracle):
         else:
             return QuantumCircuit(self._variable_register)
 
-    def evaluate_classically(self, assignment):
-        return self._function == assignment
-
     def interpret_measurement(self, measurement, *args, **kwargs):
         top_measurement = max(
             measurement.items(), key=operator.itemgetter(1))[0]

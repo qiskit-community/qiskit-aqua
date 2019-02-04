@@ -121,7 +121,5 @@ class DeutschJozsa(QuantumAlgorithm):
             qc).get_counts(qc)
         self._ret['result'] = self._oracle.interpret_measurement(
             self._ret['measurements'])
-        self._ret['oracle_evaluation'] = self._oracle.evaluate_classically(
-            self._ret['result'])
 
         return self._ret
