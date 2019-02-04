@@ -22,7 +22,7 @@ import logging
 
 from qiskit import QuantumRegister
 from qiskit.aqua.algorithms import QuantumAlgorithm
-from qiskit.aqua import AquaError, PluggableType, get_pluggable_class
+from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 
 logger = logging.getLogger(__name__)
 
@@ -129,7 +129,7 @@ class EOH(QuantumAlgorithm):
         if evo_operator is None:
             raise AquaError("EnergyInput, invalid aux op.")
 
-        dynamics_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
+        dynamics_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
         operator_mode = dynamics_params.get(EOH.PROP_OPERATOR_MODE)
         evo_time = dynamics_params.get(EOH.PROP_EVO_TIME)
         num_time_slices = dynamics_params.get(EOH.PROP_NUM_TIME_SLICES)
@@ -137,10 +137,10 @@ class EOH(QuantumAlgorithm):
         expansion_order = dynamics_params.get(EOH.PROP_EXPANSION_ORDER)
 
         # Set up initial state, we need to add computed num qubits to params
-        initial_state_params = params.get(QuantumAlgorithm.SECTION_KEY_INITIAL_STATE)
+        initial_state_params = params.get(Pluggable.SECTION_KEY_INITIAL_STATE)
         initial_state_params['num_qubits'] = operator.num_qubits
         initial_state = get_pluggable_class(PluggableType.INITIAL_STATE,
-                                            initial_state_params['name']).init_params(initial_state_params)
+                                            initial_state_params['name']).init_params(params)
 
         return cls(operator, initial_state, evo_operator, operator_mode, evo_time, num_time_slices,
                    expansion_mode=expansion_mode,

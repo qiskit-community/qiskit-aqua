@@ -41,7 +41,8 @@ class FeatureMap(Pluggable):
 
     @classmethod
     def init_params(cls, params):
-        args = {k: v for k, v in params.items() if k != 'name'}
+        feat_map__params = params.get(Pluggable.SECTION_KEY_FEATURE_MAP)
+        args = {k: v for k, v in feat_map__params.items() if k != 'name'}
         return cls(**args)
 
     @abstractmethod

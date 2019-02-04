@@ -24,7 +24,7 @@ import numpy as np
 from qiskit.quantum_info import Pauli
 
 from qiskit.aqua import Operator, AquaError
-from qiskit.aqua import PluggableType, get_pluggable_class
+from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.utils import get_subsystem_density_matrix
 from qiskit.aqua.algorithms import QuantumAlgorithm
 
@@ -160,22 +160,22 @@ class QPE(QuantumAlgorithm):
 
         operator = algo_input.qubit_op
 
-        qpe_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
+        qpe_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
         num_time_slices = qpe_params.get(QPE.PROP_NUM_TIME_SLICES)
         expansion_mode = qpe_params.get(QPE.PROP_EXPANSION_MODE)
         expansion_order = qpe_params.get(QPE.PROP_EXPANSION_ORDER)
         num_ancillae = qpe_params.get(QPE.PROP_NUM_ANCILLAE)
 
         # Set up initial state, we need to add computed num qubits to params
-        init_state_params = params.get(QuantumAlgorithm.SECTION_KEY_INITIAL_STATE)
+        init_state_params = params.get(Pluggable.SECTION_KEY_INITIAL_STATE)
         init_state_params['num_qubits'] = operator.num_qubits
         init_state = get_pluggable_class(PluggableType.INITIAL_STATE,
-                                         init_state_params['name']).init_params(init_state_params)
+                                         init_state_params['name']).init_params(params)
 
         # Set up iqft, we need to add num qubits to params which is our num_ancillae bits here
-        iqft_params = params.get(QuantumAlgorithm.SECTION_KEY_IQFT)
+        iqft_params = params.get(Pluggable.SECTION_KEY_IQFT)
         iqft_params['num_qubits'] = num_ancillae
-        iqft = get_pluggable_class(PluggableType.IQFT, iqft_params['name']).init_params(iqft_params)
+        iqft = get_pluggable_class(PluggableType.IQFT, iqft_params['name']).init_params(params)
 
         return cls(operator, init_state, iqft, num_time_slices, num_ancillae,
                    expansion_mode=expansion_mode,

@@ -22,7 +22,7 @@ import numpy as np
 from scipy import sparse as scisparse
 
 from qiskit.aqua.algorithms import QuantumAlgorithm
-from qiskit.aqua import AquaError
+from qiskit.aqua import AquaError, Pluggable
 
 logger = logging.getLogger(__name__)
 
@@ -82,7 +82,7 @@ class ExactEigensolver(QuantumAlgorithm):
         """
         if algo_input is None:
             raise AquaError("EnergyInput instance is required.")
-        ee_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
+        ee_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
         k = ee_params.get('k')
         return cls(algo_input.qubit_op, k, algo_input.aux_ops)
 

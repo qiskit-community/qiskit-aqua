@@ -18,7 +18,7 @@
 import logging
 
 from qiskit.aqua.algorithms import QuantumAlgorithm
-from qiskit.aqua import AquaError, PluggableType, get_pluggable_class
+from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.algorithms.classical.svm import (_SVM_Classical_Binary,
                                                   _SVM_Classical_Multiclass,
                                                   _RBF_SVC_Estimator)
@@ -81,16 +81,16 @@ class SVM_Classical(QuantumAlgorithm):
 
     @classmethod
     def init_params(cls, params, algo_input):
-        svm_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
+        svm_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
         gamma = svm_params.get('gamma', None)
 
         multiclass_extension = None
-        multiclass_extension_params = params.get(QuantumAlgorithm.SECTION_KEY_MULTICLASS_EXTENSION)
+        multiclass_extension_params = params.get(Pluggable.SECTION_KEY_MULTICLASS_EXTENSION)
         if multiclass_extension_params is not None:
             multiclass_extension_params['estimator_cls'] = _RBF_SVC_Estimator
 
             multiclass_extension = get_pluggable_class(
-                PluggableType.MULTICLASS_EXTENSION, multiclass_extension_params['name']).init_params(multiclass_extension_params)
+                PluggableType.MULTICLASS_EXTENSION, multiclass_extension_params['name']).init_params(params)
             logger.info("Multiclass dataset with extension: {}".format(multiclass_extension_params['name']))
 
         return cls(algo_input.training_dataset, algo_input.test_dataset,
