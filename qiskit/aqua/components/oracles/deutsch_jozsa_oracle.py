@@ -63,12 +63,10 @@ class DeutschJozsaOracle(Oracle):
         self._bitsum = sum([int(bit) for bit in bitmap.values()])
 
         if self._bitsum == 0 or self._bitsum == 2 ** self._nbits:
-            self._function = "constant"
-            function = True
+            pass  # constant
         elif self._bitsum == 2 ** (self._nbits - 1):
-            self._function = "balanced"
-            function = True
-        if not function:
+            pass  # balanced
+        else:
             raise AquaError('Input is not a balanced or constant function.')
 
         def _(bbs):
