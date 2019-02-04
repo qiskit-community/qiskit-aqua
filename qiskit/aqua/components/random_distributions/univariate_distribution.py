@@ -30,11 +30,6 @@ class UnivariateDistribution(RandomDistribution):
     (Interface for discrete bounded uncertainty models assuming an equidistant grid)
     """
 
-    @classmethod
-    def init_params(cls, params):
-        args = {k: v for k, v in params.items() if k != 'name'}
-        return cls(**args)
-
     def __init__(self, num_target_qubits, probabilities, low=0, high=1):
         super().__init__(num_target_qubits)
         self._num_values = 2 ** self.num_target_qubits

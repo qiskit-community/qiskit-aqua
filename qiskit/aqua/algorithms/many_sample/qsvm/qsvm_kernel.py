@@ -24,7 +24,7 @@ import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 
 from qiskit.aqua.algorithms import QuantumAlgorithm
-from qiskit.aqua import AquaError, PluggableType, get_pluggable_class
+from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.algorithms.many_sample.qsvm._qsvm_kernel_binary import _QSVM_Kernel_Binary
 from qiskit.aqua.algorithms.many_sample.qsvm._qsvm_kernel_multiclass import _QSVM_Kernel_Multiclass
 from qiskit.aqua.algorithms.many_sample.qsvm._qsvm_kernel_estimator import _QSVM_Kernel_Estimator
@@ -127,20 +127,20 @@ class QSVMKernel(QuantumAlgorithm):
     def init_params(cls, params, algo_input):
         """Constructor from params."""
         num_qubits = get_feature_dimension(algo_input.training_dataset)
-        fea_map_params = params.get(QuantumAlgorithm.SECTION_KEY_FEATURE_MAP)
+        fea_map_params = params.get(Pluggable.SECTION_KEY_FEATURE_MAP)
         fea_map_params['num_qubits'] = num_qubits
 
         feature_map = get_pluggable_class(PluggableType.FEATURE_MAP,
-                                          fea_map_params['name']).init_params(fea_map_params)
+                                          fea_map_params['name']).init_params(params)
 
         multiclass_extension = None
-        multiclass_extension_params = params.get(QuantumAlgorithm.SECTION_KEY_MULTICLASS_EXTENSION, None)
+        multiclass_extension_params = params.get(Pluggable.SECTION_KEY_MULTICLASS_EXTENSION)
         if multiclass_extension_params is not None:
             multiclass_extension_params['params'] = [feature_map]
             multiclass_extension_params['estimator_cls'] = _QSVM_Kernel_Estimator
 
             multiclass_extension = get_pluggable_class(PluggableType.MULTICLASS_EXTENSION,
-                                                       multiclass_extension_params['name']).init_params(multiclass_extension_params)
+                                                       multiclass_extension_params['name']).init_params(params)
             logger.info("Multiclass classifier based on {}".format(multiclass_extension_params['name']))
 
         return cls(feature_map, algo_input.training_dataset, algo_input.test_dataset,
