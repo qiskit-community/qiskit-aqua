@@ -41,7 +41,17 @@ class DeutschJozsaOracle(Oracle):
             'properties': {
                 'bitmap': {
                     "type": ["object"],
-                }
+                },
+                'mct_mode': {
+                    'type': 'string',
+                    'default': 'basic',
+                    'oneOf': [
+                        {'enum': [
+                            'basic',
+                            'advanced'
+                        ]}
+                    ]
+                },
             },
             'additionalProperties': False
         }
