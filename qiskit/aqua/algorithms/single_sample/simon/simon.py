@@ -21,7 +21,7 @@ Simon's algorithm.
 from qiskit import ClassicalRegister, QuantumCircuit
 
 from qiskit.aqua.algorithms import QuantumAlgorithm
-from qiskit.aqua import AquaError, PluggableType, get_pluggable_class
+from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 
 
 class Simon(QuantumAlgorithm):
@@ -61,12 +61,10 @@ class Simon(QuantumAlgorithm):
         if algo_input is not None:
             raise AquaError("Unexpected Input instance.")
 
-        simon_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
-
-        oracle_params = params.get(QuantumAlgorithm.SECTION_KEY_ORACLE)
+        oracle_params = params.get(Pluggable.SECTION_KEY_ORACLE)
         oracle = get_pluggable_class(
             PluggableType.ORACLE,
-            oracle_params['name']).init_params(oracle_params)
+            oracle_params['name']).init_params(params)
         return cls(oracle)
 
     def construct_circuit(self):

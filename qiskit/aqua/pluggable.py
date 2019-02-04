@@ -26,6 +26,7 @@ Doing so requires that the required pluggable interface is implemented.
 from abc import ABC, abstractmethod
 import logging
 import copy
+from qiskit.aqua import PluggableType
 from qiskit.aqua.parser import JSONSchema
 
 logger = logging.getLogger(__name__)
@@ -39,6 +40,19 @@ class Pluggable(ABC):
     use an exception if a component of the module is available.
 
     """
+
+    # Configuration dictionary keys
+    SECTION_KEY_ALGORITHM = PluggableType.ALGORITHM.value
+    SECTION_KEY_OPTIMIZER = PluggableType.OPTIMIZER.value
+    SECTION_KEY_VAR_FORM = PluggableType.VARIATIONAL_FORM.value
+    SECTION_KEY_INITIAL_STATE = PluggableType.INITIAL_STATE.value
+    SECTION_KEY_IQFT = PluggableType.IQFT.value
+    SECTION_KEY_ORACLE = PluggableType.ORACLE.value
+    SECTION_KEY_FEATURE_MAP = PluggableType.FEATURE_MAP.value
+    SECTION_KEY_MULTICLASS_EXTENSION = PluggableType.MULTICLASS_EXTENSION.value
+    SECTION_KEY_UNCERTAINTY_PROBLEM = PluggableType.UNCERTAINTY_PROBLEM.value
+    SECTION_KEY_UNCERTAINTY_MODEL = PluggableType.UNCERTAINTY_MODEL.value
+
     @abstractmethod
     def __init__(self):
         self.check_pluggable_valid()

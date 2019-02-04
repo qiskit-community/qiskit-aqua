@@ -40,7 +40,8 @@ class Oracle(Pluggable):
 
     @classmethod
     def init_params(cls, params):
-        args = {k: v for k, v in params.items() if k != 'name'}
+        oracle_params = params.get(Pluggable.SECTION_KEY_ORACLE)
+        args = {k: v for k, v in oracle_params.items() if k != 'name'}
         return cls(**args)
 
     @property

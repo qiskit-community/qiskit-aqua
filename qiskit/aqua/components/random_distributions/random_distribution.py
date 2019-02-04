@@ -32,7 +32,8 @@ class RandomDistribution(CircuitFactory, Pluggable, ABC):
 
     @classmethod
     def init_params(cls, params):
-        args = {k: v for k, v in params.items() if k != 'name'}
+        uncertainty_model_params = params.get(Pluggable.SECTION_KEY_UNCERTAINTY_MODEL)
+        args = {k: v for k, v in uncertainty_model_params.items() if k != 'name'}
         return cls(**args)
 
     def __init__(self, num_target_qubits):
