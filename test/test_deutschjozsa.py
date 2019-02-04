@@ -38,7 +38,10 @@ class TestDeutschJozsa(QiskitAquaTestCase):
         oracle = DeutschJozsaOracle(dj_input)
         algorithm = DeutschJozsa(oracle)
         result = algorithm.run(backend)
-        self.assertTrue(result['oracle_evaluation'])
+        if sum([int(v) for v in dj_input.values()]) == len(dj_input) / 2:
+            self.assertTrue(result['result'] == 'balanced')
+        else:
+            self.assertTrue(result['result'] == 'constant')
 
 
 if __name__ == '__main__':
