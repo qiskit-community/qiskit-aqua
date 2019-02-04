@@ -40,7 +40,7 @@ from .utils.mct import mct
 from .utils.mcu1 import mcu1
 from .utils.mcu3 import mcu3
 from .quantum_instance import QuantumInstance
-from .operator import Operator
+from .operators import Operator
 from .algorithms import QuantumAlgorithm
 from ._aqua import run_algorithm, run_algorithm_to_json, build_algorithm_from_dict
 from ._logging import (get_logging_level,
