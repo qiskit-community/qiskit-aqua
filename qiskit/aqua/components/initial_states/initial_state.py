@@ -42,7 +42,8 @@ class InitialState(Pluggable):
 
     @classmethod
     def init_params(cls, params):
-        args = {k: v for k, v in params.items() if k != 'name'}
+        init_state_params = params.get(Pluggable.SECTION_KEY_INITIAL_STATE)
+        args = {k: v for k, v in init_state_params.items() if k != 'name'}
         return cls(**args)
 
     @abstractmethod

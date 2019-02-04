@@ -40,7 +40,8 @@ class IQFT(Pluggable):
 
     @classmethod
     def init_params(cls, params):
-        args = {k: v for k, v in params.items() if k != 'name'}
+        iqft_params = params.get(Pluggable.SECTION_KEY_IQFT)
+        args = {k: v for k, v in iqft_params.items() if k != 'name'}
         return cls(**args)
 
     @abstractmethod

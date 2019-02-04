@@ -26,7 +26,7 @@ from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.quantum_info import Pauli
 
 from qiskit.aqua import Operator, AquaError
-from qiskit.aqua import PluggableType, get_pluggable_class
+from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.utils import get_subsystem_density_matrix
 from qiskit.aqua.algorithms import QuantumAlgorithm
 
@@ -136,17 +136,17 @@ class IQPE(QuantumAlgorithm):
 
         operator = algo_input.qubit_op
 
-        iqpe_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
+        iqpe_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
         num_time_slices = iqpe_params.get(IQPE.PROP_NUM_TIME_SLICES)
         expansion_mode = iqpe_params.get(IQPE.PROP_EXPANSION_MODE)
         expansion_order = iqpe_params.get(IQPE.PROP_EXPANSION_ORDER)
         num_iterations = iqpe_params.get(IQPE.PROP_NUM_ITERATIONS)
 
         # Set up initial state, we need to add computed num qubits to params
-        init_state_params = params.get(QuantumAlgorithm.SECTION_KEY_INITIAL_STATE)
+        init_state_params = params.get(Pluggable.SECTION_KEY_INITIAL_STATE)
         init_state_params['num_qubits'] = operator.num_qubits
         init_state = get_pluggable_class(PluggableType.INITIAL_STATE,
-                                         init_state_params['name']).init_params(init_state_params)
+                                         init_state_params['name']).init_params(params)
 
         return cls(operator, init_state, num_time_slices=num_time_slices, num_iterations=num_iterations,
                    expansion_mode=expansion_mode,

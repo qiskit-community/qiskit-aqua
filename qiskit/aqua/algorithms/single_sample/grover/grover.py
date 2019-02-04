@@ -25,7 +25,7 @@ import operator
 from qiskit import ClassicalRegister, QuantumCircuit
 from qiskit.qasm import pi
 
-from qiskit.aqua import AquaError, PluggableType, get_pluggable_class
+from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.utils import get_subsystem_density_matrix
 from qiskit.aqua.algorithms import QuantumAlgorithm
 
@@ -129,14 +129,14 @@ class Grover(QuantumAlgorithm):
         if algo_input is not None:
             raise AquaError("Unexpected Input instance.")
 
-        grover_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
+        grover_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
         incremental = grover_params.get(Grover.PROP_INCREMENTAL)
         num_iterations = grover_params.get(Grover.PROP_NUM_ITERATIONS)
         mct_mode = grover_params.get(Grover.PROP_MCT_MODE)
 
-        oracle_params = params.get(QuantumAlgorithm.SECTION_KEY_ORACLE)
+        oracle_params = params.get(Pluggable.SECTION_KEY_ORACLE)
         oracle = get_pluggable_class(PluggableType.ORACLE,
-                                     oracle_params['name']).init_params(oracle_params)
+                                     oracle_params['name']).init_params(params)
         return cls(oracle, incremental=incremental, num_iterations=num_iterations, mct_mode=mct_mode)
 
     def _construct_circuit_components(self):

@@ -22,7 +22,7 @@ from sklearn.utils import shuffle
 
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 from qiskit.aqua.algorithms import QuantumAlgorithm
-from qiskit.aqua import AquaError, PluggableType, get_pluggable_class
+from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.algorithms.adaptive.qsvm import (cost_estimate, return_probabilities)
 from qiskit.aqua.utils import (get_feature_dimension, map_label_to_class_name,
                                split_dataset_to_data_and_labels)
@@ -122,13 +122,13 @@ class QSVMVariational(QuantumAlgorithm):
 
     @classmethod
     def init_params(cls, params, algo_input):
-        algo_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
+        algo_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
         override_spsa_params = algo_params.get('override_SPSA_params')
         batch_mode = algo_params.get('batch_mode')
         minibatch_size = algo_params.get('minibatch_size')
 
         # Set up optimizer
-        opt_params = params.get(QuantumAlgorithm.SECTION_KEY_OPTIMIZER)
+        opt_params = params.get(Pluggable.SECTION_KEY_OPTIMIZER)
         # If SPSA then override SPSA params as reqd to our predetermined values
         if opt_params['name'] == 'SPSA' and override_spsa_params:
             opt_params['c0'] = 4.0
@@ -138,20 +138,21 @@ class QSVMVariational(QuantumAlgorithm):
             opt_params['c4'] = 0.0
             opt_params['skip_calibration'] = True
         optimizer = get_pluggable_class(PluggableType.OPTIMIZER,
-                                        opt_params['name']).init_params(opt_params)
+                                        opt_params['name']).init_params(params)
 
         # Set up feature map
-        fea_map_params = params.get(QuantumAlgorithm.SECTION_KEY_FEATURE_MAP)
+        fea_map_params = params.get(Pluggable.SECTION_KEY_FEATURE_MAP)
         num_qubits = get_feature_dimension(algo_input.training_dataset)
         fea_map_params['num_qubits'] = num_qubits
         feature_map = get_pluggable_class(PluggableType.FEATURE_MAP,
-                                          fea_map_params['name']).init_params(fea_map_params)
+                                          fea_map_params['name']).init_params(params)
 
-        # Set up variational form
-        var_form_params = params.get(QuantumAlgorithm.SECTION_KEY_VAR_FORM)
+        # Set up variational form, we need to add computed num qubits
+        # Pass all parameters so that Variational Form can create its dependents
+        var_form_params = params.get(Pluggable.SECTION_KEY_VAR_FORM)
         var_form_params['num_qubits'] = num_qubits
         var_form = get_pluggable_class(PluggableType.VARIATIONAL_FORM,
-                                       var_form_params['name']).init_params(var_form_params)
+                                       var_form_params['name']).init_params(params)
 
         return cls(optimizer, feature_map, var_form, algo_input.training_dataset,
                    algo_input.test_dataset, algo_input.datapoints, batch_mode,

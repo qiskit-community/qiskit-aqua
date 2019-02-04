@@ -15,13 +15,6 @@
 # limitations under the License.
 # =============================================================================
 
-import sys
-import os
-
-algo_directory = os.path.dirname(os.path.realpath(__file__))
-algo_directory = os.path.join(algo_directory, '..')
-sys.path.insert(0, algo_directory)
-
 from qiskit_aqua_cmd.command_line import main
 
 main()

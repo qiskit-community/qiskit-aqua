@@ -19,7 +19,7 @@
 import logging
 
 from qiskit.aqua.algorithms import QuantumAlgorithm
-from qiskit.aqua import AquaError, PluggableType, get_pluggable_class
+from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.algorithms.adaptive import VQE
 from .varform import QAOAVarForm
 
@@ -113,21 +113,21 @@ class QAOA(VQE):
 
         operator = algo_input.qubit_op
 
-        qaoa_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
+        qaoa_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
         operator_mode = qaoa_params.get('operator_mode')
         p = qaoa_params.get('p')
         initial_point = qaoa_params.get('initial_point')
         batch_mode = qaoa_params.get('batch_mode')
 
-        init_state_params = params.get(QuantumAlgorithm.SECTION_KEY_INITIAL_STATE)
+        init_state_params = params.get(Pluggable.SECTION_KEY_INITIAL_STATE)
         init_state_params['num_qubits'] = operator.num_qubits
         init_state = get_pluggable_class(PluggableType.INITIAL_STATE,
-                                         init_state_params['name']).init_params(init_state_params)
+                                         init_state_params['name']).init_params(params)
 
         # Set up optimizer
-        opt_params = params.get(QuantumAlgorithm.SECTION_KEY_OPTIMIZER)
+        opt_params = params.get(Pluggable.SECTION_KEY_OPTIMIZER)
         optimizer = get_pluggable_class(PluggableType.OPTIMIZER,
-                                        opt_params['name']).init_params(opt_params)
+                                        opt_params['name']).init_params(params)
 
         return cls(operator, optimizer, p=p, initial_state=init_state, operator_mode=operator_mode,
                    initial_point=initial_point, batch_mode=batch_mode,
