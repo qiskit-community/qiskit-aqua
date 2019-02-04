@@ -86,7 +86,7 @@ class VQE(QuantumAlgorithm):
     }
 
     def __init__(self, operator, var_form, optimizer, operator_mode='matrix',
-                 initial_point=None, batch_mode=False, aux_operators=None):
+                 initial_point=None, batch_mode=False, aux_operators=None, callback=None):
         """Constructor.
 
         Args:
@@ -97,6 +97,10 @@ class VQE(QuantumAlgorithm):
             initial_point (numpy.ndarray): optimizer initial point.
             batch_mode (bool): evaluate parameter sets in parallel.
             aux_operators (list of Operator): Auxiliary operators to be evaluated at each eigenvalue
+            callback (Callable): a callback that can access the intermediate data during the optimization.
+                                 Internally, four arguments are provided as follows
+                                 the index of evaluation, parameters of variational form,
+                                 evaluated mean, evaluated standard devation.
         """
         self.validate(locals())
         super().__init__()
@@ -115,6 +119,7 @@ class VQE(QuantumAlgorithm):
         self._ret = {}
         self._eval_count = 0
         self._eval_time = 0
+        self._callback = callback
         logger.info(self.print_setting())
 
     @classmethod
@@ -349,6 +354,8 @@ class VQE(QuantumAlgorithm):
             mean_energy.append(np.real(mean))
             std_energy.append(np.real(std))
             self._eval_count += 1
+            if self._callback is not None:
+                self._callback(self._eval_count, parameter_sets[idx], np.real(mean), np.real(std))
             logger.info('Energy evaluation {} returned {}'.format(self._eval_count, np.real(mean)))
 
         return mean_energy if len(mean_energy) > 1 else mean_energy[0]

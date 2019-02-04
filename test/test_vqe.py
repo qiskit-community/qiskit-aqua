@@ -16,16 +16,18 @@
 # =============================================================================
 
 import unittest
+import os
 
 import numpy as np
 from parameterized import parameterized
-from qiskit.aqua import get_aer_backend
+from qiskit.qobj import RunConfig
 
 from test.common import QiskitAquaTestCase
+from qiskit.aqua import get_aer_backend
 from qiskit.aqua import Operator, run_algorithm, QuantumInstance
 from qiskit.aqua.input import EnergyInput
 from qiskit.aqua.components.variational_forms import RY
-from qiskit.aqua.components.optimizers import L_BFGS_B
+from qiskit.aqua.components.optimizers import L_BFGS_B, COBYLA
 from qiskit.aqua.components.initial_states import Zero
 from qiskit.aqua.algorithms import VQE
 
@@ -124,6 +126,50 @@ class TestVQE(QiskitAquaTestCase):
         result = algo.run(quantum_instance)
         self.assertAlmostEqual(result['energy'], -1.85727503)
 
+
+    def test_vqe_callback(self):
+
+        tmp_filename = 'vqe_callback_test.csv'
+        is_file_exist = os.path.exists(self._get_resource_path(tmp_filename))
+        if is_file_exist:
+            os.remove(self._get_resource_path(tmp_filename))
+
+        def store_intermediate_result(eval_count, parameters, mean, std):
+            with open(self._get_resource_path(tmp_filename), 'a') as f:
+                content = "{},{},{},{}".format(eval_count, parameters, mean, std)
+                print(content, file=f, flush=True)
+
+        backend = get_aer_backend('qasm_simulator')
+        num_qubits = self.algo_input.qubit_op.num_qubits
+        init_state = Zero(num_qubits)
+        var_form = RY(num_qubits, 1, initial_state=init_state)
+        optimizer = COBYLA(maxiter=3)
+        algo = VQE(self.algo_input.qubit_op, var_form, optimizer, 'paulis',
+                   callback=store_intermediate_result)
+        algo.random_seed = 50
+        run_config = RunConfig(shots=1024, seed=50)
+        quantum_instance = QuantumInstance(backend, seed_mapper=50, run_config=run_config)
+        algo.run(quantum_instance)
+
+        is_file_exist = os.path.exists(self._get_resource_path(tmp_filename))
+        self.assertTrue(is_file_exist, "Does not store content successfully.")
+
+        # check the content
+        ref_content = [["1", "[-0.03391886 -1.70850424 -1.53640265 -0.65137839]", "-0.5962237652259321", "0.01545565198529213"],
+                       ["2", "[ 0.96608114 -1.70850424 -1.53640265 -0.65137839]", "-0.7745171296402821", "0.01692212058542837"],
+                       ["3", "[ 0.96608114 -0.70850424 -1.53640265 -0.65137839]", "-0.8032710681148246", "0.015186250019446524"]
+                       ]
+        with open(self._get_resource_path(tmp_filename)) as f:
+            idx = 0
+            for record in f.readlines():
+                eval_count, parameters, mean, std = record.split(",")
+                self.assertEqual(eval_count.strip(), ref_content[idx][0])
+                self.assertEqual(parameters, ref_content[idx][1])
+                self.assertEqual(mean.strip(), ref_content[idx][2])
+                self.assertEqual(std.strip(), ref_content[idx][3])
+                idx += 1
+        if is_file_exist:
+            os.remove(self._get_resource_path(tmp_filename))
 
 if __name__ == '__main__':
     unittest.main()
