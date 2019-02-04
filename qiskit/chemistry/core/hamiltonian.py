@@ -20,7 +20,7 @@ energy of the electrons and nuclei in a molecule.
 """
 
 from .chemistry_operator import ChemistryOperator
-from qiskit.chemistry import QMolecule
+from qiskit.chemistry import ChemistryProblem, QMolecule
 from qiskit.chemistry.fermionic_operator import FermionicOperator
 from qiskit.aqua.input import EnergyInput
 import numpy as np
@@ -106,7 +106,7 @@ class Hamiltonian(ChemistryOperator):
             },
             "additionalProperties": False
         },
-        'problems': ['energy', 'excited_states']
+        'problems': [ChemistryProblem.ENERGY.value, ChemistryProblem.EXCITED_STATES.value]
     }
 
     def __init__(self,
