@@ -21,11 +21,10 @@ from collections import OrderedDict
 import logging
 import os
 import copy
-from qiskit.aqua import (local_pluggables_types,
-                         PluggableType)
+from qiskit.aqua import local_pluggables_types, PluggableType
 import pprint
 import ast
-from qiskit.chemistry import QiskitChemistryError
+from qiskit.chemistry import QiskitChemistryError, ChemistryProblem
 from qiskit.aqua.parser import JSONSchema
 from qiskit.chemistry.core import local_chemistry_operators, get_chemistry_operator_configuration
 from qiskit.chemistry.drivers import local_drivers, get_driver_configuration
@@ -64,6 +63,16 @@ class InputParser(BaseParser):
             "default": "true"
         }
         super().__init__(json_schema)
+
+        # limit Chemistry problems to energy and excited_states
+        chemistry_problems = [problem for problem in
+                              self.json_schema.get_property_default_values(JSONSchema.PROBLEM, JSONSchema.NAME)
+                              if any(problem == item.value for item in ChemistryProblem)]
+        self.json_schema.schema['properties'][JSONSchema.PROBLEM]['properties'][JSONSchema.NAME]['oneOf'] = \
+            [{'enum': chemistry_problems}]
+        self._json_schema.commit_changes()
+        # ---
+
         self._inputdict = None
         if input is not None:
             if isinstance(input, dict):

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# Copyright 2019 IBM.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,6 +15,9 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit_chemistry_ui.command_line import main
+from enum import Enum
 
-main()
+
+class ChemistryProblem(Enum):
+    ENERGY = 'energy'
+    EXCITED_STATES = 'excited_states'

@@ -20,6 +20,7 @@
 from .qiskit_chemistry_error import QiskitChemistryError
 from .preferences import Preferences
 from .qmolecule import QMolecule
+from .qiskit_chemistry_problem import ChemistryProblem
 from .qiskit_chemistry import QiskitChemistry
 from .fermionic_operator import FermionicOperator
 from ._logging import (get_logging_level,
@@ -33,6 +34,7 @@ __version__ = '0.4.3'
 __all__ = ['QiskitChemistryError',
            'Preferences',
            'QMolecule',
+           'ChemistryProblem',
            'QiskitChemistry',
            'FermionicOperator',
            'get_logging_level',
