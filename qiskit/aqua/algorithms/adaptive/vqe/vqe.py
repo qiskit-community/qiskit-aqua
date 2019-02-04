@@ -27,7 +27,7 @@ import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit
 
 from qiskit.aqua.algorithms import QuantumAlgorithm
-from qiskit.aqua import AquaError, PluggableType, get_pluggable_class
+from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.utils import find_regs_by_name
 from qiskit.aqua.utils.backend_utils import is_aer_statevector_backend
 
@@ -134,28 +134,22 @@ class VQE(QuantumAlgorithm):
 
         operator = algo_input.qubit_op
 
-        vqe_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
+        vqe_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
         operator_mode = vqe_params.get('operator_mode')
         initial_point = vqe_params.get('initial_point')
         batch_mode = vqe_params.get('batch_mode')
 
-        # Set up initial state, we need to add computed num qubits to params
-        init_state_params = params.get(QuantumAlgorithm.SECTION_KEY_INITIAL_STATE)
-        init_state_params['num_qubits'] = operator.num_qubits
-        init_state = get_pluggable_class(PluggableType.INITIAL_STATE,
-                                         init_state_params['name']).init_params(init_state_params)
-
-        # Set up variational form, we need to add computed num qubits, and initial state to params
-        var_form_params = params.get(QuantumAlgorithm.SECTION_KEY_VAR_FORM)
+        # Set up variational form, we need to add computed num qubits
+        # Pass all parameters so that Variational Form can create its dependents
+        var_form_params = params.get(Pluggable.SECTION_KEY_VAR_FORM)
         var_form_params['num_qubits'] = operator.num_qubits
-        var_form_params['initial_state'] = init_state
         var_form = get_pluggable_class(PluggableType.VARIATIONAL_FORM,
-                                       var_form_params['name']).init_params(var_form_params)
+                                       var_form_params['name']).init_params(params)
 
         # Set up optimizer
-        opt_params = params.get(QuantumAlgorithm.SECTION_KEY_OPTIMIZER)
+        opt_params = params.get(Pluggable.SECTION_KEY_OPTIMIZER)
         optimizer = get_pluggable_class(PluggableType.OPTIMIZER,
-                                        opt_params['name']).init_params(opt_params)
+                                        opt_params['name']).init_params(params)
 
         return cls(operator, var_form, optimizer, operator_mode=operator_mode,
                    initial_point=initial_point, batch_mode=batch_mode,

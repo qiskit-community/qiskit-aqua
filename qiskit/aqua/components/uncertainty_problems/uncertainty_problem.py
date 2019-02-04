@@ -30,7 +30,8 @@ class UncertaintyProblem(CircuitFactory, Pluggable, ABC):
 
     @classmethod
     def init_params(cls, params):
-        args = {k: v for k, v in params.items() if k != 'name'}
+        uncertainty_problem_params = params.get(Pluggable.SECTION_KEY_UNCERTAINTY_PROBLEM)
+        args = {k: v for k, v in uncertainty_problem_params.items() if k != 'name'}
         return cls(**args)
 
     def __init__(self, num_qubits):
