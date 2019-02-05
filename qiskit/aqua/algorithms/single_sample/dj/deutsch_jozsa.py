@@ -23,7 +23,7 @@ import logging
 from qiskit import ClassicalRegister, QuantumCircuit
 
 from qiskit.aqua.algorithms import QuantumAlgorithm
-from qiskit.aqua import AquaError, PluggableType, get_pluggable_class
+from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 
 logger = logging.getLogger(__name__)
 
@@ -65,12 +65,10 @@ class DeutschJozsa(QuantumAlgorithm):
         if algo_input is not None:
             raise AquaError("Unexpected Input instance.")
 
-        dj_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
-
-        oracle_params = params.get(QuantumAlgorithm.SECTION_KEY_ORACLE)
+        oracle_params = params.get(Pluggable.SECTION_KEY_ORACLE)
         oracle = get_pluggable_class(
             PluggableType.ORACLE,
-            oracle_params['name']).init_params(oracle_params)
+            oracle_params['name']).init_params(params)
         return cls(oracle)
 
     def construct_circuit(self):

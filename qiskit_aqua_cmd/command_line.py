@@ -18,68 +18,50 @@
 import argparse
 import json
 import logging
-import tkinter as tk
-
-_ROOT = None
 
 
 def main():
-    global _ROOT
-    _ROOT = tk.Tk()
-    _ROOT.withdraw()
-    _ROOT.update_idletasks()
-    _ROOT.after(0, main_algorithm)
-    _ROOT.mainloop()
+    from qiskit.aqua._logging import get_logging_level, build_logging_config, set_logging_config
+    from qiskit_aqua_cmd import Preferences
+    from qiskit.aqua import run_algorithm
+    from qiskit.aqua.utils import convert_json_to_dict
+    parser = argparse.ArgumentParser(description='Qiskit Aqua Command Line Tool')
+    parser.add_argument('input',
+                        metavar='input',
+                        help='Algorithm JSON input file')
+    parser.add_argument('-jo',
+                        metavar='output',
+                        help='Algorithm JSON output file name',
+                        required=False)
 
+    args = parser.parse_args()
 
-def main_algorithm():
-    try:
-        from qiskit.aqua._logging import get_logging_level, build_logging_config, set_logging_config
-        from qiskit_aqua_cmd import Preferences
-        from qiskit.aqua import run_algorithm
-        from qiskit.aqua.utils import convert_json_to_dict
-        parser = argparse.ArgumentParser(description='Qiskit Aqua Command Line Tool')
-        parser.add_argument('input',
-                            metavar='input',
-                            help='Algorithm JSON input file')
-        parser.add_argument('-jo',
-                            metavar='output',
-                            help='Algorithm JSON output file name',
-                            required=False)
-
-        args = parser.parse_args()
-
-        # update logging setting with latest external packages
-        preferences = Preferences()
-        logging_level = logging.INFO
-        if preferences.get_logging_config() is not None:
-            set_logging_config(preferences.get_logging_config())
-            logging_level = get_logging_level()
-
-        preferences.set_logging_config(build_logging_config(logging_level))
-        preferences.save()
-
+    # update logging setting with latest external packages
+    preferences = Preferences()
+    logging_level = logging.INFO
+    if preferences.get_logging_config() is not None:
         set_logging_config(preferences.get_logging_config())
+        logging_level = get_logging_level()
 
-        params = None
-        with open(args.input) as json_file:
-            params = json.load(json_file)
+    preferences.set_logging_config(build_logging_config(logging_level))
+    preferences.save()
 
-        ret = run_algorithm(params, None, True)
+    set_logging_config(preferences.get_logging_config())
 
-        if args.jo is not None:
-            with open(args.jo, 'w') as f:
-                print('{}'.format(ret), file=f)
+    params = None
+    with open(args.input) as json_file:
+        params = json.load(json_file)
+
+    ret = run_algorithm(params, None, True)
+
+    if args.jo is not None:
+        with open(args.jo, 'w') as f:
+            print('{}'.format(ret), file=f)
+    else:
+        convert_json_to_dict(ret)
+        print('\n\n--------------------------------- R E S U L T ------------------------------------\n')
+        if isinstance(ret, dict):
+            for k, v in ret.items():
+                print("'{}': {}".format(k, v))
         else:
-            convert_json_to_dict(ret)
-            print('\n\n--------------------------------- R E S U L T ------------------------------------\n')
-            if isinstance(ret, dict):
-                for k, v in ret.items():
-                    print("'{}': {}".format(k, v))
-            else:
-                print(ret)
-    finally:
-        global _ROOT
-        if _ROOT is not None:
-            _ROOT.destroy()
-            _ROOT = None
+            print(ret)
