@@ -57,29 +57,32 @@ class QSVMVariational(QuantumAlgorithm):
         },
         'problems': ['svm_classification'],
         'depends': [
-            {'pluggable_type': 'optimizer',
-             'default': {
-                     'name': 'SPSA'
+            {
+                'pluggable_type': 'optimizer',
+                'default': {
+                    'name': 'SPSA'
                 },
-             },
-            {'pluggable_type': 'feature_map',
-             'default': {
-                     'name': 'SecondOrderExpansion',
-                     'depth': 2
+            },
+            {
+                'pluggable_type': 'feature_map',
+                'default': {
+                    'name': 'SecondOrderExpansion',
+                    'depth': 2
                 },
-             },
-            {'pluggable_type': 'variational_form',
-             'default': {
-                     'name': 'RYRZ',
-                     'depth': 3
+            },
+            {
+                'pluggable_type': 'variational_form',
+                'default': {
+                    'name': 'RYRZ',
+                    'depth': 3
                 },
-             },
+            },
         ],
     }
 
     def __init__(self, optimizer, feature_map, var_form, training_dataset,
                  test_dataset=None, datapoints=None, batch_mode=False,
-                 minibatch_size=-1):
+                 minibatch_size=-1, callback=None):
         """Initialize the object
         Args:
             training_dataset (dict): {'A': numpy.ndarray, 'B': numpy.ndarray, ...}
@@ -89,6 +92,10 @@ class QSVMVariational(QuantumAlgorithm):
             feature_map (FeatureMap): FeatureMap instance
             var_form (VariationalForm): VariationalForm instance
             batch_mode (boolean): Batch mode for circuit compilation and execution
+            callback (Callable): a callback that can access the intermediate data during the optimization.
+                                 Internally, four arguments are provided as follows
+                                 the index of data batch, the index of evaluation,
+                                 parameters of variational form, evaluated value.
         Notes:
             We used `label` denotes numeric results and `class` means the name of that class (str).
         """
@@ -118,6 +125,8 @@ class QSVMVariational(QuantumAlgorithm):
         self._num_qubits = self._feature_map.num_qubits
         self._optimizer.set_batch_mode(batch_mode)
         self._minibatch_size = minibatch_size
+        self._callback = callback
+        self._eval_count = 0
         self._ret = {}
 
     @classmethod
@@ -271,19 +280,26 @@ class QSVMVariational(QuantumAlgorithm):
         """
         self._quantum_instance = self._quantum_instance if quantum_instance is None else quantum_instance
         batches, label_batches = self.batch_data(data, labels, self._minibatch_size)
-        self.batch_num = 0
+        self._batch_index = 0
 
         def _cost_function_wrapper(theta):
-            batch_num = self.batch_num % len(batches)
-            predicted_probs, predicted_labels = self._get_prediction(batches[batch_num], theta)
-            self.batch_num += 1
+            batch_index = self._batch_index % len(batches)
+            predicted_probs, predicted_labels = self._get_prediction(batches[batch_index], theta)
             total_cost = []
-            if isinstance(predicted_probs, list):
-                for predicted_prob in predicted_probs:
-                    total_cost.append(self._cost_function(predicted_prob, label_batches[batch_num]))
-            else:
-                total_cost.append(self._cost_function(predicted_probs, label_batches[batch_num]))
-            logger.debug('Intermediate batch cost: {:.2f}%'.format(sum(total_cost) * 100.0))
+            if not isinstance(predicted_probs, list):
+                predicted_probs = [predicted_probs]
+            for i in range(len(predicted_probs)):
+                curr_cost = self._cost_function(predicted_probs[i], label_batches[batch_index])
+                total_cost.append(curr_cost)
+                if self._callback is not None:
+                    self._callback(self._eval_count,
+                                   theta[i * self._var_form.num_parameters:(i + 1) * self._var_form.num_parameters],
+                                   curr_cost,
+                                   self._batch_index)
+                self._eval_count += 1
+
+            self._batch_index += 1
+            logger.debug('Intermediate batch cost: {}'.format(sum(total_cost)))
             return total_cost if len(total_cost) > 1 else total_cost[0]
 
         initial_theta = self.random.randn(self._var_form.num_parameters)

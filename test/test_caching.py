@@ -49,12 +49,13 @@ class TestCaching(QiskitAquaTestCase):
         self.reference_vqe_result = res
 
     @parameterized.expand([
-        ['statevector_simulator', True, True, True],
-        ['qasm_simulator', True, True, True],
-        ['statevector_simulator', True, False, False],
-        ['statevector_simulator', False, False, True],
+        ['statevector_simulator', True, True],
+        ['qasm_simulator', True, True],
+        ['statevector_simulator', True, False],
+        ['qasm_simulator', True, False],
     ])
-    def test_vqe_caching_via_run_algorithm(self, backend, caching, skip_qobj_deepcopy, skip_validation):
+    def test_vqe_caching_via_run_algorithm(self, backend, caching, skip_qobj_deepcopy):
+        skip_validation = True
         params_caching = {
             'algorithm': {'name': 'VQE', 'operator_mode': 'matrix' if backend == 'statevector_simulator' else 'paulis'},
             'problem': {'name': 'energy',

@@ -16,6 +16,7 @@
 # =============================================================================
 
 import os
+import unittest
 
 import numpy as np
 from qiskit.aqua import get_aer_backend
@@ -24,9 +25,9 @@ from test.common import QiskitAquaTestCase
 from qiskit.aqua.input import SVMInput
 from qiskit.aqua import run_algorithm, QuantumInstance
 from qiskit.aqua.algorithms import QSVMVariational
-from qiskit.aqua.components.optimizers import SPSA
+from qiskit.aqua.components.optimizers import SPSA,COBYLA
 from qiskit.aqua.components.feature_maps import SecondOrderExpansion
-from qiskit.aqua.components.variational_forms import RYRZ
+from qiskit.aqua.components.variational_forms import RYRZ, RY
 
 
 class TestQSVMVariational(QiskitAquaTestCase):
@@ -133,3 +134,55 @@ class TestQSVMVariational(QiskitAquaTestCase):
                 os.remove(file_path)
             except:
                 pass
+
+    def test_qsvm_variational_callback(self):
+
+        tmp_filename = 'qsvm_callback_test.csv'
+        is_file_exist = os.path.exists(self._get_resource_path(tmp_filename))
+        if is_file_exist:
+            os.remove(self._get_resource_path(tmp_filename))
+
+        def store_intermediate_result(eval_count, parameters, cost, batch_index):
+            with open(self._get_resource_path(tmp_filename), 'a') as f:
+                content = "{},{},{:.5f},{}".format(eval_count, parameters, cost, batch_index)
+                print(content, file=f, flush=True)
+
+        np.random.seed(self.random_seed)
+        backend = get_aer_backend('qasm_simulator')
+
+        num_qubits = 2
+        optimizer = COBYLA(maxiter=3)
+        feature_map = SecondOrderExpansion(num_qubits=num_qubits, depth=2)
+        var_form = RY(num_qubits=num_qubits, depth=1)
+
+        svm = QSVMVariational(optimizer, feature_map, var_form, self.training_data,
+                              self.testing_data, callback=store_intermediate_result)
+        svm.random_seed = self.random_seed
+        run_config = RunConfig(shots=1024, max_credits=10, memory=False, seed=self.random_seed)
+        quantum_instance = QuantumInstance(backend, run_config, seed_mapper=self.random_seed)
+        svm.run(quantum_instance)
+
+        is_file_exist = os.path.exists(self._get_resource_path(tmp_filename))
+        self.assertTrue(is_file_exist, "Does not store content successfully.")
+
+        # check the content
+        ref_content = [
+            ["0", "[ 0.18863864 -1.08197582  1.74432295  1.29765602]", "0.53367", "0"],
+            ["1", "[ 1.18863864 -1.08197582  1.74432295  1.29765602]", "0.57261", "1"],
+            ["2", "[ 0.18863864 -0.08197582  1.74432295  1.29765602]", "0.47137", "2"]
+            ]
+        with open(self._get_resource_path(tmp_filename)) as f:
+            idx = 0
+            for record in f.readlines():
+                eval_count, parameters, cost, batch_index = record.split(",")
+                self.assertEqual(eval_count.strip(), ref_content[idx][0])
+                self.assertEqual(parameters, ref_content[idx][1])
+                self.assertEqual(cost.strip(), ref_content[idx][2])
+                self.assertEqual(batch_index.strip(), ref_content[idx][3])
+                idx += 1
+        if is_file_exist:
+            os.remove(self._get_resource_path(tmp_filename))
+
+
+if __name__ == '__main__':
+    unittest.main()
