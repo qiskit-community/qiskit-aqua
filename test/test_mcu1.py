@@ -46,11 +46,13 @@ class TestMCU1(QiskitAquaTestCase):
             qc = QuantumCircuit(o, c)
             for idx in subset:
                 qc.x(c[idx])
+            qc.h(o[0])
             qc.mcu1(
                 pi,
                 [c[i] for i in range(num_controls)],
                 o[0]
             )
+            qc.h(o[0])
             for idx in subset:
                 qc.x(c[idx])
 
@@ -60,7 +62,6 @@ class TestMCU1(QiskitAquaTestCase):
             # print(vec, np.array(vec_o + [0] * (2 ** (num_controls + num_ancillae + 1) - 2)))
             f = state_fidelity(vec, np.array(vec_o + [0] * (2 ** (num_controls + 1) - 2)))
             self.assertAlmostEqual(f, 1)
-            return
 
 
 if __name__ == '__main__':

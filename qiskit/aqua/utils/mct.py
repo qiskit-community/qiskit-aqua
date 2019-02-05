@@ -197,7 +197,7 @@ def _multicx_noancilla(qc, qrs):
         qc.cx(qrs[0], qrs[1])
     else:
         # qrs[0], qrs[n-2] is the controls, qrs[n-1] is the target
-        ctls = qrs[:-2]
+        ctls = qrs[:-1]
         tgt = qrs[-1]
         qc.h(tgt)
         qc.mcu1(pi, ctls, tgt)
