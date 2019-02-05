@@ -18,12 +18,12 @@
 import numpy as np
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import get_aer_backend
+from qiskit.aqua import get_aer_backend
 
-from qiskit_aqua import run_algorithm
-from qiskit_aqua.input import EnergyInput
-from qiskit_aqua.translators.ising import vertexcover
-from qiskit_aqua.algorithms import ExactEigensolver
+from qiskit.aqua import run_algorithm
+from qiskit.aqua.input import EnergyInput
+from qiskit.aqua.translators.ising import vertexcover
+from qiskit.aqua.algorithms import ExactEigensolver
 
 
 class TestVertexCover(QiskitAquaTestCase):

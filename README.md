@@ -42,8 +42,8 @@ $ python
 
 ```python
 >>> from qiskit import Aer
->>> from qiskit_aqua.components.oracles import SAT
->>> from qiskit_aqua.algorithms import Grover
+>>> from qiskit.aqua.components.oracles import SAT
+>>> from qiskit.aqua.algorithms import Grover
 >>> sat_cnf = """
 >>> c Example DIMACS 3-sat
 >>> p cnf 3 5
@@ -99,11 +99,11 @@ Now you're set up and ready to check out some of the other examples from the
 and [community/aqua](https://github.com/Qiskit/qiskit-tutorials/tree/master/community/aqua)
 folders of the [qiskit-tutorials GitHub Repository](https://github.com/Qiskit/qiskit-tutorials).
 
-## Authors
+## Authors and Citation
 
 Aqua was inspired, authored and brought about by the collective work of a team of researchers.
 Aqua continues to grow with the help and work of [many people](./CONTRIBUTORS.rst), who contribute
-to the project at different levels.
+to the project at different levels. If you use Qiskit, please cite as per the included [BibTex file](https://github.com/Qiskit/qiskit/blob/master/Qiskit.bib).
 
 ## License
 

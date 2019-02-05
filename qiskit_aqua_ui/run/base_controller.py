@@ -169,7 +169,13 @@ class BaseController(ABC):
             self._propertiesView.show_remove_button(False)
             self._emptyView.tkraise()
 
-            section_names = self.model.load_file(filename)
+            try:
+                self.model.load_file(filename)
+            except Exception as e:
+                self._outputView.clear()
+                messagebox.showerror("Error", str(e))
+
+            section_names = self.model.get_section_names()
             self._title.set(os.path.basename(filename))
             if len(section_names) == 0:
                 self._outputView.write_line('No sections found on file')
@@ -219,7 +225,7 @@ class BaseController(ABC):
         pass
 
     def on_property_select(self, section_name, property_name):
-        from qiskit_aqua.parser import JSONSchema
+        from qiskit.aqua.parser import JSONSchema
         _show_remove = property_name != JSONSchema.PROVIDER and property_name != JSONSchema.NAME \
             if section_name == JSONSchema.BACKEND else property_name != JSONSchema.NAME
         self._propertiesView.show_remove_button(_show_remove)

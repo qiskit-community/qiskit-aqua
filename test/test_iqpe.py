@@ -22,14 +22,14 @@ from parameterized import parameterized
 from scipy.linalg import expm
 from scipy import sparse
 from qiskit.transpiler import PassManager
-from qiskit_aqua import get_aer_backend
+from qiskit.aqua import get_aer_backend
 from qiskit.qobj import RunConfig
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import Operator, QuantumInstance
-from qiskit_aqua.utils import decimal_to_binary
-from qiskit_aqua.algorithms import IQPE
-from qiskit_aqua.algorithms import ExactEigensolver
-from qiskit_aqua.components.initial_states import Custom
+from qiskit.aqua import Operator, QuantumInstance
+from qiskit.aqua.utils import decimal_to_binary
+from qiskit.aqua.algorithms import IQPE
+from qiskit.aqua.algorithms import ExactEigensolver
+from qiskit.aqua.components.initial_states import Custom
 
 
 X = np.array([[0, 1], [1, 0]])
@@ -90,7 +90,7 @@ class TestIQPE(QiskitAquaTestCase):
         num_iterations = 6
         state_in = Custom(self.qubitOp.num_qubits, state_vector=self.ref_eigenvec)
         iqpe = IQPE(self.qubitOp, state_in, num_time_slices, num_iterations,
-                    paulis_grouping='random', expansion_mode='suzuki', expansion_order=2, shallow_circuit_concat=True)
+                    expansion_mode='suzuki', expansion_order=2, shallow_circuit_concat=True)
 
         backend = get_aer_backend(simulator)
         run_config = RunConfig(shots=100, max_credits=10, memory=False)

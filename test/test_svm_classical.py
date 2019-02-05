@@ -16,8 +16,8 @@
 # =============================================================================
 import numpy as np
 
-from qiskit_aqua import run_algorithm
-from qiskit_aqua.input import SVMInput
+from qiskit.aqua import run_algorithm
+from qiskit.aqua.input import SVMInput
 from test.common import QiskitAquaTestCase
 
 

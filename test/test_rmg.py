@@ -20,7 +20,7 @@ import unittest
 import numpy as np
 from parameterized import parameterized
 from test.common import QiskitAquaTestCase
-from qiskit_aqua.utils.random_matrix_generator import *
+from qiskit.aqua.utils.random_matrix_generator import random_unitary, random_hermitian
 
 
 class TestRandomMatrixGenerator(QiskitAquaTestCase):

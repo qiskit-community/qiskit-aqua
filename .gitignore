@@ -92,35 +92,7 @@ instance/
 
 # Sphinx documentation
 docs/_build/
-docs/*.rst
-#Allow
-!docs/qiskit-aqua.rst
-!docs/index.rst
-!docs/aqua.rst
-!docs/library.rst
-!docs/overview.rst
-!docs/installation.rst
-!docs/execution.rst
-!docs/extending.rst
-!docs/algorithms.rst
-!docs/optimizers.rst
-!docs/variational_forms.rst
-!docs/oracles.rst
-!docs/iqfts.rst
-!docs/initial_states.rst
-!docs/feature_extractions.rst
-!docs/aqua_chemistry_*.rst
-!docs/aqua_ai.rst
-!docs/aqua_optimization.rst
-!docs/aqua_tutorials.rst
-!docs/aqua_finance.rst
-!docs/qiskit_aqua_chemistry.rst
-!docs/random_distributions.rst
-!docs/uncertainty_problems.rst
-!docs/multiclass_extensions.rst
-!docs/release_history.rst
-!docs/eigs.rst
-!docs/reciprocals.rst
+
 
 # PyBuilder
 target/

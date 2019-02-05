@@ -20,7 +20,7 @@ import unittest
 import numpy as np
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua.components.initial_states import Custom
+from qiskit.aqua.components.initial_states import Custom
 
 
 class TestInitialStateCustom(QiskitAquaTestCase):

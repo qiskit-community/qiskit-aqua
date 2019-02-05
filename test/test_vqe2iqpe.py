@@ -18,18 +18,18 @@
 import unittest
 
 import numpy as np
-from qiskit_aqua import get_aer_backend
+from qiskit.aqua import get_aer_backend
 from qiskit.transpiler import PassManager
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import Operator, QuantumInstance
-from qiskit_aqua.input import EnergyInput
-from qiskit_aqua.utils import decimal_to_binary
-from qiskit_aqua.components.initial_states import VarFormBased
-from qiskit_aqua.components.variational_forms import RYRZ
-from qiskit_aqua.components.optimizers import SPSA
-from qiskit_aqua.algorithms import VQE
-from qiskit_aqua.algorithms import IQPE
+from qiskit.aqua import Operator, QuantumInstance
+from qiskit.aqua.input import EnergyInput
+from qiskit.aqua.utils import decimal_to_binary
+from qiskit.aqua.components.initial_states import VarFormBased
+from qiskit.aqua.components.variational_forms import RYRZ
+from qiskit.aqua.components.optimizers import SPSA
+from qiskit.aqua.algorithms import VQE
+from qiskit.aqua.algorithms import IQPE
 from qiskit.qobj import RunConfig
 
 
@@ -69,7 +69,7 @@ class TestVQE2IQPE(QiskitAquaTestCase):
 
         state_in = VarFormBased(var_form, result['opt_params'])
         iqpe = IQPE(self.algo_input.qubit_op, state_in, num_time_slices, num_iterations,
-                    paulis_grouping='random', expansion_mode='suzuki', expansion_order=2, shallow_circuit_concat=True)
+                    expansion_mode='suzuki', expansion_order=2, shallow_circuit_concat=True)
         run_config = RunConfig(shots=100, max_credits=10, memory=False)
         quantum_instance = QuantumInstance(backend, run_config, pass_manager=PassManager(), seed_mapper=self.random_seed)
         result = iqpe.run(quantum_instance)

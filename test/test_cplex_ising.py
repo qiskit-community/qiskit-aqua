@@ -18,10 +18,10 @@
 import numpy as np
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import run_algorithm, AquaError
-from qiskit_aqua.input import EnergyInput
-from qiskit_aqua.translators.ising import maxcut
-from qiskit_aqua.algorithms.classical.cplex.cplex_ising import CPLEX_Ising
+from qiskit.aqua import run_algorithm, AquaError
+from qiskit.aqua.input import EnergyInput
+from qiskit.aqua.translators.ising import maxcut
+from qiskit.aqua.algorithms.classical.cplex.cplex_ising import CPLEX_Ising
 
 
 class TestCplexIsing(QiskitAquaTestCase):
