@@ -136,7 +136,7 @@ class TestVQE(QiskitAquaTestCase):
 
         def store_intermediate_result(eval_count, parameters, mean, std):
             with open(self._get_resource_path(tmp_filename), 'a') as f:
-                content = "{},{},{},{}".format(eval_count, parameters, mean, std)
+                content = "{},{},{:.5f},{:.5f}".format(eval_count, parameters, mean, std)
                 print(content, file=f, flush=True)
 
         backend = get_aer_backend('qasm_simulator')
@@ -155,9 +155,9 @@ class TestVQE(QiskitAquaTestCase):
         self.assertTrue(is_file_exist, "Does not store content successfully.")
 
         # check the content
-        ref_content = [["1", "[-0.03391886 -1.70850424 -1.53640265 -0.65137839]", "-0.5962237652259321", "0.01545565198529213"],
-                       ["2", "[ 0.96608114 -1.70850424 -1.53640265 -0.65137839]", "-0.7745171296402821", "0.01692212058542837"],
-                       ["3", "[ 0.96608114 -0.70850424 -1.53640265 -0.65137839]", "-0.8032710681148246", "0.015186250019446524"]
+        ref_content = [["1", "[-0.03391886 -1.70850424 -1.53640265 -0.65137839]", "-0.59622", "0.01546"],
+                       ["2", "[ 0.96608114 -1.70850424 -1.53640265 -0.65137839]", "-0.77452", "0.01692"],
+                       ["3", "[ 0.96608114 -0.70850424 -1.53640265 -0.65137839]", "-0.80327", "0.01519"]
                        ]
         with open(self._get_resource_path(tmp_filename)) as f:
             idx = 0

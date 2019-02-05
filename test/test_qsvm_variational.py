@@ -144,7 +144,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
 
         def store_intermediate_result(eval_count, parameters, cost, batch_index):
             with open(self._get_resource_path(tmp_filename), 'a') as f:
-                content = "{},{},{},{}".format(eval_count, parameters, cost, batch_index)
+                content = "{},{},{:.5f},{}".format(eval_count, parameters, cost, batch_index)
                 print(content, file=f, flush=True)
 
         np.random.seed(self.random_seed)
@@ -167,9 +167,9 @@ class TestQSVMVariational(QiskitAquaTestCase):
 
         # check the content
         ref_content = [
-            ["0", "[ 0.18863864 -1.08197582  1.74432295  1.29765602]", "0.5336672453107415", "0"],
-            ["1", "[ 1.18863864 -1.08197582  1.74432295  1.29765602]", "0.5726063433030533", "1"],
-            ["2", "[ 0.18863864 -0.08197582  1.74432295  1.29765602]", "0.4713672138890213", "2"]
+            ["0", "[ 0.18863864 -1.08197582  1.74432295  1.29765602]", "0.53367", "0"],
+            ["1", "[ 1.18863864 -1.08197582  1.74432295  1.29765602]", "0.57261", "1"],
+            ["2", "[ 0.18863864 -0.08197582  1.74432295  1.29765602]", "0.47137", "2"]
             ]
         with open(self._get_resource_path(tmp_filename)) as f:
             idx = 0
