@@ -17,7 +17,7 @@
 """
 This module contains the definition of a base class for eigenvalue estimators.
 """
-from qiskit_aqua import Pluggable
+from qiskit.aqua import Pluggable
 from abc import abstractmethod
 
 from qiskit import QuantumCircuit
@@ -39,7 +39,8 @@ class Eigenvalues(Pluggable):
 
     @classmethod
     def init_params(cls, params):
-        args = {k: v for k, v in params.items() if k != 'name'}
+        eigs_params = params.get(Pluggable.SECTION_KEY_EIGS)
+        args = {k: v for k, v in eigs_params.items() if k != 'name'}
         return cls(**args)
     
     @abstractmethod

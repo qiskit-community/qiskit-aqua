@@ -21,7 +21,7 @@ import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.qasm import pi
 
-from qiskit_aqua.components.qfts import QFT
+from qiskit.aqua.components.qfts import QFT
 
 
 class Approximate(QFT):

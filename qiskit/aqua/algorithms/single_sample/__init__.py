@@ -33,5 +33,5 @@ __all__ = ['Grover',
            'AmplitudeEstimation',
            'Simon',
            'DeutschJozsa',
-           'BernsteinVazirani'
+           'BernsteinVazirani',
            'HHL']

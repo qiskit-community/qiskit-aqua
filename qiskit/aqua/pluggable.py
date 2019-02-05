@@ -52,6 +52,9 @@ class Pluggable(ABC):
     SECTION_KEY_MULTICLASS_EXTENSION = PluggableType.MULTICLASS_EXTENSION.value
     SECTION_KEY_UNCERTAINTY_PROBLEM = PluggableType.UNCERTAINTY_PROBLEM.value
     SECTION_KEY_UNCERTAINTY_MODEL = PluggableType.UNCERTAINTY_MODEL.value
+    SECTION_KEY_QFT = PluggableType.QFT.value
+    SECTION_KEY_EIGS = PluggableType.EIGENVALUES.value
+    SECTION_KEY_RECIPROCAL = PluggableType.RECIPROCAL.value
 
     @abstractmethod
     def __init__(self):

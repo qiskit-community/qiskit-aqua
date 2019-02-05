@@ -16,19 +16,12 @@
 # =============================================================================
 
 from qiskit import QuantumRegister, QuantumCircuit
-from qiskit_aqua.components.reciprocals import Reciprocal
+from qiskit.aqua.components.reciprocals import Reciprocal
 import numpy as np
 
 
 class LongDivision(Reciprocal):
     "Finds reciprocal with long division method and rotates the ancilla qubit"
-
-    PROP_NUM_ANCILLAE = 'num_ancillae'
-    PROP_NEGATIVE_EVALS = 'negative_evals'
-    PROP_SCALE = 'scale'
-    PROP_PRECISION = 'precision'
-    PROP_EVO_TIME = 'evo_time'
-    PROP_LAMBDA_MIN = 'lambda_min'
 
     CONFIGURATION = {
         'name': 'LongDivision',
@@ -38,35 +31,34 @@ class LongDivision(Reciprocal):
             'id': 'reciprocal_long_division_schema',
             'type': 'object',
             'properties': {
-                PROP_NUM_ANCILLAE: {
+                'num_ancillae': {
                     'type': ['integer', 'null'],
                     'default': None,
                 },
-                PROP_NEGATIVE_EVALS: {
+                'negative_evals': {
                     'type': 'boolean',
                     'default': False
                 },
-                PROP_SCALE:{
+                'scale':{
                     'type': 'number',
                     'default': 1,
                 },
-                PROP_PRECISION:{
+                'precision':{
                     'type': ['integer', 'null'],
                     'default': None,                    
                 },
-                PROP_EVO_TIME: {
+                'evo_time': {
                     'type': ['number', 'null'],
                     'default': None
                 },
-                PROP_LAMBDA_MIN: {
+                'lambda_min': {
                     'type': ['number', 'null'],
                     'default': None
                 }
-                        
             },
             'additionalProperties': False
         },
-        }
+    }
 
     def __init__(self, num_ancillae=None, scale=0, precision=None,
                  evo_time=None, lambda_min=None, negative_evals=False):
@@ -85,19 +77,6 @@ class LongDivision(Reciprocal):
         self._reg_size = 0
         self._neg_offset = 0
         self._n = 0
-        
-    @classmethod
-    def init_params(cls, params):
-        num_ancillae = params.get(LongDivision.PROP_NUM_ANCILLAE)
-        negative_evals = params.get(LongDivision.PROP_NEGATIVE_EVALS)
-        scale = params.get(LongDivision.PROP_SCALE)
-        precision = params.get(LongDivision.PROP_PRECISION)
-        evo_time = params.get(LongDivision.PROP_EVO_TIME)
-        lambda_min = params.get(LongDivision.PROP_LAMBDA_MIN)
-
-        return cls(num_ancillae=num_ancillae, negative_evals=negative_evals,
-                   scale=scale, precision=precision, evo_time=evo_time,
-                   lambda_min=lambda_min)
 
     def _ld_circuit(self):
         

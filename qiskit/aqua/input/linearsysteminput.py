@@ -15,8 +15,8 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit_aqua import AquaError
-from qiskit_aqua.input import AlgorithmInput
+from qiskit.aqua import AquaError
+from qiskit.aqua.input import AlgorithmInput
 
 import numpy as np
 

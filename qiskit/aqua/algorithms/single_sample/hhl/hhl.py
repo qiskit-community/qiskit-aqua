@@ -22,8 +22,8 @@ import logging
 import numpy as np
 
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
-from qiskit_aqua.algorithms import QuantumAlgorithm
-from qiskit_aqua import AquaError, PluggableType, get_pluggable_class
+from qiskit.aqua.algorithms import QuantumAlgorithm
+from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 import qiskit.tools.qcvv.tomography as tomo
 
 logger = logging.getLogger(__name__)
@@ -57,20 +57,27 @@ class HHL(QuantumAlgorithm):
             'additionalProperties': False
         },
         'problems': ['linear_system'],
-        'depends': ['eigs', 'reciprocal'],
-        'defaults': {
-            'eigs': {
-                'name': 'QPE',
-                'num_ancillae': 6,
-                'num_time_slices': 50,
-                'expansion_mode': 'suzuki',
-                'expansion_order': 2,
-                'qft': {'name': 'STANDARD'}
-            },
-            'reciprocal': {
-                'name': 'Lookup'
-            },
-        }
+        'depends': [
+            {'pluggable_type': 'initial_state',
+             'default': {
+                     'name': 'CUSTOM',
+                }
+             },
+            {'pluggable_type': 'eigs',
+             'default': {
+                     'name': 'QPE',
+                     'num_ancillae': 6,
+                     'num_time_slices': 50,
+                     'expansion_mode': 'suzuki',
+                     'expansion_order': 2
+                }
+             },
+            {'pluggable_type': 'reciprocal',
+             'default': {
+                     'name': 'Lookup'
+                }
+             }
+        ],
     }
 
     def __init__(self, matrix=None, vector=None, eigs=None, init_state=None,
@@ -102,6 +109,7 @@ class HHL(QuantumAlgorithm):
         """
         if algo_input is None:
             raise AquaError("LinearSystemInput instance is required.")
+
         matrix = algo_input.matrix
         vector = algo_input.vector
         if not isinstance(matrix, np.ndarray):
@@ -123,29 +131,29 @@ class HHL(QuantumAlgorithm):
             raise ValueError("Input vector dimension does not match input "
                              "matrix dimension!")
 
-        hhl_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM) or {}
+        hhl_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
         mode = hhl_params.get(HHL.PROP_MODE)
 
         # Initialize eigenvalue finding module
-        eigs_params = params.get(QuantumAlgorithm.SECTION_KEY_EIGS) or {}
+        eigs_params = params.get(Pluggable.SECTION_KEY_EIGS)
         eigs = get_pluggable_class(PluggableType.EIGENVALUES,
-                                   eigs_params['name']).init_params(eigs_params, matrix)
+                                   eigs_params['name']).init_params(params, matrix)
         num_q, num_a = eigs.get_register_sizes()
 
         # Initialize initial state module
         tmpvec = vector
-        init_state_params = {"name": "CUSTOM"}
+        init_state_params = params.get(Pluggable.SECTION_KEY_INITIAL_STATE)
         init_state_params["num_qubits"] = num_q
         init_state_params["state_vector"] = tmpvec
         init_state = get_pluggable_class(PluggableType.INITIAL_STATE,
-                                         init_state_params['name']).init_params(init_state_params)
+                                         init_state_params['name']).init_params(params)
 
         # Initialize reciprocal rotation module
-        reciprocal_params = params.get(QuantumAlgorithm.SECTION_KEY_RECIPROCAL) or {}
+        reciprocal_params = params.get(Pluggable.SECTION_KEY_RECIPROCAL)
         reciprocal_params["negative_evals"] = eigs._negative_evals
         reciprocal_params["evo_time"] = eigs._evo_time
         reci = get_pluggable_class(PluggableType.RECIPROCAL,
-                                   reciprocal_params['name']).init_params(reciprocal_params)
+                                   reciprocal_params['name']).init_params(params)
 
         return cls(matrix, vector, eigs, init_state, reci, mode, num_q, num_a)
 

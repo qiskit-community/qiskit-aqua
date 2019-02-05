@@ -21,9 +21,9 @@ import numpy as np
 from numpy.random import random
 from parameterized import parameterized
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import run_algorithm
-from qiskit_aqua.input import LinearSystemInput
-from qiskit_aqua.utils import random_matrix_generator as rmg
+from qiskit.aqua import run_algorithm
+from qiskit.aqua.input import LinearSystemInput
+from qiskit.aqua.utils import random_matrix_generator as rmg
 
 class TestHHL(QiskitAquaTestCase):
     """HHL tests."""
@@ -32,35 +32,31 @@ class TestHHL(QiskitAquaTestCase):
         super(TestHHL, self).setUp()
         np.random.seed(0)
         self.params = {
-            "problem": {
-                "name": "linear_system",
+            'problem': {
+                'name': 'linear_system',
             },
-            "algorithm": {
-                "mode": "evaluate",
-                "name": "HHL"
+            'algorithm': {
+                'mode': 'evaluate',
+                'name': 'HHL'
             },
-            "eigs": {
-                "expansion_mode": "suzuki",
-                "expansion_order": 2,
-                "hermitian_matrix": "true",
-                "iqft": {
-                    "name": "STANDARD"
-                },
-                "name": "QPE",
-                "negative_evals": "false",
-                "num_ancillae": 3,
-                "num_time_slices": 50,
-                "paulis_grouping": "random",
-                "use_basis_gates": "true"
+            'eigs': {
+                'expansion_mode': 'suzuki',
+                'expansion_order': 2,
+                'hermitian_matrix': True,
+                'name': 'QPE',
+                'negative_evals': False,
+                'num_ancillae': 3,
+                'num_time_slices': 50,
+                'use_basis_gates': True
             },
-            "reciprocal": {
-                "name": "Lookup",
-                "negative_evals": "false",
-                "scale": 0.0
+            'reciprocal': {
+                'name': 'Lookup',
+                'negative_evals': False,
+                'scale': 0.0
             },
-            "backend": {
-                "name": "statevector_simulator",
-                "skip_transpiler": "false"
+            'backend': {
+                'name': 'statevector_simulator',
+                'skip_transpiler': False
             }
         }
 
@@ -70,15 +66,15 @@ class TestHHL(QiskitAquaTestCase):
                        'statevector simulator')
 
         matrix = [[1, 0], [0, 1]]
-        self.params["input"] = {
-            "name": "LinearSystemInput",
-            "matrix": matrix,
-            "vector": vector
+        self.params['input'] = {
+            'name': 'LinearSystemInput',
+            'matrix': matrix,
+            'vector': vector
         }
 
         # run hhl
         result = run_algorithm(self.params)
-        hhl_solution = result["solution_hhl"]
+        hhl_solution = result['solution_hhl']
         hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
         # linear algebra solution
         linalg_solution = np.linalg.solve(matrix, vector)
@@ -101,14 +97,14 @@ class TestHHL(QiskitAquaTestCase):
 
         neg_params = self.params
         matrix = [[1, 0], [0, 1]]
-        neg_params["input"] = {
-            "name": "LinearSystemInput",
-            "matrix": matrix,
-            "vector": vector
+        neg_params['input'] = {
+            'name': 'LinearSystemInput',
+            'matrix': matrix,
+            'vector': vector
         }
-        neg_params["eigs"]["negative_evals"] = "true"
-        neg_params["reciprocal"]["negative_evals"] = "true"
-        neg_params["eigs"]["num_ancillae"] = 4
+        neg_params['eigs']['negative_evals'] = True
+        neg_params['reciprocal']['negative_evals'] = True
+        neg_params['eigs']['num_ancillae'] = 4
 
         # run hhl
         result = run_algorithm(neg_params)
@@ -135,13 +131,13 @@ class TestHHL(QiskitAquaTestCase):
 
         ld_params = self.params
         matrix = [[1, 0], [0, 1]]
-        ld_params["input"] = {
-            "name": "LinearSystemInput",
-            "matrix": matrix,
-            "vector": vector
+        ld_params['input'] = {
+            'name': 'LinearSystemInput',
+            'matrix': matrix,
+            'vector': vector
         }
-        ld_params["reciprocal"]["name"] = "LongDivision"
-        ld_params["reciprocal"]["scale"] = 1.0
+        ld_params['reciprocal']['name'] = 'LongDivision'
+        ld_params['reciprocal']['scale'] = 1.0
 
         # run hhl
         result = run_algorithm(ld_params)
@@ -167,13 +163,13 @@ class TestHHL(QiskitAquaTestCase):
 
         qasm_params = self.params
         matrix = [[1, 0], [0, 1]]
-        qasm_params["input"] = {
-            "name": "LinearSystemInput",
-            "matrix": matrix,
-            "vector": vector
+        qasm_params['input'] = {
+            'name': 'LinearSystemInput',
+            'matrix': matrix,
+            'vector': vector
         }
-        qasm_params["backend"]["name"] = "qasm_simulator"
-        qasm_params["backend"]["shots"] = 200
+        qasm_params['backend']['name'] = 'qasm_simulator'
+        qasm_params['backend']['shots'] = 200
 
         # run hhl
         result = run_algorithm(qasm_params)
@@ -199,17 +195,17 @@ class TestHHL(QiskitAquaTestCase):
         circ_params = self.params
         matrix = [[1, 0], [0, 3]]
         vector = [1, 0]
-        circ_params["input"] = {
-            "name": "LinearSystemInput",
-            "matrix": matrix,
-            "vector": vector
+        circ_params['input'] = {
+            'name': 'LinearSystemInput',
+            'matrix': matrix,
+            'vector': vector
         }
-        circ_params["algorithm"]["mode"] = "circuit"
+        circ_params['algorithm']['mode'] = 'circuit'
 
         # run hhl
         result = run_algorithm(circ_params)
         gate_count = result["gate_count_total"]
-        self.assertEqual(gate_count, 12658)
+        self.assertEqual(gate_count, 12378)
 
         self.log.debug('HHL total gate count:       {}'.format(gate_count))
 
@@ -222,17 +218,17 @@ class TestHHL(QiskitAquaTestCase):
                   [0, 0, 0, 0, 5, 0, 0, 0], [0, 0, 0, 0, 0, 6, 0, 0],
                   [0, 0, 0, 0, 0, 0, 7, 0], [0, 0, 0, 0, 0, 0, 0, 8]]
         vector = [1, 0, 1, 0, 1, 0, 1, 0]
-        circ_params["input"] = {
-            "name": "LinearSystemInput",
-            "matrix": matrix,
-            "vector": vector
+        circ_params['input'] = {
+            'name': 'LinearSystemInput',
+            'matrix': matrix,
+            'vector': vector
         }
-        circ_params["algorithm"]["mode"] = "circuit"
+        circ_params['algorithm']['mode'] = 'circuit'
 
         # run hhl
         result = run_algorithm(circ_params)
         gate_count = result["gate_count_total"]
-        self.assertEqual(gate_count, 36668)
+        self.assertEqual(gate_count, 36388)
 
         self.log.debug('HHL total gate count:       {}'.format(gate_count))
 
@@ -240,9 +236,9 @@ class TestHHL(QiskitAquaTestCase):
         self.log.debug('Testing HHL with matrix with negative eigenvalues')
 
         neg_params = self.params
-        neg_params["eigs"]["num_ancillae"] = 4
-        neg_params["eigs"]["negative_evals"] = "true"
-        neg_params["reciprocal"]["negative_evals"] = "true"
+        neg_params['eigs']['num_ancillae'] = 4
+        neg_params['eigs']['negative_evals'] = True
+        neg_params['reciprocal']['negative_evals'] = True
 
         n = 2
         matrix = rmg.random_diag(n, eigrange=[-1, 1])
@@ -274,7 +270,7 @@ class TestHHL(QiskitAquaTestCase):
         self.log.debug('Testing HHL with random hermitian matrix')
 
         hermitian_params = self.params
-        hermitian_params["eigs"]["num_ancillae"] = 4
+        hermitian_params['eigs']['num_ancillae'] = 4
 
         n = 2
         matrix = rmg.random_hermitian(n, eigrange=[0, 1])

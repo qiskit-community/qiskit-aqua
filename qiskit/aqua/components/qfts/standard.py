@@ -20,7 +20,7 @@ import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.qasm import pi
 
-from qiskit_aqua.components.qfts import QFT
+from qiskit.aqua.components.qfts import QFT
 
 class Standard(QFT):
     """A normal standard QFT."""
@@ -39,7 +39,11 @@ class Standard(QFT):
     }
 
     def __init__(self, num_qubits):
-        self.validate(locals())
+        """Constructor.
+
+        Args:
+            num_qubits (int): number of qubits.
+        """
         super().__init__()
         self._num_qubits = num_qubits
 

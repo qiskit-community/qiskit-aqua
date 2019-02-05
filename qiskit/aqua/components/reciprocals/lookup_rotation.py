@@ -21,7 +21,7 @@ import itertools
 import logging
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
-from qiskit_aqua.components.reciprocals import Reciprocal
+from qiskit.aqua.components.reciprocals import Reciprocal
 
 logger = logging.getLogger(__name__)
 
@@ -34,13 +34,6 @@ class LookupRotation(Reciprocal):
         method.
     """
 
-    PROP_PAT_LENGTH = 'pat_length'
-    PROP_SUBPAT_LENGTH = 'subpat_length'
-    PROP_NEGATIVE_EVALS = 'negative_evals'
-    PROP_SCALE = 'scale'
-    PROP_EVO_TIME = 'evo_time'
-    PROP_LAMBDA_MIN = 'lambda_min'
-
     CONFIGURATION = {
         'name': 'Lookup',
         'description': 'approximate inversion for HHL based on table lookup',
@@ -49,29 +42,29 @@ class LookupRotation(Reciprocal):
             'id': 'reciprocal_lookup_schema',
             'type': 'object',
             'properties': {
-                PROP_PAT_LENGTH: {
+                'pat_length': {
                     'type': ['integer', 'null'],
                     'default': None,
                 },
-                PROP_SUBPAT_LENGTH: {
+                'subpat_length': {
                     'type': ['integer', 'null'],
                     'default': None,
                 },
-                PROP_NEGATIVE_EVALS: {
+                'negative_evals': {
                     'type': 'boolean',
                     'default': False
                 },
-                PROP_SCALE: {
+                'scale': {
                     'type': 'number',
                     'default': 0,
                     'minimum': 0,
                     'maximum': 1,
                 },
-                PROP_EVO_TIME: {
+                'evo_time': {
                     'type': ['number', 'null'],
                     'default': None
                 },
-                PROP_LAMBDA_MIN: {
+                'lambda_min': {
                     'type': ['number', 'null'],
                     'default': None
                 }
@@ -96,19 +89,6 @@ class LookupRotation(Reciprocal):
         self._ev = None
         self._circuit = None
         self._reg_size = 0
-
-    @classmethod
-    def init_params(cls, params):
-        pat_length = params.get(LookupRotation.PROP_PAT_LENGTH)
-        subpat_length = params.get(LookupRotation.PROP_SUBPAT_LENGTH)
-        scale = params.get(LookupRotation.PROP_SCALE)
-        negative_evals = params.get(LookupRotation.PROP_NEGATIVE_EVALS)
-        evo_time = params.get(LookupRotation.PROP_EVO_TIME)
-        lambda_min = params.get(LookupRotation.PROP_LAMBDA_MIN)
-
-        return cls(pat_length=pat_length, subpat_length=subpat_length,
-                   scale=scale, negative_evals=negative_evals,
-                   evo_time=evo_time, lambda_min=lambda_min)
 
     @staticmethod
     def classic_approx(k, n, m, negative_evals=False):
