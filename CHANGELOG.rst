@@ -25,7 +25,7 @@ Added
 -----
 
 - Optimizers now have most relevant options on constructor for ease of programming. Options may still be set via set_options.
-- Provider is now explicilty named and the named backend is created from that named provider. Backend being selected from the first of the internally known set of providers is deprecated.
+- Provider is now explicitly named and the named backend is created from that named provider. Backend being selected from the first of the internally known set of providers is deprecated.
 - Improve operation with Aer provider/backends.
 - Registration to Aqua of externally provided pluggable algorithms and components altered to setuptools entry point support for plugins. The prior registration mechanism has been removed.
 - A flag ``before_04`` in the ``load_from_dict(file)`` method is added to support to load operator in the old format. We encourage to save the operator in the new format from now on.
