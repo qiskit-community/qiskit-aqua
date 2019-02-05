@@ -135,7 +135,6 @@ class TestQSVMVariational(QiskitAquaTestCase):
             except:
                 pass
 
-
     def test_qsvm_variational_callback(self):
 
         tmp_filename = 'qsvm_callback_test.csv'
@@ -143,9 +142,9 @@ class TestQSVMVariational(QiskitAquaTestCase):
         if is_file_exist:
             os.remove(self._get_resource_path(tmp_filename))
 
-        def store_intermediate_result(batch_index, eval_count, parameters, cost):
+        def store_intermediate_result(eval_count, parameters, cost, batch_index):
             with open(self._get_resource_path(tmp_filename), 'a') as f:
-                content = "{},{},{},{}".format(batch_index, eval_count, parameters, cost)
+                content = "{},{},{},{}".format(eval_count, parameters, cost, batch_index)
                 print(content, file=f, flush=True)
 
         np.random.seed(self.random_seed)
@@ -168,18 +167,18 @@ class TestQSVMVariational(QiskitAquaTestCase):
 
         # check the content
         ref_content = [
-            ["0", "0", "[ 0.18863864 -1.08197582  1.74432295  1.29765602]", "0.5336672453107415"],
-            ["1", "1", "[ 1.18863864 -1.08197582  1.74432295  1.29765602]", "0.5726063433030533"],
-            ["2", "2", "[ 0.18863864 -0.08197582  1.74432295  1.29765602]", "0.4713672138890213"]
+            ["0", "[ 0.18863864 -1.08197582  1.74432295  1.29765602]", "0.5336672453107415", "0"],
+            ["1", "[ 1.18863864 -1.08197582  1.74432295  1.29765602]", "0.5726063433030533", "1"],
+            ["2", "[ 0.18863864 -0.08197582  1.74432295  1.29765602]", "0.4713672138890213", "2"]
             ]
         with open(self._get_resource_path(tmp_filename)) as f:
             idx = 0
             for record in f.readlines():
-                batch_index, eval_count, parameters, cost = record.split(",")
-                self.assertEqual(batch_index.strip(), ref_content[idx][0])
-                self.assertEqual(eval_count.strip(), ref_content[idx][1])
-                self.assertEqual(parameters, ref_content[idx][2])
-                self.assertEqual(cost.strip(), ref_content[idx][3])
+                eval_count, parameters, cost, batch_index = record.split(",")
+                self.assertEqual(eval_count.strip(), ref_content[idx][0])
+                self.assertEqual(parameters, ref_content[idx][1])
+                self.assertEqual(cost.strip(), ref_content[idx][2])
+                self.assertEqual(batch_index.strip(), ref_content[idx][3])
                 idx += 1
         if is_file_exist:
             os.remove(self._get_resource_path(tmp_filename))

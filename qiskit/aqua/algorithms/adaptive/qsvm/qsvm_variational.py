@@ -57,23 +57,26 @@ class QSVMVariational(QuantumAlgorithm):
         },
         'problems': ['svm_classification'],
         'depends': [
-            {'pluggable_type': 'optimizer',
-             'default': {
-                 'name': 'SPSA'
-             },
-             },
-            {'pluggable_type': 'feature_map',
-             'default': {
-                 'name': 'SecondOrderExpansion',
-                 'depth': 2
-             },
-             },
-            {'pluggable_type': 'variational_form',
-             'default': {
-                 'name': 'RYRZ',
-                 'depth': 3
-             },
-             },
+            {
+                'pluggable_type': 'optimizer',
+                'default': {
+                    'name': 'SPSA'
+                },
+            },
+            {
+                'pluggable_type': 'feature_map',
+                'default': {
+                    'name': 'SecondOrderExpansion',
+                    'depth': 2
+                },
+            },
+            {
+                'pluggable_type': 'variational_form',
+                'default': {
+                    'name': 'RYRZ',
+                    'depth': 3
+                },
+            },
         ],
     }
 
@@ -289,9 +292,10 @@ class QSVMVariational(QuantumAlgorithm):
                 curr_cost = self._cost_function(predicted_probs[i], label_batches[batch_index])
                 total_cost.append(curr_cost)
                 if self._callback is not None:
-                    self._callback(self._batch_index, self._eval_count,
+                    self._callback(self._eval_count,
                                    theta[i * self._var_form.num_parameters:(i + 1) * self._var_form.num_parameters],
-                                   curr_cost)
+                                   curr_cost,
+                                   self._batch_index)
                 self._eval_count += 1
 
             self._batch_index += 1
