@@ -47,6 +47,7 @@ class Pluggable(ABC):
     SECTION_KEY_VAR_FORM = PluggableType.VARIATIONAL_FORM.value
     SECTION_KEY_INITIAL_STATE = PluggableType.INITIAL_STATE.value
     SECTION_KEY_IQFT = PluggableType.IQFT.value
+    SECTION_KEY_QFT = PluggableType.QFT.value
     SECTION_KEY_ORACLE = PluggableType.ORACLE.value
     SECTION_KEY_FEATURE_MAP = PluggableType.FEATURE_MAP.value
     SECTION_KEY_MULTICLASS_EXTENSION = PluggableType.MULTICLASS_EXTENSION.value
