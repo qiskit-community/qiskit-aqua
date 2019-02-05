@@ -36,6 +36,7 @@ from .circuit_factory import CircuitFactory
 from .run_circuits import compile_and_run_circuits, find_regs_by_name
 from .circuit_cache import CircuitCache
 from .boolean_logic import CNF, DNF
+from .backend_utils import has_ibmq, has_aer
 
 
 __all__ = ['tensorproduct',
@@ -68,4 +69,6 @@ __all__ = ['tensorproduct',
            'CircuitCache',
            'CNF',
            'DNF',
+           'has_ibmq',
+           'has_aer'
            ]
