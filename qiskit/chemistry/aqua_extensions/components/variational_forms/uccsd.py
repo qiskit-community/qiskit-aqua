@@ -21,6 +21,9 @@ For more information, see https://arxiv.org/abs/1805.04340
 """
 
 import logging
+import concurrent.futures
+import psutil
+
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 
@@ -89,18 +92,20 @@ class UCCSD(VariationalForm):
             'additionalProperties': False
         },
         'depends': [
-            {'pluggable_type': 'initial_state',
-             'default': {
-                     'name': 'HartreeFock',
+            {
+                'pluggable_type': 'initial_state',
+                'default': {
+                    'name': 'HartreeFock',
                 }
-             },
+            },
         ],
     }
 
     def __init__(self, num_qubits, depth, num_orbitals, num_particles,
                  active_occupied=None, active_unoccupied=None, initial_state=None,
                  qubit_mapping='parity', two_qubit_reduction=False, num_time_slices=1,
-                 cliffords=None, sq_list=None, tapering_values=None, symmetries=None):
+                 cliffords=None, sq_list=None, tapering_values=None, symmetries=None,
+                 shallow_circuit_concat=True):
         """Constructor.
 
         Args:
@@ -119,6 +124,7 @@ class UCCSD(VariationalForm):
             tapering_values ([int]): array of +/- 1 used to select the subspace. Length
                                     has to be equal to the length of cliffords and sq_list
             symmetries ([Pauli]): represent the Z2 symmetries
+            shallow_circuit_concat (bool): indicate whether to use shallow (cheap) mode for circuit concatenation
         """
         self.validate(locals())
         super().__init__()
@@ -149,6 +155,7 @@ class UCCSD(VariationalForm):
         self._qubit_mapping = qubit_mapping
         self._two_qubit_reduction = two_qubit_reduction
         self._num_time_slices = num_time_slices
+        self._shallow_circuit_concat = shallow_circuit_concat
 
         self._single_excitations, self._double_excitations = \
             UCCSD.compute_excitation_lists(num_particles, num_orbitals,
@@ -158,34 +165,36 @@ class UCCSD(VariationalForm):
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
     def _build_hopping_operators(self):
-
+        from .uccsd import UCCSD
         hopping_ops = {}
-        for s_e_qubits in self._single_excitations:
-            qubit_op = self._build_hopping_operator(s_e_qubits)
-            hopping_ops['_'.join([str(x) for x in s_e_qubits])] = qubit_op
-
-        for d_e_qubits in self._double_excitations:
-            qubit_op = self._build_hopping_operator(d_e_qubits)
-            hopping_ops['_'.join([str(x) for x in d_e_qubits])] = qubit_op
+        max_workers = psutil.cpu_count()
+        with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
+            futures = [executor.submit(UCCSD._build_hopping_operator,
+                                       index, self._num_orbitals, self._num_particles,
+                                       self._qubit_mapping, self._two_qubit_reduction, self._qubit_tapering,
+                                       self._symmetries, self._cliffords, self._sq_list, self._tapering_values
+                                       )
+                       for index in self._single_excitations + self._double_excitations]
+            for future in concurrent.futures.as_completed(futures):
+                index, qubit_op = future.result()
+                hopping_ops['_'.join([str(x) for x in index])] = qubit_op
 
         # count the number of parameters
-        num_parmaeters = len([1 for k, v in hopping_ops.items() if v is not None]) * self._depth
-        return hopping_ops, num_parmaeters
+        num_parameters = len([1 for k, v in hopping_ops.items() if v is not None]) * self._depth
+        return hopping_ops, num_parameters
 
-    def _build_hopping_operator(self, index):
+    @staticmethod
+    def _build_hopping_operator(index, num_orbitals, num_particles, qubit_mapping,
+                                two_qubit_reduction, qubit_tapering, symmetries,
+                                cliffords, sq_list, tapering_values):
 
         def check_commutativity(op_1, op_2):
             com = op_1 * op_2 - op_2 * op_1
             com.zeros_coeff_elimination()
             return True if com.is_empty() else False
 
-        two_d_zeros = np.zeros((self._num_orbitals, self._num_orbitals))
-        four_d_zeros = np.zeros((self._num_orbitals, self._num_orbitals,
-                                 self._num_orbitals, self._num_orbitals))
-
-        dummpy_fer_op = FermionicOperator(h1=two_d_zeros, h2=four_d_zeros)
-        h1 = two_d_zeros.copy()
-        h2 = four_d_zeros.copy()
+        h1 = np.zeros((num_orbitals, num_orbitals))
+        h2 = np.zeros((num_orbitals, num_orbitals, num_orbitals, num_orbitals))
         if len(index) == 2:
             i, j = index
             h1[i, j] = 1.0
@@ -194,31 +203,30 @@ class UCCSD(VariationalForm):
             i, j, k, m = index
             h2[i, j, k, m] = 1.0
             h2[m, k, j, i] = -1.0
-        dummpy_fer_op.h1 = h1
-        dummpy_fer_op.h2 = h2
 
-        qubit_op = dummpy_fer_op.mapping(self._qubit_mapping)
-        qubit_op = qubit_op.two_qubit_reduced_operator(
-            self._num_particles) if self._two_qubit_reduction else qubit_op
+        dummpy_fer_op = FermionicOperator(h1=h1, h2=h2)
+        qubit_op = dummpy_fer_op.mapping(qubit_mapping, num_workers=1)
+        qubit_op = qubit_op.two_qubit_reduced_operator(num_particles) \
+            if two_qubit_reduction else qubit_op
 
-        if self._qubit_tapering:
-            for symmetry in self._symmetries:
+        if qubit_tapering:
+            for symmetry in symmetries:
                 symmetry_op = Operator(paulis=[[1.0, symmetry]])
                 symm_commuting = check_commutativity(symmetry_op, qubit_op)
                 if not symm_commuting:
                     break
 
-        if self._qubit_tapering:
+        if qubit_tapering:
             if symm_commuting:
-                qubit_op = Operator.qubit_tapering(qubit_op, self._cliffords,
-                                                   self._sq_list, self._tapering_values)
+                qubit_op = Operator.qubit_tapering(qubit_op, cliffords,
+                                                   sq_list, tapering_values)
             else:
                 qubit_op = None
 
         if qubit_op is None:
             logger.debug('excitation ({}) is skipped since it is not commuted '
                          'with symmetries'.format(','.join([str(x) for x in index])))
-        return qubit_op
+        return index, qubit_op
 
     def construct_circuit(self, parameters, q=None):
         """
@@ -234,6 +242,7 @@ class UCCSD(VariationalForm):
         Raises:
             ValueError: the number of parameters is incorrect.
         """
+        from .uccsd import UCCSD
         if len(parameters) != self._num_parameters:
             raise ValueError('The number of parameters has to be {}'.format(self._num_parameters))
 
@@ -245,23 +254,32 @@ class UCCSD(VariationalForm):
             circuit = QuantumCircuit(q)
 
         param_idx = 0
+        max_workers = psutil.cpu_count()
+        with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
+            futures = []
+            for d in range(self._depth):
+                for index in self._single_excitations + self._double_excitations:
+                    qubit_op = self._hopping_ops['_'.join([str(x) for x in index])]
+                    if qubit_op is not None:
+                        future = executor.submit(UCCSD._construct_circuit_for_one_excited_operator,
+                                                 parameters[param_idx], qubit_op, q, self._num_time_slices)
+                        futures.append(future)
+                        param_idx += 1
 
-        for d in range(self._depth):
-            for s_e_qubits in self._single_excitations:
-                qubit_op = self._hopping_ops['_'.join([str(x) for x in s_e_qubits])]
-                if qubit_op is not None:
-                    circuit.extend(qubit_op.evolve(None, parameters[param_idx] * -1j,
-                                                   'circuit', self._num_time_slices, q))
-                    param_idx += 1
-
-            for d_e_qubits in self._double_excitations:
-                qubit_op = self._hopping_ops['_'.join([str(x) for x in d_e_qubits])]
-                if qubit_op is not None:
-                    circuit.extend(qubit_op.evolve(None, parameters[param_idx] * -1j,
-                                                   'circuit', self._num_time_slices, q))
-                    param_idx += 1
+            # order matters
+            for future in futures:
+                qc = future.result()
+                if self._shallow_circuit_concat:
+                    circuit.data += qc.data
+                else:
+                    circuit += qc
 
         return circuit
+
+    @staticmethod
+    def _construct_circuit_for_one_excited_operator(param, qubit_op, qr, num_time_slices):
+        qc = qubit_op.evolve(None, param * -1j, 'circuit', num_time_slices, qr)
+        return qc
 
     @property
     def preferred_init_points(self):
@@ -358,7 +376,7 @@ class UCCSD(VariationalForm):
                             double_excitations.append([occ_beta, unocc_beta,
                                                        occ_beta_1, unocc_beta_1])
 
-        logger.debug('single_excitations {}'.format(single_excitations))
-        logger.debug('double_excitations {}'.format(double_excitations))
+        logger.debug('single_excitations ({}) {}'.format(len(single_excitations), single_excitations))
+        logger.debug('double_excitations ({}) {}'.format(len(double_excitations), double_excitations))
 
         return single_excitations, double_excitations
