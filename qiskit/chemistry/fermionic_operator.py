@@ -343,26 +343,36 @@ class FermionicOperator(object):
         """
         max_workers = min(num_workers, multiprocessing.cpu_count())
         pauli_list = Operator(paulis=[])
-        with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
-            # One-body
-            futures = [executor.submit(FermionicOperator._one_body_mapping,
-                                       self._h1[i, j], a[i], a[j], threshold)
-                       for i, j in itertools.product(range(n), repeat=2) if self._h1[i, j] != 0]
-
-            for future in futures:
-                result = future.result()
-                pauli_list += result
+        if max_workers == 1:
+            for i, j in itertools.product(range(n), repeat=2):
+                if self._h1[i, j] != 0:
+                    pauli_list += FermionicOperator._one_body_mapping(self._h1[i, j], a[i], a[j], threshold)
             pauli_list.chop(threshold=threshold)
-
-            # Two-body
-            futures = [executor.submit(FermionicOperator._two_body_mapping,
-                                       self._h2[i, j, k, m], a[i], a[j], a[k], a[m], threshold)
-                       for i, j, k, m in itertools.product(range(n), repeat=4)
-                       if self._h2[i, j, k, m] != 0]
-            for future in futures:
-                result = future.result()
-                pauli_list += result
+            for i, j, k, m in itertools.product(range(n), repeat=4):
+                if self._h2[i, j, k, m] != 0:
+                    pauli_list += FermionicOperator._two_body_mapping(self._h2[i, j, k, m], a[i], a[j], a[k], a[m], threshold)
             pauli_list.chop(threshold=threshold)
+        else:
+            with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
+                # One-body
+                futures = [executor.submit(FermionicOperator._one_body_mapping,
+                                           self._h1[i, j], a[i], a[j], threshold)
+                           for i, j in itertools.product(range(n), repeat=2) if self._h1[i, j] != 0]
+
+                for future in futures:
+                    result = future.result()
+                    pauli_list += result
+                pauli_list.chop(threshold=threshold)
+
+                # Two-body
+                futures = [executor.submit(FermionicOperator._two_body_mapping,
+                                           self._h2[i, j, k, m], a[i], a[j], a[k], a[m], threshold)
+                           for i, j, k, m in itertools.product(range(n), repeat=4)
+                           if self._h2[i, j, k, m] != 0]
+                for future in futures:
+                    result = future.result()
+                    pauli_list += result
+                pauli_list.chop(threshold=threshold)
 
         if self._ph_trans_shift is not None:
             pauli_term = [self._ph_trans_shift, Pauli.from_label('I' * self._modes)]
