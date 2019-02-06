@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 DRIVERS_ENTRY_POINT = 'qiskit.chemistry.drivers'
 
-_NAMES_TO_EXCLUDE = ['_discover_driver']
+_NAMES_TO_EXCLUDE = [os.path.basename(__file__)]
 
 _FOLDERS_TO_EXCLUDE = ['__pycache__']
 
@@ -81,7 +81,7 @@ def _discover_entry_point_chemistry_drivers():
         try:
             ep = entry_point.load()
             _registered = False
-            if issubclass(ep, BaseDriver):
+            if not inspect.isabstract(ep) and issubclass(ep, BaseDriver):
                 _register_driver(ep)
                 _registered = True
                 # print("Registered entry point chemistry driver '{}' class '{}'".format(entry_point, ep))
@@ -115,7 +115,9 @@ def _discover_local_drivers_in_dirs(directory,
                 for _, cls in inspect.getmembers(mod, inspect.isclass):
                     # Iterate through the classes defined on the module.
                     try:
-                        if cls.__module__ == modspec.name and issubclass(cls, BaseDriver):
+                        if cls.__module__ == modspec.name and \
+                           not inspect.isabstract(cls) and \
+                           issubclass(cls, BaseDriver):
                             _register_driver(cls)
                             importlib.import_module(fullname)
                     except Exception as e:
