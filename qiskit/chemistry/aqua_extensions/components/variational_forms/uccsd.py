@@ -167,6 +167,7 @@ class UCCSD(VariationalForm):
     def _build_hopping_operators(self):
         from .uccsd import UCCSD
         hopping_ops = {}
+        total_excitations = len(self._single_excitations + self._double_excitations)
         max_workers = psutil.cpu_count()
         with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
             futures = [executor.submit(UCCSD._build_hopping_operator,
@@ -175,9 +176,12 @@ class UCCSD(VariationalForm):
                                        self._symmetries, self._cliffords, self._sq_list, self._tapering_values
                                        )
                        for index in self._single_excitations + self._double_excitations]
+            count = 1
             for future in concurrent.futures.as_completed(futures):
                 index, qubit_op = future.result()
                 hopping_ops['_'.join([str(x) for x in index])] = qubit_op
+                logger.debug("[Building hopping operators] Progress: {}/{}".format(count, total_excitations))
+                count += 1
 
         # count the number of parameters
         num_parameters = len([1 for k, v in hopping_ops.items() if v is not None]) * self._depth
@@ -224,7 +228,7 @@ class UCCSD(VariationalForm):
                 qubit_op = None
 
         if qubit_op is None:
-            logger.debug('excitation ({}) is skipped since it is not commuted '
+            logger.debug('Excitation ({}) is skipped since it is not commuted '
                          'with symmetries'.format(','.join([str(x) for x in index])))
         return index, qubit_op
 
@@ -267,12 +271,15 @@ class UCCSD(VariationalForm):
                         param_idx += 1
 
             # order matters
+            count = 1
             for future in futures:
                 qc = future.result()
                 if self._shallow_circuit_concat:
                     circuit.data += qc.data
                 else:
                     circuit += qc
+                logger.debug("[Evolving hopping operators] Progress: {}/{}".format(count, self._num_parameters))
+                count += 1
 
         return circuit
 
