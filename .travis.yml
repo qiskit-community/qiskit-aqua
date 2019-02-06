@@ -59,7 +59,8 @@ before_install:
    
 # Test 
 install:
-    - pip install -U -r requirements.txt
+    # install Chemistry and dev requirements
+    - pip install -e $TRAVIS_BUILD_DIR
     - pip install -U -r requirements-dev.txt
     - pip install pyscf
 script:
