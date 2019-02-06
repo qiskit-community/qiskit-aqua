@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 
 OPERATORS_ENTRY_POINT = 'qiskit.chemistry.operators'
 
-_NAMES_TO_EXCLUDE = ['_discover_chemoperator']
+_NAMES_TO_EXCLUDE = [os.path.basename(__file__)]
 
 _FOLDERS_TO_EXCLUDE = ['__pycache__']
 
@@ -87,7 +87,7 @@ def _discover_entry_point_chemistry_operators():
         try:
             ep = entry_point.load()
             _registered = False
-            if issubclass(ep, ChemistryOperator):
+            if not inspect.isabstract(ep) and issubclass(ep, ChemistryOperator):
                 register_chemistry_operator(ep)
                 _registered = True
                 # print("Registered entry point chemistry operator '{}' class '{}'".format(entry_point, ep))
@@ -121,7 +121,9 @@ def _discover_local_chemistry_operators_in_dirs(directory,
                 for _, cls in inspect.getmembers(mod, inspect.isclass):
                     # Iterate through the classes defined on the module.
                     try:
-                        if cls.__module__ == modspec.name and issubclass(cls, ChemistryOperator):
+                        if cls.__module__ == modspec.name and \
+                           not inspect.isabstract(cls) and \
+                           issubclass(cls, ChemistryOperator):
                             _register_chemistry_operator(cls)
                             importlib.import_module(fullname)
                     except Exception as e:
