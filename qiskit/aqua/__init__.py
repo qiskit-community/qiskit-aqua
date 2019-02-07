@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-
 """Algorithm discovery methods, Error and Base classes"""
 
 from .aqua_error import AquaError
@@ -39,6 +38,7 @@ from .pluggable import Pluggable
 from .utils.mct import mct
 from .utils.mcu1 import mcu1
 from .utils.mcu3 import mcu3
+from .utils.mcmt import mcmt
 from .quantum_instance import QuantumInstance
 from .operator import Operator
 from .algorithms import QuantumAlgorithm
@@ -72,6 +72,7 @@ __all__ = ['AquaError',
            'mct',
            'mcu1',
            'mcu3',
+           'mcmt',
            'local_pluggables_types',
            'local_pluggables',
            'get_pluggable_class',
