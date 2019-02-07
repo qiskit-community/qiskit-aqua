@@ -171,7 +171,7 @@ class CNF(BooleanLogicNormalForm):
             mct_mode=mct_mode
         )
 
-        # init all clause qubits to 1:
+        # init all clause qubits to 1
         circuit.u3(pi, 0, pi, self._qr_clause)
 
         # build all clauses
@@ -185,9 +185,13 @@ class CNF(BooleanLogicNormalForm):
             [self._qr_ancilla[i] for i in range(len(self._qr_ancilla))] if self._qr_ancilla else [],
             mode=mct_mode
         )
-        # clean up
+
+        # uncompute all clauses
         for clause_index, clause_expr in reversed(list(enumerate(self._expr))):
             _or(clause_expr, clause_index, circuit, self._qr_variable, self._qr_clause, self._qr_ancilla, mct_mode)
+
+        # reset all clause qubits to 0
+        circuit.u3(pi, 0, pi, self._qr_clause)
 
         return circuit
 

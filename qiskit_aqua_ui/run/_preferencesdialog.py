@@ -52,22 +52,27 @@ class PreferencesDialog(Dialog):
         populate = preferences.get_populate_defaults(True)
         self._populateDefaults.set(1 if populate else 0)
 
-        credentialsGroup = ttk.LabelFrame(parent,
-                                          text='IBMQ Credentials',
-                                          padding=(6, 6, 6, 6),
-                                          borderwidth=4,
-                                          relief=tk.GROOVE)
-        credentialsGroup.grid(padx=(7, 7), pady=6, row=0,
-                              column=0, sticky='nsew')
-        self._credentialsview = CredentialsView(credentialsGroup)
+        current_row = 0
+        from qiskit.aqua.utils import has_ibmq
+        if has_ibmq():
+            credentialsGroup = ttk.LabelFrame(parent,
+                                              text='IBMQ Credentials',
+                                              padding=(6, 6, 6, 6),
+                                              borderwidth=4,
+                                              relief=tk.GROOVE)
+            credentialsGroup.grid(padx=(7, 7), pady=6, row=current_row,
+                                  column=0, sticky='nsew')
+            self._credentialsview = CredentialsView(credentialsGroup)
+            current_row += 1
 
         defaultsGroup = ttk.LabelFrame(parent,
                                        text='Defaults',
                                        padding=(6, 6, 6, 6),
                                        borderwidth=4,
                                        relief=tk.GROOVE)
-        defaultsGroup.grid(padx=(7, 7), pady=6, row=1, column=0, sticky='nsw')
+        defaultsGroup.grid(padx=(7, 7), pady=6, row=current_row, column=0, sticky='nsw')
         defaultsGroup.columnconfigure(1, pad=7)
+        current_row += 1
 
         self._checkButton = ttk.Checkbutton(defaultsGroup,
                                             text="Populate on file new/open",
@@ -79,8 +84,9 @@ class PreferencesDialog(Dialog):
                                       padding=(6, 6, 6, 6),
                                       borderwidth=4,
                                       relief=tk.GROOVE)
-        loggingGroup.grid(padx=(7, 7), pady=6, row=2, column=0, sticky='nsw')
+        loggingGroup.grid(padx=(7, 7), pady=6, row=current_row, column=0, sticky='nsw')
         loggingGroup.columnconfigure(1, pad=7)
+        current_row += 1
 
         loglevel = self._guiprovider.get_logging_level()
 
@@ -96,29 +102,32 @@ class PreferencesDialog(Dialog):
         self._levelCombo.current(index)
         self._levelCombo.grid(row=0, column=1, sticky='nsw')
 
-        self.entry = self._credentialsview.initial_focus
+        self.entry = self._credentialsview.initial_focus if self._credentialsview else self._checkButton
         return self.entry  # initial focus
 
     def validate(self):
-        if not self._credentialsview.validate():
-            self.initial_focus = self._credentialsview.initial_focus
-            return False
+        if self._credentialsview:
+            if not self._credentialsview.validate():
+                self.initial_focus = self._credentialsview.initial_focus
+                return False
 
-        self.initial_focus = self._credentialsview.initial_focus
+            self.initial_focus = self._credentialsview.initial_focus
+
         return True
 
     def apply(self):
-        from qiskit_aqua_cmd import Preferences
-        from qiskit.aqua import disable_ibmq_account
         try:
+            if self._credentialsview:
+                from qiskit_aqua_cmd import Preferences
+                from qiskit.aqua import disable_ibmq_account
+                preferences = Preferences()
+                disable_ibmq_account(preferences.get_url(), preferences.get_token(), preferences.get_proxies({}))
+                self._credentialsview.apply(preferences)
+                preferences.save()
+
             level_name = self._levelCombo.get()
             levels = [key for key, value in PreferencesDialog._LOG_LEVELS.items() if value == level_name]
             loglevel = levels[0]
-
-            preferences = Preferences()
-            disable_ibmq_account(preferences.get_url(), preferences.get_token(), preferences.get_proxies({}))
-            self._credentialsview.apply(preferences)
-            preferences.save()
 
             logging_config = self._guiprovider.build_logging_config(loglevel)
 

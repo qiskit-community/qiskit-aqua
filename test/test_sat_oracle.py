@@ -62,7 +62,7 @@ class TestSATOracle(QiskitAquaTestCase):
     ])
     def test_sat_oracle(self, dimacs_cnf, sols):
         num_shots = 1024
-        for mct_mode in ['basic', 'advanced']:
+        for mct_mode in ['basic', 'advanced', 'noancilla']:
             sat = SAT(dimacs_cnf, mct_mode=mct_mode)
             sat_circuit = sat.construct_circuit()
             m = ClassicalRegister(1, name='m')
