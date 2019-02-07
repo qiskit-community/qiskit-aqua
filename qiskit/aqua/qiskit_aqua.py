@@ -41,6 +41,44 @@ from qiskit.aqua import (get_backend_from_provider,
 logger = logging.getLogger(__name__)
 
 
+def run_algorithm(params, algo_input=None, json_output=False, backend=None):
+    """
+    Run algorithm as named in params.
+
+    Using params and algo_input as input data and returning a result dictionary
+
+    Args:
+        params (dict): Dictionary of params for algo and dependent objects
+        algo_input (AlgorithmInput): Main input data for algorithm. Optional, an algo may run entirely from params
+        json_output (bool): False for regular python dictionary return, True for json conversion
+        backend (BaseBackend or QuantumInstance): the experiemental settings to be used in place of backend name
+
+    Returns:
+        Result dictionary containing result of algorithm computation
+    """
+    qiskit_aqua = QiskitAqua(params, algo_input, backend)
+    return qiskit_aqua.run(json_output)
+
+
+def run_algorithm_to_json(params, algo_input=None, jsonfile='algorithm.json'):
+    """
+    Run algorithm as named in params.
+
+    Using params and algo_input as input data
+    and save the combined input as a json file. This json is self-contained and
+    can later be used as a basis to call run_algorithm
+
+    Args:
+        params (dict): Dictionary of params for algo and dependent objects
+        algo_input (AlgorithmInput): Main input data for algorithm. Optional, an algo may run entirely from params
+        jsonfile (str): Name of file in which json should be saved
+
+    Returns:
+        Result dictionary containing the jsonfile name
+    """
+    return QiskitAqua.run_algorithm_to_json(params, algo_input, jsonfile)
+
+
 class QiskitAqua(object):
     """Main Aqua class."""
 
