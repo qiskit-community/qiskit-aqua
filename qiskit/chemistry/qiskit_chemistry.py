@@ -17,8 +17,7 @@
 
 from .qiskit_chemistry_error import QiskitChemistryError
 from qiskit.chemistry.drivers import local_drivers, get_driver_class
-from qiskit.aqua import run_algorithm, get_provider_from_backend
-from qiskit.aqua.utils import convert_json_to_dict
+from qiskit.aqua import QiskitAqua, get_provider_from_backend
 from qiskit.chemistry.parser import InputParser
 from qiskit.aqua.parser import JSONSchema
 import json
@@ -50,7 +49,7 @@ class QiskitChemistry(object):
         Args:
             input (dictionary/filename): Input data
             output (filename):  Output data
-            backend (BaseBackend): backend object
+            backend (BaseBackend or QuantumInstance): the experiemental settings to be used in place of backend name
 
         Returns:
             result dictionary
@@ -65,11 +64,11 @@ class QiskitChemistry(object):
             logger.info('No further process.')
             return {'printable': [driver_return[1]]}
 
-        data = run_algorithm(driver_return[1], driver_return[2], True, backend)
+        qiskit_aqua = QiskitAqua(driver_return[1], driver_return[2], backend)
+        data = qiskit_aqua.run()
         if not isinstance(data, dict):
             raise QiskitChemistryError("Algorithm run result should be a dictionary")
 
-        convert_json_to_dict(data)
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug('Algorithm returned: {}'.format(pprint.pformat(data, indent=4)))
 
@@ -117,7 +116,7 @@ class QiskitChemistry(object):
         Args:
             jsonfile (filename): Input data
             output (filename):  Output data
-            backend (BaseBackend): backend object
+            backend (BaseBackend or QuantumInstance): the experiemental settings to be used in place of backend name
 
         Returns:
             result dictionary
@@ -132,16 +131,16 @@ class QiskitChemistry(object):
         Args:
             params (dictionary): Input data
             output (filename):  Output data
-            backend (BaseBackend): backend object
+            backend (BaseBackend or QuantumInstance): the experiemental settings to be used in place of backend name
 
         Returns:
             result dictionary
         """
-        ret = run_algorithm(params, None, True, backend)
+        qiskit_aqua = QiskitAqua(params, None, backend)
+        ret = qiskit_aqua.run()
         if not isinstance(ret, dict):
             raise QiskitChemistryError("Algorithm run result should be a dictionary")
 
-        convert_json_to_dict(ret)
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug('Algorithm returned: {}'.format(pprint.pformat(ret, indent=4)))
 
