@@ -77,37 +77,36 @@ class DeutschJozsa(QuantumAlgorithm):
 
         # preoracle circuit
         qc_preoracle = QuantumCircuit(
-            self._oracle.variable_register(),
-            self._oracle.ancillary_register(),
+            self._oracle.variable_register,
+            self._oracle.outcome_register,
         )
-        qc_preoracle.h(self._oracle.variable_register())
-        qc_preoracle.x(self._oracle.ancillary_register())
-        qc_preoracle.h(self._oracle.ancillary_register())
+        qc_preoracle.h(self._oracle.variable_register)
+        qc_preoracle.x(self._oracle.outcome_register)
+        qc_preoracle.h(self._oracle.outcome_register)
         qc_preoracle.barrier()
 
         # oracle circuit
         qc_oracle = self._oracle.construct_circuit()
-        qc_oracle.barrier()
 
         # postoracle circuit
         qc_postoracle = QuantumCircuit(
-            self._oracle.variable_register(),
-            self._oracle.ancillary_register(),
+            self._oracle.variable_register,
+            self._oracle.outcome_register,
         )
-        qc_postoracle.h(self._oracle.variable_register())
+        qc_postoracle.h(self._oracle.variable_register)
         qc_postoracle.barrier()
 
         # measurement circuit
         measurement_cr = ClassicalRegister(len(
-            self._oracle.variable_register()), name='m')
+            self._oracle.variable_register), name='m')
 
         qc_measurement = QuantumCircuit(
-            self._oracle.variable_register(),
+            self._oracle.variable_register,
             measurement_cr
         )
-        qc_measurement.barrier(self._oracle.variable_register())
+        qc_measurement.barrier(self._oracle.variable_register)
         qc_measurement.measure(
-            self._oracle.variable_register(), measurement_cr)
+            self._oracle.variable_register, measurement_cr)
 
         self._circuit = qc_preoracle+qc_oracle+qc_postoracle+qc_measurement
         return self._circuit
@@ -120,7 +119,5 @@ class DeutschJozsa(QuantumAlgorithm):
             qc).get_counts(qc)
         self._ret['result'] = self._oracle.interpret_measurement(
             self._ret['measurements'])
-        self._ret['oracle_evaluation'] = self._oracle.evaluate_classically(
-            self._ret['result'])
 
         return self._ret
