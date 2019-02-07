@@ -23,7 +23,7 @@ long_description = """<a href="https://qiskit.org/aqua" rel=nofollow>Qiskit Chem
 
 requirements = [
     "qiskit-aqua>=0.4.2",
-    "numpy>=1.13",
+    "numpy>=1.13,<1.16",
     "h5py",
     "psutil>=5",
     "jsonschema>=2.6,<2.7",
