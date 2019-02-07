@@ -23,8 +23,15 @@ import tempfile
 import sys
 import logging
 from qiskit_aqua_ui import GUIProvider
+import traceback
 
 logger = logging.getLogger(__name__)
+
+
+def exception_to_string(excp):
+    stack = traceback.extract_stack()[:-3] + traceback.extract_tb(excp.__traceback__)
+    pretty = traceback.format_list(stack)
+    return ''.join(pretty) + '\n  {} {}'.format(excp.__class__, excp)
 
 
 class ChemistryThread(threading.Thread):
@@ -127,7 +134,7 @@ class ChemistryThread(threading.Thread):
             self._popen.wait()
         except Exception as e:
             if self._output is not None:
-                self._output.write('Process has failed: {}'.format(str(e)))
+                self._output.write('Process has failed: {}'.format(exception_to_string(e)))
         finally:
             self._popen = None
             if self._thread_queue is not None:
