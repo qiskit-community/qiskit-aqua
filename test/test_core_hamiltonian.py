@@ -16,13 +16,13 @@
 # =============================================================================
 
 import unittest
-from test.common import QiskitAquaChemistryTestCase
+from test.common import QiskitChemistryTestCase
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
 
 
-class TestCoreHamiltonian(QiskitAquaChemistryTestCase):
+class TestCoreHamiltonian(QiskitChemistryTestCase):
     """core/hamiltonian Driver tests."""
 
     def setUp(self):

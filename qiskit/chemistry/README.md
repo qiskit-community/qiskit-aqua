@@ -325,7 +325,7 @@ to be used by Qiskit Chemistry.
 
 ### For unit test writers:
 
-Unit tests should go under "test" folder and be classes derived from QiskitAquaChemistryTestCase class.
+Unit tests should go under "test" folder and be classes derived from QiskitChemistryTestCase class.
 
 They should not have print statements, instead use self.log.debug. If they use assert, they should be from the unittest
 package like self.AssertTrue, self.assertRaises etc.

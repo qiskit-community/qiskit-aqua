@@ -20,14 +20,14 @@ InputParser test.
 """
 
 import unittest
-from test.common import QiskitAquaChemistryTestCase
+from test.common import QiskitChemistryTestCase
 from qiskit.aqua import AquaError
 from qiskit.chemistry.parser import InputParser
 import os
 import json
 
 
-class TestInputParser(QiskitAquaChemistryTestCase):
+class TestInputParser(QiskitChemistryTestCase):
     """InputParser tests."""
 
     def setUp(self):

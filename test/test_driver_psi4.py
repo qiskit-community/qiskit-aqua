@@ -17,13 +17,13 @@
 
 import unittest
 
-from test.common import QiskitAquaChemistryTestCase
+from test.common import QiskitChemistryTestCase
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PSI4Driver
 from test.test_driver import TestDriver
 
 
-class TestDriverPSI4(QiskitAquaChemistryTestCase, TestDriver):
+class TestDriverPSI4(QiskitChemistryTestCase, TestDriver):
     """PSI4 Driver tests."""
 
     def setUp(self):

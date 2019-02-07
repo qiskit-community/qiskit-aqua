@@ -16,13 +16,13 @@
 # =============================================================================
 
 import unittest
-from test.common import QiskitAquaChemistryTestCase
+from test.common import QiskitChemistryTestCase
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PyQuanteDriver, UnitsType, BasisType
 from test.test_driver import TestDriver
 
 
-class TestDriverPyQuante(QiskitAquaChemistryTestCase, TestDriver):
+class TestDriverPyQuante(QiskitChemistryTestCase, TestDriver):
     """PYQUANTE Driver tests."""
 
     def setUp(self):

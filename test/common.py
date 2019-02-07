@@ -39,7 +39,7 @@ class Path(Enum):
     TEST = os.path.dirname(__file__)
 
 
-class QiskitAquaChemistryTestCase(unittest.TestCase):
+class QiskitChemistryTestCase(unittest.TestCase):
     """Helper class that contains common functionality."""
 
     SLOW_TEST = int(os.getenv('SLOW_TEST', '0'))
