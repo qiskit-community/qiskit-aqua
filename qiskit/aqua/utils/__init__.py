@@ -26,7 +26,7 @@ from .summarize_circuits import summarize_circuits
 from .mct import mct
 from .mcu1 import mcu1
 from .mcu3 import mcu3
-from .mc_mt_gate import mc_mt_gate
+from .mcmt import mcmt
 from .subsystem import get_subsystem_density_matrix, get_subsystems_counts
 from .entangler_map import get_entangler_map, validate_entangler_map
 from .dataset_helper import (get_feature_dimension, get_num_classes,
@@ -52,7 +52,7 @@ __all__ = [
     'summarize_circuits',
     'mct',
     'mcu1',
-    'mc_mt_gate',
+    'mcmt',
     'get_subsystem_density_matrix',
     'get_subsystems_counts',
     'get_entangler_map',

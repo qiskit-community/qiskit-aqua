@@ -62,8 +62,8 @@ class TestMCMTGate(QiskitAquaTestCase):
         (7, 2, QuantumCircuit.cz),
         (7, 4, QuantumCircuit.cz),
     ])
-    def test_mc_mt_gate(self, num_controls, num_targets,
-                        single_control_gate_function):
+    def test_mcmt(self, num_controls, num_targets,
+                  single_control_gate_function):
 
         c = QuantumRegister(num_controls, name='c')
         o = QuantumRegister(num_targets, name='o')
@@ -97,11 +97,11 @@ class TestMCMTGate(QiskitAquaTestCase):
 
                 for idx in subset:
                     qc.x(c[idx])
-                qc.mc_mt_gate([c[i] for i in range(num_controls)],
-                              [a[i] for i in range(num_ancillae)],
-                              single_control_gate_function,
-                              o,
-                              mode=mode)
+                qc.mcmt([c[i] for i in range(num_controls)],
+                        [a[i] for i in range(num_ancillae)],
+                        single_control_gate_function,
+                        o,
+                        mode=mode)
                 for idx in subset:
                     qc.x(c[idx])
 

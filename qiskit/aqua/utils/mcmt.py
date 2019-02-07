@@ -62,12 +62,12 @@ def _ccx_v_chain_uncompute(qc, control_qubits, ancillary_qubits):
     qc.ccx(control_qubits[0], control_qubits[1], ancillary_qubits[anci_idx])
 
 
-def mc_mt_gate(self,
-               q_controls,
-               q_ancillae,
-               single_control_gate_fun,
-               q_targets,
-               mode="basic"):
+def mcmt(self,
+         q_controls,
+         q_ancillae,
+         single_control_gate_fun,
+         q_targets,
+         mode="basic"):
     """
     Apply a Multi-Control, Multi-Target using a generic gate.
     It can also be used to implement a generic Multi-Control gate, as the target could also be of length 1.
@@ -129,8 +129,8 @@ def mc_mt_gate(self,
         _ccx_v_chain_uncompute(self, control_qubits, ancillary_qubits)
     else:
         raise ValueError(
-            'Unrecognized mode "{0}" for building mc_mt_gate circuit, at the moment only "basic" mode is supported.'
+            'Unrecognized mode "{0}" for building mcmt circuit, at the moment only "basic" mode is supported.'
             .format(mode))
 
 
-QuantumCircuit.mc_mt_gate = mc_mt_gate
+QuantumCircuit.mcmt = mcmt
