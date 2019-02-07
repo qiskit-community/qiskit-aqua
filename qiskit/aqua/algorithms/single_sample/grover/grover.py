@@ -240,8 +240,6 @@ class Grover(QuantumAlgorithm):
         qc.u2(0, pi, self._oracle.outcome_register)  # h
         qc += self._init_state_circuit
         qc += self._qc_amplitude_amplification
-        qc.u2(0, pi, self._oracle.outcome_register)  # h
-        qc.u3(pi, 0, pi, self._oracle.outcome_register)  # x
         self._ret['circuit'] = qc
         return qc
 
