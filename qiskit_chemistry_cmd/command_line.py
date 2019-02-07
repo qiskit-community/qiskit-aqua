@@ -17,11 +17,36 @@
 
 import argparse
 import json
+import pprint
+from qiskit.aqua import QiskitAqua
+from qiskit.chemistry import QiskitChemistryError
 import logging
+
+logger = logging.getLogger(__name__)
+
+
+def run_algorithm_from_json(params, output_file):
+    """
+    Runs the Aqua Chemistry experiment from Qiskit Aqua json dictionary
+
+    Args:
+        params (dictionary): Qiskit Aqua json dictionary
+        output_file (filename): Output file name to save results
+    """
+    qiskit_aqua = QiskitAqua(params)
+    ret = qiskit_aqua.run()
+    if not isinstance(ret, dict):
+        raise QiskitChemistryError('Algorithm run result should be a dictionary {}'.format(ret))
+
+    print('Output:')
+    pprint(ret, indent=4)
+    if output_file is not None:
+        with open(output_file, 'w') as out:
+            pprint(ret, stream=out, indent=4)
 
 
 def main():
-    from qiskit.chemistry import QiskitChemistry
+    from qiskit.chemistry import run_experiment, run_driver_to_json
     from qiskit.chemistry._logging import get_logging_level, build_logging_config, set_logging_config
     from qiskit.chemistry.preferences import Preferences
     parser = argparse.ArgumentParser(description='Qiskit Chemistry Command Line Tool')
@@ -50,8 +75,6 @@ def main():
 
     set_logging_config(preferences.get_logging_config())
 
-    solver = QiskitChemistry()
-
     # check to see if input is json file
     params = None
     try:
@@ -61,12 +84,12 @@ def main():
         pass
 
     if params is not None:
-        solver.run_algorithm_from_json(params, args.o)
+        run_algorithm_from_json(params, args.o)
     else:
         if args.jo is not None:
-            solver.run_drive_to_jsonfile(args.input, args.jo)
+            run_driver_to_json(args.input, args.jo)
         else:
-            result = solver.run(args.input, args.o)
+            result = run_experiment(args.input, args.o)
             if result is not None and 'printable' in result:
                 print('\n\n--------------------------------- R E S U L T ------------------------------------\n')
                 for line in result['printable']:

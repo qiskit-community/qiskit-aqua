@@ -21,7 +21,7 @@ from .qiskit_chemistry_error import QiskitChemistryError
 from .preferences import Preferences
 from .qmolecule import QMolecule
 from .qiskit_chemistry_problem import ChemistryProblem
-from .qiskit_chemistry import QiskitChemistry
+from .qiskit_chemistry import (QiskitChemistry, run_experiment, run_driver_to_json)
 from .fermionic_operator import FermionicOperator
 from ._logging import (get_logging_level,
                        build_logging_config,
@@ -36,6 +36,8 @@ __all__ = ['QiskitChemistryError',
            'QMolecule',
            'ChemistryProblem',
            'QiskitChemistry',
+           'run_experiment',
+           'run_driver_to_json',
            'FermionicOperator',
            'get_logging_level',
            'build_logging_config',

@@ -48,6 +48,7 @@ class InputParser(BaseParser):
     _OPTIMIZER = 'optimizer'
     _VARIATIONAL_FORM = 'variational_form'
     _HDF5_INPUT = 'hdf5_input'
+    HDF5_OUTPUT = 'hdf5_output'
     _DRIVER_NAMES = None
 
     def __init__(self, input=None):
@@ -574,13 +575,13 @@ class InputParser(BaseParser):
     @staticmethod
     def _from_relative_to_abs_paths(sections, filename):
         directory = os.path.dirname(filename)
-        for _, section in sections.items():
+        for section_name, section in sections.items():
             if isinstance(section, dict):
                 for key, value in section.items():
                     if key == InputParser._HDF5_INPUT:
                         if value is not None and not os.path.isabs(value):
                             value = os.path.abspath(os.path.join(directory, value))
-                            InputParser._set_section_property(sections, section[JSONSchema.NAME], key, value, ['string'])
+                            InputParser._set_section_property(sections, section_name, key, value, ['string'])
 
     def section_is_driver(self, section_name):
         section_name = JSONSchema.format_section_name(section_name).lower()
