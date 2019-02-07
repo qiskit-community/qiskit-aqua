@@ -17,11 +17,12 @@
 
 import logging
 import math
-import numpy
 import operator
 
 from qiskit import QuantumRegister, QuantumCircuit
 
+from qiskit.aqua import AquaError
+from qiskit.aqua.utils import DNF
 from qiskit.aqua.components.oracles import Oracle
 
 logger = logging.getLogger(__name__)
@@ -38,73 +39,77 @@ class DeutschJozsaOracle(Oracle):
             'type': 'object',
             'properties': {
                 'bitmap': {
-                    "type": ["object", "null"],
-                }
+                    "type": ["object"],
+                },
+                'mct_mode': {
+                    'type': 'string',
+                    'default': 'basic',
+                    'oneOf': [
+                        {'enum': [
+                            'basic',
+                            'advanced'
+                        ]}
+                    ]
+                },
             },
             'additionalProperties': False
         }
     }
 
-    def __init__(self, bitmap):
+    def __init__(self, bitmap, mct_mode='basic'):
         self.validate(locals())
         super().__init__()
+        self._mct_mode = mct_mode
 
         # checks that the input bitstring length is a power of two
         nbits = math.log(len(bitmap), 2)
         if math.ceil(nbits) != math.floor(nbits):
-            raise AlgorithmError('Input not the right length')
-        self._nbits = int(nbits)
+            raise AquaError('Length of input map must be a power of 2.')
+        nbits = int(nbits)
 
         # checks the input bitstring represents a constant or balanced function
-        function = False
-        self._bitsum = sum([int(bit) for bit in bitmap.values()])
+        bitsum = sum([int(bit) for bit in bitmap.values()])
 
-        if self._bitsum == 0 or self._bitsum == 2 ** self._nbits:
-            self._function = "constant"
-            function = True
-        elif self._bitsum == 2 ** (self._nbits - 1):
-            self._function = "balanced"
-            function = True
-        if not function:
-            raise AlgorithmError(
-                'Input is not a balanced or constant function')
+        if bitsum == 0 or bitsum == 2 ** nbits:
+            pass  # constant
+        elif bitsum == 2 ** (nbits - 1):
+            pass  # balanced
+        else:
+            raise AquaError('Input is not a balanced or constant function.')
 
-        self._bitmap = bitmap
-        self._qr_variable = QuantumRegister(self._nbits, name='v')
-        self._qr_ancilla = QuantumRegister(1, name='a')
+        def _(bbs):
+            return [i[-1] if i[0] == '1' else -i[-1] for i in list(zip(bbs, list(range(1, len(bbs) + 1))))]
 
+        dnf_expr = [_(i) for i in bitmap if bitmap[i] == '1']
+        if dnf_expr:
+            self._dnf = DNF(dnf_expr)
+            self._dnf.construct_circuit()
+            self._variable_register = self._dnf.qr_variable
+            self._outcome_register = self._dnf.qr_outcome
+            self._ancillary_register = self._dnf.qr_ancilla
+        else:
+            self._dnf = None
+            self._variable_register = QuantumRegister(nbits, name='v')
+            self._outcome_register = QuantumRegister(1, name='o')
+            self._ancillary_register = None
+
+    @property
     def variable_register(self):
-        return self._qr_variable
+        return self._variable_register
 
+    @property
     def ancillary_register(self):
-        return self._qr_ancilla
+        return self._ancillary_register
 
+    @property
     def outcome_register(self):
-        pass
+        return self._outcome_register
 
     def construct_circuit(self):
-        qc = QuantumCircuit(self._qr_variable, self._qr_ancilla)
-
-        if self._bitsum == 0:  # constant function of 0
-            qc.iden(self._qr_ancilla)
-        elif self._bitsum == 2 ** self._nbits:  # constant function of 1
-            qc.x(self._qr_ancilla)
-        elif self._bitsum == 2 ** (self._nbits - 1):  # balanced function
-            # create a balanced oracle from the highest bitstring with value 1
-            parameter = 1
-            for i in range(2 ** self._nbits - 1, 0, -1):
-                bitstring = numpy.binary_repr(i, self._nbits)
-                value = int(self._bitmap[bitstring])
-                if value == 1:
-                    parameter = i
-                    break
-            for i in range(self._nbits):
-                if (parameter & (1 << i)):
-                    qc.cx(self._qr_variable[i], self._qr_ancilla[0])
-        return qc
-
-    def evaluate_classically(self, assignment):
-        return self._function == assignment
+        if self._dnf:
+            return self._dnf.construct_circuit(mct_mode=self._mct_mode)
+        else:
+            return QuantumCircuit(self._variable_register)
 
     def interpret_measurement(self, measurement, *args, **kwargs):
         top_measurement = max(

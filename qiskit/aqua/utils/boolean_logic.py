@@ -48,7 +48,11 @@ def _and(clause_expr, clause_index, circuit, qr_variable, qr_clause, qr_ancilla,
     ctl_bits = [qr_variable[idx - 1] for idx in qs]
     anc_bits = [qr_ancilla[idx] for idx in range(len(qs) - 2)] if qr_ancilla else None
     tgt_bits = qr_clause[clause_index]
+    for idx in [v for v in clause_expr if v < 0]:
+        circuit.u3(pi, 0, pi, qr_variable[-idx - 1])
     circuit.mct(ctl_bits, tgt_bits, anc_bits, mode=mct_mode)
+    for idx in [v for v in clause_expr if v < 0]:
+        circuit.u3(pi, 0, pi, qr_variable[-idx - 1])
 
 
 def _set_up_register(num_qubits_needed, provided_register, description):
@@ -72,8 +76,8 @@ def _set_up_register(num_qubits_needed, provided_register, description):
 
 
 class BooleanLogicNormalForm(ABC):
-    def __init__(self, cnf_expr):
-        self._expr = cnf_expr
+    def __init__(self, expr):
+        self._expr = expr
         self._num_variables = max(set([abs(v) for v in list(itertools.chain.from_iterable(self._expr))]))
         self._num_clauses = len(self._expr)
         self._qr_variable = None
@@ -167,7 +171,7 @@ class CNF(BooleanLogicNormalForm):
             mct_mode=mct_mode
         )
 
-        # init all clause qubits to 1:
+        # init all clause qubits to 1
         circuit.u3(pi, 0, pi, self._qr_clause)
 
         # build all clauses
@@ -181,9 +185,13 @@ class CNF(BooleanLogicNormalForm):
             [self._qr_ancilla[i] for i in range(len(self._qr_ancilla))] if self._qr_ancilla else [],
             mode=mct_mode
         )
-        # clean up
+
+        # uncompute all clauses
         for clause_index, clause_expr in reversed(list(enumerate(self._expr))):
             _or(clause_expr, clause_index, circuit, self._qr_variable, self._qr_clause, self._qr_ancilla, mct_mode)
+
+        # reset all clause qubits to 0
+        circuit.u3(pi, 0, pi, self._qr_clause)
 
         return circuit
 

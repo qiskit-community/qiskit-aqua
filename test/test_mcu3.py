@@ -60,7 +60,6 @@ class TestMCU3(QiskitAquaTestCase):
             # print(vec, np.array(vec_o + [0] * (2 ** (num_controls + num_ancillae + 1) - 2)))
             f = state_fidelity(vec, np.array(vec_o + [0] * (2 ** (num_controls + 1) - 2)))
             self.assertAlmostEqual(f, 1)
-            return
 
 
 if __name__ == '__main__':

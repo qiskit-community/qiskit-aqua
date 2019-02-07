@@ -5,7 +5,7 @@ from parameterized import parameterized
 from qiskit.aqua import get_aer_backend
 
 from test.common import QiskitAquaTestCase
-from qiskit.aqua import Operator, QuantumInstance, build_algorithm_from_dict
+from qiskit.aqua import Operator, QuantumInstance, QiskitAqua
 from qiskit.aqua.input import EnergyInput
 from qiskit.aqua.components.variational_forms import RY
 from qiskit.aqua.components.optimizers import L_BFGS_B
@@ -44,17 +44,18 @@ class TestCaching(QiskitAquaTestCase):
                             },
                 'backend': {'name': backend, 'shots': 1000},
             }
-            algo, quantum_instance = build_algorithm_from_dict(params_no_caching, self.algo_input)
-            res[backend] = algo.run(quantum_instance)
+            qiskit_aqua = QiskitAqua(params_no_caching, self.algo_input)
+            res[backend] = qiskit_aqua.run()
         self.reference_vqe_result = res
 
     @parameterized.expand([
-        ['statevector_simulator', True, True, True],
-        ['qasm_simulator', True, True, True],
-        ['statevector_simulator', True, False, False],
-        ['statevector_simulator', False, False, True],
+        ['statevector_simulator', True, True],
+        ['qasm_simulator', True, True],
+        ['statevector_simulator', True, False],
+        ['qasm_simulator', True, False],
     ])
-    def test_vqe_caching_via_run_algorithm(self, backend, caching, skip_qobj_deepcopy, skip_validation):
+    def test_vqe_caching_via_run_algorithm(self, backend, caching, skip_qobj_deepcopy):
+        skip_validation = True
         params_caching = {
             'algorithm': {'name': 'VQE', 'operator_mode': 'matrix' if backend == 'statevector_simulator' else 'paulis'},
             'problem': {'name': 'energy',
@@ -66,8 +67,8 @@ class TestCaching(QiskitAquaTestCase):
                         },
             'backend': {'name': backend, 'shots': 1000},
         }
-        algo, quantum_instance = build_algorithm_from_dict(params_caching, self.algo_input)
-        result_caching = algo.run(quantum_instance)
+        qiskit_aqua = QiskitAqua(params_caching, self.algo_input)
+        result_caching = qiskit_aqua.run()
 
         self.assertAlmostEqual(result_caching['energy'], self.reference_vqe_result[backend]['energy'])
 
@@ -75,8 +76,8 @@ class TestCaching(QiskitAquaTestCase):
                                              result_caching['eigvals'], 5)
         np.testing.assert_array_almost_equal(self.reference_vqe_result[backend]['opt_params'],
                                              result_caching['opt_params'], 5)
-        if quantum_instance.has_circuit_caching:
-            self.assertEqual(quantum_instance._circuit_cache.misses, 0)
+        if qiskit_aqua.quantum_instance.has_circuit_caching:
+            self.assertEqual(qiskit_aqua.quantum_instance._circuit_cache.misses, 0)
         self.assertIn('eval_count', result_caching)
         self.assertIn('eval_time', result_caching)
 
@@ -98,7 +99,8 @@ class TestCaching(QiskitAquaTestCase):
         self.assertAlmostEqual(self.reference_vqe_result['statevector_simulator']['energy'], result_caching['energy'])
         speedup_check = 3
         self.log.info(result_caching['eval_time'],
-                        self.reference_vqe_result['statevector_simulator']['eval_time']/speedup_check)
+                      self.reference_vqe_result['statevector_simulator']['eval_time']/speedup_check)
+
 
 if __name__ == '__main__':
     unittest.main()

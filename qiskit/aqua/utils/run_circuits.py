@@ -26,7 +26,6 @@ import numpy as np
 from qiskit import compile as q_compile
 from qiskit.providers import BaseBackend, JobStatus, JobError
 from qiskit.providers.builtinsimulators.simulatorsjob import SimulatorsJob
-from qiskit.providers.ibmq.ibmqjob import IBMQJob
 
 from qiskit.aqua.aqua_error import AquaError
 from qiskit.aqua.utils import summarize_circuits
@@ -356,16 +355,18 @@ def run_on_backend(backend, qobj, backend_options=None, noise_config=None, skip_
         if is_simulator_backend(backend):
             if is_aer_provider(backend):
                 from qiskit.providers.aer.aerjob import AerJob
-                job = AerJob(backend, job_id, backend._run_job, qobj, backend_options,
-                             noise_config, False)
+                temp_backend_options = backend_options['backend_options'] if backend_options != {} else None
+                temp_noise_config = noise_config['noise_model'] if noise_config != {} else None
+                job = AerJob(backend, job_id, backend._run_job, qobj, temp_backend_options, temp_noise_config, False)
                 job._future = job._executor.submit(job._fn, job._job_id, job._qobj, *job._args)
             else:
-                backend._set_options(qobj_config=qobj.config, backend_options=backend_options)
+                backend._set_options(qobj_config=qobj.config, **backend_options)
                 job = SimulatorsJob(backend, job_id, backend._run_job, qobj)
                 job._future = job._executor.submit(job._fn, job._job_id, job._qobj)
         elif is_ibmq_provider(backend):
             # TODO: IBMQJob performs validation during the constructor. the following lines deos not
             # skip validation but run as is.
+            from qiskit.providers.ibmq.ibmqjob import IBMQJob
             job = IBMQJob(backend, None, backend._api, not is_simulator_backend(backend), qobj=qobj)
             job._future = job._executor.submit(job._fn, job._job_id, job._qobj)
         else:

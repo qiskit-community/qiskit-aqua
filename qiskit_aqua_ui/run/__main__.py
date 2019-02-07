@@ -15,15 +15,6 @@
 # limitations under the License.
 # =============================================================================
 
-import sys
-import os
-
-algorithms_directory = os.path.dirname(os.path.realpath(__file__))
-algorithms_directory = os.path.join(algorithms_directory, '../../..')
-sys.path.insert(0, 'qiskit_aqua_ui')
-sys.path.insert(0, 'qiskit_aqua')
-sys.path.insert(0, algorithms_directory)
-
 from qiskit_aqua_ui.run.command_line import main
 
 main()

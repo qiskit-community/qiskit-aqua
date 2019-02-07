@@ -175,6 +175,7 @@ def _multicx(qc, qrs, qancilla=None):
         _multicx(qc, [*qrs[:m1], qancilla], qrs[m1])
         _multicx(qc, [*qrs[m1:m1 + m2 - 1], qancilla, qrs[n - 2]], qrs[m1 - 1])
 
+
 def _multicx_noancilla(qc, qrs):
     """
         construct a circuit for multi-qubit controlled not without ancillary
@@ -197,11 +198,12 @@ def _multicx_noancilla(qc, qrs):
         qc.cx(qrs[0], qrs[1])
     else:
         # qrs[0], qrs[n-2] is the controls, qrs[n-1] is the target
-        ctls = qrs[:-2]
+        ctls = qrs[:-1]
         tgt = qrs[-1]
         qc.h(tgt)
         qc.mcu1(pi, ctls, tgt)
         qc.h(tgt)
+
 
 def mct(self, q_controls, q_target, q_ancilla, mode='basic'):
     """
