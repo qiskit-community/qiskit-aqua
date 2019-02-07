@@ -26,13 +26,13 @@ from qiskit.aqua.algorithms.single_sample import QPE
 from qiskit.aqua.algorithms.classical import ExactEigensolver
 from qiskit.aqua.components.iqfts import Standard
 from qiskit.qobj import RunConfig
-from test.common import QiskitAquaChemistryTestCase
+from test.common import QiskitChemistryTestCase
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry import FermionicOperator, QiskitChemistryError
 from qiskit.chemistry.aqua_extensions.components.initial_states import HartreeFock
 
 
-class TestEnd2EndWithQPE(QiskitAquaChemistryTestCase):
+class TestEnd2EndWithQPE(QiskitChemistryTestCase):
     """QPE tests."""
 
     @parameterized.expand([

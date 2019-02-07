@@ -16,12 +16,12 @@
 # =============================================================================
 
 import unittest
-from test.common import QiskitAquaChemistryTestCase
+from test.common import QiskitChemistryTestCase
 from qiskit.chemistry.drivers import HDF5Driver
 from test.test_driver import TestDriver
 
 
-class TestDriverHDF5(QiskitAquaChemistryTestCase, TestDriver):
+class TestDriverHDF5(QiskitChemistryTestCase, TestDriver):
     """HDF5 Driver tests."""
 
     def setUp(self):

@@ -17,13 +17,13 @@
 
 import unittest
 
-from test.common import QiskitAquaChemistryTestCase
+from test.common import QiskitChemistryTestCase
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import GaussianDriver
 from test.test_driver import TestDriver
 
 
-class TestDriverGaussian(QiskitAquaChemistryTestCase, TestDriver):
+class TestDriverGaussian(QiskitChemistryTestCase, TestDriver):
     """Gaussian Driver tests."""
 
     def setUp(self):

@@ -20,7 +20,7 @@ import unittest
 import numpy as np
 from qiskit.aqua.utils import random_unitary
 
-from test.common import QiskitAquaChemistryTestCase
+from test.common import QiskitChemistryTestCase
 from qiskit.chemistry import FermionicOperator, QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 
@@ -54,7 +54,7 @@ def h2_transform_slow(h2, unitary_matrix):
     return temp_ret
 
 
-class TestFermionicOperator(QiskitAquaChemistryTestCase):
+class TestFermionicOperator(QiskitChemistryTestCase):
     """Fermionic Operator tests."""
 
     def setUp(self):

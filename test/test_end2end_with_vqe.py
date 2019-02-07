@@ -23,12 +23,12 @@ from qiskit.aqua.algorithms.adaptive import VQE
 from qiskit.aqua.components.variational_forms import RYRZ
 from qiskit.aqua.components.optimizers import COBYLA, SPSA
 from qiskit.qobj import RunConfig
-from test.common import QiskitAquaChemistryTestCase
+from test.common import QiskitChemistryTestCase
 from qiskit.chemistry.drivers import HDF5Driver
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
 
 
-class TestEnd2End(QiskitAquaChemistryTestCase):
+class TestEnd2End(QiskitChemistryTestCase):
     """End2End tests."""
 
     def setUp(self):

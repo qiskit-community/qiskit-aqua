@@ -19,11 +19,11 @@ import unittest
 
 import numpy as np
 
-from test.common import QiskitAquaChemistryTestCase
+from test.common import QiskitChemistryTestCase
 from qiskit.chemistry.aqua_extensions.components.initial_states import HartreeFock
 
 
-class TestInitialStateHartreeFock(QiskitAquaChemistryTestCase):
+class TestInitialStateHartreeFock(QiskitChemistryTestCase):
 
     def test_qubits_4_jw_h2(self):
         self.hf = HartreeFock(4, 4, 2, 'jordan_wigner', False)
