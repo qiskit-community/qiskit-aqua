@@ -104,6 +104,7 @@ class CircuitCache:
 
             for i, uncompiled_gate in enumerate(raw_gates):
                 if not hasattr(uncompiled_gate, 'params') or len(uncompiled_gate.params) < 1: continue
+                if uncompiled_gate.name == 'snapshot': continue
                 regs = [(reg, qubit) for (reg, qubit) in uncompiled_gate.qargs]
                 qubits = [qubit+qreg_indeces[reg.name] for reg, qubit in regs if isinstance(reg, QuantumRegister)]
                 gate_type = uncompiled_gate.name
@@ -113,6 +114,7 @@ class CircuitCache:
             mapping = {}
             for compiled_gate_index, compiled_gate in enumerate(qobj.experiments[circ_num].instructions):
                 if not hasattr(compiled_gate, 'params') or len(compiled_gate.params) < 1: continue
+                if compiled_gate.name == 'snapshot': continue
                 type_and_qubits = compiled_gate.name + compiled_gate.qubits.__str__()
                 if len(op_graph[type_and_qubits]) > 0:
                     uncompiled_gate_index = op_graph[type_and_qubits].pop(0)
