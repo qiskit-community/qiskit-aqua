@@ -65,5 +65,5 @@ install:
     - pip install -U -r requirements-dev.txt
     - pip install -e $TRAVIS_BUILD_DIR
 script:
-    # - python -m unittest discover -v test
-    - python -m unittest -v test/test_uccsd_hartree_fock.py
+    - python -m unittest discover -v test
+    
