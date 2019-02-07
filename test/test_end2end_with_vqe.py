@@ -64,7 +64,7 @@ class TestEnd2End(QiskitChemistryTestCase):
         run_config = RunConfig(shots=shots, max_credits=10, memory=False)
         quantum_instance = QuantumInstance(backend, run_config)
         results = vqe.run(quantum_instance)
-        self.assertAlmostEqual(results['energy'], self.reference_energy, places=6)
+        self.assertAlmostEqual(results['energy'], self.reference_energy, places=4)
 
 
 if __name__ == '__main__':

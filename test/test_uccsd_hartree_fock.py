@@ -20,7 +20,8 @@ Test of UCCSD and HartreeFock Aqua extensions.
 """
 
 from test.common import QiskitChemistryTestCase
-from qiskit.chemistry import QiskitChemistry
+from qiskit.chemistry import QiskitChemistry, set_qiskit_chemistry_logging
+import logging
 
 
 class TestUCCSDHartreeFock(QiskitChemistryTestCase):
@@ -39,6 +40,7 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         pass
 
     def test_uccsd_hf(self):
+        set_qiskit_chemistry_logging(logging.DEBUG)
         solver = QiskitChemistry()
         result = solver.run(self.config)
         self.assertAlmostEqual(result['energy'], self.reference_energy, places=6)
