@@ -24,7 +24,7 @@ import numpy as np
 
 from qiskit import ClassicalRegister
 from qiskit.aqua import AquaError
-from qiskit.aqua import PluggableType, get_pluggable_class
+from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.algorithms.single_sample import PhaseEstimationCircuit
 from qiskit.aqua.components.iqfts import Standard
@@ -116,26 +116,26 @@ class AmplitudeEstimation(QuantumAlgorithm):
         if algo_input is not None:
             raise AquaError("Input instance not supported.")
 
-        ae_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
+        ae_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
         num_eval_qubits = ae_params.get('num_eval_qubits')
 
         # Set up uncertainty model and problem
-        uncertainty_model_params = params.get(QuantumAlgorithm.SECTION_KEY_UNCERTAINTY_MODEL)
+        uncertainty_model_params = params.get(Pluggable.SECTION_KEY_UNCERTAINTY_MODEL)
         uncertainty_model_params['num_target_qubits'] = num_eval_qubits
         uncertainty_model = get_pluggable_class(
             PluggableType.UNCERTAINTY_MODEL,
-            uncertainty_model_params['name']).init_params(uncertainty_model_params)
+            uncertainty_model_params['name']).init_params(params)
 
-        uncertainty_problem_params = params.get(QuantumAlgorithm.SECTION_KEY_UNCERTAINTY_PROBLEM)
+        uncertainty_problem_params = params.get(Pluggable.SECTION_KEY_UNCERTAINTY_PROBLEM)
         uncertainty_problem_params['uncertainty_model'] = uncertainty_model
         uncertainty_problem = get_pluggable_class(
             PluggableType.UNCERTAINTY_PROBLEM,
-            uncertainty_problem_params['name']).init_params(uncertainty_problem_params)
+            uncertainty_problem_params['name']).init_params(params)
 
         # Set up iqft, we need to add num qubits to params which is our num_ancillae bits here
-        iqft_params = params.get(QuantumAlgorithm.SECTION_KEY_IQFT)
+        iqft_params = params.get(Pluggable.SECTION_KEY_IQFT)
         iqft_params['num_qubits'] = num_eval_qubits
-        iqft = get_pluggable_class(PluggableType.IQFT, iqft_params['name']).init_params(iqft_params)
+        iqft = get_pluggable_class(PluggableType.IQFT, iqft_params['name']).init_params(params)
 
         return cls(num_eval_qubits, uncertainty_problem, q_factory=None, iqft=iqft)
 

@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-
 """Algorithm discovery methods, Error and Base classes"""
 
 from .aqua_error import AquaError
@@ -39,10 +38,13 @@ from .pluggable import Pluggable
 from .utils.mct import mct
 from .utils.mcu1 import mcu1
 from .utils.mcu3 import mcu3
+from .utils.mcmt import mcmt
 from .quantum_instance import QuantumInstance
 from .operator import Operator
 from .algorithms import QuantumAlgorithm
-from ._aqua import run_algorithm, run_algorithm_to_json, build_algorithm_from_dict
+from .qiskit_aqua import (QiskitAqua,
+                          run_algorithm,
+                          run_algorithm_to_json)
 from ._logging import (get_logging_level,
                        build_logging_config,
                        set_logging_config,
@@ -70,15 +72,16 @@ __all__ = ['AquaError',
            'mct',
            'mcu1',
            'mcu3',
+           'mcmt',
            'local_pluggables_types',
            'local_pluggables',
            'get_pluggable_class',
            'get_pluggable_configuration',
            'register_pluggable',
            'deregister_pluggable',
+           'QiskitAqua',
            'run_algorithm',
            'run_algorithm_to_json',
-           'build_algorithm_from_dict',
            'get_logging_level',
            'build_logging_config',
            'set_logging_config',

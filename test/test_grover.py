@@ -31,14 +31,14 @@ class TestGrover(QiskitAquaTestCase):
     @parameterized.expand([
         ['test_grover_tiny.cnf', False, 1, 'basic', 'qasm_simulator'],
         ['test_grover_tiny.cnf', False, 1, 'advanced', 'qasm_simulator'],
-        ['test_grover.cnf', False, 2, 'basic', 'qasm_simulator'],
-        ['test_grover.cnf', False, 2, 'advanced', 'qasm_simulator'],
+        ['test_grover.cnf', False, 3, 'basic', 'qasm_simulator'],
+        ['test_grover.cnf', False, 3, 'advanced', 'qasm_simulator'],
         ['test_grover_no_solution.cnf', True, 1, 'basic', 'qasm_simulator'],
         ['test_grover_no_solution.cnf', True, 1, 'advanced', 'qasm_simulator'],
         ['test_grover_tiny.cnf', False, 1, 'basic', 'statevector_simulator'],
         ['test_grover_tiny.cnf', False, 1, 'advanced', 'statevector_simulator'],
-        ['test_grover.cnf', False, 2, 'basic', 'statevector_simulator'],
-        ['test_grover.cnf', False, 2, 'advanced', 'statevector_simulator'],
+        ['test_grover.cnf', False, 3, 'basic', 'statevector_simulator'],
+        ['test_grover.cnf', False, 3, 'advanced', 'statevector_simulator'],
         ['test_grover_no_solution.cnf', True, 1, 'basic', 'statevector_simulator'],
         ['test_grover_no_solution.cnf', True, 1, 'advanced', 'statevector_simulator'],
     ])
@@ -67,7 +67,7 @@ class TestGrover(QiskitAquaTestCase):
         backend = get_aer_backend(simulator)
         sat_oracle = SAT(buf)
         grover = Grover(sat_oracle, num_iterations=num_iterations, incremental=incremental, mct_mode=mct_mode)
-        run_config = RunConfig(shots=100, max_credits=10, memory=False)
+        run_config = RunConfig(shots=1000, max_credits=10, memory=False)
         quantum_instance = QuantumInstance(backend, run_config)
 
         ret = grover.run(quantum_instance)

@@ -40,7 +40,8 @@ class Oracle(Pluggable):
 
     @classmethod
     def init_params(cls, params):
-        args = {k: v for k, v in params.items() if k != 'name'}
+        oracle_params = params.get(Pluggable.SECTION_KEY_ORACLE)
+        args = {k: v for k, v in oracle_params.items() if k != 'name'}
         return cls(**args)
 
     @property
@@ -66,17 +67,6 @@ class Oracle(Pluggable):
             A quantum circuit for the oracle.
         """
         raise NotImplementedError()
-
-    @abstractmethod
-    def evaluate_classically(self, assignment):
-        """For an assignment, check the oracle result (True|False) classically
-        Args:
-            assignment (list of bools) : a particular variable assignment
-
-        Returns:
-            The True|False value of the oracle under the given assignment
-        """
-        raise NotImplementedError
 
     @abstractmethod
     def interpret_measurement(self, *args, **kwargs):

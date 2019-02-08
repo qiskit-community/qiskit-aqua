@@ -45,7 +45,8 @@ class SAT(Oracle):
                     'oneOf': [
                         {'enum': [
                             'basic',
-                            'advanced'
+                            'advanced',
+                            'noancilla'
                         ]}
                     ]
                 },

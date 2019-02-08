@@ -26,16 +26,18 @@ from .summarize_circuits import summarize_circuits
 from .mct import mct
 from .mcu1 import mcu1
 from .mcu3 import mcu3
+from .mcmt import mcmt
 from .subsystem import get_subsystem_density_matrix, get_subsystems_counts
 from .entangler_map import get_entangler_map, validate_entangler_map
 from .dataset_helper import (get_feature_dimension, get_num_classes,
-                             split_dataset_to_data_and_labels, map_label_to_class_name,
-                             reduce_dim_to_via_pca)
+                             split_dataset_to_data_and_labels,
+                             map_label_to_class_name, reduce_dim_to_via_pca)
 from .qpsolver import optimize_svm
 from .circuit_factory import CircuitFactory
 from .run_circuits import compile_and_run_circuits, find_regs_by_name
 from .circuit_cache import CircuitCache
 from .boolean_logic import CNF, DNF
+from .backend_utils import has_ibmq, has_aer
 
 
 __all__ = ['tensorproduct',
@@ -52,6 +54,7 @@ __all__ = ['tensorproduct',
            'mct',
            'mcu1',
            'mcu3',
+           'mcmt',
            'get_subsystem_density_matrix',
            'get_subsystems_counts',
            'get_entangler_map',
@@ -68,4 +71,6 @@ __all__ = ['tensorproduct',
            'CircuitCache',
            'CNF',
            'DNF',
+           'has_ibmq',
+           'has_aer'
            ]

@@ -19,7 +19,7 @@
 import logging
 
 from qiskit.aqua.algorithms import QuantumAlgorithm
-from qiskit.aqua import AquaError, PluggableType, get_pluggable_class
+from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.algorithms.adaptive import VQE
 from .varform import QAOAVarForm
 
@@ -83,21 +83,25 @@ class QAOA(VQE):
     }
 
     def __init__(self, operator, optimizer, p=1, initial_state=None, operator_mode='matrix', initial_point=None,
-                 batch_mode=False, aux_operators=None):
+                 batch_mode=False, aux_operators=None, callback=None):
         """
         Args:
             operator (Operator): Qubit operator
             operator_mode (str): operator mode, used for eval of operator
-            p (int) : the integer parameter p as specified in https://arxiv.org/abs/1411.4028
+            p (int): the integer parameter p as specified in https://arxiv.org/abs/1411.4028
             initial_state (InitialState): the initial state to prepend the QAOA circuit with
-            optimizer (Optimizer) : the classical optimization algorithm.
-            initial_point (numpy.ndarray) : optimizer initial point.
+            optimizer (Optimizer): the classical optimization algorithm.
+            initial_point (numpy.ndarray): optimizer initial point.
+            callback (Callable): a callback that can access the intermediate data during the optimization.
+                                 Internally, four arguments are provided as follows
+                                 the index of evaluation, parameters of variational form,
+                                 evaluated mean, evaluated standard devation.
         """
         self.validate(locals())
         var_form = QAOAVarForm(operator, p, initial_state=initial_state)
         super().__init__(operator, var_form, optimizer,
                          operator_mode=operator_mode, initial_point=initial_point,
-                         batch_mode=batch_mode, aux_operators=aux_operators)
+                         batch_mode=batch_mode, aux_operators=aux_operators, callback=callback)
 
     @classmethod
     def init_params(cls, params, algo_input):
@@ -113,21 +117,21 @@ class QAOA(VQE):
 
         operator = algo_input.qubit_op
 
-        qaoa_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
+        qaoa_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
         operator_mode = qaoa_params.get('operator_mode')
         p = qaoa_params.get('p')
         initial_point = qaoa_params.get('initial_point')
         batch_mode = qaoa_params.get('batch_mode')
 
-        init_state_params = params.get(QuantumAlgorithm.SECTION_KEY_INITIAL_STATE)
+        init_state_params = params.get(Pluggable.SECTION_KEY_INITIAL_STATE)
         init_state_params['num_qubits'] = operator.num_qubits
         init_state = get_pluggable_class(PluggableType.INITIAL_STATE,
-                                         init_state_params['name']).init_params(init_state_params)
+                                         init_state_params['name']).init_params(params)
 
         # Set up optimizer
-        opt_params = params.get(QuantumAlgorithm.SECTION_KEY_OPTIMIZER)
+        opt_params = params.get(Pluggable.SECTION_KEY_OPTIMIZER)
         optimizer = get_pluggable_class(PluggableType.OPTIMIZER,
-                                        opt_params['name']).init_params(opt_params)
+                                        opt_params['name']).init_params(params)
 
         return cls(operator, optimizer, p=p, initial_state=init_state, operator_mode=operator_mode,
                    initial_point=initial_point, batch_mode=batch_mode,
