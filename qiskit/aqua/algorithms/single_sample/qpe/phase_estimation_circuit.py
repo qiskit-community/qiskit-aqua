@@ -77,7 +77,6 @@ class PhaseEstimationCircuit:
         self._ancillary_register = None
         self._auxiliary_register = None
         self._circuit = None
-        self._ret = {}
 
     def construct_circuit(self, state_register=None, ancillary_register=None, auxiliary_register=None):
         """
