@@ -91,35 +91,9 @@ def _get_pluggables_types_dictionary():
     }
 
 
-_NAMES_TO_EXCLUDE = [
-    '_aqua',
-    '_discover',
-    '_logging',
-    'aqua_error',
-    'operator',
-    'pluggable',
-    'quantum_instance',
-    'optimizer',
-    'variational_form',
-    'initial_state',
-    'iqft',
-    'oracle',
-    'feature_map',
-    'multiclass_extension',
-    'uncertainty_problem',
-    'uncertainty_model',
-    'univariate_uncertainty_model',
-    'qft',
-    'eigs',
-    'reciprocal'
-]
+_NAMES_TO_EXCLUDE = [os.path.basename(__file__)]
 
-_FOLDERS_TO_EXCLUDE = [
-    '__pycache__',
-    'parser',
-    'translators',
-    'utils'
-]
+_FOLDERS_TO_EXCLUDE = ['__pycache__']
 
 RegisteredPluggable = namedtuple(
     'RegisteredPluggable', ['name', 'cls', 'configuration'])
@@ -168,7 +142,7 @@ def _discover_entry_point_pluggables():
             ep = entry_point.load()
             _registered = False
             for pluggable_type, c in _get_pluggables_types_dictionary().items():
-                if issubclass(ep, c):
+                if not inspect.isabstract(ep) and issubclass(ep, c):
                     _register_pluggable(pluggable_type, ep)
                     _registered = True
                     # print("Registered entry point pluggable type '{}' '{}' class '{}'".format(pluggable_type.value, entry_point, ep))
@@ -204,7 +178,7 @@ def _discover_local_pluggables_in_dirs(directory,
                     try:
                         if cls.__module__ == modspec.name:
                             for pluggable_type, c in _get_pluggables_types_dictionary().items():
-                                if issubclass(cls, c):
+                                if not inspect.isabstract(cls) and issubclass(cls, c):
                                     _register_pluggable(pluggable_type, cls)
                                     importlib.import_module(fullname)
                                     break

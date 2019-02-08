@@ -69,16 +69,5 @@ class Oracle(Pluggable):
         raise NotImplementedError()
 
     @abstractmethod
-    def evaluate_classically(self, assignment):
-        """For an assignment, check the oracle result (True|False) classically
-        Args:
-            assignment (list of bools) : a particular variable assignment
-
-        Returns:
-            The True|False value of the oracle under the given assignment
-        """
-        raise NotImplementedError
-
-    @abstractmethod
     def interpret_measurement(self, *args, **kwargs):
         raise NotImplementedError

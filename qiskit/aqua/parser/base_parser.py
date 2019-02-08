@@ -406,7 +406,7 @@ class BaseParser(ABC):
         pluggable_dependencies = config.get('depends', [])
         if section_name == PluggableType.ALGORITHM.value:
             sections_to_be_deleted = [name for name in self.get_section_names()
-                                      if name != PluggableType.INPUT and self.is_pluggable_section(name)]
+                                      if name != PluggableType.INPUT.value and self.is_pluggable_section(name)]
 
             classical = config.get('classical', False)
             # update backend based on classical
