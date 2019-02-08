@@ -160,14 +160,17 @@ class QPE(Eigenvalues):
         # additional QFTs
         if negative_evals:
             ne_params = params
-            ne_params['iqft']['num_qubits'] = iqft_params['num_qubits'] - 1
-            ne_params['qft'] = ne_params['iqft']
+            qft_num_qubits = iqft_params['num_qubits']
             ne_qft_params = params.get(Pluggable.SECTION_KEY_QFT)
-            ne_qft_params['num_qubits'] = iqft_params['num_qubits'] - 1
+            ne_qft_params['num_qubits'] = qft_num_qubits - 1
+            ne_iqft_params = params.get(Pluggable.SECTION_KEY_IQFT)
+            ne_iqft_params['num_qubits'] = qft_num_qubits - 1
+            ne_params['qft'] = ne_qft_params
+            ne_params['iqft'] = ne_iqft_params
             args['ne_qfts'] = [get_pluggable_class(PluggableType.QFT,
                                                    ne_qft_params['name']).init_params(ne_params),
                                get_pluggable_class(PluggableType.IQFT,
-                                                   ne_qft_params['name']).init_params(ne_params)]
+                                                   ne_iqft_params['name']).init_params(ne_params)]
         else:
             args['ne_qfts'] = [None, None]
 
