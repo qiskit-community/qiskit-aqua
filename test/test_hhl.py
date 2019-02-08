@@ -169,7 +169,7 @@ class TestHHL(QiskitAquaTestCase):
             'vector': vector
         }
         qasm_params['backend']['name'] = 'qasm_simulator'
-        qasm_params['backend']['shots'] = 200
+        qasm_params['backend']['shots'] = 400
 
         # run hhl
         result = run_algorithm(qasm_params)
