@@ -22,7 +22,7 @@ import operator
 from qiskit import QuantumRegister, QuantumCircuit
 
 from qiskit.aqua import AquaError
-from qiskit.aqua.utils import DNF
+from qiskit.aqua.utils import ESOP
 from qiskit.aqua.components.oracles import Oracle
 
 logger = logging.getLogger(__name__)
@@ -80,15 +80,15 @@ class DeutschJozsaOracle(Oracle):
         def _(bbs):
             return [i[-1] if i[0] == '1' else -i[-1] for i in list(zip(bbs, list(range(1, len(bbs) + 1))))]
 
-        dnf_expr = [_(i) for i in bitmap if bitmap[i] == '1']
-        if dnf_expr:
-            self._dnf = DNF(dnf_expr)
-            self._dnf.construct_circuit()
-            self._variable_register = self._dnf.qr_variable
-            self._outcome_register = self._dnf.qr_outcome
-            self._ancillary_register = self._dnf.qr_ancilla
+        esop_expr = [_(i) for i in bitmap if bitmap[i] == '1']
+        if esop_expr:
+            self._esop = ESOP(esop_expr)
+            self._esop.construct_circuit()
+            self._variable_register = self._esop.qr_variable
+            self._outcome_register = self._esop.qr_outcome
+            self._ancillary_register = self._esop.qr_ancilla
         else:
-            self._dnf = None
+            self._esop = None
             self._variable_register = QuantumRegister(nbits, name='v')
             self._outcome_register = QuantumRegister(1, name='o')
             self._ancillary_register = None
@@ -106,8 +106,8 @@ class DeutschJozsaOracle(Oracle):
         return self._outcome_register
 
     def construct_circuit(self):
-        if self._dnf:
-            return self._dnf.construct_circuit(mct_mode=self._mct_mode)
+        if self._esop:
+            return self._esop.construct_circuit(mct_mode=self._mct_mode)
         else:
             return QuantumCircuit(self._variable_register)
 
