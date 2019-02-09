@@ -127,7 +127,7 @@ class BooleanLogicNormalForm(ABC):
         self._qr_clause = _set_up_register(self.num_clauses, qr_clause, 'clause')
         self._qr_outcome = _set_up_register(1, qr_outcome, 'outcome')
 
-        max_num_ancillae = max(max(self._num_clauses, self._num_variables) - 2, 0)
+        max_num_ancillae = max(max(self._num_clauses if self._qr_clause else 0, self._num_variables) - 2, 0)
         num_ancillae = 0
         if mct_mode == 'basic':
             num_ancillae = max_num_ancillae
@@ -142,10 +142,15 @@ class BooleanLogicNormalForm(ABC):
         self._qr_ancilla = _set_up_register(num_ancillae, qr_ancilla, 'ancilla')
 
         if circuit is None:
+            circuit = QuantumCircuit()
+            if self._qr_variable:
+                circuit.add_register(self._qr_variable)
+            if self._qr_clause:
+                circuit.add_register(self._qr_clause)
+            if self._qr_outcome:
+                circuit.add_register(self._qr_outcome)
             if self._qr_ancilla:
-                circuit = QuantumCircuit(self._qr_variable, self._qr_clause, self._qr_ancilla, self._qr_outcome)
-            else:
-                circuit = QuantumCircuit(self._qr_variable, self._qr_clause, self._qr_outcome)
+                circuit.add_register(self._qr_ancilla)
         return circuit
 
     @abstractmethod
@@ -239,5 +244,27 @@ class DNF(BooleanLogicNormalForm):
 
         return circuit
 
+
+class ESOP(BooleanLogicNormalForm):
+    def construct_circuit(
+            self,
+            circuit=None,
+            qr_variable=None,
+            qr_outcome=None,
+            qr_ancilla=None,
+            mct_mode='basic'
+    ):
+        circuit = self._set_up_circuit(
+            circuit=circuit,
+            qr_variable=qr_variable,
+            qr_clause='skip',
+            qr_outcome=qr_outcome,
+            qr_ancilla=qr_ancilla,
+            mct_mode=mct_mode
+        )
+
+        # compute all clauses
+        for clause_index, clause_expr in enumerate(self._expr):
+            _and(clause_expr, circuit, self._qr_variable, self._qr_outcome[0], self._qr_ancilla, mct_mode)
 
         return circuit
