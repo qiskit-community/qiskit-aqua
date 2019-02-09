@@ -31,48 +31,49 @@ from .mct import mct
 logger = logging.getLogger(__name__)
 
 
-def _or(clause_expr, clause_index, circuit, qr_variable, qr_clause, qr_ancilla, mct_mode):
+def _or(clause_expr, circuit, variable_register, target_qubit, ancillary_register, mct_mode):
     qs = [abs(v) for v in clause_expr]
-    ctl_bits = [qr_variable[idx - 1] for idx in qs]
-    anc_bits = [qr_ancilla[idx] for idx in range(len(qs) - 2)] if qr_ancilla else None
-    tgt_bits = qr_clause[clause_index]
+    ctl_bits = [variable_register[idx - 1] for idx in qs]
+    anc_bits = [ancillary_register[idx] for idx in range(len(qs) - 2)] if ancillary_register else None
     for idx in [v for v in clause_expr if v > 0]:
-        circuit.u3(pi, 0, pi, qr_variable[idx - 1])
-    circuit.mct(ctl_bits, tgt_bits, anc_bits, mode=mct_mode)
+        circuit.u3(pi, 0, pi, variable_register[idx - 1])
+    circuit.mct(ctl_bits, target_qubit, anc_bits, mode=mct_mode)
     for idx in [v for v in clause_expr if v > 0]:
-        circuit.u3(pi, 0, pi, qr_variable[idx - 1])
+        circuit.u3(pi, 0, pi, variable_register[idx - 1])
 
 
-def _and(clause_expr, clause_index, circuit, qr_variable, qr_clause, qr_ancilla, mct_mode):
+def _and(clause_expr, circuit, variable_register, target_qubit, ancillary_register, mct_mode):
     qs = [abs(v) for v in clause_expr]
-    ctl_bits = [qr_variable[idx - 1] for idx in qs]
-    anc_bits = [qr_ancilla[idx] for idx in range(len(qs) - 2)] if qr_ancilla else None
-    tgt_bits = qr_clause[clause_index]
+    ctl_bits = [variable_register[idx - 1] for idx in qs]
+    anc_bits = [ancillary_register[idx] for idx in range(len(qs) - 2)] if ancillary_register else None
     for idx in [v for v in clause_expr if v < 0]:
-        circuit.u3(pi, 0, pi, qr_variable[-idx - 1])
-    circuit.mct(ctl_bits, tgt_bits, anc_bits, mode=mct_mode)
+        circuit.u3(pi, 0, pi, variable_register[-idx - 1])
+    circuit.mct(ctl_bits, target_qubit, anc_bits, mode=mct_mode)
     for idx in [v for v in clause_expr if v < 0]:
-        circuit.u3(pi, 0, pi, qr_variable[-idx - 1])
+        circuit.u3(pi, 0, pi, variable_register[-idx - 1])
 
 
 def _set_up_register(num_qubits_needed, provided_register, description):
-    if provided_register is None:
-        if num_qubits_needed > 0:
-            return QuantumRegister(num_qubits_needed, name=description[0])
+    if provided_register == 'skip':
+        return None
     else:
-        num_qubits_provided = len(provided_register)
-        if num_qubits_needed > num_qubits_provided:
-            raise ValueError(
-                'The {} QuantumRegister needs {} qubits, but the provided register contains only {}.'.format(
-                    description, num_qubits_needed, num_qubits_provided
-                ))
+        if provided_register is None:
+            if num_qubits_needed > 0:
+                return QuantumRegister(num_qubits_needed, name=description[0])
         else:
-            if num_qubits_needed < num_qubits_provided:
-                logger.warning(
-                    'The {} QuantumRegister only needs {} qubits, but the provided register contains {}.'.format(
+            num_qubits_provided = len(provided_register)
+            if num_qubits_needed > num_qubits_provided:
+                raise ValueError(
+                    'The {} QuantumRegister needs {} qubits, but the provided register contains only {}.'.format(
                         description, num_qubits_needed, num_qubits_provided
                     ))
-            return provided_register
+            else:
+                if num_qubits_needed < num_qubits_provided:
+                    logger.warning(
+                        'The {} QuantumRegister only needs {} qubits, but the provided register contains {}.'.format(
+                            description, num_qubits_needed, num_qubits_provided
+                        ))
+                return provided_register
 
 
 class BooleanLogicNormalForm(ABC):
@@ -174,9 +175,9 @@ class CNF(BooleanLogicNormalForm):
         # init all clause qubits to 1
         circuit.u3(pi, 0, pi, self._qr_clause)
 
-        # build all clauses
+        # compute all clauses
         for clause_index, clause_expr in enumerate(self._expr):
-            _or(clause_expr, clause_index, circuit, self._qr_variable, self._qr_clause, self._qr_ancilla, mct_mode)
+            _or(clause_expr, circuit, self._qr_variable, self._qr_clause[clause_index], self._qr_ancilla, mct_mode)
 
         # collect results from all clauses
         circuit.mct(
@@ -188,7 +189,7 @@ class CNF(BooleanLogicNormalForm):
 
         # uncompute all clauses
         for clause_index, clause_expr in reversed(list(enumerate(self._expr))):
-            _or(clause_expr, clause_index, circuit, self._qr_variable, self._qr_clause, self._qr_ancilla, mct_mode)
+            _or(clause_expr, circuit, self._qr_variable, self._qr_clause[clause_index], self._qr_ancilla, mct_mode)
 
         # reset all clause qubits to 0
         circuit.u3(pi, 0, pi, self._qr_clause)
@@ -215,11 +216,11 @@ class DNF(BooleanLogicNormalForm):
             mct_mode=mct_mode
         )
 
-        # build all clauses
+        # compute all clauses
         for clause_index, clause_expr in enumerate(self._expr):
-            _and(clause_expr, clause_index, circuit, self._qr_variable, self._qr_clause, self._qr_ancilla, mct_mode)
+            _and(clause_expr, circuit, self._qr_variable, self._qr_clause[clause_index], self._qr_ancilla, mct_mode)
 
-        # init the outcome qubit to 1:
+        # init the outcome qubit to 1
         circuit.u3(pi, 0, pi, self._qr_outcome)
 
         # collect results from all clauses
@@ -232,8 +233,11 @@ class DNF(BooleanLogicNormalForm):
         )
         circuit.u3(pi, 0, pi, self._qr_clause)
 
-        # clean up
+        # uncompute all clauses
         for clause_index, clause_expr in reversed(list(enumerate(self._expr))):
-            _and(clause_expr, clause_index, circuit, self._qr_variable, self._qr_clause, self._qr_ancilla, mct_mode)
+            _and(clause_expr, circuit, self._qr_variable, self._qr_clause[clause_index], self._qr_ancilla, mct_mode)
+
+        return circuit
+
 
         return circuit
