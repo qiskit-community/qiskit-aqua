@@ -54,7 +54,24 @@ def _and(clause_expr, circuit, variable_register, target_qubit, ancillary_regist
 
 
 class BooleanLogicNormalForm(ABC):
+    """
+    The base abstract class for:
+    - CNF (Conjuctive Normal Forms),
+    - DNF (Disjuctive Normal Forms), and
+    - ESOP (Exclusive Sum of Products)
+    """
     def __init__(self, expr):
+        """
+        Constructor.
+
+        Args:
+            expr ([list]): List of lists of non-zero integers, where
+                - each integer's absolute value indicates its variable index,
+                - any negative sign indicates the negation for the corresponding variable,
+                - each inner list corresponds to each clause of the logic expression, and
+                - the outermost logic operation depends on the actual subclass (CNF, DNF, or ESOP)
+        """
+
         self._expr = expr
         self._num_variables = max(set([abs(v) for v in list(itertools.chain.from_iterable(self._expr))]))
         self._num_clauses = len(self._expr)
@@ -159,6 +176,9 @@ class BooleanLogicNormalForm(ABC):
 
 
 class CNF(BooleanLogicNormalForm):
+    """
+    Class for constructing circuits for Conjunctive Normal Forms
+    """
     def construct_circuit(
             self,
             circuit=None,
@@ -168,6 +188,21 @@ class CNF(BooleanLogicNormalForm):
             qr_ancilla=None,
             mct_mode='basic'
     ):
+        """
+        Construct circuit.
+
+        Args:
+            circuit (QuantumCircuit): The optional circuit to extend from
+            qr_variable (QuantumRegister): The optional quantum register to use for problem variables
+            qr_clause (QuantumRegister): The optional quantum register to use for problem clauses
+            qr_outcome (QuantumRegister): The optional quantum register to use for holding the output
+            qr_ancilla (QuantumRegister): The optional quantum register to use as ancilla
+            mct_mode (str): The mode to use for building Multiple-Control Toffoli
+
+        Returns:
+            QuantumCircuit: quantum circuit.
+        """
+
         circuit = self._set_up_circuit(
             circuit=circuit,
             qr_variable=qr_variable,
@@ -203,6 +238,9 @@ class CNF(BooleanLogicNormalForm):
 
 
 class DNF(BooleanLogicNormalForm):
+    """
+    Class for constructing circuits for Disjunctive Normal Forms
+    """
     def construct_circuit(
             self,
             circuit=None,
@@ -212,6 +250,21 @@ class DNF(BooleanLogicNormalForm):
             qr_ancilla=None,
             mct_mode='basic'
     ):
+        """
+        Construct circuit.
+
+        Args:
+            circuit (QuantumCircuit): The optional circuit to extend from
+            qr_variable (QuantumRegister): The optional quantum register to use for problem variables
+            qr_clause (QuantumRegister): The optional quantum register to use for problem clauses
+            qr_outcome (QuantumRegister): The optional quantum register to use for holding the output
+            qr_ancilla (QuantumRegister): The optional quantum register to use as ancilla
+            mct_mode (str): The mode to use for building Multiple-Control Toffoli
+
+        Returns:
+            QuantumCircuit: quantum circuit.
+        """
+
         circuit = self._set_up_circuit(
             circuit=circuit,
             qr_variable=qr_variable,
@@ -246,6 +299,9 @@ class DNF(BooleanLogicNormalForm):
 
 
 class ESOP(BooleanLogicNormalForm):
+    """
+    Class for constructing circuits for Exclusive Sum of Products
+    """
     def construct_circuit(
             self,
             circuit=None,
@@ -254,6 +310,20 @@ class ESOP(BooleanLogicNormalForm):
             qr_ancilla=None,
             mct_mode='basic'
     ):
+        """
+        Construct circuit.
+
+        Args:
+            circuit (QuantumCircuit): The optional circuit to extend from
+            qr_variable (QuantumRegister): The optional quantum register to use for problem variables
+            qr_outcome (QuantumRegister): The optional quantum register to use for holding the output
+            qr_ancilla (QuantumRegister): The optional quantum register to use as ancilla
+            mct_mode (str): The mode to use for building Multiple-Control Toffoli
+
+        Returns:
+            QuantumCircuit: quantum circuit.
+        """
+
         circuit = self._set_up_circuit(
             circuit=circuit,
             qr_variable=qr_variable,
