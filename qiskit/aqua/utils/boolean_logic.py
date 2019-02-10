@@ -56,8 +56,8 @@ def _and(clause_expr, circuit, variable_register, target_qubit, ancillary_regist
 class BooleanLogicNormalForm(ABC):
     """
     The base abstract class for:
-    - CNF (Conjuctive Normal Forms),
-    - DNF (Disjuctive Normal Forms), and
+    - CNF (Conjunctive Normal Forms),
+    - DNF (Disjunctive Normal Forms), and
     - ESOP (Exclusive Sum of Products)
     """
     def __init__(self, expr):
