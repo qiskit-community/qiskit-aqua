@@ -53,29 +53,6 @@ def _and(clause_expr, circuit, variable_register, target_qubit, ancillary_regist
         circuit.u3(pi, 0, pi, variable_register[-idx - 1])
 
 
-def _set_up_register(num_qubits_needed, provided_register, description):
-    if provided_register == 'skip':
-        return None
-    else:
-        if provided_register is None:
-            if num_qubits_needed > 0:
-                return QuantumRegister(num_qubits_needed, name=description[0])
-        else:
-            num_qubits_provided = len(provided_register)
-            if num_qubits_needed > num_qubits_provided:
-                raise ValueError(
-                    'The {} QuantumRegister needs {} qubits, but the provided register contains only {}.'.format(
-                        description, num_qubits_needed, num_qubits_provided
-                    ))
-            else:
-                if num_qubits_needed < num_qubits_provided:
-                    logger.warning(
-                        'The {} QuantumRegister only needs {} qubits, but the provided register contains {}.'.format(
-                            description, num_qubits_needed, num_qubits_provided
-                        ))
-                return provided_register
-
-
 class BooleanLogicNormalForm(ABC):
     def __init__(self, expr):
         self._expr = expr
@@ -114,6 +91,29 @@ class BooleanLogicNormalForm(ABC):
     def qr_ancilla(self):
         return self._qr_ancilla
 
+    @staticmethod
+    def _set_up_register(num_qubits_needed, provided_register, description):
+        if provided_register == 'skip':
+            return None
+        else:
+            if provided_register is None:
+                if num_qubits_needed > 0:
+                    return QuantumRegister(num_qubits_needed, name=description[0])
+            else:
+                num_qubits_provided = len(provided_register)
+                if num_qubits_needed > num_qubits_provided:
+                    raise ValueError(
+                        'The {} QuantumRegister needs {} qubits, but the provided register contains only {}.'.format(
+                            description, num_qubits_needed, num_qubits_provided
+                        ))
+                else:
+                    if num_qubits_needed < num_qubits_provided:
+                        logger.warning(
+                            'The {} QuantumRegister only needs {} qubits, but the provided register contains {}.'.format(
+                                description, num_qubits_needed, num_qubits_provided
+                            ))
+                    return provided_register
+
     def _set_up_circuit(
             self,
             circuit=None,
@@ -123,9 +123,9 @@ class BooleanLogicNormalForm(ABC):
             qr_ancilla=None,
             mct_mode='basic'
     ):
-        self._qr_variable = _set_up_register(self.num_variables, qr_variable, 'variable')
-        self._qr_clause = _set_up_register(self.num_clauses, qr_clause, 'clause')
-        self._qr_outcome = _set_up_register(1, qr_outcome, 'outcome')
+        self._qr_variable = BooleanLogicNormalForm._set_up_register(self.num_variables, qr_variable, 'variable')
+        self._qr_clause = BooleanLogicNormalForm._set_up_register(self.num_clauses, qr_clause, 'clause')
+        self._qr_outcome = BooleanLogicNormalForm._set_up_register(1, qr_outcome, 'outcome')
 
         max_num_ancillae = max(max(self._num_clauses if self._qr_clause else 0, self._num_variables) - 2, 0)
         num_ancillae = 0
@@ -139,7 +139,7 @@ class BooleanLogicNormalForm(ABC):
         else:
             raise ValueError('Unsupported MCT mode {}.'.format(mct_mode))
 
-        self._qr_ancilla = _set_up_register(num_ancillae, qr_ancilla, 'ancilla')
+        self._qr_ancilla = BooleanLogicNormalForm._set_up_register(num_ancillae, qr_ancilla, 'ancilla')
 
         if circuit is None:
             circuit = QuantumCircuit()
