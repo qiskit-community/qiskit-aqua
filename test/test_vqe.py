@@ -51,7 +51,7 @@ class TestVQE(QiskitAquaTestCase):
     def test_vqe_via_run_algorithm(self):
 
         coupling_map = [[0, 1]]
-        basis_gates = 'u1,u2,u3,cx,id'
+        basis_gates = ['u1', 'u2', 'u3', 'cx', 'id']
 
         params = {
             'algorithm': {'name': 'VQE'},
@@ -126,7 +126,6 @@ class TestVQE(QiskitAquaTestCase):
         result = algo.run(quantum_instance)
         self.assertAlmostEqual(result['energy'], -1.85727503)
 
-
     def test_vqe_callback(self):
 
         tmp_filename = 'vqe_callback_test.csv'
@@ -170,6 +169,7 @@ class TestVQE(QiskitAquaTestCase):
                 idx += 1
         if is_file_exist:
             os.remove(self._get_resource_path(tmp_filename))
+
 
 if __name__ == '__main__':
     unittest.main()
