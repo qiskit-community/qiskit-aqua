@@ -199,6 +199,9 @@ class QiskitAqua(object):
 
             # overwrite the basis_gates and coupling_map
             basis_gates = backend_cfg.pop('basis_gates', None)
+            if isinstance(basis_gates, str):
+                basis_gates = basis_gates.split(',')
+
             coupling_map = backend_cfg.pop('coupling_map', None)
             if backend.configuration().simulator:
                 if basis_gates is not None:
