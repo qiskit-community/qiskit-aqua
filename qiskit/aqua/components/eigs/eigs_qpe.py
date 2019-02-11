@@ -20,7 +20,7 @@ from qiskit import QuantumRegister
 from qiskit.aqua import Operator, AquaError
 from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.components.eigs import Eigenvalues
-from qiskit.aqua.algorithms.single_sample import PhaseEstimation
+from qiskit.aqua.algorithms.single_sample import PhaseEstimationCircuit
 
 
 class EigsQPE(Eigenvalues):
@@ -28,7 +28,7 @@ class EigsQPE(Eigenvalues):
 
     CONFIGURATION = {
         'name': 'EigsQPE',
-        'description': 'Quantum Phase Estimation',
+        'description': 'Quantum Phase Estimation for eigenvalues',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
             'id': 'eigsqpe_schema',
@@ -198,16 +198,16 @@ class EigsQPE(Eigenvalues):
     def construct_circuit(self, mode, register=None):
         """Implement the Quantum Phase Estimation algorithm"""
 
-        pe = PhaseEstimation(operator=self._operator,
-                             state_in=None, iqft=self._iqft,
-                             num_time_slices=self._num_time_slices,
-                             num_ancillae=self._num_ancillae,
-                             expansion_mode=self._expansion_mode,
-                             expansion_order=self._expansion_order,
-                             evo_time=self._evo_time)
-
         if mode == 'vector':
             raise ValueError("QPE only posslible as circuit not vector.")
+
+        pe = PhaseEstimationCircuit(operator=self._operator,
+                                    state_in=None, iqft=self._iqft,
+                                    num_time_slices=self._num_time_slices,
+                                    num_ancillae=self._num_ancillae,
+                                    expansion_mode=self._expansion_mode,
+                                    expansion_order=self._expansion_order,
+                                    evo_time=self._evo_time)
 
         a = QuantumRegister(self._num_ancillae)
         q = register
