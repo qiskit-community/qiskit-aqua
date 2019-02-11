@@ -31,52 +31,47 @@ from .mct import mct
 logger = logging.getLogger(__name__)
 
 
-def _or(clause_expr, clause_index, circuit, qr_variable, qr_clause, qr_ancilla, mct_mode):
+def _or(clause_expr, circuit, variable_register, target_qubit, ancillary_register, mct_mode):
     qs = [abs(v) for v in clause_expr]
-    ctl_bits = [qr_variable[idx - 1] for idx in qs]
-    anc_bits = [qr_ancilla[idx] for idx in range(len(qs) - 2)] if qr_ancilla else None
-    tgt_bits = qr_clause[clause_index]
+    ctl_bits = [variable_register[idx - 1] for idx in qs]
+    anc_bits = [ancillary_register[idx] for idx in range(len(qs) - 2)] if ancillary_register else None
     for idx in [v for v in clause_expr if v > 0]:
-        circuit.u3(pi, 0, pi, qr_variable[idx - 1])
-    circuit.mct(ctl_bits, tgt_bits, anc_bits, mode=mct_mode)
+        circuit.u3(pi, 0, pi, variable_register[idx - 1])
+    circuit.mct(ctl_bits, target_qubit, anc_bits, mode=mct_mode)
     for idx in [v for v in clause_expr if v > 0]:
-        circuit.u3(pi, 0, pi, qr_variable[idx - 1])
+        circuit.u3(pi, 0, pi, variable_register[idx - 1])
 
 
-def _and(clause_expr, clause_index, circuit, qr_variable, qr_clause, qr_ancilla, mct_mode):
+def _and(clause_expr, circuit, variable_register, target_qubit, ancillary_register, mct_mode):
     qs = [abs(v) for v in clause_expr]
-    ctl_bits = [qr_variable[idx - 1] for idx in qs]
-    anc_bits = [qr_ancilla[idx] for idx in range(len(qs) - 2)] if qr_ancilla else None
-    tgt_bits = qr_clause[clause_index]
+    ctl_bits = [variable_register[idx - 1] for idx in qs]
+    anc_bits = [ancillary_register[idx] for idx in range(len(qs) - 2)] if ancillary_register else None
     for idx in [v for v in clause_expr if v < 0]:
-        circuit.u3(pi, 0, pi, qr_variable[-idx - 1])
-    circuit.mct(ctl_bits, tgt_bits, anc_bits, mode=mct_mode)
+        circuit.u3(pi, 0, pi, variable_register[-idx - 1])
+    circuit.mct(ctl_bits, target_qubit, anc_bits, mode=mct_mode)
     for idx in [v for v in clause_expr if v < 0]:
-        circuit.u3(pi, 0, pi, qr_variable[-idx - 1])
-
-
-def _set_up_register(num_qubits_needed, provided_register, description):
-    if provided_register is None:
-        if num_qubits_needed > 0:
-            return QuantumRegister(num_qubits_needed, name=description[0])
-    else:
-        num_qubits_provided = len(provided_register)
-        if num_qubits_needed > num_qubits_provided:
-            raise ValueError(
-                'The {} QuantumRegister needs {} qubits, but the provided register contains only {}.'.format(
-                    description, num_qubits_needed, num_qubits_provided
-                ))
-        else:
-            if num_qubits_needed < num_qubits_provided:
-                logger.warning(
-                    'The {} QuantumRegister only needs {} qubits, but the provided register contains {}.'.format(
-                        description, num_qubits_needed, num_qubits_provided
-                    ))
-            return provided_register
+        circuit.u3(pi, 0, pi, variable_register[-idx - 1])
 
 
 class BooleanLogicNormalForm(ABC):
+    """
+    The base abstract class for:
+    - CNF (Conjunctive Normal Forms),
+    - DNF (Disjunctive Normal Forms), and
+    - ESOP (Exclusive Sum of Products)
+    """
     def __init__(self, expr):
+        """
+        Constructor.
+
+        Args:
+            expr ([list]): List of lists of non-zero integers, where
+                - each integer's absolute value indicates its variable index,
+                - any negative sign indicates the negation for the corresponding variable,
+                - each inner list corresponds to each clause of the logic expression, and
+                - the outermost logic operation depends on the actual subclass (CNF, DNF, or ESOP)
+        """
+
         self._expr = expr
         self._num_variables = max(set([abs(v) for v in list(itertools.chain.from_iterable(self._expr))]))
         self._num_clauses = len(self._expr)
@@ -113,6 +108,29 @@ class BooleanLogicNormalForm(ABC):
     def qr_ancilla(self):
         return self._qr_ancilla
 
+    @staticmethod
+    def _set_up_register(num_qubits_needed, provided_register, description):
+        if provided_register == 'skip':
+            return None
+        else:
+            if provided_register is None:
+                if num_qubits_needed > 0:
+                    return QuantumRegister(num_qubits_needed, name=description[0])
+            else:
+                num_qubits_provided = len(provided_register)
+                if num_qubits_needed > num_qubits_provided:
+                    raise ValueError(
+                        'The {} QuantumRegister needs {} qubits, but the provided register contains only {}.'.format(
+                            description, num_qubits_needed, num_qubits_provided
+                        ))
+                else:
+                    if num_qubits_needed < num_qubits_provided:
+                        logger.warning(
+                            'The {} QuantumRegister only needs {} qubits, but the provided register contains {}.'.format(
+                                description, num_qubits_needed, num_qubits_provided
+                            ))
+                    return provided_register
+
     def _set_up_circuit(
             self,
             circuit=None,
@@ -122,11 +140,11 @@ class BooleanLogicNormalForm(ABC):
             qr_ancilla=None,
             mct_mode='basic'
     ):
-        self._qr_variable = _set_up_register(self.num_variables, qr_variable, 'variable')
-        self._qr_clause = _set_up_register(self.num_clauses, qr_clause, 'clause')
-        self._qr_outcome = _set_up_register(1, qr_outcome, 'outcome')
+        self._qr_variable = BooleanLogicNormalForm._set_up_register(self.num_variables, qr_variable, 'variable')
+        self._qr_clause = BooleanLogicNormalForm._set_up_register(self.num_clauses, qr_clause, 'clause')
+        self._qr_outcome = BooleanLogicNormalForm._set_up_register(1, qr_outcome, 'outcome')
 
-        max_num_ancillae = max(max(self._num_clauses, self._num_variables) - 2, 0)
+        max_num_ancillae = max(max(self._num_clauses if self._qr_clause else 0, self._num_variables) - 2, 0)
         num_ancillae = 0
         if mct_mode == 'basic':
             num_ancillae = max_num_ancillae
@@ -138,13 +156,18 @@ class BooleanLogicNormalForm(ABC):
         else:
             raise ValueError('Unsupported MCT mode {}.'.format(mct_mode))
 
-        self._qr_ancilla = _set_up_register(num_ancillae, qr_ancilla, 'ancilla')
+        self._qr_ancilla = BooleanLogicNormalForm._set_up_register(num_ancillae, qr_ancilla, 'ancilla')
 
         if circuit is None:
+            circuit = QuantumCircuit()
+            if self._qr_variable:
+                circuit.add_register(self._qr_variable)
+            if self._qr_clause:
+                circuit.add_register(self._qr_clause)
+            if self._qr_outcome:
+                circuit.add_register(self._qr_outcome)
             if self._qr_ancilla:
-                circuit = QuantumCircuit(self._qr_variable, self._qr_clause, self._qr_ancilla, self._qr_outcome)
-            else:
-                circuit = QuantumCircuit(self._qr_variable, self._qr_clause, self._qr_outcome)
+                circuit.add_register(self._qr_ancilla)
         return circuit
 
     @abstractmethod
@@ -153,6 +176,9 @@ class BooleanLogicNormalForm(ABC):
 
 
 class CNF(BooleanLogicNormalForm):
+    """
+    Class for constructing circuits for Conjunctive Normal Forms
+    """
     def construct_circuit(
             self,
             circuit=None,
@@ -162,6 +188,21 @@ class CNF(BooleanLogicNormalForm):
             qr_ancilla=None,
             mct_mode='basic'
     ):
+        """
+        Construct circuit.
+
+        Args:
+            circuit (QuantumCircuit): The optional circuit to extend from
+            qr_variable (QuantumRegister): The optional quantum register to use for problem variables
+            qr_clause (QuantumRegister): The optional quantum register to use for problem clauses
+            qr_outcome (QuantumRegister): The optional quantum register to use for holding the output
+            qr_ancilla (QuantumRegister): The optional quantum register to use as ancilla
+            mct_mode (str): The mode to use for building Multiple-Control Toffoli
+
+        Returns:
+            QuantumCircuit: quantum circuit.
+        """
+
         circuit = self._set_up_circuit(
             circuit=circuit,
             qr_variable=qr_variable,
@@ -174,9 +215,9 @@ class CNF(BooleanLogicNormalForm):
         # init all clause qubits to 1
         circuit.u3(pi, 0, pi, self._qr_clause)
 
-        # build all clauses
+        # compute all clauses
         for clause_index, clause_expr in enumerate(self._expr):
-            _or(clause_expr, clause_index, circuit, self._qr_variable, self._qr_clause, self._qr_ancilla, mct_mode)
+            _or(clause_expr, circuit, self._qr_variable, self._qr_clause[clause_index], self._qr_ancilla, mct_mode)
 
         # collect results from all clauses
         circuit.mct(
@@ -188,7 +229,7 @@ class CNF(BooleanLogicNormalForm):
 
         # uncompute all clauses
         for clause_index, clause_expr in reversed(list(enumerate(self._expr))):
-            _or(clause_expr, clause_index, circuit, self._qr_variable, self._qr_clause, self._qr_ancilla, mct_mode)
+            _or(clause_expr, circuit, self._qr_variable, self._qr_clause[clause_index], self._qr_ancilla, mct_mode)
 
         # reset all clause qubits to 0
         circuit.u3(pi, 0, pi, self._qr_clause)
@@ -197,6 +238,9 @@ class CNF(BooleanLogicNormalForm):
 
 
 class DNF(BooleanLogicNormalForm):
+    """
+    Class for constructing circuits for Disjunctive Normal Forms
+    """
     def construct_circuit(
             self,
             circuit=None,
@@ -206,6 +250,21 @@ class DNF(BooleanLogicNormalForm):
             qr_ancilla=None,
             mct_mode='basic'
     ):
+        """
+        Construct circuit.
+
+        Args:
+            circuit (QuantumCircuit): The optional circuit to extend from
+            qr_variable (QuantumRegister): The optional quantum register to use for problem variables
+            qr_clause (QuantumRegister): The optional quantum register to use for problem clauses
+            qr_outcome (QuantumRegister): The optional quantum register to use for holding the output
+            qr_ancilla (QuantumRegister): The optional quantum register to use as ancilla
+            mct_mode (str): The mode to use for building Multiple-Control Toffoli
+
+        Returns:
+            QuantumCircuit: quantum circuit.
+        """
+
         circuit = self._set_up_circuit(
             circuit=circuit,
             qr_variable=qr_variable,
@@ -215,11 +274,11 @@ class DNF(BooleanLogicNormalForm):
             mct_mode=mct_mode
         )
 
-        # build all clauses
+        # compute all clauses
         for clause_index, clause_expr in enumerate(self._expr):
-            _and(clause_expr, clause_index, circuit, self._qr_variable, self._qr_clause, self._qr_ancilla, mct_mode)
+            _and(clause_expr, circuit, self._qr_variable, self._qr_clause[clause_index], self._qr_ancilla, mct_mode)
 
-        # init the outcome qubit to 1:
+        # init the outcome qubit to 1
         circuit.u3(pi, 0, pi, self._qr_outcome)
 
         # collect results from all clauses
@@ -232,8 +291,50 @@ class DNF(BooleanLogicNormalForm):
         )
         circuit.u3(pi, 0, pi, self._qr_clause)
 
-        # clean up
+        # uncompute all clauses
         for clause_index, clause_expr in reversed(list(enumerate(self._expr))):
-            _and(clause_expr, clause_index, circuit, self._qr_variable, self._qr_clause, self._qr_ancilla, mct_mode)
+            _and(clause_expr, circuit, self._qr_variable, self._qr_clause[clause_index], self._qr_ancilla, mct_mode)
+
+        return circuit
+
+
+class ESOP(BooleanLogicNormalForm):
+    """
+    Class for constructing circuits for Exclusive Sum of Products
+    """
+    def construct_circuit(
+            self,
+            circuit=None,
+            qr_variable=None,
+            qr_outcome=None,
+            qr_ancilla=None,
+            mct_mode='basic'
+    ):
+        """
+        Construct circuit.
+
+        Args:
+            circuit (QuantumCircuit): The optional circuit to extend from
+            qr_variable (QuantumRegister): The optional quantum register to use for problem variables
+            qr_outcome (QuantumRegister): The optional quantum register to use for holding the output
+            qr_ancilla (QuantumRegister): The optional quantum register to use as ancilla
+            mct_mode (str): The mode to use for building Multiple-Control Toffoli
+
+        Returns:
+            QuantumCircuit: quantum circuit.
+        """
+
+        circuit = self._set_up_circuit(
+            circuit=circuit,
+            qr_variable=qr_variable,
+            qr_clause='skip',
+            qr_outcome=qr_outcome,
+            qr_ancilla=qr_ancilla,
+            mct_mode=mct_mode
+        )
+
+        # compute all clauses
+        for clause_index, clause_expr in enumerate(self._expr):
+            _and(clause_expr, circuit, self._qr_variable, self._qr_outcome[0], self._qr_ancilla, mct_mode)
 
         return circuit
