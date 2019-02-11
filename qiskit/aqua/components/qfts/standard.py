@@ -45,7 +45,10 @@ class Standard(QFT):
 
     def construct_circuit(self, mode, register=None, circuit=None):
         if mode == 'vector':
-            return linalg.dft(2 ** self._num_qubits, scale='sqrtn')
+            # note the difference between QFT and DFT in the phase definition:
+            # QFT: \omega = exp(2*pi*i/N) ; DFT: \omega = exp(-2*pi*i/N)
+            # so linalg.inv(linalg.dft()) is correct for QFT
+            return linalg.inv(linalg.dft(2 ** self._num_qubits, scale='sqrtn'))
         elif mode == 'circuit':
             if register is None:
                 register = QuantumRegister(self._num_qubits, name='q')
