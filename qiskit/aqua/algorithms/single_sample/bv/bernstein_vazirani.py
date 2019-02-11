@@ -19,6 +19,7 @@ The Bernstein-Vazirani algorithm.
 """
 
 import logging
+import operator
 
 from qiskit import ClassicalRegister, QuantumCircuit
 
@@ -110,15 +111,17 @@ class BernsteinVazirani(QuantumAlgorithm):
         self._circuit = qc_preoracle+qc_oracle+qc_postoracle+qc_measurement
         return self._circuit
 
+    @staticmethod
+    def interpret_measurement(measurement):
+        return max(measurement.items(), key=operator.itemgetter(1))[0]
+
     def _run(self):
         qc = self.construct_circuit()
 
         self._ret['circuit'] = qc
         self._ret['measurements'] = self._quantum_instance.execute(
             qc).get_counts(qc)
-        self._ret['result'] = self._oracle.interpret_measurement(
+        self._ret['result'] = BernsteinVazirani.interpret_measurement(
             self._ret['measurements'])
-        self._ret['oracle_evaluation'] = self._oracle.evaluate_classically(
-            self._ret['result'])
 
         return self._ret
