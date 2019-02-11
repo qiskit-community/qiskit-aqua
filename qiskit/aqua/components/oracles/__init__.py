@@ -21,8 +21,9 @@ from .simon_oracle import SimonOracle
 from .esop_oracle import ESOPOracle
 
 
-__all__ = ['Oracle',
-           'CNFOracle',
-           'SimonOracle',
-           'ESOPOracle',
-          ]
+__all__ = [
+    'Oracle',
+    'CNFOracle',
+    'SimonOracle',
+    'ESOPOracle',
+]
