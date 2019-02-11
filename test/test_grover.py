@@ -21,7 +21,7 @@ from parameterized import parameterized
 from qiskit.aqua import get_aer_backend
 from qiskit.qobj import RunConfig
 from test.common import QiskitAquaTestCase
-from qiskit.aqua.components.oracles import SAT
+from qiskit.aqua.components.oracles import CNFOracle
 from qiskit.aqua.algorithms import Grover
 from qiskit.aqua import QuantumInstance
 
@@ -65,8 +65,8 @@ class TestGrover(QiskitAquaTestCase):
             for s in header.split('solutions:' if header.find('solutions:') >= 0 else 'solution:')[-1].split(',')
         ]
         backend = get_aer_backend(simulator)
-        sat_oracle = SAT(buf)
-        grover = Grover(sat_oracle, num_iterations=num_iterations, incremental=incremental, mct_mode=mct_mode)
+        cnf_oracle = CNFOracle(buf)
+        grover = Grover(cnf_oracle, num_iterations=num_iterations, incremental=incremental, mct_mode=mct_mode)
         run_config = RunConfig(shots=1000, max_credits=10, memory=False)
         quantum_instance = QuantumInstance(backend, run_config)
 
