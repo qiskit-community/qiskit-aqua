@@ -18,6 +18,8 @@
 Simon's algorithm.
 """
 
+from sympy import Matrix, mod_inverse
+
 from qiskit import ClassicalRegister, QuantumCircuit
 
 from qiskit.aqua.algorithms import QuantumAlgorithm
@@ -104,15 +106,44 @@ class Simon(QuantumAlgorithm):
         self._circuit = qc_preoracle+qc_oracle+qc_postoracle+qc_measurement
         return self._circuit
 
+    def interpret_measurement(self, measurement, *args, **kwargs):
+        # reverse measurement bitstrings and remove all zero entry
+        linear = [(k[::-1], v) for k, v in measurement.items()
+                  if k != "0" * len(self._oracle.variable_register)]
+        # sort bitstrings by their probailities
+        linear.sort(key=lambda x: x[1], reverse=True)
+
+        # construct matrix
+        equations = []
+        for k, v in linear:
+            equations.append([int(c) for c in k])
+        y = Matrix(equations)
+
+        # perform gaussian elimination
+        y_transformed = y.rref(iszerofunc=lambda x: x % 2 == 0)
+
+        def mod(x, modulus):
+            numer, denom = x.as_numer_denom()
+            return numer * mod_inverse(denom, modulus) % modulus
+        y_new = y_transformed[0].applyfunc(lambda x: mod(x, 2))
+
+        # determine hidden string from final matrix
+        rows, cols = y_new.shape
+        hidden = [0] * len(self._oracle.variable_register)
+        for r in range(rows):
+            yi = [i for i, v in enumerate(list(y_new[r, :])) if v == 1]
+            if len(yi) == 2:
+                hidden[yi[0]] = '1'
+                hidden[yi[1]] = '1'
+        return "".join(str(x) for x in hidden)
+
     def _run(self):
         qc = self.construct_circuit()
 
         self._ret['circuit'] = qc
         self._ret['measurements'] = self._quantum_instance.execute(
             qc).get_counts(qc)
-        self._ret['result'] = self._oracle.interpret_measurement(
+        self._ret['result'] = self.interpret_measurement(
             self._ret['measurements'])
-        self._ret['oracle_evaluation'] = self._oracle.evaluate_classically(
-            self._ret['result'])
 
         return self._ret
