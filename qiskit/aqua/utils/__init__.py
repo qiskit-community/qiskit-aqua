@@ -36,7 +36,7 @@ from .qpsolver import optimize_svm
 from .circuit_factory import CircuitFactory
 from .run_circuits import compile_and_run_circuits, find_regs_by_name
 from .circuit_cache import CircuitCache
-from .boolean_logic import CNF, DNF
+from .boolean_logic import CNF, DNF, ESOP
 from .backend_utils import has_ibmq, has_aer
 
 
@@ -71,6 +71,7 @@ __all__ = ['tensorproduct',
            'CircuitCache',
            'CNF',
            'DNF',
+           'ESOP',
            'has_ibmq',
            'has_aer'
            ]
