@@ -78,6 +78,14 @@ class LongDivision(Reciprocal):
         self._neg_offset = 0
         self._n = 0
 
+    def sv_to_vec(self, statevector, num_q):
+        half = int(len(statevector) / 2)
+        sv_good = statevector[half:]
+        vec = np.array([])
+        for i in range(2 ** num_q):
+            vec = np.append(vec, sum(x for x in sv_good[i::2 ** num_q]))
+        return vec
+
     def _ld_circuit(self):
         
         def subtract(a, b, b0, c, z,r, rj, n):
