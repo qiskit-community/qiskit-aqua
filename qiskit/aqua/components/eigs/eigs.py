@@ -18,9 +18,8 @@
 This module contains the definition of a base class for eigenvalue estimators.
 """
 from qiskit.aqua import Pluggable
-from abc import abstractmethod
-
 from qiskit import QuantumCircuit
+from abc import abstractmethod
 
 
 class Eigenvalues(Pluggable):
@@ -31,11 +30,6 @@ class Eigenvalues(Pluggable):
     @abstractmethod
     def __init__(self):
         super().__init__()
-        self._negative_evals = False
-        self._output_register = None
-        self._input_register = None
-        self._circuit = None
-        self._inverse = None
 
     @classmethod
     def init_params(cls, params):
@@ -64,20 +58,26 @@ class Eigenvalues(Pluggable):
         """
         raise NotImplementedError()
 
-    def construct_inverse(self, mode):
-        """ Construct the inverse to construct_circuit """
+    def construct_inverse(self, mode, circuit, inreg, outreg):
+        """
+        Construct the inverse eigenvalue estimation quantum circuit.
+        Args:
+            mode (str): 'vector' or 'circuit'
+            circuit (QuantumCircuit): the quantum circuit to invert
+            inreg (QuantumRegister): the input quantum register
+            outreg (QuantumRegister): the output quantum register
+        Returns:
+            the QuantumCircuit object for the inverse eigenvalue estimation
+            circuit.
+        """
         if mode == "vector":
-            raise NotImplementedError("Mode vector not supported by"
-                    "construct_inverse.")
-        if self._inverse is None:
-            if self._circuit is None:
-                raise ValueError("Circuit was not constructed beforehand.")
-            qc = QuantumCircuit(self._input_register, self._output_register)
-            for gate in reversed(self._circuit.data):
-                gate.reapply(qc)
-                qc.data[-1].inverse()
-            self._inverse = qc
+            raise NotImplementedError("Mode vector not supported by "
+                                      "construct_inverse.")
+        if circuit is None:
+            raise ValueError("Circuit was not constructed beforehand.")
+        qc = QuantumCircuit(inreg, outreg)
+        for gate in reversed(circuit.data):
+            gate.reapply(qc)
+            qc.data[-1].inverse()
+        self._inverse = qc
         return self._inverse
-            
-
-
