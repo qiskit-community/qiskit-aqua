@@ -18,7 +18,7 @@
 import unittest
 from parameterized import parameterized
 
-from qiskit.aqua.components.oracles import DeutschJozsaOracle
+from qiskit.aqua.components.oracles import ESOPOracle
 from qiskit.aqua.algorithms import DeutschJozsa
 from qiskit.aqua import get_aer_backend
 
@@ -35,7 +35,7 @@ class TestDeutschJozsa(QiskitAquaTestCase):
     ])
     def test_deutschjozsa(self, dj_input):
         backend = get_aer_backend('qasm_simulator')
-        oracle = DeutschJozsaOracle(dj_input)
+        oracle = ESOPOracle(dj_input)
         algorithm = DeutschJozsa(oracle)
         result = algorithm.run(backend)
         if sum([int(v) for v in dj_input.values()]) == len(dj_input) / 2:

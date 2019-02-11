@@ -17,7 +17,6 @@
 
 import logging
 import math
-import operator
 
 from qiskit import QuantumRegister, QuantumCircuit
 
@@ -28,14 +27,14 @@ from qiskit.aqua.components.oracles import Oracle
 logger = logging.getLogger(__name__)
 
 
-class DeutschJozsaOracle(Oracle):
+class ESOPOracle(Oracle):
 
     CONFIGURATION = {
-        'name': 'DeutschJozsaOracle',
-        'description': 'Deutsch Jozsa Oracle',
+        'name': 'ESOPOracle',
+        'description': 'Exclusive Sum of Products Oracle',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
-            'id': 'dj_oracle_schema',
+            'id': 'esop_oracle_schema',
             'type': 'object',
             'properties': {
                 'bitmap': {
@@ -67,15 +66,16 @@ class DeutschJozsaOracle(Oracle):
             raise AquaError('Length of input map must be a power of 2.')
         nbits = int(nbits)
 
-        # checks the input bitstring represents a constant or balanced function
-        bitsum = sum([int(bit) for bit in bitmap.values()])
-
-        if bitsum == 0 or bitsum == 2 ** nbits:
-            pass  # constant
-        elif bitsum == 2 ** (nbits - 1):
-            pass  # balanced
-        else:
-            raise AquaError('Input is not a balanced or constant function.')
+        # TODO: somehow move this following checks to DJ
+        # # checks the input bitstring represents a constant or balanced function
+        # bitsum = sum([int(bit) for bit in bitmap.values()])
+        #
+        # if bitsum == 0 or bitsum == 2 ** nbits:
+        #     pass  # constant
+        # elif bitsum == 2 ** (nbits - 1):
+        #     pass  # balanced
+        # else:
+        #     raise AquaError('Input is not a balanced or constant function.')
 
         def _(bbs):
             return [i[-1] if i[0] == '1' else -i[-1] for i in list(zip(bbs, list(range(1, len(bbs) + 1))))]
@@ -110,12 +110,3 @@ class DeutschJozsaOracle(Oracle):
             return self._esop.construct_circuit(mct_mode=self._mct_mode)
         else:
             return QuantumCircuit(self._variable_register)
-
-    def interpret_measurement(self, measurement, *args, **kwargs):
-        top_measurement = max(
-            measurement.items(), key=operator.itemgetter(1))[0]
-        top_measurement = int(top_measurement)
-        if top_measurement == 0:
-            return "constant"
-        else:
-            return "balanced"

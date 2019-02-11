@@ -18,13 +18,13 @@
 from .oracle import Oracle
 from .cnf_oracle import CNFOracle
 from .simon_oracle import SimonOracle
-from .deutsch_jozsa_oracle import DeutschJozsaOracle
+from .esop_oracle import ESOPOracle
 from .bernstein_vazirani_oracle import BernsteinVaziraniOracle
 
 
 __all__ = ['Oracle',
            'CNFOracle',
            'SimonOracle',
-           'DeutschJozsaOracle',
+           'ESOPOracle',
            'BernsteinVaziraniOracle'
           ]
