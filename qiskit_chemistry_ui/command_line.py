@@ -18,16 +18,16 @@
 import sys
 import logging
 import tkinter as tk
-from ._uipreferences import UIPreferences
-from ._mainview import MainView
+from ._chemguiprovider import ChemistryGUIProvider
+from qiskit_aqua_ui import MainView
 
 
 def set_preferences_logging():
     """
     Update logging setting with latest external packages
     """
-    from qiskit_chemistry._logging import get_logging_level, build_logging_config, set_logging_config
-    from qiskit_chemistry.preferences import Preferences
+    from qiskit.chemistry._logging import get_logging_level, build_logging_config, set_logging_config
+    from qiskit.chemistry.preferences import Preferences
     preferences = Preferences()
     logging_level = logging.INFO
     if preferences.get_logging_config() is not None:
@@ -50,7 +50,8 @@ def main():
     root.withdraw()
     root.update_idletasks()
 
-    preferences = UIPreferences()
+    guiProvider = ChemistryGUIProvider()
+    preferences = guiProvider.create_uipreferences()
     geometry = preferences.get_geometry()
     if geometry is None:
         ws = root.winfo_screenwidth()
@@ -65,7 +66,7 @@ def main():
 
     root.geometry(geometry)
 
-    MainView(root)
+    MainView(root, guiProvider)
     root.after(0, root.deiconify)
     root.after(0, set_preferences_logging)
     root.mainloop()

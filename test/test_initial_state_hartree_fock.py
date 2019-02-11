@@ -19,11 +19,11 @@ import unittest
 
 import numpy as np
 
-from test.common import QiskitAquaChemistryTestCase
-from qiskit_chemistry.aqua_extensions.components.initial_states import HartreeFock
+from test.common import QiskitChemistryTestCase
+from qiskit.chemistry.aqua_extensions.components.initial_states import HartreeFock
 
 
-class TestInitialStateHartreeFock(QiskitAquaChemistryTestCase):
+class TestInitialStateHartreeFock(QiskitChemistryTestCase):
 
     def test_qubits_4_jw_h2(self):
         self.hf = HartreeFock(4, 4, 2, 'jordan_wigner', False)
@@ -53,6 +53,13 @@ class TestInitialStateHartreeFock(QiskitAquaChemistryTestCase):
         cct = self.hf.construct_circuit('circuit')
         self.assertEqual(cct.qasm(), 'OPENQASM 2.0;\ninclude "qelib1.inc";\nqreg q[2];\n'
                                      'u3(3.14159265358979,0.0,3.14159265358979) q[0];\n')
+
+    def test_qubits_6_py_lih_cct(self):
+        self.hf = HartreeFock(6, 10, 2, 'parity', True, [1, 2])
+        cct = self.hf.construct_circuit('circuit')
+        self.assertEqual(cct.qasm(), 'OPENQASM 2.0;\ninclude "qelib1.inc";\nqreg q[6];\n'
+                                     'u3(3.14159265358979,0.0,3.14159265358979) q[0];\n'
+                                     'u3(3.14159265358979,0.0,3.14159265358979) q[1];\n')
 
 
 if __name__ == '__main__':

@@ -18,12 +18,11 @@
 import copy
 import unittest
 import numpy as np
-from qiskit_aqua.utils import random_unitary
+from qiskit.aqua.utils import random_unitary
 
-from test.common import QiskitAquaChemistryTestCase
-from qiskit_chemistry import FermionicOperator, QiskitChemistryError
-from qiskit_chemistry.drivers import PySCFDriver, UnitsType
-from qiskit_chemistry.core import QubitMappingType
+from test.common import QiskitChemistryTestCase
+from qiskit.chemistry import FermionicOperator, QiskitChemistryError
+from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 
 
 def h2_transform_slow(h2, unitary_matrix):
@@ -55,7 +54,7 @@ def h2_transform_slow(h2, unitary_matrix):
     return temp_ret
 
 
-class TestFermionicOperator(QiskitAquaChemistryTestCase):
+class TestFermionicOperator(QiskitChemistryTestCase):
     """Fermionic Operator tests."""
 
     def setUp(self):
@@ -118,7 +117,7 @@ class TestFermionicOperator(QiskitAquaChemistryTestCase):
         self.assertLess(diff, 1e-6)
 
     def test_bksf_mapping(self):
-        """Test bksf mapping
+        """Test bksf mapping.
 
         The spectrum of bksf mapping should be half of jordan wigner mapping.
         """
@@ -130,7 +129,7 @@ class TestFermionicOperator(QiskitAquaChemistryTestCase):
         molecule = driver.run()
         fer_op = FermionicOperator(h1=molecule.one_body_integrals,
                                    h2=molecule.two_body_integrals)
-        jw_op = fer_op.mapping('parity')
+        jw_op = fer_op.mapping('jordan_wigner')
         bksf_op = fer_op.mapping('bksf')
         jw_op.to_matrix()
         bksf_op.to_matrix()

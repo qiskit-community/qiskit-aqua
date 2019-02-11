@@ -17,75 +17,80 @@
 
 import argparse
 import json
+import pprint
+from qiskit.aqua import QiskitAqua
+from qiskit.chemistry import QiskitChemistryError
 import logging
-import tkinter as tk
 
-_ROOT = None
+logger = logging.getLogger(__name__)
+
+
+def run_algorithm_from_json(params, output_file):
+    """
+    Runs the Aqua Chemistry experiment from Qiskit Aqua json dictionary
+
+    Args:
+        params (dictionary): Qiskit Aqua json dictionary
+        output_file (filename): Output file name to save results
+    """
+    qiskit_aqua = QiskitAqua(params)
+    ret = qiskit_aqua.run()
+    if not isinstance(ret, dict):
+        raise QiskitChemistryError('Algorithm run result should be a dictionary {}'.format(ret))
+
+    print('Output:')
+    pprint(ret, indent=4)
+    if output_file is not None:
+        with open(output_file, 'w') as out:
+            pprint(ret, stream=out, indent=4)
 
 
 def main():
-    global _ROOT
-    _ROOT = tk.Tk()
-    _ROOT.withdraw()
-    _ROOT.update_idletasks()
-    _ROOT.after(0, main_chemistry)
-    _ROOT.mainloop()
+    from qiskit.chemistry import run_experiment, run_driver_to_json
+    from qiskit.chemistry._logging import get_logging_level, build_logging_config, set_logging_config
+    from qiskit.chemistry.preferences import Preferences
+    parser = argparse.ArgumentParser(description='Qiskit Chemistry Command Line Tool')
+    parser.add_argument('input',
+                        metavar='input',
+                        help='Qiskit Chemistry input file or saved JSON input file')
+    group = parser.add_mutually_exclusive_group(required=False)
+    group.add_argument('-o',
+                       metavar='output',
+                       help='Algorithm Results Output file name')
+    group.add_argument('-jo',
+                       metavar='json output',
+                       help='Algorithm JSON Output file name')
 
+    args = parser.parse_args()
 
-def main_chemistry():
-    try:
-        from qiskit_chemistry import QiskitChemistry
-        from qiskit_chemistry._logging import get_logging_level, build_logging_config, set_logging_config
-        from qiskit_chemistry.preferences import Preferences
-        parser = argparse.ArgumentParser(description='Qiskit Chemistry Command Line Tool')
-        parser.add_argument('input',
-                            metavar='input',
-                            help='Qiskit Chemistry input file or saved JSON input file')
-        group = parser.add_mutually_exclusive_group(required=False)
-        group.add_argument('-o',
-                           metavar='output',
-                           help='Algorithm Results Output file name')
-        group.add_argument('-jo',
-                           metavar='json output',
-                           help='Algorithm JSON Output file name')
-
-        args = parser.parse_args()
-
-        # update logging setting with latest external packages
-        preferences = Preferences()
-        logging_level = logging.INFO
-        if preferences.get_logging_config() is not None:
-            set_logging_config(preferences.get_logging_config())
-            logging_level = get_logging_level()
-
-        preferences.set_logging_config(build_logging_config(logging_level))
-        preferences.save()
-
+    # update logging setting with latest external packages
+    preferences = Preferences()
+    logging_level = logging.INFO
+    if preferences.get_logging_config() is not None:
         set_logging_config(preferences.get_logging_config())
+        logging_level = get_logging_level()
 
-        solver = QiskitChemistry()
+    preferences.set_logging_config(build_logging_config(logging_level))
+    preferences.save()
 
-        # check to see if input is json file
-        params = None
-        try:
-            with open(args.input) as json_file:
-                params = json.load(json_file)
-        except:
-            pass
+    set_logging_config(preferences.get_logging_config())
 
-        if params is not None:
-            solver.run_algorithm_from_json(params, args.o)
+    # check to see if input is json file
+    params = None
+    try:
+        with open(args.input) as json_file:
+            params = json.load(json_file)
+    except:
+        pass
+
+    if params is not None:
+        run_algorithm_from_json(params, args.o)
+    else:
+        if args.jo is not None:
+            run_driver_to_json(args.input, args.jo)
         else:
-            if args.jo is not None:
-                solver.run_drive_to_jsonfile(args.input, args.jo)
-            else:
-                result = solver.run(args.input, args.o)
-                if result is not None and 'printable' in result:
-                    print('\n\n--------------------------------- R E S U L T ------------------------------------\n')
-                    for line in result['printable']:
-                        print(line)
-    finally:
-        global _ROOT
-        if _ROOT is not None:
-            _ROOT.destroy()
-            _ROOT = None
+            result = run_experiment(args.input, args.o)
+            if result is not None and 'printable' in result:
+                print('\n\n--------------------------------- R E S U L T ------------------------------------\n')
+                for line in result['printable']:
+                    print(line)

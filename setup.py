@@ -22,8 +22,8 @@ long_description = """<a href="https://qiskit.org/aqua" rel=nofollow>Qiskit Chem
  tools and APIs for experimenting with real-world chemistry applications on near-term quantum devices."""
 
 requirements = [
-    "qiskit-aqua>=0.4.1",
-    "numpy>=1.13",
+    "qiskit-aqua>=0.4.2",
+    "numpy>=1.13,<1.16",
     "h5py",
     "psutil>=5",
     "jsonschema>=2.6,<2.7",
@@ -35,7 +35,7 @@ requirements = [
 
 setuptools.setup(
     name='qiskit-chemistry',
-    version="0.4.2",  # this should match __init__.__version__
+    version="0.4.3",  # this should match __init__.__version__
     description='Qiskit Chemistry: Experiment with chemistry applications on a quantum machine',
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -68,8 +68,8 @@ setuptools.setup(
             'qiskit_chemistry_ui=qiskit_chemistry_ui.command_line:main'
         ],
         'qiskit.aqua.pluggables': [
-            'HartreeFock = qiskit_chemistry.aqua_extensions.components.initial_states:HartreeFock',
-            'UCCSD = qiskit_chemistry.aqua_extensions.components.variational_forms:UCCSD',
+            'HartreeFock = qiskit.chemistry.aqua_extensions.components.initial_states:HartreeFock',
+            'UCCSD = qiskit.chemistry.aqua_extensions.components.variational_forms:UCCSD',
         ],
     },
 )

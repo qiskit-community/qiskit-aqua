@@ -18,17 +18,17 @@
 import unittest
 from parameterized import parameterized
 import qiskit
-from qiskit_aqua import QuantumInstance
-from qiskit_aqua.algorithms.adaptive import VQE
-from qiskit_aqua.components.variational_forms import RYRZ
-from qiskit_aqua.components.optimizers import COBYLA, SPSA
+from qiskit.aqua import QuantumInstance
+from qiskit.aqua.algorithms.adaptive import VQE
+from qiskit.aqua.components.variational_forms import RYRZ
+from qiskit.aqua.components.optimizers import COBYLA, SPSA
+from qiskit.qobj import RunConfig
+from test.common import QiskitChemistryTestCase
+from qiskit.chemistry.drivers import HDF5Driver
+from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
 
-from test.common import QiskitAquaChemistryTestCase
-from qiskit_chemistry.drivers import HDF5Driver
-from qiskit_chemistry.core import Hamiltonian, TransformationType, QubitMappingType
 
-
-class TestEnd2End(QiskitAquaChemistryTestCase):
+class TestEnd2End(QiskitChemistryTestCase):
     """End2End tests."""
 
     def setUp(self):
@@ -61,10 +61,10 @@ class TestEnd2End(QiskitAquaChemistryTestCase):
 
         ryrz = RYRZ(self.algo_input.qubit_op.num_qubits, depth=3, entanglement='full')
         vqe = VQE(self.algo_input.qubit_op, ryrz, optimizer, mode, aux_operators=self.algo_input.aux_ops)
-
-        quantum_instance = QuantumInstance(backend, shots=shots)
+        run_config = RunConfig(shots=shots, max_credits=10, memory=False)
+        quantum_instance = QuantumInstance(backend, run_config)
         results = vqe.run(quantum_instance)
-        self.assertAlmostEqual(results['energy'], self.reference_energy, places=6)
+        self.assertAlmostEqual(results['energy'], self.reference_energy, places=4)
 
 
 if __name__ == '__main__':

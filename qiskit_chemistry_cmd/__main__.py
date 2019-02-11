@@ -15,13 +15,6 @@
 # limitations under the License.
 # =============================================================================
 
-import sys
-import os
-
-qiskit_chemistry_directory = os.path.dirname(os.path.realpath(__file__))
-qiskit_chemistry_directory = os.path.join(qiskit_chemistry_directory, '..')
-sys.path.insert(0, qiskit_chemistry_directory)
-
 from qiskit_chemistry_cmd.command_line import main
 
 main()

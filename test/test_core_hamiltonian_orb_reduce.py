@@ -16,13 +16,13 @@
 # =============================================================================
 
 import unittest
-from test.common import QiskitAquaChemistryTestCase
-from qiskit_chemistry.drivers import PySCFDriver, UnitsType
-from qiskit_chemistry.core import Hamiltonian, TransformationType, QubitMappingType
-from qiskit_chemistry import QiskitChemistryError
+from test.common import QiskitChemistryTestCase
+from qiskit.chemistry.drivers import PySCFDriver, UnitsType
+from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
+from qiskit.chemistry import QiskitChemistryError
 
 
-class TestCoreHamiltonianOrbReduce(QiskitAquaChemistryTestCase):
+class TestCoreHamiltonianOrbReduce(QiskitChemistryTestCase):
     """core/hamiltonian Driver tests."""
 
     def setUp(self):

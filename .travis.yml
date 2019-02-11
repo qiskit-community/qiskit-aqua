@@ -56,11 +56,14 @@ before_install:
     - pip install -U -r /tmp/pyquante2-master/requirements.txt
     # Install local PyQuante
     - pip install -e /tmp/pyquante2-master
+    # Install pyscf
+    - pip install pyscf
    
 # Test 
 install:
-    - pip install -U -r requirements.txt
+    # install Chemistry and dev requirements
     - pip install -U -r requirements-dev.txt
-    - pip install pyscf
+    - pip install -e $TRAVIS_BUILD_DIR
 script:
     - python -m unittest discover -v test
+    

@@ -21,18 +21,18 @@ from parameterized import parameterized
 import numpy as np
 import qiskit
 from qiskit.transpiler import PassManager
-from qiskit_aqua.utils import decimal_to_binary
-from qiskit_aqua import QuantumInstance
-from qiskit_aqua.algorithms.single_sample import IQPE
-from qiskit_aqua.algorithms.classical import ExactEigensolver
+from qiskit.aqua.utils import decimal_to_binary
+from qiskit.aqua import QuantumInstance
+from qiskit.aqua.algorithms.single_sample import IQPE
+from qiskit.aqua.algorithms.classical import ExactEigensolver
+from qiskit.qobj import RunConfig
+from test.common import QiskitChemistryTestCase
+from qiskit.chemistry.drivers import PySCFDriver, UnitsType
+from qiskit.chemistry import FermionicOperator, QiskitChemistryError
+from qiskit.chemistry.aqua_extensions.components.initial_states import HartreeFock
 
-from test.common import QiskitAquaChemistryTestCase
-from qiskit_chemistry.drivers import PySCFDriver, UnitsType
-from qiskit_chemistry import FermionicOperator, QiskitChemistryError
-from qiskit_chemistry.aqua_extensions.components.initial_states import HartreeFock
 
-
-class TestIQPE(QiskitAquaChemistryTestCase):
+class TestIQPE(QiskitChemistryTestCase):
     """IQPE tests."""
 
     @parameterized.expand([
@@ -71,10 +71,11 @@ class TestIQPE(QiskitAquaChemistryTestCase):
         state_in = HartreeFock(self.qubit_op.num_qubits, num_orbitals,
                                num_particles, qubit_mapping, two_qubit_reduction)
         iqpe = IQPE(self.qubit_op, state_in, num_time_slices, num_iterations,
-                    paulis_grouping='random', expansion_mode='suzuki', expansion_order=2,
+                    expansion_mode='suzuki', expansion_order=2,
                     shallow_circuit_concat=True)
         backend = qiskit.Aer.get_backend('qasm_simulator')
-        quantum_instance = QuantumInstance(backend, shots=100, pass_manager=PassManager())
+        run_config = RunConfig(shots=100, max_credits=10, memory=False)
+        quantum_instance = QuantumInstance(backend, run_config, pass_manager=PassManager())
 
         result = iqpe.run(quantum_instance)
 

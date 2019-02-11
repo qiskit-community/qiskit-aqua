@@ -19,13 +19,13 @@ import unittest
 
 import numpy as np
 from qiskit.quantum_info import Pauli
-from qiskit_aqua import Operator
+from qiskit.aqua import Operator
 
-from test.common import QiskitAquaChemistryTestCase
-from qiskit_chemistry.bksf import edge_operator_aij, edge_operator_bi
+from test.common import QiskitChemistryTestCase
+from qiskit.chemistry.bksf import edge_operator_aij, edge_operator_bi
 
 
-class TestBKSFMapping(QiskitAquaChemistryTestCase):
+class TestBKSFMapping(QiskitChemistryTestCase):
 
     def test_bksf_edge_op_bi(self):
         """Test bksf mapping, edge operator bi"""
