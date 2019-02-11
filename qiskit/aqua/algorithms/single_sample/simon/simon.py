@@ -72,10 +72,10 @@ class Simon(QuantumAlgorithm):
             return self._circuit
 
         qc_preoracle = QuantumCircuit(
-            self._oracle.variable_register(),
-            self._oracle.ancillary_register(),
+            self._oracle.variable_register,
+            self._oracle.outcome_register,
         )
-        qc_preoracle.h(self._oracle.variable_register())
+        qc_preoracle.h(self._oracle.variable_register)
         qc_preoracle.barrier()
 
         # oracle circuit
@@ -84,23 +84,22 @@ class Simon(QuantumAlgorithm):
 
         # postoracle circuit
         qc_postoracle = QuantumCircuit(
-            self._oracle.variable_register(),
-            self._oracle.ancillary_register(),
+            self._oracle.variable_register,
+            self._oracle.outcome_register,
         )
-        qc_postoracle.h(self._oracle.variable_register())
-        qc_postoracle.barrier()
+        qc_postoracle.h(self._oracle.variable_register)
 
         # measurement circuit
         measurement_cr = ClassicalRegister(len(
-            self._oracle.variable_register()), name='m')
+            self._oracle.variable_register), name='m')
 
         qc_measurement = QuantumCircuit(
-            self._oracle.variable_register(),
+            self._oracle.variable_register,
             measurement_cr
         )
-        qc_measurement.barrier(self._oracle.variable_register())
+        qc_measurement.barrier(self._oracle.variable_register)
         qc_measurement.measure(
-            self._oracle.variable_register(), measurement_cr)
+            self._oracle.variable_register, measurement_cr)
 
         self._circuit = qc_preoracle+qc_oracle+qc_postoracle+qc_measurement
         return self._circuit
