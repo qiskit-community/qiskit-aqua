@@ -407,7 +407,8 @@ class FermionicOperator(object):
     @staticmethod
     def _two_body_mapping(h2_ijkm, a_i, a_j, a_k, a_m, threshold):
         """
-        Subroutine for two body mapping.
+        Subroutine for two body mapping. We use the chemists notation
+        for the two-body term, h2(i,j,k,m) adag_i adag_k a_m a_j.
 
         Args:
             h1_ijkm (complex): value of h2 at index (i,j,k,m)
