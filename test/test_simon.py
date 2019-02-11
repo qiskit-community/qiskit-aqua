@@ -20,7 +20,7 @@ import numpy as np
 from parameterized import parameterized
 import unittest
 
-from qiskit.aqua.components.oracles import SimonOracle
+from qiskit.aqua.components.oracles import ESOPOracle
 from qiskit.aqua.algorithms import Simon
 from qiskit.aqua import get_aer_backend, AquaError
 
@@ -49,8 +49,9 @@ class TestSimon(QiskitAquaTestCase):
         except StopIteration as e:  # non matching keys found
             k1, k2 = None, None
             hidden = np.binary_repr(0, nbits)
+
         backend = get_aer_backend('qasm_simulator')
-        oracle = SimonOracle(simon_input)
+        oracle = ESOPOracle(simon_input)
         algorithm = Simon(oracle)
         result = algorithm.run(backend)
         self.assertEqual(result['result'], hidden)
