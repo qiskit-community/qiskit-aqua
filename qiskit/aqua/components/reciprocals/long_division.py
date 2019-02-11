@@ -60,7 +60,7 @@ class LongDivision(Reciprocal):
         },
     }
 
-    def __init__(self, num_ancillae=None, scale=0, precision=None,
+    def __init__(self, num_ancillae=None, scale=1, precision=None,
                  evo_time=None, lambda_min=None, negative_evals=False):
         self.validate(locals())
         super().__init__()
@@ -78,7 +78,7 @@ class LongDivision(Reciprocal):
         self._neg_offset = 0
         self._n = 0
 
-    def sv_to_vec(self, statevector, num_q):
+    def sv_to_resvec(self, statevector, num_q):
         half = int(len(statevector) / 2)
         sv_good = statevector[half:]
         vec = np.array([])

@@ -197,7 +197,7 @@ class HHL(QuantumAlgorithm):
         res = self._quantum_instance.execute(self._circuit)
         sv = np.asarray(res.get_statevector(self._circuit))
         # Extract solution vector from statevector
-        vec = self._reciprocal.sv_to_vec(sv, self._num_q)
+        vec = self._reciprocal.sv_to_resvec(sv, self._num_q)
         self._ret["probability_result"] = vec.dot(vec.conj())
         vec = vec/np.linalg.norm(vec)
         self._hhl_results(vec)

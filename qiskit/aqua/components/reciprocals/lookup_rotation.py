@@ -90,7 +90,7 @@ class LookupRotation(Reciprocal):
         self._circuit = None
         self._reg_size = 0
 
-    def sv_to_vec(self, statevector, num_q):
+    def sv_to_resvec(self, statevector, num_q):
         half = int(len(statevector) / 2)
         vec = statevector[half:half + 2 ** num_q]
         return vec
