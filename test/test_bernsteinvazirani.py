@@ -16,11 +16,13 @@
 # =============================================================================
 
 import unittest
+import math
+import numpy as np
 from parameterized import parameterized
 
-from qiskit.aqua.components.oracles import BernsteinVaziraniOracle
+from qiskit.aqua.components.oracles import ESOPOracle
 from qiskit.aqua.algorithms import BernsteinVazirani
-from qiskit.aqua import get_aer_backend
+from qiskit.aqua import get_aer_backend, AquaError
 
 from test.common import QiskitAquaTestCase
 
@@ -34,7 +36,7 @@ class TestBernsteinVazirani(QiskitAquaTestCase):
     ])
     def test_bernsteinvazirani(self, bv_input):
         backend = get_aer_backend('qasm_simulator')
-        oracle = BernsteinVaziraniOracle(bv_input)
+        oracle = ESOPOracle(bv_input)
         algorithm = BernsteinVazirani(oracle)
         result = algorithm.run(backend)
         self.assertTrue(result['oracle_evaluation'])
