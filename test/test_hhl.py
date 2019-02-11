@@ -43,11 +43,10 @@ class TestHHL(QiskitAquaTestCase):
                 'expansion_mode': 'suzuki',
                 'expansion_order': 2,
                 'hermitian_matrix': True,
-                'name': 'QPE',
+                'name': 'EigsQPE',
                 'negative_evals': False,
                 'num_ancillae': 3,
-                'num_time_slices': 50,
-                'use_basis_gates': True
+                'num_time_slices': 50
             },
             'reciprocal': {
                 'name': 'Lookup',

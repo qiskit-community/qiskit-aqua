@@ -23,15 +23,15 @@ from qiskit.aqua.components.eigs import Eigenvalues
 from qiskit.aqua.algorithms.single_sample import PhaseEstimation
 
 
-class QPE(Eigenvalues):
+class EigsQPE(Eigenvalues):
     """A QPE for getting the eigenvalues."""
 
     CONFIGURATION = {
-        'name': 'QPE',
+        'name': 'EigsQPE',
         'description': 'Quantum Phase Estimation',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
-            'id': 'qpe_schema',
+            'id': 'eigsqpe_schema',
             'type': 'object',
             'properties': {
                 'num_time_slices': {
@@ -63,10 +63,6 @@ class QPE(Eigenvalues):
                     'type': ['number', 'null'],
                     'default': None
                 },
-                'use_basis_gates': {
-                    'type': 'boolean',
-                    'default': True,
-                },
                 'hermitian_matrix': {
                     'type': 'boolean',
                     'default': True
@@ -93,10 +89,8 @@ class QPE(Eigenvalues):
     }
 
     def __init__(self, operator, iqft,
-                 num_time_slices=1, num_ancillae=1,
-                 expansion_mode="trotter",
-                 expansion_order=1, evo_time=None,
-                 use_basis_gates=True, hermitian_matrix=True,
+                 num_time_slices=1, num_ancillae=1, expansion_mode="trotter",
+                 expansion_order=1, evo_time=None, hermitian_matrix=True,
                  negative_evals=False, ne_qfts=[None, None]):
 
         super().__init__()
@@ -108,7 +102,6 @@ class QPE(Eigenvalues):
         self._expansion_mode = expansion_mode
         self._expansion_order = expansion_order
         self._evo_time = evo_time
-        self._use_basis_gates = use_basis_gates
         self._hermitian_matrix = hermitian_matrix
         self._negative_evals = negative_evals
         self._ne_qfts = ne_qfts

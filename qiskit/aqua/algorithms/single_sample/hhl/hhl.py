@@ -65,7 +65,7 @@ class HHL(QuantumAlgorithm):
              },
             {'pluggable_type': 'eigs',
              'default': {
-                     'name': 'QPE',
+                     'name': 'EigsQPE',
                      'num_ancillae': 6,
                      'num_time_slices': 50,
                      'expansion_mode': 'suzuki',

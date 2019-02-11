@@ -16,6 +16,6 @@
 # =============================================================================
 
 from .eigs import Eigenvalues
-from .qpe import QPE
+from .eigs_qpe import EigsQPE
 
-__all__ = ['QPE', 'Eigenvalues']
+__all__ = ['EigsQPE', 'Eigenvalues']
