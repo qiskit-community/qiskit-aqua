@@ -145,7 +145,7 @@ class EigsQPE(Eigenvalues):
 
         # Set up iqft, we need to add num qubits to params which is our num_ancillae bits here
         iqft_params = params.get(Pluggable.SECTION_KEY_IQFT)
-        iqft_params['num_qubits'] = eigs_params['num_ancillae']
+        iqft_params['num_qubits'] = num_ancillae
         args['iqft'] = get_pluggable_class(PluggableType.IQFT,
                                            iqft_params['name']).init_params(params)
 
@@ -228,6 +228,7 @@ class EigsQPE(Eigenvalues):
         qs = [q[i] for i in range(1, len(q))]
         for qi in qs:
             qc.cx(sgn, qi)
+        qc.barrier()
         self._ne_qfts[0].construct_circuit('circuit', qs, qc)
         for i, qi in enumerate(reversed(qs)):
             qc.cu1(2*np.pi/2**(i+1), sgn, qi)
