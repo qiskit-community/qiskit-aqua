@@ -67,7 +67,3 @@ class Oracle(Pluggable):
             A quantum circuit for the oracle.
         """
         raise NotImplementedError()
-
-    @abstractmethod
-    def interpret_measurement(self, *args, **kwargs):
-        raise NotImplementedError

@@ -222,8 +222,7 @@ class Grover(QuantumAlgorithm):
             top_measurement = max(measurement.items(), key=operator.itemgetter(1))[0]
 
         self._ret['top_measurement'] = top_measurement
-        assignment = self._oracle.interpret_measurement(top_measurement=top_measurement)
-        oracle_evaluation = self._oracle.evaluate_classically(assignment)
+        oracle_evaluation, assignment = self._oracle.evaluate_classically(top_measurement)
         return assignment, oracle_evaluation
 
     def construct_circuit(self):

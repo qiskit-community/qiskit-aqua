@@ -65,7 +65,7 @@ class BooleanLogicNormalForm(ABC):
         Constructor.
 
         Args:
-            expr ([list]): List of lists of non-zero integers, where
+            expr (list of lists of ints): List of lists of non-zero integers, where
                 - each integer's absolute value indicates its variable index,
                 - any negative sign indicates the negation for the corresponding variable,
                 - each inner list corresponds to each clause of the logic expression, and
