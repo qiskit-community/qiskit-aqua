@@ -17,13 +17,11 @@
 
 from .oracle import Oracle
 from .cnf_oracle import CNFOracle
-from .simon_oracle import SimonOracle
 from .esop_oracle import ESOPOracle
 
 
 __all__ = [
     'Oracle',
     'CNFOracle',
-    'SimonOracle',
     'ESOPOracle',
 ]
