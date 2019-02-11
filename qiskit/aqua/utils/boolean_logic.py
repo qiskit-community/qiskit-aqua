@@ -136,13 +136,19 @@ class BooleanLogicNormalForm(ABC):
             circuit=None,
             qr_variable=None,
             qr_clause=None,
+            qubit_outcome=None,
             qr_outcome=None,
             qr_ancilla=None,
             mct_mode='basic'
     ):
         self._qr_variable = BooleanLogicNormalForm._set_up_register(self.num_variables, qr_variable, 'variable')
         self._qr_clause = BooleanLogicNormalForm._set_up_register(self.num_clauses, qr_clause, 'clause')
-        self._qr_outcome = BooleanLogicNormalForm._set_up_register(1, qr_outcome, 'outcome')
+        if not qubit_outcome:
+            self._qr_outcome = BooleanLogicNormalForm._set_up_register(1, qr_outcome, 'outcome')
+            qubit_outcome = self._qr_outcome[0]
+        else:
+            self._qr_outcome = qubit_outcome[0]
+        self._qubit_outcome = qubit_outcome
 
         max_num_ancillae = max(max(self._num_clauses if self._qr_clause else 0, self._num_variables) - 2, 0)
         num_ancillae = 0
@@ -222,7 +228,7 @@ class CNF(BooleanLogicNormalForm):
         # collect results from all clauses
         circuit.mct(
             [self._qr_clause[i] for i in range(len(self._qr_clause))],
-            self._qr_outcome[0],
+            self._qubit_outcome,
             [self._qr_ancilla[i] for i in range(len(self._qr_ancilla))] if self._qr_ancilla else [],
             mode=mct_mode
         )
@@ -279,13 +285,13 @@ class DNF(BooleanLogicNormalForm):
             _and(clause_expr, circuit, self._qr_variable, self._qr_clause[clause_index], self._qr_ancilla, mct_mode)
 
         # init the outcome qubit to 1
-        circuit.u3(pi, 0, pi, self._qr_outcome)
+        circuit.u3(pi, 0, pi, self._qubit_outcome)
 
         # collect results from all clauses
         circuit.u3(pi, 0, pi, self._qr_clause)
         circuit.mct(
             [self._qr_clause[i] for i in range(len(self._qr_clause))],
-            self._qr_outcome[0],
+            self._qubit_outcome,
             [self._qr_ancilla[i] for i in range(len(self._qr_ancilla))] if self._qr_ancilla else [],
             mode=mct_mode
         )
@@ -307,6 +313,7 @@ class ESOP(BooleanLogicNormalForm):
             circuit=None,
             qr_variable=None,
             qr_outcome=None,
+            qubit_outcome=None,
             qr_ancilla=None,
             mct_mode='basic'
     ):
@@ -329,12 +336,20 @@ class ESOP(BooleanLogicNormalForm):
             qr_variable=qr_variable,
             qr_clause='skip',
             qr_outcome=qr_outcome,
+            qubit_outcome=qubit_outcome,
             qr_ancilla=qr_ancilla,
             mct_mode=mct_mode
         )
 
+        # if not circuit.has_register(self._qr_variable):
+        #     circuit.add_register(self._qr_variable)
+        # if not circuit.has_register(self._qr_outcome):
+        #     circuit.add_register(self._qr_outcome)
+        # if not circuit.has_register(self._qr_ancilla):
+        #     circuit.add_register(self._qr_ancilla)
+
         # compute all clauses
         for clause_index, clause_expr in enumerate(self._expr):
-            _and(clause_expr, circuit, self._qr_variable, self._qr_outcome[0], self._qr_ancilla, mct_mode)
+            _and(clause_expr, circuit, self._qr_variable, self._qubit_outcome, self._qr_ancilla, mct_mode)
 
         return circuit

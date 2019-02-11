@@ -66,6 +66,12 @@ class ESOPOracle(Oracle):
             raise AquaError('Length of input map must be a power of 2.')
         nbits = int(nbits)
 
+        # check that all outputs are of the same length
+        out_len = len(list(bitmap.values())[0])
+        for val in bitmap.values():
+            if not len(val) == out_len:
+                raise AquaError('The bitmap output lengths are not consistent.')
+
         # TODO: somehow move this following checks to DJ
         # # checks the input bitstring represents a constant or balanced function
         # bitsum = sum([int(bit) for bit in bitmap.values()])
@@ -80,15 +86,20 @@ class ESOPOracle(Oracle):
         def _(bbs):
             return [i[-1] if i[0] == '1' else -i[-1] for i in list(zip(bbs, list(range(1, len(bbs) + 1))))]
 
-        esop_expr = [_(i) for i in bitmap if bitmap[i] == '1']
-        if esop_expr:
-            self._esop = ESOP(esop_expr)
-            self._esop.construct_circuit()
-            self._variable_register = self._esop.qr_variable
-            self._outcome_register = self._esop.qr_outcome
-            self._ancillary_register = self._esop.qr_ancilla
+        esop_exprs = []
+        for out_idx in range(out_len):
+            esop_expr = [_(i) for i in bitmap if bitmap[i][out_idx] == '1']
+            if esop_expr:
+                esop_exprs.append(esop_expr)
+
+        if esop_exprs:
+            self._esops = [ESOP(esop_expr) for esop_expr in esop_exprs]
+            self._outcome_register = QuantumRegister(out_len, name='o')
+            self._circuit = self._esops[0].construct_circuit(qubit_outcome=self._outcome_register[0])
+            self._variable_register = self._esops[0].qr_variable
+            self._ancillary_register = self._esops[0].qr_ancilla
         else:
-            self._esop = None
+            self._esops = None
             self._variable_register = QuantumRegister(nbits, name='v')
             self._outcome_register = QuantumRegister(1, name='o')
             self._ancillary_register = None
@@ -106,7 +117,15 @@ class ESOPOracle(Oracle):
         return self._outcome_register
 
     def construct_circuit(self):
-        if self._esop:
-            return self._esop.construct_circuit(mct_mode=self._mct_mode)
+        if self._esops:
+            for esop, qubit_outcome in zip(self._esops[1:], self.outcome_register[1:]):
+                esop_circuit = esop.construct_circuit(
+                    qr_variable=self._variable_register,
+                    qr_ancilla=self._ancillary_register,
+                    qubit_outcome=qubit_outcome,
+                    mct_mode=self._mct_mode
+                )
+                self._circuit += esop_circuit
+            return self._circuit
         else:
             return QuantumCircuit(self._variable_register)
