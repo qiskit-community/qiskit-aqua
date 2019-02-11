@@ -31,10 +31,6 @@ class LongDivision(Reciprocal):
             'id': 'reciprocal_long_division_schema',
             'type': 'object',
             'properties': {
-                'num_ancillae': {
-                    'type': ['integer', 'null'],
-                    'default': None,
-                },
                 'negative_evals': {
                     'type': 'boolean',
                     'default': False
@@ -60,11 +56,10 @@ class LongDivision(Reciprocal):
         },
     }
 
-    def __init__(self, num_ancillae=None, scale=1, precision=None,
+    def __init__(self, scale=1, precision=None,
                  evo_time=None, lambda_min=None, negative_evals=False):
         self.validate(locals())
         super().__init__()
-        self._num_ancillae = num_ancillae
         self._negative_evals = negative_evals
         self._scale = scale
         self._precision = precision
@@ -257,11 +252,14 @@ class LongDivision(Reciprocal):
             self._neg_offset = 1
 
         self._num_ancillae = len(self._ev) - self._neg_offset
-        self._n = self._num_ancillae + 1  
-        
         if self._num_ancillae < 3:
-            raise NotImplementedError("Min. size of eigenregister is 3 for positive eigenvalues and 4 when negative eigenvalues are enabled")
-        
+            self._num_ancillae = 3
+        if self._negative_evals == True:
+            if self._num_ancillae < 4:
+                self._num_ancillae = 4
+
+        self._n = self._num_ancillae + 1  
+
         if self._precision is None:
             self._precision = self._num_ancillae 
                   
