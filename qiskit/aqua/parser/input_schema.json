@@ -70,7 +70,7 @@
                     "default": null
                 },
                 "basis_gates": {
-                    "type": ["string", "null"],
+                    "type": ["array", "null"],
                     "default": null
                 },
                 "initial_layout": {
