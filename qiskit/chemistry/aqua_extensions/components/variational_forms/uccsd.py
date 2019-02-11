@@ -164,6 +164,8 @@ class UCCSD(VariationalForm):
         self._hopping_ops, self._num_parameters = self._build_hopping_operators()
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
+        self._logging_construct_circuit = True
+
     def _build_hopping_operators(self):
         from .uccsd import UCCSD
         hopping_ops = {}
@@ -278,8 +280,11 @@ class UCCSD(VariationalForm):
                     circuit.data += qc.data
                 else:
                     circuit += qc
-                logger.debug("[Evolving hopping operators] Progress: {}/{}".format(count, self._num_parameters))
-                count += 1
+                if self._logging_construct_circuit:
+                    logger.debug("[Evolving hopping operators] Progress: {}/{}".format(count, self._num_parameters))
+                    count += 1
+
+            self._logging_construct_circuit = False
 
         return circuit
 
