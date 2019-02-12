@@ -42,6 +42,7 @@ class PluggableType(Enum):
     VARIATIONAL_FORM = 'variational_form'
     INITIAL_STATE = 'initial_state'
     IQFT = 'iqft'
+    QFT = 'qft'
     ORACLE = 'oracle'
     FEATURE_MAP = 'feature_map'
     MULTICLASS_EXTENSION = 'multiclass_extension'
@@ -62,6 +63,7 @@ def _get_pluggables_types_dictionary():
     from qiskit.aqua.components.variational_forms import VariationalForm
     from qiskit.aqua.components.initial_states import InitialState
     from qiskit.aqua.components.iqfts import IQFT
+    from qiskit.aqua.components.qfts import QFT
     from qiskit.aqua.components.oracles import Oracle
     from qiskit.aqua.components.feature_maps import FeatureMap
     from qiskit.aqua.components.multiclass_extensions import MulticlassExtension
@@ -72,6 +74,7 @@ def _get_pluggables_types_dictionary():
         PluggableType.VARIATIONAL_FORM: VariationalForm,
         PluggableType.INITIAL_STATE: InitialState,
         PluggableType.IQFT: IQFT,
+        PluggableType.QFT: QFT,
         PluggableType.ORACLE: Oracle,
         PluggableType.FEATURE_MAP: FeatureMap,
         PluggableType.MULTICLASS_EXTENSION: MulticlassExtension,

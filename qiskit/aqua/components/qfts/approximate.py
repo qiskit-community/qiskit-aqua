@@ -21,18 +21,18 @@ import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.qasm import pi
 
-from qiskit.aqua.components.iqfts import IQFT
+from qiskit.aqua.components.qfts import QFT
 
 
-class Approximate(IQFT):
-    """An approximate IQFT."""
+class Approximate(QFT):
+    """An approximate QFT."""
 
     CONFIGURATION = {
         'name': 'APPROXIMATE',
-        'description': 'Approximate inverse QFT',
+        'description': 'Approximate QFT',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
-            'id': 'aiqft_schema',
+            'id': 'aqft_schema',
             'type': 'object',
             'properties': {
                 'degree': {
@@ -60,17 +60,17 @@ class Approximate(IQFT):
             if circuit is None:
                 circuit = QuantumCircuit(register)
 
-            for j in reversed(range(self._num_qubits)):
-                circuit.u2(0, np.pi, register[j])
+            for j in range(self._num_qubits):
                 # neighbor_range = range(np.max([0, j - self._degree + 1]), j)
                 neighbor_range = range(np.max([0, j - self._num_qubits + self._degree + 1]), j)
-                for k in reversed(neighbor_range):
-                    lam = -1.0 * pi / float(2 ** (j - k))
+                for k in neighbor_range:
+                    lam = 1.0 * pi / float(2 ** (j - k))
                     circuit.u1(lam / 2, register[j])
                     circuit.cx(register[j], register[k])
                     circuit.u1(-lam / 2, register[k])
                     circuit.cx(register[j], register[k])
                     circuit.u1(lam / 2, register[k])
+                circuit.u2(0, np.pi, register[j])
             return circuit
         else:
             raise ValueError('Mode should be either "vector" or "circuit"')
