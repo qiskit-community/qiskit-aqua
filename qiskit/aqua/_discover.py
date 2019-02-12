@@ -70,7 +70,6 @@ def _get_pluggables_types_dictionary():
     from qiskit.aqua.components.feature_maps import FeatureMap
     from qiskit.aqua.components.multiclass_extensions import MulticlassExtension
     from qiskit.aqua.input import AlgorithmInput
-    from qiskit.aqua.components.qfts import QFT
     from qiskit.aqua.components.eigs import Eigenvalues
     from qiskit.aqua.components.reciprocals import Reciprocal
 
@@ -87,7 +86,6 @@ def _get_pluggables_types_dictionary():
         PluggableType.UNCERTAINTY_PROBLEM: UncertaintyProblem,
         PluggableType.UNCERTAINTY_MODEL: RandomDistribution,
         PluggableType.INPUT: AlgorithmInput,
-        PluggableType.QFT: QFT,
         PluggableType.EIGENVALUES: Eigenvalues,
         PluggableType.RECIPROCAL: Reciprocal
     }
