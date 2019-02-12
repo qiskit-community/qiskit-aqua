@@ -58,7 +58,8 @@ class Approximate(QFT):
             if register is None:
                 register = QuantumRegister(self._num_qubits, name='q')
             if circuit is None:
-                circuit = QuantumCircuit(register)
+                circuit = QuantumCircuit()
+            circuit.add_register(register)
 
             for j in range(self._num_qubits):
                 # neighbor_range = range(np.max([0, j - self._degree + 1]), j)
