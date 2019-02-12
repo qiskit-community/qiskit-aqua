@@ -302,7 +302,7 @@ class FermionicOperator(object):
                       update_pauli[j] * y_j * remainder_pauli[j]))
         return a
 
-    def mapping(self, map_type, threshold=0.00000001, num_workers=None):
+    def mapping(self, map_type, threshold=0.00000001, num_workers=4):
         """Map fermionic operator to qubit operator.
 
         Using multiprocess to speedup the mapping, the improvement can be
@@ -325,10 +325,6 @@ class FermionicOperator(object):
         ############   DEFINING MAPPED FERMIONIC OPERATORS    ##############
         ####################################################################
         """
-
-        if num_workers is not None:
-            logger.warning("The argument `num_wrokers` is deprecated. Qiskit Chemistry uses "
-                           "the number of cpus for parallelization.")
 
         self._map_type = map_type
         n = self._modes  # number of fermionic modes / qubits
@@ -356,7 +352,7 @@ class FermionicOperator(object):
         results = parallel_map(FermionicOperator._one_body_mapping,
                                [(self._h1[i, j], a[i], a[j])
                                 for i, j in itertools.product(range(n), repeat=2) if self._h1[i, j] != 0],
-                               task_args=(threshold,))
+                               task_args=(threshold,), num_processes=num_workers)
         for result in results:
             pauli_list += result
         pauli_list.chop(threshold=threshold)
@@ -367,7 +363,7 @@ class FermionicOperator(object):
         results = parallel_map(FermionicOperator._two_body_mapping,
                                [(self._h2[i, j, k, m], a[i], a[j], a[k], a[m])
                                 for i, j, k, m in itertools.product(range(n), repeat=4) if self._h2[i, j, k, m] != 0],
-                               task_args=(threshold,))
+                               task_args=(threshold,), num_processes=num_workers)
         for result in results:
             pauli_list += result
         pauli_list.chop(threshold=threshold)
