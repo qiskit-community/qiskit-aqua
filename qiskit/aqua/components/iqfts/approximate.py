@@ -59,7 +59,8 @@ class Approximate(IQFT):
                 register = QuantumRegister(self._num_qubits, name='q')
             if circuit is None:
                 circuit = QuantumCircuit()
-            circuit.add_register(register)
+            if not circuit.has_register(register):
+                circuit.add_register(register)
 
             for j in reversed(range(self._num_qubits)):
                 circuit.u2(0, np.pi, register[j])
