@@ -14,6 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+"""
+The Truth Table-based Quantum Oracle.
+"""
 
 import logging
 import math
@@ -27,14 +30,14 @@ from qiskit.aqua.components.oracles import Oracle
 logger = logging.getLogger(__name__)
 
 
-class ESOPOracle(Oracle):
+class TruthTableOracle(Oracle):
 
     CONFIGURATION = {
-        'name': 'ESOPOracle',
-        'description': 'Exclusive Sum of Products Oracle',
+        'name': 'TruthTableOracle',
+        'description': 'Truth Table Oracle',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
-            'id': 'esop_oracle_schema',
+            'id': 'truth_table_oracle_schema',
             'type': 'object',
             'properties': {
                 'bitmap': {

@@ -20,7 +20,7 @@ import numpy as np
 from parameterized import parameterized
 import unittest
 
-from qiskit.aqua.components.oracles import ESOPOracle
+from qiskit.aqua.components.oracles import TruthTableOracle
 from qiskit.aqua.algorithms import Simon
 from qiskit.aqua import get_aer_backend, AquaError
 
@@ -51,7 +51,7 @@ class TestSimon(QiskitAquaTestCase):
             hidden = np.binary_repr(0, nbits)
 
         backend = get_aer_backend('qasm_simulator')
-        oracle = ESOPOracle(simon_input)
+        oracle = TruthTableOracle(simon_input)
         algorithm = Simon(oracle)
         result = algorithm.run(backend)
         self.assertEqual(result['result'], hidden)

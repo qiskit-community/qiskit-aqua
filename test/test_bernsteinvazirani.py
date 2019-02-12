@@ -20,7 +20,7 @@ import math
 import numpy as np
 from parameterized import parameterized
 
-from qiskit.aqua.components.oracles import ESOPOracle
+from qiskit.aqua.components.oracles import TruthTableOracle
 from qiskit.aqua.algorithms import BernsteinVazirani
 from qiskit.aqua import get_aer_backend, AquaError
 
@@ -48,7 +48,7 @@ class TestBernsteinVazirani(QiskitAquaTestCase):
             parameter += bit
 
         backend = get_aer_backend('qasm_simulator')
-        oracle = ESOPOracle(bv_input)
+        oracle = TruthTableOracle(bv_input)
         algorithm = BernsteinVazirani(oracle)
         result = algorithm.run(backend)
         self.assertEqual(result['result'], parameter)
