@@ -95,7 +95,7 @@ class ESOPOracle(Oracle):
         if esop_exprs:
             self._esops = [ESOP(esop_expr) for esop_expr in esop_exprs]
             self._outcome_register = QuantumRegister(out_len, name='o')
-            self._circuit = self._esops[0].construct_circuit(qubit_outcome=self._outcome_register[0])
+            self._circuit = self._esops[0].construct_circuit(qr_outcome=self._outcome_register)
             self._variable_register = self._esops[0].qr_variable
             self._ancillary_register = self._esops[0].qr_ancilla
         else:
@@ -118,11 +118,12 @@ class ESOPOracle(Oracle):
 
     def construct_circuit(self):
         if self._esops:
-            for esop, qubit_outcome in zip(self._esops[1:], self.outcome_register[1:]):
-                esop_circuit = esop.construct_circuit(
+            for idx in range(1, len(self._esops)):
+                esop_circuit = self._esops[idx].construct_circuit(
                     qr_variable=self._variable_register,
                     qr_ancilla=self._ancillary_register,
-                    qubit_outcome=qubit_outcome,
+                    qr_outcome=self._outcome_register,
+                    outcome_idx=idx,
                     mct_mode=self._mct_mode
                 )
                 self._circuit += esop_circuit
