@@ -133,9 +133,6 @@ class PhaseEstimationCircuit:
                 qc.data += self._state_in.construct_circuit('circuit', q).data
             elif self._state_in_circuit_factory is not None:
                 self._state_in_circuit_factory.build(qc, q, aux)
-            else:
-                pass
-                #raise RuntimeError('Missing initial state specification.')
 
             # Put all ancillae in uniform superposition
             qc.u2(0, np.pi, a)
