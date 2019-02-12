@@ -28,7 +28,7 @@ class EntryCustom(ttk.Entry):
 
     def __init__(self, *args, **kwargs):
         super(EntryCustom, self).__init__(*args, **kwargs)
-        _create_menu(self)
+        self.menu = None
         self.bind('<Button-1><ButtonRelease-1>', self._dismiss_menu)
         self.bind_class('Entry', '<Control-a>', self._event_select_all)
         self.bind(_BIND, self._show_menu)
@@ -41,12 +41,15 @@ class EntryCustom(ttk.Entry):
         return 'break'
 
     def _show_menu(self, e):
-        self.menu.post(e.x_root, e.y_root)
+        _create_menu(self)
+        if self.menu:
+            self.menu.post(e.x_root, e.y_root)
         if platform == 'darwin':
             self.selection_clear()
 
     def _dismiss_menu(self, e):
-        self.menu.unpost()
+        if self.menu:
+            self.menu.unpost()
 
     def _event_paste(self, e):
         try:
@@ -66,7 +69,7 @@ class TextCustom(tk.Text):
 
     def __init__(self, *args, **kwargs):
         super(TextCustom, self).__init__(*args, **kwargs)
-        _create_menu(self)
+        self.menu = None
         self.bind('<Button-1><ButtonRelease-1>', self._dismiss_menu)
         self.bind_class('Text', '<Control-a>', self._event_select_all)
         self.bind(_BIND, self._show_menu)
@@ -79,10 +82,13 @@ class TextCustom(tk.Text):
         return 'break'
 
     def _show_menu(self, e):
-        self.menu.post(e.x_root, e.y_root)
+        _create_menu(self)
+        if self.menu:
+            self.menu.post(e.x_root, e.y_root)
 
     def _dismiss_menu(self, e):
-        self.menu.unpost()
+        if self.menu:
+            self.menu.unpost()
 
     def _event_paste(self, e):
         try:
