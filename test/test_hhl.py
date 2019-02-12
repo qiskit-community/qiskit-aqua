@@ -25,6 +25,7 @@ from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import LinearSystemInput
 from qiskit.aqua.utils import random_matrix_generator as rmg
 
+
 class TestHHL(QiskitAquaTestCase):
     """HHL tests."""
 

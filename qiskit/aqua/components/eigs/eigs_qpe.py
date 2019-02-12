@@ -228,7 +228,6 @@ class EigsQPE(Eigenvalues):
         qs = [q[i] for i in range(1, len(q))]
         for qi in qs:
             qc.cx(sgn, qi)
-        qc.barrier()
         self._ne_qfts[0].construct_circuit('circuit', qs, qc)
         for i, qi in enumerate(reversed(qs)):
             qc.cu1(2*np.pi/2**(i+1), sgn, qi)
