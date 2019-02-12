@@ -23,8 +23,13 @@ from abc import abstractmethod
 
 
 class Eigenvalues(Pluggable):
-    """
-    Base class for eigenvalue estimation.
+    """Base class for eigenvalue estimation.
+
+    This method should initialize the module and its configuration, and
+    use an exception if a component of the module is available.
+
+    Args:
+        params (dict): configuration dictionary
     """
     
     @abstractmethod
@@ -47,34 +52,35 @@ class Eigenvalues(Pluggable):
 
     @abstractmethod
     def construct_circuit(self, mode, register=None):
-        """
-        Construct the eigenvalue estimation quantum circuit.
+        """Construct the eigenvalue estimation quantum circuit.
+
         Args:
             mode (str): 'vector' or 'circuit'
             register (QuantumRegister): register for circuit construction
                         where eigenvalues will be stored.
+
         Returns:
-            the QuantumCircuit object for the eigenvalue estimation circuit.
+            QuantumCircuit object for the eigenvalue estimation circuit.
         """
         raise NotImplementedError()
 
     def construct_inverse(self, mode, circuit, inreg, outreg):
-        """
-        Construct the inverse eigenvalue estimation quantum circuit.
+        """Construct the inverse eigenvalue estimation quantum circuit.
+
         Args:
-            mode (str): 'vector' or 'circuit'
+            mode (str): consctruction mode, 'vector' not supported
             circuit (QuantumCircuit): the quantum circuit to invert
             inreg (QuantumRegister): the input quantum register
             outreg (QuantumRegister): the output quantum register
+
         Returns:
-            the QuantumCircuit object for the inverse eigenvalue estimation
+            QuantumCircuit object for of the inverted eigenvalue estimation
             circuit.
         """
-        if mode == "vector":
-            raise NotImplementedError("Mode vector not supported by "
-                                      "construct_inverse.")
+        if mode == 'vector':
+            raise NotImplementedError('Mode vector not supported.')
         if circuit is None:
-            raise ValueError("Circuit was not constructed beforehand.")
+            raise ValueError('Circuit was not constructed beforehand.')
         qc = QuantumCircuit(inreg, outreg)
         for gate in reversed(circuit.data):
             gate.reapply(qc)

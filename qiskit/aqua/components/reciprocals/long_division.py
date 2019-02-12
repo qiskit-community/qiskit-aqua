@@ -21,7 +21,12 @@ import numpy as np
 
 
 class LongDivision(Reciprocal):
-    "Finds reciprocal with long division method and rotates the ancilla qubit"
+
+    """The Long Division Rotation for Reciprocals.
+
+    It finds the reciprocal with long division method and rotates the ancillary
+    qubit by C/lambda. This is a first order approximation of arcsin(C/lambda).
+    """
 
     CONFIGURATION = {
         'name': 'LongDivision',
@@ -37,7 +42,7 @@ class LongDivision(Reciprocal):
                 },
                 'scale':{
                     'type': 'number',
-                    'default': 1,
+                    'default': 0,
                 },
                 'precision':{
                     'type': ['integer', 'null'],
@@ -56,8 +61,24 @@ class LongDivision(Reciprocal):
         },
     }
 
-    def __init__(self, scale=1, precision=None,
-                 evo_time=None, lambda_min=None, negative_evals=False):
+    def __init__(
+            self,
+            scale=0,
+            precision=None,
+            negative_evals=False,
+            evo_time=None,
+            lambda_min=None
+    ):
+        """Constructor.
+
+        Args:
+            scale (float, optional): the scale of rotation angle, corresponds to HHL constant C
+            precision (int, optional): number of qubits that defines the precision of long division
+            negative_evals (bool, optional): indicate if negative eigenvalues need to be handled
+            evo_time (float, optional): the evolution time
+            lambda_min (float, optional): the smallest expected eigenvalue
+        """
+
         self.validate(locals())
         super().__init__()
         self._negative_evals = negative_evals
@@ -240,9 +261,19 @@ class LongDivision(Reciprocal):
         self._anc = ancilla
         
     def construct_circuit(self, mode, inreg):
-        
-        if mode == "vector":
-            raise NotImplementedError("mode vector not supported")
+
+        """Construct the Long Division Rotation circuit.
+
+        Args:
+            mode (str): consctruction mode, 'vector' not supported
+            inreg (QuantumRegister): input register, typically output register of Eigenvalues
+
+        Returns:
+            QuantumCircuit containing the Long Division Rotation circuit.
+        """
+
+        if mode == 'vector':
+            raise NotImplementedError('mode vector not supported')
         self._ev = inreg
 
         if self._scale == 0:

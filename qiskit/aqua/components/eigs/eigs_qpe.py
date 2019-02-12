@@ -24,7 +24,13 @@ from qiskit.aqua.algorithms.single_sample import PhaseEstimationCircuit
 
 
 class EigsQPE(Eigenvalues):
-    """A QPE for getting the eigenvalues."""
+
+    """The QPE circuit for getting the eigenvalues of a matrix.
+
+    This class is based on QPE circuit with no measurements and additional
+    handling of negative eigenvalues, e.g. for HHL. It uses many parameters
+    known from plain QPE. It depends on QFT and IQFT.
+    """
 
     CONFIGURATION = {
         'name': 'EigsQPE',
@@ -88,16 +94,36 @@ class EigsQPE(Eigenvalues):
         ],
     }
 
-    def __init__(self, operator, iqft,
-                 num_time_slices=1, num_ancillae=1, expansion_mode="trotter",
-                 expansion_order=1, evo_time=None, hermitian_matrix=True,
-                 negative_evals=False, ne_qfts=[None, None]):
+    def __init__(
+            self, operator, iqft,
+            num_time_slices=1,
+            num_ancillae=1,
+            expansion_mode='trotter',
+            expansion_order=1,
+            evo_time=None,
+            hermitian_matrix=True,
+            negative_evals=False,
+            ne_qfts=[None, None]
+    ):
+        """Constructor.
 
+        Args:
+            operator (Operator): the hamiltonian Operator object
+            iqft (IQFT): the Inverse Quantum Fourier Transform pluggable component
+            num_time_slices (int, optional): the number of time slices
+            num_ancillae (int, optional): the number of ancillary qubits to use for the measurement
+            expansion_mode (str, optional): the expansion mode (trotter|suzuki)
+            expansion_order (int, optional): the suzuki expansion order
+            evo_time (float, optional): the evolution time
+            hermitian_matrix (bool, optional): indicate if input matrix for operator is hermitian, expands the matrix if set to `False`
+            negative_evals (bool, optional): indicate if negative eigenvalues need to be handled
+            ne_qfts ([QFT, IQFT], optional): the QFT and IQFT pluggable components for handling negative eigenvalues
+        """
         super().__init__()
         super().validate(locals())
-        self._num_ancillae = num_ancillae
-        self._iqft = iqft
         self._operator = operator
+        self._iqft = iqft
+        self._num_ancillae = num_ancillae
         self._num_time_slices = num_time_slices
         self._expansion_mode = expansion_mode
         self._expansion_order = expansion_order
@@ -106,12 +132,12 @@ class EigsQPE(Eigenvalues):
         self._negative_evals = negative_evals
         self._ne_qfts = ne_qfts
         self._init_constants()
-        self._ret = {}
 
     @classmethod
     def init_params(cls, params, matrix):
         """
         Initialize via parameters dictionary and algorithm input instance
+
         Args:
             params: parameters dictionary
             matrix: two dimensional array which represents the operator
@@ -128,7 +154,7 @@ class EigsQPE(Eigenvalues):
         hermitian_matrix = eigs_params['hermitian_matrix']
         negative_evals = eigs_params['negative_evals']
 
-        # Adding an automatic flag qubit for negative eigenvalues
+        # Adding an additional flag qubit for negative eigenvalues
         if negative_evals:
             num_ancillae += 1
             args['num_ancillae'] = num_ancillae
@@ -150,7 +176,7 @@ class EigsQPE(Eigenvalues):
                                            iqft_params['name']).init_params(params)
 
         # For converting the encoding of the negative eigenvalues, we need two
-        # additional QFTs
+        # additional instances for QFT and IQFT
         if negative_evals:
             ne_params = params
             qft_num_qubits = iqft_params['num_qubits']
@@ -196,10 +222,19 @@ class EigsQPE(Eigenvalues):
         return self._evo_time
 
     def construct_circuit(self, mode, register=None):
-        """Implement the Quantum Phase Estimation algorithm"""
+        """ Construct the eigenvalues estimation using Quantum Phase
+        Estimation circuit
+
+        Args:
+            mode (str): consctruction mode, 'vector' not supported
+            register (QuantumRegister): the register to use for the quantum state
+
+        Returns:
+            the QuantumCircuit object for the constructed circuit
+        """
 
         if mode == 'vector':
-            raise ValueError("QPE only posslible as circuit not vector.")
+            raise ValueError('QPE only posslible as circuit not as vector.')
 
         pe = PhaseEstimationCircuit(operator=self._operator,
                                     state_in=None, iqft=self._iqft,

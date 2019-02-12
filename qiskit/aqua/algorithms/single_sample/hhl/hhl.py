@@ -30,7 +30,15 @@ logger = logging.getLogger(__name__)
 
 
 class HHL(QuantumAlgorithm):
-    """The HHL algorithm."""
+
+    """The HHL algorithm.
+
+    If the parameter `mode` is set to `circuit` a HHL circuit will be
+    generated and returned as QuantumCircuit object, if `mode` is set to
+    `evaluate` the circuit will be executed and the result vector will be
+    returned, measured or derived via state tomography or derived from the
+    statevector.
+    """
 
     PROP_MODE = 'mode'
 
@@ -80,8 +88,32 @@ class HHL(QuantumAlgorithm):
         ],
     }
 
-    def __init__(self, matrix=None, vector=None, eigs=None, init_state=None,
-                 reciprocal=None, mode='circuit', num_q=0, num_a=0):
+    def __init__(
+            self,
+            matrix=None,
+            vector=None,
+            eigs=None,
+            init_state=None,
+            reciprocal=None,
+            mode='circuit',
+            num_q=0,
+            num_a=0
+    ):
+        """
+        Constructor.
+
+        Args:
+            matrix (array): the input matrix of linear system of equations
+            vector (array): the input vector of linear system of equations
+            eigs (Eigenvalues): the eigenvalue estimation instance
+            init_state (InitialState): the initial quantum state preparation
+            reciprocal (Reciprocal): the eigenvalue reciprocal and controlled rotation instance
+            mode (str): the HHL run mode
+                `circuit` generates the quantum circuit and returns it
+                `evaluate` generates and executes the circuit and returns the results
+            num_q (int): number of qubits required for the matrix Operator instance
+            num_a (int): number of ancillary qubits for Eigenvalues instance
+        """
         super().__init__()
         super().validate(locals())
         self._matrix = matrix
@@ -101,8 +133,8 @@ class HHL(QuantumAlgorithm):
 
     @classmethod
     def init_params(cls, params, algo_input):
-        """
-        Initialize via parameters dictionary and algorithm input instance
+        """Initialize via parameters dictionary and algorithm input instance
+
         Args:
             params: parameters dictionary
             algo_input: LinearSystemInput instance
@@ -158,7 +190,8 @@ class HHL(QuantumAlgorithm):
         return cls(matrix, vector, eigs, init_state, reci, mode, num_q, num_a)
 
     def _construct_circuit(self):
-        """ Constructing the HHL circuit """
+        """Construct the HHL circuit.
+        """
 
         q = QuantumRegister(self._num_q, name="io")
         qc = QuantumCircuit(q)
@@ -192,9 +225,10 @@ class HHL(QuantumAlgorithm):
         self._circuit = qc
 
     def _statevector_simulation(self):
-        """
-        The statevector simulation mode: The result of the HHL gets extracted
-        from the statevector.
+        """The statevector simulation.
+
+        The HHL result gets extracted from the statevector. Only for
+        statevector simulator available.
         """
         res = self._quantum_instance.execute(self._circuit)
         sv = np.asarray(res.get_statevector(self._circuit))
@@ -205,10 +239,10 @@ class HHL(QuantumAlgorithm):
         self._hhl_results(vec)
 
     def _state_tomography(self):
-        """
-        The state tomography mode. Extracting the solution vector information
-        via state tomography. Inefficient, uses 3**n*shots executions of the
-        circuit.
+        """The state tomography.
+
+        The HHL result gets extracted via state tomography. Available for
+        qasm simulator and real hardware backends.
         """
         # Preparing the state tomography circuits
         c = ClassicalRegister(self._num_q)
@@ -298,7 +332,7 @@ class HHL(QuantumAlgorithm):
         self._construct_circuit()
         # Handling the modes
         if self._mode == "circuit":
-            self._ret["circuit"] = self._circuit.name
+            self._ret["circuit"] = self._circuit
             regs = {
                 "io_register": self._io_register,
                 "eigenvalue_register": self._eigenvalue_register,

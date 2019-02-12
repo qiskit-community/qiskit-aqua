@@ -24,15 +24,13 @@ from abc import abstractmethod
 
 class Reciprocal(Pluggable):
 
-    """
-        Base class for Reciprocal.
+    """Base class for reciprocal calculation.
 
-        This method should initialize the module and its configuration, and
-        use an exception if a component of the module is
-        available.
+    This method should initialize the module and its configuration, and
+    use an exception if a component of the module is available.
 
-        Args:
-            configuration (dict): configuration dictionary
+    Args:
+        configuration (dict): configuration dictionary
     """
 
     @abstractmethod
@@ -47,8 +45,7 @@ class Reciprocal(Pluggable):
 
     @abstractmethod
     def construct_circuit(self, mode, register=None, circuit=None):
-        """
-        Construct the initial state circuit.
+        """Construct the initial state circuit.
 
         Args:
             mode (str): 'vector' or 'circuit'

@@ -27,11 +27,13 @@ logger = logging.getLogger(__name__)
 
 
 class LookupRotation(Reciprocal):
-    """Partial table lookup of rotation angles to rotate an ancilla qubit by
-    arcsin(C/lambda).
-    Note:
-        Please refer to the HHL documentation for an explanation of this
-        method.
+
+    """The Lookup Rotation for Reciprocals.
+
+    A calculation of reciprocals of eigenvalues is performed and controlled
+    rotation of ancillary qubit via a lookup method. It uses a partial table
+    lookup of rotation angles to rotate an ancillary qubit by arcsin(C/lambda).
+    Please refer to the HHL documentation for an explanation of this method.
     """
 
     CONFIGURATION = {
@@ -73,8 +75,26 @@ class LookupRotation(Reciprocal):
         },
     }
 
-    def __init__(self, pat_length=None, subpat_length=None, scale=0,
-                 negative_evals=False, evo_time=None, lambda_min=None):
+    def __init__(
+            self,
+            pat_length=None,
+            subpat_length=None,
+            scale=0,
+            negative_evals=False,
+            evo_time=None,
+            lambda_min=None
+    ):
+        """Constructor.
+
+        Args:
+            pat_length (int, optional): the number of qubits used for binning pattern
+            subpat_length (int, optional): the number of qubits used for binning sub-pattern
+            scale (float, optional): the scale of rotation angle, corresponds to HHL constant C
+            negative_evals (bool, optional): indicate if negative eigenvalues need to be handled
+            evo_time (float, optional): the evolution time
+            lambda_min (float, optional): the smallest expected eigenvalue
+        """
+
         self.validate(locals())
         super().__init__()
         self._pat_length = pat_length
@@ -95,18 +115,20 @@ class LookupRotation(Reciprocal):
         vec = statevector[half:half + 2 ** num_q]
         return vec
 
-    @staticmethod
-    def classic_approx(k, n, m, negative_evals=False):
-        """Approximate arcsin(1/x) controlled-rotation classically.
+    def _classic_approx(k, n, m, negative_evals=False):
+        """Approximate arcsin(1/x) for controlled-rotation.
 
-            This method calculates the error of arcsin(1/x) function using k
-            bits fixed point numbers and n bit accuracy.
+        This method calculates the binning of arcsin(1/x) function using k
+        bits fixed point numbers and n bit accuracy.
 
-            Args:
-                k (int): register length
-                n (int): num bits following most-sign. bit taken into account
-                m (int): length of sub string of n-bit pattern
-                negative_evals (bool): flag for using first bit as sign bit
+        Args:
+            k (int): register length
+            n (int): num bits following most-significant qubit taken into account
+            m (int): length of sub string of n-qubit pattern
+            negative_evals (bool): flag for using first qubit as sign bit
+
+        Returns:
+            Dictionary containing values of approximated and binned values.
         """
 
         def bin_to_num(binary):
@@ -195,13 +217,13 @@ class LookupRotation(Reciprocal):
 
     def _set_msq(self, msq, ev_reg, fo_pos, last_iteration=False):
         """Adds multi-controlled NOT gate to entangle |msq> qubit
-           with states having the correct first-one bit
+        with states having the correct first-one qubit
 
         Args:
-            msq: most-significant qubit, this is a garbage qubit
-            ev_reg: register storing eigenvalues
+            msq (QuantumRegister): most-significant qubit, this is a garbage qubit
+            ev_reg (QuantumRegister): register storing eigenvalues
             fo_pos (int): position of first-one bit
-            last_iteration (bool): switch; it is set for numbers where only the
+            last_iteration (bool): switch which is set for numbers where only the
                         last n bits is different from 0 in the binary string
         """
         qc = self._circuit
@@ -243,12 +265,13 @@ class LookupRotation(Reciprocal):
 
     def _set_bit_pattern(self, pattern, tgt, offset):
         """Add multi-controlled NOT gate to circuit that has negated/normal
-            controls according to the pattern specified
+        controls according to the pattern specified
+
         Args:
             pattern (list): List of strings giving a bit string that negates
                 controls if '0'
-            tgt: target qubit
-            offset: start index for the control qubits
+            tgt (QuantumRegister): target qubit
+            offset (int): start index for the control qubits
         """
         qc = self._circuit
         for c, i in enumerate(pattern):
@@ -267,14 +290,20 @@ class LookupRotation(Reciprocal):
                 qc.x(self._ev[int(c + offset)])
 
     def construct_circuit(self, mode, inreg):
-        """Construct Lookup circuit
+
+        """Construct the Lookup Rotation circuit.
+
         Args:
-            mode (string): not yet implemented
-            inreg: input register, typically output register of QPE
+            mode (str): consctruction mode, 'vector' not supported
+            inreg (QuantumRegister): input register, typically output register of Eigenvalues
+
+        Returns:
+            QuantumCircuit containing the Lookup Rotation circuit.
         """
+
         # initialize circuit
-        if mode == "vector":
-            raise NotImplementedError("vector mode not supported")
+        if mode == 'vector':
+            raise NotImplementedError('vector mode not supported')
         if self._lambda_min:
             self._scale = self._lambda_min/2/np.pi*self._evo_time
         if self._scale == 0:
@@ -303,8 +332,8 @@ class LookupRotation(Reciprocal):
         neg_evals = self._negative_evals
 
         # get classically precomputed eigenvalue binning
-        approx_dict = LookupRotation.classic_approx(k, n, m,
-                                                    negative_evals=neg_evals)
+        approx_dict = LookupRotation._classic_approx(k, n, m,
+                                                     negative_evals=neg_evals)
 
         fo = None
         old_fo = None
