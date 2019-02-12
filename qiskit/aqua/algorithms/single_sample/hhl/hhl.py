@@ -40,8 +40,6 @@ class HHL(QuantumAlgorithm):
     statevector.
     """
 
-    PROP_MODE = 'mode'
-
     CONFIGURATION = {
         'name': 'HHL',
         'description': 'The HHL Algorithm for Solving Linear Systems of '
@@ -51,16 +49,6 @@ class HHL(QuantumAlgorithm):
             'id': 'hhl_schema',
             'type': 'object',
             'properties': {
-                PROP_MODE: {
-                    'type': 'string',
-                    'oneOf': [
-                        {'enum': [
-                            'circuit',
-                            'evaluate'
-                        ]}
-                    ],
-                    'default': 'circuit'
-                }
             },
             'additionalProperties': False
         },
@@ -95,7 +83,6 @@ class HHL(QuantumAlgorithm):
             eigs=None,
             init_state=None,
             reciprocal=None,
-            mode='circuit',
             num_q=0,
             num_a=0
     ):
@@ -108,9 +95,6 @@ class HHL(QuantumAlgorithm):
             eigs (Eigenvalues): the eigenvalue estimation instance
             init_state (InitialState): the initial quantum state preparation
             reciprocal (Reciprocal): the eigenvalue reciprocal and controlled rotation instance
-            mode (str): the HHL run mode
-                `circuit` generates the quantum circuit and returns it
-                `evaluate` generates and executes the circuit and returns the results
             num_q (int): number of qubits required for the matrix Operator instance
             num_a (int): number of ancillary qubits for Eigenvalues instance
         """
@@ -121,7 +105,6 @@ class HHL(QuantumAlgorithm):
         self._eigs = eigs
         self._init_state = init_state
         self._reciprocal = reciprocal
-        self._mode = mode
         self._num_q = num_q
         self._num_a = num_a
         self._circuit = None
@@ -163,9 +146,6 @@ class HHL(QuantumAlgorithm):
             raise ValueError("Input vector dimension does not match input "
                              "matrix dimension!")
 
-        hhl_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
-        mode = hhl_params.get(HHL.PROP_MODE)
-
         # Initialize eigenvalue finding module
         eigs_params = params.get(Pluggable.SECTION_KEY_EIGS)
         eigs = get_pluggable_class(PluggableType.EIGENVALUES,
@@ -187,7 +167,7 @@ class HHL(QuantumAlgorithm):
         reci = get_pluggable_class(PluggableType.RECIPROCAL,
                                    reciprocal_params['name']).init_params(params)
 
-        return cls(matrix, vector, eigs, init_state, reci, mode, num_q, num_a)
+        return cls(matrix, vector, eigs, init_state, reci, num_q, num_a)
 
     def _construct_circuit(self):
         """Construct the HHL circuit.
@@ -234,7 +214,7 @@ class HHL(QuantumAlgorithm):
         sv = np.asarray(res.get_statevector(self._circuit))
         # Extract solution vector from statevector
         vec = self._reciprocal.sv_to_resvec(sv, self._num_q)
-        self._ret["probability_result"] = vec.dot(vec.conj())
+        self._ret['probability_result'] = vec.dot(vec.conj())
         vec = vec/np.linalg.norm(vec)
         self._hhl_results(vec)
 
@@ -330,21 +310,10 @@ class HHL(QuantumAlgorithm):
 
     def _run(self):
         self._construct_circuit()
-        # Handling the modes
-        if self._mode == "circuit":
-            self._ret["circuit"] = self._circuit
-            regs = {
-                "io_register": self._io_register,
-                "eigenvalue_register": self._eigenvalue_register,
-                "ancilla_register": self._ancilla_register,
-                "_success_bit": self._success_bit
-            }
-            self._ret["regs"] = regs
-        elif self._mode == "evaluate":
-            if self._quantum_instance.is_statevector:
-                self._statevector_simulation()
-            else:
-                self._state_tomography()
+        if self._quantum_instance.is_statevector:
+            self._statevector_simulation()
+        else:
+            self._state_tomography()
         # Adding a bit of general result information
         self._ret["input_matrix"] = self._matrix
         self._ret["input_vector"] = self._vector

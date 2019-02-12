@@ -37,7 +37,6 @@ class TestHHL(QiskitAquaTestCase):
                 'name': 'linear_system',
             },
             'algorithm': {
-                'mode': 'evaluate',
                 'name': 'HHL'
             },
             'eigs': {
@@ -188,49 +187,6 @@ class TestHHL(QiskitAquaTestCase):
         self.log.debug('fidelity HHL to algebraic: {}'.format(fidelity))
         self.log.debug('probability of result:     {}'.
                        format(result["probability_result"]))
-
-    def test_hhl_circuit_diagonal_2x2(self):
-        self.log.debug('Testing HHL simple test with qasm simulator')
-
-        circ_params = self.params
-        matrix = [[1, 0], [0, 3]]
-        vector = [1, 0]
-        circ_params['input'] = {
-            'name': 'LinearSystemInput',
-            'matrix': matrix,
-            'vector': vector
-        }
-        circ_params['algorithm']['mode'] = 'circuit'
-
-        # run hhl
-        result = run_algorithm(circ_params)
-        gate_count = result["gate_count_total"]
-        self.assertEqual(gate_count, 12378)
-
-        self.log.debug('HHL total gate count:       {}'.format(gate_count))
-
-    def test_hhl_circuit_diagonal_8x8(self):
-        self.log.debug('Testing HHL simple test with qasm simulator')
-
-        circ_params = self.params
-        matrix = [[1, 0, 0, 0, 0, 0, 0, 0], [0, 2, 0, 0, 0, 0, 0, 0],
-                  [0, 0, 3, 0, 0, 0, 0, 0], [0, 0, 0, 4, 0, 0, 0, 0],
-                  [0, 0, 0, 0, 5, 0, 0, 0], [0, 0, 0, 0, 0, 6, 0, 0],
-                  [0, 0, 0, 0, 0, 0, 7, 0], [0, 0, 0, 0, 0, 0, 0, 8]]
-        vector = [1, 0, 1, 0, 1, 0, 1, 0]
-        circ_params['input'] = {
-            'name': 'LinearSystemInput',
-            'matrix': matrix,
-            'vector': vector
-        }
-        circ_params['algorithm']['mode'] = 'circuit'
-
-        # run hhl
-        result = run_algorithm(circ_params)
-        gate_count = result["gate_count_total"]
-        self.assertEqual(gate_count, 36388)
-
-        self.log.debug('HHL total gate count:       {}'.format(gate_count))
 
     def test_hhl_negative_eigs_sv(self):
         self.log.debug('Testing HHL with matrix with negative eigenvalues')
