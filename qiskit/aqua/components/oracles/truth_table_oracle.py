@@ -60,7 +60,6 @@ class TruthTableOracle(Oracle):
 
     def __init__(self, bitmap, mct_mode='basic'):
         self.validate(locals())
-        super().__init__()
         self._mct_mode = mct_mode
 
         # checks that the input bitstring length is a power of two
@@ -98,7 +97,7 @@ class TruthTableOracle(Oracle):
         if esop_exprs:
             self._esops = [ESOP(esop_expr) for esop_expr in esop_exprs]
             self._output_register = QuantumRegister(out_len, name='o')
-            self._circuit = self._esops[0].construct_circuit(output_register=self._output_register)
+            self._circuits = [self._esops[0].construct_circuit(output_register=self._output_register)]
             self._variable_register = self._esops[0].variable_register
             self._ancillary_register = self._esops[0].ancillary_register
         else:
@@ -106,6 +105,8 @@ class TruthTableOracle(Oracle):
             self._variable_register = QuantumRegister(nbits, name='v')
             self._output_register = QuantumRegister(1, name='o')
             self._ancillary_register = None
+
+        super().__init__()
 
     @property
     def variable_register(self):
@@ -120,16 +121,18 @@ class TruthTableOracle(Oracle):
         return self._output_register
 
     def construct_circuit(self):
+        circuit = QuantumCircuit()
         if self._esops:
             for idx in range(1, len(self._esops)):
-                esop_circuit = self._esops[idx].construct_circuit(
+                self._circuits.append(self._esops[idx].construct_circuit(
                     variable_register=self._variable_register,
                     ancillary_register=self._ancillary_register,
                     output_register=self._output_register,
                     output_idx=idx,
                     mct_mode=self._mct_mode
-                )
-                self._circuit += esop_circuit
-            return self._circuit
+                ))
+            for c in self._circuits:
+                circuit += c
         else:
-            return QuantumCircuit(self._variable_register)
+            circuit.add_register(self._variable_register)
+        return circuit

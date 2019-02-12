@@ -36,6 +36,8 @@ class Oracle(Pluggable):
 
     @abstractmethod
     def __init__(self):
+        self._circuit = None
+        self._circuit = self.construct_circuit()
         super().__init__()
 
     @classmethod
@@ -43,6 +45,12 @@ class Oracle(Pluggable):
         oracle_params = params.get(Pluggable.SECTION_KEY_ORACLE)
         args = {k: v for k, v in oracle_params.items() if k != 'name'}
         return cls(**args)
+
+    @property
+    def circuit(self):
+        if self._circuit is None:
+            self._circuit = self.construct_circuit()
+        return self._circuit
 
     @property
     @abstractmethod

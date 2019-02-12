@@ -69,7 +69,6 @@ class CNFOracle(Oracle):
         """
 
         self.validate(locals())
-        super().__init__()
         self._mct_mode = mct_mode
 
         if cnf_expr:
@@ -110,6 +109,7 @@ class CNFOracle(Oracle):
                     'The CNF needs to be specified as either a list of lists or a string in DIMACS format.')
 
         self._cnf = CNF(cnf_expr)
+        super().__init__()
 
     @property
     def variable_register(self):

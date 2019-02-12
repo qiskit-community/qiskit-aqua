@@ -87,7 +87,7 @@ class DeutschJozsa(QuantumAlgorithm):
         qc_preoracle.barrier()
 
         # oracle circuit
-        qc_oracle = self._oracle.construct_circuit()
+        qc_oracle = self._oracle.circuit
 
         # postoracle circuit
         qc_postoracle = QuantumCircuit(
