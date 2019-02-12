@@ -53,7 +53,7 @@ class Approximate(IQFT):
 
     def construct_circuit(self, mode, register=None, circuit=None):
         if mode == 'vector':
-            return linalg.dft(2 ** self._num_qubits, scale='sqrtn')
+            raise NotImplementedError()
         elif mode == 'circuit':
             if register is None:
                 register = QuantumRegister(self._num_qubits, name='q')
