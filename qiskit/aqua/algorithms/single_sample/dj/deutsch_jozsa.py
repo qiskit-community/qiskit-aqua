@@ -79,11 +79,11 @@ class DeutschJozsa(QuantumAlgorithm):
         # preoracle circuit
         qc_preoracle = QuantumCircuit(
             self._oracle.variable_register,
-            self._oracle.outcome_register,
+            self._oracle.output_register,
         )
         qc_preoracle.h(self._oracle.variable_register)
-        qc_preoracle.x(self._oracle.outcome_register)
-        qc_preoracle.h(self._oracle.outcome_register)
+        qc_preoracle.x(self._oracle.output_register)
+        qc_preoracle.h(self._oracle.output_register)
         qc_preoracle.barrier()
 
         # oracle circuit
@@ -92,7 +92,7 @@ class DeutschJozsa(QuantumAlgorithm):
         # postoracle circuit
         qc_postoracle = QuantumCircuit(
             self._oracle.variable_register,
-            self._oracle.outcome_register,
+            self._oracle.output_register,
         )
         qc_postoracle.h(self._oracle.variable_register)
         qc_postoracle.barrier()

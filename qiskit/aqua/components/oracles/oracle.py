@@ -56,7 +56,7 @@ class Oracle(Pluggable):
 
     @property
     @abstractmethod
-    def outcome_register(self):
+    def output_register(self):
         raise NotImplementedError()
 
     @abstractmethod

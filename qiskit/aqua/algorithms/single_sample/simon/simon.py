@@ -75,7 +75,7 @@ class Simon(QuantumAlgorithm):
 
         qc_preoracle = QuantumCircuit(
             self._oracle.variable_register,
-            self._oracle.outcome_register,
+            self._oracle.output_register,
         )
         qc_preoracle.h(self._oracle.variable_register)
         qc_preoracle.barrier()
@@ -87,7 +87,7 @@ class Simon(QuantumAlgorithm):
         # postoracle circuit
         qc_postoracle = QuantumCircuit(
             self._oracle.variable_register,
-            self._oracle.outcome_register,
+            self._oracle.output_register,
         )
         qc_postoracle.h(self._oracle.variable_register)
 

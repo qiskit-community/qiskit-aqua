@@ -94,14 +94,14 @@ class ESOPOracle(Oracle):
 
         if esop_exprs:
             self._esops = [ESOP(esop_expr) for esop_expr in esop_exprs]
-            self._outcome_register = QuantumRegister(out_len, name='o')
-            self._circuit = self._esops[0].construct_circuit(qr_outcome=self._outcome_register)
-            self._variable_register = self._esops[0].qr_variable
-            self._ancillary_register = self._esops[0].qr_ancilla
+            self._output_register = QuantumRegister(out_len, name='o')
+            self._circuit = self._esops[0].construct_circuit(output_register=self._output_register)
+            self._variable_register = self._esops[0].variable_register
+            self._ancillary_register = self._esops[0].ancillary_register
         else:
             self._esops = None
             self._variable_register = QuantumRegister(nbits, name='v')
-            self._outcome_register = QuantumRegister(1, name='o')
+            self._output_register = QuantumRegister(1, name='o')
             self._ancillary_register = None
 
     @property
@@ -113,17 +113,17 @@ class ESOPOracle(Oracle):
         return self._ancillary_register
 
     @property
-    def outcome_register(self):
-        return self._outcome_register
+    def output_register(self):
+        return self._output_register
 
     def construct_circuit(self):
         if self._esops:
             for idx in range(1, len(self._esops)):
                 esop_circuit = self._esops[idx].construct_circuit(
-                    qr_variable=self._variable_register,
-                    qr_ancilla=self._ancillary_register,
-                    qr_outcome=self._outcome_register,
-                    outcome_idx=idx,
+                    variable_register=self._variable_register,
+                    ancillary_register=self._ancillary_register,
+                    output_register=self._output_register,
+                    output_idx=idx,
                     mct_mode=self._mct_mode
                 )
                 self._circuit += esop_circuit

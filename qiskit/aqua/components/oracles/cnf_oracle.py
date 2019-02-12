@@ -113,15 +113,15 @@ class CNFOracle(Oracle):
 
     @property
     def variable_register(self):
-        return self._cnf.qr_variable
+        return self._cnf.variable_register
 
     @property
     def ancillary_register(self):
-        return self._cnf.qr_ancilla
+        return self._cnf.ancillary_register
 
     @property
-    def outcome_register(self):
-        return self._cnf.qr_outcome
+    def output_register(self):
+        return self._cnf.output_register
 
     def construct_circuit(self):
         return self._cnf.construct_circuit(mct_mode=self._mct_mode)

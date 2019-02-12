@@ -72,8 +72,8 @@ class TestCNFOracle(QiskitAquaTestCase):
                     if tf:
                         qc.x(cnf.variable_register[idx])
                 qc += cnf_circuit
-                qc.barrier(cnf.outcome_register)
-                qc.measure(cnf.outcome_register, m)
+                qc.barrier(cnf.output_register)
+                qc.measure(cnf.output_register, m)
                 counts = q_execute(qc, get_aer_backend(
                     'qasm_simulator'), shots=num_shots).result().get_counts(qc)
                 if assignment in sols:
