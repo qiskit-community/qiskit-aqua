@@ -15,12 +15,12 @@
 # limitations under the License.
 # =============================================================================
 
-from scipy import linalg
 import numpy as np
 
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.qasm import pi
 
+from qiskit.aqua import AquaError
 from qiskit.aqua.components.iqfts import IQFT
 
 
@@ -53,12 +53,18 @@ class Approximate(IQFT):
 
     def construct_circuit(self, mode, register=None, circuit=None):
         if mode == 'vector':
+            # TODO: implement vector mode for approximate iqft
             raise NotImplementedError()
         elif mode == 'circuit':
-            if register is None:
-                register = QuantumRegister(self._num_qubits, name='q')
-            if circuit is None:
-                circuit = QuantumCircuit(register)
+            if circuit:
+                if not register:
+                    raise AquaError('A QuantumRegister needs to be specified with the input QuantumCircuit.')
+            else:
+                circuit = QuantumCircuit()
+                if not register:
+                    register = QuantumRegister(self._num_qubits, name='q')
+            if not circuit.has_register(register):
+                circuit.add_register(register)
 
             for j in reversed(range(self._num_qubits)):
                 circuit.u2(0, np.pi, register[j])
