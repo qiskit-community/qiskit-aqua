@@ -15,7 +15,7 @@
 # limitations under the License.
 # =============================================================================
 """
-The SAT (Satisfiability) Quantum Oracle.
+The CNF (Conjunctive Normal Form)-based Quantum Oracle.
 """
 
 import logging
