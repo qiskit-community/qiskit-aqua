@@ -44,6 +44,9 @@ class Standard(IQFT):
 
     def construct_circuit(self, mode, register=None, circuit=None):
         if mode == 'vector':
+            # note the difference between QFT and DFT in the phase definition:
+            # QFT: \omega = exp(2*pi*i/N) ; DFT: \omega = exp(-2*pi*i/N)
+            # so linalg.dft is correct for IQFT
             return linalg.dft(2 ** self._num_qubits, scale='sqrtn')
         elif mode == 'circuit':
             if register is None:

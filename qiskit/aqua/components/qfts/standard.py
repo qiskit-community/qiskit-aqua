@@ -17,60 +17,53 @@
 
 from scipy import linalg
 import numpy as np
-
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.qasm import pi
 
-from qiskit.aqua.components.iqfts import IQFT
+from qiskit.aqua.components.qfts import QFT
 
 
-class Approximate(IQFT):
-    """An approximate IQFT."""
+class Standard(QFT):
+    """A normal standard QFT."""
 
     CONFIGURATION = {
-        'name': 'APPROXIMATE',
-        'description': 'Approximate inverse QFT',
+        'name': 'STANDARD',
+        'description': 'QFT',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
-            'id': 'aiqft_schema',
+            'id': 'std_qft_schema',
             'type': 'object',
             'properties': {
-                'degree': {
-                    'type': 'integer',
-                    'default': 0,
-                    'minimum': 0
-                },
             },
             'additionalProperties': False
         }
     }
 
-    def __init__(self, num_qubits, degree=0):
-        self.validate(locals())
+    def __init__(self, num_qubits):
         super().__init__()
         self._num_qubits = num_qubits
-        self._degree = degree
 
     def construct_circuit(self, mode, register=None, circuit=None):
         if mode == 'vector':
-            raise NotImplementedError()
+            # note the difference between QFT and DFT in the phase definition:
+            # QFT: \omega = exp(2*pi*i/N) ; DFT: \omega = exp(-2*pi*i/N)
+            # so linalg.inv(linalg.dft()) is correct for QFT
+            return linalg.inv(linalg.dft(2 ** self._num_qubits, scale='sqrtn'))
         elif mode == 'circuit':
             if register is None:
                 register = QuantumRegister(self._num_qubits, name='q')
             if circuit is None:
                 circuit = QuantumCircuit(register)
 
-            for j in reversed(range(self._num_qubits)):
-                circuit.u2(0, np.pi, register[j])
-                # neighbor_range = range(np.max([0, j - self._degree + 1]), j)
-                neighbor_range = range(np.max([0, j - self._num_qubits + self._degree + 1]), j)
-                for k in reversed(neighbor_range):
-                    lam = -1.0 * pi / float(2 ** (j - k))
+            for j in range(self._num_qubits):
+                for k in range(j):
+                    lam = 1.0 * pi / float(2 ** (j - k))
                     circuit.u1(lam / 2, register[j])
                     circuit.cx(register[j], register[k])
                     circuit.u1(-lam / 2, register[k])
                     circuit.cx(register[j], register[k])
                     circuit.u1(lam / 2, register[k])
+                circuit.u2(0, np.pi, register[j])
             return circuit
         else:
             raise ValueError('Mode should be either "vector" or "circuit"')
