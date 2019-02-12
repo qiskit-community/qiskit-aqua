@@ -53,6 +53,7 @@ class Approximate(IQFT):
 
     def construct_circuit(self, mode, register=None, circuit=None):
         if mode == 'vector':
+            # TODO: implement vector mode for approximate iqft
             raise NotImplementedError()
         elif mode == 'circuit':
             if circuit:
