@@ -17,9 +17,11 @@
 
 from scipy import linalg
 import numpy as np
+
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.qasm import pi
 
+from qiskit.aqua import AquaError
 from qiskit.aqua.components.qfts import QFT
 
 
@@ -50,10 +52,15 @@ class Standard(QFT):
             # so linalg.inv(linalg.dft()) is correct for QFT
             return linalg.inv(linalg.dft(2 ** self._num_qubits, scale='sqrtn'))
         elif mode == 'circuit':
-            if register is None:
-                register = QuantumRegister(self._num_qubits, name='q')
-            if circuit is None:
-                circuit = QuantumCircuit(register)
+            if circuit:
+                if not register:
+                    raise AquaError('A QuantumRegister needs to be specified with the input QuantumCircuit.')
+            else:
+                circuit = QuantumCircuit()
+                if not register:
+                    register = QuantumRegister(self._num_qubits, name='q')
+            if not circuit.has_register(register):
+                circuit.add_register(register)
 
             for j in range(self._num_qubits):
                 for k in range(j):
