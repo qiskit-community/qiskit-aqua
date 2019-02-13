@@ -16,13 +16,12 @@
 # =============================================================================
 
 import copy
-import concurrent.futures
 import itertools
 from functools import reduce
 import logging
 import json
 from operator import iadd as op_iadd, isub as op_isub
-import psutil
+import sys
 
 import numpy as np
 from scipy import sparse as scisparse
@@ -31,6 +30,8 @@ from qiskit import ClassicalRegister, QuantumCircuit
 from qiskit.quantum_info import Pauli
 from qiskit.qasm import pi
 from qiskit.qobj import RunConfig
+from qiskit.tools import parallel_map
+from qiskit.tools.events import TextProgressBar
 
 from qiskit.aqua import AquaError
 from qiskit.aqua.utils import PauliGraph, compile_and_run_circuits, find_regs_by_name
@@ -688,37 +689,34 @@ class Operator(object):
                             avg += pauli[0] * (np.vdot(quantum_state, quantum_state_i))
                             circuit_idx += 1
         else:
-            cpu_count = psutil.cpu_count()
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Computing the expectation from measurement results:")
+                TextProgressBar(sys.stderr)
             num_shots = sum(list(result.get_counts(circuits[0]).values()))
             if operator_mode == "paulis":
                 self._check_representation("paulis")
-                with concurrent.futures.ProcessPoolExecutor(max_workers=cpu_count) as executor:
-                    futures = [executor.submit(Operator._routine_paulis_with_shots, pauli,
-                                               result.get_counts(circuits[idx]))
-                               for idx, pauli in enumerate(self._paulis)]
-
-                    for future in concurrent.futures.as_completed(futures):
-                        result = future.result()
-                        avg += result[0]
-                        variance += result[1]
+                results = parallel_map(Operator._routine_paulis_with_shots,
+                                       [(pauli, result.get_counts(circuits[idx]))
+                                        for idx, pauli in enumerate(self._paulis)])
+                for result in results:
+                    avg += result[0]
+                    variance += result[1]
             else:
                 self._check_representation("grouped_paulis")
-                with concurrent.futures.ProcessPoolExecutor(max_workers=cpu_count) as executor:
-                    futures = [executor.submit(Operator._routine_grouped_paulis_with_shots, tpb_set,
-                                               result.get_counts(circuits[tpb_idx]))
-                               for tpb_idx, tpb_set in enumerate(self._grouped_paulis)]
-
-                    for future in concurrent.futures.as_completed(futures):
-                        result = future.result()
-                        avg += result[0]
-                        variance += result[1]
+                results = parallel_map(Operator._routine_grouped_paulis_with_shots,
+                                        [(tpb_set, result.get_counts(circuits[tpb_idx]))
+                                         for tpb_idx, tpb_set in enumerate(self._grouped_paulis)])
+                for result in results:
+                    avg += result[0]
+                    variance += result[1]
 
             std_dev = np.sqrt(variance / num_shots)
 
         return avg, std_dev
 
     @staticmethod
-    def _routine_grouped_paulis_with_shots(tpb_set, measured_results):
+    def _routine_grouped_paulis_with_shots(args):
+        tpb_set, measured_results = args
         avg_paulis = []
         avg = 0.0
         variance = 0.0
@@ -742,7 +740,8 @@ class Operator(object):
         return avg, variance
 
     @staticmethod
-    def _routine_paulis_with_shots(pauli, measured_results):
+    def _routine_paulis_with_shots(args):
+        pauli, measured_results = args
         curr_result = Operator._measure_pauli_z(measured_results, pauli[1])
         avg = pauli[0] * curr_result
         variance = (pauli[0] ** 2) * Operator._covariance(measured_results, pauli[1], pauli[1],
