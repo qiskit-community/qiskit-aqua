@@ -42,6 +42,11 @@ class Standard(QFT):
     }
 
     def __init__(self, num_qubits):
+        """Constructor.
+
+        Args:
+            num_qubits (int): number of qubits.
+        """
         super().__init__()
         self._num_qubits = num_qubits
 
