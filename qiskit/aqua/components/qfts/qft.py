@@ -35,14 +35,14 @@ class QFT(Pluggable):
     """
 
     @abstractmethod
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super().__init__()
 
     @classmethod
     def init_params(cls, params):
         qft_params = params.get(Pluggable.SECTION_KEY_QFT)
-        args = {k: v for k, v in qft_params.items() if k != 'name'}
-        return cls(**args)
+        kwargs = {k: v for k, v in qft_params.items() if k != 'name'}
+        return cls(**kwargs)
 
     @abstractmethod
     def construct_circuit(self, mode, register=None, circuit=None):
