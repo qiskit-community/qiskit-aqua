@@ -34,7 +34,7 @@ class Preferences(object):
         home = os.path.expanduser("~")
         self._filepath = os.path.join(home, Preferences._FILENAME)
         try:
-            with open(self._filepath) as json_pref:
+            with open(self.filepath) as json_pref:
                 self._preferences = json.load(json_pref)
                 # remove old packages entry
                 if 'packages' in self._preferences:
@@ -42,9 +42,13 @@ class Preferences(object):
         except:
             pass
 
+    @property
+    def filepath(self):
+        return self._filepath
+
     def save(self):
         if self._logging_config_changed:
-            with open(self._filepath, 'w') as fp:
+            with open(self.filepath, 'w') as fp:
                 json.dump(self._preferences, fp, sort_keys=True, indent=4)
             self._logging_config_changed = False
 
