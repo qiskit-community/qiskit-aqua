@@ -35,22 +35,22 @@ class IQFT(Pluggable):
     """
 
     @abstractmethod
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super().__init__()
 
     @classmethod
     def init_params(cls, params):
         iqft_params = params.get(Pluggable.SECTION_KEY_IQFT)
-        args = {k: v for k, v in iqft_params.items() if k != 'name'}
-        return cls(**args)
+        kwargs = {k: v for k, v in iqft_params.items() if k != 'name'}
+        return cls(**kwargs)
 
     @abstractmethod
-    def construct_circuit(self, mode, register=None, circuit=None):
-        """Construct the initial state circuit.
+    def construct_circuit(self, mode, qubits=None, circuit=None):
+        """Construct the iqft circuit.
 
         Args:
             mode (str): 'vector' or 'circuit'
-            register (QuantumRegister): register for circuit construction.
+            qubits (QuantumRegister or qubits): register or qubits to build the iqft circuit on.
             circuit (QuantumCircuit): circuit for construction.
 
         Returns:
