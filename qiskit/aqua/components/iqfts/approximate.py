@@ -17,11 +17,10 @@
 
 import numpy as np
 
-from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.qasm import pi
 
-from qiskit.aqua import AquaError
-from qiskit.aqua.components.iqfts import IQFT
+from ..qfts.qft import set_up
+from . import IQFT
 
 
 class Approximate(IQFT):
@@ -51,32 +50,24 @@ class Approximate(IQFT):
         self._num_qubits = num_qubits
         self._degree = degree
 
-    def construct_circuit(self, mode, register=None, circuit=None):
+    def construct_circuit(self, mode, qubits=None, circuit=None):
         if mode == 'vector':
             # TODO: implement vector mode for approximate iqft
             raise NotImplementedError()
         elif mode == 'circuit':
-            if circuit:
-                if not register:
-                    raise AquaError('A QuantumRegister needs to be specified with the input QuantumCircuit.')
-            else:
-                circuit = QuantumCircuit()
-                if not register:
-                    register = QuantumRegister(self._num_qubits, name='q')
-            if not circuit.has_register(register):
-                circuit.add_register(register)
+            circuit, qubits = set_up(circuit, qubits, self._num_qubits)
 
             for j in reversed(range(self._num_qubits)):
-                circuit.u2(0, np.pi, register[j])
+                circuit.u2(0, np.pi, qubits[j])
                 # neighbor_range = range(np.max([0, j - self._degree + 1]), j)
                 neighbor_range = range(np.max([0, j - self._num_qubits + self._degree + 1]), j)
                 for k in reversed(neighbor_range):
                     lam = -1.0 * pi / float(2 ** (j - k))
-                    circuit.u1(lam / 2, register[j])
-                    circuit.cx(register[j], register[k])
-                    circuit.u1(-lam / 2, register[k])
-                    circuit.cx(register[j], register[k])
-                    circuit.u1(lam / 2, register[k])
+                    circuit.u1(lam / 2, qubits[j])
+                    circuit.cx(qubits[j], qubits[k])
+                    circuit.u1(-lam / 2, qubits[k])
+                    circuit.cx(qubits[j], qubits[k])
+                    circuit.u1(lam / 2, qubits[k])
             return circuit
         else:
             raise ValueError('Mode should be either "vector" or "circuit"')
