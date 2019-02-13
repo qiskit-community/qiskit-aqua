@@ -31,7 +31,7 @@ requirements = [
     "numpy>=1.13,<1.16",
     "psutil>=5",
     "jsonschema>=2.6,<2.7",
-    "scikit-learn==0.20.0",
+    "scikit-learn>=0.20.0",
     "cvxopt",
     "setuptools>=40.5.0",
     "pyobjc-core; sys_platform == 'darwin'",
