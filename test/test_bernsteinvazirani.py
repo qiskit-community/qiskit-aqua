@@ -42,7 +42,7 @@ class TestBernsteinVazirani(QiskitAquaTestCase):
 
         # compute the ground-truth classically
         parameter = ""
-        for i in range(nbits):
+        for i in reversed(range(nbits)):
             bitstring = np.binary_repr(2**i, nbits)
             bit = bv_input[bitstring]
             parameter += bit

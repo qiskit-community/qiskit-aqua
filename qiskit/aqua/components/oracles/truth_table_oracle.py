@@ -90,7 +90,7 @@ class TruthTableOracle(Oracle):
 
         esop_exprs = []
         for out_idx in range(out_len):
-            esop_expr = [_(i) for i in bitmap if bitmap[i][out_idx] == '1']
+            esop_expr = [_(i[::-1]) for i in bitmap if bitmap[i][out_idx] == '1']
             if esop_expr:
                 esop_exprs.append(esop_expr)
 

@@ -135,7 +135,7 @@ class Simon(QuantumAlgorithm):
             if len(yi) == 2:
                 hidden[yi[0]] = '1'
                 hidden[yi[1]] = '1'
-        return "".join(str(x) for x in hidden)
+        return "".join(str(x) for x in hidden)[::-1]
 
     def _run(self):
         qc = self.construct_circuit()
