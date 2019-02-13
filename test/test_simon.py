@@ -32,7 +32,9 @@ class TestSimon(QiskitAquaTestCase):
         [{'000': '001', '001': '010', '010': '011', '011': '100',
           '100': '101', '101': '110', '110': '111', '111': '000'}],
         [{'000': '101', '001': '010', '010': '000', '011': '110',
-          '100': '000', '101': '110', '110': '101', '111': '010'}]
+          '100': '000', '101': '110', '110': '101', '111': '010'}],
+        [{'000': '010', '001': '101', '010': '101', '011': '010',
+          '100': '110', '101': '001', '110': '001', '111': '110'}]
     ])
     def test_simon(self, simon_input):
         # find the two keys that have matching values
@@ -46,8 +48,7 @@ class TestSimon(QiskitAquaTestCase):
         try:  # matching keys found
             k1, k2 = next(get_key_pair)
             hidden = np.binary_repr(int(k1, 2) ^ int(k2, 2), nbits)
-        except StopIteration as e:  # non matching keys found
-            k1, k2 = None, None
+        except StopIteration:  # non matching keys found
             hidden = np.binary_repr(0, nbits)
 
         backend = get_aer_backend('qasm_simulator')
