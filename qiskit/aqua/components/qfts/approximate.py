@@ -17,11 +17,10 @@
 
 import numpy as np
 
-from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.qasm import pi
 
-from qiskit.aqua import AquaError
-from qiskit.aqua.components.qfts import QFT
+from . import QFT
+from .qft import set_up
 
 
 class Approximate(QFT):
@@ -56,15 +55,7 @@ class Approximate(QFT):
             # TODO: implement vector mode for approximate qft
             raise NotImplementedError()
         elif mode == 'circuit':
-            if circuit:
-                if not register:
-                    raise AquaError('A QuantumRegister needs to be specified with the input QuantumCircuit.')
-            else:
-                circuit = QuantumCircuit()
-                if not register:
-                    register = QuantumRegister(self._num_qubits, name='q')
-            if not circuit.has_register(register):
-                circuit.add_register(register)
+            circuit, register = set_up(circuit, register, self._num_qubits)
 
             for j in range(self._num_qubits):
                 # neighbor_range = range(np.max([0, j - self._degree + 1]), j)
