@@ -45,12 +45,12 @@ class IQFT(Pluggable):
         return cls(**kwargs)
 
     @abstractmethod
-    def construct_circuit(self, mode, register=None, circuit=None):
+    def construct_circuit(self, mode, qubits=None, circuit=None):
         """Construct the initial state circuit.
 
         Args:
             mode (str): 'vector' or 'circuit'
-            register (QuantumRegister): register for circuit construction.
+            qubits (QuantumRegister or qubits): register or qubits to build the circuit on.
             circuit (QuantumCircuit): circuit for construction.
 
         Returns:

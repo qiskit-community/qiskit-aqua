@@ -25,25 +25,25 @@ from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.aqua import Pluggable, AquaError
 
 
-def set_up(circ, reg, num_qubits):
+def set_up(circ, qubits, num_qubits):
     if circ:
-        if not reg:
+        if not qubits:
             raise AquaError(
                 'A QuantumRegister or a list of qubits need to be specified with the input QuantumCircuit.'
             )
     else:
         circ = QuantumCircuit()
-        if not reg:
-            reg = QuantumRegister(num_qubits, name='q')
-    if isinstance(reg, QuantumRegister):
-        _ = reg
-    elif isinstance(reg, list) and isinstance(reg[0], tuple) and isinstance(reg[0][0], QuantumRegister):
-        _ = reg[0][0]
+        if not qubits:
+            qubits = QuantumRegister(num_qubits, name='q')
+    if isinstance(qubits, QuantumRegister):
+        _ = qubits
+    elif isinstance(qubits, list) and isinstance(qubits[0], tuple) and isinstance(qubits[0][0], QuantumRegister):
+        _ = qubits[0][0]
     else:
-        raise AquaError('Unrecognized input register or qubits')
+        raise AquaError('Unrecognized input. Register or qubits expected.')
     if not circ.has_register(_):
         circ.add_register(_)
-    return circ, reg
+    return circ, qubits
 
 
 class QFT(Pluggable):
@@ -69,12 +69,12 @@ class QFT(Pluggable):
         return cls(**kwargs)
 
     @abstractmethod
-    def construct_circuit(self, mode, register=None, circuit=None):
+    def construct_circuit(self, mode, qubits=None, circuit=None):
         """Construct the initial state circuit.
 
         Args:
             mode (str): 'vector' or 'circuit'
-            register (QuantumRegister): register for circuit construction.
+            qubits (QuantumRegister or qubits): register or qubits to build the circuit on.
             circuit (QuantumCircuit): circuit for construction.
 
         Returns:
