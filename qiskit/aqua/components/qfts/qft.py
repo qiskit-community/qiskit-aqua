@@ -70,11 +70,11 @@ class QFT(Pluggable):
 
     @abstractmethod
     def construct_circuit(self, mode, qubits=None, circuit=None):
-        """Construct the initial state circuit.
+        """Construct the qft circuit.
 
         Args:
             mode (str): 'vector' or 'circuit'
-            qubits (QuantumRegister or qubits): register or qubits to build the circuit on.
+            qubits (QuantumRegister or qubits): register or qubits to build the qft circuit on.
             circuit (QuantumCircuit): circuit for construction.
 
         Returns:
