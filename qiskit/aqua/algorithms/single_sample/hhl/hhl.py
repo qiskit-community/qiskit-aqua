@@ -33,11 +33,10 @@ class HHL(QuantumAlgorithm):
 
     """The HHL algorithm.
 
-    If the parameter `mode` is set to `circuit` a HHL circuit will be
-    generated and returned as QuantumCircuit object, if `mode` is set to
-    `evaluate` the circuit will be executed and the result vector will be
-    returned, measured or derived via state tomography or derived from the
-    statevector.
+    The quantum circuit for this algorithm is returned by `generate_circuit`.
+    Running the algorithm will execute the circuit and return the result
+    vector, measured (real hardware backend) or derived (qasm_simulator) via
+    state tomography or calculated from the statevector (statevector_simulator).
     """
 
     CONFIGURATION = {
@@ -169,8 +168,11 @@ class HHL(QuantumAlgorithm):
 
         return cls(matrix, vector, eigs, init_state, reci, num_q, num_a)
 
-    def _construct_circuit(self):
+    def construct_circuit(self):
         """Construct the HHL circuit.
+
+        Returns:
+            the QuantumCircuit object for the constructed circuit
         """
 
         q = QuantumRegister(self._num_q, name="io")
@@ -203,6 +205,7 @@ class HHL(QuantumAlgorithm):
         self._eigenvalue_register = a
         self._ancilla_register = s
         self._circuit = qc
+        return qc
 
     def _statevector_simulation(self):
         """The statevector simulation.
@@ -309,7 +312,7 @@ class HHL(QuantumAlgorithm):
         self._ret["solution_hhl"] = f1*vec*np.exp(-1j*f2)
 
     def _run(self):
-        self._construct_circuit()
+        self.construct_circuit()
         if self._quantum_instance.is_statevector:
             self._statevector_simulation()
         else:
