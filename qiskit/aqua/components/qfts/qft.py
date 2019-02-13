@@ -35,6 +35,12 @@ def set_up(circ, qubits, num_qubits):
         circ = QuantumCircuit()
         if not qubits:
             qubits = QuantumRegister(num_qubits, name='q')
+
+    if len(qubits) < num_qubits:
+        raise AquaError('Insufficient input qubits: {} provided but {} needed.'.format(
+            len(qubits), num_qubits
+        ))
+
     if isinstance(qubits, QuantumRegister):
         _ = qubits
     elif isinstance(qubits, list) and isinstance(qubits[0], tuple) and isinstance(qubits[0][0], QuantumRegister):
