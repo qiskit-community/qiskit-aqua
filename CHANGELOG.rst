@@ -18,6 +18,15 @@ The format is based on `Keep a Changelog`_.
 `UNRELEASED`_
 =============
 
+Added
+-----
+
+- Implementation of the HHL algorithm supporting ``LinearSystemInput``
+- Pluggable component ``Eigenvalues`` with variant ``EigQPE``
+- Pluggable component ``Reciprocal`` with variants ``LookupRotation`` and ``LongDivision``
+- Multiple-Controlled U1 and U3 operations ``mcu1`` and ``mcu3``
+- Pluggable component ``QFT`` derived from component ``IQFT``
+
 `0.4.1`_ - 2019-01-09
 =====================
 
