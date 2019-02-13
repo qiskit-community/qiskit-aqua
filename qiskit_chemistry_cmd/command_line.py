@@ -20,6 +20,8 @@ import json
 import pprint
 from qiskit.aqua import QiskitAqua
 from qiskit.chemistry import QiskitChemistryError
+from collections import OrderedDict
+import textwrap
 import logging
 
 logger = logging.getLogger(__name__)
@@ -47,9 +49,25 @@ def run_algorithm_from_json(params, output_file):
 
 def main():
     from qiskit.chemistry import run_experiment, run_driver_to_json
-    from qiskit.chemistry._logging import get_logging_level, build_logging_config, set_logging_config
+    from qiskit.chemistry._logging import (get_logging_level,
+                                           build_logging_config,
+                                           set_logging_config,
+                                           set_qiskit_chemistry_logging)
     from qiskit.chemistry.preferences import Preferences
-    parser = argparse.ArgumentParser(description='Qiskit Chemistry Command Line Tool')
+
+    preferences = Preferences()
+    _LOG_LEVELS = OrderedDict(
+        [(logging.getLevelName(logging.CRITICAL).lower(), logging.CRITICAL),
+         (logging.getLevelName(logging.ERROR).lower(), logging.ERROR),
+         (logging.getLevelName(logging.WARNING).lower(), logging.WARNING),
+         (logging.getLevelName(logging.INFO).lower(), logging.INFO),
+         (logging.getLevelName(logging.DEBUG).lower(), logging.DEBUG),
+         (logging.getLevelName(logging.NOTSET).lower(), logging.NOTSET)]
+    )
+
+    parser = argparse.ArgumentParser(prog='qiskit_chemistry_cmd',
+                                     formatter_class=argparse.RawTextHelpFormatter,
+                                     description='Qiskit Chemistry Command Line Tool')
     parser.add_argument('input',
                         metavar='input',
                         help='Qiskit Chemistry input file or saved JSON input file')
@@ -60,20 +78,30 @@ def main():
     group.add_argument('-jo',
                        metavar='json output',
                        help='Algorithm JSON Output file name')
+    parser.add_argument('-l',
+                        metavar='logging',
+                        choices=_LOG_LEVELS.keys(),
+                        help=textwrap.dedent('''\
+                            Logging level:
+                            {}
+                            (defaults to level from preferences file: {})
+                             '''.format(list(_LOG_LEVELS.keys()), preferences.filepath))
+                        )
 
     args = parser.parse_args()
 
-    # update logging setting with latest external packages
-    preferences = Preferences()
-    logging_level = logging.INFO
-    if preferences.get_logging_config() is not None:
+    if args.l is not None:
+        set_qiskit_chemistry_logging(_LOG_LEVELS.get(args.l, logging.INFO))
+    else:
+        # update logging setting with latest external packages
+        logging_level = logging.INFO
+        if preferences.get_logging_config() is not None:
+            set_logging_config(preferences.get_logging_config())
+            logging_level = get_logging_level()
+
+        preferences.set_logging_config(build_logging_config(logging_level))
+        preferences.save()
         set_logging_config(preferences.get_logging_config())
-        logging_level = get_logging_level()
-
-    preferences.set_logging_config(build_logging_config(logging_level))
-    preferences.save()
-
-    set_logging_config(preferences.get_logging_config())
 
     # check to see if input is json file
     params = None
