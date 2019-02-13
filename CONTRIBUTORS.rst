@@ -22,7 +22,7 @@ levels:
 - `Shaohan Hu <https://researcher.watson.ibm.com/researcher/view.php?person=ibm-Shaohan.Hu>`__
 - `Takashi Imamichi <https://researcher.watson.ibm.com/researcher/view.php?person=jp-IMAMICHI>`__
 - Tal Kachman
-- Gawel Kus
+- `Gawel Kus <https://www.tudelft.nl/en/ae/organisation/departments/aerospace-structures-and-materials/novel-aerospace-materials/people/personal-pages-novam/students/g-kus-gawel/>`__
 - `Peng Liu <https://researcher.watson.ibm.com/researcher/view.php?person=us-liup>`__
 - Manoel Marques
 - Antonio Mezzacapo
