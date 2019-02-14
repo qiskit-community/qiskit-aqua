@@ -21,8 +21,7 @@ from qiskit.aqua.utils import get_entangler_map, validate_entangler_map
 from test.common import QiskitAquaTestCase
 
 
-class TestEuropeanCallOption(QiskitAquaTestCase):
-
+class TestEngtanlerMap(QiskitAquaTestCase):
 
     def test_map_type_linear(self):
         ref_map = [[0, 1], [1, 2], [2, 3]]
