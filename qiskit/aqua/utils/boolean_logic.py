@@ -22,7 +22,7 @@ import itertools
 import logging
 from abc import abstractmethod, ABC
 
-
+from dlx import DLX
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.qasm import pi
 
@@ -33,6 +33,35 @@ logger = logging.getLogger(__name__)
 
 def is_power_of_2(num):
     return num != 0 and ((num & (num - 1)) == 0)
+
+
+def get_all_exact_covers(cols, rows, col_range=None):
+    """
+    Use Algorithm X to get all solutions to the exact cover problem
+
+    https://en.wikipedia.org/wiki/Knuth%27s_Algorithm_X
+
+    Args:
+          cols (list): A list of integers representing the columns to be covered
+          rows (list of lists): A list of lists of integers representing the rows
+          col_range (int): The upper range of the columns (i.e. max_col + 1)
+
+    Returns:
+        All exact covers
+    """
+    if col_range is None:
+        col_range = max(cols) + 1
+    ec = DLX([(c, 0 if c in cols else 1) for c in range(col_range)])
+    ec.appendRows([[c] for c in cols])
+    ec.appendRows(rows)
+    all_covers = []
+    for s in ec.solve():
+        cover = []
+        for i in s:
+            cover.append(ec.getRowList(i))
+        all_covers.append(cover)
+    return all_covers
+
 
 def logic_or(clause_expr, circuit, variable_register, target_qubit, ancillary_register, mct_mode):
     qs = [abs(v) for v in clause_expr]
