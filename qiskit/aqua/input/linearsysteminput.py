@@ -48,10 +48,10 @@ class LinearSystemInput(AlgorithmInput):
         'problems': ['linear_system']
     }
 
-    def __init__(self, matrix=None, vector=[]):
+    def __init__(self, matrix=None, vector=None):
         super().__init__()
         self._matrix = matrix
-        self._vector = vector
+        self._vector = vector if vector is not None else []
 
     @property
     def matrix(self):

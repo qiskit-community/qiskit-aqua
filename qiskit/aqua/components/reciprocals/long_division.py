@@ -40,11 +40,11 @@ class LongDivision(Reciprocal):
                     'type': 'boolean',
                     'default': False
                 },
-                'scale':{
+                'scale': {
                     'type': 'number',
                     'default': 0,
                 },
-                'precision':{
+                'precision': {
                     'type': ['integer', 'null'],
                     'default': None,                    
                 },
