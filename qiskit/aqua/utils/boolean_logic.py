@@ -26,6 +26,7 @@ from dlx import DLX
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.qasm import pi
 
+from qiskit.aqua import AquaError
 from .mct import mct
 
 logger = logging.getLogger(__name__)
@@ -33,6 +34,93 @@ logger = logging.getLogger(__name__)
 
 def is_power_of_2(num):
     return num != 0 and ((num & (num - 1)) == 0)
+
+
+def get_prime_implicants(truth_table_values):
+    """
+    Compute all prime implicants for a truth table using the Quinc-McCluskey Algorithm
+
+    Args:
+        truth_table_values (str): The bit string representing the truth table
+
+    Return:
+        A list of lists, representing all prime implicants
+    """
+
+    def combine_terms(terms, num1s_dict=None):
+        if num1s_dict is None:
+            num1s_dict = {}
+            for num in terms:
+                num1s = bin(num).count('1')
+                if not num1s in num1s_dict:
+                    num1s_dict[num1s] = [num]
+                else:
+                    num1s_dict[num1s].append(num)
+
+        new_implicants = {}
+        new_num1s_dict = {}
+        prime_dict = {mt: True for mt in sorted(terms)}
+        cur_num1s, max_num1s = min(num1s_dict.keys()), max(num1s_dict.keys())
+        while cur_num1s < max_num1s:
+            if cur_num1s in num1s_dict and (cur_num1s + 1) in num1s_dict:
+                for cur_term in sorted(num1s_dict[cur_num1s]):
+                    for next_term in sorted(num1s_dict[cur_num1s + 1]):
+                        if isinstance(cur_term, int):
+                            diff_mask = dc_mask = cur_term ^ next_term
+                            implicant_mask = cur_term & next_term
+                        elif isinstance(cur_term, tuple):
+                            if terms[cur_term][1] == terms[next_term][1]:
+                                diff_mask = terms[cur_term][0] ^ terms[next_term][0]
+                                dc_mask = diff_mask | terms[cur_term][1]
+                                implicant_mask = terms[cur_term][0] & terms[next_term][0]
+                            else:
+                                continue
+                        else:
+                            raise AquaError('Unexpected type: {}.'.format(type(cur_term)))
+                        if bin(diff_mask).count('1') == 1:
+                            prime_dict[cur_term] = False
+                            prime_dict[next_term] = False
+                            if isinstance(cur_term, int):
+                                cur_implicant = (cur_term, next_term)
+                            elif isinstance(cur_term, tuple):
+                                cur_implicant = tuple(sorted((*cur_term, *next_term)))
+                            else:
+                                raise AquaError('Unexpected type: {}.'.format(type(cur_term)))
+                            new_implicants[cur_implicant] = (
+                                implicant_mask,
+                                dc_mask
+                            )
+                            num1s = bin(implicant_mask).count('1')
+                            if not num1s in new_num1s_dict:
+                                new_num1s_dict[num1s] = [cur_implicant]
+                            else:
+                                if not cur_implicant in new_num1s_dict[num1s]:
+                                    new_num1s_dict[num1s].append(cur_implicant)
+            cur_num1s += 1
+        return new_implicants, new_num1s_dict, prime_dict
+
+    if not is_power_of_2(len(truth_table_values)):
+        raise AquaError('The truth table length needs to be a power of 2.')
+
+    ones = [i for i, x in enumerate(truth_table_values) if x == '1']
+    dc = [i for i, x in enumerate(truth_table_values) if x == 'x']
+    candidates = ones + dc
+    cur_num1s_dict = None
+
+    prime_implicants = []
+
+    while True:
+        next_implicants, next_num1s_dict, cur_prime_dict = combine_terms(candidates, num1s_dict=cur_num1s_dict)
+        for implicant in cur_prime_dict:
+            if cur_prime_dict[implicant] and not set.issubset(set(implicant), dc):
+                prime_implicants.append(implicant)
+        if next_implicants:
+            candidates = next_implicants
+            cur_num1s_dict = next_num1s_dict
+        else:
+            break
+
+    return prime_implicants
 
 
 def get_all_exact_covers(cols, rows, col_range=None):
