@@ -132,19 +132,13 @@ class HHL(QuantumAlgorithm):
         if not isinstance(vector, np.ndarray):
             vector = np.asarray(vector)
 
-        # extend vector and matrix for nonhermitian/non 2**n size matrices
-        if np.log2(matrix.shape[0]) % 1 != 0:
-            next_higher = int(np.ceil(np.log2(matrix.shape[0])))
-            new_matrix = np.identity(2**next_higher)
-            new_matrix = np.array(new_matrix, dtype=complex)
-            new_matrix[:matrix.shape[0], :matrix.shape[0]] = matrix[:, :]
-            matrix = new_matrix
-            new_vector = np.ones((1, 2**next_higher))
-            new_vector[0, :vector.shape[0]] = vector
-            vector = new_vector.reshape(np.shape(new_vector)[1])
         if matrix.shape[0] != len(vector):
             raise ValueError("Input vector dimension does not match input "
                              "matrix dimension!")
+        if np.log2(matrix.shape[0]) % 1 != 0:
+            # TODO: extend vector and matrix for nonhermitian/non 2**n size
+            #  matrices and prune dimensions of HHL solution
+            raise ValueError("Matrix dimension must be 2**n!")
 
         # Initialize eigenvalue finding module
         eigs_params = params.get(Pluggable.SECTION_KEY_EIGS)

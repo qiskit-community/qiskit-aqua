@@ -42,7 +42,6 @@ class TestHHL(QiskitAquaTestCase):
             'eigs': {
                 'expansion_mode': 'suzuki',
                 'expansion_order': 2,
-                'hermitian_matrix': True,
                 'name': 'EigsQPE',
                 'negative_evals': False,
                 'num_ancillae': 3,

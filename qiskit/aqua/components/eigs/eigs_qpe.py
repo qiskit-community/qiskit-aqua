@@ -69,10 +69,6 @@ class EigsQPE(Eigenvalues):
                     'type': ['number', 'null'],
                     'default': None
                 },
-                'hermitian_matrix': {
-                    'type': 'boolean',
-                    'default': True
-                },
                 'negative_evals': {
                     'type': 'boolean',
                     'default': False
@@ -101,7 +97,6 @@ class EigsQPE(Eigenvalues):
             expansion_mode='trotter',
             expansion_order=1,
             evo_time=None,
-            hermitian_matrix=True,
             negative_evals=False,
             ne_qfts=[None, None]
     ):
@@ -115,7 +110,6 @@ class EigsQPE(Eigenvalues):
             expansion_mode (str, optional): the expansion mode (trotter|suzuki)
             expansion_order (int, optional): the suzuki expansion order
             evo_time (float, optional): the evolution time
-            hermitian_matrix (bool, optional): indicate if input matrix for operator is hermitian, expands the matrix if set to `False`
             negative_evals (bool, optional): indicate if negative eigenvalues need to be handled
             ne_qfts ([QFT, IQFT], optional): the QFT and IQFT pluggable components for handling negative eigenvalues
         """
@@ -128,7 +122,6 @@ class EigsQPE(Eigenvalues):
         self._expansion_mode = expansion_mode
         self._expansion_order = expansion_order
         self._evo_time = evo_time
-        self._hermitian_matrix = hermitian_matrix
         self._negative_evals = negative_evals
         self._ne_qfts = ne_qfts
         self._init_constants()
@@ -151,7 +144,6 @@ class EigsQPE(Eigenvalues):
         eigs_params = params.get(Pluggable.SECTION_KEY_EIGS)
         args = {k: v for k, v in eigs_params.items() if k != 'name'}
         num_ancillae = eigs_params['num_ancillae']
-        hermitian_matrix = eigs_params['hermitian_matrix']
         negative_evals = eigs_params['negative_evals']
 
         # Adding an additional flag qubit for negative eigenvalues
@@ -159,14 +151,6 @@ class EigsQPE(Eigenvalues):
             num_ancillae += 1
             args['num_ancillae'] = num_ancillae
 
-        # If operator matrix is not hermitian, extending it to B = ((0, A), (A⁺, 0)), which is hermitian
-        # In this case QPE will give singular values
-        if not hermitian_matrix:
-            negative_evals = True
-            new_matrix = np.zeros((2*matrix.shape[0], 2*matrix.shape[0]), dtype=complex)
-            new_matrix[matrix.shape[0]:,:matrix.shape[0]] = np.matrix.getH(matrix)[:,:]
-            new_matrix[:matrix.shape[0],matrix.shape[0]:] = matrix[:,:]
-            matrix = new_matrix
         args['operator'] = Operator(matrix=matrix)
 
         # Set up iqft, we need to add num qubits to params which is our num_ancillae bits here
