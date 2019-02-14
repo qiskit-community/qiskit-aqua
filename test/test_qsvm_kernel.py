@@ -193,7 +193,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
             },
             'backend': {'shots': self.shots},
             'multiclass_extension': {'name': 'OneAgainstRest'},
-            'feature_map': {'name': 'SecondOrderExpansion', 'depth': 2, 'entangler_map': [[0, 1]]}}
+            'feature_map': {'name': 'SecondOrderExpansion', 'depth': 2, 'entangler_map': [[0, 1]]}
         }
 
         algo_input = SVMInput(training_input, test_input, total_array)
