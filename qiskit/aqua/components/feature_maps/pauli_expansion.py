@@ -126,13 +126,9 @@ class PauliExpansion(FeatureMap):
             else:
                 is_valid = True
                 for src, targ in itertools.combinations(where_z, 2):
-                    if src not in self._entangler_map:
+                    if [src, targ] not in self._entangler_map:
                         is_valid = False
                         break
-                    else:
-                        if targ not in self._entangler_map[src]:
-                            is_valid = False
-                            break
                 if is_valid:
                     final_paulis.append(pauli)
                 else:
