@@ -38,7 +38,7 @@ def is_power_of_2(num):
 
 def get_prime_implicants(truth_table_values):
     """
-    Compute all prime implicants for a truth table using the Quinc-McCluskey Algorithm
+    Compute all prime implicants for a truth table using the Quine-McCluskey Algorithm
 
     Args:
         truth_table_values (str): The bit string representing the truth table
