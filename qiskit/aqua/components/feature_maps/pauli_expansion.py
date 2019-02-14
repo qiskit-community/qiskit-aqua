@@ -85,8 +85,10 @@ class PauliExpansion(FeatureMap):
         Args:
             num_qubits (int): number of qubits
             depth (int): the number of repeated circuits
-            entangler_map (list[list]): describe the connectivity of qubits,
-                                        each list describes [source, target]
+            entangler_map (list[list]): describe the connectivity of qubits, each list describes
+                                        [source, target], or None for full entanglement.
+                                        Note that the order is the list is the order of
+                                        applying the two-qubit gate.
             entanglement (str): ['full', 'linear'], generate the qubit connectivitiy by predefined
                                 topology
             paulis (str): a comma-seperated string for to-be-used paulis
