@@ -43,7 +43,7 @@ class PauliZExpansion(PauliExpansion):
                     'minimum': 1
                 },
                 'entangler_map': {
-                    'type': ['object', 'null'],
+                    'type': ['array', 'null'],
                     'default': None
                 },
                 'entanglement': {
@@ -65,7 +65,17 @@ class PauliZExpansion(PauliExpansion):
 
     def __init__(self, num_qubits, depth=2, entangler_map=None,
                  entanglement='full', z_order=2, data_map_func=self_product):
-        """Constructor."""
+        """Constructor.
+
+        Args:
+            num_qubits (int): number of qubits
+            depth (int): the number of repeated circuits
+            entangler_map (list[list]): describe the connectivity of qubits,
+                                        each list describes [source, target]
+            entanglement (str): ['full', 'linear'], generate the qubit connectivitiy by predefined
+                                topology
+            data_map_func (Callable): a mapping function for data x
+        """
         self.validate(locals())
         pauli_string = []
         for i in range(1, z_order + 1):

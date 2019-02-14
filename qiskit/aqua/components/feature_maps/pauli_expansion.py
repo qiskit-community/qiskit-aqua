@@ -56,7 +56,7 @@ class PauliExpansion(FeatureMap):
                     'minimum': 1
                 },
                 'entangler_map': {
-                    'type': ['object', 'null'],
+                    'type': ['array', 'null'],
                     'default': None
                 },
                 'entanglement': {
@@ -85,7 +85,8 @@ class PauliExpansion(FeatureMap):
         Args:
             num_qubits (int): number of qubits
             depth (int): the number of repeated circuits
-            entangler_map (dict): describe the connectivity of qubits
+            entangler_map (list[list]): describe the connectivity of qubits,
+                                        each list describes [source, target]
             entanglement (str): ['full', 'linear'], generate the qubit connectivitiy by predefined
                                 topology
             paulis (str): a comma-seperated string for to-be-used paulis
