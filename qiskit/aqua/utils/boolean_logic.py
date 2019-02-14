@@ -31,6 +31,9 @@ from .mct import mct
 logger = logging.getLogger(__name__)
 
 
+def is_power_of_2(num):
+    return num != 0 and ((num & (num - 1)) == 0)
+
 def logic_or(clause_expr, circuit, variable_register, target_qubit, ancillary_register, mct_mode):
     qs = [abs(v) for v in clause_expr]
     ctl_bits = [variable_register[idx - 1] for idx in qs]
