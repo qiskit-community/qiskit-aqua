@@ -115,7 +115,7 @@ class Hamiltonian(ChemistryOperator):
                  two_qubit_reduction=True,
                  freeze_core=False,
                  orbital_reduction=None,
-                 max_workers=999):
+                 max_workers=4):
         """
         Initializer
         Args:

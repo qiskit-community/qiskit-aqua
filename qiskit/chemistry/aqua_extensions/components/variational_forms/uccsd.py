@@ -21,11 +21,12 @@ For more information, see https://arxiv.org/abs/1805.04340
 """
 
 import logging
-import concurrent.futures
-import psutil
+import sys
 
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
+from qiskit.tools import parallel_map
+from qiskit.tools.events import TextProgressBar
 
 from qiskit.aqua import Operator
 from qiskit.aqua.components.variational_forms import VariationalForm
@@ -164,27 +165,21 @@ class UCCSD(VariationalForm):
         self._hopping_ops, self._num_parameters = self._build_hopping_operators()
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
+        self._logging_construct_circuit = True
+
     def _build_hopping_operators(self):
         from .uccsd import UCCSD
-        hopping_ops = {}
-        total_excitations = len(self._single_excitations + self._double_excitations)
-        max_workers = psutil.cpu_count()
-        with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
-            futures = [executor.submit(UCCSD._build_hopping_operator,
-                                       index, self._num_orbitals, self._num_particles,
-                                       self._qubit_mapping, self._two_qubit_reduction, self._qubit_tapering,
-                                       self._symmetries, self._cliffords, self._sq_list, self._tapering_values
-                                       )
-                       for index in self._single_excitations + self._double_excitations]
-            count = 1
-            for future in concurrent.futures.as_completed(futures):
-                index, qubit_op = future.result()
-                hopping_ops['_'.join([str(x) for x in index])] = qubit_op
-                logger.debug("[Building hopping operators] Progress: {}/{}".format(count, total_excitations))
-                count += 1
+        hopping_ops = []
 
-        # count the number of parameters
-        num_parameters = len([1 for k, v in hopping_ops.items() if v is not None]) * self._depth
+        if logger.isEnabledFor(logging.DEBUG):
+            TextProgressBar(sys.stderr)
+
+        results = parallel_map(UCCSD._build_hopping_operator, self._single_excitations + self._double_excitations,
+                               task_args=(self._num_orbitals, self._num_particles,
+                                          self._qubit_mapping, self._two_qubit_reduction, self._qubit_tapering,
+                                          self._symmetries, self._cliffords, self._sq_list, self._tapering_values))
+        hopping_ops = [qubit_op for qubit_op in results if qubit_op is not None]
+        num_parameters = len(hopping_ops) * self._depth
         return hopping_ops, num_parameters
 
     @staticmethod
@@ -209,7 +204,7 @@ class UCCSD(VariationalForm):
             h2[m, k, j, i] = -1.0
 
         dummpy_fer_op = FermionicOperator(h1=h1, h2=h2)
-        qubit_op = dummpy_fer_op.mapping(qubit_mapping, num_workers=1)
+        qubit_op = dummpy_fer_op.mapping(qubit_mapping)
         qubit_op = qubit_op.two_qubit_reduced_operator(num_particles) \
             if two_qubit_reduction else qubit_op
 
@@ -230,7 +225,7 @@ class UCCSD(VariationalForm):
         if qubit_op is None:
             logger.debug('Excitation ({}) is skipped since it is not commuted '
                          'with symmetries'.format(','.join([str(x) for x in index])))
-        return index, qubit_op
+        return qubit_op
 
     def construct_circuit(self, parameters, q=None):
         """
@@ -257,34 +252,27 @@ class UCCSD(VariationalForm):
         else:
             circuit = QuantumCircuit(q)
 
-        param_idx = 0
-        max_workers = psutil.cpu_count()
-        with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
-            futures = []
-            for d in range(self._depth):
-                for index in self._single_excitations + self._double_excitations:
-                    qubit_op = self._hopping_ops['_'.join([str(x) for x in index])]
-                    if qubit_op is not None:
-                        future = executor.submit(UCCSD._construct_circuit_for_one_excited_operator,
-                                                 parameters[param_idx], qubit_op, q, self._num_time_slices)
-                        futures.append(future)
-                        param_idx += 1
+        if logger.isEnabledFor(logging.DEBUG) and self._logging_construct_circuit:
+            logger.debug("Evolving hopping operators:")
+            TextProgressBar(sys.stderr)
+            self._logging_construct_circuit = False
 
-            # order matters
-            count = 1
-            for future in futures:
-                qc = future.result()
-                if self._shallow_circuit_concat:
-                    circuit.data += qc.data
-                else:
-                    circuit += qc
-                logger.debug("[Evolving hopping operators] Progress: {}/{}".format(count, self._num_parameters))
-                count += 1
+        total_excitations = len(self._single_excitations + self._double_excitations)
+        results = parallel_map(UCCSD._construct_circuit_for_one_excited_operator,
+                               [(self._hopping_ops[index % total_excitations], parameters[index])
+                                for index in range(self._depth * total_excitations)],
+                               task_args=(q, self._num_time_slices))
+        for qc in results:
+            if self._shallow_circuit_concat:
+                circuit.data += qc.data
+            else:
+                circuit += qc
 
         return circuit
 
     @staticmethod
-    def _construct_circuit_for_one_excited_operator(param, qubit_op, qr, num_time_slices):
+    def _construct_circuit_for_one_excited_operator(qubit_op_and_param, qr, num_time_slices):
+        qubit_op, param = qubit_op_and_param
         qc = qubit_op.evolve(None, param * -1j, 'circuit', num_time_slices, qr)
         return qc
 

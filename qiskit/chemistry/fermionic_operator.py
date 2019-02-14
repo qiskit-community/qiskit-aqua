@@ -17,10 +17,13 @@
 
 import itertools
 import logging
-import multiprocessing
-import concurrent.futures
+import sys
+
 import numpy as np
 from qiskit.quantum_info import Pauli
+from qiskit.tools import parallel_map
+from qiskit.tools.events import TextProgressBar
+
 from qiskit.aqua import Operator
 from .qiskit_chemistry_error import QiskitChemistryError
 from .bksf import bksf_mapping
@@ -322,6 +325,7 @@ class FermionicOperator(object):
         ############   DEFINING MAPPED FERMIONIC OPERATORS    ##############
         ####################################################################
         """
+
         self._map_type = map_type
         n = self._modes  # number of fermionic modes / qubits
         map_type = map_type.lower()
@@ -341,38 +345,28 @@ class FermionicOperator(object):
         ############    BUILDING THE MAPPED HAMILTONIAN     ################
         ####################################################################
         """
-        max_workers = min(num_workers, multiprocessing.cpu_count())
         pauli_list = Operator(paulis=[])
-        if max_workers == 1:
-            for i, j in itertools.product(range(n), repeat=2):
-                if self._h1[i, j] != 0:
-                    pauli_list += FermionicOperator._one_body_mapping(self._h1[i, j], a[i], a[j], threshold)
-            pauli_list.chop(threshold=threshold)
-            for i, j, k, m in itertools.product(range(n), repeat=4):
-                if self._h2[i, j, k, m] != 0:
-                    pauli_list += FermionicOperator._two_body_mapping(self._h2[i, j, k, m], a[i], a[j], a[k], a[m], threshold)
-            pauli_list.chop(threshold=threshold)
-        else:
-            with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
-                # One-body
-                futures = [executor.submit(FermionicOperator._one_body_mapping,
-                                           self._h1[i, j], a[i], a[j], threshold)
-                           for i, j in itertools.product(range(n), repeat=2) if self._h1[i, j] != 0]
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug("Mapping one-body terms to Qubit Hamiltonian:")
+            TextProgressBar(output_handler=sys.stderr)
+        results = parallel_map(FermionicOperator._one_body_mapping,
+                               [(self._h1[i, j], a[i], a[j])
+                                for i, j in itertools.product(range(n), repeat=2) if self._h1[i, j] != 0],
+                               task_args=(threshold,), num_processes=num_workers)
+        for result in results:
+            pauli_list += result
+        pauli_list.chop(threshold=threshold)
 
-                for future in futures:
-                    result = future.result()
-                    pauli_list += result
-                pauli_list.chop(threshold=threshold)
-
-                # Two-body
-                futures = [executor.submit(FermionicOperator._two_body_mapping,
-                                           self._h2[i, j, k, m], a[i], a[j], a[k], a[m], threshold)
-                           for i, j, k, m in itertools.product(range(n), repeat=4)
-                           if self._h2[i, j, k, m] != 0]
-                for future in futures:
-                    result = future.result()
-                    pauli_list += result
-                pauli_list.chop(threshold=threshold)
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug("Mapping two-body terms to Qubit Hamiltonian:")
+            TextProgressBar(output_handler=sys.stderr)
+        results = parallel_map(FermionicOperator._two_body_mapping,
+                               [(self._h2[i, j, k, m], a[i], a[j], a[k], a[m])
+                                for i, j, k, m in itertools.product(range(n), repeat=4) if self._h2[i, j, k, m] != 0],
+                               task_args=(threshold,), num_processes=num_workers)
+        for result in results:
+            pauli_list += result
+        pauli_list.chop(threshold=threshold)
 
         if self._ph_trans_shift is not None:
             pauli_term = [self._ph_trans_shift, Pauli.from_label('I' * self._modes)]
@@ -381,19 +375,18 @@ class FermionicOperator(object):
         return pauli_list
 
     @staticmethod
-    def _one_body_mapping(h1_ij, a_i, a_j, threshold):
+    def _one_body_mapping(h1_ij_aij, threshold):
         """
         Subroutine for one body mapping.
 
         Args:
-            h1_ij (complex): value of h1 at index (i,j)
-            a_i (Pauli): pauli at index i
-            a_j (Pauli): pauli at index j
+            h1_ij_aij (tuple): value of h1 at index (i,j), pauli at index i, pauli at index j
             threshold: (float): threshold to remove a pauli
 
         Returns:
             Operator: Operator for those paulis
         """
+        h1_ij, a_i, a_j = h1_ij_aij
         pauli_list = []
         for alpha in range(2):
             for beta in range(2):
@@ -405,22 +398,21 @@ class FermionicOperator(object):
         return Operator(paulis=pauli_list)
 
     @staticmethod
-    def _two_body_mapping(h2_ijkm, a_i, a_j, a_k, a_m, threshold):
+    def _two_body_mapping(h2_ijkm_a_ijkm, threshold):
         """
         Subroutine for two body mapping. We use the chemists notation
         for the two-body term, h2(i,j,k,m) adag_i adag_k a_m a_j.
 
         Args:
-            h1_ijkm (complex): value of h2 at index (i,j,k,m)
-            a_i (Pauli): pauli at index i
-            a_j (Pauli): pauli at index j
-            a_k (Pauli): pauli at index k
-            a_m (Pauli): pauli at index m
+            h2_ijkm_aijkm (tuple): value of h2 at index (i,j,k,m),
+                                   pauli at index i, pauli at index j,
+                                   pauli at index k, pauli at index m
             threshold: (float): threshold to remove a pauli
 
         Returns:
             Operator: Operator for those paulis
         """
+        h2_ijkm, a_i, a_j, a_k, a_m = h2_ijkm_a_ijkm
         pauli_list = []
         for alpha in range(2):
             for beta in range(2):
