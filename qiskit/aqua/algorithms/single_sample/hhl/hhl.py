@@ -25,6 +25,7 @@ from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 import qiskit.tools.qcvv.tomography as tomo
+from qiskit.converters import circuit_to_dag
 
 logger = logging.getLogger(__name__)
 
@@ -127,9 +128,9 @@ class HHL(QuantumAlgorithm):
         matrix = algo_input.matrix
         vector = algo_input.vector
         if not isinstance(matrix, np.ndarray):
-            matrix = np.array(matrix)
+            matrix = np.asarray(matrix)
         if not isinstance(vector, np.ndarray):
-            vector = np.array(vector)
+            vector = np.asarray(vector)
 
         # extend vector and matrix for nonhermitian/non 2**n size matrices
         if np.log2(matrix.shape[0]) % 1 != 0:
@@ -168,8 +169,12 @@ class HHL(QuantumAlgorithm):
 
         return cls(matrix, vector, eigs, init_state, reci, num_q, num_a)
 
-    def construct_circuit(self):
+    def construct_circuit(self, measurement=False):
         """Construct the HHL circuit.
+
+        Args:
+            measurement (bool): indicate whether measurement on ancillary qubit
+                should be performed
 
         Returns:
             the QuantumCircuit object for the constructed circuit
@@ -195,7 +200,7 @@ class HHL(QuantumAlgorithm):
                                            self._eigs._output_register)
 
         # Measurement of the ancilla qubit
-        if not self._quantum_instance.is_statevector:
+        if measurement:
             c = ClassicalRegister(1)
             qc.add_register(c)
             qc.measure(s, c)
@@ -312,17 +317,19 @@ class HHL(QuantumAlgorithm):
         self._ret["solution_hhl"] = f1*vec*np.exp(-1j*f2)
 
     def _run(self):
-        self.construct_circuit()
         if self._quantum_instance.is_statevector:
+            self.construct_circuit(measurement=False)
             self._statevector_simulation()
         else:
+            self.construct_circuit(measurement=True)
             self._state_tomography()
         # Adding a bit of general result information
         self._ret["input_matrix"] = self._matrix
         self._ret["input_vector"] = self._vector
         self._ret["eigenvalues_classical"] = np.linalg.eig(self._matrix)[0]
         self._ret["solution_classical"] = list(np.linalg.solve(self._matrix, self._vector))
-        self._ret["circuit_width"] = self._circuit.width()
-        self._ret["circuit_depth"] = self._circuit.depth()
+        dag = circuit_to_dag(self._circuit)
+        self._ret["circuit_width"] = dag.width()
+        self._ret["circuit_depth"] = dag.depth()
         self._ret["gate_count_total"] = self._circuit.number_atomic_gates()
         return self._ret
