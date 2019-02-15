@@ -178,7 +178,7 @@ class BooleanLogicNormalForm(ABC):
     - DNF (Disjunctive Normal Forms), and
     - ESOP (Exclusive Sum of Products)
     """
-    def __init__(self, expr):
+    def __init__(self, expr, num_vars=None):
         """
         Constructor.
 
@@ -188,11 +188,23 @@ class BooleanLogicNormalForm(ABC):
                 - any negative sign indicates the negation for the corresponding variable,
                 - each inner list corresponds to each clause of the logic expression, and
                 - the outermost logic operation depends on the actual subclass (CNF, DNF, or ESOP)
+            num_vars (int): Number of boolean variables
         """
 
         self._expr = expr
-        self._num_variables = max(set([abs(v) for v in list(itertools.chain.from_iterable(self._expr))]))
-        self._num_clauses = len(self._expr)
+        all_vars = set([abs(v) for v in list(itertools.chain.from_iterable(expr))])
+        num_vars_inferred = max(max(all_vars), len(all_vars))
+        if num_vars is None:
+            self._num_variables = num_vars_inferred
+        else:
+            if num_vars >= num_vars_inferred:
+                self._num_variables = num_vars
+            else:
+                raise AquaError('Specified num_vars {} and input expression {} are incompatible.'.format(
+                    num_vars, expr
+                ))
+        self._num_clauses = len(expr)
+        self._max_clause_size = max([len(c) for c in expr])
         self._variable_register = None
         self._clause_register = None
         self._output_register = None
@@ -268,7 +280,7 @@ class BooleanLogicNormalForm(ABC):
         max_num_ancillae = max(
             max(
                 self._num_clauses if self._clause_register else 0,
-                self._num_variables
+                self._max_clause_size
             ) - 2,
             0
         )
