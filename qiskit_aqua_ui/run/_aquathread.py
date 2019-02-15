@@ -23,6 +23,7 @@ import tempfile
 import sys
 import logging
 from qiskit_aqua_ui import GUIProvider
+import io
 
 logger = logging.getLogger(__name__)
 
@@ -108,13 +109,14 @@ class AquaThread(threading.Thread):
                                            stdin=subprocess.DEVNULL,
                                            stdout=subprocess.PIPE,
                                            stderr=subprocess.STDOUT,
-                                           universal_newlines=True,
                                            startupinfo=startupinfo)
             if self._thread_queue is not None:
                 self._thread_queue.put(GUIProvider.START)
-            for line in iter(self._popen.stdout.readline, ''):
+
+            for line in io.TextIOWrapper(self._popen.stdout, encoding='utf-8', newline=''):
                 if self._output is not None:
                     self._output.write(str(line))
+
             self._popen.stdout.close()
             self._popen.wait()
         except Exception as e:
