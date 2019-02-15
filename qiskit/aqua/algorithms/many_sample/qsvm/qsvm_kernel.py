@@ -16,12 +16,12 @@
 # =============================================================================
 
 import logging
-import concurrent.futures
-import psutil
-import platform
+import sys
 
 import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
+from qiskit.tools import parallel_map
+from qiskit.tools.events import TextProgressBar
 
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
@@ -58,9 +58,9 @@ class QSVMKernel(QuantumAlgorithm):
             {'pluggable_type': 'multiclass_extension'},
             {'pluggable_type': 'feature_map',
              'default': {
-                     'name': 'SecondOrderExpansion',
-                     'depth': 2
-                }
+                 'name': 'SecondOrderExpansion',
+                 'depth': 2
+             }
              },
         ],
     }
@@ -147,13 +147,14 @@ class QSVMKernel(QuantumAlgorithm):
                    algo_input.datapoints, multiclass_extension)
 
     @staticmethod
-    def _construct_circuit(x1, x2, num_qubits, feature_map, measurement, circuit_name=None):
+    def _construct_circuit(x, num_qubits, feature_map, measurement):
+        x1, x2 = x
         if x1.shape[0] != x2.shape[0]:
             raise ValueError("x1 and x2 must be the same dimension.")
 
         q = QuantumRegister(num_qubits, 'q')
         c = ClassicalRegister(num_qubits, 'c')
-        qc = QuantumCircuit(q, c, name=circuit_name)
+        qc = QuantumCircuit(q, c)
         # write input state from sample distribution
         qc += feature_map.construct_circuit(x1, q)
         qc += feature_map.construct_circuit(x2, q, inverse=True)
@@ -163,13 +164,13 @@ class QSVMKernel(QuantumAlgorithm):
         return qc
 
     @staticmethod
-    def _compute_overlap(results, circuit, is_statevector_sim, measurement_basis):
+    def _compute_overlap(idx, results, is_statevector_sim, measurement_basis):
         if is_statevector_sim:
-            temp = results.get_statevector(circuit)[0]
+            temp = results.get_statevector(idx)[0]
             #  |<0|Psi^daggar(y) x Psi(x)|0>|^2,
             kernel_value = np.dot(temp.T.conj(), temp).real
         else:
-            result = results.get_counts(circuit)
+            result = results.get_counts(idx)
             kernel_value = result.get(measurement_basis, 0) / sum(result.values())
         return kernel_value
 
@@ -184,7 +185,7 @@ class QSVMKernel(QuantumAlgorithm):
             x2 (numpy.ndarray): data points, 1-D array, dimension is D
             measurement (bool): add measurement gates at the end
         """
-        return QSVMKernel._construct_circuit(x1, x2, self.num_qubits,
+        return QSVMKernel._construct_circuit((x1, x2), self.num_qubits,
                                              self.feature_map, measurement)
 
     def construct_kernel_matrix(self, x1_vec, x2_vec=None, quantum_instance=None):
@@ -214,9 +215,8 @@ class QSVMKernel(QuantumAlgorithm):
         measurement = not is_statevector_sim
         measurement_basis = '0' * self.num_qubits
         mat = np.ones((x1_vec.shape[0], x2_vec.shape[0]))
-        num_processes = psutil.cpu_count(logical=False) if platform.system() != "Windows" else 1
 
-        # get all to-be-computed indices
+        # get all indices
         if is_symmetric:
             mus, nus = np.triu_indices(x1_vec.shape[0], k=1)  # remove diagonal term
         else:
@@ -225,39 +225,39 @@ class QSVMKernel(QuantumAlgorithm):
             nus = np.asarray(nus.flat)
 
         for idx in range(0, len(mus), QSVMKernel.BATCH_SIZE):
-            circuits = {}
-            to_be_simulated_circuits = []
-            with concurrent.futures.ProcessPoolExecutor(max_workers=num_processes) as executor:
-                futures = {}
-                for sub_idx in range(idx, min(idx + QSVMKernel.BATCH_SIZE, len(mus))):
-                    i = mus[sub_idx]
-                    j = nus[sub_idx]
-                    x1 = x1_vec[i]
-                    x2 = x2_vec[j]
-                    if not np.all(x1 == x2):
-                        futures["{}:{}".format(i, j)] = \
-                            executor.submit(QSVMKernel._construct_circuit,
-                                            x1, x2, self.num_qubits, self.feature_map,
-                                            measurement, "circuit{}:{}".format(i, j))
+            to_be_computed_list = []
+            to_be_computed_index = []
+            for sub_idx in range(idx, min(idx + QSVMKernel.BATCH_SIZE, len(mus))):
+                i = mus[sub_idx]
+                j = nus[sub_idx]
+                x1 = x1_vec[i]
+                x2 = x2_vec[j]
+                if not np.all(x1 == x2):
+                    to_be_computed_list.append((x1, x2))
+                    to_be_computed_index.append((i, j))
 
-                for k, v in futures.items():
-                    circuit = v.result()
-                    circuits[k] = circuit
-                    to_be_simulated_circuits.append(circuit)
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Building circuits:")
+                TextProgressBar(sys.stderr)
+            circuits = parallel_map(QSVMKernel._construct_circuit,
+                                    to_be_computed_list,
+                                    task_args=(self.num_qubits, self.feature_map,
+                                               measurement))
 
-            results = self.quantum_instance.execute(to_be_simulated_circuits)
-            kernel_values = {}
+            results = self.quantum_instance.execute(circuits)
 
-            with concurrent.futures.ProcessPoolExecutor(max_workers=num_processes) as executor:
-                for idx, circuit in circuits.items():
-                    kernel_values[idx] = executor.submit(QSVMKernel._compute_overlap,
-                                                         results, circuit, is_statevector_sim,
-                                                         measurement_basis)
-                for k, v in kernel_values.items():
-                    i, j = [int(x) for x in k.split(":")]
-                    mat[i, j] = v.result()
-                    if is_symmetric:
-                        mat[j, i] = mat[i, j]
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Calculating overlap:")
+                TextProgressBar(sys.stderr)
+            matrix_elements = parallel_map(QSVMKernel._compute_overlap, range(len(circuits)),
+                                           task_args=(results, is_statevector_sim, measurement_basis))
+
+            for idx in range(len(to_be_computed_index)):
+                i, j = to_be_computed_index[idx]
+                mat[i, j] = matrix_elements[idx]
+                if is_symmetric:
+                    mat[j, i] = mat[i, j]
+
         return mat
 
     def train(self, data, labels, quantum_instance=None):
