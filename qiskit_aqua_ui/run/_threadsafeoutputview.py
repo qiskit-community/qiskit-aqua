@@ -20,11 +20,14 @@ from ._scrollbarview import ScrollbarView
 from ._customwidgets import TextCustom
 import queue
 import string
-
+import platform
 
 class ThreadSafeOutputView(ScrollbarView):
 
     _DELAY = 50
+    _FULL_BLOCK_CHAR = u'█'
+    _CR = '\r'
+    _LF = '\n'
 
     def __init__(self, parent, **options):
         super(ThreadSafeOutputView, self).__init__(parent, **options)
@@ -53,8 +56,11 @@ class ThreadSafeOutputView(ScrollbarView):
         if text is not None:
             text = str(text)
             if len(text) > 0:
-                # remove any non printable character that will cause the Text widgetto hang
-                text = ''.join([x if x in string.printable else '' for x in text])
+                # remove any non printable character that will cause the Text widget to hang
+                text = ''.join([x if x == ThreadSafeOutputView._FULL_BLOCK_CHAR or
+                                x in string.printable else '' for x in text])
+                if platform.system() == "Windows": # Under Windows unicode block is escaped
+                    text = text.replace('\\u2588',u"\u2588")
                 if len(text) > 0:
                     self._queue.put(text)
 
@@ -82,10 +88,32 @@ class ThreadSafeOutputView(ScrollbarView):
             self._textWidget.delete(1.0, tk.END)
 
         if text is not None:
-            self._textWidget.insert(tk.END, text)
+            self._write_text(text)
             pos = self._vscrollbar.get()[1]
             # scrolls only when scroll bar is at the bottom
             if pos == 1.0:
                 self._textWidget.yview(tk.END)
 
         self._textWidget.config(state=tk.DISABLED)
+
+    def _write_text(self, text):
+        new_text = text
+        pos = new_text.find(ThreadSafeOutputView._CR)  # look for cr in new text
+        while pos >= 0:  # new text contains cr
+            line = new_text[:pos]  # up to but not including the cr
+            if len(line) > 0:
+                self._textWidget.insert(tk.END, line)
+
+            contents = self._textWidget.get('1.0', 'end-1c')
+            prev_index_cr = contents.rfind(ThreadSafeOutputView._CR)
+            prev_index_lf = contents.rfind(ThreadSafeOutputView._LF)
+            if prev_index_cr > prev_index_lf:  # remove previous line after cr
+                self._textWidget.delete('1.0 + {}c'.format(prev_index_cr+1), tk.END)
+            else:
+                self._textWidget.insert(tk.END, ThreadSafeOutputView._CR)  # insert cr at the end
+
+            new_text = new_text[pos+1:]  # get text after cr
+            pos = new_text.find(ThreadSafeOutputView._CR)  # look for cr in new text
+
+        if len(new_text) > 0:  # insert any remaining text
+            self._textWidget.insert(tk.END, new_text)
