@@ -103,8 +103,13 @@ def get_prime_implicants(ones=None, dcs=None):
     while True:
         next_implicants, next_num1s_dict, cur_prime_dict = combine_terms(terms, num1s_dict=cur_num1s_dict)
         for implicant in cur_prime_dict:
-            if cur_prime_dict[implicant] and not set.issubset(set(implicant), dcs):
-                prime_implicants.append(implicant)
+            if cur_prime_dict[implicant]:
+                if isinstance(implicant, int):
+                    if implicant not in dcs:
+                        prime_implicants.append((implicant,))
+                else:
+                    if not set.issubset(set(implicant), dcs):
+                        prime_implicants.append(implicant)
         if next_implicants:
             terms = next_implicants
             cur_num1s_dict = next_num1s_dict
