@@ -56,7 +56,7 @@ class PauliExpansion(FeatureMap):
                     'minimum': 1
                 },
                 'entangler_map': {
-                    'type': ['object', 'null'],
+                    'type': ['array', 'null'],
                     'default': None
                 },
                 'entanglement': {
@@ -85,7 +85,10 @@ class PauliExpansion(FeatureMap):
         Args:
             num_qubits (int): number of qubits
             depth (int): the number of repeated circuits
-            entangler_map (dict): describe the connectivity of qubits
+            entangler_map (list[list]): describe the connectivity of qubits, each list describes
+                                        [source, target], or None for full entanglement.
+                                        Note that the order is the list is the order of
+                                        applying the two-qubit gate.
             entanglement (str): ['full', 'linear'], generate the qubit connectivitiy by predefined
                                 topology
             paulis (str): a comma-seperated string for to-be-used paulis
@@ -126,13 +129,9 @@ class PauliExpansion(FeatureMap):
             else:
                 is_valid = True
                 for src, targ in itertools.combinations(where_z, 2):
-                    if src not in self._entangler_map:
+                    if [src, targ] not in self._entangler_map:
                         is_valid = False
                         break
-                    else:
-                        if targ not in self._entangler_map[src]:
-                            is_valid = False
-                            break
                 if is_valid:
                     final_paulis.append(pauli)
                 else:

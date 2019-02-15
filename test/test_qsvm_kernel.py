@@ -92,7 +92,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
 
         backend = get_aer_backend('qasm_simulator')
         num_qubits = 2
-        feature_map = SecondOrderExpansion(num_qubits=num_qubits, depth=2, entangler_map={0: [1]})
+        feature_map = SecondOrderExpansion(num_qubits=num_qubits, depth=2, entangler_map=[[0, 1]])
         svm = QSVMKernel(feature_map, self.training_data, self.testing_data, None)
         svm.random_seed = self.random_seed
         run_config = RunConfig(shots=self.shots, max_credits=10, memory=False, seed=self.random_seed)
@@ -123,7 +123,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
 
         backend = get_aer_backend('statevector_simulator')
         num_qubits = 2
-        feature_map = SecondOrderExpansion(num_qubits=num_qubits, depth=2, entangler_map={0: [1]})
+        feature_map = SecondOrderExpansion(num_qubits=num_qubits, depth=2, entangler_map=[[0, 1]])
         svm = QSVMKernel(feature_map, self.training_data, self.testing_data, None)
         svm.random_seed = self.random_seed
 
@@ -193,7 +193,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
             },
             'backend': {'shots': self.shots},
             'multiclass_extension': {'name': 'OneAgainstRest'},
-            'feature_map': {'name': 'SecondOrderExpansion', 'depth': 2, 'entangler_map': {0: [1]}}
+            'feature_map': {'name': 'SecondOrderExpansion', 'depth': 2, 'entangler_map': [[0, 1]]}
         }
 
         algo_input = SVMInput(training_input, test_input, total_array)
@@ -232,7 +232,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
             },
             'backend': {'shots': self.shots},
             'multiclass_extension': {'name': 'AllPairs'},
-            'feature_map': {'name': 'SecondOrderExpansion', 'depth': 2, 'entangler_map': {0: [1]}}
+            'feature_map': {'name': 'SecondOrderExpansion', 'depth': 2, 'entangler_map': [[0, 1]]}
         }
 
         algo_input = SVMInput(training_input, test_input, total_array)
@@ -268,7 +268,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
             },
             'backend': {'shots': self.shots},
             'multiclass_extension': {'name': 'ErrorCorrectingCode', 'code_size': 5},
-            'feature_map': {'name': 'SecondOrderExpansion', 'depth': 2, 'entangler_map': {0: [1]}}
+            'feature_map': {'name': 'SecondOrderExpansion', 'depth': 2, 'entangler_map': [[0, 1]]}
         }
 
         algo_input = SVMInput(training_input, test_input, total_array)
