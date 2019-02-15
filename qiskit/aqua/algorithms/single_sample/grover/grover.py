@@ -212,7 +212,7 @@ class Grover(QuantumAlgorithm):
                 key=abs
             )
             max_amplitude_idx = np.where(variable_register_density_matrix_diag == max_amplitude)[0][0]
-            top_measurement = format(max_amplitude_idx, '0{}b'.format(len(self._oracle.variable_register)))
+            top_measurement = np.binary_repr(max_amplitude_idx, len(self._oracle.variable_register))
         else:
             measurement_cr = ClassicalRegister(len(self._oracle.variable_register), name='m')
             qc.add_register(measurement_cr)
