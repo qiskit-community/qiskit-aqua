@@ -20,7 +20,7 @@ from ._scrollbarview import ScrollbarView
 from ._customwidgets import TextCustom
 import queue
 import string
-
+import platform
 
 class ThreadSafeOutputView(ScrollbarView):
 
@@ -59,6 +59,8 @@ class ThreadSafeOutputView(ScrollbarView):
                 # remove any non printable character that will cause the Text widget to hang
                 text = ''.join([x if x == ThreadSafeOutputView._FULL_BLOCK_CHAR or
                                 x in string.printable else '' for x in text])
+                if platform.system() == "Windows": # Under Windows unicode block is escaped
+                    text = text.replace('\\u2588',u"\u2588")
                 if len(text) > 0:
                     self._queue.put(text)
 
