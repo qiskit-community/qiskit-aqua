@@ -152,6 +152,7 @@ def get_all_exact_covers(cols, rows, col_range=None):
 
 
 def logic_or(clause_expr, circuit, variable_register, target_qubit, ancillary_register, mct_mode):
+    clause_expr = sorted(clause_expr, key=abs)
     qs = [abs(v) for v in clause_expr]
     ctl_bits = [variable_register[idx - 1] for idx in qs]
     anc_bits = [ancillary_register[idx] for idx in range(len(qs) - 2)] if ancillary_register else None
@@ -163,6 +164,7 @@ def logic_or(clause_expr, circuit, variable_register, target_qubit, ancillary_re
 
 
 def logic_and(clause_expr, circuit, variable_register, target_qubit, ancillary_register, mct_mode):
+    clause_expr = sorted(clause_expr, key=abs)
     qs = [abs(v) for v in clause_expr]
     ctl_bits = [variable_register[idx - 1] for idx in qs]
     anc_bits = [ancillary_register[idx] for idx in range(len(qs) - 2)] if ancillary_register else None
