@@ -15,12 +15,8 @@
 # limitations under the License.
 # =============================================================================
 
-from .algorithminput import AlgorithmInput
-from .energyinput import EnergyInput
-from .linearsysteminput import LinearSystemInput
-from .svminput import SVMInput
+from .reciprocal import Reciprocal
+from .lookup_rotation import LookupRotation
+from .long_division import LongDivision
 
-__all__ = ['AlgorithmInput',
-           'EnergyInput',
-           'LinearSystemInput',
-           'SVMInput']
+__all__ = ['LookupRotation', 'LongDivision', 'Reciprocal']
