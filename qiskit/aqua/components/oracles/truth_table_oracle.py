@@ -20,6 +20,7 @@ The Truth Table-based Quantum Oracle.
 
 import logging
 import math
+import numpy as np
 
 from qiskit import QuantumRegister, QuantumCircuit
 
@@ -44,9 +45,20 @@ class TruthTableOracle(Oracle):
             'id': 'truth_table_oracle_schema',
             'type': 'object',
             'properties': {
-                'bitmap': {
-                    "type": ["object"],
-                },
+                'bitmaps': {
+                    "anyOf": [
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ]
+                }
+,
                 'mct_mode': {
                     'type': 'string',
                     'default': 'basic',
@@ -62,39 +74,45 @@ class TruthTableOracle(Oracle):
         }
     }
 
-    def __init__(self, bitmap, mct_mode='basic'):
+    def __init__(self, bitmaps, mct_mode='basic'):
+        """
+        Constructor for Truth Table-based Oracle
+
+        Args:
+            bitmaps (str or [str]): A single binary string or a list of binary strings representing the desired
+                single- and multi-value truth table.
+            mct_mode (str): The mode to use when constructing multiple-control Toffoli
+        """
         self.validate(locals())
         self._mct_mode = mct_mode
 
-        # checks that the input bitstring length is a power of two
-        nbits = math.log(len(bitmap), 2)
-        if math.ceil(nbits) != math.floor(nbits):
-            raise AquaError('Length of input map must be a power of 2.')
-        nbits = int(nbits)
+        if isinstance(bitmaps, str):
+            bitmaps = [bitmaps]
+        else:
+            if not isinstance(bitmaps, list):
+                raise AquaError('Bitmaps must be a single bitstring or a list of bitstrings.')
 
-        # check that all outputs are of the same length
-        out_len = len(list(bitmap.values())[0])
-        for val in bitmap.values():
-            if not len(val) == out_len:
-                raise AquaError('The bitmap output lengths are not consistent.')
+        # check that the input bitmaps length is a power of 2
+        if not is_power_of_2(len(bitmaps[0])):
+            raise AquaError('Length of any bitmap must be a power of 2.')
+        for bitmap in bitmaps[1:]:
+            if not len(bitmap) == len(bitmaps[0]):
+                raise AquaError('Length of all bitmaps must be the same.')
+        nbits = int(math.log(len(bitmaps[0]), 2))
 
-        # TODO: somehow move this following checks to DJ
-        # # checks the input bitstring represents a constant or balanced function
-        # bitsum = sum([int(bit) for bit in bitmap.values()])
-        #
-        # if bitsum == 0 or bitsum == 2 ** nbits:
-        #     pass  # constant
-        # elif bitsum == 2 ** (nbits - 1):
-        #     pass  # balanced
-        # else:
-        #     raise AquaError('Input is not a balanced or constant function.')
-
-        def _(bbs):
-            return [i[-1] if i[0] == '1' else -i[-1] for i in list(zip(bbs, list(range(1, len(bbs) + 1))))]
+        out_len = len(bitmaps)
 
         esop_exprs = []
-        for out_idx in range(out_len):
-            esop_expr = [_(i[::-1]) for i in bitmap if bitmap[i][out_idx] == '1']
+        for bitmap in bitmaps:
+            # ones = [i for i, x in enumerate(bitmap) if x == '1']
+            esop_expr = [
+                [
+                    x[1] * (-1 if x[0] == '0' else 1) for x in zip(e, reversed(range(1, nbits + 1)))
+                ]
+                for e in [
+                    np.binary_repr(idx, nbits) for idx, v in enumerate(bitmap) if v == '1'
+                ]
+            ]
             if esop_expr:
                 esop_exprs.append(esop_expr)
 

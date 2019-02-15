@@ -29,10 +29,8 @@ from test.common import QiskitAquaTestCase
 
 class TestBernsteinVazirani(QiskitAquaTestCase):
     @parameterized.expand([
-        [{'000': '0', '001': '0', '010': '1', '011': '1',
-          '100': '1', '101': '1', '110': '0', '111': '0'}],
-        [{'000': '0', '001': '1', '010': '0', '011': '1',
-          '100': '1', '101': '0', '110': '1', '111': '0'}]
+        ['00111100'],
+        ['01011010']
     ])
     def test_bernsteinvazirani(self, bv_input):
         nbits = math.log(len(bv_input), 2)
@@ -43,8 +41,7 @@ class TestBernsteinVazirani(QiskitAquaTestCase):
         # compute the ground-truth classically
         parameter = ""
         for i in reversed(range(nbits)):
-            bitstring = np.binary_repr(2**i, nbits)
-            bit = bv_input[bitstring]
+            bit = bv_input[2 ** i]
             parameter += bit
 
         backend = get_aer_backend('qasm_simulator')

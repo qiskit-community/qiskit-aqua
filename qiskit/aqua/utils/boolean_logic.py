@@ -27,20 +27,20 @@ from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.qasm import pi
 
 from qiskit.aqua import AquaError
-from .mct import mct
 
 logger = logging.getLogger(__name__)
 
 
-def get_prime_implicants(truth_table_values):
+def get_prime_implicants(ones=None, dcs=None):
     """
     Compute all prime implicants for a truth table using the Quine-McCluskey Algorithm
 
     Args:
-        truth_table_values (str): The bit string representing the truth table
+        ones (list of int): The list of integers corresponding to '1' outputs
+        dcs (list of int): The list of integers corresponding to don't-cares
 
     Return:
-        A list of lists, representing all prime implicants
+        list of lists of int, representing all prime implicants
     """
 
     def combine_terms(terms, num1s_dict=None):
@@ -95,20 +95,18 @@ def get_prime_implicants(truth_table_values):
             cur_num1s += 1
         return new_implicants, new_num1s_dict, prime_dict
 
-    ones = [i for i, x in enumerate(truth_table_values) if x == '1']
-    dc = [i for i, x in enumerate(truth_table_values) if x == 'x']
-    candidates = ones + dc
+    terms = ones + dcs
     cur_num1s_dict = None
 
     prime_implicants = []
 
     while True:
-        next_implicants, next_num1s_dict, cur_prime_dict = combine_terms(candidates, num1s_dict=cur_num1s_dict)
+        next_implicants, next_num1s_dict, cur_prime_dict = combine_terms(terms, num1s_dict=cur_num1s_dict)
         for implicant in cur_prime_dict:
-            if cur_prime_dict[implicant] and not set.issubset(set(implicant), dc):
+            if cur_prime_dict[implicant] and not set.issubset(set(implicant), dcs):
                 prime_implicants.append(implicant)
         if next_implicants:
-            candidates = next_implicants
+            terms = next_implicants
             cur_num1s_dict = next_num1s_dict
         else:
             break

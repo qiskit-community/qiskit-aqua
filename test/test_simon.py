@@ -29,27 +29,42 @@ from test.common import QiskitAquaTestCase
 
 class TestSimon(QiskitAquaTestCase):
     @parameterized.expand([
-        [{'000': '001', '001': '010', '010': '011', '011': '100',
-          '100': '101', '101': '110', '110': '111', '111': '000'}],
-        [{'000': '101', '001': '010', '010': '000', '011': '110',
-          '100': '000', '101': '110', '110': '101', '111': '010'}],
-        [{'000': '010', '001': '101', '010': '101', '011': '010',
-          '100': '110', '101': '001', '110': '001', '111': '110'}]
+        [
+            [
+                '00011110',
+                '01100110',
+                '10101010',
+            ]
+        ],
+        [
+            [
+                '10010110',
+                '01010101',
+                '10000010',
+            ]
+        ],
+        [
+            [
+                '01101001',
+                '10011001',
+                '01100110',
+            ]
+        ]
     ])
     def test_simon(self, simon_input):
         # find the two keys that have matching values
-        nbits = math.log(len(simon_input), 2)
-        if math.ceil(nbits) != math.floor(nbits):
-            raise AquaError('Input not the right length')
-        nbits = int(nbits)
-        get_key_pair = ((k1, k2) for k1, v1 in simon_input.items()
-                        for k2, v2 in simon_input.items()
-                        if v1 == v2 and not k1 == k2)
-        try:  # matching keys found
-            k1, k2 = next(get_key_pair)
-            hidden = np.binary_repr(int(k1, 2) ^ int(k2, 2), nbits)
-        except StopIteration:  # non matching keys found
-            hidden = np.binary_repr(0, nbits)
+        nbits = int(math.log(len(simon_input[0]), 2))
+        vals = list(zip(*simon_input))[::-1]
+
+        def find_pair():
+            for i in range(len(vals)):
+                for j in range(i + 1, len(vals)):
+                    if vals[i] == vals[j]:
+                        return i, j
+            return 0, 0
+
+        k1, k2 = find_pair()
+        hidden = np.binary_repr(k1 ^ k2, nbits)
 
         backend = get_aer_backend('qasm_simulator')
         oracle = TruthTableOracle(simon_input)
