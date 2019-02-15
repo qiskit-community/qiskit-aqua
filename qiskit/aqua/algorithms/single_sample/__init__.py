@@ -23,6 +23,7 @@ from .ae.ae import AmplitudeEstimation
 from .simon.simon import Simon
 from .dj.deutsch_jozsa import DeutschJozsa
 from .bv.bernstein_vazirani import BernsteinVazirani
+from .hhl.hhl import HHL
 
 
 __all__ = [
@@ -33,5 +34,6 @@ __all__ = [
     'AmplitudeEstimation',
     'Simon',
     'DeutschJozsa',
-    'BernsteinVazirani'
+    'BernsteinVazirani',
+    'HHL'
 ]

@@ -15,12 +15,7 @@
 # limitations under the License.
 # =============================================================================
 
-from .algorithminput import AlgorithmInput
-from .energyinput import EnergyInput
-from .linearsysteminput import LinearSystemInput
-from .svminput import SVMInput
+from .eigs import Eigenvalues
+from .eigs_qpe import EigsQPE
 
-__all__ = ['AlgorithmInput',
-           'EnergyInput',
-           'LinearSystemInput',
-           'SVMInput']
+__all__ = ['EigsQPE', 'Eigenvalues']

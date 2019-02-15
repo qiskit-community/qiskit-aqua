@@ -49,6 +49,8 @@ class PluggableType(Enum):
     UNCERTAINTY_PROBLEM = 'uncertainty_problem'
     UNCERTAINTY_MODEL = 'uncertainty_model'
     INPUT = 'input'
+    EIGENVALUES = 'eigs'
+    RECIPROCAL = 'reciprocal'
 
 
 def _get_pluggables_types_dictionary():
@@ -68,6 +70,9 @@ def _get_pluggables_types_dictionary():
     from qiskit.aqua.components.feature_maps import FeatureMap
     from qiskit.aqua.components.multiclass_extensions import MulticlassExtension
     from qiskit.aqua.input import AlgorithmInput
+    from qiskit.aqua.components.eigs import Eigenvalues
+    from qiskit.aqua.components.reciprocals import Reciprocal
+
     return {
         PluggableType.ALGORITHM: QuantumAlgorithm,
         PluggableType.OPTIMIZER: Optimizer,
@@ -80,7 +85,9 @@ def _get_pluggables_types_dictionary():
         PluggableType.MULTICLASS_EXTENSION: MulticlassExtension,
         PluggableType.UNCERTAINTY_PROBLEM: UncertaintyProblem,
         PluggableType.UNCERTAINTY_MODEL: RandomDistribution,
-        PluggableType.INPUT: AlgorithmInput
+        PluggableType.INPUT: AlgorithmInput,
+        PluggableType.EIGENVALUES: Eigenvalues,
+        PluggableType.RECIPROCAL: Reciprocal
     }
 
 
