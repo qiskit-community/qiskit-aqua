@@ -25,6 +25,7 @@ import logging
 from qiskit_aqua_ui import GUIProvider
 import traceback
 import io
+import platform
 
 logger = logging.getLogger(__name__)
 
@@ -130,7 +131,10 @@ class ChemistryThread(threading.Thread):
 
             for line in io.TextIOWrapper(self._popen.stdout, encoding='utf-8', newline=''):
                 if self._output is not None:
-                    self._output.write(str(line))
+                    if platform.system() == "Windows":
+                        line = line.replace('\r\n', '\n')
+                        
+                    self._output.write(line)
 
             self._popen.stdout.close()
             self._popen.wait()
