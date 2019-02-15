@@ -19,13 +19,15 @@ The Truth Table-based Quantum Oracle.
 """
 
 import logging
+import operator
 import math
 import numpy as np
+from functools import reduce
 
 from qiskit import QuantumRegister, QuantumCircuit
 
 from qiskit.aqua import AquaError
-from qiskit.aqua.utils import ESOP
+from qiskit.aqua.utils import ESOP, get_prime_implicants, get_exact_covers
 from qiskit.aqua.components.oracles import Oracle
 
 logger = logging.getLogger(__name__)
@@ -57,8 +59,15 @@ class TruthTableOracle(Oracle):
                             "type": "string"
                         }
                     ]
-                }
-,
+                },
+                'optmization_mode': {
+                    'type': ['string', 'null'],
+                    'oneOf': [
+                        {'enum': [
+                            'simple',
+                        ]}
+                    ]
+                },
                 'mct_mode': {
                     'type': 'string',
                     'default': 'basic',
@@ -74,17 +83,25 @@ class TruthTableOracle(Oracle):
         }
     }
 
-    def __init__(self, bitmaps, mct_mode='basic'):
+    def __init__(self, bitmaps, optimization_mode=None, mct_mode='basic'):
         """
         Constructor for Truth Table-based Oracle
 
         Args:
             bitmaps (str or [str]): A single binary string or a list of binary strings representing the desired
                 single- and multi-value truth table.
+            optimization_mode (string): Optimization mode to use for minimizing the circuit.
+                Currently, besides no optimization if omitted, Aqua also supports a 'simple' mode, which uses
+                Quine-McCluskey to compute the prime implicants of the truth table
+                and computes an exact cover to try to reduce the circuit.
             mct_mode (str): The mode to use when constructing multiple-control Toffoli
         """
         self.validate(locals())
         self._mct_mode = mct_mode
+        if optimization_mode is None or optimization_mode == 'simple':
+            self._optimization_mode = optimization_mode
+        else:
+            raise AquaError('Unrecognized truth table optimization mode: {}.'.format(optimization_mode))
 
         if isinstance(bitmaps, str):
             bitmaps = [bitmaps]
@@ -98,37 +115,55 @@ class TruthTableOracle(Oracle):
         for bitmap in bitmaps[1:]:
             if not len(bitmap) == len(bitmaps[0]):
                 raise AquaError('Length of all bitmaps must be the same.')
-        nbits = int(math.log(len(bitmaps[0]), 2))
-
-        out_len = len(bitmaps)
+        self._nbits = int(math.log(len(bitmaps[0]), 2))
+        self._num_outputs = len(bitmaps)
 
         esop_exprs = []
         for bitmap in bitmaps:
-            # ones = [i for i, x in enumerate(bitmap) if x == '1']
-            esop_expr = [
-                [
-                    x[1] * (-1 if x[0] == '0' else 1) for x in zip(e, reversed(range(1, nbits + 1)))
-                ]
-                for e in [
-                    np.binary_repr(idx, nbits) for idx, v in enumerate(bitmap) if v == '1'
-                ]
-            ]
-            if esop_expr:
+            esop_expr = self._get_esop_expr(bitmap)
+            if self._num_outputs > 1 or esop_expr:
                 esop_exprs.append(esop_expr)
 
-        if esop_exprs:
-            self._esops = [ESOP(esop_expr) for esop_expr in esop_exprs]
-            self._output_register = QuantumRegister(out_len, name='o')
-            self._circuits = [self._esops[0].construct_circuit(output_register=self._output_register)]
-            self._variable_register = self._esops[0].variable_register
-            self._ancillary_register = self._esops[0].ancillary_register
-        else:
-            self._esops = None
-            self._variable_register = QuantumRegister(nbits, name='v')
-            self._output_register = QuantumRegister(1, name='o')
-            self._ancillary_register = None
+        self._esops = [
+            ESOP(esop_expr, num_vars=self._nbits) if esop_expr else None for esop_expr in esop_exprs
+        ] if esop_exprs else None
 
         super().__init__()
+
+    def _get_esop_expr(self, bitmap):
+        def binstr_to_vars(binstr):
+            return [
+                    x[1] * (-1 if x[0] == '0' else 1) for x in zip(binstr, reversed(range(1, self._nbits + 1)))
+                ][::-1]
+
+        if self._optimization_mode is None:
+            return [
+                binstr_to_vars(term) for term in [
+                    np.binary_repr(idx, self._nbits) for idx, v in enumerate(bitmap) if v == '1'
+                ]
+            ]
+        else:
+            ones = [i for i, v in enumerate(bitmap) if v == '1']
+            if not ones:
+                return []
+            dcs = [i for i, v in enumerate(bitmap) if v == 'x']
+            pis = get_prime_implicants(ones=ones, dcs=dcs)
+            cover = get_exact_covers(ones, pis)[-1]
+            expr = []
+            for c in cover:
+                if len(c) == 1:
+                    term = np.binary_repr(c[0], self._nbits)
+                    clause = binstr_to_vars(term)
+                elif len(c) > 1:
+                    c_or = reduce(operator.or_, c)
+                    c_and = reduce(operator.and_, c)
+                    _ = np.binary_repr(c_and ^ c_or, self._nbits)[::-1]
+                    clause = [
+                        v for i, v in enumerate(binstr_to_vars(np.binary_repr(c_and, self._nbits))) if _[i] == '0'
+                    ]
+                if clause:
+                    expr.append(clause)
+            return expr
 
     @property
     def variable_register(self):
@@ -143,18 +178,23 @@ class TruthTableOracle(Oracle):
         return self._output_register
 
     def construct_circuit(self):
-        circuit = QuantumCircuit()
+        if self._circuit is not None:
+            return self._circuit
+        self._circuit = QuantumCircuit()
+        self._output_register = QuantumRegister(self._num_outputs, name='o')
         if self._esops:
-            for idx in range(1, len(self._esops)):
-                self._circuits.append(self._esops[idx].construct_circuit(
-                    variable_register=self._variable_register,
-                    ancillary_register=self._ancillary_register,
-                    output_register=self._output_register,
-                    output_idx=idx,
-                    mct_mode=self._mct_mode
-                ))
-            for c in self._circuits:
-                circuit += c
+            for i, e in enumerate(self._esops):
+                if e is not None:
+                    ci = e.construct_circuit(output_register=self._output_register, output_idx=i)
+                    self._circuit += ci
+            self._variable_register = self._ancillary_register = None
+            for qreg in self._circuit.qregs:
+                if qreg.name == 'v':
+                    self._variable_register = qreg
+                elif qreg.name == 'a':
+                    self._ancillary_register = qreg
         else:
-            circuit.add_register(self._variable_register)
-        return circuit
+            self._variable_register = QuantumRegister(self._nbits, name='v')
+            self._ancillary_register = None
+            self._circuit.add_register(self._variable_register, self._output_register)
+        return self._circuit
