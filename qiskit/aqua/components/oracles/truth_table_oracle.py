@@ -30,6 +30,10 @@ from qiskit.aqua.components.oracles import Oracle
 logger = logging.getLogger(__name__)
 
 
+def is_power_of_2(num):
+    return num != 0 and ((num & (num - 1)) == 0)
+
+
 class TruthTableOracle(Oracle):
 
     CONFIGURATION = {

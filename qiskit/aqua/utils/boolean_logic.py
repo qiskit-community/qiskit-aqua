@@ -32,10 +32,6 @@ from .mct import mct
 logger = logging.getLogger(__name__)
 
 
-def is_power_of_2(num):
-    return num != 0 and ((num & (num - 1)) == 0)
-
-
 def get_prime_implicants(truth_table_values):
     """
     Compute all prime implicants for a truth table using the Quine-McCluskey Algorithm
@@ -99,9 +95,6 @@ def get_prime_implicants(truth_table_values):
             cur_num1s += 1
         return new_implicants, new_num1s_dict, prime_dict
 
-    if not is_power_of_2(len(truth_table_values)):
-        raise AquaError('The truth table length needs to be a power of 2.')
-
     ones = [i for i, x in enumerate(truth_table_values) if x == '1']
     dc = [i for i, x in enumerate(truth_table_values) if x == 'x']
     candidates = ones + dc
@@ -123,32 +116,32 @@ def get_prime_implicants(truth_table_values):
     return prime_implicants
 
 
-def get_all_exact_covers(cols, rows, col_range=None):
+def get_exact_covers(cols, rows, num_cols=None):
     """
     Use Algorithm X to get all solutions to the exact cover problem
 
     https://en.wikipedia.org/wiki/Knuth%27s_Algorithm_X
 
     Args:
-          cols (list): A list of integers representing the columns to be covered
-          rows (list of lists): A list of lists of integers representing the rows
-          col_range (int): The upper range of the columns (i.e. max_col + 1)
+          cols (list of int): A list of integers representing the columns to be covered
+          rows (list of list of int): A list of lists of integers representing the rows
+          num_cols (int): The total number of columns
 
     Returns:
         All exact covers
     """
-    if col_range is None:
-        col_range = max(cols) + 1
-    ec = DLX([(c, 0 if c in cols else 1) for c in range(col_range)])
+    if num_cols is None:
+        num_cols = max(cols) + 1
+    ec = DLX([(c, 0 if c in cols else 1) for c in range(num_cols)])
     ec.appendRows([[c] for c in cols])
     ec.appendRows(rows)
-    all_covers = []
+    exact_covers = []
     for s in ec.solve():
         cover = []
         for i in s:
             cover.append(ec.getRowList(i))
-        all_covers.append(cover)
-    return all_covers
+        exact_covers.append(cover)
+    return exact_covers
 
 
 def logic_or(clause_expr, circuit, variable_register, target_qubit, ancillary_register, mct_mode):
