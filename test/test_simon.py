@@ -49,7 +49,7 @@ class TestSimon(QiskitAquaTestCase):
                 '10011001',
                 '01100110',
             ]
-        ]
+        ],
     ])
     def test_simon(self, simon_input):
         # find the two keys that have matching values
@@ -66,11 +66,13 @@ class TestSimon(QiskitAquaTestCase):
         k1, k2 = find_pair()
         hidden = np.binary_repr(k1 ^ k2, nbits)
 
-        backend = get_aer_backend('qasm_simulator')
-        oracle = TruthTableOracle(simon_input)
-        algorithm = Simon(oracle)
-        result = algorithm.run(backend)
-        self.assertEqual(result['result'], hidden)
+        for optimization_mode in [None, 'simple']:
+            backend = get_aer_backend('qasm_simulator')
+            oracle = TruthTableOracle(simon_input, optimization_mode=optimization_mode)
+            algorithm = Simon(oracle)
+            result = algorithm.run(backend)
+            # print(result['circuit'].draw(line_length=10000))
+            self.assertEqual(result['result'], hidden)
 
 
 if __name__ == '__main__':

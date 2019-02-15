@@ -33,14 +33,16 @@ class TestDeutschJozsa(QiskitAquaTestCase):
         ['11110000']
     ])
     def test_deutschjozsa(self, dj_input):
-        backend = get_aer_backend('qasm_simulator')
-        oracle = TruthTableOracle(dj_input)
-        algorithm = DeutschJozsa(oracle)
-        result = algorithm.run(backend)
-        if sum([int(i) for i in dj_input]) == len(dj_input) / 2:
-            self.assertTrue(result['result'] == 'balanced')
-        else:
-            self.assertTrue(result['result'] == 'constant')
+        for optimization_mode in [None, 'simple']:
+            backend = get_aer_backend('qasm_simulator')
+            oracle = TruthTableOracle(dj_input, optimization_mode=optimization_mode)
+            algorithm = DeutschJozsa(oracle)
+            result = algorithm.run(backend)
+            # print(result['circuit'].draw(line_length=10000))
+            if sum([int(i) for i in dj_input]) == len(dj_input) / 2:
+                self.assertTrue(result['result'] == 'balanced')
+            else:
+                self.assertTrue(result['result'] == 'constant')
 
 
 if __name__ == '__main__':

@@ -17,7 +17,6 @@
 
 import unittest
 import math
-import numpy as np
 from parameterized import parameterized
 
 from qiskit.aqua.components.oracles import TruthTableOracle
@@ -33,10 +32,7 @@ class TestBernsteinVazirani(QiskitAquaTestCase):
         ['01011010']
     ])
     def test_bernsteinvazirani(self, bv_input):
-        nbits = math.log(len(bv_input), 2)
-        if math.ceil(nbits) != math.floor(nbits):
-            raise AquaError('Input not the right length')
-        nbits = int(nbits)
+        nbits = int(math.log(len(bv_input), 2))
 
         # compute the ground-truth classically
         parameter = ""
@@ -44,11 +40,13 @@ class TestBernsteinVazirani(QiskitAquaTestCase):
             bit = bv_input[2 ** i]
             parameter += bit
 
-        backend = get_aer_backend('qasm_simulator')
-        oracle = TruthTableOracle(bv_input)
-        algorithm = BernsteinVazirani(oracle)
-        result = algorithm.run(backend)
-        self.assertEqual(result['result'], parameter)
+        for optimization_mode in [None, 'simple']:
+            backend = get_aer_backend('qasm_simulator')
+            oracle = TruthTableOracle(bv_input, optimization_mode=optimization_mode)
+            algorithm = BernsteinVazirani(oracle)
+            result = algorithm.run(backend)
+            # print(result['circuit'].draw(line_length=10000))
+            self.assertEqual(result['result'], parameter)
 
 
 if __name__ == '__main__':
