@@ -24,7 +24,7 @@ from qiskit import QuantumCircuit, ClassicalRegister
 from qiskit.aqua import get_aer_backend
 
 from test.common import QiskitAquaTestCase
-from qiskit.aqua.components.oracles import CNFOracle
+from qiskit.aqua.components.oracles import DimacsOracle
 
 
 dimacs_cnf_1 = '''
@@ -63,7 +63,7 @@ class TestCNFOracle(QiskitAquaTestCase):
     def test_cnf_oracle(self, dimacs_cnf, sols):
         num_shots = 1024
         for mct_mode in ['basic', 'advanced', 'noancilla']:
-            cnf = CNFOracle(dimacs_cnf, mct_mode=mct_mode)
+            cnf = DimacsOracle(dimacs_cnf, mct_mode=mct_mode)
             cnf_circuit = cnf.construct_circuit()
             m = ClassicalRegister(1, name='m')
             for assignment in itertools.product([True, False], repeat=len(cnf.variable_register)):

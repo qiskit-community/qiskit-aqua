@@ -16,12 +16,12 @@
 # =============================================================================
 
 from .oracle import Oracle
-from .cnf_oracle import CNFOracle
+from .dimacs_oracle import DimacsOracle
 from .truth_table_oracle import TruthTableOracle
 
 
 __all__ = [
     'Oracle',
-    'CNFOracle',
+    'DimacsOracle',
     'TruthTableOracle',
 ]

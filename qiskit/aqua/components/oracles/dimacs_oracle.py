@@ -15,7 +15,7 @@
 # limitations under the License.
 # =============================================================================
 """
-The CNF (Conjunctive Normal Form)-based Quantum Oracle.
+The DIMACS-based Quantum Oracle.
 """
 
 import logging
@@ -26,21 +26,18 @@ from qiskit.aqua.utils import CNF
 logger = logging.getLogger(__name__)
 
 
-class CNFOracle(Oracle):
+class DimacsOracle(Oracle):
 
     CONFIGURATION = {
-        'name': 'CNFOracle',
-        'description': 'Conjunctive Normal Form Oracle',
+        'name': 'DimacsOracle',
+        'description': 'Dimacs Oracle',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
-            'id': 'cnf_oracle_schema',
+            'id': 'dimacs_oracle_schema',
             'type': 'object',
             'properties': {
                 'dimacs_cnf': {
                     'type': 'string',
-                },
-                'cnf_expr': {
-                    'type': ['array', 'null']
                 },
                 'mct_mode': {
                     'type': 'string',
