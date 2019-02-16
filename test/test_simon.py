@@ -66,7 +66,7 @@ class TestSimon(QiskitAquaTestCase):
         k1, k2 = find_pair()
         hidden = np.binary_repr(k1 ^ k2, nbits)
 
-        for optimization_mode in [None, 'simple']:
+        for optimization_mode in [None, 'qm-dlx']:
             backend = get_aer_backend('qasm_simulator')
             oracle = TruthTableOracle(simon_input, optimization_mode=optimization_mode)
             algorithm = Simon(oracle)

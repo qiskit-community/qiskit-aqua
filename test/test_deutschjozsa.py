@@ -33,7 +33,7 @@ class TestDeutschJozsa(QiskitAquaTestCase):
         ['11110000']
     ])
     def test_deutschjozsa(self, dj_input):
-        for optimization_mode in [None, 'simple']:
+        for optimization_mode in [None, 'qm-dlx']:
             backend = get_aer_backend('qasm_simulator')
             oracle = TruthTableOracle(dj_input, optimization_mode=optimization_mode)
             algorithm = DeutschJozsa(oracle)

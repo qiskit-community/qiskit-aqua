@@ -40,7 +40,7 @@ class TestBernsteinVazirani(QiskitAquaTestCase):
             bit = bv_input[2 ** i]
             parameter += bit
 
-        for optimization_mode in [None, 'simple']:
+        for optimization_mode in [None, 'qm-dlx']:
             backend = get_aer_backend('qasm_simulator')
             oracle = TruthTableOracle(bv_input, optimization_mode=optimization_mode)
             algorithm = BernsteinVazirani(oracle)

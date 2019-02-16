@@ -43,11 +43,24 @@ class DimacsOracle(Oracle):
                     'type': 'string',
                     'default': 'basic',
                     'oneOf': [
-                        {'enum': [
-                            'basic',
-                            'advanced',
-                            'noancilla'
-                        ]}
+                        {
+                            'enum': [
+                                'basic',
+                                'advanced',
+                                'noancilla'
+                            ]
+                        }
+                    ]
+                },
+                'optimization_mode': {
+                    'type': ['string', 'null'],
+                    'default': 'null',
+                    'oneOf': [
+                        {
+                            'enum': [
+                                'espresso',
+                            ]
+                        }
                     ]
                 },
             },

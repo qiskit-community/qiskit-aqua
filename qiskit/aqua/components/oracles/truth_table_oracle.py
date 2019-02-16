@@ -62,10 +62,13 @@ class TruthTableOracle(Oracle):
                 },
                 'optmization_mode': {
                     'type': ['string', 'null'],
+                    'default': 'null',
                     'oneOf': [
-                        {'enum': [
-                            'qm-ec',
-                        ]}
+                        {
+                            'enum': [
+                                'qm-dlx',
+                            ]
+                        }
                     ]
                 },
                 'mct_mode': {
@@ -91,14 +94,14 @@ class TruthTableOracle(Oracle):
             bitmaps (str or [str]): A single binary string or a list of binary strings representing the desired
                 single- and multi-value truth table.
             optimization_mode (string): Optimization mode to use for minimizing the circuit.
-                Currently, besides no optimization if omitted, Aqua also supports a 'qm-ec' mode,
+                Currently, besides no optimization if omitted, Aqua also supports a 'qm-dlx' mode,
                 which uses the Quine-McCluskey algorithm to compute the prime implicants of the truth table,
                 and then compute an exact cover to try to reduce the circuit;
             mct_mode (str): The mode to use when constructing multiple-control Toffoli
         """
         self.validate(locals())
         self._mct_mode = mct_mode
-        if optimization_mode is None or optimization_mode == 'qm-ec':
+        if optimization_mode is None or optimization_mode == 'qm-dlx':
             self._optimization_mode = optimization_mode
         else:
             raise AquaError('Unrecognized truth table optimization mode: {}.'.format(optimization_mode))
