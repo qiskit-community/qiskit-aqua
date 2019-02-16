@@ -55,55 +55,47 @@ class DimacsOracle(Oracle):
         }
     }
 
-    def __init__(self, dimacs_cnf=None, cnf_expr=None, mct_mode='basic'):
+    def __init__(self, dimacs_str=None, mct_mode='basic'):
         """
         Constructor.
 
         Args:
-            dimacs_cnf (str): The string representation in DIMACS format, will be ignored if cnf_expr is specified
-            cnf_expr (list of lists of ints): List of lists of non-zero integers to represent the CNF
+            dimacs_str (str): The string representation in DIMACS format
             mct_mode (str): The mode to use for building Multiple-Control Toffoli
         """
 
         self.validate(locals())
         self._mct_mode = mct_mode
 
-        if cnf_expr:
-            if dimacs_cnf:
-                logger.warning('The dimacs_cnf is ignored at the presence of cnf_expr.')
+        if dimacs_str:
+            ls = [
+                l.strip() for l in dimacs_str.split('\n')
+                if len(l) > 0 and not l.strip()[0] == 'c'
+            ]
+            headers = [l for l in ls if l[0] == 'p']
+            if len(headers) == 1:
+                p, sig, nv, nc = headers[0].split()
+                assert p == 'p' and sig == 'cnf'
             else:
-                pass
+                raise ValueError('Invalid cnf format for SAT.')
+            h_nv, h_nc = int(nv), int(nc)
+            cs = [
+                c.strip()
+                for c in ' '.join(
+                    [l for l in ls if not l[0] == 'p']
+                ).split(' 0') if len(c) > 0
+            ]
+            cnf_expr = [
+                [int(v) for v in c.split() if not int(v) == 0]
+                for c in cs
+                if (
+                    len(c.replace('0', '')) > 0
+                ) and (
+                    '0' <= c[0] <= '9' or c[0] == '-'
+                )
+            ]
         else:
-            if dimacs_cnf:
-                ls = [
-                    l.strip() for l in dimacs_cnf.split('\n')
-                    if len(l) > 0 and not l.strip()[0] == 'c'
-                ]
-                headers = [l for l in ls if l[0] == 'p']
-                if len(headers) == 1:
-                    p, sig, nv, nc = headers[0].split()
-                    assert p == 'p' and sig == 'cnf'
-                else:
-                    raise ValueError('Invalid cnf format for SAT.')
-                h_nv, h_nc = int(nv), int(nc)
-                cs = [
-                    c.strip()
-                    for c in ' '.join(
-                        [l for l in ls if not l[0] == 'p']
-                    ).split(' 0') if len(c) > 0
-                ]
-                cnf_expr = [
-                    [int(v) for v in c.split() if not int(v) == 0]
-                    for c in cs
-                    if (
-                        len(c.replace('0', '')) > 0
-                    ) and (
-                        '0' <= c[0] <= '9' or c[0] == '-'
-                    )
-                ]
-            else:
-                raise ValueError(
-                    'The CNF needs to be specified as either a list of lists or a string in DIMACS format.')
+            raise ValueError('Missing input DIMACS string.')
 
         self._cnf = CNF(cnf_expr)
         super().__init__()
