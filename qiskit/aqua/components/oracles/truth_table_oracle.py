@@ -64,7 +64,7 @@ class TruthTableOracle(Oracle):
                     'type': ['string', 'null'],
                     'oneOf': [
                         {'enum': [
-                            'simple',
+                            'qm-ec',
                         ]}
                     ]
                 },
@@ -91,14 +91,14 @@ class TruthTableOracle(Oracle):
             bitmaps (str or [str]): A single binary string or a list of binary strings representing the desired
                 single- and multi-value truth table.
             optimization_mode (string): Optimization mode to use for minimizing the circuit.
-                Currently, besides no optimization if omitted, Aqua also supports a 'simple' mode, which uses
-                Quine-McCluskey to compute the prime implicants of the truth table
-                and computes an exact cover to try to reduce the circuit.
+                Currently, besides no optimization if omitted, Aqua also supports a 'qm-ec' mode,
+                which uses the Quine-McCluskey algorithm to compute the prime implicants of the truth table,
+                and then compute an exact cover to try to reduce the circuit;
             mct_mode (str): The mode to use when constructing multiple-control Toffoli
         """
         self.validate(locals())
         self._mct_mode = mct_mode
-        if optimization_mode is None or optimization_mode == 'simple':
+        if optimization_mode is None or optimization_mode == 'qm-ec':
             self._optimization_mode = optimization_mode
         else:
             raise AquaError('Unrecognized truth table optimization mode: {}.'.format(optimization_mode))
@@ -161,6 +161,8 @@ class TruthTableOracle(Oracle):
                     clause = [
                         v for i, v in enumerate(binstr_to_vars(np.binary_repr(c_and, self._nbits))) if _[i] == '0'
                     ]
+                else:
+                    raise AquaError('Unexpected cover term size {}.'.format(len(c)))
                 if clause:
                     expr.append(clause)
             return expr
