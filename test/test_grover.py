@@ -21,7 +21,7 @@ from parameterized import parameterized
 from qiskit.aqua import get_aer_backend
 from qiskit.qobj import RunConfig
 from test.common import QiskitAquaTestCase
-from qiskit.aqua.components.oracles import CNFOracle
+from qiskit.aqua.components.oracles import DimacsOracle
 from qiskit.aqua.algorithms import Grover
 from qiskit.aqua import QuantumInstance
 
@@ -29,23 +29,14 @@ from qiskit.aqua import QuantumInstance
 class TestGrover(QiskitAquaTestCase):
 
     @parameterized.expand([
-        ['test_grover_tiny.cnf', False, 1, 'basic', 'qasm_simulator'],
-        ['test_grover_tiny.cnf', False, 1, 'advanced', 'qasm_simulator'],
-        ['test_grover.cnf', False, 3, 'basic', 'qasm_simulator'],
-        ['test_grover.cnf', False, 3, 'advanced', 'qasm_simulator'],
-        ['test_grover_no_solution.cnf', True, 1, 'basic', 'qasm_simulator'],
-        ['test_grover_no_solution.cnf', True, 1, 'advanced', 'qasm_simulator'],
-        ['test_grover_tiny.cnf', False, 1, 'basic', 'statevector_simulator'],
-        ['test_grover_tiny.cnf', False, 1, 'advanced', 'statevector_simulator'],
-        ['test_grover.cnf', False, 3, 'basic', 'statevector_simulator'],
-        ['test_grover.cnf', False, 3, 'advanced', 'statevector_simulator'],
-        ['test_grover_no_solution.cnf', True, 1, 'basic', 'statevector_simulator'],
-        ['test_grover_no_solution.cnf', True, 1, 'advanced', 'statevector_simulator'],
+        ['test_grover.cnf', False, 3],
+        ['test_grover_tiny.cnf', False, 1],
+        ['test_grover_no_solution.cnf', True, 1],
     ])
-    def test_grover(self, input_file, incremental, num_iterations, mct_mode, simulator):
-        input_file = self._get_resource_path(input_file)
+    def test_grover(self, dimacs_file, incremental, num_iterations):
+        dimacs_file = self._get_resource_path(dimacs_file)
         # get ground-truth
-        with open(input_file) as f:
+        with open(dimacs_file) as f:
             buf = f.read()
         if incremental:
             self.log.debug('Testing incremental Grover search on SAT problem instance: \n{}'.format(
@@ -64,22 +55,26 @@ class TestGrover(QiskitAquaTestCase):
             ])[::-1]
             for s in header.split('solutions:' if header.find('solutions:') >= 0 else 'solution:')[-1].split(',')
         ]
-        backend = get_aer_backend(simulator)
-        cnf_oracle = CNFOracle(buf)
-        grover = Grover(cnf_oracle, num_iterations=num_iterations, incremental=incremental, mct_mode=mct_mode)
-        run_config = RunConfig(shots=1000, max_credits=10, memory=False)
-        quantum_instance = QuantumInstance(backend, run_config)
+        for mct_mode in ['basic', 'advanced']:
+            for simulator in ['qasm_simulator', 'statevector_simulator']:
+                backend = get_aer_backend(simulator)
+                dimacs_oracle = DimacsOracle(buf)
+                grover = Grover(
+                    dimacs_oracle, num_iterations=num_iterations, incremental=incremental, mct_mode=mct_mode
+                )
+                run_config = RunConfig(shots=1000, max_credits=10, memory=False)
+                quantum_instance = QuantumInstance(backend, run_config)
 
-        ret = grover.run(quantum_instance)
+                ret = grover.run(quantum_instance)
 
-        self.log.debug('Ground-truth Solutions: {}.'.format(self.groundtruth))
-        self.log.debug('Top measurement:        {}.'.format(ret['top_measurement']))
-        if ret['oracle_evaluation']:
-            self.assertIn(ret['top_measurement'], self.groundtruth)
-            self.log.debug('Search Result:          {}.'.format(ret['result']))
-        else:
-            self.assertEqual(self.groundtruth, [''])
-            self.log.debug('Nothing found.')
+                self.log.debug('Ground-truth Solutions: {}.'.format(self.groundtruth))
+                self.log.debug('Top measurement:        {}.'.format(ret['top_measurement']))
+                if ret['oracle_evaluation']:
+                    self.assertIn(ret['top_measurement'], self.groundtruth)
+                    self.log.debug('Search Result:          {}.'.format(ret['result']))
+                else:
+                    self.assertEqual(self.groundtruth, [''])
+                    self.log.debug('Nothing found.')
 
 
 if __name__ == '__main__':

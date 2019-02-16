@@ -27,7 +27,7 @@ from test.common import QiskitAquaTestCase
 from qiskit.aqua.components.oracles import DimacsOracle
 
 
-dimacs_cnf_1 = '''
+dimacs_str_1 = '''
 p cnf 2 4
 1 2 0
 1 -2 0
@@ -36,7 +36,7 @@ p cnf 2 4
 '''
 sols_1 = []
 
-dimacs_cnf_2 = '''
+dimacs_str_2 = '''
 p cnf 2 3
 1 2 0
 1 -2 0
@@ -44,7 +44,7 @@ p cnf 2 3
 '''
 sols_2 = [(True, True)]
 
-dimacs_cnf_3 = '''
+dimacs_str_3 = '''
 p cnf 3 4
 1 -2 3 0
 1 2 -3 0
@@ -54,26 +54,26 @@ p cnf 3 4
 sols_3 = [(True, True, True), (True, False, True), (False, False, False), (True, True, False)]
 
 
-class TestCNFOracle(QiskitAquaTestCase):
+class TestDimacsOracle(QiskitAquaTestCase):
     @parameterized.expand([
-        [dimacs_cnf_1, sols_1],
-        [dimacs_cnf_2, sols_2],
-        [dimacs_cnf_3, sols_3],
+        [dimacs_str_1, sols_1],
+        [dimacs_str_2, sols_2],
+        [dimacs_str_3, sols_3],
     ])
-    def test_cnf_oracle(self, dimacs_cnf, sols):
+    def test_dimacs_oracle(self, dimacs_str, sols):
         num_shots = 1024
         for mct_mode in ['basic', 'advanced', 'noancilla']:
-            cnf = DimacsOracle(dimacs_cnf, mct_mode=mct_mode)
-            cnf_circuit = cnf.construct_circuit()
+            do = DimacsOracle(dimacs_str, mct_mode=mct_mode)
+            do_circuit = do.construct_circuit()
             m = ClassicalRegister(1, name='m')
-            for assignment in itertools.product([True, False], repeat=len(cnf.variable_register)):
-                qc = QuantumCircuit(m, cnf.variable_register)
+            for assignment in itertools.product([True, False], repeat=len(do.variable_register)):
+                qc = QuantumCircuit(m, do.variable_register)
                 for idx, tf in enumerate(assignment):
                     if tf:
-                        qc.x(cnf.variable_register[idx])
-                qc += cnf_circuit
-                qc.barrier(cnf.output_register)
-                qc.measure(cnf.output_register, m)
+                        qc.x(do.variable_register[idx])
+                qc += do_circuit
+                qc.barrier(do.output_register)
+                qc.measure(do.output_register, m)
                 counts = q_execute(qc, get_aer_backend(
                     'qasm_simulator'), shots=num_shots).result().get_counts(qc)
                 if assignment in sols:
