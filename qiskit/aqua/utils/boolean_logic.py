@@ -166,7 +166,10 @@ def logic_and(clause_expr, circuit, variable_register, target_qubit, ancillary_r
     anc_bits = [ancillary_register[idx] for idx in range(len(qs) - 2)] if ancillary_register else None
     for idx in [v for v in clause_expr if v < 0]:
         circuit.u3(pi, 0, pi, variable_register[-idx - 1])
-    circuit.mct(ctl_bits, target_qubit, anc_bits, mode=mct_mode)
+    try:
+        circuit.mct(ctl_bits, target_qubit, anc_bits, mode=mct_mode)
+    except:
+        pass
     for idx in [v for v in clause_expr if v < 0]:
         circuit.u3(pi, 0, pi, variable_register[-idx - 1])
 
@@ -178,22 +181,23 @@ class BooleanLogicNormalForm(ABC):
     - DNF (Disjunctive Normal Forms), and
     - ESOP (Exclusive Sum of Products)
     """
-    def __init__(self, expr, num_vars=None):
+    def __init__(self, expr, num_vars=None, depth=None):
         """
         Constructor.
 
         Args:
-            expr (list of lists of ints): List of lists of non-zero integers, where
-                - each integer's absolute value indicates its variable index,
-                - any negative sign indicates the negation for the corresponding variable,
-                - each inner list corresponds to each clause of the logic expression, and
-                - the outermost logic operation depends on the actual subclass (CNF, DNF, or ESOP)
+            expr (Expression): The logic expression
             num_vars (int): Number of boolean variables
+            depth (int): Specified depth of the expression
         """
 
+        if expr.depth > 2 or (depth is not None and depth > 2):
+            raise NotImplementedError
+        if depth is not None and expr.depth > depth:
+            raise AquaError('Specified depth {} is lower than the actual depth {}.'.format(depth, expr.depth))
         self._expr = expr
-        all_vars = set([abs(v) for v in list(itertools.chain.from_iterable(expr))])
-        num_vars_inferred = max(max(all_vars), len(all_vars))
+        self._depth = expr.depth if depth is None else depth
+        num_vars_inferred = expr.degree
         if num_vars is None:
             self._num_variables = num_vars_inferred
         else:
@@ -203,12 +207,46 @@ class BooleanLogicNormalForm(ABC):
                 raise AquaError('Specified num_vars {} and input expression {} are incompatible.'.format(
                     num_vars, expr
                 ))
-        self._num_clauses = len(expr)
-        self._max_clause_size = max([len(c) for c in expr])
+
+        if expr.depth == 0:
+            self._ast = expr.to_ast()
+            self._num_clauses = 0
+            self._max_clause_size = 0
+        else:
+            ast = expr.to_ast()
+            if expr.depth == 1:
+                if self._depth == 1:
+                    self._num_clauses = 1
+                    self._max_clause_size = len(ast) - 1
+                    self._ast = ast
+                else:  # depth == 2:
+                    if ast[0] == 'and':
+                        op = 'or'
+                    elif ast[0] == 'or':
+                        op = 'and'
+                    else:
+                        raise AquaError('Unexpected expression root operator {}.'.format(ast[0]))
+                    self._num_clauses = len(ast) - 1
+                    self._max_clause_size = 1
+                    self._ast = (ast[0], *[(op, l) for l in ast[1:]])
+
+            else:  # expr.depth == 2
+                self._num_clauses = len(ast) - 1
+                self._max_clause_size = max([len(l) - 1 for l in ast[1:]])
+                self._ast = ast
+
         self._variable_register = None
         self._clause_register = None
         self._output_register = None
         self._ancillary_register = None
+
+    @staticmethod
+    def get_nested_lists(expr):
+        if expr.depth == 1:
+            expr = [[v[1] for v in expr.to_ast()[1:]]]
+        else:  # depth == 2
+            expr = [[v[1] for v in c[1:]] for c in expr.to_ast()[1:]]
+        return expr
 
     @property
     def expr(self):
@@ -269,9 +307,10 @@ class BooleanLogicNormalForm(ABC):
         self._variable_register = BooleanLogicNormalForm._set_up_register(
             self.num_variables, variable_register, 'variable'
         )
-        self._clause_register = BooleanLogicNormalForm._set_up_register(
-            self.num_clauses, clause_register, 'clause'
-        )
+        if self._depth > 1:
+            self._clause_register = BooleanLogicNormalForm._set_up_register(
+                self.num_clauses, clause_register, 'clause'
+            )
         self._output_register = BooleanLogicNormalForm._set_up_register(
             1, output_register, 'output'
         )
@@ -310,6 +349,15 @@ class BooleanLogicNormalForm(ABC):
             if self._ancillary_register:
                 circuit.add_register(self._ancillary_register)
         return circuit
+
+    def _construct_circuit_for_tiny_expr(self, circuit, output_idx=0):
+        if self._expr.is_one():
+            circuit.u3(pi, 0, pi, self._output_register[output_idx])
+        elif self._ast[0] == 'lit':
+            idx = abs(self._ast[1]) - 1
+            if self._ast[1] < 0:
+                circuit.u3(pi, 0, pi, self._variable_register[idx])
+            circuit.cx(self._variable_register[idx], self._output_register[output_idx])
 
     @abstractmethod
     def construct_circuit(self, *args, **kwargs):
@@ -353,41 +401,67 @@ class CNF(BooleanLogicNormalForm):
             mct_mode=mct_mode
         )
 
-        # init all clause qubits to 1
-        circuit.u3(pi, 0, pi, self._clause_register)
-
-        # compute all clauses
-        for clause_index, clause_expr in enumerate(self._expr):
-            logic_or(
-                clause_expr,
+        if self._depth == 0:
+            self._construct_circuit_for_tiny_expr(circuit)
+        elif self._depth == 1:
+            lits = [l[1] for l in self._ast[1:]]
+            logic_and(
+                lits,
                 circuit,
                 self._variable_register,
-                self._clause_register[clause_index],
+                self._output_register[0],
                 self._ancillary_register,
                 mct_mode
             )
+        else:  # self._depth == 2:
+            # init all clause qubits to 1
+            circuit.u3(pi, 0, pi, self._clause_register)
 
-        # collect results from all clauses
-        circuit.mct(
-            self._clause_register,
-            self._output_register[self._output_idx],
-            self._ancillary_register,
-            mode=mct_mode
-        )
+            # compute all clauses
+            for clause_index, clause_expr in enumerate(self._ast[1:]):
+                if clause_expr[0] == 'or':
+                    lits = [l[1] for l in clause_expr[1:]]
+                elif clause_expr[0] == 'lit':
+                    lits = [clause_expr[1]]
+                else:
+                    raise AquaError(
+                        'Operator "{}" of clause {} in logic expression {} is unexpected.'.format(
+                            clause_expr[0], clause_index, self._ast)
+                    )
+                logic_or(
+                    lits,
+                    circuit,
+                    self._variable_register,
+                    self._clause_register[clause_index],
+                    self._ancillary_register,
+                    mct_mode
+                )
 
-        # uncompute all clauses
-        for clause_index, clause_expr in reversed(list(enumerate(self._expr))):
-            logic_or(
-                clause_expr,
-                circuit,
-                self._variable_register,
-                self._clause_register[clause_index],
+            # collect results from all clauses
+            circuit.mct(
+                self._clause_register,
+                self._output_register[self._output_idx],
                 self._ancillary_register,
-                mct_mode
+                mode=mct_mode
             )
 
-        # reset all clause qubits to 0
-        circuit.u3(pi, 0, pi, self._clause_register)
+            # uncompute all clauses
+            for clause_index, clause_expr in enumerate(self._ast[1:]):
+                if clause_expr[0] == 'or':
+                    lits = [l[1] for l in clause_expr[1:]]
+                else:  # clause_expr[0] == 'lit':
+                    lits = [clause_expr[1]]
+                logic_or(
+                    lits,
+                    circuit,
+                    self._variable_register,
+                    self._clause_register[clause_index],
+                    self._ancillary_register,
+                    mct_mode
+                )
+
+            # reset all clause qubits to 0
+            circuit.u3(pi, 0, pi, self._clause_register)
 
         return circuit
 
@@ -428,42 +502,68 @@ class DNF(BooleanLogicNormalForm):
             ancillary_register=ancillary_register,
             mct_mode=mct_mode
         )
-
-        # compute all clauses
-        for clause_index, clause_expr in enumerate(self._expr):
-            logic_and(
-                clause_expr,
+        if self._depth == 0:
+            self._construct_circuit_for_tiny_expr(circuit)
+        elif self._expr.depth == 1:
+            circuit.u3(pi, 0, pi, self._variable_register)
+            circuit.u3(pi, 0, pi, self._output_register)
+            lits = [l[1] for l in self._ast[1:]]
+            logic_or(
+                lits,
                 circuit,
                 self._variable_register,
-                self._clause_register[clause_index],
+                self._output_register[0],
                 self._ancillary_register,
                 mct_mode
             )
+        else:  # self._expr.depth == 2
+            # compute all clauses
+            for clause_index, clause_expr in enumerate(self._ast[1:]):
+                if clause_expr[0] == 'and':
+                    lits = [l[1] for l in clause_expr[1:]]
+                elif clause_expr[0] == 'lit':
+                    lits = [clause_expr[1]]
+                else:
+                    raise AquaError(
+                        'Operator "{}" of clause {} in logic expression {} is unexpected.'.format(
+                            clause_expr[0], clause_index, self._ast)
+                    )
+                logic_and(
+                    lits,
+                    circuit,
+                    self._variable_register,
+                    self._clause_register[clause_index],
+                    self._ancillary_register,
+                    mct_mode
+                )
 
-        # init the output qubit to 1
-        circuit.u3(pi, 0, pi, self._output_register[self._output_idx])
+            # init the output qubit to 1
+            circuit.u3(pi, 0, pi, self._output_register[self._output_idx])
 
-        # collect results from all clauses
-        circuit.u3(pi, 0, pi, self._clause_register)
-        circuit.mct(
-            self._clause_register,
-            self._output_register[self._output_idx],
-            self._ancillary_register,
-            mode=mct_mode
-        )
-        circuit.u3(pi, 0, pi, self._clause_register)
-
-        # uncompute all clauses
-        for clause_index, clause_expr in reversed(list(enumerate(self._expr))):
-            logic_and(
-                clause_expr,
-                circuit,
-                self._variable_register,
-                self._clause_register[clause_index],
+            # collect results from all clauses
+            circuit.u3(pi, 0, pi, self._clause_register)
+            circuit.mct(
+                self._clause_register,
+                self._output_register[self._output_idx],
                 self._ancillary_register,
-                mct_mode
+                mode=mct_mode
             )
+            circuit.u3(pi, 0, pi, self._clause_register)
 
+            # uncompute all clauses
+            for clause_index, clause_expr in enumerate(self._ast[1:]):
+                if clause_expr[0] == 'and':
+                    lits = [l[1] for l in clause_expr[1:]]
+                else:  # clause_expr[0] == 'lit':
+                    lits = [clause_expr[1]]
+                logic_and(
+                    lits,
+                    circuit,
+                    self._variable_register,
+                    self._clause_register[clause_index],
+                    self._ancillary_register,
+                    mct_mode
+                )
         return circuit
 
 
@@ -506,14 +606,21 @@ class ESOP(BooleanLogicNormalForm):
         )
 
         # compute all clauses
-        for clause_index, clause_expr in enumerate(self._expr):
-            logic_and(
-                clause_expr,
-                circuit,
-                self._variable_register,
-                self._output_register[self._output_idx],
-                self._ancillary_register,
-                mct_mode
-            )
+        if self._depth == 0:
+            self._construct_circuit_for_tiny_expr(circuit, output_idx=output_idx)
+        else:
+            for clause_index, clause_expr in enumerate(self._ast[1:]):
+                if clause_expr[0] == 'and':
+                    lits = [l[1] for l in clause_expr[1:]]
+                else:  # clause_expr[0] == 'lit':
+                    lits = [clause_expr[1]]
+                logic_and(
+                    lits,
+                    circuit,
+                    self._variable_register,
+                    self._output_register[self._output_idx],
+                    self._ancillary_register,
+                    mct_mode
+                )
 
         return circuit
