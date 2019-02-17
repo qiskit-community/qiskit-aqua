@@ -161,7 +161,7 @@ class TruthTableOracle(Oracle):
             ones = [i for i, v in enumerate(bitmap) if v == '1']
             if not ones:
                 return Expr(0)
-            dcs = [i for i, v in enumerate(bitmap) if v == 'x']
+            dcs = [i for i, v in enumerate(bitmap) if v == '*' or v == '-' or v.lower() == 'x']
             pis = get_prime_implicants(ones=ones, dcs=dcs)
             cover = get_exact_covers(ones, pis)[-1]
             clauses = []
