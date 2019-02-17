@@ -26,32 +26,21 @@ from qiskit.aqua import get_aer_backend, AquaError
 
 from test.common import QiskitAquaTestCase
 
+bitmap_a = ['00011110', '01100110', '10101010']
+bitmap_b = ['10010110', '01010101', '10000010']
+bitmap_c = ['01101001', '10011001', '01100110']
+
 
 class TestSimon(QiskitAquaTestCase):
     @parameterized.expand([
-        [
-            [
-                '00011110',
-                '01100110',
-                '10101010',
-            ]
-        ],
-        [
-            [
-                '10010110',
-                '01010101',
-                '10000010',
-            ]
-        ],
-        [
-            [
-                '01101001',
-                '10011001',
-                '01100110',
-            ]
-        ],
+        [bitmap_a],
+        [bitmap_a, 'qm-dlx'],
+        [bitmap_b],
+        [bitmap_b, 'qm-dlx'],
+        [bitmap_c],
+        [bitmap_c, 'qm-dlx'],
     ])
-    def test_simon(self, simon_input):
+    def test_simon(self, simon_input, optimization_mode=None):
         # find the two keys that have matching values
         nbits = int(math.log(len(simon_input[0]), 2))
         vals = list(zip(*simon_input))[::-1]
@@ -67,13 +56,12 @@ class TestSimon(QiskitAquaTestCase):
         hidden = np.binary_repr(k1 ^ k2, nbits)
 
         for mct_mode in ['basic', 'advanced', 'noancilla']:
-            for optimization_mode in [None, 'qm-dlx']:
-                backend = get_aer_backend('qasm_simulator')
-                oracle = TruthTableOracle(simon_input, optimization_mode=optimization_mode, mct_mode=mct_mode)
-                algorithm = Simon(oracle)
-                result = algorithm.run(backend)
-                # print(result['circuit'].draw(line_length=10000))
-                self.assertEqual(result['result'], hidden)
+            backend = get_aer_backend('qasm_simulator')
+            oracle = TruthTableOracle(simon_input, optimization_mode=optimization_mode, mct_mode=mct_mode)
+            algorithm = Simon(oracle)
+            result = algorithm.run(backend)
+            # print(result['circuit'].draw(line_length=10000))
+            self.assertEqual(result['result'], hidden)
 
 
 if __name__ == '__main__':
