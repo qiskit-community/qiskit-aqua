@@ -24,6 +24,8 @@ import math
 import numpy as np
 from functools import reduce
 
+from pyeda.inter import exprvars, And, Xor
+from pyeda.inter import expr as Expr
 from qiskit import QuantumRegister, QuantumCircuit
 
 from qiskit.aqua import AquaError
@@ -60,13 +62,20 @@ class TruthTableOracle(Oracle):
                         }
                     ]
                 },
-                'optmization_mode': {
-                    'type': ['string', 'null'],
-                    'default': 'null',
-                    'oneOf': [
+                "optimization_mode": {
+                    "anyOf": [
                         {
-                            'enum': [
-                                'qm-dlx',
+                            "type": "null",
+                        },
+                        {
+                            "type": "string",
+                            "default": "qm-dlx",
+                            'oneOf': [
+                                {
+                                    'enum': [
+                                        'qm-dlx',
+                                    ]
+                                }
                             ]
                         }
                     ]
@@ -75,10 +84,13 @@ class TruthTableOracle(Oracle):
                     'type': 'string',
                     'default': 'basic',
                     'oneOf': [
-                        {'enum': [
-                            'basic',
-                            'advanced'
-                        ]}
+                        {
+                            'enum': [
+                                'basic',
+                                'advanced',
+                                'noancilla',
+                            ]
+                        }
                     ]
                 },
             },
@@ -96,8 +108,8 @@ class TruthTableOracle(Oracle):
             optimization_mode (string): Optimization mode to use for minimizing the circuit.
                 Currently, besides no optimization if omitted, Aqua also supports a 'qm-dlx' mode,
                 which uses the Quine-McCluskey algorithm to compute the prime implicants of the truth table,
-                and then compute an exact cover to try to reduce the circuit;
-            mct_mode (str): The mode to use when constructing multiple-control Toffoli
+                and then compute an exact cover to try to reduce the circuit.
+            mct_mode (str): The mode to use when constructing multiple-control Toffoli.
         """
         self.validate(locals())
         self._mct_mode = mct_mode
@@ -124,51 +136,54 @@ class TruthTableOracle(Oracle):
         esop_exprs = []
         for bitmap in bitmaps:
             esop_expr = self._get_esop_expr(bitmap)
-            if self._num_outputs > 1 or esop_expr:
-                esop_exprs.append(esop_expr)
+            esop_exprs.append(esop_expr)
 
         self._esops = [
-            ESOP(esop_expr, num_vars=self._nbits) if esop_expr else None for esop_expr in esop_exprs
+            ESOP(esop_expr, num_vars=self._nbits) for esop_expr in esop_exprs
         ] if esop_exprs else None
 
         super().__init__()
 
     def _get_esop_expr(self, bitmap):
+        v = exprvars('v', self._nbits)
+
         def binstr_to_vars(binstr):
             return [
-                    x[1] * (-1 if x[0] == '0' else 1) for x in zip(binstr, reversed(range(1, self._nbits + 1)))
-                ][::-1]
+                       (~v[x[1] - 1] if x[0] == '0' else v[x[1] - 1]) for x in
+                       zip(binstr, reversed(range(1, self._nbits + 1)))
+                   ][::-1]
 
         if self._optimization_mode is None:
-            return [
-                binstr_to_vars(term) for term in [
-                    np.binary_repr(idx, self._nbits) for idx, v in enumerate(bitmap) if v == '1'
-                ]
-            ]
+            expr = Xor(*[
+                And(*binstr_to_vars(term)) for term in
+                [np.binary_repr(idx, self._nbits) for idx, v in enumerate(bitmap) if v == '1']])
         else:
             ones = [i for i, v in enumerate(bitmap) if v == '1']
             if not ones:
-                return []
+                return Expr(0)
             dcs = [i for i, v in enumerate(bitmap) if v == 'x']
             pis = get_prime_implicants(ones=ones, dcs=dcs)
             cover = get_exact_covers(ones, pis)[-1]
-            expr = []
+            clauses = []
             for c in cover:
                 if len(c) == 1:
                     term = np.binary_repr(c[0], self._nbits)
-                    clause = binstr_to_vars(term)
+                    clause = And(*[
+                        v for i, v in enumerate(binstr_to_vars(term))
+                    ])
                 elif len(c) > 1:
                     c_or = reduce(operator.or_, c)
                     c_and = reduce(operator.and_, c)
                     _ = np.binary_repr(c_and ^ c_or, self._nbits)[::-1]
-                    clause = [
+                    clause = And(*[
                         v for i, v in enumerate(binstr_to_vars(np.binary_repr(c_and, self._nbits))) if _[i] == '0'
-                    ]
+                    ])
                 else:
                     raise AquaError('Unexpected cover term size {}.'.format(len(c)))
                 if clause:
-                    expr.append(clause)
-            return expr
+                    clauses.append(clause)
+            expr = Xor(*clauses)
+        return expr
 
     @property
     def variable_register(self):
