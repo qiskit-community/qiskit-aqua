@@ -36,7 +36,8 @@ requirements = [
     "setuptools>=40.5.0",
     "pyobjc-core; sys_platform == 'darwin'",
     "pyobjc-framework-Cocoa; sys_platform == 'darwin'",
-    "dlx"
+    "dlx",
+    "pyeda"
 ]
 
 setuptools.setup(
