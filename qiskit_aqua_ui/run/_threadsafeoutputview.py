@@ -22,6 +22,7 @@ import queue
 import string
 import platform
 
+
 class ThreadSafeOutputView(ScrollbarView):
 
     _DELAY = 50
@@ -46,6 +47,7 @@ class ThreadSafeOutputView(ScrollbarView):
                     self._write()
                 else:
                     self._write(str(line), False)
+
                 self.update_idletasks()
         except:
             pass
@@ -53,16 +55,33 @@ class ThreadSafeOutputView(ScrollbarView):
         self.after(ThreadSafeOutputView._DELAY, self._updateText)
 
     def write(self, text):
-        if text is not None:
-            text = str(text)
-            if len(text) > 0:
-                # remove any non printable character that will cause the Text widget to hang
-                text = ''.join([x if x == ThreadSafeOutputView._FULL_BLOCK_CHAR or
-                                x in string.printable else '' for x in text])
-                if platform.system() == "Windows": # Under Windows unicode block is escaped
-                    text = text.replace('\\u2588',u"\u2588")
-                if len(text) > 0:
-                    self._queue.put(text)
+        if text is None:
+            return
+
+        text = str(text)
+        if len(text) == 0:
+            return
+
+        # remove any non printable character that will cause the Text widget to hang
+        text = ''.join([x if x == ThreadSafeOutputView._FULL_BLOCK_CHAR or
+                        x in string.printable else '' for x in text])
+        if platform.system() == "Windows":  # Under Windows unicode block is escaped
+            text = text.replace('\\u2588', u"\u2588")
+        if len(text) == 0:
+            return
+
+        # break cr into separate queue entries
+        pos = text.find(ThreadSafeOutputView._CR)  # look for cr in text
+        while pos >= 0:  # text contains cr
+            line = text[:pos]  # up to but not including the end cr
+            if len(line) > 0:
+                self._queue.put(line)
+
+            text = text[pos:]  # get text with cr in front
+            pos = text.find(ThreadSafeOutputView._CR, 1)  # look for cr in text after first pos
+
+        if len(text) > 0:  # insert any remaining text
+            self._queue.put(text)
 
     def flush(self):
         pass
