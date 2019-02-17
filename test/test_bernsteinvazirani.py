@@ -21,7 +21,7 @@ from parameterized import parameterized
 
 from qiskit.aqua.components.oracles import TruthTableOracle
 from qiskit.aqua.algorithms import BernsteinVazirani
-from qiskit.aqua import get_aer_backend, AquaError
+from qiskit.aqua import get_aer_backend
 
 from test.common import QiskitAquaTestCase
 

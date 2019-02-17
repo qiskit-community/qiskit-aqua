@@ -17,8 +17,10 @@
 """
 This module contains the definition of a base class for Oracle.
 """
-from qiskit.aqua import Pluggable
+
 from abc import abstractmethod
+
+from qiskit.aqua import Pluggable
 
 
 class Oracle(Pluggable):

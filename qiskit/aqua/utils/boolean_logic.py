@@ -18,7 +18,6 @@
 The Boolean Logic Utility Classes.
 """
 
-import itertools
 import logging
 from abc import abstractmethod, ABC
 

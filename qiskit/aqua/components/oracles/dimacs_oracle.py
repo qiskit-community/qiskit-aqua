@@ -21,7 +21,6 @@ The DIMACS-based Quantum Oracle.
 import logging
 
 from pyeda.inter import espresso_exprs
-from pyeda.boolalg.bfarray import exprvars
 from pyeda.boolalg.expr import ast2expr, AndOp, OrOp
 from pyeda.parsing.dimacs import parse_cnf
 from qiskit import QuantumRegister, QuantumCircuit
