@@ -29,9 +29,11 @@ from test.common import QiskitAquaTestCase
 class TestBernsteinVazirani(QiskitAquaTestCase):
     @parameterized.expand([
         ['00111100'],
-        ['01011010']
+        ['00111100', 'qm-dlx'],
+        ['01011010'],
+        ['01011010', 'qm-dlx']
     ])
-    def test_bernsteinvazirani(self, bv_input):
+    def test_bernsteinvazirani(self, bv_input, optimization_mode=None):
         nbits = int(math.log(len(bv_input), 2))
 
         # compute the ground-truth classically
@@ -40,13 +42,12 @@ class TestBernsteinVazirani(QiskitAquaTestCase):
             bit = bv_input[2 ** i]
             parameter += bit
 
-        for optimization_mode in [None, 'qm-dlx']:
-            backend = get_aer_backend('qasm_simulator')
-            oracle = TruthTableOracle(bv_input, optimization_mode=optimization_mode)
-            algorithm = BernsteinVazirani(oracle)
-            result = algorithm.run(backend)
-            # print(result['circuit'].draw(line_length=10000))
-            self.assertEqual(result['result'], parameter)
+        backend = get_aer_backend('qasm_simulator')
+        oracle = TruthTableOracle(bv_input, optimization_mode=optimization_mode)
+        algorithm = BernsteinVazirani(oracle)
+        result = algorithm.run(backend)
+        # print(result['circuit'].draw(line_length=10000))
+        self.assertEqual(result['result'], parameter)
 
 
 if __name__ == '__main__':

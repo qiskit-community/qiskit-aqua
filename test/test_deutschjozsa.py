@@ -28,21 +28,26 @@ from test.common import QiskitAquaTestCase
 class TestDeutschJozsa(QiskitAquaTestCase):
     @parameterized.expand([
         ['0000'],
+        ['0000', 'qm-dlx'],
         ['1111'],
+        ['1111', 'qm-dlx'],
         ['0101'],
-        ['11110000']
+        ['0101', 'qm-dlx'],
+        ['1111'],
+        ['1111', 'qm-dlx'],
+        ['11110000'],
+        ['11110000', 'qm-dlx']
     ])
-    def test_deutschjozsa(self, dj_input):
-        for optimization_mode in [None, 'qm-dlx']:
-            backend = get_aer_backend('qasm_simulator')
-            oracle = TruthTableOracle(dj_input, optimization_mode=optimization_mode)
-            algorithm = DeutschJozsa(oracle)
-            result = algorithm.run(backend)
-            # print(result['circuit'].draw(line_length=10000))
-            if sum([int(i) for i in dj_input]) == len(dj_input) / 2:
-                self.assertTrue(result['result'] == 'balanced')
-            else:
-                self.assertTrue(result['result'] == 'constant')
+    def test_deutschjozsa(self, dj_input, optimization_mode=None):
+        backend = get_aer_backend('qasm_simulator')
+        oracle = TruthTableOracle(dj_input, optimization_mode=optimization_mode)
+        algorithm = DeutschJozsa(oracle)
+        result = algorithm.run(backend)
+        # print(result['circuit'].draw(line_length=10000))
+        if sum([int(i) for i in dj_input]) == len(dj_input) / 2:
+            self.assertTrue(result['result'] == 'balanced')
+        else:
+            self.assertTrue(result['result'] == 'constant')
 
 
 if __name__ == '__main__':

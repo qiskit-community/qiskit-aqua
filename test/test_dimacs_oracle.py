@@ -57,29 +57,32 @@ sols_3 = [(True, True, True), (True, False, True), (False, False, False), (True,
 class TestDimacsOracle(QiskitAquaTestCase):
     @parameterized.expand([
         [dimacs_str_1, sols_1],
+        [dimacs_str_1, sols_1, 'espresso'],
         [dimacs_str_2, sols_2],
+        [dimacs_str_2, sols_2, 'espresso'],
         [dimacs_str_3, sols_3],
+        [dimacs_str_3, sols_3, 'espresso'],
     ])
-    def test_dimacs_oracle(self, dimacs_str, sols):
+    def test_dimacs_oracle(self, dimacs_str, sols, optimization_mode=None):
         num_shots = 1024
-        for mct_mode in ['basic', 'advanced', 'noancilla']:
-            do = DimacsOracle(dimacs_str, mct_mode=mct_mode)
-            do_circuit = do.construct_circuit()
-            m = ClassicalRegister(1, name='m')
-            for assignment in itertools.product([True, False], repeat=len(do.variable_register)):
-                qc = QuantumCircuit(m, do.variable_register)
-                for idx, tf in enumerate(assignment):
-                    if tf:
-                        qc.x(do.variable_register[idx])
-                qc += do_circuit
-                qc.barrier(do.output_register)
-                qc.measure(do.output_register, m)
-                counts = q_execute(qc, get_aer_backend(
-                    'qasm_simulator'), shots=num_shots).result().get_counts(qc)
-                if assignment in sols:
-                    assert(counts['1'] == num_shots)
-                else:
-                    assert(counts['0'] == num_shots)
+        do = DimacsOracle(dimacs_str, optimization_mode=optimization_mode)
+        do_circuit = do.circuit
+        m = ClassicalRegister(1, name='m')
+        for assignment in itertools.product([True, False], repeat=len(do.variable_register)):
+            qc = QuantumCircuit(m, do.variable_register)
+            for idx, tf in enumerate(assignment):
+                if tf:
+                    qc.x(do.variable_register[idx])
+            qc += do_circuit
+            qc.barrier(do.output_register)
+            qc.measure(do.output_register, m)
+            # print(qc.draw(line_length=10000))
+            counts = q_execute(qc, get_aer_backend(
+                'qasm_simulator'), shots=num_shots).result().get_counts(qc)
+            if assignment in sols:
+                assert(counts['1'] == num_shots)
+            else:
+                assert(counts['0'] == num_shots)
 
 
 if __name__ == '__main__':

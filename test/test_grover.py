@@ -30,10 +30,13 @@ class TestGrover(QiskitAquaTestCase):
 
     @parameterized.expand([
         ['test_grover.cnf', False, 3],
+        ['test_grover.cnf', False, 3, 'espresso'],
         ['test_grover_tiny.cnf', False, 1],
+        ['test_grover_tiny.cnf', False, 1, 'espresso'],
         ['test_grover_no_solution.cnf', True, 1],
+        ['test_grover_no_solution.cnf', True, 1, 'espresso'],
     ])
-    def test_grover(self, dimacs_file, incremental, num_iterations):
+    def test_grover(self, dimacs_file, incremental, num_iterations, optimization_mode=None):
         dimacs_file = self._get_resource_path(dimacs_file)
         # get ground-truth
         with open(dimacs_file) as f:
@@ -58,7 +61,7 @@ class TestGrover(QiskitAquaTestCase):
         for mct_mode in ['basic', 'advanced']:
             for simulator in ['qasm_simulator', 'statevector_simulator']:
                 backend = get_aer_backend(simulator)
-                dimacs_oracle = DimacsOracle(buf)
+                dimacs_oracle = DimacsOracle(buf, optimization_mode=optimization_mode)
                 grover = Grover(
                     dimacs_oracle, num_iterations=num_iterations, incremental=incremental, mct_mode=mct_mode
                 )
