@@ -18,10 +18,12 @@
 from .oracle import Oracle
 from .dimacs_oracle import DimacsOracle
 from .truth_table_oracle import TruthTableOracle
+from .logic_expr_oracle import LogicExpressionOracle
 
 
 __all__ = [
     'Oracle',
     'DimacsOracle',
     'TruthTableOracle',
+    'LogicExpressionOracle',
 ]
