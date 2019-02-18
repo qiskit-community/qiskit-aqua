@@ -26,6 +26,7 @@ from qiskit.aqua.components.oracles import DimacsOracle
 
 from test.common import QiskitAquaTestCase
 
+
 class TestGrover(QiskitAquaTestCase):
 
     @parameterized.expand([
