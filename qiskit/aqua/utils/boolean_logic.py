@@ -170,6 +170,13 @@ def logic_and(clause_expr, circuit, variable_register, target_qubit, ancillary_r
         circuit.u3(pi, 0, pi, variable_register[-idx - 1])
 
 
+def get_ast_depth(ast):
+    if ast[0] == 'const' or ast[0] == 'lit':
+        return 0
+    else:
+        return 1 + max([get_ast_depth(c) for c in ast[1:]])
+
+
 class BooleanLogicNormalForm(ABC):
     """
     The base abstract class for:
@@ -177,41 +184,28 @@ class BooleanLogicNormalForm(ABC):
     - DNF (Disjunctive Normal Forms), and
     - ESOP (Exclusive Sum of Products)
     """
-    def __init__(self, expr, num_vars=None, depth=None):
+    def __init__(self, ast, num_vars):
         """
         Constructor.
 
         Args:
-            expr (Expression): The logic expression
+            ast (tuple): The logic expression as an Abstract Syntax Tree (AST) tuple
             num_vars (int): Number of boolean variables
-            depth (int): Specified depth of the expression
         """
 
-        if expr.depth > 2 or (depth is not None and depth > 2):
+        ast_depth = get_ast_depth(ast)
+
+        if ast_depth > 2:
             raise NotImplementedError
-        if depth is not None and expr.depth > depth:
-            raise AquaError('Specified depth {} is lower than the actual depth {}.'.format(depth, expr.depth))
-        self._expr = expr
-        self._depth = expr.depth if depth is None else depth
-        num_vars_inferred = expr.degree
-        if num_vars is None:
-            self._num_variables = num_vars_inferred
-        else:
-            if num_vars >= num_vars_inferred:
-                self._num_variables = num_vars
-            else:
-                raise AquaError('Specified num_vars {} and input expression {} are incompatible.'.format(
-                    num_vars, expr
-                ))
+        self._depth = ast_depth
+        self._num_variables = num_vars
 
-        ast = expr.to_ast()
-
-        if expr.depth == 0:
+        if ast_depth == 0:
             self._ast = ast
             self._num_clauses = 0
             self._max_clause_size = 0
         else:
-            if expr.depth == 1:
+            if ast_depth == 1:
                 if self._depth == 1:
                     self._num_clauses = 1
                     self._max_clause_size = len(ast) - 1
@@ -227,7 +221,7 @@ class BooleanLogicNormalForm(ABC):
                     self._max_clause_size = 1
                     self._ast = (ast[0], *[(op, l) for l in ast[1:]])
 
-            else:  # expr.depth == 2
+            else:  # self._depth == 2
                 self._num_clauses = len(ast) - 1
                 self._max_clause_size = max([len(l) - 1 for l in ast[1:]])
                 self._ast = ast
@@ -236,18 +230,6 @@ class BooleanLogicNormalForm(ABC):
         self._clause_register = None
         self._output_register = None
         self._ancillary_register = None
-
-    @staticmethod
-    def get_nested_lists(expr):
-        if expr.depth == 1:
-            expr = [[v[1] for v in expr.to_ast()[1:]]]
-        else:  # depth == 2
-            expr = [[v[1] for v in c[1:]] for c in expr.to_ast()[1:]]
-        return expr
-
-    @property
-    def expr(self):
-        return self._expr
 
     @property
     def num_variables(self):
@@ -348,7 +330,7 @@ class BooleanLogicNormalForm(ABC):
         return circuit
 
     def _construct_circuit_for_tiny_expr(self, circuit, output_idx=0):
-        if self._expr.is_one():
+        if self._ast == ('const', 1):
             circuit.u3(pi, 0, pi, self._output_register[output_idx])
         elif self._ast[0] == 'lit':
             idx = abs(self._ast[1]) - 1
@@ -501,7 +483,7 @@ class DNF(BooleanLogicNormalForm):
         )
         if self._depth == 0:
             self._construct_circuit_for_tiny_expr(circuit)
-        elif self._expr.depth == 1:
+        elif self._depth == 1:
             circuit.u3(pi, 0, pi, self._variable_register)
             circuit.u3(pi, 0, pi, self._output_register)
             lits = [l[1] for l in self._ast[1:]]
@@ -513,7 +495,7 @@ class DNF(BooleanLogicNormalForm):
                 self._ancillary_register,
                 mct_mode
             )
-        else:  # self._expr.depth == 2
+        else:  # self._depth == 2
             # compute all clauses
             for clause_index, clause_expr in enumerate(self._ast[1:]):
                 if clause_expr[0] == 'and':
