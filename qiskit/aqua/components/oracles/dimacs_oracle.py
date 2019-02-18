@@ -98,7 +98,26 @@ class DimacsOracle(Oracle):
 
         if dimacs_str is None:
             raise ValueError('Missing input DIMACS string.')
-        expr = ast2expr(parse_cnf(dimacs_str.strip()))
+        ast = parse_cnf(dimacs_str.strip(), varname='v')
+
+        def move_vars_to_0_based(ast):
+            clauses = []
+            for c in ast[1:]:
+                clause = []
+                for l in c[1:]:
+                    if l[0] == 'not':
+                        new_lit = ('not', ('var', ('v',), (l[1][-1][0] - 1,),),)
+                    else:
+                        new_lit = ('var', ('v',), (l[-1][0] - 1,),)
+                    clause.append(new_lit)
+                # print('\t', c)
+                # print('\t', ('or', *tuple(clause)))
+                clauses.append(('or', *tuple(clause)))
+            return ('and', *tuple(clauses))
+
+        ast = move_vars_to_0_based(ast)
+
+        expr = ast2expr(ast)
         self._num_vars = expr.degree
 
         if optimization_mode is None:
