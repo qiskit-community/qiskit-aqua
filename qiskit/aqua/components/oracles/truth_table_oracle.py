@@ -25,7 +25,6 @@ import numpy as np
 from functools import reduce
 
 from pyeda.inter import exprvars, And, Xor
-from pyeda.inter import expr as Expr
 from qiskit import QuantumRegister, QuantumCircuit
 
 from qiskit.aqua import AquaError
@@ -135,7 +134,7 @@ class TruthTableOracle(Oracle):
 
         esop_exprs = []
         for bitmap in bitmaps:
-            esop_expr = self._get_esop_expr(bitmap)
+            esop_expr = self._get_esop_ast(bitmap)
             esop_exprs.append(esop_expr)
 
         self._esops = [
@@ -144,23 +143,23 @@ class TruthTableOracle(Oracle):
 
         super().__init__()
 
-    def _get_esop_expr(self, bitmap):
+    def _get_esop_ast(self, bitmap):
         v = exprvars('v', self._nbits)
 
         def binstr_to_vars(binstr):
             return [
-                       (~v[x[1] - 1] if x[0] == '0' else v[x[1] - 1]) for x in
-                       zip(binstr, reversed(range(1, self._nbits + 1)))
+                       (~v[x[1] - 1] if x[0] == '0' else v[x[1] - 1])
+                       for x in zip(binstr, reversed(range(1, self._nbits + 1)))
                    ][::-1]
 
         if self._optimization_mode is None:
-            expr = Xor(*[
+            expression = Xor(*[
                 And(*binstr_to_vars(term)) for term in
                 [np.binary_repr(idx, self._nbits) for idx, v in enumerate(bitmap) if v == '1']])
         else:
             ones = [i for i, v in enumerate(bitmap) if v == '1']
             if not ones:
-                return Expr(0)
+                return ('const', 0)
             dcs = [i for i, v in enumerate(bitmap) if v == '*' or v == '-' or v.lower() == 'x']
             pis = get_prime_implicants(ones=ones, dcs=dcs)
             cover = get_exact_covers(ones, pis)[-1]
@@ -182,8 +181,8 @@ class TruthTableOracle(Oracle):
                     raise AquaError('Unexpected cover term size {}.'.format(len(c)))
                 if clause:
                     clauses.append(clause)
-            expr = Xor(*clauses)
-        return expr
+            expression = Xor(*clauses)
+        return expression.to_ast()
 
     @property
     def variable_register(self):
