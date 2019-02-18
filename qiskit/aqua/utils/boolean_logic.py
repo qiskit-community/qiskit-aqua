@@ -165,10 +165,7 @@ def logic_and(clause_expr, circuit, variable_register, target_qubit, ancillary_r
     anc_bits = [ancillary_register[idx] for idx in range(len(qs) - 2)] if ancillary_register else None
     for idx in [v for v in clause_expr if v < 0]:
         circuit.u3(pi, 0, pi, variable_register[-idx - 1])
-    try:
-        circuit.mct(ctl_bits, target_qubit, anc_bits, mode=mct_mode)
-    except:
-        pass
+    circuit.mct(ctl_bits, target_qubit, anc_bits, mode=mct_mode)
     for idx in [v for v in clause_expr if v < 0]:
         circuit.u3(pi, 0, pi, variable_register[-idx - 1])
 
@@ -207,12 +204,13 @@ class BooleanLogicNormalForm(ABC):
                     num_vars, expr
                 ))
 
+        ast = expr.to_ast()
+
         if expr.depth == 0:
-            self._ast = expr.to_ast()
+            self._ast = ast
             self._num_clauses = 0
             self._max_clause_size = 0
         else:
-            ast = expr.to_ast()
             if expr.depth == 1:
                 if self._depth == 1:
                     self._num_clauses = 1
