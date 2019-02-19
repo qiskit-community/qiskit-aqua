@@ -18,9 +18,9 @@
 import math
 import itertools
 import numpy as np
-from parameterized import parameterized
 import unittest
 
+from parameterized import parameterized
 from qiskit.aqua.components.oracles import TruthTableOracle
 from qiskit.aqua.algorithms import Simon
 from qiskit.aqua import get_aer_backend, AquaError

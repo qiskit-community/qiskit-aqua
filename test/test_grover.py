@@ -24,7 +24,6 @@ from qiskit.qobj import RunConfig
 from qiskit.aqua import QuantumInstance, get_aer_backend
 from qiskit.aqua.algorithms import Grover
 from qiskit.aqua.components.oracles import DimacsOracle
-
 from test.common import QiskitAquaTestCase
 
 grover_tests = [

@@ -23,8 +23,8 @@ from qiskit import execute as q_execute
 from qiskit import QuantumCircuit, ClassicalRegister
 from qiskit.aqua import get_aer_backend
 
-from test.common import QiskitAquaTestCase
 from qiskit.aqua.components.oracles import DimacsOracle
+from test.common import QiskitAquaTestCase
 
 dimacs_tests = [
     [

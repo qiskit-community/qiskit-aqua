@@ -18,12 +18,12 @@
 import unittest
 import itertools
 import math
+
 from parameterized import parameterized
 
 from qiskit.aqua.components.oracles import TruthTableOracle
 from qiskit.aqua.algorithms import BernsteinVazirani
 from qiskit.aqua import get_aer_backend
-
 from test.common import QiskitAquaTestCase
 
 bitmaps = ['00111100', '01011010']
