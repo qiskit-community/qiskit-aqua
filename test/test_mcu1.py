@@ -30,9 +30,9 @@ from test.common import QiskitAquaTestCase
 
 
 class TestMCU1(QiskitAquaTestCase):
-    @parameterized.expand([
+    @parameterized.expand(
         [[i + 1] for i in range(7)]
-    ])
+    )
     def test_mcu1(self, num_controls):
         c = QuantumRegister(num_controls, name='c')
         o = QuantumRegister(1, name='o')
