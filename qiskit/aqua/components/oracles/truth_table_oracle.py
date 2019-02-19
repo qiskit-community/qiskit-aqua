@@ -99,7 +99,7 @@ class TruthTableOracle(Oracle):
             bitmaps (str or [str]): A single binary string or a list of binary strings representing the desired
                 single- and multi-value truth table.
             optimization (str): Optimization mode to use for minimizing the circuit.
-                Currently, besides no optimization if omitted, Aqua also supports a 'qm-dlx' mode,
+                Currently, besides no optimization ('off'), Aqua also supports a 'qm-dlx' mode,
                 which uses the Quine-McCluskey algorithm to compute the prime implicants of the truth table,
                 and then compute an exact cover to try to reduce the circuit.
             mct_mode (str): The mode to use when constructing multiple-control Toffoli.

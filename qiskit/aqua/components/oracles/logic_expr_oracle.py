@@ -85,7 +85,7 @@ class LogicExpressionOracle(Oracle):
                 It could be either in the DIMACS CNF format,
                 or a general boolean logic expression, such as 'a ^ b' and 'v[0] & (~v[1] | v[2])'
             optimization (str): The mode of optimization to use for minimizing the circuit.
-                Currently, besides no optimization if omitted, Aqua also supports an 'expresso' mode
+                Currently, besides no optimization ('off'), Aqua also supports an 'espresso' mode
                 <https://en.wikipedia.org/wiki/Espresso_heuristic_logic_minimizer>
             mct_mode (str): The mode to use for building Multiple-Control Toffoli.
         """
