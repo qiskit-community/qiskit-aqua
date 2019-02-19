@@ -23,7 +23,7 @@ from qiskit import execute as q_execute
 from qiskit import QuantumCircuit, ClassicalRegister
 from qiskit.aqua import get_aer_backend
 
-from qiskit.aqua.components.oracles import DimacsOracle
+from qiskit.aqua.components.oracles import LogicExpressionOracle
 from test.common import QiskitAquaTestCase
 
 dimacs_tests = [
@@ -60,26 +60,26 @@ dimacs_tests = [
     ],
 ]
 mct_modes = ['basic', 'advanced', 'noancilla']
-optimization_modes = [None, 'espresso']
+optimization_modes = ['off', 'espresso']
 
 
-class TestDimacsOracle(QiskitAquaTestCase):
+class TestDimacs(QiskitAquaTestCase):
     @parameterized.expand(
         [x[0] + list(x[1:]) for x in list(itertools.product(dimacs_tests, mct_modes, optimization_modes))]
     )
-    def test_dimacs_oracle(self, dimacs_str, sols, mct_mode, optimization_mode=None):
+    def test_dimacs(self, dimacs_str, sols, mct_mode, optimization_mode=None):
         num_shots = 1024
-        do = DimacsOracle(dimacs_str, optimization_mode=optimization_mode, mct_mode=mct_mode)
-        do_circuit = do.circuit
+        leo = LogicExpressionOracle(dimacs_str, optimization=optimization_mode, mct_mode=mct_mode)
+        leo_circuit = leo.circuit
         m = ClassicalRegister(1, name='m')
-        for assignment in itertools.product([True, False], repeat=len(do.variable_register)):
-            qc = QuantumCircuit(m, do.variable_register)
+        for assignment in itertools.product([True, False], repeat=len(leo.variable_register)):
+            qc = QuantumCircuit(m, leo.variable_register)
             for idx, tf in enumerate(assignment):
                 if tf:
-                    qc.x(do.variable_register[idx])
-            qc += do_circuit
-            qc.barrier(do.output_register)
-            qc.measure(do.output_register, m)
+                    qc.x(leo.variable_register[idx])
+            qc += leo_circuit
+            qc.barrier(leo.output_register)
+            qc.measure(leo.output_register, m)
             # print(qc.draw(line_length=10000))
             counts = q_execute(qc, get_aer_backend(
                 'qasm_simulator'), shots=num_shots).result().get_counts(qc)

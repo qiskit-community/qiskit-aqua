@@ -21,7 +21,8 @@ The General Logic Expression-based Quantum Oracle.
 import logging
 
 from pyeda.inter import espresso_exprs
-from pyeda.boolalg.expr import AndOp, OrOp, expr
+from pyeda.boolalg.expr import AndOp, OrOp, ast2expr, expr
+from pyeda.parsing.dimacs import parse_cnf
 from qiskit import QuantumCircuit, QuantumRegister
 
 from qiskit.aqua import AquaError
@@ -42,23 +43,17 @@ class LogicExpressionOracle(Oracle):
             'id': 'logic_expr_oracle_schema',
             'type': 'object',
             'properties': {
-                'logic_expr_str': {
+                'expression': {
                     'type': 'string',
                 },
-                "optimization_mode": {
-                    "anyOf": [
+                "optimization": {
+                    "type": "string",
+                    "default": "espresso",
+                    'oneOf': [
                         {
-                            "type": "null",
-                        },
-                        {
-                            "type": "string",
-                            "default": "espresso",
-                            'oneOf': [
-                                {
-                                    'enum': [
-                                        'espresso',
-                                    ]
-                                }
+                            'enum': [
+                                'off',
+                                'espresso'
                             ]
                         }
                     ]
@@ -81,13 +76,15 @@ class LogicExpressionOracle(Oracle):
         }
     }
 
-    def __init__(self, logic_expr_str=None, optimization_mode=None, mct_mode='basic'):
+    def __init__(self, expression=None, optimization='off', mct_mode='basic'):
         """
         Constructor.
 
         Args:
-            logic_expr_str (str): The string representation of a general boolean logic expression.
-            optimization_mode (string): Optimization mode to use for minimizing the circuit.
+            expression (str): The string of the desired logic expression.
+                It could be either in the DIMACS CNF format,
+                or a general boolean logic expression, such as 'a ^ b' and 'v[0] & (~v[1] | v[2])'
+            optimization (str): The mode of optimization to use for minimizing the circuit.
                 Currently, besides no optimization if omitted, Aqua also supports an 'expresso' mode
                 <https://en.wikipedia.org/wiki/Espresso_heuristic_logic_minimizer>
             mct_mode (str): The mode to use for building Multiple-Control Toffoli.
@@ -95,20 +92,26 @@ class LogicExpressionOracle(Oracle):
 
         self.validate(locals())
         self._mct_mode = mct_mode
-        self._optimization_mode = optimization_mode
+        self._optimization = optimization.lower()
 
-        if logic_expr_str is None:
-            raise ValueError('Missing input logic expression string.')
+        if expression is None:
+            raw_expr = expr(None)
+        else:
+            try:
+                raw_expr = expr(expression)
+            except:
+                try:
+                    raw_expr = ast2expr(parse_cnf(expression.strip(), varname='v'))
+                except:
+                    raise AquaError('Failed to parse the input expression: {}.'.format(expression))
 
-        raw_expr = expr(logic_expr_str)
         self._expr = raw_expr
-
         self._process_expr()
 
         super().__init__()
 
     @staticmethod
-    def apply_offset_to_lits(raw_ast, offset):
+    def apply_offset_to_literals(raw_ast, offset):
         if raw_ast[0] == 'and' or raw_ast[0] == 'or':
             clauses = []
             for c in raw_ast[1:]:
@@ -131,17 +134,17 @@ class LogicExpressionOracle(Oracle):
         self._num_vars = self._expr.degree
         ast = self._expr.to_cnf().to_ast()
 
-        ast = LogicExpressionOracle.apply_offset_to_lits(ast, min(self._expr.usupport) - 1)
+        ast = LogicExpressionOracle.apply_offset_to_literals(ast, min(self._expr.usupport) - 1)
 
-        if self._optimization_mode is None:
+        if self._optimization == 'off':
             self._nf = CNF(ast, num_vars=self._num_vars)
-        elif self._optimization_mode == 'espresso':
+        elif self._optimization == 'espresso':
             expr_dnf = self._expr.to_dnf()
             if expr_dnf.is_zero() or expr_dnf.is_one():
                 self._nf = CNF(('const', 0 if expr_dnf.is_zero() else 1), num_vars=self._num_vars)
             else:
                 expr_dnf_m = espresso_exprs(expr_dnf)[0]
-                expr_dnf_m_ast = LogicExpressionOracle.apply_offset_to_lits(
+                expr_dnf_m_ast = LogicExpressionOracle.apply_offset_to_literals(
                     expr_dnf_m.to_ast(), min(expr_dnf_m.usupport) - 1
                 )
                 if isinstance(expr_dnf_m, AndOp):
@@ -150,6 +153,8 @@ class LogicExpressionOracle(Oracle):
                     self._nf = DNF(expr_dnf_m_ast, num_vars=self._num_vars)
                 else:
                     raise AquaError('Unexpected espresso optimization result expr: {}'.format(expr_dnf_m))
+        else:
+            raise AquaError('Unrecognized optimization mode: {}.'.format(self._optimization))
 
     @property
     def variable_register(self):
@@ -186,16 +191,16 @@ class LogicExpressionOracle(Oracle):
         else:
             prime_implicants = self._expr.complete_sum()
             if isinstance(prime_implicants, AndOp):
-                prime_implicants_ast = LogicExpressionOracle.apply_offset_to_lits(
+                prime_implicants_ast = LogicExpressionOracle.apply_offset_to_literals(
                     prime_implicants.to_ast(), min(prime_implicants.usupport) - 1
                 )
                 sols = [[l[1] for l in prime_implicants_ast[1:]]]
             elif isinstance(prime_implicants, OrOp):
                 expr_complete_sum = self._expr.complete_sum()
-                complete_sum_ast = LogicExpressionOracle.apply_offset_to_lits(
+                complete_sum_ast = LogicExpressionOracle.apply_offset_to_literals(
                     expr_complete_sum.to_ast(), min(expr_complete_sum.usupport) - 1
                 )
-                sols =[[l[1] for l in c[1:]] for c in complete_sum_ast[1:]]
+                sols = [[l[1] for l in c[1:]] for c in complete_sum_ast[1:]]
             else:
                 raise AquaError('Unexpected solution: {}'.format(prime_implicants))
             found = assignment in sols

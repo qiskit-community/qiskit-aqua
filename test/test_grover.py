@@ -23,7 +23,7 @@ from qiskit.qobj import RunConfig
 
 from qiskit.aqua import QuantumInstance, get_aer_backend
 from qiskit.aqua.algorithms import Grover
-from qiskit.aqua.components.oracles import DimacsOracle
+from qiskit.aqua.components.oracles import LogicExpressionOracle
 from test.common import QiskitAquaTestCase
 
 grover_tests = [
@@ -33,7 +33,7 @@ grover_tests = [
 ]
 mct_modes = ['basic', 'advanced', 'noancilla']
 simulators = ['qasm_simulator', 'statevector_simulator']
-optimization_modes = [None, 'espresso']
+optimization_modes = ['off', 'espresso']
 
 
 class TestGrover(QiskitAquaTestCase):
@@ -63,9 +63,9 @@ class TestGrover(QiskitAquaTestCase):
             for s in header.split('solutions:' if header.find('solutions:') >= 0 else 'solution:')[-1].split(',')
         ]
         backend = get_aer_backend(simulator)
-        dimacs_oracle = DimacsOracle(buf, optimization_mode=optimization_mode)
+        oracle = LogicExpressionOracle(buf, optimization=optimization_mode)
         grover = Grover(
-            dimacs_oracle, num_iterations=num_iterations, incremental=incremental, mct_mode=mct_mode
+            oracle, num_iterations=num_iterations, incremental=incremental, mct_mode=mct_mode
         )
         run_config = RunConfig(shots=1000, max_credits=10, memory=False)
         quantum_instance = QuantumInstance(backend, run_config)
