@@ -33,14 +33,14 @@ bitmaps = [
     ['01101001', '10011001', '01100110'],
 ]
 mct_modes = ['basic', 'advanced', 'noancilla']
-optimization_modes = [None, 'qm-dlx']
+optimizations = ['off', 'qm-dlx']
 
 
 class TestSimon(QiskitAquaTestCase):
     @parameterized.expand(
-        itertools.product(bitmaps, mct_modes, optimization_modes)
+        itertools.product(bitmaps, mct_modes, optimizations)
     )
-    def test_simon(self, simon_input, mct_mode, optimization_mode=None):
+    def test_simon(self, simon_input, mct_mode, optimization='off'):
         # find the two keys that have matching values
         nbits = int(math.log(len(simon_input[0]), 2))
         vals = list(zip(*simon_input))[::-1]
@@ -56,7 +56,7 @@ class TestSimon(QiskitAquaTestCase):
         hidden = np.binary_repr(k1 ^ k2, nbits)
 
         backend = get_aer_backend('qasm_simulator')
-        oracle = TruthTableOracle(simon_input, optimization_mode=optimization_mode, mct_mode=mct_mode)
+        oracle = TruthTableOracle(simon_input, optimization=optimization, mct_mode=mct_mode)
         algorithm = Simon(oracle)
         result = algorithm.run(backend)
         # print(result['circuit'].draw(line_length=10000))

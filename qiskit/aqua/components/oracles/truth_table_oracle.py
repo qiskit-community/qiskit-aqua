@@ -61,20 +61,14 @@ class TruthTableOracle(Oracle):
                         }
                     ]
                 },
-                "optimization_mode": {
-                    "anyOf": [
+                "optimization": {
+                    "type": "string",
+                    "default": "espresso",
+                    'oneOf': [
                         {
-                            "type": "null",
-                        },
-                        {
-                            "type": "string",
-                            "default": "qm-dlx",
-                            'oneOf': [
-                                {
-                                    'enum': [
-                                        'qm-dlx',
-                                    ]
-                                }
+                            'enum': [
+                                'off',
+                                'qm-dlx'
                             ]
                         }
                     ]
@@ -97,14 +91,14 @@ class TruthTableOracle(Oracle):
         }
     }
 
-    def __init__(self, bitmaps, optimization_mode=None, mct_mode='basic'):
+    def __init__(self, bitmaps, optimization='off', mct_mode='basic'):
         """
         Constructor for Truth Table-based Oracle
 
         Args:
             bitmaps (str or [str]): A single binary string or a list of binary strings representing the desired
                 single- and multi-value truth table.
-            optimization_mode (string): Optimization mode to use for minimizing the circuit.
+            optimization (str): Optimization mode to use for minimizing the circuit.
                 Currently, besides no optimization if omitted, Aqua also supports a 'qm-dlx' mode,
                 which uses the Quine-McCluskey algorithm to compute the prime implicants of the truth table,
                 and then compute an exact cover to try to reduce the circuit.
@@ -112,10 +106,11 @@ class TruthTableOracle(Oracle):
         """
         self.validate(locals())
         self._mct_mode = mct_mode
-        if optimization_mode is None or optimization_mode == 'qm-dlx':
-            self._optimization_mode = optimization_mode
+        self._optimization = optimization.lower()
+        if optimization == 'off' or optimization == 'qm-dlx':
+            self._optimization = optimization
         else:
-            raise AquaError('Unrecognized truth table optimization mode: {}.'.format(optimization_mode))
+            raise AquaError('Unrecognized truth table optimization mode: {}.'.format(optimization))
 
         if isinstance(bitmaps, str):
             bitmaps = [bitmaps]
@@ -152,7 +147,7 @@ class TruthTableOracle(Oracle):
                        for x in zip(binstr, reversed(range(1, self._nbits + 1)))
                    ][::-1]
 
-        if self._optimization_mode is None:
+        if self._optimization is None:
             expression = Xor(*[
                 And(*binstr_to_vars(term)) for term in
                 [np.binary_repr(idx, self._nbits) for idx, v in enumerate(bitmap) if v == '1']])

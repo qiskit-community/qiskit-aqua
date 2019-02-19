@@ -28,14 +28,14 @@ from test.common import QiskitAquaTestCase
 
 bitmaps = ['00111100', '01011010']
 mct_modes = ['basic', 'advanced', 'noancilla']
-optimization_modes = [None, 'qm-dlx']
+optimizations = ['off', 'qm-dlx']
 
 
 class TestBernsteinVazirani(QiskitAquaTestCase):
     @parameterized.expand(
-        itertools.product(bitmaps, mct_modes, optimization_modes)
+        itertools.product(bitmaps, mct_modes, optimizations)
     )
-    def test_bernsteinvazirani(self, bv_input, mct_mode, optimization_mode=None):
+    def test_bernsteinvazirani(self, bv_input, mct_mode, optimization='off'):
         nbits = int(math.log(len(bv_input), 2))
         # compute the ground-truth classically
         parameter = ""
@@ -44,7 +44,7 @@ class TestBernsteinVazirani(QiskitAquaTestCase):
             parameter += bit
 
         backend = get_aer_backend('qasm_simulator')
-        oracle = TruthTableOracle(bv_input, optimization_mode=optimization_mode, mct_mode=mct_mode)
+        oracle = TruthTableOracle(bv_input, optimization=optimization, mct_mode=mct_mode)
         algorithm = BernsteinVazirani(oracle)
         result = algorithm.run(backend)
         # print(result['circuit'].draw(line_length=10000))

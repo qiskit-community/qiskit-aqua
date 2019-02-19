@@ -66,7 +66,7 @@ class TestLogicExpressionOracle(QiskitAquaTestCase):
     @parameterized.expand(
         [x[0] + list(x[1:]) for x in list(itertools.product(dimacs_tests, mct_modes, optimizations))]
     )
-    def test_logic_expr_oracle(self, dimacs_str, sols, mct_mode, optimization=None):
+    def test_logic_expr_oracle(self, dimacs_str, sols, mct_mode, optimization='off'):
         num_shots = 1024
         leo = LogicExpressionOracle(dimacs_str, optimization=optimization, mct_mode=mct_mode)
         leo_circuit = leo.circuit
