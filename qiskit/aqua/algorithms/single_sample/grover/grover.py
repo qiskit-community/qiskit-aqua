@@ -70,13 +70,15 @@ class Grover(QuantumAlgorithm):
                     'type': 'string',
                     'default': 'basic',
                     'oneOf': [
-                        {'enum': [
-                            'basic',
-                            'advanced'
-                        ]}
+                        {
+                            'enum': [
+                                'basic',
+                                'advanced',
+                                'noancilla',
+                            ]
+                        }
                     ]
                 },
-
             },
             'additionalProperties': False
         },
