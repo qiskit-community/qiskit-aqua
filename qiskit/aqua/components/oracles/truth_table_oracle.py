@@ -105,8 +105,11 @@ class TruthTableOracle(Oracle):
             mct_mode (str): The mode to use when constructing multiple-control Toffoli.
         """
         self.validate(locals())
+        super().__init__()
+
         self._mct_mode = mct_mode
         self._optimization = optimization.lower()
+
         if optimization == 'off' or optimization == 'qm-dlx':
             self._optimization = optimization
         else:
@@ -136,7 +139,7 @@ class TruthTableOracle(Oracle):
             ESOP(esop_expr, num_vars=self._nbits) for esop_expr in esop_exprs
         ] if esop_exprs else None
 
-        super().__init__()
+        self.construct_circuit()
 
     def _get_esop_ast(self, bitmap):
         v = exprvars('v', self._nbits)
@@ -154,7 +157,7 @@ class TruthTableOracle(Oracle):
         else:
             ones = [i for i, v in enumerate(bitmap) if v == '1']
             if not ones:
-                return ('const', 0)
+                return ('const', 0,)
             dcs = [i for i, v in enumerate(bitmap) if v == '*' or v == '-' or v.lower() == 'x']
             pis = get_prime_implicants(ones=ones, dcs=dcs)
             cover = get_exact_covers(ones, pis)[-1]

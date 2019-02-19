@@ -91,6 +91,8 @@ class LogicExpressionOracle(Oracle):
         """
 
         self.validate(locals())
+        super().__init__()
+
         self._mct_mode = mct_mode
         self._optimization = optimization.lower()
 
@@ -107,8 +109,7 @@ class LogicExpressionOracle(Oracle):
 
         self._expr = raw_expr
         self._process_expr()
-
-        super().__init__()
+        self.construct_circuit()
 
     @staticmethod
     def _normalize_literal_indices(raw_ast, raw_indices):

@@ -37,10 +37,13 @@ class Oracle(Pluggable):
     """
 
     @abstractmethod
-    def __init__(self):
-        self._circuit = None
-        self._circuit = self.construct_circuit()
+    def __init__(self, *args, **kwargs):
         super().__init__()
+        self._output_register = None
+        self._variable_register = None
+        self._ancillary_register = None
+        self._circuit = None
+
 
     @classmethod
     def init_params(cls, params):
