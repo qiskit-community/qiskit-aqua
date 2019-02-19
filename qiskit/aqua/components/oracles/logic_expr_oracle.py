@@ -89,12 +89,12 @@ class LogicExpressionOracle(Oracle):
                 <https://en.wikipedia.org/wiki/Espresso_heuristic_logic_minimizer>
             mct_mode (str): The mode to use for building Multiple-Control Toffoli.
         """
-
+        optimization = optimization.lower()
         self.validate(locals())
         super().__init__()
 
         self._mct_mode = mct_mode
-        self._optimization = optimization.lower()
+        self._optimization = optimization
 
         if expression is None:
             raw_expr = expr(None)
@@ -139,7 +139,7 @@ class LogicExpressionOracle(Oracle):
 
         if self._optimization == 'off':
             self._nf = CNF(ast, num_vars=self._num_vars)
-        elif self._optimization == 'espresso':
+        else:  # self._optimization == 'espresso':
             expr_dnf = self._expr.to_dnf()
             if expr_dnf.is_zero() or expr_dnf.is_one():
                 self._nf = CNF(('const', 0 if expr_dnf.is_zero() else 1), num_vars=self._num_vars)
@@ -154,8 +154,6 @@ class LogicExpressionOracle(Oracle):
                     self._nf = DNF(expr_dnf_m_ast, num_vars=self._num_vars)
                 else:
                     raise AquaError('Unexpected espresso optimization result expr: {}'.format(expr_dnf_m))
-        else:
-            raise AquaError('Unrecognized optimization mode: {}.'.format(self._optimization))
 
     @property
     def variable_register(self):

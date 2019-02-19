@@ -104,16 +104,12 @@ class TruthTableOracle(Oracle):
                 and then compute an exact cover to try to reduce the circuit.
             mct_mode (str): The mode to use when constructing multiple-control Toffoli.
         """
+        optimization = optimization.lower()
         self.validate(locals())
         super().__init__()
 
         self._mct_mode = mct_mode
-        self._optimization = optimization.lower()
-
-        if optimization == 'off' or optimization == 'qm-dlx':
-            self._optimization = optimization
-        else:
-            raise AquaError('Unrecognized truth table optimization mode: {}.'.format(optimization))
+        self._optimization = optimization
 
         if isinstance(bitmaps, str):
             bitmaps = [bitmaps]
@@ -150,11 +146,11 @@ class TruthTableOracle(Oracle):
                        for x in zip(binstr, reversed(range(1, self._nbits + 1)))
                    ][::-1]
 
-        if self._optimization is None:
+        if self._optimization == 'off':
             expression = Xor(*[
                 And(*binstr_to_vars(term)) for term in
                 [np.binary_repr(idx, self._nbits) for idx, v in enumerate(bitmap) if v == '1']])
-        else:
+        else:  # self._optimization == 'qm-dlx':
             ones = [i for i, v in enumerate(bitmap) if v == '1']
             if not ones:
                 return ('const', 0,)
