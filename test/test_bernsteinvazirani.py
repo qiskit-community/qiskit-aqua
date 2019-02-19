@@ -16,6 +16,7 @@
 # =============================================================================
 
 import unittest
+import itertools
 import math
 from parameterized import parameterized
 
@@ -25,17 +26,17 @@ from qiskit.aqua import get_aer_backend
 
 from test.common import QiskitAquaTestCase
 
+bitmaps = ['00111100', '01011010']
+mct_modes = ['basic', 'advanced', 'noancilla']
+optimization_modes = [None, 'qm-dlx']
+
 
 class TestBernsteinVazirani(QiskitAquaTestCase):
-    @parameterized.expand([
-        ['00111100'],
-        ['00111100', 'qm-dlx'],
-        ['01011010'],
-        ['01011010', 'qm-dlx']
-    ])
-    def test_bernsteinvazirani(self, bv_input, optimization_mode=None):
+    @parameterized.expand(
+        itertools.product(bitmaps, mct_modes, optimization_modes)
+    )
+    def test_bernsteinvazirani(self, bv_input, mct_mode, optimization_mode=None):
         nbits = int(math.log(len(bv_input), 2))
-
         # compute the ground-truth classically
         parameter = ""
         for i in reversed(range(nbits)):
@@ -43,7 +44,7 @@ class TestBernsteinVazirani(QiskitAquaTestCase):
             parameter += bit
 
         backend = get_aer_backend('qasm_simulator')
-        oracle = TruthTableOracle(bv_input, optimization_mode=optimization_mode)
+        oracle = TruthTableOracle(bv_input, optimization_mode=optimization_mode, mct_mode=mct_mode)
         algorithm = BernsteinVazirani(oracle)
         result = algorithm.run(backend)
         # print(result['circuit'].draw(line_length=10000))

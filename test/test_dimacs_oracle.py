@@ -26,46 +26,50 @@ from qiskit.aqua import get_aer_backend
 from test.common import QiskitAquaTestCase
 from qiskit.aqua.components.oracles import DimacsOracle
 
+dimacs_tests = [
+    [
+        '''
+        p cnf 2 4
+        1 2 0
+        1 -2 0
+        -1 2 0
+        -1 -2 0
+        ''',
+        []
+    ],
 
-dimacs_str_1 = '''
-p cnf 2 4
-1 2 0
-1 -2 0
--1 2 0
--1 -2 0
-'''
-sols_1 = []
+    [
+        '''
+        p cnf 2 3
+        1 2 0
+        1 -2 0
+        -1 2 0
+        ''',
+        [(True, True)]
+    ],
 
-dimacs_str_2 = '''
-p cnf 2 3
-1 2 0
-1 -2 0
--1 2 0
-'''
-sols_2 = [(True, True)]
-
-dimacs_str_3 = '''
-p cnf 3 4
-1 -2 3 0
-1 2 -3 0
-1 -2 -3 0
--1 2 3 0
-'''
-sols_3 = [(True, True, True), (True, False, True), (False, False, False), (True, True, False)]
+    [
+        '''
+        p cnf 3 4
+        1 -2 3 0
+        1 2 -3 0
+        1 -2 -3 0
+        -1 2 3 0
+        ''',
+        [(True, True, True), (True, False, True), (False, False, False), (True, True, False)]
+    ],
+]
+mct_modes = ['basic', 'advanced', 'noancilla']
+optimization_modes = [None, 'espresso']
 
 
 class TestDimacsOracle(QiskitAquaTestCase):
-    @parameterized.expand([
-        [dimacs_str_1, sols_1],
-        [dimacs_str_1, sols_1, 'espresso'],
-        [dimacs_str_2, sols_2],
-        [dimacs_str_2, sols_2, 'espresso'],
-        [dimacs_str_3, sols_3],
-        [dimacs_str_3, sols_3, 'espresso'],
-    ])
-    def test_dimacs_oracle(self, dimacs_str, sols, optimization_mode=None):
+    @parameterized.expand(
+        [x[0] + list(x[1:]) for x in list(itertools.product(dimacs_tests, mct_modes, optimization_modes))]
+    )
+    def test_dimacs_oracle(self, dimacs_str, sols, mct_mode, optimization_mode=None):
         num_shots = 1024
-        do = DimacsOracle(dimacs_str, optimization_mode=optimization_mode)
+        do = DimacsOracle(dimacs_str, optimization_mode=optimization_mode, mct_mode=mct_mode)
         do_circuit = do.circuit
         m = ClassicalRegister(1, name='m')
         for assignment in itertools.product([True, False], repeat=len(do.variable_register)):

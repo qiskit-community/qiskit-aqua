@@ -16,6 +16,7 @@
 # =============================================================================
 
 import unittest
+import itertools
 
 from parameterized import parameterized
 from qiskit.qobj import RunConfig
@@ -26,18 +27,21 @@ from qiskit.aqua.components.oracles import DimacsOracle
 
 from test.common import QiskitAquaTestCase
 
+grover_tests = [
+    ['test_grover.cnf', False, 3],
+    ['test_grover_tiny.cnf', False, 1],
+    ['test_grover_no_solution.cnf', True, 1]
+]
+mct_modes = ['basic', 'advanced', 'noancilla']
+simulators = ['qasm_simulator', 'statevector_simulator']
+optimization_modes = [None, 'espresso']
+
 
 class TestGrover(QiskitAquaTestCase):
-
-    @parameterized.expand([
-        ['test_grover.cnf', False, 3],
-        ['test_grover.cnf', False, 3, 'espresso'],
-        ['test_grover_tiny.cnf', False, 1],
-        ['test_grover_tiny.cnf', False, 1, 'espresso'],
-        ['test_grover_no_solution.cnf', True, 1],
-        ['test_grover_no_solution.cnf', True, 1, 'espresso'],
-    ])
-    def test_grover(self, dimacs_file, incremental, num_iterations, optimization_mode=None):
+    @parameterized.expand(
+        [x[0] + list(x[1:]) for x in list(itertools.product(grover_tests, mct_modes, simulators, optimization_modes))]
+    )
+    def test_grover(self, dimacs_file, incremental, num_iterations, mct_mode, simulator, optimization_mode=None):
         dimacs_file = self._get_resource_path(dimacs_file)
         # get ground-truth
         with open(dimacs_file) as f:
@@ -59,26 +63,24 @@ class TestGrover(QiskitAquaTestCase):
             ])[::-1]
             for s in header.split('solutions:' if header.find('solutions:') >= 0 else 'solution:')[-1].split(',')
         ]
-        for mct_mode in ['basic', 'advanced']:
-            for simulator in ['qasm_simulator', 'statevector_simulator']:
-                backend = get_aer_backend(simulator)
-                dimacs_oracle = DimacsOracle(buf, optimization_mode=optimization_mode)
-                grover = Grover(
-                    dimacs_oracle, num_iterations=num_iterations, incremental=incremental, mct_mode=mct_mode
-                )
-                run_config = RunConfig(shots=1000, max_credits=10, memory=False)
-                quantum_instance = QuantumInstance(backend, run_config)
+        backend = get_aer_backend(simulator)
+        dimacs_oracle = DimacsOracle(buf, optimization_mode=optimization_mode)
+        grover = Grover(
+            dimacs_oracle, num_iterations=num_iterations, incremental=incremental, mct_mode=mct_mode
+        )
+        run_config = RunConfig(shots=1000, max_credits=10, memory=False)
+        quantum_instance = QuantumInstance(backend, run_config)
 
-                ret = grover.run(quantum_instance)
+        ret = grover.run(quantum_instance)
 
-                self.log.debug('Ground-truth Solutions: {}.'.format(self.groundtruth))
-                self.log.debug('Top measurement:        {}.'.format(ret['top_measurement']))
-                if ret['oracle_evaluation']:
-                    self.assertIn(ret['top_measurement'], self.groundtruth)
-                    self.log.debug('Search Result:          {}.'.format(ret['result']))
-                else:
-                    self.assertEqual(self.groundtruth, [''])
-                    self.log.debug('Nothing found.')
+        self.log.debug('Ground-truth Solutions: {}.'.format(self.groundtruth))
+        self.log.debug('Top measurement:        {}.'.format(ret['top_measurement']))
+        if ret['oracle_evaluation']:
+            self.assertIn(ret['top_measurement'], self.groundtruth)
+            self.log.debug('Search Result:          {}.'.format(ret['result']))
+        else:
+            self.assertEqual(self.groundtruth, [''])
+            self.log.debug('Nothing found.')
 
 
 if __name__ == '__main__':

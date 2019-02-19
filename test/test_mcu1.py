@@ -30,13 +30,7 @@ from math import pi
 
 class TestMCU1(QiskitAquaTestCase):
     @parameterized.expand([
-        [1],
-        [2],
-        [3],
-        [4],
-        [5],
-        [6],
-        [7],
+        [[i + 1] for i in range(7)]
     ])
     def test_mcu1(self, num_controls):
         c = QuantumRegister(num_controls, name='c')

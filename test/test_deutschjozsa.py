@@ -16,6 +16,7 @@
 # =============================================================================
 
 import unittest
+import itertools
 from parameterized import parameterized
 
 from qiskit.aqua.components.oracles import TruthTableOracle
@@ -24,23 +25,18 @@ from qiskit.aqua import get_aer_backend
 
 from test.common import QiskitAquaTestCase
 
+bitmaps = ['0000', '0101', '1111', '11110000']
+mct_modes = ['basic', 'advanced', 'noancilla']
+optimization_modes = [None, 'qm-dlx']
+
 
 class TestDeutschJozsa(QiskitAquaTestCase):
-    @parameterized.expand([
-        ['0000'],
-        ['0000', 'qm-dlx'],
-        ['1111'],
-        ['1111', 'qm-dlx'],
-        ['0101'],
-        ['0101', 'qm-dlx'],
-        ['1111'],
-        ['1111', 'qm-dlx'],
-        ['11110000'],
-        ['11110000', 'qm-dlx']
-    ])
-    def test_deutschjozsa(self, dj_input, optimization_mode=None):
+    @parameterized.expand(
+        itertools.product(bitmaps, mct_modes, optimization_modes)
+    )
+    def test_deutschjozsa(self, dj_input, mct_mode, optimization_mode=None):
         backend = get_aer_backend('qasm_simulator')
-        oracle = TruthTableOracle(dj_input, optimization_mode=optimization_mode)
+        oracle = TruthTableOracle(dj_input, optimization_mode=optimization_mode, mct_mode=mct_mode)
         algorithm = DeutschJozsa(oracle)
         result = algorithm.run(backend)
         # print(result['circuit'].draw(line_length=10000))
