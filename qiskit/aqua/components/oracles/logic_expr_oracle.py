@@ -89,7 +89,7 @@ class LogicExpressionOracle(Oracle):
                 <https://en.wikipedia.org/wiki/Espresso_heuristic_logic_minimizer>
             mct_mode (str): The mode to use for building Multiple-Control Toffoli.
         """
-        optimization = optimization.lower()
+
         self.validate(locals())
         super().__init__()
 

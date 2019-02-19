@@ -104,7 +104,7 @@ class TruthTableOracle(Oracle):
                 and then compute an exact cover to try to reduce the circuit.
             mct_mode (str): The mode to use when constructing multiple-control Toffoli.
         """
-        optimization = optimization.lower()
+
         self.validate(locals())
         super().__init__()
 
