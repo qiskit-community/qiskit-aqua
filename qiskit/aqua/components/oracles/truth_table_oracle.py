@@ -113,9 +113,6 @@ class TruthTableOracle(Oracle):
 
         if isinstance(bitmaps, str):
             bitmaps = [bitmaps]
-        else:
-            if not isinstance(bitmaps, list):
-                raise AquaError('Bitmaps must be a single bitstring or a list of bitstrings.')
 
         # check that the input bitmaps length is a power of 2
         if not is_power_of_2(len(bitmaps[0])):
