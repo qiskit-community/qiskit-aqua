@@ -23,32 +23,52 @@ from qiskit import execute as q_execute
 from qiskit import QuantumCircuit, ClassicalRegister
 from qiskit.aqua import get_aer_backend
 
-from test.common import QiskitAquaTestCase
 from qiskit.aqua.components.oracles import LogicExpressionOracle
+from test.common import QiskitAquaTestCase
 
+dimacs_tests = [
+    [
+        'p cnf 2 4 \n 1 2 0 \n 1 -2 0 \n -1 2 0 \n -1 -2 0',
+        []
+    ],
 
-logic_expr_str_1 = '(a | b) & (a | ~b) & (~a | b) & (~a | ~b)'
-sols_1 = []
+    [
+        '(a | b) & (a | ~b) & (~a | b) & (~a | ~b)',
+        [],
+    ],
 
-logic_expr_str_2 = '(v[0] | v[1]) & (v[0] | ~v[1]) & (~v[0] | v[1])'
-sols_2 = [(True, True)]
+    [
+        'p cnf 2 3 \n 1 2 0 \n 1 -2 0 \n -1 2 0',
+        [(True, True)]
+    ],
 
-logic_expr_str_3 = 'x ^ y'
-sols_3 = [(True, False), (False, True)]
+    [
+        '(v[0] | v[1]) & (v[0] | ~v[1]) & (~v[0] | v[1])',
+        [(True, True)]
+    ],
+
+    [
+        'p cnf 3 4 \n 1 -2 3 0 \n 1 2 -3 0 \n 1 -2 -3 0 \n -1 2 3 0',
+        [(True, True, True), (True, False, True), (False, False, False), (True, True, False)]
+    ],
+
+    [
+        'x ^ y',
+        [(True, False), (False, True)]
+    ]
+]
+
+mct_modes = ['basic', 'advanced', 'noancilla']
+optimizations = ['off', 'espresso']
 
 
 class TestLogicExpressionOracle(QiskitAquaTestCase):
-    @parameterized.expand([
-        [logic_expr_str_1, sols_1],
-        [logic_expr_str_1, sols_1, 'espresso'],
-        [logic_expr_str_2, sols_2],
-        [logic_expr_str_2, sols_2, 'espresso'],
-        [logic_expr_str_3, sols_3],
-        [logic_expr_str_3, sols_3, 'espresso'],
-    ])
-    def test_logic_expression_oracle(self, logic_expr_str, sols, optimization_mode=None):
+    @parameterized.expand(
+        [x[0] + list(x[1:]) for x in list(itertools.product(dimacs_tests, mct_modes, optimizations))]
+    )
+    def test_logic_expr_oracle(self, dimacs_str, sols, mct_mode, optimization=None):
         num_shots = 1024
-        leo = LogicExpressionOracle(logic_expr_str, optimization_mode=optimization_mode)
+        leo = LogicExpressionOracle(dimacs_str, optimization=optimization, mct_mode=mct_mode)
         leo_circuit = leo.circuit
         m = ClassicalRegister(1, name='m')
         for assignment in itertools.product([True, False], repeat=len(leo.variable_register)):
