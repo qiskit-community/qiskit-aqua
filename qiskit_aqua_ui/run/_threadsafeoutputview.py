@@ -33,7 +33,6 @@ class ThreadSafeOutputView(ScrollbarView):
     _LF = '\n'
     _FONT_FAMILIES = {
             'Darwin': 'Menlo Regular',
-            'Windows': 'Consolas',
     }
 
     def __init__(self, parent, **options):
