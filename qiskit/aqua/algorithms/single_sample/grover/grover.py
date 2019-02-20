@@ -70,13 +70,15 @@ class Grover(QuantumAlgorithm):
                     'type': 'string',
                     'default': 'basic',
                     'oneOf': [
-                        {'enum': [
-                            'basic',
-                            'advanced'
-                        ]}
+                        {
+                            'enum': [
+                                'basic',
+                                'advanced',
+                                'noancilla',
+                            ]
+                        }
                     ]
                 },
-
             },
             'additionalProperties': False
         },
@@ -110,7 +112,6 @@ class Grover(QuantumAlgorithm):
         super().__init__()
         self._oracle = oracle
         self._mct_mode = mct_mode
-        self._oracle_circuit = oracle.construct_circuit()
         self._init_state = init_state if init_state else Custom(len(oracle.variable_register), state='uniform')
         self._init_state_circuit = self._init_state.construct_circuit(mode='circuit', register=oracle.variable_register)
         self._init_state_circuit_inverse = self._init_state_circuit.copy()
@@ -191,7 +192,7 @@ class Grover(QuantumAlgorithm):
     def qc_amplitude_amplification_iteration(self):
         if self._qc_aa_iteration is None:
             self._qc_aa_iteration = QuantumCircuit()
-            self._qc_aa_iteration += self._oracle_circuit
+            self._qc_aa_iteration += self._oracle.circuit
             self._qc_aa_iteration += self._init_state_circuit_inverse
             self._qc_aa_iteration += self._diffusion_circuit
             self._qc_aa_iteration += self._init_state_circuit
@@ -213,7 +214,7 @@ class Grover(QuantumAlgorithm):
                 key=abs
             )
             max_amplitude_idx = np.where(variable_register_density_matrix_diag == max_amplitude)[0][0]
-            top_measurement = format(max_amplitude_idx, '0{}b'.format(len(self._oracle.variable_register)))
+            top_measurement = np.binary_repr(max_amplitude_idx, len(self._oracle.variable_register))
         else:
             measurement_cr = ClassicalRegister(len(self._oracle.variable_register), name='m')
             qc.add_register(measurement_cr)
@@ -222,8 +223,7 @@ class Grover(QuantumAlgorithm):
             top_measurement = max(measurement.items(), key=operator.itemgetter(1))[0]
 
         self._ret['top_measurement'] = top_measurement
-        assignment = self._oracle.interpret_measurement(top_measurement=top_measurement)
-        oracle_evaluation = self._oracle.evaluate_classically(assignment)
+        oracle_evaluation, assignment = self._oracle.evaluate_classically(top_measurement)
         return assignment, oracle_evaluation
 
     def construct_circuit(self):
@@ -235,9 +235,9 @@ class Grover(QuantumAlgorithm):
         """
         if self._qc_amplitude_amplification is None:
             self._qc_amplitude_amplification = QuantumCircuit() + self.qc_amplitude_amplification_iteration
-        qc = QuantumCircuit(self._oracle.variable_register, self._oracle.outcome_register)
-        qc.u3(pi, 0, pi, self._oracle.outcome_register)  # x
-        qc.u2(0, pi, self._oracle.outcome_register)  # h
+        qc = QuantumCircuit(self._oracle.variable_register, self._oracle.output_register)
+        qc.u3(pi, 0, pi, self._oracle.output_register)  # x
+        qc.u2(0, pi, self._oracle.output_register)  # h
         qc += self._init_state_circuit
         qc += self._qc_amplitude_amplification
         self._ret['circuit'] = qc
