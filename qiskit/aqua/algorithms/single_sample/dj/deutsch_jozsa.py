@@ -19,6 +19,7 @@ The Deutsch-Jozsa algorithm.
 """
 
 import logging
+import operator
 
 from qiskit import ClassicalRegister, QuantumCircuit
 
@@ -78,20 +79,20 @@ class DeutschJozsa(QuantumAlgorithm):
         # preoracle circuit
         qc_preoracle = QuantumCircuit(
             self._oracle.variable_register,
-            self._oracle.outcome_register,
+            self._oracle.output_register,
         )
         qc_preoracle.h(self._oracle.variable_register)
-        qc_preoracle.x(self._oracle.outcome_register)
-        qc_preoracle.h(self._oracle.outcome_register)
+        qc_preoracle.x(self._oracle.output_register)
+        qc_preoracle.h(self._oracle.output_register)
         qc_preoracle.barrier()
 
         # oracle circuit
-        qc_oracle = self._oracle.construct_circuit()
+        qc_oracle = self._oracle.circuit
 
         # postoracle circuit
         qc_postoracle = QuantumCircuit(
             self._oracle.variable_register,
-            self._oracle.outcome_register,
+            self._oracle.output_register,
         )
         qc_postoracle.h(self._oracle.variable_register)
         qc_postoracle.barrier()
@@ -110,13 +111,23 @@ class DeutschJozsa(QuantumAlgorithm):
         self._circuit = qc_preoracle+qc_oracle+qc_postoracle+qc_measurement
         return self._circuit
 
+    @staticmethod
+    def interpret_measurement(measurements):
+        top_measurement = max(
+            measurements.items(), key=operator.itemgetter(1))[0]
+        top_measurement = int(top_measurement)
+        if top_measurement == 0:
+            return "constant"
+        else:
+            return "balanced"
+
     def _run(self):
         qc = self.construct_circuit()
 
         self._ret['circuit'] = qc
         self._ret['measurements'] = self._quantum_instance.execute(
             qc).get_counts(qc)
-        self._ret['result'] = self._oracle.interpret_measurement(
+        self._ret['result'] = DeutschJozsa.interpret_measurement(
             self._ret['measurements'])
 
         return self._ret

@@ -16,36 +16,34 @@
 # =============================================================================
 
 import unittest
+import itertools
 
 from parameterized import parameterized
-from qiskit.aqua import get_aer_backend
 from qiskit.qobj import RunConfig
-from test.common import QiskitAquaTestCase
-from qiskit.aqua.components.oracles import SAT
+
+from qiskit.aqua import QuantumInstance, get_aer_backend
 from qiskit.aqua.algorithms import Grover
-from qiskit.aqua import QuantumInstance
+from qiskit.aqua.components.oracles import LogicExpressionOracle
+from test.common import QiskitAquaTestCase
+
+grover_tests = [
+    ['test_grover.cnf', False, 3],
+    ['test_grover_tiny.cnf', False, 1],
+    ['test_grover_no_solution.cnf', True, 1]
+]
+mct_modes = ['basic', 'advanced', 'noancilla']
+simulators = ['qasm_simulator', 'statevector_simulator']
+optimizations = ['off', 'espresso']
 
 
 class TestGrover(QiskitAquaTestCase):
-
-    @parameterized.expand([
-        ['test_grover_tiny.cnf', False, 1, 'basic', 'qasm_simulator'],
-        ['test_grover_tiny.cnf', False, 1, 'advanced', 'qasm_simulator'],
-        ['test_grover.cnf', False, 3, 'basic', 'qasm_simulator'],
-        ['test_grover.cnf', False, 3, 'advanced', 'qasm_simulator'],
-        ['test_grover_no_solution.cnf', True, 1, 'basic', 'qasm_simulator'],
-        ['test_grover_no_solution.cnf', True, 1, 'advanced', 'qasm_simulator'],
-        ['test_grover_tiny.cnf', False, 1, 'basic', 'statevector_simulator'],
-        ['test_grover_tiny.cnf', False, 1, 'advanced', 'statevector_simulator'],
-        ['test_grover.cnf', False, 3, 'basic', 'statevector_simulator'],
-        ['test_grover.cnf', False, 3, 'advanced', 'statevector_simulator'],
-        ['test_grover_no_solution.cnf', True, 1, 'basic', 'statevector_simulator'],
-        ['test_grover_no_solution.cnf', True, 1, 'advanced', 'statevector_simulator'],
-    ])
-    def test_grover(self, input_file, incremental, num_iterations, mct_mode, simulator):
-        input_file = self._get_resource_path(input_file)
+    @parameterized.expand(
+        [x[0] + list(x[1:]) for x in list(itertools.product(grover_tests, mct_modes, simulators, optimizations))]
+    )
+    def test_grover(self, dimacs_file, incremental, num_iterations, mct_mode, simulator, optimization='off'):
+        dimacs_file = self._get_resource_path(dimacs_file)
         # get ground-truth
-        with open(input_file) as f:
+        with open(dimacs_file) as f:
             buf = f.read()
         if incremental:
             self.log.debug('Testing incremental Grover search on SAT problem instance: \n{}'.format(
@@ -65,8 +63,10 @@ class TestGrover(QiskitAquaTestCase):
             for s in header.split('solutions:' if header.find('solutions:') >= 0 else 'solution:')[-1].split(',')
         ]
         backend = get_aer_backend(simulator)
-        sat_oracle = SAT(buf)
-        grover = Grover(sat_oracle, num_iterations=num_iterations, incremental=incremental, mct_mode=mct_mode)
+        oracle = LogicExpressionOracle(buf, optimization=optimization)
+        grover = Grover(
+            oracle, num_iterations=num_iterations, incremental=incremental, mct_mode=mct_mode
+        )
         run_config = RunConfig(shots=1000, max_credits=10, memory=False)
         quantum_instance = QuantumInstance(backend, run_config)
 

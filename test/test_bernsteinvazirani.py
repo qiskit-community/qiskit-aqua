@@ -16,28 +16,39 @@
 # =============================================================================
 
 import unittest
+import itertools
+import math
+
 from parameterized import parameterized
 
-from qiskit.aqua.components.oracles import BernsteinVaziraniOracle
+from qiskit.aqua.components.oracles import TruthTableOracle
 from qiskit.aqua.algorithms import BernsteinVazirani
 from qiskit.aqua import get_aer_backend
-
 from test.common import QiskitAquaTestCase
+
+bitmaps = ['00111100', '01011010']
+mct_modes = ['basic', 'advanced', 'noancilla']
+optimizations = ['off', 'qm-dlx']
 
 
 class TestBernsteinVazirani(QiskitAquaTestCase):
-    @parameterized.expand([
-        [{'000': '0', '001': '0', '010': '1', '011': '1',
-          '100': '1', '101': '1', '110': '0', '111': '0'}],
-        [{'000': '0', '001': '1', '010': '0', '011': '1',
-          '100': '1', '101': '0', '110': '1', '111': '0'}]
-    ])
-    def test_bernsteinvazirani(self, bv_input):
+    @parameterized.expand(
+        itertools.product(bitmaps, mct_modes, optimizations)
+    )
+    def test_bernsteinvazirani(self, bv_input, mct_mode, optimization='off'):
+        nbits = int(math.log(len(bv_input), 2))
+        # compute the ground-truth classically
+        parameter = ""
+        for i in reversed(range(nbits)):
+            bit = bv_input[2 ** i]
+            parameter += bit
+
         backend = get_aer_backend('qasm_simulator')
-        oracle = BernsteinVaziraniOracle(bv_input)
+        oracle = TruthTableOracle(bv_input, optimization=optimization, mct_mode=mct_mode)
         algorithm = BernsteinVazirani(oracle)
         result = algorithm.run(backend)
-        self.assertTrue(result['oracle_evaluation'])
+        # print(result['circuit'].draw(line_length=10000))
+        self.assertEqual(result['result'], parameter)
 
 
 if __name__ == '__main__':
