@@ -42,7 +42,7 @@ $ python
 
 ```python
 >>> from qiskit import Aer
->>> from qiskit.aqua.components.oracles import SAT
+>>> from qiskit.aqua.components.oracles import LogicExpressionOracle
 >>> from qiskit.aqua.algorithms import Grover
 >>> sat_cnf = """
 >>> c Example DIMACS 3-sat
@@ -54,7 +54,7 @@ $ python
 >>> -1 2 3 0
 >>> """
 >>> backend = Aer.get_backend('qasm_simulator')
->>> oracle = SAT(sat_cnf)
+>>> oracle = LogicExpressionOracle(sat_cnf)
 >>> algorithm = Grover(oracle)
 >>> result = algorithm.run(backend)
 >>> print(result["result"])
