@@ -16,6 +16,7 @@
 # =============================================================================
 
 import tkinter as tk
+from tkinter.font import Font
 from ._scrollbarview import ScrollbarView
 from ._customwidgets import TextCustom
 import queue
@@ -26,21 +27,30 @@ import platform
 class ThreadSafeOutputView(ScrollbarView):
 
     _DELAY = 50
+    _TOTAL_ITERATIONS = 120
     _FULL_BLOCK_CHAR = u'█'
     _CR = '\r'
     _LF = '\n'
+    _FONT_FAMILIES = {
+            'Darwin': 'Menlo Regular',
+            'Windows': 'Consolas',
+            'Linux': 'Monospace',
+    }
 
     def __init__(self, parent, **options):
         super(ThreadSafeOutputView, self).__init__(parent, **options)
         self._queue = queue.Queue()
         self._textWidget = TextCustom(self, wrap=tk.NONE, state=tk.DISABLED)
+        font_family = ThreadSafeOutputView._FONT_FAMILIES.get(platform.system(), 'TkFixedFont')
+        f = Font(family=font_family)
+        self._textWidget.configure(font=f)
         self.init_widgets(self._textWidget)
         self._updateText()
 
     def _updateText(self):
         try:
             iterations = 0
-            while iterations < 120:
+            while iterations < ThreadSafeOutputView._TOTAL_ITERATIONS:
                 line = self._queue.get_nowait()
                 iterations += 1
                 if line is None:
@@ -65,7 +75,7 @@ class ThreadSafeOutputView(ScrollbarView):
         # remove any non printable character that will cause the Text widget to hang
         text = ''.join([x if x == ThreadSafeOutputView._FULL_BLOCK_CHAR or
                         x in string.printable else '' for x in text])
-        if platform.system() == "Windows":  # Under Windows unicode block is escaped
+        if platform.system() == 'Windows':  # Under Windows unicode block is escaped
             text = text.replace('\\u2588', u"\u2588")
         if len(text) == 0:
             return
@@ -123,13 +133,17 @@ class ThreadSafeOutputView(ScrollbarView):
             if len(line) > 0:
                 self._textWidget.insert(tk.END, line)
 
-            contents = self._textWidget.get('1.0', 'end-1c')
-            prev_index_cr = contents.rfind(ThreadSafeOutputView._CR)
-            prev_index_lf = contents.rfind(ThreadSafeOutputView._LF)
-            if prev_index_cr > prev_index_lf:  # remove previous line after cr
-                self._textWidget.delete('1.0 + {}c'.format(prev_index_cr+1), tk.END)
+            # look for last lf
+            prev_index_lf = self._textWidget.search(ThreadSafeOutputView._LF,
+                                                    '{}-1c'.format(tk.END),
+                                                    '1.0',
+                                                    backwards=True)
+            if prev_index_lf:
+                # remove previous line after lf
+                self._textWidget.delete('{} + 1c'.format(prev_index_lf), '{}-1c'.format(tk.END))
             else:
-                self._textWidget.insert(tk.END, ThreadSafeOutputView._CR)  # insert cr at the end
+                # remove whole text
+                self._textWidget.delete(1.0, tk.END)
 
             new_text = new_text[pos+1:]  # get text after cr
             pos = new_text.find(ThreadSafeOutputView._CR)  # look for cr in new text
