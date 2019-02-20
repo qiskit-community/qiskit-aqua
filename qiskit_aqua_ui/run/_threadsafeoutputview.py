@@ -34,16 +34,16 @@ class ThreadSafeOutputView(ScrollbarView):
     _FONT_FAMILIES = {
             'Darwin': 'Menlo Regular',
             'Windows': 'Consolas',
-            'Linux': 'Monospace',
     }
 
     def __init__(self, parent, **options):
         super(ThreadSafeOutputView, self).__init__(parent, **options)
         self._queue = queue.Queue()
         self._textWidget = TextCustom(self, wrap=tk.NONE, state=tk.DISABLED)
-        font_family = ThreadSafeOutputView._FONT_FAMILIES.get(platform.system(), 'TkFixedFont')
-        f = Font(family=font_family)
-        self._textWidget.configure(font=f)
+        font_family = ThreadSafeOutputView._FONT_FAMILIES.get(platform.system())
+        if font_family:
+            f = Font(family=font_family)
+            self._textWidget.configure(font=f)
         self.init_widgets(self._textWidget)
         self._updateText()
 
