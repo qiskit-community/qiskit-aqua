@@ -228,7 +228,7 @@ class BooleanLogicNormalForm(ABC):
     - DNF (Disjunctive Normal Forms), and
     - ESOP (Exclusive Sum of Products)
     """
-    def __init__(self, ast, num_vars):
+    def __init__(self, ast, num_vars=None):
         """
         Constructor.
 
@@ -242,7 +242,13 @@ class BooleanLogicNormalForm(ABC):
         if ast_depth > 2:
             raise AquaError('Expressions of depth greater than 2 are not supported yet.')
         self._depth = ast_depth
-        self._num_variables = num_vars
+        inferred_num_vars = BooleanLogicNormalForm._get_ast_num_vars(ast)
+        if num_vars is None:
+            self._num_variables = inferred_num_vars
+        else:
+            if inferred_num_vars > num_vars:
+                raise AquaError('{} variables present, but only {} specified.'.format(inferred_num_vars, num_vars))
+            self._num_variables = num_vars
 
         if ast_depth == 0:
             self._ast = ast
