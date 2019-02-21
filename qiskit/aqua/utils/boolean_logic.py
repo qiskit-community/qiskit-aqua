@@ -240,7 +240,7 @@ class BooleanLogicNormalForm(ABC):
         ast_depth = BooleanLogicNormalForm._get_ast_depth(ast)
 
         if ast_depth > 2:
-            raise AquaError('Expressions of depth greater than 2 are not supported yet.')
+            raise AquaError('Expressions of depth greater than 2 are not supported.')
         self._depth = ast_depth
         inferred_num_vars = BooleanLogicNormalForm._get_ast_num_vars(ast)
         if num_vars is None:
