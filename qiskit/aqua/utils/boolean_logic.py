@@ -196,14 +196,32 @@ def logic_and(clause_expr, circuit, variable_register, target_qubit, ancillary_r
         circuit.u3(pi, 0, pi, variable_register[-idx - 1])
 
 
-def get_ast_depth(ast):
-    if ast[0] == 'const' or ast[0] == 'lit':
-        return 0
-    else:
-        return 1 + max([get_ast_depth(c) for c in ast[1:]])
-
-
 class BooleanLogicNormalForm(ABC):
+
+    @staticmethod
+    def _get_ast_depth(ast):
+        if ast[0] == 'const' or ast[0] == 'lit':
+            return 0
+        else:
+            return 1 + max([BooleanLogicNormalForm._get_ast_depth(c) for c in ast[1:]])
+
+    @staticmethod
+    def _get_ast_num_vars(ast):
+        if ast[0] == 'const':
+            return 0
+
+        all_vars = set()
+
+        def get_ast_vars(cur_ast):
+            if cur_ast[0] == 'lit':
+                all_vars.add(abs(cur_ast[1]))
+            else:
+                for c in cur_ast[1:]:
+                    get_ast_vars(c)
+
+        get_ast_vars(ast)
+        return max(all_vars)
+
     """
     The base abstract class for:
     - CNF (Conjunctive Normal Forms),
@@ -219,10 +237,10 @@ class BooleanLogicNormalForm(ABC):
             num_vars (int): Number of boolean variables
         """
 
-        ast_depth = get_ast_depth(ast)
+        ast_depth = BooleanLogicNormalForm._get_ast_depth(ast)
 
         if ast_depth > 2:
-            raise NotImplementedError
+            raise AquaError('Expressions of depth greater than 2 are not supported yet.')
         self._depth = ast_depth
         self._num_variables = num_vars
 
