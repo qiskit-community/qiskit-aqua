@@ -147,6 +147,19 @@ def get_exact_covers(cols, rows, num_cols=None):
 
 
 def logic_or(clause_expr, circuit, variable_register, target_qubit, ancillary_register, mct_mode):
+    """
+    Build a collective disjunction (OR) circuit in place using mct.
+
+    Args:
+        clause_expr ([int]): The desired disjunctive clause as represented by a list of non-zero integers,
+            whose absolute values indicate the variables, where negative signs correspond to negations.
+        circuit (QuantumCircuit): The QuantumCircuit object to build the disjunction on.
+        variable_register (QuantumRegister): The QuantumRegister holding the variable qubits. Note that the
+            qubit indices are 0-based, so `variable_register[i]` correspond to variable `i-1` in `clause_expr`.
+        target_qubit (qubit): The target qubit to hold the disjunction result.
+        ancillary_register (QuantumRegister): The ancillary QuantumRegister for building the mct.
+        mct_mode (str): The mct building mode.
+    """
     clause_expr = sorted(clause_expr, key=abs)
     qs = [abs(v) for v in clause_expr]
     ctl_bits = [variable_register[idx - 1] for idx in qs]
@@ -159,6 +172,19 @@ def logic_or(clause_expr, circuit, variable_register, target_qubit, ancillary_re
 
 
 def logic_and(clause_expr, circuit, variable_register, target_qubit, ancillary_register, mct_mode):
+    """
+    Build a collective conjunction (AND) circuit in place using mct.
+
+    Args:
+        clause_expr ([int]): The desired disjunctive clause as represented by a list of non-zero integers,
+            whose absolute values indicate the variables, where negative signs correspond to negations.
+        circuit (QuantumCircuit): The QuantumCircuit object to build the conjunction on.
+        variable_register (QuantumRegister): The QuantumRegister holding the variable qubits. Note that the
+            qubit indices are 0-based, so `variable_register[i]` correspond to variable `i-1` in `clause_expr`.
+        target_qubit (qubit): The target qubit to hold the conjunction result.
+        ancillary_register (QuantumRegister): The ancillary QuantumRegister for building the mct.
+        mct_mode (str): The mct building mode.
+    """
     clause_expr = sorted(clause_expr, key=abs)
     qs = [abs(v) for v in clause_expr]
     ctl_bits = [variable_register[idx - 1] for idx in qs]
