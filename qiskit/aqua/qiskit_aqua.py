@@ -195,21 +195,6 @@ class QiskitAqua(object):
                 backend = get_backend_from_provider(backend_provider, backend_name)
 
             backend_cfg['backend'] = backend
-
-            # overwrite the basis_gates and coupling_map
-            basis_gates = backend_cfg.pop('basis_gates', None)
-            if isinstance(basis_gates, str):
-                basis_gates = basis_gates.split(',')
-
-            coupling_map = backend_cfg.pop('coupling_map', None)
-            if backend.configuration().simulator:
-                if basis_gates is not None:
-                    backend.configuration().basis_gates = basis_gates
-                if coupling_map is not None:
-                    backend.configuration().coupling_map = coupling_map
-            else:
-                logger.warning("Change basis_gates and coupling_map on a real device is disallowed.")
-
             backend_cfg['seed'] = random_seed
             backend_cfg['skip_qobj_validation'] = self._parser.get_section_property(JSONSchema.PROBLEM,
                                                                                     'skip_qobj_validation')
