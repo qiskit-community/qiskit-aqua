@@ -19,7 +19,6 @@ import unittest
 import itertools
 
 from parameterized import parameterized
-from qiskit.qobj import RunConfig
 
 from qiskit.aqua import QuantumInstance, get_aer_backend
 from qiskit.aqua.algorithms import Grover
@@ -67,8 +66,7 @@ class TestGrover(QiskitAquaTestCase):
         grover = Grover(
             oracle, num_iterations=num_iterations, incremental=incremental, mct_mode=mct_mode
         )
-        run_config = RunConfig(shots=1000, max_credits=10, memory=False)
-        quantum_instance = QuantumInstance(backend, run_config)
+        quantum_instance = QuantumInstance(backend, shots=1000)
 
         ret = grover.run(quantum_instance)
 
