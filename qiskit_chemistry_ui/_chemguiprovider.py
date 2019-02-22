@@ -36,9 +36,16 @@ class ChemistryGUIProvider(GUIProvider):
 
     def __init__(self):
         super().__init__()
-        self._save_algo_json = tk.IntVar()
-        self._save_algo_json.set(0)
-        self._controller = Controller(self)
+        self._save_algo_json = None
+        self._controller = None
+
+    @property
+    def save_algo_json(self):
+        if self._save_algo_json is None:
+            self._save_algo_json = tk.IntVar()
+            self._save_algo_json.set(0)
+
+        return self._save_algo_json
 
     @property
     def title(self):
@@ -59,6 +66,9 @@ class ChemistryGUIProvider(GUIProvider):
     @property
     def controller(self):
         """Return provider controller."""
+        if self._controller is None:
+            self._controller = Controller(self)
+
         return self._controller
 
     def create_preferences(self):
@@ -99,7 +109,7 @@ class ChemistryGUIProvider(GUIProvider):
         """
         checkButton = ttk.Checkbutton(toolbar,
                                       text="Generate Algorithm Input",
-                                      variable=self._save_algo_json)
+                                      variable=self.save_algo_json)
         checkButton.pack(side=tk.LEFT)
 
     def add_file_menu_items(self, file_menu):
@@ -116,7 +126,7 @@ class ChemistryGUIProvider(GUIProvider):
         Creates run thread
         """
         filename = None
-        if self._save_algo_json.get() != 0:
+        if self.save_algo_json.get() != 0:
             preferences = self.create_uipreferences()
             filename = tkfd.asksaveasfilename(parent=self.controller.view,
                                               title='Algorithm Input',
