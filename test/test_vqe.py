@@ -20,7 +20,6 @@ import os
 
 import numpy as np
 from parameterized import parameterized
-from qiskit.qobj import RunConfig
 
 from test.common import QiskitAquaTestCase
 from qiskit.aqua import get_aer_backend
@@ -146,8 +145,7 @@ class TestVQE(QiskitAquaTestCase):
         algo = VQE(self.algo_input.qubit_op, var_form, optimizer, 'paulis',
                    callback=store_intermediate_result)
         algo.random_seed = 50
-        run_config = RunConfig(shots=1024, seed=50)
-        quantum_instance = QuantumInstance(backend, seed_mapper=50, run_config=run_config)
+        quantum_instance = QuantumInstance(backend, seed_mapper=50, shots=1024, seed=50)
         algo.run(quantum_instance)
 
         is_file_exist = os.path.exists(self._get_resource_path(tmp_filename))

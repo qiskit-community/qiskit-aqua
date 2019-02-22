@@ -19,13 +19,13 @@ import os
 import unittest
 
 import numpy as np
-from qiskit.aqua import get_aer_backend
-from qiskit.qobj import RunConfig
+
 from test.common import QiskitAquaTestCase
+from qiskit.aqua import get_aer_backend
 from qiskit.aqua.input import SVMInput
 from qiskit.aqua import run_algorithm, QuantumInstance
 from qiskit.aqua.algorithms import QSVMVariational
-from qiskit.aqua.components.optimizers import SPSA,COBYLA
+from qiskit.aqua.components.optimizers import SPSA, COBYLA
 from qiskit.aqua.components.feature_maps import SecondOrderExpansion
 from qiskit.aqua.components.variational_forms import RYRZ, RY
 
@@ -102,8 +102,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
 
         svm = QSVMVariational(optimizer, feature_map, var_form, self.training_data, self.testing_data)
         svm.random_seed = self.random_seed
-        run_config = RunConfig(shots=1024, max_credits=10, memory=False, seed=self.random_seed)
-        quantum_instance = QuantumInstance(backend, run_config, seed_mapper=self.random_seed)
+        quantum_instance = QuantumInstance(backend, shots=1024, seed=self.random_seed, seed_mapper=self.random_seed)
         result = svm.run(quantum_instance)
 
         np.testing.assert_array_almost_equal(result['opt_params'], self.ref_opt_params, decimal=4)
@@ -158,8 +157,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
         svm = QSVMVariational(optimizer, feature_map, var_form, self.training_data,
                               self.testing_data, callback=store_intermediate_result)
         svm.random_seed = self.random_seed
-        run_config = RunConfig(shots=1024, max_credits=10, memory=False, seed=self.random_seed)
-        quantum_instance = QuantumInstance(backend, run_config, seed_mapper=self.random_seed)
+        quantum_instance = QuantumInstance(backend, shots=1024, seed=self.random_seed, seed_mapper=self.random_seed)
         svm.run(quantum_instance)
 
         is_file_exist = os.path.exists(self._get_resource_path(tmp_filename))
