@@ -1,7 +1,24 @@
+# -*- coding: utf-8 -*-
+
+# Copyright 2018 IBM.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# =============================================================================
+
+
 import unittest
 
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
-from qiskit.qobj import RunConfig
 from qiskit.providers.aer.noise import NoiseModel
 
 from test.common import QiskitAquaTestCase
@@ -39,10 +56,10 @@ class TestSkipQobjValidation(QiskitAquaTestCase):
 
         self.qc = qc
         self.backend = get_aer_backend('qasm_simulator')
-        self.run_config = RunConfig(seed=self.random_seed, shots=1024)
 
     def test_wo_backend_options(self):
-        quantum_instance = QuantumInstance(self.backend, seed_mapper=self.random_seed, run_config=self.run_config)
+        quantum_instance = QuantumInstance(self.backend, seed_mapper=self.random_seed,
+                                           seed=self.random_seed, shots=1024)
         # run without backend_options and without noise
         res_wo_bo = quantum_instance.execute(self.qc).get_counts(self.qc)
 
@@ -52,7 +69,8 @@ class TestSkipQobjValidation(QiskitAquaTestCase):
 
     def test_w_backend_options(self):
         # run with backend_options
-        quantum_instance = QuantumInstance(self.backend, seed_mapper=self.random_seed, run_config=self.run_config,
+        quantum_instance = QuantumInstance(self.backend, seed_mapper=self.random_seed,
+                                           seed=self.random_seed, shots=1024,
                                            backend_options={'initial_statevector': [.5, .5, .5, .5]})
         res_w_bo = quantum_instance.execute(self.qc).get_counts(self.qc)
         quantum_instance.skip_qobj_validation = True
@@ -67,7 +85,8 @@ class TestSkipQobjValidation(QiskitAquaTestCase):
         noise_model = NoiseModel()
         noise_model.add_readout_error([probs_given0, probs_given1], [0])
 
-        quantum_instance = QuantumInstance(self.backend, seed_mapper=self.random_seed, run_config=self.run_config,
+        quantum_instance = QuantumInstance(self.backend, seed_mapper=self.random_seed,
+                                           seed=self.random_seed, shots=1024,
                                            noise_model=noise_model)
         res_w_noise = quantum_instance.execute(self.qc).get_counts(self.qc)
 
