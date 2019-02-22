@@ -27,6 +27,12 @@ Added
 - Multiple-Controlled U1 and U3 operations ``mcu1`` and ``mcu3``
 - Pluggable component ``QFT`` derived from component ``IQFT``
 
+Changed
+-------
+
+- Change the type of ``entanger_map`` used in ``FeatureMap`` and ``VariationalForm`` to list of list.
+- Use ``cx`` gate for the entangement in ``RY`` and ``RYRZ`` variational form. (``cz`` was used.)
+
 `0.4.1`_ - 2019-01-09
 =====================
 
