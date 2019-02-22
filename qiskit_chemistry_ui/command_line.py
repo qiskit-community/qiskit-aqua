@@ -45,7 +45,7 @@ def main():
         bundle = NSBundle.mainBundle()
         if bundle:
             info = bundle.localizedInfoDictionary() or bundle.infoDictionary()
-            info['CFBundleName'] = 'Qiskit Chemistry'
+            info['CFBundleName'] = guiProvider.title
 
     root = tk.Tk()
     root.withdraw()
