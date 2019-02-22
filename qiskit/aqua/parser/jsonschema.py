@@ -56,13 +56,13 @@ class JSONSchema(object):
         validator = jsonschema.Draft4Validator(self._schema)
         self._schema = JSONSchema._resolve_schema_references(validator.schema, validator.resolver)
         self.commit_changes()
+        self._initial_default_provider = None
         self._initial_default_backend = None
-        if 'properties' in self._schema and \
-            JSONSchema.BACKEND in self._schema['properties'] and \
-            'properties' in self._schema['properties'][JSONSchema.BACKEND] and \
-            JSONSchema.NAME in self._schema['properties'][JSONSchema.BACKEND]['properties'] and \
-                'default' in self._schema['properties'][JSONSchema.BACKEND]['properties'][JSONSchema.NAME]:
-            self._initial_default_backend = self._schema['properties'][JSONSchema.BACKEND]['properties'][JSONSchema.NAME]['default']
+        # access default backend from schema
+        backend_properties = self.schema.get('properties', {}).get(JSONSchema.BACKEND, {}).get('properties')
+        if backend_properties is not None:
+            self._initial_default_provider = backend_properties.get(JSONSchema.PROVIDER, {}).get('default')
+            self._initial_default_backend = backend_properties.get(JSONSchema.NAME, {}).get('default')
 
     @property
     def schema(self):
@@ -106,6 +106,12 @@ class JSONSchema(object):
 
         if section_name in self.aqua_jsonschema.schema['properties']:
             self._schema['properties'][section_name] = self.aqua_jsonschema.schema['properties'][section_name]
+            if section_name == JSONSchema.BACKEND:
+                # access default backend from schema
+                backend_properties = self.schema.get('properties', {}).get(JSONSchema.BACKEND, {}).get('properties')
+                if backend_properties is not None:
+                    self._initial_default_provider = backend_properties.get(JSONSchema.PROVIDER, {}).get('default')
+                    self._initial_default_backend = backend_properties.get(JSONSchema.NAME, {}).get('default')
 
     def get_section_types(self, section_name):
         """
@@ -315,16 +321,27 @@ class JSONSchema(object):
 
     def update_backend_schema(self):
         """
-        Updates default backend schema by checking local providers
+        Updates default backend schema
         """
         if JSONSchema.BACKEND in self._schema['properties']:
-            providers = get_local_providers().items()
-            provider_tuple = next(iter(providers)) if len(providers) > 0 else ('', [])
-            self._schema['properties'][JSONSchema.BACKEND]['properties'][JSONSchema.PROVIDER]['default'] = provider_tuple[0]
-            if self._initial_default_backend is not None and self._initial_default_backend in provider_tuple[1]:
+            provider_name = None
+            providers = get_local_providers()
+            if self._initial_default_provider is not None and self._initial_default_provider in providers:
+                # use original default provider
+                provider_name = self._initial_default_provider
+            else:
+                # use first provider available
+                providers_items = providers.items()
+                provider_tuple = next(iter(providers_items)) if len(providers_items) > 0 else ('', [])
+                provider_name = provider_tuple[0]
+
+            self._schema['properties'][JSONSchema.BACKEND]['properties'][JSONSchema.PROVIDER]['default'] = provider_name
+
+            if self._initial_default_backend is not None and self._initial_default_backend in providers.get(provider_name, []):
                 default_backend = self._initial_default_backend
             else:
-                default_backend = provider_tuple[1][0] if len(provider_tuple[1]) > 0 else ''
+                default_backend = providers.get(provider_name)[0] if len(providers.get(provider_name, [])) > 0 else ''
+
             self._schema['properties'][JSONSchema.BACKEND]['properties'][JSONSchema.NAME]['default'] = default_backend
 
     def update_pluggable_schemas(self, input_parser):
