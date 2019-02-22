@@ -202,7 +202,7 @@ class QPE(QuantumAlgorithm):
             ancilla_density_mat_diag = np.diag(ancilla_density_mat)
             max_amplitude = max(ancilla_density_mat_diag.min(), ancilla_density_mat_diag.max(), key=abs)
             max_amplitude_idx = np.where(ancilla_density_mat_diag == max_amplitude)[0][0]
-            top_measurement_label = format(max_amplitude_idx, '0{}b'.format(self._num_ancillae))[::-1]
+            top_measurement_label = np.binary_repr(max_amplitude_idx, self._num_ancillae)[::-1]
         else:
             from qiskit import ClassicalRegister
             c_ancilla = ClassicalRegister(self._num_ancillae, name='ca')

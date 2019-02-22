@@ -155,6 +155,6 @@ class Custom(InitialState):
                 else:
                     pass
                 self._circuit = circuit
-            return self._circuit
+            return self._circuit.copy()
         else:
             raise ValueError('Mode should be either "vector" or "circuit"')

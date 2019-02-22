@@ -25,9 +25,9 @@ from qiskit.aqua.algorithms.single_sample import PhaseEstimationCircuit
 
 class EigsQPE(Eigenvalues):
 
-    """The QPE circuit for getting the eigenvalues of a matrix.
+    """ This class embeds a PhaseEstimationCircuit for getting the eigenvalues of a matrix.
 
-    This class is based on QPE circuit with no measurements and additional
+    Specifically, this class is based on PhaseEstimationCircuit with no measurements and additional
     handling of negative eigenvalues, e.g. for HHL. It uses many parameters
     known from plain QPE. It depends on QFT and IQFT.
     """
@@ -206,8 +206,7 @@ class EigsQPE(Eigenvalues):
         return self._evo_time
 
     def construct_circuit(self, mode, register=None):
-        """ Construct the eigenvalues estimation using Quantum Phase
-        Estimation circuit
+        """ Construct the eigenvalues estimation using the PhaseEstimationCircuit
 
         Args:
             mode (str): consctruction mode, 'vector' not supported

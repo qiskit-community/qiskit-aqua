@@ -16,29 +16,31 @@
 # =============================================================================
 
 import unittest
+import itertools
+
 from parameterized import parameterized
 
-from qiskit.aqua.components.oracles import DeutschJozsaOracle
+from qiskit.aqua.components.oracles import TruthTableOracle
 from qiskit.aqua.algorithms import DeutschJozsa
 from qiskit.aqua import get_aer_backend
-
 from test.common import QiskitAquaTestCase
+
+bitmaps = ['0000', '0101', '1111', '11110000']
+mct_modes = ['basic', 'advanced', 'noancilla']
+optimizations = ['off', 'qm-dlx']
 
 
 class TestDeutschJozsa(QiskitAquaTestCase):
-    @parameterized.expand([
-        [{'00': '0', '01': '0', '10': '0', '11': '0'}],
-        [{'00': '1', '01': '1', '10': '1', '11': '1'}],
-        [{'00': '0', '01': '1', '10': '0', '11': '1'}],
-        [{'000': '1', '001': '1', '010': '1', '011': '1',
-          '100': '0', '101': '0', '110': '0', '111': '0'}]
-    ])
-    def test_deutschjozsa(self, dj_input):
+    @parameterized.expand(
+        itertools.product(bitmaps, mct_modes, optimizations)
+    )
+    def test_deutschjozsa(self, dj_input, mct_mode, optimization='off'):
         backend = get_aer_backend('qasm_simulator')
-        oracle = DeutschJozsaOracle(dj_input)
+        oracle = TruthTableOracle(dj_input, optimization=optimization, mct_mode=mct_mode)
         algorithm = DeutschJozsa(oracle)
         result = algorithm.run(backend)
-        if sum([int(v) for v in dj_input.values()]) == len(dj_input) / 2:
+        # print(result['circuit'].draw(line_length=10000))
+        if sum([int(i) for i in dj_input]) == len(dj_input) / 2:
             self.assertTrue(result['result'] == 'balanced')
         else:
             self.assertTrue(result['result'] == 'constant')

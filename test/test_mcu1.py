@@ -17,27 +17,22 @@
 
 import unittest
 from itertools import combinations, chain
-
 import numpy as np
+from math import pi
+
 from parameterized import parameterized
 from qiskit import QuantumCircuit, QuantumRegister
-from qiskit.aqua import get_aer_backend
 from qiskit import execute as q_execute
 from qiskit.quantum_info import state_fidelity
+
+from qiskit.aqua import get_aer_backend
 from test.common import QiskitAquaTestCase
-from math import pi
 
 
 class TestMCU1(QiskitAquaTestCase):
-    @parameterized.expand([
-        [1],
-        [2],
-        [3],
-        [4],
-        [5],
-        [6],
-        [7],
-    ])
+    @parameterized.expand(
+        [[i + 1] for i in range(7)]
+    )
     def test_mcu1(self, num_controls):
         c = QuantumRegister(num_controls, name='c')
         o = QuantumRegister(1, name='o')

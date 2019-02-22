@@ -15,29 +15,52 @@
 # limitations under the License.
 # =============================================================================
 
+import math
+import itertools
+import numpy as np
 import unittest
-from parameterized import parameterized
 
-from qiskit.aqua.components.oracles import SimonOracle
+from parameterized import parameterized
+from qiskit.aqua.components.oracles import TruthTableOracle
 from qiskit.aqua.algorithms import Simon
-from qiskit.aqua import get_aer_backend
+from qiskit.aqua import get_aer_backend, AquaError
 
 from test.common import QiskitAquaTestCase
 
+bitmaps = [
+    ['00011110', '01100110', '10101010'],
+    ['10010110', '01010101', '10000010'],
+    ['01101001', '10011001', '01100110'],
+]
+mct_modes = ['basic', 'advanced', 'noancilla']
+optimizations = ['off', 'qm-dlx']
+
 
 class TestSimon(QiskitAquaTestCase):
-    @parameterized.expand([
-        [{'000': '001', '001': '010', '010': '011', '011': '100',
-          '100': '101', '101': '110', '110': '111', '111': '000'}],
-        [{'000': '101', '001': '010', '010': '000', '011': '110',
-          '100': '000', '101': '110', '110': '101', '111': '010'}]
-    ])
-    def test_simon(self, simon_input):
+    @parameterized.expand(
+        itertools.product(bitmaps, mct_modes, optimizations)
+    )
+    def test_simon(self, simon_input, mct_mode, optimization='off'):
+        # find the two keys that have matching values
+        nbits = int(math.log(len(simon_input[0]), 2))
+        vals = list(zip(*simon_input))[::-1]
+
+        def find_pair():
+            for i in range(len(vals)):
+                for j in range(i + 1, len(vals)):
+                    if vals[i] == vals[j]:
+                        return i, j
+            return 0, 0
+
+        k1, k2 = find_pair()
+        hidden = np.binary_repr(k1 ^ k2, nbits)
+
         backend = get_aer_backend('qasm_simulator')
-        oracle = SimonOracle(simon_input)
+        oracle = TruthTableOracle(simon_input, optimization=optimization, mct_mode=mct_mode)
         algorithm = Simon(oracle)
         result = algorithm.run(backend)
-        self.assertTrue(result['oracle_evaluation'])
+        # print(result['circuit'].draw(line_length=10000))
+        self.assertEqual(result['result'], hidden)
 
 
 if __name__ == '__main__':
