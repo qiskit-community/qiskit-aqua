@@ -29,7 +29,7 @@ class AquaGUIProvider(GUIProvider):
 
     def __init__(self):
         super().__init__()
-        self._controller = Controller(self)
+        self._controller = None
 
     @property
     def title(self):
@@ -50,6 +50,9 @@ class AquaGUIProvider(GUIProvider):
     @property
     def controller(self):
         """Return provider controller."""
+        if self._controller is None:
+            self._controller = Controller(self)
+
         return self._controller
 
     def create_preferences(self):
