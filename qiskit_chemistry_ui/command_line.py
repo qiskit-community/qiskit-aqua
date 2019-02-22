@@ -39,18 +39,18 @@ def set_preferences_logging():
 
 
 def main():
+    guiProvider = ChemistryGUIProvider()
     if sys.platform == 'darwin':
         from Foundation import NSBundle
         bundle = NSBundle.mainBundle()
         if bundle:
             info = bundle.localizedInfoDictionary() or bundle.infoDictionary()
-            info['CFBundleName'] = 'QISkit Chemistry'
+            info['CFBundleName'] = guiProvider.title
 
     root = tk.Tk()
     root.withdraw()
     root.update_idletasks()
 
-    guiProvider = ChemistryGUIProvider()
     preferences = guiProvider.create_uipreferences()
     geometry = preferences.get_geometry()
     if geometry is None:
