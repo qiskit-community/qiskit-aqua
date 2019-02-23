@@ -41,18 +41,18 @@ def set_preferences_logging():
 
 
 def main():
+    guiProvider = AquaGUIProvider()
     if sys.platform == 'darwin':
         from Foundation import NSBundle
         bundle = NSBundle.mainBundle()
         if bundle:
             info = bundle.localizedInfoDictionary() or bundle.infoDictionary()
-            info['CFBundleName'] = 'Qiskit Aqua'
+            info['CFBundleName'] = guiProvider.title
 
     root = tk.Tk()
     root.withdraw()
     root.update_idletasks()
 
-    guiProvider = AquaGUIProvider()
     preferences = guiProvider.create_uipreferences()
     geometry = preferences.get_geometry()
     if geometry is None:

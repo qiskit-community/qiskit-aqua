@@ -26,6 +26,12 @@ Added
 - Pluggable component ``Reciprocal`` with variants ``LookupRotation`` and ``LongDivision``
 - Multiple-Controlled U1 and U3 operations ``mcu1`` and ``mcu3``
 - Pluggable component ``QFT`` derived from component ``IQFT``
+- Summarize the tranpiled circuits at the DEBUG logging level.
+- ``QuantumInstance`` accepts ``basis_gates`` and ``coupling_map`` again.
+
+Removed
+-------
+- ``QuantumInstance`` does not take ``memory`` anymore.
 
 Changed
 -------

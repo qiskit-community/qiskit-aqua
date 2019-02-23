@@ -23,7 +23,6 @@ import logging
 
 from qiskit.providers import BaseBackend
 from qiskit.transpiler import PassManager
-from qiskit.qobj import RunConfig
 
 from .aqua_error import AquaError
 from ._discover import (_discover_on_demand,
@@ -196,30 +195,7 @@ class QiskitAqua(object):
                 backend = get_backend_from_provider(backend_provider, backend_name)
 
             backend_cfg['backend'] = backend
-
-            # overwrite the basis_gates and coupling_map
-            basis_gates = backend_cfg.pop('basis_gates', None)
-            if isinstance(basis_gates, str):
-                basis_gates = basis_gates.split(',')
-
-            coupling_map = backend_cfg.pop('coupling_map', None)
-            if backend.configuration().simulator:
-                if basis_gates is not None:
-                    backend.configuration().basis_gates = basis_gates
-                if coupling_map is not None:
-                    backend.configuration().coupling_map = coupling_map
-            else:
-                logger.warning("Change basis_gates and coupling_map on a real device is disallowed.")
-
-            shots = backend_cfg.pop('shots', 1024)
-            seed = random_seed
-            max_credits = backend_cfg.pop('max_credits', 10)
-            memory = backend_cfg.pop('memory', False)
-            run_config = RunConfig(shots=shots, max_credits=max_credits, memory=memory)
-            if seed is not None:
-                run_config.seed = seed
-            backend_cfg['run_config'] = run_config
-
+            backend_cfg['seed'] = random_seed
             backend_cfg['skip_qobj_validation'] = self._parser.get_section_property(JSONSchema.PROBLEM,
                                                                                     'skip_qobj_validation')
             use_caching = self._parser.get_section_property(JSONSchema.PROBLEM, 'circuit_caching')
