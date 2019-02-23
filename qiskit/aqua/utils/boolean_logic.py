@@ -147,6 +147,19 @@ def get_exact_covers(cols, rows, num_cols=None):
 
 
 def logic_or(clause_expr, circuit, variable_register, target_qubit, ancillary_register, mct_mode):
+    """
+    Build a collective disjunction (OR) circuit in place using mct.
+
+    Args:
+        clause_expr ([int]): The desired disjunctive clause as represented by a list of non-zero integers,
+            whose absolute values indicate the variables, where negative signs correspond to negations.
+        circuit (QuantumCircuit): The QuantumCircuit object to build the disjunction on.
+        variable_register (QuantumRegister): The QuantumRegister holding the variable qubits. Note that the
+            qubit indices are 0-based, so `variable_register[i]` correspond to variable `i-1` in `clause_expr`.
+        target_qubit (qubit): The target qubit to hold the disjunction result.
+        ancillary_register (QuantumRegister): The ancillary QuantumRegister for building the mct.
+        mct_mode (str): The mct building mode.
+    """
     clause_expr = sorted(clause_expr, key=abs)
     qs = [abs(v) for v in clause_expr]
     ctl_bits = [variable_register[idx - 1] for idx in qs]
@@ -159,6 +172,19 @@ def logic_or(clause_expr, circuit, variable_register, target_qubit, ancillary_re
 
 
 def logic_and(clause_expr, circuit, variable_register, target_qubit, ancillary_register, mct_mode):
+    """
+    Build a collective conjunction (AND) circuit in place using mct.
+
+    Args:
+        clause_expr ([int]): The desired disjunctive clause as represented by a list of non-zero integers,
+            whose absolute values indicate the variables, where negative signs correspond to negations.
+        circuit (QuantumCircuit): The QuantumCircuit object to build the conjunction on.
+        variable_register (QuantumRegister): The QuantumRegister holding the variable qubits. Note that the
+            qubit indices are 0-based, so `variable_register[i]` correspond to variable `i-1` in `clause_expr`.
+        target_qubit (qubit): The target qubit to hold the conjunction result.
+        ancillary_register (QuantumRegister): The ancillary QuantumRegister for building the mct.
+        mct_mode (str): The mct building mode.
+    """
     clause_expr = sorted(clause_expr, key=abs)
     qs = [abs(v) for v in clause_expr]
     ctl_bits = [variable_register[idx - 1] for idx in qs]
@@ -170,21 +196,39 @@ def logic_and(clause_expr, circuit, variable_register, target_qubit, ancillary_r
         circuit.u3(pi, 0, pi, variable_register[-idx - 1])
 
 
-def get_ast_depth(ast):
-    if ast[0] == 'const' or ast[0] == 'lit':
-        return 0
-    else:
-        return 1 + max([get_ast_depth(c) for c in ast[1:]])
-
-
 class BooleanLogicNormalForm(ABC):
+
+    @staticmethod
+    def _get_ast_depth(ast):
+        if ast[0] == 'const' or ast[0] == 'lit':
+            return 0
+        else:
+            return 1 + max([BooleanLogicNormalForm._get_ast_depth(c) for c in ast[1:]])
+
+    @staticmethod
+    def _get_ast_num_vars(ast):
+        if ast[0] == 'const':
+            return 0
+
+        all_vars = set()
+
+        def get_ast_vars(cur_ast):
+            if cur_ast[0] == 'lit':
+                all_vars.add(abs(cur_ast[1]))
+            else:
+                for c in cur_ast[1:]:
+                    get_ast_vars(c)
+
+        get_ast_vars(ast)
+        return max(all_vars)
+
     """
     The base abstract class for:
     - CNF (Conjunctive Normal Forms),
     - DNF (Disjunctive Normal Forms), and
     - ESOP (Exclusive Sum of Products)
     """
-    def __init__(self, ast, num_vars):
+    def __init__(self, ast, num_vars=None):
         """
         Constructor.
 
@@ -193,12 +237,18 @@ class BooleanLogicNormalForm(ABC):
             num_vars (int): Number of boolean variables
         """
 
-        ast_depth = get_ast_depth(ast)
+        ast_depth = BooleanLogicNormalForm._get_ast_depth(ast)
 
         if ast_depth > 2:
-            raise NotImplementedError
+            raise AquaError('Expressions of depth greater than 2 are not supported.')
         self._depth = ast_depth
-        self._num_variables = num_vars
+        inferred_num_vars = BooleanLogicNormalForm._get_ast_num_vars(ast)
+        if num_vars is None:
+            self._num_variables = inferred_num_vars
+        else:
+            if inferred_num_vars > num_vars:
+                raise AquaError('{} variables present, but only {} specified.'.format(inferred_num_vars, num_vars))
+            self._num_variables = num_vars
 
         if ast_depth == 0:
             self._ast = ast
