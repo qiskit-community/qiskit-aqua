@@ -291,7 +291,7 @@ class BaseParser(ABC):
 
         # update schema
         self._json_schema.rollback_changes()
-        self._json_schema.update_backend_schema()
+        self._json_schema.update_backend_schema(self)
         self._json_schema.update_pluggable_schemas(self)
 
     def set_section_properties(self, section_name, new_properties):
@@ -357,11 +357,13 @@ class BaseParser(ABC):
             get_backends_from_provider(value)
 
         BaseParser._set_section_property(self._sections, section_name, property_name, value, types)
-        if property_name == JSONSchema.NAME:
+        if JSONSchema.BACKEND == section_name and property_name == JSONSchema.PROVIDER:
+            self._json_schema.update_backend_schema(self)
+        elif property_name == JSONSchema.NAME:
             if JSONSchema.PROBLEM == section_name:
                 self._update_algorithm_problem()
             elif JSONSchema.BACKEND == section_name:
-                self._json_schema.update_backend_schema()
+                self._json_schema.update_backend_schema(self)
             elif BaseParser.is_pluggable_section(section_name):
                 self._json_schema.update_pluggable_schemas(self)
                 # remove properties that are not valid for this section

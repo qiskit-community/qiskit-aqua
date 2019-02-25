@@ -62,7 +62,7 @@ class InputParser(BaseParser):
             with open(self._filename) as json_file:
                 self._sections = json.load(json_file)
 
-        self.json_schema.update_backend_schema()
+        self.json_schema.update_backend_schema(self)
         self.json_schema.update_pluggable_schemas(self)
         self._update_algorithm_input_schema()
         self._sections = self._order_sections(self._sections)
@@ -77,7 +77,7 @@ class InputParser(BaseParser):
             if JSONSchema.PROBLEM not in section_names:
                 self.set_section(JSONSchema.PROBLEM)
 
-        self.json_schema.update_backend_schema()
+        self.json_schema.update_backend_schema(self)
         self.json_schema.update_pluggable_schemas(self)
         self._update_algorithm_input_schema()
         self._merge_dependencies()
