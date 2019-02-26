@@ -44,14 +44,17 @@ class Model(BaseModel):
     def default_properties_equals_properties(self, section_name):
         from qiskit.aqua.parser import JSONSchema
         if self.section_is_text(section_name):
-            return self.get_section_default_properties(section_name) == self._parser.get_section_text(section_name)
+            return self.get_section_default_properties(section_name) == self.get_section_text(section_name)
 
         default_properties = self.get_section_default_properties(section_name)
         properties = self.get_section_properties(section_name)
         if not isinstance(default_properties, dict) or not isinstance(properties, dict):
             return default_properties == properties
 
-        if JSONSchema.BACKEND != section_name and JSONSchema.NAME in properties:
+        if JSONSchema.BACKEND == section_name and JSONSchema.PROVIDER in properties:
+            default_properties[JSONSchema.PROVIDER] = properties[JSONSchema.PROVIDER]
+
+        if JSONSchema.NAME in properties:
             default_properties[JSONSchema.NAME] = properties[JSONSchema.NAME]
 
         if len(default_properties) != len(properties):
