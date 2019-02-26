@@ -36,10 +36,7 @@ from .parser import JSONSchema
 from .quantum_instance import QuantumInstance
 from .utils.backend_utils import (get_backend_from_provider,
                                   get_provider_from_backend,
-                                  is_simulator_backend,
-                                  is_statevector_backend,
-                                  is_aer_provider,
-                                  is_aer_statevector_backend)
+                                  is_statevector_backend)
 
 logger = logging.getLogger(__name__)
 
@@ -193,7 +190,7 @@ class QiskitAqua(object):
             backend_cfg = {k: v for k, v in self._parser.get_section(JSONSchema.BACKEND).items() if
                            k not in [JSONSchema.PROVIDER, JSONSchema.NAME]}
 
-            # check shots
+            # set shots for state vector
             if is_statevector_backend(backend):
                 backend_cfg['shots'] = 1
 
@@ -219,7 +216,11 @@ class QiskitAqua(object):
                         # Generate an Aer noise model for device
                         from qiskit.providers.aer import noise
                         noise_model = noise.device.basic_device_noise_model(device_backend.properties())
-                        backend_cfg['basis_gates'] = noise_model.basis_gates
+                        basis_gates = backend_cfg.get('basis_gates')
+                        if basis_gates is None:
+                            backend_cfg['basis_gates'] = noise_model.basis_gates
+                        else:
+                            logger.warning("Basis gates '{}' used instead of noise model basis gates '{}'.".format(basis_gates, noise_model.basis_gates))
 
             backend_cfg['seed_mapper'] = random_seed
             pass_manager = PassManager() if backend_cfg.pop('skip_transpiler', False) else None

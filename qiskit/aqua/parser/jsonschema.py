@@ -366,16 +366,14 @@ class JSONSchema(object):
         config = backend.configuration()
 
         # Include shots in schema only if not a statevector backend.
-        # Note if shots is not in the resultant dictionary when processed by qiskit_aqua I guess we should
-        # add shots=1 to avoid taking the QuantumInstance default of 1024 which will elicit a message about
-        # it having to be 1 for statevector and changing it to 1.
+        # For statevector, shots will be set to 1, in QiskitAqua
         if not is_statevector_backend(backend):
             self._schema['properties'][JSONSchema.BACKEND]['properties']['shots'] = {
                 'type': 'integer',
                 'minimum': 1,
             }
             default_shots = 1024
-            # Should we ensure default_shots <= max_shots
+            # ensure default_shots <= max_shots
             if config.max_shots:
                 default_shots = min(default_shots, config.max_shots)
                 self._schema['properties'][JSONSchema.BACKEND]['properties']['shots']['maximum'] = config.max_shots
@@ -405,19 +403,14 @@ class JSONSchema(object):
         except Exception as e:
             logger.debug("Failed to load IBMQ backends. Error {}".format(str(e)))
 
-        # Include coupling map in schema only if a simulator backend. Actual devices have a coupling map based on the
-        # physical configuration of the device. Now if this is a simulator a reasonable use case is to configure the
-        # coupling map of the simulator so its the same as the coupling map of a given device in order to better
-        # simulate running on the device. So the "enum" there would be a list of provider::name backends that are
-        # real devices e.g IBMQ::ibmqx5. The array would still allow a user to manually configure. So this should be
-        # null by default, but allow a user to choose from the set of device backends or enter a map manually. Not
-        # sure how the UI looks for this. See noise model below for info on how to obtain coupline map from a device.
-        #
-        # In thinking more this has somewhat the resemblence of the entangler_map and entanglement properties of a var
-        # form where entangler_map overrides any entanglement values. Maybe to facilitate the UI this single property
-        # could be split into two: coupling_map and coupling_map_from_device? where coupling_map, an array, if provided
-        # would override coupling_map_from_device, the latter would have additionally for this 'None' and would default to
-        # 'None' so in total no coupling map would be default, i.e. all to all coupling is possible.
+        # Includes 'coupling map' and 'coupling_map_from_device' in schema only if a simulator backend.
+        # Actual devices have a coupling map based on the physical configuration of the device.
+        # The user can configure the coupling map so its the same as the coupling map
+        # of a given device in order to better simulate running on the device.
+        # Property 'coupling_map_from_device' is a list of provider:name backends that are
+        # real devices e.g qiskit.IBMQ:ibmqx5.
+        # If property 'coupling_map', an array, is provided, it overrides coupling_map_from_device,
+        # the latter defaults to 'None'. So in total no coupling map is a default, i.e. all to all coupling is possible.
         if is_simulator_backend(backend):
             self._schema['properties'][JSONSchema.BACKEND]['properties']['coupling_map'] = {
                 'type': ['array', 'null'],
@@ -427,54 +420,50 @@ class JSONSchema(object):
                 coupling_map_devices.append(None)
                 self._schema['properties'][JSONSchema.BACKEND]['properties']['coupling_map_from_device'] = {
                     'type': ['string', 'null'],
+                    'default': None,
                     'oneOf': [
                         {
                             'enum': coupling_map_devices
                         }
                     ],
-                    'default': None,
                 }
 
-        # Bring back a noise model that can be setup for Aer simulator so as to model noise of an actual device.
-        # Maybe this is not the right test since aer has more backends but since we allow only qasm and statevector
-        # it may suffice. The noise model applies to Aer qasm_simulator. At this level we will only support setting
-        # noise model this way, and maybe some predefined ones that we can address with more strings in the enum.
-        # Fine grain control will be for programming API, ie QuantumInstance.
-        # An example of how to get the actual noise model and coupling map for a device can be seen in the example
-        # the home page for Aer ie https://qiskit.org/aer
-        # Extracting the actual coupling map & noise model by use of the provider:::name would happen in qiskit_aqua
-        # ahead of creating the QuantumInstance including these params on constructor.
+        # noise model that can be setup for Aer simulator so as to model noise of an actual device.
         if len(noise_model_devices) > 0:
             noise_model_devices.append(None)
             self._schema['properties'][JSONSchema.BACKEND]['properties']['noise_model'] = {
                 'type': ['string', 'null'],
+                'default': None,
                 'oneOf': [
                     {
                         'enum': noise_model_devices
                     }
                 ],
-                'default': None,
             }
 
-        # Note: if a noise model is supplied then we should set the basis gates as per the noise model
-        # Question: should the noise model basis gates then override any specific basis gates entered here i.e.
-        #           if this is non null. Maybe better to log a warning as it may be an advanced use case and
-        #           only set a noise model basis gates if this has no user entered value.
+        # If a noise model is supplied then the basis gates is set as per the noise model
+        # unless basis gates is not None in which case it overrides noise model and a warning msg is logged.
+        # as it is an advanced use case.
         self._schema['properties'][JSONSchema.BACKEND]['properties']['basis_gates'] = {
             'type': ['array', 'null'],
             'default': None,
         }
-        # Not sure if we want to continue with initial_layout in declarative form. It requires knowledge of circuit
-        # registers etc. Perhaps its best to leave this detail to programming API.
+
+        # TODO: Not sure if we want to continue with initial_layout in declarative form.
+        # It requires knowledge of circuit registers etc. Perhaps its best to leave this detail to programming API.
         self._schema['properties'][JSONSchema.BACKEND]['properties']['initial_layout'] = {
             'type': ['object', 'null'],
             'default': None,
         }
+
+        # The same default and minimum as current RunConfig values
         self._schema['properties'][JSONSchema.BACKEND]['properties']['max_credits'] = {
             'type': 'integer',
             'default': 10,
-            'minimum': 1,  # RunConfig seems to have min 3, max 10
+            'minimum': 3,
+            'maximum': 10,
         }
+
         # Timeout and wait are for remote backends where we have to connect over network
         if not is_local_backend(backend):
             self._schema['properties'][JSONSchema.BACKEND]['properties']['timeout'] = {
@@ -486,7 +475,6 @@ class JSONSchema(object):
                 'default': 5.0,
                 'minimum': 0.0,
             }
-        # logger.debug('Schema: {}'.format(json.dumps(self._schema['properties'][JSONSchema.BACKEND], sort_keys=True, indent=4)))
 
     def update_pluggable_schemas(self, input_parser):
         """
@@ -513,6 +501,7 @@ class JSONSchema(object):
         else:
             if JSONSchema.BACKEND not in self._schema['properties']:
                 self._schema['properties'][JSONSchema.BACKEND] = self._original_schema['properties'][JSONSchema.BACKEND]
+                self.update_backend_schema(input_parser)
 
         pluggable_dependencies = config.get('depends', [])
 

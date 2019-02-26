@@ -309,6 +309,11 @@ class BaseParser(ABC):
         for property_name in del_properties:
             self.delete_section_property(section_name, property_name)
 
+        # update backend provider first
+        if JSONSchema.BACKEND == section_name and JSONSchema.PROVIDER in set_properties:
+            self.set_section_property(section_name, JSONSchema.PROVIDER, set_properties[JSONSchema.PROVIDER])
+            del set_properties[JSONSchema.PROVIDER]
+
         # update name first
         if JSONSchema.NAME in set_properties:
             self.set_section_property(section_name, JSONSchema.NAME, set_properties[JSONSchema.NAME])
@@ -352,31 +357,42 @@ class BaseParser(ABC):
             # nothing changed
             return
 
-        # check if this provider is loadable and valid
-        if JSONSchema.BACKEND == section_name and property_name == JSONSchema.PROVIDER:
-            get_backends_from_provider(value)
+        # check if the provider/backend is loadable and valid
+        backend_names = []
+        if JSONSchema.BACKEND == section_name and property_name in [JSONSchema.PROVIDER, JSONSchema.NAME]:
+            provider_name = value if property_name == JSONSchema.PROVIDER else self.get_section_property(section_name, JSONSchema.PROVIDER)
+            backend_names = get_backends_from_provider(provider_name)
+            if property_name == JSONSchema.NAME and value not in backend_names:
+                raise AquaError("Backend '{}' not valid for provider: '{}' backends: '{}'".format(value, provider_name, backend_names))
 
+        # update value internally
         BaseParser._set_section_property(self._sections, section_name, property_name, value, types)
-        if JSONSchema.BACKEND == section_name and property_name == JSONSchema.PROVIDER:
+
+        if JSONSchema.BACKEND == section_name and property_name in [JSONSchema.PROVIDER, JSONSchema.NAME]:
+            if property_name == JSONSchema.PROVIDER:
+                backend_name = self.get_section_property(section_name, JSONSchema.NAME)
+                if backend_name not in backend_names:
+                    # use first backend available in provider
+                    backend_name = backend_names[0] if len(backend_names) > 0 else ''
+                    BaseParser._set_section_property(self._sections, section_name, JSONSchema.NAME, backend_name, ['string'])
+
             self._json_schema.update_backend_schema(self)
         elif property_name == JSONSchema.NAME:
             if JSONSchema.PROBLEM == section_name:
                 self._update_algorithm_problem()
-            elif JSONSchema.BACKEND == section_name:
-                self._json_schema.update_backend_schema(self)
             elif BaseParser.is_pluggable_section(section_name):
                 self._json_schema.update_pluggable_schemas(self)
-                # remove properties that are not valid for this section
-                default_properties = self.get_section_default_properties(section_name)
-                if isinstance(default_properties, dict):
-                    properties = self.get_section_properties(section_name)
-                    for p_name in list(properties.keys()):
-                        if p_name != JSONSchema.NAME and p_name not in default_properties:
-                            self.delete_section_property(section_name, p_name)
-
                 self._update_dependency_sections(section_name)
             else:
                 self.post_set_section_property(section_name, property_name)
+
+        # remove properties that are not valid for this section
+        default_properties = self.get_section_default_properties(section_name)
+        if isinstance(default_properties, dict):
+            properties = self.get_section_properties(section_name)
+            for p_name in list(properties.keys()):
+                if p_name != JSONSchema.NAME and p_name not in default_properties:
+                    self.delete_section_property(section_name, p_name)
 
         self._sections = self._order_sections(self._sections)
 

@@ -142,13 +142,6 @@ class InputParser(BaseParser):
             section_name = JSONSchema.format_section_name(section_name).lower()
             if PluggableType.INPUT.value == section_name:
                 self._update_algorithm_input_schema()
-                # remove properties that are not valid for this section
-                default_properties = self.get_section_default_properties(section_name)
-                if isinstance(default_properties, dict):
-                    properties = self.get_section_properties(section_name)
-                    for property_name in list(properties.keys()):
-                        if property_name != JSONSchema.NAME and property_name not in default_properties:
-                            self.delete_section_property(section_name, property_name)
             elif JSONSchema.PROBLEM == section_name:
                 self._update_input_problem()
 

@@ -18,7 +18,6 @@
 from .base_model import BaseModel
 import os
 from qiskit_aqua_ui._uipreferences import UIPreferences
-from collections import OrderedDict
 import logging
 
 logger = logging.getLogger(__name__)
@@ -48,20 +47,17 @@ class Model(BaseModel):
             return self.get_section_default_properties(section_name) == self.get_section_text(section_name)
 
         default_properties = self.get_section_default_properties(section_name)
-        if isinstance(default_properties, OrderedDict):
-            default_properties = dict(default_properties)
-
         properties = self.get_section_properties(section_name)
-        if isinstance(properties, OrderedDict):
-            properties = dict(properties)
-
         if not isinstance(default_properties, dict) or not isinstance(properties, dict):
             return default_properties == properties
 
-        if JSONSchema.BACKEND != section_name and JSONSchema.NAME in properties:
+        if JSONSchema.BACKEND == section_name and JSONSchema.PROVIDER in properties:
+            default_properties[JSONSchema.PROVIDER] = properties[JSONSchema.PROVIDER]
+
+        if JSONSchema.NAME in properties:
             default_properties[JSONSchema.NAME] = properties[JSONSchema.NAME]
 
-        return default_properties == properties
+        return dict(default_properties) == dict(properties)
 
     def get_input_section_names(self):
         from qiskit.aqua.parser._inputparser import InputParser

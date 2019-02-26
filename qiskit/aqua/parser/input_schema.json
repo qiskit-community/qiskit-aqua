@@ -57,7 +57,7 @@
                     "default": "statevector_simulator"
                 }
             },
-            "required": ["name"],
+            "required": ["provider", "name"],
             "additionalProperties": false
         }
     },
