@@ -44,7 +44,6 @@ class Oracle(Pluggable):
         self._ancillary_register = None
         self._circuit = None
 
-
     @classmethod
     def init_params(cls, params):
         oracle_params = params.get(Pluggable.SECTION_KEY_ORACLE)
