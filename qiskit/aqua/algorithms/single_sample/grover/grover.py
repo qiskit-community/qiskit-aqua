@@ -22,7 +22,7 @@ import logging
 import numpy as np
 import operator
 
-from qiskit import ClassicalRegister, QuantumCircuit
+from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 from qiskit.qasm import pi
 
 from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
@@ -120,11 +120,7 @@ class Grover(QuantumAlgorithm):
                 self._init_state_circuit_inverse.data
             )
         ]
-        self._diffusion_circuit = Grover.construct_diffusion_circuit(
-            self._oracle.variable_register,
-            self._oracle.ancillary_register,
-            mct_mode=mct_mode
-        )
+        self._diffusion_circuit = self._construct_diffusion_circuit()
         self._max_num_iterations = np.ceil(2 ** (len(oracle.variable_register) / 2))
         self._incremental = incremental
         self._num_iterations = num_iterations if not incremental else 1
@@ -139,24 +135,43 @@ class Grover(QuantumAlgorithm):
         self._qc_amplitude_amplification = None
         self._qc_measurement = None
 
-    @staticmethod
-    def construct_diffusion_circuit(variable_register, ancillary_register, mct_mode='basic'):
-        qc = QuantumCircuit(variable_register)
-        if ancillary_register:
-            qc.add_register(ancillary_register)
-        num_variable_qubits = len(variable_register)
-        qc.barrier(variable_register)
-        qc.u3(pi, 0, pi, variable_register)
-        qc.u2(0, pi, variable_register[num_variable_qubits - 1])
+    def _construct_diffusion_circuit(self):
+        qc = QuantumCircuit(self._oracle.variable_register)
+        num_variable_qubits = len(self._oracle.variable_register)
+        num_ancillae_needed = 0
+        if self._mct_mode == 'basic':
+            num_ancillae_needed = max(0, num_variable_qubits - 2)
+        elif self._mct_mode == 'advanced' and num_variable_qubits >= 5:
+            num_ancillae_needed = 1
+
+        # check oracle's existing ancilla and add more if necessary
+        num_oracle_ancillae = len(self._oracle.ancillary_register) if self._oracle.ancillary_register else 0
+        num_additional_ancillae = num_ancillae_needed - num_oracle_ancillae
+        if num_additional_ancillae > 0:
+            extra_ancillae = QuantumRegister(num_additional_ancillae, name='a_e')
+            qc.add_register(extra_ancillae)
+            ancilla = [q for q in extra_ancillae]
+            if num_oracle_ancillae > 0:
+                ancilla += [q for q in self._oracle.ancillary_register]
+        else:
+            ancilla = self._oracle.ancillary_register
+
+        if self._oracle.ancillary_register:
+            qc.add_register(self._oracle.ancillary_register)
+        qc.barrier(self._oracle.variable_register)
+        qc += self._init_state_circuit_inverse
+        qc.u3(pi, 0, pi, self._oracle.variable_register)
+        qc.u2(0, pi, self._oracle.variable_register[num_variable_qubits - 1])
         qc.mct(
-            variable_register[0:num_variable_qubits - 1],
-            variable_register[num_variable_qubits - 1],
-            ancillary_register,
-            mode=mct_mode
+            self._oracle.variable_register[0:num_variable_qubits - 1],
+            self._oracle.variable_register[num_variable_qubits - 1],
+            ancilla,
+            mode=self._mct_mode
         )
-        qc.u2(0, pi, variable_register[num_variable_qubits - 1])
-        qc.u3(pi, 0, pi, variable_register)
-        qc.barrier(variable_register)
+        qc.u2(0, pi, self._oracle.variable_register[num_variable_qubits - 1])
+        qc.u3(pi, 0, pi, self._oracle.variable_register)
+        qc += self._init_state_circuit
+        qc.barrier(self._oracle.variable_register)
         return qc
 
     @classmethod
@@ -193,9 +208,7 @@ class Grover(QuantumAlgorithm):
         if self._qc_aa_iteration is None:
             self._qc_aa_iteration = QuantumCircuit()
             self._qc_aa_iteration += self._oracle.circuit
-            self._qc_aa_iteration += self._init_state_circuit_inverse
             self._qc_aa_iteration += self._diffusion_circuit
-            self._qc_aa_iteration += self._init_state_circuit
         return self._qc_aa_iteration
 
     def _run_with_existing_iterations(self):
