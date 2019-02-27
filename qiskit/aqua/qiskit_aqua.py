@@ -198,12 +198,18 @@ class QiskitAqua(object):
             if 'coupling_map_from_device' in backend_cfg:
                 coupling_map_from_device = backend_cfg.get('coupling_map_from_device')
                 del backend_cfg['coupling_map_from_device']
-                coupling_map = backend_cfg.get('coupling_map')
-                if coupling_map is None and coupling_map_from_device is not None:
+                if coupling_map_from_device is not None:
                     names = coupling_map_from_device.split(':')
                     if len(names) == 2:
                         device_backend = get_backend_from_provider(names[0], names[1])
-                        backend_cfg['coupling_map'] = device_backend.configuration().coupling_map
+                        device_coupling_map = device_backend.configuration().coupling_map
+                        if device_coupling_map is not None:
+                            coupling_map = backend_cfg.get('coupling_map')
+                            if coupling_map is None:
+                                backend_cfg['coupling_map'] = device_coupling_map
+                            else:
+                                if coupling_map != device_coupling_map:
+                                    logger.warning("Coupling map '{}' used instead of device coupling map '{}'.".format(coupling_map, device_coupling_map))
 
             # check noise model
             if 'noise_model' in backend_cfg:
@@ -212,15 +218,21 @@ class QiskitAqua(object):
                 if noise_model is not None:
                     names = noise_model.split(':')
                     if len(names) == 2:
-                        device_backend = get_backend_from_provider(names[0], names[1])
                         # Generate an Aer noise model for device
                         from qiskit.providers.aer import noise
+                        device_backend = get_backend_from_provider(names[0], names[1])
                         noise_model = noise.device.basic_device_noise_model(device_backend.properties())
-                        basis_gates = backend_cfg.get('basis_gates')
-                        if basis_gates is None:
-                            backend_cfg['basis_gates'] = noise_model.basis_gates
-                        else:
-                            logger.warning("Basis gates '{}' used instead of noise model basis gates '{}'.".format(basis_gates, noise_model.basis_gates))
+                        noise_basis_gates = None
+                        if noise_model is not None and noise_model.basis_gates is not None:
+                            noise_basis_gates = noise_model.basis_gates
+                            noise_basis_gates = noise_basis_gates.split(',') if isinstance(noise_basis_gates, str) else noise_basis_gates
+                        if noise_basis_gates is not None:
+                            basis_gates = backend_cfg.get('basis_gates')
+                            if basis_gates is None:
+                                backend_cfg['basis_gates'] = noise_basis_gates
+                            else:
+                                if basis_gates != noise_basis_gates:
+                                    logger.warning("Basis gates '{}' used instead of noise model basis gates '{}'.".format(basis_gates, noise_basis_gates))
 
             backend_cfg['seed_mapper'] = random_seed
             pass_manager = PassManager() if backend_cfg.pop('skip_transpiler', False) else None
