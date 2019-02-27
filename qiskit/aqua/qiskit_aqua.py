@@ -157,9 +157,11 @@ class QiskitAqua(object):
 
         # set provider and name in input file for proper backend schema dictionary build
         if backend is not None:
-            self._parser.set_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER,
-                                              get_provider_from_backend(backend))
-            self._parser.set_section_property(JSONSchema.BACKEND, JSONSchema.NAME, backend.name())
+            self._parser.add_section_properties(JSONSchema.BACKEND,
+                                                {
+                                                    JSONSchema.PROVIDER: get_provider_from_backend(backend),
+                                                    JSONSchema.NAME: backend.name(),
+                                                })
 
         self._parser.validate_merge_defaults()
         logger.debug('Algorithm Input: {}'.format(json.dumps(self._parser.get_sections(), sort_keys=True, indent=4)))
