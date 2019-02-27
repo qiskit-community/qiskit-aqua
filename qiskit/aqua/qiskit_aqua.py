@@ -146,6 +146,21 @@ class QiskitAqua(object):
                 self._parser.set_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER,
                                                   get_provider_from_backend(backend_name))
 
+        # check quantum_instance parameter
+        backend = None
+        if isinstance(quantum_instance, BaseBackend):
+            backend = quantum_instance
+        elif isinstance(quantum_instance, QuantumInstance):
+            self._quantum_instance = quantum_instance
+        elif quantum_instance is not None:
+            raise AquaError('Invalid QuantumInstance or BaseBackend parameter {}.'.format(quantum_instance))
+
+        # set provider and name in input file for proper backend schema dictionary build
+        if backend is not None:
+            self._parser.set_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER,
+                                              get_provider_from_backend(backend))
+            self._parser.set_section_property(JSONSchema.BACKEND, JSONSchema.NAME, backend.name())
+
         self._parser.validate_merge_defaults()
         logger.debug('Algorithm Input: {}'.format(json.dumps(self._parser.get_sections(), sort_keys=True, indent=4)))
 
@@ -170,15 +185,8 @@ class QiskitAqua(object):
         random_seed = self._parser.get_section_property(JSONSchema.PROBLEM, 'random_seed')
         self._quantum_algorithm.random_seed = random_seed
 
-        if isinstance(quantum_instance, QuantumInstance):
-            self._quantum_instance = quantum_instance
+        if self._quantum_instance is not None:
             return
-
-        backend = None
-        if isinstance(quantum_instance, BaseBackend):
-            backend = quantum_instance
-        elif quantum_instance is not None:
-            raise AquaError('Invalid QuantumInstance or BaseBackend parameter {}.'.format(quantum_instance))
 
         # setup backend
         backend_provider = self._parser.get_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER)
