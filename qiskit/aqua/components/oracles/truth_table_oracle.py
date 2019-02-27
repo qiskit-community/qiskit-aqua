@@ -114,6 +114,8 @@ class TruthTableOracle(Oracle):
         if isinstance(bitmaps, str):
             bitmaps = [bitmaps]
 
+        self._bitmaps = bitmaps
+
         # check that the input bitmaps length is a power of 2
         if not is_power_of_2(len(bitmaps[0])):
             raise AquaError('Length of any bitmap must be a power of 2.')
@@ -231,3 +233,11 @@ class TruthTableOracle(Oracle):
             self._ancillary_register = None
             self._circuit.add_register(self._variable_register, self._output_register)
         return self._circuit
+
+    def evaluate_classically(self, measurement):
+        assignment = [(var + 1) * (int(tf) * 2 - 1) for tf, var in zip(measurement[::-1], range(len(measurement)))]
+        ret = [bitmap[int(measurement, 2)] == '1' for bitmap in self._bitmaps]
+        if self._num_outputs == 1:
+            return ret[0], assignment
+        else:
+            return ret, assignment
