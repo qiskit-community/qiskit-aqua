@@ -460,9 +460,6 @@ class CNF(BooleanLogicNormalForm):
                 mct_mode
             )
         else:  # self._depth == 2:
-            # init all clause qubits to 1
-            circuit.u3(pi, 0, pi, self._clause_register)
-
             # compute all clauses
             for clause_index, clause_expr in enumerate(self._ast[1:]):
                 if clause_expr[0] == 'or':
@@ -506,9 +503,6 @@ class CNF(BooleanLogicNormalForm):
                     mct_mode
                 )
 
-            # reset all clause qubits to 0
-            circuit.u3(pi, 0, pi, self._clause_register)
-
         return circuit
 
 
@@ -551,8 +545,6 @@ class DNF(BooleanLogicNormalForm):
         if self._depth == 0:
             self._construct_circuit_for_tiny_expr(circuit)
         elif self._depth == 1:
-            circuit.u3(pi, 0, pi, self._variable_register)
-            circuit.u3(pi, 0, pi, self._output_register)
             lits = [l[1] for l in self._ast[1:]]
             logic_or(
                 lits,
