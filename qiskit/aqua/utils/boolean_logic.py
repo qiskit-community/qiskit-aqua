@@ -146,54 +146,71 @@ def get_exact_covers(cols, rows, num_cols=None):
     return exact_covers
 
 
-def logic_or(clause_expr, circuit, variable_register, target_qubit, ancillary_register, mct_mode):
+def _check_variables(vs):
+    _vs = []
+    for v in vs:
+        if v in _vs:
+            continue
+        elif -v in _vs:
+            return None
+        else:
+            _vs.append(v)
+    return sorted(_vs, key=abs)
+
+
+def logic_or(signed_vars, circuit, variable_register, target_qubit, ancillary_register, mct_mode):
     """
     Build a collective disjunction (OR) circuit in place using mct.
 
     Args:
-        clause_expr ([int]): The desired disjunctive clause as represented by a list of non-zero integers,
+        signed_vars ([int]): The desired disjunctive clause as represented by a list of non-zero integers,
             whose absolute values indicate the variables, where negative signs correspond to negations.
         circuit (QuantumCircuit): The QuantumCircuit object to build the disjunction on.
         variable_register (QuantumRegister): The QuantumRegister holding the variable qubits. Note that the
             qubit indices are 0-based, so `variable_register[i]` correspond to variable `i-1` in `clause_expr`.
-        target_qubit (qubit): The target qubit to hold the disjunction result.
+        target_qubit (tuple(QuantumRegister, int)): The target qubit to hold the disjunction result.
         ancillary_register (QuantumRegister): The ancillary QuantumRegister for building the mct.
         mct_mode (str): The mct building mode.
     """
-    clause_expr = sorted(clause_expr, key=abs)
-    qs = [abs(v) for v in clause_expr]
-    ctl_bits = [variable_register[idx - 1] for idx in qs]
-    anc_bits = [ancillary_register[idx] for idx in range(len(qs) - 2)] if ancillary_register else None
-    for idx in [v for v in clause_expr if v > 0]:
-        circuit.u3(pi, 0, pi, variable_register[idx - 1])
-    circuit.mct(ctl_bits, target_qubit, anc_bits, mode=mct_mode)
-    for idx in [v for v in clause_expr if v > 0]:
-        circuit.u3(pi, 0, pi, variable_register[idx - 1])
+
+    signed_vars = _check_variables(signed_vars)
+    circuit.u3(pi, 0, pi, target_qubit)
+    if signed_vars is not None:
+        qs = [abs(v) for v in signed_vars]
+        ctl_bits = [variable_register[idx - 1] for idx in qs]
+        anc_bits = [ancillary_register[idx] for idx in range(len(qs) - 2)] if ancillary_register else None
+        for idx in [v for v in signed_vars if v > 0]:
+            circuit.u3(pi, 0, pi, variable_register[idx - 1])
+        circuit.mct(ctl_bits, target_qubit, anc_bits, mode=mct_mode)
+        for idx in [v for v in signed_vars if v > 0]:
+            circuit.u3(pi, 0, pi, variable_register[idx - 1])
 
 
-def logic_and(clause_expr, circuit, variable_register, target_qubit, ancillary_register, mct_mode):
+def logic_and(signed_vars, circuit, variable_register, target_qubit, ancillary_register, mct_mode):
     """
     Build a collective conjunction (AND) circuit in place using mct.
 
     Args:
-        clause_expr ([int]): The desired disjunctive clause as represented by a list of non-zero integers,
+        signed_vars ([int]): The desired disjunctive clause as represented by a list of non-zero integers,
             whose absolute values indicate the variables, where negative signs correspond to negations.
         circuit (QuantumCircuit): The QuantumCircuit object to build the conjunction on.
         variable_register (QuantumRegister): The QuantumRegister holding the variable qubits. Note that the
             qubit indices are 0-based, so `variable_register[i]` correspond to variable `i-1` in `clause_expr`.
-        target_qubit (qubit): The target qubit to hold the conjunction result.
+        target_qubit (tuple(QuantumRegister, int)): The target qubit to hold the conjunction result.
         ancillary_register (QuantumRegister): The ancillary QuantumRegister for building the mct.
         mct_mode (str): The mct building mode.
     """
-    clause_expr = sorted(clause_expr, key=abs)
-    qs = [abs(v) for v in clause_expr]
-    ctl_bits = [variable_register[idx - 1] for idx in qs]
-    anc_bits = [ancillary_register[idx] for idx in range(len(qs) - 2)] if ancillary_register else None
-    for idx in [v for v in clause_expr if v < 0]:
-        circuit.u3(pi, 0, pi, variable_register[-idx - 1])
-    circuit.mct(ctl_bits, target_qubit, anc_bits, mode=mct_mode)
-    for idx in [v for v in clause_expr if v < 0]:
-        circuit.u3(pi, 0, pi, variable_register[-idx - 1])
+
+    signed_vars = _check_variables(signed_vars)
+    if signed_vars is not None:
+        qs = [abs(v) for v in signed_vars]
+        ctl_bits = [variable_register[idx - 1] for idx in qs]
+        anc_bits = [ancillary_register[idx] for idx in range(len(qs) - 2)] if ancillary_register else None
+        for idx in [v for v in signed_vars if v < 0]:
+            circuit.u3(pi, 0, pi, variable_register[-idx - 1])
+        circuit.mct(ctl_bits, target_qubit, anc_bits, mode=mct_mode)
+        for idx in [v for v in signed_vars if v < 0]:
+            circuit.u3(pi, 0, pi, variable_register[-idx - 1])
 
 
 class BooleanLogicNormalForm(ABC):
@@ -443,9 +460,6 @@ class CNF(BooleanLogicNormalForm):
                 mct_mode
             )
         else:  # self._depth == 2:
-            # init all clause qubits to 1
-            circuit.u3(pi, 0, pi, self._clause_register)
-
             # compute all clauses
             for clause_index, clause_expr in enumerate(self._ast[1:]):
                 if clause_expr[0] == 'or':
@@ -489,9 +503,6 @@ class CNF(BooleanLogicNormalForm):
                     mct_mode
                 )
 
-            # reset all clause qubits to 0
-            circuit.u3(pi, 0, pi, self._clause_register)
-
         return circuit
 
 
@@ -534,8 +545,6 @@ class DNF(BooleanLogicNormalForm):
         if self._depth == 0:
             self._construct_circuit_for_tiny_expr(circuit)
         elif self._depth == 1:
-            circuit.u3(pi, 0, pi, self._variable_register)
-            circuit.u3(pi, 0, pi, self._output_register)
             lits = [l[1] for l in self._ast[1:]]
             logic_or(
                 lits,

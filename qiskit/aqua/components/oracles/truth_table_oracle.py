@@ -114,6 +114,8 @@ class TruthTableOracle(Oracle):
         if isinstance(bitmaps, str):
             bitmaps = [bitmaps]
 
+        self._bitmaps = bitmaps
+
         # check that the input bitmaps length is a power of 2
         if not is_power_of_2(len(bitmaps[0])):
             raise AquaError('Length of any bitmap must be a power of 2.')
@@ -173,7 +175,30 @@ class TruthTableOracle(Oracle):
                 if clause:
                     clauses.append(clause)
             expression = Xor(*clauses)
-        return expression.to_ast()
+
+        raw_ast = expression.to_ast()
+        idx_mapping = {
+            u: v + 1 for u, v in zip(sorted(expression.usupport), [v.indices[0] for v in sorted(expression.support)])
+        }
+
+        if raw_ast[0] == 'and' or raw_ast[0] == 'or' or raw_ast[0] == 'xor':
+            clauses = []
+            for c in raw_ast[1:]:
+                if c[0] == 'lit':
+                    clauses.append(('lit', (idx_mapping[c[1]]) if c[1] > 0 else (-idx_mapping[-c[1]])))
+                elif (c[0] == 'or' or c[0] == 'and') and (raw_ast[0] != c[0]):
+                    clause = []
+                    for l in c[1:]:
+                        clause.append(('lit', (idx_mapping[l[1]]) if l[1] > 0 else (-idx_mapping[-l[1]])))
+                    clauses.append((c[0], *clause))
+                else:
+                    raise AquaError('Unrecognized logic expression: {}'.format(raw_ast))
+        elif raw_ast[0] == 'const' or raw_ast[0] == 'lit':
+            return raw_ast
+        else:
+            raise AquaError('Unrecognized root expression type: {}.'.format(raw_ast[0]))
+        ast = (raw_ast[0], *clauses)
+        return ast
 
     @property
     def variable_register(self):
@@ -208,3 +233,11 @@ class TruthTableOracle(Oracle):
             self._ancillary_register = None
             self._circuit.add_register(self._variable_register, self._output_register)
         return self._circuit
+
+    def evaluate_classically(self, measurement):
+        assignment = [(var + 1) * (int(tf) * 2 - 1) for tf, var in zip(measurement[::-1], range(len(measurement)))]
+        ret = [bitmap[int(measurement, 2)] == '1' for bitmap in self._bitmaps]
+        if self._num_outputs == 1:
+            return ret[0], assignment
+        else:
+            return ret, assignment
