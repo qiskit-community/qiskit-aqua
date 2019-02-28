@@ -29,13 +29,14 @@ from ._discover import (_discover_on_demand,
                         local_pluggables,
                         PluggableType,
                         get_pluggable_class)
-from qiskit.aqua.utils.jsonutils import convert_dict_to_json, convert_json_to_dict
-from qiskit.aqua.utils import CircuitCache
-from qiskit.aqua.parser._inputparser import InputParser
-from qiskit.aqua.parser import JSONSchema
+from .utils.jsonutils import convert_dict_to_json, convert_json_to_dict
+from .utils import CircuitCache
+from .parser._inputparser import InputParser
+from .parser import JSONSchema
 from .quantum_instance import QuantumInstance
-from qiskit.aqua import (get_backend_from_provider,
-                         get_provider_from_backend)
+from .utils.backend_utils import (get_backend_from_provider,
+                                  get_provider_from_backend,
+                                  is_statevector_backend)
 
 logger = logging.getLogger(__name__)
 
@@ -145,6 +146,23 @@ class QiskitAqua(object):
                 self._parser.set_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER,
                                                   get_provider_from_backend(backend_name))
 
+        # check quantum_instance parameter
+        backend = None
+        if isinstance(quantum_instance, BaseBackend):
+            backend = quantum_instance
+        elif isinstance(quantum_instance, QuantumInstance):
+            self._quantum_instance = quantum_instance
+        elif quantum_instance is not None:
+            raise AquaError('Invalid QuantumInstance or BaseBackend parameter {}.'.format(quantum_instance))
+
+        # set provider and name in input file for proper backend schema dictionary build
+        if backend is not None:
+            self._parser.add_section_properties(JSONSchema.BACKEND,
+                                                {
+                                                    JSONSchema.PROVIDER: get_provider_from_backend(backend),
+                                                    JSONSchema.NAME: backend.name(),
+                                                })
+
         self._parser.validate_merge_defaults()
         logger.debug('Algorithm Input: {}'.format(json.dumps(self._parser.get_sections(), sort_keys=True, indent=4)))
 
@@ -169,35 +187,71 @@ class QiskitAqua(object):
         random_seed = self._parser.get_section_property(JSONSchema.PROBLEM, 'random_seed')
         self._quantum_algorithm.random_seed = random_seed
 
-        if isinstance(quantum_instance, QuantumInstance):
-            self._quantum_instance = quantum_instance
+        if self._quantum_instance is not None:
             return
-
-        backend = None
-        if isinstance(quantum_instance, BaseBackend):
-            backend = quantum_instance
-        elif quantum_instance is not None:
-            raise AquaError('Invalid QuantumInstance or BaseBackend parameter {}.'.format(quantum_instance))
 
         # setup backend
         backend_provider = self._parser.get_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER)
         backend_name = self._parser.get_section_property(JSONSchema.BACKEND, JSONSchema.NAME)
         if backend_provider is not None and backend_name is not None:  # quantum algorithm
+            if backend is None:
+                backend = get_backend_from_provider(backend_provider, backend_name)
+
             backend_cfg = {k: v for k, v in self._parser.get_section(JSONSchema.BACKEND).items() if
                            k not in [JSONSchema.PROVIDER, JSONSchema.NAME]}
-            # TODO, how to build the noise model from a dictionary?
+
+            # set shots for state vector
+            if is_statevector_backend(backend):
+                backend_cfg['shots'] = 1
+
+            # check coupling map
+            if 'coupling_map_from_device' in backend_cfg:
+                coupling_map_from_device = backend_cfg.get('coupling_map_from_device')
+                del backend_cfg['coupling_map_from_device']
+                if coupling_map_from_device is not None:
+                    names = coupling_map_from_device.split(':')
+                    if len(names) == 2:
+                        device_backend = get_backend_from_provider(names[0], names[1])
+                        device_coupling_map = device_backend.configuration().coupling_map
+                        if device_coupling_map is not None:
+                            coupling_map = backend_cfg.get('coupling_map')
+                            if coupling_map is None:
+                                backend_cfg['coupling_map'] = device_coupling_map
+                            else:
+                                if coupling_map != device_coupling_map:
+                                    logger.warning("Coupling map '{}' used instead of device coupling map '{}'.".format(coupling_map, device_coupling_map))
+
+            # check noise model
+            if 'noise_model' in backend_cfg:
+                noise_model = backend_cfg.get('noise_model')
+                del backend_cfg['noise_model']
+                if noise_model is not None:
+                    names = noise_model.split(':')
+                    if len(names) == 2:
+                        # Generate an Aer noise model for device
+                        from qiskit.providers.aer import noise
+                        device_backend = get_backend_from_provider(names[0], names[1])
+                        noise_model = noise.device.basic_device_noise_model(device_backend.properties())
+                        noise_basis_gates = None
+                        if noise_model is not None and noise_model.basis_gates is not None:
+                            noise_basis_gates = noise_model.basis_gates
+                            noise_basis_gates = noise_basis_gates.split(',') if isinstance(noise_basis_gates, str) else noise_basis_gates
+                        if noise_basis_gates is not None:
+                            basis_gates = backend_cfg.get('basis_gates')
+                            if basis_gates is None:
+                                backend_cfg['basis_gates'] = noise_basis_gates
+                            else:
+                                if basis_gates != noise_basis_gates:
+                                    logger.warning("Basis gates '{}' used instead of noise model basis gates '{}'.".format(basis_gates, noise_basis_gates))
+
             backend_cfg['seed_mapper'] = random_seed
             pass_manager = PassManager() if backend_cfg.pop('skip_transpiler', False) else None
             if pass_manager is not None:
                 backend_cfg['pass_manager'] = pass_manager
 
-            if backend is None:
-                backend = get_backend_from_provider(backend_provider, backend_name)
-
             backend_cfg['backend'] = backend
             backend_cfg['seed'] = random_seed
-            backend_cfg['skip_qobj_validation'] = self._parser.get_section_property(JSONSchema.PROBLEM,
-                                                                                    'skip_qobj_validation')
+            backend_cfg['skip_qobj_validation'] = self._parser.get_section_property(JSONSchema.PROBLEM, 'skip_qobj_validation')
             use_caching = self._parser.get_section_property(JSONSchema.PROBLEM, 'circuit_caching')
             if use_caching:
                 deepcopy_qobj = self._parser.get_section_property(JSONSchema.PROBLEM, 'skip_qobj_deepcopy')

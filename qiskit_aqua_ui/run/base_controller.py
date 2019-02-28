@@ -304,11 +304,9 @@ class BaseController(ABC):
 
     def on_property_add(self, section_name, property_name):
         try:
-            value = self.model.get_property_default_value(section_name, property_name)
-            if value is None:
-                value = ''
-
-            return self.on_property_set(section_name, property_name, value)
+            return self.on_property_set(section_name,
+                                        property_name,
+                                        self.model.get_property_default_value(section_name, property_name))
         except Exception as e:
             messagebox.showerror("Error", str(e))
 

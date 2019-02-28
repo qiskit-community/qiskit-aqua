@@ -271,30 +271,97 @@ class BaseParser(ABC):
         """
         Args:
             section_name (str): the name of the section, case insensitive
+        Returns:
+            Bool: True if updated
         """
+        updated = False
         section_name = JSONSchema.format_section_name(section_name)
         if section_name not in self._sections:
             self._sections[section_name] = '' if self.section_is_text(section_name) else OrderedDict()
             self._sections = self._order_sections(self._sections)
+            updated = True
+
+        return updated
 
     @abstractmethod
     def delete_section(self, section_name):
         """
         Args:
             section_name (str): the name of the section, case insensitive
+        Returns:
+            Bool: True if deleted
         """
         section_name = JSONSchema.format_section_name(section_name).lower()
         if section_name not in self._sections:
-            return
+            return False
 
         del self._sections[section_name]
 
         # update schema
         self._json_schema.rollback_changes()
-        self._json_schema.update_backend_schema()
+        self._json_schema.update_backend_schema(self)
         self._json_schema.update_pluggable_schemas(self)
+        return True
+
+    def add_section_properties(self, section_name, new_properties):
+        """
+        Add new properties if don't exist, update the existent ones, other properties are unchanged
+        Args:
+            section_name (str): the name of the section, case insensitive
+            new_properties (dict): property name: value
+        Returns:
+            Bool: True if changed
+        """
+        key_value_changed = False
+        set_properties = copy.deepcopy(new_properties)
+
+        # update backend provider first
+        if JSONSchema.BACKEND == section_name and JSONSchema.PROVIDER in set_properties:
+            if self._set_section_property_without_checking_defaults(section_name,
+                                                                    JSONSchema.PROVIDER,
+                                                                    set_properties[JSONSchema.PROVIDER]):
+                key_value_changed = True
+            del set_properties[JSONSchema.PROVIDER]
+
+        # update name first
+        if JSONSchema.NAME in set_properties:
+            if self._set_section_property_without_checking_defaults(section_name,
+                                                                    JSONSchema.NAME,
+                                                                    set_properties[JSONSchema.NAME]):
+                key_value_changed = True
+            del set_properties[JSONSchema.NAME]
+
+        # update remaining properties
+        for property_name, value in set_properties.items():
+            if self._set_section_property_without_checking_defaults(section_name,
+                                                                    property_name,
+                                                                    value):
+                key_value_changed = True
+
+        # nothing changed, return
+        if not key_value_changed:
+            return False
+
+        # remove properties that are not valid for this section
+        default_properties = self.get_section_default_properties(section_name)
+        if isinstance(default_properties, dict):
+            properties = self.get_section_properties(section_name)
+            for p_name in list(properties.keys()):
+                if p_name != JSONSchema.NAME and p_name not in default_properties:
+                    self.delete_section_property(section_name, p_name)
+
+        self._sections = self._order_sections(self._sections)
+        return True
 
     def set_section_properties(self, section_name, new_properties):
+        """
+        Replace all old properties with new ones
+        Args:
+            section_name (str): the name of the section, case insensitive
+            new_properties (dict): property name: value
+        Returns:
+            Bool: True if changed
+        """
         old_properties = self.get_section_properties(section_name)
         set_properties = copy.deepcopy(new_properties)
         del_properties = []
@@ -305,18 +372,50 @@ class BaseParser(ABC):
             else:
                 del_properties.append(key)
 
+        key_value_changed = False
+
         # first delete
         for property_name in del_properties:
-            self.delete_section_property(section_name, property_name)
+            if self.delete_section_property(section_name, property_name):
+                key_value_changed = True
+
+        # update backend provider first
+        if JSONSchema.BACKEND == section_name and JSONSchema.PROVIDER in set_properties:
+            if self._set_section_property_without_checking_defaults(section_name,
+                                                                    JSONSchema.PROVIDER,
+                                                                    set_properties[JSONSchema.PROVIDER]):
+                key_value_changed = True
+            del set_properties[JSONSchema.PROVIDER]
 
         # update name first
         if JSONSchema.NAME in set_properties:
-            self.set_section_property(section_name, JSONSchema.NAME, set_properties[JSONSchema.NAME])
+            if self._set_section_property_without_checking_defaults(section_name,
+                                                                    JSONSchema.NAME,
+                                                                    set_properties[JSONSchema.NAME]):
+                key_value_changed = True
             del set_properties[JSONSchema.NAME]
 
         # update remaining properties
         for property_name, value in set_properties.items():
-            self.set_section_property(section_name, property_name, value)
+            if self._set_section_property_without_checking_defaults(section_name,
+                                                                    property_name,
+                                                                    value):
+                key_value_changed = True
+
+        # nothing changed, return
+        if not key_value_changed:
+            return False
+
+        # remove properties that are not valid for this section
+        default_properties = self.get_section_default_properties(section_name)
+        if isinstance(default_properties, dict):
+            properties = self.get_section_properties(section_name)
+            for p_name in list(properties.keys()):
+                if p_name != JSONSchema.NAME and p_name not in default_properties:
+                    self.delete_section_property(section_name, p_name)
+
+        self._sections = self._order_sections(self._sections)
+        return True
 
     @abstractmethod
     def post_set_section_property(self, section_name, property_name):
@@ -328,6 +427,31 @@ class BaseParser(ABC):
             section_name (str): the name of the section, case insensitive
             property_name (str): the name of the property
             value (obj): the value of the property
+        Returns:
+            Bool: True if value changed
+        """
+        if not self._set_section_property_without_checking_defaults(section_name, property_name, value):
+            return False
+
+        # remove properties that are not valid for this section
+        default_properties = self.get_section_default_properties(section_name)
+        if isinstance(default_properties, dict):
+            properties = self.get_section_properties(section_name)
+            for p_name in list(properties.keys()):
+                if p_name != JSONSchema.NAME and p_name not in default_properties:
+                    self.delete_section_property(section_name, p_name)
+
+        self._sections = self._order_sections(self._sections)
+        return True
+
+    def _set_section_property_without_checking_defaults(self, section_name, property_name, value):
+        """
+        Args:
+            section_name (str): the name of the section, case insensitive
+            property_name (str): the name of the property
+            value (obj): the value of the property
+        Returns:
+            Bool: True if value changed
         """
         section_name = JSONSchema.format_section_name(section_name).lower()
         property_name = JSONSchema.format_property_name(property_name)
@@ -350,33 +474,38 @@ class BaseParser(ABC):
 
         if not value_changed:
             # nothing changed
-            return
+            return False
 
-        # check if this provider is loadable and valid
-        if JSONSchema.BACKEND == section_name and property_name == JSONSchema.PROVIDER:
-            get_backends_from_provider(value)
+        # check if the provider/backend is loadable and valid
+        backend_names = []
+        if JSONSchema.BACKEND == section_name and property_name in [JSONSchema.PROVIDER, JSONSchema.NAME]:
+            provider_name = value if property_name == JSONSchema.PROVIDER else self.get_section_property(section_name, JSONSchema.PROVIDER)
+            backend_names = get_backends_from_provider(provider_name)
+            if property_name == JSONSchema.NAME and value not in backend_names:
+                raise AquaError("Backend '{}' not valid for provider: '{}' backends: '{}'".format(value, provider_name, backend_names))
 
+        # update value internally
         BaseParser._set_section_property(self._sections, section_name, property_name, value, types)
-        if property_name == JSONSchema.NAME:
+
+        if JSONSchema.BACKEND == section_name and property_name in [JSONSchema.PROVIDER, JSONSchema.NAME]:
+            if property_name == JSONSchema.PROVIDER:
+                backend_name = self.get_section_property(section_name, JSONSchema.NAME)
+                if backend_name not in backend_names:
+                    # use first backend available in provider
+                    backend_name = backend_names[0] if len(backend_names) > 0 else ''
+                    BaseParser._set_section_property(self._sections, section_name, JSONSchema.NAME, backend_name, ['string'])
+
+            self._json_schema.update_backend_schema(self)
+        elif property_name == JSONSchema.NAME:
             if JSONSchema.PROBLEM == section_name:
                 self._update_algorithm_problem()
-            elif JSONSchema.BACKEND == section_name:
-                self._json_schema.update_backend_schema()
             elif BaseParser.is_pluggable_section(section_name):
                 self._json_schema.update_pluggable_schemas(self)
-                # remove properties that are not valid for this section
-                default_properties = self.get_section_default_properties(section_name)
-                if isinstance(default_properties, dict):
-                    properties = self.get_section_properties(section_name)
-                    for p_name in list(properties.keys()):
-                        if p_name != JSONSchema.NAME and p_name not in default_properties:
-                            self.delete_section_property(section_name, p_name)
-
                 self._update_dependency_sections(section_name)
             else:
                 self.post_set_section_property(section_name, property_name)
 
-        self._sections = self._order_sections(self._sections)
+        return True
 
     def _update_algorithm_problem(self):
         problem_name = self.get_section_property(JSONSchema.PROBLEM, JSONSchema.NAME)
@@ -484,20 +613,30 @@ class BaseParser(ABC):
         Args:
             section_name (str): the name of the section, case insensitive
             property_name (str): the property name in the section
+        Returns:
+            Bool: True if deleted
         """
         section_name = JSONSchema.format_section_name(section_name)
         property_name = JSONSchema.format_property_name(property_name)
         if section_name in self._sections and property_name in self._sections[section_name]:
             del self._sections[section_name][property_name]
+            return True
+
+        return False
 
     def delete_section_properties(self, section_name):
         """
         Args:
             section_name (str): the name of the section, case insensitive
+        Returns:
+            Bool: True if deleted
         """
         section_name = JSONSchema.format_section_name(section_name).lower()
         if section_name in self._sections:
             del self._sections[section_name]
+            return True
+
+        return False
 
     def set_section_data(self, section_name, value):
         """
@@ -505,9 +644,12 @@ class BaseParser(ABC):
         Args:
             section_name (str): the name of the section, case insensitive
             value : value to set
+         Returns:
+            Bool: True if updated
         """
         section_name = JSONSchema.format_section_name(section_name)
         self._sections[section_name] = self._json_schema.check_section_value(section_name, value)
+        return True
 
     def get_section_names(self):
         """Return all the names of the sections."""

@@ -209,18 +209,45 @@ class BaseModel(ABC):
 
     def set_default_properties_for_name(self, section_name):
         from qiskit.aqua.parser import JSONSchema
+        from qiskit.aqua import get_backends_from_provider
         if self._parser is None:
             raise Exception('Input not initialized.')
 
+        # First get the properties that will remain
+        provider_name = None
         name = self._parser.get_section_property(section_name, JSONSchema.NAME)
+        if JSONSchema.BACKEND == section_name:
+            provider_name = self._parser.get_section_property(section_name, JSONSchema.PROVIDER)
+            if provider_name is not None:
+                backend_names = get_backends_from_provider(provider_name)
+                if name not in backend_names:
+                    # use first backend available in provider
+                    name = backend_names[0] if len(backend_names) > 0 else None
+
+        # now delete all current properties
         self._parser.delete_section_properties(section_name)
-        value = self._parser.get_section_default_properties(section_name)
-        if JSONSchema.BACKEND != section_name and name is not None:
+
+        # set first the properties that remained
+        if provider_name is not None:
+            self._parser.set_section_property(section_name, JSONSchema.PROVIDER, provider_name)
+        if name is not None:
             self._parser.set_section_property(section_name, JSONSchema.NAME, name)
+
+        # now fetch all default properties from updated schema
+        value = self._parser.get_section_default_properties(section_name)
+
         if isinstance(value, dict):
+            if JSONSchema.NAME in value:
+                # remove name from defaults to be updated, since it should remain intact
+                del value[JSONSchema.NAME]
+
+            if JSONSchema.BACKEND == section_name and JSONSchema.PROVIDER in value:
+                # remove provider name from defaults to be updated, since it should remain intact
+                del value[JSONSchema.PROVIDER]
+
+            # add all default properties
             for property_name, property_value in value.items():
-                if JSONSchema.BACKEND == section_name or property_name != JSONSchema.NAME:
-                    self._parser.set_section_property(section_name, property_name, property_value)
+                self._parser.set_section_property(section_name, property_name, property_value)
         else:
             if value is None:
                 types = self._parser.get_section_types(section_name)
@@ -310,20 +337,27 @@ class BaseModel(ABC):
             raise Exception('Input not initialized.')
 
         self._parser.set_section_property(section_name, property_name, value)
-        if property_name == JSONSchema.NAME and BaseParser.is_pluggable_section(section_name):
+        value = self._parser.get_section_property(section_name, property_name)
+
+        # set default properties
+        if (section_name == JSONSchema.BACKEND and property_name in [JSONSchema.PROVIDER, JSONSchema.NAME]) or \
+           (property_name == JSONSchema.NAME and BaseParser.is_pluggable_section(section_name)):
             properties = self._parser.get_section_default_properties(section_name)
             if isinstance(properties, dict):
-                properties[JSONSchema.NAME] = value
+                if section_name == JSONSchema.BACKEND:
+                    properties[JSONSchema.PROVIDER] = self._parser.get_section_property(section_name, JSONSchema.PROVIDER)
+                    properties[JSONSchema.NAME] = self._parser.get_section_property(section_name, JSONSchema.NAME)
+
+                properties[property_name] = value
                 self._parser.delete_section_properties(section_name)
                 for property_name, property_value in properties.items():
                     self._parser.set_section_property(section_name, property_name, property_value)
-        elif section_name == JSONSchema.BACKEND and property_name == JSONSchema.PROVIDER:
+
+        if section_name == JSONSchema.BACKEND and property_name == JSONSchema.PROVIDER:
+            # refresh backends for this provider
             backends = get_backends_from_provider(value)
             if value not in self.providers:
                 self._custom_providers[value] = backends
-
-            backend = backends[0] if len(backends) > 0 else ''
-            self._parser.set_section_property(section_name, JSONSchema.NAME, backend)
 
     def delete_section_property(self, section_name, property_name):
         from qiskit.aqua.parser import BaseParser

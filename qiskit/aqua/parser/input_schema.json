@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/schema#",
     "id": "input_schema.json",
-
+    
     "definitions": {
         "problem": {
             "type": "object",
@@ -55,48 +55,13 @@
                 "name": {
                     "type": "string",
                     "default": "statevector_simulator"
-                },
-                "shots": {
-                    "type": "integer",
-                    "default": 1024,
-                    "minimum": 1
-                },
-                "skip_transpiler": {
-                    "type": "boolean",
-                    "default": false
-                },
-                "coupling_map": {
-                    "type": ["array", "null"],
-                    "default": null
-                },
-                "basis_gates": {
-                    "type": ["array", "null"],
-                    "default": null
-                },
-                "initial_layout": {
-                    "type": ["object", "null"],
-                    "default": null
-                },
-                "max_credits": {
-                    "type": "integer",
-                    "default": 10,
-                    "minimum": 1
-                },
-                "timeout": {
-                    "type": ["number", "null"],
-                    "default": null
-                },
-                "wait": {
-                    "type": "number",
-                    "default": 5.0,
-                    "minimum": 0.0
                 }
             },
-            "required": ["name"],
+            "required": ["provider", "name"],
             "additionalProperties": false
         }
     },
-
+    
     "type": "object",
     "properties": {
         "problem":          { "$ref": "#/definitions/problem" },
