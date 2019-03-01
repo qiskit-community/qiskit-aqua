@@ -158,7 +158,7 @@ class InputParser(BaseParser):
             self.delete_section_property(JSONSchema.PROBLEM, InputParser._OLD_ENABLE_SUBSTITUTIONS)
             self.set_section_property(JSONSchema.PROBLEM, InputParser.AUTO_SUBSTITUTIONS, old_enable_substitutions)
 
-        self.json_schema.update_backend_schema()
+        self.json_schema.update_backend_schema(self)
         self.json_schema.update_pluggable_schemas(self)
         self._update_driver_input_schemas()
         self._update_operator_input_schema()
@@ -183,7 +183,7 @@ class InputParser(BaseParser):
             if JSONSchema.PROBLEM not in section_names:
                 self.set_section(JSONSchema.PROBLEM)
 
-        self.json_schema.update_backend_schema()
+        self.json_schema.update_backend_schema(self)
         self.json_schema.update_pluggable_schemas(self)
         self._merge_dependencies()
         self._update_driver_sections()
@@ -275,13 +275,6 @@ class InputParser(BaseParser):
             value = self.get_section_property(section_name, property_name)
             if InputParser.OPERATOR == section_name:
                 self._update_operator_input_schema()
-                # remove properties that are not valid for this section
-                default_properties = self.get_section_default_properties(section_name)
-                if isinstance(default_properties, dict):
-                    properties = self.get_section_properties(section_name)
-                    for property_name in list(properties.keys()):
-                        if property_name != JSONSchema.NAME and property_name not in default_properties:
-                            self.delete_section_property(section_name, property_name)
             elif JSONSchema.PROBLEM == section_name:
                 self._update_operator_problem()
             elif value is not None:
@@ -291,10 +284,8 @@ class InputParser(BaseParser):
                     self._update_driver_sections()
 
     def is_substitution_allowed(self):
-        auto_substitutions = self.get_property_default_value(
-            JSONSchema.PROBLEM, InputParser.AUTO_SUBSTITUTIONS)
-        auto_substitutions = self.get_section_property(
-            JSONSchema.PROBLEM, InputParser.AUTO_SUBSTITUTIONS, auto_substitutions)
+        auto_substitutions = self.get_property_default_value(JSONSchema.PROBLEM, InputParser.AUTO_SUBSTITUTIONS)
+        auto_substitutions = self.get_section_property(JSONSchema.PROBLEM, InputParser.AUTO_SUBSTITUTIONS, auto_substitutions)
         if auto_substitutions is None:
             auto_substitutions = True
 

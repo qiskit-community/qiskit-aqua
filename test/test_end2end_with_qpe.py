@@ -25,7 +25,6 @@ from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms.single_sample import QPE
 from qiskit.aqua.algorithms.classical import ExactEigensolver
 from qiskit.aqua.components.iqfts import Standard
-from qiskit.qobj import RunConfig
 from test.common import QiskitChemistryTestCase
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry import FermionicOperator, QiskitChemistryError
@@ -81,10 +80,9 @@ class TestEnd2EndWithQPE(QiskitChemistryTestCase):
                   expansion_mode='suzuki',
                   expansion_order=2, shallow_circuit_concat=True)
         backend = qiskit.Aer.get_backend('qasm_simulator')
-        run_config = RunConfig(shots=100, max_credits=10, memory=False)
-        quantum_instance = QuantumInstance(backend, run_config, pass_manager=PassManager())
+        quantum_instance = QuantumInstance(backend, shots=100, pass_manager=PassManager())
         result = qpe.run(quantum_instance)
-        
+
         self.log.debug('eigvals:                  {}'.format(result['eigvals']))
         self.log.debug('top result str label:     {}'.format(result['top_measurement_label']))
         self.log.debug('top result in decimal:    {}'.format(result['top_measurement_decimal']))
