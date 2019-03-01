@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 class LogicExpressionOracle(Oracle):
 
     CONFIGURATION = {
-        'name': 'LogicExpression',
+        'name': 'LogicExpressionOracle',
         'description': 'Logic Expression Oracle',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
