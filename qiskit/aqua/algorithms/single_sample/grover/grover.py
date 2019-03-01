@@ -235,6 +235,7 @@ class Grover(QuantumAlgorithm):
             qc.add_register(measurement_cr)
             qc.measure(self._oracle.variable_register, measurement_cr)
             measurement = self._quantum_instance.execute(qc).get_counts(qc)
+            self._ret['measurement'] = measurement
             top_measurement = max(measurement.items(), key=operator.itemgetter(1))[0]
 
         self._ret['top_measurement'] = top_measurement
