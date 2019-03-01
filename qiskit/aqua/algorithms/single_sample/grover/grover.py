@@ -84,17 +84,19 @@ class Grover(QuantumAlgorithm):
         },
         'problems': ['search'],
         'depends': [
-            {'pluggable_type': 'initial_state',
-             'default': {
-                 'name': 'CUSTOM',
-                 'state': 'uniform'
-             }
-             },
-            {'pluggable_type': 'oracle',
-             'default': {
-                     'name': 'SAT',
+            {
+                'pluggable_type': 'initial_state',
+                'default': {
+                    'name': 'CUSTOM',
+                    'state': 'uniform'
+                }
+            },
+            {
+                'pluggable_type': 'oracle',
+                'default': {
+                     'name': 'LogicExpressionOracle',
                 },
-             },
+            },
         ],
     }
 
