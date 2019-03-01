@@ -117,15 +117,13 @@ class Controller(BaseController):
             types = self.model.get_property_types(section_name, property_name)
 
         if values is not None:
-            value = '' if value is None else str(value)
-            values = [str(v) for v in values]
             widget = ComboboxPopup(self, section_name,
                                    property_name,
                                    parent,
                                    exportselection=0,
                                    state=combobox_state,
                                    values=values)
-            widget._text = value
+            widget._text = '' if value is None else str(value)
             if len(values) > 0:
                 if value in values:
                     widget.current(values.index(value))
