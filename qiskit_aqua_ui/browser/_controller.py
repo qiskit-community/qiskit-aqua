@@ -67,6 +67,10 @@ class Controller(object):
         self._propertiesView.populate(['oneOf'], {'name': {'oneOf': problems}})
         self._propertiesView.tkraise()
 
+    def on_pluggable_depends_select(self, pluggable_type, pluggable_name):
+        self._sectionsView_title.set(self.model.get_pluggable_description(pluggable_type, pluggable_name))
+        self._emptyView.tkraise()
+
     def on_pluggable_dependency_select(self, pluggable_type, pluggable_name, dependency_type):
         dependency = self.model.get_pluggable_dependency(pluggable_type, pluggable_name, dependency_type)
         default = dependency.get('default', {})
