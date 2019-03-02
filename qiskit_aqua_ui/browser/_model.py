@@ -33,30 +33,39 @@ class Model(object):
                                  local_pluggables,
                                  get_pluggable_configuration)
 
-        self._property_titles = OrderedDict()
+        self._schema_property_titles = OrderedDict()
         self._sections = OrderedDict()
         for pluggable_type in local_pluggables_types():
             self._sections[pluggable_type.value] = OrderedDict()
-            self._property_titles[pluggable_type.value] = OrderedDict()
+            self._schema_property_titles[pluggable_type.value] = OrderedDict()
             for pluggable_name in local_pluggables(pluggable_type):
                 config = copy.deepcopy(get_pluggable_configuration(pluggable_type, pluggable_name))
                 self._populate_section(pluggable_type.value, pluggable_name, config)
 
         self._data_loaded = True
 
-    def _populate_section(self, section_type, section_name, configuration):
-        self._sections[section_type][section_name] = OrderedDict()
-        self._sections[section_type][section_name]['description'] = section_name
-        self._sections[section_type][section_name]['properties'] = OrderedDict()
-        self._sections[section_type][section_name]['other'] = OrderedDict()
-        self._property_titles[section_type][section_name] = OrderedDict()
+    def _populate_section(self, pluggable_type, pluggable_name, configuration):
+        self._sections[pluggable_type][pluggable_name] = OrderedDict()
+        self._sections[pluggable_type][pluggable_name]['description'] = pluggable_name
+        self._sections[pluggable_type][pluggable_name]['properties'] = OrderedDict()
+        self._sections[pluggable_type][pluggable_name]['problems'] = []
+        self._sections[pluggable_type][pluggable_name]['depends'] = OrderedDict()
+        self._schema_property_titles[pluggable_type][pluggable_name] = OrderedDict()
         for config_name, config_value in configuration.items():
             if config_name == 'description':
-                self._sections[section_type][section_name]['description'] = str(config_value)
+                self._sections[pluggable_type][pluggable_name]['description'] = str(config_value)
                 continue
 
-            if config_name == 'input_schema':
-                schema = configuration['input_schema']
+            if config_name == 'problems' and isinstance(config_value, list):
+                self._sections[pluggable_type][pluggable_name]['problems'] = config_value
+                continue
+
+            if config_name == 'depends' and isinstance(config_value, list):
+                self._sections[pluggable_type][pluggable_name]['depends'] = config_value
+                continue
+
+            if config_name == 'input_schema' and isinstance(config_value, dict):
+                schema = config_value
                 if 'properties' in schema:
                     for property, values in schema['properties'].items():
                         if 'items' in values:
@@ -70,31 +79,42 @@ class Model(object):
                             values['one of'] = values['oneOf']
                             del values['oneOf']
 
-                        self._sections[section_type][section_name]['properties'][property] = values
+                        self._sections[pluggable_type][pluggable_name]['properties'][property] = values
                         for k, v in values.items():
-                            self._property_titles[section_type][section_name][k] = None
+                            self._schema_property_titles[pluggable_type][pluggable_name][k] = None
                 continue
 
-            self._sections[section_type][section_name]['other'][config_name] = config_value
+        self._schema_property_titles[pluggable_type][pluggable_name] = list(self._schema_property_titles[pluggable_type][pluggable_name].keys())
 
-        self._property_titles[section_type][section_name] = list(self._property_titles[section_type][section_name].keys())
-
-    def top_names(self):
+    def pluggable_names(self):
         self._load_data()
         return list(self._sections.keys())
 
-    def get_section_description(self, top_name, section_name):
+    def get_pluggable_description(self, pluggable_type, pluggable_name):
         self._load_data()
-        return self._sections[top_name][section_name]['description']
+        return self._sections[pluggable_type][pluggable_name]['description']
 
-    def get_property_titles(self, top_name, section_name):
+    def get_pluggable_problems(self, pluggable_type, pluggable_name):
         self._load_data()
-        return self._property_titles[top_name][section_name]
+        return self._sections[pluggable_type][pluggable_name]['problems']
+
+    def get_pluggable_dependency(self, pluggable_type, pluggable_name, dependency_type):
+        self._load_data()
+        depends = self._sections[pluggable_type][pluggable_name]['depends']
+        for dependency in depends:
+            if dependency.get('pluggable_type') == dependency_type:
+                return dependency
+
+        return {}
+
+    def get_pluggable_schema_property_titles(self, pluggable_type, pluggable_name):
+        self._load_data()
+        return self._schema_property_titles[pluggable_type][pluggable_name]
 
     def get_sections(self):
         self._load_data()
         return self._sections
 
-    def get_section_properties(self, top_name, section_name):
+    def get_pluggable_schema_properties(self, pluggable_type, pluggable_name):
         self._load_data()
-        return self._sections[top_name][section_name]['properties']
+        return self._sections[pluggable_type][pluggable_name]['properties']

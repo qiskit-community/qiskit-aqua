@@ -42,8 +42,8 @@ class Controller(object):
 
         return self._model
 
-    def top_names(self):
-        return self.model.top_names()
+    def pluggable_names(self):
+        return self.model.pluggable_names()
 
     def get_property_titles(self, section_name):
         return self.model.get_property_titles(section_name)
@@ -51,13 +51,28 @@ class Controller(object):
     def populate_sections(self):
         self._sectionsView.populate(self.model.get_sections())
 
-    def on_top_name_select(self, top_name):
+    def on_pluggable_type_select(self, pluggable_type):
         self._sectionsView_title.set('')
         self._emptyView.tkraise()
 
-    def on_algo_select(self, top_name, section_name):
-        self._sectionsView_title.set(self.model.get_section_description(top_name, section_name))
-        properties = self.model.get_section_properties(top_name, section_name)
-        column_titles = self.model.get_property_titles(top_name, section_name)
+    def on_pluggable_schema_select(self, pluggable_type, pluggable_name):
+        self._sectionsView_title.set(self.model.get_pluggable_description(pluggable_type, pluggable_name))
+        properties = self.model.get_pluggable_schema_properties(pluggable_type, pluggable_name)
+        column_titles = self.model.get_pluggable_schema_property_titles(pluggable_type, pluggable_name)
         self._propertiesView.populate(column_titles, properties)
+        self._propertiesView.tkraise()
+
+    def on_pluggable_problems_select(self, pluggable_type, pluggable_name):
+        problems = self.model.get_pluggable_problems(pluggable_type, pluggable_name)
+        self._propertiesView.populate(['oneOf'], {'name': {'oneOf': problems}})
+        self._propertiesView.tkraise()
+
+    def on_pluggable_depends_select(self, pluggable_type, pluggable_name):
+        self._sectionsView_title.set(self.model.get_pluggable_description(pluggable_type, pluggable_name))
+        self._emptyView.tkraise()
+
+    def on_pluggable_dependency_select(self, pluggable_type, pluggable_name, dependency_type):
+        dependency = self.model.get_pluggable_dependency(pluggable_type, pluggable_name, dependency_type)
+        default = dependency.get('default', {})
+        self._propertiesView.populate(list(default.keys()), {'default': default})
         self._propertiesView.tkraise()
