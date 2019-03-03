@@ -257,10 +257,10 @@ class UCCSD(VariationalForm):
             TextProgressBar(sys.stderr)
             self._logging_construct_circuit = False
 
-        total_excitations = len(self._single_excitations + self._double_excitations)
+        num_excitations = len(self._hopping_ops)
         results = parallel_map(UCCSD._construct_circuit_for_one_excited_operator,
-                               [(self._hopping_ops[index % total_excitations], parameters[index])
-                                for index in range(self._depth * total_excitations)],
+                               [(self._hopping_ops[index % num_excitations], parameters[index])
+                                for index in range(self._depth * num_excitations)],
                                task_args=(q, self._num_time_slices))
         for qc in results:
             if self._shallow_circuit_concat:
