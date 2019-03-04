@@ -16,6 +16,7 @@
 # =============================================================================
 
 from .guiprovider import GUIProvider
+from ._uipreferences import UIPreferences
 from .run.base_controller import BaseController
 from .run.base_model import BaseModel
 from .run._customwidgets import (EntryPopup, ComboboxPopup, TextPopup)
@@ -24,6 +25,7 @@ from .run._sectionpropertiesview import SectionPropertiesView
 from .run._mainview import MainView
 
 __all__ = ['GUIProvider',
+           'UIPreferences',
            'BaseController',
            'BaseModel',
            'EntryPopup',

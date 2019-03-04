@@ -54,11 +54,6 @@ class GUIProvider(ABC):
         pass
 
     @abstractmethod
-    def create_preferences(self):
-        """Creates provider preferences."""
-        pass
-
-    @abstractmethod
     def create_uipreferences(self):
         """Creates provider UI preferences."""
         pass
@@ -102,7 +97,7 @@ class GUIProvider(ABC):
         pass
 
     @abstractmethod
-    def  create_run_thread(self, model, outputview, thread_queue):
+    def create_run_thread(self, model, outputview, thread_queue):
         """
         Creates run thread
         """

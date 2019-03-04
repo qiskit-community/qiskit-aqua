@@ -27,11 +27,11 @@ def main():
                                       build_logging_config,
                                       set_logging_config,
                                       set_aqua_logging)
-    from qiskit_aqua_cmd import Preferences
+    from qiskit_aqua_ui import UIPreferences
     from qiskit.aqua import run_algorithm
     from qiskit.aqua.utils import convert_json_to_dict
 
-    preferences = Preferences()
+    preferences = UIPreferences()
     _LOG_LEVELS = OrderedDict(
         [(logging.getLevelName(logging.CRITICAL).lower(), logging.CRITICAL),
          (logging.getLevelName(logging.ERROR).lower(), logging.ERROR),

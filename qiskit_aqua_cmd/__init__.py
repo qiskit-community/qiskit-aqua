@@ -14,7 +14,3 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-
-from .preferences import Preferences
-
-__all__ = ['Preferences']
