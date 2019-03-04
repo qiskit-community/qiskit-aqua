@@ -53,9 +53,9 @@ def main():
                                            build_logging_config,
                                            set_logging_config,
                                            set_qiskit_chemistry_logging)
-    from qiskit.chemistry.preferences import Preferences
+    from qiskit_chemistry_ui import UIPreferences
 
-    preferences = Preferences()
+    preferences = UIPreferences()
     _LOG_LEVELS = OrderedDict(
         [(logging.getLevelName(logging.CRITICAL).lower(), logging.CRITICAL),
          (logging.getLevelName(logging.ERROR).lower(), logging.ERROR),
