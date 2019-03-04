@@ -43,12 +43,11 @@ class PreferencesDialog(Dialog):
         self._populateDefaults = tk.IntVar()
 
     def body(self, parent, options):
-        preferences = self._guiprovider.create_preferences()
+        preferences = self._guiprovider.create_uipreferences()
         logging_config = preferences.get_logging_config()
         if logging_config is not None:
             self._guiprovider.set_logging_config(logging_config)
 
-        preferences = self._guiprovider.create_uipreferences()
         populate = preferences.get_populate_defaults(True)
         self._populateDefaults.set(1 if populate else 0)
 
@@ -118,7 +117,7 @@ class PreferencesDialog(Dialog):
     def apply(self):
         try:
             if self._credentialsview:
-                from qiskit_aqua_cmd import Preferences
+                from qiskit.aqua import Preferences
                 from qiskit.aqua import disable_ibmq_account
                 preferences = Preferences()
                 disable_ibmq_account(preferences.get_url(), preferences.get_token(), preferences.get_proxies({}))
@@ -130,17 +129,13 @@ class PreferencesDialog(Dialog):
             loglevel = levels[0]
 
             logging_config = self._guiprovider.build_logging_config(loglevel)
-
-            preferences = self._guiprovider.create_preferences()
+            populate = self._populateDefaults.get()
+            preferences = self._guiprovider.create_uipreferences()
             preferences.set_logging_config(logging_config)
+            preferences.set_populate_defaults(False if populate == 0 else True)
             preferences.save()
 
             self._guiprovider.set_logging_config(logging_config)
-
-            populate = self._populateDefaults.get()
-            preferences = self._guiprovider.create_uipreferences()
-            preferences.set_populate_defaults(False if populate == 0 else True)
-            preferences.save()
 
             self._controller.model.get_available_providers()
         except Exception as e:

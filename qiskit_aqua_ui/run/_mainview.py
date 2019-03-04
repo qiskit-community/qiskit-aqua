@@ -233,7 +233,7 @@ class MainView(ttk.Frame):
         self._guiprovider.controller._emptyView.set_toolbar_size(self._guiprovider.controller._sectionsView.get_toolbar_size())
 
     def _set_preferences_logging(self):
-        preferences = self._guiprovider.create_preferences()
+        preferences = self._guiprovider.create_uipreferences()
         config = preferences.get_logging_config()
         if config is not None:
             self._guiprovider.set_logging_config(config)
