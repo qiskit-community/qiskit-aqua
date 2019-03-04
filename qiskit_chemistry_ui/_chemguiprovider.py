@@ -71,11 +71,6 @@ class ChemistryGUIProvider(GUIProvider):
 
         return self._controller
 
-    def create_preferences(self):
-        """Creates provider preferences."""
-        from qiskit.chemistry import Preferences
-        return Preferences()
-
     def create_uipreferences(self):
         """Creates provider UI preferences."""
         return UIPreferences()

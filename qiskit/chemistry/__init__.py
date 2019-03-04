@@ -18,7 +18,6 @@
 """Main public functionality."""
 
 from .qiskit_chemistry_error import QiskitChemistryError
-from .preferences import Preferences
 from .qmolecule import QMolecule
 from .qiskit_chemistry_problem import ChemistryProblem
 from .qiskit_chemistry import (QiskitChemistry, run_experiment, run_driver_to_json)
@@ -33,7 +32,6 @@ from ._logging import (get_logging_level,
 __version__ = '0.4.3'
 
 __all__ = ['QiskitChemistryError',
-           'Preferences',
            'QMolecule',
            'ChemistryProblem',
            'QiskitChemistry',

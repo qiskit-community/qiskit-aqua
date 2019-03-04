@@ -37,6 +37,10 @@ class UIPreferences(object):
         except:
             pass
 
+    @property
+    def filepath(self):
+        return self._filepath
+
     def save(self):
         with open(self._filepath, 'w') as fp:
             json.dump(self._preferences, fp, sort_keys=True, indent=4)
@@ -111,3 +115,12 @@ class UIPreferences(object):
     def clear_recent_files(self):
         if 'recent_files' in self._preferences:
             del self._preferences['recent_files']
+
+    def get_logging_config(self, default_value=None):
+        if 'logging_config' in self._preferences:
+            return self._preferences['logging_config']
+
+        return default_value
+
+    def set_logging_config(self, logging_config):
+        self._preferences['logging_config'] = logging_config
