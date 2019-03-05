@@ -17,8 +17,8 @@
 
 import setuptools
 
-long_description = """<a href="https://qiskit.org/aqua" rel=nofollow>Qiskit Chemistry</a> 
- is a set of quantum computing algorithms, 
+long_description = """<a href="https://qiskit.org/aqua" rel=nofollow>Qiskit Chemistry</a>
+ is a set of quantum computing algorithms,
  tools and APIs for experimenting with real-world chemistry applications on near-term quantum devices."""
 
 requirements = [
@@ -27,9 +27,7 @@ requirements = [
     "h5py",
     "psutil>=5",
     "jsonschema>=2.6,<2.7",
-    "setuptools>=40.5.0",
-    "pyobjc-core; sys_platform == 'darwin'",
-    "pyobjc-framework-Cocoa; sys_platform == 'darwin'"
+    "setuptools>=40.5.0"
 ]
 
 
@@ -61,12 +59,6 @@ setuptools.setup(
     include_package_data=True,
     python_requires=">=3.5",
     entry_points={
-        'console_scripts': [
-            'qiskit_chemistry_cmd=qiskit_chemistry_cmd.command_line:main'
-        ],
-        'gui_scripts': [
-            'qiskit_chemistry_ui=qiskit_chemistry_ui.command_line:main'
-        ],
         'qiskit.aqua.pluggables': [
             'HartreeFock = qiskit.chemistry.aqua_extensions.components.initial_states:HartreeFock',
             'UCCSD = qiskit.chemistry.aqua_extensions.components.variational_forms:UCCSD',

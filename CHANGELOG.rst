@@ -18,6 +18,13 @@ The format is based on `Keep a Changelog`_.
 `UNRELEASED`_
 =============
 
+
+Removed
+-------
+
+- Remove Command line and GUI interfaces
+
+
 `0.4.2`_ - 2019-01-09
 =====================
 
