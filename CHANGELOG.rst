@@ -34,6 +34,7 @@ Added
 Removed
 -------
 - ``QuantumInstance`` does not take ``memory`` anymore.
+- Moved Command line and GUI interfaces to separate repo (qiskit_aqua_uis)
 
 Changed
 -------
