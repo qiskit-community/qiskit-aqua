@@ -22,7 +22,7 @@ The format is based on `Keep a Changelog`_.
 Removed
 -------
 
-- Remove Command line and GUI interfaces
+- Moved Command line and GUI interfaces to separate repo (qiskit_aqua_uis)
 
 
 `0.4.2`_ - 2019-01-09
