@@ -107,13 +107,15 @@ class VQE(VQAlgorithm):
                          initial_point=initial_point,
                          batch_mode=batch_mode,
                          callback=callback)
+        if initial_point is None:
+            self._initial_point = var_form.preferred_init_points
         self._operator = operator
         self._operator_mode = operator_mode
         if aux_operators is None:
             self._aux_operators = []
         else:
             self._aux_operators = [aux_operators] if not isinstance(aux_operators, list) else aux_operators
-        logger.info(self.print_setting())
+        logger.info(self.print_settings())
 
     @classmethod
     def init_params(cls, params, algo_input):
@@ -167,7 +169,7 @@ class VQE(VQAlgorithm):
         ret += "{}".format(params)
         return ret
 
-    def print_setting(self):
+    def print_settings(self):
         """
         Preparing the setting of VQE into a string.
 

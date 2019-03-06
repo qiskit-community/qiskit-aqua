@@ -60,8 +60,6 @@ class VQAlgorithm(QuantumAlgorithm):
         self._optimizer = optimizer
         self._cost_fn = cost_fn
         self._initial_point = initial_point
-        if initial_point is None:
-            self._initial_point = var_form.preferred_init_points
         self._optimizer.set_batch_mode(batch_mode)
         self._ret = {}
         self._eval_count = 0

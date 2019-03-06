@@ -123,13 +123,9 @@ class QSVMVariational(VQAlgorithm):
         if datapoints is not None and not isinstance(datapoints, np.ndarray):
             datapoints = np.asarray(datapoints)
         self._datapoints = datapoints
-        # self._optimizer = optimizer
         self._feature_map = feature_map
-        # self._var_form = var_form
         self._num_qubits = self._feature_map.num_qubits
-        # self._optimizer.set_batch_mode(batch_mode)
         self._minibatch_size = minibatch_size
-        # self._callback = callback
         self._eval_count = 0
         self._ret = {}
 
@@ -270,8 +266,6 @@ class QSVMVariational(VQAlgorithm):
         else:
             batches = np.asarray([data])
             label_batches = np.asarray([labels])
-        self._batches = batches
-        self._label_batches = label_batches
         return batches, label_batches
 
     def train(self, data, labels, quantum_instance=None):
@@ -283,13 +277,18 @@ class QSVMVariational(VQAlgorithm):
             quantum_instance (QuantumInstance): quantum backend with all setting
         """
         self._quantum_instance = self._quantum_instance if quantum_instance is None else quantum_instance
-        self.batch_data(data, labels, self._minibatch_size)
+        self._batches, self._label_batches = self.batch_data(data, labels, self._minibatch_size)
         self._batch_index = 0
 
         if self.initial_point is None:
             self.initial_point = self.random.randn(self._var_form.num_parameters)
 
         self.find_minimum(initial_point=self.initial_point)
+
+        del self._batches
+        del self._label_batches
+        del self._batch_index
+
         self._ret['training_loss'] = self._ret['min_val']
 
     def _cost_function_wrapper(self, theta):
