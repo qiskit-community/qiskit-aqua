@@ -24,6 +24,7 @@ import logging
 from qiskit.providers import BaseBackend
 from qiskit.transpiler import PassManager
 
+from .algorithms import QuantumAlgorithm
 from .aqua_error import AquaError
 from ._discover import (_discover_on_demand,
                         local_pluggables,
@@ -41,9 +42,30 @@ from .utils.backend_utils import (get_backend_from_provider,
 logger = logging.getLogger(__name__)
 
 
+def execute_algorithm(algorithm, backend=None, **kwargs):
+    """
+    Execute the supplied algorithm using the supplied backend or QuantumInstance that was
+    built using a backend.
+
+    Args:
+        algorithm (QuantumAlgorithm): A quantum algorithm i.e. a concrete sub-class
+        implementing QuantumAlgorithm
+        backend (BaseBackend or QuantumInstance): The backend i.e. quantum simulator or real device
+        upon which the algorithm is to be run.
+        kwargs: optional arguments that can be used when supplying a Basebackend which will be passed
+        to the set_config of thq QuantumInstance that is used to hold the backend.
+
+    Returns:
+        Result dictionary containing result of algorithm computation
+
+    """
+    return algorithm.run(quantum_instance=backend, **kwargs)
+
+
 def run_algorithm(params, algo_input=None, json_output=False, backend=None):
     """
-    Run algorithm as named in params.
+    Run algorithm as named in params. The input params being the declarative form of a
+    dictionary/json.
 
     Using params and algo_input as input data and returning a result dictionary
 
