@@ -44,6 +44,7 @@ from .quantum_instance import QuantumInstance
 from .operator import Operator
 from .algorithms import QuantumAlgorithm
 from .qiskit_aqua import (QiskitAqua,
+                          execute_algorithm,
                           run_algorithm,
                           run_algorithm_to_json)
 from ._logging import (get_logging_level,
@@ -82,6 +83,7 @@ __all__ = ['AquaError',
            'register_pluggable',
            'deregister_pluggable',
            'QiskitAqua',
+           'execute_algorithm',
            'run_algorithm',
            'run_algorithm_to_json',
            'get_logging_level',
