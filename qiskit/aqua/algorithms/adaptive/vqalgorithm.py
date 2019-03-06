@@ -15,7 +15,12 @@
 # limitations under the License.
 # =============================================================================
 """
-The Variational Quantum Algorithm Base Class.
+The Variational Quantum Algorithm Base Class. This class can be used an interface for working with Variation Quantum
+Algorithms, such as VQE, QAOA, or VSVM, and also provides helper utilities for implementing new variational algorithms.
+Writing a new variational algorithm is a simple as extending this class, implementing a cost function for the new
+algorithm to pass to the optimizer, and running the find_minimum() function below to begin the optimization.
+Alternatively, all of the functions below can be overridden to opt-out of this infrastructure but still meet the
+interface requirements.
 
 """
 
@@ -36,8 +41,6 @@ class VQAlgorithm(QuantumAlgorithm):
     The Variational Quantum Algorithm Base Class.
     """
 
-    CONFIGURATION = {}
-
     def __init__(self,
                  var_form=None,
                  optimizer=None,
@@ -45,16 +48,6 @@ class VQAlgorithm(QuantumAlgorithm):
                  initial_point=None,
                  batch_mode=False,
                  callback=None):
-        """Constructor.
-
-        Args:
-             var_form
-             optimizer
-             cost_fn
-             initial_point
-             batch_mode
-             callback
-        """
         super().__init__()
         self._var_form = var_form
         self._optimizer = optimizer
