@@ -19,7 +19,6 @@ The Variational Quantum Eigensolver algorithm.
 See https://arxiv.org/abs/1304.3061
 """
 
-import time
 import logging
 import functools
 
@@ -28,7 +27,6 @@ from qiskit import ClassicalRegister, QuantumCircuit
 
 from qiskit.aqua.algorithms.adaptive.vqalgorithm import VQAlgorithm
 from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
-from qiskit.aqua.utils import find_regs_by_name
 from qiskit.aqua.utils.backend_utils import is_aer_statevector_backend
 
 logger = logging.getLogger(__name__)
@@ -224,28 +222,6 @@ class VQE(VQAlgorithm):
                                                               input_circuit, backend, use_simulator_operator_mode)
         return circuit
 
-    def _solve(self):
-        opt_params, opt_val = self.find_minimum_eigenvalue()
-        self._ret['eigvals'] = np.asarray([opt_val])
-        self._ret['opt_params'] = opt_params
-        qc = self._var_form.construct_circuit(self._ret['opt_params'])
-        if self._quantum_instance.is_statevector:
-            ret = self._quantum_instance.execute(qc)
-            self._ret['eigvecs'] = np.asarray([ret.get_statevector(qc)])
-        else:
-            c = ClassicalRegister(self._operator.num_qubits, name='c')
-            q = find_regs_by_name(qc, 'q')
-            qc.add_register(c)
-            qc.barrier(q)
-            qc.measure(q, c)
-            ret = self._quantum_instance.execute(qc)
-            self._ret['eigvecs'] = np.asarray([ret.get_counts(qc)])
-
-    def _get_ground_state_energy(self):
-        if 'eigvals' not in self._ret:
-            self._solve()
-        self._ret['energy'] = self._ret['eigvals'][0]
-
     def _eval_aux_ops(self, threshold=1e-12):
         if 'opt_params' not in self._ret:
             self._get_ground_state_energy()
@@ -307,12 +283,13 @@ class VQE(VQAlgorithm):
             and self._operator_mode != 'matrix'
 
         self._quantum_instance.circuit_summary = True
-        self._eval_count = 0
-        self._solve()
-        self._get_ground_state_energy()
+
+        self.find_minimum()
+
+        self._ret['energy'] = self.get_optimal_cost()
+        self._ret['eigvals'] = np.asarray([self.get_optimal_cost()])
+        self._ret['eigvecs'] = self.get_optimal_vector()
         self._eval_aux_ops()
-        self._ret['eval_count'] = self._eval_count
-        self._ret['eval_time'] = self._eval_time
         return self._ret
 
     # This is the objective function to be passed to the optimizer that is uses for evaluation
@@ -358,56 +335,3 @@ class VQE(VQAlgorithm):
             logger.info('Energy evaluation {} returned {}'.format(self._eval_count, np.real(mean)))
 
         return mean_energy if len(mean_energy) > 1 else mean_energy[0]
-
-    def find_minimum_eigenvalue(self, initial_point=None):
-        """Determine minimum energy state.
-
-        Args:
-            initial_point (numpy.ndarray[float]) : initial point, or None
-                if not provided.
-
-        Returns:
-            Optimized variational parameters, and corresponding minimum eigenvalue.
-
-        Raises:
-            ValueError:
-
-        """
-        initial_point = initial_point if initial_point is not None else self._initial_point
-
-        nparms = self._var_form.num_parameters
-        bounds = self._var_form.parameter_bounds
-
-        if initial_point is not None and len(initial_point) != nparms:
-            raise ValueError('Initial point size {} and parameter size {} mismatch'.format(len(initial_point), nparms))
-        if len(bounds) != nparms:
-            raise ValueError('Variational form bounds size does not match parameter size')
-        # If *any* value is *equal* in bounds array to None then the problem does *not* have bounds
-        problem_has_bounds = not np.any(np.equal(bounds, None))
-        # Check capabilities of the optimizer
-        if problem_has_bounds:
-            if not self._optimizer.is_bounds_supported:
-                raise ValueError('Problem has bounds but optimizer does not support bounds')
-        else:
-            if self._optimizer.is_bounds_required:
-                raise ValueError('Problem does not have bounds but optimizer requires bounds')
-        if initial_point is not None:
-            if not self._optimizer.is_initial_point_supported:
-                raise ValueError('Optimizer does not support initial point')
-        else:
-            if self._optimizer.is_initial_point_required:
-                low = [(l if l is not None else -2 * np.pi) for (l, u) in bounds]
-                high = [(u if u is not None else 2 * np.pi) for (l, u) in bounds]
-                initial_point = self.random.uniform(low, high)
-
-        start = time.time()
-        logger.info('Starting optimizer bounds={}\ninitial point={}'.format(bounds, initial_point))
-        sol, opt, nfev = self._optimizer.optimize(self._var_form.num_parameters, self._energy_evaluation,
-                                                  variable_bounds=bounds, initial_point=initial_point)
-        if nfev is not None:
-            self._eval_count = self._eval_count if self._eval_count >= nfev else nfev
-        self._eval_time = time.time() - start
-        logger.info('Optimization complete in {}s found {} num evals {}'.format(
-            self._eval_time, opt, self._eval_count))
-
-        return sol, opt

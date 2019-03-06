@@ -17,12 +17,6 @@
 """
 The Variational Quantum Algorithm Base Class.
 
-# TODO Decisions:
- - Do we need the child to have a construct_circuit method (by adding an abstractmethod here), or is the var_form
- enough?
-
-# TODO create a "Variational" interface
-
 """
 
 import time
@@ -132,7 +126,7 @@ class VQAlgorithm(QuantumAlgorithm):
             ret = self._quantum_instance.execute(qc)
             self._ret['min_vector'] = np.asarray([ret.get_counts(qc)])
 
-    def find_minimum(self):
+    def find_minimum(self, initial_point=None):
         """Optimize to find the minimum cost value.
 
         Returns:
@@ -142,7 +136,8 @@ class VQAlgorithm(QuantumAlgorithm):
             ValueError:
 
         """
-        initial_point = self._initial_point
+        self._eval_count = 0
+        initial_point = initial_point if initial_point is not None else self._initial_point
 
         nparms = self._var_form.num_parameters
         bounds = self._var_form.parameter_bounds
@@ -171,7 +166,7 @@ class VQAlgorithm(QuantumAlgorithm):
 
         start = time.time()
         logger.info('Starting optimizer.\nbounds={}\ninitial point={}'.format(bounds, initial_point))
-        opt_val, opt_params, num_optimizer_evals = self._optimizer.optimize(self._var_form.num_parameters,
+        opt_params, opt_val, num_optimizer_evals = self._optimizer.optimize(self._var_form.num_parameters,
                                                                             self._cost_fn,
                                                                             variable_bounds=bounds,
                                                                             initial_point=initial_point)
@@ -180,6 +175,11 @@ class VQAlgorithm(QuantumAlgorithm):
         self._eval_time = time.time() - start
         logger.info('Optimization complete in {} seconds.\nFound opt_params {} in {} evals'.format(
             self._eval_time, opt_params, self._eval_count))
+
+        self._ret['min_val'] = opt_val
+        self._ret['opt_params'] = opt_params
+        self._ret['eval_count'] = self._eval_count
+        self._ret['eval_time'] = self._eval_time
 
         return opt_val, opt_params
 
