@@ -31,7 +31,6 @@ from qiskit.aqua import AquaError
 logger = logging.getLogger(__name__)
 
 
-# TODO Had to remove QuantumAlgorithm inheritance because running doesn't work without a json config, figure out wtd
 class VQAlgorithm(QuantumAlgorithm):
     """
     The Variational Quantum Algorithm Base Class.
@@ -68,7 +67,6 @@ class VQAlgorithm(QuantumAlgorithm):
         self._eval_count = 0
         self._eval_time = 0
         self._callback = callback
-        logger.info(self.print_settings())
 
     def get_optimal_cost(self):
         if 'opt_params' not in self._ret:
@@ -184,11 +182,11 @@ class VQAlgorithm(QuantumAlgorithm):
 
     @property
     def initial_point(self):
-        return self.initial_point
+        return self._initial_point
 
     @initial_point.setter
     def initial_point(self, new_value):
-        self.initial_point = new_value
+        self._initial_point = new_value
 
     @property
     def optimal_params(self):

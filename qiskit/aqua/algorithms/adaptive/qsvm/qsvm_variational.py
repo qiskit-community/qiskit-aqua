@@ -21,7 +21,7 @@ import numpy as np
 from sklearn.utils import shuffle
 
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
-from qiskit.aqua.algorithms import QuantumAlgorithm
+from qiskit.aqua.algorithms.adaptive.vqalgorithm import VQAlgorithm
 from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.algorithms.adaptive.qsvm import (cost_estimate, return_probabilities)
 from qiskit.aqua.utils import (get_feature_dimension, map_label_to_class_name,
@@ -30,7 +30,7 @@ from qiskit.aqua.utils import (get_feature_dimension, map_label_to_class_name,
 logger = logging.getLogger(__name__)
 
 
-class QSVMVariational(QuantumAlgorithm):
+class QSVMVariational(VQAlgorithm):
 
     CONFIGURATION = {
         'name': 'QSVM.Variational',
@@ -100,7 +100,11 @@ class QSVMVariational(QuantumAlgorithm):
             We used `label` denotes numeric results and `class` means the name of that class (str).
         """
         self.validate(locals())
-        super().__init__()
+        super().__init__(var_form=var_form,
+                         optimizer=optimizer,
+                         cost_fn=self._cost_function_wrapper,
+                         batch_mode=batch_mode,
+                         callback=callback)
         if training_dataset is None:
             raise AquaError('Training dataset must be provided')
 
@@ -119,13 +123,13 @@ class QSVMVariational(QuantumAlgorithm):
         if datapoints is not None and not isinstance(datapoints, np.ndarray):
             datapoints = np.asarray(datapoints)
         self._datapoints = datapoints
-        self._optimizer = optimizer
+        # self._optimizer = optimizer
         self._feature_map = feature_map
-        self._var_form = var_form
+        # self._var_form = var_form
         self._num_qubits = self._feature_map.num_qubits
-        self._optimizer.set_batch_mode(batch_mode)
+        # self._optimizer.set_batch_mode(batch_mode)
         self._minibatch_size = minibatch_size
-        self._callback = callback
+        # self._callback = callback
         self._eval_count = 0
         self._ret = {}
 
@@ -218,8 +222,6 @@ class QSVMVariational(QuantumAlgorithm):
             raise ValueError('Selected backend "{}" is not supported.'.format(
                 self._quantum_instance.backend_name))
 
-        predicted_probs = []
-        predicted_labels = []
         circuits = {}
         circuit_id = 0
 
@@ -268,6 +270,8 @@ class QSVMVariational(QuantumAlgorithm):
         else:
             batches = np.asarray([data])
             label_batches = np.asarray([labels])
+        self._batches = batches
+        self._label_batches = label_batches
         return batches, label_batches
 
     def train(self, data, labels, quantum_instance=None):
@@ -279,37 +283,34 @@ class QSVMVariational(QuantumAlgorithm):
             quantum_instance (QuantumInstance): quantum backend with all setting
         """
         self._quantum_instance = self._quantum_instance if quantum_instance is None else quantum_instance
-        batches, label_batches = self.batch_data(data, labels, self._minibatch_size)
+        self.batch_data(data, labels, self._minibatch_size)
         self._batch_index = 0
 
-        def _cost_function_wrapper(theta):
-            batch_index = self._batch_index % len(batches)
-            predicted_probs, predicted_labels = self._get_prediction(batches[batch_index], theta)
-            total_cost = []
-            if not isinstance(predicted_probs, list):
-                predicted_probs = [predicted_probs]
-            for i in range(len(predicted_probs)):
-                curr_cost = self._cost_function(predicted_probs[i], label_batches[batch_index])
-                total_cost.append(curr_cost)
-                if self._callback is not None:
-                    self._callback(self._eval_count,
-                                   theta[i * self._var_form.num_parameters:(i + 1) * self._var_form.num_parameters],
-                                   curr_cost,
-                                   self._batch_index)
-                self._eval_count += 1
+        if self.initial_point is None:
+            self.initial_point = self.random.randn(self._var_form.num_parameters)
 
-            self._batch_index += 1
-            logger.debug('Intermediate batch cost: {}'.format(sum(total_cost)))
-            return total_cost if len(total_cost) > 1 else total_cost[0]
+        self.find_minimum(initial_point=self.initial_point)
+        self._ret['training_loss'] = self._ret['min_val']
 
-        initial_theta = self.random.randn(self._var_form.num_parameters)
+    def _cost_function_wrapper(self, theta):
+        batch_index = self._batch_index % len(self._batches)
+        predicted_probs, predicted_labels = self._get_prediction(self._batches[batch_index], theta)
+        total_cost = []
+        if not isinstance(predicted_probs, list):
+            predicted_probs = [predicted_probs]
+        for i in range(len(predicted_probs)):
+            curr_cost = self._cost_function(predicted_probs[i], self._label_batches[batch_index])
+            total_cost.append(curr_cost)
+            if self._callback is not None:
+                self._callback(self._eval_count,
+                               theta[i * self._var_form.num_parameters:(i + 1) * self._var_form.num_parameters],
+                               curr_cost,
+                               self._batch_index)
+            self._eval_count += 1
 
-        theta_best, cost_final, _ = self._optimizer.optimize(initial_theta.shape[0],
-                                                             _cost_function_wrapper,
-                                                             initial_point=initial_theta)
-
-        self._ret['opt_params'] = theta_best
-        self._ret['training_loss'] = cost_final
+        self._batch_index += 1
+        logger.debug('Intermediate batch cost: {}'.format(sum(total_cost)))
+        return total_cost if len(total_cost) > 1 else total_cost[0]
 
     def test(self, data, labels, quantum_instance=None, minibatch_size=-1):
         """Predict the labels for the data, and test against with ground truth labels.
