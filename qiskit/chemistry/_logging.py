@@ -24,6 +24,7 @@ from qiskit.chemistry.core import OPERATORS_ENTRY_POINT
 from qiskit.chemistry.drivers import DRIVERS_ENTRY_POINT
 import pkg_resources
 import itertools
+import os
 
 _QISKIT_CHEMISTRY_LOGGING_CONFIG = {
     'version': 1,
@@ -56,7 +57,7 @@ def _get_logging_names():
     return list(names.keys())
 
 
-def build_logging_config(level):
+def build_logging_config(level, filepath=None):
     """
      Creates a the configuration dict of the named loggers using the default SDK
      configuration provided by `_QISKIT_CHEMISTRY_LOGGING_CONFIG`:
@@ -64,11 +65,25 @@ def build_logging_config(level):
     * console logging using a custom format for levels != level parameter.
     * console logging with simple format for level parameter.
     * set logger level to level parameter.
+
+    Args:
+        level (number): logging level
+        filepath (str): file to receive logging data
     """
     dict = copy.deepcopy(_QISKIT_CHEMISTRY_LOGGING_CONFIG)
+    if filepath is not None:
+        filepath = os.path.expanduser(filepath)
+        dict['handlers']['f'] = {
+            'class': 'logging.FileHandler',
+            'formatter': 'f',
+            'filename': filepath,
+            'mode': 'w'
+        }
+
+    handlers = list(dict['handlers'].keys())
     for name in _get_logging_names():
         dict['loggers'][name] = {
-            'handlers': ['h'],
+            'handlers': handlers,
             'propagate': False,
             'level': level
         }
@@ -101,11 +116,12 @@ def get_qiskit_chemistry_logging():
     return get_logging_level()
 
 
-def set_qiskit_chemistry_logging(level):
+def set_qiskit_chemistry_logging(level, filepath=None):
     """
     Updates the Qiskit Chemistry logging with the appropriate logging level
 
     Args:
         level (int): minimum severity of the messages that are displayed.
+        filepath (str): file to receive logging data
     """
-    set_logging_config(build_logging_config(level))
+    set_logging_config(build_logging_config(level, filepath))
