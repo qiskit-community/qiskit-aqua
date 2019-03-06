@@ -22,8 +22,8 @@ The Variational Quantum Algorithm Base Class.
 import time
 import logging
 import numpy as np
-from qiskit import ClassicalRegister
 
+from qiskit import ClassicalRegister
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.utils import find_regs_by_name
 from qiskit.aqua import AquaError
@@ -40,9 +40,9 @@ class VQAlgorithm(QuantumAlgorithm):
     CONFIGURATION = {}
 
     def __init__(self,
-                 var_form,
-                 optimizer,
-                 cost_fn,
+                 var_form=None,
+                 optimizer=None,
+                 cost_fn=None,
                  initial_point=None,
                  batch_mode=False,
                  callback=None):
@@ -53,6 +53,8 @@ class VQAlgorithm(QuantumAlgorithm):
              optimizer
              cost_fn
              initial_point
+             batch_mode
+             callback
         """
         super().__init__()
         self._var_form = var_form
@@ -61,43 +63,12 @@ class VQAlgorithm(QuantumAlgorithm):
         self._initial_point = initial_point
         if initial_point is None:
             self._initial_point = var_form.preferred_init_points
-        # TODO do I need a quantum_instance?
         self._optimizer.set_batch_mode(batch_mode)
         self._ret = {}
         self._eval_count = 0
         self._eval_time = 0
         self._callback = callback
         logger.info(self.print_settings())
-
-    # TODO
-    def print_settings(self):
-        """
-        Converting the settings of VQAlgorithm into a string for logging.
-
-        Returns:
-            str: the formatted settings of VQAlgorithm
-        """
-        ret = "\n"
-        return ret
-
-    def _run(self):
-        """
-        Run the algorithm to compute the minimum cost value, minimum vector, and optimal params. Function does a little
-        setup, runs the find_minimum() function, and then computes the optimal vector based on the variational_form
-        and the optimal parameters.
-
-        Returns:
-            Dictionary of results
-        """
-
-        self._eval_count = 0
-
-        opt_params, opt_val = self.find_minimum()
-        self._ret['min_val'] = opt_val
-        self._ret['opt_params'] = opt_params
-        self._ret['eval_count'] = self._eval_count
-        self._ret['eval_time'] = self._eval_time
-        return self._ret
 
     def get_optimal_cost(self):
         if 'opt_params' not in self._ret:
@@ -117,7 +88,6 @@ class VQAlgorithm(QuantumAlgorithm):
             ret = self._quantum_instance.execute(qc)
             self._ret['min_vector'] = ret.get_statevector(qc, decimals=16)
         else:
-            # TODO Add num_qubits getter to varform base class
             c = ClassicalRegister(qc.width(), name='c')
             q = find_regs_by_name(qc, 'q')
             qc.add_register(c)
@@ -204,7 +174,6 @@ class VQAlgorithm(QuantumAlgorithm):
                 probs_s.append(self.get_probabilities_for_counts(counts))
         return np.array(probs_s)
 
-    # TODO move into Terra
     def get_probabilities_for_counts(self, counts):
         shots = sum(counts.values())
         states = int(2 ** len(list(counts.keys())[0]))
@@ -212,3 +181,27 @@ class VQAlgorithm(QuantumAlgorithm):
         for k, v in counts.items():
             probs[int(k, 2)] = v / shots
         return probs
+
+    @property
+    def initial_point(self):
+        return self.initial_point
+
+    @initial_point.setter
+    def initial_point(self, new_value):
+        self.initial_point = new_value
+
+    @property
+    def optimal_params(self):
+        return self._ret['opt_params']
+
+    @property
+    def var_form(self):
+        return self._var_form
+
+    @var_form.setter
+    def var_form(self, new_value):
+        self._var_form = new_value
+
+    @property
+    def optimizer(self):
+        return self._optimizer

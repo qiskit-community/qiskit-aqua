@@ -109,20 +109,10 @@ class VQE(VQAlgorithm):
                          callback=callback)
         self._operator = operator
         self._operator_mode = operator_mode
-        # self._var_form = var_form
-        # self._optimizer = optimizer
-        # self._initial_point = initial_point
-        # if initial_point is None:
-        #     self._initial_point = var_form.preferred_init_points
-        # self._optimizer.set_batch_mode(batch_mode)
         if aux_operators is None:
             self._aux_operators = []
         else:
             self._aux_operators = [aux_operators] if not isinstance(aux_operators, list) else aux_operators
-        # self._ret = {}
-        # self._eval_count = 0
-        # self._eval_time = 0
-        # self._callback = callback
         logger.info(self.print_setting())
 
     @classmethod
