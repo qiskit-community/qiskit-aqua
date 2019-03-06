@@ -26,7 +26,7 @@ import functools
 import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit
 
-from qiskit.aqua.algorithms import QuantumAlgorithm
+from qiskit.aqua.algorithms.adaptive.vqalgorithm import VQAlgorithm
 from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.utils import find_regs_by_name
 from qiskit.aqua.utils.backend_utils import is_aer_statevector_backend
@@ -34,7 +34,7 @@ from qiskit.aqua.utils.backend_utils import is_aer_statevector_backend
 logger = logging.getLogger(__name__)
 
 
-class VQE(QuantumAlgorithm):
+class VQE(VQAlgorithm):
     """
     The Variational Quantum Eigensolver algorithm.
 
@@ -103,23 +103,28 @@ class VQE(QuantumAlgorithm):
                                  evaluated mean, evaluated standard devation.
         """
         self.validate(locals())
-        super().__init__()
+        super().__init__(var_form=var_form,
+                         optimizer=optimizer,
+                         cost_fn=self._energy_evaluation,
+                         initial_point=initial_point,
+                         batch_mode=batch_mode,
+                         callback=callback)
         self._operator = operator
-        self._var_form = var_form
-        self._optimizer = optimizer
         self._operator_mode = operator_mode
-        self._initial_point = initial_point
-        if initial_point is None:
-            self._initial_point = var_form.preferred_init_points
-        self._optimizer.set_batch_mode(batch_mode)
+        # self._var_form = var_form
+        # self._optimizer = optimizer
+        # self._initial_point = initial_point
+        # if initial_point is None:
+        #     self._initial_point = var_form.preferred_init_points
+        # self._optimizer.set_batch_mode(batch_mode)
         if aux_operators is None:
             self._aux_operators = []
         else:
             self._aux_operators = [aux_operators] if not isinstance(aux_operators, list) else aux_operators
-        self._ret = {}
-        self._eval_count = 0
-        self._eval_time = 0
-        self._callback = callback
+        # self._ret = {}
+        # self._eval_count = 0
+        # self._eval_time = 0
+        # self._callback = callback
         logger.info(self.print_setting())
 
     @classmethod
