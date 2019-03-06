@@ -115,7 +115,7 @@ class VQAlgorithm(QuantumAlgorithm):
         qc = self.get_optimal_circuit()
         if self._quantum_instance.is_statevector:
             ret = self._quantum_instance.execute(qc)
-            self._ret['min_vector'] = np.asarray([ret.get_statevector(qc, decimals=16)])
+            self._ret['min_vector'] = ret.get_statevector(qc, decimals=16)
         else:
             # TODO Add num_qubits getter to varform base class
             c = ClassicalRegister(qc.width(), name='c')
@@ -124,7 +124,8 @@ class VQAlgorithm(QuantumAlgorithm):
             qc.barrier(q)
             qc.measure(q, c)
             ret = self._quantum_instance.execute(qc)
-            self._ret['min_vector'] = np.asarray([ret.get_counts(qc)])
+            self._ret['min_vector'] = ret.get_counts(qc)
+        return self._ret['min_vector']
 
     def find_minimum(self, initial_point=None):
         """Optimize to find the minimum cost value.

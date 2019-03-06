@@ -288,7 +288,7 @@ class VQE(VQAlgorithm):
 
         self._ret['energy'] = self.get_optimal_cost()
         self._ret['eigvals'] = np.asarray([self.get_optimal_cost()])
-        self._ret['eigvecs'] = self.get_optimal_vector()
+        self._ret['eigvecs'] = np.asarray([self.get_optimal_vector()])
         self._eval_aux_ops()
         return self._ret
 
