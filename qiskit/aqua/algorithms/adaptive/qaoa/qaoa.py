@@ -82,14 +82,15 @@ class QAOA(VQE):
         ],
     }
 
-    def __init__(self, operator, optimizer, p=1, initial_state=None, operator_mode='matrix', initial_point=None,
-                 batch_mode=False, aux_operators=None, callback=None):
+    def __init__(self, operator, optimizer, p=1, initial_state=None, mixer=None, operator_mode='matrix',
+                 initial_point=None, batch_mode=False, aux_operators=None, callback=None):
         """
         Args:
             operator (Operator): Qubit operator
             operator_mode (str): operator mode, used for eval of operator
             p (int): the integer parameter p as specified in https://arxiv.org/abs/1411.4028
             initial_state (InitialState): the initial state to prepend the QAOA circuit with
+            mixer (Operator): the mixer Hamiltonian to evolve with
             optimizer (Optimizer): the classical optimization algorithm.
             initial_point (numpy.ndarray): optimizer initial point.
             callback (Callable): a callback that can access the intermediate data during the optimization.
@@ -98,7 +99,7 @@ class QAOA(VQE):
                                  evaluated mean, evaluated standard devation.
         """
         self.validate(locals())
-        var_form = QAOAVarForm(operator, p, initial_state=initial_state)
+        var_form = QAOAVarForm(operator, p, initial_state=initial_state, mixer_operator=mixer)
         super().__init__(operator, var_form, optimizer,
                          operator_mode=operator_mode, initial_point=initial_point,
                          batch_mode=batch_mode, aux_operators=aux_operators, callback=callback)

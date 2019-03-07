@@ -25,7 +25,7 @@ from test.common import QiskitAquaTestCase
 from qiskit.aqua.translators.ising import maxcut
 from qiskit.aqua.components.optimizers import COBYLA
 from qiskit.aqua.algorithms import QAOA
-from qiskit.aqua import QuantumInstance
+from qiskit.aqua import Operator, QuantumInstance
 
 w1 = np.array([
     [0, 1, 0, 1],
@@ -34,6 +34,11 @@ w1 = np.array([
     [1, 0, 1, 0]
 ])
 p1 = 1
+m1 = Operator().load_from_dict({'paulis':[{'label': 'IIIX', 'coeff': {'real': 1}},
+                                          {'label': 'IIXI', 'coeff': {'real': 1}},
+                                          {'label': 'IXII', 'coeff': {'real': 1}},
+                                          {'label': 'XIII', 'coeff': {'real': 1}}]
+                                })
 s1 = {'0101', '1010'}
 
 
@@ -44,16 +49,17 @@ w2 = np.array([
     [0., 9., -8., 0.],
 ])
 p2 = 1
+m2 = None
 s2 = {'1011', '0100'}
 
 
 class TestQAOA(QiskitAquaTestCase):
     """Test QAOA with MaxCut."""
     @parameterized.expand([
-        [w1, p1, s1],
-        [w2, p2, s2],
+        [w1, p1, m1, s1],
+        [w2, p2, m2, s2],
     ])
-    def test_qaoa(self, w, p, solutions):
+    def test_qaoa(self, w, p, m, solutions):
         self.log.debug('Testing {}-step QAOA with MaxCut on graph\n{}'.format(p, w))
         np.random.seed(0)
 
@@ -61,7 +67,7 @@ class TestQAOA(QiskitAquaTestCase):
         optimizer = COBYLA()
         qubitOp, offset = maxcut.get_maxcut_qubitops(w)
 
-        qaoa = QAOA(qubitOp, optimizer, p, operator_mode='matrix')
+        qaoa = QAOA(qubitOp, optimizer, p, operator_mode='matrix', mixer=m)
         quantum_instance = QuantumInstance(backend)
 
         result = qaoa.run(quantum_instance)
