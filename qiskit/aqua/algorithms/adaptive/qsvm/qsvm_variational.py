@@ -269,16 +269,18 @@ class QSVMVariational(VQAlgorithm):
             label_batches = np.asarray([labels])
         return batches, label_batches
 
-    def train(self, data, labels, quantum_instance=None):
+    def train(self, data, labels, quantum_instance=None, minibatch_size=-1):
         """Train the models, and save results.
 
         Args:
             data (numpy.ndarray): NxD array, N is number of data and D is dimension
             labels (numpy.ndarray): Nx1 array, N is number of data
             quantum_instance (QuantumInstance): quantum backend with all setting
+            minibatch_size (int): the size of each minibatched accuracy evalutation
         """
         self._quantum_instance = self._quantum_instance if quantum_instance is None else quantum_instance
-        self._batches, self._label_batches = self.batch_data(data, labels, self._minibatch_size)
+        minibatch_size = minibatch_size if minibatch_size > 0 else self._minibatch_size
+        self._batches, self._label_batches = self.batch_data(data, labels, minibatch_size)
         self._batch_index = 0
 
         if self.initial_point is None:
@@ -323,13 +325,15 @@ class QSVMVariational(VQAlgorithm):
         logger.debug('Intermediate batch cost: {}'.format(sum(total_cost)))
         return total_cost if len(total_cost) > 1 else total_cost[0]
 
-    def test(self, data, labels, quantum_instance=None, minibatch_size=-1):
+    def test(self, data, labels, quantum_instance=None, minibatch_size=-1, params=None):
         """Predict the labels for the data, and test against with ground truth labels.
 
         Args:
             data (numpy.ndarray): NxD array, N is number of data and D is data dimension
             labels (numpy.ndarray): Nx1 array, N is number of data
             quantum_instance (QuantumInstance): quantum backend with all setting
+            minibatch_size (int): the size of each minibatched accuracy evalutation
+            params (list): list of parameters to populate in the variational form
         Returns:
             float: classification accuracy
         """
@@ -338,13 +342,15 @@ class QSVMVariational(VQAlgorithm):
 
         batches, label_batches = self.batch_data(data, labels, minibatch_size)
         self.batch_num = 0
+        if params is None:
+            params = self.optimal_params
         total_cost = 0
         total_correct = 0
         total_samples = 0
 
         self._quantum_instance = self._quantum_instance if quantum_instance is None else quantum_instance
         for batch, label_batch in zip(batches, label_batches):
-            predicted_probs, predicted_labels = self._get_prediction(batch, self._ret['opt_params'])
+            predicted_probs, predicted_labels = self._get_prediction(batch, params)
             total_cost += self._cost_function(predicted_probs, label_batch)
             total_correct += np.sum((np.argmax(predicted_probs, axis=1) == label_batch))
             total_samples += label_batch.shape[0]
@@ -357,12 +363,14 @@ class QSVMVariational(VQAlgorithm):
         self._ret['testing_loss'] = total_cost / len(batches)
         return total_accuracy
 
-    def predict(self, data, quantum_instance=None, minibatch_size=-1):
+    def predict(self, data, quantum_instance=None, minibatch_size=-1, params=None):
         """Predict the labels for the data.
 
         Args:
             data (numpy.ndarray): NxD array, N is number of data, D is data dimension
             quantum_instance (QuantumInstance): quantum backend with all setting
+            minibatch_size (int): the size of each minibatched accuracy evalutation
+            params (list): list of parameters to populate in the variational form
         Returns:
             list: for each data point, generates the predicted probability for each class
             list: for each data point, generates the predicted label (that with the highest prob)
@@ -371,6 +379,8 @@ class QSVMVariational(VQAlgorithm):
         # minibatch size defaults to setting in instance variable if not set
         minibatch_size = minibatch_size if minibatch_size > 0 else self._minibatch_size
         batches, _ = self.batch_data(data, None, minibatch_size)
+        if params is None:
+            params = self.optimal_params
         predicted_probs = None
         predicted_labels = None
 
@@ -378,7 +388,7 @@ class QSVMVariational(VQAlgorithm):
         for i, batch in enumerate(batches):
             if len(batches) > 0:
                 logger.debug('Predicting batch {}'.format(i))
-            batch_probs, batch_labels = self._get_prediction(batch, self._ret['opt_params'])
+            batch_probs, batch_labels = self._get_prediction(batch, params)
             if not predicted_probs and not predicted_labels:
                 predicted_probs = batch_probs
                 predicted_labels = batch_labels
@@ -403,17 +413,17 @@ class QSVMVariational(VQAlgorithm):
 
     def get_optimal_cost(self):
         if 'opt_params' not in self._ret:
-            raise AquaError("Cannot return optimal cost before running VQAlgorithm to find optimal params.")
+            raise AquaError("Cannot return optimal cost before running the algorithm to find optimal params.")
         return self._ret['min_val']
 
     def get_optimal_circuit(self):
         if 'opt_params' not in self._ret:
-            raise AquaError("Cannot find optimal circuit before running VQAlgorithm to find optimal params.")
+            raise AquaError("Cannot find optimal circuit before running the algorithm to find optimal params.")
         return self._var_form.construct_circuit(self._ret['opt_params'])
 
     def get_optimal_vector(self):
         if 'opt_params' not in self._ret:
-            raise AquaError("Cannot find optimal vector before running VQAlgorithm to find optimal params.")
+            raise AquaError("Cannot find optimal vector before running the algorithm to find optimal params.")
         qc = self.get_optimal_circuit()
         if self._quantum_instance.is_statevector:
             ret = self._quantum_instance.execute(qc)
@@ -430,6 +440,8 @@ class QSVMVariational(VQAlgorithm):
 
     @property
     def optimal_params(self):
+        if 'opt_params' not in self._ret:
+            raise AquaError("Cannot find optimal params before running the algorithm.")
         return self._ret['opt_params']
 
     @property

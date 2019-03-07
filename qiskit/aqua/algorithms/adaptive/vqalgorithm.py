@@ -153,6 +153,7 @@ class VQAlgorithm(QuantumAlgorithm):
     def initial_point(self, new_value):
         self._initial_point = new_value
 
+    @property
     @abstractmethod
     def optimal_params(self):
         raise NotImplementedError()

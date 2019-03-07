@@ -216,10 +216,10 @@ class VQE(VQAlgorithm):
                                                               input_circuit, backend, use_simulator_operator_mode)
         return circuit
 
-    def _eval_aux_ops(self, threshold=1e-12):
-        if 'opt_params' not in self._ret:
-            self._get_ground_state_energy()
-        wavefn_circuit = self._var_form.construct_circuit(self._ret['opt_params'])
+    def _eval_aux_ops(self, threshold=1e-12, params=None):
+        if params is None:
+            params = self.optimal_params
+        wavefn_circuit = self._var_form.construct_circuit(params)
         circuits = []
         values = []
         params = []
@@ -297,10 +297,6 @@ class VQE(VQAlgorithm):
         self._eval_aux_ops()
         return self._ret
 
-    @property
-    def optimal_params(self):
-        return self._ret['opt_params']
-
     # This is the objective function to be passed to the optimizer that is uses for evaluation
     def _energy_evaluation(self, parameters):
         """
@@ -347,17 +343,17 @@ class VQE(VQAlgorithm):
 
     def get_optimal_cost(self):
         if 'opt_params' not in self._ret:
-            raise AquaError("Cannot return optimal cost before running VQAlgorithm to find optimal params.")
+            raise AquaError("Cannot return optimal cost before running the algorithm to find optimal params.")
         return self._ret['min_val']
 
     def get_optimal_circuit(self):
         if 'opt_params' not in self._ret:
-            raise AquaError("Cannot find optimal circuit before running VQAlgorithm to find optimal params.")
+            raise AquaError("Cannot find optimal circuit before running the algorithm to find optimal params.")
         return self._var_form.construct_circuit(self._ret['opt_params'])
 
     def get_optimal_vector(self):
         if 'opt_params' not in self._ret:
-            raise AquaError("Cannot find optimal vector before running VQAlgorithm to find optimal params.")
+            raise AquaError("Cannot find optimal vector before running the algorithm to find optimal params.")
         qc = self.get_optimal_circuit()
         if self._quantum_instance.is_statevector:
             ret = self._quantum_instance.execute(qc)
@@ -371,3 +367,9 @@ class VQE(VQAlgorithm):
             ret = self._quantum_instance.execute(qc)
             self._ret['min_vector'] = ret.get_counts(qc)
         return self._ret['min_vector']
+
+    @property
+    def optimal_params(self):
+        if 'opt_params' not in self._ret:
+            raise AquaError("Cannot find optimal params before running the algorithm.")
+        return self._ret['opt_params']
