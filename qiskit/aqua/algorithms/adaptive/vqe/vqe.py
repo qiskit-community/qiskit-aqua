@@ -104,9 +104,9 @@ class VQE(VQAlgorithm):
         super().__init__(var_form=var_form,
                          optimizer=optimizer,
                          cost_fn=self._energy_evaluation,
-                         initial_point=initial_point,
-                         batch_mode=batch_mode,
-                         callback=callback)
+                         initial_point=initial_point)
+        self._optimizer.set_batch_mode(batch_mode)
+        self._callback = callback
         if initial_point is None:
             self._initial_point = var_form.preferred_init_points
         self._operator = operator

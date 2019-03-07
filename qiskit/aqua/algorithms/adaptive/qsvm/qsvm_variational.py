@@ -102,9 +102,9 @@ class QSVMVariational(VQAlgorithm):
         self.validate(locals())
         super().__init__(var_form=var_form,
                          optimizer=optimizer,
-                         cost_fn=self._cost_function_wrapper,
-                         batch_mode=batch_mode,
-                         callback=callback)
+                         cost_fn=self._cost_function_wrapper)
+        self._optimizer.set_batch_mode(batch_mode)
+        self._callback = callback
         if training_dataset is None:
             raise AquaError('Training dataset must be provided')
 

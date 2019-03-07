@@ -45,19 +45,15 @@ class VQAlgorithm(QuantumAlgorithm):
                  var_form=None,
                  optimizer=None,
                  cost_fn=None,
-                 initial_point=None,
-                 batch_mode=False,
-                 callback=None):
+                 initial_point=None):
         super().__init__()
         self._var_form = var_form
         self._optimizer = optimizer
         self._cost_fn = cost_fn
         self._initial_point = initial_point
-        self._optimizer.set_batch_mode(batch_mode)
         self._ret = {}
         self._eval_count = 0
         self._eval_time = 0
-        self._callback = callback
 
     def get_optimal_cost(self):
         if 'opt_params' not in self._ret:
