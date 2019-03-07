@@ -28,6 +28,7 @@ from qiskit import ClassicalRegister, QuantumCircuit
 from qiskit.aqua.algorithms.adaptive.vqalgorithm import VQAlgorithm
 from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.utils.backend_utils import is_aer_statevector_backend
+from qiskit.aqua.utils import find_regs_by_name
 
 logger = logging.getLogger(__name__)
 
@@ -111,6 +112,7 @@ class VQE(VQAlgorithm):
             self._initial_point = var_form.preferred_init_points
         self._operator = operator
         self._operator_mode = operator_mode
+        self._eval_count = 0
         if aux_operators is None:
             self._aux_operators = []
         else:
@@ -276,13 +278,28 @@ class VQE(VQAlgorithm):
 
         self._quantum_instance.circuit_summary = True
 
-        self.find_minimum()
+        self._eval_count = 0
+        self._ret = self.find_minimum(initial_point=self.initial_point,
+                                      var_form=self.var_form,
+                                      cost_fn=self._energy_evaluation,
+                                      optimizer=self.optimizer)
+
+        if self._ret['num_optimizer_evals'] is not None and self._eval_count >= self._ret['num_optimizer_evals']:
+            self._eval_count = self._ret['num_optimizer_evals']
+        self._eval_time = self._ret['eval_time']
+        logger.info('Optimization complete in {} seconds.\nFound opt_params {} in {} evals'.format(
+            self._eval_time, self._ret['opt_params'], self._eval_count))
+        self._ret['eval_count'] = self._eval_count
 
         self._ret['energy'] = self.get_optimal_cost()
         self._ret['eigvals'] = np.asarray([self.get_optimal_cost()])
         self._ret['eigvecs'] = np.asarray([self.get_optimal_vector()])
         self._eval_aux_ops()
         return self._ret
+
+    @property
+    def optimal_params(self):
+        return self._ret['opt_params']
 
     # This is the objective function to be passed to the optimizer that is uses for evaluation
     def _energy_evaluation(self, parameters):
@@ -327,3 +344,30 @@ class VQE(VQAlgorithm):
             logger.info('Energy evaluation {} returned {}'.format(self._eval_count, np.real(mean)))
 
         return mean_energy if len(mean_energy) > 1 else mean_energy[0]
+
+    def get_optimal_cost(self):
+        if 'opt_params' not in self._ret:
+            raise AquaError("Cannot return optimal cost before running VQAlgorithm to find optimal params.")
+        return self._ret['min_val']
+
+    def get_optimal_circuit(self):
+        if 'opt_params' not in self._ret:
+            raise AquaError("Cannot find optimal circuit before running VQAlgorithm to find optimal params.")
+        return self._var_form.construct_circuit(self._ret['opt_params'])
+
+    def get_optimal_vector(self):
+        if 'opt_params' not in self._ret:
+            raise AquaError("Cannot find optimal vector before running VQAlgorithm to find optimal params.")
+        qc = self.get_optimal_circuit()
+        if self._quantum_instance.is_statevector:
+            ret = self._quantum_instance.execute(qc)
+            self._ret['min_vector'] = ret.get_statevector(qc, decimals=16)
+        else:
+            c = ClassicalRegister(qc.width(), name='c')
+            q = find_regs_by_name(qc, 'q')
+            qc.add_register(c)
+            qc.barrier(q)
+            qc.measure(q, c)
+            ret = self._quantum_instance.execute(qc)
+            self._ret['min_vector'] = ret.get_counts(qc)
+        return self._ret['min_vector']

@@ -25,7 +25,8 @@ from qiskit.aqua.algorithms.adaptive.vqalgorithm import VQAlgorithm
 from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.algorithms.adaptive.qsvm import (cost_estimate, return_probabilities)
 from qiskit.aqua.utils import (get_feature_dimension, map_label_to_class_name,
-                               split_dataset_to_data_and_labels)
+                               split_dataset_to_data_and_labels, find_regs_by_name)
+
 
 logger = logging.getLogger(__name__)
 
@@ -283,7 +284,18 @@ class QSVMVariational(VQAlgorithm):
         if self.initial_point is None:
             self.initial_point = self.random.randn(self._var_form.num_parameters)
 
-        self.find_minimum(initial_point=self.initial_point)
+        self._eval_count = 0
+        self._ret = self.find_minimum(initial_point=self.initial_point,
+                                      var_form=self.var_form,
+                                      cost_fn=self._cost_function_wrapper,
+                                      optimizer=self.optimizer)
+
+        if self._ret['num_optimizer_evals'] is not None and self._eval_count >= self._ret['num_optimizer_evals']:
+            self._eval_count = self._ret['num_optimizer_evals']
+        self._eval_time = self._ret['eval_time']
+        logger.info('Optimization complete in {} seconds.\nFound opt_params {} in {} evals'.format(
+            self._eval_time, self._ret['opt_params'], self._eval_count))
+        self._ret['eval_count'] = self._eval_count
 
         del self._batches
         del self._label_batches
@@ -387,8 +399,38 @@ class QSVMVariational(VQAlgorithm):
             predicted_probs, predicted_labels = self.predict(self._datapoints)
             self._ret['predicted_classes'] = map_label_to_class_name(predicted_labels,
                                                                      self._label_to_class)
-
         return self._ret
+
+    def get_optimal_cost(self):
+        if 'opt_params' not in self._ret:
+            raise AquaError("Cannot return optimal cost before running VQAlgorithm to find optimal params.")
+        return self._ret['min_val']
+
+    def get_optimal_circuit(self):
+        if 'opt_params' not in self._ret:
+            raise AquaError("Cannot find optimal circuit before running VQAlgorithm to find optimal params.")
+        return self._var_form.construct_circuit(self._ret['opt_params'])
+
+    def get_optimal_vector(self):
+        if 'opt_params' not in self._ret:
+            raise AquaError("Cannot find optimal vector before running VQAlgorithm to find optimal params.")
+        qc = self.get_optimal_circuit()
+        if self._quantum_instance.is_statevector:
+            ret = self._quantum_instance.execute(qc)
+            self._ret['min_vector'] = ret.get_statevector(qc, decimals=16)
+        else:
+            c = ClassicalRegister(qc.width(), name='c')
+            q = find_regs_by_name(qc, 'q')
+            qc.add_register(c)
+            qc.barrier(q)
+            qc.measure(q, c)
+            ret = self._quantum_instance.execute(qc)
+            self._ret['min_vector'] = ret.get_counts(qc)
+        return self._ret['min_vector']
+
+    @property
+    def optimal_params(self):
+        return self._ret['opt_params']
 
     @property
     def ret(self):

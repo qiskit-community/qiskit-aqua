@@ -27,11 +27,9 @@ interface requirements.
 import time
 import logging
 import numpy as np
+from abc import abstractmethod
 
-from qiskit import ClassicalRegister
 from qiskit.aqua.algorithms import QuantumAlgorithm
-from qiskit.aqua.utils import find_regs_by_name
-from qiskit.aqua import AquaError
 
 logger = logging.getLogger(__name__)
 
@@ -51,38 +49,20 @@ class VQAlgorithm(QuantumAlgorithm):
         self._optimizer = optimizer
         self._cost_fn = cost_fn
         self._initial_point = initial_point
-        self._ret = {}
-        self._eval_count = 0
-        self._eval_time = 0
 
+    @abstractmethod
     def get_optimal_cost(self):
-        if 'opt_params' not in self._ret:
-            raise AquaError("Cannot return optimal cost before running VQAlgorithm to find optimal params.")
-        return self._ret['min_val']
+        raise NotImplementedError()
 
+    @abstractmethod
     def get_optimal_circuit(self):
-        if 'opt_params' not in self._ret:
-            raise AquaError("Cannot find optimal circuit before running VQAlgorithm to find optimal params.")
-        return self._var_form.construct_circuit(self._ret['opt_params'])
+        raise NotImplementedError()
 
+    @abstractmethod
     def get_optimal_vector(self):
-        if 'opt_params' not in self._ret:
-            raise AquaError("Cannot find optimal vector before running VQAlgorithm to find optimal params.")
-        qc = self.get_optimal_circuit()
-        if self._quantum_instance.is_statevector:
-            ret = self._quantum_instance.execute(qc)
-            self._ret['min_vector'] = ret.get_statevector(qc, decimals=16)
-        else:
-            c = ClassicalRegister(qc.width(), name='c')
-            q = find_regs_by_name(qc, 'q')
-            qc.add_register(c)
-            qc.barrier(q)
-            qc.measure(q, c)
-            ret = self._quantum_instance.execute(qc)
-            self._ret['min_vector'] = ret.get_counts(qc)
-        return self._ret['min_vector']
+        raise NotImplementedError()
 
-    def find_minimum(self, initial_point=None):
+    def find_minimum(self, initial_point=None, var_form=None, cost_fn=None, optimizer=None):
         """Optimize to find the minimum cost value.
 
         Returns:
@@ -92,11 +72,13 @@ class VQAlgorithm(QuantumAlgorithm):
             ValueError:
 
         """
-        self._eval_count = 0
         initial_point = initial_point if initial_point is not None else self._initial_point
+        var_form = var_form if var_form is not None else self._var_form
+        cost_fn = cost_fn if cost_fn is not None else self._cost_fn
+        optimizer = optimizer if optimizer is not None else self._optimizer
 
-        nparms = self._var_form.num_parameters
-        bounds = self._var_form.parameter_bounds
+        nparms = var_form.num_parameters
+        bounds = var_form.parameter_bounds
 
         if initial_point is not None and len(initial_point) != nparms:
             raise ValueError('Initial point size {} and parameter size {} mismatch'.format(len(initial_point), nparms))
@@ -106,38 +88,34 @@ class VQAlgorithm(QuantumAlgorithm):
         problem_has_bounds = not np.any(np.equal(bounds, None))
         # Check capabilities of the optimizer
         if problem_has_bounds:
-            if not self._optimizer.is_bounds_supported:
+            if not optimizer.is_bounds_supported:
                 raise ValueError('Problem has bounds but optimizer does not support bounds')
         else:
-            if self._optimizer.is_bounds_required:
+            if optimizer.is_bounds_required:
                 raise ValueError('Problem does not have bounds but optimizer requires bounds')
         if initial_point is not None:
-            if not self._optimizer.is_initial_point_supported:
+            if not optimizer.is_initial_point_supported:
                 raise ValueError('Optimizer does not support initial point')
         else:
-            if self._optimizer.is_initial_point_required:
+            if optimizer.is_initial_point_required:
                 low = [(l if l is not None else -2 * np.pi) for (l, u) in bounds]
                 high = [(u if u is not None else 2 * np.pi) for (l, u) in bounds]
                 initial_point = self.random.uniform(low, high)
 
         start = time.time()
         logger.info('Starting optimizer.\nbounds={}\ninitial point={}'.format(bounds, initial_point))
-        opt_params, opt_val, num_optimizer_evals = self._optimizer.optimize(self._var_form.num_parameters,
-                                                                            self._cost_fn,
-                                                                            variable_bounds=bounds,
-                                                                            initial_point=initial_point)
-        if num_optimizer_evals is not None:
-            self._eval_count = self._eval_count if self._eval_count >= num_optimizer_evals else num_optimizer_evals
-        self._eval_time = time.time() - start
-        logger.info('Optimization complete in {} seconds.\nFound opt_params {} in {} evals'.format(
-            self._eval_time, opt_params, self._eval_count))
+        opt_params, opt_val, num_optimizer_evals = optimizer.optimize(var_form.num_parameters,
+                                                                      cost_fn,
+                                                                      variable_bounds=bounds,
+                                                                      initial_point=initial_point)
+        eval_time = time.time() - start
+        ret = {}
+        ret['num_optimizer_evals'] = num_optimizer_evals
+        ret['min_val'] = opt_val
+        ret['opt_params'] = opt_params
+        ret['eval_time'] = eval_time
 
-        self._ret['min_val'] = opt_val
-        self._ret['opt_params'] = opt_params
-        self._ret['eval_count'] = self._eval_count
-        self._ret['eval_time'] = self._eval_time
-
-        return opt_val, opt_params
+        return ret
 
     # Helper function to get probability vectors for a set of params
     def get_prob_vector_for_params(self, construct_circuit_fn, params_s,
@@ -175,9 +153,9 @@ class VQAlgorithm(QuantumAlgorithm):
     def initial_point(self, new_value):
         self._initial_point = new_value
 
-    @property
+    @abstractmethod
     def optimal_params(self):
-        return self._ret['opt_params']
+        raise NotImplementedError()
 
     @property
     def var_form(self):
