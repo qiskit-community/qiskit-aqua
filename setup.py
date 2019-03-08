@@ -33,7 +33,6 @@ requirements = [
     "jsonschema>=2.6,<2.7",
     "scikit-learn>=0.20.0",
     "cvxopt",
-    "setuptools>=40.5.0",
     "dlx",
     "pyeda"
 ]
