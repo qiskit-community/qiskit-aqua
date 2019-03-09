@@ -2,7 +2,7 @@
 
 [![License](https://img.shields.io/github/license/Qiskit/qiskit-aqua.svg?style=popout-square)](https://opensource.org/licenses/Apache-2.0)[![Build Status](https://img.shields.io/travis/Qiskit/qiskit-aqua/master.svg?style=popout-square)](https://travis-ci.org/Qiskit/qiskit-aqua)[![](https://img.shields.io/github/release/Qiskit/qiskit-aqua.svg?style=popout-square)](https://github.com/Qiskit/qiskit-aqua/releases)[![](https://img.shields.io/pypi/dm/qiskit-aqua.svg?style=popout-square)](https://pypi.org/project/qiskit-aqua/)
 
-**Qiskit** is an open-source framework for working with noisy intermediate-scale quantum computers (NISQ) at the level of pulses, circuits, algorithms, and applications.
+**Qiskit** is an open-source framework for working with noisy intermediate-scale quantum (NISQ) computers at the level of pulses, circuits, algorithms, and applications.
 
 Qiskit is made up elements that work together to enable quantum computing. This element is **Aqua**.
 Aqua provides a library of cross-domain algorithms upon which domain-specific applications can be

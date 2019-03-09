@@ -18,6 +18,8 @@
 from collections import OrderedDict
 import importlib
 import logging
+from qiskit.providers import BaseBackend
+from qiskit.aqua import Preferences
 
 try:
     from qiskit.providers.ibmq import IBMQProvider
@@ -146,7 +148,6 @@ def get_backends_from_provider(provider_name):
     """
     provider_object = _load_provider(provider_name)
     if has_ibmq() and isinstance(provider_object, IBMQProvider):
-        from qiskit_aqua_cmd import Preferences
         preferences = Preferences()
         url = preferences.get_url()
         token = preferences.get_token()
@@ -186,7 +187,6 @@ def get_backend_from_provider(provider_name, backend_name):
     backend = None
     provider_object = _load_provider(provider_name)
     if has_ibmq() and isinstance(provider_object, IBMQProvider):
-        from qiskit_aqua_cmd import Preferences
         preferences = Preferences()
         url = preferences.get_url()
         token = preferences.get_token()
@@ -233,26 +233,38 @@ def register_ibmq_and_get_known_providers():
     return providers
 
 
-def get_provider_from_backend(backend_name):
+def get_provider_from_backend(backend):
     """
     Attempts to find a known provider that provides this backend.
 
     Args:
-        backend_name (str): name of backend for tgis provider
+        backend (BaseBackend or str): backend object or backend name
     Returns:
         str: provider name
     Raises:
         ImportError: Failed to find provider
     """
-    providers = ['qiskit.Aer', 'qiskit.BasicAer', 'qiskit.IBMQ']
-    for provider in providers:
+    known_providers = {'AerProvider': 'qiskit.Aer',
+                       'BasicAerProvider': 'qiskit.BasicAer',
+                       'IBMQProvider': 'qiskit.IBMQ'
+                       }
+    if isinstance(backend, BaseBackend):
+        provider = backend.provider()
+        if provider is None:
+            raise ImportError("Backend object '{}' has no provider".format(backend.name()))
+
+        return known_providers.get(provider.__class__.__name__, provider.__class__.__qualname__)
+    elif not isinstance(backend, str):
+        raise ImportError("Invalid Backend '{}'".format(backend))
+
+    for provider in known_providers.values():
         try:
-            if get_backend_from_provider(provider, backend_name) is not None:
+            if get_backend_from_provider(provider, backend) is not None:
                 return provider
         except:
             pass
 
-    raise ImportError("Backend '{}' not found in providers {}".format(backend_name, providers))
+    raise ImportError("Backend '{}' not found in providers {}".format(backend, list(known_providers.values())))
 
 
 def _load_provider(provider_name):
@@ -273,7 +285,6 @@ def _load_provider(provider_name):
 
     if has_ibmq() and isinstance(provider_object, IBMQProvider):
         # enable IBMQ account
-        from qiskit_aqua_cmd import Preferences
         preferences = Preferences()
         enable_ibmq_account(preferences.get_url(), preferences.get_token(), preferences.get_proxies({}))
 

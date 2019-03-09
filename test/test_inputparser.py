@@ -77,8 +77,8 @@ class TestInputParser(QiskitAquaTestCase):
         except Exception as e:
             self.fail(str(e))
 
-        p.set_section_property('optimizer', 'dummy', 1002)
-        self.assertRaises(AquaError, p.validate_merge_defaults)
+        with self.assertRaises(AquaError):
+            p.set_section_property('backend', 'max_credits', -1)
 
     def test_run_algorithm(self):
         filepath = self._get_resource_path('ExactEigensolver.json')

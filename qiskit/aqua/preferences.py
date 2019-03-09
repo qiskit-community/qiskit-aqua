@@ -30,7 +30,6 @@ class Preferences(object):
         self._preferences = {
             'version': Preferences._VERSION
         }
-        self._logging_config_changed = False
         self._credentials_preferences = None
 
         home = os.path.expanduser("~")
@@ -38,9 +37,11 @@ class Preferences(object):
         try:
             with open(self.filepath) as json_pref:
                 self._preferences = json.load(json_pref)
-                # remove old packages entry
+                # remove old no more valid entries
                 if 'packages' in self._preferences:
                     del self._preferences['packages']
+                if 'logging_config' in self._preferences:
+                    del self._preferences['logging_config']
         except:
             pass
 
@@ -49,26 +50,25 @@ class Preferences(object):
         return self._filepath
 
     def save(self):
-        pref_changed = self._logging_config_changed
         if self._credentials_preferences is not None:
             self.credentials_preferences.save()
             selected_credentials = self.credentials_preferences.selected_credentials
             selected_credentials_url = selected_credentials.url if selected_credentials is not None else None
 
-            if selected_credentials_url != self._preferences.get(Preferences._SELECTED_KEY) or pref_changed:
-                pref_changed = True
+            if selected_credentials_url != self._preferences.get(Preferences._SELECTED_KEY):
+                pref_changed = False
                 selected_credentials = self.credentials_preferences.selected_credentials
                 if selected_credentials_url is not None:
+                    pref_changed = True
                     self._preferences[Preferences._SELECTED_KEY] = selected_credentials_url
                 else:
                     if Preferences._SELECTED_KEY in self._preferences:
+                        pref_changed = True
                         del self._preferences[Preferences._SELECTED_KEY]
 
-        if pref_changed:
-            with open(self.filepath, 'w') as fp:
-                json.dump(self._preferences, fp, sort_keys=True, indent=4)
-
-        self._logging_config_changed = False
+                if pref_changed:
+                    with open(self.filepath, 'w') as fp:
+                        json.dump(self._preferences, fp, sort_keys=True, indent=4)
 
     def get_version(self):
         if 'version' in self._preferences:
@@ -79,8 +79,8 @@ class Preferences(object):
     @property
     def credentials_preferences(self):
         """Return credentials preferences"""
-        from ._credentialspreferences import CredentialsPreferences
         if self._credentials_preferences is None:
+            from ._credentialspreferences import CredentialsPreferences
             self._credentials_preferences = CredentialsPreferences()
             if Preferences._SELECTED_KEY in self._preferences:
                 self._credentials_preferences.select_credentials(self._preferences[Preferences._SELECTED_KEY])
@@ -98,13 +98,3 @@ class Preferences(object):
 
     def get_proxy_urls(self, default_value=None):
         return self.credentials_preferences.get_proxy_urls(default_value)
-
-    def get_logging_config(self, default_value=None):
-        if 'logging_config' in self._preferences:
-            return self._preferences['logging_config']
-
-        return default_value
-
-    def set_logging_config(self, logging_config):
-        self._logging_config_changed = True
-        self._preferences['logging_config'] = logging_config

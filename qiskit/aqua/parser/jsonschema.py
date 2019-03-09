@@ -28,6 +28,14 @@ from qiskit.aqua import (local_pluggables_types,
                          get_pluggable_configuration,
                          local_pluggables,
                          get_local_providers)
+from qiskit.aqua.utils.backend_utils import (is_statevector_backend,
+                                             is_simulator_backend,
+                                             has_ibmq,
+                                             get_backend_from_provider,
+                                             get_backends_from_provider,
+                                             is_local_backend,
+                                             is_aer_provider,
+                                             is_aer_statevector_backend)
 
 logger = logging.getLogger(__name__)
 
@@ -56,13 +64,6 @@ class JSONSchema(object):
         validator = jsonschema.Draft4Validator(self._schema)
         self._schema = JSONSchema._resolve_schema_references(validator.schema, validator.resolver)
         self.commit_changes()
-        self._initial_default_backend = None
-        if 'properties' in self._schema and \
-            JSONSchema.BACKEND in self._schema['properties'] and \
-            'properties' in self._schema['properties'][JSONSchema.BACKEND] and \
-            JSONSchema.NAME in self._schema['properties'][JSONSchema.BACKEND]['properties'] and \
-                'default' in self._schema['properties'][JSONSchema.BACKEND]['properties'][JSONSchema.NAME]:
-            self._initial_default_backend = self._schema['properties'][JSONSchema.BACKEND]['properties'][JSONSchema.NAME]['default']
 
     @property
     def schema(self):
@@ -313,19 +314,167 @@ class JSONSchema(object):
 
         return None
 
-    def update_backend_schema(self):
+    def update_backend_schema(self, input_parser):
         """
-        Updates default backend schema by checking local providers
+        Updates backend schema
         """
-        if JSONSchema.BACKEND in self._schema['properties']:
-            providers = get_local_providers().items()
-            provider_tuple = next(iter(providers)) if len(providers) > 0 else ('', [])
-            self._schema['properties'][JSONSchema.BACKEND]['properties'][JSONSchema.PROVIDER]['default'] = provider_tuple[0]
-            if self._initial_default_backend is not None and self._initial_default_backend in provider_tuple[1]:
-                default_backend = self._initial_default_backend
-            else:
-                default_backend = provider_tuple[1][0] if len(provider_tuple[1]) > 0 else ''
-            self._schema['properties'][JSONSchema.BACKEND]['properties'][JSONSchema.NAME]['default'] = default_backend
+        if JSONSchema.BACKEND not in self._schema['properties']:
+            return
+
+        # Updates defaults provider/backend
+        default_provider_name = None
+        default_backend_name = None
+        orig_backend_properties = self._original_schema.get('properties', {}).get(JSONSchema.BACKEND, {}).get('properties')
+        if orig_backend_properties is not None:
+            default_provider_name = orig_backend_properties.get(JSONSchema.PROVIDER, {}).get('default')
+            default_backend_name = orig_backend_properties.get(JSONSchema.NAME, {}).get('default')
+
+        providers = get_local_providers()
+        if default_provider_name is None or default_provider_name not in providers:
+            # use first provider available
+            providers_items = providers.items()
+            provider_tuple = next(iter(providers_items)) if len(providers_items) > 0 else ('', [])
+            default_provider_name = provider_tuple[0]
+
+        if default_backend_name is None or default_backend_name not in providers.get(default_provider_name, []):
+            # use first backend available in provider
+            default_backend_name = providers.get(default_provider_name)[0] if len(providers.get(default_provider_name, [])) > 0 else ''
+
+        self._schema['properties'][JSONSchema.BACKEND] = {
+            'type': 'object',
+            'properties': {
+                JSONSchema.PROVIDER: {
+                    'type': 'string',
+                    'default': default_provider_name
+                },
+                JSONSchema.NAME: {
+                    'type': 'string',
+                    'default': default_backend_name
+                },
+            },
+            'required': [JSONSchema.PROVIDER, JSONSchema.NAME],
+            'additionalProperties': False,
+        }
+        provider_name = input_parser.get_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER, default_provider_name)
+        backend_names = get_backends_from_provider(provider_name)
+        backend_name = input_parser.get_section_property(JSONSchema.BACKEND, JSONSchema.NAME, default_backend_name)
+        if backend_name not in backend_names:
+            # use first backend available in provider
+            backend_name = backend_names[0] if len(backend_names) > 0 else ''
+
+        backend = get_backend_from_provider(provider_name, backend_name)
+        config = backend.configuration()
+
+        # Include shots in schema only if not a statevector backend.
+        # For statevector, shots will be set to 1, in QiskitAqua
+        if not is_statevector_backend(backend):
+            self._schema['properties'][JSONSchema.BACKEND]['properties']['shots'] = {
+                'type': 'integer',
+                'minimum': 1,
+            }
+            default_shots = 1024
+            # ensure default_shots <= max_shots
+            if config.max_shots:
+                default_shots = min(default_shots, config.max_shots)
+                self._schema['properties'][JSONSchema.BACKEND]['properties']['shots']['maximum'] = config.max_shots
+
+            self._schema['properties'][JSONSchema.BACKEND]['properties']['shots']['default'] = default_shots
+
+        self._schema['properties'][JSONSchema.BACKEND]['properties']['skip_transpiler'] = {
+            'type': 'boolean',
+            'default': False,
+        }
+
+        coupling_map_devices = []
+        noise_model_devices = []
+        check_coupling_map = is_simulator_backend(backend)
+        check_noise_model = is_aer_provider(backend) and not is_aer_statevector_backend(backend)
+        try:
+            if (check_coupling_map or check_noise_model) and has_ibmq():
+                backend_names = get_backends_from_provider('qiskit.IBMQ')
+                for backend_name in backend_names:
+                    ibmq_backend = get_backend_from_provider('qiskit.IBMQ', backend_name)
+                    if is_simulator_backend(ibmq_backend):
+                        continue
+                    if check_noise_model:
+                        noise_model_devices.append('qiskit.IBMQ:' + backend_name)
+                    if check_coupling_map and ibmq_backend.configuration().coupling_map:
+                        coupling_map_devices.append('qiskit.IBMQ:' + backend_name)
+        except Exception as e:
+            logger.debug("Failed to load IBMQ backends. Error {}".format(str(e)))
+
+        # Includes 'coupling map' and 'coupling_map_from_device' in schema only if a simulator backend.
+        # Actual devices have a coupling map based on the physical configuration of the device.
+        # The user can configure the coupling map so its the same as the coupling map
+        # of a given device in order to better simulate running on the device.
+        # Property 'coupling_map_from_device' is a list of provider:name backends that are
+        # real devices e.g qiskit.IBMQ:ibmqx5.
+        # If property 'coupling_map', an array, is provided, it overrides coupling_map_from_device,
+        # the latter defaults to 'None'. So in total no coupling map is a default, i.e. all to all coupling is possible.
+        if is_simulator_backend(backend):
+            self._schema['properties'][JSONSchema.BACKEND]['properties']['coupling_map'] = {
+                'type': ['array', 'null'],
+                'default': None,
+            }
+            if len(coupling_map_devices) > 0:
+                coupling_map_devices.append(None)
+                self._schema['properties'][JSONSchema.BACKEND]['properties']['coupling_map_from_device'] = {
+                    'type': ['string', 'null'],
+                    'default': None,
+                    'oneOf': [
+                        {
+                            'enum': coupling_map_devices
+                        }
+                    ],
+                }
+
+        # noise model that can be setup for Aer simulator so as to model noise of an actual device.
+        if len(noise_model_devices) > 0:
+            noise_model_devices.append(None)
+            self._schema['properties'][JSONSchema.BACKEND]['properties']['noise_model'] = {
+                'type': ['string', 'null'],
+                'default': None,
+                'oneOf': [
+                    {
+                        'enum': noise_model_devices
+                    }
+                ],
+            }
+
+        # If a noise model is supplied then the basis gates is set as per the noise model
+        # unless basis gates is not None in which case it overrides noise model and a warning msg is logged.
+        # as it is an advanced use case.
+        self._schema['properties'][JSONSchema.BACKEND]['properties']['basis_gates'] = {
+            'type': ['array', 'null'],
+            'default': None,
+        }
+
+        # TODO: Not sure if we want to continue with initial_layout in declarative form.
+        # It requires knowledge of circuit registers etc. Perhaps its best to leave this detail to programming API.
+        self._schema['properties'][JSONSchema.BACKEND]['properties']['initial_layout'] = {
+            'type': ['object', 'null'],
+            'default': None,
+        }
+
+        # The same default and minimum as current RunConfig values
+        self._schema['properties'][JSONSchema.BACKEND]['properties']['max_credits'] = {
+            'type': 'integer',
+            'default': 10,
+            'minimum': 3,
+            'maximum': 10,
+        }
+
+        # Timeout and wait are for remote backends where we have to connect over network
+        if not is_local_backend(backend):
+            self._schema['properties'][JSONSchema.BACKEND]['properties']['timeout'] = {
+                "type": ["number", "null"],
+                'default': None,
+            }
+            self._schema['properties'][JSONSchema.BACKEND]['properties']['wait'] = {
+                'type': 'number',
+                'default': 5.0,
+                'minimum': 0.0,
+            }
 
     def update_pluggable_schemas(self, input_parser):
         """
@@ -352,6 +501,7 @@ class JSONSchema(object):
         else:
             if JSONSchema.BACKEND not in self._schema['properties']:
                 self._schema['properties'][JSONSchema.BACKEND] = self._original_schema['properties'][JSONSchema.BACKEND]
+                self.update_backend_schema(input_parser)
 
         pluggable_dependencies = config.get('depends', [])
 

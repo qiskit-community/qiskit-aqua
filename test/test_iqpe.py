@@ -22,9 +22,9 @@ from parameterized import parameterized
 from scipy.linalg import expm
 from scipy import sparse
 from qiskit.transpiler import PassManager
-from qiskit.aqua import get_aer_backend
-from qiskit.qobj import RunConfig
+
 from test.common import QiskitAquaTestCase
+from qiskit.aqua import get_aer_backend
 from qiskit.aqua import Operator, QuantumInstance
 from qiskit.aqua.utils import decimal_to_binary
 from qiskit.aqua.algorithms import IQPE
@@ -93,8 +93,7 @@ class TestIQPE(QiskitAquaTestCase):
                     expansion_mode='suzuki', expansion_order=2, shallow_circuit_concat=True)
 
         backend = get_aer_backend(simulator)
-        run_config = RunConfig(shots=100, max_credits=10, memory=False)
-        quantum_instance = QuantumInstance(backend, run_config, pass_manager=PassManager())
+        quantum_instance = QuantumInstance(backend, shots=100, pass_manager=PassManager())
 
         result = iqpe.run(quantum_instance)
 

@@ -21,7 +21,7 @@ The General Logic Expression-based Quantum Oracle.
 import logging
 
 from pyeda.inter import espresso_exprs
-from pyeda.boolalg.expr import AndOp, OrOp, ast2expr, expr
+from pyeda.boolalg.expr import AndOp, OrOp, ast2expr, expr, Variable, Zero
 from pyeda.parsing.dimacs import parse_cnf
 from qiskit import QuantumCircuit, QuantumRegister
 
@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 class LogicExpressionOracle(Oracle):
 
     CONFIGURATION = {
-        'name': 'LogicExpression',
+        'name': 'LogicExpressionOracle',
         'description': 'Logic Expression Oracle',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
@@ -126,7 +126,7 @@ class LogicExpressionOracle(Oracle):
                     clauses.append((c[0], *clause))
                 else:
                     raise AquaError('Unrecognized logic expression: {}'.format(raw_ast))
-        elif raw_ast[0] == 'const':
+        elif raw_ast[0] == 'const' or raw_ast[0] == 'lit':
             return raw_ast
         else:
             raise AquaError('Unrecognized root expression type: {}.'.format(raw_ast[0]))
@@ -134,11 +134,14 @@ class LogicExpressionOracle(Oracle):
 
     def _process_expr(self):
         self._num_vars = self._expr.degree
-        ast = self._expr.to_cnf().to_ast()
+        ast = self._expr.to_ast() if self._expr.is_cnf() else self._expr.to_cnf().to_ast()
         ast = LogicExpressionOracle._normalize_literal_indices(ast, self._expr.usupport)
 
         if self._optimization == 'off':
-            self._nf = CNF(ast, num_vars=self._num_vars)
+            if ast[0] == 'or':
+                self._nf = DNF(ast, num_vars=self._num_vars)
+            else:
+                self._nf = CNF(ast, num_vars=self._num_vars)
         else:  # self._optimization == 'espresso':
             expr_dnf = self._expr.to_dnf()
             if expr_dnf.is_zero() or expr_dnf.is_one():
@@ -148,7 +151,7 @@ class LogicExpressionOracle(Oracle):
                 expr_dnf_m_ast = LogicExpressionOracle._normalize_literal_indices(
                     expr_dnf_m.to_ast(), expr_dnf_m.usupport
                 )
-                if isinstance(expr_dnf_m, AndOp):
+                if isinstance(expr_dnf_m, AndOp) or isinstance(expr_dnf_m, Variable):
                     self._nf = CNF(expr_dnf_m_ast, num_vars=self._num_vars)
                 elif isinstance(expr_dnf_m, OrOp):
                     self._nf = DNF(expr_dnf_m_ast, num_vars=self._num_vars)
@@ -184,12 +187,14 @@ class LogicExpressionOracle(Oracle):
     def evaluate_classically(self, measurement):
         assignment = [(var + 1) * (int(tf) * 2 - 1) for tf, var in zip(measurement[::-1], range(len(measurement)))]
         if self._expr.is_zero():
-            found = False
+            return False, assignment
         elif self._expr.is_one():
-            found = True
+            return True, assignment
         else:
             prime_implicants = self._expr.complete_sum()
-            if isinstance(prime_implicants, AndOp):
+            if prime_implicants.is_zero():
+                sols = []
+            elif isinstance(prime_implicants, AndOp):
                 prime_implicants_ast = LogicExpressionOracle._normalize_literal_indices(
                     prime_implicants.to_ast(), prime_implicants.usupport
                 )
@@ -199,8 +204,13 @@ class LogicExpressionOracle(Oracle):
                 complete_sum_ast = LogicExpressionOracle._normalize_literal_indices(
                     expr_complete_sum.to_ast(), expr_complete_sum.usupport
                 )
-                sols = [[l[1] for l in c[1:]] for c in complete_sum_ast[1:]]
+                sols = [[c[1]] if c[0] == 'lit' else [l[1] for l in c[1:]] for c in complete_sum_ast[1:]]
+            elif isinstance(prime_implicants, Variable):
+                sols = [[prime_implicants.to_ast()[1]]]
             else:
                 raise AquaError('Unexpected solution: {}'.format(prime_implicants))
-            found = assignment in sols
-        return found, assignment
+            for sol in sols:
+                if set(sol).issubset(assignment):
+                    return True, assignment
+            else:
+                return False, assignment

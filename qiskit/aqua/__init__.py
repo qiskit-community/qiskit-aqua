@@ -17,6 +17,7 @@
 """Algorithm discovery methods, Error and Base classes"""
 
 from .aqua_error import AquaError
+from .preferences import Preferences
 from ._discover import (PLUGGABLES_ENTRY_POINT,
                         PluggableType,
                         refresh_pluggables,
@@ -43,6 +44,7 @@ from .quantum_instance import QuantumInstance
 from .operator import Operator
 from .algorithms import QuantumAlgorithm
 from .qiskit_aqua import (QiskitAqua,
+                          execute_algorithm,
                           run_algorithm,
                           run_algorithm_to_json)
 from ._logging import (get_logging_level,
@@ -54,6 +56,7 @@ from ._logging import (get_logging_level,
 __version__ = '0.4.2'
 
 __all__ = ['AquaError',
+           'Preferences',
            'Pluggable',
            'Operator',
            'QuantumAlgorithm',
@@ -80,6 +83,7 @@ __all__ = ['AquaError',
            'register_pluggable',
            'deregister_pluggable',
            'QiskitAqua',
+           'execute_algorithm',
            'run_algorithm',
            'run_algorithm_to_json',
            'get_logging_level',

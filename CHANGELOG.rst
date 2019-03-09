@@ -26,6 +26,21 @@ Added
 - Pluggable component ``Reciprocal`` with variants ``LookupRotation`` and ``LongDivision``
 - Multiple-Controlled U1 and U3 operations ``mcu1`` and ``mcu3``
 - Pluggable component ``QFT`` derived from component ``IQFT``
+- Summarize the tranpiled circuits at the DEBUG logging level.
+- ``QuantumInstance`` accepts ``basis_gates`` and ``coupling_map`` again.
+- Support to use ``cx`` gate for the entangement in ``RY`` and ``RYRZ`` variational form. (``cz`` is the default choice.)
+
+
+Removed
+-------
+- ``QuantumInstance`` does not take ``memory`` anymore.
+- Moved Command line and GUI interfaces to separate repo (qiskit_aqua_uis)
+
+Changed
+-------
+
+- Change the type of ``entanger_map`` used in ``FeatureMap`` and ``VariationalForm`` to list of list.
+- Fixed package setup to correctly identify namespace packages using ``setuptools.find_namespace_packages``.
 
 `0.4.1`_ - 2019-01-09
 =====================
@@ -53,11 +68,11 @@ Added
 - Transparent parallelization for gradient-based optimizers
 - Multiple-Controlled-NOT (cnx) operation
 - Pluggable algorithmic component ``RandomDistribution``
-- Concrete implementations of ``RandomDistribution``: ``BernoulliDistribution``, ``LogNormalDistribution``, 
+- Concrete implementations of ``RandomDistribution``: ``BernoulliDistribution``, ``LogNormalDistribution``,
   ``MultivariateDistribution``, ``MultivariateNormalDistribution``, ``MultivariateUniformDistribution``, ``NormalDistribution``,
   ``UniformDistribution``, and ``UnivariateDistribution``
 - Pluggable algorithmic component:
-- Concrete implementations of ``UncertaintyProblem``: ``FixedIncomeExpectedValue``, ``EuropeanCallExpectedValue``, and 
+- Concrete implementations of ``UncertaintyProblem``: ``FixedIncomeExpectedValue``, ``EuropeanCallExpectedValue``, and
   ``EuropeanCallDelta``
 - Amplitude Estimation algorithm
 - Qiskit Optimization: New Ising models for optimization problems exact cover, set packing, vertex cover, clique, and graph partition
