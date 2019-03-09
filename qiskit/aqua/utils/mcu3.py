@@ -67,6 +67,7 @@ def _apply_mcu3(circuit, theta, phi, lam, ctls, tgt):
                       ctls[lm_pos], tgt)
         last_pattern = pattern
 
+
 def mcu3(self, theta, phi, lam, control_qubits, target_qubit):
     """
     Apply Multiple-Controlled U3 gate

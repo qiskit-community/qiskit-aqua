@@ -68,6 +68,7 @@ def _apply_mcu1(circuit, theta, ctls, tgt, global_phase=0):
                 circuit.u1(gp_angle, ctls[lm_pos])
         last_pattern = pattern
 
+
 def mcu1(self, theta, control_qubits, target_qubit):
     """
     Apply Multiple-Controlled U1 gate
