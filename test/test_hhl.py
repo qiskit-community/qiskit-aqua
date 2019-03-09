@@ -179,7 +179,7 @@ class TestHHL(QiskitAquaTestCase):
 
         # compare result
         fidelity = abs(linalg_normed.dot(hhl_normed.conj()))**2
-        self.assertTrue(fidelity > 0.8)
+        self.assertGreater(fidelity, 0.8)
 
         self.log.debug('HHL solution vector:       {}'.format(hhl_solution))
         self.log.debug('algebraic solution vector: {}'.format(linalg_solution))
