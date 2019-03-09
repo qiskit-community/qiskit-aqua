@@ -34,11 +34,13 @@ Added
 Removed
 -------
 - ``QuantumInstance`` does not take ``memory`` anymore.
+- Moved Command line and GUI interfaces to separate repo (qiskit_aqua_uis)
 
 Changed
 -------
 
 - Change the type of ``entanger_map`` used in ``FeatureMap`` and ``VariationalForm`` to list of list.
+- Fixed package setup to correctly identify namespace packages using ``setuptools.find_namespace_packages``.
 
 `0.4.1`_ - 2019-01-09
 =====================

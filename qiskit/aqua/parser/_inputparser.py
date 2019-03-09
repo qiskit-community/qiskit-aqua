@@ -62,7 +62,7 @@ class InputParser(BaseParser):
             with open(self._filename) as json_file:
                 self._sections = json.load(json_file)
 
-        self.json_schema.update_backend_schema()
+        self.json_schema.update_backend_schema(self)
         self.json_schema.update_pluggable_schemas(self)
         self._update_algorithm_input_schema()
         self._sections = self._order_sections(self._sections)
@@ -77,7 +77,7 @@ class InputParser(BaseParser):
             if JSONSchema.PROBLEM not in section_names:
                 self.set_section(JSONSchema.PROBLEM)
 
-        self.json_schema.update_backend_schema()
+        self.json_schema.update_backend_schema(self)
         self.json_schema.update_pluggable_schemas(self)
         self._update_algorithm_input_schema()
         self._merge_dependencies()
@@ -142,13 +142,6 @@ class InputParser(BaseParser):
             section_name = JSONSchema.format_section_name(section_name).lower()
             if PluggableType.INPUT.value == section_name:
                 self._update_algorithm_input_schema()
-                # remove properties that are not valid for this section
-                default_properties = self.get_section_default_properties(section_name)
-                if isinstance(default_properties, dict):
-                    properties = self.get_section_properties(section_name)
-                    for property_name in list(properties.keys()):
-                        if property_name != JSONSchema.NAME and property_name not in default_properties:
-                            self.delete_section_property(section_name, property_name)
             elif JSONSchema.PROBLEM == section_name:
                 self._update_input_problem()
 
