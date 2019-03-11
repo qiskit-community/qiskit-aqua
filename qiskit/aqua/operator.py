@@ -29,7 +29,7 @@ from scipy import linalg as scila
 from qiskit import ClassicalRegister, QuantumCircuit
 from qiskit.quantum_info import Pauli
 from qiskit.qasm import pi
-from qiskit.qobj import RunConfig
+from qiskit.compiler.run_config import RunConfig
 from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
 

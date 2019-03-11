@@ -138,8 +138,15 @@ def _discover_entry_point_pluggables():
     and attempts to register them. Pluggable modules should subclass Pluggable Base classes.
     """
     for entry_point in pkg_resources.iter_entry_points(PLUGGABLES_ENTRY_POINT):
+        # first calls require and log any errors returned due to dependencies mismatches
         try:
-            ep = entry_point.load()
+            entry_point.require()
+        except Exception as e:
+            logger.warning("Entry point '{}' requirements issue: {}".format(entry_point, str(e)))
+
+        # now  call resolve and try to load entry point
+        try:
+            ep = entry_point.resolve()
             _registered = False
             for pluggable_type, c in _get_pluggables_types_dictionary().items():
                 if not inspect.isabstract(ep) and issubclass(ep, c):
