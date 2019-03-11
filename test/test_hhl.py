@@ -166,8 +166,9 @@ class TestHHL(QiskitAquaTestCase):
             'matrix': matrix,
             'vector': vector
         }
+        qasm_params['reciprocal']['scale'] = 0.5
         qasm_params['backend']['name'] = 'qasm_simulator'
-        qasm_params['backend']['shots'] = 600
+        qasm_params['backend']['shots'] = 1000
 
         # run hhl
         result = run_algorithm(qasm_params)
