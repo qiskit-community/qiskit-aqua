@@ -18,7 +18,7 @@
 import numpy as np
 
 from test.common import QiskitAquaTestCase
-from qiskit.aqua import get_aer_backend
+from qiskit import BasicAer
 
 from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import EnergyInput
@@ -102,7 +102,7 @@ class TestVertexCover(QiskitAquaTestCase):
             'optimizer': optimizer_cfg,
             'variational_form': var_form_cfg
         }
-        backend = get_aer_backend('qasm_simulator')
+        backend = BasicAer.get_backend('qasm_simulator')
         result = run_algorithm(params, self.algo_input, backend=backend)
         x = vertexcover.sample_most_likely(len(self.w), result['eigvecs'][0])
         sol = vertexcover.get_graph_solution(x)

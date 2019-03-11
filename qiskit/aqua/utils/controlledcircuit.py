@@ -19,8 +19,7 @@ import numpy as np
 from qiskit import QuantumCircuit, transpiler
 from qiskit.transpiler.passes import Unroller
 from qiskit.transpiler import PassManager
-
-from .backend_utils import get_aer_backend
+from qiskit import BasicAer
 
 
 def apply_cu1(circuit, lam, c, t, use_basis_gates=True):
@@ -105,7 +104,7 @@ def get_controlled_circuit(circuit, ctl_qubit, tgt_circuit=None, use_basis_gates
     pm = PassManager(passes=[unroller])
     ops = transpiler.transpile(
         circuit,
-        get_aer_backend('qasm_simulator'),
+        BasicAer.get_backend('qasm_simulator'),
         pass_manager=pm
     )['circuits'][0]['compiled_circuit']['operations']
 

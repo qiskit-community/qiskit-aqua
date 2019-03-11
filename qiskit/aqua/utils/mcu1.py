@@ -22,6 +22,9 @@ from sympy.combinatorics.graycode import GrayCode
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.aqua.utils.controlledcircuit import apply_cu1
 from numpy import angle
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def _apply_mcu1(circuit, theta, ctls, tgt, global_phase=0):
@@ -68,6 +71,7 @@ def _apply_mcu1(circuit, theta, ctls, tgt, global_phase=0):
                 circuit.u1(gp_angle, ctls[lm_pos])
         last_pattern = pattern
 
+
 def mcu1(self, theta, control_qubits, target_qubit):
     """
     Apply Multiple-Controlled U1 gate
@@ -80,9 +84,15 @@ def mcu1(self, theta, control_qubits, target_qubit):
         target_qubit = target_qubit[0]
     temp = []
     for qubit in control_qubits:
-        self._check_qubit(qubit)
+        try:
+            self._check_qubit(qubit)
+        except AttributeError as e:
+            logger.debug(str(e))
         temp.append(qubit)
-    self._check_qubit(target_qubit)
+    try:
+        self._check_qubit(target_qubit)
+    except AttributeError as e:
+        logger.debug(str(e))
     temp.append(target_qubit)
     self._check_dups(temp)
     n_c = len(control_qubits)
