@@ -21,7 +21,7 @@ The General Logic Expression-based Quantum Oracle.
 import logging
 
 from pyeda.inter import espresso_exprs
-from pyeda.boolalg.expr import AndOp, OrOp, ast2expr, expr, Variable, Zero
+from pyeda.boolalg.expr import AndOp, OrOp, ast2expr, expr, Variable
 from pyeda.parsing.dimacs import parse_cnf
 from qiskit import QuantumCircuit, QuantumRegister
 
