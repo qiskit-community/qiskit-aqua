@@ -86,12 +86,12 @@ def mcu1(self, theta, control_qubits, target_qubit):
     for qubit in control_qubits:
         try:
             self._check_qubit(qubit)
-        except AttributeError as e:
+        except AttributeError as e: # TODO Temporary, _check_qubit may not exist 
             logger.debug(str(e))
         temp.append(qubit)
     try:
         self._check_qubit(target_qubit)
-    except AttributeError as e:
+    except AttributeError as e: # TODO Temporary, _check_qubit may not exist 
         logger.debug(str(e))
     temp.append(target_qubit)
     self._check_dups(temp)

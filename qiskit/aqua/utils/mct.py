@@ -248,7 +248,7 @@ def mct(self, q_controls, q_target, q_ancilla, mode='basic'):
         try:
             for qubit in all_qubits:
                 self._check_qubit(qubit)
-        except AttributeError as e:
+        except AttributeError as e: # TODO Temporary, _check_qubit may not exist 
             logger.debug(str(e))
 
         self._check_dups(all_qubits)

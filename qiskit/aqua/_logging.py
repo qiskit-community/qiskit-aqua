@@ -100,7 +100,7 @@ def set_logging_config(logging_config):
     dictConfig(logging_config)
 
 
-def get_aqua_logging():
+def get_qiskit_aqua_logging():
     """
     Returns the current Aqua logging level
 
@@ -110,7 +110,7 @@ def get_aqua_logging():
     return get_logging_level()
 
 
-def set_aqua_logging(level, filepath=None):
+def set_qiskit_aqua_logging(level, filepath=None):
     """
     Updates the Aqua logging with the appropriate logging level
 
