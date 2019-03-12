@@ -2,8 +2,7 @@ import unittest
 
 import numpy as np
 from parameterized import parameterized
-from qiskit.aqua import get_aer_backend
-
+from qiskit import BasicAer
 from test.common import QiskitAquaTestCase
 from qiskit.aqua import Operator, QuantumInstance, QiskitAqua
 from qiskit.aqua.input import EnergyInput
@@ -42,7 +41,7 @@ class TestCaching(QiskitAquaTestCase):
                             'skip_qobj_validation': False,
                             'circuit_cache_file': None,
                             },
-                'backend': {'name': backend, 'shots': 1000},
+                'backend': {'provider': 'qiskit.BasicAer', 'name': backend, 'shots': 1000},
             }
             qiskit_aqua = QiskitAqua(params_no_caching, self.algo_input)
             res[backend] = qiskit_aqua.run()
@@ -65,7 +64,7 @@ class TestCaching(QiskitAquaTestCase):
                         'skip_qobj_validation': skip_validation,
                         'circuit_cache_file': None,
                         },
-            'backend': {'name': backend, 'shots': 1000},
+            'backend': {'provider': 'qiskit.BasicAer', 'name': backend, 'shots': 1000},
         }
         qiskit_aqua = QiskitAqua(params_caching, self.algo_input)
         result_caching = qiskit_aqua.run()
@@ -86,7 +85,7 @@ class TestCaching(QiskitAquaTestCase):
         [False]
     ])
     def test_vqe_caching_direct(self, batch_mode=True):
-        backend = get_aer_backend('statevector_simulator')
+        backend = BasicAer.get_backend('statevector_simulator')
         num_qubits = self.algo_input.qubit_op.num_qubits
         init_state = Zero(num_qubits)
         var_form = RY(num_qubits, 3, initial_state=init_state)

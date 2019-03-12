@@ -19,10 +19,9 @@ import unittest
 import itertools
 
 from parameterized import parameterized
-
+from qiskit import BasicAer
 from qiskit.aqua.components.oracles import TruthTableOracle
 from qiskit.aqua.algorithms import DeutschJozsa
-from qiskit.aqua import get_aer_backend
 from test.common import QiskitAquaTestCase
 
 bitmaps = ['0000', '0101', '1111', '11110000']
@@ -35,7 +34,7 @@ class TestDeutschJozsa(QiskitAquaTestCase):
         itertools.product(bitmaps, mct_modes, optimizations)
     )
     def test_deutschjozsa(self, dj_input, mct_mode, optimization='off'):
-        backend = get_aer_backend('qasm_simulator')
+        backend = BasicAer.get_backend('qasm_simulator')
         oracle = TruthTableOracle(dj_input, optimization=optimization, mct_mode=mct_mode)
         algorithm = DeutschJozsa(oracle)
         result = algorithm.run(backend)

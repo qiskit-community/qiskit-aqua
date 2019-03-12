@@ -53,6 +53,7 @@ class TestHHL(QiskitAquaTestCase):
                 'scale': 0.0
             },
             'backend': {
+                'provider': 'qiskit.BasicAer',
                 'name': 'statevector_simulator',
                 'skip_transpiler': False
             }
