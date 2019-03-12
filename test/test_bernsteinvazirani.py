@@ -20,10 +20,9 @@ import itertools
 import math
 
 from parameterized import parameterized
-
+from qiskit import BasicAer
 from qiskit.aqua.components.oracles import TruthTableOracle
 from qiskit.aqua.algorithms import BernsteinVazirani
-from qiskit.aqua import get_aer_backend
 from test.common import QiskitAquaTestCase
 
 bitmaps = ['00111100', '01011010']
@@ -43,7 +42,7 @@ class TestBernsteinVazirani(QiskitAquaTestCase):
             bit = bv_input[2 ** i]
             parameter += bit
 
-        backend = get_aer_backend('qasm_simulator')
+        backend = BasicAer.get_backend('qasm_simulator')
         oracle = TruthTableOracle(bv_input, optimization=optimization, mct_mode=mct_mode)
         algorithm = BernsteinVazirani(oracle)
         result = algorithm.run(backend)

@@ -19,8 +19,8 @@ import unittest
 import itertools
 
 from parameterized import parameterized
-
-from qiskit.aqua import QuantumInstance, get_aer_backend
+from qiskit import BasicAer
+from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import Grover
 from qiskit.aqua.components.oracles import LogicExpressionOracle as LEO, TruthTableOracle as TTO
 from test.common import QiskitAquaTestCase
@@ -53,7 +53,7 @@ class TestGrover(QiskitAquaTestCase):
         else:
             oracle = oracle_cls(input, optimization='qm-dlx' if oracle_cls == TTO else 'espresso')
         grover = Grover(oracle, incremental=True, mct_mode=mct_mode)
-        backend = get_aer_backend(simulator)
+        backend = BasicAer.get_backend(simulator)
         quantum_instance = QuantumInstance(backend, shots=1000)
 
         ret = grover.run(quantum_instance)
