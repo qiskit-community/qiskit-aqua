@@ -24,7 +24,7 @@ from qiskit import QuantumCircuit, QuantumRegister
 from qiskit import execute as q_execute
 from qiskit.quantum_info import state_fidelity
 
-from qiskit.aqua import get_aer_backend
+from qiskit import BasicAer
 from test.common import QiskitAquaTestCase
 
 nums_controls = [i + 1 for i in range(7)]
@@ -83,7 +83,7 @@ class TestMCMTGate(QiskitAquaTestCase):
                     qc.x(c[idx])
 
                 vec = np.asarray(
-                    q_execute(qc, get_aer_backend('statevector_simulator')).
+                    q_execute(qc, BasicAer.get_backend('statevector_simulator')).
                     result().get_statevector(qc, decimals=16))
                 # target register is initially |11...1>, with length equal to 2**(n_targets)
                 vec_exp = np.array([0] * (2**(num_targets) - 1) + [1])

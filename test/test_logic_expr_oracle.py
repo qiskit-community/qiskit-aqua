@@ -21,7 +21,7 @@ import unittest
 from parameterized import parameterized
 from qiskit import execute as q_execute
 from qiskit import QuantumCircuit, ClassicalRegister
-from qiskit.aqua import get_aer_backend
+from qiskit import BasicAer
 
 from qiskit.aqua.components.oracles import LogicExpressionOracle
 from test.common import QiskitAquaTestCase
@@ -80,8 +80,7 @@ class TestLogicExpressionOracle(QiskitAquaTestCase):
             qc.barrier(leo.output_register)
             qc.measure(leo.output_register, m)
             # print(qc.draw(line_length=10000))
-            counts = q_execute(qc, get_aer_backend(
-                'qasm_simulator'), shots=num_shots).result().get_counts(qc)
+            counts = q_execute(qc, BasicAer.get_backend('qasm_simulator'), shots=num_shots).result().get_counts(qc)
             if assignment in sols:
                 assert(counts['1'] == num_shots)
             else:

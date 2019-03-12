@@ -21,7 +21,7 @@ import numpy as np
 from qiskit.transpiler import PassManager
 
 from test.common import QiskitAquaTestCase
-from qiskit.aqua import get_aer_backend
+from qiskit import BasicAer
 from qiskit.aqua import Operator, QuantumInstance
 from qiskit.aqua.input import EnergyInput
 from qiskit.aqua.utils import decimal_to_binary
@@ -50,7 +50,7 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         self.algo_input = EnergyInput(qubit_op)
 
     def test_vqe_2_iqpe(self):
-        backend = get_aer_backend('qasm_simulator')
+        backend = BasicAer.get_backend('qasm_simulator')
         num_qbits = self.algo_input.qubit_op.num_qubits
         var_form = RYRZ(num_qbits, 3)
         optimizer = SPSA(max_trials=10)

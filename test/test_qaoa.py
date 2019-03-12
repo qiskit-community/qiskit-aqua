@@ -19,7 +19,7 @@ import unittest
 
 import numpy as np
 from parameterized import parameterized
-from qiskit.aqua import get_aer_backend
+from qiskit import BasicAer
 
 from test.common import QiskitAquaTestCase
 from qiskit.aqua.translators.ising import maxcut
@@ -63,7 +63,7 @@ class TestQAOA(QiskitAquaTestCase):
         self.log.debug('Testing {}-step QAOA with MaxCut on graph\n{}'.format(p, w))
         np.random.seed(0)
 
-        backend = get_aer_backend('statevector_simulator')
+        backend = BasicAer.get_backend('statevector_simulator')
         optimizer = COBYLA()
         qubitOp, offset = maxcut.get_maxcut_qubitops(w)
 

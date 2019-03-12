@@ -245,8 +245,12 @@ def mct(self, q_controls, q_target, q_ancilla, mode='basic'):
             raise ValueError('MCT needs None or a list of qubits or a quantum register for ancilla.')
 
         all_qubits = control_qubits + [target_qubit] + ancillary_qubits
-        for qubit in all_qubits:
-            self._check_qubit(qubit)
+        try:
+            for qubit in all_qubits:
+                self._check_qubit(qubit)
+        except AttributeError as e:
+            logger.debug(str(e))
+
         self._check_dups(all_qubits)
 
         if mode == 'basic':

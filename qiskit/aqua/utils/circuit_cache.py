@@ -40,7 +40,8 @@ import logging
 
 from qiskit import QuantumRegister
 from qiskit.circuit import CompositeGate
-from qiskit.qobj import qobj_to_dict, Qobj, RunConfig, QobjConfig
+from qiskit.compiler.run_config import RunConfig
+from qiskit.qobj import Qobj, QobjConfig
 
 from qiskit.aqua.aqua_error import AquaError
 
@@ -132,7 +133,7 @@ class CircuitCache:
                     raise Exception("Circuit shape does not match qobj, found extra {} in circuit".format(type_and_qubits))
         if self.cache_file is not None and len(self.cache_file) > 0:
             cache_handler = open(self.cache_file, 'wb')
-            qobj_dicts = [qobj_to_dict(qob) for qob in self.qobjs]
+            qobj_dicts = [qob.to_dict() for qob in self.qobjs]
             pickle.dump({'qobjs':qobj_dicts, 'mappings':self.mappings}, cache_handler, protocol=pickle.HIGHEST_PROTOCOL)
             cache_handler.close()
             logger.debug("Circuit cache saved to file: {}".format(self.cache_file))
