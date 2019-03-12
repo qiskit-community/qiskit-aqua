@@ -49,21 +49,15 @@ class TruthTableOracle(Oracle):
             'type': 'object',
             'properties': {
                 'bitmaps': {
-                    "anyOf": [
-                        {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        },
-                        {
-                            "type": "string"
-                        }
-                    ]
+                    "type": "array",
+                    "default": [],
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "optimization": {
                     "type": "string",
-                    "default": "espresso",
+                    "default": "qm-dlx",
                     'oneOf': [
                         {
                             'enum': [
@@ -104,15 +98,14 @@ class TruthTableOracle(Oracle):
                 and then compute an exact cover to try to reduce the circuit.
             mct_mode (str): The mode to use when constructing multiple-control Toffoli.
         """
+        if isinstance(bitmaps, str):
+            bitmaps = [bitmaps]
 
         self.validate(locals())
         super().__init__()
 
         self._mct_mode = mct_mode
         self._optimization = optimization
-
-        if isinstance(bitmaps, str):
-            bitmaps = [bitmaps]
 
         self._bitmaps = bitmaps
 
