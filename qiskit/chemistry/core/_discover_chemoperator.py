@@ -84,8 +84,15 @@ def _discover_entry_point_chemistry_operators():
     and attempts to register them. Chem.Operator modules should subclass ChemistryOperator Base class.
     """
     for entry_point in pkg_resources.iter_entry_points(OPERATORS_ENTRY_POINT):
+        # first calls require and log any errors returned due to dependencies mismatches
         try:
-            ep = entry_point.load()
+            entry_point.require()
+        except Exception as e:
+            logger.warning("Entry point '{}' requirements issue: {}".format(entry_point, str(e)))
+
+        # now  call resolve and try to load entry point
+        try:
+            ep = entry_point.resolve()
             _registered = False
             if not inspect.isabstract(ep) and issubclass(ep, ChemistryOperator):
                 register_chemistry_operator(ep)

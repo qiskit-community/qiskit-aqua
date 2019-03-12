@@ -78,8 +78,15 @@ def _discover_entry_point_chemistry_drivers():
     and attempts to register them. Chem.Drivers modules should subclass BaseDriver Base class.
     """
     for entry_point in pkg_resources.iter_entry_points(DRIVERS_ENTRY_POINT):
+        # first calls require and log any errors returned due to dependencies mismatches
         try:
-            ep = entry_point.load()
+            entry_point.require()
+        except Exception as e:
+            logger.warning("Entry point '{}' requirements issue: {}".format(entry_point, str(e)))
+
+        # now  call resolve and try to load entry point
+        try:
+            ep = entry_point.resolve()
             _registered = False
             if not inspect.isabstract(ep) and issubclass(ep, BaseDriver):
                 _register_driver(ep)
