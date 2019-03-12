@@ -50,8 +50,8 @@ from .qiskit_aqua import (QiskitAqua,
 from ._logging import (get_logging_level,
                        build_logging_config,
                        set_logging_config,
-                       get_aqua_logging,
-                       set_aqua_logging)
+                       get_qiskit_aqua_logging,
+                       set_qiskit_aqua_logging)
 
 __version__ = '0.4.2'
 
@@ -89,5 +89,5 @@ __all__ = ['AquaError',
            'get_logging_level',
            'build_logging_config',
            'set_logging_config',
-           'get_aqua_logging',
-           'set_aqua_logging']
+           'get_qiskit_aqua_logging',
+           'set_qiskit_aqua_logging']
