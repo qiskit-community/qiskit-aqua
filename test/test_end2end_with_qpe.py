@@ -79,7 +79,7 @@ class TestEnd2EndWithQPE(QiskitChemistryTestCase):
         qpe = QPE(self.qubit_op, state_in, iqft, num_time_slices, n_ancillae,
                   expansion_mode='suzuki',
                   expansion_order=2, shallow_circuit_concat=True)
-        backend = qiskit.Aer.get_backend('qasm_simulator')
+        backend = qiskit.BasicAer.get_backend('qasm_simulator')
         quantum_instance = QuantumInstance(backend, shots=100, pass_manager=PassManager())
         result = qpe.run(quantum_instance)
 
