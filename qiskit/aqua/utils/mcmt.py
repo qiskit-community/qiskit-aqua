@@ -18,6 +18,9 @@
 Multiple-Control, Multiple-Target Gate.
 """
 from qiskit import QuantumCircuit, QuantumRegister
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def _ccx_v_chain_compute(qc, control_qubits, ancillary_qubits):
@@ -111,8 +114,11 @@ def mcmt(self,
         )
 
     all_qubits = control_qubits + target_qubits + ancillary_qubits
-    for qubit in all_qubits:
-        self._check_qubit(qubit)
+    try:
+        for qubit in all_qubits:
+            self._check_qubit(qubit)
+    except AttributeError as e:
+        logger.debug(str(e))
     self._check_dups(all_qubits)
 
     if len(q_controls) == 1:

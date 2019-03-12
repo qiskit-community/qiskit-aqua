@@ -22,9 +22,8 @@ from qiskit import QuantumRegister, QuantumCircuit, transpiler
 from qiskit import execute as q_execute
 from qiskit.transpiler.passes import Unroller
 from qiskit.transpiler import PassManager
-
+from qiskit import BasicAer
 from qiskit.aqua.components.initial_states import InitialState
-from qiskit.aqua.utils.backend_utils import get_aer_backend
 
 logger = logging.getLogger(__name__)
 
@@ -112,7 +111,7 @@ class Custom(InitialState):
         # get the circuits from compiled circuit
         unroller = Unroller(basis=['u1', 'u2', 'u3', 'cx', 'id'])
         pm = PassManager(passes=[unroller])
-        qc = transpiler.transpile(circuit, get_aer_backend('qasm_simulator'),
+        qc = transpiler.transpile(circuit, BasicAer.get_backend('qasm_simulator'),
                                   pass_manager=pm)
         return qc
 
@@ -135,7 +134,7 @@ class Custom(InitialState):
         if mode == 'vector':
             if self._state_vector is None:
                 if self._circuit is not None:
-                    self._state_vector = np.asarray(q_execute(self._circuit, get_aer_backend(
+                    self._state_vector = np.asarray(q_execute(self._circuit, BasicAer.get_backend(
                         'statevector_simulator')).result().get_statevector(self._circuit))
             return self._state_vector
         elif mode == 'circuit':

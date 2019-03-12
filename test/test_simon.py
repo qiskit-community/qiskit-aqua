@@ -23,8 +23,7 @@ import unittest
 from parameterized import parameterized
 from qiskit.aqua.components.oracles import TruthTableOracle
 from qiskit.aqua.algorithms import Simon
-from qiskit.aqua import get_aer_backend, AquaError
-
+from qiskit import BasicAer
 from test.common import QiskitAquaTestCase
 
 bitmaps = [
@@ -55,7 +54,7 @@ class TestSimon(QiskitAquaTestCase):
         k1, k2 = find_pair()
         hidden = np.binary_repr(k1 ^ k2, nbits)
 
-        backend = get_aer_backend('qasm_simulator')
+        backend = BasicAer.get_backend('qasm_simulator')
         oracle = TruthTableOracle(simon_input, optimization=optimization, mct_mode=mct_mode)
         algorithm = Simon(oracle)
         result = algorithm.run(backend)

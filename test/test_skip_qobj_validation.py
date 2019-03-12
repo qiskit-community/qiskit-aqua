@@ -20,9 +20,9 @@ import unittest
 
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 from qiskit.providers.aer.noise import NoiseModel
-
+from qiskit import BasicAer
 from test.common import QiskitAquaTestCase
-from qiskit.aqua import QuantumInstance, get_aer_backend
+from qiskit.aqua import QuantumInstance
 
 
 def _compare_dict(dict1, dict2):
@@ -55,7 +55,7 @@ class TestSkipQobjValidation(QiskitAquaTestCase):
         qc.measure(qr[1], cr[1])
 
         self.qc = qc
-        self.backend = get_aer_backend('qasm_simulator')
+        self.backend = BasicAer.get_backend('qasm_simulator')
 
     def test_wo_backend_options(self):
         quantum_instance = QuantumInstance(self.backend, seed_mapper=self.random_seed,
