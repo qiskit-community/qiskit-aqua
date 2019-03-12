@@ -29,6 +29,7 @@ Added
 - Summarize the tranpiled circuits at the DEBUG logging level.
 - ``QuantumInstance`` accepts ``basis_gates`` and ``coupling_map`` again.
 - Support to use ``cx`` gate for the entangement in ``RY`` and ``RYRZ`` variational form. (``cz`` is the default choice.)
+- Added variational algorithm base class ``VQAlgorithm``, implemented by ``VQE`` and ``QSVMVariational``.
 
 
 Removed
