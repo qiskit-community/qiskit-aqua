@@ -25,6 +25,7 @@ from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 import qiskit.tools.qcvv.tomography as tomo
+from qiskit.quantum_info import state_fidelity
 from qiskit.converters import circuit_to_dag
 
 logger = logging.getLogger(__name__)
@@ -216,7 +217,7 @@ class HHL(QuantumAlgorithm):
         sv = np.asarray(res.get_statevector(self._circuit))
         # Extract solution vector from statevector
         vec = self._reciprocal.sv_to_resvec(sv, self._num_q)
-        self._ret['probability_result'] = vec.dot(vec.conj())
+        self._ret['probability_result'] = np.real(vec.dot(vec.conj()))
         vec = vec/np.linalg.norm(vec)
         self._hhl_results(vec)
 
@@ -247,7 +248,7 @@ class HHL(QuantumAlgorithm):
                 else:
                     f += v
             probs.append(s/(f+s))
-        self._ret["probability_result"] = probs
+        self._ret["probability_result"] = np.real(probs)
         # Filtering the tomo data for valid results, i.e. c0==1
         tomo_data = self._tomo_postselect(result, self._circuit.name,
                                           tomo_set, self._success_bit)
@@ -303,7 +304,7 @@ class HHL(QuantumAlgorithm):
         # Calculating the fidelity with the classical solution
         theo = np.linalg.solve(self._matrix, self._vector)
         theo = theo/np.linalg.norm(theo)
-        self._ret["fidelity_hhl_to_classical"] = abs(theo.dot(vec.conj()))**2
+        self._ret["fidelity_hhl_to_classical"] = state_fidelity(theo, vec)
         # Rescaling the output vector to the real solution vector
         tmp_vec = self._matrix.dot(vec)
         f1 = np.linalg.norm(self._vector)/np.linalg.norm(tmp_vec)
