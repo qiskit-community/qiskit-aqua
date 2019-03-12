@@ -125,8 +125,7 @@ class TestVQE(QiskitAquaTestCase):
         result = algo.run(quantum_instance)
         self.assertAlmostEqual(result['energy'], -1.85727503)
 
-    # TODO needs checking
-    def todo_test_vqe_callback(self):
+    def test_vqe_callback(self):
 
         tmp_filename = 'vqe_callback_test.csv'
         is_file_exist = os.path.exists(self._get_resource_path(tmp_filename))
@@ -153,21 +152,27 @@ class TestVQE(QiskitAquaTestCase):
         self.assertTrue(is_file_exist, "Does not store content successfully.")
 
         # check the content
-        ref_content = [["1", "[-0.03391886 -1.70850424 -1.53640265 -0.65137839]", "-0.59622", "0.01546"],
-                       ["2", "[ 0.96608114 -1.70850424 -1.53640265 -0.65137839]", "-0.77452", "0.01692"],
-                       ["3", "[ 0.96608114 -0.70850424 -1.53640265 -0.65137839]", "-0.80327", "0.01519"]
+        # ref_content = [["1", "[-0.03391886 -1.70850424 -1.53640265 -0.65137839]", "-0.59622", "0.01546"],
+        #               ["2", "[ 0.96608114 -1.70850424 -1.53640265 -0.65137839]", "-0.77452", "0.01692"],
+        #               ["3", "[ 0.96608114 -0.70850424 -1.53640265 -0.65137839]", "-0.80327", "0.01519"]
+        #               ]
+        ref_content = [['1', '[-0.03391886 -1.70850424 -1.53640265 -0.65137839]', '-0.61121', '0.01572'],
+                       ['2', '[ 0.96608114 -1.70850424 -1.53640265 -0.65137839]', '-0.79235', '0.01722'],
+                       ['3', '[ 0.96608114 -0.70850424 -1.53640265 -0.65137839]', '-0.82829', '0.01529']
                        ]
-        with open(self._get_resource_path(tmp_filename)) as f:
-            idx = 0
-            for record in f.readlines():
-                eval_count, parameters, mean, std = record.split(",")
-                self.assertEqual(eval_count.strip(), ref_content[idx][0])
-                self.assertEqual(parameters, ref_content[idx][1])
-                self.assertEqual(mean.strip(), ref_content[idx][2])
-                self.assertEqual(std.strip(), ref_content[idx][3])
-                idx += 1
-        if is_file_exist:
-            os.remove(self._get_resource_path(tmp_filename))
+        try:
+            with open(self._get_resource_path(tmp_filename)) as f:
+                idx = 0
+                for record in f.readlines():
+                    eval_count, parameters, mean, std = record.split(",")
+                    self.assertEqual(eval_count.strip(), ref_content[idx][0])
+                    self.assertEqual(parameters, ref_content[idx][1])
+                    self.assertEqual(mean.strip(), ref_content[idx][2])
+                    self.assertEqual(std.strip(), ref_content[idx][3])
+                    idx += 1
+        finally:
+            if is_file_exist:
+                os.remove(self._get_resource_path(tmp_filename))
 
 
 if __name__ == '__main__':
