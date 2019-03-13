@@ -136,7 +136,7 @@ class HartreeFock(InitialState):
             bitstr = new_bitstr.astype(np.bool)
 
         if self._qubit_tapering:
-            sq_list = len(bitstr) - np.asarray(self._sq_list)
+            sq_list = (len(bitstr) - 1) - np.asarray(self._sq_list)
             bitstr = np.delete(bitstr, sq_list)
 
         self._bitstr = bitstr.astype(np.bool)
