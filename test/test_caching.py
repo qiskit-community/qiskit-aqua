@@ -3,6 +3,8 @@ import unittest
 import numpy as np
 import os
 from parameterized import parameterized
+import tempfile
+
 from qiskit import BasicAer
 from test.common import QiskitAquaTestCase
 from qiskit.aqua import Operator, QuantumInstance, QiskitAqua
@@ -109,23 +111,20 @@ class TestCaching(QiskitAquaTestCase):
         optimizer = L_BFGS_B()
         algo = VQE(self.algo_input.qubit_op, var_form, optimizer, 'matrix')
 
-        tmp_filename = 'caching_saving_test.pickle'
-        is_file_exist = os.path.exists(self._get_resource_path(tmp_filename))
-        if is_file_exist:
-            os.remove(self._get_resource_path(tmp_filename))
-        circuit_cache = CircuitCache(skip_qobj_deepcopy=True, cache_file=tmp_filename)
+        fd, cache_tmp_file = tempfile.mkstemp(suffix='.inp')
+        os.close(fd)
+
+        circuit_cache = CircuitCache(skip_qobj_deepcopy=True, cache_file=cache_tmp_file)
         quantum_instance_caching = QuantumInstance(backend, circuit_cache=circuit_cache, skip_qobj_validation=True)
         result_caching = algo.run(quantum_instance_caching)
+        self.assertLessEqual(circuit_cache.misses, 0)
 
-        is_file_exist = os.path.exists(self._get_resource_path(tmp_filename))
+        is_file_exist = os.path.exists(self._get_resource_path(cache_tmp_file))
         self.assertTrue(is_file_exist, "Does not store content successfully.")
 
-        circuit_cache_new = CircuitCache(skip_qobj_deepcopy=True, cache_file=tmp_filename)
+        circuit_cache_new = CircuitCache(skip_qobj_deepcopy=True, cache_file=cache_tmp_file)
         self.assertEqual(circuit_cache.mappings, circuit_cache_new.mappings)
         self.assertLessEqual(circuit_cache_new.misses, 0)
-
-        if is_file_exist:
-            os.remove(self._get_resource_path(tmp_filename))
 
 
 if __name__ == '__main__':
