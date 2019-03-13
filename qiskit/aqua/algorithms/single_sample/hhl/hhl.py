@@ -24,7 +24,8 @@ import numpy as np
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
-import qiskit.tools.qcvv.tomography as tomo
+from qiskit.ignis.verification.tomography import state_tomography_circuits, \
+    StateTomographyFitter, marginal_counts
 from qiskit.quantum_info import state_fidelity
 from qiskit.converters import circuit_to_dag
 
@@ -228,14 +229,16 @@ class HHL(QuantumAlgorithm):
         qasm simulator and real hardware backends.
         """
         # Preparing the state tomography circuits
-        c = ClassicalRegister(self._num_q)
-        self._circuit.add_register(c)
-        tomo_qbits = list(range(self._num_q))
-        tomo_set = tomo.state_tomography_set(tomo_qbits)
-        tomo_circuits = \
-            tomo.create_tomography_circuits(self._circuit,
-                                            self._io_register,
-                                            c, tomo_set)
+        #c = ClassicalRegister(self._num_q)
+        #self._circuit.add_register(c)
+        #tomo_qbits = list(range(self._num_q))
+        #tomo_set = tomo.state_tomography_circuits(self.circuit, tomo_qbits)
+        #tomo_circuits = \
+        #    tomo.create_tomography_circuits(self._circuit,
+        #                                    self._io_register,
+        #                                    c, tomo_set)
+        tomo_circuits = state_tomography_circuits(self._circuit,
+                                                  self._io_register)
         # Handling the results
         result = self._quantum_instance.execute(tomo_circuits)
         probs = []
@@ -243,32 +246,38 @@ class HHL(QuantumAlgorithm):
             counts = result.get_counts(circ)
             s, f = 0, 0
             for k, v in counts.items():
-                if k[-1] == "1":
+                if k[0] == "1":
                     s += v
                 else:
                     f += v
             probs.append(s/(f+s))
         self._ret["probability_result"] = np.real(probs)
         # Filtering the tomo data for valid results, i.e. c0==1
-        tomo_data = self._tomo_postselect(result, self._circuit.name,
-                                          tomo_set, self._success_bit)
+        #tomo_data = self._tomo_postselect(result, self._circuit.name,
+        #                                 tomo_set, self._success_bit)
+        # rho_fit = tomo.fit_tomography_data(tomo_data)
+        #tomo_result = self._tomo_postselect(result, self._circuit.name,
+        #                                    tomo_circuits, self._success_bit)
         # Fitting the tomography data
-        rho_fit = tomo.fit_tomography_data(tomo_data)
+        #tomo_data = StateTomographyFitter(job.result(), qst_circs)
+        tomo_data = StateTomographyFitter(result, tomo_circuits)
+        rho_fit = tomo_data.fit()
         vec = rho_fit[:, 0]/np.sqrt(rho_fit[0, 0])
         self._hhl_results(vec)
 
-    def _tomo_postselect(self, results, name, tomoset, select):
+    def _tomo_postselect(self, results, name, circuits, select):
         # this postselect is based on tomo.tomography_data
-        labels = tomo.tomography_circuit_names(tomoset, name)
-        circuits = tomoset['circuits']
+        #labels = tomo.tomography_circuit_names(tomoset, name)
+        #circuits = tomoset['circuits']
+        #labels = circuits['circuit_labels']
         data = []
         prep = None
-        for j, _ in enumerate(labels):
+        for j, _ in enumerate(circuits):
             select_bitpos = None
             for cbit_label in results.results[j].header.clbit_labels:
                 if cbit_label[0] == select.name:
                     select_bitpos = cbit_label[1]
-            all_counts = results.get_counts(labels[j])
+            all_counts = results.get_counts(circuits[j])
             filt_counts = []
             filt_keys = []
             for k, v in all_counts.items():
@@ -278,7 +287,8 @@ class HHL(QuantumAlgorithm):
             filt_labels = dict(zip(filt_keys, filt_counts))
             if filt_labels == {}:
                 filt_labels = {'0': 0}
-            counts = tomo.marginal_counts(filt_labels, tomoset['qubits'])
+            #counts = tomo.marginal_counts(filt_labels, tomoset['qubits'])
+            counts = marginal_counts(filt_labels, meas_qubits=True)
             shots = sum(counts.values())
             meas = circuits[j]['meas']
             prep = circuits[j].get('prep', None)
