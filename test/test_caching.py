@@ -1,6 +1,7 @@
 import unittest
 
 import numpy as np
+import os
 from parameterized import parameterized
 from qiskit import BasicAer
 from test.common import QiskitAquaTestCase
@@ -99,6 +100,32 @@ class TestCaching(QiskitAquaTestCase):
         speedup_check = 3
         self.log.info(result_caching['eval_time'],
                       self.reference_vqe_result['statevector_simulator']['eval_time']/speedup_check)
+
+    def test_saving_and_loading(self):
+        backend = BasicAer.get_backend('statevector_simulator')
+        num_qubits = self.algo_input.qubit_op.num_qubits
+        init_state = Zero(num_qubits)
+        var_form = RY(num_qubits, 3, initial_state=init_state)
+        optimizer = L_BFGS_B()
+        algo = VQE(self.algo_input.qubit_op, var_form, optimizer, 'matrix')
+
+        tmp_filename = 'caching_saving_test.pickle'
+        is_file_exist = os.path.exists(self._get_resource_path(tmp_filename))
+        if is_file_exist:
+            os.remove(self._get_resource_path(tmp_filename))
+        circuit_cache = CircuitCache(skip_qobj_deepcopy=True, cache_file=tmp_filename)
+        quantum_instance_caching = QuantumInstance(backend, circuit_cache=circuit_cache, skip_qobj_validation=True)
+        result_caching = algo.run(quantum_instance_caching)
+
+        is_file_exist = os.path.exists(self._get_resource_path(tmp_filename))
+        self.assertTrue(is_file_exist, "Does not store content successfully.")
+
+        circuit_cache_new = CircuitCache(skip_qobj_deepcopy=True, cache_file=tmp_filename)
+        self.assertEqual(circuit_cache.mappings, circuit_cache_new.mappings)
+        self.assertLessEqual(circuit_cache_new.misses, 0)
+
+        if is_file_exist:
+            os.remove(self._get_resource_path(tmp_filename))
 
 
 if __name__ == '__main__':
