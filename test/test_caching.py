@@ -119,12 +119,15 @@ class TestCaching(QiskitAquaTestCase):
         result_caching = algo.run(quantum_instance_caching)
         self.assertLessEqual(circuit_cache.misses, 0)
 
-        is_file_exist = os.path.exists(self._get_resource_path(cache_tmp_file))
+        is_file_exist = os.path.exists(cache_tmp_file)
         self.assertTrue(is_file_exist, "Does not store content successfully.")
 
         circuit_cache_new = CircuitCache(skip_qobj_deepcopy=True, cache_file=cache_tmp_file)
         self.assertEqual(circuit_cache.mappings, circuit_cache_new.mappings)
         self.assertLessEqual(circuit_cache_new.misses, 0)
+
+        if is_file_exist:
+            os.remove(cache_tmp_file)
 
 
 if __name__ == '__main__':
