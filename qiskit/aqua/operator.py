@@ -46,7 +46,7 @@ class Operator(object):
     Operators relevant for quantum applications
 
     Note:
-        For grouped paulis represnetation, all operations will always convert it to paulis and then convert it back.
+        For grouped paulis representation, all operations will always convert it to paulis and then convert it back.
         (It might be a performance issue.)
     """
 
@@ -389,7 +389,7 @@ class Operator(object):
     @property
     def representations(self):
         """
-        Return the available represnetations in the Operator.
+        Return the available representations in the Operator.
 
         Returns:
             list: available representations ([str])
@@ -498,7 +498,7 @@ class Operator(object):
 
     def save_to_dict(self):
         """
-        Save operator to a dict in pauli represnetation.
+        Save operator to a dict in pauli representation.
 
         Returns:
             dict: a dictionary contains an operator with pauli representation.
@@ -1438,9 +1438,9 @@ class Operator(object):
         else:
             return False
 
-    def _check_representation(self, targeted_represnetation):
+    def _check_representation(self, targeted_representation):
         """
-        Check the targeted representation is existed or not, if not, find available represnetations
+        Check the targeted representation is existed or not, if not, find available representations
         and then convert to the targeted one.
 
         Args:
@@ -1449,7 +1449,7 @@ class Operator(object):
         Raises:
             ValueError: if the `targeted_representation` is not recognized.
         """
-        if targeted_represnetation == 'paulis':
+        if targeted_representation == 'paulis':
             if self._paulis is None:
                 if self._matrix is not None:
                     self._matrix_to_paulis()
@@ -1459,7 +1459,7 @@ class Operator(object):
                     raise AquaError(
                         "at least having one of the three operator representations.")
 
-        elif targeted_represnetation == 'grouped_paulis':
+        elif targeted_representation == 'grouped_paulis':
             if self._grouped_paulis is None:
                 if self._paulis is not None:
                     self._paulis_to_grouped_paulis()
@@ -1469,7 +1469,7 @@ class Operator(object):
                     raise AquaError(
                         "at least having one of the three operator representations.")
 
-        elif targeted_represnetation == 'matrix':
+        elif targeted_representation == 'matrix':
             if self._matrix is None:
                 if self._paulis is not None:
                     self._paulis_to_matrix()
@@ -1480,7 +1480,7 @@ class Operator(object):
                         "at least having one of the three operator representations.")
         else:
             raise ValueError(
-                '"targeted_represnetation" should be one of "paulis", "grouped_paulis" and "matrix".'
+                '"targeted_representation" should be one of "paulis", "grouped_paulis" and "matrix".'
             )
 
     @staticmethod
