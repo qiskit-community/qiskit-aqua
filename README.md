@@ -1,8 +1,8 @@
 # Qiskit Aqua
 
-[![License](https://img.shields.io/github/license/Qiskit/qiskit-aqua.svg?style=popout-square)](https://opensource.org/licenses/Apache-2.0)[![Build Status](https://img.shields.io/travis/com/Qiskit/qiskit-aqua/master.svg?style=popout-square)](https://travis-ci.com/Qiskit/qiskit-aqua)[![](https://img.shields.io/github/release/Qiskit/qiskit-aqua.svg?style=popout-square)](https://github.com/Qiskit/qiskit-aqua/releases)[![](https://img.shields.io/pypi/dm/qiskit-aqua.svg?style=popout-square)](https://pypi.org/project/qiskit-aqua/)
+[![License](https://img.shields.io/github/license/Qiskit/qiskit-aqua.svg?style=popout-square)](https://opensource.org/licenses/Apache-2.0)[![Build Status](https://img.shields.io/travis/Qiskit/qiskit-aqua/master.svg?style=popout-square)](https://travis-ci.org/Qiskit/qiskit-aqua)[![](https://img.shields.io/github/release/Qiskit/qiskit-aqua.svg?style=popout-square)](https://github.com/Qiskit/qiskit-aqua/releases)[![](https://img.shields.io/pypi/dm/qiskit-aqua.svg?style=popout-square)](https://pypi.org/project/qiskit-aqua/)
 
-**Qiskit** is an open-source framework for working with noisy intermediate-scale quantum computers (NISQ) at the level of pulses, circuits, algorithms, and applications.
+**Qiskit** is an open-source framework for working with noisy intermediate-scale quantum (NISQ) computers at the level of pulses, circuits, algorithms, and applications.
 
 Qiskit is made up elements that work together to enable quantum computing. This element is **Aqua**.
 Aqua provides a library of cross-domain algorithms upon which domain-specific applications can be
@@ -41,28 +41,33 @@ $ python
 ```
 
 ```python
->>> from qiskit import Aer
->>> from qiskit_aqua.components.oracles import SAT
->>> from qiskit_aqua.algorithms import Grover
->>> sat_cnf = """
->>> c Example DIMACS 3-sat
->>> p cnf 3 5
->>> -1 -2 -3 0
->>> 1 -2 3 0
->>> 1 2 -3 0
->>> 1 -2 -3 0
->>> -1 2 3 0
->>> """
->>> backend = Aer.get_backend('qasm_simulator')
->>> oracle = SAT(sat_cnf)
->>> algorithm = Grover(oracle)
->>> result = algorithm.run(backend)
->>> print(result["result"])
+from qiskit import Aer
+from qiskit.aqua.components.oracles import LogicExpressionOracle
+from qiskit.aqua.algorithms import Grover
+
+sat_cnf = """
+c Example DIMACS 3-sat
+p cnf 3 5
+-1 -2 -3 0
+1 -2 3 0
+1 2 -3 0
+1 -2 -3 0
+-1 2 3 0
+"""
+
+backend = Aer.get_backend('qasm_simulator')
+oracle = LogicExpressionOracle(sat_cnf)
+algorithm = Grover(oracle)
+result = algorithm.run(backend)
+print(result["result"])
 ```
 
-The code above demonstrates how Grover’s search algorithm can be used in conjunction with the
-Satisfiability (SAT) oracle to compute one of the many possible solutions of a Conjunctive Normal
-Form (CNF).  Variable `sat_cnf` corresponds to the following CNF:
+The code above demonstrates how `Grover`’s search algorithm can be used with the
+`LogicExpressionOracle` to find one satisfying assignment
+for the Satisfiability (SAT) problem instance encoded in the 
+[DIMACS CNF format](http://www.satcompetition.org/2009/format-benchmarks2009.html).
+The input string `sat_cnf` corresponds to the following Conjunctive Normal
+Form (CNF):
 
 (&not;<i>x</i><sub>1</sub> &or; &not;<i>x</i><sub>2</sub> &or; &not;<i>x</i><sub>3</sub>) &and;
 (<i>x</i><sub>1</sub> &or; &not;<i>x</i><sub>2</sub> &or; <i>x</i><sub>3</sub>) &and;
@@ -70,7 +75,8 @@ Form (CNF).  Variable `sat_cnf` corresponds to the following CNF:
 (<i>x</i><sub>1</sub> &or; &not;<i>x</i><sub>2</sub> &or; &not;<i>x</i><sub>3</sub>) &and;
 (&not;<i>x</i><sub>1</sub> &or; <i>x</i><sub>2</sub> &or; <i>x</i><sub>3</sub>)  
 
-The Python code above prints out one possible solution for this CNF. For example, output `1, -2, 3` indicates
+The Python code above prints out one possible solution for this CNF.
+For example, output `1, -2, 3` indicates
 that logical expression (<i>x</i><sub>1</sub> &or; &not;<i>x</i><sub>2</sub> &or; <i>x</i><sub>3</sub>)
 satisfies the given CNF.
 
@@ -99,11 +105,11 @@ Now you're set up and ready to check out some of the other examples from the
 and [community/aqua](https://github.com/Qiskit/qiskit-tutorials/tree/master/community/aqua)
 folders of the [qiskit-tutorials GitHub Repository](https://github.com/Qiskit/qiskit-tutorials).
 
-## Authors
+## Authors and Citation
 
 Aqua was inspired, authored and brought about by the collective work of a team of researchers.
 Aqua continues to grow with the help and work of [many people](./CONTRIBUTORS.rst), who contribute
-to the project at different levels.
+to the project at different levels. If you use Qiskit, please cite as per the included [BibTeX file](https://github.com/Qiskit/qiskit/blob/master/Qiskit.bib).
 
 ## License
 

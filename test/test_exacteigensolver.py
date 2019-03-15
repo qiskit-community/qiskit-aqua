@@ -20,9 +20,9 @@ import unittest
 import numpy as np
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import Operator, run_algorithm
-from qiskit_aqua.input import EnergyInput
-from qiskit_aqua.algorithms import ExactEigensolver
+from qiskit.aqua import Operator, run_algorithm
+from qiskit.aqua.input import EnergyInput
+from qiskit.aqua.algorithms import ExactEigensolver
 
 
 class TestExactEigensolver(QiskitAquaTestCase):

@@ -19,18 +19,19 @@ import unittest
 
 import numpy as np
 from parameterized import parameterized
-from scipy.linalg import expm
 from scipy import sparse
-from qiskit_aqua import get_aer_backend
+from scipy.linalg import expm
 from qiskit.transpiler import PassManager
 
+from qiskit import BasicAer
+from qiskit.aqua import Operator, QuantumInstance
+from qiskit.aqua.utils import decimal_to_binary
+from qiskit.aqua.algorithms import ExactEigensolver
+from qiskit.aqua.algorithms import QPE
+from qiskit.aqua.components.iqfts import Standard
+from qiskit.aqua.components.initial_states import Custom
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import Operator, QuantumInstance
-from qiskit_aqua.utils import decimal_to_binary
-from qiskit_aqua.algorithms import ExactEigensolver
-from qiskit_aqua.components.iqfts import Standard
-from qiskit_aqua.components.initial_states import Custom
-from qiskit_aqua.algorithms import QPE
+
 
 X = np.array([[0, 1], [1, 0]])
 Y = np.array([[0, -1j], [1j, 0]])
@@ -56,10 +57,10 @@ class TestQPE(QiskitAquaTestCase):
     """QPE tests."""
 
     @parameterized.expand([
-        [qubitOp_simple],
-        [qubitOp_h2_with_2_qubit_reduction],
+        [qubitOp_simple, 'statevector_simulator'],
+        [qubitOp_h2_with_2_qubit_reduction, 'qasm_simulator'],
     ])
-    def test_qpe(self, qubitOp):
+    def test_qpe(self, qubitOp, simulator):
         self.algorithm = 'QPE'
         self.log.debug('Testing QPE')
 
@@ -87,15 +88,16 @@ class TestQPE(QiskitAquaTestCase):
         self.log.debug('The corresponding eigenvector: {}'.format(self.ref_eigenvec))
 
         num_time_slices = 50
-        n_ancillae = 9
+        n_ancillae = 6
+
         state_in = Custom(self.qubitOp.num_qubits, state_vector=self.ref_eigenvec)
         iqft = Standard(n_ancillae)
 
         qpe = QPE(self.qubitOp, state_in, iqft, num_time_slices, n_ancillae,
-                  paulis_grouping='random', expansion_mode='suzuki', expansion_order=2,
+                  expansion_mode='suzuki', expansion_order=2,
                   shallow_circuit_concat=True)
 
-        backend = get_aer_backend('qasm_simulator')
+        backend = BasicAer.get_backend(simulator)
         quantum_instance = QuantumInstance(backend, shots=100, pass_manager=PassManager())
 
         # run qpe
@@ -103,7 +105,6 @@ class TestQPE(QiskitAquaTestCase):
         # self.log.debug('transformed operator paulis:\n{}'.format(self.qubitOp.print_operators('paulis')))
 
         # report result
-        self.log.debug('measurement results:          {}'.format(result['measurements']))
         self.log.debug('top result str label:         {}'.format(result['top_measurement_label']))
         self.log.debug('top result in decimal:        {}'.format(result['top_measurement_decimal']))
         self.log.debug('stretch:                      {}'.format(result['stretch']))

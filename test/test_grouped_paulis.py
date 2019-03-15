@@ -20,7 +20,7 @@ import unittest
 from qiskit.quantum_info import pauli_group
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import Operator
+from qiskit.aqua import Operator
 
 
 class TestGroupedPaulis(QiskitAquaTestCase):

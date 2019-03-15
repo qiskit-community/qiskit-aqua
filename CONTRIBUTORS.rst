@@ -10,6 +10,7 @@ levels:
 
 - `Panagiotis Barkoutsos <https://researcher.watson.ibm.com/researcher/view.php?person=zurich-BPA>`__
 - Sergey Bravyi
+- David Bucher
 - Chun-Fu (Richard) Chen
 - `Antonio Córcoles-Gonzalez <https://researcher.watson.ibm.com/researcher/view.php?person=us-adcorcol>`__
 - Albert Frisch
@@ -17,13 +18,16 @@ levels:
 - Jennifer Glick
 - `Donny Greenberg <https://researcher.watson.ibm.com/researcher/view.php?person=ibm-donny>`__
 - Tanvi Gujarati
+- Isabel Haide
 - `Shaohan Hu <https://researcher.watson.ibm.com/researcher/view.php?person=ibm-Shaohan.Hu>`__
 - `Takashi Imamichi <https://researcher.watson.ibm.com/researcher/view.php?person=jp-IMAMICHI>`__
 - Tal Kachman
+- `Gawel Kus <https://www.tudelft.nl/en/ae/organisation/departments/aerospace-structures-and-materials/novel-aerospace-materials/people/personal-pages-novam/students/g-kus-gawel/>`__
 - `Peng Liu <https://researcher.watson.ibm.com/researcher/view.php?person=us-liup>`__
 - Manoel Marques
 - Antonio Mezzacapo
 - `Nikolaj Moll <https://researcher.watson.ibm.com/researcher/view.php?person=zurich-NIM>`__
+- Jan Müggenburg
 - `Giacomo Nannicini <https://researcher.watson.ibm.com/researcher/view.php?person=us-nannicini>`__
 - Pauline Ollitrault
 - `Anna Phan <https://researcher.watson.ibm.com/researcher/view.php?person=au1-anna.phan>`__

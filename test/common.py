@@ -24,7 +24,7 @@ import os
 import unittest
 import time
 
-from qiskit_aqua import __path__ as qiskit_aqua_path
+from qiskit.aqua import __path__ as qiskit_aqua_path
 
 TRAVIS_FORK_PULL_REQUEST = False
 if os.getenv('TRAVIS_PULL_REQUEST_SLUG'):
@@ -34,7 +34,7 @@ if os.getenv('TRAVIS_PULL_REQUEST_SLUG'):
 
 class Path(Enum):
     """Helper with paths commonly used during the tests."""
-    # Main SDK path:    qiskit_aqua/
+    # Main SDK path:    qiskit/aqua/
     SDK = qiskit_aqua_path[0]
     # test.python path: test/
     TEST = os.path.dirname(__file__)

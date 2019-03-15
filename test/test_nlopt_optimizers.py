@@ -22,7 +22,7 @@ from scipy.optimize import rosen
 import numpy as np
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import PluggableType, get_pluggable_class
+from qiskit.aqua import PluggableType, get_pluggable_class
 
 
 class TestNLOptOptimizers(QiskitAquaTestCase):

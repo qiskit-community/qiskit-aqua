@@ -24,9 +24,9 @@ import os
 import json
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import AquaError
-from qiskit_aqua import run_algorithm
-from qiskit_aqua.parser._inputparser import InputParser
+from qiskit.aqua import AquaError
+from qiskit.aqua import run_algorithm
+from qiskit.aqua.parser._inputparser import InputParser
 
 
 class TestInputParser(QiskitAquaTestCase):
@@ -77,8 +77,8 @@ class TestInputParser(QiskitAquaTestCase):
         except Exception as e:
             self.fail(str(e))
 
-        p.set_section_property('optimizer', 'dummy', 1002)
-        self.assertRaises(AquaError, p.validate_merge_defaults)
+        with self.assertRaises(AquaError):
+            p.set_section_property('backend', 'max_credits', -1)
 
     def test_run_algorithm(self):
         filepath = self._get_resource_path('ExactEigensolver.json')

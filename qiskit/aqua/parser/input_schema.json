@@ -1,0 +1,73 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "id": "input_schema.json",
+    
+    "definitions": {
+        "problem": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "default": "energy"
+                 },
+                "random_seed": {
+                    "type": ["integer", "null"],
+                    "default": null
+                },
+                "circuit_caching": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "skip_qobj_deepcopy": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "circuit_cache_file": {
+                    "type": ["string", "null"],
+                    "default": null
+                },
+                "skip_qobj_validation": {
+                    "type": "boolean",
+                    "default": false
+                }
+            },
+            "required": ["name"],
+            "additionalProperties": false
+        },
+        "algorithm": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "default": "VQE"
+                }
+            },
+            "required": ["name"],
+            "additionalProperties": false
+        },
+        "backend": {
+            "type": "object",
+            "properties": {
+                "provider": {
+                    "type": "string",
+                    "default": "qiskit.BasicAer"
+                },
+                "name": {
+                    "type": "string",
+                    "default": "statevector_simulator"
+                }
+            },
+            "required": ["provider", "name"],
+            "additionalProperties": false
+        }
+    },
+    
+    "type": "object",
+    "properties": {
+        "problem":          { "$ref": "#/definitions/problem" },
+        "algorithm":        { "$ref": "#/definitions/algorithm" },
+        "backend":          { "$ref": "#/definitions/backend" }
+    },
+    "required": ["algorithm"],
+    "additionalProperties": false
+}

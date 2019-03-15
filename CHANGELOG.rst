@@ -18,6 +18,31 @@ The format is based on `Keep a Changelog`_.
 `UNRELEASED`_
 =============
 
+Added
+-----
+
+- Implementation of the HHL algorithm supporting ``LinearSystemInput``
+- Pluggable component ``Eigenvalues`` with variant ``EigQPE``
+- Pluggable component ``Reciprocal`` with variants ``LookupRotation`` and ``LongDivision``
+- Multiple-Controlled U1 and U3 operations ``mcu1`` and ``mcu3``
+- Pluggable component ``QFT`` derived from component ``IQFT``
+- Summarize the tranpiled circuits at the DEBUG logging level.
+- ``QuantumInstance`` accepts ``basis_gates`` and ``coupling_map`` again.
+- Support to use ``cx`` gate for the entangement in ``RY`` and ``RYRZ`` variational form. (``cz`` is the default choice.)
+- Added variational algorithm base class ``VQAlgorithm``, implemented by ``VQE`` and ``QSVMVariational``.
+
+
+Removed
+-------
+- ``QuantumInstance`` does not take ``memory`` anymore.
+- Moved Command line and GUI interfaces to separate repo (qiskit_aqua_uis)
+
+Changed
+-------
+
+- Change the type of ``entanger_map`` used in ``FeatureMap`` and ``VariationalForm`` to list of list.
+- Fixed package setup to correctly identify namespace packages using ``setuptools.find_namespace_packages``.
+
 `0.4.1`_ - 2019-01-09
 =====================
 
@@ -25,7 +50,7 @@ Added
 -----
 
 - Optimizers now have most relevant options on constructor for ease of programming. Options may still be set via set_options.
-- Provider is now explicilty named and the named backend is created from that named provider. Backend being selected from the first of the internally known set of providers is deprecated.
+- Provider is now explicitly named and the named backend is created from that named provider. Backend being selected from the first of the internally known set of providers is deprecated.
 - Improve operation with Aer provider/backends.
 - Registration to Aqua of externally provided pluggable algorithms and components altered to setuptools entry point support for plugins. The prior registration mechanism has been removed.
 - A flag ``before_04`` in the ``load_from_dict(file)`` method is added to support to load operator in the old format. We encourage to save the operator in the new format from now on.
@@ -44,11 +69,11 @@ Added
 - Transparent parallelization for gradient-based optimizers
 - Multiple-Controlled-NOT (cnx) operation
 - Pluggable algorithmic component ``RandomDistribution``
-- Concrete implementations of ``RandomDistribution``: ``BernoulliDistribution``, ``LogNormalDistribution``, 
+- Concrete implementations of ``RandomDistribution``: ``BernoulliDistribution``, ``LogNormalDistribution``,
   ``MultivariateDistribution``, ``MultivariateNormalDistribution``, ``MultivariateUniformDistribution``, ``NormalDistribution``,
   ``UniformDistribution``, and ``UnivariateDistribution``
 - Pluggable algorithmic component:
-- Concrete implementations of ``UncertaintyProblem``: ``FixedIncomeExpectedValue``, ``EuropeanCallExpectedValue``, and 
+- Concrete implementations of ``UncertaintyProblem``: ``FixedIncomeExpectedValue``, ``EuropeanCallExpectedValue``, and
   ``EuropeanCallDelta``
 - Amplitude Estimation algorithm
 - Qiskit Optimization: New Ising models for optimization problems exact cover, set packing, vertex cover, clique, and graph partition
