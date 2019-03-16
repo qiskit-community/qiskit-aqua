@@ -88,16 +88,16 @@ def get_controlled_circuit(circuit, ctl_qubit, tgt_circuit=None, use_basis_gates
     # get all the qubits and clbits
     qregs = circuit.qregs
     qubits = []
-    for name in qregs:
-        if not qc.has_register(qregs[name]):
-            qc.add(qregs[name])
-        qubits.extend(qregs[name])
-    cregs = circuit.get_cregs()
+    for qreg in qregs:
+        if not qc.has_register(qreg):
+            qc.add_register(qreg)
+        qubits.extend(qreg)
+    cregs = circuit.cregs
     clbits = []
-    for name in cregs:
-        if not qc.has_register(cregs[name]):
-            qc.add(cregs[name])
-        clbits.extend(cregs[name])
+    for creg in cregs:
+        if not qc.has_register(creg):
+            qc.add_register(creg)
+        clbits.extend(creg)
 
     # get all operations from compiled circuit
     unroller = Unroller(basis=['u1', 'u2', 'u3', 'cx', 'id'])
@@ -106,24 +106,24 @@ def get_controlled_circuit(circuit, ctl_qubit, tgt_circuit=None, use_basis_gates
         circuit,
         BasicAer.get_backend('qasm_simulator'),
         pass_manager=pm
-    )['circuits'][0]['compiled_circuit']['operations']
+    ).data
 
     # process all basis gates to add control
     if not qc.has_register(ctl_qubit[0]):
         qc.add(ctl_qubit[0])
     for op in ops:
-        if op['name'] == 'id':
-            apply_cu3(qc, 0, 0, 0, ctl_qubit, qubits[op['qubits'][0]], use_basis_gates=use_basis_gates)
-        elif op['name'] == 'u1':
-            apply_cu1(qc, *op['params'], ctl_qubit, qubits[op['qubits'][0]], use_basis_gates=use_basis_gates)
-        elif op['name'] == 'u2':
-            apply_cu3(qc, np.pi / 2, *op['params'], ctl_qubit, qubits[op['qubits'][0]], use_basis_gates=use_basis_gates)
-        elif op['name'] == 'u3':
-            apply_cu3(qc, *op['params'], ctl_qubit, qubits[op['qubits'][0]], use_basis_gates=use_basis_gates)
-        elif op['name'] == 'cx':
-            apply_ccx(qc, ctl_qubit, *[qubits[i] for i in op['qubits']], use_basis_gates=use_basis_gates)
-        elif op['name'] == 'measure':
-            qc.measure(qubits[op['qubits'][0]], clbits[op['clbits'][0]])
+        if op.name == 'id':
+            apply_cu3(qc, 0, 0, 0, ctl_qubit, op.qargs[0], use_basis_gates=use_basis_gates)
+        elif op.name == 'u1':
+            apply_cu1(qc, *op.params, ctl_qubit, op.qargs[0], use_basis_gates=use_basis_gates)
+        elif op.name == 'u2':
+            apply_cu3(qc, np.pi / 2, *op.params, ctl_qubit, op.qargs[0], use_basis_gates=use_basis_gates)
+        elif op.name == 'u3':
+            apply_cu3(qc, *op.params, ctl_qubit, op.qargs[0], use_basis_gates=use_basis_gates)
+        elif op.name == 'cx':
+            apply_ccx(qc, ctl_qubit, *op.qargs, use_basis_gates=use_basis_gates)
+        elif op.name == 'measure':
+            qc.measure(op.qargs[0], op.cargs[0])
         else:
             raise RuntimeError('Unexpected operation {}.'.format(op['name']))
 
