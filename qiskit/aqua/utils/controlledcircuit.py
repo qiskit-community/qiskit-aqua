@@ -86,7 +86,7 @@ def get_controlled_circuit(circuit, ctl_qubit, tgt_circuit=None, use_basis_gates
         qc = QuantumCircuit()
 
     # get all the qubits and clbits
-    qregs = circuit.get_qregs()
+    qregs = circuit.qregs
     qubits = []
     for name in qregs:
         if not qc.has_register(qregs[name]):
