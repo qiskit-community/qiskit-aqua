@@ -54,6 +54,7 @@ class TestVQE(QiskitAquaTestCase):
 
         params = {
             'algorithm': {'name': 'VQE'},
+            'problem': {'circuit_caching': False},
             'backend': {'name': 'statevector_simulator',
                         'provider': 'qiskit.BasicAer',
                         'shots': 1,

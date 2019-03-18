@@ -20,21 +20,18 @@
 import copy
 import json
 import logging
-
 from qiskit.providers import BaseBackend
 from qiskit.transpiler import PassManager
-
-from .algorithms import QuantumAlgorithm
 from .aqua_error import AquaError
 from ._discover import (_discover_on_demand,
                         local_pluggables,
                         PluggableType,
                         get_pluggable_class)
 from .utils.jsonutils import convert_dict_to_json, convert_json_to_dict
-from .utils import CircuitCache
 from .parser._inputparser import InputParser
 from .parser import JSONSchema
 from .quantum_instance import QuantumInstance
+from .qiskit_aqua_globals import aqua_globals
 from .utils.backend_utils import (get_backend_from_provider,
                                   get_provider_from_backend,
                                   is_statevector_backend)
@@ -206,9 +203,10 @@ class QiskitAqua(object):
         algo_params = copy.deepcopy(self._parser.get_sections())
         self._quantum_algorithm = get_pluggable_class(PluggableType.ALGORITHM,
                                                       algo_name).init_params(algo_params, self._algorithm_input)
+        num_processes = self._parser.get_section_property(JSONSchema.PROBLEM, 'num_processes')
+        aqua_globals.num_processes = num_processes if num_processes is not None else aqua_globals.CPU_COUNT
         random_seed = self._parser.get_section_property(JSONSchema.PROBLEM, 'random_seed')
-        self._quantum_algorithm.random_seed = random_seed
-
+        aqua_globals.random_seed = random_seed
         if self._quantum_instance is not None:
             return
 
@@ -273,12 +271,10 @@ class QiskitAqua(object):
 
             backend_cfg['backend'] = backend
             backend_cfg['seed'] = random_seed
-            backend_cfg['skip_qobj_validation'] = self._parser.get_section_property(JSONSchema.PROBLEM, 'skip_qobj_validation')
-            use_caching = self._parser.get_section_property(JSONSchema.PROBLEM, 'circuit_caching')
-            if use_caching:
-                deepcopy_qobj = self._parser.get_section_property(JSONSchema.PROBLEM, 'skip_qobj_deepcopy')
-                cache_file = self._parser.get_section_property(JSONSchema.PROBLEM, 'circuit_cache_file')
-                backend_cfg['circuit_cache'] = CircuitCache(skip_qobj_deepcopy=deepcopy_qobj, cache_file=cache_file)
+            backend_cfg['skip_qobj_validation'] = self._parser.get_section_property(JSONSchema.PROBLEM, 'skip_qobj_validation', True)
+            backend_cfg['circuit_caching'] = self._parser.get_section_property(JSONSchema.PROBLEM, 'circuit_caching', True)
+            backend_cfg['skip_qobj_deepcopy'] = self._parser.get_section_property(JSONSchema.PROBLEM, 'skip_qobj_deepcopy', True)
+            backend_cfg['cache_file'] = self._parser.get_section_property(JSONSchema.PROBLEM, 'circuit_cache_file')
 
             self._quantum_instance = QuantumInstance(**backend_cfg)
 

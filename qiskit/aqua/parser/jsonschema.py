@@ -22,7 +22,7 @@ import copy
 import ast
 from collections import OrderedDict
 import logging
-from qiskit.aqua import AquaError
+from qiskit.aqua import AquaError, aqua_globals
 from qiskit.aqua import (local_pluggables_types,
                          PluggableType,
                          get_pluggable_configuration,
@@ -83,8 +83,9 @@ class JSONSchema(object):
         """Restores schema from original json schema"""
         self._schema = copy.deepcopy(self._original_schema)
 
-    def populate_problem_names(self):
-        """Populate enum list of problem names"""
+    def _initialize_problem_section(self):
+        """Initialize problem"""
+        self._schema['properties'][JSONSchema.PROBLEM]['properties']['num_processes']['maximum'] = aqua_globals.CPU_COUNT
         problems_dict = OrderedDict()
         for algo_name in local_pluggables(PluggableType.ALGORITHM):
             problems = JSONSchema.get_algorithm_problems(algo_name)

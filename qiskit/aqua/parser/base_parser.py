@@ -52,7 +52,7 @@ class BaseParser(ABC):
         self._filename = None
         self._sections = None
         self._json_schema = jsonSchema
-        self._json_schema.populate_problem_names()
+        self._json_schema._initialize_problem_section()
         self._json_schema.commit_changes()
 
     def _order_sections(self, sections):
