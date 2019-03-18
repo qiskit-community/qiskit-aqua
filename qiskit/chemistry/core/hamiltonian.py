@@ -52,7 +52,6 @@ class Hamiltonian(ChemistryOperator):
     KEY_TWO_QUBIT_REDUCTION = 'two_qubit_reduction'
     KEY_FREEZE_CORE = 'freeze_core'
     KEY_ORBITAL_REDUCTION = 'orbital_reduction'
-    KEY_MAX_WORKERS = 'max_workers'
 
     CONFIGURATION = {
         'name': 'hamiltonian',
@@ -97,11 +96,6 @@ class Hamiltonian(ChemistryOperator):
                     'items': {
                         'type': 'number'
                     }
-                },
-                KEY_MAX_WORKERS: {
-                    'type': 'integer',
-                    'default': 4,
-                    'minimum': 1
                 }
             },
             "additionalProperties": False
@@ -114,8 +108,7 @@ class Hamiltonian(ChemistryOperator):
                  qubit_mapping=QubitMappingType.PARITY,
                  two_qubit_reduction=True,
                  freeze_core=False,
-                 orbital_reduction=None,
-                 max_workers=4):
+                 orbital_reduction=None):
         """
         Initializer
         Args:
@@ -124,7 +117,6 @@ class Hamiltonian(ChemistryOperator):
             two_qubit_reduction (bool): Whether two qubit reduction should be used, when parity mapping only
             freeze_core (bool): Whether to freeze core orbitals when possible
             orbital_reduction (list): Orbital list to be frozen or removed
-            max_workers (int): Max workers processes for transformation
         """
         transformation = transformation.value
         qubit_mapping = qubit_mapping.value
@@ -136,7 +128,6 @@ class Hamiltonian(ChemistryOperator):
         self._two_qubit_reduction = two_qubit_reduction
         self._freeze_core = freeze_core
         self._orbital_reduction = orbital_reduction
-        self._max_workers = max_workers
 
         # Store values that are computed by the classical logic in order
         # that later they may be combined with the quantum result
@@ -241,13 +232,13 @@ class Hamiltonian(ChemistryOperator):
             logger.info("Particle hole energy shift: {}".format(self._ph_energy_shift))
         logger.debug('Converting to qubit using {} mapping'.format(self._qubit_mapping))
         qubit_op = Hamiltonian._map_fermionic_operator_to_qubit(fer_op, self._qubit_mapping, new_nel,
-                                                                self._two_qubit_reduction, self._max_workers)
+                                                                self._two_qubit_reduction)
         logger.debug('  num paulis: {}, num qubits: {}'.format(len(qubit_op.paulis), qubit_op.num_qubits))
         algo_input = EnergyInput(qubit_op)
 
         def _add_aux_op(aux_op):
             algo_input.add_aux_op(Hamiltonian._map_fermionic_operator_to_qubit(aux_op, self._qubit_mapping, new_nel,
-                                                                               self._two_qubit_reduction, self._max_workers))
+                                                                               self._two_qubit_reduction))
             logger.debug('  num paulis: {}'.format(len(algo_input.aux_ops[-1].paulis)))
 
         logger.debug('Creating aux op for Number of Particles')
@@ -270,7 +261,7 @@ class Hamiltonian(ChemistryOperator):
                     ph_shift_ = -ph_shift_
                     logger.info("Particle hole {} dipole shift: {}".format(axis, ph_shift_))
                 qubit_op_ = self._map_fermionic_operator_to_qubit(fer_op_, self._qubit_mapping, new_nel,
-                                                                  self._two_qubit_reduction, self._max_workers)
+                                                                  self._two_qubit_reduction)
                 logger.debug('  num paulis: {}'.format(len(qubit_op_.paulis)))
                 return qubit_op_, shift, ph_shift_
 
@@ -293,7 +284,7 @@ class Hamiltonian(ChemistryOperator):
                                 self._two_qubit_reduction if self._qubit_mapping == 'parity' else False)
 
         logger.debug('Processing complete ready to run algorithm')
-        return algo_input
+        return algo_input.qubit_op, algo_input.aux_ops
 
     # Called by public superclass method process_algorithm_result to complete specific processing
     def _process_algorithm_result(self, algo_result):
@@ -395,8 +386,8 @@ class Hamiltonian(ChemistryOperator):
         return fer_op, energy_shift, did_shift
 
     @staticmethod
-    def _map_fermionic_operator_to_qubit(fer_op, qubit_mapping, num_particles, two_qubit_reduction, max_workers):
-        qubit_op = fer_op.mapping(map_type=qubit_mapping, threshold=0.00000001, num_workers=max_workers)
+    def _map_fermionic_operator_to_qubit(fer_op, qubit_mapping, num_particles, two_qubit_reduction):
+        qubit_op = fer_op.mapping(map_type=qubit_mapping, threshold=0.00000001)
         if qubit_mapping == 'parity' and two_qubit_reduction:
             qubit_op = qubit_op.two_qubit_reduced_operator(num_particles)
         return qubit_op

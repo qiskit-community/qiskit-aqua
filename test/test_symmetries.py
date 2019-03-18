@@ -52,10 +52,8 @@ class TestSymmetries(QiskitChemistryTestCase):
                                 qubit_mapping=QubitMappingType.PARITY,
                                 two_qubit_reduction=True,
                                 freeze_core=True,
-                                orbital_reduction=[],
-                                max_workers=4)
-        algo_input = self.core.run(self.qmolecule)
-        self.qubit_op = algo_input.qubit_op
+                                orbital_reduction=[])
+        self.qubit_op, _ = self.core.run(self.qmolecule)
         self.symmetries, self.sq_paulis, self.cliffords, self.sq_list = self.qubit_op.find_Z2_symmetries()
 
         self.reference_energy = -7.882096489442

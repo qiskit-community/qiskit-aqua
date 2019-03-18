@@ -29,7 +29,6 @@ H2 molecule experiment
    two_qubit_reduction=True
    freeze_core=False
    orbital_reduction=[]
-   max_workers=4
 &end
 
 &algorithm

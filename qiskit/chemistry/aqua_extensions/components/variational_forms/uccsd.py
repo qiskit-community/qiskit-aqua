@@ -28,7 +28,7 @@ from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
 
-from qiskit.aqua import Operator
+from qiskit.aqua import Operator, aqua_globals
 from qiskit.aqua.components.variational_forms import VariationalForm
 from qiskit.chemistry.fermionic_operator import FermionicOperator
 
@@ -177,7 +177,8 @@ class UCCSD(VariationalForm):
         results = parallel_map(UCCSD._build_hopping_operator, self._single_excitations + self._double_excitations,
                                task_args=(self._num_orbitals, self._num_particles,
                                           self._qubit_mapping, self._two_qubit_reduction, self._qubit_tapering,
-                                          self._symmetries, self._cliffords, self._sq_list, self._tapering_values))
+                                          self._symmetries, self._cliffords, self._sq_list, self._tapering_values),
+                               num_processes=aqua_globals.num_processes)
         hopping_ops = [qubit_op for qubit_op in results if qubit_op is not None]
         num_parameters = len(hopping_ops) * self._depth
         return hopping_ops, num_parameters
@@ -261,7 +262,8 @@ class UCCSD(VariationalForm):
         results = parallel_map(UCCSD._construct_circuit_for_one_excited_operator,
                                [(self._hopping_ops[index % num_excitations], parameters[index])
                                 for index in range(self._depth * num_excitations)],
-                               task_args=(q, self._num_time_slices))
+                               task_args=(q, self._num_time_slices),
+                               num_processes=aqua_globals.num_processes)
         for qc in results:
             if self._shallow_circuit_concat:
                 circuit.data += qc.data

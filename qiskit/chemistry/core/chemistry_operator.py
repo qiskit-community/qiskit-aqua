@@ -96,7 +96,7 @@ class ChemistryOperator(ABC):
             qmolecule: QMolecule from a chemistry driver
 
         Returns:
-            Algorithm input class instance
+            Tuple: (qubit_op, aux_ops)
         """
         raise NotImplementedError
 

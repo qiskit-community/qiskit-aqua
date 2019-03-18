@@ -38,10 +38,9 @@ class TestEnd2End(QiskitChemistryTestCase):
                            qubit_mapping=QubitMappingType.PARITY,
                            two_qubit_reduction=True,
                            freeze_core=False,
-                           orbital_reduction=[],
-                           max_workers=4)
+                           orbital_reduction=[])
 
-        self.algo_input = core.run(self.qmolecule)
+        self.qubit_op, self.aux_ops = core.run(self.qmolecule)
         self.reference_energy = -1.857275027031588
 
     @parameterized.expand([
@@ -58,8 +57,8 @@ class TestEnd2End(QiskitChemistryTestCase):
         elif optimizer == 'SPSA':
             optimizer = SPSA(max_trials=2000)
 
-        ryrz = RYRZ(self.algo_input.qubit_op.num_qubits, depth=3, entanglement='full')
-        vqe = VQE(self.algo_input.qubit_op, ryrz, optimizer, mode, aux_operators=self.algo_input.aux_ops)
+        ryrz = RYRZ(self.qubit_op.num_qubits, depth=3, entanglement='full')
+        vqe = VQE(self.qubit_op, ryrz, optimizer, mode, aux_operators=self.aux_ops)
         quantum_instance = QuantumInstance(backend, shots=shots)
         results = vqe.run(quantum_instance)
         self.assertAlmostEqual(results['energy'], self.reference_energy, places=4)
