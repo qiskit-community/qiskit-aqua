@@ -90,7 +90,9 @@ class QAOA(VQE):
             operator_mode (str): operator mode, used for eval of operator
             p (int): the integer parameter p as specified in https://arxiv.org/abs/1411.4028
             initial_state (InitialState): the initial state to prepend the QAOA circuit with
-            mixer (Operator): the mixer Hamiltonian to evolve with
+            mixer (Operator): the mixer Hamiltonian to evolve with. Allows support
+                              of optimizations in constrained subspaces as
+                              specified in https://arxiv.org/abs/1709.03489
             optimizer (Optimizer): the classical optimization algorithm.
             initial_point (numpy.ndarray): optimizer initial point.
             callback (Callable): a callback that can access the intermediate data during the optimization.
