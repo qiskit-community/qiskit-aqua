@@ -270,11 +270,23 @@ class QiskitAqua(object):
                 backend_cfg['pass_manager'] = pass_manager
 
             backend_cfg['backend'] = backend
-            backend_cfg['seed'] = random_seed
-            backend_cfg['skip_qobj_validation'] = self._parser.get_section_property(JSONSchema.PROBLEM, 'skip_qobj_validation', True)
-            backend_cfg['circuit_caching'] = self._parser.get_section_property(JSONSchema.PROBLEM, 'circuit_caching', True)
-            backend_cfg['skip_qobj_deepcopy'] = self._parser.get_section_property(JSONSchema.PROBLEM, 'skip_qobj_deepcopy', True)
-            backend_cfg['cache_file'] = self._parser.get_section_property(JSONSchema.PROBLEM, 'circuit_cache_file')
+            if random_seed is not None:
+                backend_cfg['seed'] = random_seed
+            skip_qobj_validation = self._parser.get_section_property(JSONSchema.PROBLEM, 'skip_qobj_validation')
+            if skip_qobj_validation is not None:
+                backend_cfg['skip_qobj_validation'] = skip_qobj_validation
+
+            circuit_caching = self._parser.get_section_property(JSONSchema.PROBLEM, 'circuit_caching')
+            if circuit_caching is not None:
+                backend_cfg['circuit_caching'] = circuit_caching
+
+            skip_qobj_deepcopy = self._parser.get_section_property(JSONSchema.PROBLEM, 'skip_qobj_deepcopy')
+            if skip_qobj_deepcopy is not None:
+                backend_cfg['skip_qobj_deepcopy'] = skip_qobj_deepcopy
+
+            cache_file = self._parser.get_section_property(JSONSchema.PROBLEM, 'circuit_cache_file')
+            if cache_file is not None:
+                backend_cfg['cache_file'] = cache_file
 
             self._quantum_instance = QuantumInstance(**backend_cfg)
 
