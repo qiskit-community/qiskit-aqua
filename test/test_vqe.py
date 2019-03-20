@@ -57,7 +57,6 @@ class TestVQE(QiskitAquaTestCase):
             'problem': {'circuit_caching': False},
             'backend': {'name': 'statevector_simulator',
                         'provider': 'qiskit.BasicAer',
-                        'shots': 1,
                         'coupling_map': coupling_map,
                         'basis_gates': basis_gates},
         }

@@ -406,14 +406,6 @@ class BaseParser(ABC):
         if not key_value_changed:
             return False
 
-        # remove properties that are not valid for this section
-        default_properties = self.get_section_default_properties(section_name)
-        if isinstance(default_properties, dict):
-            properties = self.get_section_properties(section_name)
-            for p_name in list(properties.keys()):
-                if p_name != JSONSchema.NAME and p_name not in default_properties:
-                    self.delete_section_property(section_name, p_name)
-
         self._sections = self._order_sections(self._sections)
         return True
 

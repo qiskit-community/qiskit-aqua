@@ -44,8 +44,10 @@ class TestCaching(QiskitAquaTestCase):
                             'skip_qobj_validation': False,
                             'circuit_cache_file': None,
                             },
-                'backend': {'provider': 'qiskit.BasicAer', 'name': backend, 'shots': 1000},
+                'backend': {'provider': 'qiskit.BasicAer', 'name': backend},
             }
+            if backend != 'statevector_simulator':
+                params_no_caching['backend']['shots'] = 1000
             qiskit_aqua = QiskitAqua(params_no_caching, self.algo_input)
             res[backend] = qiskit_aqua.run()
         self.reference_vqe_result = res
@@ -67,8 +69,10 @@ class TestCaching(QiskitAquaTestCase):
                         'skip_qobj_validation': skip_validation,
                         'circuit_cache_file': None,
                         },
-            'backend': {'provider': 'qiskit.BasicAer', 'name': backend, 'shots': 1000},
+            'backend': {'provider': 'qiskit.BasicAer', 'name': backend},
         }
+        if backend != 'statevector_simulator':
+            params_caching['backend']['shots'] = 1000
         qiskit_aqua = QiskitAqua(params_caching, self.algo_input)
         result_caching = qiskit_aqua.run()
 
