@@ -44,12 +44,12 @@ for p in range(num_node):
     mdl.add_constraint(mdl.sum(x[(i,p)] for i in range(num_node)) == 1)
 
 # Call the method to convert the model into Ising Hamiltonian.
-qubitOp, offset = get_docplex_qubitops(mdl)
+qubitOp, offset = get_qubitops(mdl)
 
 # Calculate with the generated Ising Hamiltonian.
 ee = ExactEigensolver(qubitOp, k=1)
 result = ee.run()
-print('get_docplex_qubitops')
+print('get_qubitops')
 print('tsp objective:', result['energy'] + offset)
 ---
 """
@@ -57,15 +57,16 @@ print('tsp objective:', result['energy'] + offset)
 import logging
 from collections import OrderedDict
 
+from docplex.mp.advmodel import AdvModel
 import numpy as np
 
 from qiskit.quantum_info import Pauli
-from qiskit.aqua import Operator
+from qiskit.aqua import Operator, AquaError
 
 logger = logging.getLogger(__name__)
 
 
-def get_docplex_qubitops(mdl, penalty=1e5):
+def get_qubitops(mdl, penalty=1e5):
     """ Generate Ising Hamiltonian from a model of DOcplex.
 
     Args:
@@ -77,6 +78,8 @@ def get_docplex_qubitops(mdl, penalty=1e5):
         constant shift for the obj function.
 
     """
+    if not isinstance(mdl, AdvModel):
+        raise AquaError('An input model must be docplex.mp.advmodel.AdvModel.')
 
     # set a sign corresponding to a maximized or minimized problem.
     # sign == 1 is for minimized problem. sign == -1 is for maximized problem.
@@ -104,43 +107,43 @@ def get_docplex_qubitops(mdl, penalty=1e5):
     for j in l_itr:
         zp = np.zeros(num_nodes, dtype=np.bool)
         index = qd[j[0]]
-        weight = j[1] * sign
+        weight = j[1] * sign / 2
         zp[index] = True
 
-        pauli_list.append([-0.5 * weight, Pauli(zp, zero)])
-        shift += 0.5 * weight
+        pauli_list.append([-weight, Pauli(zp, zero)])
+        shift += weight
 
     # convert quadratic parts of the object function into Hamiltonian.
     q_itr = mdl.get_objective_expr().iter_quads()
     for i in q_itr:
         index1 = qd[i[0][0]]
         index2 = qd[i[0][1]]
-        weight = i[1] * sign
+        weight = i[1] * sign / 4
 
         zp = np.zeros(num_nodes, dtype=np.bool)
         zp[index1] = True
         zp[index2] = True
-        pauli_list.append([weight / 4, Pauli(zp, zero)])
+        pauli_list.append([weight, Pauli(zp, zero)])
 
         zp = np.zeros(num_nodes, dtype=np.bool)
         zp[index1] = True
-        pauli_list.append([-weight / 4, Pauli(zp, zero)])
+        pauli_list.append([-weight, Pauli(zp, zero)])
 
         zp = np.zeros(num_nodes, dtype=np.bool)
         zp[index2] = True
-        pauli_list.append([-weight / 4, Pauli(zp, zero)])
+        pauli_list.append([-weight, Pauli(zp, zero)])
 
-        shift += weight / 4
+        shift += weight
 
     # convert constraints into penalty terms.
-    for const in mdl.iter_constraints():
-        c = const.right_expr.get_constant()
+    for constraint in mdl.iter_constraints():
+        constant = constraint.right_expr.get_constant()
 
         # constant parts of penalty*(Constant-func)**2: penalty*(Constant**2)
-        shift += penalty * c ** 2
+        shift += penalty * constant ** 2
 
         # linear parts of penalty*(Constant-func)**2: penalty*(-2*Constant*func)
-        for l in const.left_expr.iter_terms():
+        for l in constraint.left_expr.iter_terms():
             zp = np.zeros(num_nodes, dtype=np.bool)
             index = qd[l[0]]
             weight = l[1]
@@ -150,33 +153,34 @@ def get_docplex_qubitops(mdl, penalty=1e5):
             shift += -penalty * weight
 
         # quadratic parts of penalty*(Constant-func)**2: penalty*(func**2)
-        for l in const.left_expr.iter_terms():
-            for l2 in const.left_expr.iter_terms():
+        for l in constraint.left_expr.iter_terms():
+            for l2 in constraint.left_expr.iter_terms():
                 index1 = qd[l[0]]
                 index2 = qd[l2[0]]
                 weight1 = l[1]
                 weight2 = l2[1]
+                penalty_weight1_weight2 = penalty * weight1 * weight2 / 4
 
                 if index1 == index2:
-                    shift += penalty * weight1 * weight2 / 4
+                    shift += penalty_weight1_weight2
                 else:
                     zp = np.zeros(num_nodes, dtype=np.bool)
                     zp[index1] = True
                     zp[index2] = True
-                    pauli_list.append([penalty * weight1 * weight2 / 4, Pauli(zp, zero)])
+                    pauli_list.append([penalty_weight1_weight2, Pauli(zp, zero)])
 
                 zp = np.zeros(num_nodes, dtype=np.bool)
                 zp[index1] = True
-                pauli_list.append([-penalty * weight1 * weight2 / 4, Pauli(zp, zero)])
+                pauli_list.append([-penalty_weight1_weight2, Pauli(zp, zero)])
 
                 zp = np.zeros(num_nodes, dtype=np.bool)
                 zp[index2] = True
-                pauli_list.append([-penalty * weight1 * weight2 / 4, Pauli(zp, zero)])
+                pauli_list.append([-penalty_weight1_weight2, Pauli(zp, zero)])
 
-                shift += penalty * weight1 * weight2 / 4
+                shift += penalty_weight1_weight2
 
     # Remove paulis whose coefficients are zeros.
-    qubitOp=Operator(paulis=pauli_list)
+    qubitOp = Operator(paulis=pauli_list)
     qubitOp.zeros_coeff_elimination()
 
     return qubitOp, shift

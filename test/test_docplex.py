@@ -46,7 +46,7 @@ class TestDocplex(QiskitAquaTestCase):
                 if temp != 0:
                     w[i, j] = temp['weight']
 
-        # Create an Ising Hamiltonian with an exsiting translator of Qiskit Aqua
+        # Create an Ising Hamiltonian with an existing translator of Qiskit Aqua
         expected_qubitOp, expected_offset = maxcut.get_maxcut_qubitops(w)
 
         # Create an Ising Hamiltonian with docplex.
@@ -54,7 +54,7 @@ class TestDocplex(QiskitAquaTestCase):
         mdl.node_vars = mdl.binary_var_list(list(range(4)), name='node')
         maxcut_func = mdl.sum(w[i, j] * mdl.node_vars[i] * (1 - mdl.node_vars[j]) for i in range(n) for j in range(n))
         mdl.maximize(maxcut_func)
-        qubitOp, offset = docplex.get_docplex_qubitops(mdl)
+        qubitOp, offset = docplex.get_qubitops(mdl)
 
         self.assertEqual(qubitOp, expected_qubitOp)
         self.assertEqual(offset, expected_offset)
@@ -67,7 +67,7 @@ class TestDocplex(QiskitAquaTestCase):
         G.add_nodes_from(np.arange(0, n, 1))
         num_node = ins.dim
 
-        # Create an Ising Hamiltonian with an exsiting translator of Qiskit Aqua
+        # Create an Ising Hamiltonian with an existing translator of Qiskit Aqua
         expected_qubitOp, expected_offset = tsp.get_tsp_qubitops(ins)
 
         # Create an Ising Hamiltonian with docplex.
@@ -82,7 +82,7 @@ class TestDocplex(QiskitAquaTestCase):
             mdl.add_constraint(mdl.sum(x[(i, p)] for p in range(num_node)) == 1)
         for p in range(num_node):
             mdl.add_constraint(mdl.sum(x[(i, p)] for i in range(num_node)) == 1)
-        qubitOp, offset = docplex.get_docplex_qubitops(mdl)
+        qubitOp, offset = docplex.get_qubitops(mdl)
 
         self.assertEqual(qubitOp, expected_qubitOp)
         self.assertEqual(offset, expected_offset)
