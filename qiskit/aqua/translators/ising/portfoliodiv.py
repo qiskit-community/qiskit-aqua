@@ -21,7 +21,7 @@ from collections import OrderedDict
 
 import numpy as np
 from qiskit.quantum_info import Pauli
-from qiskit_aqua import Operator
+from qiskit.aqua import Operator
 
 
 def get_portfoliodiversification_qubitops(rho,n,q,max_trials=1000):
