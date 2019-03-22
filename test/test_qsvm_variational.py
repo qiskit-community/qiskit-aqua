@@ -74,6 +74,22 @@ class TestQSVMVariational(QiskitAquaTestCase):
         # self.assertEqual(result['testing_accuracy'], 1.0)
         self.assertEqual(result['testing_accuracy'], 0.5)
 
+    def test_qsvm_variational_statevector_via_run_algorithm(self):
+        np.random.seed(self.random_seed)
+        params = {
+            'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
+            'algorithm': {'name': 'QSVM.Variational'},
+            'backend': {'provider': 'qiskit.BasicAer', 'name': 'statevector_simulator'},
+            'optimizer': {'name': 'COBYLA'},
+            'variational_form': {'name': 'RYRZ', 'depth': 3},
+            'feature_map': {'name': 'SecondOrderExpansion', 'depth': 2}
+        }
+        result = run_algorithm(params, self.svm_input)
+        ref_train_loss = 0.10586864
+        np.testing.assert_array_almost_equal(result['training_loss'], ref_train_loss, decimal=8)
+
+        self.assertEqual(result['testing_accuracy'], 0.5)
+
     def test_qsvm_variational_with_minibatching(self):
         np.random.seed(self.random_seed)
         params = {

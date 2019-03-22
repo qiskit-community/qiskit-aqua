@@ -17,6 +17,7 @@
 
 import logging
 
+import math
 import numpy as np
 from sklearn.utils import shuffle
 
@@ -215,9 +216,9 @@ class QSVMVariational(VQAlgorithm):
             numpy.ndarray or [numpy.ndarray]: list of NxK array
             numpy.ndarray or [numpy.ndarray]: list of Nx1 array
         """
-        if self._quantum_instance.is_statevector:
-            raise ValueError('Selected backend "{}" is not supported.'.format(
-                self._quantum_instance.backend_name))
+        # if self._quantum_instance.is_statevector:
+        #     raise ValueError('Selected backend "{}" is not supported.'.format(
+        #         self._quantum_instance.backend_name))
 
         circuits = {}
         circuit_id = 0
@@ -227,7 +228,11 @@ class QSVMVariational(VQAlgorithm):
 
         for theta in theta_sets:
             for datum in data:
-                circuit = self.construct_circuit(datum, theta, measurement=True)
+                if self._quantum_instance.is_statevector:
+                    circuit = self.construct_circuit(datum, theta, measurement=False)
+                else:
+                    circuit = self.construct_circuit(datum, theta, measurement=True)
+
                 circuits[circuit_id] = circuit
                 circuit_id += 1
 
@@ -239,8 +244,22 @@ class QSVMVariational(VQAlgorithm):
         for theta in theta_sets:
             counts = []
             for datum in data:
-                counts.append(results.get_counts(circuits[circuit_id]))
+                if self._quantum_instance.is_statevector:
+                    temp = results.get_statevector(circuits[circuit_id])
+                    outcome_vector = (temp * temp.conj()).real
+                    # convert outcome_vector to outcome_dict, where key is a basis state and value is the count.
+                    # Note: the count can be scaled linearly, i.e., it does not have to be an integer.
+                    outcome_dict = {}
+                    bitstringsize = int(math.log2(len(outcome_vector)))
+                    for i in range(len(outcome_vector)):
+                        bitstr_i = format(i, '0' + str(bitstringsize) +'b')
+                        outcome_dict[bitstr_i] = outcome_vector[i]
+                else:
+                    outcome_dict = results.get_counts(circuits[circuit_id])
+
+                counts.append(outcome_dict)
                 circuit_id += 1
+
             probs = return_probabilities(counts, self._num_classes)
             predicted_probs.append(probs)
             predicted_labels.append(np.argmax(probs, axis=1))
