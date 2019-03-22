@@ -229,7 +229,9 @@ def validate_input_model(mdl):
 
 
 def auto_define_penalty(mdl):
-    """ Automatically define the penalty coefficient. This returns the upper bound of the object function + 1.
+    """ Automatically define the penalty coefficient.
+    This returns object function's upper bound - the lower bound + 1.
+
 
     Args:
         mdl (docplex.mp.model.Model): A model of DOcplex for a optimization problem.
@@ -261,13 +263,18 @@ def auto_define_penalty(mdl):
     if mdl.is_maximized():
         sign = -1
 
-    penalty = 1
+    upper_bound = 0
+    lower_bound = 0
 
-    # Add max(sign * coefficients of the objective function,0) to penalty
+    # calculate upper bound and lower bound of the objective function.
     for i in mdl.get_objective_expr().iter_terms():
-        penalty += max(sign * i[1], 0)
+        upper_bound += max(sign * i[1], 0)
+        lower_bound += min(sign * i[1], 0)
     for i in mdl.get_objective_expr().iter_quads():
-        penalty += max(sign * i[1], 0)
+        upper_bound += max(sign * i[1], 0)
+        lower_bound += min(sign * i[1], 0)
+
+    penalty = upper_bound - lower_bound + 1
 
     return penalty
 
