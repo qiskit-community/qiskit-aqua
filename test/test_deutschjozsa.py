@@ -17,9 +17,9 @@
 
 import unittest
 import itertools
-
 from parameterized import parameterized
 from qiskit import BasicAer
+from qiskit.aqua import QuantumInstance
 from qiskit.aqua.components.oracles import TruthTableOracle
 from qiskit.aqua.algorithms import DeutschJozsa
 from test.common import QiskitAquaTestCase
@@ -37,7 +37,8 @@ class TestDeutschJozsa(QiskitAquaTestCase):
         backend = BasicAer.get_backend('qasm_simulator')
         oracle = TruthTableOracle(dj_input, optimization=optimization, mct_mode=mct_mode)
         algorithm = DeutschJozsa(oracle)
-        result = algorithm.run(backend)
+        quantum_instance = QuantumInstance(backend, circuit_caching=False)
+        result = algorithm.run(quantum_instance=quantum_instance)
         # print(result['circuit'].draw(line_length=10000))
         if sum([int(i) for i in dj_input]) == len(dj_input) / 2:
             self.assertTrue(result['result'] == 'balanced')
