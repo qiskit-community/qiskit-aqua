@@ -17,6 +17,7 @@
 """Algorithm discovery methods, Error and Base classes"""
 
 from .aqua_error import AquaError
+from .qiskit_aqua_globals import aqua_globals
 from .preferences import Preferences
 from ._discover import (PLUGGABLES_ENTRY_POINT,
                         PluggableType,
@@ -82,6 +83,7 @@ __all__ = ['AquaError',
            'get_pluggable_configuration',
            'register_pluggable',
            'deregister_pluggable',
+           'aqua_globals',
            'QiskitAqua',
            'execute_algorithm',
            'run_algorithm',

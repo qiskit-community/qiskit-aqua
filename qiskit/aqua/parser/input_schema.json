@@ -14,13 +14,18 @@
                     "type": ["integer", "null"],
                     "default": null
                 },
+                "num_processes": {
+                    "type": ["integer", "null"],
+                    "default": null,
+                    "minimum": 1
+                },
                 "circuit_caching": {
                     "type": "boolean",
-                    "default": false
+                    "default": true
                 },
                 "skip_qobj_deepcopy": {
                     "type": "boolean",
-                    "default": false
+                    "default": true
                 },
                 "circuit_cache_file": {
                     "type": ["string", "null"],
@@ -28,7 +33,7 @@
                 },
                 "skip_qobj_validation": {
                     "type": "boolean",
-                    "default": false
+                    "default": true
                 }
             },
             "required": ["name"],

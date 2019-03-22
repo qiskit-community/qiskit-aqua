@@ -44,7 +44,7 @@ class Simon(QuantumAlgorithm):
         'depends': [
             {'pluggable_type': 'oracle',
              'default': {
-                     'name': 'simon',
+                     'name': 'TruthTableOracle',
                 },
              },
         ],
