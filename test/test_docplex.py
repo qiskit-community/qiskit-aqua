@@ -22,7 +22,7 @@ import networkx as nx
 from test.common import QiskitAquaTestCase
 
 from qiskit.aqua.translators.ising import maxcut, tsp, docplex
-
+from qiskit.aqua.algorithms import ExactEigensolver
 
 class TestDocplex(QiskitAquaTestCase):
     """Cplex Ising tests."""
@@ -56,8 +56,14 @@ class TestDocplex(QiskitAquaTestCase):
         mdl.maximize(maxcut_func)
         qubitOp, offset = docplex.get_qubitops(mdl)
 
-        self.assertEqual(qubitOp, expected_qubitOp)
-        self.assertEqual(offset, expected_offset)
+        ee = ExactEigensolver(qubitOp, k=1)
+        result = ee.run()
+
+        ee_expected = ExactEigensolver(expected_qubitOp, k=1)
+        expected_result = ee_expected.run()
+
+        # Compare objective
+        self.assertEqual(result['energy'] + offset, expected_result['energy'] + expected_offset)
 
     def test_docplex_tsp(self):
         # Generating a graph of 3 nodes
@@ -84,5 +90,11 @@ class TestDocplex(QiskitAquaTestCase):
             mdl.add_constraint(mdl.sum(x[(i, p)] for i in range(num_node)) == 1)
         qubitOp, offset = docplex.get_qubitops(mdl)
 
-        self.assertEqual(qubitOp, expected_qubitOp)
-        self.assertEqual(offset, expected_offset)
+        ee = ExactEigensolver(qubitOp, k=1)
+        result = ee.run()
+
+        ee_expected = ExactEigensolver(expected_qubitOp, k=1)
+        expected_result = ee_expected.run()
+
+        # Compare objective
+        self.assertEqual(result['energy'] + offset, expected_result['energy'] + expected_offset)

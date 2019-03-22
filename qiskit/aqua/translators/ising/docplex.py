@@ -57,7 +57,8 @@ print('tsp objective:', result['energy'] + offset)
 import logging
 from collections import OrderedDict
 
-from docplex.mp.advmodel import AdvModel
+from docplex.mp.model import Model
+from docplex.mp.constants import ComparisonType
 import numpy as np
 
 from qiskit.quantum_info import Pauli
@@ -66,20 +67,29 @@ from qiskit.aqua import Operator, AquaError
 logger = logging.getLogger(__name__)
 
 
-def get_qubitops(mdl, penalty=1e5):
+def get_qubitops(mdl, auto_penalty=True, default_penalty=1e5):
     """ Generate Ising Hamiltonian from a model of DOcplex.
 
     Args:
-        mdl (docplex.mp.advmodel.AdvModel): A model of DOcplex for a optimization problem.
-        penalty (float) : Penalty coefficient for the constraints
+        mdl (docplex.mp.model.Model): A model of DOcplex for a optimization problem.
+        auto_penalty (bool): If true, the penalty coefficient is automatically defined by "auto_define_penalty()".
+        default_penalty (float): The default value of the penalty coefficient for the constraints.
+            This value is used if "auto_penalty" is False.
 
     Returns:
         operator.Operator, float: operator for the Hamiltonian and a
         constant shift for the obj function.
-
     """
-    if not isinstance(mdl, AdvModel):
-        raise AquaError('An input model must be docplex.mp.advmodel.AdvModel.')
+
+    # validate the input model
+    if not validate_input_model(mdl):
+        raise AquaError('The input model has unsupported elements.')
+
+    # set the penalty coefficient by auto_define_penalty() or manually.
+    if auto_penalty:
+        penalty = auto_define_penalty(mdl)
+    else:
+        penalty = default_penalty
 
     # set a sign corresponding to a maximized or minimized problem.
     # sign == 1 is for minimized problem. sign == -1 is for maximized problem.
@@ -184,6 +194,82 @@ def get_qubitops(mdl, penalty=1e5):
     qubitOp.zeros_coeff_elimination()
 
     return qubitOp, shift
+
+
+def validate_input_model(mdl):
+    """ Return True if an input model is valid.
+    See the beginning part of this file for more details of supported input models.
+
+    Args:
+         mdl (docplex.mp.model.Model): A model of DOcplex for a optimization problem.
+
+    Returns:
+        bool: True is a valid input model
+    """
+    validation_flag = True
+
+    # validate an object type of the input.
+    if not isinstance(mdl, Model):
+        raise AquaError('An input model must be docplex.mp.advmodel.AdvModel.')
+
+    # raise an error if the type of the variable is not a binary type.
+    for var in mdl.iter_variables():
+        if not var.is_binary():
+            logger.warning(
+                'The type of Variable {} is {}. It must be a binary variable. '.format(var, var.vartype.short_name))
+            validation_flag = False
+
+    # raise an error if the constraint type is not an equality constraint.
+    for constraint in mdl.iter_constraints():
+        if not constraint.sense == ComparisonType.EQ:
+            logger.warning('Constraint {} is not an equality constraint.'.format(constraint))
+            validation_flag = False
+
+    return validation_flag
+
+
+def auto_define_penalty(mdl):
+    """ Automatically define the penalty coefficient. This returns the upper bound of the object function + 1.
+
+    Args:
+        mdl (docplex.mp.model.Model): A model of DOcplex for a optimization problem.
+
+    Returns:
+        int: The penalty coefficient for the Hamiltonian.
+    """
+
+    # if a constraint has float coefficient, return 1e5 for the penalty coefficient.
+    float_flag = False
+    for constraint in mdl.iter_constraints():
+        constant = constraint.right_expr.get_constant()
+        if not isinstance(constant, int):
+            if not constant.is_integer():
+                float_flag = True
+
+        for term in constraint.left_expr.iter_terms():
+            if not isinstance(term[1], int):
+                if not term[1].is_integer():
+                    float_flag = True
+    if float_flag:
+        logger.warning('Using 1e5 for the penalty coefficient because a float coefficient exists in constraints. \n'
+                       'The value could be too small. If so, set the penalty coefficient manually.')
+        return 1e5
+
+    # set a sign corresponding to a maximized or minimized problem.
+    # sign == 1 is for minimized problem. sign == -1 is for maximized problem.
+    sign = 1
+    if mdl.is_maximized():
+        sign = -1
+
+    penalty = 1
+
+    # Add max(sign * coefficients of the objective function,0) to penalty
+    for i in mdl.get_objective_expr().iter_terms():
+        penalty += max(sign * i[1], 0)
+    for i in mdl.get_objective_expr().iter_quads():
+        penalty += max(sign * i[1], 0)
+
+    return penalty
 
 
 def sample_most_likely(state_vector):
