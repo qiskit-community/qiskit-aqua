@@ -54,7 +54,7 @@ class TestGrover(QiskitAquaTestCase):
             oracle = oracle_cls(input, optimization='qm-dlx' if oracle_cls == TTO else 'espresso')
         grover = Grover(oracle, incremental=True, mct_mode=mct_mode)
         backend = BasicAer.get_backend(simulator)
-        quantum_instance = QuantumInstance(backend, shots=1000)
+        quantum_instance = QuantumInstance(backend, shots=1000, circuit_caching=False)
 
         ret = grover.run(quantum_instance)
 

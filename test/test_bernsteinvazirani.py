@@ -18,9 +18,9 @@
 import unittest
 import itertools
 import math
-
 from parameterized import parameterized
 from qiskit import BasicAer
+from qiskit.aqua import QuantumInstance
 from qiskit.aqua.components.oracles import TruthTableOracle
 from qiskit.aqua.algorithms import BernsteinVazirani
 from test.common import QiskitAquaTestCase
@@ -45,7 +45,8 @@ class TestBernsteinVazirani(QiskitAquaTestCase):
         backend = BasicAer.get_backend('qasm_simulator')
         oracle = TruthTableOracle(bv_input, optimization=optimization, mct_mode=mct_mode)
         algorithm = BernsteinVazirani(oracle)
-        result = algorithm.run(backend)
+        quantum_instance = QuantumInstance(backend, circuit_caching=False)
+        result = algorithm.run(quantum_instance=quantum_instance)
         # print(result['circuit'].draw(line_length=10000))
         self.assertEqual(result['result'], parameter)
 
