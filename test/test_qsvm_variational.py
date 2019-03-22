@@ -85,7 +85,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
             'feature_map': {'name': 'SecondOrderExpansion', 'depth': 2}
         }
         result = run_algorithm(params, self.svm_input)
-        ref_train_loss = 0.10594041868063123
+        ref_train_loss = 0.10586864
         np.testing.assert_array_almost_equal(result['training_loss'], ref_train_loss, decimal=8)
 
         self.assertEqual(result['testing_accuracy'], 0.5)
