@@ -19,8 +19,8 @@ import math
 import itertools
 import numpy as np
 import unittest
-
 from parameterized import parameterized
+from qiskit.aqua import QuantumInstance
 from qiskit.aqua.components.oracles import TruthTableOracle
 from qiskit.aqua.algorithms import Simon
 from qiskit import BasicAer
@@ -57,7 +57,8 @@ class TestSimon(QiskitAquaTestCase):
         backend = BasicAer.get_backend('qasm_simulator')
         oracle = TruthTableOracle(simon_input, optimization=optimization, mct_mode=mct_mode)
         algorithm = Simon(oracle)
-        result = algorithm.run(backend)
+        quantum_instance = QuantumInstance(backend, circuit_caching=False)
+        result = algorithm.run(quantum_instance=quantum_instance)
         # print(result['circuit'].draw(line_length=10000))
         self.assertEqual(result['result'], hidden)
 
