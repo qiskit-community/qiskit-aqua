@@ -24,7 +24,7 @@ from qiskit.quantum_info import Pauli
 from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
 
-from qiskit.aqua import Operator
+from qiskit.aqua import Operator, aqua_globals
 from .qiskit_chemistry_error import QiskitChemistryError
 from .bksf import bksf_mapping
 from .particle_hole import particle_hole_transformation
@@ -302,7 +302,7 @@ class FermionicOperator(object):
                       update_pauli[j] * y_j * remainder_pauli[j]))
         return a
 
-    def mapping(self, map_type, threshold=0.00000001, num_workers=4):
+    def mapping(self, map_type, threshold=0.00000001):
         """Map fermionic operator to qubit operator.
 
         Using multiprocess to speedup the mapping, the improvement can be
@@ -312,7 +312,6 @@ class FermionicOperator(object):
             map_type (str): case-insensitive mapping type.
                             "jordan_wigner", "parity", "bravyi_kitaev", "bksf"
             threshold (float): threshold for Pauli simplification
-            num_workers (int): number of processes used to map.
 
         Returns:
             Operator: create an Operator object in Paulis form.
@@ -352,7 +351,7 @@ class FermionicOperator(object):
         results = parallel_map(FermionicOperator._one_body_mapping,
                                [(self._h1[i, j], a[i], a[j])
                                 for i, j in itertools.product(range(n), repeat=2) if self._h1[i, j] != 0],
-                               task_args=(threshold,), num_processes=num_workers)
+                               task_args=(threshold,), num_processes=aqua_globals.num_processes)
         for result in results:
             pauli_list += result
         pauli_list.chop(threshold=threshold)
@@ -363,7 +362,7 @@ class FermionicOperator(object):
         results = parallel_map(FermionicOperator._two_body_mapping,
                                [(self._h2[i, j, k, m], a[i], a[j], a[k], a[m])
                                 for i, j, k, m in itertools.product(range(n), repeat=4) if self._h2[i, j, k, m] != 0],
-                               task_args=(threshold,), num_processes=num_workers)
+                               task_args=(threshold,), num_processes=aqua_globals.num_processes)
         for result in results:
             pauli_list += result
         pauli_list.chop(threshold=threshold)

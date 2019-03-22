@@ -118,12 +118,6 @@ The following parameters may be set:
 
   With parity mapping the operator can be reduced by two qubits 
 
-* `max_workers`=*integer, default 4*
-
-  Processing of the hamiltonian from fermionic to qubit can take advantage of multiple cpu cores to run parallel
-  processes to carry out the transformation. The number of such worker processes used will not exceed the
-  actual number of cup cores or this max_workers number, whichever is the smaller.
-
 * `freeze_core`=true | **false**
 
   Whether to freeze core orbitals in the computation or not. Frozen core orbitals are removed from the

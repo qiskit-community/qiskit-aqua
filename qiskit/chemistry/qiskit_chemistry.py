@@ -18,6 +18,7 @@
 from .qiskit_chemistry_error import QiskitChemistryError
 from qiskit.chemistry.drivers import local_drivers, get_driver_class
 from qiskit.aqua import QiskitAqua, get_provider_from_backend
+from qiskit.aqua.input import EnergyInput
 from qiskit.chemistry.parser import InputParser
 from qiskit.aqua.parser import JSONSchema
 import json
@@ -218,7 +219,8 @@ class QiskitChemistry(object):
         # Run the Hamiltonian to process the QMolecule and get an input for algorithms
         clazz = get_chemistry_operator_class(self._parser.get_section_property(InputParser.OPERATOR, JSONSchema.NAME))
         self._operator = clazz.init_params(self._parser.get_section_properties(InputParser.OPERATOR))
-        input_object = self.operator.run(molecule)
+        qubit_op, aux_ops = self.operator.run(molecule)
+        input_object = EnergyInput(qubit_op, aux_ops)
 
         logger.debug('Core computed substitution variables {}'.format(self.operator.molecule_info))
         result = self._parser.process_substitutions(self.operator.molecule_info)
