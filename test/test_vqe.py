@@ -63,9 +63,10 @@ class TestVQE(QiskitAquaTestCase):
         result = run_algorithm(params, self.algo_input)
         self.assertAlmostEqual(result['energy'], -1.85727503)
         np.testing.assert_array_almost_equal(result['eigvals'], [-1.85727503], 5)
-        ref_opt_params = [-0.05006324, -1.70850424, -0.22353693, -0.65137839, -1.71704759,  3.12006791,
-                          -0.576814,    1.70836035,  1.62085531, -1.19374647, -0.96421005, -0.93138912,
-                          -2.99533779,  2.9698398,   2.57094395,  0.37672159]
+        ref_opt_params = [-0.58294401, -1.86141794, -1.97209632, -0.54796022,
+                          -0.46945572, 2.60114794, -1.15637845,  1.40498879,
+                          1.14479635, -0.48416694, -0.66608349, -1.1367579,
+                          -2.67097002, 3.10214631, 3.10000313, 0.37235089]
         np.testing.assert_array_almost_equal(result['opt_params'], ref_opt_params, 5)
         self.assertIn('eval_count', result)
         self.assertIn('eval_time', result)
