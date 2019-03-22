@@ -57,57 +57,57 @@ def _cccx(qc, qrs, angle=pi / 4):
     assert len(qrs) == 4, "There must be exactly 4 qubits of quantum registers for cccx"
 
     # controlled-V
-    qc.ch(qrs[0], qrs[3])
+    qc.h(qrs[3])
     qc.cu1(-angle, qrs[0], qrs[3])
-    qc.ch(qrs[0], qrs[3])
+    qc.h(qrs[3])
     # ------------
 
     qc.cx(qrs[0], qrs[1])
 
     # controlled-Vdag
-    qc.ch(qrs[1], qrs[3])
+    qc.h(qrs[3])
     qc.cu1(angle, qrs[1], qrs[3])
-    qc.ch(qrs[1], qrs[3])
+    qc.h(qrs[3])
     # ---------------
 
     qc.cx(qrs[0], qrs[1])
 
     # controlled-V
-    qc.ch(qrs[1], qrs[3])
+    qc.h(qrs[3])
     qc.cu1(-angle, qrs[1], qrs[3])
-    qc.ch(qrs[1], qrs[3])
+    qc.h(qrs[3])
     # ------------
 
     qc.cx(qrs[1], qrs[2])
 
     # controlled-Vdag
-    qc.ch(qrs[2], qrs[3])
+    qc.h(qrs[3])
     qc.cu1(angle, qrs[2], qrs[3])
-    qc.ch(qrs[2], qrs[3])
+    qc.h(qrs[3])
     # ---------------
 
     qc.cx(qrs[0], qrs[2])
 
     # controlled-V
-    qc.ch(qrs[2], qrs[3])
+    qc.h(qrs[3])
     qc.cu1(-angle, qrs[2], qrs[3])
-    qc.ch(qrs[2], qrs[3])
+    qc.h(qrs[3])
     # ------------
 
     qc.cx(qrs[1], qrs[2])
 
     # controlled-Vdag
-    qc.ch(qrs[2], qrs[3])
+    qc.h(qrs[3])
     qc.cu1(angle, qrs[2], qrs[3])
-    qc.ch(qrs[2], qrs[3])
+    qc.h(qrs[3])
     # ---------------
 
     qc.cx(qrs[0], qrs[2])
 
     # controlled-V
-    qc.ch(qrs[2], qrs[3])
+    qc.h(qrs[3])
     qc.cu1(-angle, qrs[2], qrs[3])
-    qc.ch(qrs[2], qrs[3])
+    qc.h(qrs[3])
 
 
 def _ccccx(qc, qrs):
@@ -121,17 +121,17 @@ def _ccccx(qc, qrs):
     assert len(qrs) == 5, "There must be exactly 5 qubits for ccccx"
 
     # controlled-V
-    qc.ch(qrs[3], qrs[4])
+    qc.h(qrs[4])
     qc.cu1(-pi / 2, qrs[3], qrs[4])
-    qc.ch(qrs[3], qrs[4])
+    qc.h(qrs[4])
     # ------------
 
     _cccx(qc, qrs[:4])
 
     # controlled-Vdag
-    qc.ch(qrs[3], qrs[4])
+    qc.h(qrs[4])
     qc.cu1(pi / 2, qrs[3], qrs[4])
-    qc.ch(qrs[3], qrs[4])
+    qc.h(qrs[4])
     # ------------
 
     _cccx(qc, qrs[:4])
