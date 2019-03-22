@@ -21,8 +21,17 @@ import networkx as nx
 
 from test.common import QiskitAquaTestCase
 
+from qiskit.quantum_info import Pauli
+from qiskit.aqua import Operator
 from qiskit.aqua.translators.ising import maxcut, tsp, docplex
 from qiskit.aqua.algorithms import ExactEigensolver
+
+# Reference operators and offsets for maxcut and tsp.
+qubitOp_maxcut=Operator(paulis=[[0.5, Pauli(z=[True, True, False, False], x=[False, False, False, False])], [0.5, Pauli(z=[True, False, True, False], x=[False, False, False, False])], [0.5, Pauli(z=[False, True, True, False], x=[False, False, False, False])], [0.5, Pauli(z=[True, False, False, True], x=[False, False, False, False])], [0.5, Pauli(z=[False, False, True, True], x=[False, False, False, False])]])
+offset_maxcut=-2.5
+qubitOp_tsp=Operator(paulis=[[-100057.0, Pauli(z=[True, False, False, False, False, False, False, False, False], x=[False, False, False, False, False, False, False, False, False])], [-100071.0, Pauli(z=[False, False, False, False, True, False, False, False, False], x=[False, False, False, False, False, False, False, False, False])], [14.5, Pauli(z=[True, False, False, False, True, False, False, False, False], x=[False, False, False, False, False, False, False, False, False])], [-100057.0, Pauli(z=[False, True, False, False, False, False, False, False, False], x=[False, False, False, False, False, False, False, False, False])], [-100071.0, Pauli(z=[False, False, False, False, False, True, False, False, False], x=[False, False, False, False, False, False, False, False, False])], [14.5, Pauli(z=[False, True, False, False, False, True, False, False, False], x=[False, False, False, False, False, False, False, False, False])], [-100057.0, Pauli(z=[False, False, True, False, False, False, False, False, False], x=[False, False, False, False, False, False, False, False, False])], [-100071.0, Pauli(z=[False, False, False, True, False, False, False, False, False], x=[False, False, False, False, False, False, False, False, False])], [14.5, Pauli(z=[False, False, True, True, False, False, False, False, False], x=[False, False, False, False, False, False, False, False, False])], [-100070.0, Pauli(z=[False, False, False, False, False, False, False, True, False], x=[False, False, False, False, False, False, False, False, False])], [14.0, Pauli(z=[True, False, False, False, False, False, False, True, False], x=[False, False, False, False, False, False, False, False, False])], [-100070.0, Pauli(z=[False, False, False, False, False, False, False, False, True], x=[False, False, False, False, False, False, False, False, False])], [14.0, Pauli(z=[False, True, False, False, False, False, False, False, True], x=[False, False, False, False, False, False, False, False, False])], [-100070.0, Pauli(z=[False, False, False, False, False, False, True, False, False], x=[False, False, False, False, False, False, False, False, False])], [14.0, Pauli(z=[False, False, True, False, False, False, True, False, False], x=[False, False, False, False, False, False, False, False, False])], [14.5, Pauli(z=[False, True, False, True, False, False, False, False, False], x=[False, False, False, False, False, False, False, False, False])], [14.5, Pauli(z=[False, False, True, False, True, False, False, False, False], x=[False, False, False, False, False, False, False, False, False])], [14.5, Pauli(z=[True, False, False, False, False, True, False, False, False], x=[False, False, False, False, False, False, False, False, False])], [21.0, Pauli(z=[False, False, False, True, False, False, False, True, False], x=[False, False, False, False, False, False, False, False, False])], [21.0, Pauli(z=[False, False, False, False, True, False, False, False, True], x=[False, False, False, False, False, False, False, False, False])], [21.0, Pauli(z=[False, False, False, False, False, True, True, False, False], x=[False, False, False, False, False, False, False, False, False])], [14.0, Pauli(z=[False, True, False, False, False, False, True, False, False], x=[False, False, False, False, False, False, False, False, False])], [14.0, Pauli(z=[False, False, True, False, False, False, False, True, False], x=[False, False, False, False, False, False, False, False, False])], [14.0, Pauli(z=[True, False, False, False, False, False, False, False, True], x=[False, False, False, False, False, False, False, False, False])], [21.0, Pauli(z=[False, False, False, False, True, False, True, False, False], x=[False, False, False, False, False, False, False, False, False])], [21.0, Pauli(z=[False, False, False, False, False, True, False, True, False], x=[False, False, False, False, False, False, False, False, False])], [21.0, Pauli(z=[False, False, False, True, False, False, False, False, True], x=[False, False, False, False, False, False, False, False, False])], [50000.0, Pauli(z=[True, False, False, True, False, False, False, False, False], x=[False, False, False, False, False, False, False, False, False])], [50000.0, Pauli(z=[True, False, False, False, False, False, True, False, False], x=[False, False, False, False, False, False, False, False, False])], [50000.0, Pauli(z=[False, False, False, True, False, False, True, False, False], x=[False, False, False, False, False, False, False, False, False])], [50000.0, Pauli(z=[False, True, False, False, True, False, False, False, False], x=[False, False, False, False, False, False, False, False, False])], [50000.0, Pauli(z=[False, True, False, False, False, False, False, True, False], x=[False, False, False, False, False, False, False, False, False])], [50000.0, Pauli(z=[False, False, False, False, True, False, False, True, False], x=[False, False, False, False, False, False, False, False, False])], [50000.0, Pauli(z=[False, False, True, False, False, True, False, False, False], x=[False, False, False, False, False, False, False, False, False])], [50000.0, Pauli(z=[False, False, True, False, False, False, False, False, True], x=[False, False, False, False, False, False, False, False, False])], [50000.0, Pauli(z=[False, False, False, False, False, True, False, False, True], x=[False, False, False, False, False, False, False, False, False])], [50000.0, Pauli(z=[True, True, False, False, False, False, False, False, False], x=[False, False, False, False, False, False, False, False, False])], [50000.0, Pauli(z=[True, False, True, False, False, False, False, False, False], x=[False, False, False, False, False, False, False, False, False])], [50000.0, Pauli(z=[False, True, True, False, False, False, False, False, False], x=[False, False, False, False, False, False, False, False, False])], [50000.0, Pauli(z=[False, False, False, True, True, False, False, False, False], x=[False, False, False, False, False, False, False, False, False])], [50000.0, Pauli(z=[False, False, False, True, False, True, False, False, False], x=[False, False, False, False, False, False, False, False, False])], [50000.0, Pauli(z=[False, False, False, False, True, True, False, False, False], x=[False, False, False, False, False, False, False, False, False])], [50000.0, Pauli(z=[False, False, False, False, False, False, True, True, False], x=[False, False, False, False, False, False, False, False, False])], [50000.0, Pauli(z=[False, False, False, False, False, False, True, False, True], x=[False, False, False, False, False, False, False, False, False])], [50000.0, Pauli(z=[False, False, False, False, False, False, False, True, True], x=[False, False, False, False, False, False, False, False, False])]])
+offset_tsp=600297.0
+
 
 class TestDocplex(QiskitAquaTestCase):
     """Cplex Ising tests."""
@@ -46,9 +55,6 @@ class TestDocplex(QiskitAquaTestCase):
                 if temp != 0:
                     w[i, j] = temp['weight']
 
-        # Create an Ising Hamiltonian with an existing translator of Qiskit Aqua
-        expected_qubitOp, expected_offset = maxcut.get_maxcut_qubitops(w)
-
         # Create an Ising Hamiltonian with docplex.
         mdl = Model(name='max_cut')
         mdl.node_vars = mdl.binary_var_list(list(range(4)), name='node')
@@ -59,11 +65,11 @@ class TestDocplex(QiskitAquaTestCase):
         ee = ExactEigensolver(qubitOp, k=1)
         result = ee.run()
 
-        ee_expected = ExactEigensolver(expected_qubitOp, k=1)
+        ee_expected = ExactEigensolver(qubitOp_maxcut, k=1)
         expected_result = ee_expected.run()
 
         # Compare objective
-        self.assertEqual(result['energy'] + offset, expected_result['energy'] + expected_offset)
+        self.assertEqual(result['energy'] + offset, expected_result['energy'] + offset_maxcut)
 
     def test_docplex_tsp(self):
         # Generating a graph of 3 nodes
@@ -72,9 +78,6 @@ class TestDocplex(QiskitAquaTestCase):
         G = nx.Graph()
         G.add_nodes_from(np.arange(0, n, 1))
         num_node = ins.dim
-
-        # Create an Ising Hamiltonian with an existing translator of Qiskit Aqua
-        expected_qubitOp, expected_offset = tsp.get_tsp_qubitops(ins)
 
         # Create an Ising Hamiltonian with docplex.
         mdl = Model(name='tsp')
@@ -93,8 +96,10 @@ class TestDocplex(QiskitAquaTestCase):
         ee = ExactEigensolver(qubitOp, k=1)
         result = ee.run()
 
-        ee_expected = ExactEigensolver(expected_qubitOp, k=1)
+        ee_expected = ExactEigensolver(qubitOp_tsp, k=1)
         expected_result = ee_expected.run()
 
         # Compare objective
-        self.assertEqual(result['energy'] + offset, expected_result['energy'] + expected_offset)
+        self.assertEqual(result['energy'] + offset, expected_result['energy'] + offset_tsp)
+
+
