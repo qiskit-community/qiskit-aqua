@@ -33,7 +33,7 @@ from qiskit.compiler.run_config import RunConfig
 from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
 
-from qiskit.aqua import AquaError
+from qiskit.aqua import AquaError, aqua_globals
 from qiskit.aqua.utils import PauliGraph, compile_and_run_circuits, find_regs_by_name
 from qiskit.aqua.utils.backend_utils import is_statevector_backend
 
@@ -697,15 +697,17 @@ class Operator(object):
                 self._check_representation("paulis")
                 results = parallel_map(Operator._routine_paulis_with_shots,
                                        [(pauli, result.get_counts(circuits[idx]))
-                                        for idx, pauli in enumerate(self._paulis)])
+                                        for idx, pauli in enumerate(self._paulis)],
+                                       num_processes=aqua_globals.num_processes)
                 for result in results:
                     avg += result[0]
                     variance += result[1]
             else:
                 self._check_representation("grouped_paulis")
                 results = parallel_map(Operator._routine_grouped_paulis_with_shots,
-                                        [(tpb_set, result.get_counts(circuits[tpb_idx]))
-                                         for tpb_idx, tpb_set in enumerate(self._grouped_paulis)])
+                                       [(tpb_set, result.get_counts(circuits[tpb_idx]))
+                                        for tpb_idx, tpb_set in enumerate(self._grouped_paulis)],
+                                       num_processes=aqua_globals.num_processes)
                 for result in results:
                     avg += result[0]
                     variance += result[1]

@@ -23,7 +23,7 @@ import numpy as np
 from test.common import QiskitAquaTestCase
 from qiskit import BasicAer
 from qiskit.aqua.input import SVMInput
-from qiskit.aqua import run_algorithm, QuantumInstance
+from qiskit.aqua import run_algorithm, QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms import QSVMVariational
 from qiskit.aqua.components.optimizers import SPSA, COBYLA
 from qiskit.aqua.components.feature_maps import SecondOrderExpansion
@@ -136,7 +136,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
         var_form = RYRZ(num_qubits=num_qubits, depth=3)
 
         svm = QSVMVariational(optimizer, feature_map, var_form, self.training_data, self.testing_data)
-        svm.random_seed = self.random_seed
+        aqua_globals.random_seed = self.random_seed
         quantum_instance = QuantumInstance(backend, shots=1024, seed=self.random_seed, seed_mapper=self.random_seed)
         result = svm.run(quantum_instance)
 
