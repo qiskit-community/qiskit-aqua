@@ -91,7 +91,7 @@ class TestCaching(QiskitAquaTestCase):
         [True],
         [False]
     ])
-    def atest_vqe_caching_direct(self, batch_mode=True):
+    def test_vqe_caching_direct(self, batch_mode=True):
         backend = BasicAer.get_backend('statevector_simulator')
         num_qubits = self.algo_input.qubit_op.num_qubits
         init_state = Zero(num_qubits)
@@ -109,7 +109,7 @@ class TestCaching(QiskitAquaTestCase):
         self.log.info(result_caching['eval_time'],
                       self.reference_vqe_result['statevector_simulator']['eval_time']/speedup_check)
 
-    def atest_saving_and_loading(self):
+    def test_saving_and_loading(self):
         backend = BasicAer.get_backend('statevector_simulator')
         num_qubits = self.algo_input.qubit_op.num_qubits
         init_state = Zero(num_qubits)
