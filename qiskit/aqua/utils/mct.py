@@ -161,7 +161,11 @@ def _multicx(qc, qrs, qancilla=None):
         qc.cx(qrs[0], qrs[1])
     elif len(qrs) == 3:
         qc.ccx(qrs[0], qrs[1], qrs[2])
-    elif len(qrs) == 4:
+    else:
+        _multicx_recursion(qc, qrs, qancilla)
+
+def _multicx_recursion(qc, qrs, qancilla=None):
+    if len(qrs) == 4:
         _cccx(qc, qrs)
     elif len(qrs) == 5:
         _ccccx(qc, qrs)
@@ -169,10 +173,10 @@ def _multicx(qc, qrs, qancilla=None):
         assert qancilla is not None, "There must be an ancilla qubit not necesseraly initialized to zero"
         n = len(qrs)
         m1 = ceil(n / 2)
-        _multicx(qc, [*qrs[:m1], qancilla], qrs[m1])
-        _multicx(qc, [*qrs[m1:n - 1], qancilla, qrs[n - 1]], qrs[m1 - 1])
-        _multicx(qc, [*qrs[:m1], qancilla], qrs[m1])
-        _multicx(qc, [*qrs[m1:n - 1], qancilla, qrs[n - 1]], qrs[m1 - 1])
+        _multicx_recursion(qc, [*qrs[:m1], qancilla], qrs[m1])
+        _multicx_recursion(qc, [*qrs[m1:n - 1], qancilla, qrs[n - 1]], qrs[m1 - 1])
+        _multicx_recursion(qc, [*qrs[:m1], qancilla], qrs[m1])
+        _multicx_recursion(qc, [*qrs[m1:n - 1], qancilla, qrs[n - 1]], qrs[m1 - 1])
 
 
 def _multicx_noancilla(qc, qrs):
