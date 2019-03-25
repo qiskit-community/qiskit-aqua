@@ -29,6 +29,9 @@ Added
 - Summarize the tranpiled circuits at the DEBUG logging level.
 - ``QuantumInstance`` accepts ``basis_gates`` and ``coupling_map`` again.
 - Support to use ``cx`` gate for the entangement in ``RY`` and ``RYRZ`` variational form. (``cz`` is the default choice.)
+- Support to use arbitrary mixer Hamiltonian in ``QAOA``. This allows to use QAOA in constrained optimization problems [arXiv:1709.03489]
+- Added variational algorithm base class ``VQAlgorithm``, implemented by ``VQE`` and ``QSVMVariational``.
+- Added ``mcmt`` for Multi-Controlled, Multi-Target gate
 
 
 Removed
@@ -41,6 +44,8 @@ Changed
 
 - Change the type of ``entanger_map`` used in ``FeatureMap`` and ``VariationalForm`` to list of list.
 - Fixed package setup to correctly identify namespace packages using ``setuptools.find_namespace_packages``.
+- Changed ``advanced`` mode implementation of ``mct``, using simple ``h`` gates instead of ``ch`` and ``crz`` gates instead of ``cu1`` gates.
+- Changed ``advanced`` mode implementation of ``mct``, fixing the old recursion step in ``_multicx``.
 
 `0.4.1`_ - 2019-01-09
 =====================

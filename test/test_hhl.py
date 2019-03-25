@@ -26,6 +26,7 @@ from qiskit.aqua.input import LinearSystemInput
 from qiskit.aqua.utils import random_matrix_generator as rmg
 from qiskit.quantum_info import state_fidelity
 
+
 class TestHHL(QiskitAquaTestCase):
     """HHL tests."""
 
@@ -35,6 +36,7 @@ class TestHHL(QiskitAquaTestCase):
         self.params = {
             'problem': {
                 'name': 'linear_system',
+                'circuit_caching': False
             },
             'algorithm': {
                 'name': 'HHL'

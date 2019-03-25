@@ -153,7 +153,7 @@ class CircuitCache:
 
         if self.try_reusing_qobjs and self.qobjs is not None and len(self.qobjs) <= chunk:
             self.mappings.insert(chunk, self.mappings[0])
-            self.qobjs.insert(chunk, copy.deepcopy(qobjs[0]))
+            self.qobjs.insert(chunk, copy.deepcopy(self.qobjs[0]))
 
         for circ_num, input_circuit in enumerate(circuits):
 

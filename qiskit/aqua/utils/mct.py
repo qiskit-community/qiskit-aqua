@@ -57,57 +57,57 @@ def _cccx(qc, qrs, angle=pi / 4):
     assert len(qrs) == 4, "There must be exactly 4 qubits of quantum registers for cccx"
 
     # controlled-V
-    qc.ch(qrs[0], qrs[3])
-    qc.cu1(-angle, qrs[0], qrs[3])
-    qc.ch(qrs[0], qrs[3])
+    qc.h(qrs[3])
+    qc.crz(-angle, qrs[0], qrs[3])
+    qc.h(qrs[3])
     # ------------
 
     qc.cx(qrs[0], qrs[1])
 
     # controlled-Vdag
-    qc.ch(qrs[1], qrs[3])
-    qc.cu1(angle, qrs[1], qrs[3])
-    qc.ch(qrs[1], qrs[3])
+    qc.h(qrs[3])
+    qc.crz(angle, qrs[1], qrs[3])
+    qc.h(qrs[3])
     # ---------------
 
     qc.cx(qrs[0], qrs[1])
 
     # controlled-V
-    qc.ch(qrs[1], qrs[3])
-    qc.cu1(-angle, qrs[1], qrs[3])
-    qc.ch(qrs[1], qrs[3])
+    qc.h(qrs[3])
+    qc.crz(-angle, qrs[1], qrs[3])
+    qc.h(qrs[3])
     # ------------
 
     qc.cx(qrs[1], qrs[2])
 
     # controlled-Vdag
-    qc.ch(qrs[2], qrs[3])
-    qc.cu1(angle, qrs[2], qrs[3])
-    qc.ch(qrs[2], qrs[3])
+    qc.h(qrs[3])
+    qc.crz(angle, qrs[2], qrs[3])
+    qc.h(qrs[3])
     # ---------------
 
     qc.cx(qrs[0], qrs[2])
 
     # controlled-V
-    qc.ch(qrs[2], qrs[3])
-    qc.cu1(-angle, qrs[2], qrs[3])
-    qc.ch(qrs[2], qrs[3])
+    qc.h(qrs[3])
+    qc.crz(-angle, qrs[2], qrs[3])
+    qc.h(qrs[3])
     # ------------
 
     qc.cx(qrs[1], qrs[2])
 
     # controlled-Vdag
-    qc.ch(qrs[2], qrs[3])
-    qc.cu1(angle, qrs[2], qrs[3])
-    qc.ch(qrs[2], qrs[3])
+    qc.h(qrs[3])
+    qc.crz(angle, qrs[2], qrs[3])
+    qc.h(qrs[3])
     # ---------------
 
     qc.cx(qrs[0], qrs[2])
 
     # controlled-V
-    qc.ch(qrs[2], qrs[3])
-    qc.cu1(-angle, qrs[2], qrs[3])
-    qc.ch(qrs[2], qrs[3])
+    qc.h(qrs[3])
+    qc.crz(-angle, qrs[2], qrs[3])
+    qc.h(qrs[3])
 
 
 def _ccccx(qc, qrs):
@@ -121,17 +121,17 @@ def _ccccx(qc, qrs):
     assert len(qrs) == 5, "There must be exactly 5 qubits for ccccx"
 
     # controlled-V
-    qc.ch(qrs[3], qrs[4])
-    qc.cu1(-pi / 2, qrs[3], qrs[4])
-    qc.ch(qrs[3], qrs[4])
+    qc.h(qrs[4])
+    qc.crz(-pi / 2, qrs[3], qrs[4])
+    qc.h(qrs[4])
     # ------------
 
     _cccx(qc, qrs[:4])
 
     # controlled-Vdag
-    qc.ch(qrs[3], qrs[4])
-    qc.cu1(pi / 2, qrs[3], qrs[4])
-    qc.ch(qrs[3], qrs[4])
+    qc.h(qrs[4])
+    qc.crz(pi / 2, qrs[3], qrs[4])
+    qc.h(qrs[4])
     # ------------
 
     _cccx(qc, qrs[:4])
@@ -161,19 +161,22 @@ def _multicx(qc, qrs, qancilla=None):
         qc.cx(qrs[0], qrs[1])
     elif len(qrs) == 3:
         qc.ccx(qrs[0], qrs[1], qrs[2])
-    elif len(qrs) == 4:
+    else:
+        _multicx_recursion(qc, qrs, qancilla)
+
+def _multicx_recursion(qc, qrs, qancilla=None):
+    if len(qrs) == 4:
         _cccx(qc, qrs)
     elif len(qrs) == 5:
         _ccccx(qc, qrs)
     else:  # qrs[0], qrs[n-2] is the controls, qrs[n-1] is the target, and qancilla as working qubit
         assert qancilla is not None, "There must be an ancilla qubit not necesseraly initialized to zero"
-        n = len(qrs) + 1  # SOME ERROR HERE
+        n = len(qrs)
         m1 = ceil(n / 2)
-        m2 = n - m1 - 1
-        _multicx(qc, [*qrs[:m1], qancilla], qrs[m1])
-        _multicx(qc, [*qrs[m1:m1 + m2 - 1], qancilla, qrs[n - 2]], qrs[m1 - 1])
-        _multicx(qc, [*qrs[:m1], qancilla], qrs[m1])
-        _multicx(qc, [*qrs[m1:m1 + m2 - 1], qancilla, qrs[n - 2]], qrs[m1 - 1])
+        _multicx_recursion(qc, [*qrs[:m1], qancilla], qrs[m1])
+        _multicx_recursion(qc, [*qrs[m1:n - 1], qancilla, qrs[n - 1]], qrs[m1 - 1])
+        _multicx_recursion(qc, [*qrs[:m1], qancilla], qrs[m1])
+        _multicx_recursion(qc, [*qrs[m1:n - 1], qancilla, qrs[n - 1]], qrs[m1 - 1])
 
 
 def _multicx_noancilla(qc, qrs):
@@ -248,7 +251,7 @@ def mct(self, q_controls, q_target, q_ancilla, mode='basic'):
         try:
             for qubit in all_qubits:
                 self._check_qubit(qubit)
-        except AttributeError as e:
+        except AttributeError as e: # TODO Temporary, _check_qubit may not exist 
             logger.debug(str(e))
 
         self._check_dups(all_qubits)

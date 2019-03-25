@@ -59,7 +59,7 @@ class TestSkipQobjValidation(QiskitAquaTestCase):
 
     def test_wo_backend_options(self):
         quantum_instance = QuantumInstance(self.backend, seed_mapper=self.random_seed,
-                                           seed=self.random_seed, shots=1024)
+                                           seed=self.random_seed, shots=1024, circuit_caching=False)
         # run without backend_options and without noise
         res_wo_bo = quantum_instance.execute(self.qc).get_counts(self.qc)
 
@@ -71,7 +71,8 @@ class TestSkipQobjValidation(QiskitAquaTestCase):
         # run with backend_options
         quantum_instance = QuantumInstance(self.backend, seed_mapper=self.random_seed,
                                            seed=self.random_seed, shots=1024,
-                                           backend_options={'initial_statevector': [.5, .5, .5, .5]})
+                                           backend_options={'initial_statevector': [.5, .5, .5, .5]},
+                                           circuit_caching=False)
         res_w_bo = quantum_instance.execute(self.qc).get_counts(self.qc)
         quantum_instance.skip_qobj_validation = True
         res_w_bo_skip_validation = quantum_instance.execute(self.qc).get_counts(self.qc)
@@ -87,7 +88,8 @@ class TestSkipQobjValidation(QiskitAquaTestCase):
 
         quantum_instance = QuantumInstance(self.backend, seed_mapper=self.random_seed,
                                            seed=self.random_seed, shots=1024,
-                                           noise_model=noise_model)
+                                           noise_model=noise_model,
+                                           circuit_caching=False)
         res_w_noise = quantum_instance.execute(self.qc).get_counts(self.qc)
 
         quantum_instance.skip_qobj_validation = True
