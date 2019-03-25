@@ -19,7 +19,6 @@
 import unittest
 
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
-from qiskit.providers.aer.noise import NoiseModel
 from qiskit import BasicAer
 from test.common import QiskitAquaTestCase
 from qiskit.aqua import QuantumInstance
@@ -81,6 +80,12 @@ class TestSkipQobjValidation(QiskitAquaTestCase):
     def test_w_noise(self):
         # build noise model
         # Asymetric readout error on qubit-0 only
+        try:
+            from qiskit.providers.aer.noise import NoiseModel
+        except Exception as e:
+            self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(e)))
+            return
+
         probs_given0 = [0.9, 0.1]
         probs_given1 = [0.3, 0.7]
         noise_model = NoiseModel()
