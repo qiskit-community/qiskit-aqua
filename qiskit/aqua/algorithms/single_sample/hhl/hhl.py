@@ -229,15 +229,8 @@ class HHL(QuantumAlgorithm):
         The HHL result gets extracted via state tomography. Available for
         qasm simulator and real hardware backends.
         """
+
         # Preparing the state tomography circuits
-        #c = ClassicalRegister(self._num_q)
-        #self._circuit.add_register(c)
-        #tomo_qbits = list(range(self._num_q))
-        #tomo_set = tomo.state_tomography_circuits(self.circuit, tomo_qbits)
-        #tomo_circuits = \
-        #    tomo.create_tomography_circuits(self._circuit,
-        #                                    self._io_register,
-        #                                    c, tomo_set)
         tomo_circuits = state_tomography_circuits(self._circuit,
                                                   self._io_register)
         tomo_circuits_noanc = deepcopy(tomo_circuits)
@@ -246,7 +239,7 @@ class HHL(QuantumAlgorithm):
             circ.add_register(ca)
             circ.measure(self._reciprocal._anc, ca[0])
 
-        # Handling the results
+        # Extracting the probability of successful run
         results = self._quantum_instance.execute(tomo_circuits)
         probs = []
         for circ in tomo_circuits:
@@ -259,21 +252,13 @@ class HHL(QuantumAlgorithm):
                     f += v
             probs.append(s/(f+s))
         self._ret["probability_result"] = np.real(probs)
-        # Filtering the tomo data for valid results, i.e. c1==1
+
+        # Filtering the tomo data for valid results with ancillary measured
+        # to 1, i.e. c1==1
         results_noanc = self._tomo_postselect(results)
-        #tomo_data = self._tomo_postselect(result, self._circuit.name,
-        #                                 tomo_set, self._success_bit)
-        # rho_fit = tomo.fit_tomography_data(tomo_data)
-        #tomo_result = self._tomo_postselect(result, self._circuit.name,
-        #                                    tomo_circuits, self._success_bit)
-        # Fitting the tomography data
-        #tomo_data = StateTomographyFitter(job.result(), qst_circs)
         tomo_data = StateTomographyFitter(results_noanc, tomo_circuits_noanc)
         rho_fit = tomo_data.fit()
-        vec = rho_fit[:, 0]/np.sqrt(rho_fit[0, 0])
-        print(vec)
         vec = np.diag(rho_fit) / np.sqrt(sum(np.diag(rho_fit) ** 2))
-        print(vec)
         self._hhl_results(vec)
 
     def _tomo_postselect(self, results):
@@ -288,7 +273,8 @@ class HHL(QuantumAlgorithm):
                 new_results.results[resultidx].header.creg_sizes[0]]
             new_results.results[resultidx].header.clbit_labels = \
             new_results.results[resultidx].header.clbit_labels[0:-1]
-            new_results.results[resultidx].header.memory_slots = 2
+            new_results.results[resultidx].header.memory_slots = \
+                new_results.results[resultidx].header.memory_slots - 1
 
             for reg_key in old_counts:
                 reg_bits = reg_key.split(' ')
@@ -300,50 +286,6 @@ class HHL(QuantumAlgorithm):
                     data.counts.from_dict(new_counts)
 
         return new_results
-
-    # def _tomo_postselect(self, results, name, circuits, select):
-    #     # this postselect is based on tomo.tomography_data
-    #     #labels = tomo.tomography_circuit_names(tomoset, name)
-    #     #circuits = tomoset['circuits']
-    #     #labels = circuits['circuit_labels']
-    #     data = []
-    #     prep = None
-    #     for j, _ in enumerate(circuits):
-    #         select_bitpos = None
-    #         for cbit_label in results.results[j].header.clbit_labels:
-    #             if cbit_label[0] == select.name:
-    #                 select_bitpos = cbit_label[1]
-    #         all_counts = results.get_counts(circuits[j])
-    #         filt_counts = []
-    #         filt_keys = []
-    #         for k, v in all_counts.items():
-    #             if int(k[-1-select_bitpos]) == 1:
-    #                 filt_keys.append(k[:select_bitpos-2])
-    #                 filt_counts.append(v)
-    #         filt_labels = dict(zip(filt_keys, filt_counts))
-    #         if filt_labels == {}:
-    #             filt_labels = {'0': 0}
-    #         #counts = tomo.marginal_counts(filt_labels, tomoset['qubits'])
-    #         counts = marginal_counts(filt_labels, meas_qubits=True)
-    #         shots = sum(counts.values())
-    #         meas = circuits[j]['meas']
-    #         prep = circuits[j].get('prep', None)
-    #         meas_qubits = sorted(meas.keys())
-    #         if prep:
-    #             prep_qubits = sorted(prep.keys())
-    #         circuit = {}
-    #         for c in counts.keys():
-    #             circuit[c] = {}
-    #             circuit[c]['meas'] = [(meas[meas_qubits[k]], int(c[-1 - k]))
-    #                                   for k in range(len(meas_qubits))]
-    #             if prep:
-    #                 circuit[c]['prep'] = [prep[prep_qubits[k]] for k in
-    #                                       range(len(prep_qubits))]
-    #         data.append({'counts': counts, 'shots': shots, 'circuit': circuit})
-    #     ret = {'data': data, 'meas_basis': tomoset['meas_basis']}
-    #     if prep:
-    #         ret['prep_basis'] = tomoset['prep_basis']
-    #     return ret
 
     def _hhl_results(self, vec):
         self._ret["output_hhl"] = vec
