@@ -80,15 +80,15 @@ class TestVQE(QiskitAquaTestCase):
         ['POWELL', 5, 1],
         ['SLSQP', 5, 4],
         ['SLSQP', 5, 1],
-        ['SPSA', 3, 2], # max_circuit_num_per_job=n is considered as max_circuit_num_per_job=2 if n>2
+        ['SPSA', 3, 2], # max_evals_grouped=n is considered as max_evals_grouped=2 if n>2
         ['SPSA', 3, 1],
         ['TNC', 2, 4],
         ['TNC', 2, 1]
     ])
-    def test_vqe_optimizers(self, name, places, max_circuit_num_per_job):
+    def test_vqe_optimizers(self, name, places, max_evals_grouped):
         backend = BasicAer.get_backend('statevector_simulator')
         params = {
-            'algorithm': {'name': 'VQE', 'max_circuit_num_per_job': max_circuit_num_per_job},
+            'algorithm': {'name': 'VQE', 'max_evals_grouped': max_evals_grouped},
             'optimizer': {'name': name},
             'backend': {'shots': 1}
         }
@@ -113,13 +113,13 @@ class TestVQE(QiskitAquaTestCase):
         [4],
         [1]
     ])
-    def test_vqe_direct(self, max_circuit_num_per_job):
+    def test_vqe_direct(self, max_evals_grouped):
         backend = BasicAer.get_backend('statevector_simulator')
         num_qubits = self.algo_input.qubit_op.num_qubits
         init_state = Zero(num_qubits)
         var_form = RY(num_qubits, 3, initial_state=init_state)
         optimizer = L_BFGS_B()
-        algo = VQE(self.algo_input.qubit_op, var_form, optimizer, 'paulis', max_circuit_num_per_job=max_circuit_num_per_job)
+        algo = VQE(self.algo_input.qubit_op, var_form, optimizer, 'paulis', max_evals_grouped=max_evals_grouped)
         quantum_instance = QuantumInstance(backend)
         result = algo.run(quantum_instance)
         self.assertAlmostEqual(result['energy'], -1.85727503)

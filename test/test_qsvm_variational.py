@@ -67,11 +67,11 @@ class TestQSVMVariational(QiskitAquaTestCase):
 
         self.assertEqual(result['testing_accuracy'], 0.5)
 
-    def test_qsvm_variational_with_max_circuit_num_per_job(self):
+    def test_qsvm_variational_with_max_evals_grouped(self):
         np.random.seed(self.random_seed)
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
-            'algorithm': {'name': 'QSVM.Variational', 'max_circuit_num_per_job':2},
+            'algorithm': {'name': 'QSVM.Variational', 'max_evals_grouped':2},
             'backend': {'provider': 'qiskit.BasicAer', 'name': 'qasm_simulator', 'shots': 1024},
             'optimizer': {'name': 'SPSA', 'max_trials': 10, 'save_steps': 1},
             'variational_form': {'name': 'RYRZ', 'depth': 3},
