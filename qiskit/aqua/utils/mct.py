@@ -58,7 +58,7 @@ def _cccx(qc, qrs, angle=pi / 4):
 
     # controlled-V
     qc.h(qrs[3])
-    qc.crz(-angle, qrs[0], qrs[3])
+    qc.cu1(-angle, qrs[0], qrs[3])
     qc.h(qrs[3])
     # ------------
 
@@ -66,7 +66,7 @@ def _cccx(qc, qrs, angle=pi / 4):
 
     # controlled-Vdag
     qc.h(qrs[3])
-    qc.crz(angle, qrs[1], qrs[3])
+    qc.cu1(angle, qrs[1], qrs[3])
     qc.h(qrs[3])
     # ---------------
 
@@ -74,7 +74,7 @@ def _cccx(qc, qrs, angle=pi / 4):
 
     # controlled-V
     qc.h(qrs[3])
-    qc.crz(-angle, qrs[1], qrs[3])
+    qc.cu1(-angle, qrs[1], qrs[3])
     qc.h(qrs[3])
     # ------------
 
@@ -82,7 +82,7 @@ def _cccx(qc, qrs, angle=pi / 4):
 
     # controlled-Vdag
     qc.h(qrs[3])
-    qc.crz(angle, qrs[2], qrs[3])
+    qc.cu1(angle, qrs[2], qrs[3])
     qc.h(qrs[3])
     # ---------------
 
@@ -90,7 +90,7 @@ def _cccx(qc, qrs, angle=pi / 4):
 
     # controlled-V
     qc.h(qrs[3])
-    qc.crz(-angle, qrs[2], qrs[3])
+    qc.cu1(-angle, qrs[2], qrs[3])
     qc.h(qrs[3])
     # ------------
 
@@ -98,7 +98,7 @@ def _cccx(qc, qrs, angle=pi / 4):
 
     # controlled-Vdag
     qc.h(qrs[3])
-    qc.crz(angle, qrs[2], qrs[3])
+    qc.cu1(angle, qrs[2], qrs[3])
     qc.h(qrs[3])
     # ---------------
 
@@ -106,7 +106,7 @@ def _cccx(qc, qrs, angle=pi / 4):
 
     # controlled-V
     qc.h(qrs[3])
-    qc.crz(-angle, qrs[2], qrs[3])
+    qc.cu1(-angle, qrs[2], qrs[3])
     qc.h(qrs[3])
 
 
@@ -122,7 +122,7 @@ def _ccccx(qc, qrs):
 
     # controlled-V
     qc.h(qrs[4])
-    qc.crz(-pi / 2, qrs[3], qrs[4])
+    qc.cu1(-pi / 2, qrs[3], qrs[4])
     qc.h(qrs[4])
     # ------------
 
@@ -130,7 +130,7 @@ def _ccccx(qc, qrs):
 
     # controlled-Vdag
     qc.h(qrs[4])
-    qc.crz(pi / 2, qrs[3], qrs[4])
+    qc.cu1(pi / 2, qrs[3], qrs[4])
     qc.h(qrs[4])
     # ------------
 
