@@ -44,7 +44,7 @@ Changed
 
 - Change the type of ``entanger_map`` used in ``FeatureMap`` and ``VariationalForm`` to list of list.
 - Fixed package setup to correctly identify namespace packages using ``setuptools.find_namespace_packages``.
-- Changed ``advanced`` mode implementation of ``mct``, using simple ``h`` gates instead of ``ch`` and ``crz`` gates instead of ``cu1`` gates.
+- Changed ``advanced`` mode implementation of ``mct``, using simple ``h`` gates instead of ``ch``.
 - Changed ``advanced`` mode implementation of ``mct``, fixing the old recursion step in ``_multicx``.
 
 `0.4.1`_ - 2019-01-09
