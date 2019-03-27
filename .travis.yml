@@ -34,6 +34,8 @@ before_install:
       # Download github Terra
       wget https://codeload.github.com/Qiskit/qiskit-terra/zip/master -O /tmp/qiskit-terra.zip
       unzip /tmp/qiskit-terra.zip -d /tmp/
+      # Install Qiskit Terra requirements.
+      pip install -U -r /tmp/qiskit-terra-master/requirements-dev.txt
       # Install local Qiskit Terra
       pip install -e /tmp/qiskit-terra-master
       # Download github Ignis
