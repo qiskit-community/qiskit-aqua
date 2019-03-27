@@ -32,7 +32,7 @@ Added
 - Support to use arbitrary mixer Hamiltonian in ``QAOA``. This allows to use QAOA in constrained optimization problems [arXiv:1709.03489]
 - Added variational algorithm base class ``VQAlgorithm``, implemented by ``VQE`` and ``QSVMVariational``.
 - Added ``mcmt`` for Multi-Controlled, Multi-Target gate
-
+- Added ``ising/docplex.py`` for automatically generating Ising Hamiltonian from optimization models of DOcplex.
 
 Removed
 -------
