@@ -230,7 +230,7 @@ def validate_input_model(mdl):
 
 def auto_define_penalty(mdl):
     """ Automatically define the penalty coefficient.
-    This returns object function's upper bound - the lower bound + 1.
+    This returns object function's (upper bound - lower bound + 1).
 
 
     Args:
@@ -263,18 +263,17 @@ def auto_define_penalty(mdl):
     if mdl.is_maximized():
         sign = -1
 
-    upper_bound = 0
-    lower_bound = 0
+    # (upper bound - lower bound) can be calculate as the sum of absolute value of coefficients
+    penalty = 0
 
-    # calculate upper bound and lower bound of the objective function.
+    # sum linear terms of the object function.
     for i in mdl.get_objective_expr().iter_terms():
-        upper_bound += max(sign * i[1], 0)
-        lower_bound += min(sign * i[1], 0)
+        penalty += abs(i[1])
+    # sum quadratic terms of the object function.
     for i in mdl.get_objective_expr().iter_quads():
-        upper_bound += max(sign * i[1], 0)
-        lower_bound += min(sign * i[1], 0)
-
-    penalty = upper_bound - lower_bound + 1
+        penalty += abs(i[1])
+    # Finaly, add 1 to guarantee that infeasible answers will be greater than upper bound.
+    penalty += 1
 
     return penalty
 
