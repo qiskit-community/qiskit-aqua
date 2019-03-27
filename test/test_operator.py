@@ -20,7 +20,7 @@ import copy
 import itertools
 import os
 
-from qiskit import BasicAer, Aer
+from qiskit import BasicAer
 import numpy as np
 from qiskit.quantum_info import Pauli
 from qiskit.transpiler import PassManager
@@ -49,9 +49,9 @@ class TestOperator(QiskitAquaTestCase):
         # self.qubitOp.coloring = None
         run_config_ref = {'shots': 1}
         run_config = {'shots': 10000}
-        reference = self.qubitOp.eval('matrix', circuit, Aer.get_backend('statevector_simulator'), run_config=run_config_ref)[0]
+        reference = self.qubitOp.eval('matrix', circuit, BasicAer.get_backend('statevector_simulator'), run_config=run_config_ref)[0]
         reference = reference.real
-        backend = Aer.get_backend('qasm_simulator')
+        backend = BasicAer.get_backend('qasm_simulator')
         paulis_mode = self.qubitOp.eval('paulis', circuit, backend, run_config=run_config)
         grouped_paulis_mode = self.qubitOp.eval('grouped_paulis', circuit, backend, run_config=run_config)
 

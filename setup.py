@@ -26,6 +26,7 @@ long_description = """<a href="https://qiskit.org/aqua" rel=nofollow>Qiskit Aqua
 
 requirements = [
     "qiskit-terra>=0.8.0,<0.9",
+    "qiskit-ignis>=0.1.0,<0.2",
     "scipy>=0.19,!=0.19.1",
     "sympy>=1.3",
     "numpy>=1.13",
