@@ -15,16 +15,15 @@
 # limitations under the License.
 # =============================================================================
 
-from docplex.mp.advmodel import AdvModel as Model
-import numpy as np
 import networkx as nx
-
-from test.common import QiskitAquaTestCase
-
+import numpy as np
+from docplex.mp.advmodel import AdvModel as Model
 from qiskit.quantum_info import Pauli
+
 from qiskit.aqua import Operator
-from qiskit.aqua.translators.ising import maxcut, tsp, docplex
 from qiskit.aqua.algorithms import ExactEigensolver
+from qiskit.aqua.translators.ising import tsp, docplex
+from test.common import QiskitAquaTestCase
 
 # Reference operators and offsets for maxcut and tsp.
 qubitOp_maxcut = Operator(paulis=[[0.5, Pauli(z=[True, True, False, False], x=[False, False, False, False])],
@@ -62,143 +61,29 @@ qubitOp_tsp = Operator(paulis=[[-100057.0, Pauli(z=[True, False, False, False, F
                                [-100070.0, Pauli(z=[False, False, False, False, False, False, True, False, False],
                                                  x=[False, False, False, False, False, False, False, False, False])],
                                [14.0, Pauli(z=[False, False, True, False, False, False, True, False, False],
-                                            x=[False, False, False, False, False, False, False, False, False])], [14.5,
-                                                                                                                  Pauli(
-                                                                                                                      z=[
-                                                                                                                          False,
-                                                                                                                          True,
-                                                                                                                          False,
-                                                                                                                          True,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False],
-                                                                                                                      x=[
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False])],
+                                            x=[False, False, False, False, False, False, False, False, False])],
+                               [14.5, Pauli(z=[False, True, False, True, False, False, False, False, False],
+                                            x=[False, False, False, False, False, False, False, False, False])],
                                [14.5, Pauli(z=[False, False, True, False, True, False, False, False, False],
-                                            x=[False, False, False, False, False, False, False, False, False])], [14.5,
-                                                                                                                  Pauli(
-                                                                                                                      z=[
-                                                                                                                          True,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          True,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False],
-                                                                                                                      x=[
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False])],
+                                            x=[False, False, False, False, False, False, False, False, False])],
+                               [14.5, Pauli(z=[True, False, False, False, False, True, False, False, False],
+                                            x=[False, False, False, False, False, False, False, False, False])],
                                [21.0, Pauli(z=[False, False, False, True, False, False, False, True, False],
-                                            x=[False, False, False, False, False, False, False, False, False])], [21.0,
-                                                                                                                  Pauli(
-                                                                                                                      z=[
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          True,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          True],
-                                                                                                                      x=[
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False])],
+                                            x=[False, False, False, False, False, False, False, False, False])],
+                               [21.0, Pauli(z=[False, False, False, False, True, False, False, False, True],
+                                            x=[False, False, False, False, False, False, False, False, False])],
                                [21.0, Pauli(z=[False, False, False, False, False, True, True, False, False],
-                                            x=[False, False, False, False, False, False, False, False, False])], [14.0,
-                                                                                                                  Pauli(
-                                                                                                                      z=[
-                                                                                                                          False,
-                                                                                                                          True,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          True,
-                                                                                                                          False,
-                                                                                                                          False],
-                                                                                                                      x=[
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False])],
+                                            x=[False, False, False, False, False, False, False, False, False])],
+                               [14.0, Pauli(z=[False, True, False, False, False, False, True, False, False],
+                                            x=[False, False, False, False, False, False, False, False, False])],
                                [14.0, Pauli(z=[False, False, True, False, False, False, False, True, False],
-                                            x=[False, False, False, False, False, False, False, False, False])], [14.0,
-                                                                                                                  Pauli(
-                                                                                                                      z=[
-                                                                                                                          True,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          True],
-                                                                                                                      x=[
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False])],
+                                            x=[False, False, False, False, False, False, False, False, False])],
+                               [14.0, Pauli(z=[True, False, False, False, False, False, False, False, True],
+                                            x=[False, False, False, False, False, False, False, False, False])],
                                [21.0, Pauli(z=[False, False, False, False, True, False, True, False, False],
-                                            x=[False, False, False, False, False, False, False, False, False])], [21.0,
-                                                                                                                  Pauli(
-                                                                                                                      z=[
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          True,
-                                                                                                                          False,
-                                                                                                                          True,
-                                                                                                                          False],
-                                                                                                                      x=[
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False,
-                                                                                                                          False])],
+                                            x=[False, False, False, False, False, False, False, False, False])],
+                               [21.0, Pauli(z=[False, False, False, False, False, True, False, True, False],
+                                            x=[False, False, False, False, False, False, False, False, False])],
                                [21.0, Pauli(z=[False, False, False, True, False, False, False, False, True],
                                             x=[False, False, False, False, False, False, False, False, False])],
                                [50000.0, Pauli(z=[True, False, False, True, False, False, False, False, False],
