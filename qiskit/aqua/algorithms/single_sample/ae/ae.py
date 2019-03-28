@@ -56,7 +56,11 @@ class AmplitudeEstimation(QuantumAlgorithm):
         },
         'problems': ['uncertainty'],
         'depends': [
-            {'pluggable_type': 'uncertainty_problem', },
+            {'pluggable_type': 'uncertainty_problem',
+             'default': {
+                     'name': 'EuropeanCallDelta'
+                }
+             },
             {'pluggable_type': 'uncertainty_model',
              'default': {
                      'name': 'NormalDistribution'
