@@ -329,16 +329,16 @@ def get_pluggable_class(pluggable_type, pluggable_name):
                 break
 
     if not isinstance(pluggable_type, PluggableType):
-        raise AquaError('Invalid pluggable type {} {}'.format(
-            pluggable_type, pluggable_name))
+        raise AquaError('Invalid pluggable type {} {}'.format(pluggable_type, pluggable_name))
 
     if pluggable_type not in _REGISTERED_PLUGGABLES:
-        raise AquaError('{} {} not registered'.format(
-            pluggable_type, pluggable_name))
+        raise AquaError('{} {} not registered'.format(pluggable_type, pluggable_name))
+
+    if len(pluggable_name) == 0:
+        raise AquaError('Unable to get class for pluggable {}: Missing name.'.format(pluggable_type))
 
     if pluggable_name not in _REGISTERED_PLUGGABLES[pluggable_type]:
-        raise AquaError('{} {} not registered'.format(
-            pluggable_type, pluggable_name))
+        raise AquaError("{} '{}' not registered".format(pluggable_type, pluggable_name))
 
     return _REGISTERED_PLUGGABLES[pluggable_type][pluggable_name].cls
 
@@ -363,16 +363,16 @@ def get_pluggable_configuration(pluggable_type, pluggable_name):
                 break
 
     if not isinstance(pluggable_type, PluggableType):
-        raise AquaError('Invalid pluggable type {} {}'.format(
-            pluggable_type, pluggable_name))
+        raise AquaError('Invalid pluggable type {} {}'.format(pluggable_type, pluggable_name))
 
     if pluggable_type not in _REGISTERED_PLUGGABLES:
-        raise AquaError('{} {} not registered'.format(
-            pluggable_type, pluggable_name))
+        raise AquaError('{} {} not registered'.format(pluggable_type, pluggable_name))
+
+    if len(pluggable_name) == 0:
+        raise AquaError('Unable to get configuration for pluggable {}: Missing name.'.format(pluggable_type))
 
     if pluggable_name not in _REGISTERED_PLUGGABLES[pluggable_type]:
-        raise AquaError('{} {} not registered'.format(
-            pluggable_type, pluggable_name))
+        raise AquaError('{} {} not registered'.format(pluggable_type, pluggable_name))
 
     return copy.deepcopy(_REGISTERED_PLUGGABLES[pluggable_type][pluggable_name].configuration)
 
