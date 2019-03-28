@@ -101,6 +101,10 @@ class BaseParser(ABC):
     def get_property_types(self, section_name, property_name):
         return self._json_schema.get_property_types(section_name, property_name)
 
+    @abstractmethod
+    def get_default_sections(self):
+        pass
+
     def get_default_section_names(self):
         sections = self.get_default_sections()
         return list(sections.keys()) if sections is not None else []
@@ -588,6 +592,11 @@ class BaseParser(ABC):
         section_name = JSONSchema.format_section_name(section_name)
         property_name = JSONSchema.format_property_name(property_name)
         value = JSONSchema.get_value(value, types)
+
+        if JSONSchema.NAME == property_name and \
+           (value is None or len(value) == 0) and \
+           BaseParser.is_pluggable_section(section_name):
+            raise AquaError("Unable to set pluggable '{}' name: Missing name.".format(section_name))
 
         if section_name not in sections:
             sections[section_name] = OrderedDict()
