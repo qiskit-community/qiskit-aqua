@@ -6,7 +6,6 @@
     },
     "backend": {
         "name": "statevector_simulator",
-        "shots": 1,
         "skip_transpiler": false
     },
     "initial_state": {

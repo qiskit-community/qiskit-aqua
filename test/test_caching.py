@@ -44,8 +44,10 @@ class TestCaching(QiskitAquaTestCase):
                             'skip_qobj_validation': False,
                             'circuit_cache_file': None,
                             },
-                'backend': {'provider': 'qiskit.BasicAer', 'name': backend, 'shots': 1000},
+                'backend': {'provider': 'qiskit.BasicAer', 'name': backend},
             }
+            if backend != 'statevector_simulator':
+                params_no_caching['backend']['shots'] = 1000
             qiskit_aqua = QiskitAqua(params_no_caching, self.algo_input)
             res[backend] = qiskit_aqua.run()
         self.reference_vqe_result = res
@@ -67,8 +69,10 @@ class TestCaching(QiskitAquaTestCase):
                         'skip_qobj_validation': skip_validation,
                         'circuit_cache_file': None,
                         },
-            'backend': {'provider': 'qiskit.BasicAer', 'name': backend, 'shots': 1000},
+            'backend': {'provider': 'qiskit.BasicAer', 'name': backend},
         }
+        if backend != 'statevector_simulator':
+            params_caching['backend']['shots'] = 1000
         qiskit_aqua = QiskitAqua(params_caching, self.algo_input)
         result_caching = qiskit_aqua.run()
 
@@ -84,20 +88,22 @@ class TestCaching(QiskitAquaTestCase):
         self.assertIn('eval_time', result_caching)
 
     @parameterized.expand([
-        [True],
-        [False]
+        [4],
+        [1]
     ])
-    def test_vqe_caching_direct(self, batch_mode=True):
+    def test_vqe_caching_direct(self, max_evals_grouped=1):
         backend = BasicAer.get_backend('statevector_simulator')
         num_qubits = self.algo_input.qubit_op.num_qubits
         init_state = Zero(num_qubits)
         var_form = RY(num_qubits, 3, initial_state=init_state)
         optimizer = L_BFGS_B()
-        algo = VQE(self.algo_input.qubit_op, var_form, optimizer, 'matrix', batch_mode=batch_mode)
-        circuit_cache = CircuitCache(skip_qobj_deepcopy=True)
-        quantum_instance_caching = QuantumInstance(backend, circuit_cache=circuit_cache, skip_qobj_validation=True)
+        algo = VQE(self.algo_input.qubit_op, var_form, optimizer, 'matrix', max_evals_grouped=max_evals_grouped)
+        quantum_instance_caching = QuantumInstance(backend,
+                                                   circuit_caching=True,
+                                                   skip_qobj_deepcopy=True,
+                                                   skip_qobj_validation=True)
         result_caching = algo.run(quantum_instance_caching)
-        self.assertLessEqual(circuit_cache.misses, 0)
+        self.assertLessEqual(quantum_instance_caching.circuit_cache.misses, 0)
         self.assertAlmostEqual(self.reference_vqe_result['statevector_simulator']['energy'], result_caching['energy'])
         speedup_check = 3
         self.log.info(result_caching['eval_time'],
@@ -114,16 +120,19 @@ class TestCaching(QiskitAquaTestCase):
         fd, cache_tmp_file = tempfile.mkstemp(suffix='.inp')
         os.close(fd)
 
-        circuit_cache = CircuitCache(skip_qobj_deepcopy=True, cache_file=cache_tmp_file)
-        quantum_instance_caching = QuantumInstance(backend, circuit_cache=circuit_cache, skip_qobj_validation=True)
-        result_caching = algo.run(quantum_instance_caching)
-        self.assertLessEqual(circuit_cache.misses, 0)
+        quantum_instance_caching = QuantumInstance(backend,
+                                                   circuit_caching=True,
+                                                   cache_file=cache_tmp_file,
+                                                   skip_qobj_deepcopy=True,
+                                                   skip_qobj_validation=True)
+        algo.run(quantum_instance_caching)
+        self.assertLessEqual(quantum_instance_caching.circuit_cache.misses, 0)
 
         is_file_exist = os.path.exists(cache_tmp_file)
         self.assertTrue(is_file_exist, "Does not store content successfully.")
 
         circuit_cache_new = CircuitCache(skip_qobj_deepcopy=True, cache_file=cache_tmp_file)
-        self.assertEqual(circuit_cache.mappings, circuit_cache_new.mappings)
+        self.assertEqual(quantum_instance_caching.circuit_cache.mappings, circuit_cache_new.mappings)
         self.assertLessEqual(circuit_cache_new.misses, 0)
 
         if is_file_exist:

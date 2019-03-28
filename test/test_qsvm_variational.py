@@ -23,7 +23,7 @@ import numpy as np
 from test.common import QiskitAquaTestCase
 from qiskit import BasicAer
 from qiskit.aqua.input import SVMInput
-from qiskit.aqua import run_algorithm, QuantumInstance
+from qiskit.aqua import run_algorithm, QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms import QSVMVariational
 from qiskit.aqua.components.optimizers import SPSA, COBYLA
 from qiskit.aqua.components.feature_maps import SecondOrderExpansion
@@ -40,17 +40,11 @@ class TestQSVMVariational(QiskitAquaTestCase):
         self.testing_data = {'A': np.asarray([[3.83274304, 2.45044227]]),
                              'B': np.asarray([[3.89557489, 0.31415927]])}
 
-        # self.ref_opt_params = np.array([-0.09936191, -1.26202073,  1.30316646,  3.24053034, -0.50731743,
-        #                                -0.6853292,  2.57404557,  1.74873317,  1.62238446, -1.83326183,
-        #                                4.48499251,  0.21433137, -1.76288916, -0.15767913,  1.86321388,
-        #                                0.27216782])
         self.ref_opt_params = np.array([8.84487704, -4.75068608, -3.09321599, 6.15074807,
                                         -8.13322889, -10.03379214, 5.4842633, -0.80973346,
                                         -1.57635832, -9.36628893, -5.97527339, -2.65074375,
                                         -4.45536502, 10.86323401, 11.39789674, 3.65879025])
-        # self.ref_train_loss = 1.4088445273265953
         self.ref_train_loss = 0.35346867
-        # self.ref_prediction_a_probs = [[0.53710938, 0.46289062]]
         self.ref_prediction_a_probs = [[0.55273438, 0.44726562]]
         self.ref_prediction_a_label = [0]
 
@@ -71,8 +65,42 @@ class TestQSVMVariational(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(result['opt_params'], self.ref_opt_params, decimal=8)
         np.testing.assert_array_almost_equal(result['training_loss'], self.ref_train_loss, decimal=8)
 
-        # self.assertEqual(result['testing_accuracy'], 1.0)
         self.assertEqual(result['testing_accuracy'], 0.5)
+
+    def test_qsvm_variational_with_max_evals_grouped(self):
+        np.random.seed(self.random_seed)
+        params = {
+            'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
+            'algorithm': {'name': 'QSVM.Variational', 'max_evals_grouped':2},
+            'backend': {'provider': 'qiskit.BasicAer', 'name': 'qasm_simulator', 'shots': 1024},
+            'optimizer': {'name': 'SPSA', 'max_trials': 10, 'save_steps': 1},
+            'variational_form': {'name': 'RYRZ', 'depth': 3},
+            'feature_map': {'name': 'SecondOrderExpansion', 'depth': 2}
+        }
+        result = run_algorithm(params, self.svm_input)
+
+        np.testing.assert_array_almost_equal(result['opt_params'], self.ref_opt_params, decimal=8)
+        np.testing.assert_array_almost_equal(result['training_loss'], self.ref_train_loss, decimal=8)
+
+        self.assertEqual(result['testing_accuracy'], 0.5)
+
+    def test_qsvm_variational_statevector_via_run_algorithm(self):
+        np.random.seed(self.random_seed)
+        params = {
+            'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
+            'algorithm': {'name': 'QSVM.Variational'},
+            'backend': {'provider': 'qiskit.BasicAer', 'name': 'statevector_simulator'},
+            'optimizer': {'name': 'COBYLA'},
+            'variational_form': {'name': 'RYRZ', 'depth': 3},
+            'feature_map': {'name': 'SecondOrderExpansion', 'depth': 2}
+        }
+        result = run_algorithm(params, self.svm_input)
+        ref_train_loss = 0.1059404
+        np.testing.assert_array_almost_equal(result['training_loss'], ref_train_loss, decimal=4)
+
+        self.assertEqual(result['testing_accuracy'], 0.5)
+
+
 
     def test_qsvm_variational_with_minibatching(self):
         np.random.seed(self.random_seed)
@@ -88,20 +116,15 @@ class TestQSVMVariational(QiskitAquaTestCase):
 
         # The results will differ from the above even though the batch size is larger than the trainingset size due
         # to the shuffle during minibatching
-        #  minibatching_ref_opt_params = np.asarray([-18.8965, -36.9197,   2.3568,  14.9087,  43.8633,   7.1394,
-        #                                          12.1298,  23.7219,  36.5693,  21.0561,  37.5775, -22.4538,
-        #                                          41.1386, -54.3177, -27.3063,  31.3858])
         minibatching_ref_opt_params = np.array([2.4271, -21.5146, 4.4769, 21.0945, 8.4016, -9.7612,
                                                 13.9343, 42.8698, 16.8601, -22.8767, 19.5411, -27.62,
                                                 3.423, -25.9107, 21.0475, 21.895])
 
-        # minibatching_ref_train_loss = 1.02335933
         minibatching_ref_train_loss = 0.6519675
 
         np.testing.assert_array_almost_equal(result['opt_params'], minibatching_ref_opt_params, decimal=4)
         np.testing.assert_array_almost_equal(result['training_loss'], minibatching_ref_train_loss, decimal=8)
 
-        # self.assertEqual(result['testing_accuracy'], .5)
         self.assertEqual(result['testing_accuracy'], 0.0)
 
     def test_qsvm_variational_directly(self):
@@ -114,14 +137,13 @@ class TestQSVMVariational(QiskitAquaTestCase):
         var_form = RYRZ(num_qubits=num_qubits, depth=3)
 
         svm = QSVMVariational(optimizer, feature_map, var_form, self.training_data, self.testing_data)
-        svm.random_seed = self.random_seed
+        aqua_globals.random_seed = self.random_seed
         quantum_instance = QuantumInstance(backend, shots=1024, seed=self.random_seed, seed_mapper=self.random_seed)
         result = svm.run(quantum_instance)
 
         np.testing.assert_array_almost_equal(result['opt_params'], self.ref_opt_params, decimal=4)
         np.testing.assert_array_almost_equal(result['training_loss'], self.ref_train_loss, decimal=8)
 
-        # self.assertEqual(result['testing_accuracy'], 1.0)
         self.assertEqual(result['testing_accuracy'], 0.5)
 
         file_path = self._get_resource_path('qsvm_variational_test.npz')
@@ -178,11 +200,6 @@ class TestQSVMVariational(QiskitAquaTestCase):
         self.assertTrue(is_file_exist, "Does not store content successfully.")
 
         # check the content
-        # ref_content = [
-        #    ["0", "[ 0.18863864 -1.08197582  1.74432295  1.29765602]", "0.53367", "0"],
-        #    ["1", "[ 1.18863864 -1.08197582  1.74432295  1.29765602]", "0.57261", "1"],
-        #    ["2", "[ 0.18863864 -0.08197582  1.74432295  1.29765602]", "0.47137", "2"]
-        #    ]
         ref_content = [
                 ['0', '[ 0.18863864 -1.08197582  1.74432295  1.29765602]', '0.54802', '0'],
                 ['1', '[ 1.18863864 -1.08197582  1.74432295  1.29765602]', '0.53862', '1'],

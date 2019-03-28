@@ -17,6 +17,7 @@
 
 import logging
 
+import math
 import numpy as np
 from sklearn.utils import shuffle
 
@@ -45,9 +46,9 @@ class QSVMVariational(VQAlgorithm):
                     'type': 'boolean',
                     'default': True
                 },
-                'batch_mode': {
-                    'type': 'boolean',
-                    'default': False
+                'max_evals_grouped': {
+                    'type': 'integer',
+                    'default': 1
                 },
                 'minibatch_size': {
                     'type': 'integer',
@@ -82,7 +83,7 @@ class QSVMVariational(VQAlgorithm):
     }
 
     def __init__(self, optimizer, feature_map, var_form, training_dataset,
-                 test_dataset=None, datapoints=None, batch_mode=False,
+                 test_dataset=None, datapoints=None, max_evals_grouped=1,
                  minibatch_size=-1, callback=None):
         """Initialize the object
         Args:
@@ -92,7 +93,7 @@ class QSVMVariational(VQAlgorithm):
             optimizer (Optimizer): Optimizer instance
             feature_map (FeatureMap): FeatureMap instance
             var_form (VariationalForm): VariationalForm instance
-            batch_mode (boolean): Batch mode for circuit compilation and execution
+            max_evals_grouped (int): max number of evaluations performed simultaneously.
             callback (Callable): a callback that can access the intermediate data during the optimization.
                                  Internally, four arguments are provided as follows
                                  the index of data batch, the index of evaluation,
@@ -104,7 +105,8 @@ class QSVMVariational(VQAlgorithm):
         super().__init__(var_form=var_form,
                          optimizer=optimizer,
                          cost_fn=self._cost_function_wrapper)
-        self._optimizer.set_batch_mode(batch_mode)
+        self._optimizer.set_max_evals_grouped(max_evals_grouped)
+
         self._callback = callback
         if training_dataset is None:
             raise AquaError('Training dataset must be provided')
@@ -134,7 +136,7 @@ class QSVMVariational(VQAlgorithm):
     def init_params(cls, params, algo_input):
         algo_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
         override_spsa_params = algo_params.get('override_SPSA_params')
-        batch_mode = algo_params.get('batch_mode')
+        max_evals_grouped = algo_params.get('max_evals_grouped')
         minibatch_size = algo_params.get('minibatch_size')
 
         # Set up optimizer
@@ -165,7 +167,7 @@ class QSVMVariational(VQAlgorithm):
                                        var_form_params['name']).init_params(params)
 
         return cls(optimizer, feature_map, var_form, algo_input.training_dataset,
-                   algo_input.test_dataset, algo_input.datapoints, batch_mode,
+                   algo_input.test_dataset, algo_input.datapoints, max_evals_grouped,
                    minibatch_size)
 
     def construct_circuit(self, x, theta, measurement=False):
@@ -215,9 +217,9 @@ class QSVMVariational(VQAlgorithm):
             numpy.ndarray or [numpy.ndarray]: list of NxK array
             numpy.ndarray or [numpy.ndarray]: list of Nx1 array
         """
-        if self._quantum_instance.is_statevector:
-            raise ValueError('Selected backend "{}" is not supported.'.format(
-                self._quantum_instance.backend_name))
+        # if self._quantum_instance.is_statevector:
+        #     raise ValueError('Selected backend "{}" is not supported.'.format(
+        #         self._quantum_instance.backend_name))
 
         circuits = {}
         circuit_id = 0
@@ -227,7 +229,11 @@ class QSVMVariational(VQAlgorithm):
 
         for theta in theta_sets:
             for datum in data:
-                circuit = self.construct_circuit(datum, theta, measurement=True)
+                if self._quantum_instance.is_statevector:
+                    circuit = self.construct_circuit(datum, theta, measurement=False)
+                else:
+                    circuit = self.construct_circuit(datum, theta, measurement=True)
+
                 circuits[circuit_id] = circuit
                 circuit_id += 1
 
@@ -239,8 +245,22 @@ class QSVMVariational(VQAlgorithm):
         for theta in theta_sets:
             counts = []
             for datum in data:
-                counts.append(results.get_counts(circuits[circuit_id]))
+                if self._quantum_instance.is_statevector:
+                    temp = results.get_statevector(circuits[circuit_id])
+                    outcome_vector = (temp * temp.conj()).real
+                    # convert outcome_vector to outcome_dict, where key is a basis state and value is the count.
+                    # Note: the count can be scaled linearly, i.e., it does not have to be an integer.
+                    outcome_dict = {}
+                    bitstringsize = int(math.log2(len(outcome_vector)))
+                    for i in range(len(outcome_vector)):
+                        bitstr_i = format(i, '0' + str(bitstringsize) +'b')
+                        outcome_dict[bitstr_i] = outcome_vector[i]
+                else:
+                    outcome_dict = results.get_counts(circuits[circuit_id])
+
+                counts.append(outcome_dict)
                 circuit_id += 1
+
             probs = return_probabilities(counts, self._num_classes)
             predicted_probs.append(probs)
             predicted_labels.append(np.argmax(probs, axis=1))

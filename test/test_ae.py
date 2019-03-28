@@ -21,6 +21,7 @@ import numpy as np
 from parameterized import parameterized
 
 from qiskit import BasicAer
+from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import AmplitudeEstimation
 from qiskit.aqua.components.uncertainty_problems import EuropeanCallExpectedValue, EuropeanCallDelta, FixedIncomeExpectedValue
 from qiskit.aqua.components.random_distributions import LogNormalDistribution, MultivariateNormalDistribution
@@ -79,7 +80,8 @@ class TestEuropeanCallOption(QiskitAquaTestCase):
         ae = AmplitudeEstimation(m, european_call)
 
         # run simulation
-        result = ae.run(quantum_instance=BasicAer.get_backend(simulator))
+        quantum_instance = QuantumInstance(BasicAer.get_backend(simulator), circuit_caching=False)
+        result = ae.run(quantum_instance=quantum_instance)
 
         # compare to precomputed solution
         self.assertEqual(0.0, np.round(result['estimation'] - 0.045705353233, decimals=4))
@@ -129,7 +131,8 @@ class TestEuropeanCallOption(QiskitAquaTestCase):
         ae = AmplitudeEstimation(m, european_call_delta)
 
         # run simulation
-        result = ae.run(quantum_instance=BasicAer.get_backend(simulator))
+        quantum_instance = QuantumInstance(BasicAer.get_backend(simulator), circuit_caching=False)
+        result = ae.run(quantum_instance=quantum_instance)
 
         # compare to precomputed solution
         self.assertEqual(0.0, np.round(result['estimation'] - 0.5000, decimals=4))
@@ -175,7 +178,8 @@ class TestFixedIncomeAssets(QiskitAquaTestCase):
         ae = AmplitudeEstimation(m, fixed_income)
 
         # run simulation
-        result = ae.run(quantum_instance=BasicAer.get_backend('statevector_simulator'))
+        quantum_instance = QuantumInstance(BasicAer.get_backend('statevector_simulator'), circuit_caching=False)
+        result = ae.run(quantum_instance=quantum_instance)
 
         # compare to precomputed solution
         self.assertEqual(0.0, np.round(result['estimation'] - 2.4600, decimals=4))

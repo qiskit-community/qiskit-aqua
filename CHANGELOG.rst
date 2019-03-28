@@ -21,27 +21,43 @@ The format is based on `Keep a Changelog`_.
 Added
 -----
 
-- Implementation of the HHL algorithm supporting ``LinearSystemInput``
-- Pluggable component ``Eigenvalues`` with variant ``EigQPE``
-- Pluggable component ``Reciprocal`` with variants ``LookupRotation`` and ``LongDivision``
-- Multiple-Controlled U1 and U3 operations ``mcu1`` and ``mcu3``
-- Pluggable component ``QFT`` derived from component ``IQFT``
+- Implementation of the HHL algorithm supporting ``LinearSystemInput``.
+- Pluggable component ``Eigenvalues`` with variant ``EigQPE``.
+- Pluggable component ``Reciprocal`` with variants ``LookupRotation`` and ``LongDivision``.
+- Multiple-Controlled U1 and U3 operations ``mcu1`` and ``mcu3``.
+- Pluggable component ``QFT`` derived from component ``IQFT``.
 - Summarize the tranpiled circuits at the DEBUG logging level.
 - ``QuantumInstance`` accepts ``basis_gates`` and ``coupling_map`` again.
 - Support to use ``cx`` gate for the entangement in ``RY`` and ``RYRZ`` variational form. (``cz`` is the default choice.)
+- Support to use arbitrary mixer Hamiltonian in ``QAOA``. This allows to use QAOA in constrained optimization problems [arXiv:1709.03489].
 - Added variational algorithm base class ``VQAlgorithm``, implemented by ``VQE`` and ``QSVMVariational``.
+- Added ``mcmt`` for Multi-Controlled, Multi-Target gate.
+- Exposed capabilities to generate circuits from logical AND, OR, DNF (disjunctive normal forms), and CNF (conjunctive normal forms) formulae.
+- Added the capability to generate circuits from ESOP (exclusive sum of products) formulae with optional optimization based on Quine-McCluskey and ExactCover.
+- Added ``LogicExpressionOracle`` for generating oracle circuits from arbitrary boolean logic expressions (including DIMACS support) with optional optimization capability.
+- Added ``TruthTableOracle`` for generating oracle circuits from truth-tables with optional optimization capability.
+- Added implementation of the Deutsch-Josza algorithm.
+- Added implementation of the Bernstein-Vazirani algorithm.
+- Added implementation of the Simon's algorithm.
+- Added optional capability for ``Grover``'s algorithm to take a custom initial state (as opposed to the default uniform superposition)
+- Added capability to create a ``Custom`` initial state using existing circuit.
 
 
 Removed
 -------
+
 - ``QuantumInstance`` does not take ``memory`` anymore.
 - Moved Command line and GUI interfaces to separate repo (qiskit_aqua_uis)
+- Removed the ``SAT``-specific oracle (now supported by ``LogicExpressionOracle``).
+
 
 Changed
 -------
 
 - Change the type of ``entanger_map`` used in ``FeatureMap`` and ``VariationalForm`` to list of list.
 - Fixed package setup to correctly identify namespace packages using ``setuptools.find_namespace_packages``.
+- Changed ``advanced`` mode implementation of ``mct``: using simple ``h`` gates instead of ``ch``, and fixing the old recursion step in ``_multicx``.
+
 
 `0.4.1`_ - 2019-01-09
 =====================

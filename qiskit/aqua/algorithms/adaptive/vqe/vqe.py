@@ -62,9 +62,9 @@ class VQE(VQAlgorithm):
                     },
                     'default': None
                 },
-                'batch_mode': {
-                    'type': 'boolean',
-                    'default': False
+                'max_evals_grouped': {
+                    'type': 'integer',
+                    'default': 1
                 }
             },
             'additionalProperties': False
@@ -85,7 +85,7 @@ class VQE(VQAlgorithm):
     }
 
     def __init__(self, operator, var_form, optimizer, operator_mode='matrix',
-                 initial_point=None, batch_mode=False, aux_operators=None, callback=None):
+                 initial_point=None, max_evals_grouped=1, aux_operators=None, callback=None):
         """Constructor.
 
         Args:
@@ -94,7 +94,7 @@ class VQE(VQAlgorithm):
             var_form (VariationalForm): parametrized variational form.
             optimizer (Optimizer): the classical optimization algorithm.
             initial_point (numpy.ndarray): optimizer initial point.
-            batch_mode (bool): evaluate parameter sets in parallel.
+            max_evals_grouped (int): max number of evaluations performed simultaneously
             aux_operators (list of Operator): Auxiliary operators to be evaluated at each eigenvalue
             callback (Callable): a callback that can access the intermediate data during the optimization.
                                  Internally, four arguments are provided as follows
@@ -106,7 +106,7 @@ class VQE(VQAlgorithm):
                          optimizer=optimizer,
                          cost_fn=self._energy_evaluation,
                          initial_point=initial_point)
-        self._optimizer.set_batch_mode(batch_mode)
+        self._optimizer.set_max_evals_grouped(max_evals_grouped)
         self._callback = callback
         if initial_point is None:
             self._initial_point = var_form.preferred_init_points
@@ -139,7 +139,7 @@ class VQE(VQAlgorithm):
         vqe_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
         operator_mode = vqe_params.get('operator_mode')
         initial_point = vqe_params.get('initial_point')
-        batch_mode = vqe_params.get('batch_mode')
+        max_evals_grouped = vqe_params.get('max_evals_grouped')
 
         # Set up variational form, we need to add computed num qubits
         # Pass all parameters so that Variational Form can create its dependents
@@ -154,7 +154,7 @@ class VQE(VQAlgorithm):
                                         opt_params['name']).init_params(params)
 
         return cls(operator, var_form, optimizer, operator_mode=operator_mode,
-                   initial_point=initial_point, batch_mode=batch_mode,
+                   initial_point=initial_point, max_evals_grouped=max_evals_grouped,
                    aux_operators=algo_input.aux_ops)
 
     @property

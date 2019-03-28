@@ -22,7 +22,7 @@ import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
-
+from qiskit.aqua import aqua_globals
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.algorithms.many_sample.qsvm._qsvm_kernel_binary import _QSVM_Kernel_Binary
@@ -242,7 +242,8 @@ class QSVMKernel(QuantumAlgorithm):
             circuits = parallel_map(QSVMKernel._construct_circuit,
                                     to_be_computed_list,
                                     task_args=(self.num_qubits, self.feature_map,
-                                               measurement))
+                                               measurement),
+                                    num_processes=aqua_globals.num_processes)
 
             results = self.quantum_instance.execute(circuits)
 
@@ -250,7 +251,8 @@ class QSVMKernel(QuantumAlgorithm):
                 logger.debug("Calculating overlap:")
                 TextProgressBar(sys.stderr)
             matrix_elements = parallel_map(QSVMKernel._compute_overlap, range(len(circuits)),
-                                           task_args=(results, is_statevector_sim, measurement_basis))
+                                           task_args=(results, is_statevector_sim, measurement_basis),
+                                           num_processes=aqua_globals.num_processes)
 
             for idx in range(len(to_be_computed_index)):
                 i, j = to_be_computed_index[idx]
