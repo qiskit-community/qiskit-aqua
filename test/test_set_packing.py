@@ -19,7 +19,6 @@ import numpy as np
 import json
 
 from test.common import QiskitAquaTestCase
-from qiskit import BasicAer
 from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import EnergyInput
 from qiskit.aqua.translators.ising import setpacking
@@ -75,8 +74,13 @@ class TestSetPacking(QiskitAquaTestCase):
         oracle = self.brute_force()
         self.assertEqual(np.count_nonzero(ising_sol), oracle)
 
-    # TODO Disable for now until Aer is ok
-    def todo_test_set_packing_vqe(self):
+    def test_set_packing_vqe(self):
+        try:
+            from qiskit import Aer
+        except Exception as e:
+            self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(e)))
+            return
+
         algorithm_cfg = {
             'name': 'VQE',
             'operator_mode': 'grouped_paulis',
@@ -100,7 +104,7 @@ class TestSetPacking(QiskitAquaTestCase):
             'optimizer': optimizer_cfg,
             'variational_form': var_form_cfg
         }
-        backend = BasicAer.get_backend('qasm_simulator')
+        backend = Aer.get_backend('qasm_simulator')
         result = run_algorithm(params, self.algo_input, backend=backend)
         x = setpacking.sample_most_likely(len(self.list_of_subsets), result['eigvecs'][0])
         ising_sol = setpacking.get_solution(x)
