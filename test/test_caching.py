@@ -88,16 +88,16 @@ class TestCaching(QiskitAquaTestCase):
         self.assertIn('eval_time', result_caching)
 
     @parameterized.expand([
-        [True],
-        [False]
+        [4],
+        [1]
     ])
-    def test_vqe_caching_direct(self, batch_mode=True):
+    def test_vqe_caching_direct(self, max_evals_grouped=1):
         backend = BasicAer.get_backend('statevector_simulator')
         num_qubits = self.algo_input.qubit_op.num_qubits
         init_state = Zero(num_qubits)
         var_form = RY(num_qubits, 3, initial_state=init_state)
         optimizer = L_BFGS_B()
-        algo = VQE(self.algo_input.qubit_op, var_form, optimizer, 'matrix', batch_mode=batch_mode)
+        algo = VQE(self.algo_input.qubit_op, var_form, optimizer, 'matrix', max_evals_grouped=max_evals_grouped)
         quantum_instance_caching = QuantumInstance(backend,
                                                    circuit_caching=True,
                                                    skip_qobj_deepcopy=True,
