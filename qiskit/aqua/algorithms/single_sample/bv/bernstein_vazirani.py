@@ -45,11 +45,12 @@ class BernsteinVazirani(QuantumAlgorithm):
         },
         'problems': ['hiddenstringfinding'],
         'depends': [
-            {'pluggable_type': 'oracle',
-             'default': {
-                     'name': 'BernsteinVaziraniOracle',
+            {
+                'pluggable_type': 'oracle',
+                'default': {
+                     'name': 'TruthTableOracle',
                 },
-             },
+            },
         ],
     }
 
