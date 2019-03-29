@@ -19,6 +19,7 @@ from .mcu1 import mcu1
 from .mcu3 import mcu3
 from .mct import mct
 from .mcmt import mcmt
+from .boolean_logic_gates import logic_and, logic_or
 
 
 __all__ = [
@@ -26,4 +27,6 @@ __all__ = [
     'mcu3',
     'mct',
     'mcmt',
+    'logic_and',
+    'logic_or',
 ]

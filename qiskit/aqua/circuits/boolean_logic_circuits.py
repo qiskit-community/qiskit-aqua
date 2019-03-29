@@ -29,73 +29,6 @@ from qiskit.aqua import AquaError
 logger = logging.getLogger(__name__)
 
 
-def _check_variables(vs):
-    _vs = []
-    for v in vs:
-        if v in _vs:
-            continue
-        elif -v in _vs:
-            return None
-        else:
-            _vs.append(v)
-    return sorted(_vs, key=abs)
-
-
-def logic_or(signed_vars, circuit, variable_register, target_qubit, ancillary_register, mct_mode):
-    """
-    Build a collective disjunction (OR) circuit in place using mct.
-
-    Args:
-        signed_vars ([int]): The desired disjunctive clause as represented by a list of non-zero integers,
-            whose absolute values indicate the variables, where negative signs correspond to negations.
-        circuit (QuantumCircuit): The QuantumCircuit object to build the disjunction on.
-        variable_register (QuantumRegister): The QuantumRegister holding the variable qubits. Note that the
-            qubit indices are 0-based, so `variable_register[i]` correspond to variable `i-1` in `clause_expr`.
-        target_qubit (tuple(QuantumRegister, int)): The target qubit to hold the disjunction result.
-        ancillary_register (QuantumRegister): The ancillary QuantumRegister for building the mct.
-        mct_mode (str): The mct building mode.
-    """
-
-    signed_vars = _check_variables(signed_vars)
-    circuit.u3(pi, 0, pi, target_qubit)
-    if signed_vars is not None:
-        qs = [abs(v) for v in signed_vars]
-        ctl_bits = [variable_register[idx - 1] for idx in qs]
-        anc_bits = [ancillary_register[idx] for idx in range(len(qs) - 2)] if ancillary_register else None
-        for idx in [v for v in signed_vars if v > 0]:
-            circuit.u3(pi, 0, pi, variable_register[idx - 1])
-        circuit.mct(ctl_bits, target_qubit, anc_bits, mode=mct_mode)
-        for idx in [v for v in signed_vars if v > 0]:
-            circuit.u3(pi, 0, pi, variable_register[idx - 1])
-
-
-def logic_and(signed_vars, circuit, variable_register, target_qubit, ancillary_register, mct_mode):
-    """
-    Build a collective conjunction (AND) circuit in place using mct.
-
-    Args:
-        signed_vars ([int]): The desired disjunctive clause as represented by a list of non-zero integers,
-            whose absolute values indicate the variables, where negative signs correspond to negations.
-        circuit (QuantumCircuit): The QuantumCircuit object to build the conjunction on.
-        variable_register (QuantumRegister): The QuantumRegister holding the variable qubits. Note that the
-            qubit indices are 0-based, so `variable_register[i]` correspond to variable `i-1` in `clause_expr`.
-        target_qubit (tuple(QuantumRegister, int)): The target qubit to hold the conjunction result.
-        ancillary_register (QuantumRegister): The ancillary QuantumRegister for building the mct.
-        mct_mode (str): The mct building mode.
-    """
-
-    signed_vars = _check_variables(signed_vars)
-    if signed_vars is not None:
-        qs = [abs(v) for v in signed_vars]
-        ctl_bits = [variable_register[idx - 1] for idx in qs]
-        anc_bits = [ancillary_register[idx] for idx in range(len(qs) - 2)] if ancillary_register else None
-        for idx in [v for v in signed_vars if v < 0]:
-            circuit.u3(pi, 0, pi, variable_register[-idx - 1])
-        circuit.mct(ctl_bits, target_qubit, anc_bits, mode=mct_mode)
-        for idx in [v for v in signed_vars if v < 0]:
-            circuit.u3(pi, 0, pi, variable_register[-idx - 1])
-
-
 class BooleanLogicNormalForm(ABC):
 
     @staticmethod
@@ -121,6 +54,21 @@ class BooleanLogicNormalForm(ABC):
 
         get_ast_vars(ast)
         return max(all_vars)
+
+    @staticmethod
+    def _lits_to_flags(vs):
+        _vs = []
+        for v in vs:
+            if v in _vs:
+                continue
+            elif -v in _vs:
+                return None
+            else:
+                _vs.append(v)
+        flags = abs(max(_vs, key=abs)) * [0]
+        for v in _vs:
+            flags[abs(v) - 1] = 1 if v > 0 else -1
+        return flags
 
     """
     The base abstract class for:
@@ -334,13 +282,13 @@ class CNF(BooleanLogicNormalForm):
             self._construct_circuit_for_tiny_expr(circuit)
         elif self._depth == 1:
             lits = [l[1] for l in self._ast[1:]]
-            logic_and(
-                lits,
-                circuit,
+            flags = BooleanLogicNormalForm._lits_to_flags(lits)
+            circuit.AND(
                 self._variable_register,
                 self._output_register[0],
                 self._ancillary_register,
-                mct_mode
+                flags=flags,
+                mct_mode=mct_mode
             )
         else:  # self._depth == 2:
             # compute all clauses
@@ -354,13 +302,13 @@ class CNF(BooleanLogicNormalForm):
                         'Operator "{}" of clause {} in logic expression {} is unexpected.'.format(
                             clause_expr[0], clause_index, self._ast)
                     )
-                logic_or(
-                    lits,
-                    circuit,
+                flags = BooleanLogicNormalForm._lits_to_flags(lits)
+                circuit.OR(
                     self._variable_register,
                     self._clause_register[clause_index],
                     self._ancillary_register,
-                    mct_mode
+                    flags=flags,
+                    mct_mode=mct_mode
                 )
 
             # collect results from all clauses
@@ -377,13 +325,13 @@ class CNF(BooleanLogicNormalForm):
                     lits = [l[1] for l in clause_expr[1:]]
                 else:  # clause_expr[0] == 'lit':
                     lits = [clause_expr[1]]
-                logic_or(
-                    lits,
-                    circuit,
+                flags = BooleanLogicNormalForm._lits_to_flags(lits)
+                circuit.OR(
                     self._variable_register,
                     self._clause_register[clause_index],
                     self._ancillary_register,
-                    mct_mode
+                    flags=flags,
+                    mct_mode=mct_mode
                 )
 
         return circuit
@@ -429,13 +377,13 @@ class DNF(BooleanLogicNormalForm):
             self._construct_circuit_for_tiny_expr(circuit)
         elif self._depth == 1:
             lits = [l[1] for l in self._ast[1:]]
-            logic_or(
-                lits,
-                circuit,
+            flags = BooleanLogicNormalForm._lits_to_flags(lits)
+            circuit.OR(
                 self._variable_register,
                 self._output_register[0],
                 self._ancillary_register,
-                mct_mode
+                flags=flags,
+                mct_mode=mct_mode
             )
         else:  # self._depth == 2
             # compute all clauses
@@ -449,13 +397,13 @@ class DNF(BooleanLogicNormalForm):
                         'Operator "{}" of clause {} in logic expression {} is unexpected.'.format(
                             clause_expr[0], clause_index, self._ast)
                     )
-                logic_and(
-                    lits,
-                    circuit,
+                flags = BooleanLogicNormalForm._lits_to_flags(lits)
+                circuit.AND(
                     self._variable_register,
                     self._clause_register[clause_index],
                     self._ancillary_register,
-                    mct_mode
+                    flags=flags,
+                    mct_mode=mct_mode
                 )
 
             # init the output qubit to 1
@@ -477,13 +425,13 @@ class DNF(BooleanLogicNormalForm):
                     lits = [l[1] for l in clause_expr[1:]]
                 else:  # clause_expr[0] == 'lit':
                     lits = [clause_expr[1]]
-                logic_and(
-                    lits,
-                    circuit,
+                flags = BooleanLogicNormalForm._lits_to_flags(lits)
+                circuit.AND(
                     self._variable_register,
                     self._clause_register[clause_index],
                     self._ancillary_register,
-                    mct_mode
+                    flags=flags,
+                    mct_mode=mct_mode
                 )
         return circuit
 
@@ -535,13 +483,13 @@ class ESOP(BooleanLogicNormalForm):
                     lits = [l[1] for l in clause_expr[1:]]
                 else:  # clause_expr[0] == 'lit':
                     lits = [clause_expr[1]]
-                logic_and(
-                    lits,
-                    circuit,
+                flags = BooleanLogicNormalForm._lits_to_flags(lits)
+                circuit.AND(
                     self._variable_register,
                     self._output_register[self._output_idx],
                     self._ancillary_register,
-                    mct_mode
+                    flags=flags,
+                    mct_mode=mct_mode
                 )
 
         return circuit
