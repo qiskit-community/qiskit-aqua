@@ -15,3 +15,10 @@
 # limitations under the License.
 # =============================================================================
 
+from .boolean_logic import CNF, DNF, ESOP
+
+__all__ = [
+    'CNF',
+    'DNF',
+    'ESOP',
+]

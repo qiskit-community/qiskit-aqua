@@ -26,7 +26,7 @@ from pyeda.parsing.dimacs import parse_cnf
 from qiskit import QuantumCircuit, QuantumRegister
 
 from qiskit.aqua import AquaError
-from qiskit.aqua.utils import CNF, DNF
+from qiskit.aqua.circuits import CNF, DNF
 
 from .oracle import Oracle
 
