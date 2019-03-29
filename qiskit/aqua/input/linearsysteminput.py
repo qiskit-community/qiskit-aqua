@@ -35,11 +35,11 @@ class LinearSystemInput(AlgorithmInput):
             'type': 'object',
             'properties': {
                 PROP_KEY_MATRIX: {
-                    'type': 'array',
+                    'type': ['array', 'null'],
                     'default': None
                 },
                 PROP_KEY_VECTOR: {
-                    'type': 'array',
+                    'type': ['array', 'null'],
                     'default': None
                 }
             },
@@ -50,8 +50,8 @@ class LinearSystemInput(AlgorithmInput):
 
     def __init__(self, matrix=None, vector=None):
         super().__init__()
-        self._matrix = matrix
-        self._vector = vector if vector is not None else []
+        self._matrix = matrix or []
+        self._vector = vector or []
 
     @property
     def matrix(self):
