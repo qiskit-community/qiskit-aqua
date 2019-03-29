@@ -120,7 +120,7 @@ class Hamiltonian(ChemistryOperator):
         """
         transformation = transformation.value
         qubit_mapping = qubit_mapping.value
-        orbital_reduction = orbital_reduction or []
+        orbital_reduction = orbital_reduction if orbital_reduction is not None else []
         self.validate(locals())
         super().__init__()
         self._transformation = transformation

@@ -62,7 +62,7 @@ class HartreeFock(InitialState):
         }
     }
 
-    def __init__(self, num_qubits, num_orbitals, num_particles,
+    def __init__(self, num_qubits, num_orbitals=4, num_particles=2,
                  qubit_mapping='parity', two_qubit_reduction=True, sq_list=None):
         """Constructor.
 
