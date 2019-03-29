@@ -77,9 +77,6 @@ class TestConfigurationIntegrity(QiskitAquaTestCase):
                 err_msgs.append("{} configuration schema '{}/{}' isn't a dictionary.".format(cls, 'properties', prop_name))
                 continue
 
-            if 'default' not in value:
-                err_msgs.append("{} configuration schema '{}/{}/{}' missing.".format(cls, 'properties', prop_name, 'default'))
-
             parameter = parameters.get(prop_name)
             if parameter is None:
                 # TODO for now just let QSVMVariational pass
@@ -92,7 +89,9 @@ class TestConfigurationIntegrity(QiskitAquaTestCase):
                 default_value = value['default']
                 if parameter.default != inspect.Parameter.empty and parameter.default != default_value:
                     err_msgs.append("{} __init__ param '{}' default value '{}' different from default value '{}' found on its configuration schema.".format(cls, prop_name, parameter.default, default_value))
-                    continue
+            else:
+                if parameter.default != inspect.Parameter.empty:
+                    err_msgs.append("{} __init__ param '{}' default value '{}' missing in its configuration schema.".format(cls, prop_name, parameter.default))
 
         return err_msgs
 
