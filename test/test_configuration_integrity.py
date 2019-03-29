@@ -118,7 +118,6 @@ class TestConfigurationIntegrity(QiskitAquaTestCase):
 
             defaults = dependency.get('default')
             if not isinstance(defaults, dict):
-                err_msgs.append("{} configuration section:'{}' item:'{}/{}' missing or isn't a dictionary.".format(cls, 'depends', dependency_pluggable_type, 'default'))
                 continue
 
             default_name = defaults.get('name')

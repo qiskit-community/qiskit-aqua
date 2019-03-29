@@ -52,11 +52,7 @@ class SVM_Classical(QuantumAlgorithm):
         },
         'problems': ['svm_classification'],
         'depends': [
-            {'pluggable_type': 'multiclass_extension',
-             'default': {
-                 'name': 'AllPairs',
-             }
-             },
+            {'pluggable_type': 'multiclass_extension'},
         ],
     }
 
