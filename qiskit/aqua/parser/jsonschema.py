@@ -685,7 +685,7 @@ class JSONSchema(object):
         Returns:
             Returns converted value
         """
-        types = types or []
+        types = types if types is not None else []
         if value is None or (isinstance(value, str) and len(value.strip()) == 0):
             # return propet values based on type
             if value is None:
