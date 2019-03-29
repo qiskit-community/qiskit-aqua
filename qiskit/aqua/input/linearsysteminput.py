@@ -36,11 +36,11 @@ class LinearSystemInput(AlgorithmInput):
             'properties': {
                 PROP_KEY_MATRIX: {
                     'type': 'array',
-                    'default': []
+                    'default': None
                 },
                 PROP_KEY_VECTOR: {
                     'type': 'array',
-                    'default': []
+                    'default': None
                 }
             },
             'additionalProperties': False

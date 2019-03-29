@@ -45,14 +45,14 @@ class UniformDistribution(UnivariateDistribution):
                 },
                 'high': {
                     'type': 'number',
-                    'default': 3,
+                    'default': 1,
                 },
             },
             'additionalProperties': False
         }
     }
 
-    def __init__(self, num_target_qubits, low=0, high=1):
+    def __init__(self, num_target_qubits=2, low=0, high=1):
         probabilities = np.ones(2**num_target_qubits)/2**num_target_qubits
         super().__init__(num_target_qubits, probabilities, low, high)
 

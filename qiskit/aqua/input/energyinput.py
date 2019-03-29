@@ -34,7 +34,7 @@ class EnergyInput(AlgorithmInput):
             'properties': {
                 PROP_KEY_QUBITOP: {
                     'type': 'object',
-                    'default': {}
+                    'default': None
                 },
                 PROP_KEY_AUXOPS: {
                     'type': ['array', 'null'],
@@ -46,10 +46,10 @@ class EnergyInput(AlgorithmInput):
         'problems': ['energy', 'excited_states', 'eoh', 'ising']
     }
 
-    def __init__(self, qubit_op, aux_ops=None):
+    def __init__(self, qubit_op=None, aux_ops=None):
         self.validate(locals())
         super().__init__()
-        self._qubit_op = qubit_op
+        self._qubit_op = qubit_op or {}
         self._aux_ops = aux_ops or []
 
     @property

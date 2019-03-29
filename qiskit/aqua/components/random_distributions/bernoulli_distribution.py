@@ -52,7 +52,7 @@ class BernoulliDistribution(UnivariateDistribution):
         }
     }
 
-    def __init__(self, p, low=0, high=1):
+    def __init__(self, p=0.5, low=0, high=1):
         probabilities = np.array([1-p, p])
         super().__init__(1, probabilities, low, high)
         self._p = p

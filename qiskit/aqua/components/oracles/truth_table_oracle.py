@@ -57,7 +57,7 @@ class TruthTableOracle(Oracle):
                 },
                 "optimization": {
                     "type": "string",
-                    "default": "qm-dlx",
+                    "default": "off",
                     'oneOf': [
                         {
                             'enum': [
@@ -85,7 +85,7 @@ class TruthTableOracle(Oracle):
         }
     }
 
-    def __init__(self, bitmaps, optimization='off', mct_mode='basic'):
+    def __init__(self, bitmaps=[], optimization='off', mct_mode='basic'):
         """
         Constructor for Truth Table-based Oracle
 

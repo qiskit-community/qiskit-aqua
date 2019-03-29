@@ -59,7 +59,7 @@ class EuropeanCallDelta(UncertaintyProblem):
         }
     }
 
-    def __init__(self, uncertainty_model, strike_price, i_state=None, i_objective=None):
+    def __init__(self, uncertainty_model, strike_price=0, i_state=None, i_objective=None):
         super().__init__(uncertainty_model.num_target_qubits + 1)
 
         self._uncertainty_model = uncertainty_model

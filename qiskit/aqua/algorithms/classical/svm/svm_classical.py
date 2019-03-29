@@ -52,7 +52,11 @@ class SVM_Classical(QuantumAlgorithm):
         },
         'problems': ['svm_classification'],
         'depends': [
-            {'pluggable_type': 'multiclass_extension'},
+            {'pluggable_type': 'multiclass_extension',
+             'default': {
+                 'name': 'AllPairs',
+             }
+             },
         ],
     }
 
@@ -91,6 +95,7 @@ class SVM_Classical(QuantumAlgorithm):
 
             multiclass_extension = get_pluggable_class(
                 PluggableType.MULTICLASS_EXTENSION, multiclass_extension_params['name']).init_params(params)
+            print(multiclass_extension)
             logger.info("Multiclass dataset with extension: {}".format(multiclass_extension_params['name']))
 
         return cls(algo_input.training_dataset, algo_input.test_dataset,
