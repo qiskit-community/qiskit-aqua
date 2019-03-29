@@ -74,7 +74,7 @@ class AmplitudeEstimation(QuantumAlgorithm):
         ],
     }
 
-    def __init__(self, num_eval_qubits=5, a_factory=None, q_factory=None, iqft=None):
+    def __init__(self, num_eval_qubits, a_factory, q_factory=None, iqft=None):
         """
         Constructor.
 

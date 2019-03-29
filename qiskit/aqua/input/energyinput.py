@@ -46,10 +46,10 @@ class EnergyInput(AlgorithmInput):
         'problems': ['energy', 'excited_states', 'eoh', 'ising']
     }
 
-    def __init__(self, qubit_op=None, aux_ops=None):
+    def __init__(self, qubit_op, aux_ops=None):
         self.validate(locals())
         super().__init__()
-        self._qubit_op = qubit_op or {}
+        self._qubit_op = qubit_op
         self._aux_ops = aux_ops if aux_ops is not None else []
 
     @property

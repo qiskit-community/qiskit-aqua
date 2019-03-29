@@ -48,18 +48,18 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
                     'default': 0.5
                 },
                 'i_state': {
-                    'type': 'array',
+                    'type': ['array', 'null'],
                     'items': {
                         'type': 'integer'
                     },
                     'default': None
                 },
                 'i_compare': {
-                    'type': 'integer',
+                    'type':  ['integer', 'null'],
                     'default': None
                 },
                 'i_objective': {
-                    'type': 'integer',
+                    'type': ['integer', 'null'],
                     'default': None
                 }
             },
@@ -67,7 +67,7 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
         }
     }
 
-    def __init__(self, uncertainty_model, strike_price=0, c_approx=0.5, i_state=None, i_compare=None, i_objective=None):
+    def __init__(self, uncertainty_model, strike_price, c_approx, i_state=None, i_compare=None, i_objective=None):
         super().__init__(uncertainty_model.num_target_qubits + 2)
 
         self._uncertainty_model = uncertainty_model

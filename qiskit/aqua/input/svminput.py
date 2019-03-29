@@ -48,7 +48,7 @@ class SVMInput(AlgorithmInput):
         'problems': ['svm_classification']
     }
 
-    def __init__(self, training_dataset=None, test_dataset=None, datapoints=None):
+    def __init__(self, training_dataset, test_dataset=None, datapoints=None):
         self.validate(locals())
         super().__init__()
         self.training_dataset = training_dataset

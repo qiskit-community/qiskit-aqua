@@ -90,11 +90,7 @@ class TestConfigurationIntegrity(QiskitAquaTestCase):
 
             if 'default' in value:
                 default_value = value['default']
-                if parameter.default == inspect.Parameter.empty:
-                    err_msgs.append("{} __init__ param '{}' missing default value '{}' found on its configuration schema.".format(cls, prop_name, default_value))
-                    continue
-
-                if parameter.default != default_value:
+                if parameter.default != inspect.Parameter.empty and parameter.default != default_value:
                     err_msgs.append("{} __init__ param '{}' default value '{}' different from default value '{}' found on its configuration schema.".format(cls, prop_name, parameter.default, default_value))
                     continue
 
