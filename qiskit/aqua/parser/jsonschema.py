@@ -535,6 +535,8 @@ class JSONSchema(object):
 
             default_name = pluggable_name
             pluggable_name = input_parser.get_section_property(pluggable_type, JSONSchema.NAME, pluggable_name)
+            if default_name is None:
+                default_name = pluggable_name
 
             # update dependency schema
             self._update_pluggable_schema(pluggable_type, pluggable_name, default_name)
