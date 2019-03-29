@@ -23,10 +23,8 @@ from .random_matrix_generator import (random_unitary, random_h2_body,
                                       random_non_hermitian)
 from .decimal_to_binary import decimal_to_binary
 from .summarize_circuits import summarize_circuits
-from .mct import mct
 from .mcu1 import mcu1
 from .mcu3 import mcu3
-from .mcmt import mcmt
 from .subsystem import get_subsystem_density_matrix, get_subsystems_counts
 from .entangler_map import get_entangler_map, validate_entangler_map
 from .dataset_helper import (get_feature_dimension, get_num_classes,
@@ -51,10 +49,8 @@ __all__ = ['tensorproduct',
            'random_non_hermitian',
            'decimal_to_binary',
            'summarize_circuits',
-           'mct',
            'mcu1',
            'mcu3',
-           'mcmt',
            'get_subsystem_density_matrix',
            'get_subsystems_counts',
            'get_entangler_map',

@@ -37,7 +37,8 @@ from .utils.backend_utils import (get_aer_backend,
                                   enable_ibmq_account,
                                   disable_ibmq_account)
 from .pluggable import Pluggable
-from .utils.mct import mct
+from .circuits import *
+from .circuits.gates import *
 from .utils.mcu1 import mcu1
 from .utils.mcu3 import mcu3
 from .utils.mcmt import mcmt
@@ -73,7 +74,6 @@ __all__ = ['AquaError',
            'get_provider_from_backend',
            'enable_ibmq_account',
            'disable_ibmq_account',
-           'mct',
            'mcu1',
            'mcu3',
            'mcmt',
