@@ -39,8 +39,6 @@ from .utils.backend_utils import (get_aer_backend,
 from .pluggable import Pluggable
 from .circuits import *
 from .circuits.gates import *
-from .utils.mcu1 import mcu1
-from .utils.mcu3 import mcu3
 from .quantum_instance import QuantumInstance
 from .operator import Operator
 from .algorithms import QuantumAlgorithm
@@ -73,8 +71,6 @@ __all__ = ['AquaError',
            'get_provider_from_backend',
            'enable_ibmq_account',
            'disable_ibmq_account',
-           'mcu1',
-           'mcu3',
            'local_pluggables_types',
            'local_pluggables',
            'get_pluggable_class',

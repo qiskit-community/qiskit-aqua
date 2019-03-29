@@ -15,11 +15,15 @@
 # limitations under the License.
 # =============================================================================
 
+from .mcu1 import mcu1
+from .mcu3 import mcu3
 from .mct import mct
 from .mcmt import mcmt
 
 
 __all__ = [
+    'mcu1',
+    'mcu3',
     'mct',
     'mcmt',
 ]

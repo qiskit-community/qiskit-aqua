@@ -18,10 +18,12 @@
 Multiple-Control U3 gate. Not using ancillary qubits.
 """
 
+import logging
+
 from sympy.combinatorics.graycode import GrayCode
 from qiskit import QuantumCircuit, QuantumRegister
+
 from qiskit.aqua.utils.controlledcircuit import apply_cu3
-import logging
 
 logger = logging.getLogger(__name__)
 
