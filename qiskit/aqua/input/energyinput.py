@@ -33,8 +33,8 @@ class EnergyInput(AlgorithmInput):
             'type': 'object',
             'properties': {
                 PROP_KEY_QUBITOP: {
-                    'type': ['object', 'null'],
-                    'default': None
+                    'type': 'object',
+                    'default': {}
                 },
                 PROP_KEY_AUXOPS: {
                     'type': ['array', 'null'],
