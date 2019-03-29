@@ -21,9 +21,9 @@ from subprocess import Popen, PIPE
 from shutil import which
 import tempfile
 import numpy as np
-
+import sys
 from qiskit.chemistry import QMolecule, QiskitChemistryError
-from qiskit.chemistry.drivers import BaseDriver, get_driver_class
+from qiskit.chemistry.drivers import BaseDriver
 
 logger = logging.getLogger(__name__)
 
@@ -188,7 +188,11 @@ class GaussianDriver(BaseDriver):
         # get_driver_class is used here because the discovery routine will load all the gaussian
         # binary dependencies, if not loaded already. It won't work without it.
         try:
-            get_driver_class('GAUSSIAN')
+            # add gauopen to sys.path so that binaries can be loaded
+            gauopen_directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'gauopen')
+            if gauopen_directory not in sys.path:
+                sys.path.insert(0, gauopen_directory)
+
             from .gauopen.QCMatEl import MatEl
         except ImportError as mnfe:
             msg = 'qcmatrixio extension not found. See Gaussian driver readme to build qcmatrixio.F using f2py' \

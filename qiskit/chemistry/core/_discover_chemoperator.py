@@ -27,7 +27,6 @@ from collections import namedtuple
 from .chemistry_operator import ChemistryOperator
 from qiskit.chemistry import QiskitChemistryError
 import logging
-import sys
 import copy
 import pkg_resources
 
@@ -110,10 +109,20 @@ def _discover_entry_point_chemistry_operators():
             logger.debug("Failed to load entry point '{}' error {}".format(entry_point, str(e)))
 
 
-def _discover_local_chemistry_operators_in_dirs(directory,
-                                                parentname,
-                                                names_to_exclude=_NAMES_TO_EXCLUDE,
-                                                folders_to_exclude=_FOLDERS_TO_EXCLUDE):
+def _discover_local_chemistry_operators(directory=os.path.dirname(__file__),
+                                        parentname=os.path.splitext(__name__)[0],
+                                        names_to_exclude=_NAMES_TO_EXCLUDE,
+                                        folders_to_exclude=_FOLDERS_TO_EXCLUDE):
+    """
+    Discovers the chemistry operators modules on the directory and subdirectories of the current module
+    and attempts to register them. Chem.Operator modules should subclass ChemistryOperator Base class.
+    Args:
+        directory (str, optional): Directory to search for input modules. Defaults
+            to the directory of this module.
+        parentname (str, optional): Module parent name. Defaults to current directory name
+        names_to_exclude (str, optional): File names to exclude. Defaults to _NAMES_TO_EXCLUDE
+        folders_to_exclude (str, optional): Folders to exclude. Defaults to _FOLDERS_TO_EXCLUDE
+    """
     for _, name, ispackage in pkgutil.iter_modules([directory]):
         if ispackage:
             continue
@@ -145,36 +154,7 @@ def _discover_local_chemistry_operators_in_dirs(directory,
     for item in os.listdir(directory):
         fullpath = os.path.join(directory, item)
         if item not in folders_to_exclude and not item.endswith('dSYM') and os.path.isdir(fullpath):
-            _discover_local_chemistry_operators_in_dirs(
-                fullpath, parentname + '.' + item, names_to_exclude, folders_to_exclude)
-
-
-def _discover_local_chemistry_operators(directory=os.path.dirname(__file__),
-                                        parentname=os.path.splitext(__name__)[0]):
-    """
-    Discovers the chemistry operators modules on the directory and subdirectories of the current module
-    and attempts to register them. Chem.Operator modules should subclass ChemistryOperator Base class.
-    Args:
-        directory (str, optional): Directory to search for input modules. Defaults
-            to the directory of this module.
-        parentname (str, optional): Module parent name. Defaults to current directory name
-    """
-
-    def _get_sys_path(directory):
-        syspath = [os.path.abspath(directory)]
-        for item in os.listdir(directory):
-            fullpath = os.path.join(directory, item)
-            if item != '__pycache__' and not item.endswith('dSYM') and os.path.isdir(fullpath):
-                syspath += _get_sys_path(fullpath)
-
-        return syspath
-
-    syspath_save = sys.path
-    sys.path = _get_sys_path(directory) + sys.path
-    try:
-        _discover_local_chemistry_operators_in_dirs(directory, parentname)
-    finally:
-        sys.path = syspath_save
+            _discover_local_chemistry_operators(fullpath, parentname + '.' + item, names_to_exclude, folders_to_exclude)
 
 
 def register_chemistry_operator(cls):
