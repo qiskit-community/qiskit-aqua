@@ -15,7 +15,6 @@
 # limitations under the License.
 # =============================================================================
 
-from .qpe.phase_estimation_circuit import PhaseEstimationCircuit
 from .grover.grover import Grover
 from .iqpe.iqpe import IQPE
 from .qpe.qpe import QPE
@@ -27,7 +26,6 @@ from .hhl.hhl import HHL
 
 
 __all__ = [
-    'PhaseEstimationCircuit',
     'Grover',
     'IQPE',
     'QPE',

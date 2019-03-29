@@ -25,6 +25,7 @@ from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.qasm import pi
 
 from qiskit.aqua import AquaError
+from .gates import mct
 
 logger = logging.getLogger(__name__)
 

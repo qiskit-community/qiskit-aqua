@@ -37,8 +37,6 @@ from .utils.backend_utils import (get_aer_backend,
                                   enable_ibmq_account,
                                   disable_ibmq_account)
 from .pluggable import Pluggable
-from .circuits import *
-from .circuits.gates import *
 from .quantum_instance import QuantumInstance
 from .operator import Operator
 from .algorithms import QuantumAlgorithm

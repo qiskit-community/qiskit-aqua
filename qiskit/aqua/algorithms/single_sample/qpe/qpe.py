@@ -27,8 +27,7 @@ from qiskit.aqua import Operator, AquaError
 from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.utils import get_subsystem_density_matrix
 from qiskit.aqua.algorithms import QuantumAlgorithm
-
-from qiskit.aqua.algorithms.single_sample import PhaseEstimationCircuit
+from qiskit.aqua.circuits import PhaseEstimationCircuit
 
 
 logger = logging.getLogger(__name__)

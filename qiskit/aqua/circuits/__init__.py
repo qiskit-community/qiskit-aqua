@@ -16,9 +16,11 @@
 # =============================================================================
 
 from .boolean_logic_circuits import CNF, DNF, ESOP
+from .phase_estimation_circuit import PhaseEstimationCircuit
 
 __all__ = [
     'CNF',
     'DNF',
     'ESOP',
+    'PhaseEstimationCircuit',
 ]

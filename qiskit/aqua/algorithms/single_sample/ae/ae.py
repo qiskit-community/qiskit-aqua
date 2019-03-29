@@ -26,7 +26,7 @@ from qiskit import ClassicalRegister
 from qiskit.aqua import AquaError
 from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.algorithms import QuantumAlgorithm
-from qiskit.aqua.algorithms.single_sample import PhaseEstimationCircuit
+from qiskit.aqua.circuits import PhaseEstimationCircuit
 from qiskit.aqua.components.iqfts import Standard
 from .q_factory import QFactory
 

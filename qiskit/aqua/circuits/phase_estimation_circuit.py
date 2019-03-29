@@ -19,7 +19,9 @@ Utility class for constructing a Quantum Phase Estimation circuit.
 """
 
 import numpy as np
+
 from qiskit import QuantumRegister, QuantumCircuit
+
 from qiskit.aqua import Operator, AquaError
 
 
