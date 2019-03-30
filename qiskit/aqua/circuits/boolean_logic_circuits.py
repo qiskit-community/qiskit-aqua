@@ -15,7 +15,7 @@
 # limitations under the License.
 # =============================================================================
 """
-The Boolean Logic Utility Classes.
+Boolean Logic DNF, CNF, and ESOP Circuits.
 """
 
 import logging

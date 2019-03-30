@@ -15,7 +15,7 @@
 # limitations under the License.
 # =============================================================================
 """
-The Boolean Logic Utility Classes.
+The Boolean Logic AND and OR Gates.
 """
 
 import logging

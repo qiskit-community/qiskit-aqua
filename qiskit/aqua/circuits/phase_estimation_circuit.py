@@ -15,7 +15,7 @@
 # limitations under the License.
 # =============================================================================
 """
-Utility class for constructing a Quantum Phase Estimation circuit.
+Quantum Phase Estimation Circuit.
 """
 
 import numpy as np

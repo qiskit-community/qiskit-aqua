@@ -16,7 +16,7 @@
 # =============================================================================
 
 """
-Multiple-Control Toffoli.
+Multiple-Control Toffoli Gate.
 """
 
 import logging
