@@ -46,7 +46,8 @@ class PluggableType(Enum):
     FEATURE_MAP = 'feature_map'
     MULTICLASS_EXTENSION = 'multiclass_extension'
     UNCERTAINTY_PROBLEM = 'uncertainty_problem'
-    UNCERTAINTY_MODEL = 'uncertainty_model'
+    UNIVARIATE_DISTRIBUTION = 'univariate_distribution'
+    MULTIVARIATE_DISTRIBUTION = 'multivariate_distribution'
     INPUT = 'input'
     EIGENVALUES = 'eigs'
     RECIPROCAL = 'reciprocal'
@@ -58,7 +59,8 @@ def _get_pluggables_types_dictionary():
     Any new pluggable type should be added here
     """
     from qiskit.aqua.components.uncertainty_problems import UncertaintyProblem
-    from qiskit.aqua.components.random_distributions import RandomDistribution
+    from qiskit.aqua.components.uncertainty_models import UnivariateDistribution
+    from qiskit.aqua.components.uncertainty_models import MultivariateDistribution
     from qiskit.aqua.components.optimizers import Optimizer
     from qiskit.aqua.algorithms.quantum_algorithm import QuantumAlgorithm
     from qiskit.aqua.components.variational_forms import VariationalForm
@@ -83,7 +85,8 @@ def _get_pluggables_types_dictionary():
         PluggableType.FEATURE_MAP: FeatureMap,
         PluggableType.MULTICLASS_EXTENSION: MulticlassExtension,
         PluggableType.UNCERTAINTY_PROBLEM: UncertaintyProblem,
-        PluggableType.UNCERTAINTY_MODEL: RandomDistribution,
+        PluggableType.UNIVARIATE_DISTRIBUTION: UnivariateDistribution,
+        PluggableType.MULTIVARIATE_DISTRIBUTION: MultivariateDistribution,
         PluggableType.INPUT: AlgorithmInput,
         PluggableType.EIGENVALUES: Eigenvalues,
         PluggableType.RECIPROCAL: Reciprocal

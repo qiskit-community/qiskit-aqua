@@ -24,7 +24,7 @@ from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import AmplitudeEstimation
 from qiskit.aqua.components.uncertainty_problems import EuropeanCallExpectedValue, EuropeanCallDelta, FixedIncomeExpectedValue
-from qiskit.aqua.components.random_distributions import LogNormalDistribution, MultivariateNormalDistribution
+from qiskit.aqua.components.uncertainty_models import LogNormalDistribution, MultivariateNormalDistribution
 
 from test.common import QiskitAquaTestCase
 
