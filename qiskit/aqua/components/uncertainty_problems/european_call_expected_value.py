@@ -55,7 +55,7 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
                     'default': None
                 },
                 'i_compare': {
-                    'type':  ['integer', 'null'],
+                    'type': ['integer', 'null'],
                     'default': None
                 },
                 'i_objective': {
@@ -64,7 +64,15 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
                 }
             },
             'additionalProperties': False
-        }
+        },
+        'depends': [
+            {
+                'pluggable_type': 'univariate_distribution',
+                'default': {
+                    'name': 'NormalDistribution'
+                }
+            },
+        ],
     }
 
     def __init__(self, uncertainty_model, strike_price, c_approx, i_state=None, i_compare=None, i_objective=None):
