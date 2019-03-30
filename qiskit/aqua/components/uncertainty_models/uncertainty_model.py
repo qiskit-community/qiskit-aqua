@@ -16,25 +16,30 @@
 # =============================================================================
 """
 This module contains the definition of a base class for
-random distributions. A random distribution could be used for
+uncertainty models. An uncertainty model could be used for
 constructing Amplification Estimation tasks.
 """
 
-from abc import ABC
+from abc import ABC, abstractmethod
 from qiskit.aqua import Pluggable
 from qiskit.aqua.utils import CircuitFactory
 
 
-class RandomDistribution(CircuitFactory, Pluggable, ABC):
+class UncertaintyModel(CircuitFactory, Pluggable, ABC):
     """
-    The abstract Random Distribution
+    The abstract Uncertainty Model
     """
 
     @classmethod
     def init_params(cls, params):
-        uncertainty_model_params = params.get(Pluggable.SECTION_KEY_UNCERTAINTY_MODEL)
+        uncertainty_model_params = params.get(cls.get_section_key_name())
         args = {k: v for k, v in uncertainty_model_params.items() if k != 'name'}
         return cls(**args)
+
+    @classmethod
+    @abstractmethod
+    def get_section_key_name(cls):
+        pass
 
     def __init__(self, num_target_qubits):
         super().__init__(num_target_qubits)
