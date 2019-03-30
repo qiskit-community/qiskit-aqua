@@ -44,11 +44,12 @@ class LogicExpressionOracle(Oracle):
             'type': 'object',
             'properties': {
                 'expression': {
-                    'type': 'string',
+                    'type': ['string', 'null'],
+                    'default': None
                 },
                 "optimization": {
                     "type": "string",
-                    "default": "espresso",
+                    "default": "off",
                     'oneOf': [
                         {
                             'enum': [
