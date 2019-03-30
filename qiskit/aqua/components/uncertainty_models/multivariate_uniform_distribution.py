@@ -19,7 +19,7 @@ The Multivariate Uniform Distribution.
 """
 
 import numpy as np
-from qiskit.aqua.components.random_distributions.multivariate_distribution import MultivariateDistribution
+from qiskit.aqua.components.uncertainty_models.multivariate_distribution import MultivariateDistribution
 
 
 class MultivariateUniformDistribution(MultivariateDistribution):
@@ -35,26 +35,26 @@ class MultivariateUniformDistribution(MultivariateDistribution):
             'id': 'MultivariateUniformDistribution_schema',
             'type': 'object',
             'properties': {
-                'num_target_qubits': {
-                    'type': ['array', 'null'],
+                'num_qubits': {
+                    'type': 'array',
                     "items": {
                         "type": "number"
                     },
-                    'default': None
+                    'default': [2, 2]
                 },
                 'low': {
-                    'type': ['array', 'null'],
+                    'type': 'array',
                     "items": {
                         "type": "number"
                     },
-                    'default': None
+                    'default': [0.0, 0.0]
                 },
                 'high': {
-                    'type': ['array', 'null'],
+                    'type': 'array',
                     "items": {
                         "type": "number"
                     },
-                    'default': None
+                    'default': [0.12, 0.24]
                 },
             },
             'additionalProperties': False
@@ -62,6 +62,7 @@ class MultivariateUniformDistribution(MultivariateDistribution):
     }
 
     def __init__(self, num_qubits, low, high):
+        super().validate(locals())
 
         num_values = np.prod([2**n for n in num_qubits])
         probabilities = np.ones(num_values)
