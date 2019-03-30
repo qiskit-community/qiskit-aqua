@@ -15,29 +15,38 @@
 # limitations under the License.
 # =============================================================================
 """
-The Univariate Uniform Distribution.
+The Univariate Log-Normal Distribution.
 """
 
+from scipy.stats.distributions import lognorm
+from qiskit.aqua.components.uncertainty_models.univariate_distribution import UnivariateDistribution
 import numpy as np
-from .univariate_distribution import UnivariateDistribution
 
 
-class UniformDistribution(UnivariateDistribution):
+class LogNormalDistribution(UnivariateDistribution):
     """
-    The Univariate Uniform Distribution.
+    The Univariate Log-Normal Distribution.
     """
 
     CONFIGURATION = {
-        'name': 'UniformDistribution',
-        'description': 'Uniform Distribution',
+        'name': 'LogNormalDistribution',
+        'description': 'Log-Normal Distribution',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
-            'id': 'UniformDistribution_schema',
+            'id': 'LogNormalDistribution_schema',
             'type': 'object',
             'properties': {
                 'num_target_qubits': {
                     'type': 'integer',
                     'default': 2,
+                },
+                'mu': {
+                    'type': 'number',
+                    'default': 0,
+                },
+                'sigma': {
+                    'type': 'number',
+                    'default': 1,
                 },
                 'low': {
                     'type': 'number',
@@ -45,26 +54,15 @@ class UniformDistribution(UnivariateDistribution):
                 },
                 'high': {
                     'type': 'number',
-                    'default': 3,
+                    'default': 1,
                 },
             },
             'additionalProperties': False
         }
     }
 
-    def __init__(self, num_target_qubits, low=0, high=1):
-        probabilities = np.ones(2**num_target_qubits)/2**num_target_qubits
+    def __init__(self, num_target_qubits, mu=0, sigma=1, low=0, high=1):
+        self.validate(locals())
+        probabilities, _ = UnivariateDistribution.\
+        pdf_to_probabilities(lambda x: lognorm.pdf(x, s=sigma, scale=np.exp(mu)), low, high, 2 ** num_target_qubits)
         super().__init__(num_target_qubits, probabilities, low, high)
-
-    def required_ancillas(self):
-        return 0
-
-    def required_ancillas_controlled(self):
-        return 0
-
-    def build(self, qc, q, q_ancillas=None, params=None):
-        if params is None or params['i_state'] is None:
-            qc.h(q)
-        else:
-            for i in params['i_state']:
-                qc.h(q[i])
