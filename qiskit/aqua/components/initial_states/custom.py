@@ -22,7 +22,9 @@ from qiskit import QuantumRegister, QuantumCircuit
 from qiskit import execute as q_execute
 from qiskit import BasicAer
 
+from qiskit.aqua import AquaError
 from qiskit.aqua.components.initial_states import InitialState
+from qiskit.aqua.circuits import StateVectorCircuit
 from qiskit.aqua.utils.arithmetic import normalize_vector
 from qiskit.aqua.utils.circuit_utils import convert_to_basis_gates
 
@@ -95,11 +97,12 @@ class Custom(InitialState):
                 elif self._state == 'random':
                     self._state_vector = normalize_vector(np.random.rand(size))
                 else:
-                    raise ValueError('Unknown state {}'.format(self._state))
+                    raise AquaError('Unknown state {}'.format(self._state))
             else:
                 if len(state_vector) != np.power(2, self._num_qubits):
-                    raise ValueError('State vector length {} incompatible with num qubits {}'
-                                     .format(len(state_vector), self._num_qubits))
+                    raise AquaError('The state vector length {} is incompatible with the number of qubits {}'.format(
+                        len(state_vector), self._num_qubits
+                    ))
                 self._state_vector = normalize_vector(state_vector)
                 self._state = None
 
@@ -117,7 +120,7 @@ class Custom(InitialState):
             QuantumCircuit or numpy.ndarray: statevector.
 
         Raises:
-            ValueError: when mode is not 'vector' or 'circuit'.
+            AquaError: when mode is not 'vector' or 'circuit'.
         """
         if mode == 'vector':
             if self._state_vector is None:
@@ -131,9 +134,8 @@ class Custom(InitialState):
                     register = QuantumRegister(self._num_qubits, name='q')
                 circuit = QuantumCircuit(register)
                 if self._state is None or self._state == 'random':
-                    circuit.initialize(self._state_vector, [
-                                       register[i] for i in range(self._num_qubits)])
-                    circuit = convert_to_basis_gates(circuit)
+                    svc = StateVectorCircuit(self._state_vector)
+                    svc.construct_circuit(circuit, register)
                 elif self._state == 'zero':
                     pass
                 elif self._state == 'uniform':
@@ -144,4 +146,4 @@ class Custom(InitialState):
                 self._circuit = circuit
             return self._circuit.copy()
         else:
-            raise ValueError('Mode should be either "vector" or "circuit"')
+            raise AquaError('Mode should be either "vector" or "circuit"')
