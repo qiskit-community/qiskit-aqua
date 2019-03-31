@@ -174,7 +174,7 @@ class TruthTableOracle(Oracle):
                 },
                 "optimization": {
                     "type": "string",
-                    "default": "qm-dlx",
+                    "default": "off",
                     'oneOf': [
                         {
                             'enum': [

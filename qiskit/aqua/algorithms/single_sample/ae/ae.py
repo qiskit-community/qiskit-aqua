@@ -56,21 +56,18 @@ class AmplitudeEstimation(QuantumAlgorithm):
         },
         'problems': ['uncertainty'],
         'depends': [
-            {'pluggable_type': 'uncertainty_problem',
-             'default': {
-                     'name': 'EuropeanCallDelta'
+            {
+                'pluggable_type': 'uncertainty_problem',
+                'default': {
+                    'name': 'EuropeanCallDelta'
                 }
-             },
-            {'pluggable_type': 'uncertainty_model',
-             'default': {
-                     'name': 'NormalDistribution'
+            },
+            {
+                'pluggable_type': 'iqft',
+                'default': {
+                    'name': 'STANDARD',
                 }
-             },
-            {'pluggable_type': 'iqft',
-             'default': {
-                     'name': 'STANDARD',
-                }
-             },
+            },
         ],
     }
 
@@ -123,15 +120,10 @@ class AmplitudeEstimation(QuantumAlgorithm):
         ae_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
         num_eval_qubits = ae_params.get('num_eval_qubits')
 
-        # Set up uncertainty model and problem
-        uncertainty_model_params = params.get(Pluggable.SECTION_KEY_UNCERTAINTY_MODEL)
-        uncertainty_model_params['num_target_qubits'] = num_eval_qubits
-        uncertainty_model = get_pluggable_class(
-            PluggableType.UNCERTAINTY_MODEL,
-            uncertainty_model_params['name']).init_params(params)
-
+        # Set up uncertainty problem. The params can include an uncertainty model
+        # type dependent on the uncertainty problem and is this its responsibility
+        # to create for itself from the complete params set that is passed to it.
         uncertainty_problem_params = params.get(Pluggable.SECTION_KEY_UNCERTAINTY_PROBLEM)
-        uncertainty_problem_params['uncertainty_model'] = uncertainty_model
         uncertainty_problem = get_pluggable_class(
             PluggableType.UNCERTAINTY_PROBLEM,
             uncertainty_problem_params['name']).init_params(params)
