@@ -24,6 +24,7 @@ from qiskit.transpiler.passes import Unroller
 from qiskit.transpiler import PassManager
 from qiskit import BasicAer
 from qiskit.aqua.components.initial_states import InitialState
+from qiskit.aqua.utils.arithmetic import normalize_vector
 
 logger = logging.getLogger(__name__)
 
@@ -92,19 +93,15 @@ class Custom(InitialState):
                 elif self._state == 'uniform':
                     self._state_vector = np.array([1.0 / np.sqrt(size)] * size)
                 elif self._state == 'random':
-                    self._state_vector = Custom._normalize(np.random.rand(size))
+                    self._state_vector = normalize_vector(np.random.rand(size))
                 else:
                     raise ValueError('Unknown state {}'.format(self._state))
             else:
                 if len(state_vector) != np.power(2, self._num_qubits):
                     raise ValueError('State vector length {} incompatible with num qubits {}'
                                      .format(len(state_vector), self._num_qubits))
-                self._state_vector = Custom._normalize(state_vector)
+                self._state_vector = normalize_vector(state_vector)
                 self._state = None
-
-    @staticmethod
-    def _normalize(vector):
-        return vector / np.linalg.norm(vector)
 
     @staticmethod
     def _convert_to_basis_gates(circuit):

@@ -31,12 +31,9 @@ from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.aqua import AquaError
 from qiskit.aqua.circuits import ESOP
 from qiskit.aqua.components.oracles import Oracle
+from qiskit.aqua.utils.arithmetic import is_power_of_2
 
 logger = logging.getLogger(__name__)
-
-
-def is_power_of_2(num):
-    return num != 0 and ((num & (num - 1)) == 0)
 
 
 def get_prime_implicants(ones=None, dcs=None):
