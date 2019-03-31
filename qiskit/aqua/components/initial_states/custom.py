@@ -18,13 +18,13 @@
 import numpy as np
 import logging
 
-from qiskit import QuantumRegister, QuantumCircuit, transpiler
+from qiskit import QuantumRegister, QuantumCircuit
 from qiskit import execute as q_execute
-from qiskit.transpiler.passes import Unroller
-from qiskit.transpiler import PassManager
 from qiskit import BasicAer
+
 from qiskit.aqua.components.initial_states import InitialState
 from qiskit.aqua.utils.arithmetic import normalize_vector
+from qiskit.aqua.utils.circuit_utils import convert_to_basis_gates
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +81,7 @@ class Custom(InitialState):
         if circuit is not None:
             if circuit.width() != num_qubits:
                 logger.warning('The specified num_qubits and the provided custom circuit do not match.')
-            self._circuit = Custom._convert_to_basis_gates(circuit)
+            self._circuit = convert_to_basis_gates(circuit)
             if state_vector is not None:
                 self._state = None
                 self._state_vector = None
@@ -102,15 +102,6 @@ class Custom(InitialState):
                                      .format(len(state_vector), self._num_qubits))
                 self._state_vector = normalize_vector(state_vector)
                 self._state = None
-
-    @staticmethod
-    def _convert_to_basis_gates(circuit):
-        # get the circuits from compiled circuit
-        unroller = Unroller(basis=['u1', 'u2', 'u3', 'cx', 'id'])
-        pm = PassManager(passes=[unroller])
-        qc = transpiler.transpile(circuit, BasicAer.get_backend('qasm_simulator'),
-                                  pass_manager=pm)
-        return qc
 
     def construct_circuit(self, mode, register=None):
         """
@@ -142,7 +133,7 @@ class Custom(InitialState):
                 if self._state is None or self._state == 'random':
                     circuit.initialize(self._state_vector, [
                                        register[i] for i in range(self._num_qubits)])
-                    circuit = Custom._convert_to_basis_gates(circuit)
+                    circuit = convert_to_basis_gates(circuit)
                 elif self._state == 'zero':
                     pass
                 elif self._state == 'uniform':
