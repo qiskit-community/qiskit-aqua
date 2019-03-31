@@ -49,11 +49,11 @@ class NormalDistribution(UnivariateDistribution):
                 },
                 'low': {
                     'type': 'number',
-                    'default': 0,
+                    'default': -1,
                 },
                 'high': {
                     'type': 'number',
-                    'default': 3,
+                    'default': 1,
                 },
             },
             'additionalProperties': False

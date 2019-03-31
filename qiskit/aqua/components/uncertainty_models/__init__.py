@@ -15,7 +15,9 @@
 # limitations under the License.
 # =============================================================================
 
-from .random_distribution import RandomDistribution
+from .uncertainty_model import UncertaintyModel
+from .univariate_distribution import UnivariateDistribution
+from .multivariate_distribution import MultivariateDistribution
 from .normal_distribution import NormalDistribution
 from .log_normal_distribution import LogNormalDistribution
 from .bernoulli_distribution import BernoulliDistribution
@@ -23,7 +25,9 @@ from .uniform_distribution import UniformDistribution
 from .multivariate_normal_distribution import MultivariateNormalDistribution
 from .multivariate_uniform_distribution import MultivariateUniformDistribution
 
-__all__ = ['RandomDistribution',
+__all__ = ['UncertaintyModel',
+           'UnivariateDistribution',
+           'MultivariateDistribution',
            'NormalDistribution',
            'LogNormalDistribution',
            'BernoulliDistribution',

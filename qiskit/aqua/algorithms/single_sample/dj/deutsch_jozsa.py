@@ -45,11 +45,12 @@ class DeutschJozsa(QuantumAlgorithm):
         },
         'problems': ['functionevaluation'],
         'depends': [
-            {'pluggable_type': 'oracle',
-             'default': {
-                     'name': 'DeutschJozsaOracle',
+            {
+                'pluggable_type': 'oracle',
+                'default': {
+                     'name': 'TruthTableOracle',
                 },
-             },
+            },
         ],
     }
 

@@ -42,6 +42,7 @@ Added
 - Added optional capability for ``Grover``'s algorithm to take a custom initial state (as opposed to the default uniform superposition)
 - Added capability to create a ``Custom`` initial state using existing circuit.
 - Added the ADAM (and AMSGRAD) optimization algorithm
+- Multivariate distributions added, so uncertainty models now have univariate and multivariate distribution components
 
 
 Removed
@@ -58,6 +59,7 @@ Changed
 - Change the type of ``entanger_map`` used in ``FeatureMap`` and ``VariationalForm`` to list of list.
 - Fixed package setup to correctly identify namespace packages using ``setuptools.find_namespace_packages``.
 - Changed ``advanced`` mode implementation of ``mct``: using simple ``h`` gates instead of ``ch``, and fixing the old recursion step in ``_multicx``.
+- Components ``random_distributions`` renamed to ``uncertainty_models``
 
 
 `0.4.1`_ - 2019-01-09

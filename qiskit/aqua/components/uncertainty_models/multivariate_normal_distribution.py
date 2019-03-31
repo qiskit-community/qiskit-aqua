@@ -20,7 +20,7 @@ The Multivariate Normal Distribution.
 
 import numpy as np
 from scipy.stats import multivariate_normal
-from qiskit.aqua.components.random_distributions.multivariate_distribution import MultivariateDistribution
+from qiskit.aqua.components.uncertainty_models.multivariate_distribution import MultivariateDistribution
 
 
 class MultivariateNormalDistribution(MultivariateDistribution):
@@ -36,12 +36,26 @@ class MultivariateNormalDistribution(MultivariateDistribution):
             'id': 'MultivariateNormalDistribution_schema',
             'type': 'object',
             'properties': {
-                'num_target_qubits': {
-                    'type': ['array', 'null'],
+                'num_qubits': {
+                    'type': 'array',
                     "items": {
                         "type": "number"
                     },
-                    'default': None
+                    'default': [2, 2]
+                },
+                'low': {
+                    'type': 'array',
+                    "items": {
+                        "type": "number"
+                    },
+                    'default': [0.0, 0.0]
+                },
+                'high': {
+                    'type': 'array',
+                    "items": {
+                        "type": "number"
+                    },
+                    'default': [0.12, 0.24]
                 },
                 'mu': {
                     'type': ['array', 'null'],
@@ -52,23 +66,6 @@ class MultivariateNormalDistribution(MultivariateDistribution):
                 },
                 'sigma': {
                     'type': ['array', 'null'],
-                    "items": {
-                        "type": "number"
-                    },
-                    'default': None
-                },
-                'low': {
-                    'type': ['array', 'null'],
-                    "items": {
-                        "type": "number"
-                    },
-                    'default': None
-                },
-                'high': {
-                    'type': ['array', 'null'],
-                    "items": {
-                        "type": "number"
-                    },
                     'default': None
                 },
             },
@@ -89,6 +86,10 @@ class MultivariateNormalDistribution(MultivariateDistribution):
             mu (array or list): representing expected values
             sigma (array or list): representing co-variance matrix
         """
+        super().validate(locals())
+
+        if not isinstance(sigma, np.ndarray):
+            sigma = np.asarray(sigma)
 
         if mu is None:
             mu = np.zeros(len(num_qubits))
