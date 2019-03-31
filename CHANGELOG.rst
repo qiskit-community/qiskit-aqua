@@ -41,6 +41,7 @@ Added
 - Added implementation of the Simon's algorithm.
 - Added optional capability for ``Grover``'s algorithm to take a custom initial state (as opposed to the default uniform superposition)
 - Added capability to create a ``Custom`` initial state using existing circuit.
+- Added the ADAM (and AMSGRAD) optimization algorithm
 
 
 Removed
