@@ -19,8 +19,9 @@ import unittest
 
 import numpy as np
 
-from test.common import QiskitAquaTestCase
+from qiskit.aqua import AquaError
 from qiskit.aqua.components.initial_states import Custom
+from test.common import QiskitAquaTestCase
 
 
 class TestInitialStateCustom(QiskitAquaTestCase):
@@ -93,12 +94,12 @@ class TestInitialStateCustom(QiskitAquaTestCase):
         self.assertAlmostEqual(prob, 1.0)
 
     def test_qubits_qubits_given_mistmatch(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaises(AquaError):
             self.custom = Custom(5, state_vector=[1.0]*23)
 
     def test_qubits_2_zero_vector_wrong_cct_mode(self):
         self.custom = Custom(5, state='zero')
-        with self.assertRaises(ValueError):
+        with self.assertRaises(AquaError):
             cct = self.custom.construct_circuit('matrix')
 
 
