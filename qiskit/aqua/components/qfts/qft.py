@@ -18,38 +18,12 @@
 This module contains the definition of a base class for quantum
 fourier transforms.
 """
+
 from abc import abstractmethod
 
 from qiskit import QuantumCircuit, QuantumRegister
 
-from qiskit.aqua import Pluggable, AquaError
-
-
-def set_up(circ, qubits, num_qubits):
-    if circ:
-        if not qubits:
-            raise AquaError(
-                'A QuantumRegister or a list of qubits need to be specified with the input QuantumCircuit.'
-            )
-    else:
-        circ = QuantumCircuit()
-        if not qubits:
-            qubits = QuantumRegister(num_qubits, name='q')
-
-    if len(qubits) < num_qubits:
-        raise AquaError('Insufficient input qubits: {} provided but {} needed.'.format(
-            len(qubits), num_qubits
-        ))
-
-    if isinstance(qubits, QuantumRegister):
-        _ = qubits
-    elif isinstance(qubits, list) and isinstance(qubits[0], tuple) and isinstance(qubits[0][0], QuantumRegister):
-        _ = qubits[0][0]
-    else:
-        raise AquaError('Unrecognized input. Register or qubits expected.')
-    if not circ.has_register(_):
-        circ.add_register(_)
-    return circ, qubits
+from qiskit.aqua import Pluggable
 
 
 class QFT(Pluggable):

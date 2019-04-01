@@ -18,8 +18,10 @@
 This module contains the definition of a base class for inverse quantum
 fourier transforms.
 """
-from qiskit.aqua import Pluggable
+
 from abc import abstractmethod
+
+from qiskit.aqua import Pluggable
 
 
 class IQFT(Pluggable):

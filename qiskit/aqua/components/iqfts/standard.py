@@ -16,11 +16,8 @@
 # =============================================================================
 
 from scipy import linalg
-import numpy as np
 
-from qiskit.qasm import pi
-
-from ..qfts.qft import set_up
+from qiskit.aqua.circuits import FourierTransformCircuits
 from . import IQFT
 
 
@@ -51,17 +48,7 @@ class Standard(IQFT):
             # so linalg.dft is correct for IQFT
             return linalg.dft(2 ** self._num_qubits, scale='sqrtn')
         elif mode == 'circuit':
-            circuit, qubits = set_up(circuit, qubits, self._num_qubits)
-
-            for j in reversed(range(self._num_qubits)):
-                circuit.u2(0, np.pi, qubits[j])
-                for k in reversed(range(j)):
-                    lam = -1.0 * pi / float(2 ** (j - k))
-                    circuit.u1(lam / 2, qubits[j])
-                    circuit.cx(qubits[j], qubits[k])
-                    circuit.u1(-lam / 2, qubits[k])
-                    circuit.cx(qubits[j], qubits[k])
-                    circuit.u1(lam / 2, qubits[k])
-            return circuit
+            ftc = FourierTransformCircuits(self._num_qubits, approximation_degree=0, inverse=True)
+            return ftc.construct_circuit(qubits, circuit)
         else:
             raise ValueError('Mode should be either "vector" or "circuit"')

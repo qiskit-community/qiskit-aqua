@@ -18,6 +18,7 @@
 from .boolean_logic_circuits import CNF, DNF, ESOP
 from .phase_estimation_circuit import PhaseEstimationCircuit
 from .statevector_circuit import StateVectorCircuit
+from .fourier_transform_circuits import FourierTransformCircuits
 
 __all__ = [
     'CNF',
@@ -25,4 +26,5 @@ __all__ = [
     'ESOP',
     'PhaseEstimationCircuit',
     'StateVectorCircuit',
+    'FourierTransformCircuits',
 ]
