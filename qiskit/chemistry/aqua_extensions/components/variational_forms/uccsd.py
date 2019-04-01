@@ -104,7 +104,7 @@ class UCCSD(VariationalForm):
 
     def __init__(self, num_qubits, depth, num_orbitals, num_particles,
                  active_occupied=None, active_unoccupied=None, initial_state=None,
-                 qubit_mapping='parity', two_qubit_reduction=False, num_time_slices=1,
+                 qubit_mapping='parity', two_qubit_reduction=True, num_time_slices=1,
                  cliffords=None, sq_list=None, tapering_values=None, symmetries=None,
                  shallow_circuit_concat=True):
         """Constructor.
