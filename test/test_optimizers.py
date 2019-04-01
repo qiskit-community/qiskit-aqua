@@ -39,7 +39,7 @@ class TestOptimizers(QiskitAquaTestCase):
         return res
 
     def test_adam(self):
-        optimizer = ADAM(maxiter=1000, tol=1e-06)
+        optimizer = ADAM(maxiter=10000, tol=1e-06)
         res = self._optimize(optimizer)
         self.assertLessEqual(res[2], 10000)
 
