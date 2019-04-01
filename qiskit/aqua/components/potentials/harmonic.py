@@ -25,6 +25,7 @@ from qiskit import QuantumCircuit, QuantumRegister
 
 from qiskit.aqua import Pluggable, AquaError
 import numpy as np
+import scipy.linalg as lng
 
 from . import Potential
 
@@ -40,14 +41,15 @@ class Harmonic(Potential):
             configuration (dict): configuration dictionary
     """
 
-    @abstractmethod
-    def __init__(self, num_qubits, m, omega, x0, delta):
+    #@abstractmethod
+    def __init__(self, num_qubits, m, omega, x0, delta, tau):
         super().__init__()
         self._num_qubits = num_qubits
         self._m = m
         self._omega = omega
         self._x0 = x0
         self._delta = delta
+        self._tau = tau
 
     # @classmethod
     # def init_params(cls, num_qubits, m, omega, x0, delta):
@@ -57,7 +59,7 @@ class Harmonic(Potential):
     #     cls._x0 = x0
     #     cls._delta = delta
 
-    @abstractmethod
+    #@abstractmethod
     def construct_circuit(self, mode, register=None):
         """
         Construct a circuit to apply a harmonic potential on the statevector.
@@ -71,27 +73,38 @@ class Harmonic(Potential):
 
         if mode=='matrix':
 
-            circ = np.zeros((1<<self._num_qubits,1<<self._num_qubits))
-            c = np.sqrt(2 * np.pi / (self._num_qubits)) * 0.5
+            circ = np.zeros((1<<self._num_qubits,1<<self._num_qubits), dtype='complex64')
             for i in range(1<<self._num_qubits):
-                circ[i,i]=(c*(self._x0 + i*self._delta))**2
+                circ[i,i]=-1.j * 0.5 * self._m * self._omega**2 * (self._x0 + i*self._delta)**2 * self._tau
+
+            return lng.expm(circ)
 
 
         elif mode=='circuit':
+
+            gamma = 0.5 * self._m * self._omega**2 *self._tau
+            #beta = self._x0 / (self._delta * self._num_qubits)
+
             q = QuantumRegister(self._num_qubits, name='q')
             circ = QuantumCircuit(q)
 
+            #global phase
+            circ.u1(-1 * gamma * self._x0**2, q[0])
+            circ.x(q[0])
+            circ.u1(-1 * gamma * self._x0**2, q[0])
+            circ.x(q[0])
+
+            # phase shift
             for i in range(self._num_qubits):
-                circ.u1(self._x0, q[i])
-                circ.x(q[i])
-                circ.u1(self._x0, q[i])
-                circ.x(q[i])
-                circ.u1()
+                circ.u1(-2 * gamma * self._x0 * self._delta * 2**i, q[i])
 
+            #controlled phase shift
+            for i in range(self._num_qubits):
+                for j in range(self._num_qubits):
+                    if i == j:
+                        circ.u1(-1 * gamma * self._delta**2 * 2**(i+j), q[i])
+                    else:
+                        circ.cu1(-1 * gamma * self._delta**2 * 2**i * 2**j, q[i], q[j])
 
+            return circ
 
-
-
-
-
-        raise NotImplementedError()

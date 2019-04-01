@@ -25,7 +25,7 @@ from qiskit import QuantumCircuit, QuantumRegister
 
 from qiskit.aqua import Pluggable, AquaError
 
-class Potential(Pluggable):
+class Potential():
 
     """Base class for Potentials.
 
@@ -39,14 +39,15 @@ class Potential(Pluggable):
 
     @abstractmethod
     def __init__(self):
-        super().__init__()
+        pass
+        #super().__init__()
 
-    @classmethod
-    def init_params(cls, params):
-        #init_state_params = params.get(Pluggable.SECTION_KEY_INITIAL_STATE)
-        #args = {k: v for k, v in init_state_params.items() if k != 'name'}
-        #return cls(**args)
-        #return cls(params)
+    # @classmethod
+    # def init_params(cls, params):
+    #     #init_state_params = params.get(Pluggable.SECTION_KEY_INITIAL_STATE)
+    #     #args = {k: v for k, v in init_state_params.items() if k != 'name'}
+    #     #return cls(**args)
+    #     return cls(params)
 
     @abstractmethod
     def construct_circuit(self, mode, register=None):
