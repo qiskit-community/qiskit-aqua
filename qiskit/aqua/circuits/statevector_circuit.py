@@ -62,6 +62,8 @@ class StateVectorCircuit:
                 circuit.add_register(register)
 
         # TODO: add capability to start in the middle of the register
-        circuit.initialize(self._state_vector, [register[i] for i in range(self._num_qubits)])
-        circuit = convert_to_basis_gates(circuit)
+        temp = QuantumCircuit(register)
+        temp.initialize(self._state_vector, [register[i] for i in range(self._num_qubits)])
+        temp = convert_to_basis_gates(temp)
+        circuit += temp
         return circuit
