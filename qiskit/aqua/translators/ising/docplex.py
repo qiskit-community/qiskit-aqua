@@ -57,9 +57,10 @@ print('tsp objective:', result['energy'] + offset)
 import logging
 from collections import OrderedDict
 
+import numpy as np
+from math import fsum
 from docplex.mp.model import Model
 from docplex.mp.constants import ComparisonType
-import numpy as np
 
 from qiskit.quantum_info import Pauli
 from qiskit.aqua import Operator, AquaError
@@ -210,7 +211,7 @@ def validate_input_model(mdl):
 
     # validate an object type of the input.
     if not isinstance(mdl, Model):
-        raise AquaError('An input model must be docplex.mp.advmodel.AdvModel.')
+        raise AquaError('An input model must be docplex.mp.model.Model.')
 
     # raise an error if the type of the variable is not a binary type.
     for var in mdl.iter_variables():
@@ -247,31 +248,31 @@ def auto_define_penalty(mdl):
         if not isinstance(constant, int):
             if not constant.is_integer():
                 float_flag = True
+                break
 
         for term in constraint.left_expr.iter_terms():
             if not isinstance(term[1], int):
                 if not term[1].is_integer():
                     float_flag = True
+                    break
+
+        if float_flag:
+            break
+
     if float_flag:
         logger.warning('Using 1e5 for the penalty coefficient because a float coefficient exists in constraints. \n'
                        'The value could be too small. If so, set the penalty coefficient manually.')
         return 1e5
 
-    # set a sign corresponding to a maximized or minimized problem.
-    # sign == 1 is for minimized problem. sign == -1 is for maximized problem.
-    sign = 1
-    if mdl.is_maximized():
-        sign = -1
-
     # (upper bound - lower bound) can be calculate as the sum of absolute value of coefficients
     penalty = 0
 
     # sum linear terms of the object function.
-    for i in mdl.get_objective_expr().iter_terms():
-        penalty += abs(i[1])
+    obj_linear_penalty = [abs(i[1]) for i in mdl.get_objective_expr().iter_terms()]
+    penalty += fsum(obj_linear_penalty)
     # sum quadratic terms of the object function.
-    for i in mdl.get_objective_expr().iter_quads():
-        penalty += abs(i[1])
+    obj_quad_penalty = [abs(i[1]) for i in mdl.get_objective_expr().iter_quads()]
+    penalty += fsum(obj_quad_penalty)
     # Finaly, add 1 to guarantee that infeasible answers will be greater than upper bound.
     penalty += 1
 

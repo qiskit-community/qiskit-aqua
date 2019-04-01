@@ -17,13 +17,14 @@
 
 import networkx as nx
 import numpy as np
-from docplex.mp.advmodel import AdvModel as Model
+from docplex.mp.model import Model
 from qiskit.quantum_info import Pauli
 
-from qiskit.aqua import Operator
+from qiskit.aqua import Operator, AquaError
 from qiskit.aqua.algorithms import ExactEigensolver
 from qiskit.aqua.translators.ising import tsp, docplex
 from test.common import QiskitAquaTestCase
+
 
 # Reference operators and offsets for maxcut and tsp.
 qubitOp_maxcut = Operator(paulis=[[0.5, Pauli(z=[True, True, False, False], x=[False, False, False, False])],
@@ -131,6 +132,33 @@ class TestDocplex(QiskitAquaTestCase):
     def setUp(self):
         super().setUp()
         np.random.seed(100)
+
+    def test_validation(self):
+        num_var=3
+        # validate an object type of the input.
+        with self.assertRaises(AquaError):
+            docplex.validate_input_model("Model")
+
+        # validate the types of the variables are binary or not
+        with self.assertRaises(AquaError):
+            mdl = Model(name='Error_integer_variables')
+            x = {i: mdl.integer_var(name='x_{0}'.format(i)) for i in range(num_var)}
+            obj_func=mdl.sum(x[i] for i in range(num_var))
+            mdl.maximize(obj_func)
+            docplex.get_qubitops(mdl)
+
+        # validate types of constraints are equality constraints or not.
+        with self.assertRaises(AquaError):
+            mdl = Model(name='Error_inequality_constraints')
+            x = {i: mdl.binary_var(name='x_{0}'.format(i)) for i in range(num_var)}
+            obj_func=mdl.sum(x[i] for i in range(num_var))
+            mdl.maximize(obj_func)
+            mdl.add_constraint(mdl.sum(x[i] for i in range(num_var)) <= 1)
+            docplex.get_qubitops(mdl)
+
+    def test_aut_deifne_penalty(self):
+
+
 
     def test_docplex_maxcut(self):
         # Generating a graph of 4 nodes
