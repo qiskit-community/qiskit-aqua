@@ -239,4 +239,3 @@ class InputParser(BaseParser):
 
         # no input solve this problem, remove section
         self.delete_section(PluggableType.INPUT.value)
-    
