@@ -251,9 +251,9 @@ def _auto_define_penalty(mdl, default_penalty=1e5):
     # Firstly, add 1 to guarantee that infeasible answers will be greater than upper bound.
     penalties = [1]
     # add linear terms of the object function.
-    penalties.extend([abs(i[1]) for i in mdl.get_objective_expr().iter_terms()])
+    penalties.extend(abs(i[1]) for i in mdl.get_objective_expr().iter_terms())
     # add quadratic terms of the object function.
-    penalties.extend([abs(i[1]) for i in mdl.get_objective_expr().iter_quads()])
+    penalties.extend(abs(i[1]) for i in mdl.get_objective_expr().iter_quads())
 
     return fsum(penalties)
 
