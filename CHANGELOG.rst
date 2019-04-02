@@ -31,6 +31,7 @@ Added
 - Support to use ``cx`` gate for the entangement in ``RY`` and ``RYRZ`` variational form. (``cz`` is the default choice.)
 - Support to use arbitrary mixer Hamiltonian in ``QAOA``. This allows to use QAOA in constrained optimization problems [arXiv:1709.03489].
 - Added variational algorithm base class ``VQAlgorithm``, implemented by ``VQE`` and ``QSVMVariational``.
+- Added ``ising/docplex.py`` for automatically generating Ising Hamiltonian from optimization models of DOcplex.
 - Added ``mcmt`` for Multi-Controlled, Multi-Target gate.
 - Exposed capabilities to generate circuits from logical AND, OR, DNF (disjunctive normal forms), and CNF (conjunctive normal forms) formulae.
 - Added the capability to generate circuits from ESOP (exclusive sum of products) formulae with optional optimization based on Quine-McCluskey and ExactCover.
@@ -43,7 +44,6 @@ Added
 - Added capability to create a ``Custom`` initial state using existing circuit.
 - Added the ADAM (and AMSGRAD) optimization algorithm
 - Multivariate distributions added, so uncertainty models now have univariate and multivariate distribution components
-
 
 Removed
 -------
