@@ -127,6 +127,7 @@ class StockMarketData():
         import urllib2
         import json
         url = 'https://dataondemand.nasdaq.com/api/v1/quotes'
+        self.data = []
         for ticker in tickers:
           values = {'_Token' : token,
           'symbols' : [ticker]
@@ -135,16 +136,16 @@ class StockMarketData():
           'next_cursor': 0
           #'start' : start.strftime("%m/%d/%Y %H:%M:%S.%f") , 
           #'end' : end.strftime("%m/%d/%Y %H:%M:%S.%f") , 
-        }
-        request_parameters = urllib.urlencode(values)
-        req = urllib2.Request(url, request_parameters)
-        try: 
+          }
+          request_parameters = urllib.urlencode(values)
+          req = urllib2.Request(url, request_parameters)
+          try: 
             response = urllib2.urlopen(req)
             quotes = json.loads(response)["quotes"]
             priceEvolution = []
             for q in quotes: priceEvolution.append(q["ask_price"])
             self.data.append(priceEvolution)
-        except: print("Accessing Nasdaq failed.")
+          except: print("Accessing Nasdaq failed.")
 
     # gets coordinates suitable for plotting
     def get_coordinates(self):
