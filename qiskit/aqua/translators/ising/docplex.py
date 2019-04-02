@@ -56,13 +56,13 @@ print('tsp objective:', result['energy'] + offset)
 
 import logging
 from collections import OrderedDict
+from math import fsum
 
 import numpy as np
-from math import fsum
-from docplex.mp.model import Model
 from docplex.mp.constants import ComparisonType
-
+from docplex.mp.model import Model
 from qiskit.quantum_info import Pauli
+
 from qiskit.aqua import Operator, AquaError
 
 logger = logging.getLogger(__name__)
@@ -73,7 +73,7 @@ def get_qubitops(mdl, auto_penalty=True, default_penalty=1e5):
 
     Args:
         mdl (docplex.mp.model.Model): A model of DOcplex for a optimization problem.
-        auto_penalty (bool): If true, the penalty coefficient is automatically defined by "auto_define_penalty()".
+        auto_penalty (bool): If true, the penalty coefficient is automatically defined by "_auto_define_penalty()".
         default_penalty (float): The default value of the penalty coefficient for the constraints.
             This value is used if "auto_penalty" is False.
 
@@ -83,12 +83,12 @@ def get_qubitops(mdl, auto_penalty=True, default_penalty=1e5):
     """
 
     # validate the input model
-    if not validate_input_model(mdl):
+    if not _validate_input_model(mdl):
         raise AquaError('The input model has unsupported elements.')
 
-    # set the penalty coefficient by auto_define_penalty() or manually.
+    # set the penalty coefficient by _auto_define_penalty() or manually.
     if auto_penalty:
-        penalty = auto_define_penalty(mdl)
+        penalty = _auto_define_penalty(mdl)
     else:
         penalty = default_penalty
 
@@ -197,7 +197,7 @@ def get_qubitops(mdl, auto_penalty=True, default_penalty=1e5):
     return qubitOp, shift
 
 
-def validate_input_model(mdl):
+def _validate_input_model(mdl):
     """ Return True if an input model is valid.
     See the beginning part of this file for more details of supported input models.
 
@@ -229,7 +229,7 @@ def validate_input_model(mdl):
     return validation_flag
 
 
-def auto_define_penalty(mdl):
+def _auto_define_penalty(mdl):
     """ Automatically define the penalty coefficient.
     This returns object function's (upper bound - lower bound + 1).
 

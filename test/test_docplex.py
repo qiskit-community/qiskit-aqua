@@ -15,6 +15,8 @@
 # limitations under the License.
 # =============================================================================
 
+from math import fsum, isclose
+
 import networkx as nx
 import numpy as np
 from docplex.mp.model import Model
@@ -24,7 +26,6 @@ from qiskit.aqua import Operator, AquaError
 from qiskit.aqua.algorithms import ExactEigensolver
 from qiskit.aqua.translators.ising import tsp, docplex
 from test.common import QiskitAquaTestCase
-
 
 # Reference operators and offsets for maxcut and tsp.
 qubitOp_maxcut = Operator(paulis=[[0.5, Pauli(z=[True, True, False, False], x=[False, False, False, False])],
@@ -134,16 +135,16 @@ class TestDocplex(QiskitAquaTestCase):
         np.random.seed(100)
 
     def test_validation(self):
-        num_var=3
+        num_var = 3
         # validate an object type of the input.
         with self.assertRaises(AquaError):
-            docplex.validate_input_model("Model")
+            docplex._validate_input_model("Model")
 
         # validate the types of the variables are binary or not
         with self.assertRaises(AquaError):
             mdl = Model(name='Error_integer_variables')
             x = {i: mdl.integer_var(name='x_{0}'.format(i)) for i in range(num_var)}
-            obj_func=mdl.sum(x[i] for i in range(num_var))
+            obj_func = mdl.sum(x[i] for i in range(num_var))
             mdl.maximize(obj_func)
             docplex.get_qubitops(mdl)
 
@@ -151,14 +152,55 @@ class TestDocplex(QiskitAquaTestCase):
         with self.assertRaises(AquaError):
             mdl = Model(name='Error_inequality_constraints')
             x = {i: mdl.binary_var(name='x_{0}'.format(i)) for i in range(num_var)}
-            obj_func=mdl.sum(x[i] for i in range(num_var))
+            obj_func = mdl.sum(x[i] for i in range(num_var))
             mdl.maximize(obj_func)
             mdl.add_constraint(mdl.sum(x[i] for i in range(num_var)) <= 1)
             docplex.get_qubitops(mdl)
 
-    def test_aut_deifne_penalty(self):
+    def test_auto_deifne_penalty(self):
+        # check _auto_define_penalty() for positive coefficients.
+        positive_coefficients = np.random.rand(10, 10)
+        for i in range(10):
+            mdl = Model(name='Positive_auto_define_penalty')
+            x = {j: mdl.binary_var(name='x_{0}'.format(j)) for j in range(10)}
+            obj_func = mdl.sum(positive_coefficients[i][j] * x[j] for j in range(10))
+            mdl.maximize(obj_func)
+            actual = docplex._auto_define_penalty(mdl)
+            expected = fsum([abs(j) for j in positive_coefficients[i]]) + 1
+            self.assertEqual(isclose(actual, expected), True)
 
+        # check _auto_define_penalty() for negative coefficients
+        negative_coefficients = -1 * np.random.rand(10, 10)
+        for i in range(10):
+            mdl = Model(name='Negative_auto_define_penalty')
+            x = {j: mdl.binary_var(name='x_{0}'.format(j)) for j in range(10)}
+            obj_func = mdl.sum(negative_coefficients[i][j] * x[j] for j in range(10))
+            mdl.maximize(obj_func)
+            actual = docplex._auto_define_penalty(mdl)
+            expected = fsum([abs(j) for j in negative_coefficients[i]]) + 1
+            self.assertEqual(isclose(actual, expected), True)
 
+        # check _auto_define_penalty() for mixed coefficients
+        mixed_coefficients = np.random.randint(-100, 100, (10, 10))
+        for i in range(10):
+            mdl = Model(name='Mixed_auto_define_penalty')
+            x = {j: mdl.binary_var(name='x_{0}'.format(j)) for j in range(10)}
+            obj_func = mdl.sum(mixed_coefficients[i][j] * x[j] for j in range(10))
+            mdl.maximize(obj_func)
+            actual = docplex._auto_define_penalty(mdl)
+            expected = fsum([abs(j) for j in mixed_coefficients[i]]) + 1
+            self.assertEqual(isclose(actual, expected), True)
+
+        # check that 1e5 is being used when coefficients have float numbers.
+        float_coefficients = [0.1 * i for i in range(3)]
+        mdl = Model(name='Float_auto_define_penalty')
+        x = {i: mdl.binary_var(name='x_{0}'.format(i)) for i in range(3)}
+        obj_func = mdl.sum(x[i] for i in range(3))
+        mdl.maximize(obj_func)
+        mdl.add_constraint(mdl.sum(float_coefficients[i] * x[i] for i in range(3)) == 1)
+        actual = docplex._auto_define_penalty(mdl)
+        expected = 1e5
+        self.assertEqual(actual, expected)
 
     def test_docplex_maxcut(self):
         # Generating a graph of 4 nodes
@@ -204,8 +246,7 @@ class TestDocplex(QiskitAquaTestCase):
         x = {(i, p): mdl.binary_var(name='x_{0}_{1}'.format(i, p)) for i in range(num_node) for p in range(num_node)}
         tsp_func = mdl.sum(
             ins.w[i, j] * x[(i, p)] * x[(j, (p + 1) % num_node)] for i in range(num_node) for j in range(num_node) for p
-            in
-            range(num_node))
+            in range(num_node))
         mdl.minimize(tsp_func)
         for i in range(num_node):
             mdl.add_constraint(mdl.sum(x[(i, p)] for p in range(num_node)) == 1)
