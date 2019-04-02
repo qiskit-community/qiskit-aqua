@@ -82,13 +82,11 @@ def get_qubitops(mdl, auto_penalty=True, default_penalty=1e5):
         constant shift for the obj function.
     """
 
-    # validate the input model
-    if not _validate_input_model(mdl):
-        raise AquaError('The input model has unsupported elements.')
+    _validate_input_model(mdl)
 
     # set the penalty coefficient by _auto_define_penalty() or manually.
     if auto_penalty:
-        penalty = _auto_define_penalty(mdl)
+        penalty = _auto_define_penalty(mdl, default_penalty)
     else:
         penalty = default_penalty
 
@@ -198,16 +196,12 @@ def get_qubitops(mdl, auto_penalty=True, default_penalty=1e5):
 
 
 def _validate_input_model(mdl):
-    """ Return True if an input model is valid.
-    See the beginning part of this file for more details of supported input models.
+    """ Check whether an input model is valid. If not, raise an AquaError
 
     Args:
          mdl (docplex.mp.model.Model): A model of DOcplex for a optimization problem.
-
-    Returns:
-        bool: True is a valid input model
     """
-    validation_flag = True
+    valid = True
 
     # validate an object type of the input.
     if not isinstance(mdl, Model):
@@ -218,65 +212,50 @@ def _validate_input_model(mdl):
         if not var.is_binary():
             logger.warning(
                 'The type of Variable {} is {}. It must be a binary variable. '.format(var, var.vartype.short_name))
-            validation_flag = False
+            valid = False
 
     # raise an error if the constraint type is not an equality constraint.
     for constraint in mdl.iter_constraints():
         if not constraint.sense == ComparisonType.EQ:
             logger.warning('Constraint {} is not an equality constraint.'.format(constraint))
-            validation_flag = False
+            valid = False
 
-    return validation_flag
+    if not valid:
+        raise AquaError('The input model has unsupported elements.')
 
 
-def _auto_define_penalty(mdl):
+def _auto_define_penalty(mdl, default_penalty=1e5):
     """ Automatically define the penalty coefficient.
     This returns object function's (upper bound - lower bound + 1).
 
 
     Args:
         mdl (docplex.mp.model.Model): A model of DOcplex for a optimization problem.
+        default_penalty (float): The default value of the penalty coefficient for the constraints.
 
     Returns:
-        int: The penalty coefficient for the Hamiltonian.
+        float: The penalty coefficient for the Hamiltonian.
     """
 
     # if a constraint has float coefficient, return 1e5 for the penalty coefficient.
-    float_flag = False
+    terms = []
     for constraint in mdl.iter_constraints():
-        constant = constraint.right_expr.get_constant()
-        if not isinstance(constant, int):
-            if not constant.is_integer():
-                float_flag = True
-                break
-
-        for term in constraint.left_expr.iter_terms():
-            if not isinstance(term[1], int):
-                if not term[1].is_integer():
-                    float_flag = True
-                    break
-
-        if float_flag:
-            break
-
-    if float_flag:
-        logger.warning('Using 1e5 for the penalty coefficient because a float coefficient exists in constraints. \n'
-                       'The value could be too small. If so, set the penalty coefficient manually.')
-        return 1e5
+        terms.append(constraint.right_expr.get_constant())
+        terms.extend(term[1] for term in constraint.left_expr.iter_terms())
+    if any(isinstance(term, float) and not term.is_integer() for term in terms):
+        logger.warning('Using %f for the penalty coefficient because a float coefficient exists in constraints. \n'
+                       'The value could be too small. If so, set the penalty coefficient manually.', default_penalty)
+        return default_penalty
 
     # (upper bound - lower bound) can be calculate as the sum of absolute value of coefficients
-    penalty = 0
+    # Firstly, add 1 to guarantee that infeasible answers will be greater than upper bound.
+    penalties = [1]
+    # add linear terms of the object function.
+    penalties.extend([abs(i[1]) for i in mdl.get_objective_expr().iter_terms()])
+    # add quadratic terms of the object function.
+    penalties.extend([abs(i[1]) for i in mdl.get_objective_expr().iter_quads()])
 
-    # sum linear terms of the object function.
-    obj_linear_penalty = [abs(i[1]) for i in mdl.get_objective_expr().iter_terms()]
-    penalty += fsum(obj_linear_penalty)
-    # sum quadratic terms of the object function.
-    obj_quad_penalty = [abs(i[1]) for i in mdl.get_objective_expr().iter_quads()]
-    penalty += fsum(obj_quad_penalty)
-    # Finaly, add 1 to guarantee that infeasible answers will be greater than upper bound.
-    penalty += 1
-
-    return penalty
+    return fsum(penalties)
 
 
 def sample_most_likely(state_vector):

@@ -166,7 +166,7 @@ class TestDocplex(QiskitAquaTestCase):
             obj_func = mdl.sum(positive_coefficients[i][j] * x[j] for j in range(10))
             mdl.maximize(obj_func)
             actual = docplex._auto_define_penalty(mdl)
-            expected = fsum([abs(j) for j in positive_coefficients[i]]) + 1
+            expected = fsum(abs(j) for j in positive_coefficients[i]) + 1
             self.assertEqual(isclose(actual, expected), True)
 
         # check _auto_define_penalty() for negative coefficients
@@ -177,7 +177,7 @@ class TestDocplex(QiskitAquaTestCase):
             obj_func = mdl.sum(negative_coefficients[i][j] * x[j] for j in range(10))
             mdl.maximize(obj_func)
             actual = docplex._auto_define_penalty(mdl)
-            expected = fsum([abs(j) for j in negative_coefficients[i]]) + 1
+            expected = fsum(abs(j) for j in negative_coefficients[i]) + 1
             self.assertEqual(isclose(actual, expected), True)
 
         # check _auto_define_penalty() for mixed coefficients
@@ -188,7 +188,7 @@ class TestDocplex(QiskitAquaTestCase):
             obj_func = mdl.sum(mixed_coefficients[i][j] * x[j] for j in range(10))
             mdl.maximize(obj_func)
             actual = docplex._auto_define_penalty(mdl)
-            expected = fsum([abs(j) for j in mixed_coefficients[i]]) + 1
+            expected = fsum(abs(j) for j in mixed_coefficients[i]) + 1
             self.assertEqual(isclose(actual, expected), True)
 
         # check that 1e5 is being used when coefficients have float numbers.
