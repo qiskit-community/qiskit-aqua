@@ -47,7 +47,7 @@ class StockMarketData():
         days = (end - start).days
         self.data = np.random.rand(len(self.tickers), days)
 
-    # Loads data from Wikipedia via the quadnl package. Please see quandl T&C. 
+    # Loads data from Wikipedia via the quadnl package.
     def load_wikipedia(self, start = datetime.datetime(2016,1,1), end = datetime.datetime(2016,1,30)):
         n = self.n
         # The data series
@@ -59,30 +59,91 @@ class StockMarketData():
             self.data.append(d["Adj. Close"])
             d.head() 
         except ImportError:
-            print("This requires the quandl module and an internet connection.")   
+            print("This requires the quandl module, and an internet connection.")   
+
+
+    # Loads data from Singapore Exchange (SGX) as published by Exchange Data International.
+    # Cf. http://www.exchange-data.com/
+    # This requires an access token provided by quandl. Please see quandl T&C. 
+    def load_SGX(self, token, start = datetime.datetime(2016,1,1), end = datetime.datetime(2016,1,30)):
+        n = self.n
+        # The data series
+        self.data = []        
+        try:
+          import quandl
+          quandl.ApiConfig.api_key = token
+          quandl.ApiConfig.api_version = '2015-04-09'
+          for (cnt, s) in enumerate(self.tickers):
+            d = quandl.get("XSES/" + s, start_date=start, end_date=end)
+            self.data.append(d["close"])
+            d.head() 
+        except ImportError:
+            print("This requires the quandl module, a Premium license, and an internet connection.")  
+            
+
+    # Loads data from Singapore Exchange (SGX) as published by Exchange Data International.
+    # Cf. http://www.exchange-data.com/
+    # This requires an access token provided by quandl. Please see quandl T&C. 
+    def load_Euronext(self, token, start = datetime.datetime(2016,1,1), end = datetime.datetime(2016,1,30)):
+        n = self.n
+        # The data series
+        self.data = []        
+        try:
+          import quandl
+          quandl.ApiConfig.api_key = token
+          quandl.ApiConfig.api_version = '2015-04-09'
+          for (cnt, s) in enumerate(self.tickers):
+            d = quandl.get("XPAR/" + s, start_date=start, end_date=end)
+            self.data.append(d["close"])
+            d.head() 
+        except ImportError:
+            print("This requires the quandl module, a Premium license, and an internet connection.")  
+            
+    # Loads data from London Stock Exchange (LSE) as published by Exchange Data International.
+    # Cf. http://www.exchange-data.com/
+    # This requires an access token provided by quandl. Please see quandl T&C. 
+    def load_XSES(self, token, start = datetime.datetime(2016,1,1), end = datetime.datetime(2016,1,30)):
+        n = self.n
+        # The data series
+        self.data = []        
+        try:
+          import quandl
+          quandl.ApiConfig.api_key = token
+          quandl.ApiConfig.api_version = '2015-04-09'
+          for (cnt, s) in enumerate(self.tickers):
+            d = quandl.get("XLON/" + s, start_date=start, end_date=end)
+            self.data.append(d["close"])
+            d.head() 
+        except ImportError:
+            print("This requires the quandl module, a Premium license, and an internet connection.")  
 
     # Loads data from the official Nasdaq Data on Demand service, cf. https://www.nasdaqdod.com/ 
-    # This requires an access token provided by Nasdaq
+    # which supports both Nasdaq Issues and NYSE issues via the Basic service:
+    # https://business.nasdaq.com/intel/GIS/Nasdaq-Basic.html
+    # This requires an access token provided by Nasdaq and may be restrictd to the past 14 days.
     def load_Nasdaq(self, token, start = datetime.datetime(2016,1,1), end = datetime.datetime(2016,1,30)):
         import re
         import urllib
         import urllib2
-        import xml.etree.cElementTree as ElementTree
-        url = 'http://ws.nasdaqdod.com/v1/NASDAQAnalytics.asmx/GetSummarizedTrades'
-        values = {'_Token' : token,
-          'Symbols' : ','.join(self.tickers),
-          'StartDateTime' : start.strftime("%m/%d/%Y %H:%M:%S.%f") , 
-          'EndDateTime' : end.strftime("%m/%d/%Y %H:%M:%S.%f") , 
-          'MarketCenters' : '' ,
-          'TradePrecision': 'Day', # Hour, ...
-          'TradePeriod':'1'
+        import json
+        url = 'https://dataondemand.nasdaq.com/api/v1/quotes'
+        for ticker in tickers:
+          values = {'_Token' : token,
+          'symbols' : [ticker]
+          'start' : start.strftime("%Y-%m-%d'T'%H:%M:%S.%f'Z'") , 
+          'end' : end.strftime("%Y-%m-%d'T'%H:%M:%S.%f'Z'") , 
+          'next_cursor': 0
+          #'start' : start.strftime("%m/%d/%Y %H:%M:%S.%f") , 
+          #'end' : end.strftime("%m/%d/%Y %H:%M:%S.%f") , 
         }
         request_parameters = urllib.urlencode(values)
         req = urllib2.Request(url, request_parameters)
         try: 
             response = urllib2.urlopen(req)
-            root = ElementTree.XML(response.read())
-            # extraction ... 
+            quotes = json.loads(response)["quotes"]
+            priceEvolution = []
+            for q in quotes: priceEvolution.append(q["ask_price"])
+            self.data.append(priceEvolution)
         except: print("Accessing Nasdaq failed.")
 
     # gets coordinates suitable for plotting
