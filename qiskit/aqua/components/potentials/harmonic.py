@@ -60,7 +60,7 @@ class Harmonic(Potential):
     #     cls._delta = delta
 
     #@abstractmethod
-    def construct_circuit(self, mode, register=None):
+    def construct_circuit(self, mode, ordering = 'normal', register=None):
         """
         Construct a circuit to apply a harmonic potential on the statevector.
 
@@ -74,37 +74,79 @@ class Harmonic(Potential):
         if mode=='matrix':
 
             circ = np.zeros((1<<self._num_qubits,1<<self._num_qubits), dtype='complex64')
-            for i in range(1<<self._num_qubits):
-                circ[i,i]=-1.j * 0.5 * self._m * self._omega**2 * (self._x0 + i*self._delta)**2 * self._tau
+            if ordering == 'normal':
+                for i in range(1<<self._num_qubits):
+                    circ[i,i]=-1.j * 0.5 * self._m * self._omega**2 * (self._x0 + i*self._delta)**2 * self._tau
+
+            elif ordering == 'reversed':
+                for i in range(1<<self._num_qubits):
+                    j = (1<<self._num_qubits)-1-i
+                    circ[j,j]=-1.j * 0.5 * self._m * self._omega**2 * (self._x0 + i*self._delta)**2 * self._tau
+
+            else:
+                raise ValueError('Ordering should be either "normal" or "reversed"')
+
 
             return lng.expm(circ)
 
 
         elif mode=='circuit':
 
-            gamma = 0.5 * self._m * self._omega**2 *self._tau
-            #beta = self._x0 / (self._delta * self._num_qubits)
+            if ordering == 'normal':
+                gamma = 0.5 * self._m * self._omega**2 *self._tau
 
-            q = QuantumRegister(self._num_qubits, name='q')
-            circ = QuantumCircuit(q)
+                q = QuantumRegister(self._num_qubits, name='q')
+                circ = QuantumCircuit(q)
 
-            #global phase
-            circ.u1(-1 * gamma * self._x0**2, q[0])
-            circ.x(q[0])
-            circ.u1(-1 * gamma * self._x0**2, q[0])
-            circ.x(q[0])
+                global phase
+                circ.u1(-1 * gamma * self._x0**2, q[0])
+                circ.x(q[0])
+                circ.u1(-1 * gamma * self._x0**2, q[0])
+                circ.x(q[0])
 
-            # phase shift
-            for i in range(self._num_qubits):
-                circ.u1(-2 * gamma * self._x0 * self._delta * 2**i, q[i])
+                # phase shift
+                for i in range(self._num_qubits):
+                    circ.u1(-2 * gamma * self._x0 * self._delta * 2**i, q[i])
 
-            #controlled phase shift
-            for i in range(self._num_qubits):
-                for j in range(self._num_qubits):
-                    if i == j:
-                        circ.u1(-1 * gamma * self._delta**2 * 2**(i+j), q[i])
-                    else:
-                        circ.cu1(-1 * gamma * self._delta**2 * 2**i * 2**j, q[i], q[j])
+                #controlled phase shift
+                for i in range(self._num_qubits):
+                    for j in range(self._num_qubits):
+                        if i == j:
+                            circ.u1(-1 * gamma * self._delta**2 * 2**(i+j), q[i])
+                        else:
+                            circ.cu1(-1 * gamma * self._delta**2 * 2**i * 2**j, q[i], q[j])
+
+            elif ordering == 'reversed':
+
+                #self._x0 = self._x0 + self._delta*((1<<self._num_qubits)-1)
+                #self._delta = -self._delta
+                gamma = 0.5 * self._m * self._omega**2 *self._tau
+
+                q = QuantumRegister(self._num_qubits, name='q')
+                circ = QuantumCircuit(q)
+
+                global phase
+                circ.u1(-1 * gamma * self._x0**2, q[0])
+                circ.x(q[0])
+                circ.u1(-1 * gamma * self._x0**2, q[0])
+                circ.x(q[0])
+
+                # phase shift
+                for i in range(self._num_qubits):
+                    circ.u1(-2 * gamma * self._x0 * self._delta * 2**(self._num_qubits-1-i), q[i])
+
+                #controlled phase shift
+                for i in range(self._num_qubits):
+                    for j in range(self._num_qubits):
+                        if i == j:
+                            circ.u1(-1 * gamma * self._delta**2 * 2**(2*(self._num_qubits-1-i)), q[i])
+                        else:
+                            circ.cu1(-1 * gamma * self._delta**2 * 2**(self._num_qubits-1-i) * 2**(self._num_qubits-1-j), q[i], q[j])
+
+            else:
+
+                raise ValueError('Ordering should be either "normal" or "reversed"')
+
 
             return circ
 
