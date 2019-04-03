@@ -157,7 +157,7 @@ class HHL(QuantumAlgorithm):
             new_matrix = np.array(new_matrix, dtype=complex)
             new_matrix[0:half_dim, half_dim:full_dim] = matrix[:, :]
             new_matrix[half_dim:full_dim, 0:half_dim] = np.matrix(matrix).H[:, :]
-            matrix = np.matrix(new_matrix)
+            matrix = new_matrix
             new_vector = np.zeros((1, full_dim))
             new_vector = np.array(new_vector, dtype=complex)
             new_vector[0, :vector.shape[0]] = vector.conj()
