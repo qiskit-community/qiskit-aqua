@@ -136,10 +136,35 @@ class HHL(QuantumAlgorithm):
         if matrix.shape[0] != len(vector):
             raise ValueError("Input vector dimension does not match input "
                              "matrix dimension!")
+        if matrix.shape[0] != matrix.shape[1]:
+            raise ValueError("Input matrix must be square!")
         if np.log2(matrix.shape[0]) % 1 != 0:
-            # TODO: extend vector and matrix for nonhermitian/non 2**n size
-            #  matrices and prune dimensions of HHL solution
-            raise ValueError("Matrix dimension must be 2**n!")
+            # extend vector and matrix for non 2**n dimensional matrices
+            mat_dim = matrix.shape[0]
+            next_higher = int(np.ceil(np.log2(mat_dim)))
+            new_matrix = np.identity(2 ** next_higher)
+            new_matrix = np.array(new_matrix, dtype=complex)
+            new_matrix[:mat_dim, :mat_dim] = matrix[:, :]
+            matrix = new_matrix
+            new_vector = np.ones((1, 2 ** next_higher))
+            new_vector[0, :vector.shape[0]] = vector
+            vector = new_vector.reshape(np.shape(new_vector)[1])
+        if not np.allclose(matrix, np.matrix(matrix).H):
+            # convert a non-hermitian matrix A to a hermitian matrix
+            # by [[0, A^H], [A, 0]]
+            half_dim = matrix.shape[0]
+            full_dim = 2 * half_dim
+            new_matrix = np.zeros([full_dim, full_dim])
+            new_matrix = np.array(new_matrix, dtype=complex)
+            new_matrix[0:half_dim, half_dim:full_dim] = matrix[:, :]
+            new_matrix[half_dim:full_dim, 0:half_dim] = np.matrix(matrix).H[:, :]
+            matrix = np.matrix(new_matrix)
+            new_vector = np.ones((1, full_dim))
+            new_vector[0, :vector.shape[0]] = vector
+            vector = new_vector.reshape(np.shape(new_vector)[1])
+
+        print(matrix)
+        print(vector)
 
         # Initialize eigenvalue finding module
         eigs_params = params.get(Pluggable.SECTION_KEY_EIGS)
