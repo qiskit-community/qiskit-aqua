@@ -20,7 +20,7 @@ from qiskit import QuantumRegister
 from qiskit.aqua import Operator, AquaError
 from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.components.eigs import Eigenvalues
-from qiskit.aqua.algorithms.single_sample import PhaseEstimationCircuit
+from qiskit.aqua.circuits import PhaseEstimationCircuit
 
 
 class EigsQPE(Eigenvalues):

@@ -16,7 +16,8 @@
 # =============================================================================
 
 from qiskit.aqua.utils import CircuitFactory
-from qiskit.aqua.utils.circuit_utils import controlled_hadamard, multi_toffoli_q
+from qiskit.aqua.circuits.gates import ch
+from qiskit.aqua.circuits.gates import mct
 
 
 class S0Factory(CircuitFactory):
@@ -46,7 +47,7 @@ class S0Factory(CircuitFactory):
             qc.h(q_ancillas[0])
             q_controls = [q[i] for i in range(len(q))]
             q_ancillas_ = [q_ancillas[i] for i in range(len(q_ancillas))]
-            multi_toffoli_q(qc, q_controls, q_ancillas_[0], q_ancillas_[1:])
+            qc.mct(q_controls, q_ancillas_[0], q_ancillas_[1:])
             qc.h(q_ancillas[0])
             qc.x(q_ancillas[0])
             for q_ in q:
@@ -62,11 +63,11 @@ class S0Factory(CircuitFactory):
             for q_ in q:
                 qc.cx(q_control, q_)
             qc.cx(q_control, q_ancillas[0])
-            controlled_hadamard(qc, q_control, q_ancillas[0])
+            qc.ch(q_control, q_ancillas[0])
             q_controls = [q_control] + [q[i] for i in range(len(q))]
             q_ancillas_ = [q_ancillas[i] for i in range(len(q_ancillas))]
-            multi_toffoli_q(qc, q_controls, q_ancillas_[0], q_ancillas_[1:])
-            controlled_hadamard(qc, q_control, q_ancillas[0])
+            qc.mct(q_controls, q_ancillas_[0], q_ancillas_[1:])
+            qc.ch(q_control, q_ancillas[0])
             qc.cx(q_control, q_ancillas[0])
             for q_ in q:
                 qc.cx(q_control, q_)
