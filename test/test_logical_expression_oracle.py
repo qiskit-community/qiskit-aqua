@@ -23,7 +23,7 @@ from qiskit import execute as q_execute
 from qiskit import QuantumCircuit, ClassicalRegister
 from qiskit import BasicAer
 
-from qiskit.aqua.components.oracles import LogicExpressionOracle
+from qiskit.aqua.components.oracles import LogicalExpressionOracle
 from test.common import QiskitAquaTestCase
 
 dimacs_tests = [
@@ -62,13 +62,13 @@ mct_modes = ['basic', 'advanced', 'noancilla']
 optimizations = ['off', 'espresso']
 
 
-class TestLogicExpressionOracle(QiskitAquaTestCase):
+class TestLogicalExpressionOracle(QiskitAquaTestCase):
     @parameterized.expand(
         [x[0] + list(x[1:]) for x in list(itertools.product(dimacs_tests, mct_modes, optimizations))]
     )
     def test_logic_expr_oracle(self, dimacs_str, sols, mct_mode, optimization='off'):
         num_shots = 1024
-        leo = LogicExpressionOracle(dimacs_str, optimization=optimization, mct_mode=mct_mode)
+        leo = LogicalExpressionOracle(dimacs_str, optimization=optimization, mct_mode=mct_mode)
         leo_circuit = leo.circuit
         m = ClassicalRegister(1, name='m')
         for assignment in itertools.product([True, False], repeat=len(leo.variable_register)):

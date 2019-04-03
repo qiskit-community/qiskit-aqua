@@ -94,7 +94,7 @@ class Grover(QuantumAlgorithm):
             {
                 'pluggable_type': 'oracle',
                 'default': {
-                     'name': 'LogicExpressionOracle',
+                     'name': 'LogicalExpressionOracle',
                 },
             },
         ],

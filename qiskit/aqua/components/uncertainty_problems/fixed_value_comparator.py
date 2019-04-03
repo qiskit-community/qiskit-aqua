@@ -19,7 +19,7 @@ The Fixed Value Comparator.
 """
 
 from qiskit.aqua.utils.circuit_factory import CircuitFactory
-from qiskit.aqua.circuits.gates import mct, logic_or
+from qiskit.aqua.circuits.gates import mct, logical_or
 
 import numpy as np
 

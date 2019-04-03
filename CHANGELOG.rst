@@ -35,7 +35,7 @@ Added
 - Added ``mcmt`` for Multi-Controlled, Multi-Target gate.
 - Exposed capabilities to generate circuits from logical AND, OR, DNF (disjunctive normal forms), and CNF (conjunctive normal forms) formulae.
 - Added the capability to generate circuits from ESOP (exclusive sum of products) formulae with optional optimization based on Quine-McCluskey and ExactCover.
-- Added ``LogicExpressionOracle`` for generating oracle circuits from arbitrary boolean logic expressions (including DIMACS support) with optional optimization capability.
+- Added ``LogicalExpressionOracle`` for generating oracle circuits from arbitrary boolean logic expressions (including DIMACS support) with optional optimization capability.
 - Added ``TruthTableOracle`` for generating oracle circuits from truth-tables with optional optimization capability.
 - Added implementation of the Deutsch-Josza algorithm.
 - Added implementation of the Bernstein-Vazirani algorithm.
@@ -50,7 +50,7 @@ Removed
 
 - ``QuantumInstance`` does not take ``memory`` anymore.
 - Moved Command line and GUI interfaces to separate repo (qiskit_aqua_uis)
-- Removed the ``SAT``-specific oracle (now supported by ``LogicExpressionOracle``).
+- Removed the ``SAT``-specific oracle (now supported by ``LogicalExpressionOracle``).
 
 
 Changed

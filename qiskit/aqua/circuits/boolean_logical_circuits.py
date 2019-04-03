@@ -15,7 +15,7 @@
 # limitations under the License.
 # =============================================================================
 """
-Boolean Logic DNF, CNF, and ESOP Circuits.
+Boolean Logical DNF, CNF, and ESOP Circuits.
 """
 
 import logging

@@ -19,7 +19,7 @@ from .multi_control_u1_gate import mcu1
 from .multi_control_u3_gate import mcu3
 from .multi_control_toffoli_gate import mct
 from .multi_control_multi_target_gate import mcmt
-from .boolean_logic_gates import logic_and, logic_or
+from .boolean_logical_gates import logical_and, logical_or
 from .controlled_hadamard_gate import ch
 from .controlled_ry_gates import cry, mcry
 
@@ -28,8 +28,8 @@ __all__ = [
     'mcu3',
     'mct',
     'mcmt',
-    'logic_and',
-    'logic_or',
+    'logical_and',
+    'logical_or',
     'ch',
     'cry',
     'mcry',

@@ -15,7 +15,7 @@
 # limitations under the License.
 # =============================================================================
 """
-The Boolean Logic AND and OR Gates.
+The Boolean Logical AND and OR Gates.
 """
 
 import logging
@@ -30,7 +30,7 @@ from .multi_control_toffoli_gate import mct
 logger = logging.getLogger(__name__)
 
 
-def _logic_and(circuit, variable_register, flags, target_qubit, ancillary_register, mct_mode):
+def _logical_and(circuit, variable_register, flags, target_qubit, ancillary_register, mct_mode):
     if flags is not None:
         zvf = list(zip(variable_register, flags))
         ctl_bits = [v for v, f in zvf if f]
@@ -40,7 +40,7 @@ def _logic_and(circuit, variable_register, flags, target_qubit, ancillary_regist
         [circuit.u3(pi, 0, pi, v) for v, f in zvf if f < 0]
 
 
-def _logic_or(circuit, qr_variables, flags, qb_target, qr_ancillae, mct_mode):
+def _logical_or(circuit, qr_variables, flags, qb_target, qr_ancillae, mct_mode):
     circuit.u3(pi, 0, pi, qb_target)
     if flags is not None:
         zvf = list(zip(qr_variables, flags))
@@ -94,7 +94,7 @@ def _do_checks(flags, qr_variables, qb_target, qr_ancillae, circuit):
     return flags
 
 
-def logic_and(self, qr_variables, qb_target, qr_ancillae, flags=None, mct_mode='basic'):
+def logical_and(self, qr_variables, qb_target, qr_ancillae, flags=None, mct_mode='basic'):
     """
     Build a collective conjunction (AND) circuit in place using mct.
 
@@ -107,10 +107,10 @@ def logic_and(self, qr_variables, qb_target, qr_ancillae, flags=None, mct_mode='
         mct_mode (str): The mct building mode.
     """
     flags = _do_checks(flags, qr_variables, qb_target, qr_ancillae, self)
-    _logic_and(self, qr_variables, flags, qb_target, qr_ancillae, mct_mode)
+    _logical_and(self, qr_variables, flags, qb_target, qr_ancillae, mct_mode)
 
 
-def logic_or(self, qr_variables, qb_target, qr_ancillae, flags=None, mct_mode='basic'):
+def logical_or(self, qr_variables, qb_target, qr_ancillae, flags=None, mct_mode='basic'):
     """
     Build a collective disjunction (OR) circuit in place using mct.
 
@@ -123,8 +123,8 @@ def logic_or(self, qr_variables, qb_target, qr_ancillae, flags=None, mct_mode='b
         mct_mode (str): The mct building mode.
     """
     flags = _do_checks(flags, qr_variables, qb_target, qr_ancillae, self)
-    _logic_or(self, qr_variables, flags, qb_target, qr_ancillae, mct_mode)
+    _logical_or(self, qr_variables, flags, qb_target, qr_ancillae, mct_mode)
 
 
-QuantumCircuit.AND = logic_and
-QuantumCircuit.OR = logic_or
+QuantumCircuit.AND = logical_and
+QuantumCircuit.OR = logical_or
