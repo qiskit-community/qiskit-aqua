@@ -118,11 +118,8 @@ def mcmt(self,
         )
 
     all_qubits = control_qubits + target_qubits + ancillary_qubits
-    try:
-        for qubit in all_qubits:
-            self._check_qubit(qubit)
-    except AttributeError as e: # TODO Temporary, _check_qubit may not exist 
-        logger.debug(str(e))
+
+    self._check_qargs(all_qubits)
     self._check_dups(all_qubits)
 
     if len(q_controls) == 1:

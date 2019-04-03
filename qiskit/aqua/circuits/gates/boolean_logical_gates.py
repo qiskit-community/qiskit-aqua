@@ -83,12 +83,8 @@ def _do_checks(flags, qr_variables, qb_target, qr_ancillae, circuit):
         raise ValueError('An optional list of qubits or a QuantumRegister is expected for ancillae.')
 
     all_qubits = variable_qubits + [target_qubit] + ancillary_qubits
-    try:
-        for qubit in all_qubits:
-            circuit._check_qubit(qubit)
-    except AttributeError as e: # TODO Temporary, _check_qubit may not exist
-        logger.debug(str(e))
 
+    circuit._check_qargs(all_qubits)
     circuit._check_dups(all_qubits)
 
     return flags

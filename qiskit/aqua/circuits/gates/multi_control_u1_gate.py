@@ -85,17 +85,13 @@ def mcu1(self, theta, control_qubits, target_qubit):
     if isinstance(target_qubit, QuantumRegister) and len(target_qubit) == 1:
         target_qubit = target_qubit[0]
     temp = []
-    for qubit in control_qubits:
-        try:
-            self._check_qubit(qubit)
-        except AttributeError as e: # TODO Temporary, _check_qubit may not exist 
-            logger.debug(str(e))
-        temp.append(qubit)
-    try:
-        self._check_qubit(target_qubit)
-    except AttributeError as e: # TODO Temporary, _check_qubit may not exist 
-        logger.debug(str(e))
+
+    self._check_qargs(control_qubits)
+    temp += control_qubits
+
+    self._check_qargs([target_qubit])
     temp.append(target_qubit)
+
     self._check_dups(temp)
     n_c = len(control_qubits)
     if n_c == 1:  # cu1
