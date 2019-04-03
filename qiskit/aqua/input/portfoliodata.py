@@ -102,7 +102,7 @@ class StockMarketData():
     # Loads data from London Stock Exchange (LSE) as published by Exchange Data International.
     # Cf. http://www.exchange-data.com/
     # This requires an access token provided by quandl. Please see quandl T&C. 
-    def load_XSES(self, token, start = datetime.datetime(2016,1,1), end = datetime.datetime(2016,1,30)):
+    def load_LSE(self, token, start = datetime.datetime(2016,1,1), end = datetime.datetime(2016,1,30)):
         n = self.n
         # The data series
         self.data = []        
