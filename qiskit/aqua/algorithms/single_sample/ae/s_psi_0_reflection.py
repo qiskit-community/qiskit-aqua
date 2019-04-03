@@ -16,7 +16,7 @@
 # =============================================================================
 
 from qiskit.aqua.utils import CircuitFactory
-from qiskit.aqua.utils.circuit_utils import controlled_hadamard
+from qiskit.aqua.circuits.gates import ch
 
 
 class SPsi0Factory(CircuitFactory):
@@ -57,11 +57,11 @@ class SPsi0Factory(CircuitFactory):
             qc.cz(q_control, q[0])
         else:
             qc.cx(q_control, q_ancillas[0])
-            controlled_hadamard(qc, q_control, q_ancillas[0])
+            qc.ch(q_control, q_ancillas[0])
             qc.cx(q_control, q[params['i_objective']])
             qc.ccx(q_control, q[params['i_objective']], q_ancillas[0])
             qc.cx(q_control, q[params['i_objective']])
-            controlled_hadamard(qc, q_control, q_ancillas[0])
+            qc.ch(q_control, q_ancillas[0])
             qc.cx(q_control, q_ancillas[0])
 
     def build_controlled_inverse(self, qc, q, q_control, q_ancillas=None, params=None):

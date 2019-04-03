@@ -81,9 +81,9 @@ class Eigenvalues(Pluggable):
             raise NotImplementedError('Mode vector not supported.')
         if circuit is None:
             raise ValueError('Circuit was not constructed beforehand.')
-        qc = QuantumCircuit(inreg, outreg)
-        for gate in reversed(circuit.data):
-            gate.reapply(qc)
-            qc.data[-1].inverse()
-        self._inverse = qc
+        # qc = QuantumCircuit(inreg, outreg)
+        # for gate in reversed(circuit.data):
+        #     gate.reapply(qc)
+        #     qc.data[-1].inverse()
+        self._inverse = circuit.inverse()
         return self._inverse

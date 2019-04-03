@@ -19,7 +19,7 @@ The Fixed Value Comparator.
 """
 
 from qiskit.aqua.utils.circuit_factory import CircuitFactory
-from qiskit.aqua.utils.circuit_utils import multi_toffoli_q, logical_multi_or
+from qiskit.aqua.circuits.gates import mct, logical_or
 
 import numpy as np
 
@@ -99,23 +99,23 @@ class FixedValueComparator(CircuitFactory):
             q_ancillas_ = [q_ancillas[i] for i in range(len(q_ancillas))]
             for k, clause in enumerate(self._clauses):
                 q_controls = [q_state[i] for i in clause]
-                multi_toffoli_q(qc, q_controls, q_ancillas[k], q_ancillas_[num_clauses:])
+                qc.mct(q_controls, q_ancillas[k], q_ancillas_[num_clauses:])
 
             # apply OR to clause ancillas
-            logical_multi_or(qc, q_ancillas_[:num_clauses], q_result, q_ancillas_[num_clauses:])
+            qc.OR(q_ancillas_[:num_clauses], q_result, q_ancillas_[num_clauses:])
 
             # uncompute clauses on ancillas
             if uncompute:
                 for k, clause in enumerate(self._clauses):
                     q_controls = [q_state[i] for i in clause]
-                    multi_toffoli_q(qc, q_controls, q_ancillas[k], q_ancillas_[num_clauses:])
+                    qc.mct(q_controls, q_ancillas[k], q_ancillas_[num_clauses:])
 
             if self._geq is False:
                 qc.x(q_result)
 
         elif num_clauses == 1:
             q_controls = [q_state[i] for i in self._clauses[0]]
-            multi_toffoli_q(qc, q_controls, q_result, q_ancillas)
+            qc.mct(q_controls, q_result, q_ancillas)
 
             if self._geq is False:
                 qc.x(q_result)

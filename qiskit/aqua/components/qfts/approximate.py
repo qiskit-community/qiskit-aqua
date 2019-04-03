@@ -15,12 +15,8 @@
 # limitations under the License.
 # =============================================================================
 
-import numpy as np
-
-from qiskit.qasm import pi
-
+from qiskit.aqua.circuits import FourierTransformCircuits
 from . import QFT
-from .qft import set_up
 
 
 class Approximate(QFT):
@@ -55,19 +51,7 @@ class Approximate(QFT):
             # TODO: implement vector mode for approximate qft
             raise NotImplementedError()
         elif mode == 'circuit':
-            circuit, qubits = set_up(circuit, qubits, self._num_qubits)
-
-            for j in range(self._num_qubits):
-                # neighbor_range = range(np.max([0, j - self._degree + 1]), j)
-                neighbor_range = range(np.max([0, j - self._num_qubits + self._degree + 1]), j)
-                for k in neighbor_range:
-                    lam = 1.0 * pi / float(2 ** (j - k))
-                    circuit.u1(lam / 2, qubits[j])
-                    circuit.cx(qubits[j], qubits[k])
-                    circuit.u1(-lam / 2, qubits[k])
-                    circuit.cx(qubits[j], qubits[k])
-                    circuit.u1(lam / 2, qubits[k])
-                circuit.u2(0, np.pi, qubits[j])
-            return circuit
+            ftc = FourierTransformCircuits(self._num_qubits, approximation_degree=self._degree, inverse=False)
+            return ftc.construct_circuit(qubits, circuit)
         else:
             raise ValueError('Mode should be either "vector" or "circuit"')

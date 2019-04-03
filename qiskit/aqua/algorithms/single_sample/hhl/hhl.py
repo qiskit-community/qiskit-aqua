@@ -311,8 +311,8 @@ class HHL(QuantumAlgorithm):
         self._ret["input_vector"] = self._vector
         self._ret["eigenvalues_classical"] = np.linalg.eig(self._matrix)[0]
         self._ret["solution_classical"] = list(np.linalg.solve(self._matrix, self._vector))
-        dag = circuit_to_dag(self._circuit)
-        self._ret["circuit_width"] = dag.width()
-        self._ret["circuit_depth"] = dag.depth()
-        self._ret["gate_count_total"] = self._circuit.number_atomic_gates()
+        # dag = circuit_to_dag(self._circuit)
+        # self._ret["circuit_width"] = dag.width()
+        # self._ret["circuit_depth"] = dag.depth()
+        # self._ret["gate_count_total"] = self._circuit.number_atomic_gates()
         return self._ret
