@@ -22,7 +22,7 @@ from .random_matrix_generator import (random_unitary, random_h2_body,
                                       random_h1_body, random_hermitian,
                                       random_non_hermitian)
 from .decimal_to_binary import decimal_to_binary
-from .summarize_circuits import summarize_circuits
+from .circuit_utils import summarize_circuits
 from .subsystem import get_subsystem_density_matrix, get_subsystems_counts
 from .entangler_map import get_entangler_map, validate_entangler_map
 from .dataset_helper import (get_feature_dimension, get_num_classes,
@@ -46,7 +46,6 @@ __all__ = [
     'random_hermitian',
     'random_non_hermitian',
     'decimal_to_binary',
-    'summarize_circuits',
     'get_subsystem_density_matrix',
     'get_subsystems_counts',
     'get_entangler_map',
