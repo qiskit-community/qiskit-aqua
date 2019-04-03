@@ -178,7 +178,7 @@ class LongDivision(Reciprocal):
                 for i in range(n):
                     qc2.cx(r, a[i]) 
                 
-                un_qc = qc2.reverse()        
+                un_qc = qc2.mirror()
                 un_qc.cx(r, z[0])   
                 return un_qc
             
