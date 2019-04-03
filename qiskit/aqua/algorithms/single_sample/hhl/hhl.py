@@ -147,7 +147,6 @@ class HHL(QuantumAlgorithm):
         if matrix.shape[0] != matrix.shape[1]:
             raise ValueError("Input matrix must be square!")
 
-        input_params = params["input"]
         if auto_hermitian:
             # convert a non-hermitian matrix A to a hermitian matrix
             # by [[0, A.H], [A, 0]]
