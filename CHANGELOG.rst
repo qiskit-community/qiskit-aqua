@@ -59,7 +59,7 @@ Changed
 - Fixed package setup to correctly identify namespace packages using ``setuptools.find_namespace_packages``.
 - Changed ``advanced`` mode implementation of ``mct``: using simple ``h`` gates instead of ``ch``, and fixing the old recursion step in ``_multicx``.
 - Components ``random_distributions`` renamed to ``uncertainty_models``
-- Reorganized the constructions of various common gates (``mct``, ``mcu1``, ``mcu3``, ``mcmt``, ``logic_and``, and ``logic_or``) and circuits (``PhaseEstimationCircuit``, ``BooleanLogicCircuits``, ``FourierTransformCircuits``, and ``StateVectorCircuits``) into the circuit library, located in the ``circuits`` directory.
+- Reorganized the constructions of various common gates (``ch``, ``cry``, ``mcry``, ``mct``, ``mcu1``, ``mcu3``, ``mcmt``, ``logic_and``, and ``logic_or``) and circuits (``PhaseEstimationCircuit``, ``BooleanLogicCircuits``, ``FourierTransformCircuits``, and ``StateVectorCircuits``) into the circuit library, located in the ``circuits`` directory.
 
 
 `0.4.1`_ - 2019-01-09

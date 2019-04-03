@@ -25,7 +25,7 @@ from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.qasm import pi
 
 from qiskit.aqua import AquaError
-from .mct import mct
+from .multi_control_toffoli_gate import mct
 
 logger = logging.getLogger(__name__)
 
@@ -60,10 +60,11 @@ def _do_checks(flags, qr_variables, qb_target, qr_ancillae, circuit):
             raise AquaError('`flags` cannot be longer than `qr_variables`.')
 
     # check variables
-    if isinstance(qr_variables, QuantumRegister):
+    # TODO: improve the check
+    if isinstance(qr_variables, QuantumRegister) or isinstance(qr_variables, list):
         variable_qubits = [qb for qb, i in zip(qr_variables, flags) if not i == 0]
     else:
-        raise ValueError('A QuantumRegister is expected for variables.')
+        raise ValueError('A QuantumRegister or list of qubits is expected for variables.')
 
     # check target
     if isinstance(qb_target, tuple):

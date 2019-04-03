@@ -17,8 +17,12 @@
 """
 Multiple-Control, Multiple-Target Gate.
 """
-from qiskit import QuantumCircuit, QuantumRegister
+
 import logging
+
+from qiskit import QuantumCircuit, QuantumRegister
+
+from qiskit.aqua import AquaError
 
 logger = logging.getLogger(__name__)
 
@@ -89,7 +93,7 @@ def mcmt(self,
     elif isinstance(q_controls, list):
         control_qubits = q_controls
     else:
-        raise ValueError(
+        raise AquaError(
             'MCT needs a list of qubits or a quantum register for controls.')
 
     # check target
@@ -98,7 +102,7 @@ def mcmt(self,
     elif isinstance(q_targets, list):
         target_qubits = q_targets
     else:
-        raise ValueError(
+        raise AquaError(
             'MCT needs a list of qubits or a quantum register for targets.')
 
     # check ancilla
@@ -109,7 +113,7 @@ def mcmt(self,
     elif isinstance(q_ancillae, list):
         ancillary_qubits = q_ancillae
     else:
-        raise ValueError(
+        raise AquaError(
             'MCT needs None or a list of qubits or a quantum register for ancilla.'
         )
 
@@ -134,7 +138,7 @@ def mcmt(self,
             single_control_gate_fun(self, ancillary_qubits[ancn - 1], qubit)
         _ccx_v_chain_uncompute(self, control_qubits, ancillary_qubits)
     else:
-        raise ValueError(
+        raise AquaError(
             'Unrecognized mode "{0}" for building mcmt circuit, at the moment only "basic" mode is supported.'
             .format(mode))
 
