@@ -201,7 +201,7 @@ class TestHHL(QiskitAquaTestCase):
 
         n = 2
         matrix = rmg.random_diag(n, eigrange=[-1, 1])
-        vector = random(2)
+        vector = random(n)
 
         algo_input = LinearSystemInput()
         algo_input.matrix = matrix
@@ -233,7 +233,7 @@ class TestHHL(QiskitAquaTestCase):
 
         n = 2
         matrix = rmg.random_hermitian(n, eigrange=[0, 1])
-        vector = random(2)
+        vector = random(n)
 
         algo_input = LinearSystemInput()
         algo_input.matrix = matrix
