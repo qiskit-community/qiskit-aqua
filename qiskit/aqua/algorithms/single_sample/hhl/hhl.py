@@ -81,6 +81,8 @@ class HHL(QuantumAlgorithm):
             self,
             matrix=None,
             vector=None,
+            auto_hermitian=False,
+            auto_resize=False,
             eigs=None,
             init_state=None,
             reciprocal=None,
@@ -93,6 +95,8 @@ class HHL(QuantumAlgorithm):
         Args:
             matrix (array): the input matrix of linear system of equations
             vector (array): the input vector of linear system of equations
+            auto_hermitian (bool): flag indicating automatic expansion of a non-hermitian matrix
+            auto_resize (bool): flag indicating automatic matrix expansion to 2**n dimensional
             eigs (Eigenvalues): the eigenvalue estimation instance
             init_state (InitialState): the initial quantum state preparation
             reciprocal (Reciprocal): the eigenvalue reciprocal and controlled rotation instance
@@ -103,6 +107,8 @@ class HHL(QuantumAlgorithm):
         super().validate(locals())
         self._matrix = matrix
         self._vector = vector
+        self._auto_hermitian = auto_hermitian
+        self._auto_resize = auto_resize
         self._eigs = eigs
         self._init_state = init_state
         self._reciprocal = reciprocal
@@ -128,6 +134,8 @@ class HHL(QuantumAlgorithm):
 
         matrix = algo_input.matrix
         vector = algo_input.vector
+        auto_hermitian = algo_input.auto_hermitian
+        auto_resize = algo_input.auto_resize
         if not isinstance(matrix, np.ndarray):
             matrix = np.asarray(matrix)
         if not isinstance(vector, np.ndarray):
@@ -138,20 +146,11 @@ class HHL(QuantumAlgorithm):
                              "matrix dimension!")
         if matrix.shape[0] != matrix.shape[1]:
             raise ValueError("Input matrix must be square!")
-        if np.log2(matrix.shape[0]) % 1 != 0:
-            # extend vector and matrix for non 2**n dimensional matrices
-            mat_dim = matrix.shape[0]
-            next_higher = int(np.ceil(np.log2(mat_dim)))
-            new_matrix = np.identity(2 ** next_higher)
-            new_matrix = np.array(new_matrix, dtype=complex)
-            new_matrix[:mat_dim, :mat_dim] = matrix[:, :]
-            matrix = new_matrix
-            new_vector = np.ones((1, 2 ** next_higher))
-            new_vector[0, :vector.shape[0]] = vector
-            vector = new_vector.reshape(np.shape(new_vector)[1])
-        if not np.allclose(matrix, np.matrix(matrix).H):
+
+        input_params = params["input"]
+        if auto_hermitian:
             # convert a non-hermitian matrix A to a hermitian matrix
-            # by [[0, A^H], [A, 0]]
+            # by [[0, A.H], [A, 0]]
             half_dim = matrix.shape[0]
             full_dim = 2 * half_dim
             new_matrix = np.zeros([full_dim, full_dim])
@@ -159,12 +158,32 @@ class HHL(QuantumAlgorithm):
             new_matrix[0:half_dim, half_dim:full_dim] = matrix[:, :]
             new_matrix[half_dim:full_dim, 0:half_dim] = np.matrix(matrix).H[:, :]
             matrix = np.matrix(new_matrix)
-            new_vector = np.ones((1, full_dim))
+            new_vector = np.zeros((1, full_dim))
+            new_vector = np.array(new_vector, dtype=complex)
+            new_vector[0, :vector.shape[0]] = vector.conj()
+            new_vector[0, vector.shape[0]:] = vector
+            vector = new_vector.reshape(np.shape(new_vector)[1])
+
+        if auto_resize:
+            # extend vector and matrix for non 2**n dimensional matrices
+            mat_dim = matrix.shape[0]
+            next_higher = int(np.ceil(np.log2(mat_dim)))
+            new_matrix = np.identity(2 ** next_higher)
+            new_matrix = np.array(new_matrix, dtype=complex)
+            new_matrix[:mat_dim, :mat_dim] = matrix[:, :]
+            matrix = new_matrix
+            new_vector = np.zeros((1, 2 ** next_higher))
             new_vector[0, :vector.shape[0]] = vector
             vector = new_vector.reshape(np.shape(new_vector)[1])
 
-        print(matrix)
-        print(vector)
+        if not np.allclose(matrix, np.matrix(matrix).H):
+            raise ValueError("Input matrix is not hermitian!")
+        if np.log2(matrix.shape[0]) % 1 != 0:
+            raise ValueError("Matrix dimension must be 2**n!")
+
+        print()
+        print(np.round(matrix, 3))
+        print(np.round(vector, 3))
 
         # Initialize eigenvalue finding module
         eigs_params = params.get(Pluggable.SECTION_KEY_EIGS)
@@ -187,7 +206,8 @@ class HHL(QuantumAlgorithm):
         reci = get_pluggable_class(PluggableType.RECIPROCAL,
                                    reciprocal_params['name']).init_params(params)
 
-        return cls(matrix, vector, eigs, init_state, reci, num_q, num_a)
+        return cls(matrix, vector, auto_hermitian, auto_resize, eigs,
+                   init_state, reci, num_q, num_a)
 
     def construct_circuit(self, measurement=False):
         """Construct the HHL circuit.
