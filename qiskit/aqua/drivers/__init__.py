@@ -16,31 +16,11 @@
 # =============================================================================
 
 from ._basedriver import BaseDriver, UnitsType
-from ._discover_driver import (DRIVERS_ENTRY_POINT,
-                               refresh_drivers,
-                               register_driver,
-                               deregister_driver,
-                               get_driver_class,
-                               get_driver_configuration,
-                               local_drivers)
-from .gaussiand import GaussianDriver
-from .hdf5d import HDF5Driver
-from .psi4d import PSI4Driver
-from .pyquanted import PyQuanteDriver, BasisType
-from .pyscfd import PySCFDriver
+from .dataondemand import DataOnDemandDriver
+from .exhangedata import ExchangeDataDriver
+from .wikipedia import WikipediaDriver
 
 __all__ = ['BaseDriver',
-           'UnitsType',
-           'DRIVERS_ENTRY_POINT',
-           'refresh_drivers',
-           'register_driver',
-           'deregister_driver',
-           'get_driver_class',
-           'get_driver_configuration',
-           'local_drivers',
-           'GaussianDriver',
-           'HDF5Driver',
-           'PSI4Driver',
-           'BasisType',
-           'PyQuanteDriver',
-           'PySCFDriver']
+           'DataOnDemandDriver',
+           'ExchangeDataDriver',
+           'WikipediaDriver']
