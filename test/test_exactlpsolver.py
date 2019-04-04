@@ -33,9 +33,32 @@ class TestExactLPsolver(QiskitAquaTestCase):
         self.algo_input.matrix = [[1, 2], [2, 1]]
         self.algo_input.vector = [1, 2]
 
+    def test_elp_via_run_algorithm_full_dict(self):
+        params = {
+            'algorithm': {
+                'name': 'ExactLPsolver'
+            },
+            'problem': {
+                'name': 'linear_system'
+            },
+            'input': {
+                'name': 'LinearSystemInput',
+                'matrix': self.algo_input.matrix,
+                'vector': self.algo_input.vector
+            }
+        }
+        result = run_algorithm(params)
+        np.testing.assert_array_almost_equal(result['solution'], [1, 0])
+        np.testing.assert_array_almost_equal(result['eigvals'], [3, -1])
+
     def test_elp_via_run_algorithm(self):
         params = {
-            'algorithm': {'name': 'ExactLPsolver'}
+            'algorithm': {
+                'name': 'ExactLPsolver'
+            },
+            'problem': {
+                'name': 'linear_system'
+            }
         }
         result = run_algorithm(params, self.algo_input)
         np.testing.assert_array_almost_equal(result['solution'], [1, 0])

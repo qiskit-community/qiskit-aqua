@@ -31,26 +31,25 @@ class ExactLPsolver(QuantumAlgorithm):
 
     CONFIGURATION = {
         'name': 'ExactLPsolver',
-        'description': 'ExactLinearProblem Algorithm',
+        'description': 'ExactLPsolver Algorithm',
         'classical': True,
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
-            'id': 'ExactEigensolver_schema',
+            'id': 'ExactLPsolver_schema',
             'type': 'object',
             'properties': {
             },
             'additionalProperties': False
         },
-        'problems': ['energy', 'excited_states', 'ising']
+        'problems': ['linear_system']
     }
 
     def __init__(self, matrix=None, vector=None):
         """Constructor.
 
         Args:
-            operator: Operator instance
-            k: How many eigenvalues are to be computed
-            aux_operators: Auxiliary operators to be evaluated at each eigenvalue
+            matrix (array): the input matrix of linear system of equations
+            vector (array): the input vector of linear system of equations
         """
         self.validate(locals())
         super().__init__()
@@ -90,7 +89,7 @@ class ExactLPsolver(QuantumAlgorithm):
 
     def _run(self):
         """
-        Run the algorithm to compute up to the requested k number of eigenvalues.
+        Run the algorithm to compute eigenvalues and solution.
         Returns:
             Dictionary of results
         """
