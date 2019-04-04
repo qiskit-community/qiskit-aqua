@@ -32,19 +32,20 @@ class TestHHL(QiskitAquaTestCase):
 
     def setUp(self):
         super(TestHHL, self).setUp()
-        np.random.seed(0)
         self.elp_params = {
             'algorithm': {
                 'name': 'ExactLPsolver'
             },
             'problem': {
-                'name': 'linear_system'
+                'name': 'linear_system',
+                'random_seed': 0
             }
         }
         self.params = {
             'problem': {
                 'name': 'linear_system',
-                'circuit_caching': False
+                'circuit_caching': False,
+                'random_seed': 0
             },
             'algorithm': {
                 'name': 'HHL'
@@ -173,7 +174,6 @@ class TestHHL(QiskitAquaTestCase):
                        format(hhl_result["probability_result"]))
 
     @parameterized.expand([[[0, 1]], [[1, 0]], [[1, 1]], [[1, 10]]])
-    @unittest.skip("@Albert: currently failing")
     def test_hhl_diagonal_qasm(self, vector):
         self.log.debug('Testing HHL simple test with qasm simulator')
 
