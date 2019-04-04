@@ -16,12 +16,12 @@
 # =============================================================================
 
 from .grover.grover import Grover
-from .iqpe.iqpe import IQPE
+from .iterative_qpe.iqpe import IQPE
 from .qpe.qpe import QPE
-from .ae.ae import AmplitudeEstimation
+from .amplitude_estimation.amplitude_estimation import AmplitudeEstimation
 from .simon.simon import Simon
-from .dj.deutsch_jozsa import DeutschJozsa
-from .bv.bernstein_vazirani import BernsteinVazirani
+from .deutsch_josza.deutsch_jozsa import DeutschJozsa
+from .bernstein_vazirani.bernstein_vazirani import BernsteinVazirani
 from .hhl.hhl import HHL
 
 
