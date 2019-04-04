@@ -70,7 +70,7 @@ class TestHHL(QiskitAquaTestCase):
         }
 
     @parameterized.expand([[[0, 1]], [[1, 0]], [[1, 1]], [[1, 10]]])
-    def test_hhl_diagonal_sv(self, vector):
+    def test_hhl_diagonal(self, vector):
         self.log.debug('Testing HHL simple test in mode Lookup with '
                        'statevector simulator')
 
@@ -102,7 +102,7 @@ class TestHHL(QiskitAquaTestCase):
                        format(hhl_result["probability_result"]))
 
     @parameterized.expand([[[-1, 0]], [[0, -1]], [[-1, -1]]])
-    def test_hhl_diagonal_negative_sv(self, vector):
+    def test_hhl_diagonal_negative(self, vector):
         self.log.debug('Testing HHL simple test in mode Lookup with '
                        'statevector simulator')
 
@@ -138,7 +138,7 @@ class TestHHL(QiskitAquaTestCase):
                        format(hhl_result["probability_result"]))
 
     @parameterized.expand([[[0, 1]], [[1, 0]], [[1, 1]], [[1, 10]]])
-    def test_hhl_diagonal_longdivison_sv(self, vector):
+    def test_hhl_diagonal_longdivison(self, vector):
         self.log.debug('Testing HHL simple test in mode LongDivision and '
                        'statevector simulator')
 
@@ -207,7 +207,7 @@ class TestHHL(QiskitAquaTestCase):
         self.log.debug('probability of result:     {}'.
                        format(hhl_result["probability_result"]))
 
-    def test_hhl_negative_eigs_sv(self):
+    def test_hhl_negative_eigs(self):
         self.log.debug('Testing HHL with matrix with negative eigenvalues')
 
         neg_params = self.params
@@ -242,7 +242,7 @@ class TestHHL(QiskitAquaTestCase):
         self.log.debug('probability of result:     {}'.
                        format(hhl_result["probability_result"]))
 
-    def test_hhl_random_hermitian_sv(self):
+    def test_hhl_random_hermitian(self):
         self.log.debug('Testing HHL with random hermitian matrix')
 
         hermitian_params = self.params
