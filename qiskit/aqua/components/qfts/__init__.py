@@ -18,5 +18,6 @@
 from .qft import QFT
 from .standard import Standard
 from .approximate import Approximate
+from .swap import Swap
 
-__all__ = ['Standard', 'Approximate', 'QFT']
+__all__ = ['Standard', 'Approximate', 'QFT', 'Swap']
