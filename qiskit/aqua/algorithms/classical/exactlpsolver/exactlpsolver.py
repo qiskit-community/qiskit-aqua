@@ -19,10 +19,9 @@
 import logging
 
 import numpy as np
-from scipy import sparse as scisparse
 
 from qiskit.aqua.algorithms import QuantumAlgorithm
-from qiskit.aqua import AquaError, Pluggable
+from qiskit.aqua import AquaError
 
 logger = logging.getLogger(__name__)
 
