@@ -18,10 +18,10 @@
 from .grover.grover import Grover
 from .iterative_qpe.iqpe import IQPE
 from .qpe.qpe import QPE
-from .amplitude_estimation.amplitude_estimation import AmplitudeEstimation
+from .amplitude_estimation.ae import AmplitudeEstimation
 from .simon.simon import Simon
-from .deutsch_josza.deutsch_jozsa import DeutschJozsa
-from .bernstein_vazirani.bernstein_vazirani import BernsteinVazirani
+from .deutsch_josza.dj import DeutschJozsa
+from .bernstein_vazirani.bv import BernsteinVazirani
 from .hhl.hhl import HHL
 
 
