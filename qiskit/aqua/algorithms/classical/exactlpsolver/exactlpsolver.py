@@ -80,12 +80,14 @@ class ExactLPsolver(QuantumAlgorithm):
         if matrix.shape[0] != len(vector):
             raise ValueError("Input vector dimension does not match input "
                              "matrix dimension!")
+        if matrix.shape[0] != matrix.shape[1]:
+            raise ValueError("Input matrix must be square!")
 
         return cls(matrix, vector)
 
     def _solve(self):
-        self._ret["eigenvalues"] = np.linalg.eig(self._matrix)[0]
-        self._ret["solution"] = list(np.linalg.solve(self._matrix, self._vector))
+        self._ret['eigvals'] = np.linalg.eig(self._matrix)[0]
+        self._ret['solution'] = list(np.linalg.solve(self._matrix, self._vector))
 
     def _run(self):
         """

@@ -20,7 +20,7 @@ import unittest
 import numpy as np
 
 from test.common import QiskitAquaTestCase
-from qiskit.aqua import Operator, run_algorithm
+from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import LinearSystemInput
 from qiskit.aqua.algorithms import ExactLPsolver
 
@@ -30,16 +30,22 @@ class TestExactLPsolver(QiskitAquaTestCase):
     def setUp(self):
         super().setUp()
         self.algo_input = LinearSystemInput()
-        self.algo_input.matrix = [[1, 0], [0, 1]]
-        self.algo_input.vector = [1, 0]
+        self.algo_input.matrix = [[1, 2], [2, 1]]
+        self.algo_input.vector = [1, 2]
 
     def test_elp_via_run_algorithm(self):
-        pass
+        params = {
+            'algorithm': {'name': 'ExactLPsolver'}
+        }
+        result = run_algorithm(params, self.algo_input)
+        np.testing.assert_array_almost_equal(result['solution'], [1, 0])
+        np.testing.assert_array_almost_equal(result['eigvals'], [3, -1])
 
     def test_elp_direct(self):
         algo = ExactLPsolver(self.algo_input.matrix, self.algo_input.vector)
         result = algo.run()
-        print(result)
+        np.testing.assert_array_almost_equal(result['solution'], [1, 0])
+        np.testing.assert_array_almost_equal(result['eigvals'], [3, -1])
 
 if __name__ == '__main__':
     unittest.main()
