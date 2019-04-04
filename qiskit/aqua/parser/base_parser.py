@@ -101,6 +101,10 @@ class BaseParser(ABC):
     def get_property_types(self, section_name, property_name):
         return self._json_schema.get_property_types(section_name, property_name)
 
+    @abstractmethod
+    def get_default_sections(self):
+        pass
+
     def get_default_section_names(self):
         sections = self.get_default_sections()
         return list(sections.keys()) if sections is not None else []
@@ -456,6 +460,7 @@ class BaseParser(ABC):
             raise AquaError("{}.{}: Value '{}': '{}'".format(section_name, property_name, value, msg))
 
         value_changed = False
+        old_value = None
         if section_name not in self._sections:
             value_changed = True
         elif property_name not in self._sections[section_name]:
@@ -488,14 +493,27 @@ class BaseParser(ABC):
                     BaseParser._set_section_property(self._sections, section_name, JSONSchema.NAME, backend_name, ['string'])
 
             self._json_schema.update_backend_schema(self)
-        elif property_name == JSONSchema.NAME:
-            if JSONSchema.PROBLEM == section_name:
-                self._update_algorithm_problem()
-            elif BaseParser.is_pluggable_section(section_name):
+            return True
+
+        if property_name == JSONSchema.NAME:
+            if BaseParser.is_pluggable_section(section_name):
                 self._json_schema.update_pluggable_schemas(self)
                 self._update_dependency_sections(section_name)
-            else:
-                self.post_set_section_property(section_name, property_name)
+                # remove any previous pluggable sections not in new dependency list
+                old_dependencies = self._get_dependency_sections(section_name, old_value) if old_value is not None else set()
+                new_dependencies = self._get_dependency_sections(section_name, value) if value is not None else set()
+                for pluggable_name in old_dependencies.difference(new_dependencies):
+                    if pluggable_name in self._sections:
+                        del self._sections[pluggable_name]
+
+                # reorder sections
+                self._sections = self._order_sections(self._sections)
+                return True
+
+            if JSONSchema.PROBLEM == section_name:
+                self._update_algorithm_problem()
+
+            self.post_set_section_property(section_name, property_name)
 
         return True
 
@@ -520,15 +538,25 @@ class BaseParser(ABC):
         # no algorithm solve this problem, remove section
         self.delete_section(PluggableType.ALGORITHM.value)
 
+    def _get_dependency_sections(self, pluggable_type, pluggable_name):
+        config = get_pluggable_configuration(pluggable_type, pluggable_name)
+        dependency_sections = set()
+        pluggable_dependencies = config.get('depends', [])
+        for dependency_pluggable_type_dict in pluggable_dependencies:
+            dependency_pluggable_type = dependency_pluggable_type_dict.get('pluggable_type')
+            if dependency_pluggable_type is not None:
+                dependency_sections.add(dependency_pluggable_type)
+                dependency_pluggable_name = dependency_pluggable_type_dict.get('default', {}).get(JSONSchema.NAME)
+                if dependency_pluggable_name is not None:
+                    dependency_sections.update(self._get_dependency_sections(dependency_pluggable_type, dependency_pluggable_name))
+
+        return dependency_sections
+
     def _update_dependency_sections(self, section_name):
-        sections_to_be_deleted = []
         prop_name = self.get_section_property(section_name, JSONSchema.NAME)
         config = {} if prop_name is None else get_pluggable_configuration(section_name, prop_name)
         pluggable_dependencies = config.get('depends', [])
         if section_name == PluggableType.ALGORITHM.value:
-            sections_to_be_deleted = [name for name in self.get_section_names()
-                                      if name != PluggableType.INPUT.value and self.is_pluggable_section(name)]
-
             classical = config.get('classical', False)
             # update backend based on classical
             if classical:
@@ -539,42 +567,25 @@ class BaseParser(ABC):
                     self.set_section_properties(JSONSchema.BACKEND, self.get_section_default_properties(JSONSchema.BACKEND))
 
         # update dependencies recursively
-        self._update_dependencies(section_name, sections_to_be_deleted, pluggable_dependencies)
+        self._update_dependencies(section_name, pluggable_dependencies)
 
-        # remove pluggable sections not in algorithm dependency list
-        for name in sections_to_be_deleted:
-            if name in self._sections:
-                del self._sections[name]
-
-        # reorder sections
-        self._sections = self._order_sections(self._sections)
-
-    def _update_dependencies(self, section_name, sections_to_be_deleted, pluggable_dependencies):
-        # remove dependency pluggable type from sections to be deleted
-        if section_name in sections_to_be_deleted:
-            sections_to_be_deleted.remove(section_name)
-
+    def _update_dependencies(self, section_name, pluggable_dependencies):
         # update sections with dependencies recursevely
         for pluggable_type_dict in pluggable_dependencies:
             pluggable_type = pluggable_type_dict.get('pluggable_type')
             if pluggable_type is None:
                 continue
 
-            pluggable_name = None
-            pluggable_defaults = pluggable_type_dict.get('default')
-            if pluggable_defaults is not None:
-                pluggable_name = pluggable_defaults.get(JSONSchema.NAME)
-
+            pluggable_name = pluggable_type_dict.get('default', {}).get(JSONSchema.NAME)
             if pluggable_name is not None:
                 if pluggable_type not in self._sections:
-                    self.set_section_property(pluggable_type, JSONSchema.NAME, pluggable_name)
                     # update default values for new dependency pluggable types
                     default_properties = self.get_section_default_properties(pluggable_type)
                     if isinstance(default_properties, dict):
                         self.set_section_properties(pluggable_type, default_properties)
 
                 config = get_pluggable_configuration(pluggable_type, pluggable_name)
-                self._update_dependencies(pluggable_type, sections_to_be_deleted, config.get('depends', []))
+                self._update_dependencies(pluggable_type, config.get('depends', []))
 
     @staticmethod
     def _set_section_property(sections, section_name, property_name, value, types):
@@ -588,6 +599,11 @@ class BaseParser(ABC):
         section_name = JSONSchema.format_section_name(section_name)
         property_name = JSONSchema.format_property_name(property_name)
         value = JSONSchema.get_value(value, types)
+
+        if JSONSchema.NAME == property_name and \
+           (value is None or len(value) == 0) and \
+           BaseParser.is_pluggable_section(section_name):
+            raise AquaError("Unable to set pluggable '{}' name: Missing name.".format(section_name))
 
         if section_name not in sections:
             sections[section_name] = OrderedDict()

@@ -41,7 +41,7 @@ import logging
 from qiskit import QuantumRegister
 from qiskit.circuit import CompositeGate
 from qiskit.compiler.run_config import RunConfig
-from qiskit.qobj import Qobj, QobjConfig
+from qiskit.qobj import Qobj, QasmQobjConfig
 
 from qiskit.aqua.aqua_error import AquaError
 
@@ -194,7 +194,7 @@ class CircuitCache:
 
         if run_config is None:
             run_config = RunConfig(shots=1024, max_credits=10, memory=False)
-        exec_qobj.config = QobjConfig(**run_config.to_dict())
+        exec_qobj.config = QasmQobjConfig(**run_config.to_dict())
         exec_qobj.config.memory_slots = max(experiment.config.memory_slots for experiment in exec_qobj.experiments)
         exec_qobj.config.n_qubits = max(experiment.config.n_qubits for experiment in exec_qobj.experiments)
         return exec_qobj

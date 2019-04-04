@@ -22,11 +22,7 @@ from .random_matrix_generator import (random_unitary, random_h2_body,
                                       random_h1_body, random_hermitian,
                                       random_non_hermitian)
 from .decimal_to_binary import decimal_to_binary
-from .summarize_circuits import summarize_circuits
-from .mct import mct
-from .mcu1 import mcu1
-from .mcu3 import mcu3
-from .mcmt import mcmt
+from .circuit_utils import summarize_circuits
 from .subsystem import get_subsystem_density_matrix, get_subsystems_counts
 from .entangler_map import get_entangler_map, validate_entangler_map
 from .dataset_helper import (get_feature_dimension, get_num_classes,
@@ -36,44 +32,34 @@ from .qpsolver import optimize_svm
 from .circuit_factory import CircuitFactory
 from .run_circuits import compile_and_run_circuits, find_regs_by_name
 from .circuit_cache import CircuitCache
-from .boolean_logic import CNF, DNF, ESOP, get_exact_covers, get_prime_implicants
 from .backend_utils import has_ibmq, has_aer
 
 
-__all__ = ['tensorproduct',
-           'PauliGraph',
-           'convert_dict_to_json',
-           'convert_json_to_dict',
-           'random_unitary',
-           'random_h2_body',
-           'random_h1_body',
-           'random_hermitian',
-           'random_non_hermitian',
-           'decimal_to_binary',
-           'summarize_circuits',
-           'mct',
-           'mcu1',
-           'mcu3',
-           'mcmt',
-           'get_subsystem_density_matrix',
-           'get_subsystems_counts',
-           'get_entangler_map',
-           'validate_entangler_map',
-           'get_feature_dimension',
-           'get_num_classes',
-           'split_dataset_to_data_and_labels',
-           'map_label_to_class_name',
-           'reduce_dim_to_via_pca',
-           'optimize_svm',
-           'CircuitFactory',
-           'compile_and_run_circuits',
-           'find_regs_by_name',
-           'CircuitCache',
-           'CNF',
-           'DNF',
-           'ESOP',
-           'get_exact_covers',
-           'get_prime_implicants',
-           'has_ibmq',
-           'has_aer'
-           ]
+__all__ = [
+    'tensorproduct',
+    'PauliGraph',
+    'convert_dict_to_json',
+    'convert_json_to_dict',
+    'random_unitary',
+    'random_h2_body',
+    'random_h1_body',
+    'random_hermitian',
+    'random_non_hermitian',
+    'decimal_to_binary',
+    'get_subsystem_density_matrix',
+    'get_subsystems_counts',
+    'get_entangler_map',
+    'validate_entangler_map',
+    'get_feature_dimension',
+    'get_num_classes',
+    'split_dataset_to_data_and_labels',
+    'map_label_to_class_name',
+    'reduce_dim_to_via_pca',
+    'optimize_svm',
+    'CircuitFactory',
+    'compile_and_run_circuits',
+    'find_regs_by_name',
+    'CircuitCache',
+    'has_ibmq',
+    'has_aer',
+]

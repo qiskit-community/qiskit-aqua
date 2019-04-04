@@ -15,7 +15,7 @@
 # limitations under the License.
 # =============================================================================
 """
-The General Logic Expression-based Quantum Oracle.
+The General Logical Expression-based Quantum Oracle.
 """
 
 import logging
@@ -26,29 +26,30 @@ from pyeda.parsing.dimacs import parse_cnf
 from qiskit import QuantumCircuit, QuantumRegister
 
 from qiskit.aqua import AquaError
-from qiskit.aqua.utils import CNF, DNF
+from qiskit.aqua.circuits import CNF, DNF
 
 from .oracle import Oracle
 
 logger = logging.getLogger(__name__)
 
 
-class LogicExpressionOracle(Oracle):
+class LogicalExpressionOracle(Oracle):
 
     CONFIGURATION = {
-        'name': 'LogicExpressionOracle',
-        'description': 'Logic Expression Oracle',
+        'name': 'LogicalExpressionOracle',
+        'description': 'Logical Expression Oracle',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
-            'id': 'logic_expr_oracle_schema',
+            'id': 'logical_expression_oracle_schema',
             'type': 'object',
             'properties': {
                 'expression': {
-                    'type': 'string',
+                    'type': ['string', 'null'],
+                    'default': None
                 },
                 "optimization": {
                     "type": "string",
-                    "default": "espresso",
+                    "default": "off",
                     'oneOf': [
                         {
                             'enum': [
@@ -81,9 +82,9 @@ class LogicExpressionOracle(Oracle):
         Constructor.
 
         Args:
-            expression (str): The string of the desired logic expression.
+            expression (str): The string of the desired logical expression.
                 It could be either in the DIMACS CNF format,
-                or a general boolean logic expression, such as 'a ^ b' and 'v[0] & (~v[1] | v[2])'
+                or a general boolean logical expression, such as 'a ^ b' and 'v[0] & (~v[1] | v[2])'
             optimization (str): The mode of optimization to use for minimizing the circuit.
                 Currently, besides no optimization ('off'), Aqua also supports an 'espresso' mode
                 <https://en.wikipedia.org/wiki/Espresso_heuristic_logic_minimizer>
@@ -125,7 +126,7 @@ class LogicExpressionOracle(Oracle):
                         clause.append(('lit', (idx_mapping[l[1]]) if l[1] > 0 else (-idx_mapping[-l[1]])))
                     clauses.append((c[0], *clause))
                 else:
-                    raise AquaError('Unrecognized logic expression: {}'.format(raw_ast))
+                    raise AquaError('Unrecognized logical expression: {}'.format(raw_ast))
         elif raw_ast[0] == 'const' or raw_ast[0] == 'lit':
             return raw_ast
         else:
@@ -135,7 +136,7 @@ class LogicExpressionOracle(Oracle):
     def _process_expr(self):
         self._num_vars = self._expr.degree
         ast = self._expr.to_ast() if self._expr.is_cnf() else self._expr.to_cnf().to_ast()
-        ast = LogicExpressionOracle._normalize_literal_indices(ast, self._expr.usupport)
+        ast = LogicalExpressionOracle._normalize_literal_indices(ast, self._expr.usupport)
 
         if self._optimization == 'off':
             if ast[0] == 'or':
@@ -148,7 +149,7 @@ class LogicExpressionOracle(Oracle):
                 self._nf = CNF(('const', 0 if expr_dnf.is_zero() else 1), num_vars=self._num_vars)
             else:
                 expr_dnf_m = espresso_exprs(expr_dnf)[0]
-                expr_dnf_m_ast = LogicExpressionOracle._normalize_literal_indices(
+                expr_dnf_m_ast = LogicalExpressionOracle._normalize_literal_indices(
                     expr_dnf_m.to_ast(), expr_dnf_m.usupport
                 )
                 if isinstance(expr_dnf_m, AndOp) or isinstance(expr_dnf_m, Variable):
@@ -195,13 +196,13 @@ class LogicExpressionOracle(Oracle):
             if prime_implicants.is_zero():
                 sols = []
             elif isinstance(prime_implicants, AndOp):
-                prime_implicants_ast = LogicExpressionOracle._normalize_literal_indices(
+                prime_implicants_ast = LogicalExpressionOracle._normalize_literal_indices(
                     prime_implicants.to_ast(), prime_implicants.usupport
                 )
                 sols = [[l[1] for l in prime_implicants_ast[1:]]]
             elif isinstance(prime_implicants, OrOp):
                 expr_complete_sum = self._expr.complete_sum()
-                complete_sum_ast = LogicExpressionOracle._normalize_literal_indices(
+                complete_sum_ast = LogicalExpressionOracle._normalize_literal_indices(
                     expr_complete_sum.to_ast(), expr_complete_sum.usupport
                 )
                 sols = [[c[1]] if c[0] == 'lit' else [l[1] for l in c[1:]] for c in complete_sum_ast[1:]]

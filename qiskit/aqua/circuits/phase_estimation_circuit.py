@@ -15,11 +15,13 @@
 # limitations under the License.
 # =============================================================================
 """
-Utility class for constructing a Quantum Phase Estimation circuit.
+Quantum Phase Estimation Circuit.
 """
 
 import numpy as np
+
 from qiskit import QuantumRegister, QuantumCircuit
+
 from qiskit.aqua import Operator, AquaError
 
 

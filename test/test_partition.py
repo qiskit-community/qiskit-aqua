@@ -56,7 +56,7 @@ class TestSetPacking(QiskitAquaTestCase):
         algorithm_cfg = {
             'name': 'VQE',
             'operator_mode': 'grouped_paulis',
-            'batch_mode': True
+            'max_evals_grouped': 2
 
         }
 
