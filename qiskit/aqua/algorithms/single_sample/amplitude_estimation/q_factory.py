@@ -17,8 +17,8 @@
 
 from qiskit.aqua.utils import CircuitFactory
 
-from qiskit.aqua.algorithms.single_sample.ae.s_psi_0_reflection import SPsi0Factory
-from qiskit.aqua.algorithms.single_sample.ae.s_0_reflection import S0Factory
+from qiskit.aqua.algorithms.single_sample.amplitude_estimation.s_psi_0_reflection import SPsi0Factory
+from qiskit.aqua.algorithms.single_sample.amplitude_estimation.s_0_reflection import S0Factory
 
 
 class QFactory(CircuitFactory):
