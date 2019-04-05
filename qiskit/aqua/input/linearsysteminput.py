@@ -25,8 +25,6 @@ class LinearSystemInput(AlgorithmInput):
 
     PROP_KEY_MATRIX = 'matrix'
     PROP_KEY_VECTOR = 'vector'
-    PROP_KEY_AUTO_HERMITIAN = 'auto_hermitian'
-    PROP_KEY_AUTO_RESIZE = 'auto_resize'
 
     CONFIGURATION = {
         'name': 'LinearSystemInput',
@@ -43,14 +41,6 @@ class LinearSystemInput(AlgorithmInput):
                 PROP_KEY_VECTOR: {
                     'type': ['array', 'null'],
                     'default': None
-                },
-                PROP_KEY_AUTO_HERMITIAN: {
-                    'type': 'boolean',
-                    'default': False
-                },
-                PROP_KEY_AUTO_RESIZE: {
-                    'type': 'boolean',
-                    'default': False
                 }
             },
             'additionalProperties': False
@@ -58,13 +48,10 @@ class LinearSystemInput(AlgorithmInput):
         'problems': ['linear_system']
     }
 
-    def __init__(self, matrix=None, vector=None, auto_hermitian=False,
-                 auto_resize=False):
+    def __init__(self, matrix=None, vector=None):
         super().__init__()
         self._matrix = matrix if matrix is not None else []
         self._vector = vector if vector is not None else []
-        self._auto_hermitian = auto_hermitian
-        self._auto_resize = auto_resize
 
     @property
     def matrix(self):
@@ -82,22 +69,6 @@ class LinearSystemInput(AlgorithmInput):
     def vector(self, vector):
         self._vector = vector
 
-    @property
-    def auto_resize(self):
-        return self._auto_resize
-
-    @auto_resize.setter
-    def auto_resize(self, auto_resize):
-        self._auto_resize = auto_resize
-
-    @property
-    def auto_hermitian(self):
-        return self._auto_hermitian
-
-    @auto_hermitian.setter
-    def auto_hermitian(self, auto_hermitian):
-        self._auto_hermitian = auto_hermitian
-
     def validate(self, args_dict):
         params = {}
         for key, value in args_dict.items():
@@ -114,8 +85,6 @@ class LinearSystemInput(AlgorithmInput):
         params = {}
         params[LinearSystemInput.PROP_KEY_MATRIX] = self.save_to_list(self._matrix)
         params[LinearSystemInput.PROP_KEY_VECTOR] = self.save_to_list(self._vector)
-        params[LinearSystemInput.PROP_KEY_AUTO_HERMITIAN] = self._auto_hermitian
-        params[LinearSystemInput.PROP_KEY_AUTO_RESIZE] = self._auto_resize
         return params
 
     @classmethod
@@ -128,9 +97,7 @@ class LinearSystemInput(AlgorithmInput):
         matrix = cls.load_mat_from_list(mat_params)
         vec_params = params[LinearSystemInput.PROP_KEY_VECTOR]
         vector = cls.load_vec_from_list(vec_params)
-        auto_hermitian = params[LinearSystemInput.PROP_KEY_AUTO_HERMITIAN]
-        auto_resize = params[LinearSystemInput.PROP_KEY_AUTO_RESIZE]
-        return cls(matrix, vector, auto_hermitian, auto_resize)
+        return cls(matrix, vector)
 
     @staticmethod
     def load_mat_from_list(mat):

@@ -51,6 +51,14 @@ class HHL(QuantumAlgorithm):
             'id': 'hhl_schema',
             'type': 'object',
             'properties': {
+                'auto_hermitian': {
+                    'type': 'boolean',
+                    'default': False
+                },
+                'auto_resize': {
+                    'type': 'boolean',
+                    'default': False
+                }
             },
             'additionalProperties': False
         },
@@ -97,7 +105,7 @@ class HHL(QuantumAlgorithm):
             matrix (np.array): the input matrix of linear system of equations
             vector (np.array): the input vector of linear system of equations
             auto_hermitian (bool): flag indicating automatic expansion of a non-hermitian matrix
-            auto_resize (bool): flag indicating automatic matrix expansion to 2**n dimensional
+            auto_resize (bool): flag indicating automatic expansion to 2**n dimensional matrix
             eigs (Eigenvalues): the eigenvalue estimation instance
             init_state (InitialState): the initial quantum state preparation
             reciprocal (Reciprocal): the eigenvalue reciprocal and controlled rotation instance
@@ -135,8 +143,6 @@ class HHL(QuantumAlgorithm):
 
         matrix = algo_input.matrix
         vector = algo_input.vector
-        auto_hermitian = algo_input.auto_hermitian
-        auto_resize = algo_input.auto_resize
         if not isinstance(matrix, np.ndarray):
             matrix = np.asarray(matrix)
         if not isinstance(vector, np.ndarray):
@@ -148,9 +154,16 @@ class HHL(QuantumAlgorithm):
         if matrix.shape[0] != matrix.shape[1]:
             raise ValueError("Input matrix must be square!")
 
-        if auto_hermitian:
+        hhl_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
+        auto_hermitian = hhl_params.get('auto_hermitian')
+        auto_resize = hhl_params.get('auto_resize')
+
+        is_hermitian = np.allclose(matrix, np.matrix(matrix).H)
+        is_correctsize = np.log2(matrix.shape[0]) % 1 == 0
+
+        if auto_hermitian and not is_hermitian:
             # convert a non-hermitian matrix A to a hermitian matrix
-            # by [[0, A.H], [A, 0]]
+            # by [[0, A.H], [A, 0]] and expand vector b to [b.conj, b]
             half_dim = matrix.shape[0]
             full_dim = 2 * half_dim
             new_matrix = np.zeros([full_dim, full_dim])
@@ -164,7 +177,7 @@ class HHL(QuantumAlgorithm):
             new_vector[0, vector.shape[0]:] = vector
             vector = new_vector.reshape(np.shape(new_vector)[1])
 
-        if auto_resize:
+        if auto_resize and not is_correctsize:
             # extend vector and matrix for non 2**n dimensional matrices
             mat_dim = matrix.shape[0]
             next_higher = int(np.ceil(np.log2(mat_dim)))
