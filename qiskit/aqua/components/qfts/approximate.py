@@ -30,10 +30,6 @@ class Approximate(QFT):
             'id': 'aqft_schema',
             'type': 'object',
             'properties': {
-                'num_qubits': {
-                    'type': 'integer',
-                    'minimum': 1
-                },
                 'degree': {
                     'type': 'integer',
                     'default': 0,
