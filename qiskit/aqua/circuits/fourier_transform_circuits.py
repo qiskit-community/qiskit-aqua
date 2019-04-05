@@ -81,7 +81,8 @@ class FourierTransformCircuits:
         Args:
             qubits (QuantumRegister | list of qubits): The optional qubits to construct the circuit with.
             circuit (QuantumCircuit): The optional circuit to extend from.
-            do_swaps (bool): include the swaps.
+            do_swaps (bool): Boolean flag to specify if swaps should be included to align the qubit order of
+                input and output. The output qubits would be in reversed order without the swaps.
 
         Returns:
             QuantumCircuit.
