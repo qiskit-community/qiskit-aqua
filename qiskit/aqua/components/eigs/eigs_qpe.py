@@ -209,15 +209,15 @@ class EigsQPE(Eigenvalues):
         """ Construct the eigenvalues estimation using the PhaseEstimationCircuit
 
         Args:
-            mode (str): consctruction mode, 'vector' not supported
+            mode (str): consctruction mode, 'matrix' not supported
             register (QuantumRegister): the register to use for the quantum state
 
         Returns:
             the QuantumCircuit object for the constructed circuit
         """
 
-        if mode == 'vector':
-            raise ValueError('QPE only posslible as circuit not as vector.')
+        if mode == 'matrix':
+            raise ValueError('QPE is only possible as a circuit not as a matrix.')
 
         pe = PhaseEstimationCircuit(operator=self._operator,
                                     state_in=None, iqft=self._iqft,
