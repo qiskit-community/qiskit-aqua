@@ -15,8 +15,6 @@ from qiskit.aqua.components.initial_states import Zero
 from qiskit.aqua.algorithms.adaptive import VQE
 from qiskit.aqua.utils import CircuitCache
 
-
-@unittest.skip("@Donny: currently failing")
 class TestCaching(QiskitAquaTestCase):
 
     def setUp(self):
@@ -106,9 +104,9 @@ class TestCaching(QiskitAquaTestCase):
         result_caching = algo.run(quantum_instance_caching)
         self.assertLessEqual(quantum_instance_caching.circuit_cache.misses, 0)
         self.assertAlmostEqual(self.reference_vqe_result['statevector_simulator']['energy'], result_caching['energy'])
-        speedup_check = 3
-        self.log.info(result_caching['eval_time'],
-                      self.reference_vqe_result['statevector_simulator']['eval_time']/speedup_check)
+        speedup_min = 3
+        speedup = result_caching['eval_time'] / self.reference_vqe_result['statevector_simulator']['eval_time']
+        self.assertLess(speedup, speedup_min)
 
     def test_saving_and_loading(self):
         backend = BasicAer.get_backend('statevector_simulator')
