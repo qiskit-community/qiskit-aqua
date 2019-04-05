@@ -17,11 +17,10 @@
 
 from scipy import linalg
 
-from qiskit.aqua.circuits import FourierTransformCircuits
-from . import QFT
+from .approximate import Approximate
 
 
-class Standard(QFT):
+class Standard(Approximate):
     """A normal standard QFT."""
 
     CONFIGURATION = {
@@ -38,17 +37,7 @@ class Standard(QFT):
     }
 
     def __init__(self, num_qubits):
-        super().__init__()
-        self._num_qubits = num_qubits
+        super().__init__(num_qubits, degree=0)
 
-    def construct_circuit(self, mode, qubits=None, circuit=None, do_swaps=True):
-        if mode == 'vector':
-            # note the difference between QFT and DFT in the phase definition:
-            # QFT: \omega = exp(2*pi*i/N) ; DFT: \omega = exp(-2*pi*i/N)
-            # so linalg.inv(linalg.dft()) is correct for QFT
-            return linalg.inv(linalg.dft(2 ** self._num_qubits, scale='sqrtn'))
-        elif mode == 'circuit':
-            ftc = FourierTransformCircuits(self._num_qubits, approximation_degree=0, inverse=False)
-            return ftc.construct_circuit(qubits, circuit, do_swaps=do_swaps)
-        else:
-            raise ValueError('Mode should be either "vector" or "circuit"')
+    def _build_matrix(self):
+        return linalg.inv(linalg.dft(2 ** self._num_qubits, scale='sqrtn'))

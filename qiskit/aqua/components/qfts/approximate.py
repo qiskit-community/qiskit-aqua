@@ -30,6 +30,10 @@ class Approximate(QFT):
             'id': 'aqft_schema',
             'type': 'object',
             'properties': {
+                'num_qubits': {
+                    'type': 'integer',
+                    'minimum': 1
+                },
                 'degree': {
                     'type': 'integer',
                     'default': 0,
@@ -46,12 +50,6 @@ class Approximate(QFT):
         self._num_qubits = num_qubits
         self._degree = degree
 
-    def construct_circuit(self, mode, qubits=None, circuit=None, do_swaps=True):
-        if mode == 'vector':
-            # TODO: implement vector mode for approximate qft
-            raise NotImplementedError()
-        elif mode == 'circuit':
-            ftc = FourierTransformCircuits(self._num_qubits, approximation_degree=self._degree, inverse=False)
-            return ftc.construct_circuit(qubits, circuit, do_swaps=do_swaps)
-        else:
-            raise ValueError('Mode should be either "vector" or "circuit"')
+    def _build_circuit(self, qubits=None, circuit=None, do_swaps=True):
+        ftc = FourierTransformCircuits(self._num_qubits, approximation_degree=self._degree, inverse=False)
+        return ftc.construct_circuit(qubits, circuit, do_swaps=do_swaps)

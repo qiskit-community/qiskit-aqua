@@ -15,15 +15,14 @@
 # limitations under the License.
 # =============================================================================
 """
-This module contains the definition of a base class for quantum
-fourier transforms.
+This module contains the definition of a base class for quantum fourier transforms.
 """
 
 from abc import abstractmethod
 
-from qiskit import QuantumCircuit, QuantumRegister
+from qiskit import QuantumRegister, QuantumCircuit
 
-from qiskit.aqua import Pluggable
+from qiskit.aqua import Pluggable, AquaError
 
 
 class QFT(Pluggable):
@@ -49,16 +48,28 @@ class QFT(Pluggable):
         return cls(**kwargs)
 
     @abstractmethod
-    def construct_circuit(self, mode, qubits=None, circuit=None, do_swaps=True):
-        """Construct the qft circuit.
+    def _build_matrix(self):
+        raise NotImplementedError
+
+    @abstractmethod
+    def _build_circuit(self, qubits=None, circuit=None, do_swaps=True):
+        raise NotImplementedError
+
+    def construct_circuit(self, mode='circuit', qubits=None, circuit=None, do_swaps=True):
+        """Construct the circuit.
 
         Args:
-            mode (str): 'vector' or 'circuit'
-            qubits (QuantumRegister or qubits): register or qubits to build the qft circuit on.
+            mode (str): 'matrix' or 'circuit'
+            qubits (QuantumRegister or qubits): register or qubits to build the circuit on.
             circuit (QuantumCircuit): circuit for construction.
             do_swaps (bool): include the swaps.
 
         Returns:
-            The qft matrix or circuit depending on the specified mode.
+            The matrix or circuit depending on the specified mode.
         """
-        raise NotImplementedError()
+        if mode == 'circuit':
+            return self._build_circuit(qubits=qubits, circuit=circuit, do_swaps=do_swaps)
+        elif mode == 'matrix':
+            return self._build_matrix()
+        else:
+            raise AquaError('Unrecognized mode: {}.'.format(mode))
