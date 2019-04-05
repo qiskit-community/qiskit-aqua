@@ -50,7 +50,7 @@ class EnergyInput(AlgorithmInput):
         self.validate(locals())
         super().__init__()
         self._qubit_op = qubit_op
-        self._aux_ops = aux_ops or []
+        self._aux_ops = aux_ops if aux_ops is not None else []
 
     @property
     def qubit_op(self):

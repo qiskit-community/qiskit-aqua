@@ -37,12 +37,12 @@ class LinearSystemInput(AlgorithmInput):
             'type': 'object',
             'properties': {
                 PROP_KEY_MATRIX: {
-                    'type': 'array',
-                    'default': []
+                    'type': ['array', 'null'],
+                    'default': None
                 },
                 PROP_KEY_VECTOR: {
-                    'type': 'array',
-                    'default': []
+                    'type': ['array', 'null'],
+                    'default': None
                 },
                 PROP_KEY_AUTO_HERMITIAN: {
                     'type': 'boolean',
@@ -61,7 +61,7 @@ class LinearSystemInput(AlgorithmInput):
     def __init__(self, matrix=None, vector=None, auto_hermitian=False,
                  auto_resize=False):
         super().__init__()
-        self._matrix = matrix
+        self._matrix = matrix if matrix is not None else []
         self._vector = vector if vector is not None else []
         self._auto_hermitian = auto_hermitian
         self._auto_resize = auto_resize

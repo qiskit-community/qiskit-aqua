@@ -44,19 +44,27 @@ class EuropeanCallDelta(UncertaintyProblem):
                     'default': 0
                 },
                 'i_state': {
-                    'type': 'array',
+                    'type': ['array', 'null'],
                     'items': {
                         'type': 'integer'
                     },
                     'default': None
                 },
                 'i_objective': {
-                    'type': 'integer',
+                    'type': ['integer', 'null'],
                     'default': None
                 }
             },
             'additionalProperties': False
-        }
+        },
+        'depends': [
+            {
+                'pluggable_type': 'univariate_distribution',
+                'default': {
+                     'name': 'NormalDistribution'
+                }
+            },
+        ],
     }
 
     def __init__(self, uncertainty_model, strike_price, i_state=None, i_objective=None):

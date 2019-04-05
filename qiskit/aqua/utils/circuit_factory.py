@@ -74,11 +74,7 @@ class CircuitFactory(ABC):
         qc_ = QuantumCircuit(*qc.qregs)
 
         self.build(qc_, q, q_ancillas, params)
-        try:
-            qc_.data = [gate.inverse() for gate in reversed(qc_.data)]
-        except Exception as exc:
-            raise AquaError('Irreversible circuit! Gate does not support inverse method.') from exc
-        qc.extend(qc_)
+        qc.extend(qc_.inverse())
 
     def build_controlled(self, qc, q, q_control, q_ancillas=None, params=None):
         """ Adds corresponding controlled sub-circuit to given circuit
@@ -109,11 +105,7 @@ class CircuitFactory(ABC):
         qc_ = QuantumCircuit(*qc.qregs)
 
         self.build_controlled(qc_, q, q_control, q_ancillas, params)
-        try:
-            qc_.data = [gate.inverse() for gate in reversed(qc_.data)]
-        except AquaError:
-            print('Irreversible circuit! Does not support inverse method.')
-        qc.extend(qc_)
+        qc.extend(qc_.inverse())
 
     def build_power(self, qc, q, power, q_ancillas=None, params=None):
         """ Adds power of corresponding circuit.

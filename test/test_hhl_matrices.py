@@ -61,104 +61,6 @@ class TestHHL(QiskitAquaTestCase):
             }
         }
 
-    @parameterized.expand([[[0, 1]], [[1, 0]], [[1, 1]], [[1, 10]]])
-    def test_hhl_diagonal_sv(self, vector):
-        self.log.debug('Testing HHL simple test in mode Lookup with '
-                       'statevector simulator')
-
-        matrix = [[1, 0], [0, 1]]
-        self.params['input'] = {
-            'name': 'LinearSystemInput',
-            'matrix': matrix,
-            'vector': vector
-        }
-
-        # run hhl
-        result = run_algorithm(self.params)
-        hhl_solution = result['solution_hhl']
-        hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
-        # linear algebra solution
-        linalg_solution = np.linalg.solve(matrix, vector)
-        linalg_normed = linalg_solution/np.linalg.norm(linalg_solution)
-
-        # compare result
-        fidelity = state_fidelity(linalg_normed, hhl_normed)
-        np.testing.assert_approx_equal(fidelity, 1, significant=5)
-
-        self.log.debug('HHL solution vector:       {}'.format(hhl_solution))
-        self.log.debug('algebraic solution vector: {}'.format(linalg_solution))
-        self.log.debug('fidelity HHL to algebraic: {}'.format(fidelity))
-        self.log.debug('probability of result:     {}'.
-                       format(result["probability_result"]))
-
-    @parameterized.expand([[[-1, 0]], [[0, -1]], [[-1, -1]]])
-    def test_hhl_diagonal_negative_sv(self, vector):
-        self.log.debug('Testing HHL simple test in mode Lookup with '
-                       'statevector simulator')
-
-        neg_params = self.params
-        matrix = [[1, 0], [0, 1]]
-        neg_params['input'] = {
-            'name': 'LinearSystemInput',
-            'matrix': matrix,
-            'vector': vector
-        }
-        neg_params['eigs']['negative_evals'] = True
-        neg_params['reciprocal']['negative_evals'] = True
-        neg_params['eigs']['num_ancillae'] = 4
-
-        # run hhl
-        result = run_algorithm(neg_params)
-        hhl_solution = result["solution_hhl"]
-        hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
-        # linear algebra solution
-        linalg_solution = np.linalg.solve(matrix, vector)
-        linalg_normed = linalg_solution/np.linalg.norm(linalg_solution)
-
-        # compare result
-        fidelity = state_fidelity(linalg_normed, hhl_normed)
-        np.testing.assert_approx_equal(fidelity, 1, significant=5)
-
-        self.log.debug('HHL solution vector:       {}'.format(hhl_solution))
-        self.log.debug('algebraic solution vector: {}'.format(linalg_solution))
-        self.log.debug('fidelity HHL to algebraic: {}'.format(fidelity))
-        self.log.debug('probability of result:     {}'.
-                       format(result["probability_result"]))
-
-    def test_hhl_negative_eigs_sv(self):
-        self.log.debug('Testing HHL with matrix with negative eigenvalues')
-
-        neg_params = self.params
-        neg_params['eigs']['num_ancillae'] = 4
-        neg_params['eigs']['negative_evals'] = True
-        neg_params['reciprocal']['negative_evals'] = True
-
-        n = 2
-        matrix = rmg.random_diag(n, eigrange=[-1, 1])
-        vector = random(n)
-
-        algo_input = LinearSystemInput()
-        algo_input.matrix = matrix
-        algo_input.vector = vector
-
-        # run hhl
-        result = run_algorithm(neg_params, algo_input)
-        hhl_solution = result["solution_hhl"]
-        hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
-        # linear algebra solution
-        linalg_solution = np.linalg.solve(matrix, vector)
-        linalg_normed = linalg_solution/np.linalg.norm(linalg_solution)
-
-        # compare result
-        fidelity = state_fidelity(linalg_normed, hhl_normed)
-        np.testing.assert_approx_equal(fidelity, 1, significant=3)
-
-        self.log.debug('HHL solution vector:       {}'.format(hhl_solution))
-        self.log.debug('algebraic solution vector: {}'.format(linalg_solution))
-        self.log.debug('fidelity HHL to algebraic: {}'.format(fidelity))
-        self.log.debug('probability of result:     {}'.
-                       format(result["probability_result"]))
-
     def test_hhl_matrix_other_dim_sv(self):
         self.log.debug('Testing HHL with matrix dimension other than 2**n')
 
@@ -176,55 +78,25 @@ class TestHHL(QiskitAquaTestCase):
         algo_input.vector = vector
         algo_input.auto_resize = True
 
+        # run ExactLPsolver
+        self.elp_params['input'] = self.params['input']
+        ref_result = run_algorithm(self.elp_params)
+        ref_solution = ref_result['solution']
+        ref_normed = ref_solution/np.linalg.norm(ref_solution)
         # run hhl
-        result = run_algorithm(neg_params, algo_input)
-        hhl_solution = result["solution_hhl"]
+        hhl_result = run_algorithm(neg_params, algo_input)
+        hhl_solution = hhl_result['solution']
         hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
-        # linear algebra solution
-        linalg_solution = np.linalg.solve(matrix, vector)
-        linalg_normed = linalg_solution/np.linalg.norm(linalg_solution)
 
         # compare result
-        fidelity = state_fidelity(linalg_normed, hhl_normed)
+        fidelity = state_fidelity(ref_normed, hhl_normed)
         np.testing.assert_approx_equal(fidelity, 1, significant=3)
 
         self.log.debug('HHL solution vector:       {}'.format(hhl_solution))
-        self.log.debug('algebraic solution vector: {}'.format(linalg_solution))
+        self.log.debug('algebraic solution vector: {}'.format(ref_solution))
         self.log.debug('fidelity HHL to algebraic: {}'.format(fidelity))
         self.log.debug('probability of result:     {}'.
-                       format(result["probability_result"]))
-
-    def test_hhl_random_hermitian_sv(self):
-        self.log.debug('Testing HHL with random hermitian matrix')
-
-        hermitian_params = self.params
-        hermitian_params['eigs']['num_ancillae'] = 4
-
-        n = 2
-        matrix = rmg.random_hermitian(n, eigrange=[0, 1])
-        vector = random(n)
-
-        algo_input = LinearSystemInput()
-        algo_input.matrix = matrix
-        algo_input.vector = vector
-
-        # run hhl
-        result = run_algorithm(hermitian_params, algo_input)
-        hhl_solution = result["solution_hhl"]
-        hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
-        # linear algebra solution
-        linalg_solution = np.linalg.solve(matrix, vector)
-        linalg_normed = linalg_solution/np.linalg.norm(linalg_solution)
-
-        # compare result
-        fidelity = state_fidelity(linalg_normed, hhl_normed)
-        np.testing.assert_approx_equal(fidelity, 1, significant=2)
-
-        self.log.debug('HHL solution vector:       {}'.format(hhl_solution))
-        self.log.debug('algebraic solution vector: {}'.format(linalg_solution))
-        self.log.debug('fidelity HHL to algebraic: {}'.format(fidelity))
-        self.log.debug('probability of result:     {}'.
-                       format(result["probability_result"]))
+                       format(hhl_result["probability_result"]))
 
     def test_hhl_random_non_hermitian_sv(self):
         self.log.debug('Testing HHL with random non-hermitian matrix')
@@ -241,23 +113,25 @@ class TestHHL(QiskitAquaTestCase):
         algo_input.vector = vector
         algo_input.auto_hermitian = True
 
+        # run ExactLPsolver
+        self.elp_params['input'] = self.params['input']
+        ref_result = run_algorithm(self.elp_params)
+        ref_solution = ref_result['solution']
+        ref_normed = ref_solution/np.linalg.norm(ref_solution)
         # run hhl
-        result = run_algorithm(hermitian_params, algo_input)
-        hhl_solution = result["solution_hhl"]
+        hhl_result = run_algorithm(hermitian_params, algo_input)
+        hhl_solution = hhl_result['solution']
         hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
-        # linear algebra solution
-        linalg_solution = np.linalg.solve(matrix, vector)
-        linalg_normed = linalg_solution/np.linalg.norm(linalg_solution)
 
         # compare result
         fidelity = state_fidelity(linalg_normed, hhl_normed)
         np.testing.assert_approx_equal(fidelity, 1, significant=2)
 
         self.log.debug('HHL solution vector:       {}'.format(hhl_solution))
-        self.log.debug('algebraic solution vector: {}'.format(linalg_solution))
+        self.log.debug('algebraic solution vector: {}'.format(ref_solution))
         self.log.debug('fidelity HHL to algebraic: {}'.format(fidelity))
         self.log.debug('probability of result:     {}'.
-                       format(result["probability_result"]))
+                       format(hhl_result["probability_result"]))
 
 if __name__ == '__main__':
     unittest.main()

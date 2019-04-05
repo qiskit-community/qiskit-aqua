@@ -146,7 +146,7 @@ class PauliExpansion(FeatureMap):
         qc = self.construct_circuit(x, qr)
 
         for index in range(len(qc.data)):
-            gate_param = qc.data[index].params
+            gate_param = qc.data[index][0].params
             param_sub_pos = []
             for x in range(len(gate_param)):
                 if isinstance(gate_param[x], NaN):
@@ -204,6 +204,6 @@ class PauliExpansion(FeatureMap):
                     qc += Operator.construct_evolution_circuit([[coeff, p]], 1, 1, qr)
 
         if inverse:
-            qc.data = [gate.inverse() for gate in reversed(qc.data)]
+            qc = qc.inverse()
 
         return qc
