@@ -79,8 +79,7 @@ class TestHHL(QiskitAquaTestCase):
         algo_input.auto_resize = True
 
         # run ExactLPsolver
-        self.elp_params['input'] = self.params['input']
-        ref_result = run_algorithm(self.elp_params)
+        ref_result = run_algorithm(self.elp_params, algo_input)
         ref_solution = ref_result['solution']
         ref_normed = ref_solution/np.linalg.norm(ref_solution)
         # run hhl
@@ -114,8 +113,7 @@ class TestHHL(QiskitAquaTestCase):
         algo_input.auto_hermitian = True
 
         # run ExactLPsolver
-        self.elp_params['input'] = self.params['input']
-        ref_result = run_algorithm(self.elp_params)
+        ref_result = run_algorithm(self.elp_params, algo_input)
         ref_solution = ref_result['solution']
         ref_normed = ref_solution/np.linalg.norm(ref_solution)
         # run hhl
@@ -124,7 +122,7 @@ class TestHHL(QiskitAquaTestCase):
         hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
 
         # compare result
-        fidelity = state_fidelity(linalg_normed, hhl_normed)
+        fidelity = state_fidelity(ref_normed, hhl_normed)
         np.testing.assert_approx_equal(fidelity, 1, significant=2)
 
         self.log.debug('HHL solution vector:       {}'.format(hhl_solution))
