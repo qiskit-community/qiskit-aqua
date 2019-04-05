@@ -57,7 +57,7 @@ class TestSimon(QiskitAquaTestCase):
         backend = BasicAer.get_backend('qasm_simulator')
         oracle = TruthTableOracle(simon_input, optimization=optimization, mct_mode=mct_mode)
         algorithm = Simon(oracle)
-        quantum_instance = QuantumInstance(backend, circuit_caching=False)
+        quantum_instance = QuantumInstance(backend)
         result = algorithm.run(quantum_instance=quantum_instance)
         # print(result['circuit'].draw(line_length=10000))
         self.assertEqual(result['result'], hidden)
