@@ -180,7 +180,7 @@ class PhaseEstimationCircuit:
                     self._unitary_circuit_factory.build_controlled_power(qc, q, a[i], 2 ** i, aux)
 
             # inverse qft on ancillae
-            self._iqft.construct_circuit('circuit', a, qc)
+            self._iqft.construct_circuit('circuit', a, qc, do_swaps=False)
 
             self._circuit = qc
 

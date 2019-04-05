@@ -41,7 +41,7 @@ class Standard(IQFT):
         super().__init__()
         self._num_qubits = num_qubits
 
-    def construct_circuit(self, mode, qubits=None, circuit=None):
+    def construct_circuit(self, mode, qubits=None, circuit=None, do_swaps=True):
         if mode == 'vector':
             # note the difference between QFT and DFT in the phase definition:
             # QFT: \omega = exp(2*pi*i/N) ; DFT: \omega = exp(-2*pi*i/N)
@@ -49,6 +49,6 @@ class Standard(IQFT):
             return linalg.dft(2 ** self._num_qubits, scale='sqrtn')
         elif mode == 'circuit':
             ftc = FourierTransformCircuits(self._num_qubits, approximation_degree=0, inverse=True)
-            return ftc.construct_circuit(qubits, circuit)
+            return ftc.construct_circuit(qubits, circuit, do_swaps=do_swaps)
         else:
             raise ValueError('Mode should be either "vector" or "circuit"')

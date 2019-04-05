@@ -66,22 +66,32 @@ class FourierTransformCircuits:
             circ.add_register(_)
         return circ, qubits
 
-    def construct_circuit(self, qubits=None, circuit=None):
+    @staticmethod
+    def _do_swaps(circuit, qubits):
+        num_qubits = len(qubits)
+        for i in range(num_qubits // 2):
+            circuit.cx(qubits[i], qubits[num_qubits - i - 1])
+            circuit.cx(qubits[num_qubits - i - 1], qubits[i])
+            circuit.cx(qubits[i], qubits[num_qubits - i - 1])
+
+    def construct_circuit(self, qubits=None, circuit=None, do_swaps=True):
         """
         Construct the circuit representing the desired state vector.
 
         Args:
             qubits (QuantumRegister | list of qubits): The optional qubits to construct the circuit with.
             circuit (QuantumCircuit): The optional circuit to extend from.
+            do_swaps (bool): include the swaps.
 
         Returns:
             QuantumCircuit.
         """
         circuit, qubits = FourierTransformCircuits._set_up(circuit, qubits, self._num_qubits)
 
-        qubit_range = range(self._num_qubits)
-        if self._inverse:
-            qubit_range = reversed(qubit_range)
+        if do_swaps and not self._inverse:
+            FourierTransformCircuits._do_swaps(circuit, qubits)
+
+        qubit_range = reversed(range(self._num_qubits)) if self._inverse else range(self._num_qubits)
         for j in qubit_range:
             neighbor_range = range(np.max([0, j - self._num_qubits + self._approximation_degree + 1]), j)
             if self._inverse:
@@ -98,4 +108,8 @@ class FourierTransformCircuits:
                 circuit.u1(lam / 2, qubits[k])
             if not self._inverse:
                 circuit.u2(0, np.pi, qubits[j])
+
+        if do_swaps and self._inverse:
+            FourierTransformCircuits._do_swaps(circuit, qubits)
+
         return circuit

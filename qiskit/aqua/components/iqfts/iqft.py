@@ -47,15 +47,16 @@ class IQFT(Pluggable):
         return cls(**kwargs)
 
     @abstractmethod
-    def construct_circuit(self, mode, qubits=None, circuit=None):
+    def construct_circuit(self, mode, qubits=None, circuit=None, do_swaps=True):
         """Construct the iqft circuit.
 
         Args:
             mode (str): 'vector' or 'circuit'
             qubits (QuantumRegister or qubits): register or qubits to build the iqft circuit on.
             circuit (QuantumCircuit): circuit for construction.
+            do_swaps (bool): include the swaps.
 
         Returns:
-            The iqft circuit.
+            The iqft matrix or circuit depending on the specified mode.
         """
         raise NotImplementedError()

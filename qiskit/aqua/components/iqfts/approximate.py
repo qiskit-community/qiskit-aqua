@@ -46,12 +46,12 @@ class Approximate(IQFT):
         self._num_qubits = num_qubits
         self._degree = degree
 
-    def construct_circuit(self, mode, qubits=None, circuit=None):
+    def construct_circuit(self, mode, qubits=None, circuit=None, do_swaps=True):
         if mode == 'vector':
             # TODO: implement vector mode for approximate iqft
             raise NotImplementedError()
         elif mode == 'circuit':
             ftc = FourierTransformCircuits(self._num_qubits, approximation_degree=self._degree, inverse=True)
-            return ftc.construct_circuit(qubits, circuit)
+            return ftc.construct_circuit(qubits, circuit, do_swaps=do_swaps)
         else:
             raise ValueError('Mode should be either "vector" or "circuit"')
