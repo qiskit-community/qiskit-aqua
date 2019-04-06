@@ -44,6 +44,7 @@ Added
 - Added capability to create a ``Custom`` initial state using existing circuit.
 - Added the ADAM (and AMSGRAD) optimization algorithm
 - Multivariate distributions added, so uncertainty models now have univariate and multivariate distribution components
+- Added option to include or skip the swaps operations for qft and iqft circuit constructions.
 
 Removed
 -------
