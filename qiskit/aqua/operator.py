@@ -1340,8 +1340,16 @@ class Operator(object):
             )
             return side + middle + side
 
-    def evolve(self, state_in, evo_time, evo_mode, num_time_slices, quantum_registers=None,
-               expansion_mode='trotter', expansion_order=1):
+    def evolve(
+            self,
+            state_in=None,
+            evo_time=0,
+            evo_mode=None,
+            num_time_slices=0,
+            quantum_registers=None,
+            expansion_mode='trotter',
+            expansion_order=1
+    ):
         """
         Carry out the eoh evolution for the operator under supplied specifications.
 
