@@ -27,6 +27,7 @@ from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.algorithms.adaptive.qsvm import (cost_estimate, return_probabilities)
 from qiskit.aqua.utils import (get_feature_dimension, map_label_to_class_name,
                                split_dataset_to_data_and_labels, find_regs_by_name)
+from qiskit.aqua.components.gradients import *
 
 
 logger = logging.getLogger(__name__)
@@ -84,7 +85,7 @@ class QSVMVariational(VQAlgorithm):
 
     def __init__(self, optimizer, feature_map, var_form, training_dataset,
                  test_dataset=None, datapoints=None, max_evals_grouped=1,
-                 minibatch_size=-1, callback=None):
+                 minibatch_size=-1, callback=None, gradient=None):
         """Initialize the object
         Args:
             training_dataset (dict): {'A': numpy.ndarray, 'B': numpy.ndarray, ...}
@@ -98,6 +99,7 @@ class QSVMVariational(VQAlgorithm):
                                  Internally, four arguments are provided as follows
                                  the index of data batch, the index of evaluation,
                                  parameters of variational form, evaluated value.
+            gradient (Gradient): Gradient instance
         Notes:
             We used `label` denotes numeric results and `class` means the name of that class (str).
         """
@@ -105,6 +107,7 @@ class QSVMVariational(VQAlgorithm):
         super().__init__(var_form=var_form,
                          optimizer=optimizer,
                          cost_fn=self._cost_function_wrapper)
+        self._gradient = gradient # pass the gradient instance
         self._optimizer.set_max_evals_grouped(max_evals_grouped)
 
         self._callback = callback
@@ -169,6 +172,13 @@ class QSVMVariational(VQAlgorithm):
         return cls(optimizer, feature_map, var_form, algo_input.training_dataset,
                    algo_input.test_dataset, algo_input.datapoints, max_evals_grouped,
                    minibatch_size)
+
+    def construct_featuremap_circuit(self, x):
+        qr = QuantumRegister(self._num_qubits, name='q')
+        cr = ClassicalRegister(self._num_qubits, name='c')
+        qc = QuantumCircuit(qr, cr)
+        qc += self._feature_map.construct_circuit(x, qr)
+        return qc
 
     def construct_circuit(self, x, theta, measurement=False):
         """
@@ -310,7 +320,9 @@ class QSVMVariational(VQAlgorithm):
         self._ret = self.find_minimum(initial_point=self.initial_point,
                                       var_form=self.var_form,
                                       cost_fn=self._cost_function_wrapper,
-                                      optimizer=self.optimizer)
+                                      optimizer=self.optimizer,
+                                      gradient_fn = self._gradient_function_wrapper # func for computing gradient
+                                      )
 
         if self._ret['num_optimizer_evals'] is not None and self._eval_count >= self._ret['num_optimizer_evals']:
             self._eval_count = self._ret['num_optimizer_evals']
@@ -324,6 +336,42 @@ class QSVMVariational(VQAlgorithm):
         del self._batch_index
 
         self._ret['training_loss'] = self._ret['min_val']
+
+    def get_featuremap_circuits(self, data):
+        """ Construct the feature map circuits to encode the input data
+        Args:
+            data (numpy.ndarray): nxD array, where we have n data points and each point has dimension D
+        Returns:
+            list: n circuits, where each circuit encodes one data point
+        """
+        circuits = []
+        for datum in data:
+            circuit = self.construct_featuremap_circuit(datum)
+            circuits.append(circuit)
+        return circuits
+
+
+    def _gradient_function_wrapper(self, theta):
+        """Compute and return the gradient at the point theta.
+        Args:
+            theta (numpy.ndarray): 1-d array
+        Returns:
+            numpy.ndarray: 1-d array with the same shape as theta. The  gradient computed
+        """
+        if isinstance(self._gradient, ObjectiveFuncGradient):
+            grad_fn = self._gradient.get_gradient_function(objective_function=self._cost_function_wrapper)
+            res = grad_fn(theta)
+        elif isinstance(self._gradient, CircuitsGradient):
+            batch_index = self._batch_index % len(self._batches) # batching taken into consideration
+            circuits = self.get_featuremap_circuits(self._batches[batch_index])
+            labels =self._label_batches[batch_index]
+            grad_fn = self._gradient.get_gradient_function(var_form=self.var_form, circuits=circuits, quantum_instance=self._quantum_instance, num_classes=self._num_classes, labels=labels)
+            res = grad_fn(theta)
+            self._batch_index += 1
+        else:
+            raise Exception("The operator gradient is unexpected for svm variational.")
+        return res
+
 
     def _cost_function_wrapper(self, theta):
         batch_index = self._batch_index % len(self._batches)

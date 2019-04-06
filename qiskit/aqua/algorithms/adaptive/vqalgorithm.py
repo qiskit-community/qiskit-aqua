@@ -62,7 +62,7 @@ class VQAlgorithm(QuantumAlgorithm):
     def get_optimal_vector(self):
         raise NotImplementedError()
 
-    def find_minimum(self, initial_point=None, var_form=None, cost_fn=None, optimizer=None):
+    def find_minimum(self, initial_point=None, var_form=None, cost_fn=None, optimizer=None, gradient_fn=None):
         """Optimize to find the minimum cost value.
 
         Returns:
@@ -101,13 +101,18 @@ class VQAlgorithm(QuantumAlgorithm):
                 low = [(l if l is not None else -2 * np.pi) for (l, u) in bounds]
                 high = [(u if u is not None else 2 * np.pi) for (l, u) in bounds]
                 initial_point = self.random.uniform(low, high)
+        if not optimizer.is_gradient_supported: # ignore the passed gradient function
+            gradient_fn = None
+
 
         start = time.time()
         logger.info('Starting optimizer.\nbounds={}\ninitial point={}'.format(bounds, initial_point))
         opt_params, opt_val, num_optimizer_evals = optimizer.optimize(var_form.num_parameters,
                                                                       cost_fn,
                                                                       variable_bounds=bounds,
-                                                                      initial_point=initial_point)
+                                                                      initial_point=initial_point,
+                                                                      gradient_function=gradient_fn # customized gradient func
+                                                                      )
         eval_time = time.time() - start
         ret = {}
         ret['num_optimizer_evals'] = num_optimizer_evals

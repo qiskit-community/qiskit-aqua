@@ -29,6 +29,7 @@ from qiskit.aqua.algorithms.adaptive.vqalgorithm import VQAlgorithm
 from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.utils.backend_utils import is_aer_statevector_backend
 from qiskit.aqua.utils import find_regs_by_name
+from qiskit.aqua.components.gradients import *
 
 logger = logging.getLogger(__name__)
 
@@ -85,7 +86,7 @@ class VQE(VQAlgorithm):
     }
 
     def __init__(self, operator, var_form, optimizer, operator_mode='matrix',
-                 initial_point=None, max_evals_grouped=1, aux_operators=None, callback=None):
+                 initial_point=None, max_evals_grouped=1, aux_operators=None, callback=None, gradient=None):
         """Constructor.
 
         Args:
@@ -100,6 +101,7 @@ class VQE(VQAlgorithm):
                                  Internally, four arguments are provided as follows
                                  the index of evaluation, parameters of variational form,
                                  evaluated mean, evaluated standard devation.
+            gradient (Gradient): Gradient instance
         """
         self.validate(locals())
         super().__init__(var_form=var_form,
@@ -108,6 +110,7 @@ class VQE(VQAlgorithm):
                          initial_point=initial_point)
         self._optimizer.set_max_evals_grouped(max_evals_grouped)
         self._callback = callback
+        self._gradient = gradient
         if initial_point is None:
             self._initial_point = var_form.preferred_init_points
         self._operator = operator
@@ -282,7 +285,8 @@ class VQE(VQAlgorithm):
         self._ret = self.find_minimum(initial_point=self.initial_point,
                                       var_form=self.var_form,
                                       cost_fn=self._energy_evaluation,
-                                      optimizer=self.optimizer)
+                                      optimizer=self.optimizer,
+                                      gradient_fn = self._gradient_function_wrapper)
 
         if self._ret['num_optimizer_evals'] is not None and self._eval_count >= self._ret['num_optimizer_evals']:
             self._eval_count = self._ret['num_optimizer_evals']
@@ -296,6 +300,17 @@ class VQE(VQAlgorithm):
         self._ret['eigvecs'] = np.asarray([self.get_optimal_vector()])
         self._eval_aux_ops()
         return self._ret
+
+    def _gradient_function_wrapper(self, theta):
+        if isinstance(self._gradient, ObjectiveFuncGradient):
+            grad_fn = self._gradient.get_gradient_function(objective_function=self._energy_evaluation)
+            res = grad_fn(theta)
+        elif isinstance(self._gradient, OperatorGradient):
+            grad_fn = self._gradient.get_gradient_function(var_form=self.var_form, operator=self._operator, quantum_instance=self._quantum_instance, operator_mode=self._operator_mode, )
+            res = grad_fn(theta)
+        else:
+            raise Exception("The circuits gradient is unexpected for vqe")
+        return res
 
     # This is the objective function to be passed to the optimizer that is uses for evaluation
     def _energy_evaluation(self, parameters):
