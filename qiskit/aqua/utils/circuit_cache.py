@@ -40,7 +40,8 @@ import logging
 
 from qiskit import QuantumRegister
 from qiskit.circuit import CompositeGate
-from qiskit.qobj import qobj_to_dict, Qobj, RunConfig, QobjConfig
+from qiskit.compiler.run_config import RunConfig
+from qiskit.qobj import Qobj, QasmQobjConfig
 
 from qiskit.aqua.aqua_error import AquaError
 
@@ -132,7 +133,7 @@ class CircuitCache:
                     raise Exception("Circuit shape does not match qobj, found extra {} in circuit".format(type_and_qubits))
         if self.cache_file is not None and len(self.cache_file) > 0:
             cache_handler = open(self.cache_file, 'wb')
-            qobj_dicts = [qobj_to_dict(qob) for qob in self.qobjs]
+            qobj_dicts = [qob.to_dict() for qob in self.qobjs]
             pickle.dump({'qobjs':qobj_dicts, 'mappings':self.mappings}, cache_handler, protocol=pickle.HIGHEST_PROTOCOL)
             cache_handler.close()
             logger.debug("Circuit cache saved to file: {}".format(self.cache_file))
@@ -152,7 +153,7 @@ class CircuitCache:
 
         if self.try_reusing_qobjs and self.qobjs is not None and len(self.qobjs) <= chunk:
             self.mappings.insert(chunk, self.mappings[0])
-            self.qobjs.insert(chunk, copy.deepcopy(qobjs[0]))
+            self.qobjs.insert(chunk, copy.deepcopy(self.qobjs[0]))
 
         for circ_num, input_circuit in enumerate(circuits):
 
@@ -193,7 +194,7 @@ class CircuitCache:
 
         if run_config is None:
             run_config = RunConfig(shots=1024, max_credits=10, memory=False)
-        exec_qobj.config = QobjConfig(**run_config.to_dict())
+        exec_qobj.config = QasmQobjConfig(**run_config.to_dict())
         exec_qobj.config.memory_slots = max(experiment.config.memory_slots for experiment in exec_qobj.experiments)
         exec_qobj.config.n_qubits = max(experiment.config.n_qubits for experiment in exec_qobj.experiments)
         return exec_qobj

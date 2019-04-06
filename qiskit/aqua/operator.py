@@ -29,11 +29,11 @@ from scipy import linalg as scila
 from qiskit import ClassicalRegister, QuantumCircuit
 from qiskit.quantum_info import Pauli
 from qiskit.qasm import pi
-from qiskit.qobj import RunConfig
+from qiskit.compiler.run_config import RunConfig
 from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
 
-from qiskit.aqua import AquaError
+from qiskit.aqua import AquaError, aqua_globals
 from qiskit.aqua.utils import PauliGraph, compile_and_run_circuits, find_regs_by_name
 from qiskit.aqua.utils.backend_utils import is_statevector_backend
 
@@ -46,7 +46,7 @@ class Operator(object):
     Operators relevant for quantum applications
 
     Note:
-        For grouped paulis represnetation, all operations will always convert it to paulis and then convert it back.
+        For grouped paulis representation, all operations will always convert it to paulis and then convert it back.
         (It might be a performance issue.)
     """
 
@@ -389,7 +389,7 @@ class Operator(object):
     @property
     def representations(self):
         """
-        Return the available represnetations in the Operator.
+        Return the available representations in the Operator.
 
         Returns:
             list: available representations ([str])
@@ -498,7 +498,7 @@ class Operator(object):
 
     def save_to_dict(self):
         """
-        Save operator to a dict in pauli represnetation.
+        Save operator to a dict in pauli representation.
 
         Returns:
             dict: a dictionary contains an operator with pauli representation.
@@ -697,15 +697,17 @@ class Operator(object):
                 self._check_representation("paulis")
                 results = parallel_map(Operator._routine_paulis_with_shots,
                                        [(pauli, result.get_counts(circuits[idx]))
-                                        for idx, pauli in enumerate(self._paulis)])
+                                        for idx, pauli in enumerate(self._paulis)],
+                                       num_processes=aqua_globals.num_processes)
                 for result in results:
                     avg += result[0]
                     variance += result[1]
             else:
                 self._check_representation("grouped_paulis")
                 results = parallel_map(Operator._routine_grouped_paulis_with_shots,
-                                        [(tpb_set, result.get_counts(circuits[tpb_idx]))
-                                         for tpb_idx, tpb_set in enumerate(self._grouped_paulis)])
+                                       [(tpb_set, result.get_counts(circuits[tpb_idx]))
+                                        for tpb_idx, tpb_set in enumerate(self._grouped_paulis)],
+                                       num_processes=aqua_globals.num_processes)
                 for result in results:
                     avg += result[0]
                     variance += result[1]
@@ -1338,8 +1340,16 @@ class Operator(object):
             )
             return side + middle + side
 
-    def evolve(self, state_in, evo_time, evo_mode, num_time_slices, quantum_registers=None,
-               expansion_mode='trotter', expansion_order=1):
+    def evolve(
+            self,
+            state_in=None,
+            evo_time=0,
+            evo_mode=None,
+            num_time_slices=0,
+            quantum_registers=None,
+            expansion_mode='trotter',
+            expansion_order=1
+    ):
         """
         Carry out the eoh evolution for the operator under supplied specifications.
 
@@ -1438,9 +1448,9 @@ class Operator(object):
         else:
             return False
 
-    def _check_representation(self, targeted_represnetation):
+    def _check_representation(self, targeted_representation):
         """
-        Check the targeted representation is existed or not, if not, find available represnetations
+        Check the targeted representation is existed or not, if not, find available representations
         and then convert to the targeted one.
 
         Args:
@@ -1449,7 +1459,7 @@ class Operator(object):
         Raises:
             ValueError: if the `targeted_representation` is not recognized.
         """
-        if targeted_represnetation == 'paulis':
+        if targeted_representation == 'paulis':
             if self._paulis is None:
                 if self._matrix is not None:
                     self._matrix_to_paulis()
@@ -1459,7 +1469,7 @@ class Operator(object):
                     raise AquaError(
                         "at least having one of the three operator representations.")
 
-        elif targeted_represnetation == 'grouped_paulis':
+        elif targeted_representation == 'grouped_paulis':
             if self._grouped_paulis is None:
                 if self._paulis is not None:
                     self._paulis_to_grouped_paulis()
@@ -1469,7 +1479,7 @@ class Operator(object):
                     raise AquaError(
                         "at least having one of the three operator representations.")
 
-        elif targeted_represnetation == 'matrix':
+        elif targeted_representation == 'matrix':
             if self._matrix is None:
                 if self._paulis is not None:
                     self._paulis_to_matrix()
@@ -1480,7 +1490,7 @@ class Operator(object):
                         "at least having one of the three operator representations.")
         else:
             raise ValueError(
-                '"targeted_represnetation" should be one of "paulis", "grouped_paulis" and "matrix".'
+                '"targeted_representation" should be one of "paulis", "grouped_paulis" and "matrix".'
             )
 
     @staticmethod

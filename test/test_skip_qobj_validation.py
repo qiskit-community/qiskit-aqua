@@ -19,10 +19,9 @@
 import unittest
 
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
-from qiskit.providers.aer.noise import NoiseModel
-
+from qiskit import BasicAer
 from test.common import QiskitAquaTestCase
-from qiskit.aqua import QuantumInstance, get_aer_backend
+from qiskit.aqua import QuantumInstance
 
 
 def _compare_dict(dict1, dict2):
@@ -55,11 +54,11 @@ class TestSkipQobjValidation(QiskitAquaTestCase):
         qc.measure(qr[1], cr[1])
 
         self.qc = qc
-        self.backend = get_aer_backend('qasm_simulator')
+        self.backend = BasicAer.get_backend('qasm_simulator')
 
     def test_wo_backend_options(self):
         quantum_instance = QuantumInstance(self.backend, seed_mapper=self.random_seed,
-                                           seed=self.random_seed, shots=1024)
+                                           seed=self.random_seed, shots=1024, circuit_caching=False)
         # run without backend_options and without noise
         res_wo_bo = quantum_instance.execute(self.qc).get_counts(self.qc)
 
@@ -71,7 +70,8 @@ class TestSkipQobjValidation(QiskitAquaTestCase):
         # run with backend_options
         quantum_instance = QuantumInstance(self.backend, seed_mapper=self.random_seed,
                                            seed=self.random_seed, shots=1024,
-                                           backend_options={'initial_statevector': [.5, .5, .5, .5]})
+                                           backend_options={'initial_statevector': [.5, .5, .5, .5]},
+                                           circuit_caching=False)
         res_w_bo = quantum_instance.execute(self.qc).get_counts(self.qc)
         quantum_instance.skip_qobj_validation = True
         res_w_bo_skip_validation = quantum_instance.execute(self.qc).get_counts(self.qc)
@@ -80,6 +80,12 @@ class TestSkipQobjValidation(QiskitAquaTestCase):
     def test_w_noise(self):
         # build noise model
         # Asymetric readout error on qubit-0 only
+        try:
+            from qiskit.providers.aer.noise import NoiseModel
+        except Exception as e:
+            self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(e)))
+            return
+
         probs_given0 = [0.9, 0.1]
         probs_given1 = [0.3, 0.7]
         noise_model = NoiseModel()
@@ -87,7 +93,8 @@ class TestSkipQobjValidation(QiskitAquaTestCase):
 
         quantum_instance = QuantumInstance(self.backend, seed_mapper=self.random_seed,
                                            seed=self.random_seed, shots=1024,
-                                           noise_model=noise_model)
+                                           noise_model=noise_model,
+                                           circuit_caching=False)
         res_w_noise = quantum_instance.execute(self.qc).get_counts(self.qc)
 
         quantum_instance.skip_qobj_validation = True

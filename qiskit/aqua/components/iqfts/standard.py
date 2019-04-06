@@ -16,15 +16,11 @@
 # =============================================================================
 
 from scipy import linalg
-import numpy as np
 
-from qiskit.qasm import pi
-
-from ..qfts.qft import set_up
-from . import IQFT
+from .approximate import Approximate
 
 
-class Standard(IQFT):
+class Standard(Approximate):
     """A normal standard IQFT."""
 
     CONFIGURATION = {
@@ -41,27 +37,7 @@ class Standard(IQFT):
     }
 
     def __init__(self, num_qubits):
-        super().__init__()
-        self._num_qubits = num_qubits
+        super().__init__(num_qubits, degree=0)
 
-    def construct_circuit(self, mode, qubits=None, circuit=None):
-        if mode == 'vector':
-            # note the difference between QFT and DFT in the phase definition:
-            # QFT: \omega = exp(2*pi*i/N) ; DFT: \omega = exp(-2*pi*i/N)
-            # so linalg.dft is correct for IQFT
-            return linalg.dft(2 ** self._num_qubits, scale='sqrtn')
-        elif mode == 'circuit':
-            circuit, qubits = set_up(circuit, qubits, self._num_qubits)
-
-            for j in reversed(range(self._num_qubits)):
-                circuit.u2(0, np.pi, qubits[j])
-                for k in reversed(range(j)):
-                    lam = -1.0 * pi / float(2 ** (j - k))
-                    circuit.u1(lam / 2, qubits[j])
-                    circuit.cx(qubits[j], qubits[k])
-                    circuit.u1(-lam / 2, qubits[k])
-                    circuit.cx(qubits[j], qubits[k])
-                    circuit.u1(lam / 2, qubits[k])
-            return circuit
-        else:
-            raise ValueError('Mode should be either "vector" or "circuit"')
+    def _build_matrix(self):
+        return linalg.dft(2 ** self._num_qubits, scale='sqrtn')

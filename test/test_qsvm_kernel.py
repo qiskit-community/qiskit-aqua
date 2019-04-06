@@ -18,9 +18,9 @@
 import os
 
 import numpy as np
-from qiskit.aqua import get_aer_backend
+from qiskit import BasicAer
 from test.common import QiskitAquaTestCase
-from qiskit.aqua import run_algorithm, QuantumInstance
+from qiskit.aqua import run_algorithm, QuantumInstance, aqua_globals
 from qiskit.aqua.input import SVMInput
 from qiskit.aqua.components.feature_maps import SecondOrderExpansion
 from qiskit.aqua.algorithms import QSVMKernel
@@ -67,12 +67,13 @@ class TestQSVMKernel(QiskitAquaTestCase):
                 'name': 'QSVM.Kernel'
             }
         }
-        backend = get_aer_backend('qasm_simulator')
+        backend = BasicAer.get_backend('qasm_simulator')
         algo_input = SVMInput(training_input, test_input, total_array)
         result = run_algorithm(params, algo_input, backend=backend)
         self.assertEqual(result['testing_accuracy'], 0.6)
         self.assertEqual(result['predicted_classes'], ['A', 'A', 'A', 'A', 'A',
                                                        'A', 'B', 'A', 'A', 'A'])
+
     def test_qsvm_kernel_binary_directly(self):
 
         ref_kernel_training = np.array([[1., 0.85366667, 0.12341667, 0.36408333],
@@ -83,17 +84,19 @@ class TestQSVMKernel(QiskitAquaTestCase):
         ref_kernel_testing = np.array([[0.14316667, 0.18208333, 0.4785, 0.14441667],
                                        [0.33608333, 0.3765, 0.02316667, 0.15858333]])
 
-        ref_alpha = np.array([0.36064489, 1.49204209, 0.0264953, 1.82619169])
-        ref_bias = np.array([-0.03380763])
+        # ref_alpha = np.array([0.36064489, 1.49204209, 0.0264953, 1.82619169])
+        ref_alpha = np.array([0.34903335, 1.48325498, 0.03074852, 1.80153981])
+        # ref_bias = np.array([-0.03380763])
+        ref_bias = np.array([-0.03059226])
 
         ref_support_vectors = np.array([[2.95309709, 2.51327412], [3.14159265, 4.08407045],
                                         [4.08407045, 2.26194671], [4.46106157, 2.38761042]])
 
-        backend = get_aer_backend('qasm_simulator')
+        backend = BasicAer.get_backend('qasm_simulator')
         num_qubits = 2
         feature_map = SecondOrderExpansion(num_qubits=num_qubits, depth=2, entangler_map=[[0, 1]])
         svm = QSVMKernel(feature_map, self.training_data, self.testing_data, None)
-        svm.random_seed = self.random_seed
+        aqua_globals.random_seed = self.random_seed
         quantum_instance = QuantumInstance(backend, shots=self.shots, seed=self.random_seed, seed_mapper=self.random_seed)
 
         result = svm.run(quantum_instance)
@@ -106,8 +109,8 @@ class TestQSVMKernel(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(
             result['svm']['support_vectors'], ref_support_vectors, decimal=4)
 
-        np.testing.assert_array_almost_equal(result['svm']['alphas'], ref_alpha, decimal=4)
-        np.testing.assert_array_almost_equal(result['svm']['bias'], ref_bias, decimal=4)
+        np.testing.assert_array_almost_equal(result['svm']['alphas'], ref_alpha, decimal=8)
+        np.testing.assert_array_almost_equal(result['svm']['bias'], ref_bias, decimal=8)
 
         self.assertEqual(result['testing_accuracy'], 0.5)
 
@@ -119,11 +122,11 @@ class TestQSVMKernel(QiskitAquaTestCase):
         ref_support_vectors = np.array([[2.95309709, 2.51327412], [3.14159265, 4.08407045],
                                         [4.08407045, 2.26194671], [4.46106157, 2.38761042]])
 
-        backend = get_aer_backend('statevector_simulator')
+        backend = BasicAer.get_backend('statevector_simulator')
         num_qubits = 2
         feature_map = SecondOrderExpansion(num_qubits=num_qubits, depth=2, entangler_map=[[0, 1]])
         svm = QSVMKernel(feature_map, self.training_data, self.testing_data, None)
-        svm.random_seed = self.random_seed
+        aqua_globals.random_seed = self.random_seed
 
         quantum_instance = QuantumInstance(backend, seed_mapper=self.random_seed)
         result = svm.run(quantum_instance)
@@ -167,7 +170,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
 
     def test_qsvm_kernel_multiclass_one_against_all(self):
 
-        backend = get_aer_backend('qasm_simulator')
+        backend = BasicAer.get_backend('qasm_simulator')
         training_input = {'A': np.asarray([[0.6560706, 0.17605998], [0.25776033, 0.47628296],
                                            [0.8690704, 0.70847635]]),
                           'B': np.asarray([[0.38857596, -0.33775802], [0.49946978, -0.48727951],
@@ -206,7 +209,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
 
     def test_qsvm_kernel_multiclass_all_pairs(self):
 
-        backend = get_aer_backend('qasm_simulator')
+        backend = BasicAer.get_backend('qasm_simulator')
         training_input = {'A': np.asarray([[0.6560706, 0.17605998], [0.25776033, 0.47628296],
                                            [0.8690704, 0.70847635]]),
                           'B': np.asarray([[0.38857596, -0.33775802], [0.49946978, -0.48727951],
@@ -242,7 +245,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
 
     def test_qsvm_kernel_multiclass_error_correcting_code(self):
 
-        backend = get_aer_backend('qasm_simulator')
+        backend = BasicAer.get_backend('qasm_simulator')
         training_input = {'A': np.asarray([[0.6560706, 0.17605998], [0.25776033, 0.47628296],
                                            [0.8690704, 0.70847635]]),
                           'B': np.asarray([[0.38857596, -0.33775802], [0.49946978, -0.48727951],

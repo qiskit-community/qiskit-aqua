@@ -25,7 +25,7 @@ from qiskit import QuantumCircuit, QuantumRegister
 from qiskit import execute as q_execute
 from qiskit.quantum_info import state_fidelity
 
-from qiskit.aqua import get_aer_backend
+from qiskit import BasicAer
 from test.common import QiskitAquaTestCase
 
 
@@ -49,7 +49,7 @@ class TestMCU3(QiskitAquaTestCase):
             for idx in subset:
                 qc.x(c[idx])
 
-            vec = np.asarray(q_execute(qc, get_aer_backend(
+            vec = np.asarray(q_execute(qc, BasicAer.get_backend(
                 'statevector_simulator')).result().get_statevector(qc, decimals=16))
             vec_o = [0, 1] if len(subset) == num_controls else [1, 0]
             # print(vec, np.array(vec_o + [0] * (2 ** (num_controls + num_ancillae + 1) - 2)))

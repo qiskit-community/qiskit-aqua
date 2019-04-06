@@ -18,7 +18,7 @@
 import numpy as np
 
 from test.common import QiskitAquaTestCase
-from qiskit.aqua import get_aer_backend
+from qiskit import BasicAer
 
 from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import EnergyInput
@@ -80,7 +80,7 @@ class TestClique(QiskitAquaTestCase):
         algorithm_cfg = {
             'name': 'VQE',
             'operator_mode': 'matrix',
-            'batch_mode': True
+            'max_evals_grouped': 2
         }
 
         optimizer_cfg = {
@@ -99,7 +99,7 @@ class TestClique(QiskitAquaTestCase):
             'optimizer': optimizer_cfg,
             'variational_form': var_form_cfg
         }
-        backend = get_aer_backend('statevector_simulator')
+        backend = BasicAer.get_backend('statevector_simulator')
         result = run_algorithm(params, self.algo_input, backend=backend)
         x = clique.sample_most_likely(len(self.w), result['eigvecs'][0])
         ising_sol = clique.get_graph_solution(x)

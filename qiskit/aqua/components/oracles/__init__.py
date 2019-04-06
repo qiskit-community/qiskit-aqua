@@ -17,11 +17,11 @@
 
 from .oracle import Oracle
 from .truth_table_oracle import TruthTableOracle
-from .logic_expr_oracle import LogicExpressionOracle
+from .logical_expression_oracle import LogicalExpressionOracle
 
 
 __all__ = [
     'Oracle',
     'TruthTableOracle',
-    'LogicExpressionOracle',
+    'LogicalExpressionOracle',
 ]

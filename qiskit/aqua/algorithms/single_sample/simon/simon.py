@@ -42,11 +42,12 @@ class Simon(QuantumAlgorithm):
         },
         'problems': ['periodfinding'],
         'depends': [
-            {'pluggable_type': 'oracle',
-             'default': {
-                     'name': 'simon',
+            {
+                'pluggable_type': 'oracle',
+                'default': {
+                     'name': 'TruthTableOracle',
                 },
-             },
+            },
         ],
     }
 

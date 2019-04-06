@@ -25,7 +25,7 @@ from qiskit.aqua import Operator
 class QAOAVarForm:
     """Global X phases and parameterized problem hamiltonian."""
 
-    def __init__(self, cost_operator, p, initial_state=None):
+    def __init__(self, cost_operator, p, initial_state=None, mixer_operator=None):
         self._cost_operator = cost_operator
         self._p = p
         self._initial_state = initial_state
@@ -36,13 +36,19 @@ class QAOAVarForm:
         # prepare the mixer operator
         v = np.zeros(self._cost_operator.num_qubits)
         ws = np.eye(self._cost_operator.num_qubits)
-        self._mixer_operator = reduce(
-            lambda x, y: x + y,
-            [
-                Operator([[1, Pauli(v, ws[i, :])]])
-                for i in range(self._cost_operator.num_qubits)
-            ]
-        )
+        if mixer_operator is None:
+            self._mixer_operator = reduce(
+                lambda x, y: x + y,
+                [
+                    Operator([[1, Pauli(v, ws[i, :])]])
+                    for i in range(self._cost_operator.num_qubits)
+                ]
+            )
+        else:
+            if not type(mixer_operator) == Operator:
+                raise TypeError('The mixer should be a qiskit.aqua.Operator '
+                                + 'object, found {} instead'.format(type(mixer_operator)))
+            self._mixer_operator = mixer_operator
 
     def construct_circuit(self, angles):
         if not len(angles) == self.num_parameters:
@@ -62,8 +68,12 @@ class QAOAVarForm:
         circuit.u2(0, np.pi, q)
         for idx in range(self._p):
             beta, gamma = angles[idx], angles[idx + self._p]
-            circuit += self._cost_operator.evolve(None, gamma, 'circuit', 1, quantum_registers=q)
-            circuit += self._mixer_operator.evolve(None, beta, 'circuit', 1, quantum_registers=q)
+            circuit += self._cost_operator.evolve(
+                evo_time=gamma, evo_mode='circuit', num_time_slices=1, quantum_registers=q
+            )
+            circuit += self._mixer_operator.evolve(
+                evo_time=beta, evo_mode='circuit', num_time_slices=1, quantum_registers=q
+            )
         return circuit
 
     @property

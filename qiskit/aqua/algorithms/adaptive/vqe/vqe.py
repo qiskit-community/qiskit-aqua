@@ -19,22 +19,21 @@ The Variational Quantum Eigensolver algorithm.
 See https://arxiv.org/abs/1304.3061
 """
 
-import time
 import logging
 import functools
 
 import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit
 
-from qiskit.aqua.algorithms import QuantumAlgorithm
+from qiskit.aqua.algorithms.adaptive.vqalgorithm import VQAlgorithm
 from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
-from qiskit.aqua.utils import find_regs_by_name
 from qiskit.aqua.utils.backend_utils import is_aer_statevector_backend
+from qiskit.aqua.utils import find_regs_by_name
 
 logger = logging.getLogger(__name__)
 
 
-class VQE(QuantumAlgorithm):
+class VQE(VQAlgorithm):
     """
     The Variational Quantum Eigensolver algorithm.
 
@@ -63,9 +62,9 @@ class VQE(QuantumAlgorithm):
                     },
                     'default': None
                 },
-                'batch_mode': {
-                    'type': 'boolean',
-                    'default': False
+                'max_evals_grouped': {
+                    'type': 'integer',
+                    'default': 1
                 }
             },
             'additionalProperties': False
@@ -86,7 +85,7 @@ class VQE(QuantumAlgorithm):
     }
 
     def __init__(self, operator, var_form, optimizer, operator_mode='matrix',
-                 initial_point=None, batch_mode=False, aux_operators=None, callback=None):
+                 initial_point=None, max_evals_grouped=1, aux_operators=None, callback=None):
         """Constructor.
 
         Args:
@@ -95,7 +94,7 @@ class VQE(QuantumAlgorithm):
             var_form (VariationalForm): parametrized variational form.
             optimizer (Optimizer): the classical optimization algorithm.
             initial_point (numpy.ndarray): optimizer initial point.
-            batch_mode (bool): evaluate parameter sets in parallel.
+            max_evals_grouped (int): max number of evaluations performed simultaneously
             aux_operators (list of Operator): Auxiliary operators to be evaluated at each eigenvalue
             callback (Callable): a callback that can access the intermediate data during the optimization.
                                  Internally, four arguments are provided as follows
@@ -103,24 +102,22 @@ class VQE(QuantumAlgorithm):
                                  evaluated mean, evaluated standard devation.
         """
         self.validate(locals())
-        super().__init__()
-        self._operator = operator
-        self._var_form = var_form
-        self._optimizer = optimizer
-        self._operator_mode = operator_mode
-        self._initial_point = initial_point
+        super().__init__(var_form=var_form,
+                         optimizer=optimizer,
+                         cost_fn=self._energy_evaluation,
+                         initial_point=initial_point)
+        self._optimizer.set_max_evals_grouped(max_evals_grouped)
+        self._callback = callback
         if initial_point is None:
             self._initial_point = var_form.preferred_init_points
-        self._optimizer.set_batch_mode(batch_mode)
+        self._operator = operator
+        self._operator_mode = operator_mode
+        self._eval_count = 0
         if aux_operators is None:
             self._aux_operators = []
         else:
             self._aux_operators = [aux_operators] if not isinstance(aux_operators, list) else aux_operators
-        self._ret = {}
-        self._eval_count = 0
-        self._eval_time = 0
-        self._callback = callback
-        logger.info(self.print_setting())
+        logger.info(self.print_settings())
 
     @classmethod
     def init_params(cls, params, algo_input):
@@ -142,7 +139,7 @@ class VQE(QuantumAlgorithm):
         vqe_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
         operator_mode = vqe_params.get('operator_mode')
         initial_point = vqe_params.get('initial_point')
-        batch_mode = vqe_params.get('batch_mode')
+        max_evals_grouped = vqe_params.get('max_evals_grouped')
 
         # Set up variational form, we need to add computed num qubits
         # Pass all parameters so that Variational Form can create its dependents
@@ -157,7 +154,7 @@ class VQE(QuantumAlgorithm):
                                         opt_params['name']).init_params(params)
 
         return cls(operator, var_form, optimizer, operator_mode=operator_mode,
-                   initial_point=initial_point, batch_mode=batch_mode,
+                   initial_point=initial_point, max_evals_grouped=max_evals_grouped,
                    aux_operators=algo_input.aux_ops)
 
     @property
@@ -174,7 +171,7 @@ class VQE(QuantumAlgorithm):
         ret += "{}".format(params)
         return ret
 
-    def print_setting(self):
+    def print_settings(self):
         """
         Preparing the setting of VQE into a string.
 
@@ -219,32 +216,10 @@ class VQE(QuantumAlgorithm):
                                                               input_circuit, backend, use_simulator_operator_mode)
         return circuit
 
-    def _solve(self):
-        opt_params, opt_val = self.find_minimum_eigenvalue()
-        self._ret['eigvals'] = np.asarray([opt_val])
-        self._ret['opt_params'] = opt_params
-        qc = self._var_form.construct_circuit(self._ret['opt_params'])
-        if self._quantum_instance.is_statevector:
-            ret = self._quantum_instance.execute(qc)
-            self._ret['eigvecs'] = np.asarray([ret.get_statevector(qc)])
-        else:
-            c = ClassicalRegister(self._operator.num_qubits, name='c')
-            q = find_regs_by_name(qc, 'q')
-            qc.add_register(c)
-            qc.barrier(q)
-            qc.measure(q, c)
-            ret = self._quantum_instance.execute(qc)
-            self._ret['eigvecs'] = np.asarray([ret.get_counts(qc)])
-
-    def _get_ground_state_energy(self):
-        if 'eigvals' not in self._ret:
-            self._solve()
-        self._ret['energy'] = self._ret['eigvals'][0]
-
-    def _eval_aux_ops(self, threshold=1e-12):
-        if 'opt_params' not in self._ret:
-            self._get_ground_state_energy()
-        wavefn_circuit = self._var_form.construct_circuit(self._ret['opt_params'])
+    def _eval_aux_ops(self, threshold=1e-12, params=None):
+        if params is None:
+            params = self.optimal_params
+        wavefn_circuit = self._var_form.construct_circuit(params)
         circuits = []
         values = []
         params = []
@@ -302,12 +277,24 @@ class VQE(QuantumAlgorithm):
             and self._operator_mode != 'matrix'
 
         self._quantum_instance.circuit_summary = True
+
         self._eval_count = 0
-        self._solve()
-        self._get_ground_state_energy()
-        self._eval_aux_ops()
+        self._ret = self.find_minimum(initial_point=self.initial_point,
+                                      var_form=self.var_form,
+                                      cost_fn=self._energy_evaluation,
+                                      optimizer=self.optimizer)
+
+        if self._ret['num_optimizer_evals'] is not None and self._eval_count >= self._ret['num_optimizer_evals']:
+            self._eval_count = self._ret['num_optimizer_evals']
+        self._eval_time = self._ret['eval_time']
+        logger.info('Optimization complete in {} seconds.\nFound opt_params {} in {} evals'.format(
+            self._eval_time, self._ret['opt_params'], self._eval_count))
         self._ret['eval_count'] = self._eval_count
-        self._ret['eval_time'] = self._eval_time
+
+        self._ret['energy'] = self.get_optimal_cost()
+        self._ret['eigvals'] = np.asarray([self.get_optimal_cost()])
+        self._ret['eigvecs'] = np.asarray([self.get_optimal_vector()])
+        self._eval_aux_ops()
         return self._ret
 
     # This is the objective function to be passed to the optimizer that is uses for evaluation
@@ -354,55 +341,35 @@ class VQE(QuantumAlgorithm):
 
         return mean_energy if len(mean_energy) > 1 else mean_energy[0]
 
-    def find_minimum_eigenvalue(self, initial_point=None):
-        """Determine minimum energy state.
+    def get_optimal_cost(self):
+        if 'opt_params' not in self._ret:
+            raise AquaError("Cannot return optimal cost before running the algorithm to find optimal params.")
+        return self._ret['min_val']
 
-        Args:
-            initial_point (numpy.ndarray[float]) : initial point, or None
-                if not provided.
+    def get_optimal_circuit(self):
+        if 'opt_params' not in self._ret:
+            raise AquaError("Cannot find optimal circuit before running the algorithm to find optimal params.")
+        return self._var_form.construct_circuit(self._ret['opt_params'])
 
-        Returns:
-            Optimized variational parameters, and corresponding minimum eigenvalue.
-
-        Raises:
-            ValueError:
-
-        """
-        initial_point = initial_point if initial_point is not None else self._initial_point
-
-        nparms = self._var_form.num_parameters
-        bounds = self._var_form.parameter_bounds
-
-        if initial_point is not None and len(initial_point) != nparms:
-            raise ValueError('Initial point size {} and parameter size {} mismatch'.format(len(initial_point), nparms))
-        if len(bounds) != nparms:
-            raise ValueError('Variational form bounds size does not match parameter size')
-        # If *any* value is *equal* in bounds array to None then the problem does *not* have bounds
-        problem_has_bounds = not np.any(np.equal(bounds, None))
-        # Check capabilities of the optimizer
-        if problem_has_bounds:
-            if not self._optimizer.is_bounds_supported:
-                raise ValueError('Problem has bounds but optimizer does not support bounds')
+    def get_optimal_vector(self):
+        if 'opt_params' not in self._ret:
+            raise AquaError("Cannot find optimal vector before running the algorithm to find optimal params.")
+        qc = self.get_optimal_circuit()
+        if self._quantum_instance.is_statevector:
+            ret = self._quantum_instance.execute(qc)
+            self._ret['min_vector'] = ret.get_statevector(qc, decimals=16)
         else:
-            if self._optimizer.is_bounds_required:
-                raise ValueError('Problem does not have bounds but optimizer requires bounds')
-        if initial_point is not None:
-            if not self._optimizer.is_initial_point_supported:
-                raise ValueError('Optimizer does not support initial point')
-        else:
-            if self._optimizer.is_initial_point_required:
-                low = [(l if l is not None else -2 * np.pi) for (l, u) in bounds]
-                high = [(u if u is not None else 2 * np.pi) for (l, u) in bounds]
-                initial_point = self.random.uniform(low, high)
+            c = ClassicalRegister(qc.width(), name='c')
+            q = find_regs_by_name(qc, 'q')
+            qc.add_register(c)
+            qc.barrier(q)
+            qc.measure(q, c)
+            ret = self._quantum_instance.execute(qc)
+            self._ret['min_vector'] = ret.get_counts(qc)
+        return self._ret['min_vector']
 
-        start = time.time()
-        logger.info('Starting optimizer bounds={}\ninitial point={}'.format(bounds, initial_point))
-        sol, opt, nfev = self._optimizer.optimize(self._var_form.num_parameters, self._energy_evaluation,
-                                                  variable_bounds=bounds, initial_point=initial_point)
-        if nfev is not None:
-            self._eval_count = self._eval_count if self._eval_count >= nfev else nfev
-        self._eval_time = time.time() - start
-        logger.info('Optimization complete in {}s found {} num evals {}'.format(
-            self._eval_time, opt, self._eval_count))
-
-        return sol, opt
+    @property
+    def optimal_params(self):
+        if 'opt_params' not in self._ret:
+            raise AquaError("Cannot find optimal params before running the algorithm.")
+        return self._ret['opt_params']

@@ -17,20 +17,22 @@
 
 import logging
 
+import math
 import numpy as np
 from sklearn.utils import shuffle
 
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
-from qiskit.aqua.algorithms import QuantumAlgorithm
+from qiskit.aqua.algorithms.adaptive.vqalgorithm import VQAlgorithm
 from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.algorithms.adaptive.qsvm import (cost_estimate, return_probabilities)
 from qiskit.aqua.utils import (get_feature_dimension, map_label_to_class_name,
-                               split_dataset_to_data_and_labels)
+                               split_dataset_to_data_and_labels, find_regs_by_name)
+
 
 logger = logging.getLogger(__name__)
 
 
-class QSVMVariational(QuantumAlgorithm):
+class QSVMVariational(VQAlgorithm):
 
     CONFIGURATION = {
         'name': 'QSVM.Variational',
@@ -44,9 +46,9 @@ class QSVMVariational(QuantumAlgorithm):
                     'type': 'boolean',
                     'default': True
                 },
-                'batch_mode': {
-                    'type': 'boolean',
-                    'default': False
+                'max_evals_grouped': {
+                    'type': 'integer',
+                    'default': 1
                 },
                 'minibatch_size': {
                     'type': 'integer',
@@ -81,7 +83,7 @@ class QSVMVariational(QuantumAlgorithm):
     }
 
     def __init__(self, optimizer, feature_map, var_form, training_dataset,
-                 test_dataset=None, datapoints=None, batch_mode=False,
+                 test_dataset=None, datapoints=None, max_evals_grouped=1,
                  minibatch_size=-1, callback=None):
         """Initialize the object
         Args:
@@ -91,7 +93,7 @@ class QSVMVariational(QuantumAlgorithm):
             optimizer (Optimizer): Optimizer instance
             feature_map (FeatureMap): FeatureMap instance
             var_form (VariationalForm): VariationalForm instance
-            batch_mode (boolean): Batch mode for circuit compilation and execution
+            max_evals_grouped (int): max number of evaluations performed simultaneously.
             callback (Callable): a callback that can access the intermediate data during the optimization.
                                  Internally, four arguments are provided as follows
                                  the index of data batch, the index of evaluation,
@@ -100,7 +102,12 @@ class QSVMVariational(QuantumAlgorithm):
             We used `label` denotes numeric results and `class` means the name of that class (str).
         """
         self.validate(locals())
-        super().__init__()
+        super().__init__(var_form=var_form,
+                         optimizer=optimizer,
+                         cost_fn=self._cost_function_wrapper)
+        self._optimizer.set_max_evals_grouped(max_evals_grouped)
+
+        self._callback = callback
         if training_dataset is None:
             raise AquaError('Training dataset must be provided')
 
@@ -119,13 +126,9 @@ class QSVMVariational(QuantumAlgorithm):
         if datapoints is not None and not isinstance(datapoints, np.ndarray):
             datapoints = np.asarray(datapoints)
         self._datapoints = datapoints
-        self._optimizer = optimizer
         self._feature_map = feature_map
-        self._var_form = var_form
         self._num_qubits = self._feature_map.num_qubits
-        self._optimizer.set_batch_mode(batch_mode)
         self._minibatch_size = minibatch_size
-        self._callback = callback
         self._eval_count = 0
         self._ret = {}
 
@@ -133,7 +136,7 @@ class QSVMVariational(QuantumAlgorithm):
     def init_params(cls, params, algo_input):
         algo_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
         override_spsa_params = algo_params.get('override_SPSA_params')
-        batch_mode = algo_params.get('batch_mode')
+        max_evals_grouped = algo_params.get('max_evals_grouped')
         minibatch_size = algo_params.get('minibatch_size')
 
         # Set up optimizer
@@ -164,7 +167,7 @@ class QSVMVariational(QuantumAlgorithm):
                                        var_form_params['name']).init_params(params)
 
         return cls(optimizer, feature_map, var_form, algo_input.training_dataset,
-                   algo_input.test_dataset, algo_input.datapoints, batch_mode,
+                   algo_input.test_dataset, algo_input.datapoints, max_evals_grouped,
                    minibatch_size)
 
     def construct_circuit(self, x, theta, measurement=False):
@@ -214,12 +217,10 @@ class QSVMVariational(QuantumAlgorithm):
             numpy.ndarray or [numpy.ndarray]: list of NxK array
             numpy.ndarray or [numpy.ndarray]: list of Nx1 array
         """
-        if self._quantum_instance.is_statevector:
-            raise ValueError('Selected backend "{}" is not supported.'.format(
-                self._quantum_instance.backend_name))
+        # if self._quantum_instance.is_statevector:
+        #     raise ValueError('Selected backend "{}" is not supported.'.format(
+        #         self._quantum_instance.backend_name))
 
-        predicted_probs = []
-        predicted_labels = []
         circuits = {}
         circuit_id = 0
 
@@ -228,7 +229,11 @@ class QSVMVariational(QuantumAlgorithm):
 
         for theta in theta_sets:
             for datum in data:
-                circuit = self.construct_circuit(datum, theta, measurement=True)
+                if self._quantum_instance.is_statevector:
+                    circuit = self.construct_circuit(datum, theta, measurement=False)
+                else:
+                    circuit = self.construct_circuit(datum, theta, measurement=True)
+
                 circuits[circuit_id] = circuit
                 circuit_id += 1
 
@@ -240,8 +245,22 @@ class QSVMVariational(QuantumAlgorithm):
         for theta in theta_sets:
             counts = []
             for datum in data:
-                counts.append(results.get_counts(circuits[circuit_id]))
+                if self._quantum_instance.is_statevector:
+                    temp = results.get_statevector(circuits[circuit_id])
+                    outcome_vector = (temp * temp.conj()).real
+                    # convert outcome_vector to outcome_dict, where key is a basis state and value is the count.
+                    # Note: the count can be scaled linearly, i.e., it does not have to be an integer.
+                    outcome_dict = {}
+                    bitstringsize = int(math.log2(len(outcome_vector)))
+                    for i in range(len(outcome_vector)):
+                        bitstr_i = format(i, '0' + str(bitstringsize) +'b')
+                        outcome_dict[bitstr_i] = outcome_vector[i]
+                else:
+                    outcome_dict = results.get_counts(circuits[circuit_id])
+
+                counts.append(outcome_dict)
                 circuit_id += 1
+
             probs = return_probabilities(counts, self._num_classes)
             predicted_probs.append(probs)
             predicted_labels.append(np.argmax(probs, axis=1))
@@ -270,54 +289,71 @@ class QSVMVariational(QuantumAlgorithm):
             label_batches = np.asarray([labels])
         return batches, label_batches
 
-    def train(self, data, labels, quantum_instance=None):
+    def train(self, data, labels, quantum_instance=None, minibatch_size=-1):
         """Train the models, and save results.
 
         Args:
             data (numpy.ndarray): NxD array, N is number of data and D is dimension
             labels (numpy.ndarray): Nx1 array, N is number of data
             quantum_instance (QuantumInstance): quantum backend with all setting
+            minibatch_size (int): the size of each minibatched accuracy evalutation
         """
         self._quantum_instance = self._quantum_instance if quantum_instance is None else quantum_instance
-        batches, label_batches = self.batch_data(data, labels, self._minibatch_size)
+        minibatch_size = minibatch_size if minibatch_size > 0 else self._minibatch_size
+        self._batches, self._label_batches = self.batch_data(data, labels, minibatch_size)
         self._batch_index = 0
 
-        def _cost_function_wrapper(theta):
-            batch_index = self._batch_index % len(batches)
-            predicted_probs, predicted_labels = self._get_prediction(batches[batch_index], theta)
-            total_cost = []
-            if not isinstance(predicted_probs, list):
-                predicted_probs = [predicted_probs]
-            for i in range(len(predicted_probs)):
-                curr_cost = self._cost_function(predicted_probs[i], label_batches[batch_index])
-                total_cost.append(curr_cost)
-                if self._callback is not None:
-                    self._callback(self._eval_count,
-                                   theta[i * self._var_form.num_parameters:(i + 1) * self._var_form.num_parameters],
-                                   curr_cost,
-                                   self._batch_index)
-                self._eval_count += 1
+        if self.initial_point is None:
+            self.initial_point = self.random.randn(self._var_form.num_parameters)
 
-            self._batch_index += 1
-            logger.debug('Intermediate batch cost: {}'.format(sum(total_cost)))
-            return total_cost if len(total_cost) > 1 else total_cost[0]
+        self._eval_count = 0
+        self._ret = self.find_minimum(initial_point=self.initial_point,
+                                      var_form=self.var_form,
+                                      cost_fn=self._cost_function_wrapper,
+                                      optimizer=self.optimizer)
 
-        initial_theta = self.random.randn(self._var_form.num_parameters)
+        if self._ret['num_optimizer_evals'] is not None and self._eval_count >= self._ret['num_optimizer_evals']:
+            self._eval_count = self._ret['num_optimizer_evals']
+        self._eval_time = self._ret['eval_time']
+        logger.info('Optimization complete in {} seconds.\nFound opt_params {} in {} evals'.format(
+            self._eval_time, self._ret['opt_params'], self._eval_count))
+        self._ret['eval_count'] = self._eval_count
 
-        theta_best, cost_final, _ = self._optimizer.optimize(initial_theta.shape[0],
-                                                             _cost_function_wrapper,
-                                                             initial_point=initial_theta)
+        del self._batches
+        del self._label_batches
+        del self._batch_index
 
-        self._ret['opt_params'] = theta_best
-        self._ret['training_loss'] = cost_final
+        self._ret['training_loss'] = self._ret['min_val']
 
-    def test(self, data, labels, quantum_instance=None, minibatch_size=-1):
+    def _cost_function_wrapper(self, theta):
+        batch_index = self._batch_index % len(self._batches)
+        predicted_probs, predicted_labels = self._get_prediction(self._batches[batch_index], theta)
+        total_cost = []
+        if not isinstance(predicted_probs, list):
+            predicted_probs = [predicted_probs]
+        for i in range(len(predicted_probs)):
+            curr_cost = self._cost_function(predicted_probs[i], self._label_batches[batch_index])
+            total_cost.append(curr_cost)
+            if self._callback is not None:
+                self._callback(self._eval_count,
+                               theta[i * self._var_form.num_parameters:(i + 1) * self._var_form.num_parameters],
+                               curr_cost,
+                               self._batch_index)
+            self._eval_count += 1
+
+        self._batch_index += 1
+        logger.debug('Intermediate batch cost: {}'.format(sum(total_cost)))
+        return total_cost if len(total_cost) > 1 else total_cost[0]
+
+    def test(self, data, labels, quantum_instance=None, minibatch_size=-1, params=None):
         """Predict the labels for the data, and test against with ground truth labels.
 
         Args:
             data (numpy.ndarray): NxD array, N is number of data and D is data dimension
             labels (numpy.ndarray): Nx1 array, N is number of data
             quantum_instance (QuantumInstance): quantum backend with all setting
+            minibatch_size (int): the size of each minibatched accuracy evalutation
+            params (list): list of parameters to populate in the variational form
         Returns:
             float: classification accuracy
         """
@@ -326,13 +362,15 @@ class QSVMVariational(QuantumAlgorithm):
 
         batches, label_batches = self.batch_data(data, labels, minibatch_size)
         self.batch_num = 0
+        if params is None:
+            params = self.optimal_params
         total_cost = 0
         total_correct = 0
         total_samples = 0
 
         self._quantum_instance = self._quantum_instance if quantum_instance is None else quantum_instance
         for batch, label_batch in zip(batches, label_batches):
-            predicted_probs, predicted_labels = self._get_prediction(batch, self._ret['opt_params'])
+            predicted_probs, predicted_labels = self._get_prediction(batch, params)
             total_cost += self._cost_function(predicted_probs, label_batch)
             total_correct += np.sum((np.argmax(predicted_probs, axis=1) == label_batch))
             total_samples += label_batch.shape[0]
@@ -345,12 +383,14 @@ class QSVMVariational(QuantumAlgorithm):
         self._ret['testing_loss'] = total_cost / len(batches)
         return total_accuracy
 
-    def predict(self, data, quantum_instance=None, minibatch_size=-1):
+    def predict(self, data, quantum_instance=None, minibatch_size=-1, params=None):
         """Predict the labels for the data.
 
         Args:
             data (numpy.ndarray): NxD array, N is number of data, D is data dimension
             quantum_instance (QuantumInstance): quantum backend with all setting
+            minibatch_size (int): the size of each minibatched accuracy evalutation
+            params (list): list of parameters to populate in the variational form
         Returns:
             list: for each data point, generates the predicted probability for each class
             list: for each data point, generates the predicted label (that with the highest prob)
@@ -359,6 +399,8 @@ class QSVMVariational(QuantumAlgorithm):
         # minibatch size defaults to setting in instance variable if not set
         minibatch_size = minibatch_size if minibatch_size > 0 else self._minibatch_size
         batches, _ = self.batch_data(data, None, minibatch_size)
+        if params is None:
+            params = self.optimal_params
         predicted_probs = None
         predicted_labels = None
 
@@ -366,7 +408,7 @@ class QSVMVariational(QuantumAlgorithm):
         for i, batch in enumerate(batches):
             if len(batches) > 0:
                 logger.debug('Predicting batch {}'.format(i))
-            batch_probs, batch_labels = self._get_prediction(batch, self._ret['opt_params'])
+            batch_probs, batch_labels = self._get_prediction(batch, params)
             if not predicted_probs and not predicted_labels:
                 predicted_probs = batch_probs
                 predicted_labels = batch_labels
@@ -387,8 +429,40 @@ class QSVMVariational(QuantumAlgorithm):
             predicted_probs, predicted_labels = self.predict(self._datapoints)
             self._ret['predicted_classes'] = map_label_to_class_name(predicted_labels,
                                                                      self._label_to_class)
-
         return self._ret
+
+    def get_optimal_cost(self):
+        if 'opt_params' not in self._ret:
+            raise AquaError("Cannot return optimal cost before running the algorithm to find optimal params.")
+        return self._ret['min_val']
+
+    def get_optimal_circuit(self):
+        if 'opt_params' not in self._ret:
+            raise AquaError("Cannot find optimal circuit before running the algorithm to find optimal params.")
+        return self._var_form.construct_circuit(self._ret['opt_params'])
+
+    def get_optimal_vector(self):
+        if 'opt_params' not in self._ret:
+            raise AquaError("Cannot find optimal vector before running the algorithm to find optimal params.")
+        qc = self.get_optimal_circuit()
+        if self._quantum_instance.is_statevector:
+            ret = self._quantum_instance.execute(qc)
+            self._ret['min_vector'] = ret.get_statevector(qc, decimals=16)
+        else:
+            c = ClassicalRegister(qc.width(), name='c')
+            q = find_regs_by_name(qc, 'q')
+            qc.add_register(c)
+            qc.barrier(q)
+            qc.measure(q, c)
+            ret = self._quantum_instance.execute(qc)
+            self._ret['min_vector'] = ret.get_counts(qc)
+        return self._ret['min_vector']
+
+    @property
+    def optimal_params(self):
+        if 'opt_params' not in self._ret:
+            raise AquaError("Cannot find optimal params before running the algorithm.")
+        return self._ret['opt_params']
 
     @property
     def ret(self):

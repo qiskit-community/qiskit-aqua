@@ -21,21 +21,21 @@ import logging
 from qiskit.providers import BaseBackend
 from qiskit.aqua import Preferences
 
+logger = logging.getLogger(__name__)
+
 try:
     from qiskit.providers.ibmq import IBMQProvider
     HAS_IBMQ = True
-except ImportError:
+except Exception as e:
     HAS_IBMQ = False
-    pass
+    logger.debug("IBMQProvider not loaded: '{}'".format(str(e)))
+
 try:
     from qiskit.providers.aer import AerProvider
     HAS_AER = True
-except ImportError:
+except Exception as e:
     HAS_AER = False
-    pass
-
-logger = logging.getLogger(__name__)
-
+    logger.debug("AerProvider not loaded: '{}'".format(str(e)))
 
 _UNSUPPORTED_BACKENDS = ['unitary_simulator', 'clifford_simulator']
 
@@ -244,9 +244,10 @@ def get_provider_from_backend(backend):
     Raises:
         ImportError: Failed to find provider
     """
-    known_providers = {'AerProvider': 'qiskit.Aer',
+    known_providers = {
                        'BasicAerProvider': 'qiskit.BasicAer',
-                       'IBMQProvider': 'qiskit.IBMQ'
+                       'AerProvider': 'qiskit.Aer',
+                       'IBMQProvider': 'qiskit.IBMQ',
                        }
     if isinstance(backend, BaseBackend):
         provider = backend.provider()

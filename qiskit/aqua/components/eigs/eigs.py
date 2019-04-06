@@ -55,7 +55,7 @@ class Eigenvalues(Pluggable):
         """Construct the eigenvalue estimation quantum circuit.
 
         Args:
-            mode (str): 'vector' or 'circuit'
+            mode (str): 'matrix' or 'circuit'
             register (QuantumRegister): register for circuit construction
                         where eigenvalues will be stored.
 
@@ -68,7 +68,7 @@ class Eigenvalues(Pluggable):
         """Construct the inverse eigenvalue estimation quantum circuit.
 
         Args:
-            mode (str): consctruction mode, 'vector' not supported
+            mode (str): consctruction mode, 'matrix' not supported
             circuit (QuantumCircuit): the quantum circuit to invert
             inreg (QuantumRegister): the input quantum register
             outreg (QuantumRegister): the output quantum register
@@ -77,13 +77,13 @@ class Eigenvalues(Pluggable):
             QuantumCircuit object for of the inverted eigenvalue estimation
             circuit.
         """
-        if mode == 'vector':
-            raise NotImplementedError('Mode vector not supported.')
+        if mode == 'matrix':
+            raise NotImplementedError('The matrix mode is not supported.')
         if circuit is None:
             raise ValueError('Circuit was not constructed beforehand.')
-        qc = QuantumCircuit(inreg, outreg)
-        for gate in reversed(circuit.data):
-            gate.reapply(qc)
-            qc.data[-1].inverse()
-        self._inverse = qc
+        # qc = QuantumCircuit(inreg, outreg)
+        # for gate in reversed(circuit.data):
+        #     gate.reapply(qc)
+        #     qc.data[-1].inverse()
+        self._inverse = circuit.inverse()
         return self._inverse

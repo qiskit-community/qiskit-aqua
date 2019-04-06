@@ -15,9 +15,12 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit import QuantumRegister, QuantumCircuit
-from qiskit.aqua.components.reciprocals import Reciprocal
 import numpy as np
+
+from qiskit import QuantumRegister, QuantumCircuit
+
+from qiskit.aqua.components.reciprocals import Reciprocal
+from qiskit.aqua.circuits.gates import mct
 
 
 class LongDivision(Reciprocal):
@@ -175,7 +178,7 @@ class LongDivision(Reciprocal):
                 for i in range(n):
                     qc2.cx(r, a[i]) 
                 
-                un_qc = qc2.reverse()        
+                un_qc = qc2.mirror()
                 un_qc.cx(r, z[0])   
                 return un_qc
             
@@ -265,15 +268,15 @@ class LongDivision(Reciprocal):
         """Construct the Long Division Rotation circuit.
 
         Args:
-            mode (str): consctruction mode, 'vector' not supported
+            mode (str): consctruction mode, 'matrix' not supported
             inreg (QuantumRegister): input register, typically output register of Eigenvalues
 
         Returns:
             QuantumCircuit containing the Long Division Rotation circuit.
         """
 
-        if mode == 'vector':
-            raise NotImplementedError('mode vector not supported')
+        if mode == 'matrix':
+            raise NotImplementedError('The matrix mode is not supported.')
         self._ev = inreg
 
         if self._scale == 0:

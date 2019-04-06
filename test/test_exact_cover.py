@@ -19,8 +19,7 @@ import numpy as np
 import json
 
 from test.common import QiskitAquaTestCase
-from qiskit.aqua import get_aer_backend
-
+from qiskit import BasicAer
 from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import EnergyInput
 from qiskit.aqua.translators.ising import exactcover
@@ -81,7 +80,7 @@ class TestExactCover(QiskitAquaTestCase):
         algorithm_cfg = {
             'name': 'VQE',
             'operator_mode': 'matrix',
-            'batch_mode': True
+            'max_evals_grouped': 2
         }
 
         optimizer_cfg = {
@@ -99,7 +98,7 @@ class TestExactCover(QiskitAquaTestCase):
             'optimizer': optimizer_cfg,
             'variational_form': var_form_cfg
         }
-        backend = get_aer_backend('statevector_simulator')
+        backend = BasicAer.get_backend('statevector_simulator')
         result = run_algorithm(params, self.algo_input, backend=backend)
         x = exactcover.sample_most_likely(len(self.list_of_subsets), result['eigvecs'][0])
         ising_sol = exactcover.get_solution(x)
