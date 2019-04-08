@@ -79,7 +79,18 @@ class Harmonic(Potential):
 
             elif ordering == 'reversed':
                 for i in range(1<<self._num_qubits):
-                    j = (1<<self._num_qubits)-1-i
+                    bin_i = np.fromstring(np.binary_repr(i,width=self._num_qubits), dtype='S1').astype(int)
+                    print(bin_i)
+                    for k in range(int(self._num_qubits/2)):
+                        i1 = bin_i[k]
+                        i2 = bin_i[self._num_qubits-1-k]
+                        bin_i[self._num_qubits-1-k]=i1
+                        bin_i[k]=i2
+                    j = 0
+                    for k in range(self._num_qubits):
+                        ki = int(bin_i[self._num_qubits-1-k])
+                        j+= 2**k * ki
+
                     circ[j,j]=-1.j * 0.5 * self._c * (self._x0 + i*self._delta)**2 * self._tau
 
             else:

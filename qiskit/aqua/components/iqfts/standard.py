@@ -53,25 +53,16 @@ class Standard(IQFT):
         elif mode == 'circuit':
             circuit, qubits = set_up(circuit, qubits, self._num_qubits)
 
-            for j in reversed(range(self._num_qubits-1,-1,-1)):
+            for j in reversed(range(self._num_qubits - 1, -1, -1)):
                 circuit.u2(0, np.pi, qubits[j])
-                for k in reversed(range(self._num_qubits-1,j,-1)):
-                    lam = -1.0 * pi / float(2 ** (k-j))
+                for k in reversed(range(self._num_qubits - 1, j, -1)):
+                    lam = -1.0 * pi / float(2 ** (k - j))
                     circuit.u1(lam / 2, qubits[j])
                     circuit.cx(qubits[j], qubits[k])
                     circuit.u1(-lam / 2, qubits[k])
                     circuit.cx(qubits[j], qubits[k])
                     circuit.u1(lam / 2, qubits[k])
             return circuit
-            # for j in range(self._num_qubits-1,-1,-1):
-            #     for k in range(self._num_qubits-1,j,-1):
-            #         lam = 1.0 * pi / float(2 ** (k-j))
-            #         circuit.u1(lam / 2, qubits[j])
-            #         circuit.cx(qubits[j], qubits[k])
-            #         circuit.u1(-lam / 2, qubits[k])
-            #         circuit.cx(qubits[j], qubits[k])
-            #         circuit.u1(lam / 2, qubits[k])
-            #     circuit.u2(0, np.pi, qubits[j])
 
         else:
             raise ValueError('Mode should be either "vector" or "circuit"')

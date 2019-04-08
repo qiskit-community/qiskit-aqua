@@ -50,20 +50,10 @@ class Standard(QFT):
             # QFT: \omega = exp(2*pi*i/N) ; DFT: \omega = exp(-2*pi*i/N)
             # so linalg.inv(linalg.dft()) is correct for QFT
             return linalg.inv(linalg.dft(2 ** self._num_qubits, scale='sqrtn'))
+            #return np.conj(linalg.dft(2 ** self._num_qubits, scale='sqrtn').T)
             #return linalg.dft(2 ** self._num_qubits, scale='sqrtn')
         elif mode == 'circuit':
             circuit, qubits = set_up(circuit, qubits, self._num_qubits)
-
-            # circuit.swap(qubits[0],qubits[1])
-            # for j in range(self._num_qubits):
-            #     for k in range(j):
-            #         lam = 1.0 * pi / float(2 ** (j-k))
-            #         circuit.u1(lam / 2, qubits[j])
-            #         circuit.cx(qubits[j], qubits[k])
-            #         circuit.u1(-lam / 2, qubits[k])
-            #         circuit.cx(qubits[j], qubits[k])
-            #         circuit.u1(lam / 2, qubits[k])
-            #     circuit.u2(0, np.pi, qubits[j])j
 
             for j in range(self._num_qubits-1,-1,-1):
                 for k in range(self._num_qubits-1,j,-1):
