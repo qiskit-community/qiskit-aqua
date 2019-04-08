@@ -131,25 +131,23 @@ class CircuitCache:
                 if len(ops) > 0:
                     raise AquaError("Circuit shape does not match qobj, found extra {} in circuit".format(type_and_qubits))
         if self.cache_file is not None and len(self.cache_file) > 0:
-            cache_handler = open(self.cache_file, 'wb')
-            qobj_dicts = [qob.to_dict() for qob in self.qobjs]
-            pickle.dump({'qobjs': qobj_dicts,
-                         'mappings': self.mappings,
-                         'transpile': self.cache_transpiled_circuits},
-                        cache_handler,
-                        protocol=pickle.HIGHEST_PROTOCOL)
-            cache_handler.close()
-            logger.debug("Circuit cache saved to file: {}".format(self.cache_file))
+            with open(self.cache_file, 'wb') as cache_handler:
+                qobj_dicts = [qob.to_dict() for qob in self.qobjs]
+                pickle.dump({'qobjs': qobj_dicts,
+                             'mappings': self.mappings,
+                             'transpile': self.cache_transpiled_circuits},
+                            cache_handler,
+                            protocol=pickle.HIGHEST_PROTOCOL)
+                logger.debug("Circuit cache saved to file: {}".format(self.cache_file))
 
     def try_loading_cache_from_file(self):
         if len(self.qobjs) == 0 and self.cache_file is not None and len(self.cache_file) > 0:
-            cache_handler = open(self.cache_file, "rb")
-            cache = pickle.load(cache_handler, encoding="ASCII")
-            cache_handler.close()
-            self.qobjs = [Qobj.from_dict(qob) for qob in cache['qobjs']]
-            self.mappings = cache['mappings']
-            self.cache_transpiled_circuits = cache['transpile']
-            logger.debug("Circuit cache loaded from file: {}".format(self.cache_file))
+            with open(self.cache_file, "rb") as cache_handler:
+                cache = pickle.load(cache_handler, encoding="ASCII")
+                self.qobjs = [Qobj.from_dict(qob) for qob in cache['qobjs']]
+                self.mappings = cache['mappings']
+                self.cache_transpiled_circuits = cache['transpile']
+                logger.debug("Circuit cache loaded from file: {}".format(self.cache_file))
 
     # Note that this function overwrites the previous cached qobj for speed
     def load_qobj_from_cache(self, circuits, chunk, run_config=None):
