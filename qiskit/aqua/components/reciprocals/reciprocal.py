@@ -48,7 +48,7 @@ class Reciprocal(Pluggable):
         """Construct the initial state circuit.
 
         Args:
-            mode (str): 'vector' or 'circuit'
+            mode (str): 'matrix' or 'circuit'
             register (QuantumRegister): register for circuit construction.
             circuit (QuantumCircuit): circuit for construction.
 
