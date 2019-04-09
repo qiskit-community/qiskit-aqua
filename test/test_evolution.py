@@ -73,7 +73,11 @@ class TestEvolution(QiskitAquaTestCase):
 
         # get the exact state_out from raw matrix multiplication
         state_out_exact = qubit_op.evolve(
-            state_in.construct_circuit('vector'), evo_time, 'matrix', 0)
+            state_in=state_in.construct_circuit('vector'),
+            evo_time=evo_time,
+            evo_mode='matrix',
+            num_time_slices=0
+        )
         # self.log.debug('exact:\n{}'.format(state_out_exact))
         qubit_op_temp = copy.deepcopy(qubit_op)
         for expansion_mode in ['trotter', 'suzuki']:
@@ -86,8 +90,10 @@ class TestEvolution(QiskitAquaTestCase):
                     self.log.debug(
                         'With expansion order {}:'.format(expansion_order))
                 state_out_matrix = qubit_op.evolve(
-                    state_in.construct_circuit(
-                        'vector'), evo_time, 'matrix', num_time_slices,
+                    state_in=state_in.construct_circuit('vector'),
+                    evo_time=evo_time,
+                    evo_mode='matrix',
+                    num_time_slices=num_time_slices,
                     expansion_mode=expansion_mode,
                     expansion_order=expansion_order
                 )
@@ -97,7 +103,9 @@ class TestEvolution(QiskitAquaTestCase):
                 qc += state_in.construct_circuit(
                     'circuit', quantum_registers)
                 qc += qubit_op.evolve(
-                    None, evo_time, 'circuit', num_time_slices,
+                    evo_time=evo_time,
+                    evo_mode='circuit',
+                    num_time_slices=num_time_slices,
                     quantum_registers=quantum_registers,
                     expansion_mode=expansion_mode,
                     expansion_order=expansion_order,

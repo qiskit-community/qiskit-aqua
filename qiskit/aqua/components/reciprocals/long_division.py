@@ -268,15 +268,15 @@ class LongDivision(Reciprocal):
         """Construct the Long Division Rotation circuit.
 
         Args:
-            mode (str): consctruction mode, 'vector' not supported
+            mode (str): consctruction mode, 'matrix' not supported
             inreg (QuantumRegister): input register, typically output register of Eigenvalues
 
         Returns:
             QuantumCircuit containing the Long Division Rotation circuit.
         """
 
-        if mode == 'vector':
-            raise NotImplementedError('mode vector not supported')
+        if mode == 'matrix':
+            raise NotImplementedError('The matrix mode is not supported.')
         self._ev = inreg
 
         if self._scale == 0:
