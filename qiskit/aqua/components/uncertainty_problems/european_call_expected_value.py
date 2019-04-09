@@ -19,7 +19,7 @@ The European Call Option Expected Value.
 """
 import numpy as np
 from qiskit.aqua.components.uncertainty_problems import UncertaintyProblem
-from qiskit.aqua.utils.circuit_utils import cry, ccry, multi_cry_q
+from qiskit.aqua.circuits.gates import *
 from qiskit.aqua.components.uncertainty_problems.fixed_value_comparator import FixedValueComparator
 
 
@@ -48,23 +48,31 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
                     'default': 0.5
                 },
                 'i_state': {
-                    'type': 'array',
+                    'type': ['array', 'null'],
                     'items': {
                         'type': 'integer'
                     },
                     'default': None
                 },
                 'i_compare': {
-                    'type': 'integer',
+                    'type': ['integer', 'null'],
                     'default': None
                 },
                 'i_objective': {
-                    'type': 'integer',
+                    'type': ['integer', 'null'],
                     'default': None
                 }
             },
             'additionalProperties': False
-        }
+        },
+        'depends': [
+            {
+                'pluggable_type': 'univariate_distribution',
+                'default': {
+                    'name': 'NormalDistribution'
+                }
+            },
+        ],
     }
 
     def __init__(self, uncertainty_model, strike_price, c_approx, i_state=None, i_compare=None, i_objective=None):
@@ -140,9 +148,9 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
 
         # apply approximate payoff function
         qc.ry(2 * self.offset_angle_zero, q_objective)
-        cry(2 * self.offset_angle, q_compare, q_objective, qc)
+        qc.cry(2 * self.offset_angle, q_compare, q_objective)
         for i in self._params['i_state']:
-            ccry(2 * self.slope_angle * 2 ** i, q_compare, q[i], q_objective, qc)
+            qc.mcry(2 * self.slope_angle * 2 ** i, [q_compare, q[i]], q_objective, None)
 
     def build_inverse(self, qc, q, q_ancillas=None, params=None):
         if params is None:
@@ -154,9 +162,9 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
 
         # apply approximate payoff function
         qc.ry(-2 * self.offset_angle_zero, q_objective)
-        cry(-2 * self.offset_angle, q_compare, q_objective, qc)
+        qc.cry(-2 * self.offset_angle, q_compare, q_objective)
         for i in self._params['i_state']:
-            ccry(-2 * self.slope_angle * 2 ** i, q_compare, q[i], q_objective, qc)
+            qc.mcry(-2 * self.slope_angle * 2 ** i, [q_compare, q[i]], q_objective, None)
 
         # apply comparator to compare qubit
         self._comparator.build_inverse(qc, q, q_ancillas, params)
@@ -179,10 +187,10 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
         self._comparator.build_controlled(qc, q, q_control, q_ancillas, params)
 
         # apply approximate payoff function
-        cry(2 * self.offset_angle_zero, q_control, q_objective, qc)
-        ccry(2 * self.offset_angle, q_control, q_compare, q_objective, qc)
+        qc.cry(2 * self.offset_angle_zero, q_control, q_objective)
+        qc.mcry(2 * self.offset_angle, [q_control, q_compare], q_objective, None)
         for i in self._params['i_state']:
-            multi_cry_q(2 * self.slope_angle * 2 ** i, [q_control, q_compare, q[i]], q_objective, q_ancillas, qc)
+            qc.mcry(2 * self.slope_angle * 2 ** i, [q_control, q_compare, q[i]], q_objective, q_ancillas)
 
     def build_controlled_inverse(self, qc, q, q_control, q_ancillas=None, params=None):
         if params is None:
@@ -193,10 +201,10 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
         q_objective = q[params['i_objective']]
 
         # apply approximate payoff function
-        cry(-2 * self.offset_angle_zero, q_control, q_objective, qc)
-        ccry(-2 * self.offset_angle, q_control, q_compare, q_objective, qc)
+        qc.cry(-2 * self.offset_angle_zero, q_control, q_objective)
+        mcry(-2 * self.offset_angle, [q_control, q_compare], q_objective, None, qc)
         for i in self._params['i_state']:
-            multi_cry_q(-2 * self.slope_angle * 2 ** i, [q_control, q_compare, q[i]], q_objective, q_ancillas, qc)
+            mcry(-2 * self.slope_angle * 2 ** i, [q_control, q_compare, q[i]], q_objective, q_ancillas, qc)
 
         # apply comparator to compare qubit
         self._comparator.build_controlled_inverse(qc, q, q_control, q_ancillas, params)

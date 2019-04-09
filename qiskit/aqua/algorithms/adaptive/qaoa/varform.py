@@ -68,8 +68,12 @@ class QAOAVarForm:
         circuit.u2(0, np.pi, q)
         for idx in range(self._p):
             beta, gamma = angles[idx], angles[idx + self._p]
-            circuit += self._cost_operator.evolve(None, gamma, 'circuit', 1, quantum_registers=q)
-            circuit += self._mixer_operator.evolve(None, beta, 'circuit', 1, quantum_registers=q)
+            circuit += self._cost_operator.evolve(
+                evo_time=gamma, evo_mode='circuit', num_time_slices=1, quantum_registers=q
+            )
+            circuit += self._mixer_operator.evolve(
+                evo_time=beta, evo_mode='circuit', num_time_slices=1, quantum_registers=q
+            )
         return circuit
 
     @property
