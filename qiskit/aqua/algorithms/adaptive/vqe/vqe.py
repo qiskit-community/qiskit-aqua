@@ -282,11 +282,16 @@ class VQE(VQAlgorithm):
         self._quantum_instance.circuit_summary = True
 
         self._eval_count = 0
+
+        grad_fn = None
+        if self._gradient is not None:
+            grad_fn = self._gradient_function_wrapper
+
         self._ret = self.find_minimum(initial_point=self.initial_point,
                                       var_form=self.var_form,
                                       cost_fn=self._energy_evaluation,
                                       optimizer=self.optimizer,
-                                      gradient_fn = self._gradient_function_wrapper)
+                                      gradient_fn = grad_fn)
 
         if self._ret['num_optimizer_evals'] is not None and self._eval_count >= self._ret['num_optimizer_evals']:
             self._eval_count = self._ret['num_optimizer_evals']

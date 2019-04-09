@@ -317,11 +317,16 @@ class QSVMVariational(VQAlgorithm):
             self.initial_point = self.random.randn(self._var_form.num_parameters)
 
         self._eval_count = 0
+
+        grad_fn = None
+        if self._gradient is not None:
+            grad_fn = self._gradient_function_wrapper
+
         self._ret = self.find_minimum(initial_point=self.initial_point,
                                       var_form=self.var_form,
                                       cost_fn=self._cost_function_wrapper,
                                       optimizer=self.optimizer,
-                                      gradient_fn = self._gradient_function_wrapper # func for computing gradient
+                                      gradient_fn = grad_fn # func for computing gradient
                                       )
 
         if self._ret['num_optimizer_evals'] is not None and self._eval_count >= self._ret['num_optimizer_evals']:
