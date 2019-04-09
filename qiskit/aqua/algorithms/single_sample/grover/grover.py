@@ -29,7 +29,7 @@ from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.utils import get_subsystem_density_matrix
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.components.initial_states import Custom
-
+from qiskit.aqua.circuits.gates import mct
 
 logger = logging.getLogger(__name__)
 
@@ -94,7 +94,7 @@ class Grover(QuantumAlgorithm):
             {
                 'pluggable_type': 'oracle',
                 'default': {
-                     'name': 'LogicExpressionOracle',
+                     'name': 'LogicalExpressionOracle',
                 },
             },
         ],
@@ -116,12 +116,8 @@ class Grover(QuantumAlgorithm):
         self._mct_mode = mct_mode
         self._init_state = init_state if init_state else Custom(len(oracle.variable_register), state='uniform')
         self._init_state_circuit = self._init_state.construct_circuit(mode='circuit', register=oracle.variable_register)
-        self._init_state_circuit_inverse = self._init_state_circuit.copy()
-        self._init_state_circuit_inverse.data = [
-            g.inverse() for g in reversed(
-                self._init_state_circuit_inverse.data
-            )
-        ]
+        self._init_state_circuit_inverse = self._init_state_circuit.inverse()
+
         self._diffusion_circuit = self._construct_diffusion_circuit()
         self._max_num_iterations = np.ceil(2 ** (len(oracle.variable_register) / 2))
         self._incremental = incremental

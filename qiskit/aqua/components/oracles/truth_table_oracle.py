@@ -24,18 +24,132 @@ import math
 import numpy as np
 from functools import reduce
 
+from dlx import DLX
 from pyeda.inter import exprvars, And, Xor
 from qiskit import QuantumRegister, QuantumCircuit
 
 from qiskit.aqua import AquaError
-from qiskit.aqua.utils import ESOP, get_prime_implicants, get_exact_covers
+from qiskit.aqua.circuits import ESOP
 from qiskit.aqua.components.oracles import Oracle
+from qiskit.aqua.utils.arithmetic import is_power_of_2
 
 logger = logging.getLogger(__name__)
 
 
-def is_power_of_2(num):
-    return num != 0 and ((num & (num - 1)) == 0)
+def get_prime_implicants(ones=None, dcs=None):
+    """
+    Compute all prime implicants for a truth table using the Quine-McCluskey Algorithm
+
+    Args:
+        ones (list of int): The list of integers corresponding to '1' outputs
+        dcs (list of int): The list of integers corresponding to don't-cares
+
+    Return:
+        list of lists of int, representing all prime implicants
+    """
+
+    def combine_terms(terms, num1s_dict=None):
+        if num1s_dict is None:
+            num1s_dict = {}
+            for num in terms:
+                num1s = bin(num).count('1')
+                if not num1s in num1s_dict:
+                    num1s_dict[num1s] = [num]
+                else:
+                    num1s_dict[num1s].append(num)
+
+        new_implicants = {}
+        new_num1s_dict = {}
+        prime_dict = {mt: True for mt in sorted(terms)}
+        cur_num1s, max_num1s = min(num1s_dict.keys()), max(num1s_dict.keys())
+        while cur_num1s < max_num1s:
+            if cur_num1s in num1s_dict and (cur_num1s + 1) in num1s_dict:
+                for cur_term in sorted(num1s_dict[cur_num1s]):
+                    for next_term in sorted(num1s_dict[cur_num1s + 1]):
+                        if isinstance(cur_term, int):
+                            diff_mask = dc_mask = cur_term ^ next_term
+                            implicant_mask = cur_term & next_term
+                        elif isinstance(cur_term, tuple):
+                            if terms[cur_term][1] == terms[next_term][1]:
+                                diff_mask = terms[cur_term][0] ^ terms[next_term][0]
+                                dc_mask = diff_mask | terms[cur_term][1]
+                                implicant_mask = terms[cur_term][0] & terms[next_term][0]
+                            else:
+                                continue
+                        else:
+                            raise AquaError('Unexpected type: {}.'.format(type(cur_term)))
+                        if bin(diff_mask).count('1') == 1:
+                            prime_dict[cur_term] = False
+                            prime_dict[next_term] = False
+                            if isinstance(cur_term, int):
+                                cur_implicant = (cur_term, next_term)
+                            elif isinstance(cur_term, tuple):
+                                cur_implicant = tuple(sorted((*cur_term, *next_term)))
+                            else:
+                                raise AquaError('Unexpected type: {}.'.format(type(cur_term)))
+                            new_implicants[cur_implicant] = (
+                                implicant_mask,
+                                dc_mask
+                            )
+                            num1s = bin(implicant_mask).count('1')
+                            if not num1s in new_num1s_dict:
+                                new_num1s_dict[num1s] = [cur_implicant]
+                            else:
+                                if not cur_implicant in new_num1s_dict[num1s]:
+                                    new_num1s_dict[num1s].append(cur_implicant)
+            cur_num1s += 1
+        return new_implicants, new_num1s_dict, prime_dict
+
+    terms = ones + dcs
+    cur_num1s_dict = None
+
+    prime_implicants = []
+
+    while True:
+        next_implicants, next_num1s_dict, cur_prime_dict = combine_terms(terms, num1s_dict=cur_num1s_dict)
+        for implicant in cur_prime_dict:
+            if cur_prime_dict[implicant]:
+                if isinstance(implicant, int):
+                    if implicant not in dcs:
+                        prime_implicants.append((implicant,))
+                else:
+                    if not set.issubset(set(implicant), dcs):
+                        prime_implicants.append(implicant)
+        if next_implicants:
+            terms = next_implicants
+            cur_num1s_dict = next_num1s_dict
+        else:
+            break
+
+    return prime_implicants
+
+
+def get_exact_covers(cols, rows, num_cols=None):
+    """
+    Use Algorithm X to get all solutions to the exact cover problem
+
+    https://en.wikipedia.org/wiki/Knuth%27s_Algorithm_X
+
+    Args:
+          cols (list of int): A list of integers representing the columns to be covered
+          rows (list of list of int): A list of lists of integers representing the rows
+          num_cols (int): The total number of columns
+
+    Returns:
+        All exact covers
+    """
+    if num_cols is None:
+        num_cols = max(cols) + 1
+    ec = DLX([(c, 0 if c in cols else 1) for c in range(num_cols)])
+    ec.appendRows([[c] for c in cols])
+    ec.appendRows(rows)
+    exact_covers = []
+    for s in ec.solve():
+        cover = []
+        for i in s:
+            cover.append(ec.getRowList(i))
+        exact_covers.append(cover)
+    return exact_covers
 
 
 class TruthTableOracle(Oracle):
@@ -57,7 +171,7 @@ class TruthTableOracle(Oracle):
                 },
                 "optimization": {
                     "type": "string",
-                    "default": "qm-dlx",
+                    "default": "off",
                     'oneOf': [
                         {
                             'enum': [

@@ -157,10 +157,9 @@ class EOH(QuantumAlgorithm):
         qc = self._initial_state.construct_circuit('circuit', quantum_registers)
 
         qc += self._evo_operator.evolve(
-            None,
-            self._evo_time,
-            'circuit',
-            self._num_time_slices,
+            evo_time=self._evo_time,
+            evo_mode='circuit',
+            num_time_slices=self._num_time_slices,
             quantum_registers=quantum_registers,
             expansion_mode=self._expansion_mode,
             expansion_order=self._expansion_order,

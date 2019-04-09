@@ -20,7 +20,6 @@ Methods for pluggable objects discovery, registration, information
 """
 
 import logging
-import sys
 import os
 import pkgutil
 import importlib
@@ -47,7 +46,8 @@ class PluggableType(Enum):
     FEATURE_MAP = 'feature_map'
     MULTICLASS_EXTENSION = 'multiclass_extension'
     UNCERTAINTY_PROBLEM = 'uncertainty_problem'
-    UNCERTAINTY_MODEL = 'uncertainty_model'
+    UNIVARIATE_DISTRIBUTION = 'univariate_distribution'
+    MULTIVARIATE_DISTRIBUTION = 'multivariate_distribution'
     INPUT = 'input'
     EIGENVALUES = 'eigs'
     RECIPROCAL = 'reciprocal'
@@ -59,7 +59,8 @@ def _get_pluggables_types_dictionary():
     Any new pluggable type should be added here
     """
     from qiskit.aqua.components.uncertainty_problems import UncertaintyProblem
-    from qiskit.aqua.components.random_distributions import RandomDistribution
+    from qiskit.aqua.components.uncertainty_models import UnivariateDistribution
+    from qiskit.aqua.components.uncertainty_models import MultivariateDistribution
     from qiskit.aqua.components.optimizers import Optimizer
     from qiskit.aqua.algorithms.quantum_algorithm import QuantumAlgorithm
     from qiskit.aqua.components.variational_forms import VariationalForm
@@ -84,7 +85,8 @@ def _get_pluggables_types_dictionary():
         PluggableType.FEATURE_MAP: FeatureMap,
         PluggableType.MULTICLASS_EXTENSION: MulticlassExtension,
         PluggableType.UNCERTAINTY_PROBLEM: UncertaintyProblem,
-        PluggableType.UNCERTAINTY_MODEL: RandomDistribution,
+        PluggableType.UNIVARIATE_DISTRIBUTION: UnivariateDistribution,
+        PluggableType.MULTIVARIATE_DISTRIBUTION: MultivariateDistribution,
         PluggableType.INPUT: AlgorithmInput,
         PluggableType.EIGENVALUES: Eigenvalues,
         PluggableType.RECIPROCAL: Reciprocal
@@ -165,10 +167,18 @@ def _discover_entry_point_pluggables():
             logger.debug("Failed to load entry point '{}' error {}".format(entry_point, str(e)))
 
 
-def _discover_local_pluggables_in_dirs(directory,
-                                       parentname,
-                                       names_to_exclude=_NAMES_TO_EXCLUDE,
-                                       folders_to_exclude=_FOLDERS_TO_EXCLUDE):
+def _discover_local_pluggables(directory=os.path.dirname(__file__),
+                               parentname=os.path.splitext(__name__)[0],
+                               names_to_exclude=_NAMES_TO_EXCLUDE,
+                               folders_to_exclude=_FOLDERS_TO_EXCLUDE):
+    """
+    Discovers the pluggable modules on the directory and subdirectories of the current module
+    and attempts to register them. Pluggable modules should subclass Pluggable Base classes.
+    Args:
+        directory (str, optional): Directory to search for pluggable. Defaults
+            to the directory of this module.
+        parentname (str, optional): Module parent name. Defaults to current directory name
+    """
     for _, name, ispackage in pkgutil.iter_modules([directory]):
         if ispackage:
             continue
@@ -202,38 +212,7 @@ def _discover_local_pluggables_in_dirs(directory,
     for item in sorted(os.listdir(directory)):
         fullpath = os.path.join(directory, item)
         if item not in folders_to_exclude and not item.endswith('dSYM') and os.path.isdir(fullpath):
-            _discover_local_pluggables_in_dirs(
-                fullpath, parentname + '.' + item, names_to_exclude, folders_to_exclude)
-
-
-def _discover_local_pluggables(directory=os.path.dirname(__file__),
-                               parentname=os.path.splitext(__name__)[0],
-                               names_to_exclude=_NAMES_TO_EXCLUDE,
-                               folders_to_exclude=_FOLDERS_TO_EXCLUDE):
-    """
-    Discovers the pluggable modules on the directory and subdirectories of the current module
-    and attempts to register them. Pluggable modules should subclass Pluggable Base classes.
-    Args:
-        directory (str, optional): Directory to search for pluggable. Defaults
-            to the directory of this module.
-        parentname (str, optional): Module parent name. Defaults to current directory name
-    """
-
-    def _get_sys_path(directory):
-        syspath = [os.path.abspath(directory)]
-        for item in os.listdir(directory):
-            fullpath = os.path.join(directory, item)
-            if item != '__pycache__' and not item.endswith('dSYM') and os.path.isdir(fullpath):
-                syspath += _get_sys_path(fullpath)
-
-        return syspath
-
-    syspath_save = sys.path
-    sys.path = sys.path + _get_sys_path(directory)
-    try:
-        _discover_local_pluggables_in_dirs(directory, parentname)
-    finally:
-        sys.path = syspath_save
+            _discover_local_pluggables(fullpath, parentname + '.' + item, names_to_exclude, folders_to_exclude)
 
 
 def register_pluggable(cls):
@@ -353,16 +332,16 @@ def get_pluggable_class(pluggable_type, pluggable_name):
                 break
 
     if not isinstance(pluggable_type, PluggableType):
-        raise AquaError('Invalid pluggable type {} {}'.format(
-            pluggable_type, pluggable_name))
+        raise AquaError('Invalid pluggable type {} {}'.format(pluggable_type, pluggable_name))
 
     if pluggable_type not in _REGISTERED_PLUGGABLES:
-        raise AquaError('{} {} not registered'.format(
-            pluggable_type, pluggable_name))
+        raise AquaError('{} {} not registered'.format(pluggable_type, pluggable_name))
+
+    if len(pluggable_name) == 0:
+        raise AquaError('Unable to get class for pluggable {}: Missing name.'.format(pluggable_type))
 
     if pluggable_name not in _REGISTERED_PLUGGABLES[pluggable_type]:
-        raise AquaError('{} {} not registered'.format(
-            pluggable_type, pluggable_name))
+        raise AquaError("{} '{}' not registered".format(pluggable_type, pluggable_name))
 
     return _REGISTERED_PLUGGABLES[pluggable_type][pluggable_name].cls
 
@@ -387,16 +366,16 @@ def get_pluggable_configuration(pluggable_type, pluggable_name):
                 break
 
     if not isinstance(pluggable_type, PluggableType):
-        raise AquaError('Invalid pluggable type {} {}'.format(
-            pluggable_type, pluggable_name))
+        raise AquaError('Invalid pluggable type {} {}'.format(pluggable_type, pluggable_name))
 
     if pluggable_type not in _REGISTERED_PLUGGABLES:
-        raise AquaError('{} {} not registered'.format(
-            pluggable_type, pluggable_name))
+        raise AquaError('{} {} not registered'.format(pluggable_type, pluggable_name))
+
+    if len(pluggable_name) == 0:
+        raise AquaError('Unable to get configuration for pluggable {}: Missing name.'.format(pluggable_type))
 
     if pluggable_name not in _REGISTERED_PLUGGABLES[pluggable_type]:
-        raise AquaError('{} {} not registered'.format(
-            pluggable_type, pluggable_name))
+        raise AquaError('{} {} not registered'.format(pluggable_type, pluggable_name))
 
     return copy.deepcopy(_REGISTERED_PLUGGABLES[pluggable_type][pluggable_name].configuration)
 

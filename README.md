@@ -42,7 +42,7 @@ $ python
 
 ```python
 from qiskit import Aer
-from qiskit.aqua.components.oracles import LogicExpressionOracle
+from qiskit.aqua.components.oracles import LogicalExpressionOracle
 from qiskit.aqua.algorithms import Grover
 
 sat_cnf = """
@@ -56,14 +56,14 @@ p cnf 3 5
 """
 
 backend = Aer.get_backend('qasm_simulator')
-oracle = LogicExpressionOracle(sat_cnf)
+oracle = LogicalExpressionOracle(sat_cnf)
 algorithm = Grover(oracle)
 result = algorithm.run(backend)
 print(result["result"])
 ```
 
 The code above demonstrates how `Grover`’s search algorithm can be used with the
-`LogicExpressionOracle` to find one satisfying assignment
+`LogicalExpressionOracle` to find one satisfying assignment
 for the Satisfiability (SAT) problem instance encoded in the 
 [DIMACS CNF format](http://www.satcompetition.org/2009/format-benchmarks2009.html).
 The input string `sat_cnf` corresponds to the following Conjunctive Normal
