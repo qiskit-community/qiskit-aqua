@@ -110,14 +110,16 @@ class TestHHL(QiskitAquaTestCase):
         self.log.debug('Testing HHL with hermitian matrix')
 
         herm_params = self.params
-        herm_params['eigs']['num_ancillae'] = 7
-        herm_params['eigs']['num_time_slices'] = 100
-        #herm_params['eigs']['negative_evals'] = True
-        #herm_params['reciprocal']['negative_evals'] = True
+        herm_params['eigs']['num_ancillae'] = 6
+        #herm_params['eigs']['expansion_order'] = 3
+        herm_params['eigs']['num_time_slices'] = 80
+        herm_params['eigs']['negative_evals'] = True
+        herm_params['reciprocal']['negative_evals'] = True
+        #herm_params['reciprocal']['scale'] = 0.5
 
         matrix = [[0.+0.j, 0.+0.j, 1.+0.j, 1.+0.j],
-                  [0.+0.j, 0.+0.j, 0.+0.j, 1.+0.j],
-                  [1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j],
+                  [0.+0.j, 0.+0.j, 2.+0.j, 1.+0.j],
+                  [1.+0.j, 2.+0.j, 0.+0.j, 0.+0.j],
                   [1.+0.j, 1.+0.j, 0.+0.j, 0.+0.j]]
         vector = [1, 0, 1, 0]
 
@@ -133,7 +135,7 @@ class TestHHL(QiskitAquaTestCase):
         hhl_result = run_algorithm(herm_params, algo_input)
         hhl_solution = hhl_result['solution']
         hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
-
+        print(ref_result)
         # compare result
         fidelity = state_fidelity(ref_normed, hhl_normed)
         np.testing.assert_approx_equal(fidelity, 1, significant=2)
