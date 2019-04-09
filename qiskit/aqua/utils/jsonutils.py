@@ -35,6 +35,7 @@ def convert_dict_to_json(in_item):
     if in_item is None:
         return in_item
 
+    nonjson_key_list = []
     key_list = []
     for (item_index, item_iter) in enumerate(in_item):
         if isinstance(in_item, list):
@@ -49,18 +50,24 @@ def convert_dict_to_json(in_item):
             # ndarray's are not json compatible. Save the key.
             key_list.append(curkey)
 
+        if isinstance(in_item, dict) and not isinstance(curkey, str):
+            nonjson_key_list.append(curkey)
+
     # convert ndarray's to lists
     # split complex arrays into two lists because complex values are not
     # json compatible
     for curkey in key_list:
         if in_item[curkey].dtype == 'complex':
-            in_item[curkey + '_ndarray_imag'] = numpy.imag(
-                in_item[curkey]).tolist()
-            in_item[curkey + '_ndarray_real'] = numpy.real(
-                in_item[curkey]).tolist()
+            in_item[curkey + '_ndarray_imag'] = numpy.imag(in_item[curkey]).tolist()
+            in_item[curkey + '_ndarray_real'] = numpy.real(in_item[curkey]).tolist()
             in_item.pop(curkey)
         else:
             in_item[curkey] = in_item[curkey].tolist()
+
+    # if dictionary key is not string, convert it to string
+    for curkey in nonjson_key_list:
+        in_item[str(curkey)] = in_item[curkey]
+        del in_item[curkey]
 
     return in_item
 
