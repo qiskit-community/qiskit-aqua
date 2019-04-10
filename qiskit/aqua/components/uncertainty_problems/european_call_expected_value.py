@@ -115,14 +115,8 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
     def required_ancillas(self):
         num_uncertainty_ancillas = self._uncertainty_model.required_ancillas()
         num_comparator_ancillas = self._comparator.required_ancillas()
-        num_ancillas = num_uncertainty_ancillas + num_comparator_ancillas
+        num_ancillas = int(np.maximum(num_uncertainty_ancillas, num_comparator_ancillas))
         return num_ancillas
-
-    def required_ancillas_controlled(self):
-        num_uncertainty_ancillas = self._uncertainty_model.required_ancillas_controlled()
-        num_comparator_ancillas = self._comparator.required_ancillas_controlled()
-        num_ancillas_controlled = num_uncertainty_ancillas + num_comparator_ancillas
-        return num_ancillas_controlled
 
     def build(self, qc, q, q_ancillas=None, params=None):
         if params is None:
@@ -143,63 +137,3 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
         cry(2 * self.offset_angle, q_compare, q_objective, qc)
         for i in self._params['i_state']:
             ccry(2 * self.slope_angle * 2 ** i, q_compare, q[i], q_objective, qc)
-
-    def build_inverse(self, qc, q, q_ancillas=None, params=None):
-        if params is None:
-            params = self._params
-
-        # get qubits
-        q_compare = q[params['i_compare']]
-        q_objective = q[params['i_objective']]
-
-        # apply approximate payoff function
-        qc.ry(-2 * self.offset_angle_zero, q_objective)
-        cry(-2 * self.offset_angle, q_compare, q_objective, qc)
-        for i in self._params['i_state']:
-            ccry(-2 * self.slope_angle * 2 ** i, q_compare, q[i], q_objective, qc)
-
-        # apply comparator to compare qubit
-        self._comparator.build_inverse(qc, q, q_ancillas, params)
-
-        # apply uncertainty model
-        self._uncertainty_model.build_inverse(qc, q, q_ancillas, params)
-
-    def build_controlled(self, qc, q, q_control, q_ancillas=None, params=None):
-        if params is None:
-            params = self._params
-
-        # get qubits
-        q_compare = q[params['i_compare']]
-        q_objective = q[params['i_objective']]
-
-        # apply uncertainty model
-        self._uncertainty_model.build_controlled(qc, q, q_control, q_ancillas, params)
-
-        # apply comparator to compare qubit
-        self._comparator.build_controlled(qc, q, q_control, q_ancillas, params)
-
-        # apply approximate payoff function
-        cry(2 * self.offset_angle_zero, q_control, q_objective, qc)
-        ccry(2 * self.offset_angle, q_control, q_compare, q_objective, qc)
-        for i in self._params['i_state']:
-            multi_cry_q(2 * self.slope_angle * 2 ** i, [q_control, q_compare, q[i]], q_objective, q_ancillas, qc)
-
-    def build_controlled_inverse(self, qc, q, q_control, q_ancillas=None, params=None):
-        if params is None:
-            params = self._params
-
-        # get qubits
-        q_compare = q[params['i_compare']]
-        q_objective = q[params['i_objective']]
-
-        # apply approximate payoff function
-        cry(-2 * self.offset_angle_zero, q_control, q_objective, qc)
-        ccry(-2 * self.offset_angle, q_control, q_compare, q_objective, qc)
-        for i in self._params['i_state']:
-            multi_cry_q(-2 * self.slope_angle * 2 ** i, [q_control, q_compare, q[i]], q_objective, q_ancillas, qc)
-
-        # apply comparator to compare qubit
-        self._comparator.build_controlled_inverse(qc, q, q_control, q_ancillas, params)
-
-        # apply uncertainty model
-        self._uncertainty_model.build_controlled_inverse(qc, q, q_control, q_ancillas, params)
