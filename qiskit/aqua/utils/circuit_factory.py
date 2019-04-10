@@ -42,7 +42,7 @@ class CircuitFactory(ABC):
         return 0
 
     def required_ancillas_controlled(self):
-        return 0
+        return self.required_ancillas()
 
     def get_num_qubits(self):
         return self._num_target_qubits + self.required_ancillas()
@@ -92,8 +92,13 @@ class CircuitFactory(ABC):
         """
         uncontrolled_circuit = QuantumCircuit(*qc.qregs)
 
+        if params is not None:
+            use_basis_gates = params.get('use_basis_gates', True)
+        else:
+            use_basis_gates = True
+
         self.build(uncontrolled_circuit, q, q_ancillas, params)
-        controlled_circuit = get_controlled_circuit(uncontrolled_circuit, q_control)
+        controlled_circuit = get_controlled_circuit(uncontrolled_circuit, q_control, use_basis_gates=use_basis_gates)
         qc.extend(controlled_circuit)
 
     def build_controlled_inverse(self, qc, q, q_control, q_ancillas=None, params=None):
