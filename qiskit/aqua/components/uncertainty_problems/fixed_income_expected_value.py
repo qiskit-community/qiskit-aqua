@@ -19,7 +19,7 @@ The Fixed Income Expected Value.
 """
 
 from qiskit.aqua.components.uncertainty_problems import UncertaintyProblem
-from qiskit.aqua.utils.circuit_utils import cry
+from qiskit.aqua.circuits.gates import cry
 import numpy as np
 
 
@@ -29,6 +29,60 @@ class FixedIncomeExpectedValue(UncertaintyProblem):
 
     Evaluates a fixed income asset with uncertain interest rates.
     """
+
+    CONFIGURATION = {
+        'name': 'FixedIncomeExpectedValue',
+        'description': 'Fixed Income Expected Value',
+        'input_schema': {
+            '$schema': 'http://json-schema.org/schema#',
+            'id': 'FIEV_schema',
+            'type': 'object',
+            'properties': {
+                'A': {
+                    'type': 'array',
+                    'default': [[1.0, 0.0], [0.0, 1.0]]
+                },
+                'b': {
+                    'type': 'array',
+                    'items': {
+                        'type': 'number'
+                    },
+                    'default': [0.0, 0.0]
+                },
+                'cash_flow': {
+                    'type': 'array',
+                    'items': {
+                        'type': 'number'
+                    },
+                    'default': [1.0, 2.0]
+                },
+                'c_approx': {
+                    'type': 'number',
+                    'default': 0.125
+                },
+                'i_state': {
+                    'type': ['array', 'null'],
+                    'items': {
+                        'type': 'integer'
+                    },
+                    'default': None
+                },
+                'i_objective': {
+                    'type': ['integer', 'null'],
+                    'default': None
+                }
+            },
+            'additionalProperties': False
+        },
+        'depends': [
+            {
+                'pluggable_type': 'multivariate_distribution',
+                'default': {
+                    'name': 'MultivariateNormalDistribution'
+                }
+            },
+        ],
+    }
 
     def __init__(self, uncertainty_model, A, b, cash_flow, c_approx, i_state=None, i_objective=None):
         """
@@ -41,6 +95,10 @@ class FixedIncomeExpectedValue(UncertaintyProblem):
             cash_flow: cash flow time series
             c_approx: approximation scaling factor
         """
+        super().validate(locals())
+
+        if not isinstance(A, np.ndarray):
+            A = np.asarray(A)
 
         if i_state is None:
             i_state = list(range(uncertainty_model.num_target_qubits))
@@ -132,4 +190,4 @@ class FixedIncomeExpectedValue(UncertaintyProblem):
         # apply approximate payoff function
         qc.ry(2 * self.offset_angle, q_objective)
         for i in params['i_state']:
-            cry(2 * self.slope_angle[i], q[i], q_objective, qc)
+            qc.cry(2 * self.slope_angle[i], q[i], q_objective)

@@ -15,19 +15,17 @@
 # limitations under the License.
 # =============================================================================
 
-from .qpe.phase_estimation_circuit import PhaseEstimationCircuit
 from .grover.grover import Grover
-from .iqpe.iqpe import IQPE
+from .iterative_qpe.iqpe import IQPE
 from .qpe.qpe import QPE
-from .ae.ae import AmplitudeEstimation
+from .amplitude_estimation.ae import AmplitudeEstimation
 from .simon.simon import Simon
-from .dj.deutsch_jozsa import DeutschJozsa
-from .bv.bernstein_vazirani import BernsteinVazirani
+from .deutsch_josza.dj import DeutschJozsa
+from .bernstein_vazirani.bv import BernsteinVazirani
 from .hhl.hhl import HHL
 
 
 __all__ = [
-    'PhaseEstimationCircuit',
     'Grover',
     'IQPE',
     'QPE',

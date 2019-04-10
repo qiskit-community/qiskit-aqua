@@ -19,7 +19,7 @@ The European Call Option Expected Value.
 """
 import numpy as np
 from qiskit.aqua.components.uncertainty_problems import UncertaintyProblem
-from qiskit.aqua.utils.circuit_utils import cry, ccry, multi_cry_q
+from qiskit.aqua.circuits.gates import *
 from qiskit.aqua.components.uncertainty_problems.fixed_value_comparator import FixedValueComparator
 
 
@@ -48,23 +48,31 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
                     'default': 0.5
                 },
                 'i_state': {
-                    'type': 'array',
+                    'type': ['array', 'null'],
                     'items': {
                         'type': 'integer'
                     },
                     'default': None
                 },
                 'i_compare': {
-                    'type': 'integer',
+                    'type': ['integer', 'null'],
                     'default': None
                 },
                 'i_objective': {
-                    'type': 'integer',
+                    'type': ['integer', 'null'],
                     'default': None
                 }
             },
             'additionalProperties': False
-        }
+        },
+        'depends': [
+            {
+                'pluggable_type': 'univariate_distribution',
+                'default': {
+                    'name': 'NormalDistribution'
+                }
+            },
+        ],
     }
 
     def __init__(self, uncertainty_model, strike_price, c_approx, i_state=None, i_compare=None, i_objective=None):
@@ -134,6 +142,6 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
 
         # apply approximate payoff function
         qc.ry(2 * self.offset_angle_zero, q_objective)
-        cry(2 * self.offset_angle, q_compare, q_objective, qc)
+        qc.cry(2 * self.offset_angle, q_compare, q_objective)
         for i in self._params['i_state']:
-            ccry(2 * self.slope_angle * 2 ** i, q_compare, q[i], q_objective, qc)
+            qc.mcry(2 * self.slope_angle * 2 ** i, [q_compare, q[i]], q_objective, None)

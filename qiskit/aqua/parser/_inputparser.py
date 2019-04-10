@@ -144,6 +144,7 @@ class InputParser(BaseParser):
                 self._update_algorithm_input_schema()
             elif JSONSchema.PROBLEM == section_name:
                 self._update_input_problem()
+                self._update_algorithm_input_schema()
 
     @staticmethod
     def get_input_problems(input_name):
@@ -239,4 +240,3 @@ class InputParser(BaseParser):
 
         # no input solve this problem, remove section
         self.delete_section(PluggableType.INPUT.value)
-    

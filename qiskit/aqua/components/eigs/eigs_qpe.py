@@ -20,7 +20,7 @@ from qiskit import QuantumRegister
 from qiskit.aqua import Operator, AquaError
 from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.components.eigs import Eigenvalues
-from qiskit.aqua.algorithms.single_sample import PhaseEstimationCircuit
+from qiskit.aqua.circuits import PhaseEstimationCircuit
 
 
 class EigsQPE(Eigenvalues):
@@ -209,23 +209,22 @@ class EigsQPE(Eigenvalues):
         """ Construct the eigenvalues estimation using the PhaseEstimationCircuit
 
         Args:
-            mode (str): consctruction mode, 'vector' not supported
+            mode (str): consctruction mode, 'matrix' not supported
             register (QuantumRegister): the register to use for the quantum state
 
         Returns:
             the QuantumCircuit object for the constructed circuit
         """
 
-        if mode == 'vector':
-            raise ValueError('QPE only posslible as circuit not as vector.')
+        if mode == 'matrix':
+            raise ValueError('QPE is only possible as a circuit not as a matrix.')
 
-        pe = PhaseEstimationCircuit(operator=self._operator,
-                                    state_in=None, iqft=self._iqft,
-                                    num_time_slices=self._num_time_slices,
-                                    num_ancillae=self._num_ancillae,
-                                    expansion_mode=self._expansion_mode,
-                                    expansion_order=self._expansion_order,
-                                    evo_time=self._evo_time)
+        pe = PhaseEstimationCircuit(
+            operator=self._operator, state_in=None, iqft=self._iqft,
+            num_time_slices=self._num_time_slices, num_ancillae=self._num_ancillae,
+            expansion_mode=self._expansion_mode, expansion_order=self._expansion_order,
+            evo_time=self._evo_time
+        )
 
         a = QuantumRegister(self._num_ancillae)
         q = register
@@ -246,7 +245,7 @@ class EigsQPE(Eigenvalues):
         qs = [q[i] for i in range(1, len(q))]
         for qi in qs:
             qc.cx(sgn, qi)
-        self._ne_qfts[0].construct_circuit('circuit', qs, qc)
+        self._ne_qfts[0].construct_circuit(mode='circuit', qubits=qs, circuit=qc, do_swaps=False)
         for i, qi in enumerate(reversed(qs)):
             qc.cu1(2*np.pi/2**(i+1), sgn, qi)
-        self._ne_qfts[1].construct_circuit('circuit', qs, qc)
+        self._ne_qfts[1].construct_circuit(mode='circuit', qubits=qs, circuit=qc, do_swaps=False)
