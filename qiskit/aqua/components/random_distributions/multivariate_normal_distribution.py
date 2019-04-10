@@ -76,7 +76,7 @@ class MultivariateNormalDistribution(MultivariateDistribution):
         }
     }
 
-    def __init__(self, num_qubits, low, high, mu=None, sigma=None):
+    def __init__(self, num_qubits, low=None, high=None, mu=None, sigma=None):
         """
         Constructor.
 
@@ -90,10 +90,17 @@ class MultivariateNormalDistribution(MultivariateDistribution):
             sigma (array or list): representing co-variance matrix
         """
 
+        dimension = len(num_qubits)
+
         if mu is None:
-            mu = np.zeros(len(num_qubits))
+            mu = np.zeros(dimension)
         if sigma is None:
-            sigma = np.eye(len(num_qubits))
+            sigma = np.eye(dimension)
+        if low is None:
+            low = -np.ones(dimension)
+        if high is None:
+            high = np.ones(dimension)
+
 
         self.mu = mu
         self.sigma = sigma

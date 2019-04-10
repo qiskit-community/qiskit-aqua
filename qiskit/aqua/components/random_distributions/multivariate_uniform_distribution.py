@@ -69,7 +69,8 @@ class MultivariateUniformDistribution(MultivariateDistribution):
 
     def build(self, qc, q, q_ancillas=None, params=None):
         if params is None or params['i_state'] is None:
-            qc.h(q)
+            for i in range(sum(self.num_qubits)):
+                qc.h(q[i])
         else:
             for qubits in params['i_state']:
                 for i in qubits:

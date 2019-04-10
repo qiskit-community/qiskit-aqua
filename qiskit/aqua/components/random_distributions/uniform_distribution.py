@@ -64,7 +64,8 @@ class UniformDistribution(UnivariateDistribution):
 
     def build(self, qc, q, q_ancillas=None, params=None):
         if params is None or params['i_state'] is None:
-            qc.h(q)
+            for i in range(self.num_target_qubits):
+                qc.h(q[i])
         else:
             for i in params['i_state']:
                 qc.h(q[i])

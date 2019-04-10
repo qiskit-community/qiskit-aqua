@@ -29,7 +29,7 @@ class MultivariateDistribution(CircuitFactory):
     (Interface for discrete bounded uncertainty models assuming an equidistant grid)
     """
 
-    def __init__(self, num_qubits, probabilities, low, high):
+    def __init__(self, num_qubits, probabilities=None, low=None, high=None):
         """
         Constroctor
 
@@ -52,22 +52,38 @@ class MultivariateDistribution(CircuitFactory):
         # call super constructor
         super().__init__(num_target_qubits)
 
-        # normalize probabilities
-        probabilities = np.asarray(probabilities)
-        probabilities = probabilities / np.sum(probabilities)
-
         self._num_values = []
         for i in range(self._dimension):
             self._num_values += [2 ** num_qubits[i]]
-        self._probabilities = probabilities
-        self._probabilities_vector = np.reshape(probabilities, 2**num_target_qubits)
 
-        self._probabilities_vector = np.asarray(self._probabilities_vector)
-        self._low = low
-        self._high = high
-        self._values = []
-        for i in range(self._dimension):
-            self._values += [np.linspace(self._low[i], self._high[i], self._num_values[i])]
+        if probabilities is not None:
+
+            # normalize probabilities
+            probabilities = np.asarray(probabilities)
+            probabilities = probabilities / np.sum(probabilities)
+
+            self._probabilities = probabilities
+            self._probabilities_vector = np.reshape(probabilities, 2**num_target_qubits)
+            self._probabilities_vector = np.asarray(self._probabilities_vector)
+        else:
+            self._probabilities = None
+            self._probabilities_vector = None
+
+        if low is not None:
+            self._low = low
+        else:
+            self._low = np.zeros(self.dimension)
+
+        if high is not None:
+            self._high = high
+        else:
+            self._high = np.zeros(self.dimension)
+            for i in range(self.dimension):
+                self._high[i] = 2**num_qubits[i] - 1
+
+        # self._values = []
+        # for i in range(self._dimension):
+        #     self._values += [np.linspace(self._low[i], self._high[i], self._num_values[i])]
 
     @property
     def num_qubits(self):
