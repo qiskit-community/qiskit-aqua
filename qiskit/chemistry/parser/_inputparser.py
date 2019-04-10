@@ -277,6 +277,14 @@ class InputParser(BaseParser):
                 self._update_operator_input_schema()
             elif JSONSchema.PROBLEM == section_name:
                 self._update_operator_problem()
+                self._update_operator_input_schema()
+                # remove properties that are not valid for this operator
+                default_properties = self.get_section_default_properties(InputParser.OPERATOR)
+                if isinstance(default_properties, dict):
+                    properties = self.get_section_properties(InputParser.OPERATOR)
+                    for p_name in list(properties.keys()):
+                        if p_name != JSONSchema.NAME and p_name not in default_properties:
+                            self.delete_section_property(InputParser.OPERATOR, p_name)
             elif value is not None:
                 value = str(value).lower().strip()
                 if len(value) > 0 and self.section_is_driver(value):
@@ -587,8 +595,7 @@ class InputParser(BaseParser):
         if problem_name is None:
             raise QiskitChemistryError("No algorithm 'problem' section found on input.")
 
-        operator_name = self.get_section_property(
-            InputParser.OPERATOR, JSONSchema.NAME)
+        operator_name = self.get_section_property(InputParser.OPERATOR, JSONSchema.NAME)
         if operator_name is not None and problem_name in InputParser.get_operator_problems(operator_name):
             return
 
