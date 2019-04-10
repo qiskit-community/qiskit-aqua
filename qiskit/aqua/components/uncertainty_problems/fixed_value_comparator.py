@@ -14,115 +14,137 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-"""
-The Fixed Value Comparator.
-"""
-
 from qiskit.aqua.utils.circuit_factory import CircuitFactory
-from qiskit.aqua.circuits.gates import mct, logical_or
-
 import numpy as np
 
 
 class FixedValueComparator(CircuitFactory):
     """
-    The Fixed Value Comparator.
+    Fixed Value Comparator.
 
-    Operator compares basis states |i> against a given fixed level l and flips a target qubit if x >= l (or <= depending on parameters):
-    |x>|0> --> |x>|1> if x >= l and |x>|0> otherwise.
+    Operator compares basis states |i>_n against a classically given fixed value L and flips a target qubit if i >= L (or < depending on parameters):
+
+        |i>_n|0> --> |i>_n|1> if i >= L else |i>|0>
+
+    Operator is based on two's complement implementation of binary subtraction but only uses carry bits and no actual result bits.
+    If the most significant carry bit (= results bit) is 1, the "">=" condition is True otherwise it is False.
     """
 
-    def __init__(self, num_target_qubits, value, geq=True):
-        super().__init__(num_target_qubits)
+    def __init__(self, num_state_qubits, value, geq=True, i_state=None, i_target=None):
+        """
+        Initializes the fixed value comparator
+        :param num_target_qubits: total number of target qubits (n-1 state qubits and 1 result qubit)
+        :param value: fixed value to compare with
+        :param geq: evaluate ">=" condition or "<" condition
+        """
+        super().__init__(num_state_qubits + 1)
+        self._num_state_qubits = num_state_qubits
         self._value = value
-        self._clauses = self._get_clauses(value)
         self._geq = geq
+
+        # get indices
+        self.i_state = None
+        if i_state is not None:
+            self.i_state = i_state
+        else:
+            self.i_state = range(num_state_qubits)
+
+        self.i_target = None
+        if i_target is not None:
+            self.i_target = i_target
+        else:
+            self.i_target = num_state_qubits
+
+    @property
+    def num_state_qubits(self):
+        return self._num_state_qubits
 
     @property
     def value(self):
         return self._value
 
     def required_ancillas(self):
-        num_clause_toffoli_ancillas = 0
-        for clause in self._clauses:
-            num_clause_toffoli_ancillas = max(num_clause_toffoli_ancillas, len(clause) - 2)
-        if len(self._clauses) > 1:
-            num_clause_result_ancillas = len(self._clauses)
-            num_or_ancillas = num_clause_result_ancillas + max(0, num_clause_result_ancillas - 2)
-            return num_clause_toffoli_ancillas + num_clause_result_ancillas + num_or_ancillas
-        else:
-            return num_clause_toffoli_ancillas
+        return self._num_state_qubits - 1
 
     def required_ancillas_controlled(self):
-        raise NotImplementedError()
+        return self._num_state_qubits - 1
 
-    def _get_clauses(self, value):
+    def _get_twos_complement(self):
+        """
+        Returns the 2's complement of value as array
+        :return: two's complement
+        """
+        twos_complement = pow(2, self.num_state_qubits) - int(np.ceil(self.value))
+        twos_complement = '{0:b}'.format(twos_complement).rjust(self.num_state_qubits, '0')
+        twos_complement = [1 if twos_complement[i] == '1' else 0 for i in reversed(range(len(twos_complement)))]
+        return twos_complement
 
-        num_state_qubits = self.num_target_qubits - 1
-        clauses = []
-        if 0 < value < 2 ** num_state_qubits:
-
-            n = int(np.ceil(np.log2(value)))
-            for k in range(num_state_qubits - 1, n - 1, -1):
-                clauses += [[k]]
-            base_clause = []
-            subtract = 0
-            n_min = 1 + int(np.mod(value, 2) == 0)
-            while n > n_min:
-                base_clause += [(n-1)]
-
-                subtract += 2 ** (n - 1)
-                n_new = int(np.ceil(np.log2(value - subtract)))
-
-                for k in range(n - 2, n_new - 1, -1):
-                    new_clause = base_clause.copy()
-                    new_clause += [k]
-                    clauses += [new_clause]
-
-                n = n_new
-
-        return clauses
+    @staticmethod
+    def _or(qc, a, b, c):
+        """
+        Applies or logical: c = a or b
+        :param a: input qubit 1
+        :param b: input qubit 2
+        :param c: result qubit
+        """
+        qc.x(a)
+        qc.x(b)
+        qc.x(c)
+        qc.ccx(a, b, c)
+        qc.x(a)
+        qc.x(b)
 
     def build(self, qc, q, q_ancillas=None, params=None):
 
-        q_result = q[params['i_compare']]
-        q_state = [q[i] for i in params['i_state']]
-        num_state_qubits = self.num_target_qubits - 1
-
-        uncompute = params.get('uncompute_ancillas', True)
-
-        # evaluate clauses into ancillas
-        num_clauses = len(self._clauses)
-        if num_clauses > 1:
-
-            # evaluate clauses on ancillas
-            q_ancillas_ = [q_ancillas[i] for i in range(len(q_ancillas))]
-            for k, clause in enumerate(self._clauses):
-                q_controls = [q_state[i] for i in clause]
-                qc.mct(q_controls, q_ancillas[k], q_ancillas_[num_clauses:])
-
-            # apply OR to clause ancillas
-            qc.OR(q_ancillas_[:num_clauses], q_result, q_ancillas_[num_clauses:])
-
-            # uncompute clauses on ancillas
-            if uncompute:
-                for k, clause in enumerate(self._clauses):
-                    q_controls = [q_state[i] for i in clause]
-                    qc.mct(q_controls, q_ancillas[k], q_ancillas_[num_clauses:])
-
-            if self._geq is False:
-                qc.x(q_result)
-
-        elif num_clauses == 1:
-            q_controls = [q_state[i] for i in self._clauses[0]]
-            qc.mct(q_controls, q_result, q_ancillas)
-
-            if self._geq is False:
-                qc.x(q_result)
+        # get parameters
+        i_state = self.i_state
+        i_target = self.i_target
+        if params is not None:
+            uncompute = params.get('uncompute', True)
         else:
-            if self.value <= 0:
-                if self._geq is True:
-                    qc.x(q_result)
-            elif self.value >= 2**num_state_qubits:
-                if self._geq is False:
-                    qc.x(q_result)
+            uncompute = True
+
+        # get qubits
+        q_result = q[i_target]
+        q_state = [q[i] for i in i_state]
+
+        if self.value <= 0:  # condition always satisfied for non-positive values
+            if self._geq:  # otherwise the condition is never satisfied
+                qc.x(q_result)
+        elif self.value < pow(2, self.num_state_qubits):  # condition never satisfied for values larger than or equal to 2^n
+
+            tc = self._get_twos_complement()
+            for i in range(self.num_state_qubits):
+                if i == 0:
+                    if tc[i] == 1:
+                        qc.cx(q_state[i], q_ancillas[i])
+                elif i < self.num_state_qubits-1:
+                    if tc[i] == 1:
+                        self._or(qc, q_state[i], q_ancillas[i-1], q_ancillas[i])
+                    else:
+                        qc.ccx(q_state[i], q_ancillas[i-1], q_ancillas[i])
+                else:
+                    if tc[i] == 1:
+                        self._or(qc, q_state[i], q_ancillas[i-1], q_result)
+                    else:
+                        qc.ccx(q_state[i], q_ancillas[i-1], q_result)
+
+            # flip result bit if geq flag is false
+            if not self._geq:
+                qc.x(q_result)
+
+            # uncompute ancillas state
+            if uncompute:
+                for i in reversed(range(self.num_state_qubits-1)):
+                    if i == 0:
+                        if tc[i] == 1:
+                            qc.cx(q_state[i], q_ancillas[i])
+                    else:
+                        if tc[i] == 1:
+                            self._or(qc, q_state[i], q_ancillas[i - 1], q_ancillas[i])
+                        else:
+                            qc.ccx(q_state[i], q_ancillas[i - 1], q_ancillas[i])
+
+        else:
+            if not self._geq:  # otherwise the condition is never satisfied
+                qc.x(q_result)
