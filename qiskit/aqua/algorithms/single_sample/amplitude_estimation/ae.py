@@ -230,3 +230,6 @@ class AmplitudeEstimation(QuantumAlgorithm):
                 self._ret['estimation'] = val
 
         return self._ret
+
+    def mle(self):
+        pass
