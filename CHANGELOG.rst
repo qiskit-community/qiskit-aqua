@@ -63,6 +63,11 @@ Changed
 - Components ``random_distributions`` renamed to ``uncertainty_models``
 - Reorganized the constructions of various common gates (``ch``, ``cry``, ``mcry``, ``mct``, ``mcu1``, ``mcu3``, ``mcmt``, ``logic_and``, and ``logic_or``) and circuits (``PhaseEstimationCircuit``, ``BooleanLogicCircuits``, ``FourierTransformCircuits``, and ``StateVectorCircuits``) under the ``circuits`` directory.
 
+Fixed
+-----
+
+- Fixed ``ising/docplex.py`` to correctly multiply constant values in constraints
+
 
 `0.4.1`_ - 2019-01-09
 =====================
