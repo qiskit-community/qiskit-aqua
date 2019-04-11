@@ -158,8 +158,8 @@ def get_qubitops(mdl, auto_penalty=True, default_penalty=1e5):
             weight = l[1]
             zp[index] = True
 
-            pauli_list.append([penalty * weight, Pauli(zp, zero)])
-            shift += -penalty * weight
+            pauli_list.append([penalty * constant * weight, Pauli(zp, zero)])
+            shift += -penalty * constant * weight
 
         # quadratic parts of penalty*(Constant-func)**2: penalty*(func**2)
         for l in constraint.left_expr.iter_terms():
