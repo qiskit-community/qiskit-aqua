@@ -163,6 +163,8 @@ class TestQSVMVariational(QiskitAquaTestCase):
         predicted_probs, predicted_labels = loaded_svm.predict(self.testing_data['A'], quantum_instance)
         np.testing.assert_array_almost_equal(predicted_probs, self.ref_prediction_a_probs, decimal=8)
         np.testing.assert_array_equal(predicted_labels, self.ref_prediction_a_label)
+        if quantum_instance.has_circuit_caching:
+            self.assertLess(quantum_instance._circuit_cache.misses, 3)
 
         if os.path.exists(file_path):
             try:

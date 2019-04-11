@@ -26,7 +26,7 @@ Added
 - Pluggable component ``Reciprocal`` with variants ``LookupRotation`` and ``LongDivision``.
 - Multiple-Controlled U1 and U3 operations ``mcu1`` and ``mcu3``.
 - Pluggable component ``QFT`` derived from component ``IQFT``.
-- Summarize the tranpiled circuits at the DEBUG logging level.
+- Summarize the transpiled circuits at the DEBUG logging level.
 - ``QuantumInstance`` accepts ``basis_gates`` and ``coupling_map`` again.
 - Support to use ``cx`` gate for the entangement in ``RY`` and ``RYRZ`` variational form. (``cz`` is the default choice.)
 - Support to use arbitrary mixer Hamiltonian in ``QAOA``. This allows to use QAOA in constrained optimization problems [arXiv:1709.03489].

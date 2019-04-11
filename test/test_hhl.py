@@ -44,7 +44,6 @@ class TestHHL(QiskitAquaTestCase):
         self.params = {
             'problem': {
                 'name': 'linear_system',
-                'circuit_caching': False,
                 'random_seed': 0
             },
             'algorithm': {
