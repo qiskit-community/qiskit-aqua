@@ -143,7 +143,11 @@ class CircuitCache:
     def try_loading_cache_from_file(self):
         if len(self.qobjs) == 0 and self.cache_file is not None and len(self.cache_file) > 0:
             with open(self.cache_file, "rb") as cache_handler:
-                cache = pickle.load(cache_handler, encoding="ASCII")
+                try:
+                    cache = pickle.load(cache_handler, encoding="ASCII")
+                except (EOFError) as e:
+                    logger.debug("No cache found in file: {}".format(self.cache_file))
+                    return
                 self.qobjs = [Qobj.from_dict(qob) for qob in cache['qobjs']]
                 self.mappings = cache['mappings']
                 self.cache_transpiled_circuits = cache['transpile']

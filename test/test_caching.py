@@ -152,8 +152,8 @@ class TestCaching(QiskitAquaTestCase):
                                                        skip_qobj_validation=True)
 
             result0 = quantum_instance0.execute([circ0])
-            cache_handler = open(cache_tmp_file_name, "rb")
-            saved_cache = pickle.load(cache_handler, encoding="ASCII")
+            with open(cache_tmp_file_name, "rb") as cache_handler:
+                saved_cache = pickle.load(cache_handler, encoding="ASCII")
             self.assertIn('qobjs', saved_cache)
             self.assertIn('mappings', saved_cache)
             qobjs = [Qobj.from_dict(qob) for qob in saved_cache['qobjs']]
