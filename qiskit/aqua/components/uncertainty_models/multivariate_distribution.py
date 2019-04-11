@@ -36,7 +36,7 @@ class MultivariateDistribution(UncertaintyModel, ABC):
     def get_section_key_name(cls):
         return Pluggable.SECTION_KEY_MULTIVARIATE_DISTRIBUTION
 
-    def __init__(self, num_qubits, probabilities, low, high):
+    def __init__(self, num_qubits, low, high, probabilities=None):
         """
         Constructor
 
@@ -88,10 +88,6 @@ class MultivariateDistribution(UncertaintyModel, ABC):
             for i in range(self.dimension):
                 self._high[i] = 2**num_qubits[i] - 1
 
-        # self._values = []
-        # for i in range(self._dimension):
-        #     self._values += [np.linspace(self._low[i], self._high[i], self._num_values[i])]
-
     @property
     def num_qubits(self):
         return self._num_qubits
@@ -123,12 +119,6 @@ class MultivariateDistribution(UncertaintyModel, ABC):
     @property
     def probabilities_vector(self):
         return self._probabilities_vector
-
-    def required_ancillas(self):
-        return 0
-
-    def required_ancillas_controlled(self):
-        return 0
 
     def build(self, qc, q, q_ancillas=None, params=None):
         custom_state = Custom(self.num_target_qubits, state_vector=np.sqrt(self._probabilities_vector))

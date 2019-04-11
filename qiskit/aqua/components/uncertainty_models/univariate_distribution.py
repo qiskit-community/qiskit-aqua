@@ -66,12 +66,6 @@ class UnivariateDistribution(UncertaintyModel, ABC):
     def probabilities(self):
         return self._probabilities
 
-    def required_ancillas(self):
-        return 0
-
-    def required_ancillas_controlled(self):
-        return 0
-
     def build(self, qc, q, q_ancillas=None, params=None):
         custom_state = Custom(self.num_target_qubits, state_vector=np.sqrt(self.probabilities))
         qc.extend(custom_state.construct_circuit('circuit', q))
