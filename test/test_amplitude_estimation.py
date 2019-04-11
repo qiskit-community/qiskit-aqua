@@ -80,7 +80,7 @@ class TestEuropeanCallOption(QiskitAquaTestCase):
         ae = AmplitudeEstimation(m, european_call)
 
         # run simulation
-        quantum_instance = QuantumInstance(BasicAer.get_backend(simulator), circuit_caching=False)
+        quantum_instance = QuantumInstance(BasicAer.get_backend(simulator))
         result = ae.run(quantum_instance=quantum_instance)
 
         # compare to precomputed solution
@@ -131,7 +131,7 @@ class TestEuropeanCallOption(QiskitAquaTestCase):
         ae = AmplitudeEstimation(m, european_call_delta)
 
         # run simulation
-        quantum_instance = QuantumInstance(BasicAer.get_backend(simulator), circuit_caching=False)
+        quantum_instance = QuantumInstance(BasicAer.get_backend(simulator))
         result = ae.run(quantum_instance=quantum_instance)
 
         # compare to precomputed solution
@@ -178,7 +178,7 @@ class TestFixedIncomeAssets(QiskitAquaTestCase):
         ae = AmplitudeEstimation(m, fixed_income)
 
         # run simulation
-        quantum_instance = QuantumInstance(BasicAer.get_backend('statevector_simulator'), circuit_caching=False)
+        quantum_instance = QuantumInstance(BasicAer.get_backend('statevector_simulator'))
         result = ae.run(quantum_instance=quantum_instance)
 
         # compare to precomputed solution
