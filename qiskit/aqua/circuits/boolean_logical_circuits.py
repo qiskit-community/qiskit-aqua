@@ -15,202 +15,19 @@
 # limitations under the License.
 # =============================================================================
 """
-The Boolean Logic Utility Classes.
+Boolean Logical DNF, CNF, and ESOP Circuits.
 """
 
 import logging
 from abc import abstractmethod, ABC
 
-from dlx import DLX
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.qasm import pi
 
 from qiskit.aqua import AquaError
+from .gates import mct
 
 logger = logging.getLogger(__name__)
-
-
-def get_prime_implicants(ones=None, dcs=None):
-    """
-    Compute all prime implicants for a truth table using the Quine-McCluskey Algorithm
-
-    Args:
-        ones (list of int): The list of integers corresponding to '1' outputs
-        dcs (list of int): The list of integers corresponding to don't-cares
-
-    Return:
-        list of lists of int, representing all prime implicants
-    """
-
-    def combine_terms(terms, num1s_dict=None):
-        if num1s_dict is None:
-            num1s_dict = {}
-            for num in terms:
-                num1s = bin(num).count('1')
-                if not num1s in num1s_dict:
-                    num1s_dict[num1s] = [num]
-                else:
-                    num1s_dict[num1s].append(num)
-
-        new_implicants = {}
-        new_num1s_dict = {}
-        prime_dict = {mt: True for mt in sorted(terms)}
-        cur_num1s, max_num1s = min(num1s_dict.keys()), max(num1s_dict.keys())
-        while cur_num1s < max_num1s:
-            if cur_num1s in num1s_dict and (cur_num1s + 1) in num1s_dict:
-                for cur_term in sorted(num1s_dict[cur_num1s]):
-                    for next_term in sorted(num1s_dict[cur_num1s + 1]):
-                        if isinstance(cur_term, int):
-                            diff_mask = dc_mask = cur_term ^ next_term
-                            implicant_mask = cur_term & next_term
-                        elif isinstance(cur_term, tuple):
-                            if terms[cur_term][1] == terms[next_term][1]:
-                                diff_mask = terms[cur_term][0] ^ terms[next_term][0]
-                                dc_mask = diff_mask | terms[cur_term][1]
-                                implicant_mask = terms[cur_term][0] & terms[next_term][0]
-                            else:
-                                continue
-                        else:
-                            raise AquaError('Unexpected type: {}.'.format(type(cur_term)))
-                        if bin(diff_mask).count('1') == 1:
-                            prime_dict[cur_term] = False
-                            prime_dict[next_term] = False
-                            if isinstance(cur_term, int):
-                                cur_implicant = (cur_term, next_term)
-                            elif isinstance(cur_term, tuple):
-                                cur_implicant = tuple(sorted((*cur_term, *next_term)))
-                            else:
-                                raise AquaError('Unexpected type: {}.'.format(type(cur_term)))
-                            new_implicants[cur_implicant] = (
-                                implicant_mask,
-                                dc_mask
-                            )
-                            num1s = bin(implicant_mask).count('1')
-                            if not num1s in new_num1s_dict:
-                                new_num1s_dict[num1s] = [cur_implicant]
-                            else:
-                                if not cur_implicant in new_num1s_dict[num1s]:
-                                    new_num1s_dict[num1s].append(cur_implicant)
-            cur_num1s += 1
-        return new_implicants, new_num1s_dict, prime_dict
-
-    terms = ones + dcs
-    cur_num1s_dict = None
-
-    prime_implicants = []
-
-    while True:
-        next_implicants, next_num1s_dict, cur_prime_dict = combine_terms(terms, num1s_dict=cur_num1s_dict)
-        for implicant in cur_prime_dict:
-            if cur_prime_dict[implicant]:
-                if isinstance(implicant, int):
-                    if implicant not in dcs:
-                        prime_implicants.append((implicant,))
-                else:
-                    if not set.issubset(set(implicant), dcs):
-                        prime_implicants.append(implicant)
-        if next_implicants:
-            terms = next_implicants
-            cur_num1s_dict = next_num1s_dict
-        else:
-            break
-
-    return prime_implicants
-
-
-def get_exact_covers(cols, rows, num_cols=None):
-    """
-    Use Algorithm X to get all solutions to the exact cover problem
-
-    https://en.wikipedia.org/wiki/Knuth%27s_Algorithm_X
-
-    Args:
-          cols (list of int): A list of integers representing the columns to be covered
-          rows (list of list of int): A list of lists of integers representing the rows
-          num_cols (int): The total number of columns
-
-    Returns:
-        All exact covers
-    """
-    if num_cols is None:
-        num_cols = max(cols) + 1
-    ec = DLX([(c, 0 if c in cols else 1) for c in range(num_cols)])
-    ec.appendRows([[c] for c in cols])
-    ec.appendRows(rows)
-    exact_covers = []
-    for s in ec.solve():
-        cover = []
-        for i in s:
-            cover.append(ec.getRowList(i))
-        exact_covers.append(cover)
-    return exact_covers
-
-
-def _check_variables(vs):
-    _vs = []
-    for v in vs:
-        if v in _vs:
-            continue
-        elif -v in _vs:
-            return None
-        else:
-            _vs.append(v)
-    return sorted(_vs, key=abs)
-
-
-def logic_or(signed_vars, circuit, variable_register, target_qubit, ancillary_register, mct_mode):
-    """
-    Build a collective disjunction (OR) circuit in place using mct.
-
-    Args:
-        signed_vars ([int]): The desired disjunctive clause as represented by a list of non-zero integers,
-            whose absolute values indicate the variables, where negative signs correspond to negations.
-        circuit (QuantumCircuit): The QuantumCircuit object to build the disjunction on.
-        variable_register (QuantumRegister): The QuantumRegister holding the variable qubits. Note that the
-            qubit indices are 0-based, so `variable_register[i]` correspond to variable `i-1` in `clause_expr`.
-        target_qubit (tuple(QuantumRegister, int)): The target qubit to hold the disjunction result.
-        ancillary_register (QuantumRegister): The ancillary QuantumRegister for building the mct.
-        mct_mode (str): The mct building mode.
-    """
-
-    signed_vars = _check_variables(signed_vars)
-    circuit.u3(pi, 0, pi, target_qubit)
-    if signed_vars is not None:
-        qs = [abs(v) for v in signed_vars]
-        ctl_bits = [variable_register[idx - 1] for idx in qs]
-        anc_bits = [ancillary_register[idx] for idx in range(len(qs) - 2)] if ancillary_register else None
-        for idx in [v for v in signed_vars if v > 0]:
-            circuit.u3(pi, 0, pi, variable_register[idx - 1])
-        circuit.mct(ctl_bits, target_qubit, anc_bits, mode=mct_mode)
-        for idx in [v for v in signed_vars if v > 0]:
-            circuit.u3(pi, 0, pi, variable_register[idx - 1])
-
-
-def logic_and(signed_vars, circuit, variable_register, target_qubit, ancillary_register, mct_mode):
-    """
-    Build a collective conjunction (AND) circuit in place using mct.
-
-    Args:
-        signed_vars ([int]): The desired disjunctive clause as represented by a list of non-zero integers,
-            whose absolute values indicate the variables, where negative signs correspond to negations.
-        circuit (QuantumCircuit): The QuantumCircuit object to build the conjunction on.
-        variable_register (QuantumRegister): The QuantumRegister holding the variable qubits. Note that the
-            qubit indices are 0-based, so `variable_register[i]` correspond to variable `i-1` in `clause_expr`.
-        target_qubit (tuple(QuantumRegister, int)): The target qubit to hold the conjunction result.
-        ancillary_register (QuantumRegister): The ancillary QuantumRegister for building the mct.
-        mct_mode (str): The mct building mode.
-    """
-
-    signed_vars = _check_variables(signed_vars)
-    if signed_vars is not None:
-        qs = [abs(v) for v in signed_vars]
-        ctl_bits = [variable_register[idx - 1] for idx in qs]
-        anc_bits = [ancillary_register[idx] for idx in range(len(qs) - 2)] if ancillary_register else None
-        for idx in [v for v in signed_vars if v < 0]:
-            circuit.u3(pi, 0, pi, variable_register[-idx - 1])
-        circuit.mct(ctl_bits, target_qubit, anc_bits, mode=mct_mode)
-        for idx in [v for v in signed_vars if v < 0]:
-            circuit.u3(pi, 0, pi, variable_register[-idx - 1])
 
 
 class BooleanLogicNormalForm(ABC):
@@ -238,6 +55,21 @@ class BooleanLogicNormalForm(ABC):
 
         get_ast_vars(ast)
         return max(all_vars)
+
+    @staticmethod
+    def _lits_to_flags(vs):
+        _vs = []
+        for v in vs:
+            if v in _vs:
+                continue
+            elif -v in _vs:
+                return None
+            else:
+                _vs.append(v)
+        flags = abs(max(_vs, key=abs)) * [0]
+        for v in _vs:
+            flags[abs(v) - 1] = 1 if v > 0 else -1
+        return flags
 
     """
     The base abstract class for:
@@ -451,13 +283,13 @@ class CNF(BooleanLogicNormalForm):
             self._construct_circuit_for_tiny_expr(circuit)
         elif self._depth == 1:
             lits = [l[1] for l in self._ast[1:]]
-            logic_and(
-                lits,
-                circuit,
+            flags = BooleanLogicNormalForm._lits_to_flags(lits)
+            circuit.AND(
                 self._variable_register,
                 self._output_register[0],
                 self._ancillary_register,
-                mct_mode
+                flags=flags,
+                mct_mode=mct_mode
             )
         else:  # self._depth == 2:
             # compute all clauses
@@ -471,13 +303,13 @@ class CNF(BooleanLogicNormalForm):
                         'Operator "{}" of clause {} in logic expression {} is unexpected.'.format(
                             clause_expr[0], clause_index, self._ast)
                     )
-                logic_or(
-                    lits,
-                    circuit,
+                flags = BooleanLogicNormalForm._lits_to_flags(lits)
+                circuit.OR(
                     self._variable_register,
                     self._clause_register[clause_index],
                     self._ancillary_register,
-                    mct_mode
+                    flags=flags,
+                    mct_mode=mct_mode
                 )
 
             # collect results from all clauses
@@ -494,13 +326,13 @@ class CNF(BooleanLogicNormalForm):
                     lits = [l[1] for l in clause_expr[1:]]
                 else:  # clause_expr[0] == 'lit':
                     lits = [clause_expr[1]]
-                logic_or(
-                    lits,
-                    circuit,
+                flags = BooleanLogicNormalForm._lits_to_flags(lits)
+                circuit.OR(
                     self._variable_register,
                     self._clause_register[clause_index],
                     self._ancillary_register,
-                    mct_mode
+                    flags=flags,
+                    mct_mode=mct_mode
                 )
 
         return circuit
@@ -546,13 +378,13 @@ class DNF(BooleanLogicNormalForm):
             self._construct_circuit_for_tiny_expr(circuit)
         elif self._depth == 1:
             lits = [l[1] for l in self._ast[1:]]
-            logic_or(
-                lits,
-                circuit,
+            flags = BooleanLogicNormalForm._lits_to_flags(lits)
+            circuit.OR(
                 self._variable_register,
                 self._output_register[0],
                 self._ancillary_register,
-                mct_mode
+                flags=flags,
+                mct_mode=mct_mode
             )
         else:  # self._depth == 2
             # compute all clauses
@@ -566,13 +398,13 @@ class DNF(BooleanLogicNormalForm):
                         'Operator "{}" of clause {} in logic expression {} is unexpected.'.format(
                             clause_expr[0], clause_index, self._ast)
                     )
-                logic_and(
-                    lits,
-                    circuit,
+                flags = BooleanLogicNormalForm._lits_to_flags(lits)
+                circuit.AND(
                     self._variable_register,
                     self._clause_register[clause_index],
                     self._ancillary_register,
-                    mct_mode
+                    flags=flags,
+                    mct_mode=mct_mode
                 )
 
             # init the output qubit to 1
@@ -594,13 +426,13 @@ class DNF(BooleanLogicNormalForm):
                     lits = [l[1] for l in clause_expr[1:]]
                 else:  # clause_expr[0] == 'lit':
                     lits = [clause_expr[1]]
-                logic_and(
-                    lits,
-                    circuit,
+                flags = BooleanLogicNormalForm._lits_to_flags(lits)
+                circuit.AND(
                     self._variable_register,
                     self._clause_register[clause_index],
                     self._ancillary_register,
-                    mct_mode
+                    flags=flags,
+                    mct_mode=mct_mode
                 )
         return circuit
 
@@ -652,13 +484,13 @@ class ESOP(BooleanLogicNormalForm):
                     lits = [l[1] for l in clause_expr[1:]]
                 else:  # clause_expr[0] == 'lit':
                     lits = [clause_expr[1]]
-                logic_and(
-                    lits,
-                    circuit,
+                flags = BooleanLogicNormalForm._lits_to_flags(lits)
+                circuit.AND(
                     self._variable_register,
                     self._output_register[self._output_idx],
                     self._ancillary_register,
-                    mct_mode
+                    flags=flags,
+                    mct_mode=mct_mode
                 )
 
         return circuit

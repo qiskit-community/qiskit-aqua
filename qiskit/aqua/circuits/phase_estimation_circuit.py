@@ -15,18 +15,23 @@
 # limitations under the License.
 # =============================================================================
 """
-Utility class for constructing a Quantum Phase Estimation circuit.
+Quantum Phase Estimation Circuit.
 """
 
 import numpy as np
+
 from qiskit import QuantumRegister, QuantumCircuit
+
 from qiskit.aqua import Operator, AquaError
 
 
 class PhaseEstimationCircuit:
 
     def __init__(
-            self, operator, state_in, iqft,
+            self,
+            operator=None,
+            state_in=None,
+            iqft=None,
             num_time_slices=1,
             num_ancillae=1,
             expansion_mode='trotter',
@@ -178,7 +183,7 @@ class PhaseEstimationCircuit:
                     self._unitary_circuit_factory.build_controlled_power(qc, q, a[i], 2 ** i, aux)
 
             # inverse qft on ancillae
-            self._iqft.construct_circuit('circuit', a, qc)
+            self._iqft.construct_circuit(mode='circuit', qubits=a, circuit=qc, do_swaps=False)
 
             self._circuit = qc
 

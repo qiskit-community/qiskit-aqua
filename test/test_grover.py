@@ -22,7 +22,7 @@ from parameterized import parameterized
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import Grover
-from qiskit.aqua.components.oracles import LogicExpressionOracle as LEO, TruthTableOracle as TTO
+from qiskit.aqua.components.oracles import LogicalExpressionOracle as LEO, TruthTableOracle as TTO
 from test.common import QiskitAquaTestCase
 
 
@@ -54,7 +54,7 @@ class TestGrover(QiskitAquaTestCase):
             oracle = oracle_cls(input, optimization='qm-dlx' if oracle_cls == TTO else 'espresso')
         grover = Grover(oracle, incremental=True, mct_mode=mct_mode)
         backend = BasicAer.get_backend(simulator)
-        quantum_instance = QuantumInstance(backend, shots=1000, circuit_caching=False)
+        quantum_instance = QuantumInstance(backend, shots=1000)
 
         ret = grover.run(quantum_instance)
 

@@ -19,7 +19,7 @@ The Fixed Income Expected Value.
 """
 
 from qiskit.aqua.components.uncertainty_problems import UncertaintyProblem
-from qiskit.aqua.utils.circuit_utils import cry
+from qiskit.aqua.circuits.gates import cry
 import numpy as np
 
 
@@ -190,4 +190,4 @@ class FixedIncomeExpectedValue(UncertaintyProblem):
         # apply approximate payoff function
         qc.ry(2 * self.offset_angle, q_objective)
         for i in params['i_state']:
-            cry(2 * self.slope_angle[i], q[i], q_objective, qc)
+            qc.cry(2 * self.slope_angle[i], q[i], q_objective)

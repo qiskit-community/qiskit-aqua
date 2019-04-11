@@ -14,30 +14,3 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-
-from scipy import linalg
-
-from .approximate import Approximate
-
-
-class Standard(Approximate):
-    """A normal standard QFT."""
-
-    CONFIGURATION = {
-        'name': 'STANDARD',
-        'description': 'QFT',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
-            'id': 'std_qft_schema',
-            'type': 'object',
-            'properties': {
-            },
-            'additionalProperties': False
-        }
-    }
-
-    def __init__(self, num_qubits):
-        super().__init__(num_qubits, degree=0)
-
-    def _build_matrix(self):
-        return linalg.inv(linalg.dft(2 ** self._num_qubits, scale='sqrtn'))

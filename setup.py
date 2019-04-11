@@ -35,7 +35,8 @@ requirements = [
     "scikit-learn>=0.20.0",
     "cvxopt",
     "dlx",
-    "pyeda"
+    "pyeda",
+    "docplex"
 ]
 
 setuptools.setup(

@@ -27,8 +27,7 @@ from qiskit.aqua import Operator, AquaError
 from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.utils import get_subsystem_density_matrix
 from qiskit.aqua.algorithms import QuantumAlgorithm
-
-from qiskit.aqua.algorithms.single_sample import PhaseEstimationCircuit
+from qiskit.aqua.circuits import PhaseEstimationCircuit
 
 
 logger = logging.getLogger(__name__)
@@ -140,7 +139,8 @@ class QPE(QuantumAlgorithm):
             p[0] = p[0] * self._ret['stretch']
 
         self._phase_estimation_circuit = PhaseEstimationCircuit(
-            self._operator, state_in, iqft, num_time_slices=num_time_slices, num_ancillae=num_ancillae,
+            operator=self._operator, state_in=state_in, iqft=iqft,
+            num_time_slices=num_time_slices, num_ancillae=num_ancillae,
             expansion_mode=expansion_mode, expansion_order=expansion_order,
             shallow_circuit_concat=shallow_circuit_concat, pauli_list=self._pauli_list
         )

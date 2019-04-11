@@ -26,7 +26,7 @@ from qiskit import ClassicalRegister
 from qiskit.aqua import AquaError
 from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.algorithms import QuantumAlgorithm
-from qiskit.aqua.algorithms.single_sample import PhaseEstimationCircuit
+from qiskit.aqua.circuits import PhaseEstimationCircuit
 from qiskit.aqua.components.iqfts import Standard
 from .q_factory import QFactory
 
@@ -142,9 +142,11 @@ class AmplitudeEstimation(QuantumAlgorithm):
         Returns:
             the QuantumCircuit object for the constructed circuit
         """
-        pec = PhaseEstimationCircuit(None, None, self._iqft, num_ancillae=self._m,
-                                    state_in_circuit_factory=self.a_factory,
-                                    unitary_circuit_factory=self.q_factory)
+        pec = PhaseEstimationCircuit(
+            iqft=self._iqft, num_ancillae=self._m,
+            state_in_circuit_factory=self.a_factory,
+            unitary_circuit_factory=self.q_factory
+        )
 
         self._circuit = pec.construct_circuit()
         return self._circuit

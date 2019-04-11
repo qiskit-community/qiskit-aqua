@@ -26,8 +26,7 @@ from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 from qiskit.ignis.verification.tomography import state_tomography_circuits, \
-    StateTomographyFitter, marginal_counts
-from qiskit.quantum_info import state_fidelity
+    StateTomographyFitter
 from qiskit.converters import circuit_to_dag
 
 logger = logging.getLogger(__name__)
@@ -93,8 +92,8 @@ class HHL(QuantumAlgorithm):
         Constructor.
 
         Args:
-            matrix (array): the input matrix of linear system of equations
-            vector (array): the input vector of linear system of equations
+            matrix (np.array): the input matrix of linear system of equations
+            vector (np.array): the input vector of linear system of equations
             eigs (Eigenvalues): the eigenvalue estimation instance
             init_state (InitialState): the initial quantum state preparation
             reciprocal (Reciprocal): the eigenvalue reciprocal and controlled rotation instance
@@ -272,7 +271,7 @@ class HHL(QuantumAlgorithm):
             new_results.results[resultidx].header.creg_sizes = [
                 new_results.results[resultidx].header.creg_sizes[0]]
             new_results.results[resultidx].header.clbit_labels = \
-            new_results.results[resultidx].header.clbit_labels[0:-1]
+                new_results.results[resultidx].header.clbit_labels[0:-1]
             new_results.results[resultidx].header.memory_slots = \
                 new_results.results[resultidx].header.memory_slots - 1
 
@@ -283,21 +282,17 @@ class HHL(QuantumAlgorithm):
 
             new_results.results[resultidx].data.counts = \
                 new_results.results[resultidx]. \
-                    data.counts.from_dict(new_counts)
+                data.counts.from_dict(new_counts)
 
         return new_results
 
     def _hhl_results(self, vec):
-        self._ret["output_hhl"] = vec
-        # Calculating the fidelity with the classical solution
-        theo = np.linalg.solve(self._matrix, self._vector)
-        theo = theo/np.linalg.norm(theo)
-        self._ret["fidelity_hhl_to_classical"] = state_fidelity(theo, vec)
+        self._ret["output"] = vec
         # Rescaling the output vector to the real solution vector
         tmp_vec = self._matrix.dot(vec)
         f1 = np.linalg.norm(self._vector)/np.linalg.norm(tmp_vec)
-        f2 = sum(np.angle(self._vector*tmp_vec.conj()-1+1))/self._num_q # "-1+1" to fix angle error for -0.-0.j
-        self._ret["solution_hhl"] = f1*vec*np.exp(-1j*f2)
+        f2 = sum(np.angle(self._vector*tmp_vec.conj()-1+1))/self._num_q  # "-1+1" to fix angle error for -0.-0.j
+        self._ret["solution"] = f1*vec*np.exp(-1j*f2)
 
     def _run(self):
         if self._quantum_instance.is_statevector:
@@ -307,12 +302,7 @@ class HHL(QuantumAlgorithm):
             self.construct_circuit(measurement=False)
             self._state_tomography()
         # Adding a bit of general result information
-        self._ret["input_matrix"] = self._matrix
-        self._ret["input_vector"] = self._vector
-        self._ret["eigenvalues_classical"] = np.linalg.eig(self._matrix)[0]
-        self._ret["solution_classical"] = list(np.linalg.solve(self._matrix, self._vector))
-        dag = circuit_to_dag(self._circuit)
-        self._ret["circuit_width"] = dag.width()
-        self._ret["circuit_depth"] = dag.depth()
-        self._ret["gate_count_total"] = self._circuit.number_atomic_gates()
+        self._ret["matrix"] = self._matrix
+        self._ret["vector"] = self._vector
+        self._ret["circuit_info"] = circuit_to_dag(self._circuit).properties()
         return self._ret

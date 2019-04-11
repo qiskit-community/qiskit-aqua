@@ -16,13 +16,16 @@
 # =============================================================================
 
 """
-Multiple-Control Toffoli.
+Multiple-Control Toffoli Gate.
 """
 
 import logging
 from math import pi, ceil
 
 from qiskit import QuantumCircuit, QuantumRegister
+
+from qiskit.aqua import AquaError
+from qiskit.aqua.utils.circuit_utils import is_qubit
 
 logger = logging.getLogger(__name__)
 
@@ -164,6 +167,7 @@ def _multicx(qc, qrs, qancilla=None):
     else:
         _multicx_recursion(qc, qrs, qancilla)
 
+
 def _multicx_recursion(qc, qrs, qancilla=None):
     if len(qrs) == 4:
         _cccx(qc, qrs)
@@ -229,13 +233,13 @@ def mct(self, q_controls, q_target, q_ancilla, mode='basic'):
         elif isinstance(q_controls, list):
             control_qubits = q_controls
         else:
-            raise ValueError('MCT needs a list of qubits or a quantum register for controls.')
+            raise AquaError('MCT needs a list of qubits or a quantum register for controls.')
 
         # check target
-        if isinstance(q_target, tuple):
+        if is_qubit(q_target):
             target_qubit = q_target
         else:
-            raise ValueError('MCT needs a single qubit as target.')
+            raise AquaError('MCT needs a single qubit as target.')
 
         # check ancilla
         if q_ancilla is None:
@@ -245,15 +249,11 @@ def mct(self, q_controls, q_target, q_ancilla, mode='basic'):
         elif isinstance(q_ancilla, list):
             ancillary_qubits = q_ancilla
         else:
-            raise ValueError('MCT needs None or a list of qubits or a quantum register for ancilla.')
+            raise AquaError('MCT needs None or a list of qubits or a quantum register for ancilla.')
 
         all_qubits = control_qubits + [target_qubit] + ancillary_qubits
-        try:
-            for qubit in all_qubits:
-                self._check_qubit(qubit)
-        except AttributeError as e: # TODO Temporary, _check_qubit may not exist 
-            logger.debug(str(e))
 
+        self._check_qargs(all_qubits)
         self._check_dups(all_qubits)
 
         if mode == 'basic':
@@ -263,7 +263,7 @@ def mct(self, q_controls, q_target, q_ancilla, mode='basic'):
         elif mode == 'noancilla':
             _multicx_noancilla(self, [*control_qubits, target_qubit])
         else:
-            raise ValueError('Unrecognized mode for building MCT circuit: {}.'.format(mode))
+            raise AquaError('Unrecognized mode for building MCT circuit: {}.'.format(mode))
 
 
 def cnx(self, *args, **kwargs):

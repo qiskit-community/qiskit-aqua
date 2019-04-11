@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# Copyright 2019 IBM.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,23 +15,16 @@
 # limitations under the License.
 # =============================================================================
 
-from .grover.grover import Grover
-from .iterative_qpe.iqpe import IQPE
-from .qpe.qpe import QPE
-from .amplitude_estimation.ae import AmplitudeEstimation
-from .simon.simon import Simon
-from .deutsch_josza.dj import DeutschJozsa
-from .bernstein_vazirani.bv import BernsteinVazirani
-from .hhl.hhl import HHL
-
+from .boolean_logical_circuits import CNF, DNF, ESOP
+from .phase_estimation_circuit import PhaseEstimationCircuit
+from .statevector_circuit import StateVectorCircuit
+from .fourier_transform_circuits import FourierTransformCircuits
 
 __all__ = [
-    'Grover',
-    'IQPE',
-    'QPE',
-    'AmplitudeEstimation',
-    'Simon',
-    'DeutschJozsa',
-    'BernsteinVazirani',
-    'HHL'
+    'CNF',
+    'DNF',
+    'ESOP',
+    'PhaseEstimationCircuit',
+    'StateVectorCircuit',
+    'FourierTransformCircuits',
 ]

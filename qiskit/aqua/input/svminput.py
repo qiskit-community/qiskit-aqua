@@ -51,9 +51,9 @@ class SVMInput(AlgorithmInput):
     def __init__(self, training_dataset, test_dataset=None, datapoints=None):
         self.validate(locals())
         super().__init__()
-        self.training_dataset = training_dataset
-        self.test_dataset = test_dataset
-        self.datapoints = datapoints
+        self.training_dataset = training_dataset or {}
+        self.test_dataset = test_dataset or {}
+        self.datapoints = datapoints if datapoints is not None else []
 
     def validate(self, args_dict):
         params = {key: value for key, value in args_dict.items() if key in ['training_dataset', 'test_dataset', 'datapoints']}
