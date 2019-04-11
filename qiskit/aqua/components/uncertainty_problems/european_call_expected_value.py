@@ -19,8 +19,7 @@ The European Call Option Expected Value.
 """
 import numpy as np
 from qiskit.aqua.components.uncertainty_problems import UncertaintyProblem
-from qiskit.aqua.circuits.gates import *
-from qiskit.aqua.components.uncertainty_problems.fixed_value_comparator import FixedValueComparator
+from qiskit.aqua.circuits.fixed_value_comparator import FixedValueComparator
 
 
 class EuropeanCallExpectedValue(UncertaintyProblem):
@@ -103,7 +102,7 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
         self._mapped_strike_price = int(np.round((strike_price - lb)/(ub - lb) * (uncertainty_model.num_values - 1)))
 
         # create comparator
-        self._comparator = FixedValueComparator(uncertainty_model.num_target_qubits + 1, self._mapped_strike_price)
+        self._comparator = FixedValueComparator(uncertainty_model.num_target_qubits, self._mapped_strike_price)
 
         self.offset_angle_zero = np.pi / 4 * (1 - self._c_approx)
         if self._mapped_strike_price < uncertainty_model.num_values - 1:
