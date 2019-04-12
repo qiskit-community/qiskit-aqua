@@ -30,6 +30,9 @@ from qiskit.aqua.circuits import PhaseEstimationCircuit
 from qiskit.aqua.components.iqfts import Standard
 from .q_factory import QFactory
 
+from qiskit.aqua.utils.mle_utils import loglik
+from scipy.optimize import minimize
+
 logger = logging.getLogger(__name__)
 
 
@@ -123,7 +126,8 @@ class AmplitudeEstimation(QuantumAlgorithm):
         # Set up uncertainty problem. The params can include an uncertainty model
         # type dependent on the uncertainty problem and is this its responsibility
         # to create for itself from the complete params set that is passed to it.
-        uncertainty_problem_params = params.get(Pluggable.SECTION_KEY_UNCERTAINTY_PROBLEM)
+        uncertainty_problem_params = params.get(
+            Pluggable.SECTION_KEY_UNCERTAINTY_PROBLEM)
         uncertainty_problem = get_pluggable_class(
             PluggableType.UNCERTAINTY_PROBLEM,
             uncertainty_problem_params['name']).init_params(params)
@@ -131,7 +135,8 @@ class AmplitudeEstimation(QuantumAlgorithm):
         # Set up iqft, we need to add num qubits to params which is our num_ancillae bits here
         iqft_params = params.get(Pluggable.SECTION_KEY_IQFT)
         iqft_params['num_qubits'] = num_eval_qubits
-        iqft = get_pluggable_class(PluggableType.IQFT, iqft_params['name']).init_params(params)
+        iqft = get_pluggable_class(
+            PluggableType.IQFT, iqft_params['name']).init_params(params)
 
         return cls(num_eval_qubits, uncertainty_problem, q_factory=None, iqft=iqft)
 
@@ -180,10 +185,12 @@ class AmplitudeEstimation(QuantumAlgorithm):
             self._ret['statevector'] = state_vector
 
             # get state probabilities
-            state_probabilities = np.real(state_vector.conj() * state_vector)[0]
+            state_probabilities = np.real(
+                state_vector.conj() * state_vector)[0]
 
             # evaluate results
-            a_probabilities, y_probabilities = self._evaluate_statevector_results(state_probabilities)
+            a_probabilities, y_probabilities = self._evaluate_statevector_results(
+                state_probabilities)
         else:
             # run circuit on QASM simulator
             qc = self._circuit
@@ -215,11 +222,14 @@ class AmplitudeEstimation(QuantumAlgorithm):
         self._ret['y_items'] = y_items
 
         # map estimated values to original range and extract probabilities
-        self._ret['mapped_values'] = [self.a_factory.value_to_estimation(a_item[0]) for a_item in self._ret['a_items']]
+        self._ret['mapped_values'] = [self.a_factory.value_to_estimation(
+            a_item[0]) for a_item in self._ret['a_items']]
         self._ret['values'] = [a_item[0] for a_item in self._ret['a_items']]
         self._ret['y_values'] = [y_item[0] for y_item in y_items]
-        self._ret['probabilities'] = [a_item[1] for a_item in self._ret['a_items']]
-        self._ret['mapped_items'] = [(self._ret['mapped_values'][i], self._ret['probabilities'][i]) for i in range(len(self._ret['mapped_values']))]
+        self._ret['probabilities'] = [a_item[1]
+                                      for a_item in self._ret['a_items']]
+        self._ret['mapped_items'] = [(self._ret['mapped_values'][i], self._ret['probabilities'][i])
+                                     for i in range(len(self._ret['mapped_values']))]
 
         # determine most likely estimator
         self._ret['estimation'] = None
@@ -231,5 +241,25 @@ class AmplitudeEstimation(QuantumAlgorithm):
 
         return self._ret
 
-    def mle(self):
-        pass
+    def mle(self, searchmin=True):
+        # search space for optimal value
+        a_grid = np.linspace(0, 1, num=1000)
+        shots = sum(self._ret.get_counts().values())
+
+        def loglik_wrapper(theta):
+            return loglik(theta, self._m, self._ret['values'], self._ret['probabilities'], shots)
+
+        # Compute the loglikelihoods for all possible values in a_grid
+        logliks = np.array([loglik_wrapper(theta) for theta in a_grid])
+
+        # TODO Take optimal 10 values and searchmin in all of them, then take the best as a_opt
+        # Extract the optimal value
+        max_idx = np.argmax(logliks)
+        a_opt = a_grid[max_idx]
+
+        # Refined search
+        if searchmin:
+            a_opt = minimize(lambda a: -loglik_wrapper(a),
+                             method='Nelder-Mead', x0=a_opt, tol=1e-12)['x'][0]
+
+        self._ret['mle'] = a_opt
