@@ -144,6 +144,14 @@ class InputParser(BaseParser):
                 self._update_algorithm_input_schema()
             elif JSONSchema.PROBLEM == section_name:
                 self._update_input_problem()
+                self._update_algorithm_input_schema()
+                # remove properties that are not valid for this input
+                default_properties = self.get_section_default_properties(PluggableType.INPUT.value)
+                if isinstance(default_properties, dict):
+                    properties = self.get_section_properties(PluggableType.INPUT.value)
+                    for p_name in list(properties.keys()):
+                        if p_name != JSONSchema.NAME and p_name not in default_properties:
+                            self.delete_section_property(PluggableType.INPUT.value, p_name)
 
     @staticmethod
     def get_input_problems(input_name):
