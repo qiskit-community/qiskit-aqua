@@ -10,3 +10,4 @@ cvxopt
 dlx
 pyeda
 docplex
+setuptools>=40.1.0
