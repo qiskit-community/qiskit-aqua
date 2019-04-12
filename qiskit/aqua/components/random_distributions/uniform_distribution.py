@@ -52,9 +52,9 @@ class UniformDistribution(UnivariateDistribution):
         }
     }
 
-    def __init__(self, num_target_qubits, low=0, high=1):
+    def __init__(self, num_target_qubits: int, low: float=0, high: float=1, backend=None):
         probabilities = np.ones(2**num_target_qubits)/2**num_target_qubits
-        super().__init__(num_target_qubits, probabilities, low, high)
+        super().__init__(num_target_qubits, probabilities, low, high, backend)
 
     def required_ancillas(self):
         return 0

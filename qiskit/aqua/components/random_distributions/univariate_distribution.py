@@ -19,9 +19,12 @@ This module contains the definition of a base class for univariate distributions
 """
 
 import numpy as np
+import sys, math
 from qiskit.aqua import AquaError
 from qiskit.aqua.components.initial_states import Custom
 from .random_distribution import RandomDistribution
+from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
+from qiskit import BasicAer, execute
 
 
 class UnivariateDistribution(RandomDistribution):
@@ -30,7 +33,7 @@ class UnivariateDistribution(RandomDistribution):
     (Interface for discrete bounded uncertainty models assuming an equidistant grid)
     """
 
-    def __init__(self, num_target_qubits, probabilities, low=0, high=1):
+    def __init__(self, num_target_qubits, probabilities, low: float=0, high: float=1, backend=None):
         super().__init__(num_target_qubits)
         self._num_values = 2 ** self.num_target_qubits
         self._probabilities = np.array(probabilities)
@@ -39,6 +42,18 @@ class UnivariateDistribution(RandomDistribution):
         self._values = np.linspace(low, high, self.num_values)
         if self.num_values != len(probabilities):
             raise AquaError('num qubits and length of probabilities vector do not match!')
+
+        #####################
+        # XXX Albert's stuff.
+        # TODO: where to define backend? By default it should be IBMQ.
+        assert isinstance(num_target_qubits, int) and num_target_qubits > 0
+        q = QuantumRegister(num_target_qubits)
+        c = ClassicalRegister(num_target_qubits)
+        self.circuit = QuantumCircuit(q, c)
+        self.circuit.h(q)
+        self.circuit.barrier()
+        self.circuit.measure(q, c)
+        self.backend = backend if backend != None else BasicAer.get_backend('qasm_simulator')
 
     @property
     def low(self):
@@ -80,3 +95,39 @@ class UnivariateDistribution(RandomDistribution):
             total += probabilities[i]
         probabilities /= total
         return probabilities, values
+
+    #####################
+    # XXX Albert's stuff.
+
+    def uniform_rand_float64(self, size: int, vmin: float, vmax: float) -> np.ndarray:
+        """
+        Generates a vector of random float64 values in the range [vmin, vmax].
+        :param size: length of the vector.
+        :param vmin: lower bound.
+        :param vmax: upper bound.
+        :return: vector of random values.
+        """
+        assert sys.maxsize == np.iinfo(np.int64).max                                # sizeof(int) == 64 bits
+        assert isinstance(size, int) and size > 0
+        assert isinstance(vmin, float) and isinstance(vmax, float) and vmin <= vmax
+        nbits = 7 * 8                                                               # nbits > mantissa of float64
+        bit_str_len = (nbits * size + self.num_target_qubits - 1) // self.num_target_qubits
+        job = execute(self.circuit, self.backend, shots=bit_str_len, memory=True)
+        bit_str = ''.join(job.result().get_memory())
+        scale = float(vmax - vmin) / float(2**nbits - 1)
+        return np.array([vmin + scale * float(int(bit_str[i:i+nbits], 2))
+                         for i in range(0, nbits * size, nbits)], dtype=np.float64)
+
+    def uniform_rand_int64(self, size: int, vmin: int, vmax: int) -> np.ndarray:
+        """
+        Generates a vector of random int64 values in the range [vmin, vmax].
+        :param size: length of the vector.
+        :param vmin: lower bound.
+        :param vmax: upper bound.
+        :return: vector of random values.
+        """
+        assert sys.maxsize == np.iinfo(np.int64).max                                # sizeof(int) == 64 bits
+        assert isinstance(size, int) and size > 0
+        assert isinstance(vmin, int) and isinstance(vmax, int) and vmin <= vmax
+        assert abs(vmin) <= 2**52 and abs(vmax) <= 2**52                            # 52 == mantissa of float64
+        return np.rint(self.uniform_rand_float64(size, float(vmin), float(vmax))).astype(np.int64)
