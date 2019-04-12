@@ -16,11 +16,11 @@
 # =============================================================================
 
 from .exacteigensolver.exacteigensolver import ExactEigensolver
-from .exactlpsolver.exactlpsolver import ExactLPsolver
+from .exactlssolver.exactlssolver import ExactLSsolver
 from .svm.svm_classical import SVM_Classical
 
 __all__ = ['ExactEigensolver',
-           'ExactLPsolver',
+           'ExactLSsolver',
            'SVM_Classical']
 try:
     from cplex import Cplex
