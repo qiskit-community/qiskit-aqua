@@ -182,7 +182,7 @@ class LongDivision(Reciprocal):
                 un_qc.cx(r, z[0])   
                 return un_qc
             
-            #ASSEMBLING CIRCUIT FOR CONTROLLED SUBTRACTION:
+            # assembling circuit for controlled subtraction
             subtract_in(qc, a, b, b0, c, z, r[rj], n)
             qc.x(a[n-1])
             qc.cx(a[n-1], r[rj])
@@ -195,20 +195,19 @@ class LongDivision(Reciprocal):
             return qc       
     
         def shift_to_one(qc, b, anc, n):
-            '''controlled bit shifting for the initial alignment of the most 
-            significant bits'''
+            # controlled bit shifting for the initial alignment of the most significant bits
             
-            for i in range(n-2):            #set all the anc1 qubits to 1
+            for i in range(n-2):            # set all the anc1 qubits to 1
                 qc.x(anc[i])
             
-            for j2 in range(n-2):           #if msb is 1, change ancilla j2 to 0
+            for j2 in range(n-2):           # if msb is 1, change ancilla j2 to 0
                 qc.cx(b[0+self._neg_offset], anc[j2])                            
                 for i in  np.arange(0,n-2):
-                    i = int(i)                  #which activates shifting with the 2 Toffoli gates
+                    i = int(i)              # which activates shifting with the 2 Toffoli gates
                     qc.ccx(anc[j2], b[i+1+self._neg_offset], b[i+self._neg_offset])
                     qc.ccx(anc[j2], b[i+self._neg_offset], b[i+1+self._neg_offset]) 
                                        
-            for i in range(n-2):                #negate all the anc1
+            for i in range(n-2):            # negate all the ancilla
                 qc.x(anc[i])
                               
         def shift_one_left(qc, b, n):   

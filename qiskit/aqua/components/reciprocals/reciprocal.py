@@ -45,9 +45,14 @@ class Reciprocal(Pluggable):
 
     @abstractmethod
     def sv_to_resvec(self, statevector, num_q):
-        """
-        Placeholder to ensure implementation of this method.
-        TODO: add documentation
+        """Convert statevector to result vector.
+
+        Args:
+            statevector (list): The statevector from simulation.
+            num_q (int): Number of qubits of result register.
+
+        Returns:
+             The result vector.
         """
         raise NotImplementedError
 
