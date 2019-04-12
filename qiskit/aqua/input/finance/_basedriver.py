@@ -32,11 +32,14 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+class QiskitFinanceError(Exception): pass
+
 class DataType(Enum):
     DAILYADJUSTED = 'Daily (adj)'
     DAILY = 'Daily'
-
-
+    BID = 'Bid'
+    ASK = 'Ask'
+    
 class BaseDriver(ABC):
     """
     Base class for Drivers.
@@ -45,6 +48,7 @@ class BaseDriver(ABC):
     use an exception if a component of the module is available.
 
     """
+
     @abstractmethod
     def __init__(self):
         self.check_driver_valid()

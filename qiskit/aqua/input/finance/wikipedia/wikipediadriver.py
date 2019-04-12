@@ -15,10 +15,11 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit.aqua.drivers import BaseDriver, UnitsType
+from qiskit.aqua.input.finance import BaseDriver, DataType, QiskitFinanceError
 import importlib
 from enum import Enum
 import logging
+import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +39,7 @@ class WikipediaDriver(BaseDriver):
             "id": "edi_schema",
             "type": "object",
             "properties": {
-                STOCKMARKET: {
+                "stockmarket": {
                     "type": "string",
                     "default": StockMarket.NASDAQ.value,
                     "oneOf": [
@@ -48,7 +49,7 @@ class WikipediaDriver(BaseDriver):
                          ]}
                     ]
                 },
-                DATATYPE: {
+                "datatype": {
                     "type": "string",
                     "default": DataType.DAILYADJUSTED.value,
                     "oneOf": [
@@ -64,8 +65,8 @@ class WikipediaDriver(BaseDriver):
 
     def __init__(self,
                  token = "",
-                 tickers,
-                 stockmarket = StockMarket.LONDON,
+                 tickers = [],
+                 stockmarket = StockMarket.NASDAQ.value,
                  start = datetime.datetime(2016,1,1),
                  end = datetime.datetime(2016,1,30)):
         """
@@ -75,13 +76,13 @@ class WikipediaDriver(BaseDriver):
             tickers (str or list): tickers
             stockmarket (StockMarket): NASDAQ, NYSE
         """
-        if not isinstance(atoms, list) and not isinstance(atoms, str):
-            raise QiskitFinanceError("Invalid atom input for Wikipedia Driver '{}'".format(atoms))
+        #if not isinstance(atoms, list) and not isinstance(atoms, str):
+        #    raise QiskitFinanceError("Invalid atom input for Wikipedia Driver '{}'".format(atoms))
 
         if isinstance(tickers, list):
-            tickers = ';'.join(tickers)
+            self._tickers = ';'.join(tickers)
         else:
-            tickers = tickers.replace('\n', ';')
+            self._tickers = tickers.replace('\n', ';')
         self._n = len(self._tickers.split(";"))
 
         self.validate(locals())
@@ -91,6 +92,7 @@ class WikipediaDriver(BaseDriver):
         self._tickers = tickers
         self._start = start
         self._end = end
+        self._data = []
 
     @staticmethod
     def check_driver_valid():
@@ -131,6 +133,7 @@ class WikipediaDriver(BaseDriver):
         import quandl
         quandl.ApiConfig.api_key = self._token
         quandl.ApiConfig.api_version = '2015-04-09'
+        self._data = []
         for (cnt, s) in enumerate(self._tickers):
           d = quandl.get("WIKI/" + s, start_date=self._start, end_date=self._end)
           self._data.append(d["close"])

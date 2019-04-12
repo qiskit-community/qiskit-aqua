@@ -15,48 +15,49 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit.aqua.drivers import BaseDriver, UnitsType
+from qiskit.aqua.input.finance import BaseDriver, DataType, QiskitFinanceError
 import importlib
 from enum import Enum
 import logging
+import datetime
 
 logger = logging.getLogger(__name__)
 
 
 class StockMarket(Enum):
-    LONDON = 'XLON'
-    EURONEXT = 'XPAR'
-    SINGAPORE = 'XSES'
+    NASDAQ = 'NASDAQ'
+    NYSE = 'NYSE'
     
-class ExchangeDataDriver(BaseDriver):
-    """Python implementation of an Exchange Data driver."""
+class DataOnDemandDriver(BaseDriver):
+    """Python implementation of an NASDAQ Data on Demand driver."""
 
     CONFIGURATION = {
-        "name": "EDI",
-        "description": "Exchange Data International Driver",
+        "name": "DOD",
+        "description": "NASDAQ Data on Demand Driver",
         "input_schema": {
             "$schema": "http://json-schema.org/schema#",
-            "id": "edi_schema",
+            "id": "dod_schema",
             "type": "object",
             "properties": {
-                STOCKMARKET: {
+                "stockmarket": {
                     "type": "string",
-                    "default": StockMarket.LONDON.value,
+                    "default": StockMarket.NASDAQ.value,
                     "oneOf": [
                          {"enum": [
-                            StockMarket.LONDON.value,
-                            StockMarket.EURONEXT.value,
-                            StockMarket.SINGAPORE.value,
+                            StockMarket.NASDAQ.value,
+                            StockMarket.NYSE.value,
                          ]}
                     ]
                 },
-                DATATYPE: {
+                "datatype": {
                     "type": "string",
-                    "default": DataType.LONDON.value,
+                    "default": DataType.DAILYADJUSTED.value,
                     "oneOf": [
                          {"enum": [
                             DataType.DAILYADJUSTED.value,
                             DataType.DAILY.value,
+                            DataType.BID.value,
+                            DataType.ASK.value,
                          ]}
                     ]
                 },    
@@ -67,7 +68,7 @@ class ExchangeDataDriver(BaseDriver):
     def __init__(self,
                  token,
                  tickers,
-                 stockmarket = StockMarket.LONDON,
+                 stockmarket = StockMarket.NASDAQ,
                  start = datetime.datetime(2016,1,1),
                  end = datetime.datetime(2016,1,30)):
         """
@@ -77,20 +78,19 @@ class ExchangeDataDriver(BaseDriver):
             tickers (str or list): tickers
             stockmarket (StockMarket): LONDON, EURONEXT, or SINGAPORE
         """
-        if not isinstance(atoms, list) and not isinstance(atoms, str):
-            raise QiskitFinanceError("Invalid atom input for PYQUANTE Driver '{}'".format(atoms))
+        #if not isinstance(atoms, list) and not isinstance(atoms, str):
+        #    raise QiskitFinanceError("Invalid atom input for DOD Driver '{}'".format(atoms))
 
         if isinstance(tickers, list):
-            tickers = ';'.join(tickers)
+            self._tickers = ';'.join(tickers)
         else:
-            tickers = tickers.replace('\n', ';')
+            self._tickers = tickers.replace('\n', ';')
         self._n = len(self._tickers.split(";"))
 
         self.validate(locals())
         super().__init__()
         self._stockmarket = stockmarket # .value?
         self._token = token
-        self._tickers = tickers
         self._start = start
         self._end = end
 
@@ -130,9 +130,28 @@ class ExchangeDataDriver(BaseDriver):
         return cls(**kwargs)
 
     def run(self):
-        import quandl
-        quandl.ApiConfig.api_key = self._token
-        quandl.ApiConfig.api_version = '2015-04-09'
-        for (cnt, s) in enumerate(self._tickers):
-          d = quandl.get(self._stockmarket + "/" + s, start_date=self._start, end_date=self._end)
-          self._data.append(d["close"])
+        import re
+        import urllib
+        import urllib2
+        import json
+        url = 'https://dataondemand.nasdaq.com/api/v1/quotes'
+        self._data = []
+        for ticker in self._tickers:
+          values = {'_Token' : self._token,
+          'symbols' : [ticker],
+          'start' : start.strftime("%Y-%m-%d'T'%H:%M:%S.%f'Z'"), 
+          'end' : end.strftime("%Y-%m-%d'T'%H:%M:%S.%f'Z'"), 
+          'next_cursor': 0
+          #'start' : start.strftime("%m/%d/%Y %H:%M:%S.%f") , 
+          #'end' : end.strftime("%m/%d/%Y %H:%M:%S.%f") , 
+          }
+          request_parameters = urllib.urlencode(values)
+          req = urllib2.Request(url, request_parameters)
+          try: 
+            response = urllib2.urlopen(req)
+            quotes = json.loads(response)["quotes"]
+            priceEvolution = []
+            for q in quotes: priceEvolution.append(q["ask_price"])
+            self._data.append(priceEvolution)
+          except:
+            raise QiskitFinanceError('Accessing Qiskit failed')

@@ -15,7 +15,7 @@
 # limitations under the License.
 # =============================================================================
 
-from .dataondemanddriver import DataOnDemandDriver
+from .wikipediadriver import WikipediaDriver, StockMarket
 
-__all__ = ['DataOnDemandDriver',
+__all__ = ['WikipediaDriver',
            'StockMarket']

@@ -15,12 +15,7 @@
 # limitations under the License.
 # =============================================================================
 
-from ._basedriver import BaseDriver, UnitsType
-from .dataondemand import DataOnDemandDriver
-from .exhangedata import ExchangeDataDriver
-from .wikipedia import WikipediaDriver
+from .dataondemanddriver import DataOnDemandDriver, StockMarket
 
-__all__ = ['BaseDriver',
-           'DataOnDemandDriver',
-           'ExchangeDataDriver',
-           'WikipediaDriver']
+__all__ = ['DataOnDemandDriver',
+           'StockMarket']

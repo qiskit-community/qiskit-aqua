@@ -15,7 +15,12 @@
 # limitations under the License.
 # =============================================================================
 
-from .wikipediadriver import WikipediaDriver
+from ._basedriver import BaseDriver, DataType, QiskitFinanceError
+from .dataondemand import DataOnDemandDriver
+from .exchangedata import ExchangeDataDriver
+from .wikipedia import WikipediaDriver
 
-__all__ = ['WikipediaDriver',
-           'StockMarket']
+__all__ = ['BaseDriver', 'DataType', 'QiskitFinanceError', 
+           'DataOnDemandDriver',
+           'ExchangeDataDriver',
+           'WikipediaDriver']
