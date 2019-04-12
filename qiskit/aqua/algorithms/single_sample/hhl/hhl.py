@@ -30,8 +30,6 @@ from qiskit.ignis.verification.tomography import state_tomography_circuits, \
 from qiskit.converters import circuit_to_dag
 
 logger = logging.getLogger(__name__)
-logger.addHandler(logging.StreamHandler(stdout))
-logger.setLevel(logging.DEBUG)
 
 
 class HHL(QuantumAlgorithm):
@@ -200,9 +198,8 @@ class HHL(QuantumAlgorithm):
         if np.log2(matrix.shape[0]) % 1 != 0:
             raise ValueError("Matrix dimension must be 2**n!")
 
-        logger.debug()
-        logger.debug(np.round(matrix, 3))
-        logger.debug(np.round(vector, 3))
+        logger.debug(f"matrix {np.round(matrix, 3)}")
+        logger.debug(f"vector {np.round(vector, 3)}")
         logger.debug(f"Original dimension recorded as {orig_size}")
         logger.debug(f"Current dimension of Matrix: {str(matrix.shape)}")
         logger.debug(f"Current dimension of Vector: {str(vector.shape)}")
