@@ -1,6 +1,4 @@
 import numpy as np
-from scipy.optimize import minimize
-
 from qiskit.aqua.aqua_error import AquaError
 
 
@@ -148,3 +146,20 @@ def pdf_a(a, a_exact, m):
 
     # If is was a scalar return scalar otherwise the array
     return (pr[0] if scalar else pr)
+
+
+def loglik(theta, m, ai, pi=1, nshots=1):
+    """
+    @brief Compute the likelihood of the data ai, if the exact
+           value a is theta, for m qubits. If a histogram of the values
+           ai (total number values is nshots) has already been computed,
+           the histogram (ai, pi) can also be given as argument. Then the
+           original number of datapoints, nshots, should also be provided.
+    @param theta The parameter of the PDF, here the exact value for a
+    @param m The number of qubits
+    @param ai The values ai
+    @param pi The empiric probabilities of ai (histogram probabilities)
+    @param nshots The number of original datapoints ai
+    @return The loglikelihood of ai (,pi) given theta is the exact value
+    """
+    return np.sum(nshots * pi * np.log(pdf_a(ai, theta, m)))
