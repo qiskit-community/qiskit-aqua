@@ -67,6 +67,14 @@ class NormalDistribution(UnivariateDistribution):
             pdf_to_probabilities(lambda x: norm.pdf(x, mu, sigma), low, high, 2 ** num_target_qubits)
         super().__init__(num_target_qubits, probabilities, low, high, backend)
 
+        #####################
+        # XXX Albert's stuff.
+
+        # assert isinstance(mu, float) and isinstance(sigma, float)
+        assert sigma > 0.0
+        self._mu = mu
+        self._sigma = sigma
+
     #####################
     # XXX Albert's stuff.
 
@@ -102,4 +110,4 @@ class NormalDistribution(UnivariateDistribution):
 
             f = np.sqrt(np.abs(-2.0 * np.log(r2) / r2))
             rand_vec[d] = f * x1
-        return rand_vec
+        return (rand_vec * self._sigma + self._mu)

@@ -49,11 +49,11 @@ class UnivariateDistribution(RandomDistribution):
         assert isinstance(num_target_qubits, int) and num_target_qubits > 0
         q = QuantumRegister(num_target_qubits)
         c = ClassicalRegister(num_target_qubits)
-        self.circuit = QuantumCircuit(q, c)
-        self.circuit.h(q)
-        self.circuit.barrier()
-        self.circuit.measure(q, c)
-        self.backend = backend if backend != None else BasicAer.get_backend('qasm_simulator')
+        self._circuit = QuantumCircuit(q, c)
+        self._circuit.h(q)
+        self._circuit.barrier()
+        self._circuit.measure(q, c)
+        self._backend = backend if backend != None else BasicAer.get_backend('qasm_simulator')
 
     @property
     def low(self):
@@ -112,7 +112,7 @@ class UnivariateDistribution(RandomDistribution):
         assert isinstance(vmin, float) and isinstance(vmax, float) and vmin <= vmax
         nbits = 7 * 8                                                               # nbits > mantissa of float64
         bit_str_len = (nbits * size + self.num_target_qubits - 1) // self.num_target_qubits
-        job = execute(self.circuit, self.backend, shots=bit_str_len, memory=True)
+        job = execute(self._circuit, self._backend, shots=bit_str_len, memory=True)
         bit_str = ''.join(job.result().get_memory())
         scale = float(vmax - vmin) / float(2**nbits - 1)
         return np.array([vmin + scale * float(int(bit_str[i:i+nbits], 2))
