@@ -33,7 +33,7 @@ class TestHHL(QiskitAquaTestCase):
     def setUp(self):
         super(TestHHL, self).setUp()
         np.random.seed(0)
-        self.elp_params = {
+        self.els_params = {
             'algorithm': {
                 'name': 'ExactLSsolver'
             },
@@ -87,8 +87,8 @@ class TestHHL(QiskitAquaTestCase):
         algo_input.matrix = matrix
         algo_input.vector = vector
 
-        # run ExactLPsolver
-        ref_result = run_algorithm(self.elp_params, algo_input)
+        # run ExactLSsolver
+        ref_result = run_algorithm(self.els_params, algo_input)
         ref_solution = ref_result['solution']
         ref_normed = ref_solution/np.linalg.norm(ref_solution)
         # run hhl
@@ -128,8 +128,8 @@ class TestHHL(QiskitAquaTestCase):
         algo_input.matrix = matrix
         algo_input.vector = vector
 
-        # run ExactLPsolver
-        ref_result = run_algorithm(self.elp_params, algo_input)
+        # run ExactLSsolver
+        ref_result = run_algorithm(self.els_params, algo_input)
         ref_solution = ref_result['solution']
         ref_normed = ref_solution/np.linalg.norm(ref_solution)
         # run hhl
@@ -163,8 +163,8 @@ class TestHHL(QiskitAquaTestCase):
         algo_input.matrix = matrix
         algo_input.vector = vector
 
-        # run ExactLPsolver
-        ref_result = run_algorithm(self.elp_params, algo_input)
+        # run ExactLSsolver
+        ref_result = run_algorithm(self.els_params, algo_input)
         ref_solution = ref_result['solution']
         ref_normed = ref_solution/np.linalg.norm(ref_solution)
         # run hhl
@@ -186,11 +186,12 @@ class TestHHL(QiskitAquaTestCase):
         self.log.debug('Testing HHL with random non-hermitian matrix')
 
         herm_params = self.params
-        herm_params['eigs']['num_ancillae'] = 10
+        herm_params['eigs']['num_ancillae'] = 6
         #herm_params['eigs']['num_time_slices'] = 80
         herm_params['reciprocal']['negative_evals'] = True
         herm_params['algorithm']['auto_hermitian'] = True
 
+        np.random.seed(None)
         n = 2
         matrix = rmg.random_non_hermitian(n, srange=[0, 1])
         vector = random(n)
@@ -199,8 +200,8 @@ class TestHHL(QiskitAquaTestCase):
         algo_input.matrix = matrix
         algo_input.vector = vector
 
-        # run ExactLPsolver
-        ref_result = run_algorithm(self.elp_params, algo_input)
+        # run ExactLSsolver
+        ref_result = run_algorithm(self.els_params, algo_input)
         ref_solution = ref_result['solution']
         print(ref_result)
         print(ref_solution)
