@@ -25,7 +25,12 @@ from .univariate_distribution import UnivariateDistribution
 
 class NormalDistribution(UnivariateDistribution):
     """
-    The Univariate Normal Distribution.
+    The Univariate Normal Distribution. It implements two approaches: 
+    First, discretising bounded uncertainty models assuming an equidistant grid. 
+    Second, a direct construction from Bernoulli distributed samples 
+    (cf. normal_rand_float64). Both approaches require the mean and 
+    standard deviation to be specified in the constructor. The second 
+    approach also requires backend to be specified in the constructor.
     """
 
     CONFIGURATION = {
@@ -67,21 +72,15 @@ class NormalDistribution(UnivariateDistribution):
             pdf_to_probabilities(lambda x: norm.pdf(x, mu, sigma), low, high, 2 ** num_target_qubits)
         super().__init__(num_target_qubits, probabilities, low, high, backend)
 
-        #####################
-        # XXX Albert's stuff.
-
         # assert isinstance(mu, float) and isinstance(sigma, float)
         assert sigma > 0.0
         self._mu = mu
         self._sigma = sigma
 
-    #####################
-    # XXX Albert's stuff.
-
     def normal_rand_float64(self, size: int) -> np.ndarray:
         """
-        Draws a sample vector from standard normal distribution (mu=0, std=1)
-        using Box-Muller method.
+        Draws a sample vector from the normal distribution with mean and variance prescribed in the constructor.
+        Internally, uses the Box-Muller method and UnivariateDistribution.uniform_rand_float64. 
         """
         EPS = np.sqrt(np.finfo(np.float64).tiny)
         assert isinstance(size, int) and size > 0

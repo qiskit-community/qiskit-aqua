@@ -24,7 +24,11 @@ from .univariate_distribution import UnivariateDistribution
 
 class UniformDistribution(UnivariateDistribution):
     """
-    The Univariate Uniform Distribution.
+    The Univariate Uniform Distribution. It implements two approaches: 
+    First, discretising bounded uncertainty models assuming an equidistant grid. 
+    Second, a direct construction from Bernoulli distributed samples 
+    (cf. uniform_rand_float64, uniform_rand_int64 inherited from UnivariateDistribution).
+    The second approach requires backend to be specified in the constructor.
     """
 
     CONFIGURATION = {

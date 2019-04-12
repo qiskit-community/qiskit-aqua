@@ -30,10 +30,14 @@ from qiskit import BasicAer, execute
 class UnivariateDistribution(RandomDistribution):
     """
     This module contains the definition of a base class for univariate distributions.
-    (Interface for discrete bounded uncertainty models assuming an equidistant grid)
+    It implements two approaches: First, an interface for discrete bounded uncertainty 
+    models assuming an equidistant grid. Second, a direct construction from Bernoulli
+    distributed samples (cf. uniform_rand_float64, uniform_rand_int64).
     """
 
     def __init__(self, num_target_qubits, probabilities, low: float=0, high: float=1, backend=None):
+        
+        # For the first approach
         super().__init__(num_target_qubits)
         self._num_values = 2 ** self.num_target_qubits
         self._probabilities = np.array(probabilities)
@@ -43,9 +47,7 @@ class UnivariateDistribution(RandomDistribution):
         if self.num_values != len(probabilities):
             raise AquaError('num qubits and length of probabilities vector do not match!')
 
-        #####################
-        # XXX Albert's stuff.
-        # TODO: where to define backend? By default it should be IBMQ.
+        # For the second approach
         assert isinstance(num_target_qubits, int) and num_target_qubits > 0
         q = QuantumRegister(num_target_qubits)
         c = ClassicalRegister(num_target_qubits)
@@ -95,9 +97,6 @@ class UnivariateDistribution(RandomDistribution):
             total += probabilities[i]
         probabilities /= total
         return probabilities, values
-
-    #####################
-    # XXX Albert's stuff.
 
     def uniform_rand_float64(self, size: int, vmin: float, vmax: float) -> np.ndarray:
         """
