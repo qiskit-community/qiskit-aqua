@@ -53,11 +53,11 @@ class HHL(QuantumAlgorithm):
             'properties': {
                 'auto_hermitian': {
                     'type': 'boolean',
-                    'default': False
+                    'default': True
                 },
                 'auto_resize': {
                     'type': 'boolean',
-                    'default': False
+                    'default': True
                 }
             },
             'additionalProperties': False
@@ -162,18 +162,20 @@ class HHL(QuantumAlgorithm):
         auto_resize = hhl_params.get('auto_resize')
         orig_size = len(vector)
 
-        is_hermitian = np.allclose(matrix, np.matrix(matrix).H)
+        is_hermitian = np.allclose(matrix, matrix.conj().T)
         is_correctsize = np.log2(matrix.shape[0]) % 1 == 0
 
         if auto_hermitian and not is_hermitian:
             # convert a non-hermitian matrix A to a hermitian matrix
             # by [[0, A.H], [A, 0]] and expand vector b to [b.conj, b]
+            logger.warning("Input matrix is not hermitian. It will be "
+                           "expanded to a hermitian matrix automatically.")
             half_dim = matrix.shape[0]
             full_dim = 2 * half_dim
             new_matrix = np.zeros([full_dim, full_dim])
             new_matrix = np.array(new_matrix, dtype=complex)
             new_matrix[0:half_dim, half_dim:full_dim] = matrix[:, :]
-            new_matrix[half_dim:full_dim, 0:half_dim] = np.matrix(matrix).H[:, :]
+            new_matrix[half_dim:full_dim, 0:half_dim] = matrix.conj().T[:, :]
             matrix = new_matrix
             new_vector = np.zeros((1, full_dim))
             new_vector = np.array(new_vector, dtype=complex)
@@ -183,6 +185,8 @@ class HHL(QuantumAlgorithm):
 
         if auto_resize and not is_correctsize:
             # extend vector and matrix for non 2**n dimensional matrices
+            logger.warning("Input matrix does not have dimension 2**n. It "
+                           "will be expanded automatically.")
             mat_dim = matrix.shape[0]
             next_higher = int(np.ceil(np.log2(mat_dim)))
             new_matrix = np.identity(2 ** next_higher)
@@ -193,7 +197,7 @@ class HHL(QuantumAlgorithm):
             new_vector[0, :vector.shape[0]] = vector
             vector = new_vector.reshape(np.shape(new_vector)[1])
 
-        if not np.allclose(matrix, np.matrix(matrix).H):
+        if not np.allclose(matrix, matrix.conj().T):
             raise ValueError("Input matrix is not hermitian!")
         if np.log2(matrix.shape[0]) % 1 != 0:
             raise ValueError("Matrix dimension must be 2**n!")
@@ -276,7 +280,7 @@ class HHL(QuantumAlgorithm):
 
     def _resize_matrix(self):
         new_matrix = np.ndarray(shape=(self._original_dimension, self._original_dimension), dtype=complex)
-        new_matrix[:,:] = self._matrix[:self._original_dimension, :self._original_dimension]
+        new_matrix[:, :] = self._matrix[:self._original_dimension, :self._original_dimension]
         return new_matrix
 
     def _statevector_simulation(self):
@@ -369,10 +373,7 @@ class HHL(QuantumAlgorithm):
         # Rescaling the output vector to the real solution vector
         tmp_vec = matrix.dot(res_vec)
         f1 = np.linalg.norm(in_vec)/np.linalg.norm(tmp_vec)
-        # TODO: unsure about scaling by num_q here. Likely too big for the
-        # truncated vector. Alternative: scale by log(original matrix dimension?)
-        # f2 = sum(np.angle(in_vec*tmp_vec.conj()-1+1))/self._num_q  # "-1+1" to fix angle error for -0.-0.j
-        f2 = sum(np.angle(in_vec*tmp_vec.conj()-1+1))/(np.log2(matrix.shape[0]))
+        f2 = sum(np.angle(in_vec*tmp_vec.conj()-1+1))/(np.log2(matrix.shape[0])) # "-1+1" to fix angle error for -0.-0.j
         self._ret["solution"] = f1*res_vec*np.exp(-1j*f2)
 
     def _run(self):
