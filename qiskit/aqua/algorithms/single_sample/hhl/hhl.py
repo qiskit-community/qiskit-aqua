@@ -258,9 +258,7 @@ class HHL(QuantumAlgorithm):
         s = self._reciprocal._anc
 
         # Inverse EigenvalueEstimation
-        qc += self._eigs.construct_inverse("circuit", self._eigs._circuit,
-                                           self._eigs._input_register,
-                                           self._eigs._output_register)
+        qc += self._eigs.construct_inverse("circuit", self._eigs._circuit)
 
         # Measurement of the ancilla qubit
         if measurement:
