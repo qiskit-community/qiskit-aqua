@@ -44,6 +44,14 @@ class Reciprocal(Pluggable):
         return cls(**args)
 
     @abstractmethod
+    def sv_to_resvec(self, statevector, num_q):
+        """
+        Placeholder to ensure implementation of this method.
+        TODO: add documentation
+        """
+        raise NotImplementedError
+
+    @abstractmethod
     def construct_circuit(self, mode, register=None, circuit=None):
         """Construct the initial state circuit.
 

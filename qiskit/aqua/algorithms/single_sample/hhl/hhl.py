@@ -30,6 +30,8 @@ from qiskit.ignis.verification.tomography import state_tomography_circuits, \
 from qiskit.converters import circuit_to_dag
 
 logger = logging.getLogger(__name__)
+logger.addHandler(logging.StreamHandler(stdout))
+logger.setLevel(logging.DEBUG)
 
 
 class HHL(QuantumAlgorithm):
@@ -96,7 +98,8 @@ class HHL(QuantumAlgorithm):
             init_state=None,
             reciprocal=None,
             num_q=0,
-            num_a=0
+            num_a=0,
+            orig_size=0
     ):
         """
         Constructor.
@@ -111,6 +114,7 @@ class HHL(QuantumAlgorithm):
             reciprocal (Reciprocal): the eigenvalue reciprocal and controlled rotation instance
             num_q (int): number of qubits required for the matrix Operator instance
             num_a (int): number of ancillary qubits for Eigenvalues instance
+            orig_size (int): The original dimension of the problem (if auto_hermitian OR auto_resize)
         """
         super().__init__()
         super().validate(locals())
@@ -128,6 +132,7 @@ class HHL(QuantumAlgorithm):
         self._eigenvalue_register = None
         self._ancilla_register = None
         self._success_bit = None
+        self._original_dimension = orig_size
         self._ret = {}
 
     @classmethod
@@ -157,6 +162,7 @@ class HHL(QuantumAlgorithm):
         hhl_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
         auto_hermitian = hhl_params.get('auto_hermitian')
         auto_resize = hhl_params.get('auto_resize')
+        orig_size = len(vector)
 
         is_hermitian = np.allclose(matrix, np.matrix(matrix).H)
         is_correctsize = np.log2(matrix.shape[0]) % 1 == 0
@@ -194,9 +200,12 @@ class HHL(QuantumAlgorithm):
         if np.log2(matrix.shape[0]) % 1 != 0:
             raise ValueError("Matrix dimension must be 2**n!")
 
-        print()
-        print(np.round(matrix, 3))
-        print(np.round(vector, 3))
+        logger.debug()
+        logger.debug(np.round(matrix, 3))
+        logger.debug(np.round(vector, 3))
+        logger.debug(f"Original dimension recorded as {orig_size}")
+        logger.debug(f"Current dimension of Matrix: {str(matrix.shape)}")
+        logger.debug(f"Current dimension of Vector: {str(vector.shape)}")
 
         # Initialize eigenvalue finding module
         eigs_params = params.get(Pluggable.SECTION_KEY_EIGS)
@@ -220,7 +229,7 @@ class HHL(QuantumAlgorithm):
                                    reciprocal_params['name']).init_params(params)
 
         return cls(matrix, vector, auto_hermitian, auto_resize, eigs,
-                   init_state, reci, num_q, num_a)
+                   init_state, reci, num_q, num_a, orig_size)
 
     def construct_circuit(self, measurement=False):
         """Construct the HHL circuit.
@@ -265,6 +274,14 @@ class HHL(QuantumAlgorithm):
         self._circuit = qc
         return qc
 
+    def _resize_vector(self, vec):
+        return vec[:self._original_dimension]
+
+    def _resize_matrix(self):
+        new_matrix = np.ndarray(shape=(self._original_dimension, self._original_dimension), dtype=complex)
+        new_matrix[:,:] = self._matrix[:self._original_dimension, :self._original_dimension]
+        return new_matrix
+
     def _statevector_simulation(self):
         """The statevector simulation.
 
@@ -275,7 +292,8 @@ class HHL(QuantumAlgorithm):
         sv = np.asarray(res.get_statevector(self._circuit))
         # Extract solution vector from statevector
         vec = self._reciprocal.sv_to_resvec(sv, self._num_q)
-        self._ret['probability_result'] = np.real(vec.dot(vec.conj()))
+        # remove added dimensions
+        self._ret['probability_result'] = np.real(self._resize_vector(vec).dot(self._resize_vector(vec).conj()))
         vec = vec/np.linalg.norm(vec)
         self._hhl_results(vec)
 
@@ -307,6 +325,7 @@ class HHL(QuantumAlgorithm):
                 else:
                     f += v
             probs.append(s/(f+s))
+        probs = self._resize_vector(probs)
         self._ret["probability_result"] = np.real(probs)
 
         # Filtering the tomo data for valid results with ancillary measured
@@ -344,12 +363,20 @@ class HHL(QuantumAlgorithm):
         return new_results
 
     def _hhl_results(self, vec):
-        self._ret["output"] = vec
+        logger.debug(f"[statevector_simulation] - Vector pre-resizing {str(vec)}")
+        res_vec = self._resize_vector(vec)
+        in_vec = self._resize_vector(self._vector)
+        logger.debug(f"[statevector_simulation] - Vector post-resizing {str(res_vec)}")
+        matrix = self._resize_matrix()
+        self._ret["output"] = res_vec
         # Rescaling the output vector to the real solution vector
-        tmp_vec = self._matrix.dot(vec)
-        f1 = np.linalg.norm(self._vector)/np.linalg.norm(tmp_vec)
-        f2 = sum(np.angle(self._vector*tmp_vec.conj()-1+1))/self._num_q  # "-1+1" to fix angle error for -0.-0.j
-        self._ret["solution"] = f1*vec*np.exp(-1j*f2)
+        tmp_vec = matrix.dot(res_vec)
+        f1 = np.linalg.norm(in_vec)/np.linalg.norm(tmp_vec)
+        # TODO: unsure about scaling by num_q here. Likely too big for the
+        # truncated vector. Alternative: scale by log(original matrix dimension?)
+        # f2 = sum(np.angle(in_vec*tmp_vec.conj()-1+1))/self._num_q  # "-1+1" to fix angle error for -0.-0.j
+        f2 = sum(np.angle(in_vec*tmp_vec.conj()-1+1))/(np.log2(matrix.shape[0]))
+        self._ret["solution"] = f1*res_vec*np.exp(-1j*f2)
 
     def _run(self):
         if self._quantum_instance.is_statevector:
@@ -359,7 +386,7 @@ class HHL(QuantumAlgorithm):
             self.construct_circuit(measurement=False)
             self._state_tomography()
         # Adding a bit of general result information
-        self._ret["matrix"] = self._matrix
-        self._ret["vector"] = self._vector
+        self._ret["matrix"] = self._resize_matrix()
+        self._ret["vector"] = self._resize_vector(self._vector)
         self._ret["circuit_info"] = circuit_to_dag(self._circuit).properties()
         return self._ret
