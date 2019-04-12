@@ -34,7 +34,7 @@ class TestHHL(QiskitAquaTestCase):
         super(TestHHL, self).setUp()
         self.elp_params = {
             'algorithm': {
-                'name': 'ExactLPsolver'
+                'name': 'ExactLSsolver'
             },
             'problem': {
                 'name': 'linear_system',
