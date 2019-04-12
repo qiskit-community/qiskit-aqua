@@ -132,7 +132,23 @@ class Custom(InitialState):
             if self._circuit is None:
                 if register is None:
                     register = QuantumRegister(self._num_qubits, name='q')
-                circuit = QuantumCircuit(register)
+
+                # create emtpy quantum circuit
+                circuit = QuantumCircuit()
+
+                # if register is actually a list of qubits
+                if type(register) is list:
+
+                    # loop over all qubits and add the required registers
+                    for q in register:
+                        if not circuit.has_register(q[0]):
+                            circuit.add_register(q[0])
+                else:
+                    # if an actual register is given, add it
+                    circuit.add_register(register)
+
+                print(circuit.draw())
+
                 if self._state is None or self._state == 'random':
                     svc = StateVectorCircuit(self._state_vector)
                     svc.construct_circuit(circuit, register)
