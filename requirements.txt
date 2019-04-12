@@ -5,3 +5,4 @@ psutil>=5
 jsonschema>=2.6,<2.7
 networkx>=2.2
 pyscf; sys_platform != 'win32'
+setuptools>=40.1.0

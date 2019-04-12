@@ -16,6 +16,8 @@
 # =============================================================================
 
 import setuptools
+import inspect
+import sys
 
 long_description = """<a href="https://qiskit.org/aqua" rel=nofollow>Qiskit Chemistry</a>
  is a set of quantum computing algorithms,
@@ -28,9 +30,14 @@ requirements = [
     "psutil>=5",
     "jsonschema>=2.6,<2.7",
     "networkx>=2.2",
-    "pyscf; sys_platform != 'win32'"
+    "pyscf; sys_platform != 'win32'",
+    "setuptools>=40.1.0"
 ]
 
+if not hasattr(setuptools, 'find_namespace_packages') or not inspect.ismethod(setuptools.find_namespace_packages):
+    print("Your setuptools version:'{}' does not support PEP 420 (find_namespace_packages). "
+          "Upgrade it to version >='40.1.0' and repeat install.".format(setuptools.__version__))
+    sys.exit(1)
 
 setuptools.setup(
     name='qiskit-chemistry',
