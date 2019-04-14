@@ -26,7 +26,7 @@ Added
 - Pluggable component ``Reciprocal`` with variants ``LookupRotation`` and ``LongDivision``.
 - Multiple-Controlled U1 and U3 operations ``mcu1`` and ``mcu3``.
 - Pluggable component ``QFT`` derived from component ``IQFT``.
-- Summarize the tranpiled circuits at the DEBUG logging level.
+- Summarize the transpiled circuits at the DEBUG logging level.
 - ``QuantumInstance`` accepts ``basis_gates`` and ``coupling_map`` again.
 - Support to use ``cx`` gate for the entangement in ``RY`` and ``RYRZ`` variational form. (``cz`` is the default choice.)
 - Support to use arbitrary mixer Hamiltonian in ``QAOA``. This allows to use QAOA in constrained optimization problems [arXiv:1709.03489].
@@ -62,6 +62,11 @@ Changed
 - Changed ``advanced`` mode implementation of ``mct``: using simple ``h`` gates instead of ``ch``, and fixing the old recursion step in ``_multicx``.
 - Components ``random_distributions`` renamed to ``uncertainty_models``
 - Reorganized the constructions of various common gates (``ch``, ``cry``, ``mcry``, ``mct``, ``mcu1``, ``mcu3``, ``mcmt``, ``logic_and``, and ``logic_or``) and circuits (``PhaseEstimationCircuit``, ``BooleanLogicCircuits``, ``FourierTransformCircuits``, and ``StateVectorCircuits``) under the ``circuits`` directory.
+
+Fixed
+-----
+
+- Fixed ``ising/docplex.py`` to correctly multiply constant values in constraints
 
 
 `0.4.1`_ - 2019-01-09

@@ -53,7 +53,6 @@ class TestVQE(QiskitAquaTestCase):
 
         params = {
             'algorithm': {'name': 'VQE'},
-            'problem': {'circuit_caching': False},
             'backend': {'name': 'statevector_simulator',
                         'provider': 'qiskit.BasicAer',
                         'coupling_map': coupling_map,
@@ -123,6 +122,8 @@ class TestVQE(QiskitAquaTestCase):
         quantum_instance = QuantumInstance(backend)
         result = algo.run(quantum_instance)
         self.assertAlmostEqual(result['energy'], -1.85727503)
+        if quantum_instance.has_circuit_caching:
+            self.assertLess(quantum_instance._circuit_cache.misses, 3)
 
     def test_vqe_callback(self):
 
