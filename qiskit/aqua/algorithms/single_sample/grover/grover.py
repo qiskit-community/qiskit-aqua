@@ -15,7 +15,7 @@
 # limitations under the License.
 # =============================================================================
 """
-The Grover Quantum algorithm.
+The Grover's Search algorithm.
 """
 
 import logging
@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 class Grover(QuantumAlgorithm):
     """
-    The Grover Quantum algorithm.
+    The Grover's Search algorithm.
 
     If the `num_iterations` param is specified, the amplitude amplification iteration will be built as specified.
 
@@ -51,7 +51,7 @@ class Grover(QuantumAlgorithm):
 
     CONFIGURATION = {
         'name': 'Grover',
-        'description': 'Grover',
+        'description': "Grover's Search Algorithm",
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
             'id': 'grover_schema',
