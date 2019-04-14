@@ -90,6 +90,7 @@ def pdf_w(w, w_exact, m):
     d = circ_dist(w_exact, w)
 
     # We'll use list comprehension, so the input should be a list
+    scalar = False
     if not hasattr(d, "__len__"):
         d = [d]
         scalar = True
@@ -131,6 +132,7 @@ def pdf_a(a, a_exact, m):
     w_exact = value_to_angle(a_exact)
 
     # We'll use list comprehension, so the input should be a list
+    scalar = False
     if not hasattr(a, "__len__"):
         a = [a]
         w = [w]
@@ -148,18 +150,59 @@ def pdf_a(a, a_exact, m):
     return (pr[0] if scalar else pr)
 
 
-def loglik(theta, m, ai, pi=1, nshots=1):
+def loglik(theta, m, ai, pi=1, shots=1):
     """
     @brief Compute the likelihood of the data ai, if the exact
            value a is theta, for m qubits. If a histogram of the values
-           ai (total number values is nshots) has already been computed,
+           ai (total number values is shots) has already been computed,
            the histogram (ai, pi) can also be given as argument. Then the
-           original number of datapoints, nshots, should also be provided.
+           original number of datapoints, shots, should also be provided.
     @param theta The parameter of the PDF, here the exact value for a
     @param m The number of qubits
     @param ai The values ai
     @param pi The empiric probabilities of ai (histogram probabilities)
-    @param nshots The number of original datapoints ai
+    @param shots The number of original datapoints ai
     @return The loglikelihood of ai (,pi) given theta is the exact value
     """
-    return np.sum(nshots * pi * np.log(pdf_a(ai, theta, m)))
+    return np.sum(shots * pi * np.log(pdf_a(ai, theta, m)))
+
+
+def bisect_max(f, a, b, steps=100, minwidth=0, retval=False):
+    """
+    @brief Find the maximum of f in the interval [a, b] using bisection
+    @param f The function
+    @param a The lower limit of the interval
+    @param b The upper limit of the interval
+    @param steps The maximum number of steps in the bisection
+    @param minwidth If the current interval is smaller than minwidth stop
+                    the search
+    @return The maximum of f in [a,b] according to this algorithm
+    """
+    it = 0
+    m = (a + b) / 2
+    fm = 0
+    while it < steps and b - a > minwidth:
+        l, r = (a + m) / 2, (m + b) / 2
+        fl, fm, fr = f(l), f(m), f(r)
+
+        # fl is the maximum
+        if fl > fm and fl > fr:
+            b = m
+            m = l
+        # fr is the maximum
+        elif fr > fm and fr > fl:
+            a = m
+            m = r
+        # fm is the maximum
+        else:
+            a = l
+            b = r
+
+        it += 1
+
+    if it == steps:
+        print("-- Warning, bisect_max didn't converge after {} steps".format(steps))
+
+    if retval:
+        return m, fm
+    return m
