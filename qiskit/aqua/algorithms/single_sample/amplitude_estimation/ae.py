@@ -30,8 +30,7 @@ from qiskit.aqua.circuits import PhaseEstimationCircuit
 from qiskit.aqua.components.iqfts import Standard
 from .q_factory import QFactory
 
-from qiskit.aqua.utils.mle_utils import loglik
-from scipy.optimize import minimize
+from qiskit.aqua.utils import loglik, bisect_max
 
 logger = logging.getLogger(__name__)
 
@@ -168,7 +167,8 @@ class AmplitudeEstimation(QuantumAlgorithm):
         for y, probability in y_probabilities.items():
             if y >= int(self._M / 2):
                 y = self._M - y
-            a = np.power(np.sin(y * np.pi / 2 ** self._m), 2)
+            a = np.round(
+                np.power(np.sin(y * np.pi / 2 ** self._m), 2), decimals=7)
             a_probabilities[a] = a_probabilities.get(a, 0) + probability
 
         return a_probabilities, y_probabilities
@@ -216,6 +216,8 @@ class AmplitudeEstimation(QuantumAlgorithm):
         # construct a_items and y_items
         a_items = [(a, p) for (a, p) in a_probabilities.items() if p > 1e-6]
         y_items = [(y, p) for (y, p) in y_probabilities.items() if p > 1e-6]
+        a_items = [(a, p) for (a, p) in a_probabilities.items()]
+        y_items = [(y, p) for (y, p) in y_probabilities.items()]
         a_items = sorted(a_items)
         y_items = sorted(y_items)
         self._ret['a_items'] = a_items
@@ -241,25 +243,53 @@ class AmplitudeEstimation(QuantumAlgorithm):
 
         return self._ret
 
-    def mle(self, searchmin=True):
-        # search space for optimal value
-        a_grid = np.linspace(0, 1, num=1000)
-        shots = sum(self._ret.get_counts().values())
+    def mle(self, searchmin=True, diagnostics=False, a_exact=None):
+        # shots = sum(self._ret['counts'].values())
+        shots = 1
+        if not self._quantum_instance.is_statevector:
+            shots = sum(self._ret['counts'].values())
+
+        print('shots', shots)
 
         def loglik_wrapper(theta):
-            return loglik(theta, self._m, self._ret['values'], self._ret['probabilities'], shots)
+            return loglik(theta, self._m, np.asarray(self._ret['values']), np.asarray(self._ret['probabilities']), shots)
 
-        # Compute the loglikelihoods for all possible values in a_grid
-        logliks = np.array([loglik_wrapper(theta) for theta in a_grid])
+        # Compute the singularities of the log likelihood
+        drops = np.sin(np.pi * np.linspace(0, 0.5,
+                                           num=int(self._M / 2), endpoint=False))**2
+        drops = np.append(drops, 1)
+        print('drops', drops)
 
-        # TODO Take optimal 10 values and searchmin in all of them, then take the best as a_opt
-        # Extract the optimal value
-        max_idx = np.argmax(logliks)
-        a_opt = a_grid[max_idx]
+        # Find local maxima and store global maximum
+        a_opt = self._ret['estimation']
+        loglik_opt = loglik_wrapper(a_opt)
+        for a, b in zip(drops[:-1], drops[1:]):
+            local, loglik_local = bisect_max(loglik_wrapper, a, b, retval=True)
+            if loglik_local > loglik_opt:
+                a_opt = local
+                loglik_opt = loglik_local
 
-        # Refined search
-        if searchmin:
-            a_opt = minimize(lambda a: -loglik_wrapper(a),
-                             method='Nelder-Mead', x0=a_opt, tol=1e-12)['x'][0]
+        if diagnostics:
+            if a_exact is None:
+                raise AquaError(
+                    "If diagnostics is set to true, the exact value should be given!")
+            import matplotlib.pyplot as plt
+            plt.figure(10000)
+            from qiskit.aqua.utils import pdf_a
+            a = np.linspace(0, 1, num=200)
+            plt.bar(self._ret['values'],
+                    self._ret['probabilities'], width=0.01, label="QAE measurements")
+            plt.plot(a, pdf_a(a, a_opt, self._m), label="PDF from MLE")
+            plt.plot(a, pdf_a(a, a_exact, self._m), "k--", label="Exact PDF")
+            plt.legend(loc="best")
+            plt.savefig("img/pdffit.pdf")
+            # Map global optimal value to estimation
+            print(a_opt)
+            plt.figure(10001)
+            plt.plot(a, [loglik_wrapper(av) for av in a], label="$\\log L$")
+            plt.plot(a_opt, loglik_opt, "r*", label="MLE")
+            plt.legend(loc="best")
+            plt.savefig("img/loglik.pdf")
+        self._ret['mle'] = self.a_factory.value_to_estimation(a_opt)
 
-        self._ret['mle'] = a_opt
+        return self._ret
