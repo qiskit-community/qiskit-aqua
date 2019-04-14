@@ -14,12 +14,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+
 """
 Relative Phase Toffoli Gates.
 """
 
 from qiskit import QuantumCircuit
 from qiskit.qasm import pi
+
+from qiskit.aqua import AquaError
+from qiskit.aqua.utils.circuit_utils import is_qubit
 
 
 def _apply_rccx(circ, a, b, c):
@@ -55,31 +59,53 @@ def _apply_rcccx(circ, a, b, c, d):
     circ.u2(0, pi, d)  # h
 
 
-def rccx(self, ctl1, ctl2, tgt):
+def rccx(self, q_control_1, q_control_2, q_target):
     """
-    Apply Relative Phase Toffoli from ctl1 and ctl2 to tgt.
+    Apply Relative Phase Toffoli gate from q_control_1 and q_control_2 to q_target.
 
     https://arxiv.org/pdf/1508.03273.pdf Figure 3
     """
-    self._check_qubit(ctl1)
-    self._check_qubit(ctl2)
-    self._check_qubit(tgt)
-    self._check_dups([ctl1, ctl2, tgt])
-    _apply_rccx(self, ctl1, ctl2, tgt)
+    if not is_qubit(q_control_1):
+        raise AquaError('A qubit is expected for the first control.')
+    if not self.has_register(q_control_1[0]):
+        raise AquaError('The first control qubit is expected to be part of the circuit.')
+
+    if not is_qubit(q_control_2):
+        raise AquaError('A qubit is expected for the second control.')
+    if not self.has_register(q_control_2[0]):
+        raise AquaError('The second control qubit is expected to be part of the circuit.')
+
+    if not is_qubit(q_target):
+        raise AquaError('A qubit is expected for the target.')
+    if not self.has_register(q_target[0]):
+        raise AquaError('The target qubit is expected to be part of the circuit.')
+    self._check_dups([q_control_1, q_control_2, q_target])
+    _apply_rccx(self, q_control_1, q_control_2, q_target)
 
 
-def rcccx(self, ctl1, ctl2, ctl3, tgt):
+def rcccx(self, q_control_1, q_control_2, q_control_3, q_target):
     """
-    Apply 3-Control Relative Phase Toffoli from ctl1, ctl2, and ctl3 to tgt.
+    Apply 3-Control Relative Phase Toffoli gate from ctl1, ctl2, and ctl3 to tgt.
 
     https://arxiv.org/pdf/1508.03273.pdf Figure 4
     """
-    self._check_qubit(ctl1)
-    self._check_qubit(ctl2)
-    self._check_qubit(ctl3)
-    self._check_qubit(tgt)
-    self._check_dups([ctl1, ctl2, ctl3, tgt])
-    _apply_rcccx(self, ctl1, ctl2, ctl3, tgt)
+    if not is_qubit(q_control_1):
+        raise AquaError('A qubit is expected for the first control.')
+    if not self.has_register(q_control_1[0]):
+        raise AquaError('The first control qubit is expected to be part of the circuit.')
+
+    if not is_qubit(q_control_2):
+        raise AquaError('A qubit is expected for the second control.')
+    if not self.has_register(q_control_2[0]):
+        raise AquaError('The second control qubit is expected to be part of the circuit.')
+
+    if not is_qubit(q_target):
+        raise AquaError('A qubit is expected for the target.')
+    if not self.has_register(q_target[0]):
+        raise AquaError('The target qubit is expected to be part of the circuit.')
+
+    self._check_dups([q_control_1, q_control_2, q_control_3, q_target])
+    _apply_rcccx(self, q_control_1, q_control_2, q_control_3, q_target)
 
 
 QuantumCircuit.rccx = rccx
