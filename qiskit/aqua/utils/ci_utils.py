@@ -150,8 +150,11 @@ class f:
         return 2 * Alpha.d(x, p) * (M / np.tan(M * Alpha.v(x, p)) - 1 / np.tan(Alpha.v(x, p)))
 
 
-# More precise name
-d_logprob = f.logd
+# More precise name and accepting arrays
+def d_logprob(x, p, m):
+    if hasattr(x, "__len__"):
+        return np.array([f.logd(xv, p, m) for xv in x])
+    return f.logd(x, p, m)
 
 
 def fisher_information(p, m):
