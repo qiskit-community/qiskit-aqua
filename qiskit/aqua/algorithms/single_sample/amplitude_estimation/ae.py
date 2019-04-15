@@ -30,7 +30,8 @@ from qiskit.aqua.circuits import PhaseEstimationCircuit
 from qiskit.aqua.components.iqfts import Standard
 from .q_factory import QFactory
 
-from qiskit.aqua.utils import loglik, bisect_max
+from qiskit.aqua.utils import (loglik, bisect_max, chi2_quantile,
+                               normal_quantile, fisher_information, d_logprob)
 
 logger = logging.getLogger(__name__)
 
@@ -299,5 +300,48 @@ class AmplitudeEstimation(QuantumAlgorithm):
 
         # Convert the value to an estimation
         self._ret['mle'] = self.a_factory.value_to_estimation(a_opt)
+        self._ret['mle_value'] = a_opt
 
         return self._ret
+
+    def ci(self, alpha, kind="likelihood_ratio"):
+        shots = 1
+        if not self._quantum_instance.is_statevector:
+            shots = sum(self._ret['counts'].values())
+
+        mle = self._ret['mle_value']
+        ai = self._ret['values']
+        pi = self._ret['probabilities']
+
+        def loglik_wrapper(theta):
+            return loglik(theta, self._m, ai, pi, shots)
+
+        if kind == "fisher":
+            std = 1 / np.sqrt(shots * fisher_information(mle, self._m))
+            ci = mle + normal_quantile(alpha) / std * np.array([-1, 1])
+
+        elif kind == "observed_fisher":
+            observed_information = np.sum(shots * pi * d_logprob(ai, mle, self._m)**2)
+            std = 1 / np.sqrt(observed_information)
+            ci = mle + normal_quantile(alpha) / std * np.array([-1, 1])
+
+        elif kind == "likelihood_ratio":
+            # Compute the likelihood of the reference value (the MLE) and
+            # a grid of values from which we construct the CI later
+            # TODO Could be improved by, beginning from the MLE, search
+            #      outwards where we are below the threshold, that method
+            #      would probably be more precise
+            a_grid = np.linspace(0, 1, num=10000)  # parameters to test
+            logliks = np.array([loglik_wrapper(theta) for theta in a_grid])  # their log likelihood
+            loglik_ref = loglik_wrapper(mle)  # reference value
+
+            # Get indices of values that are above the loglik threshold
+            chi_q = chi2_quantile(alpha)
+            idcs = (logliks >= (loglik_ref - chi_q / 2))
+
+            # Get the boundaries of the admitted values
+            ci = np.append(np.min(a_grid[idcs]), np.max(a_grid[idcs]))
+        else:
+            raise AquaError("Confidence interval kind {} not implemented.".format(kind))
+
+        return ci
