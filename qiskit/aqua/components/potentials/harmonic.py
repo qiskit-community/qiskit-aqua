@@ -52,7 +52,7 @@ class Harmonic(Potential):
         self._tau = tau
 
     #@abstractmethod
-    def construct_circuit(self, mode, ordering = 'normal', shift = False, register=None):
+    def construct_circuit(self, mode, reverse = False, shift = False, register=None):
         """
         Construct a circuit to apply a harmonic potential on the statevector.
 
@@ -66,11 +66,11 @@ class Harmonic(Potential):
         if mode=='matrix':
 
             circ = np.zeros((self._N,self._N), dtype='complex64')
-            if ordering == 'normal':
+            if not reverse:
                 for i in range(self._N):
                     circ[i,i]=-1.j * 0.5 * self._c * (self._x0 + i*self._delta)**2 * self._tau
 
-            elif ordering == 'reversed':
+            else:
                 for i in range(self._N):
                     bin_i = np.fromstring(np.binary_repr(i,width=self._num_qubits), dtype='S1').astype(int)
                     for k in range(int(self._num_qubits/2)):
@@ -86,8 +86,6 @@ class Harmonic(Potential):
                     circ[j,j]=-1.j * 0.5 * self._c * (self._x0 + i*self._delta)**2 * self._tau
 
 
-            else:
-                raise ValueError('Ordering should be either "normal" or "reversed"')
 
             if shift:
 
@@ -104,70 +102,44 @@ class Harmonic(Potential):
 
         elif mode=='circuit':
 
-            if ordering == 'normal':
-                gamma = 0.5 * self._c *self._tau
+            #if ordering == 'normal':
+            gamma = 0.5 * self._c *self._tau
 
-                q = QuantumRegister(self._num_qubits, name='q')
-                circ = QuantumCircuit(q)
+            q = QuantumRegister(self._num_qubits, name='q')
+            circ = QuantumCircuit(q)
 
-                if shift:
-                    circ.x(q[self._num_qubits-1])
+            if reverse:
+                for i in range(int(self._num_qubits / 2)):
+                    circ.swap(q[i], q[self._num_qubits - 1 - i])
 
-                #global phase
-                circ.u1(-1 * gamma * self._x0**2, q[0])
-                circ.x(q[0])
-                circ.u1(-1 * gamma * self._x0**2, q[0])
-                circ.x(q[0])
+            if shift:
+                circ.x(q[self._num_qubits-1])
 
-                # phase shift
-                for i in range(self._num_qubits):
-                    circ.u1(-2 * gamma * self._x0 * self._delta * 2**i, q[i])
+            #global phase
+            circ.u1(-1 * gamma * self._x0**2, q[0])
+            circ.x(q[0])
+            circ.u1(-1 * gamma * self._x0**2, q[0])
+            circ.x(q[0])
 
-                #controlled phase shift
-                for i in range(self._num_qubits):
-                    for j in range(self._num_qubits):
-                        if i == j:
-                            circ.u1(-1 * gamma * self._delta**2 * 2**(i+j), q[i])
-                        else:
-                            circ.cu1(-1 * gamma * self._delta**2 * 2**i * 2**j, q[i], q[j])
+            # phase shift
+            for i in range(self._num_qubits):
+                circ.u1(-2 * gamma * self._x0 * self._delta * 2**i, q[i])
 
-                if shift:
-                    circ.x(q[self._num_qubits-1])
+            #controlled phase shift
+            for i in range(self._num_qubits):
+                for j in range(self._num_qubits):
+                    if i == j:
+                        circ.u1(-1 * gamma * self._delta**2 * 2**(i+j), q[i])
+                    else:
+                        circ.cu1(-1 * gamma * self._delta**2 * 2**i * 2**j, q[i], q[j])
 
-            elif ordering == 'reversed':
+            if shift:
+                circ.x(q[self._num_qubits-1])
 
-                gamma = 0.5 * self._c *self._tau
+            if reverse:
+                for i in range(int(self._num_qubits / 2)):
+                    circ.swap(q[i], q[self._num_qubits - 1 - i])
 
-                q = QuantumRegister(self._num_qubits, name='q')
-                circ = QuantumCircuit(q)
-
-                if shift:
-                    circ.x(q[self._num_qubits-1])
-
-                #global phase
-                circ.u1(-1 * gamma * self._x0**2, q[0])
-                circ.x(q[0])
-                circ.u1(-1 * gamma * self._x0**2, q[0])
-                circ.x(q[0])
-
-                # phase shift
-                for i in range(self._num_qubits):
-                    circ.u1(-2 * gamma * self._x0 * self._delta * 2**(self._num_qubits-1-i), q[i])
-
-                #controlled phase shift
-                for i in range(self._num_qubits):
-                    for j in range(self._num_qubits):
-                        if i == j:
-                            circ.u1(-1 * gamma * self._delta**2 * 2**(2*(self._num_qubits-1-i)), q[i])
-                        else:
-                            circ.cu1(-1 * gamma * self._delta**2 * 2**(self._num_qubits-1-i) * 2**(self._num_qubits-1-j), q[i], q[j])
-
-                if shift:
-                    circ.x(q[self._num_qubits-1])
-
-            else:
-
-                raise ValueError('Ordering should be either "normal" or "reversed"')
 
             return circ
 
