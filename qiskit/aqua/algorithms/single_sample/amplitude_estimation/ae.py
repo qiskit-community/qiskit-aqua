@@ -310,19 +310,19 @@ class AmplitudeEstimation(QuantumAlgorithm):
             shots = sum(self._ret['counts'].values())
 
         mle = self._ret['mle_value']
-        ai = self._ret['values']
-        pi = self._ret['probabilities']
+        ai = np.asarray(self._ret['values'])
+        pi = np.asarray(self._ret['probabilities'])
 
         def loglik_wrapper(theta):
             return loglik(theta, self._m, ai, pi, shots)
 
         if kind == "fisher":
-            std = 1 / np.sqrt(shots * fisher_information(mle, self._m))
+            std = np.sqrt(shots * fisher_information(mle, self._m))
             ci = mle + normal_quantile(alpha) / std * np.array([-1, 1])
 
         elif kind == "observed_fisher":
             observed_information = np.sum(shots * pi * d_logprob(ai, mle, self._m)**2)
-            std = 1 / np.sqrt(observed_information)
+            std = np.sqrt(observed_information)
             ci = mle + normal_quantile(alpha) / std * np.array([-1, 1])
 
         elif kind == "likelihood_ratio":
