@@ -195,7 +195,8 @@ class LongDivision(Reciprocal):
             return qc       
     
         def shift_to_one(qc, b, anc, n):
-            # controlled bit shifting for the initial alignment of the most significant bits
+            """controlled bit shifting for the initial alignment of the most
+            significant bits """
             
             for i in range(n-2):            # set all the anc1 qubits to 1
                 qc.x(anc[i])
@@ -233,12 +234,12 @@ class LongDivision(Reciprocal):
         self._circuit.x(self._a[self._n-2])
         shift_to_one(self._circuit, self._ev, self._anc1, self._n)  #initial alignment of most significant bits
 
-        for rj in range(self._precision): #iterated subtraction and shifting
+        for rj in range(self._precision): # iterated subtraction and shifting
             self._circuit += subtract(self._a, self._ev, self._b0, self._c,
                                       self._z, self._rec, rj, self._n)
             shift_one_left(self._circuit, self._a, self._n)
                
-        for ish in range(self._n-2): #unshifting due to initial alignment
+        for ish in range(self._n-2): # unshifting due to initial alignment
             shift_one_leftc(self._circuit, self._rec, self._anc1[ish],
                             self._precision + self._num_ancillae)
             self._circuit.x(self._anc1[ish])
