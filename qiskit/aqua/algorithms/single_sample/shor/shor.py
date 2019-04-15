@@ -25,11 +25,9 @@ import logging
 import numpy as np
 
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
-from qiskit import execute
-from qiskit import BasicAer
 
 from qiskit.aqua.utils.arithmetic import is_power
-from qiskit.aqua import AquaError, Pluggable, QuantumInstance
+from qiskit.aqua import AquaError, Pluggable
 from qiskit.aqua.utils import get_subsystem_density_matrix
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.circuits import FourierTransformCircuits as qft
@@ -486,68 +484,39 @@ class Shor(QuantumAlgorithm):
                 return True
 
     def _run(self):
-        # self._compute_energy()
-        # return self._ret
-
-        # Get an integer a that is coprime with self._N
         self._a = self._pick_coprime_a()
         logger.debug('Running with N={} and a={}\n'.format(self._N, self._a))
 
         circuit = self.construct_circuit()
 
-        # Print info to user
-
         if self._quantum_instance.is_statevector:
+            logger.warning('The statevector_simulator might lead to subsequent computation using too much memory.')
             result = self._quantum_instance.execute(circuit)
             complete_state_vec = result.get_statevector(circuit)
-            ancilla_density_mat = get_subsystem_density_matrix(
+            # TODO: this uses too much memory
+            up_qreg_density_mat = get_subsystem_density_matrix(
                 complete_state_vec,
-                range(self._num_ancillae, self._num_ancillae + self._operator.num_qubits)
+                range(2 * self._n, 4 * self._n + 2)
             )
-            ancilla_density_mat_diag = np.diag(ancilla_density_mat)
-            max_amplitude = max(ancilla_density_mat_diag.min(), ancilla_density_mat_diag.max(), key=abs)
-            max_amplitude_idx = np.where(ancilla_density_mat_diag == max_amplitude)[0][0]
-            top_measurement_label = np.binary_repr(max_amplitude_idx, self._num_ancillae)[::-1]
-            raise NotImplementedError
+            up_qreg_density_mat_diag = np.diag(up_qreg_density_mat)
+
+            counts = dict()
+            for i, v in enumerate(up_qreg_density_mat_diag):
+                if not v == 0:
+                    counts[bin(int(i))[2:].zfill(2 * self._n)] = v ** 2
         else:
             up_cqreg = ClassicalRegister(2 * self._n, name='m')
             circuit.add_register(up_cqreg)
             circuit.measure(self._up_qreg, up_cqreg)
+            counts = self._quantum_instance.execute(circuit).get_counts(circuit)
 
-            result = self._quantum_instance.execute(circuit)
-
-            """ Get the results of the simulation in proper structure """
-            counts_result = result.get_counts(circuit)
-
-            """ Print info to user from the simulation results """
-            for i in range(len(counts_result)):
-                logger.info('Result \"{}\" happened {} times.'.format(
-                    list(result.get_counts().keys())[i],
-                    list(result.get_counts().values())[i],
-                ))
-
-            """ For each simulation result, print proper info to user and try to calculate the factors of self._N"""
-            for i in range(len(counts_result)):
-
-                """ Get the x_value from the final state qubits """
-                output_desired = list(result.get_counts().keys())[i]
-                x_value = int(output_desired, 2)
-
-                logger.info("------> Analysing result {0}.".format(output_desired))
-
-                """ Print the final x_value to user """
-                logger.info('In decimal, x_final value for this result is: {0}\n'.format(x_value))
-
-                """ Get the factors using the x value obtained """
-                success = self._get_factors(int(x_value), int(2 * self._n))
-                logger.info('success: ', success)
+        # For each simulation result, print proper info to user and try to calculate the factors of N
+        for output_desired in list(counts.keys()):
+            # Get the x_value from the final state qubits
+            logger.info("------> Analyzing result {0}.".format(output_desired))
+            x_value = int(output_desired, 2)
+            logger.info('In decimal, x_final value for this result is: {0}\n'.format(x_value))
+            success = self._get_factors(int(x_value), int(2 * self._n))
+            logger.info('success: ', success)
 
         return self._ret
-
-
-if __name__ == '__main__':
-    shor = Shor(15)
-    backend = BasicAer.get_backend('qasm_simulator')
-    quantum_instance = QuantumInstance(backend, shots=100)
-    ret = shor.run(quantum_instance)
-    print(ret)
