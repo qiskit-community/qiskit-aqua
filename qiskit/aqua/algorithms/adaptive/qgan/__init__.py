@@ -15,14 +15,3 @@
 # limitations under the License.
 # =============================================================================
 
-from .vqe.vqe import VQE
-from .qaoa.qaoa import QAOA
-from .qgan.qgan import QGAN
-from .qsvm.qsvm_variational import QSVMVariational
-from .vqalgorithm import VQAlgorithm
-
-__all__ = ['VQE',
-           'QAOA',
-           'QGAN',
-           'QSVMVariational',
-           'VQAlgorithm']
