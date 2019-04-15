@@ -25,6 +25,7 @@ from .decimal_to_binary import decimal_to_binary
 from .circuit_utils import summarize_circuits
 from .mle_utils import (pdf_w, pdf_a, circ_dist, value_to_angle,
                         angle_to_value, loglik, bisect_max)
+from .ci_utils import chi2_quantile, normal_quantile, d_logprob
 from .subsystem import get_subsystem_density_matrix, get_subsystems_counts
 from .entangler_map import get_entangler_map, validate_entangler_map
 from .dataset_helper import (get_feature_dimension, get_num_classes,
@@ -56,6 +57,9 @@ __all__ = [
     'angle_to_value',
     'loglik',
     'bisect_max',
+    'chi2_quantile',
+    'normal_quantile',
+    'd_logprob',
     'get_subsystem_density_matrix',
     'get_subsystems_counts',
     'get_entangler_map',
