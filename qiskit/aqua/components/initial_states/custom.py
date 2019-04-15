@@ -147,8 +147,6 @@ class Custom(InitialState):
                     # if an actual register is given, add it
                     circuit.add_register(register)
 
-                print(circuit.draw())
-
                 if self._state is None or self._state == 'random':
                     svc = StateVectorCircuit(self._state_vector)
                     svc.construct_circuit(circuit, register)
