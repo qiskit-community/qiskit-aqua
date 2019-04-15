@@ -311,6 +311,39 @@ class TestHHL(QiskitAquaTestCase):
         self.log.debug('probability of result:     {}'.
                        format(hhl_result["probability_result"]))
 
+    def test_hhl_non_hermitian(self):
+        self.log.debug('Testing HHL with simple non-hermitian matrix')
+
+        nonherm_params = self.params
+        nonherm_params['eigs']['num_ancillae'] = 6
+        nonherm_params['eigs']['num_time_slices'] = 80
+        nonherm_params['eigs']['negative_evals'] = True
+        nonherm_params['reciprocal']['negative_evals'] = True
+
+        matrix = [[1, 1], [2, 1]]
+        vector = [1, 0]
+
+        algo_input = LinearSystemInput()
+        algo_input.matrix = matrix
+        algo_input.vector = vector
+
+        # run ExactLSsolver
+        ref_result = run_algorithm(self.els_params, algo_input)
+        ref_solution = ref_result['solution']
+        ref_normed = ref_solution/np.linalg.norm(ref_solution)
+        # run hhl
+        hhl_result = run_algorithm(nonherm_params, algo_input)
+        hhl_solution = hhl_result['solution']
+        hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
+        # compare result
+        fidelity = state_fidelity(ref_normed, hhl_normed)
+        self.assertGreater(fidelity, 0.8)
+
+        self.log.debug('HHL solution vector:       {}'.format(hhl_solution))
+        self.log.debug('algebraic solution vector: {}'.format(ref_solution))
+        self.log.debug('fidelity HHL to algebraic: {}'.format(fidelity))
+        self.log.debug('probability of result:     {}'.
+                       format(hhl_result["probability_result"]))
 
 if __name__ == '__main__':
     unittest.main()
