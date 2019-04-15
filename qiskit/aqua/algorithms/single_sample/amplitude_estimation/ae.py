@@ -249,18 +249,22 @@ class AmplitudeEstimation(QuantumAlgorithm):
         if not self._quantum_instance.is_statevector:
             shots = sum(self._ret['counts'].values())
 
-        print('shots', shots)
-
+        # Wrapper for the loglikelihood, measured values, probabilities
+        # and number of shots already put in and only dependent on the
+        # exact value `a`, called `theta` now
         def loglik_wrapper(theta):
-            return loglik(theta, self._m, np.asarray(self._ret['values']), np.asarray(self._ret['probabilities']), shots)
+            return loglik(theta, self._m, np.asarray(self._ret['values']),
+                          np.asarray(self._ret['probabilities']), shots)
 
-        # Compute the singularities of the log likelihood
+        # Compute the singularities of the log likelihood (= QAE grid points)
         drops = np.sin(np.pi * np.linspace(0, 0.5,
-                                           num=int(self._M / 2), endpoint=False))**2
-        drops = np.append(drops, 1)
-        print('drops', drops)
+                                           num=int(self._M / 2),
+                                           endpoint=False))**2
 
-        # Find local maxima and store global maximum
+        drops = np.append(drops, 1)  # 1 is also a singularity
+
+        # Find global maximum amongst the local maxima, which are
+        # located in between the drops
         a_opt = self._ret['estimation']
         loglik_opt = loglik_wrapper(a_opt)
         for a, b in zip(drops[:-1], drops[1:]):
@@ -269,6 +273,8 @@ class AmplitudeEstimation(QuantumAlgorithm):
                 a_opt = local
                 loglik_opt = loglik_local
 
+        # TODO Remove this for the release, or convert it into a text-based
+        #      diagnostics, not plot-based
         if diagnostics:
             if a_exact is None:
                 raise AquaError(
@@ -290,6 +296,8 @@ class AmplitudeEstimation(QuantumAlgorithm):
             plt.plot(a_opt, loglik_opt, "r*", label="MLE")
             plt.legend(loc="best")
             plt.savefig("img/loglik.pdf")
+
+        # Convert the value to an estimation
         self._ret['mle'] = self.a_factory.value_to_estimation(a_opt)
 
         return self._ret
