@@ -60,7 +60,7 @@ class UnivariatePiecewiseLinearObjective(UncertaintyProblem):
         if i_state is not None:
             self.i_state = i_state
         else:
-            self.i_state = range(num_state_qubits)
+            self.i_state = list(range(num_state_qubits))
 
         self.i_objective = None
         if i_objective is not None:
@@ -128,8 +128,11 @@ class UnivariatePiecewiseLinearObjective(UncertaintyProblem):
     def required_ancillas(self):
         return self._pwl_ry.required_ancillas()
 
-    def build(self, qc, q, q_ancillas=None, params=None):
+    def build(self, qc, q, q_ancillas=None):
+
+        q_state = [q[i] for i in self.i_state]
+        q_objective = q[self.i_objective]
 
         # apply piecewise linear rotation
-        self._pwl_ry.build(qc, q, q_ancillas)
+        self._pwl_ry.build(qc, q_state + [q_objective], q_ancillas)
 

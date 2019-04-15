@@ -19,7 +19,7 @@ from qiskit.aqua.components.uncertainty_problems import UncertaintyProblem
 
 class UnivariateProblem(UncertaintyProblem):
 
-    def __init__(self, uncertainty_model, univariate_objective, params=None):
+    def __init__(self, uncertainty_model, univariate_objective, i_state=None, i_objective=None):
 
         # determine number of target qubits
         num_target_qubits = uncertainty_model.num_target_qubits + 1
@@ -30,13 +30,12 @@ class UnivariateProblem(UncertaintyProblem):
         self._univariate_objective = univariate_objective
 
         # set params
-        if params is not None:
-            self._params = params
-        else:
-            self._params = {
-                'i_state': range(uncertainty_model.num_target_qubits),
-                'i_objective': uncertainty_model.num_target_qubits
-            }
+        if i_state is None:
+            i_state = list(range(uncertainty_model.num_target_qubits))
+        self.i_state = i_state
+        if i_objective is None:
+            i_objective = uncertainty_model.num_target_qubits
+        self.i_objective = i_objective
 
     def value_to_estimation(self, value):
         return self._univariate_objective.value_to_estimation(value)
@@ -46,10 +45,13 @@ class UnivariateProblem(UncertaintyProblem):
         num_objective_ancillas = self._univariate_objective.required_ancillas()
         return max([num_uncertainty_ancillas, num_objective_ancillas])
 
-    def build(self, qc, q, q_ancillas=None, params=None):
+    def build(self, qc, q, q_ancillas=None):
+
+        q_state = [q[i] for i in self.i_state]
+        q_objective = q[self.i_objective]
 
         # apply uncertainty model
-        self._uncertainty_model.build(qc, q, q_ancillas, params)
+        self._uncertainty_model.build(qc, q_state, q_ancillas)
 
         # apply objective function
-        self._univariate_objective.build(qc, q, q_ancillas, params)
+        self._univariate_objective.build(qc, q_state + [q_objective], q_ancillas)

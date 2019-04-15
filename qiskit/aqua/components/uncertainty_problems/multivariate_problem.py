@@ -47,8 +47,6 @@ class MultivariateProblem(UncertaintyProblem):
         self._univariate_objective = univariate_objective
         self._conditions = conditions
 
-        self._params = {'i_state': range(num_target_qubits), 'i_objective': self.i_objective}
-
     def value_to_estimation(self, value):
         if hasattr(self._univariate_objective, 'value_to_estimation'):
             return self._univariate_objective.value_to_estimation(value)
@@ -72,10 +70,10 @@ class MultivariateProblem(UncertaintyProblem):
         # aggregation, condition, and objective ancillas are added, since aggregation is only uncomputed AFTER objective evaluation
         return max([num_uncertainty_ancillas, num_aggregation_ancillas + num_objective_ancillas + num_condition_ancillas])
 
-    def build(self, qc, q, q_ancillas=None, params=None):
+    def build(self, qc, q, q_ancillas=None):
 
         # apply uncertainty model (can use all ancillas and returns all clean)
-        self._uncertainty_model.build(qc, q, q_ancillas, params)
+        self._uncertainty_model.build(qc, q, q_ancillas)
 
         qc.barrier()
 
@@ -106,7 +104,7 @@ class MultivariateProblem(UncertaintyProblem):
             qc.barrier()
 
             # apply objective function
-            self._univariate_objective.build(qc, q_obj, q_obj_ancillas, params)
+            self._univariate_objective.build(qc, q_obj, q_obj_ancillas)
 
             qc.barrier()
 
@@ -173,14 +171,16 @@ class MultivariateProblem(UncertaintyProblem):
 
             else:
 
-                # combine conditions in ancilla
-                qc.mct([q[i] for i in i_condition], q_ancillas[-1], None)
-
-                # aggregate results controlled with ancilla
-                self._aggregation_function.build_controlled(qc, q, q_ancillas[-1], q_ancillas)
-
-                # uncompute conditions in ancilla
-                qc.mct([q[i] for i in i_condition], q_ancillas[-1], None)
+                pass
+                # TODO: needs to be implemented
+                # # combine conditions in ancilla
+                # qc.mct([q[i] for i in i_condition], q_ancillas[-1], None)
+                #
+                # # aggregate results controlled with ancilla
+                # self._aggregation_function.build_controlled(qc, q, q_ancillas[-1], q_ancillas)
+                #
+                # # uncompute conditions in ancilla
+                # qc.mct([q[i] for i in i_condition], q_ancillas[-1], None)
 
 
 
