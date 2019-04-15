@@ -197,17 +197,6 @@ class HHL(QuantumAlgorithm):
             new_vector[0, :vector.shape[0]] = vector
             vector = new_vector.reshape(np.shape(new_vector)[1])
 
-        if not np.allclose(matrix, matrix.conj().T):
-            raise ValueError("Input matrix is not hermitian!")
-        if np.log2(matrix.shape[0]) % 1 != 0:
-            raise ValueError("Matrix dimension must be 2**n!")
-
-        logger.debug(f"matrix {np.round(matrix, 3)}")
-        logger.debug(f"vector {np.round(vector, 3)}")
-        logger.debug(f"Original dimension recorded as {orig_size}")
-        logger.debug(f"Current dimension of Matrix: {str(matrix.shape)}")
-        logger.debug(f"Current dimension of Vector: {str(vector.shape)}")
-
         # Initialize eigenvalue finding module
         eigs_params = params.get(Pluggable.SECTION_KEY_EIGS)
         eigs = get_pluggable_class(PluggableType.EIGENVALUES,
@@ -362,10 +351,8 @@ class HHL(QuantumAlgorithm):
         return new_results
 
     def _hhl_results(self, vec):
-        logger.debug(f"[statevector_simulation] - Vector pre-resizing {str(vec)}")
         res_vec = self._resize_vector(vec)
         in_vec = self._resize_vector(self._vector)
-        logger.debug(f"[statevector_simulation] - Vector post-resizing {str(res_vec)}")
         matrix = self._resize_matrix()
         self._ret["output"] = res_vec
         # Rescaling the output vector to the real solution vector
