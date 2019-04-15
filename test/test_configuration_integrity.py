@@ -49,7 +49,7 @@ class TestConfigurationIntegrity(QiskitAquaTestCase):
                         missing_problems.append(problem_name)
 
             if len(missing_problems) > 0:
-                err_msgs.append("{}: No algorithm solve the problems {}.".format(cls, missing_problems))
+                err_msgs.append("{}: No algorithm declares the problems {}.".format(cls, missing_problems))
 
         invalid_problems = list(set(AlgorithmInput._PROBLEM_SET).difference(all_problems))
         if len(invalid_problems) > 0:
