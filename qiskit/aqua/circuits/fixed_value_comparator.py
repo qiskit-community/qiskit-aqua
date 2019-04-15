@@ -94,15 +94,11 @@ class FixedValueComparator(CircuitFactory):
         qc.x(a)
         qc.x(b)
 
-    def build(self, qc, q, q_ancillas=None, params=None):
+    def build(self, qc, q, q_ancillas=None):
 
         # get parameters
         i_state = self.i_state
         i_target = self.i_target
-        if params is not None:
-            uncompute = params.get('uncompute', True)
-        else:
-            uncompute = True
 
         # get qubits
         q_result = q[i_target]
@@ -113,28 +109,29 @@ class FixedValueComparator(CircuitFactory):
                 qc.x(q_result)
         elif self.value < pow(2, self.num_state_qubits):  # condition never satisfied for values larger than or equal to 2^n
 
-            tc = self._get_twos_complement()
-            for i in range(self.num_state_qubits):
-                if i == 0:
-                    if tc[i] == 1:
-                        qc.cx(q_state[i], q_ancillas[i])
-                elif i < self.num_state_qubits-1:
-                    if tc[i] == 1:
-                        self._or(qc, q_state[i], q_ancillas[i-1], q_ancillas[i])
-                    else:
-                        qc.ccx(q_state[i], q_ancillas[i-1], q_ancillas[i])
-                else:
-                    if tc[i] == 1:
-                        self._or(qc, q_state[i], q_ancillas[i-1], q_result)
-                    else:
-                        qc.ccx(q_state[i], q_ancillas[i-1], q_result)
+            if self.num_state_qubits > 1:
 
-            # flip result bit if geq flag is false
-            if not self._geq:
-                qc.x(q_result)
+                tc = self._get_twos_complement()
+                for i in range(self.num_state_qubits):
+                    if i == 0:
+                        if tc[i] == 1:
+                            qc.cx(q_state[i], q_ancillas[i])
+                    elif i < self.num_state_qubits-1:
+                        if tc[i] == 1:
+                            self._or(qc, q_state[i], q_ancillas[i-1], q_ancillas[i])
+                        else:
+                            qc.ccx(q_state[i], q_ancillas[i-1], q_ancillas[i])
+                    else:
+                        if tc[i] == 1:
+                            self._or(qc, q_state[i], q_ancillas[i-1], q_result)
+                        else:
+                            qc.ccx(q_state[i], q_ancillas[i-1], q_result)
 
-            # uncompute ancillas state
-            if uncompute:
+                # flip result bit if geq flag is false
+                if not self._geq:
+                    qc.x(q_result)
+
+                # uncompute ancillas state
                 for i in reversed(range(self.num_state_qubits-1)):
                     if i == 0:
                         if tc[i] == 1:
@@ -144,6 +141,14 @@ class FixedValueComparator(CircuitFactory):
                             self._or(qc, q_state[i], q_ancillas[i - 1], q_ancillas[i])
                         else:
                             qc.ccx(q_state[i], q_ancillas[i - 1], q_ancillas[i])
+            else:
+
+                # num_state_qubits == 1 and value == 1:
+                qc.cx(q_state[0], q_result)
+
+                # flip result bit if geq flag is false
+                if not self._geq:
+                    qc.x(q_result)
 
         else:
             if not self._geq:  # otherwise the condition is never satisfied

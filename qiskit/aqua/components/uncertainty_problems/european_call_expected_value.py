@@ -83,16 +83,13 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
 
         if i_state is None:
             i_state = list(range(uncertainty_model.num_target_qubits))
+        self.i_state = i_state
         if i_compare is None:
             i_compare = uncertainty_model.num_target_qubits
+        self.i_compare = i_compare
         if i_objective is None:
             i_objective = uncertainty_model.num_target_qubits + 1
-
-        self._params = {
-            'i_state': i_state,
-            'i_compare': i_compare,
-            'i_objective': i_objective
-        }
+        self.i_objective = i_objective
 
         super().validate(locals())
 
@@ -125,22 +122,21 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
         num_ancillas = int(np.maximum(num_uncertainty_ancillas, num_comparator_ancillas))
         return num_ancillas
 
-    def build(self, qc, q, q_ancillas=None, params=None):
-        if params is None:
-            params = self._params
+    def build(self, qc, q, q_ancillas=None):
 
         # get qubits
-        q_compare = q[params['i_compare']]
-        q_objective = q[params['i_objective']]
+        q_state = [q[i] for i in self.i_state]
+        q_compare = q[self.i_compare]
+        q_objective = q[self.i_objective]
 
         # apply uncertainty model
-        self._uncertainty_model.build(qc, q, q_ancillas, params)
+        self._uncertainty_model.build(qc, q_state, q_ancillas)
 
         # apply comparator to compare qubit
-        self._comparator.build(qc, q, q_ancillas, params)
+        self._comparator.build(qc, q_state + [q_compare], q_ancillas)
 
         # apply approximate payoff function
         qc.ry(2 * self.offset_angle_zero, q_objective)
         qc.cry(2 * self.offset_angle, q_compare, q_objective)
-        for i in self._params['i_state']:
-            qc.mcry(2 * self.slope_angle * 2 ** i, [q_compare, q[i]], q_objective, None)
+        for i, qi in enumerate(q_state):
+            qc.mcry(2 * self.slope_angle * 2 ** i, [q_compare, qi], q_objective, None)

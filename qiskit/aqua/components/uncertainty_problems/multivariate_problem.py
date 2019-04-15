@@ -18,7 +18,7 @@ from qiskit.aqua.components.uncertainty_problems import UncertaintyProblem
 import numpy as np
 
 
-class MultivariateObjective(UncertaintyProblem):
+class MultivariateProblem(UncertaintyProblem):
 
     def __init__(self,
                  uncertainty_model,

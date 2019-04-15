@@ -38,7 +38,7 @@ class PiecewiseLinearYRotation(CircuitFactory):
     where we implicitly assume x_{J+1} = 2^n.
     """
 
-    def __init__(self, breakpoints, slopes, offsets, num_state_qubits, i_state=None, i_target=None):
+    def __init__(self, breakpoints, slopes, offsets, num_state_qubits, i_state=None, i_target=None, uncompute=True):
         """
         Construct piecewise-linearly-controlled Y-rotation
         :param breakpoints: breakpoints to define piecewise-linear function
@@ -87,6 +87,8 @@ class PiecewiseLinearYRotation(CircuitFactory):
         else:
             self.i_target = num_state_qubits
 
+        self.uncompute = uncompute
+
     def evaluate(self, x):
 
         y = (x >= self.breakpoints[0]) * (x * self.mapped_slopes[0] + self.mapped_offsets[0])
@@ -102,15 +104,11 @@ class PiecewiseLinearYRotation(CircuitFactory):
             num_ancillas -= 1
         return num_ancillas
 
-    def build(self, qc, q, q_ancillas=None, params=None):
+    def build(self, qc, q, q_ancillas=None):
 
         # get parameters
         i_state = self.i_state
         i_target = self.i_target
-        if params is not None:
-            uncompute = params.get('uncompute', True)
-        else:
-            uncompute = True
 
         # apply comparators and controlled linear rotations
         for i, bp in enumerate(self.breakpoints):
@@ -132,10 +130,10 @@ class PiecewiseLinearYRotation(CircuitFactory):
 
                 # apply controlled rotation
                 lin_ry = LinRY(self.mapped_slopes[i], self.mapped_offsets[i], self.num_state_qubits, i_state=i_state, i_target=i_target)
-                lin_ry.build_controlled(qc, q, q_ancillas[i - 1], params={'use_basis_gates': False})
+                lin_ry.build_controlled(qc, q, q_ancillas[i - 1], use_basis_gates=False)
 
                 # uncompute comparator
-                if uncompute:
+                if self.uncompute:
                     comp.build_inverse(qc, q_, q_ancillas_)
 
             else:
@@ -149,8 +147,8 @@ class PiecewiseLinearYRotation(CircuitFactory):
 
                 # apply controlled rotation
                 lin_ry = LinRY(self.mapped_slopes[i], self.mapped_offsets[i], self.num_state_qubits, i_state=i_state, i_target=i_target)
-                lin_ry.build_controlled(qc, q, q_ancillas[i], params={'use_basis_gates': False})
+                lin_ry.build_controlled(qc, q, q_ancillas[i], use_basis_gates=False)
 
                 # uncompute comparator
-                if uncompute:
+                if self.uncompute:
                     comp.build_inverse(qc, q_, q_ancillas_)

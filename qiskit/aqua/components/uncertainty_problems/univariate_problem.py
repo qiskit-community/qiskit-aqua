@@ -17,7 +17,7 @@
 from qiskit.aqua.components.uncertainty_problems import UncertaintyProblem
 
 
-class UnivariateObjective(UncertaintyProblem):
+class UnivariateProblem(UncertaintyProblem):
 
     def __init__(self, uncertainty_model, univariate_objective, params=None):
 

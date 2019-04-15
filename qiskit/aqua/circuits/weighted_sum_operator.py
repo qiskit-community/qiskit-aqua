@@ -24,7 +24,7 @@ class WeightedSumOperator(CircuitFactory):
     Adds q^T * w to separate register for non-negative integer weights w
     """
 
-    def __init__(self, num_state_qubits, weights):
+    def __init__(self, num_state_qubits, weights, i_state=None, i_sum=None):
 
         self._weights = weights
 
@@ -40,8 +40,17 @@ class WeightedSumOperator(CircuitFactory):
         num_target_qubits = num_state_qubits + self.num_sum_qubits
         super().__init__(num_target_qubits)
 
-        self.i_state = list(range(num_state_qubits))
-        self.i_sum = list(range(max(self.i_state)+1, max(self.i_state)+self.num_sum_qubits+1))
+        if i_state is None:
+            self.i_state = list(range(num_state_qubits))
+        else:
+            self.i_state = i_state
+        if i_sum is None:
+            self.i_sum = list(range(max(self.i_state)+1, max(self.i_state)+self.num_sum_qubits+1))
+        else:
+            if len(i_sum) == self.get_required_sum_qubits(weights):
+                self.i_sum = i_sum
+            else:
+                raise Exception(('invalid number of sum qubits %s! Required %s' % (len(i_sum), self.get_required_sum_qubits())))
 
     @staticmethod
     def get_required_sum_qubits(weights):
@@ -64,13 +73,17 @@ class WeightedSumOperator(CircuitFactory):
         return self._num_carry_qubits
 
     def required_ancillas(self):
-        # includes one ancilla qubit for 3-controlled not gates
-        return self.num_carry_qubits + 1  # TODO: validate when the +1 is needed and make a case distinction
+
+        if self.num_sum_qubits > 2:
+            # includes one ancilla qubit for 3-controlled not gates
+            return self.num_carry_qubits + 1  # TODO: validate when the +1 is needed and make a case distinction
+        else:
+            return self.num_carry_qubits
 
     def required_ancillas_controlled(self):
         return self.required_ancillas()
 
-    def build(self, qc, q, q_ancillas=None, params=None):
+    def build(self, qc, q, q_ancillas=None):
 
         # get indices for state and target qubits
         i_state = self.i_state
@@ -109,7 +122,6 @@ class WeightedSumOperator(CircuitFactory):
                             # compute (q_sum[j] + q_carry[j-1] + 1) into (q_sum[j], q_carry[j]) - controlled by q_state[i]
                             qc.x(q[i_sum[j]])
                             qc.x(q_ancillas[i_carry[j-1]])
-                            # multi_toffoli_q(qc, q_controls=[q_state, q[i_sum[j]], q_ancillas[i_carry[j-1]]], q_target=q_ancillas[i_carry[j]], q_ancillas=q_ancillas[i_control])
                             qc.mct([q_state, q[i_sum[j]], q_ancillas[i_carry[j-1]]], q_ancillas[i_carry[j]], [q_ancillas[i_control]])
                             qc.cx(q_state, q_ancillas[i_carry[j]])
                             qc.x(q[i_sum[j]])
@@ -126,7 +138,6 @@ class WeightedSumOperator(CircuitFactory):
                             qc.ccx(q_state, q_ancillas[i_carry[j - 1]], q[i_sum[j]])
                         else:
                             # compute (q_sum[j] + q_carry[j-1]) into (q_sum[j], q_carry[j]) - controlled by q_state[i]
-                            # multi_toffoli_q(qc, q_controls=[q_state, q[i_sum[j]], q_ancillas[i_carry[j-1]]], q_target=q_ancillas[i_carry[j]], q_ancillas=q_ancillas[i_control])
                             qc.mct([q_state, q[i_sum[j]], q_ancillas[i_carry[j-1]]], q_ancillas[i_carry[j]], [q_ancillas[i_control]])
                             qc.ccx(q_state, q_ancillas[i_carry[j-1]], q[i_sum[j]])
 
@@ -144,7 +155,6 @@ class WeightedSumOperator(CircuitFactory):
                             pass
                         else:
                             qc.x(q_ancillas[i_carry[j - 1]])
-                            # multi_toffoli_q(qc, q_controls=[q_state, q[i_sum[j]], q_ancillas[i_carry[j - 1]]], q_target=q_ancillas[i_carry[j]], q_ancillas=q_ancillas[i_control])
                             qc.mct([q_state, q[i_sum[j]], q_ancillas[i_carry[j - 1]]], q_ancillas[i_carry[j]], [q_ancillas[i_control]])
                             qc.cx(q_state, q_ancillas[i_carry[j]])
                             qc.x(q_ancillas[i_carry[j - 1]])
@@ -158,6 +168,5 @@ class WeightedSumOperator(CircuitFactory):
                         else:
                             # compute (q_sum[j] + q_carry[j-1]) into (q_sum[j], q_carry[j]) - controlled by q_state[i]
                             qc.x(q[i_sum[j]])
-                            # multi_toffoli_q(qc, q_controls=[q_state, q[i_sum[j]], q_ancillas[i_carry[j - 1]]], q_target=q_ancillas[i_carry[j]], q_ancillas=q_ancillas[i_control])
                             qc.mct([q_state, q[i_sum[j]], q_ancillas[i_carry[j - 1]]], q_ancillas[i_carry[j]], [q_ancillas[i_control]])
                             qc.x(q[i_sum[j]])

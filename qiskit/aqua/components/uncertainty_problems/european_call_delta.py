@@ -75,14 +75,10 @@ class EuropeanCallDelta(UncertaintyProblem):
 
         if i_state is None:
             i_state = list(range(uncertainty_model.num_target_qubits))
+        self.i_state = i_state
         if i_objective is None:
             i_objective = uncertainty_model.num_target_qubits
-
-        self._params = {
-            'i_state': i_state,
-            'i_compare': i_objective,  # compare and objective qubits are the same for the delta.
-            'i_objective': i_objective
-        }
+        self.i_objective = i_objective
 
         super().validate(locals())
 
@@ -106,42 +102,14 @@ class EuropeanCallDelta(UncertaintyProblem):
         num_ancillas_controlled = num_uncertainty_ancillas + num_comparator_ancillas
         return num_ancillas_controlled
 
-    def build(self, qc, q, q_ancillas=None, params=None):
-        if params is None:
-            params = self._params
+    def build(self, qc, q, q_ancillas=None):
+
+        # get qubit lists
+        q_state = [q[i] for i in self.i_state]
+        q_objective = q[self.i_objective]
 
         # apply uncertainty model
-        self._uncertainty_model.build(qc, q, q_ancillas, params)
+        self._uncertainty_model.build(qc, q_state, q_ancillas)
 
         # apply comparator to compare qubit
-        self._comparator.build(qc, q, q_ancillas, params)
-
-    def build_inverse(self, qc, q, q_ancillas=None, params=None):
-        if params is None:
-            params = self._params
-
-        # apply comparator to compare qubit
-        self._comparator.build_inverse(qc, q, q_ancillas, params)
-
-        # apply uncertainty model
-        self._uncertainty_model.build_inverse(qc, q, q_ancillas, params)
-
-    def build_controlled(self, qc, q, q_control, q_ancillas=None, params=None):
-        if params is None:
-            params = self._params
-
-        # apply uncertainty model
-        self._uncertainty_model.build_controlled(qc, q, q_control, q_ancillas, params)
-
-        # apply comparator to compare qubit
-        self._comparator.build_controlled(qc, q, q_control, q_ancillas, params)
-
-    def build_controlled_inverse(self, qc, q, q_control, q_ancillas=None, params=None):
-        if params is None:
-            params = self._params
-
-        # apply comparator to compare qubit
-        self._comparator.build_controlled_inverse(qc, q, q_control, q_ancillas, params)
-
-        # apply uncertainty model
-        self._uncertainty_model.build_controlled_inverse(qc, q, q_control, q_ancillas, params)
+        self._comparator.build(qc, q_state + [q_objective], q_ancillas)

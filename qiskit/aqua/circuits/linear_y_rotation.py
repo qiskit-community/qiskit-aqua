@@ -57,7 +57,7 @@ class LinearYRotation(CircuitFactory):
         else:
             self.i_target = num_state_qubits
 
-    def build(self, qc, q, q_ancillas=None, params=None):
+    def build(self, qc, q, q_ancillas=None):
 
         # get indices
         i_state = self.i_state
