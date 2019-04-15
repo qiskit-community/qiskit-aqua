@@ -167,7 +167,7 @@ def loglik(theta, m, ai, pi=1, shots=1):
     return np.sum(shots * pi * np.log(pdf_a(ai, theta, m)))
 
 
-def bisect_max(f, a, b, steps=100, minwidth=0, retval=False):
+def bisect_max(f, a, b, steps=50, minwidth=1e-12, retval=False):
     """
     @brief Find the maximum of f in the interval [a, b] using bisection
     @param f The function
