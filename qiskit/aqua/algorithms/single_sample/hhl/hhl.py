@@ -90,8 +90,10 @@ class HHL(QuantumAlgorithm):
             self,
             matrix=None,
             vector=None,
-            auto_hermitian=True,
             auto_resize=True,
+            auto_hermitian=True,
+            truncate_resize=None,
+            truncate_hermitian=None,
             eigs=None,
             init_state=None,
             reciprocal=None,
@@ -105,8 +107,10 @@ class HHL(QuantumAlgorithm):
         Args:
             matrix (np.array): the input matrix of linear system of equations
             vector (np.array): the input vector of linear system of equations
-            auto_hermitian (bool): flag indicating automatic expansion of a non-hermitian matrix
-            auto_resize (bool): flag indicating automatic expansion to 2**n dimensional matrix
+            auto_resize (bool): flag enabling automatic expansion to 2**n dimensional matrix
+            auto_hermitian (bool): flag enabling automatic expansion of a non-hermitian matrix
+            truncate_resize (bool): flag indicating expansion to 2**n matrix to be truncated
+            truncate_hermitian (bool): flag indicating expansion to hermitian matrix to be truncated
             eigs (Eigenvalues): the eigenvalue estimation instance
             init_state (InitialState): the initial quantum state preparation
             reciprocal (Reciprocal): the eigenvalue reciprocal and controlled rotation instance
@@ -118,8 +122,10 @@ class HHL(QuantumAlgorithm):
         super().validate(locals())
         self._matrix = matrix
         self._vector = vector
-        self._auto_hermitian = auto_hermitian
         self._auto_resize = auto_resize
+        self._auto_hermitian = auto_hermitian
+        self._truncate_resize = truncate_resize
+        self._truncate_hermitian = truncate_hermitian
         self._eigs = eigs
         self._init_state = init_state
         self._reciprocal = reciprocal
@@ -162,8 +168,25 @@ class HHL(QuantumAlgorithm):
         auto_resize = hhl_params.get('auto_resize')
         orig_size = len(vector)
 
-        is_hermitian = np.allclose(matrix, matrix.conj().T)
+        truncate_resize = False
+        truncate_hermitian = False
         is_correctsize = np.log2(matrix.shape[0]) % 1 == 0
+        is_hermitian = np.allclose(matrix, matrix.conj().T)
+
+        if auto_resize and not is_correctsize:
+            # extend vector and matrix for non 2**n dimensional matrices
+            logger.warning("Input matrix does not have dimension 2**n. It "
+                           "will be expanded automatically.")
+            mat_dim = matrix.shape[0]
+            next_higher = int(np.ceil(np.log2(mat_dim)))
+            new_matrix = np.identity(2 ** next_higher)
+            new_matrix = np.array(new_matrix, dtype=complex)
+            new_matrix[:mat_dim, :mat_dim] = matrix[:, :]
+            matrix = new_matrix
+            new_vector = np.zeros((1, 2 ** next_higher))
+            new_vector[0, :vector.shape[0]] = vector
+            vector = new_vector.reshape(np.shape(new_vector)[1])
+            truncate_resize = True
 
         if auto_hermitian and not is_hermitian:
             # convert a non-hermitian matrix A to a hermitian matrix
@@ -182,20 +205,7 @@ class HHL(QuantumAlgorithm):
             new_vector[0, :vector.shape[0]] = vector.conj()
             new_vector[0, vector.shape[0]:] = vector
             vector = new_vector.reshape(np.shape(new_vector)[1])
-
-        if auto_resize and not is_correctsize:
-            # extend vector and matrix for non 2**n dimensional matrices
-            logger.warning("Input matrix does not have dimension 2**n. It "
-                           "will be expanded automatically.")
-            mat_dim = matrix.shape[0]
-            next_higher = int(np.ceil(np.log2(mat_dim)))
-            new_matrix = np.identity(2 ** next_higher)
-            new_matrix = np.array(new_matrix, dtype=complex)
-            new_matrix[:mat_dim, :mat_dim] = matrix[:, :]
-            matrix = new_matrix
-            new_vector = np.zeros((1, 2 ** next_higher))
-            new_vector[0, :vector.shape[0]] = vector
-            vector = new_vector.reshape(np.shape(new_vector)[1])
+            truncate_hermitian = True
 
         # Initialize eigenvalue finding module
         eigs_params = params.get(Pluggable.SECTION_KEY_EIGS)
@@ -218,7 +228,8 @@ class HHL(QuantumAlgorithm):
         reci = get_pluggable_class(PluggableType.RECIPROCAL,
                                    reciprocal_params['name']).init_params(params)
 
-        return cls(matrix, vector, auto_hermitian, auto_resize, eigs,
+        return cls(matrix, vector, auto_resize, auto_hermitian,
+                   truncate_resize, truncate_hermitian, eigs,
                    init_state, reci, num_q, num_a, orig_size)
 
     def construct_circuit(self, measurement=False):
@@ -263,12 +274,25 @@ class HHL(QuantumAlgorithm):
         return qc
 
     def _resize_vector(self, vec):
-        return vec[:self._original_dimension]
+        if self._truncate_hermitian:
+            half_dim = int(vec.shape[0] / 2)
+            vec = vec[:half_dim]
+        if self._truncate_resize:
+            vec = vec[:self._original_dimension]
+        return vec
 
-    def _resize_matrix(self):
-        new_matrix = np.ndarray(shape=(self._original_dimension, self._original_dimension), dtype=complex)
-        new_matrix[:, :] = self._matrix[:self._original_dimension, :self._original_dimension]
-        return new_matrix
+    def _resize_matrix(self, matrix):
+        if self._truncate_hermitian:
+            full_dim = matrix.shape[0]
+            half_dim = int(full_dim / 2)
+            new_matrix = np.ndarray(shape=(half_dim, half_dim), dtype=complex)
+            new_matrix[:, :] = matrix[0:half_dim, half_dim:full_dim]
+            matrix = new_matrix
+        if self._truncate_resize:
+            new_matrix = np.ndarray(shape=(self._original_dimension, self._original_dimension), dtype=complex)
+            new_matrix[:, :] = matrix[:self._original_dimension, :self._original_dimension]
+            matrix = new_matrix
+        return matrix
 
     def _statevector_simulation(self):
         """The statevector simulation.
@@ -353,7 +377,7 @@ class HHL(QuantumAlgorithm):
     def _hhl_results(self, vec):
         res_vec = self._resize_vector(vec)
         in_vec = self._resize_vector(self._vector)
-        matrix = self._resize_matrix()
+        matrix = self._resize_matrix(self._matrix)
         self._ret["output"] = res_vec
         # Rescaling the output vector to the real solution vector
         tmp_vec = matrix.dot(res_vec)
@@ -369,7 +393,7 @@ class HHL(QuantumAlgorithm):
             self.construct_circuit(measurement=False)
             self._state_tomography()
         # Adding a bit of general result information
-        self._ret["matrix"] = self._resize_matrix()
+        self._ret["matrix"] = self._resize_matrix(self._matrix)
         self._ret["vector"] = self._resize_vector(self._vector)
         self._ret["circuit_info"] = circuit_to_dag(self._circuit).properties()
         return self._ret
