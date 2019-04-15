@@ -24,6 +24,8 @@ from .bernoulli_distribution import BernoulliDistribution
 from .uniform_distribution import UniformDistribution
 from .multivariate_normal_distribution import MultivariateNormalDistribution
 from .multivariate_uniform_distribution import MultivariateUniformDistribution
+from .univariate_variational_distribution import UnivariateVariationalDistribution
+from .multivariate_variational_distribution import MultivariateVariationalDistribution
 
 __all__ = ['UncertaintyModel',
            'UnivariateDistribution',
@@ -33,4 +35,7 @@ __all__ = ['UncertaintyModel',
            'BernoulliDistribution',
            'UniformDistribution',
            'MultivariateNormalDistribution',
-           'MultivariateUniformDistribution']
+           'MultivariateUniformDistribution',
+           'UnivariateVariationalDistribution',
+           'MultivariateVariationalDistribution'
+           ]
