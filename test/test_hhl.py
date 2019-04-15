@@ -207,6 +207,42 @@ class TestHHL(QiskitAquaTestCase):
         self.log.debug('probability of result:     {}'.
                        format(hhl_result["probability_result"]))
 
+    @parameterized.expand([[3, 4], [5, 5]])
+    def test_hhl_diagonal_other_dim(self, n, num_ancillary):
+        self.log.debug('Testing HHL with matrix dimension other than 2**n')
+
+        dim_params = self.params
+        dim_params['eigs']['num_ancillae'] = num_ancillary
+        dim_params['eigs']['negative_evals'] = True
+        dim_params['reciprocal']['negative_evals'] = True
+        dim_params['algorithm']['auto_resize'] = True
+
+        matrix = rmg.random_diag(n, eigrange=[0, 1])
+        vector = random(n)
+
+        algo_input = LinearSystemInput()
+        algo_input.matrix = matrix
+        algo_input.vector = vector
+
+        # run ExactLSsolver
+        ref_result = run_algorithm(self.els_params, algo_input)
+        ref_solution = ref_result['solution']
+        ref_normed = ref_solution/np.linalg.norm(ref_solution)
+        # run hhl
+        hhl_result = run_algorithm(dim_params, algo_input)
+        hhl_solution = hhl_result['solution']
+        hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
+
+        # compare result
+        fidelity = state_fidelity(ref_normed, hhl_normed)
+        np.testing.assert_approx_equal(fidelity, 1, significant=2)
+
+        self.log.debug('HHL solution vector:       {}'.format(hhl_solution))
+        self.log.debug('algebraic solution vector: {}'.format(ref_solution))
+        self.log.debug('fidelity HHL to algebraic: {}'.format(fidelity))
+        self.log.debug('probability of result:     {}'.
+                       format(hhl_result["probability_result"]))
+
     def test_hhl_negative_eigs(self):
         self.log.debug('Testing HHL with matrix with negative eigenvalues')
 
