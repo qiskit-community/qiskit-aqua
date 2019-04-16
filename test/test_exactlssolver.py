@@ -33,7 +33,7 @@ class TestExactLSsolver(QiskitAquaTestCase):
         self.algo_input.matrix = [[1, 2], [2, 1]]
         self.algo_input.vector = [1, 2]
 
-    def test_elp_via_run_algorithm_full_dict(self):
+    def test_els_via_run_algorithm_full_dict(self):
         params = {
             'algorithm': {
                 'name': 'ExactLSsolver'
@@ -51,7 +51,7 @@ class TestExactLSsolver(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(result['solution'], [1, 0])
         np.testing.assert_array_almost_equal(result['eigvals'], [3, -1])
 
-    def test_elp_via_run_algorithm(self):
+    def test_els_via_run_algorithm(self):
         params = {
             'algorithm': {
                 'name': 'ExactLSsolver'
@@ -64,7 +64,7 @@ class TestExactLSsolver(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(result['solution'], [1, 0])
         np.testing.assert_array_almost_equal(result['eigvals'], [3, -1])
 
-    def test_elp_direct(self):
+    def test_els_direct(self):
         algo = ExactLSsolver(self.algo_input.matrix, self.algo_input.vector)
         result = algo.run()
         np.testing.assert_array_almost_equal(result['solution'], [1, 0])
