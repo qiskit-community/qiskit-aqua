@@ -181,7 +181,7 @@ class Grover(QuantumAlgorithm):
             algo_input: input instance
         """
         if algo_input is not None:
-            raise AquaError("Unexpected Input instance.")
+            raise AquaError("Input instance not supported.")
 
         grover_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
         incremental = grover_params.get(Grover.PROP_INCREMENTAL)

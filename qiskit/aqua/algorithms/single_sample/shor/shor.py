@@ -87,13 +87,17 @@ class Shor(QuantumAlgorithm):
         self._ret = {'factors': []}
 
     @classmethod
-    def init_params(cls, params):
+    def init_params(cls, params, algo_input):
         """
         Initialize via parameters dictionary and algorithm input instance.
 
         Args:
             params: parameters dictionary
+            algo_input: input instance
         """
+
+        if algo_input is not None:
+            raise AquaError("Input instance not supported.")
 
         shor_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
         N = shor_params.get(Shor.PROP_N)
