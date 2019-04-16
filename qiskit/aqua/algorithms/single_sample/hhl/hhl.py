@@ -51,14 +51,26 @@ class HHL(QuantumAlgorithm):
             'id': 'hhl_schema',
             'type': 'object',
             'properties': {
+                'auto_resize': {
+                    'type': 'boolean',
+                    'default': True
+                },
                 'auto_hermitian': {
                     'type': 'boolean',
                     'default': True
                 },
-                'auto_resize': {
+                'truncate_resize': {
                     'type': 'boolean',
-                    'default': True
-                }
+                    'default': False
+                },
+                'truncate_hermitian': {
+                    'type': 'boolean',
+                    'default': False
+                },
+                'orig_size': {
+                    'type': 'integer',
+                    'default': None
+                },
             },
             'additionalProperties': False
         },
@@ -92,8 +104,8 @@ class HHL(QuantumAlgorithm):
             vector=None,
             auto_resize=True,
             auto_hermitian=True,
-            truncate_resize=None,
-            truncate_hermitian=None,
+            truncate_resize=False,
+            truncate_hermitian=False,
             eigs=None,
             init_state=None,
             reciprocal=None,
@@ -164,12 +176,14 @@ class HHL(QuantumAlgorithm):
             raise ValueError("Input matrix must be square!")
 
         hhl_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
-        auto_hermitian = hhl_params.get('auto_hermitian')
         auto_resize = hhl_params.get('auto_resize')
-        orig_size = len(vector)
+        auto_hermitian = hhl_params.get('auto_hermitian')
+        truncate_resize = hhl_params.get('truncate_resize')
+        truncate_hermitian = hhl_params.get('truncate_hermitian')
+        orig_size = hhl_params.get('orig_size')
+        if orig_size == 0 or None:
+            orig_size = len(vector)
 
-        truncate_resize = False
-        truncate_hermitian = False
         is_correctsize = np.log2(matrix.shape[0]) % 1 == 0
         is_hermitian = np.allclose(matrix, matrix.conj().T)
 
