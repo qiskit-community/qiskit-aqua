@@ -31,6 +31,7 @@ from qiskit.aqua import AquaError, Pluggable
 from qiskit.aqua.utils import get_subsystem_density_matrix
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.circuits import FourierTransformCircuits as ftc
+from qiskit.aqua.utils import summarize_circuits
 
 
 logger = logging.getLogger(__name__)
@@ -329,8 +330,6 @@ class Shor(QuantumAlgorithm):
         # Get n value used in Shor's algorithm, to know how many qubits are used
         self._n = math.ceil(math.log(self._N, 2))
 
-        logger.info(f'Total number of qubits: {4 * self._n + 2}.')
-
         # quantum register where the sequential QFT is performed
         self._up_qreg = QuantumRegister(2 * self._n, name='up')
         # quantum register where the multiplications are made
@@ -358,6 +357,8 @@ class Shor(QuantumAlgorithm):
         # Apply inverse QFT
         ftc.construct_circuit(circuit=circuit, qubits=self._up_qreg, do_swaps=True, inverse=True)
 
+        logger.info(summarize_circuits(circuit))
+
         return circuit
 
     def _pick_coprime_a(self):
@@ -380,10 +381,12 @@ class Shor(QuantumAlgorithm):
         """
 
         if x_value <= 0:
-            logger.debug('x_value is <= 0, there are no continued fractions\n')
+            msg = 'x_value is <= 0, there are no continued fractions.'
+            logger.debug(msg)
+            self._ret['failure'] = msg
             return False
 
-        logger.debug('Running continued fractions for this case\n')
+        logger.debug('Running continued fractions for this case.')
 
         # Calculate T and x/T
         T = pow(2, t_upper)
@@ -419,36 +422,36 @@ class Shor(QuantumAlgorithm):
 
             # Get the denominator from the value obtained
             frac = fractions.Fraction(aux).limit_denominator()
-            den = frac.denominator
+            denominator = frac.denominator
 
             logger.debug('Approximation number {0} of continued fractions:'.format(i + 1))
-            logger.debug("Numerator:{0} \t\t Denominator: {1}\n".format(frac.numerator, frac.denominator))
+            logger.debug("Numerator:{0} \t\t Denominator: {1}.".format(frac.numerator, frac.denominator))
 
             # Increment i for next iteration
             i = i + 1
 
-            if den % 2 == 1:
+            if denominator % 2 == 1:
                 if i >= self._N:
-                    logger.debug('Returning because have already done too much tries')
+                    msg = 'Unable to find factors after too many attempts.'
+                    logger.debug(msg)
+                    self._ret['failure'] = msg
                     return False
-                logger.debug('Odd denominator, will try next iteration of continued fractions\n')
+                logger.debug('Odd denominator, will try next iteration of continued fractions.')
                 continue
 
             # If denominator even, try to get factors of N
             # Get the exponential a^(r/2)
             exponential = 0
 
-            if den < 1000:
-                exponential = pow(self._a, den / 2)
+            if denominator < 1000:
+                exponential = pow(self._a, denominator / 2)
 
             # Check if the value is too big or not
             if math.isinf(exponential) or exponential > 1000000000:
-                logger.debug('Denominator of continued fraction is too big!\n')
-                aux_out = input('Input number 1 if you want to continue searching, other if you do not: ')
-                if aux_out != '1':
-                    return False
-                else:
-                    continue
+                msg = 'Denominator of continued fraction is too big.'
+                logger.debug(msg)
+                self._ret['failure'] = msg
+                return False
 
             # If the value is not to big (infinity), then get the right values and do the proper gcd()
             putting_plus = int(exponential + 1)
@@ -458,22 +461,21 @@ class Shor(QuantumAlgorithm):
 
             # Check if the factors found are trivial factors or are the desired factors
             if one_factor == 1 or one_factor == self._N or other_factor == 1 or other_factor == self._N:
-                logger.debug('Found just trivial factors, not good enough\n')
+                logger.debug('Found just trivial factors, not good enough.')
                 # Check if the number has already been found, use i-1 because i was already incremented
                 if t[i - 1] == 0:
-                    logger.debug('The continued fractions found exactly x_final/(2^(2n)) , leaving funtion\n')
+                    msg = 'The continued fractions found exactly x_final/(2^(2n)), leaving function.'
+                    logger.debug(msg)
+                    self._ret['failure'] = msg
                     return False
-                if i < self._N:
-                    aux_out = input('Input number 1 if you want to continue searching, other if you do not: ')
-                    if aux_out != '1':
-                        return False
-                else:
-                    # Return if already too much tries and numbers are huge
-                    logger.debug('Returning because have already done too many tries\n')
+                if i >= self._N:
+                    msg = 'Unable to find factors after too many attempts.'
+                    logger.debug(msg)
+                    self._ret['failure'] = msg
                     return False
             else:
-                logger.debug('The factors of {0} are {1} and {2}\n'.format(self._N, one_factor, other_factor))
-                logger.debug('Found the desired factors!\n')
+                logger.debug('The factors of {0} are {1} and {2}.'.format(self._N, one_factor, other_factor))
+                logger.debug('Found the desired factors.')
                 factors = sorted((one_factor, other_factor))
                 if factors not in self._ret['factors']:
                     self._ret['factors'].append(factors)
@@ -482,7 +484,7 @@ class Shor(QuantumAlgorithm):
     def _run(self):
         if not self._ret['factors']:
             self._a = self._pick_coprime_a()
-            logger.debug('Running with N={} and a={}\n'.format(self._N, self._a))
+            logger.debug('Running with N={} and a={}.'.format(self._N, self._a))
 
             circuit = self.construct_circuit()
 
@@ -512,7 +514,7 @@ class Shor(QuantumAlgorithm):
                 # Get the x_value from the final state qubits
                 logger.info("------> Analyzing result {0}.".format(output_desired))
                 x_value = int(output_desired, 2)
-                logger.info('In decimal, x_final value for this result is: {0}\n'.format(x_value))
+                logger.info('In decimal, x_final value for this result is: {0}.'.format(x_value))
                 success = self._get_factors(int(x_value), int(2 * self._n))
                 logger.info('success: ', success)
 
