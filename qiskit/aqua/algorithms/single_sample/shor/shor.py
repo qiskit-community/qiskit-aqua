@@ -78,13 +78,14 @@ class Shor(QuantumAlgorithm):
         if N < 1 or N % 2 == 0:
             raise AquaError('The input needs to be an odd integer greater than 1.')
 
+        self._N = N
+        self._ret = {'factors': []}
+
         # check if the input integer is a power
         tf, b, p = is_power(N, return_decomposition=True)
         if tf:
-            raise NotImplementedError
-
-        self._N = N
-        self._ret = {'factors': []}
+            logger.warning(f'The input integer is a power: {N}={b}^{p}.')
+            self._ret['factors'].append(b)
 
     @classmethod
     def init_params(cls, params, algo_input):
@@ -479,39 +480,40 @@ class Shor(QuantumAlgorithm):
                 return True
 
     def _run(self):
-        self._a = self._pick_coprime_a()
-        logger.debug('Running with N={} and a={}\n'.format(self._N, self._a))
+        if not self._ret['factors']:
+            self._a = self._pick_coprime_a()
+            logger.debug('Running with N={} and a={}\n'.format(self._N, self._a))
 
-        circuit = self.construct_circuit()
+            circuit = self.construct_circuit()
 
-        if self._quantum_instance.is_statevector:
-            logger.warning('The statevector_simulator might lead to subsequent computation using too much memory.')
-            result = self._quantum_instance.execute(circuit)
-            complete_state_vec = result.get_statevector(circuit)
-            # TODO: this uses too much memory
-            up_qreg_density_mat = get_subsystem_density_matrix(
-                complete_state_vec,
-                range(2 * self._n, 4 * self._n + 2)
-            )
-            up_qreg_density_mat_diag = np.diag(up_qreg_density_mat)
+            if self._quantum_instance.is_statevector:
+                logger.warning('The statevector_simulator might lead to subsequent computation using too much memory.')
+                result = self._quantum_instance.execute(circuit)
+                complete_state_vec = result.get_statevector(circuit)
+                # TODO: this uses too much memory
+                up_qreg_density_mat = get_subsystem_density_matrix(
+                    complete_state_vec,
+                    range(2 * self._n, 4 * self._n + 2)
+                )
+                up_qreg_density_mat_diag = np.diag(up_qreg_density_mat)
 
-            counts = dict()
-            for i, v in enumerate(up_qreg_density_mat_diag):
-                if not v == 0:
-                    counts[bin(int(i))[2:].zfill(2 * self._n)] = v ** 2
-        else:
-            up_cqreg = ClassicalRegister(2 * self._n, name='m')
-            circuit.add_register(up_cqreg)
-            circuit.measure(self._up_qreg, up_cqreg)
-            counts = self._quantum_instance.execute(circuit).get_counts(circuit)
+                counts = dict()
+                for i, v in enumerate(up_qreg_density_mat_diag):
+                    if not v == 0:
+                        counts[bin(int(i))[2:].zfill(2 * self._n)] = v ** 2
+            else:
+                up_cqreg = ClassicalRegister(2 * self._n, name='m')
+                circuit.add_register(up_cqreg)
+                circuit.measure(self._up_qreg, up_cqreg)
+                counts = self._quantum_instance.execute(circuit).get_counts(circuit)
 
-        # For each simulation result, print proper info to user and try to calculate the factors of N
-        for output_desired in list(counts.keys()):
-            # Get the x_value from the final state qubits
-            logger.info("------> Analyzing result {0}.".format(output_desired))
-            x_value = int(output_desired, 2)
-            logger.info('In decimal, x_final value for this result is: {0}\n'.format(x_value))
-            success = self._get_factors(int(x_value), int(2 * self._n))
-            logger.info('success: ', success)
+            # For each simulation result, print proper info to user and try to calculate the factors of N
+            for output_desired in list(counts.keys()):
+                # Get the x_value from the final state qubits
+                logger.info("------> Analyzing result {0}.".format(output_desired))
+                x_value = int(output_desired, 2)
+                logger.info('In decimal, x_final value for this result is: {0}\n'.format(x_value))
+                success = self._get_factors(int(x_value), int(2 * self._n))
+                logger.info('success: ', success)
 
         return self._ret
