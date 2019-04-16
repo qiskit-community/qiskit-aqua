@@ -215,7 +215,6 @@ class TestHHL(QiskitAquaTestCase):
         dim_params['eigs']['num_ancillae'] = num_ancillary
         dim_params['eigs']['negative_evals'] = True
         dim_params['reciprocal']['negative_evals'] = True
-        dim_params['algorithm']['auto_resize'] = True
 
         matrix = rmg.random_diag(n, eigrange=[0, 1])
         vector = random(n)

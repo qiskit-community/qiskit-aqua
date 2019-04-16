@@ -51,14 +51,6 @@ class HHL(QuantumAlgorithm):
             'id': 'hhl_schema',
             'type': 'object',
             'properties': {
-                'auto_resize': {
-                    'type': 'boolean',
-                    'default': True
-                },
-                'auto_hermitian': {
-                    'type': 'boolean',
-                    'default': True
-                },
                 'truncate_resize': {
                     'type': 'boolean',
                     'default': False
@@ -68,9 +60,9 @@ class HHL(QuantumAlgorithm):
                     'default': False
                 },
                 'orig_size': {
-                    'type': 'integer',
+                    'type': ['integer', 'null'],
                     'default': None
-                },
+                }
             },
             'additionalProperties': False
         },
@@ -102,8 +94,6 @@ class HHL(QuantumAlgorithm):
             self,
             matrix=None,
             vector=None,
-            auto_resize=True,
-            auto_hermitian=True,
             truncate_resize=False,
             truncate_hermitian=False,
             eigs=None,
@@ -111,7 +101,7 @@ class HHL(QuantumAlgorithm):
             reciprocal=None,
             num_q=0,
             num_a=0,
-            orig_size=0
+            orig_size=None
     ):
         """
         Constructor.
@@ -119,8 +109,6 @@ class HHL(QuantumAlgorithm):
         Args:
             matrix (np.array): the input matrix of linear system of equations
             vector (np.array): the input vector of linear system of equations
-            auto_resize (bool): flag enabling automatic expansion to 2**n dimensional matrix
-            auto_hermitian (bool): flag enabling automatic expansion of a non-hermitian matrix
             truncate_resize (bool): flag indicating expansion to 2**n matrix to be truncated
             truncate_hermitian (bool): flag indicating expansion to hermitian matrix to be truncated
             eigs (Eigenvalues): the eigenvalue estimation instance
@@ -128,14 +116,15 @@ class HHL(QuantumAlgorithm):
             reciprocal (Reciprocal): the eigenvalue reciprocal and controlled rotation instance
             num_q (int): number of qubits required for the matrix Operator instance
             num_a (int): number of ancillary qubits for Eigenvalues instance
-            orig_size (int): The original dimension of the problem (if auto_hermitian OR auto_resize)
+            orig_size (int): The original dimension of the problem (if truncate_resize)
         """
         super().__init__()
         super().validate(locals())
+        if truncate_resize and orig_size is None:
+            raise ValueError("Truncation to {} dimensions is not "
+                            "possible!".format(self._original_dimension))
         self._matrix = matrix
         self._vector = vector
-        self._auto_resize = auto_resize
-        self._auto_hermitian = auto_hermitian
         self._truncate_resize = truncate_resize
         self._truncate_hermitian = truncate_hermitian
         self._eigs = eigs
@@ -176,18 +165,16 @@ class HHL(QuantumAlgorithm):
             raise ValueError("Input matrix must be square!")
 
         hhl_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
-        auto_resize = hhl_params.get('auto_resize')
-        auto_hermitian = hhl_params.get('auto_hermitian')
         truncate_resize = hhl_params.get('truncate_resize')
         truncate_hermitian = hhl_params.get('truncate_hermitian')
         orig_size = hhl_params.get('orig_size')
-        if orig_size == 0 or None:
+        if orig_size is None:
             orig_size = len(vector)
 
         is_correctsize = np.log2(matrix.shape[0]) % 1 == 0
         is_hermitian = np.allclose(matrix, matrix.conj().T)
 
-        if auto_resize and not is_correctsize:
+        if not is_correctsize:
             # extend vector and matrix for non 2**n dimensional matrices
             logger.warning("Input matrix does not have dimension 2**n. It "
                            "will be expanded automatically.")
@@ -202,7 +189,7 @@ class HHL(QuantumAlgorithm):
             vector = new_vector.reshape(np.shape(new_vector)[1])
             truncate_resize = True
 
-        if auto_hermitian and not is_hermitian:
+        if not is_hermitian:
             # convert a non-hermitian matrix A to a hermitian matrix
             # by [[0, A.H], [A, 0]] and expand vector b to [b.conj, b]
             logger.warning("Input matrix is not hermitian. It will be "
@@ -242,8 +229,7 @@ class HHL(QuantumAlgorithm):
         reci = get_pluggable_class(PluggableType.RECIPROCAL,
                                    reciprocal_params['name']).init_params(params)
 
-        return cls(matrix, vector, auto_resize, auto_hermitian,
-                   truncate_resize, truncate_hermitian, eigs,
+        return cls(matrix, vector, truncate_resize, truncate_hermitian, eigs,
                    init_state, reci, num_q, num_a, orig_size)
 
     def construct_circuit(self, measurement=False):
