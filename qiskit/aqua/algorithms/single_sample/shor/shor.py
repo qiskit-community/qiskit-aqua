@@ -75,7 +75,7 @@ class Shor(QuantumAlgorithm):
         super().__init__()
 
         # check the input integer
-        if N == 1 or N == 0 or (N % 2) == 0:
+        if N < 1 or N % 2 == 0:
             raise AquaError('The input needs to be an odd integer greater than 1.')
 
         # check if the input integer is a power
