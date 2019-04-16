@@ -127,25 +127,28 @@ class DataOnDemandProvider(BaseDataProvider):
     def run(self):
         self.check_provider_valid()
         import re
-        import urllib
-        import urllib2
+        import urllib3
+        from urllib.parse import urlencode
+        http = urllib3.PoolManager()
         import json
-        url = 'https://dataondemand.nasdaq.com/api/v1/quotes'
+        URL = 'https://dataondemand.nasdaq.com/api/v1/quotes?'
         self._data = []
         for ticker in self._tickers:
           values = {'_Token' : self._token,
           'symbols' : [ticker],
-          'start' : start.strftime("%Y-%m-%d'T'%H:%M:%S.%f'Z'"), 
-          'end' : end.strftime("%Y-%m-%d'T'%H:%M:%S.%f'Z'"), 
+          'start' : self._start.strftime("%Y-%m-%d'T'%H:%M:%S.%f'Z'"), 
+          'end' : self._end.strftime("%Y-%m-%d'T'%H:%M:%S.%f'Z'"), 
           'next_cursor': 0
-          #'start' : start.strftime("%m/%d/%Y %H:%M:%S.%f") , 
-          #'end' : end.strftime("%m/%d/%Y %H:%M:%S.%f") , 
           }
-          request_parameters = urllib.urlencode(values)
-          req = urllib2.Request(url, request_parameters)
+          encoded = URL + urlencode(values)
           try: 
-            response = urllib2.urlopen(req)
-            quotes = json.loads(response)["quotes"]
+            response = http.request('POST', encoded)
+            if response.status != 200:
+              msg = "Accessing NASDAQ Data on Demand with parameters {} encoded into ".format(values)
+              msg += encoded
+              msg += " failed. Hint: Check the _Token. Check the spelling of tickers."
+              raise QiskitFinanceError(msg)
+            quotes = json.loads(response.data.decode('utf-8'))["quotes"]
             priceEvolution = []
             for q in quotes: priceEvolution.append(q["ask_price"])
             self._data.append(priceEvolution)

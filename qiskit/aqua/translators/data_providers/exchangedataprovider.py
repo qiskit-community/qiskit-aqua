@@ -140,7 +140,7 @@ class ExchangeDataProvider(BaseDataProvider):
         for (cnt, s) in enumerate(self._tickers):
           try:
             d = quandl.get(self._stockmarket + "/" + s, start_date=self._start, end_date=self._end)
-          except Exception as e: # The exception will be urllib3 NewConnectionError, but it can get dressed by quandl
+          except Exception as e: # The exception will be AuthenticationError, if the token is wrong
             raise QiskitFinanceError("Cannot retrieve Exchange Data data.") from e
           try:
             self._data.append(d["Adj. Close"])
