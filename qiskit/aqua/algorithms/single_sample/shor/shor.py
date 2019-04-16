@@ -56,7 +56,7 @@ class Shor(QuantumAlgorithm):
                 PROP_N: {
                     'type': 'integer',
                     'default': 15,
-                    'minimum': 1
+                    'minimum': 3
                 },
             },
             'additionalProperties': False
