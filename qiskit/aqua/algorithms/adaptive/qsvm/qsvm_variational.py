@@ -290,6 +290,9 @@ class QSVMVariational(VQAlgorithm):
             label_batches = np.asarray([labels])
         return batches, label_batches
 
+    def is_gradient_really_supported(self):
+        return self.optimizer.is_gradient_supported and not self.optimizer.is_gradient_ignored
+
     def train(self, data, labels, quantum_instance=None, minibatch_size=-1):
         """Train the models, and save results.
 
@@ -310,7 +313,7 @@ class QSVMVariational(VQAlgorithm):
         self._eval_count = 0
 
         grad_fn = None
-        if minibatch_size > 0 and self.optimizer.is_gradient_supported: # we need some wrapper
+        if minibatch_size > 0 and self.is_gradient_really_supported(): # we need some wrapper
             grad_fn = self._gradient_function_wrapper
 
         self._ret = self.find_minimum(initial_point=self.initial_point,
@@ -349,7 +352,7 @@ class QSVMVariational(VQAlgorithm):
             fnew = self._cost_function_wrapper(theta)
             grad[k] = (fnew - forig) / epsilon
             theta[k] -= epsilon # recover to the center state
-        if self.optimizer.is_gradient_supported:
+        if self.is_gradient_really_supported():
             self._batch_index += 1 # increment the batch after gradient callback
         return grad
 
@@ -368,7 +371,7 @@ class QSVMVariational(VQAlgorithm):
                                curr_cost,
                                self._batch_index)
             self._eval_count += 1
-        if not self.optimizer.is_gradient_supported:
+        if not self.is_gradient_really_supported():
             self._batch_index += 1 # increment the batch after eval callback
 
         logger.debug('Intermediate batch cost: {}'.format(sum(total_cost)))
