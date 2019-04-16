@@ -30,7 +30,11 @@ class StockMarket(Enum):
     SINGAPORE = 'XSES'
     
 class ExchangeDataProvider(BaseDataProvider):
-    """Python implementation of an Exchange Data provider."""
+    """Python implementation of an Exchange Data provider.
+    Please see:
+    https://github.com/Qiskit/qiskit-tutorials/qiskit/finance/data_providers/time_series.ipynb
+    for instructions on use, which involve obtaining a Quandl access token.
+    """
 
     CONFIGURATION = {
         "name": "EDI",

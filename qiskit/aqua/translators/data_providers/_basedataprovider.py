@@ -15,13 +15,6 @@
 # limitations under the License.
 # =============================================================================
 
-"""
-This module implements the abstract base class for data_provider modules
-within Qiskit Finance.
-
-To create add-on data_provider module subclass the BaseDataProvider class in this module.
-Doing so requires that the required driver interface is implemented.
-"""
 
 from abc import ABC, abstractmethod
 import copy
@@ -43,10 +36,14 @@ class DataType(Enum):
     
 class BaseDataProvider(ABC):
     """
-    Base class for Drivers.
+    This module implements the abstract base class for data_provider modules
+    within Qiskit Finance. 
 
-    This method should initialize the module and its configuration, and
-    use an exception if a component of the module is available.
+    To create add-on data_provider module subclass the BaseDataProvider class in this module.
+    Doing so requires that the required driver interface is implemented.
+
+    To use the subclasses, please see
+    https://github.com/Qiskit/qiskit-tutorials/qiskit/finance/data_providers/time_series.ipynb
 
     """
 
@@ -54,7 +51,6 @@ class BaseDataProvider(ABC):
     def __init__(self):
         self.check_driver_valid()
         self._configuration = copy.deepcopy(self.CONFIGURATION)
-        self._work_path = None
 
     @property
     def configuration(self):
@@ -93,14 +89,6 @@ class BaseDataProvider(ABC):
 
         jsonSchema.validate(json_dict)
 
-    @property
-    def work_path(self):
-        return self._work_path
-
-    @work_path.setter
-    def work_path(self, new_work_path):
-        self._work_path = new_work_path
-
     @abstractmethod
     def run(self):
         pass
@@ -108,11 +96,12 @@ class BaseDataProvider(ABC):
     # gets coordinates suitable for plotting
     # it does not have to be overridden in non-abstract derived classes.
     def get_coordinates(self):
+        import numpy as np
         # Coordinates for visualisation purposes
-        xc = np.zeros([self.n, 1])
-        yc = np.zeros([self.n, 1])
-        xc = (np.random.rand(self.n) - 0.5) * 1
-        yc = (np.random.rand(self.n) - 0.5) * 1
+        xc = np.zeros([self._n, 1])
+        yc = np.zeros([self._n, 1])
+        xc = (np.random.rand(self._n) - 0.5) * 1
+        yc = (np.random.rand(self._n) - 0.5) * 1
         #for (cnt, s) in enumerate(self.tickers):
         #xc[cnt, 1] = self.data[cnt][0]
         # yc[cnt, 0] = self.data[cnt][-1]
@@ -120,6 +109,8 @@ class BaseDataProvider(ABC):
 
     # it does not have to be overridden in non-abstract derived classes.
     def get_covariance(self):
+        if not self._data: return None   
+        import numpy as np
         if not self._data: return None
         self.cov = np.cov(self._data, rowvar = True)
         return self.cov
@@ -127,33 +118,46 @@ class BaseDataProvider(ABC):
     # it does not have to be overridden in non-abstract derived classes.
     def get_similarity_matrix(self):
         if not self._data: return None    
+        import numpy as np
         try:
           import fastdtw
+          self.rho = np.zeros((self._n, self._n))
           for ii in range(0, self._n):
             self.rho[ii,ii] = 1.
-            for jj in range(ii + 1, self.n):
+            for jj in range(ii + 1, self._n):
                 thisRho, path = fastdtw.fastdtw(self._data[ii], self._data[jj])
+                thisRho = 1.0 / thisRho
                 self.rho[ii, jj] = thisRho
-                self.rho[jj, ii] = self.rho[ii, jj]
-          self.rho = self.rho / np.nanmax(self.rho)
-          for ii in range(0, self.n):
-            self.rho[ii,ii] = 1.
+                self.rho[jj, ii] = thisRho
         except ImportError:
           print("This requires fastdtw package.")
         return self.rho
 
     # it does not have to be overridden in non-abstract derived classes.
     def plot(self):  
-        #for (cnt, s) in enumerate(self.tickers):
-        #    plot(self.data[cnt], grid = True, label=s)
-        #plt.legend()
+        import matplotlib.pyplot as plt
+        from pandas.plotting import register_matplotlib_converters
+        register_matplotlib_converters()
+        print("Evolution of the stock price:")
+        for (cnt, s) in enumerate(self._tickers):
+            print(s)
+            print(self._data[cnt])
+            plt.plot(self._data[cnt], label=s)
+        plt.legend()
+        plt.xticks(rotation=90)
         #plt.title("Evolution of the adjusted closing price")
-        #plt.show()
-        self.get_covariance()
+        plt.show()
+        if self._n <= 1: 
+            print("Not enough data to plot covariance or time-series similarity. Please use at least two tickers.")
+            return
         self.get_similarity_matrix()
-        print("Top: a similarity measure. Bottom: covariance matrix.")
+        print("A time-series similarity measure:")
+        print(self.rho)
         plt.subplot(211)
         plt.imshow(self.rho)
+        self.get_covariance()
+        print("A covariance matrix:")
+        print(self.cov)
         plt.subplot(212)
         plt.imshow(self.cov)
         plt.show()     

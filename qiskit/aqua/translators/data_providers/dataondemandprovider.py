@@ -29,7 +29,11 @@ class StockMarket(Enum):
     NYSE = 'NYSE'
     
 class DataOnDemandProvider(BaseDataProvider):
-    """Python implementation of an NASDAQ Data on Demand driver."""
+    """Python implementation of an NASDAQ Data on Demand data provider.
+    Please see:
+    https://github.com/Qiskit/qiskit-tutorials/qiskit/finance/data_providers/time_series.ipynb
+    for instructions on use, which involve obtaining a NASDAQ DOD access token.
+    """
 
     CONFIGURATION = {
         "name": "DOD",

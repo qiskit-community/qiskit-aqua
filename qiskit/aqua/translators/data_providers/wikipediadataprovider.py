@@ -29,7 +29,10 @@ class StockMarket(Enum):
     NYSE = 'NYSE'
     
 class WikipediaDataProvider(BaseDataProvider):
-    """Python implementation of a Wikipedia data provider."""
+    """Python implementation of a Wikipedia data provider.
+    Please see:
+    https://github.com/Qiskit/qiskit-tutorials/qiskit/finance/data_providers/time_series.ipynb
+    for instructions on use."""
 
     CONFIGURATION = {
         "name": "WIKI",
