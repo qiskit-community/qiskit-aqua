@@ -22,10 +22,41 @@ from qiskit.aqua import (local_pluggables_types,
                          get_pluggable_class,
                          get_pluggable_configuration,
                          PluggableType)
+from qiskit.aqua.input import AlgorithmInput
 import inspect
 
 
 class TestConfigurationIntegrity(QiskitAquaTestCase):
+
+    def test_pluggable_inputs(self):
+        algorithm_problems = set()
+        for pluggable_name in local_pluggables(PluggableType.ALGORITHM):
+            configuration = get_pluggable_configuration(PluggableType.ALGORITHM, pluggable_name)
+            if isinstance(configuration, dict):
+                algorithm_problems.update(configuration.get('problems', []))
+
+        err_msgs = []
+        all_problems = set()
+        for pluggable_name in local_pluggables(PluggableType.INPUT):
+            cls = get_pluggable_class(PluggableType.INPUT, pluggable_name)
+            configuration = get_pluggable_configuration(PluggableType.INPUT, pluggable_name)
+            missing_problems = []
+            if isinstance(configuration, dict):
+                problem_names = configuration.get('problems', [])
+                all_problems.update(problem_names)
+                for problem_name in problem_names:
+                    if problem_name not in algorithm_problems:
+                        missing_problems.append(problem_name)
+
+            if len(missing_problems) > 0:
+                err_msgs.append("{}: No algorithm declares the problems {}.".format(cls, missing_problems))
+
+        invalid_problems = list(set(AlgorithmInput._PROBLEM_SET).difference(all_problems))
+        if len(invalid_problems) > 0:
+            err_msgs.append("Base Class AlgorithmInput contains problems {} that don't belong to any Input class.".format(invalid_problems))
+
+        if len(err_msgs) > 0:
+            self.fail('\n'.join(err_msgs))
 
     def test_pluggable_configuration(self):
         err_msgs = []
@@ -37,17 +68,20 @@ class TestConfigurationIntegrity(QiskitAquaTestCase):
                     err_msgs.append("{} configuration isn't a dictionary.".format(cls))
                     continue
 
+                if pluggable_type in [PluggableType.ALGORITHM, PluggableType.INPUT]:
+                    if len(configuration.get('problems', [])) == 0:
+                        err_msgs.append("{} missing or empty 'problems' section.".format(cls))
+
                 schema_found = False
                 for configuration_name, configuration_value in configuration.items():
-                    if configuration_name in ['problem', 'depends']:
+                    if configuration_name in ['problems', 'depends']:
                         if not isinstance(configuration_value, list):
                             err_msgs.append("{} configuration section:'{}' isn't a list.".format(cls, configuration_name))
                             continue
 
-                        if configuration_name == 'problems':
-                            continue
+                        if configuration_name == 'depends':
+                            err_msgs.extend(self._validate_depends(cls, configuration_value))
 
-                        err_msgs.extend(self._validate_depends(cls, configuration_value))
                         continue
 
                     if configuration_name == 'input_schema':
