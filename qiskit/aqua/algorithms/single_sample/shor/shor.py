@@ -46,7 +46,7 @@ class Shor(QuantumAlgorithm):
     PROP_N = 'N'
 
     CONFIGURATION = {
-        'name': 'QPE',
+        'name': 'Shor',
         'description': "The Shor's Factoring Algorithm",
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
