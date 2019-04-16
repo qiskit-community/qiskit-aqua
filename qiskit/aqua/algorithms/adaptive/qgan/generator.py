@@ -104,6 +104,7 @@ class Generator:
     def construct_circuit(self, quantum_instance, params=None):
         """
         Construct generator circuit.
+
         :param params: array, parameters which should be used to run the generator, if None use self._params
         :return: QuantumCircuit, constructed quantum circuit
         """
@@ -128,6 +129,7 @@ class Generator:
     def get_samples(self, quantum_instance, params=None, shots=None):
         """
         Get data samples from the generator.
+
         :param quantum_instance: QuantumInstance, used to run the generator
         :param params: array, parameters which should be used to run the generator, if None use self._params
         :param shots: int, if not None use a number of shots that is different from the number set in quantum_instance
@@ -171,10 +173,30 @@ class Generator:
         return generated_samples, generated_samples_weights
 
     def _loss(self, x, weights):
+        """
+        Loss function
+
+        :param x: array, sample label (equivalent to discriminator output)
+        :param weights: array, probability for measuring the sample
+        :return: float, loss function
+        """
         return (-1)*np.dot(weights, np.log(x))
 
     def _get_objective_function(self, quantum_instance, discriminator):
+        """
+        Get objective function
+
+        :param quantum_instance: QuantumInstance, used to run the quantum circuit
+        :param discriminator: torch.nn.Module, discriminator network to compute the sample labels
+        :return: objective function for quantum generator optimization
+        """
         def objective_function(params):
+            """
+            Objective function
+
+            :param params: array, generator parameters
+            :return: loss function
+            """
             generated_data, generated_prob = self.get_samples(quantum_instance, params=params, shots=self._shots)
             prediction_generated = discriminator.get_labels(generated_data).detach().numpy()
             return self._loss(prediction_generated, generated_prob)
@@ -183,6 +205,7 @@ class Generator:
     def train(self, discriminator, quantum_instance, shots=None):
         """
         Perform one training step w.r.t to the generator's parameters
+
         :param discriminator: Discriminator, Discriminator used to compute the loss function
         :param quantum_instance:  QuantumInstance, used to run the generator
         :param shots: int, Number of shots for hardware or qasm execution

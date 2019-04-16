@@ -102,6 +102,7 @@ class Discriminator():
 
     def get_labels(self, x):
         """
+        Get data sample labels, i.e. true or fake
         :param x: numpy array, Discriminator input, i.e. data sample.
         :return: torch.Tensor, Discriminator output, i.e. data label.
         """
@@ -115,6 +116,8 @@ class Discriminator():
 
     def loss_real(self, x, y):
         """
+        Loss function for real data samples
+
         :param x: torch.Tensor, Discriminator output.
         :param y: torch.Tensor, Label of the data point
         :return: torch.Tensor, Loss w.r.t to the real data points.
@@ -124,6 +127,8 @@ class Discriminator():
 
     def loss_fake(self, x, y, weights):  # x: out, y:labels
         """
+        Loss function for fake data samples
+
         :param x: torch.Tensor, Discriminator output.
         :param y: torch.Tensor, Label of the data point
         :param weights: torch.Tensor, Data weights.
@@ -135,6 +140,8 @@ class Discriminator():
 
     def gradient_penalty(self, x, lambda_=5., k=0.01, c=1.):
         """
+        Compute gradient penalty for discriminator optimization
+
         :param x: numpy array, Generated data sample.
         :param lambda_: float, Gradient penalty coefficient 1.
         :param k: float, Gradient penalty coefficient 2.

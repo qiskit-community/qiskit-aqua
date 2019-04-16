@@ -109,10 +109,6 @@ class QGAN(QuantumAlgorithm):
             raise AquaError('Training data not given.')
         self._data = np.array(data)
         if bounds is None:
-            #Check!
-            # bounds_min = np.amin(self._data, axis=0).reshape((np.ndim(self._data),1))
-            # bounds_max = np.amax(self._data, axis=1).reshape((np.ndim(self._data),1))
-            # bounds = np.hstack((bounds_min,bounds_max))
             bounds_min = np.percentile(self._data, 5, axis=0)
             bounds_max = np.percentile(self._data, 95, axis=0)
             bounds = []
@@ -264,7 +260,7 @@ class QGAN(QuantumAlgorithm):
         temp = np.zeros(len(self._grid_elements))
         for j, sample in enumerate(samples_gen):
             for i, element in enumerate(self._grid_elements):
-                if sample == element:
+                if all(sample == element):
                     temp[i] += prob_gen[j]
         prob_gen = temp
         prob_gen = [1e-8 if x == 0 else x for x in prob_gen]
@@ -360,12 +356,12 @@ class QGAN(QuantumAlgorithm):
             self.rel_entr.append(rel_entr)
 
             if self._snapshot_dir is not None:
-                self._store_params(e, d_loss_min.detach().numpy(), g_loss_min, rel_entr)
+                self._store_params(e, np.around(d_loss_min.detach().numpy(),4), np.around(g_loss_min,4), np.around(rel_entr,4))
                     
             if self._snapshot_dir is None:
-                print('Loss Discriminator: ', d_loss_min.detach().numpy())
-                print('Loss Generator: ', g_loss_min)
-                print('Relative Entropy: ', rel_entr)
+                print('Loss Discriminator: ', np.around(d_loss_min.detach().numpy(),4))
+                print('Loss Generator: ', np.around(g_loss_min,4))
+                print('Relative Entropy: ', np.around(rel_entr,4))
             if self._tol_rel_ent is not None:
                 if rel_entr <= self._tol_rel_ent:
                     break
