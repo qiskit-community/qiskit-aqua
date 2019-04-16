@@ -381,9 +381,7 @@ class Shor(QuantumAlgorithm):
         """
 
         if x_value <= 0:
-            msg = 'x_value is <= 0, there are no continued fractions.'
-            logger.debug(msg)
-            self._ret['failure'] = msg
+            self._ret['failure'] = 'x_value is <= 0, there are no continued fractions.'
             return False
 
         logger.debug('Running continued fractions for this case.')
@@ -432,9 +430,7 @@ class Shor(QuantumAlgorithm):
 
             if denominator % 2 == 1:
                 if i >= self._N:
-                    msg = 'Unable to find factors after too many attempts.'
-                    logger.debug(msg)
-                    self._ret['failure'] = msg
+                    self._ret['failure'] = 'Unable to find factors after too many attempts.'
                     return False
                 logger.debug('Odd denominator, will try next iteration of continued fractions.')
                 continue
@@ -448,9 +444,7 @@ class Shor(QuantumAlgorithm):
 
             # Check if the value is too big or not
             if math.isinf(exponential) or exponential > 1000000000:
-                msg = 'Denominator of continued fraction is too big.'
-                logger.debug(msg)
-                self._ret['failure'] = msg
+                self._ret['failure'] = 'Denominator of continued fraction is too big.'
                 return False
 
             # If the value is not to big (infinity), then get the right values and do the proper gcd()
@@ -464,14 +458,10 @@ class Shor(QuantumAlgorithm):
                 logger.debug('Found just trivial factors, not good enough.')
                 # Check if the number has already been found, use i-1 because i was already incremented
                 if t[i - 1] == 0:
-                    msg = 'The continued fractions found exactly x_final/(2^(2n)), leaving function.'
-                    logger.debug(msg)
-                    self._ret['failure'] = msg
+                    self._ret['failure'] = 'The continued fractions found exactly x_final/(2^(2n)), leaving function.'
                     return False
                 if i >= self._N:
-                    msg = 'Unable to find factors after too many attempts.'
-                    logger.debug(msg)
-                    self._ret['failure'] = msg
+                    self._ret['failure'] = 'Unable to find factors after too many attempts.'
                     return False
             else:
                 logger.debug('The factors of {0} are {1} and {2}.'.format(self._N, one_factor, other_factor))
@@ -517,5 +507,8 @@ class Shor(QuantumAlgorithm):
                 logger.info('In decimal, x_final value for this result is: {0}.'.format(x_value))
                 success = self._get_factors(int(x_value), int(2 * self._n))
                 logger.info('success: ', success)
+
+        if 'failure' in self._ret:
+            logger.warning(self._ret['failure'])
 
         return self._ret
