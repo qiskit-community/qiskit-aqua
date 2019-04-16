@@ -30,7 +30,7 @@ from qiskit.aqua.utils.arithmetic import is_power
 from qiskit.aqua import AquaError, Pluggable
 from qiskit.aqua.utils import get_subsystem_density_matrix
 from qiskit.aqua.algorithms import QuantumAlgorithm
-from qiskit.aqua.circuits import FourierTransformCircuits as qft
+from qiskit.aqua.circuits import FourierTransformCircuits as ftc
 
 
 logger = logging.getLogger(__name__)
@@ -181,14 +181,14 @@ class Shor(QuantumAlgorithm):
         """
         self._controlled_controlled_phi_add(circuit, q, ctl1, ctl2, a)
         self._phi_add(circuit, q, inverse=True)
-        qft.construct_circuit(
+        ftc.construct_circuit(
             circuit=circuit,
             qubits=[q[i] for i in reversed(range(self._n + 1))],
             do_swaps=False,
             inverse=True
         )
         circuit.cx(q[self._n], aux)
-        qft.construct_circuit(
+        ftc.construct_circuit(
             circuit=circuit,
             qubits=[q[i] for i in reversed(range(self._n + 1))],
             do_swaps=False
@@ -196,7 +196,7 @@ class Shor(QuantumAlgorithm):
         self._controlled_phi_add(circuit, q, aux)
 
         self._controlled_controlled_phi_add(circuit, q, ctl1, ctl2, a, inverse=True)
-        qft.construct_circuit(
+        ftc.construct_circuit(
             circuit=circuit,
             qubits=[q[i] for i in reversed(range(self._n + 1))],
             do_swaps=False,
@@ -205,7 +205,7 @@ class Shor(QuantumAlgorithm):
         circuit.u3(np.pi, 0, np.pi, q[self._n])
         circuit.cx(q[self._n], aux)
         circuit.u3(np.pi, 0, np.pi, q[self._n])
-        qft.construct_circuit(
+        ftc.construct_circuit(
             circuit=circuit,
             qubits=[q[i] for i in reversed(range(self._n + 1))],
             do_swaps=False
@@ -217,7 +217,7 @@ class Shor(QuantumAlgorithm):
         Circuit that implements the inverse of doubly controlled modular addition by a
         """
         self._controlled_controlled_phi_add(circuit, q, ctl1, ctl2, a, inverse=True)
-        qft.construct_circuit(
+        ftc.construct_circuit(
             circuit=circuit,
             qubits=[q[i] for i in reversed(range(self._n + 1))],
             do_swaps=False,
@@ -226,21 +226,21 @@ class Shor(QuantumAlgorithm):
         circuit.u3(np.pi, 0, np.pi, q[self._n])
         circuit.cx(q[self._n], aux)
         circuit.u3(np.pi, 0, np.pi, q[self._n])
-        qft.construct_circuit(
+        ftc.construct_circuit(
             circuit=circuit,
             qubits=[q[i] for i in reversed(range(self._n + 1))],
             do_swaps=False
         )
         self._controlled_controlled_phi_add(circuit, q, ctl1, ctl2, a)
         self._controlled_phi_add(circuit, q, aux, inverse=True)
-        qft.construct_circuit(
+        ftc.construct_circuit(
             circuit=circuit,
             qubits=[q[i] for i in reversed(range(self._n + 1))],
             do_swaps=False,
             inverse=True
         )
         circuit.cx(q[self._n], aux)
-        qft.construct_circuit(
+        ftc.construct_circuit(
             circuit=circuit,
             qubits=[q[i] for i in reversed(range(self._n + 1))],
             do_swaps=False
@@ -252,7 +252,7 @@ class Shor(QuantumAlgorithm):
         """
         Circuit that implements single controlled modular multiplication by a
         """
-        qft.construct_circuit(
+        ftc.construct_circuit(
             circuit=circuit,
             qubits=[aux[i] for i in reversed(range(self._n + 1))],
             do_swaps=False
@@ -267,7 +267,7 @@ class Shor(QuantumAlgorithm):
                 aux[self._n + 1],
                 (2 ** i) * a % self._N
             )
-        qft.construct_circuit(
+        ftc.construct_circuit(
             circuit=circuit,
             qubits=[aux[i] for i in reversed(range(self._n + 1))],
             do_swaps=False,
@@ -292,7 +292,7 @@ class Shor(QuantumAlgorithm):
                 return x % m
 
         a_inv = modinv(a, self._N)
-        qft.construct_circuit(
+        ftc.construct_circuit(
             circuit=circuit,
             qubits=[aux[i] for i in reversed(range(self._n + 1))],
             do_swaps=False
@@ -307,7 +307,7 @@ class Shor(QuantumAlgorithm):
                 aux[self._n + 1],
                 math.pow(2, i) * a_inv % self._N
             )
-        qft.construct_circuit(
+        ftc.construct_circuit(
             circuit=circuit,
             qubits=[aux[i] for i in reversed(range(self._n + 1))],
             do_swaps=False,
@@ -351,7 +351,7 @@ class Shor(QuantumAlgorithm):
             )
 
         # Apply inverse QFT
-        qft.construct_circuit(circuit=circuit, qubits=self._up_qreg, do_swaps=True, inverse=True)
+        ftc.construct_circuit(circuit=circuit, qubits=self._up_qreg, do_swaps=True, inverse=True)
 
         return circuit
 
