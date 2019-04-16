@@ -82,10 +82,10 @@ class DataOnDemandProvider(BaseDataProvider):
         #    raise QiskitFinanceError("Invalid atom input for DOD Driver '{}'".format(atoms))
 
         if isinstance(tickers, list):
-            self._tickers = ';'.join(tickers)
+            self._tickers = tickers
         else:
-            self._tickers = tickers.replace('\n', ';')
-        self._n = len(self._tickers.split(";"))
+            self._tickers = tickers.replace('\n', ';').split(";")
+        self._n = len(self._tickers)
 
         self.validate(locals())
         super().__init__()
@@ -96,16 +96,7 @@ class DataOnDemandProvider(BaseDataProvider):
 
     @staticmethod
     def check_provider_valid():
-        err_msg = 'quandl is not installed.'
-        try:
-            spec = importlib.util.find_spec('quandl')
-            if spec is not None:
-                return
-        except Exception as e:
-            logger.debug('quandl check error {}'.format(str(e)))
-            raise QiskitFinanceError(err_msg) from e
-
-        raise QiskitFinanceError(err_msg)
+        return
 
     @classmethod
     def init_from_input(cls, section):
@@ -154,5 +145,5 @@ class DataOnDemandProvider(BaseDataProvider):
             priceEvolution = []
             for q in quotes: priceEvolution.append(q["ask_price"])
             self._data.append(priceEvolution)
-          except:
-            raise QiskitFinanceError('Accessing Qiskit failed')
+          except Exception as e:
+            raise QiskitFinanceError('Accessing NASDAQ Data on Demand failed.') from e

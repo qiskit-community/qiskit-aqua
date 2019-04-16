@@ -80,10 +80,10 @@ class ExchangeDataProvider(BaseDataProvider):
         """
 
         if isinstance(tickers, list):
-            self._tickers = ';'.join(tickers)
+            self._tickers = tickers
         else:
-            self._tickers = tickers.replace('\n', ';')
-        self._n = len(self._tickers.split(";"))
+            self._tickers = tickers.replace('\n', ';').split(";")
+        self._n = len(self._tickers)
 
         self.validate(locals())
         super().__init__()
@@ -134,5 +134,11 @@ class ExchangeDataProvider(BaseDataProvider):
         quandl.ApiConfig.api_key = self._token
         quandl.ApiConfig.api_version = '2015-04-09'
         for (cnt, s) in enumerate(self._tickers):
-          d = quandl.get(self._stockmarket + "/" + s, start_date=self._start, end_date=self._end)
-          self._data.append(d["close"])
+          try:
+            d = quandl.get(self._stockmarket + "/" + s, start_date=self._start, end_date=self._end)
+          except Exception as e: # The exception will be urllib3 NewConnectionError, but it can get dressed by quandl
+            raise QiskitFinanceError("Cannot retrieve Exchange Data data.") from e
+          try:
+            self._data.append(d["Adj. Close"])
+          except KeyError as e:
+            raise QiskitFinanceError("Cannot parse quandl output.") from e
