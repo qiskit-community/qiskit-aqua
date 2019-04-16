@@ -16,9 +16,9 @@
 # =============================================================================
 
 from ._basedataprovider import BaseDataProvider, DataType, QiskitFinanceError
-from .dataondemand import DataOnDemandProvider
-from .exchangedata import ExchangeDataProvider
-from .wikipedia import WikipediaDataProvider
+from .dataondemandprovider import DataOnDemandProvider
+from .exchangedataprovider import ExchangeDataProvider
+from .wikipediadataprovider import WikipediaDataProvider
 
 __all__ = ['BaseDataProvider', 'DataType', 'QiskitFinanceError', 
            'DataOnDemandProvider',
