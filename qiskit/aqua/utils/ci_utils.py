@@ -66,7 +66,7 @@ class Omega:
 
     @staticmethod
     def d(a):
-        return 1 / (2 * np.sqrt((1 - a) * a))
+        return 1 / (2 * np.pi * np.sqrt((1 - a) * a))
 
 
 class Alpha:
