@@ -386,7 +386,6 @@ class Shor(QuantumAlgorithm):
 
         # Calculate T and x/T
         T = pow(2, t_upper)
-
         x_over_T = x_value / T
 
         # Cycle in which each iteration corresponds to putting one more term in the
@@ -404,13 +403,11 @@ class Shor(QuantumAlgorithm):
 
             # From the 2nd iteration onwards, calculate the new terms of the CF based
             # on the previous terms as the rule suggests
-
             if i > 0:
                 b.append(math.floor(1 / t[i - 1]))
                 t.append((1 / t[i - 1]) - b[i])
 
             # Calculate the CF using the known terms
-
             aux = 0
             j = i
             while j > 0:
@@ -437,9 +434,7 @@ class Shor(QuantumAlgorithm):
                 continue
 
             # If denominator even, try to get factors of N
-
             # Get the exponential a^(r/2)
-
             exponential = 0
 
             if den < 1000:
@@ -455,16 +450,12 @@ class Shor(QuantumAlgorithm):
                     continue
 
             # If the value is not to big (infinity), then get the right values and do the proper gcd()
-
             putting_plus = int(exponential + 1)
-
             putting_minus = int(exponential - 1)
-
             one_factor = math.gcd(putting_plus, self._N)
             other_factor = math.gcd(putting_minus, self._N)
 
             # Check if the factors found are trivial factors or are the desired factors
-
             if one_factor == 1 or one_factor == self._N or other_factor == 1 or other_factor == self._N:
                 logger.debug('Found just trivial factors, not good enough\n')
                 # Check if the number has already been found, use i-1 because i was already incremented
