@@ -65,7 +65,7 @@ class DeutschJozsa(QuantumAlgorithm):
     @classmethod
     def init_params(cls, params, algo_input):
         if algo_input is not None:
-            raise AquaError("Unexpected Input instance.")
+            raise AquaError("Input instance not supported.")
 
         oracle_params = params.get(Pluggable.SECTION_KEY_ORACLE)
         oracle = get_pluggable_class(
