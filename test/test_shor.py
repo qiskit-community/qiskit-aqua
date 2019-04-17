@@ -31,7 +31,7 @@ class TestShor(QiskitAquaTestCase):
     @parameterized.expand([
         [15, 'qasm_simulator', [3, 5]],
     ])
-    def test_shor_15(self, N, backend, factors):
+    def test_shor_factoring(self, N, backend, factors):
         params = {
             'problem': {
                 'name': 'factoring',
