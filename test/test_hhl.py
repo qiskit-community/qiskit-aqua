@@ -216,7 +216,7 @@ class TestHHL(QiskitAquaTestCase):
         dim_params['eigs']['negative_evals'] = True
         dim_params['reciprocal']['negative_evals'] = True
 
-        random.seed(0)
+        np.random.seed(0)
         matrix = rmg.random_diag(n, eigrange=[0, 1])
         vector = random(n)
 
@@ -252,7 +252,7 @@ class TestHHL(QiskitAquaTestCase):
         neg_params['reciprocal']['negative_evals'] = True
 
         n = 2
-        random.seed(0)
+        np.random.seed(0)
         matrix = rmg.random_diag(n, eigrange=[-1, 1])
         vector = random(n)
 
@@ -286,7 +286,7 @@ class TestHHL(QiskitAquaTestCase):
         hermitian_params['eigs']['num_ancillae'] = 4
 
         n = 2
-        random.seed(0)
+        np.random.seed(0)
         matrix = rmg.random_hermitian(n, eigrange=[0, 1])
         vector = random(n)
 
