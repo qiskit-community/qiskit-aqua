@@ -44,14 +44,14 @@ class MultivariateLogNormalDistribution(MultivariateDistribution):
                     'default': [2, 2]
                 },
                 'low': {
-                    'type': 'array',
+                    'type': ['array', 'null'],
                     "items": {
                         "type": "number"
                     },
                     'default': None
                 },
                 'high': {
-                    'type': 'array',
+                    'type': ['array', 'null'],
                     "items": {
                         "type": "number"
                     },
