@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# Copyright 2019 IBM.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,26 +14,3 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-
-from .grover.grover import Grover
-from .iterative_qpe.iqpe import IQPE
-from .qpe.qpe import QPE
-from .amplitude_estimation.ae import AmplitudeEstimation
-from .simon.simon import Simon
-from .deutsch_josza.dj import DeutschJozsa
-from .bernstein_vazirani.bv import BernsteinVazirani
-from .hhl.hhl import HHL
-from .shor.shor import Shor
-
-
-__all__ = [
-    'Grover',
-    'IQPE',
-    'QPE',
-    'AmplitudeEstimation',
-    'Simon',
-    'DeutschJozsa',
-    'BernsteinVazirani',
-    'HHL',
-    'Shor',
-]
