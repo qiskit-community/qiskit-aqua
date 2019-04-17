@@ -22,7 +22,6 @@ from qiskit.aqua.components.uncertainty_problems import UncertaintyProblem
 from qiskit.aqua.circuits.fixed_value_comparator import FixedValueComparator
 
 
-@DeprecationWarning
 class EuropeanCallExpectedValue(UncertaintyProblem):
     """
     The European Call Option Expected Value.

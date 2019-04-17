@@ -23,7 +23,6 @@ from qiskit.aqua.components.uncertainty_problems import UncertaintyProblem
 from qiskit.aqua.circuits.fixed_value_comparator import FixedValueComparator
 
 
-@DeprecationWarning
 class EuropeanCallDelta(UncertaintyProblem):
     """
     The European Call Option Delta.
