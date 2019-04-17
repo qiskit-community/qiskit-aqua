@@ -488,7 +488,7 @@ class Shor(QuantumAlgorithm):
                         self._ret['results'][output_desired], output_desired
                     ))
                 else:
-                    logger.warning('Failed to find factors from measurement {} because {}'.format(
+                    logger.warning('Cannot find factors from measurement {} because {}'.format(
                         output_desired, self._ret['results'][output_desired]
                     ))
 
