@@ -16,7 +16,7 @@
 # =============================================================================
 
 """
-Controlled-RY (cry) Multiple-Control RY (mcry) Gates
+Controlled-RY (cry) and Multiple-Control RY (mcry) Gates
 """
 
 import logging
