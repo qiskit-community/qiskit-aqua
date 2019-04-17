@@ -129,6 +129,7 @@ class QSVMVariational(VQAlgorithm):
         self._feature_map = feature_map
         self._num_qubits = self._feature_map.num_qubits
         self._minibatch_size = minibatch_size
+
         self._eval_count = 0
         self._ret = {}
 
@@ -289,6 +290,9 @@ class QSVMVariational(VQAlgorithm):
             label_batches = np.asarray([labels])
         return batches, label_batches
 
+    def is_gradient_really_supported(self):
+        return self.optimizer.is_gradient_supported and not self.optimizer.is_gradient_ignored
+
     def train(self, data, labels, quantum_instance=None, minibatch_size=-1):
         """Train the models, and save results.
 
@@ -307,10 +311,17 @@ class QSVMVariational(VQAlgorithm):
             self.initial_point = self.random.randn(self._var_form.num_parameters)
 
         self._eval_count = 0
+
+        grad_fn = None
+        if minibatch_size > 0 and self.is_gradient_really_supported(): # we need some wrapper
+            grad_fn = self._gradient_function_wrapper
+
         self._ret = self.find_minimum(initial_point=self.initial_point,
                                       var_form=self.var_form,
                                       cost_fn=self._cost_function_wrapper,
-                                      optimizer=self.optimizer)
+                                      optimizer=self.optimizer,
+                                      gradient_fn = grad_fn # func for computing gradient
+                                     )
 
         if self._ret['num_optimizer_evals'] is not None and self._eval_count >= self._ret['num_optimizer_evals']:
             self._eval_count = self._ret['num_optimizer_evals']
@@ -324,6 +335,26 @@ class QSVMVariational(VQAlgorithm):
         del self._batch_index
 
         self._ret['training_loss'] = self._ret['min_val']
+
+    # temporary fix: this code should be unified with the gradient api in optimizer.py
+    def _gradient_function_wrapper(self, theta):
+        """Compute and return the gradient at the point theta.
+        Args:
+            theta (numpy.ndarray): 1-d array
+        Returns:
+            numpy.ndarray: 1-d array with the same shape as theta. The  gradient computed
+        """
+        epsilon = 1e-8
+        forig = self._cost_function_wrapper(theta)
+        grad = np.zeros((len(theta),), float)
+        for k in range(len(theta)):
+            theta[k] += epsilon
+            fnew = self._cost_function_wrapper(theta)
+            grad[k] = (fnew - forig) / epsilon
+            theta[k] -= epsilon # recover to the center state
+        if self.is_gradient_really_supported():
+            self._batch_index += 1 # increment the batch after gradient callback
+        return grad
 
     def _cost_function_wrapper(self, theta):
         batch_index = self._batch_index % len(self._batches)
@@ -340,8 +371,9 @@ class QSVMVariational(VQAlgorithm):
                                curr_cost,
                                self._batch_index)
             self._eval_count += 1
+        if not self.is_gradient_really_supported():
+            self._batch_index += 1 # increment the batch after eval callback
 
-        self._batch_index += 1
         logger.debug('Intermediate batch cost: {}'.format(sum(total_cost)))
         return total_cost if len(total_cost) > 1 else total_cost[0]
 
