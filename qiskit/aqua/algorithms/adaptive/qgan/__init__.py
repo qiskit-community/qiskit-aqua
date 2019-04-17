@@ -15,5 +15,7 @@
 # limitations under the License.
 # =============================================================================
 
+from .discriminator import DiscriminatorNet
 
+__all__ = ['DiscriminatorNet']
 
