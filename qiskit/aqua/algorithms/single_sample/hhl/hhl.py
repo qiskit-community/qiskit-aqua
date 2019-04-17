@@ -51,7 +51,7 @@ class HHL(QuantumAlgorithm):
             'id': 'hhl_schema',
             'type': 'object',
             'properties': {
-                'truncate_resize': {
+                'truncate_powerdim': {
                     'type': 'boolean',
                     'default': False
                 },
@@ -94,7 +94,7 @@ class HHL(QuantumAlgorithm):
             self,
             matrix=None,
             vector=None,
-            truncate_resize=False,
+            truncate_powerdim=False,
             truncate_hermitian=False,
             eigs=None,
             init_state=None,
@@ -109,23 +109,33 @@ class HHL(QuantumAlgorithm):
         Args:
             matrix (np.array): the input matrix of linear system of equations
             vector (np.array): the input vector of linear system of equations
-            truncate_resize (bool): flag indicating expansion to 2**n matrix to be truncated
+            truncate_powerdim (bool): flag indicating expansion to 2**n matrix to be truncated
             truncate_hermitian (bool): flag indicating expansion to hermitian matrix to be truncated
             eigs (Eigenvalues): the eigenvalue estimation instance
             init_state (InitialState): the initial quantum state preparation
             reciprocal (Reciprocal): the eigenvalue reciprocal and controlled rotation instance
             num_q (int): number of qubits required for the matrix Operator instance
             num_a (int): number of ancillary qubits for Eigenvalues instance
-            orig_size (int): The original dimension of the problem (if truncate_resize)
+            orig_size (int): The original dimension of the problem (if truncate_powerdim)
         """
         super().__init__()
         super().validate(locals())
-        if truncate_resize and orig_size is None:
+        if matrix.shape[0] != matrix.shape[1]:
+            raise ValueError("Input matrix must be square!")
+        if matrix.shape[0] != len(vector):
+            raise ValueError("Input vector dimension does not match input "
+                             "matrix dimension!")
+        if not np.allclose(matrix, matrix.conj().T):
+            raise ValueError("Input matrix must be hermitian!")
+        if np.log2(matrix.shape[0]) % 1 != 0:
+            raise ValueError("Input matrix dimension must be 2**n!")
+        if truncate_powerdim and orig_size is None:
             raise ValueError("Truncation to {} dimensions is not "
                             "possible!".format(self._original_dimension))
+
         self._matrix = matrix
         self._vector = vector
-        self._truncate_resize = truncate_resize
+        self._truncate_powerdim = truncate_powerdim
         self._truncate_hermitian = truncate_hermitian
         self._eigs = eigs
         self._init_state = init_state
@@ -158,54 +168,31 @@ class HHL(QuantumAlgorithm):
         if not isinstance(vector, np.ndarray):
             vector = np.asarray(vector)
 
+        if matrix.shape[0] != matrix.shape[1]:
+            raise ValueError("Input matrix must be square!")
         if matrix.shape[0] != len(vector):
             raise ValueError("Input vector dimension does not match input "
                              "matrix dimension!")
-        if matrix.shape[0] != matrix.shape[1]:
-            raise ValueError("Input matrix must be square!")
 
         hhl_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
-        truncate_resize = hhl_params.get('truncate_resize')
+        truncate_powerdim = hhl_params.get('truncate_powerdim')
         truncate_hermitian = hhl_params.get('truncate_hermitian')
         orig_size = hhl_params.get('orig_size')
         if orig_size is None:
             orig_size = len(vector)
 
-        is_correctsize = np.log2(matrix.shape[0]) % 1 == 0
-        is_hermitian = np.allclose(matrix, matrix.conj().T)
-
-        if not is_correctsize:
-            # extend vector and matrix for non 2**n dimensional matrices
+        is_powerdim = np.log2(matrix.shape[0]) % 1 == 0
+        if not is_powerdim:
             logger.warning("Input matrix does not have dimension 2**n. It "
                            "will be expanded automatically.")
-            mat_dim = matrix.shape[0]
-            next_higher = int(np.ceil(np.log2(mat_dim)))
-            new_matrix = np.identity(2 ** next_higher)
-            new_matrix = np.array(new_matrix, dtype=complex)
-            new_matrix[:mat_dim, :mat_dim] = matrix[:, :]
-            matrix = new_matrix
-            new_vector = np.zeros((1, 2 ** next_higher))
-            new_vector[0, :vector.shape[0]] = vector
-            vector = new_vector.reshape(np.shape(new_vector)[1])
-            truncate_resize = True
+            matrix, vector = cls.expand_to_powerdim(matrix, vector)
+            truncate_powerdim = True
 
+        is_hermitian = np.allclose(matrix, matrix.conj().T)
         if not is_hermitian:
-            # convert a non-hermitian matrix A to a hermitian matrix
-            # by [[0, A.H], [A, 0]] and expand vector b to [b.conj, b]
             logger.warning("Input matrix is not hermitian. It will be "
                            "expanded to a hermitian matrix automatically.")
-            half_dim = matrix.shape[0]
-            full_dim = 2 * half_dim
-            new_matrix = np.zeros([full_dim, full_dim])
-            new_matrix = np.array(new_matrix, dtype=complex)
-            new_matrix[0:half_dim, half_dim:full_dim] = matrix[:, :]
-            new_matrix[half_dim:full_dim, 0:half_dim] = matrix.conj().T[:, :]
-            matrix = new_matrix
-            new_vector = np.zeros((1, full_dim))
-            new_vector = np.array(new_vector, dtype=complex)
-            new_vector[0, :vector.shape[0]] = vector.conj()
-            new_vector[0, vector.shape[0]:] = vector
-            vector = new_vector.reshape(np.shape(new_vector)[1])
+            matrix, vector = cls.expand_to_hermitian(matrix, vector)
             truncate_hermitian = True
 
         # Initialize eigenvalue finding module
@@ -229,7 +216,7 @@ class HHL(QuantumAlgorithm):
         reci = get_pluggable_class(PluggableType.RECIPROCAL,
                                    reciprocal_params['name']).init_params(params)
 
-        return cls(matrix, vector, truncate_resize, truncate_hermitian, eigs,
+        return cls(matrix, vector, truncate_powerdim, truncate_hermitian, eigs,
                    init_state, reci, num_q, num_a, orig_size)
 
     def construct_circuit(self, measurement=False):
@@ -273,11 +260,64 @@ class HHL(QuantumAlgorithm):
         self._circuit = qc
         return qc
 
+    @staticmethod
+    def expand_to_powerdim(matrix, vector):
+        """ Expand a matrix to the next-larger 2**n dimensional matrix with
+        ones on the diagonal and zeros on the off-diagonal and expand the
+        vector with zeros accordingly.
+
+        Args:
+            matrix (np.array): the input matrix
+            vector (np.array): the input vector
+
+        Returns:
+            matrix (np.array): the expanded matrix
+            vector (np.array): the expanded vector
+        """
+        mat_dim = matrix.shape[0]
+        next_higher = int(np.ceil(np.log2(mat_dim)))
+        new_matrix = np.identity(2 ** next_higher)
+        new_matrix = np.array(new_matrix, dtype=complex)
+        new_matrix[:mat_dim, :mat_dim] = matrix[:, :]
+        matrix = new_matrix
+        new_vector = np.zeros((1, 2 ** next_higher))
+        new_vector[0, :vector.shape[0]] = vector
+        vector = new_vector.reshape(np.shape(new_vector)[1])
+        return matrix, vector
+
+    @staticmethod
+    def expand_to_hermitian(matrix, vector):
+        """ Expand a non-hermitian matrix A to a hermitian matrix by
+        [[0, A.H], [A, 0]] and expand vector b to [b.conj, b].
+
+        Args:
+            matrix (np.array): the input matrix
+            vector (np.array): the input vector
+
+        Returns:
+            matrix (np.array): the expanded matrix
+            vector (np.array): the expanded vector
+        """
+        #
+        half_dim = matrix.shape[0]
+        full_dim = 2 * half_dim
+        new_matrix = np.zeros([full_dim, full_dim])
+        new_matrix = np.array(new_matrix, dtype=complex)
+        new_matrix[0:half_dim, half_dim:full_dim] = matrix[:, :]
+        new_matrix[half_dim:full_dim, 0:half_dim] = matrix.conj().T[:, :]
+        matrix = new_matrix
+        new_vector = np.zeros((1, full_dim))
+        new_vector = np.array(new_vector, dtype=complex)
+        new_vector[0, :vector.shape[0]] = vector.conj()
+        new_vector[0, vector.shape[0]:] = vector
+        vector = new_vector.reshape(np.shape(new_vector)[1])
+        return matrix, vector
+
     def _resize_vector(self, vec):
         if self._truncate_hermitian:
             half_dim = int(vec.shape[0] / 2)
             vec = vec[:half_dim]
-        if self._truncate_resize:
+        if self._truncate_powerdim:
             vec = vec[:self._original_dimension]
         return vec
 
@@ -288,7 +328,7 @@ class HHL(QuantumAlgorithm):
             new_matrix = np.ndarray(shape=(half_dim, half_dim), dtype=complex)
             new_matrix[:, :] = matrix[0:half_dim, half_dim:full_dim]
             matrix = new_matrix
-        if self._truncate_resize:
+        if self._truncate_powerdim:
             new_matrix = np.ndarray(shape=(self._original_dimension, self._original_dimension), dtype=complex)
             new_matrix[:, :] = matrix[:self._original_dimension, :self._original_dimension]
             matrix = new_matrix
