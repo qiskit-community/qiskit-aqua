@@ -90,7 +90,7 @@ class QGAN(QuantumAlgorithm):
         },
     }
 
-    def __init__(self, data, bounds=None, num_qubits=None, batch_size=500, num_epochs=3000, snapshot_dir=''):
+    def __init__(self, data, bounds=None, num_qubits=None, batch_size=500, num_epochs=3000, snapshot_dir=None):
         """
         Initialize qGAN.
         :param data: training data of dimension k
