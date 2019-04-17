@@ -15,12 +15,13 @@
 # limitations under the License.
 # =============================================================================
 
-import unittest
+import unittest, math
 
 from parameterized import parameterized
 from qiskit import BasicAer
 
-from qiskit.aqua import run_algorithm
+from qiskit.aqua import run_algorithm, QuantumInstance, AquaError
+from qiskit.aqua.algorithms import Shor
 from test.common import QiskitAquaTestCase
 
 
@@ -30,7 +31,7 @@ class TestShor(QiskitAquaTestCase):
     @parameterized.expand([
         [15, 'qasm_simulator', [3, 5]],
     ])
-    def test_shor(self, N, backend, factors):
+    def test_shor_15(self, N, backend, factors):
         params = {
             'problem': {
                 'name': 'factoring',
@@ -43,9 +44,43 @@ class TestShor(QiskitAquaTestCase):
                 'shots': 1000,
             },
         }
-
         result_dict = run_algorithm(params, backend=BasicAer.get_backend(backend))
         self.assertListEqual(result_dict['factors'][0], factors)
+
+    @parameterized.expand([
+        [5],
+        [7],
+    ])
+    def test_shor_no_factors(self, N):
+        shor = Shor(N)
+        backend = BasicAer.get_backend('qasm_simulator')
+        quantum_instance = QuantumInstance(backend, shots=1000)
+        ret = shor.run(quantum_instance)
+        self.assertTrue(ret['factors'] == [])
+
+    @parameterized.expand([
+        [3, 5],
+        [5, 3],
+    ])
+    def test_shor_power(self, base, power):
+        N = int(math.pow(base, power))
+        shor = Shor(N)
+        backend = BasicAer.get_backend('qasm_simulator')
+        quantum_instance = QuantumInstance(backend, shots=1000)
+        ret = shor.run(quantum_instance)
+        self.assertTrue(ret['factors'] == [base])
+
+    @parameterized.expand([
+        [-1],
+        [0],
+        [1],
+        [2],
+        [4],
+        [16],
+    ])
+    def test_shor_bad_input(self, N):
+        with self.assertRaises(AquaError):
+            Shor(N)
 
 
 if __name__ == '__main__':
