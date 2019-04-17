@@ -15,6 +15,7 @@
 # limitations under the License.
 # =============================================================================
 from qiskit.aqua.utils.circuit_factory import CircuitFactory
+from qiskit.aqua.circuits.gates import logical_or
 import numpy as np
 
 
@@ -79,21 +80,6 @@ class FixedValueComparator(CircuitFactory):
         twos_complement = [1 if twos_complement[i] == '1' else 0 for i in reversed(range(len(twos_complement)))]
         return twos_complement
 
-    @staticmethod
-    def _or(qc, a, b, c):
-        """
-        Applies or logical: c = a or b
-        :param a: input qubit 1
-        :param b: input qubit 2
-        :param c: result qubit
-        """
-        qc.x(a)
-        qc.x(b)
-        qc.x(c)
-        qc.ccx(a, b, c)
-        qc.x(a)
-        qc.x(b)
-
     def build(self, qc, q, q_ancillas=None):
 
         # get parameters
@@ -118,12 +104,12 @@ class FixedValueComparator(CircuitFactory):
                             qc.cx(q_state[i], q_ancillas[i])
                     elif i < self.num_state_qubits-1:
                         if tc[i] == 1:
-                            self._or(qc, q_state[i], q_ancillas[i-1], q_ancillas[i])
+                            qc.OR([q_state[i], q_ancillas[i-1]], q_ancillas[i], None)
                         else:
                             qc.ccx(q_state[i], q_ancillas[i-1], q_ancillas[i])
                     else:
                         if tc[i] == 1:
-                            self._or(qc, q_state[i], q_ancillas[i-1], q_result)
+                            qc.OR([q_state[i], q_ancillas[i-1]], q_result, None)
                         else:
                             qc.ccx(q_state[i], q_ancillas[i-1], q_result)
 
@@ -138,7 +124,7 @@ class FixedValueComparator(CircuitFactory):
                             qc.cx(q_state[i], q_ancillas[i])
                     else:
                         if tc[i] == 1:
-                            self._or(qc, q_state[i], q_ancillas[i - 1], q_ancillas[i])
+                            qc.OR([q_state[i], q_ancillas[i - 1]], q_ancillas[i], None)
                         else:
                             qc.ccx(q_state[i], q_ancillas[i - 1], q_ancillas[i])
             else:
