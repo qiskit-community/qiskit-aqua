@@ -47,22 +47,27 @@ class MultivariateUniformDistribution(MultivariateDistribution):
                     "items": {
                         "type": "number"
                     },
-                    'default': [0.0, 0.0]
+                    'default': None
                 },
                 'high': {
                     'type': 'array',
                     "items": {
                         "type": "number"
                     },
-                    'default': [1.0, 1.0]
+                    'default': None
                 },
             },
             'additionalProperties': False
         }
     }
 
-    def __init__(self, num_qubits, low, high):
+    def __init__(self, num_qubits, low=None, high=None):
         super().validate(locals())
+
+        if low is None:
+            low = np.zeros(num_qubits)
+        if high is None:
+            high = np.ones(num_qubits)
 
         num_values = np.prod([2**n for n in num_qubits])
         probabilities = np.ones(num_values)
