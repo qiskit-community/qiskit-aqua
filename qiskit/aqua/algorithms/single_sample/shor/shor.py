@@ -31,6 +31,7 @@ from qiskit.aqua import AquaError, Pluggable
 from qiskit.aqua.utils import get_subsystem_density_matrix
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.circuits import FourierTransformCircuits as ftc
+from qiskit.aqua.circuits.gates import mcu1
 from qiskit.aqua.utils import summarize_circuits
 
 
@@ -146,40 +147,10 @@ class Shor(QuantumAlgorithm):
         """
         Doubly controlled version of the _phi_add circuit
         """
-
-        # TODO: extract this gate
-        def ccphase(circuit, angle, ctl1, ctl2, tgt):
-            """
-            Creation of a doubly controlled phase gate
-            """
-
-            angle /= 4
-
-            circuit.u1(angle, ctl1)
-            circuit.cx(ctl1, tgt)
-            circuit.u1(-angle, tgt)
-            circuit.cx(ctl1, tgt)
-            circuit.u1(angle, tgt)
-
-            circuit.cx(ctl2, ctl1)
-
-            circuit.u1(-angle, ctl1)
-            circuit.cx(ctl1, tgt)
-            circuit.u1(angle, tgt)
-            circuit.cx(ctl1, tgt)
-            circuit.u1(-angle, tgt)
-
-            circuit.cx(ctl2, ctl1)
-
-            circuit.u1(angle, ctl2)
-            circuit.cx(ctl2, tgt)
-            circuit.u1(-angle, tgt)
-            circuit.cx(ctl2, tgt)
-            circuit.u1(angle, tgt)
-
         angle = self._get_angles(a)
         for i in range(self._n + 1):
-            ccphase(circuit, -angle[i] if inverse else angle[i], ctl1, ctl2, q[i])
+            # ccphase(circuit, -angle[i] if inverse else angle[i], ctl1, ctl2, q[i])
+            circuit.mcu1(-angle[i] if inverse else angle[i], [ctl1, ctl2], q[i])
 
     def _controlled_controlled_phi_add_mod_N(self, circuit, q, ctl1, ctl2, aux, a):
         """
