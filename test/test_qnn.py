@@ -59,7 +59,7 @@ class TestQNN(QiskitAquaTestCase):
             'variational_form': {'name': 'RYRZ', 'depth': 3}
         }
         result = run_algorithm(params, self.svm_input)
-        print(result['testing_accuracy'])
+        self.assertGreater(result['testing_accuracy'], 0.85) # accuracy should be > 85%
 
 
 def Wine(training_size, test_size, n):
