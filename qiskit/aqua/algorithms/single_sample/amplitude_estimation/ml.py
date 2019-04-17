@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# Copyright 2019 IBM.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,11 +15,12 @@
 # limitations under the License.
 # =============================================================================
 """
-The Amplitude Estimation Algorithm.
+Maximum Likelihood post-processing for the Amplitude Estimation algorithm.
 """
 
 import logging
 import numpy as np
+from scipy.optimize import bisect
 
 from qiskit.aqua import AquaError
 from .mle_utils import loglik, bisect_max
@@ -30,7 +31,16 @@ logger = logging.getLogger(__name__)
 
 
 class MaximumLikelihood:
+    """
+    Maximum Likelihood post-processing for the Amplitude Estimation algorithm.
+    """
+
     def __init__(self, ae):
+        """
+        @brief Initialise with AmplitudeEstimation instance and compute the
+               number of shots
+        @param ae An instance of AmplitudeEstimation
+        """
         self.ae = ae
 
         # Find number of shots
@@ -39,14 +49,14 @@ class MaximumLikelihood:
         else:  # statevector_simulator
             self._shots = 1
 
-        # Result dictionary
-        self._ret = {}
-
     def loglik_wrapper(self, theta):
         """
-        Wrapper for the loglikelihood, measured values, probabilities
-        and number of shots already put in and only dependent on the
-        exact value `a`, called `theta` now.
+        @brief Wrapper for the loglikelihood, measured values, probabilities
+               and number of shots already put in and only dependent on the
+               exact value `a`, called `theta` now.
+        @param theta The exact value
+        @return The likelihood of the AE measurements, if `theta` were the
+                exact value
         """
         return loglik(theta,
                       self.ae._m,
@@ -55,63 +65,97 @@ class MaximumLikelihood:
                       self._shots)
 
     def mle(self):
-        # Compute the singularities of the log likelihood (= QAE grid points)
-        drops = np.sin(np.pi * np.linspace(0, 0.5,
-                                           num=int(self.ae._m / 2),
-                                           endpoint=False))**2
+        """
+        @brief Compute the Maximum Likelihood Estimator (MLE)
+        @return The MLE for the previous AE run
+        @note Before calling this method, call the method `run` of the
+              AmplitudeEstimation instance
+        """
+        self._qae = self.ae._ret['estimation']
 
-        drops = np.append(drops, 1)  # 1 is also a singularity
+        # Compute the two in which we the look for values above the
+        # threshold
+        M = 2**self.ae._m
+        y = M * np.arcsin(np.sqrt(self._qae)) / np.pi
+        left_gridpoint = np.sin(np.pi * (y - 1) / M)**2
+        right_gridpoint = np.sin(np.pi * (y + 1) / M)**2
+        bubbles = [left_gridpoint, self._qae, right_gridpoint]
 
         # Find global maximum amongst the local maxima, which are
         # located in between the drops
-        a_opt = self.ae._ret['estimation']
+        a_opt = self._qae
         loglik_opt = self.loglik_wrapper(a_opt)
-        for a, b in zip(drops[:-1], drops[1:]):
-            local, loglik_local = bisect_max(self.loglik_wrapper, a, b, retval=True)
-            if loglik_local > loglik_opt:
-                a_opt = local
-                loglik_opt = loglik_local
+        for a, b in zip(bubbles[:-1], bubbles[1:]):
+            locmax, val = bisect_max(self.loglik_wrapper, a, b, retval=True)
+            if val > loglik_opt:
+                a_opt = locmax
+                loglik_opt = val
 
         # Convert the value to an estimation
-        self._ret['mle'] = self.ae.a_factory.value_to_estimation(a_opt)
-        self._ret['mle_value'] = a_opt
+        val_opt = self.ae.a_factory.value_to_estimation(a_opt)
 
-        return self._ret
+        self._mle = a_opt
+        self._mapped_mle = val_opt
+
+        return val_opt
 
     def ci(self, alpha, kind="likelihood_ratio"):
-
-        mle = self._ret['mle_value']
+        """
+        @brief Compute the (1 - alpha) confidence interval (CI) with the method
+               specified in `kind`
+        @param alpha Confidence level: asymptotically 100(1 - alpha)% of the
+                     data will be contained in the CI
+        @return The confidence interval
+        """
 
         if kind == "fisher":
-            std = np.sqrt(self._shots * fisher_information(mle, self.ae._m))
-            ci = mle + normal_quantile(alpha) / std * np.array([-1, 1])
+            # Compute the predicted standard deviation
+            std = np.sqrt(self._shots * fisher_information(self._mle, self.ae._m))
+
+            # Set up the (1 - alpha) symmetric confidence interval
+            ci = self._mle + normal_quantile(alpha) / std * np.array([-1, 1])
 
         elif kind == "observed_fisher":
             ai = np.asarray(self.ae._ret['values'])
             pi = np.asarray(self.ae._ret['probabilities'])
-            observed_information = np.sum(self._shots * pi * d_logprob(ai, mle, self.ae._m)**2)
+
+            # Calculate the observed Fisher information
+            observed_information = np.sum(self._shots * pi * d_logprob(ai, self._mle, self.ae._m)**2)
+
+            # Set up the (1 - alpha) symmetric confidence interval
             std = np.sqrt(observed_information)
-            ci = mle + normal_quantile(alpha) / std * np.array([-1, 1])
+            ci = self._mle + normal_quantile(alpha) / std * np.array([-1, 1])
 
         elif kind == "likelihood_ratio":
-            # Compute the likelihood of the reference value (the MLE) and
-            # a grid of values from which we construct the CI later
-            # TODO Could be improved by, beginning from the MLE, search
-            #      outwards where we are below the threshold, that method
-            #      would probably be more precise
-            a_grid = np.linspace(0, 1, num=10000)  # parameters to test
-            logliks = np.array([self.loglik_wrapper(theta) for theta in a_grid])  # their log likelihood
-            loglik_ref = self.loglik_wrapper(mle)  # reference value
+            # Compute the two in which we the look for values above the
+            # threshold
+            M = 2**self.ae._m
+            y = M * np.arcsin(np.sqrt(self._qae)) / np.pi
+            left_gridpoint = np.sin(np.pi * (y - 1) / M)**2
+            right_gridpoint = np.sin(np.pi * (y + 1) / M)**2
+            bubbles = [left_gridpoint, self._qae, right_gridpoint]
 
-            # Get indices of values that are above the loglik threshold
-            chi_q = chi2_quantile(alpha)
-            idcs = (logliks >= (loglik_ref - chi_q / 2))
+            # The threshold above which the likelihoods are in the
+            # confidence interval
+            loglik_ref = self.loglik_wrapper(self._mle)
+            thres = loglik_ref - chi2_quantile(alpha) / 2
 
-            # Get the boundaries of the admitted values
-            ci = np.append(np.min(a_grid[idcs]), np.max(a_grid[idcs]))
+            # Store the boundaries of the confidence interval
+            lower = upper = self._mle
+
+            # Iterate over the bubbles in between the drops, check if they
+            # surpass the threshold and if yes add the part that does to the
+            # confidence interval
+            for a, b in zip(bubbles[:-1], bubbles[1:]):
+                locmax, val = bisect_max(self.loglik_wrapper, a, b, retval=True)
+                if val >= thres:
+                    left = bisect(lambda x: self.loglik_wrapper(x) - thres, a, locmax)
+                    right = bisect(lambda x: self.loglik_wrapper(x) - thres, locmax, b)
+                    lower = np.minimum(lower, left)
+                    upper = np.maximum(upper, right)
+
+            ci = np.append(lower, upper)
         else:
             raise AquaError("Confidence interval kind {} not implemented.".format(kind))
 
-        self._ret[kind + "_ci"] = ci
-
-        return self._ret
+        return ci
