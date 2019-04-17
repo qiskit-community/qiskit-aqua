@@ -15,15 +15,8 @@
 # limitations under the License.
 # =============================================================================
 
-from .vqe.vqe import VQE
-from .qaoa.qaoa import QAOA
-from .qsvm.qsvm_variational import QSVMVariational
-from .vqalgorithm import VQAlgorithm
-from .qnn.qnn import QNN
+from qiskit.aqua.algorithms.adaptive.qsvm.cost_helpers import cost_estimate, cost_estimate_sigmoid, return_probabilities
 
-
-__all__ = ['VQE',
-           'QAOA',
-           'QSVMVariational',
-           'QNN',
-           'VQAlgorithm']
+__all__ = ['cost_estimate',
+           'cost_estimate_sigmoid',
+           'return_probabilities']
