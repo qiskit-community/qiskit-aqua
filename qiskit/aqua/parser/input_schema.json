@@ -21,7 +21,7 @@
                 },
                 "circuit_caching": {
                     "type": "boolean",
-                    "default": false
+                    "default": true
                 },
                 "skip_qobj_deepcopy": {
                     "type": "boolean",

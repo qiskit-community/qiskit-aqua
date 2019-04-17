@@ -79,6 +79,8 @@ class TestQAOA(QiskitAquaTestCase):
         self.log.debug('solution:           {}'.format(graph_solution))
         self.log.debug('solution objective: {}'.format(maxcut.maxcut_value(x, w)))
         self.assertIn(''.join([str(int(i)) for i in graph_solution]), solutions)
+        if quantum_instance.has_circuit_caching:
+            self.assertLess(quantum_instance._circuit_cache.misses, 3)
 
 
 if __name__ == '__main__':

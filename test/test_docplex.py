@@ -262,3 +262,20 @@ class TestDocplex(QiskitAquaTestCase):
 
         # Compare objective
         self.assertEqual(result['energy'] + offset, expected_result['energy'] + offset_tsp)
+
+    def test_docplex_integer_constraints(self):
+        # Create an Ising Homiltonian with docplex
+        mdl = Model(name='integer_constraints')
+        x = {i: mdl.binary_var(name='x_{0}'.format(i)) for i in range(1, 5)}
+        max_vars_func = mdl.sum(x[i] for i in range(1, 5))
+        mdl.maximize(max_vars_func)
+        mdl.add_constraint(mdl.sum(i * x[i] for i in range(1, 5)) == 3)
+        qubitOp, offset = docplex.get_qubitops(mdl)
+
+        ee = ExactEigensolver(qubitOp, k=1)
+        result = ee.run()
+
+        expected_result = -2
+
+        # Compare objective
+        self.assertEqual(result['energy'] + offset, expected_result)

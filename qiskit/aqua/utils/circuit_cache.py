@@ -59,6 +59,7 @@ class CircuitCache:
         self.misses = 0
         self.qobjs = []
         self.mappings = []
+        self.cache_transpiled_circuits = False
         self.try_reusing_qobjs = True
         self.allowed_misses = allowed_misses
         try:
@@ -103,10 +104,9 @@ class CircuitCache:
                 if isinstance(gate, CompositeGate): raw_gates += gate.instruction_list()
                 else: raw_gates += [gate]
 
-            for i, uncompiled_gate in enumerate(raw_gates):
+            for i, (uncompiled_gate, regs, _) in enumerate(raw_gates):
                 if not hasattr(uncompiled_gate, 'params') or len(uncompiled_gate.params) < 1: continue
                 if uncompiled_gate.name == 'snapshot': continue
-                regs = [(reg, qubit) for (reg, qubit) in uncompiled_gate.qargs]
                 qubits = [qubit+qreg_indeces[reg.name] for reg, qubit in regs if isinstance(reg, QuantumRegister)]
                 gate_type = uncompiled_gate.name
                 type_and_qubits = gate_type + qubits.__str__()
@@ -119,39 +119,45 @@ class CircuitCache:
                 type_and_qubits = compiled_gate.name + compiled_gate.qubits.__str__()
                 if len(op_graph[type_and_qubits]) > 0:
                     uncompiled_gate_index = op_graph[type_and_qubits].pop(0)
-                    uncompiled_gate = raw_gates[uncompiled_gate_index]
-                    regs = [(reg, qubit) for (reg, qubit) in uncompiled_gate.qargs]
+                    (uncompiled_gate, regs, _) = raw_gates[uncompiled_gate_index]
                     qubits = [qubit + qreg_indeces[reg.name] for reg, qubit in regs if isinstance(reg, QuantumRegister)]
                     if (compiled_gate.name == uncompiled_gate.name) and (compiled_gate.qubits.__str__() ==
                                                                          qubits.__str__()):
                         mapping[compiled_gate_index] = uncompiled_gate_index
-                else: raise Exception("Circuit shape does not match qobj, found extra {} instruction in qobj".format(
+                else: raise AquaError("Circuit shape does not match qobj, found extra {} instruction in qobj".format(
                     type_and_qubits))
             self.mappings[chunk][circ_num] = mapping
             for type_and_qubits, ops in op_graph.items():
                 if len(ops) > 0:
-                    raise Exception("Circuit shape does not match qobj, found extra {} in circuit".format(type_and_qubits))
+                    raise AquaError("Circuit shape does not match qobj, found extra {} in circuit".format(type_and_qubits))
         if self.cache_file is not None and len(self.cache_file) > 0:
-            cache_handler = open(self.cache_file, 'wb')
-            qobj_dicts = [qob.to_dict() for qob in self.qobjs]
-            pickle.dump({'qobjs':qobj_dicts, 'mappings':self.mappings}, cache_handler, protocol=pickle.HIGHEST_PROTOCOL)
-            cache_handler.close()
-            logger.debug("Circuit cache saved to file: {}".format(self.cache_file))
+            with open(self.cache_file, 'wb') as cache_handler:
+                qobj_dicts = [qob.to_dict() for qob in self.qobjs]
+                pickle.dump({'qobjs': qobj_dicts,
+                             'mappings': self.mappings,
+                             'transpile': self.cache_transpiled_circuits},
+                            cache_handler,
+                            protocol=pickle.HIGHEST_PROTOCOL)
+                logger.debug("Circuit cache saved to file: {}".format(self.cache_file))
 
     def try_loading_cache_from_file(self):
         if len(self.qobjs) == 0 and self.cache_file is not None and len(self.cache_file) > 0:
-            cache_handler = open(self.cache_file, "rb")
-            cache = pickle.load(cache_handler, encoding="ASCII")
-            cache_handler.close()
-            self.qobjs = [Qobj.from_dict(qob) for qob in cache['qobjs']]
-            self.mappings = cache['mappings']
-            logger.debug("Circuit cache loaded from file: {}".format(self.cache_file))
+            with open(self.cache_file, "rb") as cache_handler:
+                try:
+                    cache = pickle.load(cache_handler, encoding="ASCII")
+                except (EOFError) as e:
+                    logger.debug("No cache found in file: {}".format(self.cache_file))
+                    return
+                self.qobjs = [Qobj.from_dict(qob) for qob in cache['qobjs']]
+                self.mappings = cache['mappings']
+                self.cache_transpiled_circuits = cache['transpile']
+                logger.debug("Circuit cache loaded from file: {}".format(self.cache_file))
 
     # Note that this function overwrites the previous cached qobj for speed
     def load_qobj_from_cache(self, circuits, chunk, run_config=None):
         self.try_loading_cache_from_file()
 
-        if self.try_reusing_qobjs and self.qobjs is not None and len(self.qobjs) <= chunk:
+        if self.try_reusing_qobjs and self.qobjs is not None and len(self.qobjs) > 0 and len(self.qobjs) <= chunk:
             self.mappings.insert(chunk, self.mappings[0])
             self.qobjs.insert(chunk, copy.deepcopy(self.qobjs[0]))
 
@@ -175,7 +181,7 @@ class CircuitCache:
                 if not hasattr(compiled_gate, 'params') or len(compiled_gate.params) < 1: continue
                 if compiled_gate.name == 'snapshot': continue
                 cache_index = self.mappings[chunk][circ_num][gate_num]
-                uncompiled_gate = raw_gates[cache_index]
+                (uncompiled_gate, regs, _) = raw_gates[cache_index]
 
                 # Need the 'getattr' wrapper because measure has no 'params' field and breaks this.
                 if not len(getattr(compiled_gate, 'params', [])) == len(getattr(uncompiled_gate, 'params', [])) or \
