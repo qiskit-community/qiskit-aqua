@@ -23,15 +23,16 @@ from qiskit.aqua.algorithms.single_sample.amplitude_estimation.s_0_reflection im
 
 class QFactory(CircuitFactory):
 
-    def __init__(self, a_factory):
+    def __init__(self, a_factory, i_objective):
 
         super().__init__(a_factory.num_target_qubits)
 
         # store A factory
         self.a_factory = a_factory
+        self.i_objective = i_objective
 
         # construct reflection factories
-        self.s_psi_0_reflection_factory = SPsi0Factory(a_factory.num_target_qubits)
+        self.s_psi_0_reflection_factory = SPsi0Factory(a_factory.num_target_qubits, i_objective)
         self.s_0_reflection_factory = S0Factory(a_factory.num_target_qubits)
 
         # determine number of required ancillas (A does not need to be controlled within Q!)
@@ -47,45 +48,21 @@ class QFactory(CircuitFactory):
         self._num_qubits = a_factory.num_target_qubits + self._num_ancillas
         self._num_qubits_controlled = a_factory.num_target_qubits + self._num_ancillas_controlled
 
-        # get the params
-        self._params = a_factory._params
-
     def required_ancillas(self):
         return self._num_ancillas
 
     def required_ancillas_controlled(self):
         return self._num_ancillas_controlled
 
-    def build(self, qc, q, q_ancillas=None, params=None):
-        if params is None:
-            params = self._params
-        self.s_psi_0_reflection_factory.build(qc, q, q_ancillas, params)
-        self.a_factory.build_inverse(qc, q, q_ancillas, params)
-        self.s_0_reflection_factory.build(qc, q, q_ancillas, params)
-        self.a_factory.build(qc, q, q_ancillas, params)
+    def build(self, qc, q, q_ancillas=None):
+        self.s_psi_0_reflection_factory.build(qc, q, q_ancillas)
+        self.a_factory.build_inverse(qc, q, q_ancillas)
+        self.s_0_reflection_factory.build(qc, q, q_ancillas)
+        self.a_factory.build(qc, q, q_ancillas)
 
-    def build_inverse(self, qc, q, q_ancillas=None, params=None):
-        if params is None:
-            params = self._params
-        self.a_factory.build_inverse(qc, q, q_ancillas, params)
-        self.s_0_reflection_factory.build_inverse(qc, q, q_ancillas, params)
-        self.a_factory.build(qc, q, q_ancillas, params)
-        self.s_psi_0_reflection_factory.build_inverse(qc, q, q_ancillas, params)
-
-    def build_controlled(self, qc, q, q_control, q_ancillas=None, params=None):
-        if params is None:
-            params = self._params
+    def build_controlled(self, qc, q, q_control, q_ancillas=None, use_basis_gates=True):
         # A operators do not need to be controlled, since they cancel out in the not-controlled case
-        self.s_psi_0_reflection_factory.build_controlled(qc, q, q_control, q_ancillas, params)
-        self.a_factory.build_inverse(qc, q, q_ancillas, params)
-        self.s_0_reflection_factory.build_controlled(qc, q, q_control, q_ancillas, params)
-        self.a_factory.build(qc, q, q_ancillas, params)
-
-    def build_controlled_inverse(self, qc, q, q_control, q_ancillas=None, params=None):
-        if params is None:
-            params = self._params
-        # A operators do not need to be controlled, since they cancel out in the not-controlled case
-        self.a_factory.build_inverse(qc, q, q_ancillas, params)
-        self.s_0_reflection_factory.build_controlled_inverse(qc, q, q_control, q_ancillas, params)
-        self.a_factory.build(qc, q, q_ancillas, params)
-        self.s_psi_0_reflection_factory.build_controlled_inverse(qc, q, q_control, q_ancillas, params)
+        self.s_psi_0_reflection_factory.build_controlled(qc, q, q_control, q_ancillas, use_basis_gates)
+        self.a_factory.build_inverse(qc, q, q_ancillas)
+        self.s_0_reflection_factory.build_controlled(qc, q, q_control, q_ancillas, use_basis_gates)
+        self.a_factory.build(qc, q, q_ancillas)
