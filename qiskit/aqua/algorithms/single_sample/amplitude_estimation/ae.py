@@ -71,7 +71,7 @@ class AmplitudeEstimation(QuantumAlgorithm):
         ],
     }
 
-    def __init__(self, num_eval_qubits, a_factory, q_factory=None, iqft=None):
+    def __init__(self, num_eval_qubits, a_factory, i_objective=None, q_factory=None, iqft=None):
         """
         Constructor.
 
@@ -87,7 +87,9 @@ class AmplitudeEstimation(QuantumAlgorithm):
         # get/construct A/Q operator
         self.a_factory = a_factory
         if q_factory is None:
-            self.q_factory = QFactory(a_factory)
+            if i_objective is None:
+                i_objective = self.a_factory.num_target_qubits - 1
+            self.q_factory = QFactory(a_factory, i_objective)
         else:
             self.q_factory = q_factory
 

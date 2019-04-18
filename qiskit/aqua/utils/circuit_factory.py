@@ -21,7 +21,6 @@ and power combinations of the circuit.
 
 from abc import ABC, abstractmethod
 from qiskit import QuantumCircuit
-from qiskit.aqua import AquaError
 from qiskit.aqua.utils.controlledcircuit import get_controlled_circuit
 
 
@@ -42,7 +41,7 @@ class CircuitFactory(ABC):
         return 0
 
     def required_ancillas_controlled(self):
-        return 0
+        return self.required_ancillas()
 
     def get_num_qubits(self):
         return self._num_target_qubits + self.required_ancillas()
@@ -51,7 +50,7 @@ class CircuitFactory(ABC):
         return self._num_target_qubits + self.required_ancillas_controlled()
 
     @abstractmethod
-    def build(self, qc, q, q_ancillas=None, params=None):
+    def build(self, qc, q, q_ancillas=None):
         """ Adds corresponding sub-circuit to given circuit
 
         Args:
@@ -62,7 +61,7 @@ class CircuitFactory(ABC):
         """
         raise NotImplementedError()
 
-    def build_inverse(self, qc, q, q_ancillas=None, params=None):
+    def build_inverse(self, qc, q, q_ancillas=None):
         """ Adds inverse of corresponding sub-circuit to given circuit
 
         Args:
@@ -73,10 +72,10 @@ class CircuitFactory(ABC):
         """
         qc_ = QuantumCircuit(*qc.qregs)
 
-        self.build(qc_, q, q_ancillas, params)
+        self.build(qc_, q, q_ancillas)
         qc.extend(qc_.inverse())
 
-    def build_controlled(self, qc, q, q_control, q_ancillas=None, params=None):
+    def build_controlled(self, qc, q, q_control, q_ancillas=None, use_basis_gates=True):
         """ Adds corresponding controlled sub-circuit to given circuit
 
         Args:
@@ -84,15 +83,15 @@ class CircuitFactory(ABC):
             q : list of qubits (has to be same length as self._num_qubits)
             q_control : control qubit
             q_ancillas : list of ancilla qubits (or None if none needed)
-            params : parameters for circuit
+            use_basis_gates: use basis gates for expansion of controlled circuit
         """
         uncontrolled_circuit = QuantumCircuit(*qc.qregs)
+        self.build(uncontrolled_circuit, q, q_ancillas)
 
-        self.build(uncontrolled_circuit, q, q_ancillas, params)
-        controlled_circuit = get_controlled_circuit(uncontrolled_circuit, q_control)
+        controlled_circuit = get_controlled_circuit(uncontrolled_circuit, q_control, use_basis_gates=use_basis_gates)
         qc.extend(controlled_circuit)
 
-    def build_controlled_inverse(self, qc, q, q_control, q_ancillas=None, params=None):
+    def build_controlled_inverse(self, qc, q, q_control, q_ancillas=None, use_basis_gates=True):
         """ Adds controlled inverse of corresponding sub-circuit to given circuit
 
         Args:
@@ -100,33 +99,33 @@ class CircuitFactory(ABC):
             q : list of qubits (has to be same length as self._num_qubits)
             q_control : control qubit
             q_ancillas : list of ancilla qubits (or None if none needed)
-            params : parameters for circuit
+            use_basis_gates: use basis gates for expansion of controlled circuit
         """
         qc_ = QuantumCircuit(*qc.qregs)
 
-        self.build_controlled(qc_, q, q_control, q_ancillas, params)
+        self.build_controlled(qc_, q, q_control, q_ancillas, use_basis_gates)
         qc.extend(qc_.inverse())
 
-    def build_power(self, qc, q, power, q_ancillas=None, params=None):
+    def build_power(self, qc, q, power, q_ancillas=None):
         """ Adds power of corresponding circuit.
             May be overridden if a more efficient implementation is possible """
         for _ in range(power):
-            self.build(qc, q, q_ancillas, params)
+            self.build(qc, q, q_ancillas)
 
-    def build_inverse_power(self, qc, q, power, q_ancillas=None, params=None):
+    def build_inverse_power(self, qc, q, power, q_ancillas=None):
         """ Adds inverse power of corresponding circuit.
             May be overridden if a more efficient implementation is possible """
         for _ in range(power):
-            self.build_inverse(qc, q, q_ancillas, params)
+            self.build_inverse(qc, q, q_ancillas)
 
-    def build_controlled_power(self, qc, q, q_control, power, q_ancillas=None, params=None):
+    def build_controlled_power(self, qc, q, q_control, power, q_ancillas=None, use_basis_gates=True):
         """ Adds controlled power of corresponding circuit.
             May be overridden if a more efficient implementation is possible """
         for _ in range(power):
-            self.build_controlled(qc, q, q_control, q_ancillas, params)
+            self.build_controlled(qc, q, q_control, q_ancillas, use_basis_gates)
 
-    def build_controlled_inverse_power(self, qc, q, q_control, power, q_ancillas=None, params=None):
+    def build_controlled_inverse_power(self, qc, q, q_control, power, q_ancillas=None, use_basis_gates=True):
         """ Adds controlled, inverse, power of corresponding circuit.
             May be overridden if a more efficient implementation is possible """
         for _ in range(power):
-            self.build_controlled_inverse(qc, q, q_control, q_ancillas, params)
+            self.build_controlled_inverse(qc, q, q_control, q_ancillas, use_basis_gates)

@@ -53,6 +53,13 @@ class UniformDistribution(UnivariateDistribution):
     }
 
     def __init__(self, num_target_qubits, low=0, high=1):
+        """
+        Univariate uniform distribution
+        Args:
+            num_target_qubits (int): number of qubits it acts on
+            low (float): lower bound, i.e., the value corresponding to |0...0> (assuming an equidistant grid)
+            high (float): upper bound, i.e., the value corresponding to |1...1> (assuming an equidistant grid)
+        """
         probabilities = np.ones(2**num_target_qubits)/2**num_target_qubits
         super().__init__(num_target_qubits, probabilities, low, high)
 
@@ -64,7 +71,8 @@ class UniformDistribution(UnivariateDistribution):
 
     def build(self, qc, q, q_ancillas=None, params=None):
         if params is None or params['i_state'] is None:
-            qc.h(q)
+            for i in range(self.num_target_qubits):
+                qc.h(q[i])
         else:
             for i in params['i_state']:
                 qc.h(q[i])
