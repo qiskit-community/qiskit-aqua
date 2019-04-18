@@ -62,7 +62,7 @@ class TestQNN(QiskitAquaTestCase):
         result = run_algorithm(params, self.svm_input)
         print(result['testing_accuracy'])
 
-        self.assertGreater(result['testing_accuracy'], 0.85) # accuracy should be > 85%
+        self.assertGreater(result['testing_accuracy'], 0.85) # 
 
     def test_qsvm_variational_via_run_algorithm(self):
         params = {
@@ -75,7 +75,7 @@ class TestQNN(QiskitAquaTestCase):
         result = run_algorithm(params, self.svm_input)
         print(result['testing_accuracy'])
 
-        self.assertLess(result['testing_accuracy'], 0.6) # accuracy should be > 85%
+        self.assertLess(result['testing_accuracy'], 0.6) #
 
 
     def test_qnn_2d_via_run_algorithm(self):
@@ -94,7 +94,7 @@ class TestQNN(QiskitAquaTestCase):
 
         result = run_algorithm(params, self.svm_input)
         print(result['testing_accuracy'])
-        self.assertGreater(result['testing_accuracy'], 0.85) # accuracy should be > 85%
+        self.assertLess(result['testing_accuracy'], 0.7) #
 
     def test_qsvm_variational_2d_via_run_algorithm(self):
         params = {
@@ -113,7 +113,7 @@ class TestQNN(QiskitAquaTestCase):
         result = run_algorithm(params, self.svm_input)
         print(result['testing_accuracy'])
 
-        self.assertGreater(result['testing_accuracy'], 0.85) # accuracy should be > 85%
+        self.assertGreater(result['testing_accuracy'], 0.9)
 
 
 def Wine(training_size, test_size, n):
