@@ -86,7 +86,7 @@ class Shor(QuantumAlgorithm):
         # check if the input integer is a power
         tf, b, p = is_power(N, return_decomposition=True)
         if tf:
-            logger.warning(f'The input integer is a power: {N}={b}^{p}.')
+            logger.info(f'The input integer is a power: {N}={b}^{p}.')
             self._ret['factors'].append(b)
 
     @classmethod
@@ -486,7 +486,7 @@ class Shor(QuantumAlgorithm):
                         self._ret['results'][output_desired], output_desired
                     ))
                 else:
-                    logger.warning('Cannot find factors from measurement {} because {}'.format(
+                    logger.info('Cannot find factors from measurement {} because {}'.format(
                         output_desired, self._ret['results'][output_desired]
                     ))
 
