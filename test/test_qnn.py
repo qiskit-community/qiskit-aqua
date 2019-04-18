@@ -62,7 +62,7 @@ class TestQNN(QiskitAquaTestCase):
         result = run_algorithm(params, self.svm_input)
         print(result['testing_accuracy'])
 
-        self.assertGreater(result['testing_accuracy'], 0.85) # 
+        self.assertGreater(result['testing_accuracy'], 0.85) #
 
     def test_qsvm_variational_via_run_algorithm(self):
         params = {
