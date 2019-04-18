@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-"""The Exact LinearProblem algorithm."""
+"""The Exact LinearSystem algorithm."""
 
 import logging
 
@@ -26,16 +26,16 @@ from qiskit.aqua import AquaError
 logger = logging.getLogger(__name__)
 
 
-class ExactLPsolver(QuantumAlgorithm):
-    """The Exact LinearProblem algorithm."""
+class ExactLSsolver(QuantumAlgorithm):
+    """The Exact LinearSystem algorithm."""
 
     CONFIGURATION = {
-        'name': 'ExactLPsolver',
-        'description': 'ExactLPsolver Algorithm',
+        'name': 'ExactLSsolver',
+        'description': 'ExactLSsolver Algorithm',
         'classical': True,
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
-            'id': 'ExactLPsolver_schema',
+            'id': 'ExactLSsolver_schema',
             'type': 'object',
             'properties': {
             },

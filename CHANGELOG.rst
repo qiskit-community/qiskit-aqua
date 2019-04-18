@@ -46,6 +46,8 @@ Added
 - Added the ADAM (and AMSGRAD) optimization algorithm
 - Multivariate distributions added, so uncertainty models now have univariate and multivariate distribution components
 - Added option to include or skip the swaps operations for qft and iqft circuit constructions.
+- Added classical linear system solver ``ExactLSsolver``
+- Added parameters ``auto_hermitian`` and ``auto_resize`` to ``HHL`` algorithm to support non-hermititan and non 2**n sized matrices by default
 
 Removed
 -------
