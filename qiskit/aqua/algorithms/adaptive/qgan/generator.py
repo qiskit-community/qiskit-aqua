@@ -81,7 +81,7 @@ class Generator:
                                 initial_distribution=init_dist, low=low, high=high)
             else:
                 init_dist = UniformDistribution(np.sum(num_qubits), low=bounds[0], high=bounds[1])
-                self.generator_circuit = UnivariateVariationalDistribution(np.sum(num_qubits), var_form, init_params,
+                self.generator_circuit = UnivariateVariationalDistribution(int(np.sum(num_qubits)), var_form, init_params,
                                                         initial_distribution=init_dist, low=bounds[0], high=bounds[1])
 
         if len(num_qubits)>1:
@@ -170,6 +170,8 @@ class Generator:
                     temp.append(self._data_grid[int(bin_rep)])
             generated_samples.append(temp)
 
+        self.generator_circuit._probabilities = generated_samples_weights
+
         return generated_samples, generated_samples_weights
 
     def _loss(self, x, weights):
@@ -219,4 +221,5 @@ class Generator:
         objective = self._get_objective_function(quantum_instance, discriminator)
         self.generator_circuit.params, loss, nfev = self._optimizer.optimize(num_vars=len(self.generator_circuit.params), objective_function=objective,
                                                         initial_point=self.generator_circuit.params)
+
         return loss

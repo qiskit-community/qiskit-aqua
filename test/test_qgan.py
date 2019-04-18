@@ -29,7 +29,7 @@ from qiskit.aqua.algorithms.adaptive.qgan.qgan import QGAN
 
 from qiskit.aqua import aqua_globals, QuantumInstance
 
-from qiskit import Aer
+from qiskit import BasicAer
 
 from test.common import QiskitAquaTestCase
 

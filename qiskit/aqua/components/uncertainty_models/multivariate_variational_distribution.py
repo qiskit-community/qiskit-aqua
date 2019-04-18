@@ -19,6 +19,9 @@
 import numpy as np
 
 from qiskit.aqua.components.uncertainty_models.multivariate_distribution import MultivariateDistribution
+from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
+from qiskit.aqua import QuantumInstance
+from qiskit import BasicAer
 
 
 class MultivariateVariationalDistribution(MultivariateDistribution):
@@ -80,8 +83,23 @@ class MultivariateVariationalDistribution(MultivariateDistribution):
             low = np.zeros(len(num_qubits))
         if high is None:
             high = np.ones(len(num_qubits))
-
-        super().__init__(num_qubits, np.ones(2**sum(num_qubits)), low, high)
+        self._var_form = var_form
+        self.params = params
+        self._initial_distribution = initial_distribution
+        q_ = QuantumRegister(num_qubits)
+        c_ = ClassicalRegister(num_qubits)
+        qc_ = QuantumCircuit(q_, c_)
+        if not self._initial_distribution is None:
+            self._initial_distribution.build(qc_, q_)
+        qc_.extend(self._var_form.construct_circuit(self.params, q_))
+        qc_.measure(q_,c_)
+        quantum_instance = QuantumInstance(backend=BasicAer.get_backend('statevector_simulator'))
+        result = quantum_instance.execute(qc_)
+        result = result.get_statevector(qc_)
+        values = np.multiply(result, np.conj(result))
+        values = list(values.real)
+        probabilities = values
+        super().__init__(num_qubits, probabilities, low, high)
         self._var_form = var_form
         self.params = params
         self._initial_distribution = initial_distribution
@@ -89,4 +107,5 @@ class MultivariateVariationalDistribution(MultivariateDistribution):
     def build(self, qc, q, q_ancillas=None, params=None):
         if not self._initial_distribution is None:
             self._initial_distribution.build(qc, q, q_ancillas, params)
-        qc += self._var_form.construct_circuit(self.params, q)
+        qc.extend(self._var_form.construct_circuit(self.params, q))
+

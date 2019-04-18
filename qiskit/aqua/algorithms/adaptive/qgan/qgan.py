@@ -34,7 +34,7 @@ from copy import deepcopy
 import torch
 
 
-from qiskit.providers.aer import Aer
+from qiskit import BasicAer
 
 from qiskit.aqua import AquaError
 from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class
@@ -286,7 +286,7 @@ class QGAN(QuantumAlgorithm):
                                  quantum hardware
         """
         if quantum_instance is None:
-            self._quantum_instance = QuantumInstance(backend=Aer.get_backend("qasm_simulator"),
+            self._quantum_instance = QuantumInstance(backend=BasicAer.get_backend("qasm_simulator"),
                                                      shots=self._batch_size, seed=self._random_seed,
                                                      seed_mapper=self._random_seed)
         else:
