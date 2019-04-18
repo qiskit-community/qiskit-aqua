@@ -32,7 +32,7 @@ def get_all_test_modules():
     files = sorted(os.listdir(current_directory))
     for file in files:
         if file.startswith('test') and file.endswith('.py'):
-            test_modules.append(file.rstrip('.py'))
+            test_modules.append(file[:-3])
 
     return test_modules
 
