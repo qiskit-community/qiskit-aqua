@@ -64,14 +64,12 @@ class Eigenvalues(Pluggable):
         """
         raise NotImplementedError()
 
-    def construct_inverse(self, mode, circuit, inreg, outreg):
+    def construct_inverse(self, mode, circuit):
         """Construct the inverse eigenvalue estimation quantum circuit.
 
         Args:
             mode (str): consctruction mode, 'matrix' not supported
             circuit (QuantumCircuit): the quantum circuit to invert
-            inreg (QuantumRegister): the input quantum register
-            outreg (QuantumRegister): the output quantum register
 
         Returns:
             QuantumCircuit object for of the inverted eigenvalue estimation
@@ -81,9 +79,5 @@ class Eigenvalues(Pluggable):
             raise NotImplementedError('The matrix mode is not supported.')
         if circuit is None:
             raise ValueError('Circuit was not constructed beforehand.')
-        # qc = QuantumCircuit(inreg, outreg)
-        # for gate in reversed(circuit.data):
-        #     gate.reapply(qc)
-        #     qc.data[-1].inverse()
         self._inverse = circuit.inverse()
         return self._inverse
