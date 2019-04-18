@@ -122,6 +122,10 @@ class QNN(QSVMVariational):
             datapoints = np.asarray(datapoints)
         self._datapoints = datapoints
         self._num_qubits = self._var_form._num_qubits
+
+        if self._num_classes > pow(2, self._num_qubits):
+            logger.warn("you have more classes than the qubits can support!")
+
         self._minibatch_size = minibatch_size
         self._eval_count = 0
         self._ret = {}
