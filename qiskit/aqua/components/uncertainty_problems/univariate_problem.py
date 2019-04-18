@@ -19,7 +19,20 @@ from qiskit.aqua.components.uncertainty_problems import UncertaintyProblem
 
 class UnivariateProblem(UncertaintyProblem):
 
+    """
+    Univariate uncertainty problem.
+    """
+
     def __init__(self, uncertainty_model, univariate_objective, i_state=None, i_objective=None):
+        """
+        Constructor.
+
+        Args:
+            uncertainty_model (UnivariateUncertaintyModel): univariate uncertainty model to
+            univariate_objective (UnivariatePiecewiseLinearObjective): objective function based on uncertainty
+            i_state(int): indices of qubits representing uncertainty
+            i_objective: index of qubit representing the objective value in the amplitude
+        """
 
         # determine number of target qubits
         num_target_qubits = uncertainty_model.num_target_qubits + 1

@@ -38,15 +38,19 @@ class PiecewiseLinearYRotation(CircuitFactory):
     where we implicitly assume x_{J+1} = 2^n.
     """
 
-    def __init__(self, breakpoints, slopes, offsets, num_state_qubits, i_state=None, i_target=None, uncompute=True):
+    def __init__(self, breakpoints, slopes, offsets, num_state_qubits, i_state=None, i_target=None):
         """
-        Construct piecewise-linearly-controlled Y-rotation
-        :param breakpoints: breakpoints to define piecewise-linear function
-        :param slopes: slopes for different segments of piecewise-linear function
-        :param offsets: offsets for different segments of piecewise-linear function
-        :param num_state_qubits: number of qubits representing the state
-        :param i_state: indices of qubits representing the state
-        :param i_target: index of target qubit
+        Constructor.
+
+        Construct piecewise-linearly-controlled Y-rotation.
+
+        Args:
+            breakpoints (array or list): breakpoints to define piecewise-linear function
+            slopes (array or list): slopes for different segments of piecewise-linear function
+            offsets (array or list): offsets for different segments of piecewise-linear function
+            num_state_qubits (int): number of qubits representing the state
+            i_state (array or list): indices of qubits representing the state, set to range(num_state_qubits) if None
+            i_target (int): index of target qubit, set to num_state_qubits if None
         """
 
         super().__init__(num_state_qubits + 1)
@@ -87,9 +91,13 @@ class PiecewiseLinearYRotation(CircuitFactory):
         else:
             self.i_target = num_state_qubits
 
-        self.uncompute = uncompute
-
     def evaluate(self, x):
+        """
+        Classically evaluate the piecewise linear rotation
+        Args:
+            x (float): value to be evaluated at
+        Returns: value of piecewise linear function at x
+        """
 
         y = (x >= self.breakpoints[0]) * (x * self.mapped_slopes[0] + self.mapped_offsets[0])
         for i in range(1, len(self.breakpoints)):
@@ -133,8 +141,7 @@ class PiecewiseLinearYRotation(CircuitFactory):
                 lin_ry.build_controlled(qc, q, q_ancillas[i - 1], use_basis_gates=False)
 
                 # uncompute comparator
-                if self.uncompute:
-                    comp.build_inverse(qc, q_, q_ancillas_)
+                comp.build_inverse(qc, q_, q_ancillas_)
 
             else:
 
@@ -150,5 +157,4 @@ class PiecewiseLinearYRotation(CircuitFactory):
                 lin_ry.build_controlled(qc, q, q_ancillas[i], use_basis_gates=False)
 
                 # uncompute comparator
-                if self.uncompute:
-                    comp.build_inverse(qc, q_, q_ancillas_)
+                comp.build_inverse(qc, q_, q_ancillas_)

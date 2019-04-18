@@ -21,17 +21,23 @@ import numpy as np
 
 class MultivariateProblem(UncertaintyProblem):
 
+    """
+    Multivariate Uncertainty Problem.
+    """
+
     def __init__(self,
                  uncertainty_model,
                  aggregation_function,
                  univariate_objective,
                  conditions=None):
         """
+        Constructor.
 
-        :param uncertainty_model:
-        :param aggregation_function:
-        :param univariate_objective:
-        :param conditions:
+        Args:
+            uncertainty_model (MultivariateDistribution): multivariate uncertainty model
+            aggregation_function (CircuitFactory): aggregation function that maps the multiple dimension to an aggregated value
+            univariate_objective (UnivariatePiecewiseLinearObjective): objective function applied to the aggregated value
+            conditions (list or array): list of pairs (int, CircuitFactory) = target dimension of uncertainty model and condition to be satisfied to apply the aggregation
         """
 
         # determine number of target qubits

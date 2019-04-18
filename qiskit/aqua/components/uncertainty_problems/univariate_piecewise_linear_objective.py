@@ -21,7 +21,29 @@ from qiskit.aqua.circuits.piecewise_linear_y_rotation import PiecewiseLinearYRot
 
 class UnivariatePiecewiseLinearObjective(UncertaintyProblem):
 
+    """
+    Univariate Piecewise Linear Objective Function, applies controlled Y-rotation to target qubit.
+    Control qubits represent integer value, and rotation approximates a piecewise linear function of the amplitude f:
+        |x>|0> --> |x>( sqrt(1 - f(x))|0> + sqrt(f(x))|1> )
+    """
+
     def __init__(self, num_state_qubits, min_state_value, max_state_value, breakpoints, slopes, offsets, f_min, f_max, c_approx, i_state=None, i_objective=None):
+        """
+        Constructor.
+
+        Args:
+            num_state_qubits (int): number of qubits to represent the state
+            min_state_value (float): lower bound of values to be represented by state qubits
+            max_state_value (float): upper bound of values to be represented by state qubits
+            breakpoints (list or array): breakpoints of piecewise linear function
+            slopes (list or array): slopes of linear segments
+            offsets (list or array): offset of linear segments
+            f_min (float): minimal value of resulting function (required for normalization of amplitude)
+            f_max (float): maximal value of resulting function (required for normalization of amplitude)
+            c_approx: approximating factor (linear segments are approximated by contracting rotation around pi/4, where sin^2() is locally linear)
+            i_state: indices of qubits that represent the state
+            i_objective: index of target qubit to apply the rotation to
+        """
         super().__init__(num_state_qubits + 1)
 
         self.num_state_qubits = num_state_qubits

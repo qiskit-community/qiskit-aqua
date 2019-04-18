@@ -30,12 +30,15 @@ class LinearYRotation(CircuitFactory):
 
     def __init__(self, slope, offset, num_state_qubits, i_state=None, i_target=None):
         """
+        Constructor.
+
         Construct linear Y rotation circuit factory
-        :param slope: slope of the controlled rotation
-        :param offset: offset of the controlled rotation
-        :param num_state_qubits: number of qubits representing the state
-        :param i_state: indices of the state qubits (least significant to most significant)
-        :param i_target: index of target qubit
+        Args:
+            slope (float): slope of the controlled rotation
+            offset (float): offset of the controlled rotation
+            num_state_qubits (int): number of qubits representing the state
+            i_state (array or list): indices of the state qubits (least significant to most significant)
+            i_target (int): index of target qubit
         """
 
         super().__init__(num_state_qubits + 1)

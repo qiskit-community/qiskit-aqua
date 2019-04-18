@@ -33,10 +33,16 @@ class FixedValueComparator(CircuitFactory):
 
     def __init__(self, num_state_qubits, value, geq=True, i_state=None, i_target=None):
         """
+        Constructor.
+
         Initializes the fixed value comparator
-        :param num_target_qubits: total number of target qubits (n-1 state qubits and 1 result qubit)
-        :param value: fixed value to compare with
-        :param geq: evaluate ">=" condition or "<" condition
+
+        Args:
+            num_state_qubits (int): number of state qubits, the target qubit comes on top of this
+            value (int): fixed value to compare with
+            geq (bool): evaluate ">=" condition of "<" condition
+            i_state (array or list): indices of state qubits in given list of qubits / register, if None, i_state = list(range(num_state_qubits)) is used
+            i_target (int): index of target qubit in given list of qubits / register, if None, i_target = num_state_qubits is used
         """
         super().__init__(num_state_qubits + 1)
         self._num_state_qubits = num_state_qubits
@@ -48,7 +54,7 @@ class FixedValueComparator(CircuitFactory):
         if i_state is not None:
             self.i_state = i_state
         else:
-            self.i_state = range(num_state_qubits)
+            self.i_state = list(range(num_state_qubits))
 
         self.i_target = None
         if i_target is not None:
@@ -73,8 +79,9 @@ class FixedValueComparator(CircuitFactory):
     def _get_twos_complement(self):
         """
         Returns the 2's complement of value as array
-        :return: two's complement
+        Returns: two's complement
         """
+
         twos_complement = pow(2, self.num_state_qubits) - int(np.ceil(self.value))
         twos_complement = '{0:b}'.format(twos_complement).rjust(self.num_state_qubits, '0')
         twos_complement = [1 if twos_complement[i] == '1' else 0 for i in reversed(range(len(twos_complement)))]

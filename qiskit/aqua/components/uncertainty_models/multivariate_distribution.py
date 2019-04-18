@@ -38,13 +38,13 @@ class MultivariateDistribution(UncertaintyModel, ABC):
 
     def __init__(self, num_qubits, low, high, probabilities=None):
         """
-        Constructor
+        Constructor.
 
         Args:
-            num_qubits (:obj:`list` of :obj:`list`): assigns qubits to dimensions
-            probabilities: map - maps index tuples to probabilities
-            low (list): lowest value per dimension
-            high (list): highest value per dimension
+            num_qubits (array or list): assigns qubits to dimensions
+            probabilities (map): map - maps index tuples to probabilities
+            low (array or list): lowest value per dimension
+            high (array or list): highest value per dimension
         """
 
         # derive dimension from qubit assignment

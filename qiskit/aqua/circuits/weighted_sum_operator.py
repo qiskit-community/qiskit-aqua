@@ -25,6 +25,17 @@ class WeightedSumOperator(CircuitFactory):
     """
 
     def __init__(self, num_state_qubits, weights, i_state=None, i_sum=None):
+        """
+        Constructor.
+
+        Computes the weighted sum controlled by state qubits
+
+        Args:
+            num_state_qubits (int): number of state qubits
+            weights (array or list): weights per state qubits
+            i_state (array or list): indices of state qubits, set to range(num_state_qubits) if None
+            i_sum (int): indices of target qubits (that represent the resulting sum), set to range(num_state_qubits, num_state_qubits + req_num_sum_qubits) if None
+        """
 
         self._weights = weights
 
