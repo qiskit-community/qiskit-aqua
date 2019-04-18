@@ -426,8 +426,6 @@ class Shor(QuantumAlgorithm):
             one_factor = math.gcd(putting_plus, self._N)
             other_factor = math.gcd(putting_minus, self._N)
 
-            print(one_factor, other_factor)
-
             # Check if the factors found are trivial factors or are the desired factors
             if one_factor == 1 or one_factor == self._N or other_factor == 1 or other_factor == self._N:
                 logger.debug('Found just trivial factors, not good enough.')
