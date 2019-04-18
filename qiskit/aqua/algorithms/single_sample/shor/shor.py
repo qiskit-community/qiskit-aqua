@@ -31,6 +31,7 @@ from qiskit.aqua import AquaError, Pluggable
 from qiskit.aqua.utils import get_subsystem_density_matrix
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.circuits import FourierTransformCircuits as ftc
+from qiskit.aqua.circuits.gates import mcu1
 from qiskit.aqua.utils import summarize_circuits
 
 
@@ -146,40 +147,10 @@ class Shor(QuantumAlgorithm):
         """
         Doubly controlled version of the _phi_add circuit
         """
-
-        # TODO: extract this gate
-        def ccphase(circuit, angle, ctl1, ctl2, tgt):
-            """
-            Creation of a doubly controlled phase gate
-            """
-
-            angle /= 4
-
-            circuit.u1(angle, ctl1)
-            circuit.cx(ctl1, tgt)
-            circuit.u1(-angle, tgt)
-            circuit.cx(ctl1, tgt)
-            circuit.u1(angle, tgt)
-
-            circuit.cx(ctl2, ctl1)
-
-            circuit.u1(-angle, ctl1)
-            circuit.cx(ctl1, tgt)
-            circuit.u1(angle, tgt)
-            circuit.cx(ctl1, tgt)
-            circuit.u1(-angle, tgt)
-
-            circuit.cx(ctl2, ctl1)
-
-            circuit.u1(angle, ctl2)
-            circuit.cx(ctl2, tgt)
-            circuit.u1(-angle, tgt)
-            circuit.cx(ctl2, tgt)
-            circuit.u1(angle, tgt)
-
         angle = self._get_angles(a)
         for i in range(self._n + 1):
-            ccphase(circuit, -angle[i] if inverse else angle[i], ctl1, ctl2, q[i])
+            # ccphase(circuit, -angle[i] if inverse else angle[i], ctl1, ctl2, q[i])
+            circuit.mcu1(-angle[i] if inverse else angle[i], [ctl1, ctl2], q[i])
 
     def _controlled_controlled_phi_add_mod_N(self, circuit, q, ctl1, ctl2, aux, a):
         """
@@ -375,13 +346,15 @@ class Shor(QuantumAlgorithm):
 
         return a
 
-    def _get_factors(self, x_value, t_upper):
+    def _get_factors(self, output_desired, t_upper):
         """
         Apply the continued fractions to find r and the gcd to find the desired factors.
         """
+        x_value = int(output_desired, 2)
+        logger.info('In decimal, x_final value for this result is: {0}.'.format(x_value))
 
         if x_value <= 0:
-            self._ret['failure'] = 'x_value is <= 0, there are no continued fractions.'
+            self._ret['results'][output_desired] = 'x_value is <= 0, there are no continued fractions.'
             return False
 
         logger.debug('Running continued fractions for this case.')
@@ -430,7 +403,7 @@ class Shor(QuantumAlgorithm):
 
             if denominator % 2 == 1:
                 if i >= self._N:
-                    self._ret['failure'] = 'Unable to find factors after too many attempts.'
+                    self._ret['results'][output_desired] = 'unable to find factors after too many attempts.'
                     return False
                 logger.debug('Odd denominator, will try next iteration of continued fractions.')
                 continue
@@ -444,7 +417,7 @@ class Shor(QuantumAlgorithm):
 
             # Check if the value is too big or not
             if math.isinf(exponential) or exponential > 1000000000:
-                self._ret['failure'] = 'Denominator of continued fraction is too big.'
+                self._ret['results'][output_desired] = 'denominator of continued fraction is too big.'
                 return False
 
             # If the value is not to big (infinity), then get the right values and do the proper gcd()
@@ -453,19 +426,22 @@ class Shor(QuantumAlgorithm):
             one_factor = math.gcd(putting_plus, self._N)
             other_factor = math.gcd(putting_minus, self._N)
 
+            print(one_factor, other_factor)
+
             # Check if the factors found are trivial factors or are the desired factors
             if one_factor == 1 or one_factor == self._N or other_factor == 1 or other_factor == self._N:
                 logger.debug('Found just trivial factors, not good enough.')
                 # Check if the number has already been found, use i-1 because i was already incremented
                 if t[i - 1] == 0:
-                    self._ret['failure'] = 'The continued fractions found exactly x_final/(2^(2n)), leaving function.'
+                    self._ret['results'][output_desired] = 'the continued fractions found exactly x_final/(2^(2n)).'
                     return False
                 if i >= self._N:
-                    self._ret['failure'] = 'Unable to find factors after too many attempts.'
+                    self._ret['results'][output_desired] = 'unable to find factors after too many attempts.'
                     return False
             else:
                 logger.debug('The factors of {0} are {1} and {2}.'.format(self._N, one_factor, other_factor))
                 logger.debug('Found the desired factors.')
+                self._ret['results'][output_desired] = (one_factor, other_factor)
                 factors = sorted((one_factor, other_factor))
                 if factors not in self._ret['factors']:
                     self._ret['factors'].append(factors)
@@ -499,16 +475,21 @@ class Shor(QuantumAlgorithm):
                 circuit.measure(self._up_qreg, up_cqreg)
                 counts = self._quantum_instance.execute(circuit).get_counts(circuit)
 
+            self._ret['results'] = dict()
+
             # For each simulation result, print proper info to user and try to calculate the factors of N
             for output_desired in list(counts.keys()):
                 # Get the x_value from the final state qubits
                 logger.info("------> Analyzing result {0}.".format(output_desired))
-                x_value = int(output_desired, 2)
-                logger.info('In decimal, x_final value for this result is: {0}.'.format(x_value))
-                success = self._get_factors(int(x_value), int(2 * self._n))
-                logger.info('success: ', success)
-
-        if 'failure' in self._ret:
-            logger.warning(self._ret['failure'])
+                self._ret['results'][output_desired] = None
+                success = self._get_factors(output_desired, int(2 * self._n))
+                if success:
+                    logger.info('Found factors {} from measurement {}.'.format(
+                        self._ret['results'][output_desired], output_desired
+                    ))
+                else:
+                    logger.warning('Cannot find factors from measurement {} because {}'.format(
+                        output_desired, self._ret['results'][output_desired]
+                    ))
 
         return self._ret
