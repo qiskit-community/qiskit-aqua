@@ -75,6 +75,17 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
     }
 
     def __init__(self, uncertainty_model, strike_price, c_approx, i_state=None, i_compare=None, i_objective=None):
+        """
+        Constructor.
+
+        Args:
+            uncertainty_model (UnivariateDistribution): uncertainty model for spot price
+            strike_price (float): strike price of the European option
+            c_approx (float): approximation factor for linear payoff
+            i_state (list or array): indices of qubits representing the uncertainty
+            i_compare (int): index of qubit for comparing spot price to strike price (enabling payoff or not)
+            i_objective (int): index of qubit for objective function
+        """
         super().__init__(uncertainty_model.num_target_qubits + 2)
 
         self._uncertainty_model = uncertainty_model

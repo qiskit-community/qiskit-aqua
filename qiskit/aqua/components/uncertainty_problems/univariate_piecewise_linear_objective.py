@@ -56,7 +56,12 @@ class UnivariatePiecewiseLinearObjective(UncertaintyProblem):
         slopes = np.array(slopes)[i_sort]
         offsets = np.array(offsets)[i_sort]
 
-        # TODO: drop values below min or above max
+        # drop breakpoints and corresponding values below min_state_value or above max_state_value
+        for i in reversed(range(len(breakpoints))):
+            if breakpoints[i] <= (self.min_state_value - 1e-6) or breakpoints[i] >= (self.max_state_value + 1e-6):
+                del(breakpoints[i])
+                del(slopes[i])
+                del(offsets[i])
 
         # make sure the minimal value is included in the breakpoints
         min_value_included = False
