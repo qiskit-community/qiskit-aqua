@@ -61,6 +61,15 @@ class NormalDistribution(UnivariateDistribution):
     }
 
     def __init__(self, num_target_qubits, mu=0, sigma=1, low=-1, high=1):
+        """
+        Univariate normal distribution
+        Args:
+            num_target_qubits (int): number of qubits it acts on
+            mu (float): expected value of considered normal distribution
+            sigma (float): standard deviation of considered normal distribution
+            low (float): lower bound, i.e., the value corresponding to |0...0> (assuming an equidistant grid)
+            high (float): upper bound, i.e., the value corresponding to |1...1> (assuming an equidistant grid)
+        """
         self.validate(locals())
         probabilities, _ = UnivariateDistribution.\
             pdf_to_probabilities(lambda x: norm.pdf(x, mu, sigma), low, high, 2 ** num_target_qubits)

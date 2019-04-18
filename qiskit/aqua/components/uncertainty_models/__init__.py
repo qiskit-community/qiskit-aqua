@@ -23,7 +23,9 @@ from .log_normal_distribution import LogNormalDistribution
 from .bernoulli_distribution import BernoulliDistribution
 from .uniform_distribution import UniformDistribution
 from .multivariate_normal_distribution import MultivariateNormalDistribution
+from .multivariate_log_normal_distribution import MultivariateLogNormalDistribution
 from .multivariate_uniform_distribution import MultivariateUniformDistribution
+from .gaussian_conditional_independence_model import GaussianConditionalIndependenceModel
 
 __all__ = ['UncertaintyModel',
            'UnivariateDistribution',
@@ -33,4 +35,6 @@ __all__ = ['UncertaintyModel',
            'BernoulliDistribution',
            'UniformDistribution',
            'MultivariateNormalDistribution',
-           'MultivariateUniformDistribution']
+           'MultivariateLogNormalDistribution',
+           'MultivariateUniformDistribution',
+           'GaussianConditionalIndependenceModel']
