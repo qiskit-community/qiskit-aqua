@@ -25,6 +25,9 @@ from qiskit.aqua.input import EnergyInput
 from qiskit.aqua.translators.ising.vrp import *
 from qiskit.aqua.algorithms import ExactEigensolver
 
+# To run only this test, issue:
+# python -m unittest test.test_vrp.TestVehicleRouting
+
 class TestVehicleRouting(QiskitAquaTestCase):
     """Tests vehicle routing Ising translator."""
 
@@ -43,7 +46,7 @@ class TestVehicleRouting(QiskitAquaTestCase):
         # Compares the output in terms of Paulis.
         paulis = [(79.6, Pauli(z=[True, False], x=[False, False])), (79.6, Pauli(z=[False, True], x=[False, False])), (160.8, Pauli(z=[False, False], x=[False, False]))]
         op = Operator(paulis)
-        for pauliA, pauliB in self.qubit_op._paulis, paulis):
+        for pauliA, pauliB in zip(self.qubit_op._paulis, paulis):
             costA, binaryA = pauliA
             costB, binaryB = pauliB
             # Note that the construction is a bit iffy, i.e., can be a small bit off even when the random seed is fixed,

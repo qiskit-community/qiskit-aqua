@@ -107,6 +107,9 @@ class ClassicalOptimizer:
         prob.linear_constraints.add(lin_expr=rows, senses=my_sense, rhs=my_rhs)
 
 
+# To run only this test, issue:
+# python -m unittest test.test_portfoliodiversification.TestPortfolioDiversification
+
 class TestPortfolioDiversification(QiskitAquaTestCase):
     """Tests vehicle routing Ising translator."""
 
