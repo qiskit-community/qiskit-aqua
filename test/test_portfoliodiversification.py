@@ -22,7 +22,8 @@ from qiskit import BasicAer
 
 from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import EnergyInput
-from qiskit.aqua.translators.ising.portfoliodiversification import get_portfoliodiversification_qubitops
+from qiskit.quantum_info import Pauli
+from qiskit.aqua.translators.ising.portfoliodiversification import *
 from qiskit.aqua.algorithms import ExactEigensolver
 
 class ClassicalOptimizer:
@@ -113,19 +114,46 @@ class TestPortfolioDiversification(QiskitAquaTestCase):
         super().setUp()
         np.random.seed(100)        
         self.n = 2
-        self.K = 1
+        self.q = 1
         self.instance = np.ones((self.n,self.n))
         self.instance[0,1] = 0.8
         self.instance[1,0] = 0.8
-        self.instance = -1 * self.instance
-        self.qubit_op = get_portfoliodiversification_qubitops(self.instance, self.n, self.K)
+        # self.instance = -1 * self.instance
+        self.qubit_op = get_portfoliodiversification_qubitops(self.instance, self.n, self.q)
         self.algo_input = EnergyInput(self.qubit_op)
 
+    def test_simple1(self):
+        # Compares the output in terms of Paulis.
+        paulis = [(-249.5, Pauli(z=[True, False, False, False, False, False], x=[False, False, False, False, False, False])), (-249.60000000000002, Pauli(z=[False, True, False, False, False, False], x=[False, False, False, False, False, False])), (-249.60000000000002, Pauli(z=[False, False, True, False, False, False], x=[False, False, False, False, False, False])), (-249.5, Pauli(z=[False, False, False, True, False, False], x=[False, False, False, False, False, False])), (500.0, Pauli(z=[False, False, False, False, True, False], x=[False, False, False, False, False, False])), (500.0, Pauli(z=[False, False, False, False, False, True], x=[False, False, False, False, False, False])), (500.0, Pauli(z=[True, True, False, False, False, False], x=[False, False, False, False, False, False])), (500.0, Pauli(z=[False, False, True, True, False, False], x=[False, False, False, False, False, False])), (-750.0, Pauli(z=[True, False, False, False, True, False], x=[False, False, False, False, False, False])), (-250.0, Pauli(z=[False, False, True, False, True, False], x=[False, False, False, False, False, False])), (-250.0, Pauli(z=[False, True, False, False, False, True], x=[False, False, False, False, False, False])), (-750.0, Pauli(z=[False, False, False, True, False, True], x=[False, False, False, False, False, False])), (500.0, Pauli(z=[False, False, False, False, True, True], x=[False, False, False, False, False, False])), (3498.2, Pauli(z=[False, False, False, False, False, False], x=[False, False, False, False, False, False]))]
+        for pauliA, pauliB in zip(self.qubit_op._paulis, paulis):
+            costA, binaryA = pauliA
+            costB, binaryB = pauliB
+            # Note that the construction is a bit iffy, e.g., I can get:
+            # Items are not equal to 7 significant digits:
+            # ACTUAL: -250.5
+            # DESIRED: -249.5
+            # even when the ordering is the same. Obviously, when the ordering changes, the test will become invalid.
+            np.testing.assert_approx_equal(costA, costB, 2)
+            self.assert_equal(binaryA, binaryB)
+
+    def test_simple2(self):
+        # Computes the cost using the exact eigensolver and compares it against pre-determined value.
+        params = {
+            'problem': {'name': 'ising'},
+            'algorithm': {'name': 'ExactEigensolver'}
+        }
+        result = run_algorithm(params, self.algo_input)        
+        quantum_solution = get_portfoliodiversification_solution(self.instance, self.n, self.q, result)
+        ground_level = get_portfoliodiversification_value(self.instance, self.n, self.q, quantum_solution)
+        np.testing.assert_approx_equal(ground_level, 1.8)
+    
     def test_portfoliodiversification(self):
-        # Solve the problem in a classical fashion via CPLEX
+        # Something of an integration test
+        # Solve the problem in a classical fashion via CPLEX and compare the solution
+        # Note that CPLEX uses a completely different integer linear programming formulation.
         x = None
         try:
-            classical_optimizer = ClassicalOptimizer(self.instance, self.n, self.K)
+            classical_optimizer = ClassicalOptimizer(self.instance, self.n, self.q)
             x, classical_cost = classical_optimizer.cplex_solution()
         except: 
             # This test should not focus on the availability of CPLEX, so we just eat the exception.
@@ -136,20 +164,8 @@ class TestPortfolioDiversification(QiskitAquaTestCase):
             'algorithm': {'name': 'ExactEigensolver'}
         }
         result = run_algorithm(params, self.algo_input)        
-        v = result['eigvecs'][0]
-        index_value = [x for x in range(len(v)) if v[x] == max(v)][0]
-        string_value = "{0:b}".format(index_value)
-        
-        N = (self.n - 1) * self.n
-        while len(string_value)<N:
-            string_value = '0'+string_value
-
-        sol = list()
-        for elements in string_value:
-            if elements == '0':
-                sol.append(0)
-            else:
-                sol.append(1)
-
-        sol = np.flip(sol, axis=0)
-        if x: np.testing.assert_array_equal(sol, x)
+        quantum_solution = get_portfoliodiversification_solution(self.instance, self.n, self.q, result)
+        ground_level = get_portfoliodiversification_value(self.instance, self.n, self.q, quantum_solution)
+        if x:
+            np.testing.assert_approx_equal(ground_level, classical_cost)
+            np.testing.assert_array_equal(quantum_solution, x)

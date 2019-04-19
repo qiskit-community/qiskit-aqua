@@ -22,16 +22,16 @@ from qiskit.quantum_info import Pauli
 from qiskit.aqua import Operator
 
 def get_portfoliodiversification_qubitops(rho, n, q):
-    """Converts an instnance of portfolio optimization into a list of Paulis.
+        """Converts an instnance of portfolio optimization into a list of Paulis.
 
-    Args:
-        rho (numpy.ndarray) : an asset-to-asset similarity matrix, such as the covariance matrix.
-        n (integer) : the number of assets.
-        q (integer) : the number of clusters of assets to output.
+        Args:
+            rho (numpy.ndarray) : an asset-to-asset similarity matrix, such as the covariance matrix.
+            n (integer) : the number of assets.
+            q (integer) : the number of clusters of assets to output.
 
-    Returns:
-        operator.Operator: operator for the Hamiltonian.
-    """
+        Returns:
+            operator.Operator: operator for the Hamiltonian.
+        """
 
         #N = (n + 1) * n  # number of qubits
         N = n**2 + n

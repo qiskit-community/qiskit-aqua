@@ -25,7 +25,7 @@ from qiskit.aqua import Operator
 
 
 def get_vehiclerouting_qubitops(instance, n, K):
-    """Converts an instnance of a vehicle routing problem into a list of Paulis.
+        """Converts an instnance of a vehicle routing problem into a list of Paulis.
 
     Args:
         instance (numpy.ndarray) : a customers-to-customers distance matrix.
@@ -34,7 +34,7 @@ def get_vehiclerouting_qubitops(instance, n, K):
 
     Returns:
         operator.Operator: operator for the Hamiltonian.
-    """
+        """
     
         N = (n - 1) * n
         A = np.max(instance) * 100  # A parameter of cost function
