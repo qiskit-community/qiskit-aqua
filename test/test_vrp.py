@@ -48,7 +48,7 @@ class TestVehicleRouting(QiskitAquaTestCase):
             # Note that the construction is a bit iffy, i.e., can be a small bit off even when the random seed is fixed,
             # even when the ordering is the same. Obviously, when the ordering changes, the test will become invalid.
             np.testing.assert_approx_equal(costA, costB, 2)
-            self.assert_equal(binaryA, binaryB)
+            self.assertEqual(binaryA, binaryB)
 
     def test_simple2(self):
         # Solve the problem using the exact eigensolver
@@ -58,4 +58,4 @@ class TestVehicleRouting(QiskitAquaTestCase):
         }
         result = run_algorithm(params, self.algo_input)
         A = np.array([0., 0., 0., 1.])
-        np.testing.assert_array_equal(A, x)
+        np.testing.assert_approx_equal(A, result['eigvecs'][0], 2)

@@ -134,7 +134,7 @@ class TestPortfolioDiversification(QiskitAquaTestCase):
             # DESIRED: -249.5
             # even when the ordering is the same. Obviously, when the ordering changes, the test will become invalid.
             np.testing.assert_approx_equal(costA, costB, 2)
-            self.assert_equal(binaryA, binaryB)
+            self.assertEqual(binaryA, binaryB)
 
     def test_simple2(self):
         # Computes the cost using the exact eigensolver and compares it against pre-determined value.
