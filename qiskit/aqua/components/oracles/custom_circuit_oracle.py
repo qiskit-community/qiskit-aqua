@@ -24,19 +24,6 @@ from .oracle import Oracle
 
 
 class CustomCircuitOracle(Oracle):
-    CONFIGURATION = {
-        'name': 'CustomCircuitOracle',
-        'description': 'Custom Circuit Oracle',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
-            'id': 'custom_circuit_oracle_schema',
-            'type': 'object',
-            'properties': {
-            },
-            'additionalProperties': False
-        }
-    }
-
     def __init__(self, variable_register=None, output_register=None, ancillary_register=None, circuit=None):
         super().__init__()
         if variable_register is None:
@@ -49,12 +36,6 @@ class CustomCircuitOracle(Oracle):
         self._output_register = output_register
         self._ancillary_register = ancillary_register
         self._circuit = circuit
-
-    @classmethod
-    def init_params(cls, params):
-        oracle_params = params.get(Pluggable.SECTION_KEY_ORACLE)
-        args = {k: v for k, v in oracle_params.items() if k != 'name'}
-        return cls(**args)
 
     @property
     def variable_register(self):
