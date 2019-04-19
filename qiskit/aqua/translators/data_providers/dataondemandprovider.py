@@ -125,6 +125,7 @@ class DataOnDemandProvider(BaseDataProvider):
         return cls(**kwargs)
 
     def run(self):
+        """ Loads data, thus enabling get_similarity_matrix and get_covariance methods in the base class. """
         self.check_provider_valid()
         import re
         import urllib3

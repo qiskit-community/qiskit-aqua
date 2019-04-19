@@ -24,8 +24,18 @@ from qiskit.quantum_info import Pauli
 from qiskit.aqua import Operator
 
 
-def get_vehiclerouting_qubitops(instance, n, K, max_trials=1000):
+def get_vehiclerouting_qubitops(instance, n, K):
+    """Converts an instnance of a vehicle routing problem into a list of Paulis.
 
+    Args:
+        instance (numpy.ndarray) : a customers-to-customers distance matrix.
+        n (integer) : the number of customers.
+        K (integer) : the number of vehicles available.
+
+    Returns:
+        operator.Operator: operator for the Hamiltonian.
+    """
+    
         N = (n - 1) * n
         A = np.max(instance) * 100  # A parameter of cost function
 
@@ -105,22 +115,3 @@ def get_vehiclerouting_qubitops(instance, n, K, max_trials=1000):
 
         pauli_list.append((cz, Pauli(np.zeros(N), np.zeros(N))))
         return Operator(paulis=pauli_list)
-
-def get_vehiclerouting_solution(v, N):
-
-        index_value = [x for x in range(len(v)) if v[x] == max(v)][0]
-        string_value = "{0:b}".format(index_value)
-
-        while len(string_value)<N:
-            string_value = '0'+string_value
-
-        sol = list()
-        for elements in string_value:
-            if elements == '0':
-                sol.append(0)
-            else:
-                sol.append(1)
-
-        sol = np.flip(sol, axis=0)
-
-        return sol

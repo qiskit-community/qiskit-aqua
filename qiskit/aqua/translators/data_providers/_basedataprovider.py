@@ -60,7 +60,7 @@ class BaseDataProvider(ABC):
     @classmethod
     def init_from_input(cls, section):
         """
-        Initialize via section dictionary.
+        Initialize via section dictionary. N.B. Not in use at the moment.
 
         Args:
             params (dict): section dictionary
@@ -76,6 +76,7 @@ class BaseDataProvider(ABC):
         pass
 
     def validate(self, args_dict):
+        """ Validates the configuration against the input schema. N.B. Not in use at the moment. """
         schema_dict = self.CONFIGURATION.get('input_schema', None)
         if schema_dict is None:
             return
@@ -91,11 +92,13 @@ class BaseDataProvider(ABC):
 
     @abstractmethod
     def run(self):
+        """ Loads data. """
         pass
 
     # gets coordinates suitable for plotting
     # it does not have to be overridden in non-abstract derived classes.
     def get_coordinates(self):
+        """ Returns random coordinates for visualisation purposes. """
         import numpy as np
         # Coordinates for visualisation purposes
         xc = np.zeros([self._n, 1])
@@ -109,6 +112,11 @@ class BaseDataProvider(ABC):
 
     # it does not have to be overridden in non-abstract derived classes.
     def get_covariance(self):
+        """ Returns the covariance matrix. 
+        
+    Returns:
+        rho (numpy.ndarray) : an asset-to-asset similarity matrix.        
+        """
         if not self._data: return None   
         import numpy as np
         if not self._data: return None
@@ -117,6 +125,11 @@ class BaseDataProvider(ABC):
 
     # it does not have to be overridden in non-abstract derived classes.
     def get_similarity_matrix(self):
+        """ Returns time-series similarity matrix computed using dynamic time warping. 
+
+    Returns:
+        rho (numpy.ndarray) : an asset-to-asset similarity matrix.
+        """
         if not self._data: return None    
         import numpy as np
         try:
@@ -132,32 +145,3 @@ class BaseDataProvider(ABC):
         except ImportError:
           print("This requires fastdtw package.")
         return self.rho
-
-    # it does not have to be overridden in non-abstract derived classes.
-    def plot(self):  
-        import matplotlib.pyplot as plt
-        from pandas.plotting import register_matplotlib_converters
-        register_matplotlib_converters()
-        print("Evolution of the stock price:")
-        for (cnt, s) in enumerate(self._tickers):
-            print(s)
-            print(self._data[cnt])
-            plt.plot(self._data[cnt], label=s)
-        plt.legend()
-        plt.xticks(rotation=90)
-        #plt.title("Evolution of the adjusted closing price")
-        plt.show()
-        if self._n <= 1: 
-            print("Not enough data to plot covariance or time-series similarity. Please use at least two tickers.")
-            return
-        self.get_similarity_matrix()
-        print("A time-series similarity measure:")
-        print(self.rho)
-        plt.subplot(211)
-        plt.imshow(self.rho)
-        self.get_covariance()
-        print("A covariance matrix:")
-        print(self.cov)
-        plt.subplot(212)
-        plt.imshow(self.cov)
-        plt.show()     
