@@ -56,7 +56,7 @@ class TestQNN(QiskitAquaTestCase):
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
             'algorithm': {'name': 'QNN'},
             'backend': {'provider': 'qiskit.BasicAer', 'name': 'statevector_simulator'},
-            'optimizer': {'name': 'COBYLA'},
+            'optimizer': {'name': 'SLSQP'},
             'variational_form': {'name': 'RYRZ', 'depth': 3}
         }
         result = run_algorithm(params, self.svm_input)
