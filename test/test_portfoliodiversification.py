@@ -168,4 +168,4 @@ class TestPortfolioDiversification(QiskitAquaTestCase):
         ground_level = get_portfoliodiversification_value(self.instance, self.n, self.q, quantum_solution)
         if x:
             np.testing.assert_approx_equal(ground_level, classical_cost)
-            np.testing.assert_array_equal(quantum_solution, x)
+            np.testing.assert_array_almost_equal(quantum_solution, x, 5)

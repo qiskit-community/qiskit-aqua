@@ -42,7 +42,8 @@ class TestVehicleRouting(QiskitAquaTestCase):
     def test_simple1(self):
         # Compares the output in terms of Paulis.
         paulis = [(79.6, Pauli(z=[True, False], x=[False, False])), (79.6, Pauli(z=[False, True], x=[False, False])), (160.8, Pauli(z=[False, False], x=[False, False]))]
-        for pauliA, pauliB in zip(self.qubit_op._paulis, paulis):
+        op = Operator(paulis)
+        for pauliA, pauliB in self.qubit_op._paulis, paulis):
             costA, binaryA = pauliA
             costB, binaryB = pauliB
             # Note that the construction is a bit iffy, i.e., can be a small bit off even when the random seed is fixed,
@@ -58,4 +59,4 @@ class TestVehicleRouting(QiskitAquaTestCase):
         }
         result = run_algorithm(params, self.algo_input)
         A = np.array([0., 0., 0., 1.])
-        np.testing.assert_approx_equal(A, result['eigvecs'][0], 2)
+        np.testing.assert_array_almost_equal(A, result['eigvecs'][0], 4)
