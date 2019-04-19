@@ -30,8 +30,6 @@ class CustomCircuitOracle(Oracle):
     The helper class for creating oracles from user-supplied quantum circuits
     """
 
-    CONFIGURATION = {}
-    
     def __init__(self, variable_register=None, output_register=None, ancillary_register=None, circuit=None):
         """
         Constructor.
