@@ -18,13 +18,28 @@
 The Custom Circuit-based Quantum Oracle.
 """
 
-from qiskit.aqua import Pluggable, AquaError
+from qiskit import QuantumCircuit, QuantumRegister
+
+from qiskit.aqua import AquaError
 
 from .oracle import Oracle
 
 
 class CustomCircuitOracle(Oracle):
+    """
+    The helper class for creating oracles from user-supplied quantum circuits
+    """
     def __init__(self, variable_register=None, output_register=None, ancillary_register=None, circuit=None):
+        """
+        Constructor.
+
+        Args:
+            variable_register (QuantumRegister): The register holding variable qubit(s) for the oracle function
+            output_register (QuantumRegister): The register holding output qubit(s) for the oracle function
+            ancillary_register (QuantumRegister): The register holding ancillary qubit(s)
+            circuit (QuantumCircuit): The quantum circuit corresponding to the intended oracle function
+        """
+
         super().__init__()
         if variable_register is None:
             raise AquaError('Missing QuantumRegister for variables.')
