@@ -70,7 +70,7 @@ def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None, seed=None):
 
 
 def get_graphpartition_qubitops(weight_matrix):
-    """Generate Hamiltonian for the graph partitioning
+    r"""Generate Hamiltonian for the graph partitioning
 
     Args:
         weight_matrix (numpy.ndarray) : adjacency matrix.
