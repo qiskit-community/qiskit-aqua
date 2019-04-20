@@ -22,6 +22,9 @@ from qiskit.aqua.translators.data_providers import *
 from qiskit.aqua.translators.data_providers import QiskitFinanceError
 import datetime
 
+# To run only this test, issue:
+# python -m unittest test.test_data_providers.TestDataProviders
+
 class TestDataProviders(QiskitAquaTestCase):
     """Tests data providers for the Portfolio Optimization and Diversification."""
 
@@ -42,11 +45,9 @@ class TestDataProviders(QiskitAquaTestCase):
                                    [8.44268222e-05, 1.00000000e+00]])
             covariance = np.array([[269.60118129, 25.42252332], 
                                    [ 25.42252332, 7.86304499]])
-            self.get_covariance()
-            numpy.testing.assert_array_almost_equal(self.cov, covariance, decimal = 3)
+            np.testing.assert_array_almost_equal(wiki.get_covariance(), covariance, decimal = 3)
             import fastdtw # This is to trigger an exception skipping the rest of the test, in case the module is not available
-            self.get_similarity_matrix()
-            numpy.testing.assert_array_almost_equal(self.rho, similarity, decimal = 3) 
+            np.testing.assert_array_almost_equal(wiki.get_similarity_matrix(), similarity, decimal = 3) 
         except ImportError:
             print("One part of a test of WikipediaDataProvider skipped due the lack of fastdtw/quandl.")
         except QiskitFinanceError:
