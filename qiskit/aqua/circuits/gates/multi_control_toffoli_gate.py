@@ -30,19 +30,39 @@ from qiskit.aqua.utils.circuit_utils import is_qubit
 logger = logging.getLogger(__name__)
 
 
-def _ccx_v_chain(qc, control_qubits, target_qubit, ancillary_qubits):
-    """Create new MCT circuit by chaining ccx gates into a V shape."""
+def _ccx_v_chain(qc, control_qubits, target_qubit, ancillary_qubits, dirty_ancilla=False):
+    """
+    Create new MCT circuit by chaining ccx gates into a V shape.
+
+    The dirty_ancilla mode is from https://arxiv.org/abs/quant-ph/9503016 Lemma 7.2
+    """
+
+    if len(ancillary_qubits) < len(control_qubits) - 2:
+        raise AquaError('Insufficient number of ancillary qubits.')
+
+    if dirty_ancilla:
+        anci_idx = len(control_qubits) - 3
+        qc.ccx(control_qubits[len(control_qubits) - 1], ancillary_qubits[anci_idx], target_qubit)
+        for idx in reversed(range(2, len(control_qubits) - 1)):
+            qc.ccx(control_qubits[idx], ancillary_qubits[anci_idx - 1], ancillary_qubits[anci_idx])
+            anci_idx -= 1
+
     anci_idx = 0
     qc.ccx(control_qubits[0], control_qubits[1], ancillary_qubits[anci_idx])
     for idx in range(2, len(control_qubits) - 1):
-        assert anci_idx + 1 < len(ancillary_qubits), "Insufficient number of ancillary qubits."
         qc.ccx(control_qubits[idx], ancillary_qubits[anci_idx], ancillary_qubits[anci_idx + 1])
         anci_idx += 1
     qc.ccx(control_qubits[len(control_qubits) - 1], ancillary_qubits[anci_idx], target_qubit)
-    for idx in (range(2, len(control_qubits) - 1))[::-1]:
+    for idx in reversed(range(2, len(control_qubits) - 1)):
         qc.ccx(control_qubits[idx], ancillary_qubits[anci_idx - 1], ancillary_qubits[anci_idx])
         anci_idx -= 1
     qc.ccx(control_qubits[0], control_qubits[1], ancillary_qubits[anci_idx])
+
+    if dirty_ancilla:
+        anci_idx = 0
+        for idx in range(2, len(control_qubits) - 1):
+            qc.ccx(control_qubits[idx], ancillary_qubits[anci_idx], ancillary_qubits[anci_idx + 1])
+            anci_idx += 1
 
 
 def _cccx(qc, qrs, angle=pi / 4):
@@ -257,7 +277,9 @@ def mct(self, q_controls, q_target, q_ancilla, mode='basic'):
         self._check_dups(all_qubits)
 
         if mode == 'basic':
-            _ccx_v_chain(self, control_qubits, target_qubit, ancillary_qubits)
+            _ccx_v_chain(self, control_qubits, target_qubit, ancillary_qubits, dirty_ancilla=False)
+        elif mode == 'basic-dirty-ancilla':
+            _ccx_v_chain(self, control_qubits, target_qubit, ancillary_qubits, dirty_ancilla=True)
         elif mode == 'advanced':
             _multicx(self, [*control_qubits, target_qubit], ancillary_qubits[0] if ancillary_qubits else None)
         elif mode == 'noancilla':
