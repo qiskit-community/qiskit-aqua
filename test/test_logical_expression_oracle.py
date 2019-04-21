@@ -58,7 +58,7 @@ dimacs_tests = [
     ]
 ]
 
-mct_modes = ['basic', 'advanced', 'noancilla']
+mct_modes = ['basic', 'basic-dirty-ancilla', 'advanced', 'noancilla']
 optimizations = ['off', 'espresso']
 
 

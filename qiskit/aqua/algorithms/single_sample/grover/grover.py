@@ -73,6 +73,7 @@ class Grover(QuantumAlgorithm):
                         {
                             'enum': [
                                 'basic',
+                                'basic-dirty-ancilla',
                                 'advanced',
                                 'noancilla',
                             ]
@@ -137,7 +138,7 @@ class Grover(QuantumAlgorithm):
         qc = QuantumCircuit(self._oracle.variable_register)
         num_variable_qubits = len(self._oracle.variable_register)
         num_ancillae_needed = 0
-        if self._mct_mode == 'basic':
+        if self._mct_mode == 'basic' or self._mct_mode == 'basic-dirty-ancilla':
             num_ancillae_needed = max(0, num_variable_qubits - 2)
         elif self._mct_mode == 'advanced' and num_variable_qubits >= 5:
             num_ancillae_needed = 1

@@ -37,7 +37,7 @@ tests = [
     ['00000000', [], TTO],
 ]
 
-mct_modes = ['basic', 'advanced', 'noancilla']
+mct_modes = ['basic', 'basic-dirty-ancilla', 'advanced', 'noancilla']
 simulators = ['statevector_simulator', 'qasm_simulator']
 optimizations = ['on', 'off']
 
