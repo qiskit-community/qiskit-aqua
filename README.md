@@ -32,6 +32,8 @@ and you will always install the latest (and well-tested) version.
 
 To install from source, follow the instructions in the [contribution guidelines](.github/CONTRIBUTING.rst).
 
+Please note that one of the dependencies, [PyEDA](https://pyeda.readthedocs.io/en/latest/), will not be automatically installed on the Windows platform. You can follow [these notes](https://pyeda.readthedocs.io/en/latest/install.html#windows-notes) to manually install PyEDA on Windows if necessary.
+
 ## Creating Your First Quantum Program in Qiskit Aqua
 
 Now that Qiskit Aqua is installed, it's time to begin working with it.  We are ready to try out an experiment using Qiskit Aqua:
