@@ -16,7 +16,6 @@
 # =============================================================================
 
 import math
-import logging
 
 import numpy as np
 from qiskit import BasicAer
@@ -26,8 +25,6 @@ from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import EnergyInput
 from qiskit.aqua.translators.ising.portfoliodiversification import *
 from test.common import QiskitAquaTestCase
-
-logger = logging.getLogger(__name__)
 
 
 class ClassicalOptimizer:
@@ -221,7 +218,7 @@ class TestPortfolioDiversification(QiskitAquaTestCase):
             x, classical_cost = classical_optimizer.cplex_solution()
         except: 
             # This test should not focus on the availability of CPLEX, so we just eat the exception.
-            logger.warning("CPLEX may be missing.")
+            self.log.warning("CPLEX may be missing.")
         # Solve the problem using the exact eigensolver
         params = {
             'problem': {'name': 'ising'},
