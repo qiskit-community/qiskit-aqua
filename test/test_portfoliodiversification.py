@@ -218,7 +218,7 @@ class TestPortfolioDiversification(QiskitAquaTestCase):
             x, classical_cost = classical_optimizer.cplex_solution()
         except: 
             # This test should not focus on the availability of CPLEX, so we just eat the exception.
-            self.log.warning("CPLEX may be missing.")
+            self.skipTest("CPLEX may be missing.")
         # Solve the problem using the exact eigensolver
         params = {
             'problem': {'name': 'ising'},

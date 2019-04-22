@@ -52,7 +52,7 @@ class TestDataProviders(QiskitAquaTestCase):
             np.testing.assert_array_almost_equal(wiki.get_covariance(), covariance, decimal=3)
             np.testing.assert_array_almost_equal(wiki.get_similarity_matrix(), similarity, decimal=3)
         except QiskitFinanceError:
-            self.log.warning("Test of WikipediaDataProvider skipped due to the per-day usage limits.")
+            self.skipTest("Test of WikipediaDataProvider skipped due to the per-day usage limits.")
             # The trouble for automating testing is that after 50 tries from one IP address within a day
             # Quandl complains about the free usage tier limits:
             # quandl.errors.quandl_error.LimitExceededError: (Status 429) (Quandl Error QELx01) 
@@ -74,7 +74,7 @@ class TestDataProviders(QiskitAquaTestCase):
             nasdaq.run()
             self.fail("Test of DataOnDemandProvider should have failed due to the lack of a token.")
         except QiskitFinanceError:
-            self.log.warning("Test of DataOnDemandProvider skipped due to the lack of a token.")
+            self.skipTest("Test of DataOnDemandProvider skipped due to the lack of a token.")
         # will throw QiskitFinanceError, because there is no valid token; otherwise, we could continue as:
         """
         similarity = np.array([[1.00000000e+00, 8.44268222e-05],
@@ -100,4 +100,4 @@ class TestDataProviders(QiskitAquaTestCase):
             lse.run()
             self.fail("Test of DataOnDemandProvider should have failed due to the lack of a token.")
         except QiskitFinanceError:
-            self.log.warning("Test of DataOnDemandProvider skipped due to the lack of a token.")
+            self.skipTest("Test of DataOnDemandProvider skipped due to the lack of a token.")
