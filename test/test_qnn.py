@@ -14,40 +14,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-import os
+
 import unittest
-
-import numpy as np
 import scipy
-
-from test.common import QiskitAquaTestCase
-from qiskit import BasicAer
-from qiskit.aqua.input import SVMInput
-from qiskit.aqua import run_algorithm, QuantumInstance, aqua_globals
-from qiskit.aqua.algorithms import QSVMVariational
-from qiskit.aqua.components.optimizers import SPSA, COBYLA
-from qiskit.aqua.components.feature_maps import SecondOrderExpansion
-from qiskit.aqua.components.variational_forms import RYRZ, RY
-
 import numpy as np
 from sklearn import datasets
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.decomposition import PCA
 
+from qiskit.aqua.input import SVMInput
+from qiskit.aqua import run_algorithm
+from test.common import QiskitAquaTestCase
+
+
 class TestQNN(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
-        self.feature_dim = 4 # dimension of each data point
+        self.feature_dim = 4  # dimension of each data point
         self.training_dataset_size = 20
         self.testing_dataset_size = 10
         self.random_seed = 10598
         np.random.seed(self.random_seed)
 
-        sample_Total, training_input, test_input, class_labels = Wine(training_size=self.training_dataset_size,
-                                                                             test_size=self.testing_dataset_size,
-                                                                             n=self.feature_dim)
+        sample_total, training_input, test_input, class_labels = wine_data(
+            training_size=self.training_dataset_size,
+            test_size=self.testing_dataset_size,
+            n=self.feature_dim
+        )
         self.svm_input = SVMInput(training_input, test_input)
 
     # We test the accuracy upon the Wine dataset from sklearn
@@ -76,7 +71,6 @@ class TestQNN(QiskitAquaTestCase):
         print(result['testing_accuracy'])
 
         self.assertLess(result['testing_accuracy'], 0.6) #
-
 
     def test_qnn_2d_via_run_algorithm(self):
         params = {
@@ -117,7 +111,7 @@ class TestQNN(QiskitAquaTestCase):
         self.assertGreater(result['testing_accuracy'], 0.9)
 
 
-def Wine(training_size, test_size, n):
+def wine_data(training_size, test_size, n):
     class_labels = [r'A', r'B', r'C']
 
     data, target = datasets.load_wine(True)
@@ -143,7 +137,6 @@ def Wine(training_size, test_size, n):
     test_input = {key: (sample_train[label_train == k, :])[training_size:(
         training_size+test_size)] for k, key in enumerate(class_labels)}
     return sample_train, training_input, test_input, class_labels
-
 
 
 def ad_hoc_data(training_size, test_size, n, gap):
@@ -265,8 +258,6 @@ def ad_hoc_data(training_size, test_size, n, gap):
         test_input = {key: (sample_train[label_train == k, :])[training_size:(
             training_size+test_size)] for k, key in enumerate(class_labels)}
 
-
-
     elif n == 3:
         for n1 in range(N):
             for n2 in range(N):
@@ -321,7 +312,6 @@ def ad_hoc_data(training_size, test_size, n, gap):
                           for k, key in enumerate(class_labels)}
         test_input = {key: (sample_train[label_train == k, :])[training_size:(
             training_size+test_size)] for k, key in enumerate(class_labels)}
-
 
     return sample_Total, training_input, test_input, class_labels
 
