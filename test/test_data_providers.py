@@ -54,10 +54,7 @@ class TestDataProviders(QiskitAquaTestCase):
                 [ 25.42252332, 7.86304499]
             ])
             np.testing.assert_array_almost_equal(wiki.get_covariance(), covariance, decimal=3)
-            import fastdtw  # This is to trigger an exception skipping the rest of the test, in case the module is not available
             np.testing.assert_array_almost_equal(wiki.get_similarity_matrix(), similarity, decimal=3)
-        except ImportError:
-            print("One part of a test of WikipediaDataProvider skipped due the lack of fastdtw/quandl.")
         except QiskitFinanceError:
             print("Test of WikipediaDataProvider skipped due to the per-day usage limits.")
             # The trouble for automating testing is that after 50 tries from one IP address within a day
@@ -80,8 +77,6 @@ class TestDataProviders(QiskitAquaTestCase):
         try:
             nasdaq.run()
             self.fail("Test of DataOnDemandProvider should have failed due to the lack of a token.")
-        except ImportError:
-            print("Test of DataOnDemandProvider skipped due the lack of quandl.")
         except QiskitFinanceError:
             print("Test of DataOnDemandProvider skipped due to the lack of a token.")
         # will throw QiskitFinanceError, because there is no valid token; otherwise, we could continue as:
@@ -108,7 +103,5 @@ class TestDataProviders(QiskitAquaTestCase):
         try:
             lse.run()
             self.fail("Test of DataOnDemandProvider should have failed due to the lack of a token.")
-        except ImportError:
-            print("Test of DataOnDemandProvider skipped due the lack of quandl.")
         except QiskitFinanceError:
             print("Test of DataOnDemandProvider skipped due to the lack of a token.")
