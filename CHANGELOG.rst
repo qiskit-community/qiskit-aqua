@@ -37,6 +37,7 @@ Added
 - Added the capability to generate circuits from ESOP (exclusive sum of products) formulae with optional optimization based on Quine-McCluskey and ExactCover.
 - Added ``LogicalExpressionOracle`` for generating oracle circuits from arbitrary boolean logic expressions (including DIMACS support) with optional optimization capability.
 - Added ``TruthTableOracle`` for generating oracle circuits from truth-tables with optional optimization capability.
+- Added ``CustomCircuitOracle`` for generating oracle from user specified circuits.
 - Added implementation of the Deutsch-Josza algorithm.
 - Added implementation of the Bernstein-Vazirani algorithm.
 - Added implementation of the Simon's algorithm.
