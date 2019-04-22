@@ -119,7 +119,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
         quantum_instance = QuantumInstance(backend, seed=seed)
         result = svm.run(quantum_instance)
         svm_accuracy_threshold = 0.85
-        print(result['testing_accuracy'])
+        self.log.debug(result['testing_accuracy'])
         self.assertGreater(result['testing_accuracy'], svm_accuracy_threshold)
 
     def test_qsvm_variational_minibatching_with_gradient_support(self):
@@ -139,7 +139,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
         quantum_instance = QuantumInstance(backend, seed=seed)
         result = svm.run(quantum_instance)
         svm_accuracy_threshold = 0.85
-        print(result['testing_accuracy'])
+        self.log.debug(result['testing_accuracy'])
         self.assertGreater(result['testing_accuracy'], svm_accuracy_threshold)
 
     def test_qsvm_variational_directly(self):
@@ -197,7 +197,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
         def store_intermediate_result(eval_count, parameters, cost, batch_index):
             with open(self._get_resource_path(tmp_filename), 'a') as f:
                 content = "{},{},{:.5f},{}".format(eval_count, parameters, cost, batch_index)
-                print(content, file=f, flush=True)
+                self.log.debug(content, file=f, flush=True)
 
         np.random.seed(self.random_seed)
         backend = BasicAer.get_backend('qasm_simulator')
