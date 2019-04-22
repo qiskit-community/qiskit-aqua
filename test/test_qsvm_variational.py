@@ -197,7 +197,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
         def store_intermediate_result(eval_count, parameters, cost, batch_index):
             with open(self._get_resource_path(tmp_filename), 'a') as f:
                 content = "{},{},{:.5f},{}".format(eval_count, parameters, cost, batch_index)
-                self.log.debug(content, file=f, flush=True)
+                print(content, file=f, flush=True)
 
         np.random.seed(self.random_seed)
         backend = BasicAer.get_backend('qasm_simulator')
