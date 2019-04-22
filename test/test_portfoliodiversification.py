@@ -15,16 +15,20 @@
 # limitations under the License.
 # =============================================================================
 
-import numpy as np
+import math
+import logging
 
-from test.common import QiskitAquaTestCase
+import numpy as np
 from qiskit import BasicAer
+from qiskit.quantum_info import Pauli
 
 from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import EnergyInput
-from qiskit.quantum_info import Pauli
 from qiskit.aqua.translators.ising.portfoliodiversification import *
-from qiskit.aqua.algorithms import ExactEigensolver
+from test.common import QiskitAquaTestCase
+
+logger = logging.getLogger(__name__)
+
 
 class ClassicalOptimizer:
     def __init__(self, rho, n, q):
@@ -127,7 +131,64 @@ class TestPortfolioDiversification(QiskitAquaTestCase):
 
     def test_simple1(self):
         # Compares the output in terms of Paulis.
-        paulis = [(-249.5, Pauli(z=[True, False, False, False, False, False], x=[False, False, False, False, False, False])), (-249.60000000000002, Pauli(z=[False, True, False, False, False, False], x=[False, False, False, False, False, False])), (-249.60000000000002, Pauli(z=[False, False, True, False, False, False], x=[False, False, False, False, False, False])), (-249.5, Pauli(z=[False, False, False, True, False, False], x=[False, False, False, False, False, False])), (500.0, Pauli(z=[False, False, False, False, True, False], x=[False, False, False, False, False, False])), (500.0, Pauli(z=[False, False, False, False, False, True], x=[False, False, False, False, False, False])), (500.0, Pauli(z=[True, True, False, False, False, False], x=[False, False, False, False, False, False])), (500.0, Pauli(z=[False, False, True, True, False, False], x=[False, False, False, False, False, False])), (-750.0, Pauli(z=[True, False, False, False, True, False], x=[False, False, False, False, False, False])), (-250.0, Pauli(z=[False, False, True, False, True, False], x=[False, False, False, False, False, False])), (-250.0, Pauli(z=[False, True, False, False, False, True], x=[False, False, False, False, False, False])), (-750.0, Pauli(z=[False, False, False, True, False, True], x=[False, False, False, False, False, False])), (500.0, Pauli(z=[False, False, False, False, True, True], x=[False, False, False, False, False, False])), (3498.2, Pauli(z=[False, False, False, False, False, False], x=[False, False, False, False, False, False]))]
+        paulis = [
+            (-249.5, Pauli(
+                z=[True, False, False, False, False, False],
+                x=[False, False, False, False, False, False]
+            )),
+            (-249.60000000000002, Pauli(
+                z=[False, True, False, False, False, False],
+                x=[False, False, False, False, False, False]
+            )),
+            (-249.60000000000002, Pauli(
+                z=[False, False, True, False, False, False],
+                x=[False, False, False, False, False, False]
+            )),
+            (-249.5, Pauli(
+                z=[False, False, False, True, False, False],
+                x=[False, False, False, False, False, False]
+            )),
+            (500.0, Pauli(
+                z=[False, False, False, False, True, False],
+                x=[False, False, False, False, False, False]
+            )),
+            (500.0, Pauli(
+                z=[False, False, False, False, False, True],
+                x=[False, False, False, False, False, False]
+            )),
+            (500.0, Pauli(
+                z=[True, True, False, False, False, False],
+                x=[False, False, False, False, False, False]
+            )),
+            (500.0, Pauli(
+                z=[False, False, True, True, False, False],
+                x=[False, False, False, False, False, False]
+            )),
+            (-750.0, Pauli(
+                z=[True, False, False, False, True, False],
+                x=[False, False, False, False, False, False]
+            )),
+            (-250.0, Pauli(
+                z=[False, False, True, False, True, False],
+                x=[False, False, False, False, False, False]
+            )),
+            (-250.0, Pauli(
+                z=[False, True, False, False, False, True],
+                x=[False, False, False, False, False, False]
+            )),
+            (-750.0, Pauli(
+                z=[False, False, False, True, False, True],
+                x=[False, False, False, False, False, False]
+            )),
+            (500.0, Pauli(
+                z=[False, False, False, False, True, True],
+                x=[False, False, False, False, False, False]
+            )),
+            (3498.2, Pauli(
+                z=[False, False, False, False, False, False],
+                x=[False, False, False, False, False, False]
+            ))
+        ]
         for pauliA, pauliB in zip(self.qubit_op._paulis, paulis):
             costA, binaryA = pauliA
             costB, binaryB = pauliB
@@ -160,7 +221,7 @@ class TestPortfolioDiversification(QiskitAquaTestCase):
             x, classical_cost = classical_optimizer.cplex_solution()
         except: 
             # This test should not focus on the availability of CPLEX, so we just eat the exception.
-            print("CPLEX may be missing.")
+            logger.warning("CPLEX may be missing.")
         # Solve the problem using the exact eigensolver
         params = {
             'problem': {'name': 'ising'},
