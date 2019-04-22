@@ -35,21 +35,27 @@ class TestDataProviders(QiskitAquaTestCase):
 
     def test_wikipedia(self):
         from qiskit.aqua.translators.data_providers.wikipediadataprovider import StockMarket
-        wiki = WikipediaDataProvider(token = "",
-                         tickers = ["GOOG", "AAPL"],
-                         stockmarket = StockMarket.NASDAQ.value,
-                         start = datetime.datetime(2016,1,1),
-                         end = datetime.datetime(2016,1,30))
+        wiki = WikipediaDataProvider(
+            token="",
+            tickers=["GOOG", "AAPL"],
+            stockmarket=StockMarket.NASDAQ.value,
+            start=datetime.datetime(2016, 1, 1),
+            end=datetime.datetime(2016, 1, 30)
+        )
         # can throw QiskitFinanceError
         try:
             wiki.run()
-            similarity = np.array([[1.00000000e+00, 8.44268222e-05],
-                                   [8.44268222e-05, 1.00000000e+00]])
-            covariance = np.array([[269.60118129, 25.42252332], 
-                                   [ 25.42252332, 7.86304499]])
-            np.testing.assert_array_almost_equal(wiki.get_covariance(), covariance, decimal = 3)
-            import fastdtw # This is to trigger an exception skipping the rest of the test, in case the module is not available
-            np.testing.assert_array_almost_equal(wiki.get_similarity_matrix(), similarity, decimal = 3) 
+            similarity = np.array([
+                [1.00000000e+00, 8.44268222e-05],
+                [8.44268222e-05, 1.00000000e+00]
+            ])
+            covariance = np.array([
+                [269.60118129, 25.42252332],
+                [ 25.42252332, 7.86304499]
+            ])
+            np.testing.assert_array_almost_equal(wiki.get_covariance(), covariance, decimal=3)
+            import fastdtw  # This is to trigger an exception skipping the rest of the test, in case the module is not available
+            np.testing.assert_array_almost_equal(wiki.get_similarity_matrix(), similarity, decimal=3)
         except ImportError:
             print("One part of a test of WikipediaDataProvider skipped due the lack of fastdtw/quandl.")
         except QiskitFinanceError:
@@ -64,14 +70,16 @@ class TestDataProviders(QiskitAquaTestCase):
         
     def test_nasdaq(self):
         from qiskit.aqua.translators.data_providers.dataondemandprovider import StockMarket
-        nasdaq = DataOnDemandProvider(token = "REPLACE-ME",
-                         tickers = ["GOOG", "AAPL"],
-                         stockmarket = StockMarket.NASDAQ.value,
-                         start = datetime.datetime(2016,1,1),
-                         end = datetime.datetime(2016,1,2))
+        nasdaq = DataOnDemandProvider(
+            token="REPLACE-ME",
+            tickers=["GOOG", "AAPL"],
+            stockmarket=StockMarket.NASDAQ.value,
+            start=datetime.datetime(2016, 1, 1),
+            end=datetime.datetime(2016, 1, 2)
+        )
         try:
-          nasdaq.run()
-          self.fail("Test of DataOnDemandProvider should have failed due to the lack of a token.")
+            nasdaq.run()
+            self.fail("Test of DataOnDemandProvider should have failed due to the lack of a token.")
         except ImportError:
             print("Test of DataOnDemandProvider skipped due the lack of quandl.")
         except QiskitFinanceError:
@@ -84,20 +92,22 @@ class TestDataProviders(QiskitAquaTestCase):
          [ 25.42252332, 7.86304499]])
         self.get_similarity_matrix()
         self.get_covariance()
-        numpy.testing.assert_array_almost_equal(self.rho, similarity, decimal = 3) 
-        numpy.testing.assert_array_almost_equal(self.cov, covariance, decimal = 3)
+        numpy.testing.assert_array_almost_equal(self.rho, similarity, decimal=3) 
+        numpy.testing.assert_array_almost_equal(self.cov, covariance, decimal=3)
         """
         
     def test_exchangedata(self):
         from qiskit.aqua.translators.data_providers.exchangedataprovider import StockMarket
-        lse = ExchangeDataProvider(token = "REPLACE-ME",
-                         tickers = ["AIBGl", "AVSTl"],
-                         stockmarket = StockMarket.LONDON.value,
-                         start = datetime.datetime(2019,1,1),
-                         end = datetime.datetime(2019,1,30))
+        lse = ExchangeDataProvider(
+            token="REPLACE-ME",
+            tickers=["AIBGl", "AVSTl"],
+            stockmarket=StockMarket.LONDON.value,
+            start=datetime.datetime(2019, 1, 1),
+            end=datetime.datetime(2019, 1, 30)
+        )
         try:
-          lse.run()
-          self.fail("Test of DataOnDemandProvider should have failed due to the lack of a token.")
+            lse.run()
+            self.fail("Test of DataOnDemandProvider should have failed due to the lack of a token.")
         except ImportError:
             print("Test of DataOnDemandProvider skipped due the lack of quandl.")
         except QiskitFinanceError:
