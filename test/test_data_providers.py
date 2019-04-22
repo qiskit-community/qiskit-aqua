@@ -15,15 +15,17 @@
 # limitations under the License.
 # =============================================================================
 
+import datetime
+
 import numpy as np
 
-from test.common import QiskitAquaTestCase
 from qiskit.aqua.translators.data_providers import *
-from qiskit.aqua.translators.data_providers import QiskitFinanceError
-import datetime
+from test.common import QiskitAquaTestCase
+
 
 # To run only this test, issue:
 # python -m unittest test.test_data_providers.TestDataProviders
+
 
 class TestDataProviders(QiskitAquaTestCase):
     """Tests data providers for the Portfolio Optimization and Diversification."""
