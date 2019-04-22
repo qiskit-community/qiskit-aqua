@@ -99,12 +99,14 @@ class QSVMVariational(VQAlgorithm):
                                  the index of data batch, the index of evaluation,
                                  parameters of variational form, evaluated value.
         Notes:
-            We used `label` denotes numeric results and `class` means the name of that class (str).
+            We use `label` to denotes numeric results and `class` the class names (str).
         """
         self.validate(locals())
-        super().__init__(var_form=var_form,
-                         optimizer=optimizer,
-                         cost_fn=self._cost_function_wrapper)
+        super().__init__(
+            var_form=var_form,
+            optimizer=optimizer,
+            cost_fn=self._cost_function_wrapper
+        )
         self._optimizer.set_max_evals_grouped(max_evals_grouped)
 
         self._callback = callback
@@ -127,7 +129,8 @@ class QSVMVariational(VQAlgorithm):
             datapoints = np.asarray(datapoints)
         self._datapoints = datapoints
         self._feature_map = feature_map
-        self._num_qubits = self._feature_map.num_qubits
+        if self._feature_map is not None:
+            self._num_qubits = self._feature_map.num_qubits
         self._minibatch_size = minibatch_size
 
         self._eval_count = 0
@@ -243,18 +246,18 @@ class QSVMVariational(VQAlgorithm):
         circuit_id = 0
         predicted_probs = []
         predicted_labels = []
-        for theta in theta_sets:
+        for _ in theta_sets:
             counts = []
-            for datum in data:
+            for _ in data:
                 if self._quantum_instance.is_statevector:
                     temp = results.get_statevector(circuits[circuit_id])
                     outcome_vector = (temp * temp.conj()).real
                     # convert outcome_vector to outcome_dict, where key is a basis state and value is the count.
                     # Note: the count can be scaled linearly, i.e., it does not have to be an integer.
                     outcome_dict = {}
-                    bitstringsize = int(math.log2(len(outcome_vector)))
+                    bitstr_size = int(math.log2(len(outcome_vector)))
                     for i in range(len(outcome_vector)):
-                        bitstr_i = format(i, '0' + str(bitstringsize) +'b')
+                        bitstr_i = format(i, '0' + str(bitstr_size) + 'b')
                         outcome_dict[bitstr_i] = outcome_vector[i]
                 else:
                     outcome_dict = results.get_counts(circuits[circuit_id])
@@ -277,7 +280,7 @@ class QSVMVariational(VQAlgorithm):
     def batch_data(self, data, labels=None, minibatch_size=-1):
         label_batches = None
 
-        if minibatch_size > 0 and minibatch_size < len(data):
+        if 0 < minibatch_size < len(data):
             batch_size = min(minibatch_size, len(data))
             if labels is not None:
                 shuffled_samples, shuffled_labels = shuffle(data, labels, random_state=self.random)
@@ -313,15 +316,16 @@ class QSVMVariational(VQAlgorithm):
         self._eval_count = 0
 
         grad_fn = None
-        if minibatch_size > 0 and self.is_gradient_really_supported(): # we need some wrapper
+        if minibatch_size > 0 and self.is_gradient_really_supported():  # we need some wrapper
             grad_fn = self._gradient_function_wrapper
 
-        self._ret = self.find_minimum(initial_point=self.initial_point,
-                                      var_form=self.var_form,
-                                      cost_fn=self._cost_function_wrapper,
-                                      optimizer=self.optimizer,
-                                      gradient_fn = grad_fn # func for computing gradient
-                                     )
+        self._ret = self.find_minimum(
+            initial_point=self.initial_point,
+            var_form=self.var_form,
+            cost_fn=self._cost_function_wrapper,
+            optimizer=self.optimizer,
+            gradient_fn = grad_fn  # func for computing gradient
+        )
 
         if self._ret['num_optimizer_evals'] is not None and self._eval_count >= self._ret['num_optimizer_evals']:
             self._eval_count = self._ret['num_optimizer_evals']
@@ -345,15 +349,15 @@ class QSVMVariational(VQAlgorithm):
             numpy.ndarray: 1-d array with the same shape as theta. The  gradient computed
         """
         epsilon = 1e-8
-        forig = self._cost_function_wrapper(theta)
+        f_orig = self._cost_function_wrapper(theta)
         grad = np.zeros((len(theta),), float)
         for k in range(len(theta)):
             theta[k] += epsilon
-            fnew = self._cost_function_wrapper(theta)
-            grad[k] = (fnew - forig) / epsilon
-            theta[k] -= epsilon # recover to the center state
+            f_new = self._cost_function_wrapper(theta)
+            grad[k] = (f_new - f_orig) / epsilon
+            theta[k] -= epsilon  # recover to the center state
         if self.is_gradient_really_supported():
-            self._batch_index += 1 # increment the batch after gradient callback
+            self._batch_index += 1  # increment the batch after gradient callback
         return grad
 
     def _cost_function_wrapper(self, theta):
@@ -366,13 +370,15 @@ class QSVMVariational(VQAlgorithm):
             curr_cost = self._cost_function(predicted_probs[i], self._label_batches[batch_index])
             total_cost.append(curr_cost)
             if self._callback is not None:
-                self._callback(self._eval_count,
-                               theta[i * self._var_form.num_parameters:(i + 1) * self._var_form.num_parameters],
-                               curr_cost,
-                               self._batch_index)
+                self._callback(
+                    self._eval_count,
+                    theta[i * self._var_form.num_parameters:(i + 1) * self._var_form.num_parameters],
+                    curr_cost,
+                    self._batch_index
+                )
             self._eval_count += 1
         if not self.is_gradient_really_supported():
-            self._batch_index += 1 # increment the batch after eval callback
+            self._batch_index += 1  # increment the batch after eval callback
 
         logger.debug('Intermediate batch cost: {}'.format(sum(total_cost)))
         return total_cost if len(total_cost) > 1 else total_cost[0]
@@ -525,8 +531,8 @@ class QSVMVariational(VQAlgorithm):
         return self._test_dataset
 
     @property
-    def train_dataset(self):
-        return self._train_dataset
+    def training_dataset(self):
+        return self._training_dataset
 
     @property
     def datapoints(self):
