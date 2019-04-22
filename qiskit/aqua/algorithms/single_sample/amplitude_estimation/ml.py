@@ -73,16 +73,16 @@ class MaximumLikelihood:
         """
         self._qae = self.ae._ret['estimation']
 
-        # Compute the two in which we the look for values above the
-        # threshold
+        # Compute the two intervals in which are candidates for containing
+        # the maximum of the log-likelihood function: the two bubbles next to
+        # the QAE estimate
         M = 2**self.ae._m
         y = M * np.arcsin(np.sqrt(self._qae)) / np.pi
-        left_gridpoint = np.sin(np.pi * (y - 1) / M)**2
-        right_gridpoint = np.sin(np.pi * (y + 1) / M)**2
-        bubbles = [left_gridpoint, self._qae, right_gridpoint]
+        left_of_qae = np.sin(np.pi * (y - 1) / M)**2
+        right_of_qae = np.sin(np.pi * (y + 1) / M)**2
+        bubbles = [left_of_qae, self._qae, right_of_qae]
 
-        # Find global maximum amongst the local maxima, which are
-        # located in between the drops
+        # Find global maximum amongst the two local maxima
         a_opt = self._qae
         loglik_opt = self.loglik_wrapper(a_opt)
         for a, b in zip(bubbles[:-1], bubbles[1:]):
@@ -94,6 +94,7 @@ class MaximumLikelihood:
         # Convert the value to an estimation
         val_opt = self.ae.a_factory.value_to_estimation(a_opt)
 
+        # Store MLE and the MLE mapped to an estimation
         self._mle = a_opt
         self._mapped_mle = val_opt
 
@@ -127,33 +128,43 @@ class MaximumLikelihood:
             ci = self._mle + normal_quantile(alpha) / std * np.array([-1, 1])
 
         elif kind == "likelihood_ratio":
-            # Compute the two in which we the look for values above the
-            # threshold
+            # Compute the two intervals in which we the look for values above
+            # the likelihood ratio: the two bubbles next to the QAE estimate
             M = 2**self.ae._m
             y = M * np.arcsin(np.sqrt(self._qae)) / np.pi
-            left_gridpoint = np.sin(np.pi * (y - 1) / M)**2
-            right_gridpoint = np.sin(np.pi * (y + 1) / M)**2
-            bubbles = [left_gridpoint, self._qae, right_gridpoint]
+            left_of_qae = np.sin(np.pi * (y - 1) / M)**2
+            right_of_qae = np.sin(np.pi * (y + 1) / M)**2
+
+            bubbles = [left_of_qae, self._qae, right_of_qae]
 
             # The threshold above which the likelihoods are in the
             # confidence interval
-            loglik_ref = self.loglik_wrapper(self._mle)
-            thres = loglik_ref - chi2_quantile(alpha) / 2
+            loglik_mle = self.loglik_wrapper(self._mle)
+            thres = loglik_mle - chi2_quantile(alpha) / 2
+
+            def cut(x):
+                return self.loglik_wrapper(x) - thres
 
             # Store the boundaries of the confidence interval
             lower = upper = self._mle
 
-            # Iterate over the bubbles in between the drops, check if they
-            # surpass the threshold and if yes add the part that does to the
-            # confidence interval
+            # Check the two intervals/bubbles: check if they surpass the
+            # threshold and if yes add the part that does to the CI
             for a, b in zip(bubbles[:-1], bubbles[1:]):
+                # Compute local maximum and perform a bisect search between
+                # the local maximum and the bubble boundaries
                 locmax, val = bisect_max(self.loglik_wrapper, a, b, retval=True)
                 if val >= thres:
-                    left = bisect(lambda x: self.loglik_wrapper(x) - thres, a, locmax)
-                    right = bisect(lambda x: self.loglik_wrapper(x) - thres, locmax, b)
-                    lower = np.minimum(lower, left)
-                    upper = np.maximum(upper, right)
+                    # Bisect pre-condition is that the function has different
+                    # signs at the boundaries of the interval we search in
+                    if cut(a) * cut(locmax) < 0:
+                        left = bisect(cut, a, locmax)
+                        lower = np.minimum(lower, left)
+                    if cut(locmax) * cut(b) < 0:
+                        right = bisect(cut, locmax, b)
+                        upper = np.maximum(upper, right)
 
+            # Put together CI
             ci = np.append(lower, upper)
         else:
             raise AquaError("Confidence interval kind {} not implemented.".format(kind))
