@@ -15,15 +15,12 @@
 # limitations under the License.
 # =============================================================================
 
-from .oracle import Oracle
-from .truth_table_oracle import TruthTableOracle
-from .logical_expression_oracle import LogicalExpressionOracle
-from .custom_circuit_oracle import CustomCircuitOracle
+from ._basedataprovider import BaseDataProvider, DataType, QiskitFinanceError
+from .dataondemandprovider import DataOnDemandProvider
+from .exchangedataprovider import ExchangeDataProvider
+from .wikipediadataprovider import WikipediaDataProvider
 
-
-__all__ = [
-    'Oracle',
-    'TruthTableOracle',
-    'LogicalExpressionOracle',
-    'CustomCircuitOracle',
-]
+__all__ = ['BaseDataProvider', 'DataType', 'QiskitFinanceError', 
+           'DataOnDemandProvider',
+           'ExchangeDataProvider',
+           'WikipediaDataProvider']

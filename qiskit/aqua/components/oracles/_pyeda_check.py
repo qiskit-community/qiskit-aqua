@@ -14,16 +14,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+"""
+Check existence of pyeda.
+"""
 
-from .oracle import Oracle
-from .truth_table_oracle import TruthTableOracle
-from .logical_expression_oracle import LogicalExpressionOracle
-from .custom_circuit_oracle import CustomCircuitOracle
+import importlib
+import logging
+from qiskit.aqua import AquaError
+
+logger = logging.getLogger(__name__)
 
 
-__all__ = [
-    'Oracle',
-    'TruthTableOracle',
-    'LogicalExpressionOracle',
-    'CustomCircuitOracle',
-]
+def _check_pluggable_valid(name):
+    err_msg = "Unable to instantiate '{}', pyeda is not installed. Please look at https://pyeda.readthedocs.io/en/latest/install.html.".format(name)
+    try:
+        spec = importlib.util.find_spec('pyeda')
+        if spec is not None:
+            return
+    except Exception as e:
+        logger.debug('{} {}'.format(err_msg, str(e)))
+        raise AquaError(err_msg) from e
+
+    raise AquaError(err_msg)

@@ -36,6 +36,8 @@ class Oracle(Pluggable):
             configuration (dict): configuration dictionary
     """
 
+    CONFIGURATION = {}
+
     @abstractmethod
     def __init__(self, *args, **kwargs):
         super().__init__()
