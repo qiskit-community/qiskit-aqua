@@ -49,21 +49,43 @@ class StateVectorCircuit:
         Returns:
             QuantumCircuit.
         """
+
         if register is None:
             register = QuantumRegister(self._num_qubits, name='q')
+
+        # in case the register is a list of qubits
+        if type(register) is list:
+
+            # create empty circuit if necessary
+            if circuit is None:
+                circuit = QuantumCircuit()
+
+            # loop over all qubits and add the required registers
+            for q in register:
+                if not circuit.has_register(q[0]):
+                    circuit.add_register(q[0])
+
+            # construct state initialization circuit
+            temp = QuantumCircuit(*circuit.qregs)
+            temp.initialize(self._state_vector, [register[i] for i in range(self._num_qubits)])
+            temp = convert_to_basis_gates(temp)
+            circuit += temp
+            return circuit
+
+        # otherwise, if it is a real register
         else:
             if len(register) < self._num_qubits:
                 raise AquaError('The provided register does not have enough qubits.')
 
-        if circuit is None:
-            circuit = QuantumCircuit(register)
-        else:
-            if not circuit.has_register(register):
-                circuit.add_register(register)
+            if circuit is None:
+                circuit = QuantumCircuit(register)
+            else:
+                if not circuit.has_register(register):
+                    circuit.add_register(register)
 
-        # TODO: add capability to start in the middle of the register
-        temp = QuantumCircuit(register)
-        temp.initialize(self._state_vector, [register[i] for i in range(self._num_qubits)])
-        temp = convert_to_basis_gates(temp)
-        circuit += temp
-        return circuit
+            # TODO: add capability to start in the middle of the register
+            temp = QuantumCircuit(register)
+            temp.initialize(self._state_vector, [register[i] for i in range(self._num_qubits)])
+            temp = convert_to_basis_gates(temp)
+            circuit += temp
+            return circuit

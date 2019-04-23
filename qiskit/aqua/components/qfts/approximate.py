@@ -15,7 +15,7 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit.aqua.circuits import FourierTransformCircuits
+from qiskit.aqua.circuits import FourierTransformCircuits as ftc
 from . import QFT
 
 
@@ -47,5 +47,10 @@ class Approximate(QFT):
         self._degree = degree
 
     def _build_circuit(self, qubits=None, circuit=None, do_swaps=True):
-        ftc = FourierTransformCircuits(self._num_qubits, approximation_degree=self._degree, inverse=False)
-        return ftc.construct_circuit(qubits, circuit, do_swaps=do_swaps)
+        return ftc.construct_circuit(
+            circuit=circuit,
+            qubits=qubits,
+            inverse=False,
+            approximation_degree=self._degree,
+            do_swaps=do_swaps
+        )

@@ -70,7 +70,7 @@ def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None, seed=None):
 
 
 def get_clique_qubitops(weight_matrix, K):
-    """
+    r"""
     Generate Hamiltonian for the clique
 
     Args:

@@ -157,7 +157,7 @@ class TestDocplex(QiskitAquaTestCase):
             mdl.add_constraint(mdl.sum(x[i] for i in range(num_var)) <= 1)
             docplex.get_qubitops(mdl)
 
-    def test_auto_deifne_penalty(self):
+    def test_auto_define_penalty(self):
         # check _auto_define_penalty() for positive coefficients.
         positive_coefficients = np.random.rand(10, 10)
         for i in range(10):

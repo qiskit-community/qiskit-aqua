@@ -15,7 +15,7 @@
 # limitations under the License.
 # =============================================================================
 """
-The Grover Quantum algorithm.
+The Grover's Search algorithm.
 """
 
 import logging
@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 class Grover(QuantumAlgorithm):
     """
-    The Grover Quantum algorithm.
+    The Grover's Search algorithm.
 
     If the `num_iterations` param is specified, the amplitude amplification iteration will be built as specified.
 
@@ -51,7 +51,7 @@ class Grover(QuantumAlgorithm):
 
     CONFIGURATION = {
         'name': 'Grover',
-        'description': 'Grover',
+        'description': "Grover's Search Algorithm",
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
             'id': 'grover_schema',
@@ -73,6 +73,7 @@ class Grover(QuantumAlgorithm):
                         {
                             'enum': [
                                 'basic',
+                                'basic-dirty-ancilla',
                                 'advanced',
                                 'noancilla',
                             ]
@@ -137,7 +138,7 @@ class Grover(QuantumAlgorithm):
         qc = QuantumCircuit(self._oracle.variable_register)
         num_variable_qubits = len(self._oracle.variable_register)
         num_ancillae_needed = 0
-        if self._mct_mode == 'basic':
+        if self._mct_mode == 'basic' or self._mct_mode == 'basic-dirty-ancilla':
             num_ancillae_needed = max(0, num_variable_qubits - 2)
         elif self._mct_mode == 'advanced' and num_variable_qubits >= 5:
             num_ancillae_needed = 1
@@ -181,7 +182,7 @@ class Grover(QuantumAlgorithm):
             algo_input: input instance
         """
         if algo_input is not None:
-            raise AquaError("Unexpected Input instance.")
+            raise AquaError("Input instance not supported.")
 
         grover_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
         incremental = grover_params.get(Grover.PROP_INCREMENTAL)

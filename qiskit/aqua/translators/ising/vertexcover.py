@@ -70,7 +70,7 @@ def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None, seed=None):
 
 
 def get_vertexcover_qubitops(weight_matrix):
-    """Generate Hamiltonian for the vertex cover
+    r"""Generate Hamiltonian for the vertex cover
     Args:
         weight_matrix (numpy.ndarray) : adjacency matrix.
 
@@ -99,7 +99,7 @@ def get_vertexcover_qubitops(weight_matrix):
 
     for i in range(n):
         for j in range(i):
-            if (weight_matrix[i, j] != 0):
+            if weight_matrix[i, j] != 0:
                 wp = np.zeros(n)
                 vp = np.zeros(n)
                 vp[i] = 1
