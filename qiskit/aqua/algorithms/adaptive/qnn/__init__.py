@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# Copyright 2019 IBM.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,9 +14,3 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-
-from qiskit.aqua.algorithms.adaptive.qsvm.cost_helpers import cost_estimate, cost_estimate_sigmoid, return_probabilities
-
-__all__ = ['cost_estimate',
-           'cost_estimate_sigmoid',
-           'return_probabilities']

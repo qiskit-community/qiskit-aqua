@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# Copyright 2019 IBM.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,28 +14,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+"""
+The Quantum Neural Network.
+"""
 
 import logging
-
 import math
-import numpy as np
-from sklearn.utils import shuffle
 
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
-from qiskit.aqua.algorithms.adaptive.vqalgorithm import VQAlgorithm
+
 from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
-from qiskit.aqua.algorithms.adaptive.qsvm.qsvm_variational import QSVMVariational
-from qiskit.aqua.algorithms.adaptive.qsvm import (cost_estimate, return_probabilities)
-from qiskit.aqua.utils import (get_feature_dimension, map_label_to_class_name,
-                               split_dataset_to_data_and_labels, find_regs_by_name)
+from qiskit.aqua.utils import get_feature_dimension
 from qiskit.aqua.components.initial_states import Custom
-
-
+from ..vqclassification import VQClassification
 
 logger = logging.getLogger(__name__)
 
 
-class QNN(QSVMVariational):
+class QNN(VQClassification):
 
     CONFIGURATION = {
         'name': 'QNN',
@@ -97,38 +93,19 @@ class QNN(QSVMVariational):
             We used `label` denotes numeric results and `class` means the name of that class (str).
         """
         self.validate(locals())
-        VQAlgorithm.__init__(self, var_form=var_form,
-                         optimizer=optimizer,
-                         cost_fn=self._cost_function_wrapper)
-        self._optimizer.set_max_evals_grouped(max_evals_grouped)
-
-        self._callback = callback
-        if training_dataset is None:
-            raise AquaError('Training dataset must be provided')
-
-        self._training_dataset, self._class_to_label = split_dataset_to_data_and_labels(
-            training_dataset)
-        self._label_to_class = {label: class_name for class_name, label
-                                in self._class_to_label.items()}
-        self._num_classes = len(list(self._class_to_label.keys()))
-
-        if test_dataset is not None:
-            self._test_dataset = split_dataset_to_data_and_labels(test_dataset,
-                                                                  self._class_to_label)
-        else:
-            self._test_dataset = test_dataset
-
-        if datapoints is not None and not isinstance(datapoints, np.ndarray):
-            datapoints = np.asarray(datapoints)
-        self._datapoints = datapoints
-        self._num_qubits = self._var_form._num_qubits
+        super().__init__(
+            optimizer=optimizer,
+            var_form=var_form,
+            training_dataset=training_dataset,
+            test_dataset=test_dataset,
+            datapoints=datapoints,
+            max_evals_grouped=max_evals_grouped,
+            minibatch_size=minibatch_size,
+            callback=callback
+        )
 
         if self._num_classes > pow(2, self._num_qubits):
-            logger.warn("you have more classes than the qubits can support!")
-
-        self._minibatch_size = minibatch_size
-        self._eval_count = 0
-        self._ret = {}
+            raise AquaError("There are more classes than what the available qubits can support.")
 
     @classmethod
     def init_params(cls, params, algo_input):
@@ -168,9 +145,6 @@ class QNN(QSVMVariational):
                    algo_input.test_dataset, algo_input.datapoints, max_evals_grouped,
                    minibatch_size)
 
-    def normalize(self, vector):
-        return vector / np.linalg.norm(vector)
-
     def construct_circuit(self, x, theta, measurement=False):
         """
         Construct circuit based on data and parameters in variational form.
@@ -186,8 +160,7 @@ class QNN(QSVMVariational):
         cr = ClassicalRegister(self._num_qubits, name='c')
         qc = QuantumCircuit(qr, cr)
         # encode the data with custom initialization (instead of feature map)
-        expected_amplitude_vector = self.normalize(x)
-        custominput = Custom(self._num_qubits, state_vector=expected_amplitude_vector)
+        custominput = Custom(self._num_qubits, state_vector=x)
         qc += custominput.construct_circuit('circuit', qr)
         qc += self._var_form.construct_circuit(theta, qr)
 
@@ -195,47 +168,3 @@ class QNN(QSVMVariational):
             qc.barrier(qr)
             qc.measure(qr, cr)
         return qc
-
-
-
-    @property
-    def optimal_params(self):
-        if 'opt_params' not in self._ret:
-            raise AquaError("Cannot find optimal params before running the algorithm.")
-        return self._ret['opt_params']
-
-    @property
-    def ret(self):
-        return self._ret
-
-    @ret.setter
-    def ret(self, new_value):
-        self._ret = new_value
-
-    @property
-    def label_to_class(self):
-        return self._label_to_class
-
-    @property
-    def class_to_label(self):
-        return self._class_to_label
-
-    def load_model(self, file_path):
-        model_npz = np.load(file_path)
-        self._ret['opt_params'] = model_npz['opt_params']
-
-    def save_model(self, file_path):
-        model = {'opt_params': self._ret['opt_params']}
-        np.savez(file_path, **model)
-
-    @property
-    def test_dataset(self):
-        return self._test_dataset
-
-    @property
-    def train_dataset(self):
-        return self._train_dataset
-
-    @property
-    def datapoints(self):
-        return self._datapoints
