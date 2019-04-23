@@ -31,13 +31,11 @@ sys.path.append('..')
 
 from copy import deepcopy
 
-import torch
-
 
 from qiskit import BasicAer
 
 from qiskit.aqua import AquaError
-from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class
+from qiskit.aqua import Pluggable
 from qiskit.aqua.algorithms import QuantumAlgorithm
 
 
@@ -147,7 +145,6 @@ class QGAN(QuantumAlgorithm):
         self._tol_rel_ent = None
         self.random_seed = 7
         np.random.seed(self.random_seed)
-        torch.manual_seed(self.random_seed)
         aqua_globals.random_seed = self.random_seed
 
 
@@ -189,7 +186,7 @@ class QGAN(QuantumAlgorithm):
         """
         self.random_seed = seed
         np.random.seed(self.random_seed)
-        torch.manual_seed(self.random_seed)
+        self.discriminator.set_seed(self.random_seed)
         aqua_globals.random_seed = self.random_seed
 
 
@@ -274,8 +271,8 @@ class QGAN(QuantumAlgorithm):
             writer.writerow({'epoch': e, 'loss_discriminator': np.average(d_loss),
                              'loss_generator': np.average(g_loss), 'params_generator':
                                  self.generator.generator_circuit.params, 'rel_entropy': rel_entr})
-        #Store torch discriminator model
-        torch.save(self.discriminator.discriminator, self._snapshot_dir + 'discriminator.pt')
+        #Store discriminator model
+        self.discriminator.save_model(self._snapshot_dir)
 
     def set_quantum_instance(self, quantum_instance=None):
 
@@ -318,6 +315,7 @@ class QGAN(QuantumAlgorithm):
 
         """
         self.discriminator = Discriminator(len(self._num_qubits), discriminator_net, discriminator_optimizer)
+        self.discriminator.set_seed(self.random_seed)
         return
 
 
@@ -334,7 +332,6 @@ class QGAN(QuantumAlgorithm):
                 writer.writeheader()
 
         for e in range(self._num_epochs):
-            print("Epoch {}/{}...".format(e + 1, self._num_epochs))
             np.random.shuffle(self._data)
             index=0
             while (index+self._batch_size)<=len(self._data):
@@ -359,6 +356,7 @@ class QGAN(QuantumAlgorithm):
                 self._store_params(e, np.around(d_loss_min.detach().numpy(),4), np.around(g_loss_min,4), np.around(rel_entr,4))
                     
             if self._snapshot_dir is None:
+                print("Epoch {}/{}...".format(e + 1, self._num_epochs))
                 print('Loss Discriminator: ', np.around(d_loss_min.detach().numpy(),4))
                 print('Loss Generator: ', np.around(g_loss_min,4))
                 print('Relative Entropy: ', np.around(rel_entr,4))

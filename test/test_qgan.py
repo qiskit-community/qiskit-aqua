@@ -63,7 +63,7 @@ class TestQGAN(QiskitAquaTestCase):
 
         # Set quantum instance to run the quantum generator
         simulator = 'statevector_simulator'
-        backend = Aer.get_backend(simulator)
+        backend = BasicAer.get_backend(simulator)
         self.quantum_instance = QuantumInstance(backend=backend, shots=batch_size, coupling_map=None,
                                                 circuit_caching=False)
         self.qgan.set_quantum_instance(self.quantum_instance)
@@ -72,13 +72,13 @@ class TestQGAN(QiskitAquaTestCase):
         entangler_map = [[0, 1]]
 
         # Set variational form
-        var_form = RY(int(np.sum(num_qubits)), depth=1, entangler_map=entangler_map, entanglement_gate='cz')
+        var_form = RY(sum(num_qubits), depth=1, entangler_map=entangler_map, entanglement_gate='cz')
         # Set generator's initial parameters
         init_params = aqua_globals.random.rand(var_form._num_parameters) * 2 * 1e-2
         # Set an initial state for the generator circuit
-        init_dist = UniformDistribution(np.sum(num_qubits), low=bounds[0], high=bounds[1])
+        init_dist = UniformDistribution(sum(num_qubits), low=bounds[0], high=bounds[1])
         # Set generator circuit
-        g_circuit = UnivariateVariationalDistribution(np.sum(num_qubits), var_form, init_params,
+        g_circuit = UnivariateVariationalDistribution(sum(num_qubits), var_form, init_params,
                                                       initial_distribution=init_dist, low=bounds[0], high=bounds[1])
         # Set generator optimizer
         g_optimizer = ADAM(maxiter=1, tol=1e-6, lr=1e-5, beta_1=0.9, beta_2=0.99, noise_factor=1e-6,

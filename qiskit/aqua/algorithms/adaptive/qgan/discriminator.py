@@ -18,14 +18,17 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
 
+from qiskit.aqua import AquaError
 
 import sys
 if sys.version_info < (3, 5):
     raise Exception('Please use Python version 3.5 or greater.')
 try:
     import torch
+    torch_loaded = True
 except:
-    raise Exception('Please install PyTorch')
+    torch_loaded = False
+    # raise Exception('Please install PyTorch')
 from torch import nn
 from torch.autograd.variable import Variable
 from torch import optim
@@ -84,6 +87,9 @@ class Discriminator():
         :param optimizer: torch.optim.Optimizer or None, Optimizer initialized w.r.t discriminator network parameters.
 
         """
+        if not torch_loaded:
+            raise AquaError('Please install PyTorch.')
+
         self.n_features = n_features
         if isinstance(optimizer, optim.Optimizer):
             self._optimizer = optimizer
@@ -99,6 +105,12 @@ class Discriminator():
                 self.discriminator = DiscriminatorNet(self.n_features)
             self._optimizer = optim.Adam(self.discriminator.parameters(), lr=1e-5, amsgrad=True)
 
+    def set_seed(self, seed):
+        torch.manual_seed(seed)
+        return
+
+    def save_model(self, snapshot_dir):
+        torch.save(self.discriminator, snapshot_dir + 'discriminator.pt')
 
     def get_labels(self, x):
         """

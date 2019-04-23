@@ -108,4 +108,3 @@ class MultivariateVariationalDistribution(MultivariateDistribution):
         if not self._initial_distribution is None:
             self._initial_distribution.build(qc, q, q_ancillas, params)
         qc.extend(self._var_form.construct_circuit(self.params, q))
-
