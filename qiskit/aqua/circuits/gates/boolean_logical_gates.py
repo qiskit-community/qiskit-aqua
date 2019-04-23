@@ -34,7 +34,9 @@ def _logical_and(circuit, variable_register, flags, target_qubit, ancillary_regi
     if flags is not None:
         zvf = list(zip(variable_register, flags))
         ctl_bits = [v for v, f in zvf if f]
-        anc_bits = [ancillary_register[idx] for idx in range(np.count_nonzero(flags) - 2)] if ancillary_register else None
+        anc_bits = None
+        if ancillary_register:
+            anc_bits = [ancillary_register[idx] for idx in range(np.count_nonzero(flags) - 2)]
         [circuit.u3(pi, 0, pi, v) for v, f in zvf if f < 0]
         circuit.mct(ctl_bits, target_qubit, anc_bits, mode=mct_mode)
         [circuit.u3(pi, 0, pi, v) for v, f in zvf if f < 0]

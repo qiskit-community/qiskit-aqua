@@ -39,6 +39,8 @@ requirements = [
     "dlx",
     "pyeda; sys_platform != 'win32'",
     "docplex",
+    "fastdtw",
+    "quandl",
     "setuptools>=40.1.0"
 ]
 

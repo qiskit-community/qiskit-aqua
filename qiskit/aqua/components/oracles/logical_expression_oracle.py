@@ -60,6 +60,7 @@ class LogicalExpressionOracle(Oracle):
                         {
                             'enum': [
                                 'basic',
+                                'basic-dirty-ancilla',
                                 'advanced',
                                 'noancilla'
                             ]

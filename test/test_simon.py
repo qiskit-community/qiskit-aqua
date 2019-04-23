@@ -31,7 +31,7 @@ bitmaps = [
     ['10010110', '01010101', '10000010'],
     ['01101001', '10011001', '01100110'],
 ]
-mct_modes = ['basic', 'advanced', 'noancilla']
+mct_modes = ['basic', 'basic-dirty-ancilla', 'advanced', 'noancilla']
 optimizations = ['off', 'qm-dlx']
 
 
