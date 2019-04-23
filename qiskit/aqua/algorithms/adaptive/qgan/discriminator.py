@@ -25,13 +25,14 @@ if sys.version_info < (3, 5):
     raise Exception('Please use Python version 3.5 or greater.')
 try:
     import torch
+    from torch import nn
+    from torch.autograd.variable import Variable
+    from torch import optim
     torch_loaded = True
 except:
     torch_loaded = False
     # raise Exception('Please install PyTorch')
-from torch import nn
-from torch.autograd.variable import Variable
-from torch import optim
+
 
 
 class DiscriminatorNet(torch.nn.Module):
