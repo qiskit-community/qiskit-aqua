@@ -25,6 +25,8 @@ from .uniform_distribution import UniformDistribution
 from .multivariate_normal_distribution import MultivariateNormalDistribution
 from .multivariate_log_normal_distribution import MultivariateLogNormalDistribution
 from .multivariate_uniform_distribution import MultivariateUniformDistribution
+from .univariate_variational_distribution import UnivariateVariationalDistribution
+from .multivariate_variational_distribution import MultivariateVariationalDistribution
 from .gaussian_conditional_independence_model import GaussianConditionalIndependenceModel
 
 __all__ = ['UncertaintyModel',
@@ -37,4 +39,6 @@ __all__ = ['UncertaintyModel',
            'MultivariateNormalDistribution',
            'MultivariateLogNormalDistribution',
            'MultivariateUniformDistribution',
+           'UnivariateVariationalDistribution',
+           'MultivariateVariationalDistribution',
            'GaussianConditionalIndependenceModel']
