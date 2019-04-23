@@ -24,6 +24,8 @@ from sklearn.utils import shuffle
 from qiskit import ClassicalRegister, QuantumCircuit
 
 from qiskit.aqua import AquaError
+from qiskit.aqua.components.optimizers import Optimizer
+from qiskit.aqua.components.variational_forms import VariationalForm
 from qiskit.aqua.utils import map_label_to_class_name, split_dataset_to_data_and_labels, find_regs_by_name
 from .vqalgorithm import VQAlgorithm
 
@@ -155,16 +157,17 @@ class VQClassification(VQAlgorithm):
     ):
         """Initialize the object
         Args:
-            training_dataset (dict): {'A': numpy.ndarray, 'B': numpy.ndarray, ...}
-            test_dataset (dict): the same format as `training_dataset`
-            datapoints (numpy.ndarray): NxD array, N is the number of data and D is data dimension
-            optimizer (Optimizer): Optimizer instance
-            var_form (VariationalForm): VariationalForm instance
-            max_evals_grouped (int): max number of evaluations performed simultaneously.
+            optimizer (Optimizer): The classical optimizer to use.
+            var_form (VariationalForm): The variational form instance.
+            num_qubits (int): The number of qubits in the circuit to be built.
+            training_dataset (dict): The training dataset, in the format: {'A': np.ndarray, 'B': np.ndarray, ...}.
+            test_dataset (dict): The test dataset, in same format as `training_dataset`.
+            datapoints (np.ndarray): NxD array, N is the number of data and D is data dimension.
+            max_evals_grouped (int): The maximum number of evaluations to perform simultaneously.
+            minibatch_size (int): The size of a mini-batch.
             callback (Callable): a callback that can access the intermediate data during the optimization.
-                                 Internally, four arguments are provided as follows
-                                 the index of data batch, the index of evaluation,
-                                 parameters of variational form, evaluated value.
+                Internally, four arguments are provided as follows the index of data batch, the index of evaluation,
+                parameters of variational form, evaluated value.
         Notes:
             We use `label` to denotes numeric results and `class` the class names (str).
         """
