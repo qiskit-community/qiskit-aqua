@@ -105,6 +105,7 @@ class FixedIncomeExpectedValue(UncertaintyProblem):
         if i_objective is None:
             i_objective = uncertainty_model.num_target_qubits
 
+        # TODO: remove dictionary and use direct attributes
         self._params = {
             'i_state': i_state,
             'i_objective': i_objective
@@ -176,16 +177,15 @@ class FixedIncomeExpectedValue(UncertaintyProblem):
     def required_ancillas_controlled(self):
         return self.uncertainty_model.required_ancillas_controlled()
 
-    def build(self, qc, q, q_ancillas=None, params=None):
+    def build(self, qc, q, q_ancillas=None):
 
-        if params is None:
-            params = self._params
+        params = self._params
 
         # get qubits
         q_objective = q[params['i_objective']]
 
         # apply uncertainty model
-        self.uncertainty_model.build(qc, q, q_ancillas, params)
+        self.uncertainty_model.build(qc, q, q_ancillas)
 
         # apply approximate payoff function
         qc.ry(2 * self.offset_angle, q_objective)

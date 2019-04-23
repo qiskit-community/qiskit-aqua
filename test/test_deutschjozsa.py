@@ -25,7 +25,7 @@ from qiskit.aqua.algorithms import DeutschJozsa
 from test.common import QiskitAquaTestCase
 
 bitmaps = ['0000', '0101', '1111', '11110000']
-mct_modes = ['basic', 'advanced', 'noancilla']
+mct_modes = ['basic', 'basic-dirty-ancilla', 'advanced', 'noancilla']
 optimizations = ['off', 'qm-dlx']
 
 

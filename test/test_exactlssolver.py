@@ -22,10 +22,10 @@ import numpy as np
 from test.common import QiskitAquaTestCase
 from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import LinearSystemInput
-from qiskit.aqua.algorithms import ExactLPsolver
+from qiskit.aqua.algorithms import ExactLSsolver
 
 
-class TestExactLPsolver(QiskitAquaTestCase):
+class TestExactLSsolver(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
@@ -33,10 +33,10 @@ class TestExactLPsolver(QiskitAquaTestCase):
         self.algo_input.matrix = [[1, 2], [2, 1]]
         self.algo_input.vector = [1, 2]
 
-    def test_elp_via_run_algorithm_full_dict(self):
+    def test_els_via_run_algorithm_full_dict(self):
         params = {
             'algorithm': {
-                'name': 'ExactLPsolver'
+                'name': 'ExactLSsolver'
             },
             'problem': {
                 'name': 'linear_system'
@@ -51,10 +51,10 @@ class TestExactLPsolver(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(result['solution'], [1, 0])
         np.testing.assert_array_almost_equal(result['eigvals'], [3, -1])
 
-    def test_elp_via_run_algorithm(self):
+    def test_els_via_run_algorithm(self):
         params = {
             'algorithm': {
-                'name': 'ExactLPsolver'
+                'name': 'ExactLSsolver'
             },
             'problem': {
                 'name': 'linear_system'
@@ -64,8 +64,8 @@ class TestExactLPsolver(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(result['solution'], [1, 0])
         np.testing.assert_array_almost_equal(result['eigvals'], [3, -1])
 
-    def test_elp_direct(self):
-        algo = ExactLPsolver(self.algo_input.matrix, self.algo_input.vector)
+    def test_els_direct(self):
+        algo = ExactLSsolver(self.algo_input.matrix, self.algo_input.vector)
         result = algo.run()
         np.testing.assert_array_almost_equal(result['solution'], [1, 0])
         np.testing.assert_array_almost_equal(result['eigvals'], [3, -1])
