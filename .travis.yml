@@ -29,6 +29,8 @@ stage_dependencies: &stage_dependencies
         - g++-7    
         
   before_install:
+    - pip install -U pip
+    - pip install -U setuptools
     # download Qiskit Terra master and unzip it only if forced from master or not stable branch, otherwise use the pypi version
     - |
       if [ ${MASTER_BRANCH_DEPENDENCIES} = "true" ] || [ ${TRAVIS_BRANCH} != "stable" ]; then
