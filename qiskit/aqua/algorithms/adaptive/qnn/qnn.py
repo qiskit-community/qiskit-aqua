@@ -21,11 +21,14 @@ The Quantum Neural Network.
 import logging
 import math
 
+import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 
 from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.utils import get_feature_dimension
 from qiskit.aqua.components.initial_states import Custom
+from qiskit.aqua.components.variational_forms import VariationalForm
+from qiskit.aqua.components.optimizers import Optimizer
 from ..vqclassification import VQClassification
 
 logger = logging.getLogger(__name__)
@@ -74,21 +77,29 @@ class QNN(VQClassification):
         ],
     }
 
-    def __init__(self, optimizer, var_form, training_dataset,
-                 test_dataset=None, datapoints=None, max_evals_grouped=1,
-                 minibatch_size=-1, callback=None):
+    def __init__(
+            self,
+            optimizer=None,
+            var_form=None,
+            training_dataset=None,
+            test_dataset=None,
+            datapoints=None,
+            max_evals_grouped=1,
+            minibatch_size=-1,
+            callback=None
+    ):
         """Initialize the object
         Args:
-            training_dataset (dict): {'A': numpy.ndarray, 'B': numpy.ndarray, ...}
-            test_dataset (dict): the same format as `training_dataset`
-            datapoints (numpy.ndarray): NxD array, N is the number of data and D is data dimension
-            optimizer (Optimizer): Optimizer instance
-            var_form (VariationalForm): VariationalForm instance
-            max_evals_grouped (int): max number of evaluations performed simultaneously.
+            optimizer (Optimizer): The classical optimizer to use.
+            var_form (VariationalForm): The variational form instance.
+            training_dataset (dict): The training dataset, in the format: {'A': np.ndarray, 'B': np.ndarray, ...}.
+            test_dataset (dict): The test dataset, in same format as `training_dataset`.
+            datapoints (np.ndarray): NxD array, N is the number of data and D is data dimension.
+            max_evals_grouped (int): The maximum number of evaluations to perform simultaneously.
+            minibatch_size (int): The size of a mini-batch.
             callback (Callable): a callback that can access the intermediate data during the optimization.
-                                 Internally, four arguments are provided as follows
-                                 the index of data batch, the index of evaluation,
-                                 parameters of variational form, evaluated value.
+                Internally, four arguments are provided as follows the index of data batch, the index of evaluation,
+                parameters of variational form, evaluated value.
         Notes:
             We used `label` denotes numeric results and `class` means the name of that class (str).
         """
