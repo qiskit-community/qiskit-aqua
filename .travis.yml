@@ -47,7 +47,7 @@ stage_dependencies: &stage_dependencies
       fi
   install:
       # install Aqua and dev requirements
-      - pip install -e $TRAVIS_BUILD_DIR --quiet
+      - pip install -e $TRAVIS_BUILD_DIR --progress-bar off
       - pip install -U -r requirements-dev.txt
 
 # Define the order of the stages.
