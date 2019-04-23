@@ -19,7 +19,7 @@ import logging
 
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 
-from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class
+from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class, AquaError
 from qiskit.aqua.components.feature_maps import FeatureMap
 from qiskit.aqua.utils import get_feature_dimension
 from ..vqclassification import VQClassification
@@ -107,6 +107,9 @@ class QSVMVariational(VQClassification):
         """
 
         self.validate(locals())
+        if feature_map is None:
+            raise AquaError('Missing feature map.')
+
         super().__init__(
             optimizer=optimizer,
             var_form=var_form,
