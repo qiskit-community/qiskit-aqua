@@ -177,7 +177,8 @@ correctly achieved by first uninstalling them from the Python environment in whi
 have Qiskit (if they were previously installed),
 using the ``pip uninstall`` command for each of them.  Next, clone the
 `Qiskit Terra <https://github.com/Qiskit/qiskit-terra>`__, `Qiskit Aer <https://github.com/Qiskit/qiskit-aer>`__,
-`Qiskit IBMQ Provider <https://github.com/Qiskit/qiskit-ibmq-provider>`__ and
+`Qiskit IBMQ Provider <https://github.com/Qiskit/qiskit-ibmq-provider>`__,
+`Qiskit Ignis <https://github.com/Qiskit/qiskit-ignis>`__ and
 `Qiskit Aqua <https://github.com/Qiskit/qiskit-aqua>`__ repositories and
 install them in this order from source in the same Python environment.
 Qiskit Terra, Qiskit IBMQ Provider and Qiskit Aqua can be installed by issuing the following commands 
