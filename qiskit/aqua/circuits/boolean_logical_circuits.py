@@ -202,7 +202,7 @@ class BooleanLogicNormalForm(ABC):
             0
         )
         num_ancillae = 0
-        if mct_mode == 'basic':
+        if mct_mode == 'basic' or mct_mode == 'basic-dirty-ancilla':
             num_ancillae = max_num_ancillae
         elif mct_mode == 'advanced':
             if max_num_ancillae >= 3:

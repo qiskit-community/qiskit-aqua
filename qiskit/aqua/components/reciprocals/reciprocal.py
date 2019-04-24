@@ -44,6 +44,19 @@ class Reciprocal(Pluggable):
         return cls(**args)
 
     @abstractmethod
+    def sv_to_resvec(self, statevector, num_q):
+        """Convert statevector to result vector.
+
+        Args:
+            statevector (list): The statevector from simulation.
+            num_q (int): Number of qubits of result register.
+
+        Returns:
+             The result vector.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
     def construct_circuit(self, mode, register=None, circuit=None):
         """Construct the initial state circuit.
 

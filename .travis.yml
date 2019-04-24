@@ -15,40 +15,56 @@ language: python
 python:
   - "3.6"
 
-# Install Dependencies
-# The env. variable MASTER_BRANCH_DEPENDENCIES forces dependencies used from master
-env:
-  - MASTER_BRANCH_DEPENDENCIES=true
-addons:
-  apt:
-    sources:
-      - ubuntu-toolchain-r-test
-    packages:
-      - libopenblas-dev
-      - g++-7    
-      
-before_install:
-  # download Qiskit Terra master and unzip it only if forced from master or not stable branch, otherwise use the pypi version
-  - |
-    if [ ${MASTER_BRANCH_DEPENDENCIES} = "true" ] || [ ${TRAVIS_BRANCH} != "stable" ]; then
-      # Download github Terra
-      wget https://codeload.github.com/Qiskit/qiskit-terra/zip/master -O /tmp/qiskit-terra.zip
-      unzip /tmp/qiskit-terra.zip -d /tmp/
-      # Install Qiskit Terra requirements.
-      pip install -U -r /tmp/qiskit-terra-master/requirements-dev.txt
-      # Install local Qiskit Terra
-      pip install -e /tmp/qiskit-terra-master
-      # Download github Ignis
-      wget https://codeload.github.com/Qiskit/qiskit-ignis/zip/master -O /tmp/qiskit-ignis.zip
-      unzip /tmp/qiskit-ignis.zip -d /tmp/
-      # Install local Qiskit Ignis
-      pip install -e /tmp/qiskit-ignis-master
-    fi
+stage_dependencies: &stage_dependencies
+  # Install Dependencies
+  # The env. variable MASTER_BRANCH_DEPENDENCIES forces dependencies used from master
+  env:
+    - MASTER_BRANCH_DEPENDENCIES=true
+  addons:
+    apt:
+      sources:
+        - ubuntu-toolchain-r-test
+      packages:
+        - libopenblas-dev
+        - g++-7    
+        
+  before_install:
+    - pip install -U pip
+    - pip install -U setuptools
+    # download Qiskit Terra master and unzip it only if forced from master or not stable branch, otherwise use the pypi version
+    - |
+      if [ ${MASTER_BRANCH_DEPENDENCIES} = "true" ] || [ ${TRAVIS_BRANCH} != "stable" ]; then
+        # Download github Terra
+        wget https://codeload.github.com/Qiskit/qiskit-terra/zip/master -O /tmp/qiskit-terra.zip
+        unzip /tmp/qiskit-terra.zip -d /tmp/
+        # Install Qiskit Terra requirements.
+        pip install -U -r /tmp/qiskit-terra-master/requirements-dev.txt
+        # Install local Qiskit Terra
+        pip install -e /tmp/qiskit-terra-master
+        # Download github Ignis
+        wget https://codeload.github.com/Qiskit/qiskit-ignis/zip/master -O /tmp/qiskit-ignis.zip
+        unzip /tmp/qiskit-ignis.zip -d /tmp/
+        # Install local Qiskit Ignis
+        pip install -e /tmp/qiskit-ignis-master
+      fi
+  install:
+      # install Aqua and dev requirements
+      - pip install -e $TRAVIS_BUILD_DIR --progress-bar off
+      - pip install -U -r requirements-dev.txt
 
-# Test 
-install:
-    # install Aqua and dev requirements
-    - pip install -e $TRAVIS_BUILD_DIR
-    - pip install -U -r requirements-dev.txt
-script:
-    - python -m unittest discover -v test
+# Define the order of the stages.
+stages:
+  - test first half
+  - test second half
+
+jobs:
+  include:
+    - stage: test first half
+      <<: *stage_dependencies
+      script:
+        - python test/customtests.py 0 -end 34
+
+    - stage: test second half
+      <<: *stage_dependencies
+      script:
+        - python test/customtests.py 34

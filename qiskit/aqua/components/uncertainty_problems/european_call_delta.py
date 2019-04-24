@@ -20,7 +20,7 @@ The European Call Option Delta.
 
 import numpy as np
 from qiskit.aqua.components.uncertainty_problems import UncertaintyProblem
-from qiskit.aqua.components.uncertainty_problems.fixed_value_comparator import FixedValueComparator
+from qiskit.aqua.circuits.fixed_value_comparator import FixedValueComparator
 
 
 class EuropeanCallDelta(UncertaintyProblem):
@@ -68,6 +68,16 @@ class EuropeanCallDelta(UncertaintyProblem):
     }
 
     def __init__(self, uncertainty_model, strike_price, i_state=None, i_objective=None):
+        """
+        Constructor.
+
+        Args:
+            uncertainty_model (UnivariateDistribution): uncertainty model for spot price
+            strike_price (float): strike price of the European option
+            c_approx (float): approximation factor for linear payoff
+            i_state (list or array): indices of qubits representing the uncertainty
+            i_objective (int): index of qubit for objective function
+        """
         super().__init__(uncertainty_model.num_target_qubits + 1)
 
         self._uncertainty_model = uncertainty_model
@@ -75,14 +85,10 @@ class EuropeanCallDelta(UncertaintyProblem):
 
         if i_state is None:
             i_state = list(range(uncertainty_model.num_target_qubits))
+        self.i_state = i_state
         if i_objective is None:
             i_objective = uncertainty_model.num_target_qubits
-
-        self._params = {
-            'i_state': i_state,
-            'i_compare': i_objective,  # compare and objective qubits are the same for the delta.
-            'i_objective': i_objective
-        }
+        self.i_objective = i_objective
 
         super().validate(locals())
 
@@ -92,7 +98,7 @@ class EuropeanCallDelta(UncertaintyProblem):
         self._mapped_strike_price = int(np.ceil((strike_price - lb)/(ub - lb) * (uncertainty_model.num_values - 1)))
 
         # create comparator
-        self._comparator = FixedValueComparator(uncertainty_model.num_target_qubits + 1, self._mapped_strike_price)
+        self._comparator = FixedValueComparator(uncertainty_model.num_target_qubits, self._mapped_strike_price)
 
     def required_ancillas(self):
         num_uncertainty_ancillas = self._uncertainty_model.required_ancillas()
@@ -106,42 +112,14 @@ class EuropeanCallDelta(UncertaintyProblem):
         num_ancillas_controlled = num_uncertainty_ancillas + num_comparator_ancillas
         return num_ancillas_controlled
 
-    def build(self, qc, q, q_ancillas=None, params=None):
-        if params is None:
-            params = self._params
+    def build(self, qc, q, q_ancillas=None):
+
+        # get qubit lists
+        q_state = [q[i] for i in self.i_state]
+        q_objective = q[self.i_objective]
 
         # apply uncertainty model
-        self._uncertainty_model.build(qc, q, q_ancillas, params)
+        self._uncertainty_model.build(qc, q_state, q_ancillas)
 
         # apply comparator to compare qubit
-        self._comparator.build(qc, q, q_ancillas, params)
-
-    def build_inverse(self, qc, q, q_ancillas=None, params=None):
-        if params is None:
-            params = self._params
-
-        # apply comparator to compare qubit
-        self._comparator.build_inverse(qc, q, q_ancillas, params)
-
-        # apply uncertainty model
-        self._uncertainty_model.build_inverse(qc, q, q_ancillas, params)
-
-    def build_controlled(self, qc, q, q_control, q_ancillas=None, params=None):
-        if params is None:
-            params = self._params
-
-        # apply uncertainty model
-        self._uncertainty_model.build_controlled(qc, q, q_control, q_ancillas, params)
-
-        # apply comparator to compare qubit
-        self._comparator.build_controlled(qc, q, q_control, q_ancillas, params)
-
-    def build_controlled_inverse(self, qc, q, q_control, q_ancillas=None, params=None):
-        if params is None:
-            params = self._params
-
-        # apply comparator to compare qubit
-        self._comparator.build_controlled_inverse(qc, q, q_control, q_ancillas, params)
-
-        # apply uncertainty model
-        self._uncertainty_model.build_controlled_inverse(qc, q, q_control, q_ancillas, params)
+        self._comparator.build(qc, q_state + [q_objective], q_ancillas)

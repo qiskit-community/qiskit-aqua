@@ -37,6 +37,14 @@ class UnivariateDistribution(UncertaintyModel, ABC):
         return Pluggable.SECTION_KEY_UNIVARIATE_DISTRIBUTION
 
     def __init__(self, num_target_qubits, probabilities, low=0, high=1):
+        """
+        Abstract univariate distribution class
+        Args:
+            num_target_qubits (int): number of qubits it acts on
+            probabilities (array or list):  probabilities for different states
+            low (float): lower bound, i.e., the value corresponding to |0...0> (assuming an equidistant grid)
+            high (float): upper bound, i.e., the value corresponding to |1...1> (assuming an equidistant grid)
+        """
         super().__init__(num_target_qubits)
         self._num_values = 2 ** self.num_target_qubits
         self._probabilities = np.array(probabilities)
@@ -66,18 +74,21 @@ class UnivariateDistribution(UncertaintyModel, ABC):
     def probabilities(self):
         return self._probabilities
 
-    def required_ancillas(self):
-        return 0
-
-    def required_ancillas_controlled(self):
-        return 0
-
     def build(self, qc, q, q_ancillas=None, params=None):
         custom_state = Custom(self.num_target_qubits, state_vector=np.sqrt(self.probabilities))
         qc.extend(custom_state.construct_circuit('circuit', q))
 
     @staticmethod
     def pdf_to_probabilities(pdf, low, high, num_values):
+        """
+        Takes a probability density function (pdf), and returns a truncated and discretized array of probabilities corresponding to it
+        Args:
+            pdf (function): probability density function
+            low (float): lower bound of equidistant grid
+            high (float): upper bound of equidistant grid
+            num_values (int): number of grid points
+        Returns (list): array of probabilities
+        """
         probabilities = np.zeros(num_values)
         values = np.linspace(low, high, num_values)
         total = 0
