@@ -51,14 +51,6 @@ class QGAN(QuantumAlgorithm):
             'id': 'Qgan_schema',
             'type': 'object',
             'properties': {
-                'data': {
-                    'type': ['array', 'null'],
-                    'default': None
-                },
-                'bounds': {
-                    'type':['array', 'null'],
-                    'default': None
-                },
                 'num_qubits':{
                     'type': ['array', 'null'],
                     'default': None
@@ -160,17 +152,16 @@ class QGAN(QuantumAlgorithm):
             QGAN: qgan object
         """
 
-        if algo_input is not None:
+        if algo_input is None:
             raise AquaError("Input instance not supported.")
 
         qgan_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
-        data = qgan_params.get('data')
-        bounds = qgan_params.get('bounds')
+        num_qubits = qgan_params.get('num_qubits')
         batch_size = qgan_params.get('batch_size')
         num_epochs = qgan_params.get('num_epochs')
         snapshot_dir = qgan_params.get('snapshot_dir')
 
-        return cls(data, bounds, batch_size, num_epochs, snapshot_dir)
+        return cls(algo_input.data, algo_input.bounds, num_qubits, batch_size, num_epochs, snapshot_dir)
 
     def set_seed(self, seed):
         """

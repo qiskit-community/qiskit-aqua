@@ -25,8 +25,8 @@ from qiskit.aqua.components.uncertainty_models import UniformDistribution, Univa
 from qiskit.aqua.components.variational_forms import RY
 
 from qiskit.aqua.algorithms.adaptive.qgan.qgan import QGAN
-
-from qiskit.aqua import aqua_globals, QuantumInstance
+from qiskit.aqua.input import QGANInput
+from qiskit.aqua import aqua_globals, QuantumInstance, run_algorithm
 
 from qiskit import BasicAer
 
@@ -43,19 +43,32 @@ class TestQGAN(QiskitAquaTestCase):
         # Load data samples from log-normal distribution with mean=1 and standard deviation=1
         mu = 1
         sigma = 1
-        real_data = np.random.lognormal(mean=mu, sigma=sigma, size=N)
+        self._real_data = np.random.lognormal(mean=mu, sigma=sigma, size=N)
         # Set the data resolution
         # Set upper and lower data values as list of k min/max data values [[min_0,max_0],...,[min_k-1,max_k-1]]
-        bounds = np.array([0., 3.])
+        self._bounds = np.array([0., 3.])
         # Set number of qubits per data dimension as list of k qubit values[#q_0,...,#q_k-1]
         num_qubits = [2]
-        # Set number of training epochs
-        num_epochs = 10
         # Batch size
         batch_size = 100
+        # Set number of training epochs
+        num_epochs = 10
+        self._params = {'algorithm': {'name': 'QGAN',
+                                      'num_qubits': num_qubits,
+                                      'batch_size': batch_size,
+                                      'num_epochs': num_epochs},
+                        'problem': {'name': 'distribution_learning_loading'}
+                        }
+
+        # self._params = {'algorithm': {'name': 'QGAN'},
+        #                 'problems': {'name': 'distribution_learning_loading'},
+        #                 'properties': {'num_qubits': num_qubits,
+        #                 'batch_size': batch_size,
+        #                 'num_epochs': num_epochs}
+        #                 }
 
         # Initialize qGAN
-        self.qgan = QGAN(real_data, bounds, num_qubits, batch_size, num_epochs, snapshot_dir=None)
+        self.qgan = QGAN(self._real_data, self._bounds, num_qubits, batch_size, num_epochs, snapshot_dir=None)
         self.qgan.set_seed(1)
         # Set quantum instance to run the quantum generator
         self.quantum_instance_statevector = QuantumInstance(backend=BasicAer.get_backend('statevector_simulator'),
@@ -72,10 +85,11 @@ class TestQGAN(QiskitAquaTestCase):
         # Set generator's initial parameters
         init_params = aqua_globals.random.rand(var_form._num_parameters) * 2 * 1e-2
         # Set an initial state for the generator circuit
-        init_dist = UniformDistribution(sum(num_qubits), low=bounds[0], high=bounds[1])
+        init_dist = UniformDistribution(sum(num_qubits), low=self._bounds[0], high=self._bounds[1])
         # Set generator circuit
         g_circuit = UnivariateVariationalDistribution(sum(num_qubits), var_form, init_params,
-                                                      initial_distribution=init_dist, low=bounds[0], high=bounds[1])
+                                                      initial_distribution=init_dist, low=self._bounds[0],
+                                                      high=self._bounds[1])
         # Set generator optimizer
         g_optimizer = ADAM(maxiter=1, tol=1e-6, lr=1e-5, beta_1=0.9, beta_2=0.99, noise_factor=1e-6,
                            eps=1e-10, amsgrad=True)
@@ -92,8 +106,13 @@ class TestQGAN(QiskitAquaTestCase):
     def test_qgan_training(self):
         trained_statevector = self.qgan.run(self.quantum_instance_statevector)
         trained_qasm = self.qgan.run(self.quantum_instance_qasm)
-        self.assertAlmostEqual(trained_qasm['rel_entr'], trained_statevector['rel_entr'], places=2)
+        self.assertAlmostEqual(trained_qasm['rel_entr'], trained_statevector['rel_entr'], delta=0.05)
 
+    def test_qgan_training_run_algo(self):
+        algo_input = QGANInput(self._real_data, self._bounds)
+        trained_statevector = run_algorithm(params=self._params, algo_input=algo_input, backend=BasicAer.get_backend('statevector_simulator'))
+        trained_qasm = run_algorithm(self._params, algo_input, backend=BasicAer.get_backend('qasm_simulator'))
+        self.assertAlmostEqual(trained_qasm['rel_entr'], trained_statevector['rel_entr'], delta=0.05)
 
 if __name__ == '__main__':
     unittest.main()
