@@ -119,7 +119,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
         quantum_instance = QuantumInstance(backend, seed=seed)
         result = svm.run(quantum_instance)
         svm_accuracy_threshold = 0.85
-        print(result['testing_accuracy'])
+        self.log.debug(result['testing_accuracy'])
         self.assertGreater(result['testing_accuracy'], svm_accuracy_threshold)
 
     def test_qsvm_variational_minibatching_with_gradient_support(self):
@@ -139,7 +139,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
         quantum_instance = QuantumInstance(backend, seed=seed)
         result = svm.run(quantum_instance)
         svm_accuracy_threshold = 0.85
-        print(result['testing_accuracy'])
+        self.log.debug(result['testing_accuracy'])
         self.assertGreater(result['testing_accuracy'], svm_accuracy_threshold)
 
     def test_qsvm_variational_directly(self):
