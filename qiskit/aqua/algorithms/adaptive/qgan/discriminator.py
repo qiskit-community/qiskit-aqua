@@ -15,25 +15,25 @@
 # limitations under the License.
 # =============================================================================
 
-from __future__ import absolute_import, division, print_function
 import numpy as np
+import os
+import importlib
+
+import logging
+logger = logging.getLogger(__name__)
 
 from qiskit.aqua import AquaError
 
-import sys
-if sys.version_info < (3, 5):
-    raise Exception('Please use Python version 3.5 or greater.')
 try:
     import torch
-    from torch import nn
+    from torch import nn, optim
     from torch.autograd.variable import Variable
-    from torch import optim
     torch_loaded = True
-except:
+
+except ImportError:
+    logger.info('Pytorch is not installed. For installation instructions see https://pytorch.org/get-started/locally/')
     torch_loaded = False
     # raise Exception('Please install PyTorch')
-
-
 
 class DiscriminatorNet(torch.nn.Module):
     """
@@ -43,8 +43,10 @@ class DiscriminatorNet(torch.nn.Module):
     def __init__(self, n_features=1):
         """
         Initialize the discriminator network.
-        :param n_features: int, Dimension of input data samples.
+        Args:
+            n_features: int, Dimension of input data samples.
         """
+
         super(DiscriminatorNet, self).__init__()
         self.n_features = n_features
         n_out = 1
@@ -65,31 +67,33 @@ class DiscriminatorNet(torch.nn.Module):
 
     def forward(self, x):
         """
-            :param x: torch.Tensor, Discriminator input, i.e. data sample.
-            :return: torch.Tensor, Discriminator output, i.e. data label.
-            """
+
+        Args:
+            x: torch.Tensor, Discriminator input, i.e. data sample.
+
+        Returns: torch.Tensor, Discriminator output, i.e. data label.
+
+        """
         x = self.hidden0(x)
         x = self.hidden1(x)
         x = self.out(x)
 
         return x
 
-
 class Discriminator():
 
-    def __init__(self, n_features=1, discriminator_net = None, optimizer=None):
+    def __init__(self, n_features=1, discriminator_net=None, optimizer=None):
         """
         Initialize the discriminator.
-
-        Arguments
-        ---------
-        :param n_features: int, Dimension of input data vector.
-        :param discriminator_net: torch.nn.Module or None, Discriminator network.
-        :param optimizer: torch.optim.Optimizer or None, Optimizer initialized w.r.t discriminator network parameters.
-
+        Args:
+            n_features: int, Dimension of input data vector.
+            discriminator_net: torch.nn.Module or None, Discriminator network.
+            optimizer: torch.optim.Optimizer or None, Optimizer initialized w.r.t discriminator network parameters.
         """
+
         if not torch_loaded:
-            raise AquaError('Please install PyTorch.')
+            raise AquaError('Pytorch is not installed. For installation instructions see '
+                            'https://pytorch.org/get-started/locally/')
 
         self.n_features = n_features
         if isinstance(optimizer, optim.Optimizer):
@@ -106,19 +110,57 @@ class Discriminator():
                 self.discriminator = DiscriminatorNet(self.n_features)
             self._optimizer = optim.Adam(self.discriminator.parameters(), lr=1e-5, amsgrad=True)
 
+        self._ret = {}
+
+    @staticmethod
+    def check_pluggable_valid():
+        err_msg = 'Pytorch is not installed. For installation instructions see https://pytorch.org/get-started/locally/'
+        try:
+            spec = importlib.util.find_spec('torch.Tensor')
+            if spec is not None:
+                spec = importlib.util.find_spec('torch.nn')
+                if spec is not None:
+                    return
+        except Exception as e:
+            logger.debug('{} {}'.format(err_msg, str(e)))
+            raise AquaError(err_msg) from e
+
+        raise AquaError(err_msg)
+
     def set_seed(self, seed):
+        """
+        Set seed.
+        Args:
+            seed: int, seed
+
+        Returns:
+
+        """
         torch.manual_seed(seed)
         return
 
     def save_model(self, snapshot_dir):
-        torch.save(self.discriminator, snapshot_dir + 'discriminator.pt')
+        """
+        Save discriminator model
+        Args:
+            snapshot_dir: str, directory path for saving the model
+
+        Returns:
+
+        """
+        torch.save(self.discriminator, os.path.join(snapshot_dir, 'discriminator.pt'))
+        return
 
     def get_labels(self, x):
         """
-        Get data sample labels, i.e. true or fake
-        :param x: numpy array, Discriminator input, i.e. data sample.
-        :return: torch.Tensor, Discriminator output, i.e. data label.
+        Get data sample labels, i.e. true or fake.
+        Args:
+            x: numpy array or torch.Tensor, Discriminator input, i.e. data sample.
+
+        Returns:torch.Tensor, Discriminator output, i.e. data label
+
         """
+
         if isinstance(x, torch.Tensor):
             pass
         else:
@@ -130,22 +172,27 @@ class Discriminator():
     def loss_real(self, x, y):
         """
         Loss function for real data samples
+        Args:
+            x: torch.Tensor, Discriminator output.
+            y: torch.Tensor, Label of the data point
 
-        :param x: torch.Tensor, Discriminator output.
-        :param y: torch.Tensor, Label of the data point
-        :return: torch.Tensor, Loss w.r.t to the real data points.
+        Returns:torch.Tensor, Loss w.r.t to the real data points.
+
         """
+
         loss_funct = nn.BCELoss()
         return loss_funct(x, y)
 
-    def loss_fake(self, x, y, weights):  # x: out, y:labels
+    def loss_fake(self, x, y, weights):
         """
         Loss function for fake data samples
+        Args:
+            x: torch.Tensor, Discriminator output.
+            y: torch.Tensor, Label of the data point
+            weights: torch.Tensor, Data weights.
 
-        :param x: torch.Tensor, Discriminator output.
-        :param y: torch.Tensor, Label of the data point
-        :param weights: torch.Tensor, Data weights.
-        :return: torch.Tensor, Loss w.r.t to the generated data points.
+        Returns:torch.Tensor, Loss w.r.t to the generated data points.
+
         """
         loss_funct = nn.BCELoss(weight=weights, reduction='sum')
 
@@ -154,13 +201,16 @@ class Discriminator():
     def gradient_penalty(self, x, lambda_=5., k=0.01, c=1.):
         """
         Compute gradient penalty for discriminator optimization
+        Args:
+            x: numpy array, Generated data sample.
+            lambda_: float, Gradient penalty coefficient 1.
+            k: float, Gradient penalty coefficient 2.
+            c: float, Gradient penalty coefficient 3.
 
-        :param x: numpy array, Generated data sample.
-        :param lambda_: float, Gradient penalty coefficient 1.
-        :param k: float, Gradient penalty coefficient 2.
-        :param c: float, Gradient penalty coefficient 3.
-        :return: torch.Tensor, Gradient penalty.
+        Returns: torch.Tensor, Gradient penalty.
+
         """
+
         if isinstance(x, torch.Tensor):
             pass
         else:
@@ -176,13 +226,15 @@ class Discriminator():
     def train(self, real_batch, generated_batch, generated_prob, penalty=False):
         """
         Perform one training step w.r.t to the discriminator's parameters
-
-        :param real_batch: torch.Tensor, Training data batch.
-        :param generated_batch: numpy array, Generated data batch.
-        :param generated_prob: numpy array, Weights of the generated data samples, i.e. measurement frequency for
+        Args:
+            real_batch: torch.Tensor, Training data batch.
+            generated_batch: numpy array, Generated data batch.
+            generated_prob: numpy array, Weights of the generated data samples, i.e. measurement frequency for
         qasm/hardware backends resp. measurement probability for statevector backend.
-        :param penalty: Boolean, Indicate whether or not penalty function is applied to the loss function.
-        :return: torch.Tensor, Loss function w.r.t the updated discriminator parameters.
+            penalty: Boolean, Indicate whether or not penalty function is applied to the loss function.
+
+        Returns: dict, with Discriminator loss (torch.Tensor) and updated parameters (array).
+
         """
 
         # Reset gradients
@@ -194,8 +246,9 @@ class Discriminator():
         # Train on Real Data
         prediction_real = self.get_labels(real_batch)
 
+        # Calculate error and backpropagate
         error_real = self.loss_real(prediction_real, torch.ones(len(prediction_real), 1))
-        error_real.backward()  # x.grad += dloss/dx
+        error_real.backward()
 
         # Train on Generated Data
         generated_batch = np.reshape(generated_batch,(len(generated_batch), self.n_features))
@@ -211,8 +264,13 @@ class Discriminator():
             self.gradient_penalty(real_batch).backward()
 
         # Update weights with gradients
-        self._optimizer.step()  # x += -lr * x.grad
+        self._optimizer.step()
 
         # Return error and predictions for real and fake inputs
+        self._ret['loss'] = 0.5*(error_real + error_fake)
+        params = []
+        for param in self.discriminator.parameters():
+            params.append(param.data.detach().numpy())
+        self._ret['params'] = params
 
-        return 0.5*(error_real + error_fake)
+        return self._ret

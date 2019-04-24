@@ -57,6 +57,9 @@ CONFIGURATION = {
         'pluggable_type': 'variational_form',
         'default': {'name': 'RY'}
         },
+        {'pluggable_type': 'initial_distribution',
+                'default': {None}
+            },
     ],
 }
 }

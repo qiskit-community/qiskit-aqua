@@ -16,23 +16,14 @@
 # limitations under the License.
 # =============================================================================
 
-from __future__ import absolute_import, division, print_function
-
 import numpy as np
 from scipy.stats import entropy
 
 import csv
-
+import os
 import logging
-import sys
-if sys.version_info < (3, 5):
-    raise Exception('Please use Python version 3.5 or greater.')
-sys.path.append('..')
 
 from copy import deepcopy
-
-
-from qiskit import BasicAer
 
 from qiskit.aqua import AquaError
 from qiskit.aqua import Pluggable
@@ -44,9 +35,6 @@ from qiskit.aqua import aqua_globals, QuantumInstance
 from .generator import Generator
 from .discriminator import Discriminator
 
-import os
-os.environ['KMP_DUPLICATE_LIB_OK']='True'
-
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +44,7 @@ class QGAN(QuantumAlgorithm):
 
     """
     CONFIGURATION = {
-        'name': 'Qgan',
+        'name': 'QGAN',
         'description': 'Quantum Generative Adversarial Network',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
@@ -64,11 +52,15 @@ class QGAN(QuantumAlgorithm):
             'type': 'object',
             'properties': {
                 'data': {
-                    'type': 'array',
+                    'type': ['array', 'null'],
                     'default': None
                 },
                 'bounds': {
-                    'type': 'array',
+                    'type':['array', 'null'],
+                    'default': None
+                },
+                'num_qubits':{
+                    'type': ['array', 'null'],
                     'default': None
                 },
                 'batch_size': {
@@ -86,20 +78,23 @@ class QGAN(QuantumAlgorithm):
             },
             'additionalProperties': False
         },
+        'problems': ['distribution_learning_loading']
     }
 
     def __init__(self, data, bounds=None, num_qubits=None, batch_size=500, num_epochs=3000, snapshot_dir=None):
         """
         Initialize qGAN.
-        :param data: training data of dimension k
-        :param bounds: list of k min/max data values [[min_0,max_0],...,[min_k-1,max_k-1]]
+        Args:
+            data: array, training data of dimension k
+            bounds: array, k min/max data values [[min_0,max_0],...,[min_k-1,max_k-1]]
                         if univariate data: [min_0,max_0]
-        :param num_qubits: list/numpy array, list of k numbers of qubits to determine representation resolution,
+            num_qubits: array, k numbers of qubits to determine representation resolution,
         i.e. n qubits enable the representation of 2**n values [num_qubits_0,..., num_qubits_k-1]
-        :param batch_size: batch size
-        :param num_epochs: number of training epochs
-        :param snapshot_dir: if path given store cvs file with parameters to the directory
+            batch_size: int, batch size
+            num_epochs: int, number of training epochs
+            snapshot_dir: path or None, if path given store cvs file with parameters to the directory
         """
+
 
         self.validate(locals())
         super().__init__()
@@ -135,18 +130,22 @@ class QGAN(QuantumAlgorithm):
         self._prepare_data()
         self._batch_size = batch_size
         self._num_epochs = num_epochs
-        self.generator = None
-        self.discriminator = None
+        self._generator = None
+        self._discriminator = None
         self._snapshot_dir = snapshot_dir
-        self._quantum_instance = None
-        self.g_loss = []
-        self.d_loss = []
-        self.rel_entr = []
+        self._g_loss = []
+        self._d_loss = []
+        self._rel_entr = []
         self._tol_rel_ent = None
+
+
         self.random_seed = 7
-        np.random.seed(self.random_seed)
         aqua_globals.random_seed = self.random_seed
 
+        self.set_generator()
+        self.set_discriminator()
+
+        self._ret = {}
 
 
 
@@ -161,12 +160,6 @@ class QGAN(QuantumAlgorithm):
             QGAN: qgan object
         """
 
-        """
-        Initialize via parameters dictionary and algorithm input instance
-        Args:
-            params: parameters dictionary
-            algo_input: Input instance
-        """
         if algo_input is not None:
             raise AquaError("Input instance not supported.")
 
@@ -182,12 +175,36 @@ class QGAN(QuantumAlgorithm):
     def set_seed(self, seed):
         """
         Set a custom seed.
-        :param seed: int, seed to be set
+        Args:
+            seed: int, seed to be set
+
+        Returns:
+
         """
         self.random_seed = seed
         np.random.seed(self.random_seed)
-        self.discriminator.set_seed(self.random_seed)
+        self._discriminator.set_seed(self.random_seed)
         aqua_globals.random_seed = self.random_seed
+
+    @property
+    def generator(self):
+        return self._generator
+
+    @property
+    def discriminator(self):
+        return self._discriminator
+
+    @property
+    def g_loss(self):
+        return self._g_loss
+
+    @property
+    def d_loss(self):
+        return self._d_loss
+
+    @property
+    def rel_entr(self):
+        return self._rel_entr
 
 
     def _prepare_data(self):
@@ -253,7 +270,7 @@ class QGAN(QuantumAlgorithm):
         return
 
     def get_rel_entr(self):
-        samples_gen, prob_gen = self.generator.get_samples(self._quantum_instance, shots=10000)
+        samples_gen, prob_gen = self._generator.get_samples(self._quantum_instance, shots=10000)
         temp = np.zeros(len(self._grid_elements))
         for j, sample in enumerate(samples_gen):
             for i, element in enumerate(self._grid_elements):
@@ -265,67 +282,53 @@ class QGAN(QuantumAlgorithm):
         return rel_entr
 
     def _store_params(self, e, d_loss, g_loss, rel_entr):
-        with open(self._snapshot_dir + 'output.csv', mode='a') as csv_file:
+        with open(os.path.join(self._snapshot_dir,'output.csv'), mode='a') as csv_file:
             fieldnames = ['epoch', 'loss_discriminator', 'loss_generator', 'params_generator', 'rel_entropy']
             writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
             writer.writerow({'epoch': e, 'loss_discriminator': np.average(d_loss),
                              'loss_generator': np.average(g_loss), 'params_generator':
-                                 self.generator.generator_circuit.params, 'rel_entropy': rel_entr})
+                                 self._generator.generator_circuit.params, 'rel_entropy': rel_entr})
         #Store discriminator model
-        self.discriminator.save_model(self._snapshot_dir)
-
-    def set_quantum_instance(self, quantum_instance=None):
-
-        """
-        Run training.
-        :param quantum_instance: QuantumInstance, Used for running the quantum circuit -
-                                 Note that the supported backends are: statevector_simulator, qasm_simulator and actual
-                                 quantum hardware
-        """
-        if quantum_instance is None:
-            self._quantum_instance = QuantumInstance(backend=BasicAer.get_backend("qasm_simulator"),
-                                                     shots=self._batch_size, seed=self._random_seed,
-                                                     seed_mapper=self._random_seed)
-        else:
-            if quantum_instance.backend_name == ('unitary_simulator' or 'clifford_simulator'):
-                raise AquaError(
-                    'Chosen backend not supported - Set backend either to statevector_simulator, qasm_simulator'
-                    ' or actual quantum hardware')
-            else:
-                self._quantum_instance = quantum_instance
-        return
+        self._discriminator.save_model(self._snapshot_dir)
 
     def set_generator(self, generator_circuit=None, generator_init_params=None, generator_optimizer=None):
         """
         Initialize generator.
-        :param generator_circuit: VariationalForm, parametrized quantum circuit which sets the structure of the quantum generator
-        :param generator_init_params: array, initial parameters for the generator circuit
-        :param generator_optimizer: Optimizer, optimizer to be used for the training of the generator
+        Args:
+            generator_circuit: VariationalForm, parametrized quantum circuit which sets the structure of the quantum
+            generator
+            generator_init_params: array, initial parameters for the generator circuit
+            generator_optimizer: Optimizer, optimizer to be used for the training of the generator
+
+        Returns:
+
         """
 
-        self.generator = Generator(self._bounds, self._num_qubits, self._data_grid, generator_circuit,
-                                   generator_init_params, generator_optimizer)
+        self._generator = Generator(self._bounds, self._num_qubits, self._data_grid, generator_circuit,
+                                    generator_init_params, generator_optimizer)
         return
 
     def set_discriminator(self, discriminator_net=None, discriminator_optimizer=None):
         """
         Initialize discriminator.
-        :param discriminator_net: torch.nn.Module or None, Discriminator network.
-        :param discriminator_optimizer: torch.optim.Optimizer or None, Optimizer initialized w.r.t discriminator network parameters.
+        Args:
+            discriminator_net: torch.nn.Module or None, Discriminator network.
+            discriminator_optimizer: torch.optim.Optimizer or None, Optimizer initialized w.r.t discriminator parameters.
+
+        Returns:
 
         """
-        self.discriminator = Discriminator(len(self._num_qubits), discriminator_net, discriminator_optimizer)
-        self.discriminator.set_seed(self.random_seed)
+        self._discriminator = Discriminator(len(self._num_qubits), discriminator_net, discriminator_optimizer)
+        self._discriminator.set_seed(self.random_seed)
         return
 
 
     def train(self):
         """
-        Train the qGAN.
-
+        Train the qGAN
         """
         if self._snapshot_dir is not None:
-            with open(self._snapshot_dir + '.csv', mode='w') as csv_file:
+            with open(os.path.join(self._snapshot_dir,'.csv'), mode='w') as csv_file:
                 fieldnames = ['epoch', 'loss_discriminator', 'loss_generator', 'params_generator',
                               'rel_entropy']
                 writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
@@ -337,58 +340,66 @@ class QGAN(QuantumAlgorithm):
             while (index+self._batch_size)<=len(self._data):
                 real_batch = self._data[index: index+self._batch_size]
                 index += self._batch_size
-                generated_batch, generated_prob = self.generator.get_samples(self._quantum_instance)
+                generated_batch, generated_prob = self._generator.get_samples(self._quantum_instance)
 
                 # 1. Train Discriminator
-                d_loss_min = self.discriminator.train(real_batch, generated_batch, generated_prob, penalty=True)
+                ret_d = self._discriminator.train(real_batch, generated_batch, generated_prob, penalty=True)
+                d_loss_min = ret_d['loss'].detach().numpy()
 
 
                 # 2. Train Generator
-                g_loss_min = self.generator.train(self.discriminator, self._quantum_instance, self._batch_size)[0]
+                ret_g = self._generator.train(self._discriminator, self._quantum_instance, self._batch_size)
+                g_loss_min = ret_g['loss']
 
-            self.d_loss.append(d_loss_min.detach().numpy())
-            self.g_loss.append(g_loss_min)
+            self._d_loss.append(d_loss_min)
+            self._g_loss.append(g_loss_min)
 
             rel_entr = self.get_rel_entr()
-            self.rel_entr.append(rel_entr)
+            self._rel_entr.append(rel_entr)
+            self._ret['params_d'] = ret_d['params']
+            self._ret['params_g'] = ret_g['params']
+            self._ret['loss_d'] = np.around(d_loss_min, 4)
+            self._ret['loss_g'] = np.around(g_loss_min, 4)
+            self._ret['rel_entr'] = np.around(rel_entr, 4)
 
             if self._snapshot_dir is not None:
                 self._store_params(e, np.around(d_loss_min.detach().numpy(),4), np.around(g_loss_min,4), np.around(rel_entr,4))
                     
             if self._snapshot_dir is None:
                 print("Epoch {}/{}...".format(e + 1, self._num_epochs))
-                print('Loss Discriminator: ', np.around(d_loss_min.detach().numpy(),4))
+                print('Loss Discriminator: ', np.around(d_loss_min,4))
                 print('Loss Generator: ', np.around(g_loss_min,4))
                 print('Relative Entropy: ', np.around(rel_entr,4))
             if self._tol_rel_ent is not None:
                 if rel_entr <= self._tol_rel_ent:
                     break
 
-    def run(self, quantum_instance=None, tol_rel_ent=None):
+    def set_tol_rel_ent(self, tol_rel_ent=None):
         """
-        Run qGAN training
-        :param quantum_instance: QuantumInstance, Used for running the quantum circuit -
-                                 Note that the supported backends are: statevector_simulator, qasm_simulator and actual
-                                 quantum hardware
-        :param tol_rel_ent: float or None, Set tolerance level for relative entropy. If the training achieves relative entropy
+        Set tolerance for relative entropy
+        Args:
+            tol_rel_ent: float or None, Set tolerance level for relative entropy. If the training achieves relative entropy
             equal or lower than tolerance it finishes.
-        :return: funct, Run the training of the qGAN
+
+        Returns: funct, Run the training of the qGAN
         """
-        if self._quantum_instance is None:
-            self.set_quantum_instance(quantum_instance)
-        if self.generator is None:
-            self.set_generator()
-        if self.discriminator is None:
-            self.set_discriminator()
+
         if tol_rel_ent is not None:
             self._tol_rel_ent = tol_rel_ent
-        return self._run()
+        return
 
     def _run(self):
         """
         Run qGAN training
-        :return: funct, Train quantum generator and classical discriminator
+        Returns: dict, with generator(discriminator) parameters & loss, relative entropy
+
         """
+        if self._quantum_instance.backend_name == ('unitary_simulator' or 'clifford_simulator'):
+            raise AquaError(
+                'Chosen backend not supported - Set backend either to statevector_simulator, qasm_simulator'
+                ' or actual quantum hardware')
+        #The number of shots must be the batch size
+        self._quantum_instance.set_config(shots=self._batch_size)
         self.train()
 
-        return
+        return self._ret

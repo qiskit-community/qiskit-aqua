@@ -19,7 +19,6 @@ import unittest
 
 import numpy as np
 
-# from parameterized import parameterized
 
 from qiskit.aqua.components.optimizers import ADAM
 from qiskit.aqua.components.uncertainty_models import UniformDistribution, UnivariateVariationalDistribution
@@ -35,13 +34,10 @@ from test.common import QiskitAquaTestCase
 
 
 class TestQGAN(QiskitAquaTestCase):
-    # @parameterized.expand([
-    #     'qasm_simulator',
-    #     'statevector_simulator'
-    # ])
-    # def setUp(self, simulator):
+
     def setUp(self):
         super().setUp()
+
         # Number training data samples
         N = 1000
         # Load data samples from log-normal distribution with mean=1 and standard deviation=1
@@ -60,14 +56,14 @@ class TestQGAN(QiskitAquaTestCase):
 
         # Initialize qGAN
         self.qgan = QGAN(real_data, bounds, num_qubits, batch_size, num_epochs, snapshot_dir=None)
-
+        self.qgan.set_seed(1)
         # Set quantum instance to run the quantum generator
-        simulator = 'statevector_simulator'
-        backend = BasicAer.get_backend(simulator)
-        self.quantum_instance = QuantumInstance(backend=backend, shots=batch_size, coupling_map=None,
-                                                circuit_caching=False)
-        self.qgan.set_quantum_instance(self.quantum_instance)
-
+        self.quantum_instance_statevector = QuantumInstance(backend=BasicAer.get_backend('statevector_simulator'),
+                                                            shots=batch_size, coupling_map=None, circuit_caching=False,
+                                                            seed_mapper=self.qgan.random_seed)
+        self.quantum_instance_qasm = QuantumInstance(backend=BasicAer.get_backend('qasm_simulator'),
+                                                     shots=batch_size, coupling_map=None, circuit_caching=False,
+                                                     seed_mapper=self.qgan.random_seed)
         # Set entangler map
         entangler_map = [[0, 1]]
 
@@ -87,10 +83,16 @@ class TestQGAN(QiskitAquaTestCase):
         self.qgan.set_generator(generator_circuit=g_circuit, generator_optimizer=g_optimizer)
 
     def test_sample_generation(self):
-        self.qgan.generator.get_samples(self.quantum_instance)
+        samples_statevector, weights_statevector = self.qgan._generator.get_samples(self.quantum_instance_statevector)
+        samples_qasm, weights_qasm = self.qgan._generator.get_samples(self.quantum_instance_qasm)
+        samples_qasm, weights_qasm = zip(*sorted(zip(samples_qasm, weights_qasm)))
+        for i, weight_q in enumerate(weights_qasm):
+            self.assertAlmostEqual(weight_q, weights_statevector[i], delta=0.05)
 
     def test_qgan_training(self):
-        self.qgan.run()
+        trained_statevector = self.qgan.run(self.quantum_instance_statevector)
+        trained_qasm = self.qgan.run(self.quantum_instance_qasm)
+        self.assertAlmostEqual(trained_qasm['rel_entr'], trained_statevector['rel_entr'], places=2)
 
 
 if __name__ == '__main__':

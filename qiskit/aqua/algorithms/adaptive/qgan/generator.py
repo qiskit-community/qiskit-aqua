@@ -15,15 +15,8 @@
 # limitations under the License.
 # =============================================================================
 
-from __future__ import absolute_import, division, print_function
 import numpy as np
 from copy import deepcopy
-
-import sys
-if sys.version_info < (3, 5):
-    raise Exception('Please use Python version 3.5 or greater.')
-sys.path.append('..')
-sys.path.append('../../quantum_risk_analysis/uncertainty_models')
 
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.aqua import aqua_globals
@@ -44,18 +37,18 @@ class Generator:
 
     def __init__(self, bounds, num_qubits, data_grid, generator_circuit=None, init_params=None,
                  optimizer=None):
-        '''  Initialize the generator network.
-
-            Arguments
-            ---------
-            :param bounds: list of k min/max data values [[min_1,max_1],...,[min_k,max_k]], given input data dim k
-            :param num_qubits: list/numpy array, list of k numbers of qubits to determine representation resolution,
+        """
+        Initialize the generator network.
+        Args:
+            bounds: array, k min/max data values [[min_1,max_1],...,[min_k,max_k]], given input data dim k
+            num_qubits: array, k numbers of qubits to determine representation resolution,
             i.e. n qubits enable the representation of 2**n values [n_1,..., n_k]
-            :param data_grid: array, describing the data resolution of the qgan, i.e. the representable values v
-            :param generator_circuit: UnivariateVariationalDistribution for univariate data/
+            data_grid: array, describing the data resolution of the qgan, i.e. the representable values v
+            generator_circuit: UnivariateVariationalDistribution for univariate data/
             MultivariateVariationalDistribution for multivariate data, Quantum circuit to implement the generator.
-            :param init_params: 1D numpy array or list, Initialization for the generator's parameters.
-        '''
+            init_params: 1D numpy array or list, Initialization for the generator's parameters.
+            optimizer: Optimizer, used to train the generator's parameters
+        """
 
         self._num_qubits = num_qubits
         self._data_grid = data_grid
@@ -81,8 +74,8 @@ class Generator:
                                 initial_distribution=init_dist, low=low, high=high)
             else:
                 init_dist = UniformDistribution(np.sum(num_qubits), low=bounds[0], high=bounds[1])
-                self.generator_circuit = UnivariateVariationalDistribution(int(np.sum(num_qubits)), var_form, init_params,
-                                                        initial_distribution=init_dist, low=bounds[0], high=bounds[1])
+                self.generator_circuit = UnivariateVariationalDistribution(int(np.sum(num_qubits)), var_form,
+                                            init_params, initial_distribution=init_dist, low=bounds[0], high=bounds[1])
 
         if len(num_qubits)>1:
             if isinstance(self.generator_circuit, MultivariateVariationalDistribution):
@@ -101,12 +94,17 @@ class Generator:
                  eps=1e-10, amsgrad=True, snapshot_dir=None)
         self._shots = None
 
+        self._ret = {}
+
     def construct_circuit(self, quantum_instance, params=None):
         """
         Construct generator circuit.
+        Args:
+            quantum_instance: QuantumInstance, used for running the generator circuit
+            params: array or None, parameters which should be used to run the generator, if None use self._params
 
-        :param params: array, parameters which should be used to run the generator, if None use self._params
-        :return: QuantumCircuit, constructed quantum circuit
+        Returns: QuantumCircuit, constructed quantum circuit
+
         """
 
         q = QuantumRegister(int(np.sum(self._num_qubits)), name='q')
@@ -129,11 +127,13 @@ class Generator:
     def get_samples(self, quantum_instance, params=None, shots=None):
         """
         Get data samples from the generator.
+        Args:
+            quantum_instance:  QuantumInstance, used to run the generator circuit.
+            params: array or None, parameters which should be used to run the generator, if None use self._params
+            shots: int, if not None use a number of shots that is different from the number set in quantum_instance
 
-        :param quantum_instance: QuantumInstance, used to run the generator
-        :param params: array, parameters which should be used to run the generator, if None use self._params
-        :param shots: int, if not None use a number of shots that is different from the number set in quantum_instance
-        :return: array: generated samples, array: sample occurence in percentage
+        Returns: array: generated samples, array: sample occurence in percentage
+
         """
         qc = self.construct_circuit(quantum_instance, params)
         if shots is not None:
@@ -177,27 +177,33 @@ class Generator:
     def _loss(self, x, weights):
         """
         Loss function
+        Args:
+            x: array, sample label (equivalent to discriminator output)
+            weights: array, probability for measuring the sample
 
-        :param x: array, sample label (equivalent to discriminator output)
-        :param weights: array, probability for measuring the sample
-        :return: float, loss function
+        Returns:  float, loss function
+
         """
         return (-1)*np.dot(weights, np.log(x))
 
     def _get_objective_function(self, quantum_instance, discriminator):
         """
         Get objective function
+        Args:
+            quantum_instance: QuantumInstance, used to run the quantum circuit.
+            discriminator: torch.nn.Module, discriminator network to compute the sample labels.
 
-        :param quantum_instance: QuantumInstance, used to run the quantum circuit
-        :param discriminator: torch.nn.Module, discriminator network to compute the sample labels
-        :return: objective function for quantum generator optimization
+        Returns: objective function for quantum generator optimization
+
         """
         def objective_function(params):
             """
             Objective function
+            Args:
+                params: array, generator parameters
 
-            :param params: array, generator parameters
-            :return: loss function
+            Returns: loss function
+
             """
             generated_data, generated_prob = self.get_samples(quantum_instance, params=params, shots=self._shots)
             prediction_generated = discriminator.get_labels(generated_data).detach().numpy()
@@ -207,13 +213,14 @@ class Generator:
     def train(self, discriminator, quantum_instance, shots=None):
         """
         Perform one training step w.r.t to the generator's parameters
+        Args:
+            discriminator: Discriminator, Discriminator used to compute the loss function.
+            quantum_instance: QuantumInstance, used to run the generator circuit.
+            shots: int, Number of shots for hardware or qasm execution.
 
-        :param discriminator: Discriminator, Discriminator used to compute the loss function
-        :param quantum_instance:  QuantumInstance, used to run the generator
-        :param shots: int, Number of shots for hardware or qasm execution
-        :return: loss - updated generator loss function
-        Note: nfev can be neglected b.c. the optimizer only performs one update step at a time
+        Returns: dict, generator loss(float) and updated parameters (array).
         """
+
         self._shots = shots
         # Force single optimization iteration
         self._optimizer._maxiter = 1
@@ -221,5 +228,7 @@ class Generator:
         objective = self._get_objective_function(quantum_instance, discriminator)
         self.generator_circuit.params, loss, nfev = self._optimizer.optimize(num_vars=len(self.generator_circuit.params), objective_function=objective,
                                                         initial_point=self.generator_circuit.params)
+        self._ret['loss'] = loss[0]
+        self._ret['params'] = self.generator_circuit.params
 
-        return loss
+        return self._ret
