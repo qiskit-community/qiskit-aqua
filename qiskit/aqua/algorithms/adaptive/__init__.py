@@ -20,9 +20,13 @@ from .qaoa.qaoa import QAOA
 from .qgan.qgan import QGAN
 from .qsvm.qsvm_variational import QSVMVariational
 from .vqalgorithm import VQAlgorithm
+from .vqclassification import VQClassification
 
-__all__ = ['VQE',
-           'QAOA',
-           'QGAN',
-           'QSVMVariational',
-           'VQAlgorithm']
+__all__ = [
+    'VQE',
+    'QAOA',
+    'QGAN',
+    'QSVMVariational',
+    'VQAlgorithm',
+    'VQClassification',
+]
