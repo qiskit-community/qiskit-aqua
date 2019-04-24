@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# Copyright 2019 IBM RESEARCH. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -51,58 +51,58 @@ class TestQNN(QiskitAquaTestCase):
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
             'algorithm': {'name': 'QNN'},
             'backend': {'provider': 'qiskit.BasicAer', 'name': 'statevector_simulator'},
-            'optimizer': {'name': 'COBYLA', 'maxiter':200},
+            'optimizer': {'name': 'COBYLA', 'maxiter': 200},
             'variational_form': {'name': 'RYRZ', 'depth': 3}
         }
         result = run_algorithm(params, self.svm_input)
         print(result['testing_accuracy'])
 
-        self.assertGreater(result['testing_accuracy'], 0.85) #
+        self.assertGreater(result['testing_accuracy'], 0.85)
 
     def test_qsvm_variational_via_run_algorithm(self):
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
-            'algorithm': {'name': 'QSVM.Variational'}, #
+            'algorithm': {'name': 'QSVM.Variational'},
             'backend': {'provider': 'qiskit.BasicAer', 'name': 'statevector_simulator'},
-            'optimizer': {'name': 'COBYLA', 'maxiter':200},
+            'optimizer': {'name': 'COBYLA', 'maxiter': 200},
             'variational_form': {'name': 'RYRZ', 'depth': 3}
         }
         result = run_algorithm(params, self.svm_input)
         print(result['testing_accuracy'])
 
-        self.assertLess(result['testing_accuracy'], 0.6) #
+        self.assertLess(result['testing_accuracy'], 0.6)
 
     def test_qnn_2d_via_run_algorithm(self):
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
-            'algorithm': {'name': 'QNN'}, #QSVM.Variational
+            'algorithm': {'name': 'QNN'},
             'backend': {'provider': 'qiskit.BasicAer', 'name': 'statevector_simulator'},
             'optimizer': {'name': 'COBYLA'},
             'variational_form': {'name': 'RYRZ', 'depth': 3}
         }
         n_dim = 2
-        sample_Total, training_input, test_input, class_labels = ad_hoc_data(training_size=20,
-                                                                             test_size=10,
-                                                                             n=n_dim, gap=0.3)
+        sample_Total, training_input, test_input, class_labels = ad_hoc_data(
+            training_size=20, test_size=10, n=n_dim, gap=0.3
+        )
         self.svm_input = SVMInput(training_input, test_input)
 
         result = run_algorithm(params, self.svm_input)
         print(result['testing_accuracy'])
-        self.assertGreater(result['testing_accuracy'], 0.55) #
-        self.assertLess(result['testing_accuracy'], 0.7) #
+        self.assertGreater(result['testing_accuracy'], 0.55)
+        self.assertLess(result['testing_accuracy'], 0.7)
 
     def test_qsvm_variational_2d_via_run_algorithm(self):
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
-            'algorithm': {'name': 'QSVM.Variational'}, #
+            'algorithm': {'name': 'QSVM.Variational'},
             'backend': {'provider': 'qiskit.BasicAer', 'name': 'statevector_simulator'},
             'optimizer': {'name': 'COBYLA'},
             'variational_form': {'name': 'RYRZ', 'depth': 3}
         }
         n_dim = 2
-        sample_Total, training_input, test_input, class_labels = ad_hoc_data(training_size=20,
-                                                                             test_size=10,
-                                                                             n=n_dim, gap=0.3)
+        sample_Total, training_input, test_input, class_labels = ad_hoc_data(
+            training_size=20, test_size=10, n=n_dim, gap=0.3
+        )
         self.svm_input = SVMInput(training_input, test_input)
 
         result = run_algorithm(params, self.svm_input)
@@ -115,7 +115,9 @@ def wine_data(training_size, test_size, n):
     class_labels = [r'A', r'B', r'C']
 
     data, target = datasets.load_wine(True)
-    sample_train, sample_test, label_train, label_test = train_test_split(data, target, test_size=test_size, random_state=7)
+    sample_train, sample_test, label_train, label_test = train_test_split(
+        data, target, test_size=test_size, random_state=7
+    )
 
     # Now we standarize for gaussian around 0 with unit variance
     std_scale = StandardScaler().fit(sample_train)
@@ -133,9 +135,14 @@ def wine_data(training_size, test_size, n):
     sample_train = minmax_scale.transform(sample_train)
     sample_test = minmax_scale.transform(sample_test)
     # Pick training size number of samples from each distro
-    training_input = {key: (sample_train[label_train == k, :])[:training_size] for k, key in enumerate(class_labels)}
-    test_input = {key: (sample_train[label_train == k, :])[training_size:(
-        training_size+test_size)] for k, key in enumerate(class_labels)}
+    training_input = {
+        key: (sample_train[label_train == k, :])[:training_size]
+        for k, key in enumerate(class_labels)
+    }
+    test_input = {
+        key: (sample_train[label_train == k, :])[training_size:(training_size + test_size)]
+        for k, key in enumerate(class_labels)
+    }
     return sample_train, training_input, test_input, class_labels
 
 
@@ -172,9 +179,9 @@ def ad_hoc_data(training_size, test_size, n, gap):
     H2 = np.asmatrix(H2)
     H3 = np.asmatrix(H3)
 
-    f = np.arange(2**n)
+    f = np.arange(2 ** n)
 
-    my_array = [[0 for x in range(n)] for y in range(2**n)]
+    my_array = [[0 for x in range(n)] for y in range(2 ** n)]
 
     for arindex in range(len(my_array)):
         temp_f = bin(f[arindex])[2:].zfill(n)
@@ -185,16 +192,16 @@ def ad_hoc_data(training_size, test_size, n, gap):
     my_array = np.transpose(my_array)
 
     # Define decision functions
-    maj = (-1)**(2*my_array.sum(axis=0) > n)
-    parity = (-1)**(my_array.sum(axis=0))
-    dict1 = (-1)**(my_array[0])
+    maj = (-1) ** (2 * my_array.sum(axis=0) > n)
+    parity = (-1) ** (my_array.sum(axis=0))
+    dict1 = (-1) ** (my_array[0])
     if n == 2:
         D = np.diag(parity)
     elif n == 3:
         D = np.diag(maj)
 
-    Basis = np.random.random((2**n, 2**n)) + 1j*np.random.random((2**n, 2**n))
-    Basis = np.asmatrix(Basis).getH()*np.asmatrix(Basis)
+    Basis = np.random.random((2 ** n, 2 ** n)) + 1j * np.random.random((2 ** n, 2 ** n))
+    Basis = np.asmatrix(Basis).getH() * np.asmatrix(Basis)
 
     [S, U] = np.linalg.eig(Basis)
 
@@ -202,9 +209,9 @@ def ad_hoc_data(training_size, test_size, n, gap):
     S = S[idx]
     U = U[:, idx]
 
-    M = (np.asmatrix(U)).getH()*np.asmatrix(D)*np.asmatrix(U)
+    M = (np.asmatrix(U)).getH() * np.asmatrix(D) * np.asmatrix(U)
 
-    psi_plus = np.transpose(np.ones(2))/np.sqrt(2)
+    psi_plus = np.transpose(np.ones(2)) / np.sqrt(2)
     psi_0 = 1
     for k in range(n):
         psi_0 = np.kron(np.asmatrix(psi_0), np.asmatrix(psi_plus))
@@ -215,12 +222,12 @@ def ad_hoc_data(training_size, test_size, n, gap):
     if n == 2:
         for n1 in range(N):
             for n2 in range(N):
-                x1 = steps*n1
-                x2 = steps*n2
-                phi = x1*np.kron(Z, J) + x2*np.kron(J, Z) + (np.pi-x1)*(np.pi-x2)*np.kron(Z, Z)
-                Uu = scipy.linalg.expm(1j*phi)
-                psi = np.asmatrix(Uu)*H2*np.asmatrix(Uu)*np.transpose(psi_0)
-                temp = np.asscalar(np.real(psi.getH()*M*psi))
+                x1 = steps * n1
+                x2 = steps * n2
+                phi = x1 * np.kron(Z, J) + x2 * np.kron(J, Z) + (np.pi-x1) * (np.pi-x2) * np.kron(Z, Z)
+                Uu = scipy.linalg.expm(1j * phi)
+                psi = np.asmatrix(Uu) * H2 * np.asmatrix(Uu) * np.transpose(psi_0)
+                temp = np.asscalar(np.real(psi.getH() * M * psi))
                 if temp > gap:
                     sample_Total[n1][n2] = +1
                 elif temp < -gap:
@@ -230,11 +237,11 @@ def ad_hoc_data(training_size, test_size, n, gap):
 
         # Now sample randomly from sample_Total a number of times training_size+testing_size
         tr = 0
-        while tr < (training_size+test_size):
+        while tr < (training_size + test_size):
             draw1 = np.random.choice(N)
             draw2 = np.random.choice(N)
             if sample_Total[draw1][draw2] == +1:
-                sampleA[tr] = [2*np.pi*draw1/N, 2*np.pi*draw2/N]
+                sampleA[tr] = [2 * np.pi * draw1 / N, 2 * np.pi * draw2 / N]
                 tr += 1
 
         tr = 0
@@ -242,35 +249,42 @@ def ad_hoc_data(training_size, test_size, n, gap):
             draw1 = np.random.choice(N)
             draw2 = np.random.choice(N)
             if sample_Total[draw1][draw2] == -1:
-                sampleB[tr] = [2*np.pi*draw1/N, 2*np.pi*draw2/N]
+                sampleB[tr] = [2 * np.pi * draw1 / N, 2 * np.pi * draw2 / N]
                 tr += 1
 
         sample_train = [sampleA, sampleB]
 
-        for lindex in range(training_size+test_size):
+        for lindex in range(training_size + test_size):
             label_train[lindex] = 0
-        for lindex in range(training_size+test_size):
-            label_train[training_size+test_size+lindex] = 1
+        for lindex in range(training_size + test_size):
+            label_train[training_size + test_size + lindex] = 1
         label_train = label_train.astype(int)
-        sample_train = np.reshape(sample_train, (2*(training_size+test_size), n))
-        training_input = {key: (sample_train[label_train == k, :])[:training_size]
-                          for k, key in enumerate(class_labels)}
-        test_input = {key: (sample_train[label_train == k, :])[training_size:(
-            training_size+test_size)] for k, key in enumerate(class_labels)}
+        sample_train = np.reshape(sample_train, (2 * (training_size + test_size), n))
+        training_input = {
+            key: (sample_train[label_train == k, :])[:training_size]
+            for k, key in enumerate(class_labels)
+        }
+        test_input = {
+            key: (sample_train[label_train == k, :])[training_size:(training_size + test_size)]
+            for k, key in enumerate(class_labels)
+        }
 
     elif n == 3:
         for n1 in range(N):
             for n2 in range(N):
                 for n3 in range(N):
-                    x1 = steps*n1
-                    x2 = steps*n2
-                    x3 = steps*n3
-                    phi = x1*np.kron(np.kron(Z, J), J) + x2*np.kron(np.kron(J, Z), J) + x3*np.kron(np.kron(J, J), Z) + \
-                        (np.pi-x1)*(np.pi-x2)*np.kron(np.kron(Z, Z), J)+(np.pi-x2)*(np.pi-x3)*np.kron(np.kron(J, Z), Z) + \
-                        (np.pi-x1)*(np.pi-x3)*np.kron(np.kron(Z, J), Z)
-                    Uu = scipy.linalg.expm(1j*phi)
-                    psi = np.asmatrix(Uu)*H3*np.asmatrix(Uu)*np.transpose(psi_0)
-                    temp = np.asscalar(np.real(psi.getH()*M*psi))
+                    x1 = steps * n1
+                    x2 = steps * n2
+                    x3 = steps * n3
+                    phi = x1 * np.kron(np.kron(Z, J), J) + \
+                          x2 * np.kron(np.kron(J, Z), J) + \
+                          x3 * np.kron(np.kron(J, J), Z) + \
+                          (np.pi - x1) * (np.pi - x2) * np.kron(np.kron(Z, Z), J) + \
+                          (np.pi - x2) * (np.pi - x3) * np.kron(np.kron(J, Z), Z) + \
+                          (np.pi - x1) * (np.pi - x3) * np.kron(np.kron(Z, J), Z)
+                    Uu = scipy.linalg.expm(1j * phi)
+                    psi = np.asmatrix(Uu) * H3 * np.asmatrix(Uu) * np.transpose(psi_0)
+                    temp = np.asscalar(np.real(psi.getH() * M * psi))
                     if temp > gap:
                         sample_Total[n1][n2][n3] = +1
                         sample_total_A.append([n1, n2, n3])
@@ -283,35 +297,39 @@ def ad_hoc_data(training_size, test_size, n, gap):
 
         # Now sample randomly from sample_Total a number of times training_size+testing_size
         tr = 0
-        while tr < (training_size+test_size):
+        while tr < (training_size + test_size):
             draw1 = np.random.choice(N)
             draw2 = np.random.choice(N)
             draw3 = np.random.choice(N)
             if sample_Total[draw1][draw2][draw3] == +1:
-                sampleA[tr] = [2*np.pi*draw1/N, 2*np.pi*draw2/N, 2*np.pi*draw3/N]
+                sampleA[tr] = [2 * np.pi * draw1 / N, 2 * np.pi * draw2 / N, 2 * np.pi * draw3 / N]
                 tr += 1
 
         tr = 0
-        while tr < (training_size+test_size):
+        while tr < (training_size + test_size):
             draw1 = np.random.choice(N)
             draw2 = np.random.choice(N)
             draw3 = np.random.choice(N)
             if sample_Total[draw1][draw2][draw3] == -1:
-                sampleB[tr] = [2*np.pi*draw1/N, 2*np.pi*draw2/N, 2*np.pi*draw3/N]
+                sampleB[tr] = [2 * np.pi * draw1 / N, 2 * np.pi * draw2 / N, 2 * np.pi * draw3 / N]
                 tr += 1
 
         sample_train = [sampleA, sampleB]
 
-        for lindex in range(training_size+test_size):
+        for lindex in range(training_size + test_size):
             label_train[lindex] = 0
-        for lindex in range(training_size+test_size):
-            label_train[training_size+test_size+lindex] = 1
+        for lindex in range(training_size + test_size):
+            label_train[training_size + test_size + lindex] = 1
         label_train = label_train.astype(int)
-        sample_train = np.reshape(sample_train, (2*(training_size+test_size), n))
-        training_input = {key: (sample_train[label_train == k, :])[:training_size]
-                          for k, key in enumerate(class_labels)}
-        test_input = {key: (sample_train[label_train == k, :])[training_size:(
-            training_size+test_size)] for k, key in enumerate(class_labels)}
+        sample_train = np.reshape(sample_train, (2 * (training_size + test_size), n))
+        training_input = {
+            key: (sample_train[label_train == k, :])[:training_size]
+            for k, key in enumerate(class_labels)
+        }
+        test_input = {
+            key: (sample_train[label_train == k, :])[training_size:(training_size + test_size)]
+            for k, key in enumerate(class_labels)
+        }
 
     return sample_Total, training_input, test_input, class_labels
 
