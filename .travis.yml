@@ -30,6 +30,13 @@ addons:
         - g++-7
 
 before_install:
+    - |
+      INIT_FILE="$TRAVIS_BUILD_DIR/qiskit/__init__.py"
+      if [ -f $INIT_FILE ]; then
+        # stops travis if __init__.py exists under qiskit
+        echo "File '$INIT_FILE' found. It should not exist, since this repo extends qiskit namespace.";
+        travis_terminate 1;
+      fi
     - pip install --upgrade pip setuptools wheel
     # download Qiskit Terra master and unzip it only if forced from master or not stable branch, otherwise use the pypi version
     - |
