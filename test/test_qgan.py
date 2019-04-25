@@ -97,8 +97,8 @@ class TestQGAN(QiskitAquaTestCase):
         self.qgan.set_generator(generator_circuit=g_circuit, generator_optimizer=g_optimizer)
 
     def test_sample_generation(self):
-        samples_statevector, weights_statevector = self.qgan._generator.get_samples(self.quantum_instance_statevector)
-        samples_qasm, weights_qasm = self.qgan._generator.get_samples(self.quantum_instance_qasm)
+        samples_statevector, weights_statevector = self.qgan._generator.get_output(self.quantum_instance_statevector)
+        samples_qasm, weights_qasm = self.qgan._generator.get_output(self.quantum_instance_qasm)
         samples_qasm, weights_qasm = zip(*sorted(zip(samples_qasm, weights_qasm)))
         for i, weight_q in enumerate(weights_qasm):
             self.assertAlmostEqual(weight_q, weights_statevector[i], delta=0.05)

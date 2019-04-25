@@ -23,6 +23,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 from qiskit.aqua import AquaError
+from qiskit.aqua import Pluggable
+from qiskit.aqua.components.neural_networks import NeuralNetwork
 
 try:
     import torch
@@ -34,6 +36,7 @@ except ImportError:
     logger.info('Pytorch is not installed. For installation instructions see https://pytorch.org/get-started/locally/')
     torch_loaded = False
     # raise Exception('Please install PyTorch')
+
 
 class DiscriminatorNet(torch.nn.Module):
     """
@@ -80,7 +83,8 @@ class DiscriminatorNet(torch.nn.Module):
 
         return x
 
-class Discriminator():
+
+class Discriminator(NeuralNetwork):
 
     def __init__(self, n_features=1, discriminator_net=None, optimizer=None):
         """
@@ -111,6 +115,10 @@ class Discriminator():
             self._optimizer = optim.Adam(self.discriminator.parameters(), lr=1e-5, amsgrad=True)
 
         self._ret = {}
+
+    @classmethod
+    def get_section_key_name(cls):
+        return Pluggable.SECTION_KEY_NEURAL_NETWORK
 
     @staticmethod
     def check_pluggable_valid():
@@ -151,7 +159,7 @@ class Discriminator():
         torch.save(self.discriminator, os.path.join(snapshot_dir, 'discriminator.pt'))
         return
 
-    def get_labels(self, x):
+    def get_output(self, x):
         """
         Get data sample labels, i.e. true or fake.
         Args:
@@ -169,23 +177,9 @@ class Discriminator():
 
         return self.discriminator.forward(x)
 
-    def loss_real(self, x, y):
+    def loss(self, x, y, weights=None):
         """
-        Loss function for real data samples
-        Args:
-            x: torch.Tensor, Discriminator output.
-            y: torch.Tensor, Label of the data point
-
-        Returns:torch.Tensor, Loss w.r.t to the real data points.
-
-        """
-
-        loss_funct = nn.BCELoss()
-        return loss_funct(x, y)
-
-    def loss_fake(self, x, y, weights):
-        """
-        Loss function for fake data samples
+        Loss function
         Args:
             x: torch.Tensor, Discriminator output.
             y: torch.Tensor, Label of the data point
@@ -194,7 +188,10 @@ class Discriminator():
         Returns:torch.Tensor, Loss w.r.t to the generated data points.
 
         """
-        loss_funct = nn.BCELoss(weight=weights, reduction='sum')
+        if weights is not None:
+            loss_funct = nn.BCELoss(weight=weights, reduction='sum')
+        else:
+            loss_funct = nn.BCELoss()
 
         return loss_funct(x, y)
 
@@ -218,7 +215,7 @@ class Discriminator():
             x = Variable(x)
         delta_ = torch.rand(x.size()) * c
         z = Variable(x+delta_, requires_grad = True)
-        o = self.get_labels(z)
+        o = self.get_output(z)
         d = torch.autograd.grad(o, z, grad_outputs=torch.ones(o.size()), create_graph=True)[0].view(z.size(0), -1)
 
         return lambda_ * ((d.norm(p=2,dim=1) - k)**2).mean()
@@ -244,20 +241,20 @@ class Discriminator():
         real_batch = Variable(real_batch)
 
         # Train on Real Data
-        prediction_real = self.get_labels(real_batch)
+        prediction_real = self.get_output(real_batch)
 
         # Calculate error and backpropagate
-        error_real = self.loss_real(prediction_real, torch.ones(len(prediction_real), 1))
+        error_real = self.loss(prediction_real, torch.ones(len(prediction_real), 1))
         error_real.backward()
 
         # Train on Generated Data
         generated_batch = np.reshape(generated_batch,(len(generated_batch), self.n_features))
         generated_prob = np.reshape(generated_prob, (len(generated_prob), 1))
         generated_prob = torch.tensor(generated_prob, dtype=torch.float32)
-        prediction_fake = self.get_labels(generated_batch)
+        prediction_fake = self.get_output(generated_batch)
 
         # Calculate error and backpropagate
-        error_fake = self.loss_fake(prediction_fake, torch.zeros(len(prediction_fake),1), generated_prob)
+        error_fake = self.loss(prediction_fake, torch.zeros(len(prediction_fake),1), generated_prob)
         error_fake.backward()
 
         if penalty:

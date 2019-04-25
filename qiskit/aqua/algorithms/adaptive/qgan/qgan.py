@@ -30,10 +30,10 @@ from qiskit.aqua import Pluggable
 from qiskit.aqua.algorithms import QuantumAlgorithm
 
 
-from qiskit.aqua import aqua_globals, QuantumInstance
+from qiskit.aqua import aqua_globals
 
-from .generator import Generator
-from .discriminator import Discriminator
+from qiskit.aqua.components.neural_networks.qgan_generator import Generator
+from qiskit.aqua.components.neural_networks.qgan_discriminator import Discriminator
 
 
 logger = logging.getLogger(__name__)
@@ -63,6 +63,14 @@ class QGAN(QuantumAlgorithm):
                     'type': 'integer',
                     'default': 3000
                 },
+                'seed': {
+                    'type': ['integer'],
+                    'default': 7
+                },
+                'tol_rel_ent': {
+                    'type': ['number', 'null'],
+                    'default': None
+                },
                 'snapshot_dir': {
                     'type': ['string', 'null'],
                     'default': None
@@ -70,10 +78,23 @@ class QGAN(QuantumAlgorithm):
             },
             'additionalProperties': False
         },
-        'problems': ['distribution_learning_loading']
+        'problems': ['distribution_learning_loading'],
+        'depends': [
+            {'pluggable_type': 'neural_network',
+             'default': {
+                 'name': 'Generator'
+             }
+             },
+            {'pluggable_type': 'neural_network',
+             'default': {
+                 'name': 'Discriminator'
+             }
+             },
+        ],
     }
 
-    def __init__(self, data, bounds=None, num_qubits=None, batch_size=500, num_epochs=3000, snapshot_dir=None):
+    def __init__(self, data, bounds=None, num_qubits=None, batch_size=500, num_epochs=3000, seed=7, discriminator=None,
+                 generator=None, tol_rel_ent=None,snapshot_dir=None):
         """
         Initialize qGAN.
         Args:
@@ -84,6 +105,10 @@ class QGAN(QuantumAlgorithm):
         i.e. n qubits enable the representation of 2**n values [num_qubits_0,..., num_qubits_k-1]
             batch_size: int, batch size
             num_epochs: int, number of training epochs
+            tol_rel_ent: float or None, Set tolerance level for relative entropy. If the training achieves relative
+            entropy equal or lower than tolerance it finishes.
+            discriminator: NeuralNetwork, discriminates between real and fake data samples
+            generator: NeuralNetwork, generates 'fake' data samples
             snapshot_dir: path or None, if path given store cvs file with parameters to the directory
         """
 
@@ -122,20 +147,22 @@ class QGAN(QuantumAlgorithm):
         self._prepare_data()
         self._batch_size = batch_size
         self._num_epochs = num_epochs
-        self._generator = None
-        self._discriminator = None
+        if generator is None:
+            self.set_generator()
+        else:
+            self._generator = generator
+        if discriminator is None:
+            self.set_discriminator()
+        else:
+            self._discriminator = discriminator
         self._snapshot_dir = snapshot_dir
         self._g_loss = []
         self._d_loss = []
         self._rel_entr = []
-        self._tol_rel_ent = None
+        self._tol_rel_ent = tol_rel_ent
 
-
-        self.random_seed = 7
-        aqua_globals.random_seed = self.random_seed
-
-        self.set_generator()
-        self.set_discriminator()
+        self._random_seed = seed
+        self.seed = self._random_seed
 
         self._ret = {}
 
@@ -159,31 +186,87 @@ class QGAN(QuantumAlgorithm):
         num_qubits = qgan_params.get('num_qubits')
         batch_size = qgan_params.get('batch_size')
         num_epochs = qgan_params.get('num_epochs')
+        seed = qgan_params.get('seed')
+        tol_rel_ent = qgan_params.get('tol_rel_ent')
         snapshot_dir = qgan_params.get('snapshot_dir')
 
-        return cls(algo_input.data, algo_input.bounds, num_qubits, batch_size, num_epochs, snapshot_dir)
+        nn_params = params.get(Pluggable.SECTION_NEURAL_NETWORK)
 
-    def set_seed(self, seed):
+        #discriminate between parameters for the generator and the discriminator
+
+        return cls(algo_input.data, algo_input.bounds, num_qubits, batch_size, num_epochs, seed, tol_rel_ent,
+                   snapshot_dir)
+
+    @property
+    def seed(self):
+        return self._random_seed
+    @seed.setter
+    def seed(self, s):
         """
-        Set a custom seed.
+
         Args:
-            seed: int, seed to be set
+            seed: int, random seed
 
         Returns:
 
         """
-        self.random_seed = seed
-        np.random.seed(self.random_seed)
-        self._discriminator.set_seed(self.random_seed)
-        aqua_globals.random_seed = self.random_seed
+        self._random_seed = s
+        np.random.seed(self._random_seed)
+        self._discriminator.set_seed(self._random_seed)
+        aqua_globals.random_seed = self._random_seed
+
+    @property
+    def tol_rel_ent(self):
+        return self._tol_rel_ent
+    @tol_rel_ent.setter
+    def tol_rel_ent(self, t):
+        """
+        Set tolerance for relative entropy
+        Args:
+            tol_rel_ent: float or None, Set tolerance level for relative entropy. If the training achieves relative
+            entropy equal or lower than tolerance it finishes.
+        Returns:
+        """
+        self._tol_rel_ent = t
 
     @property
     def generator(self):
         return self._generator
 
+    def set_generator(self, generator_circuit=None, generator_init_params=None, generator_optimizer=None):
+        """
+        Initialize generator.
+        Args:
+            generator_circuit: VariationalForm, parametrized quantum circuit which sets the structure of the quantum
+            generator
+            generator_init_params: array, initial parameters for the generator circuit
+            generator_optimizer: Optimizer, optimizer to be used for the training of the generator
+
+        Returns:
+
+        """
+        self._generator = Generator(self._bounds, self._num_qubits, self._data_grid, generator_circuit,
+                                    generator_init_params, generator_optimizer)
+        return
+
+
     @property
     def discriminator(self):
         return self._discriminator
+
+    def set_discriminator(self, discriminator_net=None, discriminator_optimizer=None):
+        """
+        Initialize discriminator.
+        Args:
+            discriminator_net: torch.nn.Module or None, Discriminator network.
+            discriminator_optimizer: torch.optim.Optimizer or None, Optimizer initialized w.r.t discriminator parameters.
+
+        Returns:
+
+        """
+        self._discriminator = Discriminator(len(self._num_qubits), discriminator_net, discriminator_optimizer)
+        self._discriminator.set_seed(self.random_seed)
+        return
 
     @property
     def g_loss(self):
@@ -261,7 +344,7 @@ class QGAN(QuantumAlgorithm):
         return
 
     def get_rel_entr(self):
-        samples_gen, prob_gen = self._generator.get_samples(self._quantum_instance, shots=10000)
+        samples_gen, prob_gen = self._generator.get_output(self._quantum_instance, shots=10000)
         temp = np.zeros(len(self._grid_elements))
         for j, sample in enumerate(samples_gen):
             for i, element in enumerate(self._grid_elements):
@@ -282,37 +365,6 @@ class QGAN(QuantumAlgorithm):
         #Store discriminator model
         self._discriminator.save_model(self._snapshot_dir)
 
-    def set_generator(self, generator_circuit=None, generator_init_params=None, generator_optimizer=None):
-        """
-        Initialize generator.
-        Args:
-            generator_circuit: VariationalForm, parametrized quantum circuit which sets the structure of the quantum
-            generator
-            generator_init_params: array, initial parameters for the generator circuit
-            generator_optimizer: Optimizer, optimizer to be used for the training of the generator
-
-        Returns:
-
-        """
-
-        self._generator = Generator(self._bounds, self._num_qubits, self._data_grid, generator_circuit,
-                                    generator_init_params, generator_optimizer)
-        return
-
-    def set_discriminator(self, discriminator_net=None, discriminator_optimizer=None):
-        """
-        Initialize discriminator.
-        Args:
-            discriminator_net: torch.nn.Module or None, Discriminator network.
-            discriminator_optimizer: torch.optim.Optimizer or None, Optimizer initialized w.r.t discriminator parameters.
-
-        Returns:
-
-        """
-        self._discriminator = Discriminator(len(self._num_qubits), discriminator_net, discriminator_optimizer)
-        self._discriminator.set_seed(self.random_seed)
-        return
-
 
     def train(self):
         """
@@ -331,7 +383,7 @@ class QGAN(QuantumAlgorithm):
             while (index+self._batch_size)<=len(self._data):
                 real_batch = self._data[index: index+self._batch_size]
                 index += self._batch_size
-                generated_batch, generated_prob = self._generator.get_samples(self._quantum_instance)
+                generated_batch, generated_prob = self._generator.get_output(self._quantum_instance)
 
                 # 1. Train Discriminator
                 ret_d = self._discriminator.train(real_batch, generated_batch, generated_prob, penalty=True)
@@ -365,19 +417,6 @@ class QGAN(QuantumAlgorithm):
                 if rel_entr <= self._tol_rel_ent:
                     break
 
-    def set_tol_rel_ent(self, tol_rel_ent=None):
-        """
-        Set tolerance for relative entropy
-        Args:
-            tol_rel_ent: float or None, Set tolerance level for relative entropy. If the training achieves relative entropy
-            equal or lower than tolerance it finishes.
-
-        Returns: funct, Run the training of the qGAN
-        """
-
-        if tol_rel_ent is not None:
-            self._tol_rel_ent = tol_rel_ent
-        return
 
     def _run(self):
         """

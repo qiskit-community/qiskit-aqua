@@ -15,7 +15,10 @@
 # limitations under the License.
 # =============================================================================
 
-from .qgan import QGAN
+from .neural_network import NeuralNetwork
+from .qgan_discriminator import Discriminator
+from .qgan_generator import Generator
 
-__all__ = ['QGAN']
-
+__all__ = ['NeuralNetwork',
+           'Discriminator',
+           'Generator']

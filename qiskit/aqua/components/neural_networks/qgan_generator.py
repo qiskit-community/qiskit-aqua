@@ -26,14 +26,53 @@ from qiskit.aqua.components.uncertainty_models import UnivariateVariationalDistr
     MultivariateVariationalDistribution
 from qiskit.aqua.components.variational_forms import RY
 from qiskit.aqua import AquaError
+from qiskit.aqua import Pluggable, get_pluggable_class, PluggableType
+from qiskit.aqua.components.neural_networks import NeuralNetwork
 
 
-
-
-class Generator:
+class Generator(NeuralNetwork):
     """
     Generator
     """
+    CONFIGURATION = {
+        'name': 'GENERATOR',
+        'description': 'qGAN Generator Network',
+        'input_schema': {
+            '$schema': 'http://json-schema.org/schema#',
+            'id': 'generator_schema',
+            'type': 'object',
+            'properties': {
+                'bounds': {
+                    'type': 'array'
+                },
+                'num_qubits': {
+                    'type': 'array'
+                },
+                'data_grid': {
+                    'type': ['array']
+                },
+                'init_params': {
+                    'type': ['array', 'null'],
+                    'default': None
+                }
+            },
+            'additionalProperties': False
+        },
+
+        'depends': [
+            {'pluggable_type': 'optimizer',
+             'default': {
+                     'name': 'ADAM'
+                }
+             },
+            {'pluggable_type': 'variational_form',
+             'default': {
+                     'name': 'RY'
+                }
+             },
+        ],
+    }
+
 
     def __init__(self, bounds, num_qubits, data_grid, generator_circuit=None, init_params=None,
                  optimizer=None):
@@ -96,6 +135,47 @@ class Generator:
 
         self._ret = {}
 
+    @classmethod
+    def init_params(cls, params):
+        """
+            Initialize via parameters dictionary and algorithm input instance.
+
+            Args:
+                params (dict): parameters dictionary
+
+                Returns:
+                    Generator: vqe object
+                """
+        generator_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
+        bounds = generator_params.get('bounds')
+        if bounds is None:
+            raise AquaError("Data value bounds are required.")
+        num_qubits = generator_params.get('num_qubits')
+        if num_qubits is None:
+            raise AquaError("Numbers of qubits per dimension required.")
+        data_grid = generator_params.get('data_grid')
+        if data_grid is None:
+            raise AquaError("Data grid is required.")
+
+        init_params = generator_params.get('init_params')
+
+        # Set up variational form
+        var_form_params = params.get(Pluggable.SECTION_KEY_VAR_FORM)
+        var_form = get_pluggable_class(PluggableType.VARIATIONAL_FORM,
+                                       var_form_params['name']).init_params(params)
+
+        # Set up optimizer
+        opt_params = params.get(Pluggable.SECTION_KEY_OPTIMIZER)
+        optimizer = get_pluggable_class(PluggableType.OPTIMIZER,
+                                        opt_params['name']).init_params(params)
+
+        return cls(bounds, num_qubits, data_grid, generator_circuit=var_form, init_params=init_params,
+                 optimizer=optimizer)
+
+    @classmethod
+    def get_section_key_name(cls):
+        return Pluggable.SECTION_KEY_NEURAL_NETWORK
+
     def construct_circuit(self, quantum_instance, params=None):
         """
         Construct generator circuit.
@@ -124,7 +204,7 @@ class Generator:
             qc.measure(q, c)
             return qc.copy(name='qc')
 
-    def get_samples(self, quantum_instance, params=None, shots=None):
+    def get_output(self, quantum_instance, params=None, shots=None):
         """
         Get data samples from the generator.
         Args:
@@ -174,7 +254,7 @@ class Generator:
 
         return generated_samples, generated_samples_weights
 
-    def _loss(self, x, weights):
+    def loss(self, x, weights):
         """
         Loss function
         Args:
@@ -205,9 +285,9 @@ class Generator:
             Returns: loss function
 
             """
-            generated_data, generated_prob = self.get_samples(quantum_instance, params=params, shots=self._shots)
-            prediction_generated = discriminator.get_labels(generated_data).detach().numpy()
-            return self._loss(prediction_generated, generated_prob)
+            generated_data, generated_prob = self.get_output(quantum_instance, params=params, shots=self._shots)
+            prediction_generated = discriminator.get_output(generated_data).detach().numpy()
+            return self.loss(prediction_generated, generated_prob)
         return objective_function
 
     def train(self, discriminator, quantum_instance, shots=None):
