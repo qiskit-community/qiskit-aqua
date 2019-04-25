@@ -22,7 +22,7 @@ from qiskit import QuantumRegister, QuantumCircuit
 from qiskit import execute as q_execute
 from qiskit import BasicAer
 
-from qiskit.aqua import AquaError
+from qiskit.aqua import AquaError, aqua_globals
 from qiskit.aqua.components.initial_states import InitialState
 from qiskit.aqua.circuits import StateVectorCircuit
 from qiskit.aqua.utils.arithmetic import normalize_vector
@@ -95,7 +95,7 @@ class Custom(InitialState):
                 elif self._state == 'uniform':
                     self._state_vector = np.array([1.0 / np.sqrt(size)] * size)
                 elif self._state == 'random':
-                    self._state_vector = normalize_vector(np.random.rand(size))
+                    self._state_vector = normalize_vector(aqua_globals.random.rand(size))
                 else:
                     raise AquaError('Unknown state {}'.format(self._state))
             else:
