@@ -15,6 +15,8 @@
 # limitations under the License.
 # =============================================================================
 
+from qiskit import BasicAer, execute
+from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.aqua.circuits import FourierTransformCircuits as ftc
 from . import QFT
 
@@ -54,3 +56,16 @@ class Approximate(QFT):
             approximation_degree=self._degree,
             do_swaps=do_swaps
         )
+
+    def _build_matrix(self):
+        # Build empty circuit to give to the _build_circuit method
+        qr = QuantumRegister(self._num_qubits)
+        empty_circuit = QuantumCircuit(qr)
+
+        # Simulate the approximate IQFT with the unitary_simulator and
+        # get the resulting unitary matrix
+        simulator = BasicAer.get_backend("unitary_simulator")
+        circuit = self._build_circuit(qubits=qr, circuit=empty_circuit)
+        result = execute(circuit, simulator).result()
+        matrix = result.get_unitary(circuit)
+        return matrix
