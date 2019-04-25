@@ -74,10 +74,10 @@ class QSVMKernel(QuantumAlgorithm):
         Args:
             feature_map (FeatureMap): feature map module, used to transform data
             training_dataset (dict): training dataset.
-            test_dataset (dict): testing dataset.
-            datapoints (numpy.ndarray): prediction dataset.
-            multiclass_extension (MultiExtension): if number of classes > 2, a multiclass scheme is
-                                                    is needed.
+            test_dataset (Optional[dict]): testing dataset.
+            datapoints (Optional[numpy.ndarray]): prediction dataset.
+            multiclass_extension (Optional[MultiExtension]): if number of classes > 2 then
+                a multiclass scheme is needed.
 
         Raises:
             ValueError: if training_dataset is None
