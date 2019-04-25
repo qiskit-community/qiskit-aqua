@@ -33,7 +33,7 @@ stage_dependencies: &stage_dependencies
       INIT_FILE="$TRAVIS_BUILD_DIR/qiskit/__init__.py"
       if [ -f $INIT_FILE ]; then
         # stops travis if __init__.py exists under qiskit
-        echo "File '$INIT_FILE' found. It should not exist, since it this repo extends qiskit namespace.";
+        echo "File '$INIT_FILE' found. It should not exist, since this repo extends qiskit namespace.";
         travis_terminate 1;
       fi
     - pip install --upgrade pip setuptools wheel
