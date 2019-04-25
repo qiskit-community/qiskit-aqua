@@ -261,7 +261,7 @@ class Grover(QuantumAlgorithm):
             current_max_num_iterations, lam = 1, 6 / 5
 
             def _try_current_max_num_iterations():
-                target_num_iterations = np.random.randint(current_max_num_iterations) + 1
+                target_num_iterations = self.random.randint(current_max_num_iterations) + 1
                 self._qc_amplitude_amplification = QuantumCircuit()
                 for _ in range(target_num_iterations):
                     self._qc_amplitude_amplification += self.qc_amplitude_amplification_iteration

@@ -31,28 +31,28 @@ from qiskit.aqua.components.feature_maps import SecondOrderExpansion
 from qiskit.aqua.components.variational_forms import RYRZ, RY
 from qiskit.aqua.components.optimizers import L_BFGS_B
 
+
 class TestQSVMVariational(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
-        self.random_seed = 10598
+        self.random_seed = 1376
         self.training_data = {'A': np.asarray([[2.95309709, 2.51327412], [3.14159265, 4.08407045]]),
                               'B': np.asarray([[4.08407045, 2.26194671], [4.46106157, 2.38761042]])}
         self.testing_data = {'A': np.asarray([[3.83274304, 2.45044227]]),
                              'B': np.asarray([[3.89557489, 0.31415927]])}
 
-        self.ref_opt_params = np.array([8.84487704, -4.75068608, -3.09321599, 6.15074807,
-                                        -8.13322889, -10.03379214, 5.4842633, -0.80973346,
-                                        -1.57635832, -9.36628893, -5.97527339, -2.65074375,
-                                        -4.45536502, 10.86323401, 11.39789674, 3.65879025])
-        self.ref_train_loss = 0.35346867
-        self.ref_prediction_a_probs = [[0.55273438, 0.44726562]]
+        self.ref_opt_params = np.array([10.03814083, -12.22048954, -7.58026833, -2.42392954,
+                                        12.91555293, 13.44064652, -2.89951454, -10.20639406,
+                                        0.81414546, -1.00551752, -4.7988307, 14.00831419 ,
+                                        8.26008064, -7.07543736, 11.43368677 ,-5.74857438])
+        self.ref_train_loss = 0.69366523
+        self.ref_prediction_a_probs = [[0.79882812, 0.20117188]]
         self.ref_prediction_a_label = [0]
 
         self.svm_input = SVMInput(self.training_data, self.testing_data)
 
     def test_qsvm_variational_via_run_algorithm(self):
-        np.random.seed(self.random_seed)
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
             'algorithm': {'name': 'QSVM.Variational'},
@@ -66,13 +66,12 @@ class TestQSVMVariational(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(result['opt_params'], self.ref_opt_params, decimal=8)
         np.testing.assert_array_almost_equal(result['training_loss'], self.ref_train_loss, decimal=8)
 
-        self.assertEqual(result['testing_accuracy'], 0.5)
+        self.assertEqual(1.0, result['testing_accuracy'])
 
     def test_qsvm_variational_with_max_evals_grouped(self):
-        np.random.seed(self.random_seed)
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
-            'algorithm': {'name': 'QSVM.Variational', 'max_evals_grouped':2},
+            'algorithm': {'name': 'QSVM.Variational', 'max_evals_grouped': 2},
             'backend': {'provider': 'qiskit.BasicAer', 'name': 'qasm_simulator', 'shots': 1024},
             'optimizer': {'name': 'SPSA', 'max_trials': 10, 'save_steps': 1},
             'variational_form': {'name': 'RYRZ', 'depth': 3},
@@ -83,12 +82,11 @@ class TestQSVMVariational(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(result['opt_params'], self.ref_opt_params, decimal=8)
         np.testing.assert_array_almost_equal(result['training_loss'], self.ref_train_loss, decimal=8)
 
-        self.assertEqual(result['testing_accuracy'], 0.5)
+        self.assertEqual(1.0, result['testing_accuracy'])
 
     def test_qsvm_variational_statevector_via_run_algorithm(self):
-        np.random.seed(self.random_seed)
         params = {
-            'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
+            'problem': {'name': 'svm_classification', 'random_seed': 10598},
             'algorithm': {'name': 'QSVM.Variational'},
             'backend': {'provider': 'qiskit.BasicAer', 'name': 'statevector_simulator'},
             'optimizer': {'name': 'COBYLA'},
@@ -109,14 +107,14 @@ class TestQSVMVariational(QiskitAquaTestCase):
         sample_Total, training_input, test_input, class_labels = ad_hoc_data(training_size=20,
                                                                              test_size=10,
                                                                              n=n_dim, gap=0.3)
+        aqua_globals.random_seed = seed
         backend = BasicAer.get_backend('statevector_simulator')
         num_qubits = n_dim
         optimizer = COBYLA()
         feature_map = SecondOrderExpansion(num_qubits=num_qubits, depth=2)
         var_form = RYRZ(num_qubits=num_qubits, depth=3)
         svm = QSVMVariational(optimizer, feature_map, var_form, training_input, test_input, minibatch_size=2)
-        aqua_globals.random_seed = seed
-        quantum_instance = QuantumInstance(backend, seed=seed)
+        quantum_instance = QuantumInstance(backend, seed=seed, seed_mapper=seed)
         result = svm.run(quantum_instance)
         svm_accuracy_threshold = 0.85
         self.log.debug(result['testing_accuracy'])
@@ -129,14 +127,14 @@ class TestQSVMVariational(QiskitAquaTestCase):
         sample_Total, training_input, test_input, class_labels = ad_hoc_data(training_size=20,
                                                                              test_size=10,
                                                                              n=n_dim, gap=0.3)
+        aqua_globals.random_seed = seed
         backend = BasicAer.get_backend('statevector_simulator')
         num_qubits = n_dim
         optimizer = L_BFGS_B(maxfun=1000)
         feature_map = SecondOrderExpansion(num_qubits=num_qubits, depth=2)
         var_form = RYRZ(num_qubits=num_qubits, depth=3)
         svm = QSVMVariational(optimizer, feature_map, var_form, training_input, test_input, minibatch_size=2)
-        aqua_globals.random_seed = seed
-        quantum_instance = QuantumInstance(backend, seed=seed)
+        quantum_instance = QuantumInstance(backend, seed=seed, seed_mapper=seed)
         result = svm.run(quantum_instance)
         svm_accuracy_threshold = 0.85
         self.log.debug(result['testing_accuracy'])
@@ -144,6 +142,8 @@ class TestQSVMVariational(QiskitAquaTestCase):
 
     def test_qsvm_variational_directly(self):
         np.random.seed(self.random_seed)
+
+        aqua_globals.random_seed = self.random_seed
         backend = BasicAer.get_backend('qasm_simulator')
 
         num_qubits = 2
@@ -152,14 +152,13 @@ class TestQSVMVariational(QiskitAquaTestCase):
         var_form = RYRZ(num_qubits=num_qubits, depth=3)
 
         svm = QSVMVariational(optimizer, feature_map, var_form, self.training_data, self.testing_data)
-        aqua_globals.random_seed = self.random_seed
         quantum_instance = QuantumInstance(backend, shots=1024, seed=self.random_seed, seed_mapper=self.random_seed)
         result = svm.run(quantum_instance)
 
         np.testing.assert_array_almost_equal(result['opt_params'], self.ref_opt_params, decimal=4)
         np.testing.assert_array_almost_equal(result['training_loss'], self.ref_train_loss, decimal=8)
 
-        self.assertEqual(result['testing_accuracy'], 0.5)
+        self.assertEqual(1.0, result['testing_accuracy'])
 
         file_path = self._get_resource_path('qsvm_variational_test.npz')
         svm.save_model(file_path)
@@ -200,6 +199,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
                 print(content, file=f, flush=True)
 
         np.random.seed(self.random_seed)
+        aqua_globals.random_seed = self.random_seed
         backend = BasicAer.get_backend('qasm_simulator')
 
         num_qubits = 2
@@ -209,7 +209,6 @@ class TestQSVMVariational(QiskitAquaTestCase):
 
         svm = QSVMVariational(optimizer, feature_map, var_form, self.training_data,
                               self.testing_data, callback=store_intermediate_result)
-        svm.random_seed = self.random_seed
         quantum_instance = QuantumInstance(backend, shots=1024, seed=self.random_seed, seed_mapper=self.random_seed)
         svm.run(quantum_instance)
 
@@ -218,9 +217,9 @@ class TestQSVMVariational(QiskitAquaTestCase):
 
         # check the content
         ref_content = [
-                ['0', '[ 0.18863864 -1.08197582  1.74432295  1.29765602]', '0.54802', '0'],
-                ['1', '[ 1.18863864 -1.08197582  1.74432295  1.29765602]', '0.53862', '1'],
-                ['2', '[ 1.18863864 -0.08197582  1.74432295  1.29765602]', '0.47278', '2'],
+                ['0', '[-0.58205563 -2.97987177 -0.73153057  1.06577518]', '0.46841', '0'],
+                ['1', '[ 0.41794437 -2.97987177 -0.73153057  1.06577518]', '0.31861', '1'],
+                ['2', '[ 0.41794437 -1.97987177 -0.73153057  1.06577518]', '0.45975', '2'],
         ]
         try:
             with open(self._get_resource_path(tmp_filename)) as f:
