@@ -109,6 +109,6 @@ class TestGraphPartition(QiskitAquaTestCase):
         x = graphpartition.sample_most_likely(result['eigvecs'][0])
         # check against the oracle
         ising_sol = graphpartition.get_graph_solution(x)
-        np.testing.assert_array_equal(ising_sol, [1, 0, 0, 1])
+        np.testing.assert_array_equal(ising_sol, [0, 1, 0, 1])
         oracle = self.brute_force()
         self.assertEqual(graphpartition.objective_value(x, self.w), oracle)
