@@ -49,13 +49,14 @@ class TestQNN(QiskitAquaTestCase):
     def test_qnn_via_run_algorithm(self):
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
-            'algorithm': {'name': 'QNN'},
+            'algorithm': {'name': 'QSVM.Variational'},
             'backend': {'provider': 'qiskit.BasicAer', 'name': 'statevector_simulator'},
             'optimizer': {'name': 'COBYLA', 'maxiter': 200},
-            'variational_form': {'name': 'RYRZ', 'depth': 3}
+            'variational_form': {'name': 'RYRZ', 'depth': 3},
+            'feature_map': {'name': 'RawFeatureVector', 'feature_dimension': self.feature_dim}
         }
         result = run_algorithm(params, self.svm_input)
-        print(result['testing_accuracy'])
+        self.log.debug(result['testing_accuracy'])
 
         self.assertGreater(result['testing_accuracy'], 0.85)
 
@@ -65,48 +66,49 @@ class TestQNN(QiskitAquaTestCase):
             'algorithm': {'name': 'QSVM.Variational'},
             'backend': {'provider': 'qiskit.BasicAer', 'name': 'statevector_simulator'},
             'optimizer': {'name': 'COBYLA', 'maxiter': 200},
-            'variational_form': {'name': 'RYRZ', 'depth': 3}
+            'variational_form': {'name': 'RYRZ', 'depth': 3},
         }
         result = run_algorithm(params, self.svm_input)
-        print(result['testing_accuracy'])
+        self.log.debug(result['testing_accuracy'])
 
         self.assertLess(result['testing_accuracy'], 0.6)
 
     def test_qnn_2d_via_run_algorithm(self):
+        n_dim = 2
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
-            'algorithm': {'name': 'QNN'},
+            'algorithm': {'name': 'QSVM.Variational'},
             'backend': {'provider': 'qiskit.BasicAer', 'name': 'statevector_simulator'},
             'optimizer': {'name': 'COBYLA'},
-            'variational_form': {'name': 'RYRZ', 'depth': 3}
+            'variational_form': {'name': 'RYRZ', 'depth': 3},
+            'feature_map': {'name': 'RawFeatureVector', 'feature_dimension': n_dim}
         }
-        n_dim = 2
         sample_Total, training_input, test_input, class_labels = ad_hoc_data(
             training_size=20, test_size=10, n=n_dim, gap=0.3
         )
         self.svm_input = SVMInput(training_input, test_input)
 
         result = run_algorithm(params, self.svm_input)
-        print(result['testing_accuracy'])
+        self.log.debug(result['testing_accuracy'])
         self.assertGreater(result['testing_accuracy'], 0.55)
         self.assertLess(result['testing_accuracy'], 0.7)
 
     def test_qsvm_variational_2d_via_run_algorithm(self):
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
-            'algorithm': {'name': 'QSVM.Variational'},
+            'algorithm': {'name': 'QSVM.Variational'}, #
             'backend': {'provider': 'qiskit.BasicAer', 'name': 'statevector_simulator'},
             'optimizer': {'name': 'COBYLA'},
             'variational_form': {'name': 'RYRZ', 'depth': 3}
         }
         n_dim = 2
-        sample_Total, training_input, test_input, class_labels = ad_hoc_data(
-            training_size=20, test_size=10, n=n_dim, gap=0.3
-        )
+        sample_Total, training_input, test_input, class_labels = ad_hoc_data(training_size=20,
+                                                                             test_size=10,
+                                                                             n=n_dim, gap=0.3)
         self.svm_input = SVMInput(training_input, test_input)
 
         result = run_algorithm(params, self.svm_input)
-        print(result['testing_accuracy'])
+        self.log.debug(result['testing_accuracy'])
 
         self.assertGreater(result['testing_accuracy'], 0.9)
 
@@ -162,7 +164,7 @@ def ad_hoc_data(training_size, test_size, n, gap):
 
     interactions = np.transpose(np.array([[1, 0], [0, 1], [1, 1]]))
 
-    steps = 2*np.pi/N
+    steps = 2 * np.pi / N
 
     sx = np.array([[0, 1], [1, 0]])
     X = np.asmatrix(sx)

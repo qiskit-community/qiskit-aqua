@@ -95,7 +95,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
         aqua_globals.random_seed = self.random_seed
         backend = BasicAer.get_backend('qasm_simulator')
         num_qubits = 2
-        feature_map = SecondOrderExpansion(num_qubits=num_qubits, depth=2, entangler_map=[[0, 1]])
+        feature_map = SecondOrderExpansion(feature_dimension=num_qubits, depth=2, entangler_map=[[0, 1]])
         svm = QSVMKernel(feature_map, self.training_data, self.testing_data, None)
         quantum_instance = QuantumInstance(backend, shots=self.shots, seed=self.random_seed,
                                            seed_transpiler=self.random_seed)
@@ -125,7 +125,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
 
         backend = BasicAer.get_backend('statevector_simulator')
         num_qubits = 2
-        feature_map = SecondOrderExpansion(num_qubits=num_qubits, depth=2, entangler_map=[[0, 1]])
+        feature_map = SecondOrderExpansion(feature_dimension=num_qubits, depth=2, entangler_map=[[0, 1]])
         svm = QSVMKernel(feature_map, self.training_data, self.testing_data, None)
         aqua_globals.random_seed = self.random_seed
 

@@ -111,7 +111,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
         backend = BasicAer.get_backend('statevector_simulator')
         num_qubits = n_dim
         optimizer = COBYLA()
-        feature_map = SecondOrderExpansion(num_qubits=num_qubits, depth=2)
+        feature_map = SecondOrderExpansion(feature_dimension=num_qubits, depth=2)
         var_form = RYRZ(num_qubits=num_qubits, depth=3)
         svm = QSVMVariational(optimizer, feature_map, var_form, training_input, test_input, minibatch_size=2)
         quantum_instance = QuantumInstance(backend, seed=seed, seed_transpiler=seed)
@@ -131,7 +131,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
         backend = BasicAer.get_backend('statevector_simulator')
         num_qubits = n_dim
         optimizer = L_BFGS_B(maxfun=1000)
-        feature_map = SecondOrderExpansion(num_qubits=num_qubits, depth=2)
+        feature_map = SecondOrderExpansion(feature_dimension=num_qubits, depth=2)
         var_form = RYRZ(num_qubits=num_qubits, depth=3)
         svm = QSVMVariational(optimizer, feature_map, var_form, training_input, test_input, minibatch_size=2)
         quantum_instance = QuantumInstance(backend, seed=seed, seed_transpiler=seed)
@@ -148,7 +148,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
 
         num_qubits = 2
         optimizer = SPSA(max_trials=10, save_steps=1, c0=4.0, skip_calibration=True)
-        feature_map = SecondOrderExpansion(num_qubits=num_qubits, depth=2)
+        feature_map = SecondOrderExpansion(feature_dimension=num_qubits, depth=2)
         var_form = RYRZ(num_qubits=num_qubits, depth=3)
 
         svm = QSVMVariational(optimizer, feature_map, var_form, self.training_data, self.testing_data)
@@ -204,7 +204,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
 
         num_qubits = 2
         optimizer = COBYLA(maxiter=3)
-        feature_map = SecondOrderExpansion(num_qubits=num_qubits, depth=2)
+        feature_map = SecondOrderExpansion(feature_dimension=num_qubits, depth=2)
         var_form = RY(num_qubits=num_qubits, depth=1)
 
         svm = QSVMVariational(optimizer, feature_map, var_form, self.training_data,
