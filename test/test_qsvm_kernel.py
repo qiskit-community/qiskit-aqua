@@ -98,7 +98,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
         feature_map = SecondOrderExpansion(num_qubits=num_qubits, depth=2, entangler_map=[[0, 1]])
         svm = QSVMKernel(feature_map, self.training_data, self.testing_data, None)
         quantum_instance = QuantumInstance(backend, shots=self.shots, seed=self.random_seed,
-                                           seed_mapper=self.random_seed)
+                                           seed_transpiler=self.random_seed)
 
         result = svm.run(quantum_instance)
         np.testing.assert_array_almost_equal(
@@ -129,7 +129,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
         svm = QSVMKernel(feature_map, self.training_data, self.testing_data, None)
         aqua_globals.random_seed = self.random_seed
 
-        quantum_instance = QuantumInstance(backend, seed_mapper=self.random_seed)
+        quantum_instance = QuantumInstance(backend, seed_transpiler=self.random_seed)
         result = svm.run(quantum_instance)
 
         ori_alphas = result['svm']['alphas']
