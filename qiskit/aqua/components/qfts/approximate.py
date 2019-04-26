@@ -54,3 +54,6 @@ class Approximate(QFT):
             approximation_degree=self._degree,
             do_swaps=do_swaps
         )
+
+    def _build_matrix(self):
+        raise NotImplementedError

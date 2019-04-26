@@ -21,7 +21,6 @@ import numpy as np
 
 from qiskit.aqua import AquaError
 from qiskit.aqua.utils.circuit_factory import CircuitFactory
-from qiskit.aqua.circuits.gates import mct
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +49,7 @@ class WeightedSumOperator(CircuitFactory):
         # check weights
         for i, w in enumerate(weights):
             if not np.isclose(w, np.round(w)):
-                logger.warning(f'Non-integer weights are rounded to the nearest integer! ({i}, {w}).')
+                logger.warning('Non-integer weights are rounded to the nearest integer! ({}, {}).'.format(i, w))
 
         self._num_state_qubits = num_state_qubits
         self._num_sum_qubits = self.get_required_sum_qubits(weights)
