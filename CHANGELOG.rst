@@ -50,6 +50,7 @@ Added
 - Added option to include or skip the swaps operations for qft and iqft circuit constructions.
 - Added classical linear system solver ``ExactLSsolver``
 - Added parameters ``auto_hermitian`` and ``auto_resize`` to ``HHL`` algorithm to support non-hermititan and non 2**n sized matrices by default
+- ``SVM_Classical`` can load the trained models, even it is trained by ``QSVM.Kernel``
 
 Removed
 -------
