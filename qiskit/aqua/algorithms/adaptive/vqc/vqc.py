@@ -25,7 +25,9 @@ from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class, AquaError
 from qiskit.aqua.components.feature_maps import FeatureMap
 from qiskit.aqua.utils import get_feature_dimension
-from qiskit.aqua.utils import map_label_to_class_name, split_dataset_to_data_and_labels, find_regs_by_name
+from qiskit.aqua.utils import map_label_to_class_name
+from qiskit.aqua.utils import split_dataset_to_data_and_labels
+from qiskit.aqua.utils import find_regs_by_name
 from ..vqalgorithm import VQAlgorithm
 
 logger = logging.getLogger(__name__)
