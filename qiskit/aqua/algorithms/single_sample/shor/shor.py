@@ -99,7 +99,7 @@ class Shor(QuantumAlgorithm):
         # check if the input integer is a power
         tf, b, p = is_power(N, return_decomposition=True)
         if tf:
-            logger.info(f'The input integer is a power: {N}={b}^{p}.')
+            logger.info('The input integer is a power: {}={}^{}.'.format(N, b, p))
             self._ret['factors'].append(b)
 
     @classmethod
