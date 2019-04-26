@@ -16,6 +16,7 @@
 # =============================================================================
 import numpy as np
 
+from qiskit.aqua import aqua_globals
 from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import SVMInput
 from test.common import QiskitAquaTestCase
@@ -24,6 +25,7 @@ from test.common import QiskitAquaTestCase
 class TestSVMClassical(QiskitAquaTestCase):
     def setUp(self):
         super().setUp()
+        aqua_globals.random_seed = 10598
         pass
 
     def test_classical_binary(self):
@@ -89,7 +91,7 @@ class TestSVMClassical(QiskitAquaTestCase):
                                        [0.06195634, -0.23262325],
                                        [0.06183066, -0.53376975]])}
 
-        temp = [test_input[k] for k in test_input]
+        temp = [test_input[k] for k in sorted(test_input)]
         total_array = np.concatenate(temp)
 
         params = {
@@ -200,7 +202,7 @@ class TestSVMClassical(QiskitAquaTestCase):
                                        [-0.73856328, 0.80699537],
                                        [-0.66489165, 0.1181712]])}
 
-        temp = [test_input[k] for k in test_input]
+        temp = [test_input[k] for k in sorted(test_input)]
         total_array = np.concatenate(temp)
 
         params = {
@@ -312,7 +314,7 @@ class TestSVMClassical(QiskitAquaTestCase):
                                        [-0.73856328, 0.80699537],
                                        [-0.66489165, 0.1181712]])}
 
-        temp = [test_input[k] for k in test_input]
+        temp = [test_input[k] for k in sorted(test_input)]
         total_array = np.concatenate(temp)
 
         params = {
@@ -426,7 +428,7 @@ class TestSVMClassical(QiskitAquaTestCase):
                                        [-0.73856328, 0.80699537],
                                        [-0.66489165, 0.1181712]])}
 
-        temp = [test_input[k] for k in test_input]
+        temp = [test_input[k] for k in sorted(test_input)]
         total_array = np.concatenate(temp)
 
         params = {
