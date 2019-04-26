@@ -104,7 +104,6 @@ class TestSVMClassical(QiskitAquaTestCase):
         algo_input = SVMInput(training_input, test_input, total_array)
 
         result = run_algorithm(params, algo_input)
-        print(result)
         self.assertEqual(result['testing_accuracy'], 1.0)
         self.assertEqual(result['predicted_classes'],
                          ['A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A',
