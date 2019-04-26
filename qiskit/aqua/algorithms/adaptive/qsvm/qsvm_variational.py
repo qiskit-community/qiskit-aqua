@@ -146,15 +146,15 @@ class QSVMVariational(VQClassification):
 
         # Set up feature map
         fea_map_params = params.get(Pluggable.SECTION_KEY_FEATURE_MAP)
-        num_qubits = get_feature_dimension(algo_input.training_dataset)
-        fea_map_params['num_qubits'] = num_qubits
+        feature_dimension = get_feature_dimension(algo_input.training_dataset)
+        fea_map_params['feature_dimension'] = feature_dimension
         feature_map = get_pluggable_class(PluggableType.FEATURE_MAP,
                                           fea_map_params['name']).init_params(params)
 
         # Set up variational form, we need to add computed num qubits
         # Pass all parameters so that Variational Form can create its dependents
         var_form_params = params.get(Pluggable.SECTION_KEY_VAR_FORM)
-        var_form_params['num_qubits'] = num_qubits
+        var_form_params['num_qubits'] = feature_map.num_qubits
         var_form = get_pluggable_class(PluggableType.VARIATIONAL_FORM,
                                        var_form_params['name']).init_params(params)
 
