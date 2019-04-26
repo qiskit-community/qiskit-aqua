@@ -25,7 +25,7 @@ from test.common import QiskitAquaTestCase
 from qiskit import BasicAer
 from qiskit.aqua.input import SVMInput
 from qiskit.aqua import run_algorithm, QuantumInstance, aqua_globals
-from qiskit.aqua.algorithms import QSVMVariational
+from qiskit.aqua.algorithms import VQC
 from qiskit.aqua.components.optimizers import SPSA, COBYLA
 from qiskit.aqua.components.feature_maps import SecondOrderExpansion
 from qiskit.aqua.components.variational_forms import RYRZ, RY
@@ -55,7 +55,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
     def test_qsvm_variational_via_run_algorithm(self):
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
-            'algorithm': {'name': 'QSVM.Variational'},
+            'algorithm': {'name': 'VQC'},
             'backend': {'provider': 'qiskit.BasicAer', 'name': 'qasm_simulator', 'shots': 1024},
             'optimizer': {'name': 'SPSA', 'max_trials': 10, 'save_steps': 1},
             'variational_form': {'name': 'RYRZ', 'depth': 3},
@@ -71,7 +71,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
     def test_qsvm_variational_with_max_evals_grouped(self):
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
-            'algorithm': {'name': 'QSVM.Variational', 'max_evals_grouped': 2},
+            'algorithm': {'name': 'VQC', 'max_evals_grouped': 2},
             'backend': {'provider': 'qiskit.BasicAer', 'name': 'qasm_simulator', 'shots': 1024},
             'optimizer': {'name': 'SPSA', 'max_trials': 10, 'save_steps': 1},
             'variational_form': {'name': 'RYRZ', 'depth': 3},
@@ -87,7 +87,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
     def test_qsvm_variational_statevector_via_run_algorithm(self):
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': 10598},
-            'algorithm': {'name': 'QSVM.Variational'},
+            'algorithm': {'name': 'VQC'},
             'backend': {'provider': 'qiskit.BasicAer', 'name': 'statevector_simulator'},
             'optimizer': {'name': 'COBYLA'},
             'variational_form': {'name': 'RYRZ', 'depth': 3},
@@ -113,7 +113,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
         optimizer = COBYLA()
         feature_map = SecondOrderExpansion(feature_dimension=num_qubits, depth=2)
         var_form = RYRZ(num_qubits=num_qubits, depth=3)
-        svm = QSVMVariational(optimizer, feature_map, var_form, training_input, test_input, minibatch_size=2)
+        svm = VQC(optimizer, feature_map, var_form, training_input, test_input, minibatch_size=2)
         quantum_instance = QuantumInstance(backend, seed=seed, seed_transpiler=seed)
         result = svm.run(quantum_instance)
         svm_accuracy_threshold = 0.85
@@ -133,7 +133,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
         optimizer = L_BFGS_B(maxfun=1000)
         feature_map = SecondOrderExpansion(feature_dimension=num_qubits, depth=2)
         var_form = RYRZ(num_qubits=num_qubits, depth=3)
-        svm = QSVMVariational(optimizer, feature_map, var_form, training_input, test_input, minibatch_size=2)
+        svm = VQC(optimizer, feature_map, var_form, training_input, test_input, minibatch_size=2)
         quantum_instance = QuantumInstance(backend, seed=seed, seed_transpiler=seed)
         result = svm.run(quantum_instance)
         svm_accuracy_threshold = 0.85
@@ -151,7 +151,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
         feature_map = SecondOrderExpansion(feature_dimension=num_qubits, depth=2)
         var_form = RYRZ(num_qubits=num_qubits, depth=3)
 
-        svm = QSVMVariational(optimizer, feature_map, var_form, self.training_data, self.testing_data)
+        svm = VQC(optimizer, feature_map, var_form, self.training_data, self.testing_data)
         quantum_instance = QuantumInstance(backend, shots=1024, seed=self.random_seed, seed_transpiler=self.random_seed)
         result = svm.run(quantum_instance)
 
@@ -165,7 +165,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
 
         self.assertTrue(os.path.exists(file_path))
 
-        loaded_svm = QSVMVariational(optimizer, feature_map, var_form, self.training_data, None)
+        loaded_svm = VQC(optimizer, feature_map, var_form, self.training_data, None)
         loaded_svm.load_model(file_path)
 
         np.testing.assert_array_almost_equal(
@@ -207,8 +207,8 @@ class TestQSVMVariational(QiskitAquaTestCase):
         feature_map = SecondOrderExpansion(feature_dimension=num_qubits, depth=2)
         var_form = RY(num_qubits=num_qubits, depth=1)
 
-        svm = QSVMVariational(optimizer, feature_map, var_form, self.training_data,
-                              self.testing_data, callback=store_intermediate_result)
+        svm = VQC(optimizer, feature_map, var_form, self.training_data,
+                  self.testing_data, callback=store_intermediate_result)
         quantum_instance = QuantumInstance(backend, shots=1024, seed=self.random_seed, seed_transpiler=self.random_seed)
         svm.run(quantum_instance)
 

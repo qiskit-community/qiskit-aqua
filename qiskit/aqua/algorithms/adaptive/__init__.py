@@ -17,7 +17,7 @@
 
 from .vqe.vqe import VQE
 from .qaoa.qaoa import QAOA
-from .qsvm.qsvm_variational import QSVMVariational
+from .vqc.vqc import VQC
 from .vqalgorithm import VQAlgorithm
 from .vqclassification import VQClassification
 
@@ -25,7 +25,7 @@ from .vqclassification import VQClassification
 __all__ = [
     'VQE',
     'QAOA',
-    'QSVMVariational',
+    'VQC',
     'VQAlgorithm',
     'VQClassification',
 ]

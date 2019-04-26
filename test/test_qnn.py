@@ -49,7 +49,7 @@ class TestQNN(QiskitAquaTestCase):
     def test_qnn_via_run_algorithm(self):
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
-            'algorithm': {'name': 'QSVM.Variational'},
+            'algorithm': {'name': 'VQC'},
             'backend': {'provider': 'qiskit.BasicAer', 'name': 'statevector_simulator'},
             'optimizer': {'name': 'COBYLA', 'maxiter': 200},
             'variational_form': {'name': 'RYRZ', 'depth': 3},
@@ -63,7 +63,7 @@ class TestQNN(QiskitAquaTestCase):
     def test_qsvm_variational_via_run_algorithm(self):
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
-            'algorithm': {'name': 'QSVM.Variational'},
+            'algorithm': {'name': 'VQC'},
             'backend': {'provider': 'qiskit.BasicAer', 'name': 'statevector_simulator'},
             'optimizer': {'name': 'COBYLA', 'maxiter': 200},
             'variational_form': {'name': 'RYRZ', 'depth': 3},
@@ -77,7 +77,7 @@ class TestQNN(QiskitAquaTestCase):
         n_dim = 2
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
-            'algorithm': {'name': 'QSVM.Variational'},
+            'algorithm': {'name': 'VQC'},
             'backend': {'provider': 'qiskit.BasicAer', 'name': 'statevector_simulator'},
             'optimizer': {'name': 'COBYLA'},
             'variational_form': {'name': 'RYRZ', 'depth': 3},
@@ -96,7 +96,7 @@ class TestQNN(QiskitAquaTestCase):
     def test_qsvm_variational_2d_via_run_algorithm(self):
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
-            'algorithm': {'name': 'QSVM.Variational'}, #
+            'algorithm': {'name': 'VQC'}, #
             'backend': {'provider': 'qiskit.BasicAer', 'name': 'statevector_simulator'},
             'optimizer': {'name': 'COBYLA'},
             'variational_form': {'name': 'RYRZ', 'depth': 3}
