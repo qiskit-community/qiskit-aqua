@@ -113,9 +113,9 @@ class TestConfigurationIntegrity(QiskitAquaTestCase):
 
             parameter = parameters.get(prop_name)
             if parameter is None:
-                # TODO for now just let QSVMVariational and QNN pass
-                from qiskit.aqua.algorithms import QSVMVariational, QNN
-                if cls not in {QSVMVariational, QNN}:
+                # TODO for now just let QSVMVariational pass
+                from qiskit.aqua.algorithms import QSVMVariational
+                if cls not in {QSVMVariational}:
                     err_msgs.append("{} missing __init__ param '{}' found on its configuration schema.".format(cls, prop_name))
                 continue
 
