@@ -51,7 +51,7 @@ class FirstOrderExpansion(PauliZExpansion):
         """Constructor.
 
         Args:
-            feature_dimension (int): number of qubits
+            feature_dimension (int): number of features
             depth (int): the number of repeated circuits
             data_map_func (Callable): a mapping function for data x
         """
