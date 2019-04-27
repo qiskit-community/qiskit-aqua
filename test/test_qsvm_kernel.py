@@ -92,12 +92,13 @@ class TestQSVMKernel(QiskitAquaTestCase):
         ref_support_vectors = np.array([[2.95309709, 2.51327412], [3.14159265, 4.08407045],
                                         [4.08407045, 2.26194671], [4.46106157, 2.38761042]])
 
+        aqua_globals.random_seed = self.random_seed
         backend = BasicAer.get_backend('qasm_simulator')
         num_qubits = 2
         feature_map = SecondOrderExpansion(num_qubits=num_qubits, depth=2, entangler_map=[[0, 1]])
         svm = QSVMKernel(feature_map, self.training_data, self.testing_data, None)
-        aqua_globals.random_seed = self.random_seed
-        quantum_instance = QuantumInstance(backend, shots=self.shots, seed=self.random_seed, seed_mapper=self.random_seed)
+        quantum_instance = QuantumInstance(backend, shots=self.shots, seed=self.random_seed,
+                                           seed_transpiler=self.random_seed)
 
         result = svm.run(quantum_instance)
         np.testing.assert_array_almost_equal(
@@ -128,7 +129,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
         svm = QSVMKernel(feature_map, self.training_data, self.testing_data, None)
         aqua_globals.random_seed = self.random_seed
 
-        quantum_instance = QuantumInstance(backend, seed_mapper=self.random_seed)
+        quantum_instance = QuantumInstance(backend, seed_transpiler=self.random_seed)
         result = svm.run(quantum_instance)
 
         ori_alphas = result['svm']['alphas']
@@ -203,8 +204,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
 
         expected_accuracy = 0.444444444
         expected_classes = ['A', 'A', 'C', 'A', 'A', 'A', 'A', 'C', 'C']
-        self.assertAlmostEqual(result['testing_accuracy'], expected_accuracy, places=4,
-                               msg='Please ensure you are using C++ simulator')
+        self.assertAlmostEqual(result['testing_accuracy'], expected_accuracy, places=4)
         self.assertEqual(result['predicted_classes'], expected_classes)
 
     def test_qsvm_kernel_multiclass_all_pairs(self):
@@ -238,8 +238,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
 
         algo_input = SVMInput(training_input, test_input, total_array)
         result = run_algorithm(params, algo_input, backend=backend)
-        self.assertAlmostEqual(result['testing_accuracy'], 0.444444444, places=4,
-                               msg='Please ensure you are using C++ simulator')
+        self.assertAlmostEqual(result['testing_accuracy'], 0.444444444, places=4)
         self.assertEqual(result['predicted_classes'], ['A', 'A', 'C', 'A',
                                                        'A', 'A', 'A', 'C', 'C'])
 
@@ -275,7 +274,6 @@ class TestQSVMKernel(QiskitAquaTestCase):
         algo_input = SVMInput(training_input, test_input, total_array)
 
         result = run_algorithm(params, algo_input, backend=backend)
-        self.assertAlmostEqual(result['testing_accuracy'], 0.55555555, places=4,
-                               msg='Please ensure you are using C++ simulator')
+        self.assertAlmostEqual(result['testing_accuracy'], 0.444444444, places=4)
         self.assertEqual(result['predicted_classes'], ['A', 'A', 'C', 'A',
-                                                       'A', 'A', 'C', 'C', 'C'])
+                                                       'A', 'A', 'A', 'C', 'C'])

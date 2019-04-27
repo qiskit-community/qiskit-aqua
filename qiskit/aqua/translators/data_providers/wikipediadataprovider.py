@@ -134,7 +134,7 @@ class WikipediaDataProvider(BaseDataProvider):
         return cls(**kwargs)
 
     def run(self):
-        """ Loads data, thus enabling get_similarity_matrix and get_covariance methods in the base class. """
+        """ Loads data, thus enabling get_similarity_matrix and get_covariance_matrix methods in the base class. """
         self.check_provider_valid()
         import quandl
         quandl.ApiConfig.api_key = self._token

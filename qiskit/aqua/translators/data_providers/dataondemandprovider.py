@@ -137,7 +137,7 @@ class DataOnDemandProvider(BaseDataProvider):
         return cls(**kwargs)
 
     def run(self):
-        """ Loads data, thus enabling get_similarity_matrix and get_covariance methods in the base class. """
+        """ Loads data, thus enabling get_similarity_matrix and get_covariance_matrix methods in the base class. """
         self.check_provider_valid()
         http = urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
         URL = 'https://dataondemand.nasdaq.com/api/v1/quotes?'

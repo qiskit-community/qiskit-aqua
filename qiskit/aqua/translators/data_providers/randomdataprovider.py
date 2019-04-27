@@ -118,7 +118,7 @@ class RandomDataProvider(BaseDataProvider):
         return cls(**kwargs)
 
     def run(self):
-        """ Generates data pseudo-randomly, thus enabling get_similarity_matrix and get_covariance methods in the base class. 
+        """ Generates data pseudo-randomly, thus enabling get_similarity_matrix and get_covariance_matrix methods in the base class. 
         """
         self.check_provider_valid()
         

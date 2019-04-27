@@ -39,7 +39,7 @@ Added
 - Added ``LogicalExpressionOracle`` for generating oracle circuits from arbitrary boolean logic expressions (including DIMACS support) with optional optimization capability.
 - Added ``TruthTableOracle`` for generating oracle circuits from truth-tables with optional optimization capability.
 - Added ``CustomCircuitOracle`` for generating oracle from user specified circuits.
-- Added implementation of the Deutsch-Josza algorithm.
+- Added implementation of the Deutsch-Jozsa algorithm.
 - Added implementation of the Bernstein-Vazirani algorithm.
 - Added implementation of the Simon's algorithm.
 - Added implementation of the Shor's algorithm.
@@ -50,6 +50,7 @@ Added
 - Added option to include or skip the swaps operations for qft and iqft circuit constructions.
 - Added classical linear system solver ``ExactLSsolver``
 - Added parameters ``auto_hermitian`` and ``auto_resize`` to ``HHL`` algorithm to support non-hermititan and non 2**n sized matrices by default
+- ``SVM_Classical`` can load the trained models, even it is trained by ``QSVM.Kernel``
 
 Removed
 -------

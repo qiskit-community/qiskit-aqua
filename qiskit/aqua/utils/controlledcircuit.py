@@ -16,7 +16,7 @@
 # =============================================================================
 
 import numpy as np
-from qiskit import QuantumCircuit, transpiler
+from qiskit import QuantumCircuit, compiler
 from qiskit.transpiler.passes import Unroller
 from qiskit.transpiler import PassManager
 from qiskit import BasicAer
@@ -105,7 +105,7 @@ def get_controlled_circuit(circuit, ctl_qubit, tgt_circuit=None, use_basis_gates
     # get all operations from compiled circuit
     unroller = Unroller(basis=['u1', 'u2', 'u3', 'cx', 'id'])
     pm = PassManager(passes=[unroller])
-    ops = transpiler.transpile(
+    ops = compiler.transpile(
         circuit,
         BasicAer.get_backend('qasm_simulator'),
         pass_manager=pm
