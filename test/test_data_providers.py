@@ -21,9 +21,10 @@ import datetime
 import warnings
 
 from qiskit.aqua.translators.data_providers import *
-from qiskit.aqua.translators.data_providers import QiskitFinanceError
 from test.common import QiskitAquaTestCase
 
+
+# This can be run as python -m unittest test.test_data_providers.TestDataProviders
 
 class TestDataProviders(QiskitAquaTestCase):
     """Tests data providers for the Portfolio Optimization and Diversification."""
@@ -37,7 +38,7 @@ class TestDataProviders(QiskitAquaTestCase):
         warnings.filterwarnings(action="ignore", message="unclosed", category=ResourceWarning)
 
     def test_random(self):
-        from qiskit.aqua.translators.data_providers.randomdataprovider import StockMarket
+        # from qiskit.aqua.translators.data_providers.random_data_provider import StockMarket
         rnd = RandomDataProvider(seed = 1)
         rnd.run()
         similarity = np.array([[1.00000000e+00, 6.2284804e-04],
@@ -48,7 +49,7 @@ class TestDataProviders(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(rnd.get_similarity_matrix(), similarity, decimal = 3) 
 
     def test_wikipedia(self):
-        from qiskit.aqua.translators.data_providers.wikipediadataprovider import StockMarket
+        from qiskit.aqua.translators.data_providers.wikipedia_data_provider import StockMarket
         wiki = WikipediaDataProvider(
             token="",
             tickers=["GOOG", "AAPL"],
@@ -80,7 +81,7 @@ class TestDataProviders(QiskitAquaTestCase):
             # This also introduces a couple of seconds of a delay.
         
     def test_nasdaq(self):
-        from qiskit.aqua.translators.data_providers.dataondemandprovider import StockMarket
+        from qiskit.aqua.translators.data_providers.data_on_demand_provider import StockMarket
         nasdaq = DataOnDemandProvider(
             token="REPLACE-ME",
             tickers=["GOOG", "AAPL"],
@@ -93,10 +94,9 @@ class TestDataProviders(QiskitAquaTestCase):
             self.fail("Test of DataOnDemandProvider should have failed due to the lack of a token.")
         except QiskitFinanceError:
             self.skipTest("Test of DataOnDemandProvider skipped due to the lack of a token.")
-        # will throw QiskitFinanceError, because there is no valid token; otherwise, we could continue as:
         
     def test_exchangedata(self):
-        from qiskit.aqua.translators.data_providers.exchangedataprovider import StockMarket
+        from qiskit.aqua.translators.data_providers.exchange_data_provider import StockMarket
         lse = ExchangeDataProvider(
             token="REPLACE-ME",
             tickers=["AIBGl", "AVSTl"],

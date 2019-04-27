@@ -15,7 +15,6 @@
 # limitations under the License.
 # =============================================================================
 
-
 from abc import ABC, abstractmethod
 import copy
 from qiskit.aqua.parser import JSONSchema
@@ -29,14 +28,17 @@ import fastdtw
 logger = logging.getLogger(__name__)
 
 
-class QiskitFinanceError(AquaError): None
+class QiskitFinanceError(AquaError):
+    None
+
 
 class DataType(Enum):
     DAILYADJUSTED = 'Daily (adj)'
     DAILY = 'Daily'
     BID = 'Bid'
     ASK = 'Ask'
-    
+
+
 class BaseDataProvider(ABC):
     """
     This module implements the abstract base class for data_provider modules
@@ -120,13 +122,14 @@ class BaseDataProvider(ABC):
     Returns:
         rho (numpy.ndarray) : an asset-to-asset covariance matrix.        
         """
-        try: 
-            if not self._data: 
+        try:
+            if not self._data:
                 return None
-        except AttributeError: 
-            print("Error: Please run the method run() first, to load the data.")   
-            return None 
-        self.cov = np.cov(self._data, rowvar = True)
+        except AttributeError:
+            print(
+                "Error: Please run the method run() first, to load the data.")
+            return None
+        self.cov = np.cov(self._data, rowvar=True)
         return self.cov
 
     # it does not have to be overridden in non-abstract derived classes.
@@ -136,15 +139,16 @@ class BaseDataProvider(ABC):
     Returns:
         rho (numpy.ndarray) : an asset-to-asset similarity matrix.
         """
-        try: 
-            if not self._data: 
-                return None 
-        except AttributeError: 
-            print("Error: Please run the method run() first, to load the data.")   
-            return None   
+        try:
+            if not self._data:
+                return None
+        except AttributeError:
+            print(
+                "Error: Please run the method run() first, to load the data.")
+            return None
         self.rho = np.zeros((self._n, self._n))
         for ii in range(0, self._n):
-            self.rho[ii,ii] = 1.
+            self.rho[ii, ii] = 1.
             for jj in range(ii + 1, self._n):
                 thisRho, path = fastdtw.fastdtw(self._data[ii], self._data[jj])
                 thisRho = 1.0 / thisRho

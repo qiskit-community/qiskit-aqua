@@ -18,21 +18,21 @@
 from qiskit.aqua.translators.data_providers import BaseDataProvider, DataType, QiskitFinanceError
 import importlib
 from enum import Enum
-import logging
 import datetime
 import certifi
-
 import urllib3
 from urllib.parse import urlencode
 import json
 
+import logging
 logger = logging.getLogger(__name__)
 
 
 class StockMarket(Enum):
     NASDAQ = 'NASDAQ'
     NYSE = 'NYSE'
-    
+
+
 class DataOnDemandProvider(BaseDataProvider):
     """Python implementation of an NASDAQ Data on Demand data provider.
     Please see:
@@ -49,27 +49,31 @@ class DataOnDemandProvider(BaseDataProvider):
             "type": "object",
             "properties": {
                 "stockmarket": {
-                    "type": "string",
-                    "default": StockMarket.NASDAQ.value,
-                    "oneOf": [
-                         {"enum": [
+                    "type":
+                    "string",
+                    "default":
+                    StockMarket.NASDAQ.value,
+                    "oneOf": [{
+                        "enum": [
                             StockMarket.NASDAQ.value,
                             StockMarket.NYSE.value,
-                         ]}
-                    ]
+                        ]
+                    }]
                 },
                 "datatype": {
-                    "type": "string",
-                    "default": DataType.DAILYADJUSTED.value,
-                    "oneOf": [
-                         {"enum": [
+                    "type":
+                    "string",
+                    "default":
+                    DataType.DAILYADJUSTED.value,
+                    "oneOf": [{
+                        "enum": [
                             DataType.DAILYADJUSTED.value,
                             DataType.DAILY.value,
                             DataType.BID.value,
                             DataType.ASK.value,
-                         ]}
-                    ]
-                },    
+                        ]
+                    }]
+                },
             },
         }
     }
@@ -77,10 +81,10 @@ class DataOnDemandProvider(BaseDataProvider):
     def __init__(self,
                  token,
                  tickers,
-                 stockmarket = StockMarket.NASDAQ,
-                 start = datetime.datetime(2016,1,1),
-                 end = datetime.datetime(2016,1,30),
-                 verify = None):
+                 stockmarket=StockMarket.NASDAQ,
+                 start=datetime.datetime(2016, 1, 1),
+                 end=datetime.datetime(2016, 1, 30),
+                 verify=None):
         """
         Initializer
         Args:
@@ -102,12 +106,13 @@ class DataOnDemandProvider(BaseDataProvider):
             self._tickers = tickers.replace('\n', ';').split(";")
         self._n = len(self._tickers)
 
-        self._stockmarket = str(stockmarket.value) # This is to aid serialisation 
+        self._stockmarket = str(
+            stockmarket.value)  # This is to aid serialisation
         self._token = token
         self._start = start
         self._end = end
         self._verify = verify
-        
+
         #self.validate(locals())
 
     @staticmethod
@@ -126,7 +131,8 @@ class DataOnDemandProvider(BaseDataProvider):
             Driver: Driver object
         """
         if section is None or not isinstance(section, dict):
-            raise QiskitFinanceError('Invalid or missing section {}'.format(section))
+            raise QiskitFinanceError(
+                'Invalid or missing section {}'.format(section))
 
         params = section
         kwargs = {}
@@ -139,29 +145,40 @@ class DataOnDemandProvider(BaseDataProvider):
     def run(self):
         """ Loads data, thus enabling get_similarity_matrix and get_covariance_matrix methods in the base class. """
         self.check_provider_valid()
-        http = urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
+        http = urllib3.PoolManager(cert_reqs='CERT_REQUIRED',
+                                   ca_certs=certifi.where())
         URL = 'https://dataondemand.nasdaq.com/api/v1/quotes?'
         self._data = []
         for ticker in self._tickers:
-          values = {'_Token' : self._token,
-          'symbols' : [ticker],
-          'start' : self._start.strftime("%Y-%m-%d'T'%H:%M:%S.%f'Z'"), 
-          'end' : self._end.strftime("%Y-%m-%d'T'%H:%M:%S.%f'Z'"), 
-          'next_cursor': 0
-          }
-          encoded = URL + urlencode(values)
-          try: 
-            if not self._verify: response = http.request('POST', encoded) # this runs certifi verification, as per the set-up of the urllib3
-            else: response = http.request('POST', encoded, verify = self._verify) # this disables certifi verification
-            if response.status != 200:
-              msg = "Accessing NASDAQ Data on Demand with parameters {} encoded into ".format(values)
-              msg += encoded
-              msg += " failed. Hint: Check the _Token. Check the spelling of tickers."
-              raise QiskitFinanceError(msg)
-            quotes = json.loads(response.data.decode('utf-8'))["quotes"]
-            priceEvolution = []
-            for q in quotes: priceEvolution.append(q["ask_price"])
-            self._data.append(priceEvolution)
-          except Exception as e:
-            raise QiskitFinanceError('Accessing NASDAQ Data on Demand failed.') from e
-          http.clear()
+            values = {
+                '_Token': self._token,
+                'symbols': [ticker],
+                'start': self._start.strftime("%Y-%m-%d'T'%H:%M:%S.%f'Z'"),
+                'end': self._end.strftime("%Y-%m-%d'T'%H:%M:%S.%f'Z'"),
+                'next_cursor': 0
+            }
+            encoded = URL + urlencode(values)
+            try:
+                if not self._verify:
+                    response = http.request(
+                        'POST', encoded
+                    )  # this runs certifi verification, as per the set-up of the urllib3
+                else:
+                    response = http.request(
+                        'POST', encoded, verify=self._verify
+                    )  # this disables certifi verification
+                if response.status != 200:
+                    msg = "Accessing NASDAQ Data on Demand with parameters {} encoded into ".format(
+                        values)
+                    msg += encoded
+                    msg += " failed. Hint: Check the _Token. Check the spelling of tickers."
+                    raise QiskitFinanceError(msg)
+                quotes = json.loads(response.data.decode('utf-8'))["quotes"]
+                priceEvolution = []
+                for q in quotes:
+                    priceEvolution.append(q["ask_price"])
+                self._data.append(priceEvolution)
+            except Exception as e:
+                raise QiskitFinanceError(
+                    'Accessing NASDAQ Data on Demand failed.') from e
+            http.clear()

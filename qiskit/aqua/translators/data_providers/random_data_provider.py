@@ -28,7 +28,8 @@ logger = logging.getLogger(__name__)
 
 class StockMarket(Enum):
     RANDOM = 'RANDOM'
-    
+
+
 class RandomDataProvider(BaseDataProvider):
     """Python implementation of provider of mock stock-market data, which are generated pseudo-randomly.
     """
@@ -48,22 +49,20 @@ class RandomDataProvider(BaseDataProvider):
                 "datatype": {
                     "type": "string",
                     "default": DataType.DAILYADJUSTED.value,
-                    "oneOf": [
-                         {"enum": [
-                            DataType.DAILYADJUSTED.value
-                         ]}
-                    ]
-                },    
+                    "oneOf": [{
+                        "enum": [DataType.DAILYADJUSTED.value]
+                    }]
+                },
             },
         }
     }
 
     def __init__(self,
-                 tickers = ["TICKER1", "TICKER2"],
-                 stockmarket = StockMarket.RANDOM,
-                 start = datetime.datetime(2016,1,1),
-                 end = datetime.datetime(2016,1,30),
-                 seed = None):
+                 tickers=["TICKER1", "TICKER2"],
+                 stockmarket=StockMarket.RANDOM,
+                 start=datetime.datetime(2016, 1, 1),
+                 end=datetime.datetime(2016, 1, 30),
+                 seed=None):
         """
         Initializer
         Args:
@@ -74,7 +73,7 @@ class RandomDataProvider(BaseDataProvider):
             seed (None or int): shall a seed be used?                 
         """
         super().__init__()
-        
+
         #if not isinstance(atoms, list) and not isinstance(atoms, str):
         #    raise QiskitFinanceError("Invalid atom input for RANDOM data provider '{}'".format(atoms))
 
@@ -107,7 +106,8 @@ class RandomDataProvider(BaseDataProvider):
             Driver: Driver object
         """
         if section is None or not isinstance(section, dict):
-            raise QiskitFinanceError('Invalid or missing section {}'.format(section))
+            raise QiskitFinanceError(
+                'Invalid or missing section {}'.format(section))
 
         params = section
         kwargs = {}
@@ -121,14 +121,15 @@ class RandomDataProvider(BaseDataProvider):
         """ Generates data pseudo-randomly, thus enabling get_similarity_matrix and get_covariance_matrix methods in the base class. 
         """
         self.check_provider_valid()
-        
+
         length = (self._end - self._start).days
         if self._seed:
             random.seed(self._seed)
             np.random.seed(self._seed)
-        
+
         self._data = []
         for ticker in self._tickers:
-          df = pd.DataFrame(np.random.randn(length)).cumsum() + random.randint(1, 101)
-          trimmed = np.maximum(df[0].values, np.zeros(len(df[0].values)))
-          self._data.append(trimmed.tolist())
+            df = pd.DataFrame(
+                np.random.randn(length)).cumsum() + random.randint(1, 101)
+            trimmed = np.maximum(df[0].values, np.zeros(len(df[0].values)))
+            self._data.append(trimmed.tolist())
