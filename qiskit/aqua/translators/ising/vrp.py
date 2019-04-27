@@ -78,7 +78,6 @@ def get_vehiclerouting_qubitops(instance, n, K):
         c = 2 * A * (n-1) + 2 * A * (K ** 2)
 
         try:
-            max(x_sol)
             # Evaluates the cost distance from a binary representation of a path
             fun = lambda x: np.dot(np.around(x), np.dot(Q, np.around(x))) + np.dot(g, np.around(x)) + c
             cost = fun(x_sol)
