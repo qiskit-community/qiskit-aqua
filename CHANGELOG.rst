@@ -46,17 +46,18 @@ Added
 - Added optional capability for ``Grover``'s algorithm to take a custom initial state (as opposed to the default uniform superposition)
 - Added capability to create a ``Custom`` initial state using existing circuit.
 - Added the ADAM (and AMSGRAD) optimization algorithm
-- Multivariate distributions added, so uncertainty models now have univariate and multivariate distribution components
+- Multivariate distributions added, so uncertainty models now have univariate and multivariate distribution components.
 - Added option to include or skip the swaps operations for qft and iqft circuit constructions.
-- Added classical linear system solver ``ExactLSsolver``
-- Added parameters ``auto_hermitian`` and ``auto_resize`` to ``HHL`` algorithm to support non-hermititan and non 2**n sized matrices by default
-- ``SVM_Classical`` can load the trained models, even it is trained by ``QSVM.Kernel``
+- Added classical linear system solver ``ExactLSsolver``.
+- Added parameters ``auto_hermitian`` and ``auto_resize`` to ``HHL`` algorithm to support non-hermititan and non 2**n sized matrices by default.
+- Added another feature map, ``RawFeatureVector``, that directly maps feature vectors to qubits' states for classification.
+- ``SVM_Classical`` can now load models trained by ``QSVM``.
 
 Removed
 -------
 
 - ``QuantumInstance`` does not take ``memory`` anymore.
-- Moved Command line and GUI interfaces to separate repo (qiskit_aqua_uis)
+- Moved Command line and GUI interfaces to separate repo (qiskit_aqua_uis).
 - Removed the ``SAT``-specific oracle (now supported by ``LogicalExpressionOracle``).
 
 
@@ -66,8 +67,12 @@ Changed
 - Changed the type of ``entanger_map`` used in ``FeatureMap`` and ``VariationalForm`` to list of list.
 - Fixed package setup to correctly identify namespace packages using ``setuptools.find_namespace_packages``.
 - Changed ``advanced`` mode implementation of ``mct``: using simple ``h`` gates instead of ``ch``, and fixing the old recursion step in ``_multicx``.
-- Components ``random_distributions`` renamed to ``uncertainty_models``
+- Components ``random_distributions`` renamed to ``uncertainty_models``.
 - Reorganized the constructions of various common gates (``ch``, ``cry``, ``mcry``, ``mct``, ``mcu1``, ``mcu3``, ``mcmt``, ``logic_and``, and ``logic_or``) and circuits (``PhaseEstimationCircuit``, ``BooleanLogicCircuits``, ``FourierTransformCircuits``, and ``StateVectorCircuits``) under the ``circuits`` directory.
+- Renamed the algorithm ``QSVMVariational`` to ``VQC``, which stands for Variational Quantum Classifier.
+- Renamed the algorithm ``QSVMKernel`` to ``QSVM``.
+- Renamed the class ``SVMInput`` to ``ClassificationInput``.
+- Renamed problem type ``'svm_classification'`` to ``'classification'``
 
 Fixed
 -----

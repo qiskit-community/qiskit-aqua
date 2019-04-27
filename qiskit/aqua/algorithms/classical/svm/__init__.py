@@ -20,7 +20,9 @@ from ._svm_classical_binary import _SVM_Classical_Binary
 from ._svm_classical_multiclass import _SVM_Classical_Multiclass
 from ._rbf_svc_estimator import _RBF_SVC_Estimator
 
-__all__ = ['_SVM_Classical_ABC',
-           '_SVM_Classical_Binary',
-           '_SVM_Classical_Multiclass'
-           '_RBF_SVC_Estimator']
+__all__ = [
+    '_SVM_Classical_ABC',
+    '_SVM_Classical_Binary',
+    '_SVM_Classical_Multiclass',
+    '_RBF_SVC_Estimator',
+]

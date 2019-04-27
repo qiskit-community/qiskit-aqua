@@ -20,22 +20,22 @@ import warnings
 
 import numpy as np
 
-from qiskit.aqua.algorithms.many_sample.qsvm._qsvm_kernel_abc import _QSVM_Kernel_ABC
+from qiskit.aqua.algorithms.many_sample.qsvm._qsvm_abc import _QSVM_ABC
 from qiskit.aqua.utils import map_label_to_class_name, optimize_svm
 
 logger = logging.getLogger(__name__)
 
 
-class _QSVM_Kernel_Binary(_QSVM_Kernel_ABC):
+class _QSVM_Binary(_QSVM_ABC):
     """The binary classifier."""
 
     def construct_circuit(self, x1, x2, measurement=False):
-        warnings.warn("Please use the 'construct_circuit' in the qsvm_kernel class directly.",
+        warnings.warn("Please use the 'construct_circuit' in the qsvm class directly.",
                       DeprecationWarning)
         return self._qalgo.construct_circuit(x1, x2, measurement)
 
     def construct_kernel_matrix(self, x1_vec, x2_vec=None):
-        warnings.warn("Please use the 'construct_kernel_matrix' in the qsvm_kernel "
+        warnings.warn("Please use the 'construct_kernel_matrix' in the qsvm "
                       "class directly.", DeprecationWarning)
         return self._qalgo.construct_kernel_matrix(x1_vec, x2_vec, self._qalgo.quantum_instance)
 
