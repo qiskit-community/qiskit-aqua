@@ -52,6 +52,7 @@ Added
 - Added classical linear system solver ``ExactLSsolver``.
 - Added parameters ``auto_hermitian`` and ``auto_resize`` to ``HHL`` algorithm to support non-hermititan and non 2**n sized matrices by default.
 - Added ``RawFeatureMap`` pluggable component.
+- ``SVM_Classical`` can now load models trained by ``QSVM``.
 
 Removed
 -------

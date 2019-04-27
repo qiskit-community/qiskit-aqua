@@ -143,3 +143,18 @@ class _SVM_Classical_Binary(_SVM_Classical_ABC):
             predicted_classes = map_label_to_class_name(predicted_labels, self.label_to_class)
             self._ret['predicted_classes'] = predicted_classes
         return self._ret
+
+    def load_model(self, file_path):
+        model_npz = np.load(file_path)
+        model = {'alphas': model_npz['alphas'],
+                 'bias': model_npz['bias'],
+                 'support_vectors': model_npz['support_vectors'],
+                 'yin': model_npz['yin']}
+        self._ret['svm'] = model
+
+    def save_model(self, file_path):
+        model = {'alphas': self._ret['svm']['alphas'],
+                 'bias': self._ret['svm']['bias'],
+                 'support_vectors': self._ret['svm']['support_vectors'],
+                 'yin': self._ret['svm']['yin']}
+        np.savez(file_path, **model)

@@ -148,3 +148,19 @@ class SVM_Classical(QuantumAlgorithm):
     @ret.setter
     def ret(self, new_ret):
         self.instance.ret = new_ret
+
+    def load_model(self, file_path):
+        """Load a model from a file path.
+
+        Args:
+            file_path (str): tthe path of the saved model.
+        """
+        self.instance.load_model(file_path)
+
+    def save_model(self, file_path):
+        """Save the model to a file path.
+
+        Args:
+            file_path (str): a path to save the model.
+        """
+        self.instance.save_model(file_path)
