@@ -164,7 +164,7 @@ class VQC(VQAlgorithm):
             },
             'additionalProperties': False
         },
-        'problems': ['svm_classification'],
+        'problems': ['classification'],
         'depends': [
             {
                 'pluggable_type': 'optimizer',

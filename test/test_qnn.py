@@ -48,7 +48,7 @@ class TestQNN(QiskitAquaTestCase):
     # We test the accuracy upon the Wine dataset from sklearn
     def test_qnn_via_run_algorithm(self):
         params = {
-            'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
+            'problem': {'name': 'classification', 'random_seed': self.random_seed},
             'algorithm': {'name': 'VQC'},
             'backend': {'provider': 'qiskit.BasicAer', 'name': 'statevector_simulator'},
             'optimizer': {'name': 'COBYLA', 'maxiter': 200},
@@ -62,7 +62,7 @@ class TestQNN(QiskitAquaTestCase):
 
     def test_qsvm_variational_via_run_algorithm(self):
         params = {
-            'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
+            'problem': {'name': 'classification', 'random_seed': self.random_seed},
             'algorithm': {'name': 'VQC'},
             'backend': {'provider': 'qiskit.BasicAer', 'name': 'statevector_simulator'},
             'optimizer': {'name': 'COBYLA', 'maxiter': 200},
@@ -76,7 +76,7 @@ class TestQNN(QiskitAquaTestCase):
     def test_qnn_2d_via_run_algorithm(self):
         n_dim = 2
         params = {
-            'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
+            'problem': {'name': 'classification', 'random_seed': self.random_seed},
             'algorithm': {'name': 'VQC'},
             'backend': {'provider': 'qiskit.BasicAer', 'name': 'statevector_simulator'},
             'optimizer': {'name': 'COBYLA'},
@@ -95,7 +95,7 @@ class TestQNN(QiskitAquaTestCase):
 
     def test_qsvm_variational_2d_via_run_algorithm(self):
         params = {
-            'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
+            'problem': {'name': 'classification', 'random_seed': self.random_seed},
             'algorithm': {'name': 'VQC'}, #
             'backend': {'provider': 'qiskit.BasicAer', 'name': 'statevector_simulator'},
             'optimizer': {'name': 'COBYLA'},

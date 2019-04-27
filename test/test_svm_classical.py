@@ -95,7 +95,7 @@ class TestSVMClassical(QiskitAquaTestCase):
         total_array = np.concatenate(temp)
 
         params = {
-            'problem': {'name': 'svm_classification'},
+            'problem': {'name': 'classification'},
             'algorithm': {
                 'name': 'SVM',
             }
@@ -206,7 +206,7 @@ class TestSVMClassical(QiskitAquaTestCase):
         total_array = np.concatenate(temp)
 
         params = {
-            'problem': {'name': 'svm_classification'},
+            'problem': {'name': 'classification'},
             'algorithm': {
                 'name': 'SVM'
             },
@@ -318,7 +318,7 @@ class TestSVMClassical(QiskitAquaTestCase):
         total_array = np.concatenate(temp)
 
         params = {
-            'problem': {'name': 'svm_classification'},
+            'problem': {'name': 'classification'},
             'algorithm': {
                 'name': 'SVM'
             },
@@ -432,7 +432,7 @@ class TestSVMClassical(QiskitAquaTestCase):
         total_array = np.concatenate(temp)
 
         params = {
-            'problem': {'name': 'svm_classification'},
+            'problem': {'name': 'classification'},
             'algorithm': {
                 'name': 'SVM',
             },

@@ -54,7 +54,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
 
     def test_qsvm_variational_via_run_algorithm(self):
         params = {
-            'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
+            'problem': {'name': 'classification', 'random_seed': self.random_seed},
             'algorithm': {'name': 'VQC'},
             'backend': {'provider': 'qiskit.BasicAer', 'name': 'qasm_simulator', 'shots': 1024},
             'optimizer': {'name': 'SPSA', 'max_trials': 10, 'save_steps': 1},
@@ -70,7 +70,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
 
     def test_qsvm_variational_with_max_evals_grouped(self):
         params = {
-            'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
+            'problem': {'name': 'classification', 'random_seed': self.random_seed},
             'algorithm': {'name': 'VQC', 'max_evals_grouped': 2},
             'backend': {'provider': 'qiskit.BasicAer', 'name': 'qasm_simulator', 'shots': 1024},
             'optimizer': {'name': 'SPSA', 'max_trials': 10, 'save_steps': 1},
@@ -86,7 +86,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
 
     def test_qsvm_variational_statevector_via_run_algorithm(self):
         params = {
-            'problem': {'name': 'svm_classification', 'random_seed': 10598},
+            'problem': {'name': 'classification', 'random_seed': 10598},
             'algorithm': {'name': 'VQC'},
             'backend': {'provider': 'qiskit.BasicAer', 'name': 'statevector_simulator'},
             'optimizer': {'name': 'COBYLA'},

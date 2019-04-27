@@ -45,7 +45,7 @@ class SVMInput(AlgorithmInput):
             },
             'additionalProperties': False
         },
-        'problems': ['svm_classification']
+        'problems': ['classification']
     }
 
     def __init__(self, training_dataset, test_dataset=None, datapoints=None):

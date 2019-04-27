@@ -53,7 +53,7 @@ class QSVM(QuantumAlgorithm):
             },
             'additionalProperties': False
         },
-        'problems': ['svm_classification'],
+        'problems': ['classification'],
         'depends': [
             {'pluggable_type': 'multiclass_extension'},
             {'pluggable_type': 'feature_map',

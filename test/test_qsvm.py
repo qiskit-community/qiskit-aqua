@@ -26,7 +26,7 @@ from qiskit.aqua.components.feature_maps import SecondOrderExpansion
 from qiskit.aqua.algorithms import QSVM
 
 
-class TestQSVMKernel(QiskitAquaTestCase):
+class TestQSVM(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
@@ -61,7 +61,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
         total_array = np.concatenate((test_input['A'], test_input['B']))
 
         params = {
-            'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
+            'problem': {'name': 'classification', 'random_seed': self.random_seed},
             'backend': {'shots': self.shots},
             'algorithm': {
                 'name': 'QSVM'
@@ -189,7 +189,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
         total_array = np.concatenate((test_input['A'], test_input['B'], test_input['C']))
 
         params = {
-            'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
+            'problem': {'name': 'classification', 'random_seed': self.random_seed},
             'algorithm': {
                 'name': 'QSVM',
             },
@@ -227,7 +227,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
         total_array = np.concatenate((test_input['A'], test_input['B'], test_input['C']))
 
         params = {
-            'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
+            'problem': {'name': 'classification', 'random_seed': self.random_seed},
             'algorithm': {
                 'name': 'QSVM',
             },
@@ -262,7 +262,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
         total_array = np.concatenate((test_input['A'], test_input['B'], test_input['C']))
 
         params = {
-            'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
+            'problem': {'name': 'classification', 'random_seed': self.random_seed},
             'algorithm': {
                 'name': 'QSVM',
             },

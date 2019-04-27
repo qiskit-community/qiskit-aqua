@@ -50,7 +50,7 @@ class SVM_Classical(QuantumAlgorithm):
             },
             'additionalProperties': False
         },
-        'problems': ['svm_classification'],
+        'problems': ['classification'],
         'depends': [
             {'pluggable_type': 'multiclass_extension'},
         ],
