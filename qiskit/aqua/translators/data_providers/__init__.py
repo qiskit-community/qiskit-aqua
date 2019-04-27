@@ -19,8 +19,10 @@ from ._basedataprovider import BaseDataProvider, DataType, QiskitFinanceError
 from .dataondemandprovider import DataOnDemandProvider
 from .exchangedataprovider import ExchangeDataProvider
 from .wikipediadataprovider import WikipediaDataProvider
+from .randomdataprovider import RandomDataProvider
 
-__all__ = ['BaseDataProvider', 'DataType', 'QiskitFinanceError', 
+__all__ = ['BaseDataProvider', 'DataType', 'QiskitFinanceError',
+           'RandomDataProvider', 
            'DataOnDemandProvider',
            'ExchangeDataProvider',
            'WikipediaDataProvider']

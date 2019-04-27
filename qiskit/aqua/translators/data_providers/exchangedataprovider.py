@@ -83,19 +83,21 @@ class ExchangeDataProvider(BaseDataProvider):
             stockmarket (StockMarket): LONDON, EURONEXT, or SINGAPORE
         """
 
+        super().__init__()
+        
         if isinstance(tickers, list):
             self._tickers = tickers
         else:
             self._tickers = tickers.replace('\n', ';').split(";")
         self._n = len(self._tickers)
-
-        self.validate(locals())
-        super().__init__()
-        self._stockmarket = stockmarket # .value?
+        
+        self._stockmarket = str(stockmarket.value) # This is to aid serialisation 
         self._token = token
         self._tickers = tickers
         self._start = start
         self._end = end
+        
+        # self.validate(locals())
 
     @staticmethod
     def check_provider_valid():

@@ -20,6 +20,11 @@ import importlib
 from enum import Enum
 import logging
 import datetime
+import certifi
+
+import urllib3
+from urllib.parse import urlencode
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -74,16 +79,22 @@ class DataOnDemandProvider(BaseDataProvider):
                  tickers,
                  stockmarket = StockMarket.NASDAQ,
                  start = datetime.datetime(2016,1,1),
-                 end = datetime.datetime(2016,1,30)):
+                 end = datetime.datetime(2016,1,30),
+                 verify = None):
         """
         Initializer
         Args:
             token (str): quandl access token
             tickers (str or list): tickers
-            stockmarket (StockMarket): LONDON, EURONEXT, or SINGAPORE
+            stockmarket (StockMarket): NYSE or NASDAQ
+            start (datetime): first data point
+            end (datetime): last data point precedes this date
+            verify (None or str or boolean): if verify is None, certifi certificates will be used (default); if this is False, no certificates will be checked; if this is a string, it should be poiting to a cerfificate for the HTTPS connection to NASDAQ (dataondemand.nasdaq.com), either in the form of a CA_BUNDLE file or a directory wherein to look.
         """
         #if not isinstance(atoms, list) and not isinstance(atoms, str):
         #    raise QiskitFinanceError("Invalid atom input for DOD Driver '{}'".format(atoms))
+
+        super().__init__()
 
         if isinstance(tickers, list):
             self._tickers = tickers
@@ -91,12 +102,13 @@ class DataOnDemandProvider(BaseDataProvider):
             self._tickers = tickers.replace('\n', ';').split(";")
         self._n = len(self._tickers)
 
-        self.validate(locals())
-        super().__init__()
-        self._stockmarket = stockmarket # .value?
+        self._stockmarket = str(stockmarket.value) # This is to aid serialisation 
         self._token = token
         self._start = start
         self._end = end
+        self._verify = verify
+        
+        #self.validate(locals())
 
     @staticmethod
     def check_provider_valid():
@@ -127,11 +139,7 @@ class DataOnDemandProvider(BaseDataProvider):
     def run(self):
         """ Loads data, thus enabling get_similarity_matrix and get_covariance methods in the base class. """
         self.check_provider_valid()
-        import re
-        import urllib3
-        from urllib.parse import urlencode
-        http = urllib3.PoolManager()
-        import json
+        http = urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
         URL = 'https://dataondemand.nasdaq.com/api/v1/quotes?'
         self._data = []
         for ticker in self._tickers:
@@ -143,7 +151,8 @@ class DataOnDemandProvider(BaseDataProvider):
           }
           encoded = URL + urlencode(values)
           try: 
-            response = http.request('POST', encoded)
+            if not self._verify: response = http.request('POST', encoded) # this runs certifi verification, as per the set-up of the urllib3
+            else: response = http.request('POST', encoded, verify = self._verify) # this disables certifi verification
             if response.status != 200:
               msg = "Accessing NASDAQ Data on Demand with parameters {} encoded into ".format(values)
               msg += encoded
@@ -155,3 +164,4 @@ class DataOnDemandProvider(BaseDataProvider):
             self._data.append(priceEvolution)
           except Exception as e:
             raise QiskitFinanceError('Accessing NASDAQ Data on Demand failed.') from e
+          http.clear()

@@ -23,6 +23,9 @@ from qiskit.aqua import AquaError
 from enum import Enum
 import logging
 
+import numpy as np
+import fastdtw
+
 logger = logging.getLogger(__name__)
 
 
@@ -111,15 +114,18 @@ class BaseDataProvider(ABC):
         return xc, yc
 
     # it does not have to be overridden in non-abstract derived classes.
-    def get_covariance(self):
+    def get_covariance_matrix(self):
         """ Returns the covariance matrix. 
         
     Returns:
-        rho (numpy.ndarray) : an asset-to-asset similarity matrix.        
+        rho (numpy.ndarray) : an asset-to-asset covariance matrix.        
         """
-        if not self._data: return None   
-        import numpy as np
-        if not self._data: return None
+        try: 
+            if not self._data: 
+                return None
+        except AttributeError: 
+            print("Error: Please run the method run() first, to load the data.")   
+            return None 
         self.cov = np.cov(self._data, rowvar = True)
         return self.cov
 
@@ -130,18 +136,18 @@ class BaseDataProvider(ABC):
     Returns:
         rho (numpy.ndarray) : an asset-to-asset similarity matrix.
         """
-        if not self._data: return None    
-        import numpy as np
-        try:
-          import fastdtw
-          self.rho = np.zeros((self._n, self._n))
-          for ii in range(0, self._n):
+        try: 
+            if not self._data: 
+                return None 
+        except AttributeError: 
+            print("Error: Please run the method run() first, to load the data.")   
+            return None   
+        self.rho = np.zeros((self._n, self._n))
+        for ii in range(0, self._n):
             self.rho[ii,ii] = 1.
             for jj in range(ii + 1, self._n):
                 thisRho, path = fastdtw.fastdtw(self._data[ii], self._data[jj])
                 thisRho = 1.0 / thisRho
                 self.rho[ii, jj] = thisRho
                 self.rho[jj, ii] = thisRho
-        except ImportError:
-          print("This requires fastdtw package.")
         return self.rho

@@ -16,49 +16,41 @@
 # =============================================================================
 
 from qiskit.aqua.translators.data_providers import BaseDataProvider, DataType, QiskitFinanceError
-import importlib
 from enum import Enum
 import logging
 import datetime
+import numpy as np
+import pandas as pd
+import random
 
 logger = logging.getLogger(__name__)
 
 
 class StockMarket(Enum):
-    NASDAQ = 'NASDAQ'
-    NYSE = 'NYSE'
+    RANDOM = 'RANDOM'
     
-class WikipediaDataProvider(BaseDataProvider):
-    """Python implementation of a Wikipedia data provider.
-    Please see:
-    https://github.com/Qiskit/qiskit-tutorials/qiskit/finance/data_providers/time_series.ipynb
-    for instructions on use."""
+class RandomDataProvider(BaseDataProvider):
+    """Python implementation of provider of mock stock-market data, which are generated pseudo-randomly.
+    """
 
     CONFIGURATION = {
-        "name": "WIKI",
-        "description": "Wikipedia Data Provider",
+        "name": "RND",
+        "description": "Pseudo-Random Data Provider",
         "input_schema": {
             "$schema": "http://json-schema.org/schema#",
-            "id": "edi_schema",
+            "id": "rnd_schema",
             "type": "object",
             "properties": {
                 "stockmarket": {
                     "type": "string",
-                    "default": StockMarket.NASDAQ.value,
-                    "oneOf": [
-                         {"enum": [
-                            StockMarket.NASDAQ.value,
-                            StockMarket.NYSE.value,
-                         ]}
-                    ]
+                    "default": "RANDOM"
                 },
                 "datatype": {
                     "type": "string",
                     "default": DataType.DAILYADJUSTED.value,
                     "oneOf": [
                          {"enum": [
-                            DataType.DAILYADJUSTED.value,
-                            DataType.DAILY.value,
+                            DataType.DAILYADJUSTED.value
                          ]}
                     ]
                 },    
@@ -67,21 +59,24 @@ class WikipediaDataProvider(BaseDataProvider):
     }
 
     def __init__(self,
-                 token = "",
-                 tickers = [],
-                 stockmarket = StockMarket.NASDAQ,
+                 tickers = ["TICKER1", "TICKER2"],
+                 stockmarket = StockMarket.RANDOM,
                  start = datetime.datetime(2016,1,1),
-                 end = datetime.datetime(2016,1,30)):
+                 end = datetime.datetime(2016,1,30),
+                 seed = None):
         """
         Initializer
         Args:
-            token (str): quandl access token, which is not needed, strictly speaking
             tickers (str or list): tickers
-            stockmarket (StockMarket): NASDAQ, NYSE
+            stockmarket (StockMarket): RANDOM
+            start (datetime): first data point
+            end (datetime): last data point precedes this date
+            seed (None or int): shall a seed be used?                 
         """
-        #if not isinstance(atoms, list) and not isinstance(atoms, str):
-        #    raise QiskitFinanceError("Invalid atom input for Wikipedia Driver '{}'".format(atoms))
         super().__init__()
+        
+        #if not isinstance(atoms, list) and not isinstance(atoms, str):
+        #    raise QiskitFinanceError("Invalid atom input for RANDOM data provider '{}'".format(atoms))
 
         if isinstance(tickers, list):
             self._tickers = tickers
@@ -89,27 +84,16 @@ class WikipediaDataProvider(BaseDataProvider):
             self._tickers = tickers.replace('\n', ';').split(";")
         self._n = len(self._tickers)
 
-        self._stockmarket = str(stockmarket.value) # This is to aid serialisation 
-        self._token = token
-        self._tickers = tickers
+        self._stockmarket = stockmarket.value
         self._start = start
         self._end = end
-        self._data = []
+        self._seed = seed
 
-        # self.validate(locals())
+        #self.validate(locals())
 
     @staticmethod
     def check_provider_valid():
-        err_msg = 'quandl is not installed.'
-        try:
-            spec = importlib.util.find_spec('quandl')
-            if spec is not None:
-                return
-        except Exception as e:
-            logger.debug('quandl check error {}'.format(str(e)))
-            raise QiskitFinanceError(err_msg) from e
-
-        raise QiskitFinanceError(err_msg)
+        return
 
     @classmethod
     def init_from_input(cls, section):
@@ -120,7 +104,7 @@ class WikipediaDataProvider(BaseDataProvider):
             params (dict): section dictionary
 
         Returns:
-            DataProvider object
+            Driver: Driver object
         """
         if section is None or not isinstance(section, dict):
             raise QiskitFinanceError('Invalid or missing section {}'.format(section))
@@ -134,18 +118,17 @@ class WikipediaDataProvider(BaseDataProvider):
         return cls(**kwargs)
 
     def run(self):
-        """ Loads data, thus enabling get_similarity_matrix and get_covariance methods in the base class. """
+        """ Generates data pseudo-randomly, thus enabling get_similarity_matrix and get_covariance methods in the base class. 
+        """
         self.check_provider_valid()
-        import quandl
-        quandl.ApiConfig.api_key = self._token
-        quandl.ApiConfig.api_version = '2015-04-09'
+        
+        length = (self._end - self._start).days
+        if self._seed:
+            random.seed(self._seed)
+            np.random.seed(self._seed)
+        
         self._data = []
-        for (cnt, s) in enumerate(self._tickers):
-          try:
-            d = quandl.get("WIKI/" + s, start_date=self._start, end_date=self._end)
-          except Exception as e: # The exception will be urllib3 NewConnectionError, but it can get dressed by quandl
-            raise QiskitFinanceError("Cannot retrieve Wikipedia data.") from e
-          try:
-            self._data.append(d["Adj. Close"])
-          except KeyError as e:
-            raise QiskitFinanceError("Cannot parse quandl output.") from e
+        for ticker in self._tickers:
+          df = pd.DataFrame(np.random.randn(length)).cumsum() + random.randint(1, 101)
+          trimmed = np.maximum(df[0].values, np.zeros(len(df[0].values)))
+          self._data.append(trimmed.tolist())
