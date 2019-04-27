@@ -64,7 +64,6 @@ class RawFeatureVector(FeatureMap):
         super().__init__()
         self._feature_dimension = feature_dimension
         self._num_qubits = next_power_of_2_base(feature_dimension)
-        print(self._num_qubits)
 
     def construct_circuit(self, x, qr=None, inverse=False):
         """
