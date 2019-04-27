@@ -69,5 +69,9 @@ class FeatureMap(Pluggable):
         return validate_entangler_map(entangler_map, num_qubits)
 
     @property
+    def feature_dimension(self):
+        return self._feature_dimension
+
+    @property
     def num_qubits(self):
         return self._num_qubits

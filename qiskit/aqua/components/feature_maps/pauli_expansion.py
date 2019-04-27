@@ -96,7 +96,7 @@ class PauliExpansion(FeatureMap):
         """
         self.validate(locals())
         super().__init__()
-        self._num_qubits = feature_dimension
+        self._num_qubits = self._feature_dimension = feature_dimension
         self._depth = depth
         if entangler_map is None:
             self._entangler_map = self.get_entangler_map(entanglement, feature_dimension)
