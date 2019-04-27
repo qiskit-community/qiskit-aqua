@@ -20,13 +20,13 @@ import warnings
 
 import numpy as np
 
-from qiskit.aqua.algorithms.many_sample.qsvm._qsvm_kernel_abc import _QSVM_Kernel_ABC
+from qiskit.aqua.algorithms.many_sample.qsvm._qsvm_abc import _QSVM_ABC
 from qiskit.aqua.utils import map_label_to_class_name, optimize_svm
 
 logger = logging.getLogger(__name__)
 
 
-class _QSVM_Kernel_Binary(_QSVM_Kernel_ABC):
+class _QSVM_Binary(_QSVM_ABC):
     """The binary classifier."""
 
     def construct_circuit(self, x1, x2, measurement=False):

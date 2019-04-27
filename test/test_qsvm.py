@@ -23,7 +23,7 @@ from test.common import QiskitAquaTestCase
 from qiskit.aqua import run_algorithm, QuantumInstance, aqua_globals
 from qiskit.aqua.input import SVMInput
 from qiskit.aqua.components.feature_maps import SecondOrderExpansion
-from qiskit.aqua.algorithms import QSVMKernel
+from qiskit.aqua.algorithms import QSVM
 
 
 class TestQSVMKernel(QiskitAquaTestCase):
@@ -64,7 +64,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
             'backend': {'shots': self.shots},
             'algorithm': {
-                'name': 'QSVM.Kernel'
+                'name': 'QSVM'
             }
         }
         backend = BasicAer.get_backend('qasm_simulator')
@@ -96,7 +96,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
         backend = BasicAer.get_backend('qasm_simulator')
         num_qubits = 2
         feature_map = SecondOrderExpansion(feature_dimension=num_qubits, depth=2, entangler_map=[[0, 1]])
-        svm = QSVMKernel(feature_map, self.training_data, self.testing_data, None)
+        svm = QSVM(feature_map, self.training_data, self.testing_data, None)
         quantum_instance = QuantumInstance(backend, shots=self.shots, seed=self.random_seed,
                                            seed_transpiler=self.random_seed)
 
@@ -126,7 +126,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
         backend = BasicAer.get_backend('statevector_simulator')
         num_qubits = 2
         feature_map = SecondOrderExpansion(feature_dimension=num_qubits, depth=2, entangler_map=[[0, 1]])
-        svm = QSVMKernel(feature_map, self.training_data, self.testing_data, None)
+        svm = QSVM(feature_map, self.training_data, self.testing_data, None)
         aqua_globals.random_seed = self.random_seed
 
         quantum_instance = QuantumInstance(backend, seed_transpiler=self.random_seed)
@@ -148,7 +148,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
 
         self.assertTrue(os.path.exists(file_path))
 
-        loaded_svm = QSVMKernel(feature_map, self.training_data, None, None)
+        loaded_svm = QSVM(feature_map, self.training_data, None, None)
         loaded_svm.load_model(file_path)
 
         np.testing.assert_array_almost_equal(
@@ -191,7 +191,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
             'algorithm': {
-                'name': 'QSVM.Kernel',
+                'name': 'QSVM',
             },
             'backend': {'shots': self.shots},
             'multiclass_extension': {'name': 'OneAgainstRest'},
@@ -229,7 +229,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
             'algorithm': {
-                'name': 'QSVM.Kernel',
+                'name': 'QSVM',
             },
             'backend': {'shots': self.shots},
             'multiclass_extension': {'name': 'AllPairs'},
@@ -264,7 +264,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
         params = {
             'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
             'algorithm': {
-                'name': 'QSVM.Kernel',
+                'name': 'QSVM',
             },
             'backend': {'shots': self.shots},
             'multiclass_extension': {'name': 'ErrorCorrectingCode', 'code_size': 5},
