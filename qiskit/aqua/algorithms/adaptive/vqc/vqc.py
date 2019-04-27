@@ -28,7 +28,7 @@ from qiskit.aqua.utils import get_feature_dimension
 from qiskit.aqua.utils import map_label_to_class_name
 from qiskit.aqua.utils import split_dataset_to_data_and_labels
 from qiskit.aqua.utils import find_regs_by_name
-from ..vqalgorithm import VQAlgorithm
+from qiskit.aqua.algorithms.adaptive.vqalgorithm import VQAlgorithm
 
 logger = logging.getLogger(__name__)
 
