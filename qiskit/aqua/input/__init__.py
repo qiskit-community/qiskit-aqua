@@ -15,10 +15,10 @@
 # limitations under the License.
 # =============================================================================
 
-from .algorithminput import AlgorithmInput
-from .energyinput import EnergyInput
-from .linearsysteminput import LinearSystemInput
-from .classificationinput import ClassificationInput
+from .algorithm_input import AlgorithmInput
+from .energy_input import EnergyInput
+from .linear_system_input import LinearSystemInput
+from .classification_input import ClassificationInput
 
 __all__ = ['AlgorithmInput',
            'EnergyInput',
