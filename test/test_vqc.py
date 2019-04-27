@@ -32,7 +32,7 @@ from qiskit.aqua.components.variational_forms import RYRZ, RY
 from qiskit.aqua.components.optimizers import L_BFGS_B
 
 
-class TestQSVMVariational(QiskitAquaTestCase):
+class TestVQC(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
@@ -52,7 +52,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
 
         self.svm_input = ClassificationInput(self.training_data, self.testing_data)
 
-    def test_qsvm_variational_via_run_algorithm(self):
+    def test_vqc_via_run_algorithm(self):
         params = {
             'problem': {'name': 'classification', 'random_seed': self.random_seed},
             'algorithm': {'name': 'VQC'},
@@ -68,7 +68,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
 
         self.assertEqual(1.0, result['testing_accuracy'])
 
-    def test_qsvm_variational_with_max_evals_grouped(self):
+    def test_vqc_with_max_evals_grouped(self):
         params = {
             'problem': {'name': 'classification', 'random_seed': self.random_seed},
             'algorithm': {'name': 'VQC', 'max_evals_grouped': 2},
@@ -84,7 +84,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
 
         self.assertEqual(1.0, result['testing_accuracy'])
 
-    def test_qsvm_variational_statevector_via_run_algorithm(self):
+    def test_vqc_statevector_via_run_algorithm(self):
         params = {
             'problem': {'name': 'classification', 'random_seed': 10598},
             'algorithm': {'name': 'VQC'},
@@ -100,7 +100,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
         self.assertEqual(result['testing_accuracy'], 0.5)
 
     # we use the ad_hoc dataset (see the end of this file) to test the accuracy.
-    def test_qsvm_variational_minibatching_no_gradient_support(self):
+    def test_vqc_minibatching_no_gradient_support(self):
         n_dim = 2  # dimension of each data point
         seed = 1024
         np.random.seed(seed)
@@ -120,7 +120,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
         self.log.debug(result['testing_accuracy'])
         self.assertGreater(result['testing_accuracy'], svm_accuracy_threshold)
 
-    def test_qsvm_variational_minibatching_with_gradient_support(self):
+    def test_vqc_minibatching_with_gradient_support(self):
         n_dim = 2  # dimension of each data point
         seed = 1024
         np.random.seed(seed)
@@ -140,7 +140,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
         self.log.debug(result['testing_accuracy'])
         self.assertGreater(result['testing_accuracy'], svm_accuracy_threshold)
 
-    def test_qsvm_variational_directly(self):
+    def test_vqc_directly(self):
         np.random.seed(self.random_seed)
 
         aqua_globals.random_seed = self.random_seed
@@ -160,7 +160,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
 
         self.assertEqual(1.0, result['testing_accuracy'])
 
-        file_path = self._get_resource_path('qsvm_variational_test.npz')
+        file_path = self._get_resource_path('vqc_test.npz')
         svm.save_model(file_path)
 
         self.assertTrue(os.path.exists(file_path))
@@ -186,7 +186,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
             except:
                 pass
 
-    def test_qsvm_variational_callback(self):
+    def test_vqc_callback(self):
 
         tmp_filename = 'qsvm_callback_test.csv'
         is_file_exist = os.path.exists(self._get_resource_path(tmp_filename))

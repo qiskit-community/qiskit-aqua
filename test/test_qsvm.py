@@ -42,7 +42,7 @@ class TestQSVM(QiskitAquaTestCase):
 
         self.svm_input = ClassificationInput(self.training_data, self.testing_data)
 
-    def test_qsvm_kernel_binary_via_run_algorithm(self):
+    def test_qsvm_binary_via_run_algorithm(self):
 
         training_input = {'A': np.asarray([[0.6560706, 0.17605998], [0.14154948, 0.06201424],
                                            [0.80202323, 0.40582692], [0.46779595, 0.39946754],
@@ -74,7 +74,7 @@ class TestQSVM(QiskitAquaTestCase):
         self.assertEqual(result['predicted_classes'], ['A', 'A', 'A', 'A', 'A',
                                                        'A', 'B', 'A', 'A', 'A'])
 
-    def test_qsvm_kernel_binary_directly(self):
+    def test_qsvm_binary_directly(self):
 
         ref_kernel_training = np.array([[1., 0.85366667, 0.12341667, 0.36408333],
                                         [0.85366667, 1., 0.11141667, 0.45491667],
@@ -115,7 +115,7 @@ class TestQSVM(QiskitAquaTestCase):
 
         self.assertEqual(result['testing_accuracy'], 0.5)
 
-    def test_qsvm_kernel_binary_directly_statevector(self):
+    def test_qsvm_binary_directly_statevector(self):
 
         ref_kernel_testing = np. array([[0.1443953, 0.18170069, 0.47479649, 0.14691763],
                                         [0.33041779, 0.37663733, 0.02115561, 0.16106199]])
@@ -143,7 +143,7 @@ class TestQSVM(QiskitAquaTestCase):
 
         self.assertEqual(result['testing_accuracy'], 0.5)
 
-        file_path = self._get_resource_path('qsvm_kernel_test.npz')
+        file_path = self._get_resource_path('qsvm_test.npz')
         svm.save_model(file_path)
 
         self.assertTrue(os.path.exists(file_path))
@@ -169,7 +169,7 @@ class TestQSVM(QiskitAquaTestCase):
             except:
                 pass
 
-    def test_qsvm_kernel_multiclass_one_against_all(self):
+    def test_qsvm_multiclass_one_against_all(self):
 
         backend = BasicAer.get_backend('qasm_simulator')
         training_input = {'A': np.asarray([[0.6560706, 0.17605998], [0.25776033, 0.47628296],
@@ -207,7 +207,7 @@ class TestQSVM(QiskitAquaTestCase):
         self.assertAlmostEqual(result['testing_accuracy'], expected_accuracy, places=4)
         self.assertEqual(result['predicted_classes'], expected_classes)
 
-    def test_qsvm_kernel_multiclass_all_pairs(self):
+    def test_qsvm_multiclass_all_pairs(self):
 
         backend = BasicAer.get_backend('qasm_simulator')
         training_input = {'A': np.asarray([[0.6560706, 0.17605998], [0.25776033, 0.47628296],
@@ -242,7 +242,7 @@ class TestQSVM(QiskitAquaTestCase):
         self.assertEqual(result['predicted_classes'], ['A', 'A', 'C', 'A',
                                                        'A', 'A', 'A', 'C', 'C'])
 
-    def test_qsvm_kernel_multiclass_error_correcting_code(self):
+    def test_qsvm_multiclass_error_correcting_code(self):
 
         backend = BasicAer.get_backend('qasm_simulator')
         training_input = {'A': np.asarray([[0.6560706, 0.17605998], [0.25776033, 0.47628296],

@@ -60,7 +60,7 @@ class TestQNN(QiskitAquaTestCase):
 
         self.assertGreater(result['testing_accuracy'], 0.85)
 
-    def test_qsvm_variational_via_run_algorithm(self):
+    def test_vqc_via_run_algorithm(self):
         params = {
             'problem': {'name': 'classification', 'random_seed': self.random_seed},
             'algorithm': {'name': 'VQC'},
@@ -93,7 +93,7 @@ class TestQNN(QiskitAquaTestCase):
         self.assertGreater(result['testing_accuracy'], 0.55)
         self.assertLess(result['testing_accuracy'], 0.7)
 
-    def test_qsvm_variational_2d_via_run_algorithm(self):
+    def test_vqc_2d_via_run_algorithm(self):
         params = {
             'problem': {'name': 'classification', 'random_seed': self.random_seed},
             'algorithm': {'name': 'VQC'}, #
