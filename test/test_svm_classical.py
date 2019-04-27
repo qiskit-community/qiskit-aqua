@@ -18,7 +18,7 @@ import numpy as np
 
 from qiskit.aqua import aqua_globals
 from qiskit.aqua import run_algorithm
-from qiskit.aqua.input import SVMInput
+from qiskit.aqua.input import ClassificationInput
 from test.common import QiskitAquaTestCase
 
 
@@ -101,7 +101,7 @@ class TestSVMClassical(QiskitAquaTestCase):
             }
         }
 
-        algo_input = SVMInput(training_input, test_input, total_array)
+        algo_input = ClassificationInput(training_input, test_input, total_array)
 
         result = run_algorithm(params, algo_input)
         self.assertEqual(result['testing_accuracy'], 1.0)
@@ -213,7 +213,7 @@ class TestSVMClassical(QiskitAquaTestCase):
             'multiclass_extension': {'name': 'OneAgainstRest'}
         }
 
-        algo_input = SVMInput(training_input, test_input, total_array)
+        algo_input = ClassificationInput(training_input, test_input, total_array)
 
         result = run_algorithm(params, algo_input)
         self.assertEqual(result['testing_accuracy'], 1.0)
@@ -326,7 +326,7 @@ class TestSVMClassical(QiskitAquaTestCase):
 
         }
 
-        algo_input = SVMInput(training_input, test_input, total_array)
+        algo_input = ClassificationInput(training_input, test_input, total_array)
 
         result = run_algorithm(params, algo_input)
         self.assertEqual(result['testing_accuracy'], 1.0)
@@ -439,7 +439,7 @@ class TestSVMClassical(QiskitAquaTestCase):
             'multiclass_extension': {'name': 'ErrorCorrectingCode', 'code_size': 5},
         }
 
-        algo_input = SVMInput(training_input, test_input, total_array)
+        algo_input = ClassificationInput(training_input, test_input, total_array)
 
         result = run_algorithm(params, algo_input)
         self.assertEqual(result['testing_accuracy'], 1.0)

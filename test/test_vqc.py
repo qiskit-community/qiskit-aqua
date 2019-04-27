@@ -23,7 +23,7 @@ import scipy
 
 from test.common import QiskitAquaTestCase
 from qiskit import BasicAer
-from qiskit.aqua.input import SVMInput
+from qiskit.aqua.input import ClassificationInput
 from qiskit.aqua import run_algorithm, QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms import VQC
 from qiskit.aqua.components.optimizers import SPSA, COBYLA
@@ -50,7 +50,7 @@ class TestQSVMVariational(QiskitAquaTestCase):
         self.ref_prediction_a_probs = [[0.79882812, 0.20117188]]
         self.ref_prediction_a_label = [0]
 
-        self.svm_input = SVMInput(self.training_data, self.testing_data)
+        self.svm_input = ClassificationInput(self.training_data, self.testing_data)
 
     def test_qsvm_variational_via_run_algorithm(self):
         params = {

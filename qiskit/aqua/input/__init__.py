@@ -18,9 +18,9 @@
 from .algorithminput import AlgorithmInput
 from .energyinput import EnergyInput
 from .linearsysteminput import LinearSystemInput
-from .svminput import SVMInput
+from .classificationinput import ClassificationInput
 
 __all__ = ['AlgorithmInput',
            'EnergyInput',
            'LinearSystemInput',
-           'SVMInput']
+           'ClassificationInput']

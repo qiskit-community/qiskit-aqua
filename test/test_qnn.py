@@ -23,7 +23,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.decomposition import PCA
 
-from qiskit.aqua.input import SVMInput
+from qiskit.aqua.input import ClassificationInput
 from qiskit.aqua import run_algorithm
 from test.common import QiskitAquaTestCase
 
@@ -43,7 +43,7 @@ class TestQNN(QiskitAquaTestCase):
             test_size=self.testing_dataset_size,
             n=self.feature_dim
         )
-        self.svm_input = SVMInput(training_input, test_input)
+        self.svm_input = ClassificationInput(training_input, test_input)
 
     # We test the accuracy upon the Wine dataset from sklearn
     def test_qnn_via_run_algorithm(self):
@@ -86,7 +86,7 @@ class TestQNN(QiskitAquaTestCase):
         sample_Total, training_input, test_input, class_labels = ad_hoc_data(
             training_size=20, test_size=10, n=n_dim, gap=0.3
         )
-        self.svm_input = SVMInput(training_input, test_input)
+        self.svm_input = ClassificationInput(training_input, test_input)
 
         result = run_algorithm(params, self.svm_input)
         self.log.debug(result['testing_accuracy'])
@@ -105,7 +105,7 @@ class TestQNN(QiskitAquaTestCase):
         sample_Total, training_input, test_input, class_labels = ad_hoc_data(training_size=20,
                                                                              test_size=10,
                                                                              n=n_dim, gap=0.3)
-        self.svm_input = SVMInput(training_input, test_input)
+        self.svm_input = ClassificationInput(training_input, test_input)
 
         result = run_algorithm(params, self.svm_input)
         self.log.debug(result['testing_accuracy'])

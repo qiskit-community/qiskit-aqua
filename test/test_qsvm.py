@@ -21,7 +21,7 @@ import numpy as np
 from qiskit import BasicAer
 from test.common import QiskitAquaTestCase
 from qiskit.aqua import run_algorithm, QuantumInstance, aqua_globals
-from qiskit.aqua.input import SVMInput
+from qiskit.aqua.input import ClassificationInput
 from qiskit.aqua.components.feature_maps import SecondOrderExpansion
 from qiskit.aqua.algorithms import QSVM
 
@@ -40,7 +40,7 @@ class TestQSVM(QiskitAquaTestCase):
         self.testing_data = {'A': np.asarray([[3.83274304, 2.45044227]]),
                              'B': np.asarray([[3.89557489, 0.31415927]])}
 
-        self.svm_input = SVMInput(self.training_data, self.testing_data)
+        self.svm_input = ClassificationInput(self.training_data, self.testing_data)
 
     def test_qsvm_kernel_binary_via_run_algorithm(self):
 
@@ -68,7 +68,7 @@ class TestQSVM(QiskitAquaTestCase):
             }
         }
         backend = BasicAer.get_backend('qasm_simulator')
-        algo_input = SVMInput(training_input, test_input, total_array)
+        algo_input = ClassificationInput(training_input, test_input, total_array)
         result = run_algorithm(params, algo_input, backend=backend)
         self.assertEqual(result['testing_accuracy'], 0.6)
         self.assertEqual(result['predicted_classes'], ['A', 'A', 'A', 'A', 'A',
@@ -198,7 +198,7 @@ class TestQSVM(QiskitAquaTestCase):
             'feature_map': {'name': 'SecondOrderExpansion', 'depth': 2, 'entangler_map': [[0, 1]]}
         }
 
-        algo_input = SVMInput(training_input, test_input, total_array)
+        algo_input = ClassificationInput(training_input, test_input, total_array)
 
         result = run_algorithm(params, algo_input, backend=backend)
 
@@ -236,7 +236,7 @@ class TestQSVM(QiskitAquaTestCase):
             'feature_map': {'name': 'SecondOrderExpansion', 'depth': 2, 'entangler_map': [[0, 1]]}
         }
 
-        algo_input = SVMInput(training_input, test_input, total_array)
+        algo_input = ClassificationInput(training_input, test_input, total_array)
         result = run_algorithm(params, algo_input, backend=backend)
         self.assertAlmostEqual(result['testing_accuracy'], 0.444444444, places=4)
         self.assertEqual(result['predicted_classes'], ['A', 'A', 'C', 'A',
@@ -271,7 +271,7 @@ class TestQSVM(QiskitAquaTestCase):
             'feature_map': {'name': 'SecondOrderExpansion', 'depth': 2, 'entangler_map': [[0, 1]]}
         }
 
-        algo_input = SVMInput(training_input, test_input, total_array)
+        algo_input = ClassificationInput(training_input, test_input, total_array)
 
         result = run_algorithm(params, algo_input, backend=backend)
         self.assertAlmostEqual(result['testing_accuracy'], 0.444444444, places=4)
