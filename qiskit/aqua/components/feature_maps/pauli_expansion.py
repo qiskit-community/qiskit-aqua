@@ -78,12 +78,12 @@ class PauliExpansion(FeatureMap):
         }
     }
 
-    def __init__(self, num_qubits, depth=2, entangler_map=None,
+    def __init__(self, feature_dimension, depth=2, entangler_map=None,
                  entanglement='full', paulis=['Z', 'ZZ'], data_map_func=self_product):
         """Constructor.
 
         Args:
-            num_qubits (int): number of qubits
+            feature_dimension (int): number of features
             depth (int): the number of repeated circuits
             entangler_map (list[list]): describe the connectivity of qubits, each list describes
                                         [source, target], or None for full entanglement.
@@ -96,12 +96,12 @@ class PauliExpansion(FeatureMap):
         """
         self.validate(locals())
         super().__init__()
-        self._num_qubits = num_qubits
+        self._num_qubits = self._feature_dimension = feature_dimension
         self._depth = depth
         if entangler_map is None:
-            self._entangler_map = self.get_entangler_map(entanglement, num_qubits)
+            self._entangler_map = self.get_entangler_map(entanglement, feature_dimension)
         else:
-            self._entangler_map = self.validate_entangler_map(entangler_map, num_qubits)
+            self._entangler_map = self.validate_entangler_map(entangler_map, feature_dimension)
 
         self._pauli_strings = self._build_subset_paulis_string(paulis)
         self._data_map_func = data_map_func

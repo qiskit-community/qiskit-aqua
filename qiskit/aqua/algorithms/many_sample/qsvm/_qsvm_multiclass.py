@@ -18,13 +18,13 @@
 import logging
 import numpy as np
 
-from qiskit.aqua.algorithms.many_sample.qsvm._qsvm_kernel_abc import _QSVM_Kernel_ABC
+from qiskit.aqua.algorithms.many_sample.qsvm._qsvm_abc import _QSVM_ABC
 from qiskit.aqua.utils import map_label_to_class_name
 
 logger = logging.getLogger(__name__)
 
 
-class _QSVM_Kernel_Multiclass(_QSVM_Kernel_ABC):
+class _QSVM_Multiclass(_QSVM_ABC):
     """
     The multiclass classifier.
 

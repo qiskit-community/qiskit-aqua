@@ -18,7 +18,7 @@
 from abc import ABC, abstractmethod
 
 
-class _QSVM_Kernel_ABC(ABC):
+class _QSVM_ABC(ABC):
     """Abstract base class for the binary classifier and the multiclass classifier."""
 
     def __init__(self, qalgo):

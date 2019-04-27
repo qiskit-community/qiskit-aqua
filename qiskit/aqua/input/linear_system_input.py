@@ -126,5 +126,3 @@ class LinearSystemInput(AlgorithmInput):
             return [mat.real.tolist(), mat.imag.tolist()]
         else:
             return mat.tolist()
-
-

@@ -178,7 +178,5 @@ class TestCaching(QiskitAquaTestCase):
             self.assertLessEqual(quantum_instance1.circuit_cache.misses, 0)
 
 
-
-
 if __name__ == '__main__':
     unittest.main()

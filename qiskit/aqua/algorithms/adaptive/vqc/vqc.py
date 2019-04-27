@@ -17,17 +17,18 @@
 
 import logging
 import math
-from abc import abstractmethod
-
 import numpy as np
-from sklearn.utils import shuffle
-from qiskit import ClassicalRegister, QuantumCircuit
 
-from qiskit.aqua import AquaError
-from qiskit.aqua.components.optimizers import Optimizer
-from qiskit.aqua.components.variational_forms import VariationalForm
-from qiskit.aqua.utils import map_label_to_class_name, split_dataset_to_data_and_labels, find_regs_by_name
-from .vqalgorithm import VQAlgorithm
+from sklearn.utils import shuffle
+from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
+
+from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class, AquaError
+from qiskit.aqua.components.feature_maps import FeatureMap
+from qiskit.aqua.utils import get_feature_dimension
+from qiskit.aqua.utils import map_label_to_class_name
+from qiskit.aqua.utils import split_dataset_to_data_and_labels
+from qiskit.aqua.utils import find_regs_by_name
+from qiskit.aqua.algorithms.adaptive.vqalgorithm import VQAlgorithm
 
 logger = logging.getLogger(__name__)
 
@@ -138,16 +139,61 @@ def return_probabilities(counts, num_classes):
     return probs
 
 
-class VQClassification(VQAlgorithm):
-    """
-    The Variational Quantum Classification Algorithm Base Class.
-    """
+class VQC(VQAlgorithm):
+
+    CONFIGURATION = {
+        'name': 'VQC',
+        'description': 'Variational Quantum Classifier',
+        'input_schema': {
+            '$schema': 'http://json-schema.org/schema#',
+            'id': 'vqc_schema',
+            'type': 'object',
+            'properties': {
+                'override_SPSA_params': {
+                    'type': 'boolean',
+                    'default': True
+                },
+                'max_evals_grouped': {
+                    'type': 'integer',
+                    'default': 1
+                },
+                'minibatch_size': {
+                    'type': 'integer',
+                    'default': -1
+                }
+            },
+            'additionalProperties': False
+        },
+        'problems': ['classification'],
+        'depends': [
+            {
+                'pluggable_type': 'optimizer',
+                'default': {
+                    'name': 'SPSA'
+                },
+            },
+            {
+                'pluggable_type': 'feature_map',
+                'default': {
+                    'name': 'SecondOrderExpansion',
+                    'depth': 2
+                },
+            },
+            {
+                'pluggable_type': 'variational_form',
+                'default': {
+                    'name': 'RYRZ',
+                    'depth': 3
+                },
+            },
+        ],
+    }
 
     def __init__(
             self,
             optimizer=None,
+            feature_map=None,
             var_form=None,
-            num_qubits=None,
             training_dataset=None,
             test_dataset=None,
             datapoints=None,
@@ -158,8 +204,8 @@ class VQClassification(VQAlgorithm):
         """Initialize the object
         Args:
             optimizer (Optimizer): The classical optimizer to use.
+            feature_map (FeatureMap): The FeatureMap instance to use.
             var_form (VariationalForm): The variational form instance.
-            num_qubits (int): The number of qubits in the circuit to be built.
             training_dataset (dict): The training dataset, in the format: {'A': np.ndarray, 'B': np.ndarray, ...}.
             test_dataset (dict): The test dataset, in same format as `training_dataset`.
             datapoints (np.ndarray): NxD array, N is the number of data and D is data dimension.
@@ -171,6 +217,7 @@ class VQClassification(VQAlgorithm):
         Notes:
             We use `label` to denotes numeric results and `class` the class names (str).
         """
+
         self.validate(locals())
         super().__init__(
             var_form=var_form,
@@ -181,6 +228,8 @@ class VQClassification(VQAlgorithm):
 
         self._callback = callback
 
+        if feature_map is None:
+            raise AquaError('Missing feature map.')
         if training_dataset is None:
             raise AquaError('Missing training dataset.')
         self._training_dataset, self._class_to_label = split_dataset_to_data_and_labels(
@@ -198,13 +247,51 @@ class VQClassification(VQAlgorithm):
         if datapoints is not None and not isinstance(datapoints, np.ndarray):
             datapoints = np.asarray(datapoints)
         self._datapoints = datapoints
-        self._num_qubits = num_qubits if num_qubits is not None else self._var_form.num_qubits
         self._minibatch_size = minibatch_size
 
         self._eval_count = 0
         self._ret = {}
+        self._feature_map = feature_map
+        self._num_qubits = feature_map.num_qubits
 
-    @abstractmethod
+    @classmethod
+    def init_params(cls, params, algo_input):
+        algo_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
+        override_spsa_params = algo_params.get('override_SPSA_params')
+        max_evals_grouped = algo_params.get('max_evals_grouped')
+        minibatch_size = algo_params.get('minibatch_size')
+
+        # Set up optimizer
+        opt_params = params.get(Pluggable.SECTION_KEY_OPTIMIZER)
+        # If SPSA then override SPSA params as reqd to our predetermined values
+        if opt_params['name'] == 'SPSA' and override_spsa_params:
+            opt_params['c0'] = 4.0
+            opt_params['c1'] = 0.1
+            opt_params['c2'] = 0.602
+            opt_params['c3'] = 0.101
+            opt_params['c4'] = 0.0
+            opt_params['skip_calibration'] = True
+        optimizer = get_pluggable_class(PluggableType.OPTIMIZER,
+                                        opt_params['name']).init_params(params)
+
+        # Set up feature map
+        fea_map_params = params.get(Pluggable.SECTION_KEY_FEATURE_MAP)
+        feature_dimension = get_feature_dimension(algo_input.training_dataset)
+        fea_map_params['feature_dimension'] = feature_dimension
+        feature_map = get_pluggable_class(PluggableType.FEATURE_MAP,
+                                          fea_map_params['name']).init_params(params)
+
+        # Set up variational form, we need to add computed num qubits
+        # Pass all parameters so that Variational Form can create its dependents
+        var_form_params = params.get(Pluggable.SECTION_KEY_VAR_FORM)
+        var_form_params['num_qubits'] = feature_map.num_qubits
+        var_form = get_pluggable_class(PluggableType.VARIATIONAL_FORM,
+                                       var_form_params['name']).init_params(params)
+
+        return cls(optimizer, feature_map, var_form, algo_input.training_dataset,
+                   algo_input.test_dataset, algo_input.datapoints, max_evals_grouped,
+                   minibatch_size)
+
     def construct_circuit(self, x, theta, measurement=False):
         """
         Construct circuit based on data and parameters in variational form.
@@ -216,7 +303,16 @@ class VQClassification(VQAlgorithm):
         Returns:
             QuantumCircuit: the circuit
         """
-        raise NotImplementedError
+        qr = QuantumRegister(self._num_qubits, name='q')
+        cr = ClassicalRegister(self._num_qubits, name='c')
+        qc = QuantumCircuit(qr, cr)
+        qc += self._feature_map.construct_circuit(x, qr)
+        qc += self._var_form.construct_circuit(theta, qr)
+
+        if measurement:
+            qc.barrier(qr)
+            qc.measure(qr, cr)
+        return qc
 
     def _get_prediction(self, data, theta):
         """

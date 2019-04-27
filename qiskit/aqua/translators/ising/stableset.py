@@ -181,5 +181,3 @@ def sample_most_likely(state_vector):
             x[i] = k % 2
             k >>= 1
         return x
-
-
