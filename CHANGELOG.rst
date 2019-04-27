@@ -50,7 +50,7 @@ Added
 - Added option to include or skip the swaps operations for qft and iqft circuit constructions.
 - Added classical linear system solver ``ExactLSsolver``.
 - Added parameters ``auto_hermitian`` and ``auto_resize`` to ``HHL`` algorithm to support non-hermititan and non 2**n sized matrices by default.
-- Added ``RawFeatureMap`` pluggable component.
+- Added another feature map, ``RawFeatureVector``, that directly maps feature vectors to qubits' states for classification.
 - ``SVM_Classical`` can now load models trained by ``QSVM``.
 
 Removed
