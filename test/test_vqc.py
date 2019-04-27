@@ -412,7 +412,6 @@ def ad_hoc_data(training_size, test_size, n, gap):
         test_input = {key: (sample_train[label_train == k, :])[training_size:(
             training_size+test_size)] for k, key in enumerate(class_labels)}
 
-
     return sample_Total, training_input, test_input, class_labels
 
 
