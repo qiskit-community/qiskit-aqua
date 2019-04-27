@@ -15,6 +15,7 @@
 # limitations under the License.
 # =============================================================================
 
+from qiskit.providers import BaseBackend
 from .qiskit_chemistry_error import QiskitChemistryError
 from qiskit.chemistry.drivers import local_drivers, get_driver_class
 from qiskit.aqua import QiskitAqua, get_provider_from_backend
@@ -40,7 +41,7 @@ def run_experiment(params, output=None, backend=None):
     Args:
         params (dictionary/filename): Chemistry input data
         output (filename):  Output data
-        backend (BaseBackend or QuantumInstance): the experiemental settings to be used in place of backend name
+        backend (QuantumInstance or BaseBackend): the experimental settings to be used in place of backend name
 
     Returns:
         Result dictionary containing result of chemistry computation
@@ -115,7 +116,7 @@ class QiskitChemistry(object):
         Args:
             params (dictionary/filename): Chemistry input data
             output (filename):  Output data
-            backend (BaseBackend or QuantumInstance): the experiemental settings to be used in place of backend name
+            backend (QuantumInstance or BaseBackend): the experimental settings to be used in place of backend name
 
         Returns:
             result dictionary
@@ -156,7 +157,7 @@ class QiskitChemistry(object):
 
         Args:
             params (dictionary/filename): Chemistry input data
-            backend (BaseBackend or QuantumInstance): the experiemental settings to be used in place of backend name
+            backend (QuantumInstance or BaseBackend): the experimental settings to be used in place of backend name
         """
         if params is None:
             raise QiskitChemistryError("Missing input.")
@@ -170,13 +171,22 @@ class QiskitChemistry(object):
 
         # before merging defaults attempts to find a provider for the backend in case no
         # provider was passed
-        if self._parser.get_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER) is None:
+        if backend is None and self._parser.get_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER) is None:
             backend_name = self._parser.get_section_property(JSONSchema.BACKEND, JSONSchema.NAME)
             if backend_name is not None:
-                self._parser.set_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER, get_provider_from_backend(backend_name))
+                self._parser.set_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER,
+                                                  get_provider_from_backend(backend_name))
+
+        # set provider and name in input file for proper backend schema dictionary build
+        if isinstance(backend, BaseBackend):
+            self._parser.add_section_properties(JSONSchema.BACKEND,
+                                                {
+                                                    JSONSchema.PROVIDER: get_provider_from_backend(backend),
+                                                    JSONSchema.NAME: backend.name(),
+                                                })
 
         self._parser.validate_merge_defaults()
-        # logger.debug('ALgorithm Input Schema: {}'.format(json.dumps(p..get_sections(), sort_keys=True, indent=4)))
+        # logger.debug('Algorithm Input Schema: {}'.format(json.dumps(p..get_sections(), sort_keys=True, indent=4)))
 
         experiment_name = "-- no &NAME section found --"
         if JSONSchema.NAME in self._parser.get_section_names():
