@@ -20,6 +20,7 @@ import importlib
 from enum import Enum
 import logging
 import datetime
+import quandl
 
 logger = logging.getLogger(__name__)
 

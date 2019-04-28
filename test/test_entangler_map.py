@@ -62,5 +62,6 @@ class TestEngtanlerMap(QiskitAquaTestCase):
         with self.assertRaises(TypeError):
             validate_entangler_map(wrong_type_map_2, 4)
 
+
 if __name__ == '__main__':
     unittest.main()

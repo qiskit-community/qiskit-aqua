@@ -124,11 +124,9 @@ class BaseDataProvider(ABC):
         """
         try:
             if not self._data:
-                return None
+                raise QiskitFinanceError('No data loaded, yet. Please run the method run() first to load the data.')
         except AttributeError:
-            print(
-                "Error: Please run the method run() first, to load the data.")
-            return None
+            raise QiskitFinanceError('No data loaded, yet. Please run the method run() first to load the data.')
         self.cov = np.cov(self._data, rowvar=True)
         return self.cov
 
@@ -141,11 +139,9 @@ class BaseDataProvider(ABC):
         """
         try:
             if not self._data:
-                return None
+                raise QiskitFinanceError('No data loaded, yet. Please run the method run() first to load the data.')
         except AttributeError:
-            print(
-                "Error: Please run the method run() first, to load the data.")
-            return None
+            raise QiskitFinanceError('No data loaded, yet. Please run the method run() first to load the data.')
         self.rho = np.zeros((self._n, self._n))
         for ii in range(0, self._n):
             self.rho[ii, ii] = 1.

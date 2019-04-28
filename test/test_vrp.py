@@ -28,6 +28,7 @@ from qiskit.aqua.algorithms import ExactEigensolver
 # To run only this test, issue:
 # python -m unittest test.test_vrp.TestVehicleRouting
 
+
 class TestVehicleRouting(QiskitAquaTestCase):
     """Tests vehicle routing Ising translator."""
 
@@ -44,7 +45,11 @@ class TestVehicleRouting(QiskitAquaTestCase):
 
     def test_simple1(self):
         # Compares the output in terms of Paulis.
-        paulis = [(79.6, Pauli(z=[True, False], x=[False, False])), (79.6, Pauli(z=[False, True], x=[False, False])), (160.8, Pauli(z=[False, False], x=[False, False]))]
+        paulis = [
+            (79.6, Pauli(z=[True, False], x=[False, False])),
+            (79.6, Pauli(z=[False, True], x=[False, False])),
+            (160.8, Pauli(z=[False, False], x=[False, False]))
+        ]
         op = Operator(paulis)
         for pauliA, pauliB in zip(self.qubit_op._paulis, paulis):
             costA, binaryA = pauliA

@@ -37,6 +37,24 @@ class TestDataProviders(QiskitAquaTestCase):
         super().tearDown()
         warnings.filterwarnings(action="ignore", message="unclosed", category=ResourceWarning)
 
+    def test_wrong_use(self):
+        rnd = RandomDataProvider(seed = 1)
+        # Now, the .run() method is expected, which does the actual data loading
+        # (and can take seconds or minutes, depending on the data volumes, hence not ok in the constructor)
+        self.assertRaises(QiskitFinanceError, rnd.get_covariance_matrix)
+        self.assertRaises(QiskitFinanceError, rnd.get_similarity_matrix)
+        from qiskit.aqua.translators.data_providers.wikipedia_data_provider import StockMarket
+        wiki = WikipediaDataProvider(
+            token="",
+            tickers=["GOOG", "AAPL"],
+            stockmarket=StockMarket.NASDAQ,
+            start=datetime.datetime(2016, 1, 1),
+            end=datetime.datetime(2016, 1, 30)
+        )
+        # Now, the .run() method is expected, which does the actual data loading
+        self.assertRaises(QiskitFinanceError, wiki.get_covariance_matrix)
+        self.assertRaises(QiskitFinanceError, wiki.get_similarity_matrix)
+
     def test_random(self):
         # from qiskit.aqua.translators.data_providers.random_data_provider import StockMarket
         rnd = RandomDataProvider(seed = 1)
