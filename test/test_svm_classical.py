@@ -16,14 +16,16 @@
 # =============================================================================
 import numpy as np
 
+from qiskit.aqua import aqua_globals
 from qiskit.aqua import run_algorithm
-from qiskit.aqua.input import SVMInput
+from qiskit.aqua.input import ClassificationInput
 from test.common import QiskitAquaTestCase
 
 
 class TestSVMClassical(QiskitAquaTestCase):
     def setUp(self):
         super().setUp()
+        aqua_globals.random_seed = 10598
         pass
 
     def test_classical_binary(self):
@@ -89,17 +91,17 @@ class TestSVMClassical(QiskitAquaTestCase):
                                        [0.06195634, -0.23262325],
                                        [0.06183066, -0.53376975]])}
 
-        temp = [test_input[k] for k in test_input]
+        temp = [test_input[k] for k in sorted(test_input)]
         total_array = np.concatenate(temp)
 
         params = {
-            'problem': {'name': 'svm_classification'},
+            'problem': {'name': 'classification'},
             'algorithm': {
                 'name': 'SVM',
             }
         }
 
-        algo_input = SVMInput(training_input, test_input, total_array)
+        algo_input = ClassificationInput(training_input, test_input, total_array)
 
         result = run_algorithm(params, algo_input)
         self.assertEqual(result['testing_accuracy'], 1.0)
@@ -200,18 +202,18 @@ class TestSVMClassical(QiskitAquaTestCase):
                                        [-0.73856328, 0.80699537],
                                        [-0.66489165, 0.1181712]])}
 
-        temp = [test_input[k] for k in test_input]
+        temp = [test_input[k] for k in sorted(test_input)]
         total_array = np.concatenate(temp)
 
         params = {
-            'problem': {'name': 'svm_classification'},
+            'problem': {'name': 'classification'},
             'algorithm': {
                 'name': 'SVM'
             },
             'multiclass_extension': {'name': 'OneAgainstRest'}
         }
 
-        algo_input = SVMInput(training_input, test_input, total_array)
+        algo_input = ClassificationInput(training_input, test_input, total_array)
 
         result = run_algorithm(params, algo_input)
         self.assertEqual(result['testing_accuracy'], 1.0)
@@ -312,11 +314,11 @@ class TestSVMClassical(QiskitAquaTestCase):
                                        [-0.73856328, 0.80699537],
                                        [-0.66489165, 0.1181712]])}
 
-        temp = [test_input[k] for k in test_input]
+        temp = [test_input[k] for k in sorted(test_input)]
         total_array = np.concatenate(temp)
 
         params = {
-            'problem': {'name': 'svm_classification'},
+            'problem': {'name': 'classification'},
             'algorithm': {
                 'name': 'SVM'
             },
@@ -324,7 +326,7 @@ class TestSVMClassical(QiskitAquaTestCase):
 
         }
 
-        algo_input = SVMInput(training_input, test_input, total_array)
+        algo_input = ClassificationInput(training_input, test_input, total_array)
 
         result = run_algorithm(params, algo_input)
         self.assertEqual(result['testing_accuracy'], 1.0)
@@ -426,18 +428,18 @@ class TestSVMClassical(QiskitAquaTestCase):
                                        [-0.73856328, 0.80699537],
                                        [-0.66489165, 0.1181712]])}
 
-        temp = [test_input[k] for k in test_input]
+        temp = [test_input[k] for k in sorted(test_input)]
         total_array = np.concatenate(temp)
 
         params = {
-            'problem': {'name': 'svm_classification'},
+            'problem': {'name': 'classification'},
             'algorithm': {
                 'name': 'SVM',
             },
             'multiclass_extension': {'name': 'ErrorCorrectingCode', 'code_size': 5},
         }
 
-        algo_input = SVMInput(training_input, test_input, total_array)
+        algo_input = ClassificationInput(training_input, test_input, total_array)
 
         result = run_algorithm(params, algo_input)
         self.assertEqual(result['testing_accuracy'], 1.0)

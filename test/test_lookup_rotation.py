@@ -78,12 +78,14 @@ class TestLookupRotation(QiskitAquaTestCase):
         self.log.debug('Lookup rotation register size: {}'.format(reg_size))
         self.log.debug('Lookup rotation fidelity:      {}'.format(fidelity))
 
+
 def sim_statevec(qc):
     backend = BasicAer.get_backend('statevector_simulator')
     job = execute(qc, backend)
     result = job.result()
     state_vec = result.get_statevector(qc)
     return state_vec
+
 
 if __name__ == '__main__':
     unittest.main()

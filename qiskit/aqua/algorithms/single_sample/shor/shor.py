@@ -46,6 +46,7 @@ class Shor(QuantumAlgorithm):
     """
 
     PROP_N = 'N'
+    PROP_A = 'a'
 
     CONFIGURATION = {
         'name': 'Shor',
@@ -60,18 +61,24 @@ class Shor(QuantumAlgorithm):
                     'default': 15,
                     'minimum': 3
                 },
+                PROP_A: {
+                    'type': 'integer',
+                    'default': 2,
+                    'minimum': 2
+                },
             },
             'additionalProperties': False
         },
         'problems': ['factoring'],
     }
 
-    def __init__(self, N=15):
+    def __init__(self, N=15, a=2):
         """
         Constructor.
 
         Args:
             N (int): The integer to be factored.
+            a (int): A random integer a that satisfies a < N and gcd(a, N) = 1
         """
         self.validate(locals())
         super().__init__()
@@ -81,12 +88,18 @@ class Shor(QuantumAlgorithm):
             raise AquaError('The input needs to be an odd integer greater than 1.')
 
         self._N = N
+
+        if a >= N or math.gcd(a, self._N) != 1:
+            raise AquaError('The integer a needs to satisfy a < N and gcd(a, N) = 1.')
+
+        self._a = a
+
         self._ret = {'factors': []}
 
         # check if the input integer is a power
         tf, b, p = is_power(N, return_decomposition=True)
         if tf:
-            logger.info(f'The input integer is a power: {N}={b}^{p}.')
+            logger.info('The input integer is a power: {}={}^{}.'.format(N, b, p))
             self._ret['factors'].append(b)
 
     @classmethod
@@ -332,20 +345,6 @@ class Shor(QuantumAlgorithm):
 
         return circuit
 
-    def _pick_coprime_a(self):
-        """
-        Pick N's coprime number a (1 < a < N)
-        """
-
-        # Start with a=2
-        a = 2
-
-        # Get the smallest a such that a and N are coprime
-        while math.gcd(a, self._N) != 1:
-            a = a + 1
-
-        return a
-
     def _get_factors(self, output_desired, t_upper):
         """
         Apply the continued fractions to find r and the gcd to find the desired factors.
@@ -447,7 +446,6 @@ class Shor(QuantumAlgorithm):
 
     def _run(self):
         if not self._ret['factors']:
-            self._a = self._pick_coprime_a()
             logger.debug('Running with N={} and a={}.'.format(self._N, self._a))
 
             circuit = self.construct_circuit()

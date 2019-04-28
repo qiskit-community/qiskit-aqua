@@ -16,30 +16,137 @@
 # =============================================================================
 
 import logging
-
 import math
 import numpy as np
+
 from sklearn.utils import shuffle
-
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
-from qiskit.aqua.algorithms.adaptive.vqalgorithm import VQAlgorithm
-from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
-from qiskit.aqua.algorithms.adaptive.qsvm import (cost_estimate, return_probabilities)
-from qiskit.aqua.utils import (get_feature_dimension, map_label_to_class_name,
-                               split_dataset_to_data_and_labels, find_regs_by_name)
 
+from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class, AquaError
+from qiskit.aqua.components.feature_maps import FeatureMap
+from qiskit.aqua.utils import get_feature_dimension
+from qiskit.aqua.utils import map_label_to_class_name
+from qiskit.aqua.utils import split_dataset_to_data_and_labels
+from qiskit.aqua.utils import find_regs_by_name
+from qiskit.aqua.algorithms.adaptive.vqalgorithm import VQAlgorithm
 
 logger = logging.getLogger(__name__)
 
 
-class QSVMVariational(VQAlgorithm):
+def assign_label(measured_key, num_classes):
+    """
+    Classes = 2:
+    - If odd number of qubits we use majority vote
+    - If even number of qubits we use parity
+    Classes = 3
+    - We use part-parity
+        {ex. for 2 qubits: [00], [01,10], [11] would be the three labels}
+    Args:
+        measured_key (str): measured key
+        num_classes (int): number of classes
+    """
+    measured_key = np.asarray([int(k) for k in list(measured_key)])
+    num_qubits = len(measured_key)
+    if num_classes == 2:
+        if num_qubits % 2 != 0:
+            total = np.sum(measured_key)
+            return 1 if total > num_qubits / 2 else 0
+        else:
+            hamming_weight = np.sum(measured_key)
+            is_odd_parity = hamming_weight % 2
+            return is_odd_parity
+
+    elif num_classes == 3:
+        first_half = int(np.floor(num_qubits / 2))
+        modulo = num_qubits % 2
+        # First half of key
+        hamming_weight_1 = np.sum(measured_key[0:first_half + modulo])
+        # Second half of key
+        hamming_weight_2 = np.sum(measured_key[first_half + modulo:])
+        is_odd_parity_1 = hamming_weight_1 % 2
+        is_odd_parity_2 = hamming_weight_2 % 2
+
+        return is_odd_parity_1 + is_odd_parity_2
+
+    else:
+        total_size = 2**num_qubits
+        class_step = np.floor(total_size / num_classes)
+
+        decimal_value = measured_key.dot(1 << np.arange(measured_key.shape[-1] - 1, -1, -1))
+        key_order = int(decimal_value / class_step)
+        return key_order if key_order < num_classes else num_classes - 1
+
+
+def cost_estimate(probs, gt_labels, shots=None):
+    """Calculate cross entropy
+    # shots is kept since it may be needed in future.
+    Args:
+        shots (int): the number of shots used in quantum computing
+        probs (numpy.ndarray): NxK array, N is the number of data and K is the number of class
+        gt_labels (numpy.ndarray): Nx1 array
+    Returns:
+        float: cross entropy loss between estimated probs and gt_labels
+    """
+    mylabels = np.zeros(probs.shape)
+    for i in range(gt_labels.shape[0]):
+        whichindex = gt_labels[i]
+        mylabels[i][whichindex] = 1
+
+    def cross_entropy(predictions, targets, epsilon=1e-12):
+        predictions = np.clip(predictions, epsilon, 1. - epsilon)
+        N = predictions.shape[0]
+        tmp = np.sum(targets*np.log(predictions), axis=1)
+        ce = -np.sum(tmp)/N
+        return ce
+
+    x = cross_entropy(probs, mylabels)
+    return x
+
+
+def cost_estimate_sigmoid(shots, probs, gt_labels):
+    """Calculate sigmoid cross entropy
+
+    Args:
+        shots (int): the number of shots used in quantum computing
+        probs (numpy.ndarray): NxK array, N is the number of data and K is the number of class
+        gt_labels (numpy.ndarray): Nx1 array
+    Returns:
+        float: sigmoid cross entropy loss between estimated probs and gt_labels
+    """
+    #Error in the order of parameters corrected below - 19 Dec 2018
+    #x = cost_estimate(shots, probs, gt_labels)
+    x = cost_estimate(probs, gt_labels, shots)
+    loss = (1.) / (1. + np.exp(-x))
+    return loss
+
+
+def return_probabilities(counts, num_classes):
+    """Return the probabilities of given measured counts
+    Args:
+        counts ([dict]): N data and each with a dict recording the counts
+        num_classes (int): number of classes
+    Returns:
+        numpy.ndarray: NxK array
+    """
+
+    probs = np.zeros(((len(counts), num_classes)))
+    for idx in range(len(counts)):
+        count = counts[idx]
+        shots = sum(count.values())
+        for k, v in count.items():
+            label = assign_label(k, num_classes)
+            probs[idx][label] += v / shots
+    return probs
+
+
+class VQC(VQAlgorithm):
 
     CONFIGURATION = {
-        'name': 'QSVM.Variational',
-        'description': 'QSVM_Variational Algorithm',
+        'name': 'VQC',
+        'description': 'Variational Quantum Classifier',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
-            'id': 'SVM_Variational_schema',
+            'id': 'vqc_schema',
             'type': 'object',
             'properties': {
                 'override_SPSA_params': {
@@ -57,7 +164,7 @@ class QSVMVariational(VQAlgorithm):
             },
             'additionalProperties': False
         },
-        'problems': ['svm_classification'],
+        'problems': ['classification'],
         'depends': [
             {
                 'pluggable_type': 'optimizer',
@@ -82,35 +189,49 @@ class QSVMVariational(VQAlgorithm):
         ],
     }
 
-    def __init__(self, optimizer, feature_map, var_form, training_dataset,
-                 test_dataset=None, datapoints=None, max_evals_grouped=1,
-                 minibatch_size=-1, callback=None):
+    def __init__(
+            self,
+            optimizer=None,
+            feature_map=None,
+            var_form=None,
+            training_dataset=None,
+            test_dataset=None,
+            datapoints=None,
+            max_evals_grouped=1,
+            minibatch_size=-1,
+            callback=None
+    ):
         """Initialize the object
         Args:
-            training_dataset (dict): {'A': numpy.ndarray, 'B': numpy.ndarray, ...}
-            test_dataset (dict): the same format as `training_dataset`
-            datapoints (numpy.ndarray): NxD array, N is the number of data and D is data dimension
-            optimizer (Optimizer): Optimizer instance
-            feature_map (FeatureMap): FeatureMap instance
-            var_form (VariationalForm): VariationalForm instance
-            max_evals_grouped (int): max number of evaluations performed simultaneously.
+            optimizer (Optimizer): The classical optimizer to use.
+            feature_map (FeatureMap): The FeatureMap instance to use.
+            var_form (VariationalForm): The variational form instance.
+            training_dataset (dict): The training dataset, in the format: {'A': np.ndarray, 'B': np.ndarray, ...}.
+            test_dataset (dict): The test dataset, in same format as `training_dataset`.
+            datapoints (np.ndarray): NxD array, N is the number of data and D is data dimension.
+            max_evals_grouped (int): The maximum number of evaluations to perform simultaneously.
+            minibatch_size (int): The size of a mini-batch.
             callback (Callable): a callback that can access the intermediate data during the optimization.
-                                 Internally, four arguments are provided as follows
-                                 the index of data batch, the index of evaluation,
-                                 parameters of variational form, evaluated value.
+                Internally, four arguments are provided as follows the index of data batch, the index of evaluation,
+                parameters of variational form, evaluated value.
         Notes:
-            We used `label` denotes numeric results and `class` means the name of that class (str).
+            We use `label` to denotes numeric results and `class` the class names (str).
         """
+
         self.validate(locals())
-        super().__init__(var_form=var_form,
-                         optimizer=optimizer,
-                         cost_fn=self._cost_function_wrapper)
+        super().__init__(
+            var_form=var_form,
+            optimizer=optimizer,
+            cost_fn=self._cost_function_wrapper
+        )
         self._optimizer.set_max_evals_grouped(max_evals_grouped)
 
         self._callback = callback
-        if training_dataset is None:
-            raise AquaError('Training dataset must be provided')
 
+        if feature_map is None:
+            raise AquaError('Missing feature map.')
+        if training_dataset is None:
+            raise AquaError('Missing training dataset.')
         self._training_dataset, self._class_to_label = split_dataset_to_data_and_labels(
             training_dataset)
         self._label_to_class = {label: class_name for class_name, label
@@ -126,12 +247,12 @@ class QSVMVariational(VQAlgorithm):
         if datapoints is not None and not isinstance(datapoints, np.ndarray):
             datapoints = np.asarray(datapoints)
         self._datapoints = datapoints
-        self._feature_map = feature_map
-        self._num_qubits = self._feature_map.num_qubits
         self._minibatch_size = minibatch_size
 
         self._eval_count = 0
         self._ret = {}
+        self._feature_map = feature_map
+        self._num_qubits = feature_map.num_qubits
 
     @classmethod
     def init_params(cls, params, algo_input):
@@ -155,15 +276,15 @@ class QSVMVariational(VQAlgorithm):
 
         # Set up feature map
         fea_map_params = params.get(Pluggable.SECTION_KEY_FEATURE_MAP)
-        num_qubits = get_feature_dimension(algo_input.training_dataset)
-        fea_map_params['num_qubits'] = num_qubits
+        feature_dimension = get_feature_dimension(algo_input.training_dataset)
+        fea_map_params['feature_dimension'] = feature_dimension
         feature_map = get_pluggable_class(PluggableType.FEATURE_MAP,
                                           fea_map_params['name']).init_params(params)
 
         # Set up variational form, we need to add computed num qubits
         # Pass all parameters so that Variational Form can create its dependents
         var_form_params = params.get(Pluggable.SECTION_KEY_VAR_FORM)
-        var_form_params['num_qubits'] = num_qubits
+        var_form_params['num_qubits'] = feature_map.num_qubits
         var_form = get_pluggable_class(PluggableType.VARIATIONAL_FORM,
                                        var_form_params['name']).init_params(params)
 
@@ -192,20 +313,6 @@ class QSVMVariational(VQAlgorithm):
             qc.barrier(qr)
             qc.measure(qr, cr)
         return qc
-
-    def _cost_function(self, predicted_probs, labels):
-        """
-        Calculate cost of predicted probability of ground truth label based on
-        cross entropy function.
-
-        Args:
-            predicted_probs (numpy.ndarray): NxK array
-            labels (numpy.ndarray): Nx1 array
-        Returns:
-            float: cost
-        """
-        total_loss = cost_estimate(predicted_probs, labels)
-        return total_loss
 
     def _get_prediction(self, data, theta):
         """
@@ -243,18 +350,18 @@ class QSVMVariational(VQAlgorithm):
         circuit_id = 0
         predicted_probs = []
         predicted_labels = []
-        for theta in theta_sets:
+        for _ in theta_sets:
             counts = []
-            for datum in data:
+            for _ in data:
                 if self._quantum_instance.is_statevector:
                     temp = results.get_statevector(circuits[circuit_id])
                     outcome_vector = (temp * temp.conj()).real
                     # convert outcome_vector to outcome_dict, where key is a basis state and value is the count.
                     # Note: the count can be scaled linearly, i.e., it does not have to be an integer.
                     outcome_dict = {}
-                    bitstringsize = int(math.log2(len(outcome_vector)))
+                    bitstr_size = int(math.log2(len(outcome_vector)))
                     for i in range(len(outcome_vector)):
-                        bitstr_i = format(i, '0' + str(bitstringsize) +'b')
+                        bitstr_i = format(i, '0' + str(bitstr_size) + 'b')
                         outcome_dict[bitstr_i] = outcome_vector[i]
                 else:
                     outcome_dict = results.get_counts(circuits[circuit_id])
@@ -277,7 +384,7 @@ class QSVMVariational(VQAlgorithm):
     def batch_data(self, data, labels=None, minibatch_size=-1):
         label_batches = None
 
-        if minibatch_size > 0 and minibatch_size < len(data):
+        if 0 < minibatch_size < len(data):
             batch_size = min(minibatch_size, len(data))
             if labels is not None:
                 shuffled_samples, shuffled_labels = shuffle(data, labels, random_state=self.random)
@@ -313,15 +420,16 @@ class QSVMVariational(VQAlgorithm):
         self._eval_count = 0
 
         grad_fn = None
-        if minibatch_size > 0 and self.is_gradient_really_supported(): # we need some wrapper
+        if minibatch_size > 0 and self.is_gradient_really_supported():  # we need some wrapper
             grad_fn = self._gradient_function_wrapper
 
-        self._ret = self.find_minimum(initial_point=self.initial_point,
-                                      var_form=self.var_form,
-                                      cost_fn=self._cost_function_wrapper,
-                                      optimizer=self.optimizer,
-                                      gradient_fn = grad_fn # func for computing gradient
-                                     )
+        self._ret = self.find_minimum(
+            initial_point=self.initial_point,
+            var_form=self.var_form,
+            cost_fn=self._cost_function_wrapper,
+            optimizer=self.optimizer,
+            gradient_fn = grad_fn  # func for computing gradient
+        )
 
         if self._ret['num_optimizer_evals'] is not None and self._eval_count >= self._ret['num_optimizer_evals']:
             self._eval_count = self._ret['num_optimizer_evals']
@@ -345,15 +453,15 @@ class QSVMVariational(VQAlgorithm):
             numpy.ndarray: 1-d array with the same shape as theta. The  gradient computed
         """
         epsilon = 1e-8
-        forig = self._cost_function_wrapper(theta)
+        f_orig = self._cost_function_wrapper(theta)
         grad = np.zeros((len(theta),), float)
         for k in range(len(theta)):
             theta[k] += epsilon
-            fnew = self._cost_function_wrapper(theta)
-            grad[k] = (fnew - forig) / epsilon
-            theta[k] -= epsilon # recover to the center state
+            f_new = self._cost_function_wrapper(theta)
+            grad[k] = (f_new - f_orig) / epsilon
+            theta[k] -= epsilon  # recover to the center state
         if self.is_gradient_really_supported():
-            self._batch_index += 1 # increment the batch after gradient callback
+            self._batch_index += 1  # increment the batch after gradient callback
         return grad
 
     def _cost_function_wrapper(self, theta):
@@ -363,16 +471,18 @@ class QSVMVariational(VQAlgorithm):
         if not isinstance(predicted_probs, list):
             predicted_probs = [predicted_probs]
         for i in range(len(predicted_probs)):
-            curr_cost = self._cost_function(predicted_probs[i], self._label_batches[batch_index])
+            curr_cost = cost_estimate(predicted_probs[i], self._label_batches[batch_index])
             total_cost.append(curr_cost)
             if self._callback is not None:
-                self._callback(self._eval_count,
-                               theta[i * self._var_form.num_parameters:(i + 1) * self._var_form.num_parameters],
-                               curr_cost,
-                               self._batch_index)
+                self._callback(
+                    self._eval_count,
+                    theta[i * self._var_form.num_parameters:(i + 1) * self._var_form.num_parameters],
+                    curr_cost,
+                    self._batch_index
+                )
             self._eval_count += 1
         if not self.is_gradient_really_supported():
-            self._batch_index += 1 # increment the batch after eval callback
+            self._batch_index += 1  # increment the batch after eval callback
 
         logger.debug('Intermediate batch cost: {}'.format(sum(total_cost)))
         return total_cost if len(total_cost) > 1 else total_cost[0]
@@ -403,7 +513,7 @@ class QSVMVariational(VQAlgorithm):
         self._quantum_instance = self._quantum_instance if quantum_instance is None else quantum_instance
         for batch, label_batch in zip(batches, label_batches):
             predicted_probs, predicted_labels = self._get_prediction(batch, params)
-            total_cost += self._cost_function(predicted_probs, label_batch)
+            total_cost += cost_estimate(predicted_probs, label_batch)
             total_correct += np.sum((np.argmax(predicted_probs, axis=1) == label_batch))
             total_samples += label_batch.shape[0]
             int_accuracy = np.sum((np.argmax(predicted_probs, axis=1) == label_batch)) / label_batch.shape[0]
@@ -525,8 +635,8 @@ class QSVMVariational(VQAlgorithm):
         return self._test_dataset
 
     @property
-    def train_dataset(self):
-        return self._train_dataset
+    def training_dataset(self):
+        return self._training_dataset
 
     @property
     def datapoints(self):
