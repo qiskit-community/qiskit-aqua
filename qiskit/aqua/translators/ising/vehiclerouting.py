@@ -15,7 +15,9 @@
 # limitations under the License.
 # =============================================================================
 
-# Converts vehicle routing instnces into a list of Paulis
+# Converts vehicle routing instnces into a list of Paulis,
+# and provides some related routines (extracting a solution, 
+# checking its objective function value).
 
 from collections import OrderedDict
 
@@ -24,8 +26,11 @@ from qiskit.quantum_info import Pauli
 from qiskit.aqua import Operator
 
 
-def get_vehiclerouting_qubitops(instance, n, K):
-        """Converts an instnance of a vehicle routing problem into a list of Paulis.
+def get_vehiclerouting_matrices(instance, n, K):
+        """Constructs auxiliary matrices from a vehicle routing instance,
+        which represent the encoding into a binary quadratic program.
+        This is used in the construction of the qubit ops and computation
+        of the solution cost.
 
     Args:
         instance (numpy.ndarray) : a customers-to-customers distance matrix.
@@ -33,7 +38,9 @@ def get_vehiclerouting_qubitops(instance, n, K):
         K (integer) : the number of vehicles available.
 
     Returns:
-        operator.Operator: operator for the Hamiltonian.
+        Q (numpy.ndarray) : a matrix defining the interactions between variables.
+        g (numpy.ndarray) : a matrix defining the contribution from the individual variables.
+        c (float) : the constant offset.
         """
     
         N = (n - 1) * n
@@ -77,15 +84,41 @@ def get_vehiclerouting_qubitops(instance, n, K):
         # c is the constant offset
         c = 2 * A * (n-1) + 2 * A * (K ** 2)
 
-        try:
-            # Evaluates the cost distance from a binary representation of a path
-            fun = lambda x: np.dot(np.around(x), np.dot(Q, np.around(x))) + np.dot(g, np.around(x)) + c
-            cost = fun(x_sol)
-        except:
-            cost = 0
+        return (Q, g, c)
 
+def get_vehiclerouting_cost(instance, n, K, x_sol):
+        """Computes the cost of a solution to an instnance of a vehicle routing problem.
+
+    Args:
+        instance (numpy.ndarray) : a customers-to-customers distance matrix.
+        n (integer) : the number of customers.
+        K (integer) : the number of vehicles available.
+        x_sol (numpy.ndarray): a solution, i.e., a path, in its binary representation.
+
+    Returns:
+        cost (float): objective function value.
+        """   
+        (Q, g, c) = get_vehiclerouting_matrices(instance, n, K)
+        fun = lambda x: np.dot(np.around(x), np.dot(Q, np.around(x))) + np.dot(g, np.around(x)) + c
+        cost = fun(x_sol)
+        return cost
+
+def get_vehiclerouting_qubitops(instance, n, K):
+        """Converts an instnance of a vehicle routing problem into a list of Paulis.
+
+    Args:
+        instance (numpy.ndarray) : a customers-to-customers distance matrix.
+        n (integer) : the number of customers.
+        K (integer) : the number of vehicles available.
+
+    Returns:
+        operator.Operator: operator for the Hamiltonian.
+        """
+    
+        N = (n - 1) * n
+        (Q, g, c) = get_vehiclerouting_matrices(instance, n, K)
+        
         # Defining the new matrices in the Z-basis
-
         Iv = np.ones(N)
         Qz = (Q / 4)
         gz = (-g / 2 - np.dot(Iv, Q / 4) - np.dot(Q / 4, Iv))
@@ -114,3 +147,38 @@ def get_vehiclerouting_qubitops(instance, n, K):
 
         pauli_list.append((cz, Pauli(np.zeros(N), np.zeros(N))))
         return Operator(paulis=pauli_list)
+
+
+def get_vehiclerouting_solution(instance, n, K, result):
+        """Tries to obtain a feasible solution (in vector form) of an instnance 
+        of vehicle routing from the results dictionary.
+
+    Args:
+        instance (numpy.ndarray) : a customers-to-customers distance matrix.
+        n (integer) : the number of customers.
+        K (integer) : the number of vehicles available.
+        result (dictionary) : a dictionary obtained by QAOA.run or VQE.run containing key 'eigvecs'.
+
+    Returns:
+        x_sol (numpy.ndarray): a solution, i.e., a path, in its binary representation.
+        """
+
+        v = result['eigvecs'][0]
+        N = (n - 1) * n
+
+        index_value = [x for x in range(len(v)) if v[x] == max(v)][0]
+        string_value = "{0:b}".format(index_value)
+
+        while len(string_value)<N:
+            string_value = '0'+string_value
+
+        x_sol = list()
+        for elements in string_value:
+            if elements == '0':
+                x_sol.append(0)
+            else:
+                x_sol.append(1)
+
+        x_sol = np.flip(x_sol, axis=0)
+
+        return x_sol

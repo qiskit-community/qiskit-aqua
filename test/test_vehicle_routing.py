@@ -18,11 +18,9 @@
 import numpy as np
 
 from test.common import QiskitAquaTestCase
-from qiskit import BasicAer
-
 from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import EnergyInput
-from qiskit.aqua.translators.ising.vrp import *
+from qiskit.aqua.translators.ising.vehiclerouting import get_vehiclerouting_qubitops
 from qiskit.aqua.algorithms import ExactEigensolver
 
 # To run only this test, issue:
