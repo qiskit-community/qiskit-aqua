@@ -16,6 +16,7 @@
 # =============================================================================
 """Algorithm discovery methods, Error and Base classes"""
 
+from .version import __version__
 from .aqua_error import AquaError
 from .qiskit_aqua_globals import aqua_globals
 from .preferences import Preferences
@@ -50,9 +51,8 @@ from ._logging import (get_logging_level,
                        get_qiskit_aqua_logging,
                        set_qiskit_aqua_logging)
 
-__version__ = '0.4.2'
-
-__all__ = ['AquaError',
+__all__ = ['__version__',
+           'AquaError',
            'Preferences',
            'Pluggable',
            'Operator',
