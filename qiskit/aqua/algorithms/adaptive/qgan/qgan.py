@@ -94,7 +94,7 @@ class QGAN(QuantumAlgorithm):
     }
 
     def __init__(self, data, bounds=None, num_qubits=None, batch_size=500, num_epochs=3000, seed=7, discriminator=None,
-                 generator=None, tol_rel_ent=None,snapshot_dir=None):
+                 generator=None, tol_rel_ent=None, snapshot_dir=None):
         """
         Initialize qGAN.
         Args:
