@@ -102,7 +102,6 @@ class MultivariateNormalDistribution(MultivariateDistribution):
         if high is None:
             high = np.ones(dimension)
 
-
         self.mu = mu
         self.sigma = sigma
         probs = self._compute_probabilities([], num_qubits, low, high)
