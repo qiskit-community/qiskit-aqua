@@ -46,7 +46,7 @@ def random_number_list(n, weight_range=100, savefile=None):
     return number_list
 
 
-def get_exactcover_qubitops(list_of_subsets):
+def get_exact_cover_qubitops(list_of_subsets):
     """Construct the Hamiltonian for the exact solver problem
 
 

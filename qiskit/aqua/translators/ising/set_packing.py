@@ -45,7 +45,7 @@ def random_number_list(n, weight_range=100, savefile=None):
     return number_list
 
 
-def get_setpacking_qubitops(list_of_subsets):
+def get_set_packing_qubitops(list_of_subsets):
     """Construct the Hamiltonian for the set packing
     Args:
         list_of_subsets: list of lists (i.e., subsets)

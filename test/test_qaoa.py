@@ -65,7 +65,7 @@ class TestQAOA(QiskitAquaTestCase):
 
         backend = BasicAer.get_backend('statevector_simulator')
         optimizer = COBYLA()
-        qubitOp, offset = max_cut.get_maxcut_qubitops(w)
+        qubitOp, offset = max_cut.get_max_cut_qubitops(w)
 
         qaoa = QAOA(qubitOp, optimizer, p, operator_mode='matrix', mixer=m)
         quantum_instance = QuantumInstance(backend)
@@ -77,7 +77,7 @@ class TestQAOA(QiskitAquaTestCase):
         self.log.debug('time:               {}'.format(result['eval_time']))
         self.log.debug('maxcut objective:   {}'.format(result['energy'] + offset))
         self.log.debug('solution:           {}'.format(graph_solution))
-        self.log.debug('solution objective: {}'.format(max_cut.maxcut_value(x, w)))
+        self.log.debug('solution objective: {}'.format(max_cut.max_cut_value(x, w)))
         self.assertIn(''.join([str(int(i)) for i in graph_solution]), solutions)
         if quantum_instance.has_circuit_caching:
             self.assertLess(quantum_instance._circuit_cache.misses, 3)

@@ -33,7 +33,7 @@ class TestSetPacking(QiskitAquaTestCase):
         input_file = self._get_resource_path('sample.setpacking')
         with open(input_file) as f:
             self.list_of_subsets = json.load(f)
-            qubitOp, offset = set_packing.get_setpacking_qubitops(self.list_of_subsets)
+            qubitOp, offset = set_packing.get_set_packing_qubitops(self.list_of_subsets)
             self.algo_input = EnergyInput(qubitOp)
 
     def brute_force(self):
