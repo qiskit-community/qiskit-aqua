@@ -67,10 +67,6 @@ class StateVectorCircuit:
 
             # construct state initialization circuit
             temp = QuantumCircuit(*circuit.qregs)
-            temp.initialize(self._state_vector, [register[i] for i in range(self._num_qubits)])
-            temp = convert_to_basis_gates(temp)
-            circuit += temp
-            return circuit
 
         # otherwise, if it is a real register
         else:
@@ -85,7 +81,10 @@ class StateVectorCircuit:
 
             # TODO: add capability to start in the middle of the register
             temp = QuantumCircuit(register)
-            temp.initialize(self._state_vector, [register[i] for i in range(self._num_qubits)])
-            temp = convert_to_basis_gates(temp)
-            circuit += temp
-            return circuit
+
+        temp.initialize(self._state_vector, [register[i] for i in range(self._num_qubits)])
+        temp = convert_to_basis_gates(temp)
+        # remove the reset gates terra's unroller added
+        temp.data = [g for g in temp.data if not g[0].name == 'reset']
+        circuit += temp
+        return circuit
