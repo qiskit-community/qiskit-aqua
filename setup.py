@@ -18,13 +18,14 @@
 import setuptools
 import inspect
 import sys
+import os
 
 long_description = """<a href="https://qiskit.org/aqua" rel=nofollow>Qiskit Chemistry</a>
  is a set of quantum computing algorithms,
  tools and APIs for experimenting with real-world chemistry applications on near-term quantum devices."""
 
 requirements = [
-    "qiskit-aqua>=0.4.2",
+    "qiskit-aqua>=0.5.0",
     "numpy>=1.13",
     "h5py",
     "psutil>=5",
@@ -39,9 +40,13 @@ if not hasattr(setuptools, 'find_namespace_packages') or not inspect.ismethod(se
           "Upgrade it to version >='40.1.0' and repeat install.".format(setuptools.__version__))
     sys.exit(1)
 
+VERSION_PATH = os.path.join(os.path.dirname(__file__), "qiskit", "chemistry", "VERSION.txt")
+with open(VERSION_PATH, "r") as version_file:
+    VERSION = version_file.read().strip()
+
 setuptools.setup(
     name='qiskit-chemistry',
-    version="0.4.3",  # this should match __init__.__version__
+    version=VERSION,
     description='Qiskit Chemistry: Experiment with chemistry applications on a quantum machine',
     long_description=long_description,
     long_description_content_type="text/markdown",
