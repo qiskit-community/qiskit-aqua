@@ -69,14 +69,12 @@ class TestQGAN(QiskitAquaTestCase):
 
         # Initialize qGAN
         self.qgan = QGAN(self._real_data, self._bounds, num_qubits, batch_size, num_epochs, snapshot_dir=None)
-        self.qgan.set_seed(1)
+        self.qgan.seed = 1
         # Set quantum instance to run the quantum generator
         self.quantum_instance_statevector = QuantumInstance(backend=BasicAer.get_backend('statevector_simulator'),
-                                                            shots=batch_size, coupling_map=None, circuit_caching=False,
-                                                            seed_mapper=self.qgan.random_seed)
+                                                            shots=batch_size, circuit_caching=False)
         self.quantum_instance_qasm = QuantumInstance(backend=BasicAer.get_backend('qasm_simulator'),
-                                                     shots=batch_size, coupling_map=None, circuit_caching=False,
-                                                     seed_mapper=self.qgan.random_seed)
+                                                     shots=batch_size, circuit_caching=False)
         # Set entangler map
         entangler_map = [[0, 1]]
 
@@ -110,7 +108,8 @@ class TestQGAN(QiskitAquaTestCase):
 
     def test_qgan_training_run_algo(self):
         algo_input = QGANInput(self._real_data, self._bounds)
-        trained_statevector = run_algorithm(params=self._params, algo_input=algo_input, backend=BasicAer.get_backend('statevector_simulator'))
+        trained_statevector = run_algorithm(params=self._params, algo_input=algo_input, backend=BasicAer.get_backend(
+            'statevector_simulator'))
         trained_qasm = run_algorithm(self._params, algo_input, backend=BasicAer.get_backend('qasm_simulator'))
         self.assertAlmostEqual(trained_qasm['rel_entr'], trained_statevector['rel_entr'], delta=0.05)
 

@@ -26,14 +26,14 @@ import logging
 from copy import deepcopy
 
 from qiskit.aqua import AquaError
-from qiskit.aqua import Pluggable
+from qiskit.aqua import Pluggable, get_pluggable_class, PluggableType
 from qiskit.aqua.algorithms import QuantumAlgorithm
 
 
 from qiskit.aqua import aqua_globals
 
-from qiskit.aqua.components.neural_networks.generative_networks.quantum_generator import QuantumGenerator
-from qiskit.aqua.components.neural_networks.discriminative_networks.classical_discriminator import ClassicalDiscriminator
+from qiskit.aqua.components.neural_networks import QuantumGenerator
+from qiskit.aqua.components.neural_networks import ClassicalDiscriminator
 
 
 logger = logging.getLogger(__name__)
@@ -112,7 +112,6 @@ class QGAN(QuantumAlgorithm):
             snapshot_dir: path or None, if path given store cvs file with parameters to the directory
         """
 
-
         self.validate(locals())
         super().__init__()
         if data is None:
@@ -147,6 +146,14 @@ class QGAN(QuantumAlgorithm):
         self._prepare_data()
         self._batch_size = batch_size
         self._num_epochs = num_epochs
+        self._snapshot_dir = snapshot_dir
+        self._g_loss = []
+        self._d_loss = []
+        self._rel_entr = []
+        self._tol_rel_ent = tol_rel_ent
+
+        self._random_seed = seed
+
         if generator is None:
             self.set_generator()
         else:
@@ -155,13 +162,7 @@ class QGAN(QuantumAlgorithm):
             self.set_discriminator()
         else:
             self._discriminator = discriminator
-        self._snapshot_dir = snapshot_dir
-        self._g_loss = []
-        self._d_loss = []
-        self._rel_entr = []
-        self._tol_rel_ent = tol_rel_ent
 
-        self._random_seed = seed
         self.seed = self._random_seed
 
         self._ret = {}
@@ -190,12 +191,16 @@ class QGAN(QuantumAlgorithm):
         tol_rel_ent = qgan_params.get('tol_rel_ent')
         snapshot_dir = qgan_params.get('snapshot_dir')
 
-        nn_params = params.get(Pluggable.SECTION_NEURAL_NETWORK)
+        discriminator_params = params.get(Pluggable.SECTION_KEY_DISCRIMINATIVE_NETWORK)
+        generator_params = params.get(Pluggable.SECTION_KEY_GENERATIVE_NETWORK)
 
-        #discriminate between parameters for the generator and the discriminator
+        discriminator = get_pluggable_class(PluggableType.DISCRIMINATIVE_NETWORK,
+                                            discriminator_params['name']).init_params(params)
+        generator = get_pluggable_class(PluggableType.GENERATIVE_NETWORK,
+                                            generator_params['name']).init_params(params)
 
-        return cls(algo_input.data, algo_input.bounds, num_qubits, batch_size, num_epochs, seed, tol_rel_ent,
-                   snapshot_dir)
+        return cls(algo_input.data, algo_input.bounds, num_qubits, batch_size, num_epochs, seed, discriminator,
+                   generator, tol_rel_ent, snapshot_dir)
 
     @property
     def seed(self):
@@ -249,23 +254,19 @@ class QGAN(QuantumAlgorithm):
                                            generator_init_params, generator_optimizer)
         return
 
-
     @property
     def discriminator(self):
         return self._discriminator
 
-    def set_discriminator(self, discriminator_net=None, discriminator_optimizer=None):
+    def set_discriminator(self):
         """
         Initialize discriminator.
-        Args:
-            discriminator_net: torch.nn.Module or None, Discriminator network.
-            discriminator_optimizer: torch.optim.Optimizer or None, Optimizer initialized w.r.t discriminator parameters.
 
         Returns:
 
         """
-        self._discriminator = ClassicalDiscriminator(len(self._num_qubits), discriminator_net, discriminator_optimizer)
-        self._discriminator.set_seed(self.random_seed)
+        self._discriminator = ClassicalDiscriminator(len(self._num_qubits))
+        self._discriminator.set_seed(self._random_seed)
         return
 
     @property
