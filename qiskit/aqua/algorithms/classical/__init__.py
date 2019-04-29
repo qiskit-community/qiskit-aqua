@@ -15,8 +15,8 @@
 # limitations under the License.
 # =============================================================================
 
-from .exacteigensolver.exacteigensolver import ExactEigensolver
-from .exactlssolver.exactlssolver import ExactLSsolver
+from .exact_eigen_solver.exact_eigen_solver import ExactEigensolver
+from .exact_ls_solver.exact_ls_solver import ExactLSsolver
 from .svm.svm_classical import SVM_Classical
 
 __all__ = ['ExactEigensolver',

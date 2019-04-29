@@ -122,14 +122,7 @@ class MultivariateDistribution(UncertaintyModel, ABC):
 
     def build(self, qc, q, q_ancillas=None, params=None):
         custom_state = Custom(self.num_target_qubits, state_vector=np.sqrt(self._probabilities_vector))
-        custom_qc = custom_state.construct_circuit('circuit', q)
-
-        # remove all "resets" from circuit
-        for x in reversed(custom_qc.data):
-            if x[0].name == 'reset':
-                custom_qc.data.remove(x)
-
-        qc.extend(custom_qc)
+        qc.extend(custom_state.construct_circuit('circuit', q))
 
     @staticmethod
     def pdf_to_probabilities(pdf, low, high, num_values):

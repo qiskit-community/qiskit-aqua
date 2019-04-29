@@ -18,7 +18,7 @@
 from .vqe.vqe import VQE
 from .qaoa.qaoa import QAOA
 from .vqc.vqc import VQC
-from .vqalgorithm import VQAlgorithm
+from .vq_algorithm import VQAlgorithm
 
 
 __all__ = [

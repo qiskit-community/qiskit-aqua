@@ -69,7 +69,7 @@ def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None, seed=None):
     return w
 
 
-def get_graphpartition_qubitops(weight_matrix):
+def get_graph_partition_qubitops(weight_matrix):
     r"""Generate Hamiltonian for the graph partitioning
 
     Args:

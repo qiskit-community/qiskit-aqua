@@ -64,8 +64,8 @@ def random_graph(n, edge_prob=0.5, savefile=None):
     return w
 
 
-def get_stableset_qubitops(w):
-    """Generate Hamiltonian for the maximum stableset in a graph.
+def get_stable_set_qubitops(w):
+    """Generate Hamiltonian for the maximum stable set in a graph.
 
     Args:
         w (numpy.ndarray) : adjacency matrix.
@@ -126,7 +126,7 @@ def parse_gset_format(filename):
     w += w.T
     return w
 
-def stableset_value(x, w):
+def stable_set_value(x, w):
     """Compute the value of a stable set, and its feasibility.
 
     Args:

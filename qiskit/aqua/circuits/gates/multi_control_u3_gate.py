@@ -23,7 +23,7 @@ import logging
 from sympy.combinatorics.graycode import GrayCode
 from qiskit import QuantumCircuit, QuantumRegister
 
-from qiskit.aqua.utils.controlledcircuit import apply_cu3
+from qiskit.aqua.utils.controlled_circuit import apply_cu3
 
 logger = logging.getLogger(__name__)
 
