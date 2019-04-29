@@ -15,13 +15,11 @@
 # limitations under the License.
 # =============================================================================
 
-
 import logging
 
-from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.algorithms.adaptive import VQE
-from .varform import QAOAVarForm
+from .var_form import QAOAVarForm
 
 logger = logging.getLogger(__name__)
 

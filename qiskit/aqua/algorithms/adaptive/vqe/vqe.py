@@ -25,7 +25,7 @@ import functools
 import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit
 
-from qiskit.aqua.algorithms.adaptive.vqalgorithm import VQAlgorithm
+from qiskit.aqua.algorithms.adaptive.vq_algorithm import VQAlgorithm
 from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.utils.backend_utils import is_aer_statevector_backend
 from qiskit.aqua.utils import find_regs_by_name

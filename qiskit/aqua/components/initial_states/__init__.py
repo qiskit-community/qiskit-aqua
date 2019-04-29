@@ -17,7 +17,7 @@
 
 from .initial_state import InitialState
 from .custom import Custom
-from .varformbased import VarFormBased
+from .var_form_based import VarFormBased
 from .zero import Zero
 
 __all__ = ['InitialState',

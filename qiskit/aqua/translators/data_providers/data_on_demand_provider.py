@@ -15,16 +15,16 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit.aqua.translators.data_providers import BaseDataProvider, DataType, QiskitFinanceError
-import importlib
-from enum import Enum
 import datetime
 import certifi
+from enum import Enum
+import json
+import logging
 import urllib3
 from urllib.parse import urlencode
-import json
 
-import logging
+from qiskit.aqua.translators.data_providers import BaseDataProvider, DataType, QiskitFinanceError
+
 logger = logging.getLogger(__name__)
 
 
@@ -93,9 +93,12 @@ class DataOnDemandProvider(BaseDataProvider):
             stockmarket (StockMarket): NYSE or NASDAQ
             start (datetime): first data point
             end (datetime): last data point precedes this date
-            verify (None or str or boolean): if verify is None, certifi certificates will be used (default); if this is False, no certificates will be checked; if this is a string, it should be poiting to a cerfificate for the HTTPS connection to NASDAQ (dataondemand.nasdaq.com), either in the form of a CA_BUNDLE file or a directory wherein to look.
+            verify (None or str or boolean): if verify is None, certifi certificates will be used (default);
+                if this is False, no certificates will be checked; if this is a string, it should be pointing
+                to a cerfificate for the HTTPS connection to NASDAQ (dataondemand.nasdaq.com), either in the
+                form of a CA_BUNDLE file or a directory wherein to look.
         """
-        #if not isinstance(atoms, list) and not isinstance(atoms, str):
+        # if not isinstance(atoms, list) and not isinstance(atoms, str):
         #    raise QiskitFinanceError("Invalid atom input for DOD Driver '{}'".format(atoms))
 
         super().__init__()

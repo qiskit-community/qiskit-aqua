@@ -23,7 +23,7 @@ from qiskit.quantum_info import Pauli
 
 from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import EnergyInput
-from qiskit.aqua.translators.ising.portfoliodiversification import *
+from qiskit.aqua.translators.ising.portfolio_diversification import *
 from test.common import QiskitAquaTestCase
 
 
@@ -56,7 +56,7 @@ class ClassicalOptimizer:
 
         try:
             my_prob = cplex.Cplex()
-            self.populatebyrow(my_prob, my_obj, my_ub, my_lb, my_ctype, my_sense, my_rhs)
+            self.populate_by_row(my_prob, my_obj, my_ub, my_lb, my_ctype, my_sense, my_rhs)
 
             my_prob.solve()
 
@@ -70,7 +70,7 @@ class ClassicalOptimizer:
 
         return x, cost
 
-    def populatebyrow(self, prob, my_obj, my_ub, my_lb, my_ctype, my_sense, my_rhs):
+    def populate_by_row(self, prob, my_obj, my_ub, my_lb, my_ctype, my_sense, my_rhs):
 
         n = self.n
 
@@ -208,7 +208,7 @@ class TestPortfolioDiversification(QiskitAquaTestCase):
         ground_level = get_portfoliodiversification_value(self.instance, self.n, self.q, quantum_solution)
         np.testing.assert_approx_equal(ground_level, 1.8)
     
-    def test_portfoliodiversification(self):
+    def test_portfolio_diversification(self):
         # Something of an integration test
         # Solve the problem in a classical fashion via CPLEX and compare the solution
         # Note that CPLEX uses a completely different integer linear programming formulation.

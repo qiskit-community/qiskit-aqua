@@ -34,7 +34,7 @@ class TestBernsteinVazirani(QiskitAquaTestCase):
     @parameterized.expand(
         itertools.product(bitmaps, mct_modes, optimizations)
     )
-    def test_bernsteinvazirani(self, bv_input, mct_mode, optimization='off'):
+    def test_bernstein_vazirani(self, bv_input, mct_mode, optimization='off'):
         nbits = int(math.log(len(bv_input), 2))
         # compute the ground-truth classically
         parameter = ""

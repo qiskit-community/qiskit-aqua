@@ -15,9 +15,9 @@
 # limitations under the License.
 # =============================================================================
 
-from .tensorproduct import tensorproduct
-from .pauligraph import PauliGraph
-from .jsonutils import convert_dict_to_json, convert_json_to_dict
+from .tensor_product import tensorproduct
+from .pauli_graph import PauliGraph
+from .json_utils import convert_dict_to_json, convert_json_to_dict
 from .random_matrix_generator import (random_unitary, random_h2_body,
                                       random_h1_body, random_hermitian,
                                       random_non_hermitian)
@@ -28,7 +28,7 @@ from .entangler_map import get_entangler_map, validate_entangler_map
 from .dataset_helper import (get_feature_dimension, get_num_classes,
                              split_dataset_to_data_and_labels,
                              map_label_to_class_name, reduce_dim_to_via_pca)
-from .qpsolver import optimize_svm
+from .qp_solver import optimize_svm
 from .circuit_factory import CircuitFactory
 from .run_circuits import compile_and_run_circuits, find_regs_by_name
 from .circuit_cache import CircuitCache
