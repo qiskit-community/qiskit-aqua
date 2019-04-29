@@ -25,35 +25,35 @@ from qiskit.tools.events import TextProgressBar
 from qiskit.aqua import aqua_globals
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
-from qiskit.aqua.algorithms.many_sample.qsvm._qsvm_kernel_binary import _QSVM_Kernel_Binary
-from qiskit.aqua.algorithms.many_sample.qsvm._qsvm_kernel_multiclass import _QSVM_Kernel_Multiclass
-from qiskit.aqua.algorithms.many_sample.qsvm._qsvm_kernel_estimator import _QSVM_Kernel_Estimator
+from qiskit.aqua.algorithms.many_sample.qsvm._qsvm_binary import _QSVM_Binary
+from qiskit.aqua.algorithms.many_sample.qsvm._qsvm_multiclass import _QSVM_Multiclass
+from qiskit.aqua.algorithms.many_sample.qsvm._qsvm_estimator import _QSVM_Estimator
 from qiskit.aqua.utils.dataset_helper import get_feature_dimension, get_num_classes
 from qiskit.aqua.utils import split_dataset_to_data_and_labels
 
 logger = logging.getLogger(__name__)
 
 
-class QSVMKernel(QuantumAlgorithm):
+class QSVM(QuantumAlgorithm):
     """
-    Quantum SVM kernel method.
+    Quantum SVM method.
 
     Internally, it will run the binary classification or multiclass classification
     based on how many classes the data have.
     """
 
     CONFIGURATION = {
-        'name': 'QSVM.Kernel',
-        'description': 'QSVMKernel Algorithm',
+        'name': 'QSVM',
+        'description': 'QSVM Algorithm',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
-            'id': 'QSVM_Kernel_schema',
+            'id': 'QSVM_schema',
             'type': 'object',
             'properties': {
             },
             'additionalProperties': False
         },
-        'problems': ['svm_classification'],
+        'problems': ['classification'],
         'depends': [
             {'pluggable_type': 'multiclass_extension'},
             {'pluggable_type': 'feature_map',
@@ -74,10 +74,10 @@ class QSVMKernel(QuantumAlgorithm):
         Args:
             feature_map (FeatureMap): feature map module, used to transform data
             training_dataset (dict): training dataset.
-            test_dataset (dict): testing dataset.
-            datapoints (numpy.ndarray): prediction dataset.
-            multiclass_extension (MultiExtension): if number of classes > 2, a multiclass scheme is
-                                                    is needed.
+            test_dataset (Optional[dict]): testing dataset.
+            datapoints (Optional[numpy.ndarray]): prediction dataset.
+            multiclass_extension (Optional[MultiExtension]): if number of classes > 2 then
+                a multiclass scheme is needed.
 
         Raises:
             ValueError: if training_dataset is None
@@ -117,18 +117,18 @@ class QSVMKernel(QuantumAlgorithm):
         self.num_qubits = self.feature_map.num_qubits
 
         if multiclass_extension is None:
-            qsvm_instance = _QSVM_Kernel_Binary(self)
+            qsvm_instance = _QSVM_Binary(self)
         else:
-            qsvm_instance = _QSVM_Kernel_Multiclass(self, multiclass_extension)
+            qsvm_instance = _QSVM_Multiclass(self, multiclass_extension)
 
         self.instance = qsvm_instance
 
     @classmethod
     def init_params(cls, params, algo_input):
         """Constructor from params."""
-        num_qubits = get_feature_dimension(algo_input.training_dataset)
+        feature_dimension = get_feature_dimension(algo_input.training_dataset)
         fea_map_params = params.get(Pluggable.SECTION_KEY_FEATURE_MAP)
-        fea_map_params['num_qubits'] = num_qubits
+        fea_map_params['feature_dimension'] = feature_dimension
 
         feature_map = get_pluggable_class(PluggableType.FEATURE_MAP,
                                           fea_map_params['name']).init_params(params)
@@ -137,7 +137,7 @@ class QSVMKernel(QuantumAlgorithm):
         multiclass_extension_params = params.get(Pluggable.SECTION_KEY_MULTICLASS_EXTENSION)
         if multiclass_extension_params is not None:
             multiclass_extension_params['params'] = [feature_map]
-            multiclass_extension_params['estimator_cls'] = _QSVM_Kernel_Estimator
+            multiclass_extension_params['estimator_cls'] = _QSVM_Estimator
 
             multiclass_extension = get_pluggable_class(PluggableType.MULTICLASS_EXTENSION,
                                                        multiclass_extension_params['name']).init_params(params)
@@ -185,8 +185,8 @@ class QSVMKernel(QuantumAlgorithm):
             x2 (numpy.ndarray): data points, 1-D array, dimension is D
             measurement (bool): add measurement gates at the end
         """
-        return QSVMKernel._construct_circuit((x1, x2), self.num_qubits,
-                                             self.feature_map, measurement)
+        return QSVM._construct_circuit((x1, x2), self.num_qubits,
+                                       self.feature_map, measurement)
 
     def construct_kernel_matrix(self, x1_vec, x2_vec=None, quantum_instance=None):
         """
@@ -203,7 +203,7 @@ class QSVMKernel(QuantumAlgorithm):
         """
         self._quantum_instance = self._quantum_instance \
             if quantum_instance is None else quantum_instance
-        from .qsvm_kernel import QSVMKernel
+        from .qsvm import QSVM
 
         if x2_vec is None:
             is_symmetric = True
@@ -224,10 +224,10 @@ class QSVMKernel(QuantumAlgorithm):
             mus = np.asarray(mus.flat)
             nus = np.asarray(nus.flat)
 
-        for idx in range(0, len(mus), QSVMKernel.BATCH_SIZE):
+        for idx in range(0, len(mus), QSVM.BATCH_SIZE):
             to_be_computed_list = []
             to_be_computed_index = []
-            for sub_idx in range(idx, min(idx + QSVMKernel.BATCH_SIZE, len(mus))):
+            for sub_idx in range(idx, min(idx + QSVM.BATCH_SIZE, len(mus))):
                 i = mus[sub_idx]
                 j = nus[sub_idx]
                 x1 = x1_vec[i]
@@ -239,7 +239,7 @@ class QSVMKernel(QuantumAlgorithm):
             if logger.isEnabledFor(logging.DEBUG):
                 logger.debug("Building circuits:")
                 TextProgressBar(sys.stderr)
-            circuits = parallel_map(QSVMKernel._construct_circuit,
+            circuits = parallel_map(QSVM._construct_circuit,
                                     to_be_computed_list,
                                     task_args=(self.num_qubits, self.feature_map,
                                                measurement),
@@ -250,7 +250,7 @@ class QSVMKernel(QuantumAlgorithm):
             if logger.isEnabledFor(logging.DEBUG):
                 logger.debug("Calculating overlap:")
                 TextProgressBar(sys.stderr)
-            matrix_elements = parallel_map(QSVMKernel._compute_overlap, range(len(circuits)),
+            matrix_elements = parallel_map(QSVM._compute_overlap, range(len(circuits)),
                                            task_args=(results, is_statevector_sim, measurement_basis),
                                            num_processes=aqua_globals.num_processes)
 

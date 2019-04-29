@@ -18,34 +18,38 @@
 import numpy as np
 
 from test.common import QiskitAquaTestCase
-from qiskit import BasicAer
-
 from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import EnergyInput
-from qiskit.aqua.translators.ising.vrp import *
+from qiskit.aqua.translators.ising.vehiclerouting import get_vehiclerouting_qubitops
 from qiskit.aqua.algorithms import ExactEigensolver
+from qiskit.quantum_info import Pauli
 
 # To run only this test, issue:
 # python -m unittest test.test_vrp.TestVehicleRouting
+
 
 class TestVehicleRouting(QiskitAquaTestCase):
     """Tests vehicle routing Ising translator."""
 
     def setUp(self):
         super().setUp()
-        np.random.seed(100)        
+        np.random.seed(100)
         self.n = 2
         self.K = 1
-        self.instance = np.zeros((self.n,self.n))
-        self.instance[0,1] = 0.8
-        self.instance[1,0] = 0.8
-        self.qubit_op = get_vehiclerouting_qubitops(self.instance, self.n, self.K)
+        self.instance = np.zeros((self.n, self.n))
+        self.instance[0, 1] = 0.8
+        self.instance[1, 0] = 0.8
+        self.qubit_op = get_vehiclerouting_qubitops(self.instance, self.n,
+                                                    self.K)
         self.algo_input = EnergyInput(self.qubit_op)
 
     def test_simple1(self):
         # Compares the output in terms of Paulis.
-        paulis = [(79.6, Pauli(z=[True, False], x=[False, False])), (79.6, Pauli(z=[False, True], x=[False, False])), (160.8, Pauli(z=[False, False], x=[False, False]))]
-        op = Operator(paulis)
+        paulis = [(79.6, Pauli(z=[True, False], x=[False, False])),
+                  (79.6, Pauli(z=[False, True], x=[False, False])),
+                  (160.8, Pauli(z=[False, False], x=[False, False]))]
+        # Could also consider op = Operator(paulis) and then __eq__, but 
+        # that would not use assert_approx_equal
         for pauliA, pauliB in zip(self.qubit_op._paulis, paulis):
             costA, binaryA = pauliA
             costB, binaryB = pauliB
@@ -57,8 +61,12 @@ class TestVehicleRouting(QiskitAquaTestCase):
     def test_simple2(self):
         # Solve the problem using the exact eigensolver
         params = {
-            'problem': {'name': 'ising'},
-            'algorithm': {'name': 'ExactEigensolver'}
+            'problem': {
+                'name': 'ising'
+            },
+            'algorithm': {
+                'name': 'ExactEigensolver'
+            }
         }
         result = run_algorithm(params, self.algo_input)
         A = np.array([0., 0., 0., 1.])

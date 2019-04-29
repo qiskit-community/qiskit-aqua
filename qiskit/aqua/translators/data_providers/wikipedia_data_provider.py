@@ -20,6 +20,7 @@ import importlib
 from enum import Enum
 import logging
 import datetime
+import quandl
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +28,8 @@ logger = logging.getLogger(__name__)
 class StockMarket(Enum):
     NASDAQ = 'NASDAQ'
     NYSE = 'NYSE'
-    
+
+
 class WikipediaDataProvider(BaseDataProvider):
     """Python implementation of a Wikipedia data provider.
     Please see:
@@ -43,35 +45,39 @@ class WikipediaDataProvider(BaseDataProvider):
             "type": "object",
             "properties": {
                 "stockmarket": {
-                    "type": "string",
-                    "default": StockMarket.NASDAQ.value,
-                    "oneOf": [
-                         {"enum": [
+                    "type":
+                    "string",
+                    "default":
+                    StockMarket.NASDAQ.value,
+                    "oneOf": [{
+                        "enum": [
                             StockMarket.NASDAQ.value,
                             StockMarket.NYSE.value,
-                         ]}
-                    ]
+                        ]
+                    }]
                 },
                 "datatype": {
-                    "type": "string",
-                    "default": DataType.DAILYADJUSTED.value,
-                    "oneOf": [
-                         {"enum": [
+                    "type":
+                    "string",
+                    "default":
+                    DataType.DAILYADJUSTED.value,
+                    "oneOf": [{
+                        "enum": [
                             DataType.DAILYADJUSTED.value,
                             DataType.DAILY.value,
-                         ]}
-                    ]
-                },    
+                        ]
+                    }]
+                },
             },
         }
     }
 
     def __init__(self,
-                 token = "",
-                 tickers = [],
-                 stockmarket = StockMarket.NASDAQ.value,
-                 start = datetime.datetime(2016,1,1),
-                 end = datetime.datetime(2016,1,30)):
+                 token="",
+                 tickers=[],
+                 stockmarket=StockMarket.NASDAQ,
+                 start=datetime.datetime(2016, 1, 1),
+                 end=datetime.datetime(2016, 1, 30)):
         """
         Initializer
         Args:
@@ -81,6 +87,7 @@ class WikipediaDataProvider(BaseDataProvider):
         """
         #if not isinstance(atoms, list) and not isinstance(atoms, str):
         #    raise QiskitFinanceError("Invalid atom input for Wikipedia Driver '{}'".format(atoms))
+        super().__init__()
 
         if isinstance(tickers, list):
             self._tickers = tickers
@@ -88,14 +95,15 @@ class WikipediaDataProvider(BaseDataProvider):
             self._tickers = tickers.replace('\n', ';').split(";")
         self._n = len(self._tickers)
 
-        self.validate(locals())
-        super().__init__()
-        self._stockmarket = stockmarket # .value?
+        self._stockmarket = str(
+            stockmarket.value)  # This is to aid serialisation
         self._token = token
         self._tickers = tickers
         self._start = start
         self._end = end
         self._data = []
+
+        # self.validate(locals())
 
     @staticmethod
     def check_provider_valid():
@@ -122,7 +130,8 @@ class WikipediaDataProvider(BaseDataProvider):
             DataProvider object
         """
         if section is None or not isinstance(section, dict):
-            raise QiskitFinanceError('Invalid or missing section {}'.format(section))
+            raise QiskitFinanceError(
+                'Invalid or missing section {}'.format(section))
 
         params = section
         kwargs = {}
@@ -133,18 +142,20 @@ class WikipediaDataProvider(BaseDataProvider):
         return cls(**kwargs)
 
     def run(self):
-        """ Loads data, thus enabling get_similarity_matrix and get_covariance methods in the base class. """
+        """ Loads data, thus enabling get_similarity_matrix and get_covariance_matrix methods in the base class. """
         self.check_provider_valid()
-        import quandl
         quandl.ApiConfig.api_key = self._token
         quandl.ApiConfig.api_version = '2015-04-09'
         self._data = []
         for (cnt, s) in enumerate(self._tickers):
-          try:
-            d = quandl.get("WIKI/" + s, start_date=self._start, end_date=self._end)
-          except Exception as e: # The exception will be urllib3 NewConnectionError, but it can get dressed by quandl
-            raise QiskitFinanceError("Cannot retrieve Wikipedia data.") from e
-          try:
-            self._data.append(d["Adj. Close"])
-          except KeyError as e:
-            raise QiskitFinanceError("Cannot parse quandl output.") from e
+            try:
+                d = quandl.get("WIKI/" + s,
+                               start_date=self._start,
+                               end_date=self._end)
+            except Exception as e:  # The exception will be urllib3 NewConnectionError, but it can get dressed by quandl
+                raise QiskitFinanceError(
+                    "Cannot retrieve Wikipedia data.") from e
+            try:
+                self._data.append(d["Adj. Close"])
+            except KeyError as e:
+                raise QiskitFinanceError("Cannot parse quandl output.") from e

@@ -29,6 +29,7 @@ import logging
 import numpy as np
 from abc import abstractmethod
 
+from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms import QuantumAlgorithm
 
 logger = logging.getLogger(__name__)
@@ -45,8 +46,14 @@ class VQAlgorithm(QuantumAlgorithm):
                  cost_fn=None,
                  initial_point=None):
         super().__init__()
+        if var_form is None:
+            raise AquaError('Missing variational form.')
         self._var_form = var_form
+
+        if optimizer is None:
+            raise AquaError('Missing optimizer.')
         self._optimizer = optimizer
+
         self._cost_fn = cost_fn
         self._initial_point = initial_point
 

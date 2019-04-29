@@ -264,7 +264,7 @@ class QiskitAqua(object):
                                 if basis_gates != noise_basis_gates:
                                     logger.warning("Basis gates '{}' used instead of noise model basis gates '{}'.".format(basis_gates, noise_basis_gates))
 
-            backend_cfg['seed_mapper'] = random_seed
+            backend_cfg['seed_transpiler'] = random_seed
             pass_manager = PassManager() if backend_cfg.pop('skip_transpiler', False) else None
             if pass_manager is not None:
                 backend_cfg['pass_manager'] = pass_manager

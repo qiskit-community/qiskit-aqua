@@ -15,7 +15,6 @@
 # limitations under the License.
 # =============================================================================
 
-
 from abc import ABC, abstractmethod
 import copy
 from qiskit.aqua.parser import JSONSchema
@@ -23,17 +22,23 @@ from qiskit.aqua import AquaError
 from enum import Enum
 import logging
 
+import numpy as np
+import fastdtw
+
 logger = logging.getLogger(__name__)
 
 
-class QiskitFinanceError(AquaError): None
+class QiskitFinanceError(AquaError):
+    None
+
 
 class DataType(Enum):
     DAILYADJUSTED = 'Daily (adj)'
     DAILY = 'Daily'
     BID = 'Bid'
     ASK = 'Ask'
-    
+
+
 class BaseDataProvider(ABC):
     """
     This module implements the abstract base class for data_provider modules
@@ -111,16 +116,18 @@ class BaseDataProvider(ABC):
         return xc, yc
 
     # it does not have to be overridden in non-abstract derived classes.
-    def get_covariance(self):
+    def get_covariance_matrix(self):
         """ Returns the covariance matrix. 
         
     Returns:
-        rho (numpy.ndarray) : an asset-to-asset similarity matrix.        
+        rho (numpy.ndarray) : an asset-to-asset covariance matrix.        
         """
-        if not self._data: return None   
-        import numpy as np
-        if not self._data: return None
-        self.cov = np.cov(self._data, rowvar = True)
+        try:
+            if not self._data:
+                raise QiskitFinanceError('No data loaded, yet. Please run the method run() first to load the data.')
+        except AttributeError:
+            raise QiskitFinanceError('No data loaded, yet. Please run the method run() first to load the data.')
+        self.cov = np.cov(self._data, rowvar=True)
         return self.cov
 
     # it does not have to be overridden in non-abstract derived classes.
@@ -130,18 +137,17 @@ class BaseDataProvider(ABC):
     Returns:
         rho (numpy.ndarray) : an asset-to-asset similarity matrix.
         """
-        if not self._data: return None    
-        import numpy as np
         try:
-          import fastdtw
-          self.rho = np.zeros((self._n, self._n))
-          for ii in range(0, self._n):
-            self.rho[ii,ii] = 1.
+            if not self._data:
+                raise QiskitFinanceError('No data loaded, yet. Please run the method run() first to load the data.')
+        except AttributeError:
+            raise QiskitFinanceError('No data loaded, yet. Please run the method run() first to load the data.')
+        self.rho = np.zeros((self._n, self._n))
+        for ii in range(0, self._n):
+            self.rho[ii, ii] = 1.
             for jj in range(ii + 1, self._n):
                 thisRho, path = fastdtw.fastdtw(self._data[ii], self._data[jj])
                 thisRho = 1.0 / thisRho
                 self.rho[ii, jj] = thisRho
                 self.rho[jj, ii] = thisRho
-        except ImportError:
-          print("This requires fastdtw package.")
         return self.rho

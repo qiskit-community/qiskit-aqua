@@ -15,12 +15,13 @@
 # limitations under the License.
 # =============================================================================
 
-from ._basedataprovider import BaseDataProvider, DataType, QiskitFinanceError
-from .dataondemandprovider import DataOnDemandProvider
-from .exchangedataprovider import ExchangeDataProvider
-from .wikipediadataprovider import WikipediaDataProvider
+from ._base_data_provider import BaseDataProvider, DataType, QiskitFinanceError
+from .data_on_demand_provider import DataOnDemandProvider
+from .exchange_data_provider import ExchangeDataProvider
+from .wikipedia_data_provider import WikipediaDataProvider
+from .random_data_provider import RandomDataProvider
 
-__all__ = ['BaseDataProvider', 'DataType', 'QiskitFinanceError', 
-           'DataOnDemandProvider',
-           'ExchangeDataProvider',
-           'WikipediaDataProvider']
+__all__ = [
+    'BaseDataProvider', 'DataType', 'QiskitFinanceError', 'RandomDataProvider',
+    'DataOnDemandProvider', 'ExchangeDataProvider', 'WikipediaDataProvider'
+]
