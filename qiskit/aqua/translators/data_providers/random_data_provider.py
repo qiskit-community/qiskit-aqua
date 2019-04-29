@@ -15,13 +15,15 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit.aqua.translators.data_providers import BaseDataProvider, DataType, QiskitFinanceError
 from enum import Enum
-import logging
 import datetime
+import logging
+import random
+
 import numpy as np
 import pandas as pd
-import random
+
+from qiskit.aqua.translators.data_providers import BaseDataProvider, DataType, QiskitFinanceError
 
 logger = logging.getLogger(__name__)
 
@@ -118,7 +120,9 @@ class RandomDataProvider(BaseDataProvider):
         return cls(**kwargs)
 
     def run(self):
-        """ Generates data pseudo-randomly, thus enabling get_similarity_matrix and get_covariance_matrix methods in the base class. 
+        """
+        Generates data pseudo-randomly, thus enabling get_similarity_matrix
+        and get_covariance_matrix methods in the base class.
         """
         self.check_provider_valid()
 

@@ -15,9 +15,9 @@
 # limitations under the License.
 # =============================================================================
 
-# Convert maxcut instances into Pauli list
+# Convert max-cut instances into Pauli list
 # Deal with Gset format. See https://web.stanford.edu/~yyye/yyye/Gset/
-# Design the maxcut object `w` as a two-dimensional np.array
+# Design the max-cut object `w` as a two-dimensional np.array
 # e.g., w[i, j] = x means that the weight of a edge between i and j is x
 # Note that the weights are symmetric, i.e., w[j, i] = x always holds.
 
@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 
 
 def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None, seed=None):
-    """Generate random Erdos-Renyi graph for MaxCut.
+    """Generate random Erdos-Renyi graph for Max-Cut.
 
     Args:
         n (int): number of nodes.
@@ -71,8 +71,8 @@ def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None, seed=None):
     return w
 
 
-def get_maxcut_qubitops(weight_matrix):
-    """Generate Hamiltonian for the maxcut problem of a graph.
+def get_max_cut_qubitops(weight_matrix):
+    """Generate Hamiltonian for the max-cut problem of a graph.
 
     Args:
         weight_matrix (numpy.ndarray) : adjacency matrix.
@@ -128,7 +128,7 @@ def parse_gset_format(filename):
     return w
 
 
-def maxcut_value(x, w):
+def max_cut_value(x, w):
     """Compute the value of a cut.
 
     Args:

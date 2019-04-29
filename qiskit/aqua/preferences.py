@@ -80,7 +80,7 @@ class Preferences(object):
     def credentials_preferences(self):
         """Return credentials preferences"""
         if self._credentials_preferences is None:
-            from ._credentialspreferences import CredentialsPreferences
+            from ._credentials_preferences import CredentialsPreferences
             self._credentials_preferences = CredentialsPreferences()
             if Preferences._SELECTED_KEY in self._preferences:
                 self._credentials_preferences.select_credentials(self._preferences[Preferences._SELECTED_KEY])
