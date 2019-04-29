@@ -26,7 +26,7 @@ from qiskit.aqua import (local_pluggables_types,
                          local_pluggables,
                          get_backends_from_provider)
 from qiskit.aqua.aqua_error import AquaError
-from .jsonschema import JSONSchema
+from .json_schema import JSONSchema
 import traceback
 
 

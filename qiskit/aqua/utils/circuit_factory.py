@@ -21,7 +21,7 @@ and power combinations of the circuit.
 
 from abc import ABC, abstractmethod
 from qiskit import QuantumCircuit
-from qiskit.aqua.utils.controlledcircuit import get_controlled_circuit
+from qiskit.aqua.utils.controlled_circuit import get_controlled_circuit
 
 
 class CircuitFactory(ABC):

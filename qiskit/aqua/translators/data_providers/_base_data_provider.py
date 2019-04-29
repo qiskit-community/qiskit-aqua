@@ -16,20 +16,21 @@
 # =============================================================================
 
 from abc import ABC, abstractmethod
-import copy
-from qiskit.aqua.parser import JSONSchema
-from qiskit.aqua import AquaError
-from enum import Enum
 import logging
+import copy
+from enum import Enum
 
 import numpy as np
 import fastdtw
+
+from qiskit.aqua import AquaError
+from qiskit.aqua.parser import JSONSchema
 
 logger = logging.getLogger(__name__)
 
 
 class QiskitFinanceError(AquaError):
-    None
+    pass
 
 
 class DataType(Enum):

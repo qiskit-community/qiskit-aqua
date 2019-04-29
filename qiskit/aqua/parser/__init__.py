@@ -15,7 +15,7 @@
 # limitations under the License.
 # =============================================================================
 
-from .jsonschema import JSONSchema
+from .json_schema import JSONSchema
 from .base_parser import BaseParser
 
 __all__ = ['JSONSchema',

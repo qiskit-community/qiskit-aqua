@@ -15,7 +15,6 @@
 # limitations under the License.
 # =============================================================================
 
-
 import logging
 from collections import OrderedDict
 
@@ -46,10 +45,8 @@ def random_number_list(n, weight_range=100, savefile=None):
     return number_list
 
 
-def get_exactcover_qubitops(list_of_subsets):
-    """Construct the Hamiltonian for the exact solver problem
-
-
+def get_set_packing_qubitops(list_of_subsets):
+    """Construct the Hamiltonian for the set packing
     Args:
         list_of_subsets: list of lists (i.e., subsets)
 
@@ -57,47 +54,48 @@ def get_exactcover_qubitops(list_of_subsets):
         operator.Operator, float: operator for the Hamiltonian and a
         constant shift for the obj function.
 
-    Assumption:
-        the union of the subsets contains all the elements to cover
+    find the maximal number of subsets which are disjoint pairwise.
 
-    The Hamiltonian is:
-       sum_{each element e}{(1-sum_{every subset_i that contains e}{Xi})^2},
-       where Xi (Xi=1 or 0) means whether should include the subset i.
+    Hamiltonian:
+    H = A Ha + B Hb
+    Ha = sum_{Si and Sj overlaps}{XiXj}
+    Hb = -sum_{i}{Xi}
 
+    Ha is to ensure the disjoint condition, while Hb is to achieve the maximal number.
+    Ha is hard constraint that must be satisified. Therefore A >> B.
+    In the following, we set A=10 and B = 1
+
+    Note Xi = (Zi + 1)/2
     """
-    n = len(list_of_subsets)
-
-    U = []
-    for sub in list_of_subsets:
-        U.extend(sub)
-    U = np.unique(U)   # U is the universe
-
     shift = 0
     pauli_list = []
+    A = 10
+    n = len(list_of_subsets)
+    for i in range(n):
+        for j in range(i):
+            if set(list_of_subsets[i]) & set(list_of_subsets[j]):
+                wp = np.zeros(n)
+                vp = np.zeros(n)
+                vp[i] = 1
+                vp[j] = 1
+                pauli_list.append([A*0.25, Pauli(vp, wp)])
 
-    for e in U:
-        cond = [True if e in sub else False for sub in list_of_subsets]
-        indices_has_e = np.arange(n)[cond]
-        num_has_e = len(indices_has_e)
-        Y = 1-0.5*num_has_e
-        shift += Y*Y
+                vp2 = np.zeros(n)
+                vp2[i] = 1
+                pauli_list.append([A*0.25, Pauli(vp2, wp)])
 
-        for i in indices_has_e:
-            for j in indices_has_e:
-                if i != j:
-                    wp = np.zeros(n)
-                    vp = np.zeros(n)
-                    vp[i] = 1
-                    vp[j] = 1
-                    pauli_list.append([0.25, Pauli(vp, wp)])
-                else:
-                    shift += 0.25
+                vp3 = np.zeros(n)
+                vp3[j] = 1
+                pauli_list.append([A*0.25, Pauli(vp3, wp)])
 
-        for i in indices_has_e:
-            wp = np.zeros(n)
-            vp = np.zeros(n)
-            vp[i] = 1
-            pauli_list.append([-Y, Pauli(vp, wp)])
+                shift += A*0.25
+
+    for i in range(n):
+        wp = np.zeros(n)
+        vp = np.zeros(n)
+        vp[i] = 1
+        pauli_list.append([-0.5, Pauli(vp, wp)])
+        shift += -0.5
 
     return Operator(paulis=pauli_list), shift
 
@@ -159,31 +157,18 @@ def get_solution(x):
     return 1 - x
 
 
-def check_solution_satisfiability(sol, list_of_subsets):
+def check_disjoint(sol, list_of_subsets):
     n = len(list_of_subsets)
-    U = []
-    for sub in list_of_subsets:
-        U.extend(sub)
-    U = np.unique(U)  # U is the universe
-
-    U2 = []
     selected_subsets = []
     for i in range(n):
         if sol[i] == 1:
             selected_subsets.append(list_of_subsets[i])
-            U2.extend(list_of_subsets[i])
-
-    U2 = np.unique(U2)
-    if set(U) != set(U2):
-        return False
-
     tmplen = len(selected_subsets)
     for i in range(tmplen):
         for j in range(i):
             L = selected_subsets[i]
             R = selected_subsets[j]
-
-            if set(L) & set(R):  # should be empty
+            if set(L) & set(R):
                 return False
 
     return True

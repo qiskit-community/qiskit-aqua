@@ -15,12 +15,14 @@
 # limitations under the License.
 # =============================================================================
 
-from qiskit.aqua.translators.data_providers import BaseDataProvider, DataType, QiskitFinanceError
-import importlib
 from enum import Enum
-import logging
 import datetime
+import importlib
+import logging
+
 import quandl
+
+from qiskit.aqua.translators.data_providers import BaseDataProvider, DataType, QiskitFinanceError
 
 logger = logging.getLogger(__name__)
 

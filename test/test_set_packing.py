@@ -21,7 +21,7 @@ import json
 from test.common import QiskitAquaTestCase
 from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import EnergyInput
-from qiskit.aqua.translators.ising import setpacking
+from qiskit.aqua.translators.ising import set_packing
 from qiskit.aqua.algorithms import ExactEigensolver
 
 
@@ -33,7 +33,7 @@ class TestSetPacking(QiskitAquaTestCase):
         input_file = self._get_resource_path('sample.setpacking')
         with open(input_file) as f:
             self.list_of_subsets = json.load(f)
-            qubitOp, offset = setpacking.get_setpacking_qubitops(self.list_of_subsets)
+            qubitOp, offset = set_packing.get_set_packing_qubitops(self.list_of_subsets)
             self.algo_input = EnergyInput(qubitOp)
 
     def brute_force(self):
@@ -47,7 +47,7 @@ class TestSetPacking(QiskitAquaTestCase):
         max_v = -np.inf
         for i in range(max):
             cur = bitfield(i, L)
-            cur_v = setpacking.check_disjoint(cur, self.list_of_subsets)
+            cur_v = set_packing.check_disjoint(cur, self.list_of_subsets)
             if cur_v:
                 if np.count_nonzero(cur) > max_v:
                     max_v = np.count_nonzero(cur)
@@ -59,8 +59,8 @@ class TestSetPacking(QiskitAquaTestCase):
             'algorithm': {'name': 'ExactEigensolver'}
         }
         result = run_algorithm(params, self.algo_input)
-        x = setpacking.sample_most_likely(len(self.list_of_subsets), result['eigvecs'][0])
-        ising_sol = setpacking.get_solution(x)
+        x = set_packing.sample_most_likely(len(self.list_of_subsets), result['eigvecs'][0])
+        ising_sol = set_packing.get_solution(x)
         np.testing.assert_array_equal(ising_sol, [0, 1, 1])
         oracle = self.brute_force()
         self.assertEqual(np.count_nonzero(ising_sol), oracle)
@@ -68,8 +68,8 @@ class TestSetPacking(QiskitAquaTestCase):
     def test_set_packing_direct(self):
         algo = ExactEigensolver(self.algo_input.qubit_op, k=1, aux_operators=[])
         result = algo.run()
-        x = setpacking.sample_most_likely(len(self.list_of_subsets), result['eigvecs'][0])
-        ising_sol = setpacking.get_solution(x)
+        x = set_packing.sample_most_likely(len(self.list_of_subsets), result['eigvecs'][0])
+        ising_sol = set_packing.get_solution(x)
         np.testing.assert_array_equal(ising_sol, [0, 1, 1])
         oracle = self.brute_force()
         self.assertEqual(np.count_nonzero(ising_sol), oracle)
@@ -106,7 +106,7 @@ class TestSetPacking(QiskitAquaTestCase):
         }
         backend = Aer.get_backend('qasm_simulator')
         result = run_algorithm(params, self.algo_input, backend=backend)
-        x = setpacking.sample_most_likely(len(self.list_of_subsets), result['eigvecs'][0])
-        ising_sol = setpacking.get_solution(x)
+        x = set_packing.sample_most_likely(len(self.list_of_subsets), result['eigvecs'][0])
+        ising_sol = set_packing.get_solution(x)
         oracle = self.brute_force()
         self.assertEqual(np.count_nonzero(ising_sol), oracle)
