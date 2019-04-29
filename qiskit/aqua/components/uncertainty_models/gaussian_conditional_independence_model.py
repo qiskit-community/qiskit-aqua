@@ -29,6 +29,51 @@ class GaussianConditionalIndependenceModel(MultivariateDistribution):
     Dependency between individual risk variabels and latent variable is approximated linearly.
     """
 
+    CONFIGURATION = {
+        'name': 'GaussianConditionalIndependenceModel',
+        'description': 'Gaussian Conditional Independence Model',
+        'input_schema': {
+            '$schema': 'http://json-schema.org/schema#',
+            'id': 'GaussianConditionalIndependenceModel_schema',
+            'type': 'object',
+            'properties': {
+                'n_normal': {
+                    'type': 'number'
+                },
+                'normal_max_value': {
+                    "type": "number"
+                },
+                'p_zeros': {
+                    'type': ['array'],
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                'rhos': {
+                    'type': ['array'],
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                'i_normal': {
+                    'type': ['array', 'null'],
+                    "items": {
+                        "type": "number"
+                    },
+                    'default': None
+                },
+                'i_ps': {
+                    'type': ['array', 'null'],
+                    "items": {
+                        "type": "number"
+                    },
+                    'default': None
+                }
+            },
+            'additionalProperties': False
+        }
+    }
+
     def __init__(self, n_normal, normal_max_value, p_zeros, rhos, i_normal=None, i_ps=None):
         """
         Constructor.
