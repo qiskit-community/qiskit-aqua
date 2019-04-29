@@ -58,12 +58,12 @@ class SecondOrderExpansion(PauliZExpansion):
         }
     }
 
-    def __init__(self, num_qubits, depth=2, entangler_map=None,
+    def __init__(self, feature_dimension, depth=2, entangler_map=None,
                  entanglement='full', data_map_func=self_product):
         """Constructor.
 
         Args:
-            num_qubits (int): number of qubits
+            feature_dimension (int): number of features
             depth (int): the number of repeated circuits
             entangler_map (list[list]): describe the connectivity of qubits, each list describes
                                         [source, target], or None for full entanglement.
@@ -74,5 +74,5 @@ class SecondOrderExpansion(PauliZExpansion):
             data_map_func (Callable): a mapping function for data x
         """
         self.validate(locals())
-        super().__init__(num_qubits, depth, entangler_map, entanglement,
+        super().__init__(feature_dimension, depth, entangler_map, entanglement,
                          z_order=2, data_map_func=data_map_func)

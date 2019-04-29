@@ -70,5 +70,6 @@ class TestExactLSsolver(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(result['solution'], [1, 0])
         np.testing.assert_array_almost_equal(result['eigvals'], [3, -1])
 
+
 if __name__ == '__main__':
     unittest.main()

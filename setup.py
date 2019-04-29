@@ -18,6 +18,7 @@
 import setuptools
 import inspect
 import sys
+import os
 
 long_description = """<a href="https://qiskit.org/aqua" rel=nofollow>Qiskit Aqua</a> is an extensible,
  modular, open-source library of quantum computing algorithms.
@@ -50,9 +51,13 @@ if not hasattr(setuptools, 'find_namespace_packages') or not inspect.ismethod(se
           "Upgrade it to version >='40.1.0' and repeat install.".format(setuptools.__version__))
     sys.exit(1)
 
+VERSION_PATH = os.path.join(os.path.dirname(__file__), "qiskit", "aqua", "VERSION.txt")
+with open(VERSION_PATH, "r") as version_file:
+    VERSION = version_file.read().strip()
+
 setuptools.setup(
     name='qiskit-aqua',
-    version="0.4.2",  # this should match __init__.__version__
+    version=VERSION,
     description='Qiskit Aqua: An extensible library of quantum computing algorithms',
     long_description=long_description,
     long_description_content_type="text/markdown",

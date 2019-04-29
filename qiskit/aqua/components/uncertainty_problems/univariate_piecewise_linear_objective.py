@@ -15,11 +15,11 @@
 # limitations under the License.
 # =============================================================================
 import numpy as np
-from qiskit.aqua.components.uncertainty_problems import UncertaintyProblem
 from qiskit.aqua.circuits.piecewise_linear_y_rotation import PiecewiseLinearYRotation as PwlRy
+from qiskit.aqua.utils import CircuitFactory
 
 
-class UnivariatePiecewiseLinearObjective(UncertaintyProblem):
+class UnivariatePiecewiseLinearObjective(CircuitFactory):
 
     """
     Univariate Piecewise Linear Objective Function, applies controlled Y-rotation to target qubit.

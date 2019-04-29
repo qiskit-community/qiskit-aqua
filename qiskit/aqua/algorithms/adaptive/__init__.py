@@ -17,16 +17,15 @@
 
 from .vqe.vqe import VQE
 from .qaoa.qaoa import QAOA
+from .vqc.vqc import VQC
 from .qgan.qgan import QGAN
-from .qsvm.qsvm_variational import QSVMVariational
 from .vqalgorithm import VQAlgorithm
-from .vqclassification import VQClassification
+
 
 __all__ = [
     'VQE',
     'QAOA',
     'QGAN',
-    'QSVMVariational',
+    'VQC',
     'VQAlgorithm',
-    'VQClassification',
 ]

@@ -21,12 +21,12 @@ import numpy as np
 from qiskit import BasicAer
 from test.common import QiskitAquaTestCase
 from qiskit.aqua import run_algorithm, QuantumInstance, aqua_globals
-from qiskit.aqua.input import SVMInput
+from qiskit.aqua.input import ClassificationInput
 from qiskit.aqua.components.feature_maps import SecondOrderExpansion
-from qiskit.aqua.algorithms import QSVMKernel
+from qiskit.aqua.algorithms import QSVM
 
 
-class TestQSVMKernel(QiskitAquaTestCase):
+class TestQSVM(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
@@ -40,9 +40,9 @@ class TestQSVMKernel(QiskitAquaTestCase):
         self.testing_data = {'A': np.asarray([[3.83274304, 2.45044227]]),
                              'B': np.asarray([[3.89557489, 0.31415927]])}
 
-        self.svm_input = SVMInput(self.training_data, self.testing_data)
+        self.svm_input = ClassificationInput(self.training_data, self.testing_data)
 
-    def test_qsvm_kernel_binary_via_run_algorithm(self):
+    def test_qsvm_binary_via_run_algorithm(self):
 
         training_input = {'A': np.asarray([[0.6560706, 0.17605998], [0.14154948, 0.06201424],
                                            [0.80202323, 0.40582692], [0.46779595, 0.39946754],
@@ -61,20 +61,20 @@ class TestQSVMKernel(QiskitAquaTestCase):
         total_array = np.concatenate((test_input['A'], test_input['B']))
 
         params = {
-            'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
+            'problem': {'name': 'classification', 'random_seed': self.random_seed},
             'backend': {'shots': self.shots},
             'algorithm': {
-                'name': 'QSVM.Kernel'
+                'name': 'QSVM'
             }
         }
         backend = BasicAer.get_backend('qasm_simulator')
-        algo_input = SVMInput(training_input, test_input, total_array)
+        algo_input = ClassificationInput(training_input, test_input, total_array)
         result = run_algorithm(params, algo_input, backend=backend)
         self.assertEqual(result['testing_accuracy'], 0.6)
         self.assertEqual(result['predicted_classes'], ['A', 'A', 'A', 'A', 'A',
                                                        'A', 'B', 'A', 'A', 'A'])
 
-    def test_qsvm_kernel_binary_directly(self):
+    def test_qsvm_binary_directly(self):
 
         ref_kernel_training = np.array([[1., 0.85366667, 0.12341667, 0.36408333],
                                         [0.85366667, 1., 0.11141667, 0.45491667],
@@ -95,8 +95,8 @@ class TestQSVMKernel(QiskitAquaTestCase):
         aqua_globals.random_seed = self.random_seed
         backend = BasicAer.get_backend('qasm_simulator')
         num_qubits = 2
-        feature_map = SecondOrderExpansion(num_qubits=num_qubits, depth=2, entangler_map=[[0, 1]])
-        svm = QSVMKernel(feature_map, self.training_data, self.testing_data, None)
+        feature_map = SecondOrderExpansion(feature_dimension=num_qubits, depth=2, entangler_map=[[0, 1]])
+        svm = QSVM(feature_map, self.training_data, self.testing_data, None)
         quantum_instance = QuantumInstance(backend, shots=self.shots, seed=self.random_seed,
                                            seed_transpiler=self.random_seed)
 
@@ -115,7 +115,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
 
         self.assertEqual(result['testing_accuracy'], 0.5)
 
-    def test_qsvm_kernel_binary_directly_statevector(self):
+    def test_qsvm_binary_directly_statevector(self):
 
         ref_kernel_testing = np. array([[0.1443953, 0.18170069, 0.47479649, 0.14691763],
                                         [0.33041779, 0.37663733, 0.02115561, 0.16106199]])
@@ -125,8 +125,8 @@ class TestQSVMKernel(QiskitAquaTestCase):
 
         backend = BasicAer.get_backend('statevector_simulator')
         num_qubits = 2
-        feature_map = SecondOrderExpansion(num_qubits=num_qubits, depth=2, entangler_map=[[0, 1]])
-        svm = QSVMKernel(feature_map, self.training_data, self.testing_data, None)
+        feature_map = SecondOrderExpansion(feature_dimension=num_qubits, depth=2, entangler_map=[[0, 1]])
+        svm = QSVM(feature_map, self.training_data, self.testing_data, None)
         aqua_globals.random_seed = self.random_seed
 
         quantum_instance = QuantumInstance(backend, seed_transpiler=self.random_seed)
@@ -143,12 +143,12 @@ class TestQSVMKernel(QiskitAquaTestCase):
 
         self.assertEqual(result['testing_accuracy'], 0.5)
 
-        file_path = self._get_resource_path('qsvm_kernel_test.npz')
+        file_path = self._get_resource_path('qsvm_test.npz')
         svm.save_model(file_path)
 
         self.assertTrue(os.path.exists(file_path))
 
-        loaded_svm = QSVMKernel(feature_map, self.training_data, None, None)
+        loaded_svm = QSVM(feature_map, self.training_data, None, None)
         loaded_svm.load_model(file_path)
 
         np.testing.assert_array_almost_equal(
@@ -169,7 +169,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
             except:
                 pass
 
-    def test_qsvm_kernel_multiclass_one_against_all(self):
+    def test_qsvm_multiclass_one_against_all(self):
 
         backend = BasicAer.get_backend('qasm_simulator')
         training_input = {'A': np.asarray([[0.6560706, 0.17605998], [0.25776033, 0.47628296],
@@ -189,16 +189,16 @@ class TestQSVMKernel(QiskitAquaTestCase):
         total_array = np.concatenate((test_input['A'], test_input['B'], test_input['C']))
 
         params = {
-            'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
+            'problem': {'name': 'classification', 'random_seed': self.random_seed},
             'algorithm': {
-                'name': 'QSVM.Kernel',
+                'name': 'QSVM',
             },
             'backend': {'shots': self.shots},
             'multiclass_extension': {'name': 'OneAgainstRest'},
             'feature_map': {'name': 'SecondOrderExpansion', 'depth': 2, 'entangler_map': [[0, 1]]}
         }
 
-        algo_input = SVMInput(training_input, test_input, total_array)
+        algo_input = ClassificationInput(training_input, test_input, total_array)
 
         result = run_algorithm(params, algo_input, backend=backend)
 
@@ -207,7 +207,7 @@ class TestQSVMKernel(QiskitAquaTestCase):
         self.assertAlmostEqual(result['testing_accuracy'], expected_accuracy, places=4)
         self.assertEqual(result['predicted_classes'], expected_classes)
 
-    def test_qsvm_kernel_multiclass_all_pairs(self):
+    def test_qsvm_multiclass_all_pairs(self):
 
         backend = BasicAer.get_backend('qasm_simulator')
         training_input = {'A': np.asarray([[0.6560706, 0.17605998], [0.25776033, 0.47628296],
@@ -227,22 +227,22 @@ class TestQSVMKernel(QiskitAquaTestCase):
         total_array = np.concatenate((test_input['A'], test_input['B'], test_input['C']))
 
         params = {
-            'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
+            'problem': {'name': 'classification', 'random_seed': self.random_seed},
             'algorithm': {
-                'name': 'QSVM.Kernel',
+                'name': 'QSVM',
             },
             'backend': {'shots': self.shots},
             'multiclass_extension': {'name': 'AllPairs'},
             'feature_map': {'name': 'SecondOrderExpansion', 'depth': 2, 'entangler_map': [[0, 1]]}
         }
 
-        algo_input = SVMInput(training_input, test_input, total_array)
+        algo_input = ClassificationInput(training_input, test_input, total_array)
         result = run_algorithm(params, algo_input, backend=backend)
         self.assertAlmostEqual(result['testing_accuracy'], 0.444444444, places=4)
         self.assertEqual(result['predicted_classes'], ['A', 'A', 'C', 'A',
                                                        'A', 'A', 'A', 'C', 'C'])
 
-    def test_qsvm_kernel_multiclass_error_correcting_code(self):
+    def test_qsvm_multiclass_error_correcting_code(self):
 
         backend = BasicAer.get_backend('qasm_simulator')
         training_input = {'A': np.asarray([[0.6560706, 0.17605998], [0.25776033, 0.47628296],
@@ -262,16 +262,16 @@ class TestQSVMKernel(QiskitAquaTestCase):
         total_array = np.concatenate((test_input['A'], test_input['B'], test_input['C']))
 
         params = {
-            'problem': {'name': 'svm_classification', 'random_seed': self.random_seed},
+            'problem': {'name': 'classification', 'random_seed': self.random_seed},
             'algorithm': {
-                'name': 'QSVM.Kernel',
+                'name': 'QSVM',
             },
             'backend': {'shots': self.shots},
             'multiclass_extension': {'name': 'ErrorCorrectingCode', 'code_size': 5},
             'feature_map': {'name': 'SecondOrderExpansion', 'depth': 2, 'entangler_map': [[0, 1]]}
         }
 
-        algo_input = SVMInput(training_input, test_input, total_array)
+        algo_input = ClassificationInput(training_input, test_input, total_array)
 
         result = run_algorithm(params, algo_input, backend=backend)
         self.assertAlmostEqual(result['testing_accuracy'], 0.444444444, places=4)

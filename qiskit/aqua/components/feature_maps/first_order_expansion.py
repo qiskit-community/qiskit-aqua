@@ -47,13 +47,13 @@ class FirstOrderExpansion(PauliZExpansion):
         }
     }
 
-    def __init__(self, num_qubits, depth=2, data_map_func=self_product):
+    def __init__(self, feature_dimension, depth=2, data_map_func=self_product):
         """Constructor.
 
         Args:
-            num_qubits (int): number of qubits
+            feature_dimension (int): number of features
             depth (int): the number of repeated circuits
             data_map_func (Callable): a mapping function for data x
         """
         self.validate(locals())
-        super().__init__(num_qubits, depth, z_order=1, data_map_func=data_map_func)
+        super().__init__(feature_dimension, depth, z_order=1, data_map_func=data_map_func)
