@@ -25,7 +25,7 @@ from qiskit.aqua import (local_pluggables_types,
                          get_pluggable_configuration,
                          local_pluggables)
 from qiskit.aqua.aqua_error import AquaError
-from .jsonschema import JSONSchema
+from .json_schema import JSONSchema
 
 logger = logging.getLogger(__name__)
 

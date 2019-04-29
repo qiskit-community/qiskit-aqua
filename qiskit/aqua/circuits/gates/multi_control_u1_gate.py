@@ -24,7 +24,7 @@ from numpy import angle
 from sympy.combinatorics.graycode import GrayCode
 from qiskit import QuantumCircuit, QuantumRegister
 
-from qiskit.aqua.utils.controlledcircuit import apply_cu1
+from qiskit.aqua.utils.controlled_circuit import apply_cu1
 
 logger = logging.getLogger(__name__)
 

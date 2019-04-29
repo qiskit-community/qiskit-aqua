@@ -68,9 +68,9 @@ jobs:
     - stage: test first half
       <<: *stage_dependencies
       script:
-        - python test/customtests.py 0 -end 34
+        - python test/custom_tests.py 0 -end 34
 
     - stage: test second half
       <<: *stage_dependencies
       script:
-        - python test/customtests.py 34
+        - python test/custom_tests.py 34

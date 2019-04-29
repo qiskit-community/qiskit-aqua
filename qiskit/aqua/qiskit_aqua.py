@@ -27,7 +27,7 @@ from ._discover import (_discover_on_demand,
                         local_pluggables,
                         PluggableType,
                         get_pluggable_class)
-from .utils.jsonutils import convert_dict_to_json, convert_json_to_dict
+from .utils.json_utils import convert_dict_to_json, convert_json_to_dict
 from .parser._inputparser import InputParser
 from .parser import JSONSchema
 from .quantum_instance import QuantumInstance

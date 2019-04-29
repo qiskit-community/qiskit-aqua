@@ -33,7 +33,7 @@ class TestDeutschJozsa(QiskitAquaTestCase):
     @parameterized.expand(
         itertools.product(bitmaps, mct_modes, optimizations)
     )
-    def test_deutschjozsa(self, dj_input, mct_mode, optimization='off'):
+    def test_deutsch_jozsa(self, dj_input, mct_mode, optimization='off'):
         backend = BasicAer.get_backend('qasm_simulator')
         oracle = TruthTableOracle(dj_input, optimization=optimization, mct_mode=mct_mode)
         algorithm = DeutschJozsa(oracle)
