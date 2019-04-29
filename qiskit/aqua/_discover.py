@@ -51,6 +51,8 @@ class PluggableType(Enum):
     INPUT = 'input'
     EIGENVALUES = 'eigs'
     RECIPROCAL = 'reciprocal'
+    GENERATIVE_NETWORK = 'generative_network'
+    DISCRIMINATIVE_NETWORK = 'discriminative_network'
 
 
 def _get_pluggables_types_dictionary():
@@ -73,6 +75,8 @@ def _get_pluggables_types_dictionary():
     from qiskit.aqua.input import AlgorithmInput
     from qiskit.aqua.components.eigs import Eigenvalues
     from qiskit.aqua.components.reciprocals import Reciprocal
+    from qiskit.aqua.components.neural_networks import DiscriminativeNetwork
+    from qiskit.aqua.components.neural_networks import GenerativeNetwork
 
     return {
         PluggableType.ALGORITHM: QuantumAlgorithm,
@@ -89,7 +93,9 @@ def _get_pluggables_types_dictionary():
         PluggableType.MULTIVARIATE_DISTRIBUTION: MultivariateDistribution,
         PluggableType.INPUT: AlgorithmInput,
         PluggableType.EIGENVALUES: Eigenvalues,
-        PluggableType.RECIPROCAL: Reciprocal
+        PluggableType.RECIPROCAL: Reciprocal,
+        PluggableType.DISCRIMINATIVE_NETWORK: DiscriminativeNetwork,
+        PluggableType.GENERATIVE_NETWORK: GenerativeNetwork
     }
 
 

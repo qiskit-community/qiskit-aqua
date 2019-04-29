@@ -32,8 +32,8 @@ from qiskit.aqua.algorithms import QuantumAlgorithm
 
 from qiskit.aqua import aqua_globals
 
-from qiskit.aqua.components.neural_networks.qgan_generator import Generator
-from qiskit.aqua.components.neural_networks.qgan_discriminator import Discriminator
+from qiskit.aqua.components.neural_networks.generative_networks.quantum_generator import QuantumGenerator
+from qiskit.aqua.components.neural_networks.discriminative_networks.classical_discriminator import ClassicalDiscriminator
 
 
 logger = logging.getLogger(__name__)
@@ -80,14 +80,14 @@ class QGAN(QuantumAlgorithm):
         },
         'problems': ['distribution_learning_loading'],
         'depends': [
-            {'pluggable_type': 'neural_network',
+            {'pluggable_type': 'generative_network',
              'default': {
-                 'name': 'Generator'
+                 'name': 'QuantumGenerator'
              }
              },
-            {'pluggable_type': 'neural_network',
+            {'pluggable_type': 'discriminative_network',
              'default': {
-                 'name': 'Discriminator'
+                 'name': 'ClassicalDiscriminator'
              }
              },
         ],
@@ -245,8 +245,8 @@ class QGAN(QuantumAlgorithm):
         Returns:
 
         """
-        self._generator = Generator(self._bounds, self._num_qubits, self._data_grid, generator_circuit,
-                                    generator_init_params, generator_optimizer)
+        self._generator = QuantumGenerator(self._bounds, self._num_qubits, self._data_grid, generator_circuit,
+                                           generator_init_params, generator_optimizer)
         return
 
 
@@ -264,7 +264,7 @@ class QGAN(QuantumAlgorithm):
         Returns:
 
         """
-        self._discriminator = Discriminator(len(self._num_qubits), discriminator_net, discriminator_optimizer)
+        self._discriminator = ClassicalDiscriminator(len(self._num_qubits), discriminator_net, discriminator_optimizer)
         self._discriminator.set_seed(self.random_seed)
         return
 

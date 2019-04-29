@@ -58,6 +58,8 @@ class Pluggable(ABC):
     SECTION_KEY_MULTIVARIATE_DISTRIBUTION = PluggableType.MULTIVARIATE_DISTRIBUTION.value
     SECTION_KEY_EIGS = PluggableType.EIGENVALUES.value
     SECTION_KEY_RECIPROCAL = PluggableType.RECIPROCAL.value
+    SECTION_KEY_DISCRIMINATIVE_NETWORK = PluggableType.DISCRIMINATIVE_NETWORK.value
+    SECTION_KEY_GENERATIVE_NETWORK = PluggableType.GENERATIVE_NETWORK.value
 
     @abstractmethod
     def __init__(self):
