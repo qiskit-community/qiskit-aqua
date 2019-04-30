@@ -67,14 +67,13 @@ class MultivariateVariationalDistribution(MultivariateDistribution):
             'additionalProperties': False
         },
         'depends': [
-            {
-                'pluggable_type': 'variational_form',
-                 'default': {'name': 'RY'}
+
+                {'pluggable_type': 'variational_form',
+                 'default': {'name': 'RY'}}
                  ,
-                'pluggable_type': 'multivariate_distribution',
-                 'default': None
-                 ,
-            },
+                {'pluggable_type': 'initial_state',
+                 'default': {'name': 'ZERO'}}
+
         ],
     }
 
@@ -83,28 +82,54 @@ class MultivariateVariationalDistribution(MultivariateDistribution):
             low = np.zeros(len(num_qubits))
         if high is None:
             high = np.ones(len(num_qubits))
+        self._num_qubits = num_qubits
         self._var_form = var_form
         self.params = params
         self._initial_distribution = initial_distribution
-        q_ = QuantumRegister(num_qubits)
-        c_ = ClassicalRegister(num_qubits)
-        qc_ = QuantumCircuit(q_, c_)
-        if not self._initial_distribution is None:
-            self._initial_distribution.build(qc_, q_)
-        qc_.extend(self._var_form.construct_circuit(self.params, q_))
-        qc_.measure(q_,c_)
-        quantum_instance = QuantumInstance(backend=BasicAer.get_backend('statevector_simulator'))
-        result = quantum_instance.execute(qc_)
-        result = result.get_statevector(qc_)
-        values = np.multiply(result, np.conj(result))
-        values = list(values.real)
-        probabilities = values
+        probabilities = np.zeros(2 ** sum(num_qubits))
         super().__init__(num_qubits, probabilities, low, high)
         self._var_form = var_form
         self.params = params
         self._initial_distribution = initial_distribution
 
     def build(self, qc, q, q_ancillas=None, params=None):
-        if not self._initial_distribution is None:
-            self._initial_distribution.build(qc, q, q_ancillas, params)
+        if self._initial_distribution is not None:
+            qc.extend(self._initial_distribution.construct_circuit('circuit', q))
         qc.extend(self._var_form.construct_circuit(self.params, q))
+
+    def set_probabilities(self, backend=BasicAer.get_backend('statevector_simulator')):
+        """
+        Set Probabilities
+        Args:
+            backend: backend
+
+        Returns:
+
+        """
+        q_ = QuantumRegister(self._num_qubits)
+        c_ = ClassicalRegister(self._num_qubits)
+        qc_ = QuantumCircuit(q_, c_)
+        if not self._initial_distribution is None:
+            self._initial_distribution.build(qc_, q_)
+        qc_.extend(self._var_form.construct_circuit(self.params, q_))
+
+        quantum_instance = QuantumInstance(backend=backend, circuit_caching=False)
+        if quantum_instance.is_statevector:
+            pass
+        else:
+            qc_.measure(q_, c_)
+        result = quantum_instance.execute(qc_)
+        if quantum_instance.is_statevector:
+            result = result.get_statevector(qc_)
+            values = np.multiply(result, np.conj(result))
+            values = list(values.real)
+        else:
+            result = result.get_counts(qc_)
+            keys = list(result)
+            values = list(result.values())
+            values = [float(v) / np.sum(values) for v in values]
+            values = [x for _, x in sorted(zip(keys, values))]
+
+        probabilities = values
+        self._probabilities = np.array(probabilities)
+        return

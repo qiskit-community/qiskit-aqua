@@ -19,7 +19,6 @@ import unittest
 
 import numpy as np
 
-
 from qiskit.aqua.components.optimizers import ADAM
 from qiskit.aqua.components.uncertainty_models import UniformDistribution, UnivariateVariationalDistribution
 from qiskit.aqua.components.variational_forms import RY
@@ -34,6 +33,7 @@ from test.common import QiskitAquaTestCase
 
 
 class TestQGAN(QiskitAquaTestCase):
+
 
     def setUp(self):
         super().setUp()
@@ -57,15 +57,17 @@ class TestQGAN(QiskitAquaTestCase):
                                       'num_qubits': num_qubits,
                                       'batch_size': batch_size,
                                       'num_epochs': num_epochs},
-                        'problem': {'name': 'distribution_learning_loading'}
+                        'problem': {'name': 'distribution_learning_loading'},
+                        'generative_network': {'name': 'QuantumGenerator',
+                                               'bounds': self._bounds,
+                                               'num_qubits': num_qubits,
+                                               'init_params': None,
+                                               'snapshot_dir': None,
+                                               'variational_form': {'name': 'RY', 'depth': 1}
+                                               },
+                        'discriminative_network':{'name': 'ClassicalDiscriminator',
+                                                  'n_features': len(num_qubits)}
                         }
-
-        # self._params = {'algorithm': {'name': 'QGAN'},
-        #                 'problems': {'name': 'distribution_learning_loading'},
-        #                 'properties': {'num_qubits': num_qubits,
-        #                 'batch_size': batch_size,
-        #                 'num_epochs': num_epochs}
-        #                 }
 
         # Initialize qGAN
         self.qgan = QGAN(self._real_data, self._bounds, num_qubits, batch_size, num_epochs, snapshot_dir=None)
@@ -88,30 +90,27 @@ class TestQGAN(QiskitAquaTestCase):
         g_circuit = UnivariateVariationalDistribution(sum(num_qubits), var_form, init_params,
                                                       initial_distribution=init_dist, low=self._bounds[0],
                                                       high=self._bounds[1])
-        # Set generator optimizer
-        g_optimizer = ADAM(maxiter=1, tol=1e-6, lr=1e-5, beta_1=0.9, beta_2=0.99, noise_factor=1e-6,
-                           eps=1e-10, amsgrad=True)
         # Set quantum generator
-        self.qgan.set_generator(generator_circuit=g_circuit, generator_optimizer=g_optimizer)
+        self.qgan.set_generator(generator_circuit=g_circuit)
 
     def test_sample_generation(self):
         samples_statevector, weights_statevector = self.qgan._generator.get_output(self.quantum_instance_statevector)
         samples_qasm, weights_qasm = self.qgan._generator.get_output(self.quantum_instance_qasm)
         samples_qasm, weights_qasm = zip(*sorted(zip(samples_qasm, weights_qasm)))
         for i, weight_q in enumerate(weights_qasm):
-            self.assertAlmostEqual(weight_q, weights_statevector[i], delta=0.05)
+            self.assertAlmostEqual(weight_q, weights_statevector[i], delta=0.1)
 
     def test_qgan_training(self):
         trained_statevector = self.qgan.run(self.quantum_instance_statevector)
         trained_qasm = self.qgan.run(self.quantum_instance_qasm)
-        self.assertAlmostEqual(trained_qasm['rel_entr'], trained_statevector['rel_entr'], delta=0.05)
+        self.assertAlmostEqual(trained_qasm['rel_entr'], trained_statevector['rel_entr'], delta=0.1)
 
     def test_qgan_training_run_algo(self):
         algo_input = QGANInput(self._real_data, self._bounds)
         trained_statevector = run_algorithm(params=self._params, algo_input=algo_input, backend=BasicAer.get_backend(
             'statevector_simulator'))
         trained_qasm = run_algorithm(self._params, algo_input, backend=BasicAer.get_backend('qasm_simulator'))
-        self.assertAlmostEqual(trained_qasm['rel_entr'], trained_statevector['rel_entr'], delta=0.05)
+        self.assertAlmostEqual(trained_qasm['rel_entr'], trained_statevector['rel_entr'], delta=0.1)
 
 if __name__ == '__main__':
     unittest.main()

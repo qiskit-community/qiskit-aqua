@@ -250,8 +250,8 @@ class QGAN(QuantumAlgorithm):
         Returns:
 
         """
-        self._generator = QuantumGenerator(self._bounds, self._num_qubits, self._data_grid, generator_circuit,
-                                           generator_init_params, generator_optimizer)
+        self._generator = QuantumGenerator(self._bounds, self._num_qubits, generator_circuit, generator_init_params,
+                                           self._snapshot_dir)
         return
 
     @property
@@ -372,7 +372,7 @@ class QGAN(QuantumAlgorithm):
         Train the qGAN
         """
         if self._snapshot_dir is not None:
-            with open(os.path.join(self._snapshot_dir,'.csv'), mode='w') as csv_file:
+            with open(os.path.join(self._snapshot_dir,'output.csv'), mode='w') as csv_file:
                 fieldnames = ['epoch', 'loss_discriminator', 'loss_generator', 'params_generator',
                               'rel_entropy']
                 writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
@@ -392,7 +392,8 @@ class QGAN(QuantumAlgorithm):
 
 
                 # 2. Train Generator
-                ret_g = self._generator.train(self._discriminator, self._quantum_instance, self._batch_size)
+                self._generator.set_discriminator(self._discriminator)
+                ret_g = self._generator.train(self._quantum_instance, self._batch_size)
                 g_loss_min = ret_g['loss']
 
             self._d_loss.append(d_loss_min)
