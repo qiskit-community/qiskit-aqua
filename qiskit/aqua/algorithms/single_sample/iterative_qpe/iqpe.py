@@ -181,7 +181,7 @@ class IQPE(QuantumAlgorithm):
                 slice_pauli_list = Operator._suzuki_expansion_slice_pauli_list(self._pauli_list, 1, self._expansion_order)
         self._slice_pauli_list = slice_pauli_list
 
-    def construct_circuit(self, k=None, omega=0):
+    def construct_circuit(self, k=None, omega=0, measurement=False):
         """Construct the kth iteration Quantum Phase Estimation circuit.
 
         For details of parameters, please see Fig. 2 in https://arxiv.org/pdf/quant-ph/0610214.pdf.
@@ -189,6 +189,8 @@ class IQPE(QuantumAlgorithm):
         Args:
             k (int): the iteration idx.
             omega (float): the feedback angle.
+            measurement (bool): Boolean flag to indicate if measurement should be included in the circuit.
+
         Returns:
             QuantumCircuit: the quantum circuit per iteration
         """
@@ -217,6 +219,11 @@ class IQPE(QuantumAlgorithm):
         qc.u1(omega, a[0])
         # hadamard on a[0]
         qc.u2(0, np.pi, a[0])
+        if measurement:
+            c = ClassicalRegister(1, name='c')
+            qc.add_register(c)
+            # qc.barrier(self._ancillary_register)
+            qc.measure(self._ancillary_register, c)
         return qc
 
     def _estimate_phase_iteratively(self):
@@ -227,8 +234,8 @@ class IQPE(QuantumAlgorithm):
         # k runs from the number of iterations back to 1
         for k in range(self._num_iterations, 0, -1):
             omega_coef /= 2
-            qc = self.construct_circuit(k, -2 * np.pi * omega_coef)
             if self._quantum_instance.is_statevector:
+                qc = self.construct_circuit(k, -2 * np.pi * omega_coef, measurement=False)
                 result = self._quantum_instance.execute(qc)
                 complete_state_vec = result.get_statevector(qc)
                 ancilla_density_mat = get_subsystem_density_matrix(
@@ -239,10 +246,7 @@ class IQPE(QuantumAlgorithm):
                 max_amplitude = max(ancilla_density_mat_diag.min(), ancilla_density_mat_diag.max(), key=abs)
                 x = np.where(ancilla_density_mat_diag == max_amplitude)[0][0]
             else:
-                c = ClassicalRegister(1, name='c')
-                qc.add_register(c)
-                qc.barrier(self._ancillary_register)
-                qc.measure(self._ancillary_register, c)
+                qc = self.construct_circuit(k, -2 * np.pi * omega_coef, measurement=True)
                 measurements = self._quantum_instance.execute(qc).get_counts(qc)
 
                 if '0' not in measurements:
