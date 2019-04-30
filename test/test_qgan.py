@@ -18,6 +18,7 @@
 import unittest
 
 import numpy as np
+from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 
 from qiskit.aqua.components.optimizers import ADAM
 from qiskit.aqua.components.uncertainty_models import UniformDistribution, UnivariateVariationalDistribution
@@ -26,6 +27,7 @@ from qiskit.aqua.components.variational_forms import RY
 from qiskit.aqua.algorithms.adaptive.qgan.qgan import QGAN
 from qiskit.aqua.input import QGANInput
 from qiskit.aqua import aqua_globals, QuantumInstance, run_algorithm
+from qiskit.aqua.components.initial_states import Custom
 
 from qiskit import BasicAer
 
@@ -86,9 +88,13 @@ class TestQGAN(QiskitAquaTestCase):
         init_params = aqua_globals.random.rand(var_form._num_parameters) * 2 * 1e-2
         # Set an initial state for the generator circuit
         init_dist = UniformDistribution(sum(num_qubits), low=self._bounds[0], high=self._bounds[1])
+        q = QuantumRegister(sum(num_qubits))
+        qc = QuantumCircuit(q)
+        init_dist.build(qc, q)
+        init_distribution = Custom(num_qubits=sum(num_qubits), circuit=qc)
         # Set generator circuit
         g_circuit = UnivariateVariationalDistribution(sum(num_qubits), var_form, init_params,
-                                                      initial_distribution=init_dist, low=self._bounds[0],
+                                                      initial_distribution=init_distribution, low=self._bounds[0],
                                                       high=self._bounds[1])
         # Set quantum generator
         self.qgan.set_generator(generator_circuit=g_circuit)
