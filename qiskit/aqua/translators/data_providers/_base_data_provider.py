@@ -30,6 +30,19 @@ class QiskitFinanceError(AquaError):
     pass
 
 
+# Note: Not all DataProviders support all stock markets.
+# Check the DataProvider before use.
+class StockMarket(Enum):
+    NASDAQ = 'NASDAQ'
+    NYSE = 'NYSE'
+    LONDON = 'XLON'
+    EURONEXT = 'XPAR'
+    SINGAPORE = 'XSES'
+    RANDOM = 'RANDOM'
+
+
+# Note: Not all DataProviders support all data types.
+# Check the DataProvider before use.
 class DataType(Enum):
     DAILYADJUSTED = 'Daily (adj)'
     DAILY = 'Daily'
@@ -80,6 +93,7 @@ class BaseDataProvider(ABC):
 
     def validate(self, args_dict):
         """ Validates the configuration against the input schema. N.B. Not in use at the moment. """
+
         schema_dict = self.CONFIGURATION.get('input_schema', None)
         if schema_dict is None:
             return
@@ -98,6 +112,70 @@ class BaseDataProvider(ABC):
         """ Loads data. """
         pass
 
+    # it does not have to be overridden in non-abstract derived classes.
+    def get_mean_vector(self):
+        """ Returns a vector containing the mean value of each asset. 
+        
+    Returns:
+        mean (numpy.ndarray) : a per-asset mean vector.        
+        """
+        try:
+            if not self._data:
+                raise QiskitFinanceError(
+                    'No data loaded, yet. Please run the method run() first to load the data.'
+                )
+        except AttributeError:
+            raise QiskitFinanceError(
+                'No data loaded, yet. Please run the method run() first to load the data.'
+            )
+        self.mean = np.mean(self._data, axis=1)
+        return self.mean
+
+    # it does not have to be overridden in non-abstract derived classes.
+    def get_covariance_matrix(self):
+        """ Returns the covariance matrix. 
+        
+    Returns:
+        rho (numpy.ndarray) : an asset-to-asset covariance matrix.        
+        """
+        try:
+            if not self._data:
+                raise QiskitFinanceError(
+                    'No data loaded, yet. Please run the method run() first to load the data.'
+                )
+        except AttributeError:
+            raise QiskitFinanceError(
+                'No data loaded, yet. Please run the method run() first to load the data.'
+            )
+        self.cov = np.cov(self._data, rowvar=True)
+        return self.cov
+
+    # it does not have to be overridden in non-abstract derived classes.
+    def get_similarity_matrix(self):
+        """ Returns time-series similarity matrix computed using dynamic time warping. 
+
+    Returns:
+        rho (numpy.ndarray) : an asset-to-asset similarity matrix.
+        """
+        try:
+            if not self._data:
+                raise QiskitFinanceError(
+                    'No data loaded, yet. Please run the method run() first to load the data.'
+                )
+        except AttributeError:
+            raise QiskitFinanceError(
+                'No data loaded, yet. Please run the method run() first to load the data.'
+            )
+        self.rho = np.zeros((self._n, self._n))
+        for ii in range(0, self._n):
+            self.rho[ii, ii] = 1.
+            for jj in range(ii + 1, self._n):
+                thisRho, path = fastdtw.fastdtw(self._data[ii], self._data[jj])
+                thisRho = 1.0 / thisRho
+                self.rho[ii, jj] = thisRho
+                self.rho[jj, ii] = thisRho
+        return self.rho
+
     # gets coordinates suitable for plotting
     # it does not have to be overridden in non-abstract derived classes.
     def get_coordinates(self):
@@ -112,40 +190,3 @@ class BaseDataProvider(ABC):
         #xc[cnt, 1] = self.data[cnt][0]
         # yc[cnt, 0] = self.data[cnt][-1]
         return xc, yc
-
-    # it does not have to be overridden in non-abstract derived classes.
-    def get_covariance_matrix(self):
-        """ Returns the covariance matrix. 
-        
-    Returns:
-        rho (numpy.ndarray) : an asset-to-asset covariance matrix.        
-        """
-        try:
-            if not self._data:
-                raise QiskitFinanceError('No data loaded, yet. Please run the method run() first to load the data.')
-        except AttributeError:
-            raise QiskitFinanceError('No data loaded, yet. Please run the method run() first to load the data.')
-        self.cov = np.cov(self._data, rowvar=True)
-        return self.cov
-
-    # it does not have to be overridden in non-abstract derived classes.
-    def get_similarity_matrix(self):
-        """ Returns time-series similarity matrix computed using dynamic time warping. 
-
-    Returns:
-        rho (numpy.ndarray) : an asset-to-asset similarity matrix.
-        """
-        try:
-            if not self._data:
-                raise QiskitFinanceError('No data loaded, yet. Please run the method run() first to load the data.')
-        except AttributeError:
-            raise QiskitFinanceError('No data loaded, yet. Please run the method run() first to load the data.')
-        self.rho = np.zeros((self._n, self._n))
-        for ii in range(0, self._n):
-            self.rho[ii, ii] = 1.
-            for jj in range(ii + 1, self._n):
-                thisRho, path = fastdtw.fastdtw(self._data[ii], self._data[jj])
-                thisRho = 1.0 / thisRho
-                self.rho[ii, jj] = thisRho
-                self.rho[jj, ii] = thisRho
-        return self.rho
