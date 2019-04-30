@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM Corp. 2017 and later.
+# (C) Copyright IBM 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -14,20 +14,14 @@
 
 import datetime
 import certifi
-from enum import Enum
 import json
 import logging
 import urllib3
 from urllib.parse import urlencode
 
-from qiskit.aqua.translators.data_providers import BaseDataProvider, DataType, QiskitFinanceError
+from qiskit.aqua.translators.data_providers import BaseDataProvider, DataType, StockMarket, QiskitFinanceError
 
 logger = logging.getLogger(__name__)
-
-
-class StockMarket(Enum):
-    NASDAQ = 'NASDAQ'
-    NYSE = 'NYSE'
 
 
 class DataOnDemandProvider(BaseDataProvider):
@@ -106,8 +100,15 @@ class DataOnDemandProvider(BaseDataProvider):
             self._tickers = tickers.replace('\n', ';').split(";")
         self._n = len(self._tickers)
 
-        self._stockmarket = str(
-            stockmarket.value)  # This is to aid serialisation
+        if not (stockmarket in [StockMarket.NASDAQ, StockMarket.NYSE]):
+            msg = "NASDAQ Data on Demand does not support "
+            msg += stockmarket.value
+            msg += " as a stock market."
+            raise QiskitFinanceError(msg)
+
+        # This is to aid serialisation; string is ok to serialise
+        self._stockmarket = str(stockmarket.value)
+
         self._token = token
         self._start = start
         self._end = end
@@ -159,14 +160,14 @@ class DataOnDemandProvider(BaseDataProvider):
             }
             encoded = URL + urlencode(values)
             try:
-                if not self._verify:
+                if self._verify is None:
                     response = http.request(
                         'POST', encoded
                     )  # this runs certifi verification, as per the set-up of the urllib3
                 else:
                     response = http.request(
                         'POST', encoded, verify=self._verify
-                    )  # this disables certifi verification
+                    )  # this disables certifi verification (False) or forces the certificate path (str)
                 if response.status != 200:
                     msg = "Accessing NASDAQ Data on Demand with parameters {} encoded into ".format(
                         values)

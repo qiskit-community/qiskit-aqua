@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM Corp. 2017 and later.
+# (C) Copyright IBM 2018, 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -178,18 +178,22 @@ class QPE(QuantumAlgorithm):
                    expansion_mode=expansion_mode,
                    expansion_order=expansion_order)
 
-    def construct_circuit(self):
-        """Construct circuit.
+    def construct_circuit(self, measurement=False):
+        """
+        Construct circuit.
+
+        Args:
+            measurement (bool): Boolean flag to indicate if measurement should be included in the circuit.
 
         Returns:
             QuantumCircuit: quantum circuit.
         """
-        qc = self._phase_estimation_circuit.construct_circuit()
+        qc = self._phase_estimation_circuit.construct_circuit(measurement=measurement)
         return qc
 
     def _compute_energy(self):
-        qc = self.construct_circuit()
         if self._quantum_instance.is_statevector:
+            qc = self.construct_circuit(measurement=False)
             result = self._quantum_instance.execute(qc)
             complete_state_vec = result.get_statevector(qc)
             ancilla_density_mat = get_subsystem_density_matrix(
@@ -201,11 +205,7 @@ class QPE(QuantumAlgorithm):
             max_amplitude_idx = np.where(ancilla_density_mat_diag == max_amplitude)[0][0]
             top_measurement_label = np.binary_repr(max_amplitude_idx, self._num_ancillae)[::-1]
         else:
-            from qiskit import ClassicalRegister
-            c_ancilla = ClassicalRegister(self._num_ancillae, name='ca')
-            qc.add_register(c_ancilla)
-            qc.barrier(self._phase_estimation_circuit.ancillary_register)
-            qc.measure(self._phase_estimation_circuit.ancillary_register, c_ancilla)
+            qc = self.construct_circuit(measurement=True)
             result = self._quantum_instance.execute(qc)
             ancilla_counts = result.get_counts(qc)
             top_measurement_label = sorted([(ancilla_counts[k], k) for k in ancilla_counts])[::-1][0][-1][::-1]

@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM Corp. 2017 and later.
+# (C) Copyright IBM 2018, 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -208,8 +208,8 @@ class Grover(QuantumAlgorithm):
         return self._qc_aa_iteration
 
     def _run_with_existing_iterations(self):
-        qc = self.construct_circuit()
         if self._quantum_instance.is_statevector:
+            qc = self.construct_circuit(measurement=False)
             result = self._quantum_instance.execute(qc)
             complete_state_vec = result.get_statevector(qc)
             variable_register_density_matrix = get_subsystem_density_matrix(
@@ -225,9 +225,7 @@ class Grover(QuantumAlgorithm):
             max_amplitude_idx = np.where(variable_register_density_matrix_diag == max_amplitude)[0][0]
             top_measurement = np.binary_repr(max_amplitude_idx, len(self._oracle.variable_register))
         else:
-            measurement_cr = ClassicalRegister(len(self._oracle.variable_register), name='m')
-            qc.add_register(measurement_cr)
-            qc.measure(self._oracle.variable_register, measurement_cr)
+            qc = self.construct_circuit(measurement=True)
             measurement = self._quantum_instance.execute(qc).get_counts(qc)
             self._ret['measurement'] = measurement
             top_measurement = max(measurement.items(), key=operator.itemgetter(1))[0]
@@ -236,9 +234,12 @@ class Grover(QuantumAlgorithm):
         oracle_evaluation, assignment = self._oracle.evaluate_classically(top_measurement)
         return assignment, oracle_evaluation
 
-    def construct_circuit(self):
+    def construct_circuit(self, measurement=False):
         """
         Construct the quantum circuit
+
+        Args:
+            measurement (bool): Boolean flag to indicate if measurement should be included in the circuit.
 
         Returns:
             the QuantumCircuit object for the constructed circuit
@@ -250,6 +251,12 @@ class Grover(QuantumAlgorithm):
         qc.u2(0, pi, self._oracle.output_register)  # h
         qc += self._init_state_circuit
         qc += self._qc_amplitude_amplification
+
+        if measurement:
+            measurement_cr = ClassicalRegister(len(self._oracle.variable_register), name='m')
+            qc.add_register(measurement_cr)
+            qc.measure(self._oracle.variable_register, measurement_cr)
+
         self._ret['circuit'] = qc
         return qc
 

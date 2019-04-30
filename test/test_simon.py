@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM Corp. 2017 and later.
+# (C) Copyright IBM 2018, 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -30,13 +30,14 @@ bitmaps = [
 ]
 mct_modes = ['basic', 'basic-dirty-ancilla', 'advanced', 'noancilla']
 optimizations = ['off', 'qm-dlx']
+simulators = ['statevector_simulator', 'qasm_simulator']
 
 
 class TestSimon(QiskitAquaTestCase):
     @parameterized.expand(
-        itertools.product(bitmaps, mct_modes, optimizations)
+        itertools.product(bitmaps, mct_modes, optimizations, simulators)
     )
-    def test_simon(self, simon_input, mct_mode, optimization='off'):
+    def test_simon(self, simon_input, mct_mode, optimization, simulator):
         # find the two keys that have matching values
         nbits = int(math.log(len(simon_input[0]), 2))
         vals = list(zip(*simon_input))[::-1]
@@ -51,7 +52,7 @@ class TestSimon(QiskitAquaTestCase):
         k1, k2 = find_pair()
         hidden = np.binary_repr(k1 ^ k2, nbits)
 
-        backend = BasicAer.get_backend('qasm_simulator')
+        backend = BasicAer.get_backend(simulator)
         oracle = TruthTableOracle(simon_input, optimization=optimization, mct_mode=mct_mode)
         algorithm = Simon(oracle)
         quantum_instance = QuantumInstance(backend)

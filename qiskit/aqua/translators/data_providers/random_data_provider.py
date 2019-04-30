@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM Corp. 2017 and later.
+# (C) Copyright IBM 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,7 +12,6 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from enum import Enum
 import datetime
 import logging
 import random
@@ -20,13 +19,9 @@ import random
 import numpy as np
 import pandas as pd
 
-from qiskit.aqua.translators.data_providers import BaseDataProvider, DataType, QiskitFinanceError
+from qiskit.aqua.translators.data_providers import BaseDataProvider, DataType, StockMarket, QiskitFinanceError
 
 logger = logging.getLogger(__name__)
-
-
-class StockMarket(Enum):
-    RANDOM = 'RANDOM'
 
 
 class RandomDataProvider(BaseDataProvider):
@@ -82,7 +77,15 @@ class RandomDataProvider(BaseDataProvider):
             self._tickers = tickers.replace('\n', ';').split(";")
         self._n = len(self._tickers)
 
-        self._stockmarket = stockmarket.value
+        if not (stockmarket in [StockMarket.RANDOM]):
+            msg = "RandomDataProvider does not support "
+            msg += stockmarket.value
+            msg += " as a stock market. Please use Stockmarket.RANDOM."
+            raise QiskitFinanceError(msg)
+
+        # This is to aid serialisation; string is ok to serialise
+        self._stockmarket = str(stockmarket.value)
+
         self._start = start
         self._end = end
         self._seed = seed
