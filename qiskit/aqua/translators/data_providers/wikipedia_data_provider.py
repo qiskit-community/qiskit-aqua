@@ -1,35 +1,27 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM Corp. 2017 and later.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 
-from enum import Enum
 import datetime
 import importlib
 import logging
 
 import quandl
+from quandl.errors.quandl_error import NotFoundError
 
-from qiskit.aqua.translators.data_providers import BaseDataProvider, DataType, QiskitFinanceError
+from qiskit.aqua.translators.data_providers import BaseDataProvider, DataType, StockMarket, QiskitFinanceError
 
 logger = logging.getLogger(__name__)
-
-
-class StockMarket(Enum):
-    NASDAQ = 'NASDAQ'
-    NYSE = 'NYSE'
 
 
 class WikipediaDataProvider(BaseDataProvider):
@@ -75,7 +67,7 @@ class WikipediaDataProvider(BaseDataProvider):
     }
 
     def __init__(self,
-                 token="",
+                 token=None,
                  tickers=[],
                  stockmarket=StockMarket.NASDAQ,
                  start=datetime.datetime(2016, 1, 1),
@@ -97,8 +89,15 @@ class WikipediaDataProvider(BaseDataProvider):
             self._tickers = tickers.replace('\n', ';').split(";")
         self._n = len(self._tickers)
 
-        self._stockmarket = str(
-            stockmarket.value)  # This is to aid serialisation
+        if not (stockmarket in [StockMarket.NASDAQ, StockMarket.NYSE]):
+            msg = "WikipediaDataProvider does not support "
+            msg += stockmarket.value
+            msg += " as a stock market."
+            raise QiskitFinanceError(msg)
+
+        # This is to aid serialisation; string is ok to serialise
+        self._stockmarket = str(stockmarket.value)
+
         self._token = token
         self._tickers = tickers
         self._start = start
@@ -146,7 +145,7 @@ class WikipediaDataProvider(BaseDataProvider):
     def run(self):
         """ Loads data, thus enabling get_similarity_matrix and get_covariance_matrix methods in the base class. """
         self.check_provider_valid()
-        quandl.ApiConfig.api_key = self._token
+        if self._token: quandl.ApiConfig.api_key = self._token
         quandl.ApiConfig.api_version = '2015-04-09'
         self._data = []
         for (cnt, s) in enumerate(self._tickers):
@@ -154,6 +153,10 @@ class WikipediaDataProvider(BaseDataProvider):
                 d = quandl.get("WIKI/" + s,
                                start_date=self._start,
                                end_date=self._end)
+            except NotFoundError as e:
+                raise QiskitFinanceError(
+                    "Cannot retrieve Wikipedia data due to an invalid token."
+                ) from e
             except Exception as e:  # The exception will be urllib3 NewConnectionError, but it can get dressed by quandl
                 raise QiskitFinanceError(
                     "Cannot retrieve Wikipedia data.") from e

@@ -67,7 +67,6 @@ class TestDataProviders(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(rnd.get_similarity_matrix(), similarity, decimal = 3) 
 
     def test_wikipedia(self):
-        from qiskit.aqua.translators.data_providers.wikipedia_data_provider import StockMarket
         wiki = WikipediaDataProvider(
             token="",
             tickers=["GOOG", "AAPL"],
@@ -99,7 +98,6 @@ class TestDataProviders(QiskitAquaTestCase):
             # This also introduces a couple of seconds of a delay.
         
     def test_nasdaq(self):
-        from qiskit.aqua.translators.data_providers.data_on_demand_provider import StockMarket
         nasdaq = DataOnDemandProvider(
             token="REPLACE-ME",
             tickers=["GOOG", "AAPL"],
@@ -114,7 +112,6 @@ class TestDataProviders(QiskitAquaTestCase):
             self.skipTest("Test of DataOnDemandProvider skipped due to the lack of a token.")
         
     def test_exchangedata(self):
-        from qiskit.aqua.translators.data_providers.exchange_data_provider import StockMarket
         lse = ExchangeDataProvider(
             token="REPLACE-ME",
             tickers=["AIBGl", "AVSTl"],
