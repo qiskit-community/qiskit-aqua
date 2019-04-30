@@ -134,9 +134,12 @@ class AmplitudeEstimation(QuantumAlgorithm):
 
         return cls(num_eval_qubits, uncertainty_problem, q_factory=None, iqft=iqft)
 
-    def construct_circuit(self):
+    def construct_circuit(self, measurement=False):
         """
         Construct the Amplitude Estimation quantum circuit.
+
+        Args:
+            measurement (bool): Boolean flag to indicate if measurement should be included in the circuit.
 
         Returns:
             the QuantumCircuit object for the constructed circuit
@@ -147,7 +150,7 @@ class AmplitudeEstimation(QuantumAlgorithm):
             unitary_circuit_factory=self.q_factory
         )
 
-        self._circuit = pec.construct_circuit()
+        self._circuit = pec.construct_circuit(measurement=measurement)
         return self._circuit
 
     def _evaluate_statevector_results(self, probabilities):
@@ -168,11 +171,8 @@ class AmplitudeEstimation(QuantumAlgorithm):
         return a_probabilities, y_probabilities
 
     def _run(self):
-
-        # construct circuit
-        self.construct_circuit()
-
         if self._quantum_instance.is_statevector:
+            self.construct_circuit(measurement=False)
             # run circuit on statevector simlator
             ret = self._quantum_instance.execute(self._circuit)
             state_vector = np.asarray([ret.get_statevector(self._circuit)])
@@ -185,10 +185,7 @@ class AmplitudeEstimation(QuantumAlgorithm):
             a_probabilities, y_probabilities = self._evaluate_statevector_results(state_probabilities)
         else:
             # run circuit on QASM simulator
-            qc = self._circuit
-            cr = ClassicalRegister(self._m)
-            qc.add_register(cr)
-            qc.measure([q for q in qc.qregs if q.name == 'a'][0], cr)
+            self.construct_circuit(measurement=True)
             ret = self._quantum_instance.execute(self._circuit)
 
             # get counts
