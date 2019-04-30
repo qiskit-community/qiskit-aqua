@@ -37,7 +37,7 @@ import logging
 
 from qiskit import QuantumRegister
 from qiskit.circuit import CompositeGate
-from qiskit.compiler.run_config import RunConfig
+from qiskit.assembler.run_config import RunConfig
 from qiskit.qobj import Qobj, QasmQobjConfig
 
 from qiskit.aqua.aqua_error import AquaError
