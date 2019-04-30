@@ -179,10 +179,11 @@ class QPE(QuantumAlgorithm):
                    expansion_order=expansion_order)
 
     def construct_circuit(self, measurement=False):
-        """Construct circuit.
+        """
+        Construct circuit.
+
         Args:
             measurement (bool): Boolean flag to indicate if measurement should be included in the circuit.
-
 
         Returns:
             QuantumCircuit: quantum circuit.

@@ -237,6 +237,7 @@ class Grover(QuantumAlgorithm):
     def construct_circuit(self, measurement=False):
         """
         Construct the quantum circuit
+
         Args:
             measurement (bool): Boolean flag to indicate if measurement should be included in the circuit.
 
