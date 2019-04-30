@@ -12,20 +12,13 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from enum import Enum
 import datetime
 import importlib
 import logging
 
-from qiskit.aqua.translators.data_providers import BaseDataProvider, DataType, QiskitFinanceError
+from qiskit.aqua.translators.data_providers import BaseDataProvider, DataType, StockMarket, QiskitFinanceError
 
 logger = logging.getLogger(__name__)
-
-
-class StockMarket(Enum):
-    LONDON = 'XLON'
-    EURONEXT = 'XPAR'
-    SINGAPORE = 'XSES'
 
 
 class ExchangeDataProvider(BaseDataProvider):
@@ -94,8 +87,17 @@ class ExchangeDataProvider(BaseDataProvider):
             self._tickers = tickers.replace('\n', ';').split(";")
         self._n = len(self._tickers)
 
-        self._stockmarket = str(
-            stockmarket.value)  # This is to aid serialisation
+        if not (stockmarket in [
+                StockMarket.LONDON, StockMarket.EURONEXT, StockMarket.SINGAPORE
+        ]):
+            msg = "ExchangeDataProvider does not support "
+            msg += stockmarket.value
+            msg += " as a stock market."
+            raise QiskitFinanceError(msg)
+
+        # This is to aid serialisation; string is ok to serialise
+        self._stockmarket = str(stockmarket.value)
+
         self._token = token
         self._tickers = tickers
         self._start = start
@@ -143,6 +145,7 @@ class ExchangeDataProvider(BaseDataProvider):
         """ Loads data, thus enabling get_similarity_matrix and get_covariance_matrix methods in the base class. """
         self.check_provider_valid()
         import quandl
+        self._data = []
         quandl.ApiConfig.api_key = self._token
         quandl.ApiConfig.api_version = '2015-04-09'
         for (cnt, s) in enumerate(self._tickers):
