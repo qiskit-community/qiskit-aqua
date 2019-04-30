@@ -1,24 +1,21 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM Corp. 2017 and later.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 
 import logging
 
 from qiskit import __version__ as terra_version
-from qiskit.compiler.run_config import RunConfig
+from qiskit.assembler.run_config import RunConfig
 from qiskit.mapper import Layout
 from .utils import compile_and_run_circuits, CircuitCache
 from .utils.backend_utils import (is_aer_provider,
@@ -34,7 +31,7 @@ class QuantumInstance:
     """Quantum Backend including execution setting."""
 
     BACKEND_CONFIG = ['basis_gates', 'coupling_map']
-    COMPILE_CONFIG = ['pass_manager', 'initial_layout', 'seed_mapper']
+    COMPILE_CONFIG = ['pass_manager', 'initial_layout', 'seed_transpiler']
     RUN_CONFIG = ['shots', 'max_credits', 'memory', 'seed']
     QJOB_CONFIG = ['timeout', 'wait']
     NOISE_CONFIG = ['noise_model']
@@ -47,7 +44,7 @@ class QuantumInstance:
 
     def __init__(self, backend, shots=1024, seed=None, max_credits=10,
                  basis_gates=None, coupling_map=None,
-                 initial_layout=None, pass_manager=None, seed_mapper=None,
+                 initial_layout=None, pass_manager=None, seed_transpiler=None,
                  backend_options=None, noise_model=None, timeout=None, wait=5,
                  circuit_caching=True, cache_file=None, skip_qobj_deepcopy=True, skip_qobj_validation=True):
         """Constructor.
@@ -62,7 +59,7 @@ class QuantumInstance:
             coupling_map (list[list]): coupling map (perhaps custom) to target in mapping
             initial_layout (dict, optional): initial layout of qubits in mapping
             pass_manager (PassManager, optional): pass manager to handle how to compile the circuits
-            seed_mapper (int, optional): the random seed for circuit mapper
+            seed_transpiler (int, optional): the random seed for circuit mapper
             backend_options (dict, optional): all running options for backend, please refer to the provider.
             noise_model (qiskit.provider.aer.noise.noise_model.NoiseModel, optional): noise model for simulator
             timeout (float, optional): seconds to wait for job. If None, wait indefinitely.
@@ -115,7 +112,7 @@ class QuantumInstance:
         self._compile_config = {
             'pass_manager': pass_manager,
             'initial_layout': initial_layout,
-            'seed_mapper': seed_mapper
+            'seed_transpiler': seed_transpiler
         }
 
         # setup job config

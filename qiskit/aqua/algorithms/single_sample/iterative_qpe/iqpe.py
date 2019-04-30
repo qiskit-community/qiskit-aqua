@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM Corp. 2017 and later.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 """
 The Iterative Quantum Phase Estimation Algorithm.
 See https://arxiv.org/abs/quant-ph/0610214
@@ -184,7 +181,7 @@ class IQPE(QuantumAlgorithm):
                 slice_pauli_list = Operator._suzuki_expansion_slice_pauli_list(self._pauli_list, 1, self._expansion_order)
         self._slice_pauli_list = slice_pauli_list
 
-    def construct_circuit(self, k=None, omega=0):
+    def construct_circuit(self, k=None, omega=0, measurement=False):
         """Construct the kth iteration Quantum Phase Estimation circuit.
 
         For details of parameters, please see Fig. 2 in https://arxiv.org/pdf/quant-ph/0610214.pdf.
@@ -192,6 +189,8 @@ class IQPE(QuantumAlgorithm):
         Args:
             k (int): the iteration idx.
             omega (float): the feedback angle.
+            measurement (bool): Boolean flag to indicate if measurement should be included in the circuit.
+
         Returns:
             QuantumCircuit: the quantum circuit per iteration
         """
@@ -220,6 +219,11 @@ class IQPE(QuantumAlgorithm):
         qc.u1(omega, a[0])
         # hadamard on a[0]
         qc.u2(0, np.pi, a[0])
+        if measurement:
+            c = ClassicalRegister(1, name='c')
+            qc.add_register(c)
+            # qc.barrier(self._ancillary_register)
+            qc.measure(self._ancillary_register, c)
         return qc
 
     def _estimate_phase_iteratively(self):
@@ -230,8 +234,8 @@ class IQPE(QuantumAlgorithm):
         # k runs from the number of iterations back to 1
         for k in range(self._num_iterations, 0, -1):
             omega_coef /= 2
-            qc = self.construct_circuit(k, -2 * np.pi * omega_coef)
             if self._quantum_instance.is_statevector:
+                qc = self.construct_circuit(k, -2 * np.pi * omega_coef, measurement=False)
                 result = self._quantum_instance.execute(qc)
                 complete_state_vec = result.get_statevector(qc)
                 ancilla_density_mat = get_subsystem_density_matrix(
@@ -242,10 +246,7 @@ class IQPE(QuantumAlgorithm):
                 max_amplitude = max(ancilla_density_mat_diag.min(), ancilla_density_mat_diag.max(), key=abs)
                 x = np.where(ancilla_density_mat_diag == max_amplitude)[0][0]
             else:
-                c = ClassicalRegister(1, name='c')
-                qc.add_register(c)
-                qc.barrier(self._ancillary_register)
-                qc.measure(self._ancillary_register, c)
+                qc = self.construct_circuit(k, -2 * np.pi * omega_coef, measurement=True)
                 measurements = self._quantum_instance.execute(qc).get_counts(qc)
 
                 if '0' not in measurements:

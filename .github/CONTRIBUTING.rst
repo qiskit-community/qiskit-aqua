@@ -175,18 +175,35 @@ each available in the ``master`` branch of the corresponding repository.  Theref
 all the Qiskit elements and relevant components should be installed from source.  This can be
 correctly achieved by first uninstalling them from the Python environment in which you
 have Qiskit (if they were previously installed),
-using the ``pip uninstall`` command for each of them.  Next, after cloning the
+using the ``pip uninstall`` command for each of them.  Next, clone the
 `Qiskit Terra <https://github.com/Qiskit/qiskit-terra>`__, `Qiskit Aer <https://github.com/Qiskit/qiskit-aer>`__,
-`Qiskit IBMQ Provider <https://github.com/Qiskit/qiskit-ibmq-provider>`__ and
-`Qiskit Aqua <https://github.com/Qiskit/qiskit-aqua>`__ repositories, you can install them
-from source in the same Python environment by issuing the following command repeatedly, from each of the root
-directories of those repository clones: 
+`Qiskit IBMQ Provider <https://github.com/Qiskit/qiskit-ibmq-provider>`__,
+`Qiskit Ignis <https://github.com/Qiskit/qiskit-ignis>`__ and
+`Qiskit Aqua <https://github.com/Qiskit/qiskit-aqua>`__ repositories and
+install them in this order from source in the same Python environment.
+Qiskit Terra, Qiskit IBMQ Provider and Qiskit Aqua can be installed by issuing the following commands 
+in the root directories of the repositoriy clones:
 
 .. code:: sh
 
+    $ pip install -r requirements.txt
+    $ pip install -r requirements-dev.txt
     $ pip install -e .
 
-exactly in the order specified above: Qiskit Terra, Qiskit Aer, Qiskit IBMQ Provider, and Qiskit Aqua.
+To install Qiskit Aer use:
+
+.. code:: sh
+
+    $ pip install -r requirements-dev.txt
+    $ python3 setup.py bdist_wheel
+    $ cd dist
+    $ pip install qiskit_aer-<...>.whl
+
+See the 
+`contribution guidelines of Qiskit Aer <https://github.com/Qiskit/qiskit-aer/blob/master/.github/CONTRIBUTING.md>`__
+for more precise instructions.
+
+Make sure to respect the order specified above: Qiskit Terra, Qiskit Aer, Qiskit IBMQ Provider, and Qiskit Aqua.
 All the other dependencies will be installed automatically.  This process may have to be repeated often
 as the ``master`` branch of Aqua is updated frequently.
 

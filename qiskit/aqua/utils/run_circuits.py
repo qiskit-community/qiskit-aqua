@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM Corp. 2017 and later.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 
 import sys
 import logging
@@ -23,11 +20,11 @@ import os
 import uuid
 
 import numpy as np
-from qiskit import transpiler
-from qiskit.compiler import assemble_circuits
+from qiskit import compiler
+from qiskit.assembler import assemble_circuits
 from qiskit.providers import BaseBackend, JobStatus, JobError
 from qiskit.providers.basicaer import BasicAerJob
-
+from qiskit.qobj import QobjHeader
 from qiskit.aqua.aqua_error import AquaError
 from qiskit.aqua.utils import summarize_circuits
 from qiskit.aqua.utils.backend_utils import (is_aer_provider,
@@ -157,8 +154,11 @@ def _maybe_add_aer_expectation_instruction(qobj, options):
 
 
 def _compile_wrapper(circuits, backend, backend_config, compile_config, run_config):
-    transpiled_circuits = transpiler.transpile(circuits, backend, **backend_config, **compile_config)
-    qobj = assemble_circuits(transpiled_circuits, run_config=run_config)
+    transpiled_circuits = compiler.transpile(circuits, backend, **backend_config, **compile_config)
+    if not isinstance(transpiled_circuits, list):
+        transpiled_circuits = [transpiled_circuits]
+
+    qobj = assemble_circuits(transpiled_circuits, qobj_id=str(uuid.uuid4()), qobj_header=QobjHeader(), run_config=run_config)
     return qobj, transpiled_circuits
 
 
@@ -247,8 +247,8 @@ def compile_and_run_circuits(circuits, backend, backend_config=None,
         if circuit_cache is not None and circuit_cache.misses < circuit_cache.allowed_misses:
             try:
                 if circuit_cache.cache_transpiled_circuits:
-                    transpiled_sub_circuits = transpiler.transpile(sub_circuits, backend, **backend_config,
-                                                                   **compile_config)
+                    transpiled_sub_circuits = compiler.transpile(sub_circuits, backend, **backend_config,
+                                                                 **compile_config)
                     qobj = circuit_cache.load_qobj_from_cache(transpiled_sub_circuits, i, run_config=run_config)
                 else:
                     qobj = circuit_cache.load_qobj_from_cache(sub_circuits, i, run_config=run_config)

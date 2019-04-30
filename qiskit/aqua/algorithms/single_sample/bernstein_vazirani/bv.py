@@ -1,30 +1,29 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM Corp. 2017 and later.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 """
 The Bernstein-Vazirani algorithm.
 """
 
 import logging
 import operator
+import numpy as np
 
 from qiskit import ClassicalRegister, QuantumCircuit
 
-from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
+from qiskit.aqua.algorithms import QuantumAlgorithm
+from qiskit.aqua.utils import get_subsystem_density_matrix
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +72,17 @@ class BernsteinVazirani(QuantumAlgorithm):
             oracle_params['name']).init_params(params)
         return cls(oracle)
 
-    def construct_circuit(self):
+    def construct_circuit(self, measurement=False):
+        """
+        Construct the quantum circuit
+
+        Args:
+            measurement (bool): Boolean flag to indicate if measurement should be included in the circuit.
+
+        Returns:
+            the QuantumCircuit object for the constructed circuit
+        """
+
         if self._circuit is not None:
             return self._circuit
 
@@ -97,32 +106,38 @@ class BernsteinVazirani(QuantumAlgorithm):
         )
         qc_postoracle.h(self._oracle.variable_register)
 
+        self._circuit = qc_preoracle + qc_oracle + qc_postoracle
+
         # measurement circuit
-        measurement_cr = ClassicalRegister(len(
-            self._oracle.variable_register), name='m')
+        if measurement:
+            measurement_cr = ClassicalRegister(len(self._oracle.variable_register), name='m')
+            self._circuit.add_register(measurement_cr)
+            self._circuit.measure(self._oracle.variable_register, measurement_cr)
 
-        qc_measurement = QuantumCircuit(
-            self._oracle.variable_register,
-            measurement_cr
-        )
-        qc_measurement.barrier(self._oracle.variable_register)
-        qc_measurement.measure(
-            self._oracle.variable_register, measurement_cr)
-
-        self._circuit = qc_preoracle+qc_oracle+qc_postoracle+qc_measurement
         return self._circuit
 
-    @staticmethod
-    def interpret_measurement(measurement):
-        return max(measurement.items(), key=operator.itemgetter(1))[0]
-
     def _run(self):
-        qc = self.construct_circuit()
+        if self._quantum_instance.is_statevector:
+            qc = self.construct_circuit(measurement=False)
+            result = self._quantum_instance.execute(qc)
+            complete_state_vec = result.get_statevector(qc)
+            variable_register_density_matrix = get_subsystem_density_matrix(
+                complete_state_vec,
+                range(len(self._oracle.variable_register), qc.width())
+            )
+            variable_register_density_matrix_diag = np.diag(variable_register_density_matrix)
+            max_amplitude = max(
+                variable_register_density_matrix_diag.min(),
+                variable_register_density_matrix_diag.max(),
+                key=abs
+            )
+            max_amplitude_idx = np.where(variable_register_density_matrix_diag == max_amplitude)[0][0]
+            top_measurement = np.binary_repr(max_amplitude_idx, len(self._oracle.variable_register))
+        else:
+            qc = self.construct_circuit(measurement=True)
+            measurement = self._quantum_instance.execute(qc).get_counts(qc)
+            self._ret['measurement'] = measurement
+            top_measurement = max(measurement.items(), key=operator.itemgetter(1))[0]
 
-        self._ret['circuit'] = qc
-        self._ret['measurements'] = self._quantum_instance.execute(
-            qc).get_counts(qc)
-        self._ret['result'] = BernsteinVazirani.interpret_measurement(
-            self._ret['measurements'])
-
+        self._ret['result'] = top_measurement
         return self._ret

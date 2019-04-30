@@ -1,26 +1,23 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM Corp. 2017 and later.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 """
 Quantum Phase Estimation Circuit.
 """
 
 import numpy as np
 
-from qiskit import QuantumRegister, QuantumCircuit
+from qiskit import QuantumRegister, QuantumCircuit, ClassicalRegister
 
 from qiskit.aqua import Operator, AquaError
 
@@ -86,7 +83,13 @@ class PhaseEstimationCircuit:
         self._auxiliary_register = None
         self._circuit = None
 
-    def construct_circuit(self, state_register=None, ancillary_register=None, auxiliary_register=None):
+    def construct_circuit(
+            self,
+            state_register=None,
+            ancillary_register=None,
+            auxiliary_register=None,
+            measurement=False,
+    ):
         """
         Construct the Phase Estimation circuit
 
@@ -94,6 +97,7 @@ class PhaseEstimationCircuit:
             state_register (QuantumRegister): the optional register to use for the quantum state
             ancillary_register (QuantumRegister): the optional register to use for the ancillary measurement qubits
             auxiliary_register (QuantumRegister): an optional auxiliary quantum register
+            measurement (bool): Boolean flag to indicate if measurement should be included in the circuit.
 
         Returns:
             the QuantumCircuit object for the constructed circuit
@@ -184,6 +188,12 @@ class PhaseEstimationCircuit:
 
             # inverse qft on ancillae
             self._iqft.construct_circuit(mode='circuit', qubits=a, circuit=qc, do_swaps=False)
+
+            if measurement:
+                c_ancilla = ClassicalRegister(self._num_ancillae, name='ca')
+                qc.add_register(c_ancilla)
+                # qc.barrier(a)
+                qc.measure(a, c_ancilla)
 
             self._circuit = qc
 

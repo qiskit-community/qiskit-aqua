@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2019 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM Corp. 2017 and later.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 """
 The Shor's Factoring algorithm.
 """
@@ -99,7 +96,7 @@ class Shor(QuantumAlgorithm):
         # check if the input integer is a power
         tf, b, p = is_power(N, return_decomposition=True)
         if tf:
-            logger.info(f'The input integer is a power: {N}={b}^{p}.')
+            logger.info('The input integer is a power: {}={}^{}.'.format(N, b, p))
             self._ret['factors'].append(b)
 
     @classmethod
@@ -304,8 +301,12 @@ class Shor(QuantumAlgorithm):
             inverse=True
         )
 
-    def construct_circuit(self):
+    def construct_circuit(self, measurement=False):
         """Construct circuit.
+
+        Args:
+            measurement (bool): Boolean flag to indicate if measurement should be included in the circuit.
+
 
         Returns:
             QuantumCircuit: quantum circuit.
@@ -340,6 +341,11 @@ class Shor(QuantumAlgorithm):
 
         # Apply inverse QFT
         ftc.construct_circuit(circuit=circuit, qubits=self._up_qreg, do_swaps=True, inverse=True)
+
+        if measurement:
+            up_cqreg = ClassicalRegister(2 * self._n, name='m')
+            circuit.add_register(up_cqreg)
+            circuit.measure(self._up_qreg, up_cqreg)
 
         logger.info(summarize_circuits(circuit))
 
@@ -448,9 +454,8 @@ class Shor(QuantumAlgorithm):
         if not self._ret['factors']:
             logger.debug('Running with N={} and a={}.'.format(self._N, self._a))
 
-            circuit = self.construct_circuit()
-
             if self._quantum_instance.is_statevector:
+                circuit = self.construct_circuit(measurement=False)
                 logger.warning('The statevector_simulator might lead to subsequent computation using too much memory.')
                 result = self._quantum_instance.execute(circuit)
                 complete_state_vec = result.get_statevector(circuit)
@@ -466,9 +471,7 @@ class Shor(QuantumAlgorithm):
                     if not v == 0:
                         counts[bin(int(i))[2:].zfill(2 * self._n)] = v ** 2
             else:
-                up_cqreg = ClassicalRegister(2 * self._n, name='m')
-                circuit.add_register(up_cqreg)
-                circuit.measure(self._up_qreg, up_cqreg)
+                circuit = self.construct_circuit(measurement=True)
                 counts = self._quantum_instance.execute(circuit).get_counts(circuit)
 
             self._ret['results'] = dict()
