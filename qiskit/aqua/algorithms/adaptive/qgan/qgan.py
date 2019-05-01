@@ -11,7 +11,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-# =============================================================================
+
 
 import numpy as np
 from scipy.stats import entropy
@@ -164,8 +164,6 @@ class QGAN(QuantumAlgorithm):
 
         self._ret = {}
 
-
-
     @classmethod
     def init_params(cls, params, algo_input):
         """
@@ -203,6 +201,7 @@ class QGAN(QuantumAlgorithm):
     @property
     def seed(self):
         return self._random_seed
+
     @seed.setter
     def seed(self, s):
         """
@@ -217,11 +216,10 @@ class QGAN(QuantumAlgorithm):
         aqua_globals.random_seed = self._random_seed
         self._discriminator.set_seed(self._random_seed)
 
-
-
     @property
     def tol_rel_ent(self):
         return self._tol_rel_ent
+
     @tol_rel_ent.setter
     def tol_rel_ent(self, t):
         """
@@ -280,7 +278,6 @@ class QGAN(QuantumAlgorithm):
     def rel_entr(self):
         return self._rel_entr
 
-
     def _prepare_data(self):
         """
         Discretize and truncate the input data such that it is compatible wih the chosen data resolution.
@@ -305,9 +302,9 @@ class QGAN(QuantumAlgorithm):
 
         # Fit the data to the data resolution. i.e. grid
         for j, prec in enumerate(self._num_qubits):
-            data_row = self._data[:, j] #dim j of all data samples
-            grid = np.linspace(bounds[j, 0], bounds[j, 1], (2 ** prec)) #prepare data grid for dim j
-            index_grid = np.searchsorted(grid, data_row-(grid[1]-grid[0])*0.5) #find index for data sample in grid
+            data_row = self._data[:, j]  #dim j of all data samples
+            grid = np.linspace(bounds[j, 0], bounds[j, 1], (2 ** prec))  #prepare data grid for dim j
+            index_grid = np.searchsorted(grid, data_row-(grid[1]-grid[0])*0.5)  #find index for data sample in grid
             for k, index in enumerate(index_grid):
                 self._data[k, j] = grid[index]
             if j == 0:
@@ -362,9 +359,7 @@ class QGAN(QuantumAlgorithm):
             writer.writerow({'epoch': e, 'loss_discriminator': np.average(d_loss),
                              'loss_generator': np.average(g_loss), 'params_generator':
                                  self._generator.generator_circuit.params, 'rel_entropy': rel_entr})
-        #Store discriminator model
-        self._discriminator.save_model(self._snapshot_dir)
-
+        self._discriminator.save_model(self._snapshot_dir)  # Store discriminator model
 
     def train(self):
         """
@@ -379,8 +374,8 @@ class QGAN(QuantumAlgorithm):
 
         for e in range(self._num_epochs):
             aqua_globals.random.shuffle(self._data)
-            index=0
-            while (index+self._batch_size)<=len(self._data):
+            index = 0
+            while (index+self._batch_size) <= len(self._data):
                 real_batch = self._data[index: index+self._batch_size]
                 index += self._batch_size
                 generated_batch, generated_prob = self._generator.get_output(self._quantum_instance,
@@ -391,7 +386,6 @@ class QGAN(QuantumAlgorithm):
                                                   [np.ones(len(real_batch))/len(real_batch), generated_prob],
                                                   penalty=True)
                 d_loss_min = ret_d['loss'].detach().numpy()
-
 
                 # 2. Train Generator
                 self._generator.set_discriminator(self._discriminator)
@@ -421,7 +415,6 @@ class QGAN(QuantumAlgorithm):
                 if rel_entr <= self._tol_rel_ent:
                     break
 
-
     def _run(self):
         """
         Run qGAN training
@@ -432,7 +425,8 @@ class QGAN(QuantumAlgorithm):
             raise AquaError(
                 'Chosen backend not supported - Set backend either to statevector_simulator, qasm_simulator'
                 ' or actual quantum hardware')
-        #The number of shots must be the batch size
+
+        # The number of shots must be the batch size
         self._quantum_instance.set_config(shots=self._batch_size)
         self.train()
 

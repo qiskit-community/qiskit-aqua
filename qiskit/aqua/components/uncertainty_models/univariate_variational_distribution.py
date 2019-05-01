@@ -11,17 +11,16 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-# =============================================================================
+
 
 
 import numpy as np
 
 from qiskit.aqua.components.uncertainty_models.univariate_distribution import UnivariateDistribution
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
-from qiskit import BasicAer, execute
-from qiskit.aqua import QuantumInstance
 
 
+from qiskit.aqua import Pluggable, get_pluggable_class, PluggableType
 
 class UnivariateVariationalDistribution(UnivariateDistribution):
     """
@@ -72,10 +71,32 @@ class UnivariateVariationalDistribution(UnivariateDistribution):
         probabilities = list(np.zeros(2**num_qubits))
         super().__init__(num_qubits, probabilities, low, high)
 
-    def build(self, qc, q, q_ancillas=None, params=None):
+
+    @classmethod
+    def init_params(cls, params):
+        """
+        Initialize qGAN via parameters dictionary and algorithm input instance.
+        Args:
+            params: parameters dictionary
+            algo_input: Input instance
+        Returns:
+            QGAN: qgan object
+        """
+
+        uni_var_params_params = params.get(Pluggable.SECTION_KEY_UNIVARIATE_DISTRIBUTION)
+        num_qubits = uni_var_params_params.get('num_qubits')
+        params = uni_var_params_params.get('params')
+        low = uni_var_params_params.get('low')
+        high = uni_var_params_params.get('high')
+
+        var_form_params = params.get(Pluggable.SECTION_KEY_VAR_FORM)
+        var_form = get_pluggable_class(PluggableType.VARIATIONAL_FORM, var_form_params['name']).init_params(params)
+
+        return cls(num_qubits, params, var_form, params, low, high)
+
+    def build(self, qc, q, q_ancillas=None):
         circuit_var_form = self._var_form.construct_circuit(self.params, q)
         qc.extend(circuit_var_form)
-
 
     def set_probabilities(self, quantum_instance):
         """
@@ -86,17 +107,18 @@ class UnivariateVariationalDistribution(UnivariateDistribution):
         Returns:
 
         """
-        q_ = QuantumRegister(self._num_qubits, name='q')
-        qc_ = QuantumCircuit(q_)
-        circuit_var_form = self._var_form.construct_circuit(self.params, q_)
-        qc_ += circuit_var_form
+        qc_ = self._var_form.construct_circuit(self.params)
+
+        # q_ = QuantumRegister(self._num_qubits)
+        # qc_ = QuantumCircuit(q_)
+        # self.build(qc_, None)
 
         if quantum_instance.is_statevector:
             pass
         else:
             c_ = ClassicalRegister(self._num_qubits, name='c')
             qc_.add_register(c_)
-            qc_.measure(q_, c_)
+            qc_.measure(qc_.qregs[0], c_)
         result = quantum_instance.execute(qc_)
         if quantum_instance.is_statevector:
             result = result.get_statevector(qc_)

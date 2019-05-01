@@ -11,15 +11,14 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-# =============================================================================
+
 
 
 import numpy as np
 
 from qiskit.aqua.components.uncertainty_models.multivariate_distribution import MultivariateDistribution
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
-from qiskit.aqua import QuantumInstance
-from qiskit import BasicAer
+from qiskit.aqua import Pluggable, get_pluggable_class, PluggableType
 
 
 class MultivariateVariationalDistribution(MultivariateDistribution):
@@ -84,6 +83,29 @@ class MultivariateVariationalDistribution(MultivariateDistribution):
         super().__init__(num_qubits, probabilities, low, high)
         self._var_form = var_form
         self.params = params
+
+    @classmethod
+    def init_params(cls, params):
+        """
+        Initialize qGAN via parameters dictionary and algorithm input instance.
+        Args:
+            params: parameters dictionary
+            algo_input: Input instance
+        Returns:
+            QGAN: qgan object
+        """
+
+        multi_var_params_params = params.get(Pluggable.SECTION_KEY_UNIVARIATE_DISTRIBUTION)
+        num_qubits = multi_var_params_params.get('num_qubits')
+        params = multi_var_params_params.get('params')
+        low = multi_var_params_params.get('low')
+        high = multi_var_params_params.get('high')
+
+        var_form_params = params.get(Pluggable.SECTION_KEY_VAR_FORM)
+        var_form = get_pluggable_class(PluggableType.VARIATIONAL_FORM,
+                                       var_form_params['name']).init_params(params)
+
+        return cls(num_qubits, params, var_form, params, low, high)
 
     def build(self, qc, q, q_ancillas=None, params=None):
         circuit_var_form = self._var_form.construct_circuit(self.params, q)
