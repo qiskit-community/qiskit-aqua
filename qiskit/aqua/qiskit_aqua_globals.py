@@ -12,11 +12,15 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+import logging
+import time
+
 import numpy as np
-from .aqua_error import AquaError
 from qiskit.util import local_hardware_info
 import qiskit
-import logging
+
+from .aqua_error import AquaError
+
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +34,7 @@ class QiskitAquaGlobals(object):
         self._random_seed = None
         self._num_processes = QiskitAquaGlobals.CPU_COUNT
         self._random = None
+        self._prev_timestamp = time.time_ns()
 
     @property
     def random_seed(self):
@@ -70,6 +75,21 @@ class QiskitAquaGlobals(object):
             else:
                 self._random = np.random.RandomState(self._random_seed)
         return self._random
+
+    @property
+    def time_lapse(self):
+        """
+        Calculate the time difference from the query of last time.
+
+        Returns:
+             float: seconds between current the last query
+        """
+        curr_timestamp = time.time_ns()
+        difference = curr_timestamp - self._prev_timestamp
+
+        self._prev_timestamp = curr_timestamp
+
+        return difference
 
 
 # Global instance to be used as the entry point for globals.
