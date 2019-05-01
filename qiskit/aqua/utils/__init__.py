@@ -32,7 +32,7 @@ from .circuit_cache import CircuitCache
 from .backend_utils import has_ibmq, has_aer
 from .measurement_error_mitigation import (get_measured_qubits_from_qobj,
                                            mitigate_measurement_error,
-                                           build_measurement_mitigation_fitter)
+                                           build_measurement_error_mitigation_fitter)
 
 
 __all__ = [
@@ -67,5 +67,5 @@ __all__ = [
     'has_aer',
     'get_measured_qubits_from_qobj',
     'mitigate_measurement_error',
-    'build_measurement_mitigation_fitter'
+    'build_measurement_error_mitigation_fitter'
 ]
