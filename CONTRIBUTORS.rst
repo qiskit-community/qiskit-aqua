@@ -15,9 +15,7 @@ levels:
 - `Antonio Córcoles-Gonzalez <https://researcher.watson.ibm.com/researcher/view.php?person=us-adcorcol>`__
 - Albert Frisch
 - `Jay Gambetta <https://researcher.watson.ibm.com/researcher/view.php?person=us-jay.gambetta>`__
-- Jennifer Glick
 - `Donny Greenberg <https://researcher.watson.ibm.com/researcher/view.php?person=ibm-donny>`__
-- Tanvi Gujarati
 - Isabel Haide
 - `Shaohan Hu <https://researcher.watson.ibm.com/researcher/view.php?person=ibm-Shaohan.Hu>`__
 - `Takashi Imamichi <https://researcher.watson.ibm.com/researcher/view.php?person=jp-IMAMICHI>`__
@@ -39,3 +37,4 @@ levels:
 - `Ivano Tavernelli <https://researcher.watson.ibm.com/researcher/view.php?person=zurich-ITA>`__
 - `Stephen Wood <https://researcher.watson.ibm.com/researcher/view.php?person=us-woodsp>`__
 - `Stefan Woerner <https://researcher.watson.ibm.com/researcher/view.php?person=zurich-wor>`__
+- `Christa Zoufal <https://researcher.watson.ibm.com/researcher/view.php?person=zurich-OUF>`__
