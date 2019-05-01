@@ -193,7 +193,7 @@ class QGAN(QuantumAlgorithm):
         discriminator = get_pluggable_class(PluggableType.DISCRIMINATIVE_NETWORK,
                                             discriminator_params['name']).init_params(params)
         generator = get_pluggable_class(PluggableType.GENERATIVE_NETWORK,
-                                            generator_params['name']).init_params(params)
+                                        generator_params['name']).init_params(params)
 
         return cls(algo_input.data, algo_input.bounds, num_qubits, batch_size, num_epochs, seed, discriminator,
                    generator, tol_rel_ent, snapshot_dir)
@@ -302,9 +302,9 @@ class QGAN(QuantumAlgorithm):
 
         # Fit the data to the data resolution. i.e. grid
         for j, prec in enumerate(self._num_qubits):
-            data_row = self._data[:, j]  #dim j of all data samples
-            grid = np.linspace(bounds[j, 0], bounds[j, 1], (2 ** prec))  #prepare data grid for dim j
-            index_grid = np.searchsorted(grid, data_row-(grid[1]-grid[0])*0.5)  #find index for data sample in grid
+            data_row = self._data[:, j]  # dim j of all data samples
+            grid = np.linspace(bounds[j, 0], bounds[j, 1], (2 ** prec))  # prepare data grid for dim j
+            index_grid = np.searchsorted(grid, data_row-(grid[1]-grid[0])*0.5)  # find index for data sample in grid
             for k, index in enumerate(index_grid):
                 self._data[k, j] = grid[index]
             if j == 0:
@@ -406,11 +406,10 @@ class QGAN(QuantumAlgorithm):
             if self._snapshot_dir is not None:
                 self._store_params(e, np.around(d_loss_min.detach().numpy(),4), np.around(g_loss_min,4), np.around(rel_entr,4))
                     
-            if self._snapshot_dir is None:
-                print("Epoch {}/{}...".format(e + 1, self._num_epochs))
-                print('Loss Discriminator: ', np.around(d_loss_min,4))
-                print('Loss Generator: ', np.around(g_loss_min,4))
-                print('Relative Entropy: ', np.around(rel_entr,4))
+            logger.debug('Epoch {}/{}...'.format(e + 1, self._num_epochs))
+            logger.debug('Loss Discriminator: ', np.around(d_loss_min,4))
+            logger.debug('Loss Generator: ', np.around(g_loss_min,4))
+            logger.debug('Relative Entropy: ', np.around(rel_entr,4))
             if self._tol_rel_ent is not None:
                 if rel_entr <= self._tol_rel_ent:
                     break

@@ -17,7 +17,7 @@
 import numpy as np
 
 from qiskit.aqua.components.uncertainty_models.univariate_distribution import UnivariateDistribution
-from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
+from qiskit import ClassicalRegister
 
 
 from qiskit.aqua import Pluggable, get_pluggable_class, PluggableType
