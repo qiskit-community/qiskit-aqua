@@ -132,6 +132,28 @@ class BaseDataProvider(ABC):
         return self.mean
 
     # it does not have to be overridden in non-abstract derived classes.
+    def get_period_return_mean_vector(self):
+        """ Returns a vector containing the mean value of each asset.
+
+    Returns:
+        mean (numpy.ndarray) : a per-asset mean vector.
+        """
+        try:
+            if not self._data:
+                raise QiskitFinanceError(
+                    'No data loaded, yet. Please run the method run() first to load the data.'
+                )
+        except AttributeError:
+            raise QiskitFinanceError(
+                'No data loaded, yet. Please run the method run() first to load the data.'
+            )
+
+        period_returns = np.array(self._data)[:, 1:] / np.array(self._data)[:, :-1] - 1
+
+        self.period_return_mean = np.mean(period_returns, axis=1)
+        return self.period_return_mean
+
+    # it does not have to be overridden in non-abstract derived classes.
     def get_covariance_matrix(self):
         """ Returns the covariance matrix. 
         
@@ -149,6 +171,28 @@ class BaseDataProvider(ABC):
             )
         self.cov = np.cov(self._data, rowvar=True)
         return self.cov
+
+    # it does not have to be overridden in non-abstract derived classes.
+    def get_period_return_covariance_matrix(self):
+        """ Returns a vector containing the mean value of each asset.
+
+    Returns:
+        mean (numpy.ndarray) : a per-asset mean vector.
+        """
+        try:
+            if not self._data:
+                raise QiskitFinanceError(
+                    'No data loaded, yet. Please run the method run() first to load the data.'
+                )
+        except AttributeError:
+            raise QiskitFinanceError(
+                'No data loaded, yet. Please run the method run() first to load the data.'
+            )
+
+        period_returns = np.array(self._data)[:, 1:] / np.array(self._data)[:, :-1] - 1
+
+        self.period_return_cov = np.cov(period_returns)
+        return self.period_return_cov
 
     # it does not have to be overridden in non-abstract derived classes.
     def get_similarity_matrix(self):
