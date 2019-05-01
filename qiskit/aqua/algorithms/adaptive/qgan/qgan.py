@@ -29,8 +29,8 @@ from qiskit.aqua.algorithms import QuantumAlgorithm
 
 from qiskit.aqua import aqua_globals
 
-from .quantum_generator import QuantumGenerator
-from .classical_discriminator import ClassicalDiscriminator
+from qiskit.aqua.components.neural_networks.quantum_generator import QuantumGenerator
+from qiskit.aqua.components.neural_networks.classical_discriminator import ClassicalDiscriminator
 
 
 logger = logging.getLogger(__name__)
