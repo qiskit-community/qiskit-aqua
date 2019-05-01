@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM Corp. 2017 and later.
+# (C) Copyright IBM 2018, 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -25,13 +25,14 @@ from test.common import QiskitAquaTestCase
 bitmaps = ['00111100', '01011010']
 mct_modes = ['basic', 'basic-dirty-ancilla', 'advanced', 'noancilla']
 optimizations = ['off', 'qm-dlx']
+simulators = ['statevector_simulator', 'qasm_simulator']
 
 
 class TestBernsteinVazirani(QiskitAquaTestCase):
     @parameterized.expand(
-        itertools.product(bitmaps, mct_modes, optimizations)
+        itertools.product(bitmaps, mct_modes, optimizations, simulators)
     )
-    def test_bernstein_vazirani(self, bv_input, mct_mode, optimization='off'):
+    def test_bernstein_vazirani(self, bv_input, mct_mode, optimization, simulator):
         nbits = int(math.log(len(bv_input), 2))
         # compute the ground-truth classically
         parameter = ""
@@ -39,7 +40,7 @@ class TestBernsteinVazirani(QiskitAquaTestCase):
             bit = bv_input[2 ** i]
             parameter += bit
 
-        backend = BasicAer.get_backend('qasm_simulator')
+        backend = BasicAer.get_backend(simulator)
         oracle = TruthTableOracle(bv_input, optimization=optimization, mct_mode=mct_mode)
         algorithm = BernsteinVazirani(oracle)
         quantum_instance = QuantumInstance(backend)

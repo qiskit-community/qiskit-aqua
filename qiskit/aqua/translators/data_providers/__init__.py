@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM Corp. 2017 and later.
+# (C) Copyright IBM 2018, 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,13 +12,13 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from ._base_data_provider import BaseDataProvider, DataType, QiskitFinanceError
+from ._base_data_provider import BaseDataProvider, DataType, StockMarket, QiskitFinanceError
 from .data_on_demand_provider import DataOnDemandProvider
 from .exchange_data_provider import ExchangeDataProvider
 from .wikipedia_data_provider import WikipediaDataProvider
 from .random_data_provider import RandomDataProvider
 
 __all__ = [
-    'BaseDataProvider', 'DataType', 'QiskitFinanceError', 'RandomDataProvider',
+    'BaseDataProvider', 'DataType', 'QiskitFinanceError', 'StockMarket', 'RandomDataProvider',
     'DataOnDemandProvider', 'ExchangeDataProvider', 'WikipediaDataProvider'
 ]

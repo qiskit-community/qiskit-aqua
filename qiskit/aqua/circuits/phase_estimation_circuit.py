@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM Corp. 2017 and later.
+# (C) Copyright IBM 2018, 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -17,7 +17,7 @@ Quantum Phase Estimation Circuit.
 
 import numpy as np
 
-from qiskit import QuantumRegister, QuantumCircuit
+from qiskit import QuantumRegister, QuantumCircuit, ClassicalRegister
 
 from qiskit.aqua import Operator, AquaError
 
@@ -83,7 +83,13 @@ class PhaseEstimationCircuit:
         self._auxiliary_register = None
         self._circuit = None
 
-    def construct_circuit(self, state_register=None, ancillary_register=None, auxiliary_register=None):
+    def construct_circuit(
+            self,
+            state_register=None,
+            ancillary_register=None,
+            auxiliary_register=None,
+            measurement=False,
+    ):
         """
         Construct the Phase Estimation circuit
 
@@ -91,6 +97,7 @@ class PhaseEstimationCircuit:
             state_register (QuantumRegister): the optional register to use for the quantum state
             ancillary_register (QuantumRegister): the optional register to use for the ancillary measurement qubits
             auxiliary_register (QuantumRegister): an optional auxiliary quantum register
+            measurement (bool): Boolean flag to indicate if measurement should be included in the circuit.
 
         Returns:
             the QuantumCircuit object for the constructed circuit
@@ -181,6 +188,12 @@ class PhaseEstimationCircuit:
 
             # inverse qft on ancillae
             self._iqft.construct_circuit(mode='circuit', qubits=a, circuit=qc, do_swaps=False)
+
+            if measurement:
+                c_ancilla = ClassicalRegister(self._num_ancillae, name='ca')
+                qc.add_register(c_ancilla)
+                # qc.barrier(a)
+                qc.measure(a, c_ancilla)
 
             self._circuit = qc
 
