@@ -21,52 +21,52 @@ from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit import BasicAer, execute
 from qiskit.aqua import QuantumInstance
 
-CONFIGURATION = {
-    'name': 'UnivariateVariationalDistribution',
-    'description': 'Univariate Variational Distribution',
-    'input_schema': {
-        '$schema': 'http://json-schema.org/schema#',
-        'id': 'UnivariateVariationalDistribution_schema',
-        'type': 'object',
-        'properties': {
-            'num_qubits': {
-                'type': 'number',
-            },
-
-            'params': {
-                'type': 'array',
-                "items": {
-                    "type": "number"
-                }
-            },
-            'low': {
-                'type': 'number',
-                'default': 0
-            },
-            'high': {
-                'type': 'number',
-                'default': 1
-            },
-        },
-        'additionalProperties': False
-    ,
-    'depends': [
-        {
-        'pluggable_type': 'variational_form',
-        'default': {'name': 'RY'}
-        },
-         {'pluggable_type': 'initial_state',
-          'default': {'name': 'ZERO'}
-          }
-        ]
-    }
-    }
 
 
 class UnivariateVariationalDistribution(UnivariateDistribution):
     """
     The Univariate Variational Distribution.
     """
+    CONFIGURATION = {
+        'name': 'UnivariateVariationalDistribution',
+        'description': 'Univariate Variational Distribution',
+        'input_schema': {
+            '$schema': 'http://json-schema.org/schema#',
+            'id': 'UnivariateVariationalDistribution_schema',
+            'type': 'object',
+            'properties': {
+                'num_qubits': {
+                    'type': 'number',
+                },
+
+                'params': {
+                    'type': 'array',
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                'low': {
+                    'type': 'number',
+                    'default': 0
+                },
+                'high': {
+                    'type': 'number',
+                    'default': 1
+                },
+            },
+            'additionalProperties': False
+        },
+        'depends': [
+            {
+                'pluggable_type': 'variational_form',
+                'default': {'name': 'RY'}
+            },
+            {'pluggable_type': 'initial_state',
+             'default': {'name': 'ZERO'}
+             }
+        ]
+
+    }
 
     def __init__(self, num_qubits, var_form, params, initial_distribution=None, low=0, high=1):
         self._num_qubits = num_qubits
