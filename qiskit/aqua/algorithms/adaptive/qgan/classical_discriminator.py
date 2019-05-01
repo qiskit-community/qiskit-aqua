@@ -1,18 +1,16 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 # =============================================================================
 
 import numpy as np
@@ -24,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 from qiskit.aqua import AquaError
 from qiskit.aqua import Pluggable
-from qiskit.aqua.components.neural_networks.discriminative_networks.discriminative_network import DiscriminativeNetwork
+from qiskit.aqua.components.neural_networks.discriminative_network import DiscriminativeNetwork
 
 try:
     import torch
@@ -96,11 +94,11 @@ class ClassicalDiscriminator(DiscriminativeNetwork):
             'type': 'object',
             'properties': {
                 'n_features': {
-                    'type': 'int',
+                    'type': 'integer',
                     'default': 1
                 },
                 'n_out': {
-                    'type': 'int',
+                    'type': 'integer',
                     'default': 1
                 }
 
@@ -132,23 +130,6 @@ class ClassicalDiscriminator(DiscriminativeNetwork):
         self._ret = {}
 
     @classmethod
-    def init_params(cls, params):
-        """
-            Initialize via parameters dictionary and algorithm input instance.
-
-            Args:
-                params (dict): parameters dictionary
-
-                Returns:
-                    ClassicalDiscriminator
-                """
-        discriminator_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
-        n_features = discriminator_params.get('n_features')
-        n_out = discriminator_params.get('n_out')
-
-        return cls(n_features, n_out)
-
-    @classmethod
     def get_section_key_name(cls):
         return Pluggable.SECTION_KEY_DISCRIMINATIVE_NETWORK
 
@@ -156,7 +137,7 @@ class ClassicalDiscriminator(DiscriminativeNetwork):
     def check_pluggable_valid():
         err_msg = 'Pytorch is not installed. For installation instructions see https://pytorch.org/get-started/locally/'
         try:
-            spec = importlib.util.find_spec('torch.Tensor')
+            spec = importlib.util.find_spec('torch.optim')
             if spec is not None:
                 spec = importlib.util.find_spec('torch.nn')
                 if spec is not None:
@@ -189,6 +170,18 @@ class ClassicalDiscriminator(DiscriminativeNetwork):
 
         """
         torch.save(self._discriminator, os.path.join(snapshot_dir, 'discriminator.pt'))
+        return
+
+    def load_model(self, dir):
+        """
+        Save discriminator model
+        Args:
+            dir: str, file with stored pytorch discriminator model to be loaded
+
+        Returns:
+
+        """
+        torch.load(dir)
         return
 
     def get_discriminator(self):
@@ -260,12 +253,14 @@ class ClassicalDiscriminator(DiscriminativeNetwork):
 
         return lambda_ * ((d.norm(p=2,dim=1) - k)**2).mean()
 
-    def train(self, real_batch, generated_batch, generated_prob, penalty=False):
+    def train(self, data, weights, penalty=False):
         """
         Perform one training step w.r.t to the discriminator's parameters
         Args:
-            real_batch: torch.Tensor, Training data batch.
-            generated_batch: numpy array, Generated data batch.
+            data: [real_barch, generated_batch]
+                real_batch: torch.Tensor, Training data batch.
+                generated_batch: numpy array, Generated data batch.
+            weights: [real_prob, generated_prob]
             generated_prob: numpy array, Weights of the generated data samples, i.e. measurement frequency for
         qasm/hardware backends resp. measurement probability for statevector backend.
             penalty: Boolean, Indicate whether or not penalty function is applied to the loss function.
@@ -276,15 +271,21 @@ class ClassicalDiscriminator(DiscriminativeNetwork):
 
         # Reset gradients
         self._optimizer.zero_grad()
+        real_batch = data[0]
+        real_prob = weights[0]
+        generated_batch = data[1]
+        generated_prob = weights[1]
 
         real_batch = torch.tensor(real_batch, dtype=torch.float32)
         real_batch = Variable(real_batch)
+        real_prob = np.reshape(real_prob, (len(real_prob), 1))
+        real_prob = torch.tensor(real_prob, dtype=torch.float32)
 
         # Train on Real Data
         prediction_real = self.get_label(real_batch)
 
         # Calculate error and backpropagate
-        error_real = self.loss(prediction_real, torch.ones(len(prediction_real), 1))
+        error_real = self.loss(prediction_real, torch.ones(len(prediction_real), 1), real_prob)
         error_real.backward()
 
         # Train on Generated Data
@@ -306,8 +307,10 @@ class ClassicalDiscriminator(DiscriminativeNetwork):
         # Return error and predictions for real and fake inputs
         self._ret['loss'] = 0.5*(error_real + error_fake)
         params = []
+
         for param in self._discriminator.parameters():
             params.append(param.data.detach().numpy())
         self._ret['params'] = params
+
 
         return self._ret

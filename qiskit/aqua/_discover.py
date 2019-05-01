@@ -72,9 +72,9 @@ def _get_pluggables_types_dictionary():
     from qiskit.aqua.input import AlgorithmInput
     from qiskit.aqua.components.eigs import Eigenvalues
     from qiskit.aqua.components.reciprocals import Reciprocal
-    from qiskit.aqua.components.neural_networks.discriminative_networks.discriminative_network import \
+    from qiskit.aqua.components.neural_networks.discriminative_network import \
         DiscriminativeNetwork
-    from qiskit.aqua.components.neural_networks.generative_networks.generative_network import GenerativeNetwork
+    from qiskit.aqua.components.neural_networks.generative_network import GenerativeNetwork
 
     return {
         PluggableType.ALGORITHM: QuantumAlgorithm,

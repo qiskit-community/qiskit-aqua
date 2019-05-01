@@ -1,19 +1,16 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 # =============================================================================
 
 import numpy as np
@@ -32,8 +29,8 @@ from qiskit.aqua.algorithms import QuantumAlgorithm
 
 from qiskit.aqua import aqua_globals
 
-from qiskit.aqua.components.neural_networks import QuantumGenerator
-from qiskit.aqua.components.neural_networks import ClassicalDiscriminator
+from .quantum_generator import QuantumGenerator
+from .classical_discriminator import ClassicalDiscriminator
 
 
 logger = logging.getLogger(__name__)
@@ -193,6 +190,7 @@ class QGAN(QuantumAlgorithm):
 
         discriminator_params = params.get(Pluggable.SECTION_KEY_DISCRIMINATIVE_NETWORK)
         generator_params = params.get(Pluggable.SECTION_KEY_GENERATIVE_NETWORK)
+        generator_params['num_qubits'] = num_qubits
 
         discriminator = get_pluggable_class(PluggableType.DISCRIMINATIVE_NETWORK,
                                             discriminator_params['name']).init_params(params)
@@ -216,9 +214,10 @@ class QGAN(QuantumAlgorithm):
 
         """
         self._random_seed = s
-        np.random.seed(self._random_seed)
-        self._discriminator.set_seed(self._random_seed)
         aqua_globals.random_seed = self._random_seed
+        self._discriminator.set_seed(self._random_seed)
+
+
 
     @property
     def tol_rel_ent(self):
@@ -379,21 +378,24 @@ class QGAN(QuantumAlgorithm):
                 writer.writeheader()
 
         for e in range(self._num_epochs):
-            np.random.shuffle(self._data)
+            aqua_globals.random.shuffle(self._data)
             index=0
             while (index+self._batch_size)<=len(self._data):
                 real_batch = self._data[index: index+self._batch_size]
                 index += self._batch_size
-                generated_batch, generated_prob = self._generator.get_output(self._quantum_instance)
+                generated_batch, generated_prob = self._generator.get_output(self._quantum_instance,
+                                                                             shots=self._batch_size)
 
                 # 1. Train Discriminator
-                ret_d = self._discriminator.train(real_batch, generated_batch, generated_prob, penalty=True)
+                ret_d = self._discriminator.train([real_batch, generated_batch],
+                                                  [np.ones(len(real_batch))/len(real_batch), generated_prob],
+                                                  penalty=True)
                 d_loss_min = ret_d['loss'].detach().numpy()
 
 
                 # 2. Train Generator
                 self._generator.set_discriminator(self._discriminator)
-                ret_g = self._generator.train(self._quantum_instance, self._batch_size)
+                ret_g = self._generator.train(self._quantum_instance, shots=self._batch_size)
                 g_loss_min = ret_g['loss']
 
             self._d_loss.append(d_loss_min)

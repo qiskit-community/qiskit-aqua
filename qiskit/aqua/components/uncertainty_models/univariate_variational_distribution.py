@@ -1,18 +1,16 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 # =============================================================================
 
 
@@ -25,10 +23,10 @@ from qiskit.aqua import QuantumInstance
 
 CONFIGURATION = {
     'name': 'UnivariateVariationalDistribution',
-    'description': 'Uniivariate Variational Distribution',
+    'description': 'Univariate Variational Distribution',
     'input_schema': {
         '$schema': 'http://json-schema.org/schema#',
-        'id': 'UniivariateVariationalDistribution_schema',
+        'id': 'UnivariateVariationalDistribution_schema',
         'type': 'object',
         'properties': {
             'num_qubits': {
@@ -57,9 +55,9 @@ CONFIGURATION = {
         'pluggable_type': 'variational_form',
         'default': {'name': 'RY'}
         },
-        {'pluggable_type': 'initial_state',
-                'default': {'name': 'ZERO'}
-        }
+         {'pluggable_type': 'initial_state',
+          'default': {'name': 'ZERO'}
+          }
         ]
     }
     }
@@ -75,34 +73,39 @@ class UnivariateVariationalDistribution(UnivariateDistribution):
         self._var_form = var_form
         self.params = params
         self._initial_distribution = initial_distribution
-        probabilities = np.zeros(2**num_qubits)
+        probabilities = list(np.zeros(2**num_qubits))
         super().__init__(num_qubits, probabilities, low, high)
 
     def build(self, qc, q, q_ancillas=None, params=None):
-        if self._initial_distribution is not None:
-            qc.extend(self._initial_distribution.construct_circuit('circuit', q))
-        qc.extend(self._var_form.construct_circuit(self.params, q))
+        if self._initial_distribution:
+            qc.extend(self._initial_distribution.construct_circuit(mode='circuit', register=q))
+        circuit_var_form = self._var_form.construct_circuit(self.params, q)
+        qc.extend(circuit_var_form)
 
-    def set_probabilities(self, backend=BasicAer.get_backend('statevector_simulator')):
+
+    def set_probabilities(self, quantum_instance):
         """
         Set Probabilities
         Args:
-            backend: backend
+            quantum_instance: QuantumInstance
 
         Returns:
 
         """
-        q_ = QuantumRegister(self._num_qubits)
-        c_ = ClassicalRegister(self._num_qubits)
-        qc_ = QuantumCircuit(q_, c_)
-        if not self._initial_distribution is None:
-            self._initial_distribution.build(qc_, q_)
-        qc_.extend(self._var_form.construct_circuit(self.params, q_))
+        q_ = QuantumRegister(self._num_qubits, name='q')
+        if self._initial_distribution:
+                qc_= self._initial_distribution.construct_circuit(mode='circuit', register=q_)
+        else:
+            qc_ = QuantumCircuit(q_)
+        circuit_var_form = self._var_form.construct_circuit(self.params, q_)
+        qc_ += circuit_var_form
 
-        quantum_instance = QuantumInstance(backend=backend, circuit_caching=False)
+
         if quantum_instance.is_statevector:
             pass
         else:
+            c_ = ClassicalRegister(self._num_qubits, name='c')
+            qc_.add_register(c_)
             qc_.measure(q_, c_)
         result = quantum_instance.execute(qc_)
         if quantum_instance.is_statevector:

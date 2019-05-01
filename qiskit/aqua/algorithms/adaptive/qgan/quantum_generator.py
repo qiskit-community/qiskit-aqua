@@ -1,18 +1,16 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 # =============================================================================
 
 import numpy as np
@@ -27,7 +25,7 @@ from qiskit.aqua.components.uncertainty_models import UnivariateVariationalDistr
 from qiskit.aqua.components.variational_forms import RY
 from qiskit.aqua import AquaError
 from qiskit.aqua import Pluggable, get_pluggable_class, PluggableType
-from qiskit.aqua.components.neural_networks.generative_networks.generative_network import GenerativeNetwork
+from qiskit.aqua.components.neural_networks.generative_network import GenerativeNetwork
 from qiskit.aqua.components.initial_states import Custom
 
 
@@ -59,15 +57,7 @@ class QuantumGenerator(GenerativeNetwork):
                 }
             },
             'additionalProperties': False
-        },
-
-        'depends': [
-            {'pluggable_type': 'variational_form',
-             'default': {
-                     'name': 'RY'
-                }
-             },
-        ],
+        }
     }
 
     def __init__(self, bounds, num_qubits, generator_circuit=None, init_params=None, snapshot_dir = None):
@@ -112,7 +102,7 @@ class QuantumGenerator(GenerativeNetwork):
                                 initial_distribution=init_distribution, low=low, high=high)
             else:
                 init_dist = UniformDistribution(sum(num_qubits), low=bounds[0], high=bounds[1])
-                q = QuantumRegister(sum(num_qubits))
+                q = QuantumRegister(sum(num_qubits),name='q')
                 qc = QuantumCircuit(q)
                 init_dist.build(qc, q)
                 init_distribution = Custom(num_qubits=sum(num_qubits), circuit=qc)
@@ -183,7 +173,7 @@ class QuantumGenerator(GenerativeNetwork):
                 Returns:
                     QuantumGenerator: vqe object
                 """
-        generator_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
+        generator_params = params.get(Pluggable.SECTION_KEY_GENERATIVE_NETWORK)
         bounds = generator_params.get('bounds')
         if bounds is None:
             raise AquaError("Data value bounds are required.")
@@ -194,17 +184,22 @@ class QuantumGenerator(GenerativeNetwork):
         init_params = generator_params.get('init_params')
         snapshot_dir = generator_params.get('snapshot_dir')
 
-        # Set up variational form
-        var_form_params = params.get(Pluggable.SECTION_KEY_VAR_FORM)
-        var_form = get_pluggable_class(PluggableType.VARIATIONAL_FORM,
-                                       var_form_params['name']).init_params(params)
-
-        return cls(bounds, num_qubits, generator_circuit=var_form, init_params=init_params,
-                   snapshot_dir=snapshot_dir)
+        return cls(bounds, num_qubits, generator_circuit=None, init_params=init_params, snapshot_dir=snapshot_dir)
 
     @classmethod
     def get_section_key_name(cls):
         return Pluggable.SECTION_KEY_GENERATIVE_NETWORK
+
+    def set_seed(self, seed):
+        """
+        Set seed.
+        Args:
+            seed: int, seed
+
+        Returns:
+
+        """
+        aqua_globals.random_seed = seed
 
     def set_discriminator(self, discriminator):
         """
@@ -227,8 +222,9 @@ class QuantumGenerator(GenerativeNetwork):
 
         """
 
-        q = QuantumRegister(int(np.sum(self._num_qubits)), name='q')
+        q = QuantumRegister(sum(self._num_qubits), name='q')
         qc = QuantumCircuit(q)
+        self.generator_circuit.set_probabilities(quantum_instance)
         if params is None:
             self.generator_circuit.build(qc=qc, q=q)
         else:
@@ -244,6 +240,7 @@ class QuantumGenerator(GenerativeNetwork):
             qc.measure(q, c)
             return qc.copy(name='qc')
 
+
     def get_output(self, quantum_instance, params=None, shots=None):
         """
         Get data samples from the generator.
@@ -258,6 +255,8 @@ class QuantumGenerator(GenerativeNetwork):
         qc = self.construct_circuit(quantum_instance, params)
         if shots is not None:
             quantum_instance.set_config(shots=shots)
+        else:
+            quantum_instance.set_config(shots=self._shots)
         result = quantum_instance.execute(qc)
 
         generated_samples=[]
@@ -291,7 +290,6 @@ class QuantumGenerator(GenerativeNetwork):
             generated_samples.append(temp)
 
         self.generator_circuit._probabilities = generated_samples_weights
-
         return generated_samples, generated_samples_weights
 
     def loss(self, x, weights):
@@ -344,8 +342,9 @@ class QuantumGenerator(GenerativeNetwork):
         # Force single optimization iteration
         self._optimizer._maxiter = 1
         self._optimizer._t = 0
-        objective = self._get_objective_function(quantum_instance, self._discriminator)
-        self.generator_circuit.params, loss, nfev = self._optimizer.optimize(num_vars=len(self.generator_circuit.params), objective_function=objective,
+        objective = self._get_objective_function(quantum_instance, self._discriminator, )
+        self.generator_circuit.params, loss, nfev = self._optimizer.optimize(num_vars=len(self.generator_circuit.params),
+                                                                             objective_function=objective,
                                                         initial_point=self.generator_circuit.params)
         self._ret['loss'] = loss[0]
         self._ret['params'] = self.generator_circuit.params

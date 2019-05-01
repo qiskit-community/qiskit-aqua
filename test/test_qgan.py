@@ -1,26 +1,23 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 # =============================================================================
 
 import unittest
 
 import numpy as np
-from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
+from qiskit import QuantumCircuit, QuantumRegister
 
-from qiskit.aqua.components.optimizers import ADAM
 from qiskit.aqua.components.uncertainty_models import UniformDistribution, UnivariateVariationalDistribution
 from qiskit.aqua.components.variational_forms import RY
 
@@ -48,7 +45,7 @@ class TestQGAN(QiskitAquaTestCase):
         self._real_data = np.random.lognormal(mean=mu, sigma=sigma, size=N)
         # Set the data resolution
         # Set upper and lower data values as list of k min/max data values [[min_0,max_0],...,[min_k-1,max_k-1]]
-        self._bounds = np.array([0., 3.])
+        self._bounds = [0., 3.]
         # Set number of qubits per data dimension as list of k qubit values[#q_0,...,#q_k-1]
         num_qubits = [2]
         # Batch size
@@ -64,8 +61,7 @@ class TestQGAN(QiskitAquaTestCase):
                                                'bounds': self._bounds,
                                                'num_qubits': num_qubits,
                                                'init_params': None,
-                                               'snapshot_dir': None,
-                                               'variational_form': {'name': 'RY', 'depth': 1}
+                                               'snapshot_dir': None
                                                },
                         'discriminative_network':{'name': 'ClassicalDiscriminator',
                                                   'n_features': len(num_qubits)}
@@ -88,7 +84,7 @@ class TestQGAN(QiskitAquaTestCase):
         init_params = aqua_globals.random.rand(var_form._num_parameters) * 2 * 1e-2
         # Set an initial state for the generator circuit
         init_dist = UniformDistribution(sum(num_qubits), low=self._bounds[0], high=self._bounds[1])
-        q = QuantumRegister(sum(num_qubits))
+        q = QuantumRegister(sum(num_qubits), name='q')
         qc = QuantumCircuit(q)
         init_dist.build(qc, q)
         init_distribution = Custom(num_qubits=sum(num_qubits), circuit=qc)
@@ -99,9 +95,11 @@ class TestQGAN(QiskitAquaTestCase):
         # Set quantum generator
         self.qgan.set_generator(generator_circuit=g_circuit)
 
+
     def test_sample_generation(self):
-        samples_statevector, weights_statevector = self.qgan._generator.get_output(self.quantum_instance_statevector)
-        samples_qasm, weights_qasm = self.qgan._generator.get_output(self.quantum_instance_qasm)
+        samples_statevector, weights_statevector = self.qgan._generator.get_output(self.quantum_instance_statevector,
+                                                                                   shots=100)
+        samples_qasm, weights_qasm = self.qgan._generator.get_output(self.quantum_instance_qasm, shots=100)
         samples_qasm, weights_qasm = zip(*sorted(zip(samples_qasm, weights_qasm)))
         for i, weight_q in enumerate(weights_qasm):
             self.assertAlmostEqual(weight_q, weights_statevector[i], delta=0.1)
@@ -113,8 +111,8 @@ class TestQGAN(QiskitAquaTestCase):
 
     def test_qgan_training_run_algo(self):
         algo_input = QGANInput(self._real_data, self._bounds)
-        trained_statevector = run_algorithm(params=self._params, algo_input=algo_input, backend=BasicAer.get_backend(
-            'statevector_simulator'))
+        trained_statevector = run_algorithm(params=self._params, algo_input=algo_input,
+                                            backend=BasicAer.get_backend('statevector_simulator'))
         trained_qasm = run_algorithm(self._params, algo_input, backend=BasicAer.get_backend('qasm_simulator'))
         self.assertAlmostEqual(trained_qasm['rel_entr'], trained_statevector['rel_entr'], delta=0.1)
 
