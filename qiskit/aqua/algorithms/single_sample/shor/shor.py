@@ -12,7 +12,9 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 """
-The Shor's Factoring algorithm.
+The Shor's Factoring algorithm.  This implementation is based on the following paper:
+Stephane Beauregard, "Circuit for Shor's algorithm using 2n+3 qubits",
+Quantum Information and Computation, Vol. 3, No. 2 (2003) pp. 175-185
 """
 
 import math
