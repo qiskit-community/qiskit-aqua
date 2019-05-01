@@ -68,15 +68,11 @@ class MultivariateVariationalDistribution(MultivariateDistribution):
 
                 {'pluggable_type': 'variational_form',
                  'default': {'name': 'RY'}}
-        ,
-                {'pluggable_type': 'initial_state',
-                 'default': {'name': 'ZERO'}
-         }
 
         ],
     }
 
-    def __init__(self, num_qubits, var_form, params, initial_distribution=None, low=None, high=None):
+    def __init__(self, num_qubits, var_form, params, low=None, high=None):
         if low is None:
             low = np.zeros(len(num_qubits))
         if high is None:
@@ -84,16 +80,12 @@ class MultivariateVariationalDistribution(MultivariateDistribution):
         self._num_qubits = num_qubits
         self._var_form = var_form
         self.params = params
-        self._initial_distribution = initial_distribution
         probabilities = np.zeros(2 ** sum(num_qubits))
         super().__init__(num_qubits, probabilities, low, high)
         self._var_form = var_form
         self.params = params
-        self._initial_distribution = initial_distribution
 
     def build(self, qc, q, q_ancillas=None, params=None):
-        if self._initial_distribution:
-            qc.extend(self._initial_distribution.construct_circuit(mode='circuit', register=q))
         circuit_var_form = self._var_form.construct_circuit(self.params, q)
         qc.extend(circuit_var_form)
 
@@ -107,10 +99,7 @@ class MultivariateVariationalDistribution(MultivariateDistribution):
 
         """
         q_ = QuantumRegister(self._num_qubits, name='q')
-        if self._initial_distribution:
-            qc_ = self._initial_distribution.construct_circuit(mode='circuit', register=q_)
-        else:
-            qc_ = QuantumCircuit(q_)
+        qc_ = QuantumCircuit(q_)
         circuit_var_form = self._var_form.construct_circuit(self.params, q_)
         qc_ += circuit_var_form
 

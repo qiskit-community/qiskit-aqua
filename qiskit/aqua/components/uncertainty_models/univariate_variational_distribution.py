@@ -60,25 +60,19 @@ class UnivariateVariationalDistribution(UnivariateDistribution):
             {
                 'pluggable_type': 'variational_form',
                 'default': {'name': 'RY'}
-            },
-            {'pluggable_type': 'initial_state',
-             'default': {'name': 'ZERO'}
-             }
+            }
         ]
 
     }
 
-    def __init__(self, num_qubits, var_form, params, initial_distribution=None, low=0, high=1):
+    def __init__(self, num_qubits, var_form, params, low=0, high=1):
         self._num_qubits = num_qubits
         self._var_form = var_form
         self.params = params
-        self._initial_distribution = initial_distribution
         probabilities = list(np.zeros(2**num_qubits))
         super().__init__(num_qubits, probabilities, low, high)
 
     def build(self, qc, q, q_ancillas=None, params=None):
-        if self._initial_distribution:
-            qc.extend(self._initial_distribution.construct_circuit(mode='circuit', register=q))
         circuit_var_form = self._var_form.construct_circuit(self.params, q)
         qc.extend(circuit_var_form)
 
@@ -93,13 +87,9 @@ class UnivariateVariationalDistribution(UnivariateDistribution):
 
         """
         q_ = QuantumRegister(self._num_qubits, name='q')
-        if self._initial_distribution:
-                qc_= self._initial_distribution.construct_circuit(mode='circuit', register=q_)
-        else:
-            qc_ = QuantumCircuit(q_)
+        qc_ = QuantumCircuit(q_)
         circuit_var_form = self._var_form.construct_circuit(self.params, q_)
         qc_ += circuit_var_form
-
 
         if quantum_instance.is_statevector:
             pass
