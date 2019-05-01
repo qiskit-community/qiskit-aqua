@@ -289,7 +289,7 @@ class QiskitAqua(object):
                 backend_cfg['cache_file'] = cache_file
 
             measurement_error_mitigation = self._parser.get_section_property(JSONSchema.PROBLEM, 'measurement_error_mitigation')
-            if measurement_error_mitigation is not None:
+            if measurement_error_mitigation:
                 backend_cfg['measurement_error_mitigation_cls'] = CompleteMeasFitter
 
             self._quantum_instance = QuantumInstance(**backend_cfg)
