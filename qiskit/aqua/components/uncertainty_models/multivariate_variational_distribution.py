@@ -12,13 +12,11 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-
-
 import numpy as np
 
-from qiskit.aqua.components.uncertainty_models.multivariate_distribution import MultivariateDistribution
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.aqua import Pluggable, get_pluggable_class, PluggableType
+from .multivariate_distribution import MultivariateDistribution
 
 
 class MultivariateVariationalDistribution(MultivariateDistribution):
@@ -64,9 +62,12 @@ class MultivariateVariationalDistribution(MultivariateDistribution):
             'additionalProperties': False
         },
         'depends': [
-
-                {'pluggable_type': 'variational_form',
-                 'default': {'name': 'RY'}}
+            {
+                'pluggable_type': 'variational_form',
+                'default': {
+                    'name': 'RY'
+                }
+            }
 
         ],
     }
@@ -87,12 +88,11 @@ class MultivariateVariationalDistribution(MultivariateDistribution):
     @classmethod
     def init_params(cls, params):
         """
-        Initialize qGAN via parameters dictionary and algorithm input instance.
+        Initialize via parameters dictionary.
         Args:
             params: parameters dictionary
-            algo_input: Input instance
         Returns:
-            QGAN: qgan object
+            An object instance of this class
         """
 
         multi_var_params_params = params.get(Pluggable.SECTION_KEY_UNIVARIATE_DISTRIBUTION)
@@ -105,7 +105,7 @@ class MultivariateVariationalDistribution(MultivariateDistribution):
         var_form = get_pluggable_class(PluggableType.VARIATIONAL_FORM,
                                        var_form_params['name']).init_params(params)
 
-        return cls(num_qubits, params, var_form, params, low, high)
+        return cls(num_qubits, var_form, params, low, high)
 
     def build(self, qc, q, q_ancillas=None, params=None):
         circuit_var_form = self._var_form.construct_circuit(self.params, q)

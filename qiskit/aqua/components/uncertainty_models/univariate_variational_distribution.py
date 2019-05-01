@@ -12,15 +12,12 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-
-
 import numpy as np
 
-from qiskit.aqua.components.uncertainty_models.univariate_distribution import UnivariateDistribution
 from qiskit import ClassicalRegister
-
-
 from qiskit.aqua import Pluggable, get_pluggable_class, PluggableType
+from .univariate_distribution import UnivariateDistribution
+
 
 class UnivariateVariationalDistribution(UnivariateDistribution):
     """
@@ -58,7 +55,9 @@ class UnivariateVariationalDistribution(UnivariateDistribution):
         'depends': [
             {
                 'pluggable_type': 'variational_form',
-                'default': {'name': 'RY'}
+                'default': {
+                    'name': 'RY'
+                }
             }
         ]
 
@@ -75,12 +74,11 @@ class UnivariateVariationalDistribution(UnivariateDistribution):
     @classmethod
     def init_params(cls, params):
         """
-        Initialize qGAN via parameters dictionary and algorithm input instance.
+        Initialize via parameters dictionary.
         Args:
             params: parameters dictionary
-            algo_input: Input instance
         Returns:
-            QGAN: qgan object
+            An object instance of this class
         """
 
         uni_var_params_params = params.get(Pluggable.SECTION_KEY_UNIVARIATE_DISTRIBUTION)
@@ -92,9 +90,9 @@ class UnivariateVariationalDistribution(UnivariateDistribution):
         var_form_params = params.get(Pluggable.SECTION_KEY_VAR_FORM)
         var_form = get_pluggable_class(PluggableType.VARIATIONAL_FORM, var_form_params['name']).init_params(params)
 
-        return cls(num_qubits, params, var_form, params, low, high)
+        return cls(num_qubits, var_form, params, low, high)
 
-    def build(self, qc, q, q_ancillas=None):
+    def build(self, qc, q, q_ancillas=None, params=None):
         circuit_var_form = self._var_form.construct_circuit(self.params, q)
         qc.extend(circuit_var_form)
 
@@ -134,6 +132,3 @@ class UnivariateVariationalDistribution(UnivariateDistribution):
         probabilities = values
         self._probabilities = np.array(probabilities)
         return
-
-
-

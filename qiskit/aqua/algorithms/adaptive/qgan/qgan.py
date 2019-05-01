@@ -12,28 +12,23 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-
-import numpy as np
-from scipy.stats import entropy
-
+from copy import deepcopy
 import csv
 import os
 import logging
 
-from copy import deepcopy
+import numpy as np
+from scipy.stats import entropy
 
-from qiskit.aqua import AquaError
+from qiskit.aqua import AquaError, aqua_globals
 from qiskit.aqua import Pluggable, get_pluggable_class, PluggableType
 from qiskit.aqua.algorithms import QuantumAlgorithm
-
-
-from qiskit.aqua import aqua_globals
-
 from qiskit.aqua.components.neural_networks.quantum_generator import QuantumGenerator
 from qiskit.aqua.components.neural_networks.classical_discriminator import ClassicalDiscriminator
 
 
 logger = logging.getLogger(__name__)
+
 
 class QGAN(QuantumAlgorithm):
     """
@@ -48,7 +43,7 @@ class QGAN(QuantumAlgorithm):
             'id': 'Qgan_schema',
             'type': 'object',
             'properties': {
-                'num_qubits':{
+                'num_qubits': {
                     'type': ['array', 'null'],
                     'default': None
                 },
@@ -77,21 +72,23 @@ class QGAN(QuantumAlgorithm):
         },
         'problems': ['distribution_learning_loading'],
         'depends': [
-            {'pluggable_type': 'generative_network',
-             'default': {
-                 'name': 'QuantumGenerator'
-             }
-             },
-            {'pluggable_type': 'discriminative_network',
-             'default': {
-                 'name': 'ClassicalDiscriminator'
-             }
-             },
+            {
+                'pluggable_type': 'generative_network',
+                'default': {
+                    'name': 'QuantumGenerator'
+                }
+            },
+            {
+                'pluggable_type': 'discriminative_network',
+                'default': {
+                    'name': 'ClassicalDiscriminator'
+                }
+            },
         ],
     }
 
-    def __init__(self, data, bounds=None, num_qubits=None, batch_size=500, num_epochs=3000, seed=7, discriminator=None,
-                 generator=None, tol_rel_ent=None, snapshot_dir=None):
+    def __init__(self, data, bounds=None, num_qubits=None, batch_size=500, num_epochs=3000, seed=7,
+                 discriminator=None, generator=None, tol_rel_ent=None, snapshot_dir=None):
         """
         Initialize qGAN.
         Args:
@@ -120,7 +117,7 @@ class QGAN(QuantumAlgorithm):
             bounds = []
             for i in range(len(bounds_min)):
                 bounds.append([bounds_min[i], bounds_max[i]])
-        if np.ndim(data)>1:
+        if np.ndim(data) > 1:
             if len(bounds) != (len(num_qubits) or len(data[0])):
                 raise AquaError('Dimensions of the data, the length of the data bounds and the numbers of qubits per '
                                 'dimension are incompatible.')
@@ -130,7 +127,7 @@ class QGAN(QuantumAlgorithm):
                                 'dimension are incompatible.')
         self._bounds = np.array(bounds)
         self._num_qubits = num_qubits
-        if np.ndim(data)>1:
+        if np.ndim(data) > 1:
             if self._num_qubits is None:
                 self._num_qubits = np.ones[len(data[0])]*3
             self._prob_data = np.zeros(int(np.prod(np.power(np.ones(len(self._data[0]))*2, self._num_qubits))))
@@ -205,9 +202,8 @@ class QGAN(QuantumAlgorithm):
     @seed.setter
     def seed(self, s):
         """
-
         Args:
-            seed: int, random seed
+            s: int, random seed
 
         Returns:
 
@@ -225,8 +221,8 @@ class QGAN(QuantumAlgorithm):
         """
         Set tolerance for relative entropy
         Args:
-            tol_rel_ent: float or None, Set tolerance level for relative entropy. If the training achieves relative
-            entropy equal or lower than tolerance it finishes.
+            t: float or None, Set tolerance level for relative entropy. If the training achieves relative
+               entropy equal or lower than tolerance it finishes.
         Returns:
         """
         self._tol_rel_ent = t
@@ -240,7 +236,7 @@ class QGAN(QuantumAlgorithm):
         Initialize generator.
         Args:
             generator_circuit: VariationalForm, parametrized quantum circuit which sets the structure of the quantum
-            generator
+                               generator
             generator_init_params: array, initial parameters for the generator circuit
             generator_optimizer: Optimizer, optimizer to be used for the training of the generator
 
@@ -284,7 +280,7 @@ class QGAN(QuantumAlgorithm):
         """
         # Truncate the data
         if np.ndim(self._bounds) == 1:
-            bounds = np.reshape(self._bounds, (1,len(self._bounds)))
+            bounds = np.reshape(self._bounds, (1, len(self._bounds)))
         else:
             bounds = self._bounds
         self._data = self._data.reshape((len(self._data), len(self._num_qubits)))
@@ -292,9 +288,9 @@ class QGAN(QuantumAlgorithm):
         for i, data_sample in enumerate(self._data):
             append = True
             for j, entry in enumerate(data_sample):
-                if entry < bounds[j,0]:
+                if entry < bounds[j, 0]:
                     append = False
-                if entry > bounds[j,1]:
+                if entry > bounds[j, 1]:
                     append = False
             if append:
                 temp.append(list(data_sample))
@@ -313,7 +309,7 @@ class QGAN(QuantumAlgorithm):
                 else:
                     self._data_grid = grid
                 self._grid_elements = grid
-            elif j==1:
+            elif j == 1:
                 self._data_grid.append(grid)
                 temp = []
                 for g_e in self._grid_elements:
@@ -353,7 +349,7 @@ class QGAN(QuantumAlgorithm):
         return rel_entr
 
     def _store_params(self, e, d_loss, g_loss, rel_entr):
-        with open(os.path.join(self._snapshot_dir,'output.csv'), mode='a') as csv_file:
+        with open(os.path.join(self._snapshot_dir, 'output.csv'), mode='a') as csv_file:
             fieldnames = ['epoch', 'loss_discriminator', 'loss_generator', 'params_generator', 'rel_entropy']
             writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
             writer.writerow({'epoch': e, 'loss_discriminator': np.average(d_loss),
@@ -366,7 +362,7 @@ class QGAN(QuantumAlgorithm):
         Train the qGAN
         """
         if self._snapshot_dir is not None:
-            with open(os.path.join(self._snapshot_dir,'output.csv'), mode='w') as csv_file:
+            with open(os.path.join(self._snapshot_dir, 'output.csv'), mode='w') as csv_file:
                 fieldnames = ['epoch', 'loss_discriminator', 'loss_generator', 'params_generator',
                               'rel_entropy']
                 writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
@@ -404,12 +400,14 @@ class QGAN(QuantumAlgorithm):
             self._ret['rel_entr'] = np.around(rel_entr, 4)
 
             if self._snapshot_dir is not None:
-                self._store_params(e, np.around(d_loss_min.detach().numpy(),4), np.around(g_loss_min,4), np.around(rel_entr,4))
+                self._store_params(e, np.around(d_loss_min.detach().numpy(), 4),
+                                   np.around(g_loss_min, 4), np.around(rel_entr, 4))
                     
             logger.debug('Epoch {}/{}...'.format(e + 1, self._num_epochs))
-            logger.debug('Loss Discriminator: ', np.around(d_loss_min,4))
-            logger.debug('Loss Generator: ', np.around(g_loss_min,4))
-            logger.debug('Relative Entropy: ', np.around(rel_entr,4))
+            logger.debug('Loss Discriminator: ', np.around(d_loss_min, 4))
+            logger.debug('Loss Generator: ', np.around(g_loss_min, 4))
+            logger.debug('Relative Entropy: ', np.around(rel_entr, 4))
+
             if self._tol_rel_ent is not None:
                 if rel_entr <= self._tol_rel_ent:
                     break

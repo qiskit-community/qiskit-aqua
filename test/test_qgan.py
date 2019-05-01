@@ -33,7 +33,6 @@ from test.common import QiskitAquaTestCase
 
 class TestQGAN(QiskitAquaTestCase):
 
-
     def setUp(self):
         super().setUp()
 
@@ -63,8 +62,8 @@ class TestQGAN(QiskitAquaTestCase):
                                                'init_params': None,
                                                'snapshot_dir': None
                                                },
-                        'discriminative_network':{'name': 'ClassicalDiscriminator',
-                                                  'n_features': len(num_qubits)}
+                        'discriminative_network': {'name': 'ClassicalDiscriminator',
+                                                   'n_features': len(num_qubits)}
                         }
 
         # Initialize qGAN
@@ -77,8 +76,6 @@ class TestQGAN(QiskitAquaTestCase):
                                                      shots=batch_size, circuit_caching=False)
         # Set entangler map
         entangler_map = [[0, 1]]
-
-
 
         # Set an initial state for the generator circuit
         init_dist = UniformDistribution(sum(num_qubits), low=self._bounds[0], high=self._bounds[1])
@@ -99,7 +96,6 @@ class TestQGAN(QiskitAquaTestCase):
         # Set quantum generator
         self.qgan.set_generator(generator_circuit=g_circuit)
 
-
     def test_sample_generation(self):
         samples_statevector, weights_statevector = self.qgan._generator.get_output(self.quantum_instance_statevector,
                                                                                    shots=100)
@@ -119,6 +115,7 @@ class TestQGAN(QiskitAquaTestCase):
                                             backend=BasicAer.get_backend('statevector_simulator'))
         trained_qasm = run_algorithm(self._params, algo_input, backend=BasicAer.get_backend('qasm_simulator'))
         self.assertAlmostEqual(trained_qasm['rel_entr'], trained_statevector['rel_entr'], delta=0.1)
+
 
 if __name__ == '__main__':
     unittest.main()
