@@ -92,7 +92,7 @@ class UnivariateVariationalDistribution(UnivariateDistribution):
 
         return cls(num_qubits, var_form, params, low, high)
 
-    def build(self, qc, q, q_ancillas=None, params=None):
+    def build(self, qc, q, q_ancillas=None):
         circuit_var_form = self._var_form.construct_circuit(self.params, q)
         qc.extend(circuit_var_form)
 
