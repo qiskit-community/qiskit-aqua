@@ -17,8 +17,11 @@
 import copy
 import json
 import logging
+
 from qiskit.providers import BaseBackend
 from qiskit.transpiler import PassManager
+from qiskit.ignis.mitigation.measurement import CompleteMeasFitter
+
 from .aqua_error import AquaError
 from ._discover import (_discover_on_demand,
                         local_pluggables,
@@ -284,6 +287,10 @@ class QiskitAqua(object):
             cache_file = self._parser.get_section_property(JSONSchema.PROBLEM, 'circuit_cache_file')
             if cache_file is not None:
                 backend_cfg['cache_file'] = cache_file
+
+            measurement_error_mitigation = self._parser.get_section_property(JSONSchema.PROBLEM, 'measurement_error_mitigation')
+            if measurement_error_mitigation:
+                backend_cfg['measurement_error_mitigation_cls'] = CompleteMeasFitter
 
             self._quantum_instance = QuantumInstance(**backend_cfg)
 

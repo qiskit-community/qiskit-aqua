@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/schema#",
     "id": "input_schema.json",
-    
+
     "definitions": {
         "problem": {
             "type": "object",
@@ -34,6 +34,10 @@
                 "skip_qobj_validation": {
                     "type": "boolean",
                     "default": true
+                },
+                "measurement_error_mitigation": {
+                    "type": "boolean",
+                    "default": false
                 }
             },
             "required": ["name"],
@@ -66,7 +70,7 @@
             "additionalProperties": false
         }
     },
-    
+
     "type": "object",
     "properties": {
         "problem":          { "$ref": "#/definitions/problem" },

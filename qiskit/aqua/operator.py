@@ -796,19 +796,12 @@ class Operator(object):
         else:
             if is_statevector_backend(backend):
                 run_config.shots = 1
-                has_shared_circuits = True
-
-                if operator_mode == 'matrix':
-                    has_shared_circuits = False
-            else:
-                has_shared_circuits = False
 
             circuits = self.construct_evaluation_circuit(operator_mode, input_circuit, backend)
             result = compile_and_run_circuits(circuits, backend=backend, backend_config=backend_config,
                                               compile_config=compile_config, run_config=run_config,
                                               qjob_config=qjob_config, noise_config=noise_config,
-                                              show_circuit_summary=self._summarize_circuits,
-                                              has_shared_circuits=has_shared_circuits)
+                                              show_circuit_summary=self._summarize_circuits)
             avg, std_dev = self.evaluate_with_result(operator_mode, circuits, backend, result)
 
         return avg, std_dev
