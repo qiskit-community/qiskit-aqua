@@ -34,11 +34,12 @@ class TestCaching(QiskitAquaTestCase):
         qubit_op = Operator.load_from_dict(pauli_dict)
         self.algo_input = EnergyInput(qubit_op)
 
-        backends = ['statevector_simulator', 'qasm_simulator']
+    def _build_refrence_result(self, backends):
         res = {}
         for backend in backends:
             params_no_caching = {
-                'algorithm': {'name': 'VQE', 'operator_mode': 'matrix' if backend == 'statevector_simulator' else 'paulis'},
+                'algorithm': {'name': 'VQE',
+                              'operator_mode': 'matrix' if backend == 'statevector_simulator' else 'paulis'},
                 'problem': {'name': 'energy',
                             'random_seed': 50,
                             'circuit_caching': False,
@@ -50,6 +51,7 @@ class TestCaching(QiskitAquaTestCase):
             }
             if backend != 'statevector_simulator':
                 params_no_caching['backend']['shots'] = 1000
+                params_no_caching['optimizer'] = {'name': 'SPSA', 'max_trials': 15}
             qiskit_aqua = QiskitAqua(params_no_caching, self.algo_input)
             res[backend] = qiskit_aqua.run()
         self.reference_vqe_result = res
@@ -61,6 +63,7 @@ class TestCaching(QiskitAquaTestCase):
         ['qasm_simulator', True, False],
     ])
     def test_vqe_caching_via_run_algorithm(self, backend, caching, skip_qobj_deepcopy):
+        self._build_refrence_result(backends=[backend])
         skip_validation = True
         params_caching = {
             'algorithm': {'name': 'VQE', 'operator_mode': 'matrix' if backend == 'statevector_simulator' else 'paulis'},
@@ -75,6 +78,7 @@ class TestCaching(QiskitAquaTestCase):
         }
         if backend != 'statevector_simulator':
             params_caching['backend']['shots'] = 1000
+            params_caching['optimizer'] = {'name': 'SPSA', 'max_trials': 15}
         qiskit_aqua = QiskitAqua(params_caching, self.algo_input)
         result_caching = qiskit_aqua.run()
 
@@ -94,6 +98,7 @@ class TestCaching(QiskitAquaTestCase):
         [1]
     ])
     def test_vqe_caching_direct(self, max_evals_grouped=1):
+        self._build_refrence_result(backends=['statevector_simulator'])
         backend = BasicAer.get_backend('statevector_simulator')
         num_qubits = self.algo_input.qubit_op.num_qubits
         init_state = Zero(num_qubits)
@@ -112,6 +117,7 @@ class TestCaching(QiskitAquaTestCase):
         self.assertLess(speedup, speedup_min)
 
     def test_saving_and_loading_e2e(self):
+        self._build_refrence_result(backends=['statevector_simulator'])
         backend = BasicAer.get_backend('statevector_simulator')
         num_qubits = self.algo_input.qubit_op.num_qubits
         init_state = Zero(num_qubits)
