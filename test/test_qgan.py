@@ -55,7 +55,7 @@ class TestQGAN(QiskitAquaTestCase):
                                       'num_qubits': num_qubits,
                                       'batch_size': batch_size,
                                       'num_epochs': num_epochs},
-                        'problem': {'name': 'distribution_learning_loading'},
+                        'problem': {'name': 'distribution_learning_loading', 'random_seed': 7},
                         'generative_network': {'name': 'QuantumGenerator',
                                                'bounds': self._bounds,
                                                'num_qubits': num_qubits,
@@ -68,7 +68,7 @@ class TestQGAN(QiskitAquaTestCase):
 
         # Initialize qGAN
         self.qgan = QGAN(self._real_data, self._bounds, num_qubits, batch_size, num_epochs, snapshot_dir=None)
-        self.qgan.seed = 1
+        self.qgan.seed = 7
         # Set quantum instance to run the quantum generator
         self.quantum_instance_statevector = QuantumInstance(backend=BasicAer.get_backend('statevector_simulator'),
                                                             shots=batch_size, circuit_caching=False)
