@@ -71,7 +71,7 @@ class UnivariateDistribution(UncertaintyModel, ABC):
     def probabilities(self):
         return self._probabilities
 
-    def build(self, qc, q, q_ancillas=None, params=None):
+    def build(self, qc, q, q_ancillas=None):
         custom_state = Custom(self.num_target_qubits, state_vector=np.sqrt(self.probabilities))
         qc.extend(custom_state.construct_circuit('circuit', q))
 

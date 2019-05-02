@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -11,18 +11,9 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+# =============================================================================
 
-from .vqe.vqe import VQE
-from .qaoa.qaoa import QAOA
-from .vqc.vqc import VQC
-from .qgan.qgan import QGAN
-from .vq_algorithm import VQAlgorithm
+from .qgan import QGAN
 
+__all__ = ['QGAN']
 
-__all__ = [
-    'VQE',
-    'QAOA',
-    'QGAN',
-    'VQC',
-    'VQAlgorithm',
-]
