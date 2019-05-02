@@ -337,7 +337,7 @@ class QGAN(QuantumAlgorithm):
         return
 
     def get_rel_entr(self):
-        samples_gen, prob_gen = self._generator.get_output(self._quantum_instance, shots=10000)
+        samples_gen, prob_gen = self._generator.get_output(self._quantum_instance, shots=1000)
         temp = np.zeros(len(self._grid_elements))
         for j, sample in enumerate(samples_gen):
             for i, element in enumerate(self._grid_elements):
