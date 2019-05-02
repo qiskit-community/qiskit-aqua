@@ -22,7 +22,9 @@ levels:
 - Tal Kachman
 - `Gawel Kus <https://www.tudelft.nl/en/ae/organisation/departments/aerospace-structures-and-materials/novel-aerospace-materials/people/personal-pages-novam/students/g-kus-gawel/>`__
 - `Peng Liu <https://researcher.watson.ibm.com/researcher/view.php?person=us-liup>`__
+- `Jakub Marecek <http://researcher.ibm.com/person/ie-jakub.marecek>`__
 - Manoel Marques
+- `Martin Mevissen <https://researcher.watson.ibm.com/researcher/view.php?person=ie-MARTMEVI>`__
 - Antonio Mezzacapo
 - `Nikolaj Moll <https://researcher.watson.ibm.com/researcher/view.php?person=zurich-NIM>`__
 - Jan Müggenburg
@@ -33,6 +35,7 @@ levels:
 - `Julia Rice <https://researcher.watson.ibm.com/researcher/view.php?person=us-jrice>`__
 - `Raymond Harry Putra Rudy <https://researcher.watson.ibm.com/researcher/view.php?person=jp-RUDYHAR>`__
 - `Kanav Setia <https://physics.dartmouth.edu/people/kanav-setia>`__
+- `Andrea Simonetto <https://researcher.watson.ibm.com/researcher/view.php?person=ibm-Andrea.Simonetto>`__
 - Igor Sokolov
 - `Ivano Tavernelli <https://researcher.watson.ibm.com/researcher/view.php?person=zurich-ITA>`__
 - `Stephen Wood <https://researcher.watson.ibm.com/researcher/view.php?person=us-woodsp>`__
