@@ -12,11 +12,14 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+import logging
+
 import numpy as np
-from .aqua_error import AquaError
 from qiskit.util import local_hardware_info
 import qiskit
-import logging
+
+from .aqua_error import AquaError
+
 
 logger = logging.getLogger(__name__)
 
@@ -53,13 +56,15 @@ class QiskitAquaGlobals(object):
         if num_processes < 1:
             raise AquaError('Invalid Number of Processes {}.'.format(num_processes))
         if num_processes > QiskitAquaGlobals.CPU_COUNT:
-            raise AquaError('Number of Processes {} cannot be greater than cpu count {}.'.format(num_processes, QiskitAquaGlobals._CPU_COUNT))
+            raise AquaError('Number of Processes {} cannot be greater than cpu count {}.'
+                            .format(num_processes, QiskitAquaGlobals.CPU_COUNT))
         self._num_processes = num_processes
         # TODO: change Terra CPU_COUNT until issue gets resolved: https://github.com/Qiskit/qiskit-terra/issues/1963
         try:
             qiskit.tools.parallel.CPU_COUNT = self.num_processes
         except Exception as e:
-            logger.warning("Failed to set qiskit.tools.parallel.CPU_COUNT to value: '{}': Error: '{}'".format(self.num_processes, str(e)))
+            logger.warning("Failed to set qiskit.tools.parallel.CPU_COUNT to value: '{}': Error: '{}'".
+                           format(self.num_processes, str(e)))
 
     @property
     def random(self):
