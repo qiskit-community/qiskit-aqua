@@ -1,30 +1,25 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 
 import numpy as np
 import json
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import get_aer_backend
-
-from qiskit_aqua import run_algorithm
-from qiskit_aqua.input import EnergyInput
-from qiskit_aqua.translators.ising import setpacking
-from qiskit_aqua.algorithms import ExactEigensolver
+from qiskit.aqua import run_algorithm
+from qiskit.aqua.input import EnergyInput
+from qiskit.aqua.translators.ising import set_packing
+from qiskit.aqua.algorithms import ExactEigensolver
 
 
 class TestSetPacking(QiskitAquaTestCase):
@@ -35,7 +30,7 @@ class TestSetPacking(QiskitAquaTestCase):
         input_file = self._get_resource_path('sample.setpacking')
         with open(input_file) as f:
             self.list_of_subsets = json.load(f)
-            qubitOp, offset = setpacking.get_setpacking_qubitops(self.list_of_subsets)
+            qubitOp, offset = set_packing.get_set_packing_qubitops(self.list_of_subsets)
             self.algo_input = EnergyInput(qubitOp)
 
     def brute_force(self):
@@ -49,7 +44,7 @@ class TestSetPacking(QiskitAquaTestCase):
         max_v = -np.inf
         for i in range(max):
             cur = bitfield(i, L)
-            cur_v = setpacking.check_disjoint(cur, self.list_of_subsets)
+            cur_v = set_packing.check_disjoint(cur, self.list_of_subsets)
             if cur_v:
                 if np.count_nonzero(cur) > max_v:
                     max_v = np.count_nonzero(cur)
@@ -61,8 +56,8 @@ class TestSetPacking(QiskitAquaTestCase):
             'algorithm': {'name': 'ExactEigensolver'}
         }
         result = run_algorithm(params, self.algo_input)
-        x = setpacking.sample_most_likely(len(self.list_of_subsets), result['eigvecs'][0])
-        ising_sol = setpacking.get_solution(x)
+        x = set_packing.sample_most_likely(len(self.list_of_subsets), result['eigvecs'][0])
+        ising_sol = set_packing.get_solution(x)
         np.testing.assert_array_equal(ising_sol, [0, 1, 1])
         oracle = self.brute_force()
         self.assertEqual(np.count_nonzero(ising_sol), oracle)
@@ -70,17 +65,23 @@ class TestSetPacking(QiskitAquaTestCase):
     def test_set_packing_direct(self):
         algo = ExactEigensolver(self.algo_input.qubit_op, k=1, aux_operators=[])
         result = algo.run()
-        x = setpacking.sample_most_likely(len(self.list_of_subsets), result['eigvecs'][0])
-        ising_sol = setpacking.get_solution(x)
+        x = set_packing.sample_most_likely(len(self.list_of_subsets), result['eigvecs'][0])
+        ising_sol = set_packing.get_solution(x)
         np.testing.assert_array_equal(ising_sol, [0, 1, 1])
         oracle = self.brute_force()
         self.assertEqual(np.count_nonzero(ising_sol), oracle)
 
     def test_set_packing_vqe(self):
+        try:
+            from qiskit import Aer
+        except Exception as e:
+            self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(e)))
+            return
+
         algorithm_cfg = {
             'name': 'VQE',
             'operator_mode': 'grouped_paulis',
-            'batch_mode': True
+            'max_evals_grouped': 2
         }
 
         optimizer_cfg = {
@@ -100,9 +101,9 @@ class TestSetPacking(QiskitAquaTestCase):
             'optimizer': optimizer_cfg,
             'variational_form': var_form_cfg
         }
-        backend = get_aer_backend('qasm_simulator')
+        backend = Aer.get_backend('qasm_simulator')
         result = run_algorithm(params, self.algo_input, backend=backend)
-        x = setpacking.sample_most_likely(len(self.list_of_subsets), result['eigvecs'][0])
-        ising_sol = setpacking.get_solution(x)
+        x = set_packing.sample_most_likely(len(self.list_of_subsets), result['eigvecs'][0])
+        ising_sol = set_packing.get_solution(x)
         oracle = self.brute_force()
         self.assertEqual(np.count_nonzero(ising_sol), oracle)

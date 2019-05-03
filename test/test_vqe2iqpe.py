@@ -1,35 +1,32 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 
 import unittest
 
 import numpy as np
-from qiskit_aqua import get_aer_backend
 from qiskit.transpiler import PassManager
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import Operator, QuantumInstance
-from qiskit_aqua.input import EnergyInput
-from qiskit_aqua.utils import decimal_to_binary
-from qiskit_aqua.components.initial_states import VarFormBased
-from qiskit_aqua.components.variational_forms import RYRZ
-from qiskit_aqua.components.optimizers import SPSA
-from qiskit_aqua.algorithms import VQE
-from qiskit_aqua.algorithms import IQPE
+from qiskit import BasicAer
+from qiskit.aqua import Operator, QuantumInstance
+from qiskit.aqua.input import EnergyInput
+from qiskit.aqua.utils import decimal_to_binary
+from qiskit.aqua.components.initial_states import VarFormBased
+from qiskit.aqua.components.variational_forms import RYRZ
+from qiskit.aqua.components.optimizers import SPSA
+from qiskit.aqua.algorithms import VQE
+from qiskit.aqua.algorithms import IQPE
 
 
 class TestVQE2IQPE(QiskitAquaTestCase):
@@ -50,7 +47,7 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         self.algo_input = EnergyInput(qubit_op)
 
     def test_vqe_2_iqpe(self):
-        backend = get_aer_backend('qasm_simulator')
+        backend = BasicAer.get_backend('qasm_simulator')
         num_qbits = self.algo_input.qubit_op.num_qubits
         var_form = RYRZ(num_qbits, 3)
         optimizer = SPSA(max_trials=10)
@@ -68,9 +65,10 @@ class TestVQE2IQPE(QiskitAquaTestCase):
 
         state_in = VarFormBased(var_form, result['opt_params'])
         iqpe = IQPE(self.algo_input.qubit_op, state_in, num_time_slices, num_iterations,
-                    paulis_grouping='random', expansion_mode='suzuki', expansion_order=2, shallow_circuit_concat=True)
-        quantum_instance = QuantumInstance(backend, shots=100, pass_manager=PassManager(),
-                                       seed=self.random_seed, seed_mapper=self.random_seed)
+                    expansion_mode='suzuki', expansion_order=2, shallow_circuit_concat=True)
+        quantum_instance = QuantumInstance(
+            backend, shots=100, pass_manager=PassManager(), seed_transpiler=self.random_seed
+        )
         result = iqpe.run(quantum_instance)
 
         self.log.debug('top result str label:         {}'.format(result['top_measurement_label']))
@@ -88,7 +86,7 @@ class TestVQE2IQPE(QiskitAquaTestCase):
             fractional_part_only=True
         )))
 
-        np.testing.assert_approx_equal(self.ref_eigenval, result['energy'], significant=2)
+        np.testing.assert_approx_equal(result['energy'], self.ref_eigenval, significant=2)
 
 
 if __name__ == '__main__':

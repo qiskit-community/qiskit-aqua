@@ -1,80 +1,67 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 
 import unittest
-import operator
+import itertools
 
 from parameterized import parameterized
-from qiskit_aqua import get_aer_backend
-
+from qiskit import BasicAer
+from qiskit.aqua import QuantumInstance
+from qiskit.aqua.algorithms import Grover
+from qiskit.aqua.components.oracles import LogicalExpressionOracle as LEO, TruthTableOracle as TTO
 from test.common import QiskitAquaTestCase
-from qiskit_aqua.components.oracles import SAT
-from qiskit_aqua.algorithms import Grover
-from qiskit_aqua import QuantumInstance
+
+
+tests = [
+    ['p cnf 3 5 \n -1 -2 -3 0 \n 1 -2 3 0 \n 1 2 -3 0 \n 1 -2 -3 0 \n -1 2 3 0', ['101', '000', '011'], LEO],
+    ['p cnf 2 2 \n 1  0 \n -2  0', ['01'], LEO],
+    ['p cnf 2 4 \n 1  0 \n -1 0 \n 2  0 \n -2 0', [], LEO],
+    ['a & b & c', ['111'], LEO],
+    ['(a ^ b) & a & b', [], LEO],
+    ['a & b | c & d', ['0011', '1011', '0111', '1100', '1101', '1110', '1111'], LEO],
+    ['1000000000000001', ['0000', '1111'], TTO],
+    ['00000000', [], TTO],
+]
+
+mct_modes = ['basic', 'basic-dirty-ancilla', 'advanced', 'noancilla']
+simulators = ['statevector_simulator', 'qasm_simulator']
+optimizations = ['on', 'off']
 
 
 class TestGrover(QiskitAquaTestCase):
-
-    @parameterized.expand([
-        ['test_grover_tiny.cnf', False, 1, 'basic'],
-        ['test_grover_tiny.cnf', False, 1, 'advanced'],
-        ['test_grover.cnf', False, 2, 'basic'],
-        ['test_grover.cnf', False, 2, 'advanced'],
-        ['test_grover_no_solution.cnf', True, 1, 'basic'],
-        ['test_grover_no_solution.cnf', True, 1, 'advanced'],
-    ])
-    def test_grover(self, input_file, incremental=True, num_iterations=1, cnx_mode='basic'):
-        input_file = self._get_resource_path(input_file)
-        # get ground-truth
-        with open(input_file) as f:
-            buf = f.read()
-        if incremental:
-            self.log.debug('Testing incremental Grover search on SAT problem instance: \n{}'.format(
-                buf,
-            ))
+    @parameterized.expand(
+        [x[0] + list(x[1:]) for x in list(itertools.product(tests, mct_modes, simulators, optimizations))]
+    )
+    def test_grover(self, input, sol, oracle_cls, mct_mode, simulator, optimization='off'):
+        self.groundtruth = sol
+        if optimization == 'off':
+            oracle = oracle_cls(input, optimization='off')
         else:
-            self.log.debug('Testing Grover search with {} iteration(s) on SAT problem instance: \n{}'.format(
-                num_iterations, buf,
-            ))
-        header = buf.split('\n')[0]
-        self.assertGreaterEqual(header.find('solution'), 0, 'Ground-truth info missing.')
-        self.groundtruth = [
-            ''.join([
-                '1' if i > 0 else '0'
-                for i in sorted([int(v) for v in s.strip().split() if v != '0'], key=abs)
-            ])[::-1]
-            for s in header.split('solutions:' if header.find('solutions:') >= 0 else 'solution:')[-1].split(',')
-        ]
-        backend = get_aer_backend('qasm_simulator')
-        sat_oracle = SAT(buf)
-        grover = Grover(sat_oracle, num_iterations=num_iterations, incremental=incremental, cnx_mode=cnx_mode)
-        quantum_instance = QuantumInstance(backend, shots=100)
+            oracle = oracle_cls(input, optimization='qm-dlx' if oracle_cls == TTO else 'espresso')
+        grover = Grover(oracle, incremental=True, mct_mode=mct_mode)
+        backend = BasicAer.get_backend(simulator)
+        quantum_instance = QuantumInstance(backend, shots=1000)
 
         ret = grover.run(quantum_instance)
 
         self.log.debug('Ground-truth Solutions: {}.'.format(self.groundtruth))
-        self.log.debug('Measurement result:     {}.'.format(ret['measurements']))
-        top_measurement = max(ret['measurements'].items(), key=operator.itemgetter(1))[0]
-        self.log.debug('Top measurement:        {}.'.format(top_measurement))
+        self.log.debug('Top measurement:        {}.'.format(ret['top_measurement']))
         if ret['oracle_evaluation']:
-            self.assertIn(top_measurement, self.groundtruth)
+            self.assertIn(ret['top_measurement'], self.groundtruth)
             self.log.debug('Search Result:          {}.'.format(ret['result']))
         else:
-            self.assertEqual(self.groundtruth, [''])
+            self.assertEqual(self.groundtruth, [])
             self.log.debug('Nothing found.')
 
 

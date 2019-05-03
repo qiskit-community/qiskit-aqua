@@ -1,29 +1,25 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 
 import numpy as np
 
 from test.common import QiskitAquaTestCase
-from qiskit_aqua import get_aer_backend
-
-from qiskit_aqua import run_algorithm
-from qiskit_aqua.input import EnergyInput
-from qiskit_aqua.translators.ising import graphpartition
-from qiskit_aqua.algorithms import ExactEigensolver
+from qiskit import BasicAer
+from qiskit.aqua import run_algorithm
+from qiskit.aqua.input import EnergyInput
+from qiskit.aqua.translators.ising import graph_partition
+from qiskit.aqua.algorithms import ExactEigensolver
 
 
 class TestGraphPartition(QiskitAquaTestCase):
@@ -33,8 +29,8 @@ class TestGraphPartition(QiskitAquaTestCase):
         super().setUp()
         np.random.seed(100)
         self.num_nodes = 4
-        self.w = graphpartition.random_graph(self.num_nodes, edge_prob=0.8, weight_range=10)
-        self.qubit_op, self.offset = graphpartition.get_graphpartition_qubitops(self.w)
+        self.w = graph_partition.random_graph(self.num_nodes, edge_prob=0.8, weight_range=10)
+        self.qubit_op, self.offset = graph_partition.get_graph_partition_qubitops(self.w)
         self.algo_input = EnergyInput(self.qubit_op)
 
     def brute_force(self):
@@ -53,7 +49,7 @@ class TestGraphPartition(QiskitAquaTestCase):
             if how_many_nonzero * 2 != L:  # not balanced
                 continue
 
-            cur_v = graphpartition.objective_value(np.array(cur), self.w)
+            cur_v = graph_partition.objective_value(np.array(cur), self.w)
             if cur_v < minimal_v:
                 minimal_v = cur_v
         return minimal_v
@@ -64,28 +60,28 @@ class TestGraphPartition(QiskitAquaTestCase):
             'algorithm': {'name': 'ExactEigensolver'}
         }
         result = run_algorithm(params, self.algo_input)
-        x = graphpartition.sample_most_likely(result['eigvecs'][0])
+        x = graph_partition.sample_most_likely(result['eigvecs'][0])
         # check against the oracle
-        ising_sol = graphpartition.get_graph_solution(x)
+        ising_sol = graph_partition.get_graph_solution(x)
         np.testing.assert_array_equal(ising_sol, [0, 1, 0, 1])
         oracle = self.brute_force()
-        self.assertEqual(graphpartition.objective_value(x, self.w), oracle)
+        self.assertEqual(graph_partition.objective_value(x, self.w), oracle)
 
     def test_graph_partition_direct(self):
         algo = ExactEigensolver(self.algo_input.qubit_op, k=1, aux_operators=[])
         result = algo.run()
-        x = graphpartition.sample_most_likely(result['eigvecs'][0])
+        x = graph_partition.sample_most_likely(result['eigvecs'][0])
         # check against the oracle
-        ising_sol = graphpartition.get_graph_solution(x)
+        ising_sol = graph_partition.get_graph_solution(x)
         np.testing.assert_array_equal(ising_sol, [0, 1, 0, 1])
         oracle = self.brute_force()
-        self.assertEqual(graphpartition.objective_value(x, self.w), oracle)
+        self.assertEqual(graph_partition.objective_value(x, self.w), oracle)
 
     def test_graph_partition_vqe(self):
         algorithm_cfg = {
             'name': 'VQE',
             'operator_mode': 'matrix',
-            'batch_mode': True
+            'max_evals_grouped': 2
         }
 
         optimizer_cfg = {
@@ -105,11 +101,11 @@ class TestGraphPartition(QiskitAquaTestCase):
             'optimizer': optimizer_cfg,
             'variational_form': var_form_cfg
         }
-        backend = get_aer_backend('statevector_simulator')
+        backend = BasicAer.get_backend('statevector_simulator')
         result = run_algorithm(params, self.algo_input, backend=backend)
-        x = graphpartition.sample_most_likely(result['eigvecs'][0])
+        x = graph_partition.sample_most_likely(result['eigvecs'][0])
         # check against the oracle
-        ising_sol = graphpartition.get_graph_solution(x)
-        np.testing.assert_array_equal(ising_sol, [1, 0, 0, 1])
+        ising_sol = graph_partition.get_graph_solution(x)
+        np.testing.assert_array_equal(ising_sol, [0, 1, 0, 1])
         oracle = self.brute_force()
-        self.assertEqual(graphpartition.objective_value(x, self.w), oracle)
+        self.assertEqual(graph_partition.objective_value(x, self.w), oracle)
