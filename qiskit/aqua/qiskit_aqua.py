@@ -292,6 +292,10 @@ class QiskitAqua(object):
             if measurement_error_mitigation:
                 backend_cfg['measurement_error_mitigation_cls'] = CompleteMeasFitter
 
+            measurement_error_mitigation_refresh_period = self._parser.get_section_property(JSONSchema.PROBLEM,
+                                                                                            'measurement_error_mitigation_refresh_period')
+            backend_cfg['cals_matrix_refresh_period'] = measurement_error_mitigation_refresh_period
+
             self._quantum_instance = QuantumInstance(**backend_cfg)
 
     def run(self, json_output=False):
