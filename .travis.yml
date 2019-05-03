@@ -1,7 +1,14 @@
-# Copyright 2017, IBM.
+# This code is part of Qiskit.
 #
-# This source code is licensed under the Apache License, Version 2.0 found in
-# the LICENSE.txt file in the root directory of this source tree.
+# (C) Copyright IBM 2018, 2019.
+#
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
+#
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 
 notifications:
     on_success: change
@@ -30,37 +37,45 @@ addons:
         - g++-7
 
 before_install:
+    - |
+      INIT_FILE="$TRAVIS_BUILD_DIR/qiskit/__init__.py"
+      if [ -f $INIT_FILE ]; then
+        # stops travis if __init__.py exists under qiskit
+        echo "File '$INIT_FILE' found. It should not exist, since this repo extends qiskit namespace.";
+        travis_terminate 1;
+      fi
+    - pip install --upgrade pip setuptools wheel
     # download Qiskit Terra master and unzip it only if forced from master or not stable branch, otherwise use the pypi version
     - |
       if [ ${MASTER_BRANCH_DEPENDENCIES} = "true" ] || [ ${TRAVIS_BRANCH} != "stable" ]; then
         wget https://codeload.github.com/Qiskit/qiskit-terra/zip/master -O /tmp/qiskit-terra.zip
         unzip /tmp/qiskit-terra.zip -d /tmp/
         # Install Qiskit Terra requirements.
-        pip install -U -r /tmp/qiskit-terra-master/requirements.txt
-        pip install -U -r /tmp/qiskit-terra-master/requirements-dev.txt
+        pip install -U -r /tmp/qiskit-terra-master/requirements-dev.txt --progress-bar off
         # Install local Qiskit Terra
-        pip install -e /tmp/qiskit-terra-master
+        pip install -e /tmp/qiskit-terra-master --progress-bar off
+        # Download github Ignis
+        wget https://codeload.github.com/Qiskit/qiskit-ignis/zip/master -O /tmp/qiskit-ignis.zip
+        unzip /tmp/qiskit-ignis.zip -d /tmp/
+        # Install local Qiskit Ignis
+        pip install -e /tmp/qiskit-ignis-master --progress-bar off
       fi
     # download Qiskit Aqua and unzip it
     - wget https://codeload.github.com/Qiskit/qiskit-aqua/zip/$DEP_BRANCH -O /tmp/qiskit-aqua.zip
     - unzip /tmp/qiskit-aqua.zip -d /tmp/
-    # Install Qiskit Aqua dependencies.
-    - pip install -U -r /tmp/qiskit-aqua-$DEP_BRANCH/requirements.txt
-    - pip install -U -r /tmp/qiskit-aqua-$DEP_BRANCH/requirements-dev.txt
     # Install local Qiskit Aqua
-    - pip install -e /tmp/qiskit-aqua-$DEP_BRANCH
+    - pip install -e /tmp/qiskit-aqua-$DEP_BRANCH --progress-bar off
     # download PyQuante master and unzip it
     - wget https://codeload.github.com/rpmuller/pyquante2/zip/master -O /tmp/pyquante2.zip
     - unzip /tmp/pyquante2.zip -d /tmp/
-    # Install pyQuante  dependencies.
-    - pip install -U -r /tmp/pyquante2-master/requirements.txt
     # Install local PyQuante
-    - pip install -e /tmp/pyquante2-master
+    - pip install -e /tmp/pyquante2-master --progress-bar off
    
 # Test 
 install:
-    - pip install -U -r requirements.txt
-    - pip install -U -r requirements-dev.txt
-    - pip install pyscf
+    # install Chemistry and dev requirements
+    - pip install -U -r requirements-dev.txt --progress-bar off
+    - pip install -e $TRAVIS_BUILD_DIR --progress-bar off
 script:
     - python -m unittest discover -v test
+    

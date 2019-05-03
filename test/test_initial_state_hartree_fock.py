@@ -1,29 +1,26 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 
 import unittest
 
 import numpy as np
 
-from test.common import QiskitAquaChemistryTestCase
-from qiskit_chemistry.aqua_extensions.components.initial_states import HartreeFock
+from test.common import QiskitChemistryTestCase
+from qiskit.chemistry.aqua_extensions.components.initial_states import HartreeFock
 
 
-class TestInitialStateHartreeFock(QiskitAquaChemistryTestCase):
+class TestInitialStateHartreeFock(QiskitChemistryTestCase):
 
     def test_qubits_4_jw_h2(self):
         self.hf = HartreeFock(4, 4, 2, 'jordan_wigner', False)
@@ -53,6 +50,13 @@ class TestInitialStateHartreeFock(QiskitAquaChemistryTestCase):
         cct = self.hf.construct_circuit('circuit')
         self.assertEqual(cct.qasm(), 'OPENQASM 2.0;\ninclude "qelib1.inc";\nqreg q[2];\n'
                                      'u3(3.14159265358979,0.0,3.14159265358979) q[0];\n')
+
+    def test_qubits_6_py_lih_cct(self):
+        self.hf = HartreeFock(6, 10, 2, 'parity', True, [1, 2])
+        cct = self.hf.construct_circuit('circuit')
+        self.assertEqual(cct.qasm(), 'OPENQASM 2.0;\ninclude "qelib1.inc";\nqreg q[6];\n'
+                                     'u3(3.14159265358979,0.0,3.14159265358979) q[0];\n'
+                                     'u3(3.14159265358979,0.0,3.14159265358979) q[1];\n')
 
 
 if __name__ == '__main__':

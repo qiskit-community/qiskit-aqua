@@ -1,41 +1,49 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 
 import setuptools
+import inspect
+import sys
+import os
 
-long_description = """<a href="https://qiskit.org/aqua" rel=nofollow>Qiskit Chemistry</a> 
- is a set of quantum computing algorithms, 
+long_description = """<a href="https://qiskit.org/aqua" rel=nofollow>Qiskit Chemistry</a>
+ is a set of quantum computing algorithms,
  tools and APIs for experimenting with real-world chemistry applications on near-term quantum devices."""
 
 requirements = [
-    "qiskit-aqua>=0.4.1",
+    "qiskit-aqua>=0.5.0",
     "numpy>=1.13",
     "h5py",
     "psutil>=5",
     "jsonschema>=2.6,<2.7",
-    "setuptools>=40.5.0",
-    "pyobjc-core; sys_platform == 'darwin'",
-    "pyobjc-framework-Cocoa; sys_platform == 'darwin'"
+    "networkx>=2.2",
+    "pyscf; sys_platform != 'win32'",
+    "setuptools>=40.1.0"
 ]
 
+if not hasattr(setuptools, 'find_namespace_packages') or not inspect.ismethod(setuptools.find_namespace_packages):
+    print("Your setuptools version:'{}' does not support PEP 420 (find_namespace_packages). "
+          "Upgrade it to version >='40.1.0' and repeat install.".format(setuptools.__version__))
+    sys.exit(1)
+
+VERSION_PATH = os.path.join(os.path.dirname(__file__), "qiskit", "chemistry", "VERSION.txt")
+with open(VERSION_PATH, "r") as version_file:
+    VERSION = version_file.read().strip()
 
 setuptools.setup(
     name='qiskit-chemistry',
-    version="0.4.2",  # this should match __init__.__version__
+    version=VERSION,
     description='Qiskit Chemistry: Experiment with chemistry applications on a quantum machine',
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -56,20 +64,14 @@ setuptools.setup(
         "Topic :: Scientific/Engineering"
     ),
     keywords='qiskit sdk quantum chemistry',
-    packages=setuptools.find_packages(exclude=['test*']),
+    packages=setuptools.find_namespace_packages(exclude=['test*']),
     install_requires=requirements,
     include_package_data=True,
     python_requires=">=3.5",
     entry_points={
-        'console_scripts': [
-            'qiskit_chemistry_cmd=qiskit_chemistry_cmd.command_line:main'
-        ],
-        'gui_scripts': [
-            'qiskit_chemistry_ui=qiskit_chemistry_ui.command_line:main'
-        ],
         'qiskit.aqua.pluggables': [
-            'HartreeFock = qiskit_chemistry.aqua_extensions.components.initial_states:HartreeFock',
-            'UCCSD = qiskit_chemistry.aqua_extensions.components.variational_forms:UCCSD',
+            'HartreeFock = qiskit.chemistry.aqua_extensions.components.initial_states:HartreeFock',
+            'UCCSD = qiskit.chemistry.aqua_extensions.components.variational_forms:UCCSD',
         ],
     },
 )

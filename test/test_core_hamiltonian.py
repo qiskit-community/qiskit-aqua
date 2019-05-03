@@ -1,28 +1,25 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 
 import unittest
-from test.common import QiskitAquaChemistryTestCase
-from qiskit_chemistry import QiskitChemistryError
-from qiskit_chemistry.drivers import PySCFDriver, UnitsType
-from qiskit_chemistry.core import Hamiltonian, TransformationType, QubitMappingType
+from test.common import QiskitChemistryTestCase
+from qiskit.chemistry import QiskitChemistryError
+from qiskit.chemistry.drivers import PySCFDriver, UnitsType
+from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
 
 
-class TestCoreHamiltonian(QiskitAquaChemistryTestCase):
+class TestCoreHamiltonian(QiskitChemistryTestCase):
     """core/hamiltonian Driver tests."""
 
     def setUp(self):
@@ -46,11 +43,11 @@ class TestCoreHamiltonian(QiskitAquaChemistryTestCase):
                                               'num_orbitals': num_orbitals,
                                               'two_qubit_reduction': actual_two_qubit_reduction})
 
-    def _validate_input_object(self, input_object, num_qubits=4, num_paulis=15):
-        self.assertEqual(type(input_object).__name__, 'EnergyInput')
-        self.assertIsNotNone(input_object.qubit_op)
-        self.assertEqual(input_object.qubit_op.num_qubits, num_qubits)
-        self.assertEqual(len(input_object.qubit_op.save_to_dict()['paulis']), num_paulis)
+    def _validate_input_object(self, qubit_op, num_qubits=4, num_paulis=15):
+        self.assertEqual(type(qubit_op).__name__, 'Operator')
+        self.assertIsNotNone(qubit_op)
+        self.assertEqual(qubit_op.num_qubits, num_qubits)
+        self.assertEqual(len(qubit_op.save_to_dict()['paulis']), num_paulis)
 
     def test_output(self):
         core = Hamiltonian(transformation=TransformationType.FULL,
@@ -58,10 +55,10 @@ class TestCoreHamiltonian(QiskitAquaChemistryTestCase):
                            two_qubit_reduction=True,
                            freeze_core=False,
                            orbital_reduction=[])
-        input_object = core.run(self.qmolecule)
+        qubit_op, aux_ops = core.run(self.qmolecule)
         self._validate_vars(core)
         self._validate_info(core, actual_two_qubit_reduction=True)
-        self._validate_input_object(input_object, num_qubits=2, num_paulis=5)
+        self._validate_input_object(qubit_op, num_qubits=2, num_paulis=5)
 
     def test_jordan_wigner(self):
         core = Hamiltonian(transformation=TransformationType.FULL,
@@ -69,10 +66,10 @@ class TestCoreHamiltonian(QiskitAquaChemistryTestCase):
                            two_qubit_reduction=False,
                            freeze_core=False,
                            orbital_reduction=[])
-        input_object = core.run(self.qmolecule)
+        qubit_op, aux_ops = core.run(self.qmolecule)
         self._validate_vars(core)
         self._validate_info(core)
-        self._validate_input_object(input_object)
+        self._validate_input_object(qubit_op)
 
     def test_jordan_wigner_2q(self):
         core = Hamiltonian(transformation=TransformationType.FULL,
@@ -80,11 +77,11 @@ class TestCoreHamiltonian(QiskitAquaChemistryTestCase):
                            two_qubit_reduction=True,
                            freeze_core=False,
                            orbital_reduction=[])
-        input_object = core.run(self.qmolecule)
+        qubit_op, aux_ops = core.run(self.qmolecule)
         self._validate_vars(core)
         # Reported effective 2 qubit reduction should be false
         self._validate_info(core, actual_two_qubit_reduction=False)
-        self._validate_input_object(input_object)
+        self._validate_input_object(qubit_op)
 
     def test_parity(self):
         core = Hamiltonian(transformation=TransformationType.FULL,
@@ -92,10 +89,10 @@ class TestCoreHamiltonian(QiskitAquaChemistryTestCase):
                            two_qubit_reduction=False,
                            freeze_core=False,
                            orbital_reduction=[])
-        input_object = core.run(self.qmolecule)
+        qubit_op, aux_ops = core.run(self.qmolecule)
         self._validate_vars(core)
         self._validate_info(core)
-        self._validate_input_object(input_object)
+        self._validate_input_object(qubit_op)
 
     def test_bravyi_kitaev(self):
         core = Hamiltonian(transformation=TransformationType.FULL,
@@ -103,10 +100,10 @@ class TestCoreHamiltonian(QiskitAquaChemistryTestCase):
                            two_qubit_reduction=False,
                            freeze_core=False,
                            orbital_reduction=[])
-        input_object = core.run(self.qmolecule)
+        qubit_op, aux_ops = core.run(self.qmolecule)
         self._validate_vars(core)
         self._validate_info(core)
-        self._validate_input_object(input_object)
+        self._validate_input_object(qubit_op)
 
     def test_particle_hole(self):
         core = Hamiltonian(transformation=TransformationType.PH,
@@ -114,10 +111,10 @@ class TestCoreHamiltonian(QiskitAquaChemistryTestCase):
                            two_qubit_reduction=False,
                            freeze_core=False,
                            orbital_reduction=[])
-        input_object = core.run(self.qmolecule)
+        qubit_op, aux_ops = core.run(self.qmolecule)
         self._validate_vars(core, ph_energy_shift=-1.83696799)
         self._validate_info(core)
-        self._validate_input_object(input_object)
+        self._validate_input_object(qubit_op)
 
     def test_freeze_core(self):  # Should be in effect a no-op for H2
         core = Hamiltonian(transformation=TransformationType.FULL,
@@ -125,10 +122,10 @@ class TestCoreHamiltonian(QiskitAquaChemistryTestCase):
                            two_qubit_reduction=False,
                            freeze_core=True,
                            orbital_reduction=[])
-        input_object = core.run(self.qmolecule)
+        qubit_op, aux_ops = core.run(self.qmolecule)
         self._validate_vars(core)
         self._validate_info(core)
-        self._validate_input_object(input_object)
+        self._validate_input_object(qubit_op)
 
     def test_orbital_reduction(self):  # Remove virtual orbital just for test purposes (not sensible!)
         core = Hamiltonian(transformation=TransformationType.FULL,
@@ -136,10 +133,10 @@ class TestCoreHamiltonian(QiskitAquaChemistryTestCase):
                            two_qubit_reduction=False,
                            freeze_core=False,
                            orbital_reduction=[-1])
-        input_object = core.run(self.qmolecule)
+        qubit_op, aux_ops = core.run(self.qmolecule)
         self._validate_vars(core)
         self._validate_info(core, num_orbitals=2)
-        self._validate_input_object(input_object, num_qubits=2, num_paulis=4)
+        self._validate_input_object(qubit_op, num_qubits=2, num_paulis=4)
 
 
 if __name__ == '__main__':

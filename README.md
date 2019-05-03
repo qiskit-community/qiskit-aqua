@@ -2,7 +2,7 @@
 
 [![License](https://img.shields.io/github/license/Qiskit/qiskit-chemistry.svg?style=popout-square)](https://opensource.org/licenses/Apache-2.0)[![Build Status](https://img.shields.io/travis/com/Qiskit/qiskit-chemistry/master.svg?style=popout-square)](https://travis-ci.com/Qiskit/qiskit-chemistry)[![](https://img.shields.io/github/release/Qiskit/qiskit-chemistry.svg?style=popout-square)](https://github.com/Qiskit/qiskit-chemistry/releases)[![](https://img.shields.io/pypi/dm/qiskit-chemistry.svg?style=popout-square)](https://pypi.org/project/qiskit-chemistry/)
 
-**Qiskit** is an open-source framework for working with noisy intermediate-scale quantum computers (NISQ) at the level of pulses, circuits, algorithms, and applications.
+**Qiskit** is an open-source framework for working with noisy intermediate-scale quantum (NISQ) computers at the level of pulses, circuits, algorithms, and applications.
 
 Qiskit is made up elements that work together to enable quantum computing. The element **Aqua**
 provides a library of cross-domain algorithms upon which domain-specific applications can be
@@ -68,8 +68,8 @@ To install from source, follow the instructions in the [contribution guidelines]
 Now that Qiskit Chemistry is installed, it's time to begin working with it.  We are ready to try out an experiment using Qiskit Chemistry:
 
 ```python
-from qiskit_chemistry import FermionicOperator
-from qiskit_chemistry.drivers import PySCFDriver, UnitsType
+from qiskit.chemistry import FermionicOperator
+from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 
 # Use PySCF, a classical computational chemistry software package, to compute the one-body and two-body integrals in
 # molecular-orbital basis, necessary to form the Fermionic operator
@@ -92,19 +92,19 @@ from qiskit import Aer
 backend = Aer.get_backend('statevector_simulator')
 
 # setup a classical optimizer for VQE
-from qiskit_aqua.components.optimizers import L_BFGS_B
+from qiskit.aqua.components.optimizers import L_BFGS_B
 optimizer = L_BFGS_B()
 
 # setup the initial state for the variational form
-from qiskit_chemistry.aqua_extensions.components.initial_states import HartreeFock
+from qiskit.chemistry.aqua_extensions.components.initial_states import HartreeFock
 init_state = HartreeFock(num_qubits, num_spin_orbitals, num_particles)
 
 # setup the variational form for VQE
-from qiskit_aqua.components.variational_forms import RYRZ
+from qiskit.aqua.components.variational_forms import RYRZ
 var_form = RYRZ(num_qubits, initial_state=init_state)
 
 # setup and run VQE
-from qiskit_aqua.algorithms import VQE
+from qiskit.aqua.algorithms import VQE
 algorithm = VQE(qubitOp, var_form, optimizer)
 result = algorithm.run(backend)
 print(result['energy'])
@@ -184,6 +184,8 @@ folders of the [qiskit-tutorials GitHub Repository](https://github.com/Qiskit/qi
 Qiskit Chemistry was inspired, authored and brought about by the collective work of a team of researchers.
 Aqua continues to grow with the help and work of [many people](./CONTRIBUTORS.rst), who contribute
 to the project at different levels.
+If you use Qiskit, please cite as per the included
+[BibTeX file](https://github.com/Qiskit/qiskit/blob/master/Qiskit.bib).
 
 ## License
 
@@ -191,7 +193,7 @@ This project uses the [Apache License 2.0](LICENSE.txt).
 
 Some of the code embedded in Qiskit Chemistry to interface some of the computational chemistry
 software drivers requires additional licensing:
-* The [Gaussian 16 driver](qiskit_chemistry/drivers/gaussiand/README.md) contains work licensed under the
-[Gaussian Open-Source Public License](qiskit_chemistry/drivers/gaussiand/gauopen/LICENSE.txt).
-* The [Pyquante driver](qiskit_chemistry/drivers/pyquanted/README.md) contains work licensed under the
-[modified BSD license](qiskit_chemistry/drivers/pyquanted/LICENSE.txt).```
+* The [Gaussian 16 driver](qiskit/chemistry/drivers/gaussiand/README.md) contains work licensed under the
+[Gaussian Open-Source Public License](qiskit/chemistry/drivers/gaussiand/gauopen/LICENSE.txt).
+* The [Pyquante driver](qiskit/chemistry/drivers/pyquanted/README.md) contains work licensed under the
+[modified BSD license](qiskit/chemistry/drivers/pyquanted/LICENSE.txt).```

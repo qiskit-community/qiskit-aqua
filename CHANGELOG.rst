@@ -18,6 +18,15 @@ The format is based on `Keep a Changelog`_.
 `UNRELEASED`_
 =============
 
+`0.5.0`_ - 2019-05-02
+=====================
+
+Removed
+-------
+
+- Moved Command line and GUI interfaces to separate repo (qiskit_aqua_uis)
+
+
 `0.4.2`_ - 2019-01-09
 =====================
 
@@ -128,7 +137,8 @@ Changed
 - Changed description and change package name to dashes in setup.py.
 - Update description and fixed links in readme
 
-.. _UNRELEASED: https://github.com/Qiskit/qiskit-chemistry/compare/0.4.2...HEAD
+.. _UNRELEASED: https://github.com/Qiskit/qiskit-chemistry/compare/0.5.0...HEAD
+.. _0.5.0: https://github.com/Qiskit/qiskit-chemistry/compare/0.4.2...0.5.0
 .. _0.4.2: https://github.com/Qiskit/qiskit-chemistry/compare/0.4.1...0.4.2
 .. _0.4.1: https://github.com/Qiskit/qiskit-chemistry/compare/0.4.0...0.4.1
 .. _0.4.0: https://github.com/Qiskit/qiskit-chemistry/compare/0.3.0...0.4.0

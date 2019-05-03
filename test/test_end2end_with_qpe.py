@@ -1,38 +1,34 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 
 import unittest
 from parameterized import parameterized
 import numpy as np
 import qiskit
 from qiskit.transpiler import PassManager
-from qiskit_aqua.utils import decimal_to_binary
-from qiskit_aqua import QuantumInstance
-from qiskit_aqua.algorithms.single_sample import QPE
-from qiskit_aqua.algorithms.classical import ExactEigensolver
-from qiskit_aqua.components.iqfts import Standard
+from qiskit.aqua.utils import decimal_to_binary
+from qiskit.aqua import QuantumInstance
+from qiskit.aqua.algorithms.single_sample import QPE
+from qiskit.aqua.algorithms.classical import ExactEigensolver
+from qiskit.aqua.components.iqfts import Standard
+from test.common import QiskitChemistryTestCase
+from qiskit.chemistry.drivers import PySCFDriver, UnitsType
+from qiskit.chemistry import FermionicOperator, QiskitChemistryError
+from qiskit.chemistry.aqua_extensions.components.initial_states import HartreeFock
 
-from test.common import QiskitAquaChemistryTestCase
-from qiskit_chemistry.drivers import PySCFDriver, UnitsType
-from qiskit_chemistry import FermionicOperator, QiskitChemistryError
-from qiskit_chemistry.aqua_extensions.components.initial_states import HartreeFock
 
-
-class TestEnd2EndWithQPE(QiskitAquaChemistryTestCase):
+class TestEnd2EndWithQPE(QiskitChemistryTestCase):
     """QPE tests."""
 
     @parameterized.expand([
@@ -78,13 +74,13 @@ class TestEnd2EndWithQPE(QiskitAquaChemistryTestCase):
         iqft = Standard(n_ancillae)
 
         qpe = QPE(self.qubit_op, state_in, iqft, num_time_slices, n_ancillae,
-                  paulis_grouping='random', expansion_mode='suzuki',
+                  expansion_mode='suzuki',
                   expansion_order=2, shallow_circuit_concat=True)
-        backend = qiskit.Aer.get_backend('qasm_simulator')
+        backend = qiskit.BasicAer.get_backend('qasm_simulator')
         quantum_instance = QuantumInstance(backend, shots=100, pass_manager=PassManager())
         result = qpe.run(quantum_instance)
 
-        self.log.debug('measurement results:      {}'.format(result['measurements']))
+        self.log.debug('eigvals:                  {}'.format(result['eigvals']))
         self.log.debug('top result str label:     {}'.format(result['top_measurement_label']))
         self.log.debug('top result in decimal:    {}'.format(result['top_measurement_decimal']))
         self.log.debug('stretch:                  {}'.format(result['stretch']))

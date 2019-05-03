@@ -26,8 +26,8 @@ __pycache__/
 *.so.dSYM
 *.dll
 #Allow
-!qiskit_chemistry/drivers/gaussiand/gauopen/*.so
-!qiskit_chemistry/drivers/gaussiand/gauopen/*.pyd
+!qiskit/chemistry/drivers/gaussiand/gauopen/*.so
+!qiskit/chemistry/drivers/gaussiand/gauopen/*.pyd
 
 
 # Distribution / packaging
@@ -94,17 +94,6 @@ instance/
 
 # Scrapy stuff:
 .scrapy
-
-# Sphinx documentation
-docs/_build/
-docs/*.rst
-#Allow
-!docs/dev_introduction.rst
-!docs/index.rst
-!docs/releases.rst
-!docs/aqua_chemistry.rst
-!docs/aqua_chemistry_*.rst
-!docs/release_history.rst
 
 # PyBuilder
 target/
