@@ -20,7 +20,7 @@ from qiskit.aqua import AquaError
 
 class AlgorithmInput(Pluggable):
 
-    _PROBLEM_SET = ['energy', 'excited_states', 'eoh', 'classification', 'ising', 'linear_system']
+    _PROBLEM_SET = ['energy', 'excited_states', 'eoh', 'classification', 'ising', 'linear_system', 'distribution_learning_loading']
 
     @abstractmethod
     def __init__(self):

@@ -16,8 +16,10 @@ from .algorithm_input import AlgorithmInput
 from .energy_input import EnergyInput
 from .linear_system_input import LinearSystemInput
 from .classification_input import ClassificationInput
+from .qganinput import QGANInput
 
 __all__ = ['AlgorithmInput',
            'EnergyInput',
            'LinearSystemInput',
-           'ClassificationInput']
+           'ClassificationInput',
+           'QGANInput']

@@ -39,7 +39,8 @@ requirements = [
     "docplex",
     "fastdtw",
     "quandl",
-    "setuptools>=40.1.0"
+    "setuptools>=40.1.0",
+    "torch; sys_platform != 'win32'"
 ]
 
 if not hasattr(setuptools, 'find_namespace_packages') or not inspect.ismethod(setuptools.find_namespace_packages):
