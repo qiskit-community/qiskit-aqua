@@ -13,4 +13,4 @@ docplex
 fastdtw
 quandl
 setuptools>=40.1.0
-torch
+torch; sys_platform != 'win32'
