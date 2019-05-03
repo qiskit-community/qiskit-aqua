@@ -75,13 +75,13 @@ class TestMeasurementErrorMitigation(QiskitAquaTestCase):
         oracle = LogicalExpressionOracle(input, optimization='off')
         grover = Grover(oracle)
         _ = grover.run(quantum_instance)
-        cals_matrix_1 = quantum_instance.cals_matrix.copy()
+        cals_matrix_1 = quantum_instance.cals_matrix(qubit_index=[0, 1, 2])
 
         time.sleep(15)
         aqua_globals.random_seed = 2
         quantum_instance.set_config(seed=111)
         _ = grover.run(quantum_instance)
-        cals_matrix_2 = quantum_instance.cals_matrix.copy()
+        cals_matrix_2 = quantum_instance.cals_matrix(qubit_index=[0, 1, 2])
 
         diff = cals_matrix_1 - cals_matrix_2
         total_diff = np.sum(np.abs(diff))
