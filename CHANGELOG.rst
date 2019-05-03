@@ -55,7 +55,8 @@ Added
 - Added parameters ``auto_hermitian`` and ``auto_resize`` to ``HHL`` algorithm to support non-hermititan and non 2**n sized matrices by default.
 - Added another feature map, ``RawFeatureVector``, that directly maps feature vectors to qubits' states for classification.
 - ``SVM_Classical`` can now load models trained by ``QSVM``.
-- Added CompleteMeasFitter for mitigating measurement error when jobs are run on a real device or noise simulation.
+- Added ``CompleteMeasFitter`` for mitigating measurement error when jobs are run on a real device or noisy simulator.
+- Added ``QGAN`` (Quantum Generative Adversarial Network) algorithm, along with neural network components comprising a quantum generator and classical discriminator.
 
 Removed
 -------
