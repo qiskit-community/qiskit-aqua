@@ -15,21 +15,28 @@
 import unittest
 import time
 
-from qiskit import Aer
 import numpy as np
+from qiskit.ignis.mitigation.measurement import CompleteMeasFitter
 
 from test.common import QiskitAquaTestCase
 from qiskit.aqua.components.oracles import LogicalExpressionOracle
 from qiskit.aqua import QuantumInstance, aqua_globals
-from qiskit.ignis.mitigation.measurement import CompleteMeasFitter
-from qiskit.providers.aer import noise
 from qiskit.aqua.algorithms import Grover
+from qiskit.aqua.utils.backend_utils import has_aer
 
 
 class TestMeasurementErrorMitigation(QiskitAquaTestCase):
     """Test measurement error mitigation."""
 
+    def setUp(self):
+        if not has_aer():
+            self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(e)))
+            return
+
     def test_measurement_error_mitigation(self):
+        from qiskit import Aer
+        from qiskit.providers.aer import noise
+
         aqua_globals.random_seed = 0
 
         # build noise model
@@ -59,6 +66,9 @@ class TestMeasurementErrorMitigation(QiskitAquaTestCase):
         self.assertGreaterEqual(prob_top_measurement_w_mitigation, prob_top_measurement_wo_mitigation)
 
     def test_measurement_error_mitigation_auto_refresh(self):
+        from qiskit import Aer
+        from qiskit.providers.aer import noise
+
         aqua_globals.random_seed = 0
 
         # build noise model
@@ -90,6 +100,9 @@ class TestMeasurementErrorMitigation(QiskitAquaTestCase):
         self.assertGreater(timestamp_2, timestamp_1)
 
     def test_measurement_error_mitigation_with_dedicated_shots(self):
+        from qiskit import Aer
+        from qiskit.providers.aer import noise
+
         aqua_globals.random_seed = 0
 
         # build noise model
