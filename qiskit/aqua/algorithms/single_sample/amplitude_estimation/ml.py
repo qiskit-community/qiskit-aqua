@@ -71,16 +71,30 @@ class MaximumLikelihood:
         @note Before calling this method, call the method `run` of the
               AmplitudeEstimation instance
         """
-        self._qae = self.ae._ret['estimation']
+        # Get value (not mapped value) of QAE estimate
+        # also possible: qae = self.ae.a_factory.estimation_to_value(
+        #                           self.ae._ret['estimation'])
+        # if estimation_to_value is implemented.
+        self._qae = self.ae._ret['values'][np.argmax(self.ae._ret['probabilities'])]
 
         # Compute the two intervals in which are candidates for containing
         # the maximum of the log-likelihood function: the two bubbles next to
         # the QAE estimate
         M = 2**self.ae._m
-        y = M * np.arcsin(np.sqrt(self._qae)) / np.pi
-        left_of_qae = np.sin(np.pi * (y - 1) / M)**2
-        right_of_qae = np.sin(np.pi * (y + 1) / M)**2
-        bubbles = [left_of_qae, self._qae, right_of_qae]
+        y = int(M * np.arcsin(np.sqrt(self._qae)) / np.pi)
+        bubbles = None
+        if y == 0:
+            right_of_qae = np.sin(np.pi * (y + 1) / M)**2
+            bubbles = [self._qae, right_of_qae]
+
+        elif y == M:
+            left_of_qae = np.sin(np.pi * (y - 1) / M)**2
+            bubbles = [left_of_qae, self._qae]
+
+        else:
+            left_of_qae = np.sin(np.pi * (y - 1) / M)**2
+            right_of_qae = np.sin(np.pi * (y + 1) / M)**2
+            bubbles = [left_of_qae, self._qae, right_of_qae]
 
         # Find global maximum amongst the two local maxima
         a_opt = self._qae
