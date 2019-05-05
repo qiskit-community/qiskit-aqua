@@ -67,10 +67,10 @@ def angle_to_value(w):
     if hasattr(w, "__len__"):
         w = np.asarray(w)
         if not (w.all() >= 0 and w.all() <= 1):
-            raise AquaError("Invalid value! Angle `w` must be 0 <= a <= 1")
+            raise AquaError("Invalid value! Angle `w` must be 0 <= w <= 1")
     else:
         if not (w >= 0 and w <= 1):
-            raise AquaError("Invalid value! Angle `w` must be 0 <= a <= 1")
+            raise AquaError("Invalid value! Angle `w` must be 0 <= w <= 1")
 
     return np.sin(np.pi * w)**2
 
