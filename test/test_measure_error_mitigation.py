@@ -22,7 +22,6 @@ from test.common import QiskitAquaTestCase
 from qiskit.aqua.components.oracles import LogicalExpressionOracle
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms import Grover
-from qiskit.aqua.utils.backend_utils import has_aer
 
 
 class TestMeasurementErrorMitigation(QiskitAquaTestCase):
@@ -30,7 +29,9 @@ class TestMeasurementErrorMitigation(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
-        if not has_aer():
+        try:
+            from qiskit import Aer
+        except Exception as e:
             self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(e)))
             return
 
