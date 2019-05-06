@@ -29,6 +29,7 @@ class TestMeasurementErrorMitigation(QiskitAquaTestCase):
     """Test measurement error mitigation."""
 
     def setUp(self):
+        super().setUp()
         if not has_aer():
             self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(e)))
             return
