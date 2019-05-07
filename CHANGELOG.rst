@@ -18,6 +18,9 @@ The format is based on `Keep a Changelog`_.
 `UNRELEASED`_
 =============
 
+`0.5.0`_ - 2019-05-02
+=====================
+
 Added
 -----
 
@@ -26,31 +29,40 @@ Added
 - Pluggable component ``Reciprocal`` with variants ``LookupRotation`` and ``LongDivision``.
 - Multiple-Controlled U1 and U3 operations ``mcu1`` and ``mcu3``.
 - Pluggable component ``QFT`` derived from component ``IQFT``.
-- Summarize the tranpiled circuits at the DEBUG logging level.
+- Summarize the transpiled circuits at the DEBUG logging level.
 - ``QuantumInstance`` accepts ``basis_gates`` and ``coupling_map`` again.
 - Support to use ``cx`` gate for the entangement in ``RY`` and ``RYRZ`` variational form. (``cz`` is the default choice.)
 - Support to use arbitrary mixer Hamiltonian in ``QAOA``. This allows to use QAOA in constrained optimization problems [arXiv:1709.03489].
-- Added variational algorithm base class ``VQAlgorithm``, implemented by ``VQE`` and ``QSVMVariational``.
+- Added variational algorithm base class ``VQAlgorithm``, implemented by ``VQE`` and ``VQC``.
 - Added ``ising/docplex.py`` for automatically generating Ising Hamiltonian from optimization models of DOcplex.
+- Added ``'basic-dirty-ancilla'`` mode for ``mct``.
 - Added ``mcmt`` for Multi-Controlled, Multi-Target gate.
 - Exposed capabilities to generate circuits from logical AND, OR, DNF (disjunctive normal forms), and CNF (conjunctive normal forms) formulae.
 - Added the capability to generate circuits from ESOP (exclusive sum of products) formulae with optional optimization based on Quine-McCluskey and ExactCover.
 - Added ``LogicalExpressionOracle`` for generating oracle circuits from arbitrary boolean logic expressions (including DIMACS support) with optional optimization capability.
 - Added ``TruthTableOracle`` for generating oracle circuits from truth-tables with optional optimization capability.
-- Added implementation of the Deutsch-Josza algorithm.
+- Added ``CustomCircuitOracle`` for generating oracle from user specified circuits.
+- Added implementation of the Deutsch-Jozsa algorithm.
 - Added implementation of the Bernstein-Vazirani algorithm.
 - Added implementation of the Simon's algorithm.
+- Added implementation of the Shor's algorithm.
 - Added optional capability for ``Grover``'s algorithm to take a custom initial state (as opposed to the default uniform superposition)
 - Added capability to create a ``Custom`` initial state using existing circuit.
 - Added the ADAM (and AMSGRAD) optimization algorithm
-- Multivariate distributions added, so uncertainty models now have univariate and multivariate distribution components
+- Multivariate distributions added, so uncertainty models now have univariate and multivariate distribution components.
 - Added option to include or skip the swaps operations for qft and iqft circuit constructions.
+- Added classical linear system solver ``ExactLSsolver``.
+- Added parameters ``auto_hermitian`` and ``auto_resize`` to ``HHL`` algorithm to support non-hermititan and non 2**n sized matrices by default.
+- Added another feature map, ``RawFeatureVector``, that directly maps feature vectors to qubits' states for classification.
+- ``SVM_Classical`` can now load models trained by ``QSVM``.
+- Added ``CompleteMeasFitter`` for mitigating measurement error when jobs are run on a real device or noisy simulator.
+- Added ``QGAN`` (Quantum Generative Adversarial Network) algorithm, along with neural network components comprising a quantum generator and classical discriminator.
 
 Removed
 -------
 
 - ``QuantumInstance`` does not take ``memory`` anymore.
-- Moved Command line and GUI interfaces to separate repo (qiskit_aqua_uis)
+- Moved Command line and GUI interfaces to separate repo (qiskit_aqua_uis).
 - Removed the ``SAT``-specific oracle (now supported by ``LogicalExpressionOracle``).
 
 
@@ -60,8 +72,17 @@ Changed
 - Changed the type of ``entanger_map`` used in ``FeatureMap`` and ``VariationalForm`` to list of list.
 - Fixed package setup to correctly identify namespace packages using ``setuptools.find_namespace_packages``.
 - Changed ``advanced`` mode implementation of ``mct``: using simple ``h`` gates instead of ``ch``, and fixing the old recursion step in ``_multicx``.
-- Components ``random_distributions`` renamed to ``uncertainty_models``
+- Components ``random_distributions`` renamed to ``uncertainty_models``.
 - Reorganized the constructions of various common gates (``ch``, ``cry``, ``mcry``, ``mct``, ``mcu1``, ``mcu3``, ``mcmt``, ``logic_and``, and ``logic_or``) and circuits (``PhaseEstimationCircuit``, ``BooleanLogicCircuits``, ``FourierTransformCircuits``, and ``StateVectorCircuits``) under the ``circuits`` directory.
+- Renamed the algorithm ``QSVMVariational`` to ``VQC``, which stands for Variational Quantum Classifier.
+- Renamed the algorithm ``QSVMKernel`` to ``QSVM``.
+- Renamed the class ``SVMInput`` to ``ClassificationInput``.
+- Renamed problem type ``'svm_classification'`` to ``'classification'``
+
+Fixed
+-----
+
+- Fixed ``ising/docplex.py`` to correctly multiply constant values in constraints
 
 
 `0.4.1`_ - 2019-01-09
@@ -233,7 +254,8 @@ Changed
 - Updated qiskit minimum version in setup.py.
 - Fixed links in readme.me.
 
-.. _UNRELEASED: https://github.com/Qiskit/qiskit-aqua/compare/0.4.1...HEAD
+.. _UNRELEASED: https://github.com/Qiskit/qiskit-aqua/compare/0.5.0...HEAD
+.. _0.5.0: https://github.com/Qiskit/qiskit-aqua/compare/0.4.1...0.5.0
 .. _0.4.1: https://github.com/Qiskit/qiskit-aqua/compare/0.4.0...0.4.1
 .. _0.4.0: https://github.com/Qiskit/qiskit-aqua/compare/0.3.1...0.4.0
 .. _0.3.1: https://github.com/Qiskit/qiskit-aqua/compare/0.3.0...0.3.1

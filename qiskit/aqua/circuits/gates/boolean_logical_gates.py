@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2019 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 """
 The Boolean Logical AND and OR Gates.
 """
@@ -34,7 +31,9 @@ def _logical_and(circuit, variable_register, flags, target_qubit, ancillary_regi
     if flags is not None:
         zvf = list(zip(variable_register, flags))
         ctl_bits = [v for v, f in zvf if f]
-        anc_bits = [ancillary_register[idx] for idx in range(np.count_nonzero(flags) - 2)] if ancillary_register else None
+        anc_bits = None
+        if ancillary_register:
+            anc_bits = [ancillary_register[idx] for idx in range(np.count_nonzero(flags) - 2)]
         [circuit.u3(pi, 0, pi, v) for v, f in zvf if f < 0]
         circuit.mct(ctl_bits, target_qubit, anc_bits, mode=mct_mode)
         [circuit.u3(pi, 0, pi, v) for v, f in zvf if f < 0]

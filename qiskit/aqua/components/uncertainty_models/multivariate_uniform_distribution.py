@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 """
 The Multivariate Uniform Distribution.
 """
@@ -43,34 +40,47 @@ class MultivariateUniformDistribution(MultivariateDistribution):
                     'default': [2, 2]
                 },
                 'low': {
-                    'type': 'array',
+                    'type': ['array', 'null'],
                     "items": {
                         "type": "number"
                     },
-                    'default': [0.0, 0.0]
+                    'default': None
                 },
                 'high': {
-                    'type': 'array',
+                    'type': ['array', 'null'],
                     "items": {
                         "type": "number"
                     },
-                    'default': [0.12, 0.24]
+                    'default': None
                 },
             },
             'additionalProperties': False
         }
     }
 
-    def __init__(self, num_qubits, low, high):
+    def __init__(self, num_qubits, low=None, high=None):
+        """
+        Multivariate uniform distribution
+        Args:
+            num_qubits (array or list): list with the number of qubits per dimension
+            low (array or list): list with the lower bounds per dimension, set to 0 for each dimension if None
+            high (array or list): list with the upper bounds per dimension, set to 1 for each dimension if None
+        """
         super().validate(locals())
+
+        if low is None:
+            low = np.zeros(num_qubits)
+        if high is None:
+            high = np.ones(num_qubits)
 
         num_values = np.prod([2**n for n in num_qubits])
         probabilities = np.ones(num_values)
-        super().__init__(num_qubits, probabilities, low, high)
+        super().__init__(num_qubits, low, high, probabilities)
 
     def build(self, qc, q, q_ancillas=None, params=None):
         if params is None or params['i_state'] is None:
-            qc.h(q)
+            for i in range(sum(self.num_qubits)):
+                qc.h(q[i])
         else:
             for qubits in params['i_state']:
                 for i in qubits:

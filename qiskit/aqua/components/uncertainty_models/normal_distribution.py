@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 """
 The Univariate Normal Distribution.
 """
@@ -61,6 +58,15 @@ class NormalDistribution(UnivariateDistribution):
     }
 
     def __init__(self, num_target_qubits, mu=0, sigma=1, low=-1, high=1):
+        """
+        Univariate normal distribution
+        Args:
+            num_target_qubits (int): number of qubits it acts on
+            mu (float): expected value of considered normal distribution
+            sigma (float): standard deviation of considered normal distribution
+            low (float): lower bound, i.e., the value corresponding to |0...0> (assuming an equidistant grid)
+            high (float): upper bound, i.e., the value corresponding to |1...1> (assuming an equidistant grid)
+        """
         self.validate(locals())
         probabilities, _ = UnivariateDistribution.\
             pdf_to_probabilities(lambda x: norm.pdf(x, mu, sigma), low, high, 2 ** num_target_qubits)

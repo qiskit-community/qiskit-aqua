@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 """
 This module contains the definition of a base class for univariate distributions.
 """
@@ -37,6 +34,14 @@ class UnivariateDistribution(UncertaintyModel, ABC):
         return Pluggable.SECTION_KEY_UNIVARIATE_DISTRIBUTION
 
     def __init__(self, num_target_qubits, probabilities, low=0, high=1):
+        """
+        Abstract univariate distribution class
+        Args:
+            num_target_qubits (int): number of qubits it acts on
+            probabilities (array or list):  probabilities for different states
+            low (float): lower bound, i.e., the value corresponding to |0...0> (assuming an equidistant grid)
+            high (float): upper bound, i.e., the value corresponding to |1...1> (assuming an equidistant grid)
+        """
         super().__init__(num_target_qubits)
         self._num_values = 2 ** self.num_target_qubits
         self._probabilities = np.array(probabilities)
@@ -66,18 +71,21 @@ class UnivariateDistribution(UncertaintyModel, ABC):
     def probabilities(self):
         return self._probabilities
 
-    def required_ancillas(self):
-        return 0
-
-    def required_ancillas_controlled(self):
-        return 0
-
-    def build(self, qc, q, q_ancillas=None, params=None):
+    def build(self, qc, q, q_ancillas=None):
         custom_state = Custom(self.num_target_qubits, state_vector=np.sqrt(self.probabilities))
         qc.extend(custom_state.construct_circuit('circuit', q))
 
     @staticmethod
     def pdf_to_probabilities(pdf, low, high, num_values):
+        """
+        Takes a probability density function (pdf), and returns a truncated and discretized array of probabilities corresponding to it
+        Args:
+            pdf (function): probability density function
+            low (float): lower bound of equidistant grid
+            high (float): upper bound of equidistant grid
+            num_values (int): number of grid points
+        Returns (list): array of probabilities
+        """
         probabilities = np.zeros(num_values)
         values = np.linspace(low, high, num_values)
         total = 0

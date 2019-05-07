@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 
 """
 Methods for pluggable objects discovery, registration, information
@@ -51,6 +48,8 @@ class PluggableType(Enum):
     INPUT = 'input'
     EIGENVALUES = 'eigs'
     RECIPROCAL = 'reciprocal'
+    GENERATIVE_NETWORK = 'generative_network'
+    DISCRIMINATIVE_NETWORK = 'discriminative_network'
 
 
 def _get_pluggables_types_dictionary():
@@ -73,6 +72,9 @@ def _get_pluggables_types_dictionary():
     from qiskit.aqua.input import AlgorithmInput
     from qiskit.aqua.components.eigs import Eigenvalues
     from qiskit.aqua.components.reciprocals import Reciprocal
+    from qiskit.aqua.components.neural_networks.discriminative_network import \
+        DiscriminativeNetwork
+    from qiskit.aqua.components.neural_networks.generative_network import GenerativeNetwork
 
     return {
         PluggableType.ALGORITHM: QuantumAlgorithm,
@@ -89,7 +91,9 @@ def _get_pluggables_types_dictionary():
         PluggableType.MULTIVARIATE_DISTRIBUTION: MultivariateDistribution,
         PluggableType.INPUT: AlgorithmInput,
         PluggableType.EIGENVALUES: Eigenvalues,
-        PluggableType.RECIPROCAL: Reciprocal
+        PluggableType.RECIPROCAL: Reciprocal,
+        PluggableType.DISCRIMINATIVE_NETWORK: DiscriminativeNetwork,
+        PluggableType.GENERATIVE_NETWORK: GenerativeNetwork
     }
 
 

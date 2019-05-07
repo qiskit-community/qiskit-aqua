@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 """
 The Multivariate Normal Distribution.
 """
@@ -44,18 +41,18 @@ class MultivariateNormalDistribution(MultivariateDistribution):
                     'default': [2, 2]
                 },
                 'low': {
-                    'type': 'array',
+                    'type': ['array', 'null'],
                     "items": {
                         "type": "number"
                     },
-                    'default': [0.0, 0.0]
+                    'default': None
                 },
                 'high': {
-                    'type': 'array',
+                    'type': ['array', 'null'],
                     "items": {
                         "type": "number"
                     },
-                    'default': [0.12, 0.24]
+                    'default': None
                 },
                 'mu': {
                     'type': ['array', 'null'],
@@ -73,7 +70,7 @@ class MultivariateNormalDistribution(MultivariateDistribution):
         }
     }
 
-    def __init__(self, num_qubits, low, high, mu=None, sigma=None):
+    def __init__(self, num_qubits, low=None, high=None, mu=None, sigma=None):
         """
         Constructor.
 
@@ -91,16 +88,22 @@ class MultivariateNormalDistribution(MultivariateDistribution):
         if not isinstance(sigma, np.ndarray):
             sigma = np.asarray(sigma)
 
+        dimension = len(num_qubits)
+
         if mu is None:
-            mu = np.zeros(len(num_qubits))
+            mu = np.zeros(dimension)
         if sigma is None:
-            sigma = np.eye(len(num_qubits))
+            sigma = np.eye(dimension)
+        if low is None:
+            low = -np.ones(dimension)
+        if high is None:
+            high = np.ones(dimension)
 
         self.mu = mu
         self.sigma = sigma
         probs = self._compute_probabilities([], num_qubits, low, high)
         probs = np.asarray(probs) / np.sum(probs)
-        super().__init__(num_qubits, probs, low, high)
+        super().__init__(num_qubits, low, high, probs)
 
     def _compute_probabilities(self, probs, num_qubits, low, high, x=None):
 

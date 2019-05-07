@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 """
 The Fixed Income Expected Value.
 """
@@ -105,6 +102,7 @@ class FixedIncomeExpectedValue(UncertaintyProblem):
         if i_objective is None:
             i_objective = uncertainty_model.num_target_qubits
 
+        # TODO: remove dictionary and use direct attributes
         self._params = {
             'i_state': i_state,
             'i_objective': i_objective
@@ -176,16 +174,15 @@ class FixedIncomeExpectedValue(UncertaintyProblem):
     def required_ancillas_controlled(self):
         return self.uncertainty_model.required_ancillas_controlled()
 
-    def build(self, qc, q, q_ancillas=None, params=None):
+    def build(self, qc, q, q_ancillas=None):
 
-        if params is None:
-            params = self._params
+        params = self._params
 
         # get qubits
         q_objective = q[params['i_objective']]
 
         # apply uncertainty model
-        self.uncertainty_model.build(qc, q, q_ancillas, params)
+        self.uncertainty_model.build(qc, q, q_ancillas)
 
         # apply approximate payoff function
         qc.ry(2 * self.offset_angle, q_objective)
