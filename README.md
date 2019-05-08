@@ -20,10 +20,11 @@ discovered dynamically at run time.
 
 ## Installation
 
-We encourage installing Qiskit Aqua via the pip tool (a python package manager):
+Qiskit Aqua is part of the Qiskit software framework.  We encourage installing Qiskit Aqua as part of Qiskit via the pip tool
+(a python package manager):
 
 ```bash
-pip install qiskit-aqua
+pip install qiskit
 ```
 
 pip will handle all dependencies automatically for you, including the other Qiskit elements on which

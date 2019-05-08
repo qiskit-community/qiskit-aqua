@@ -24,7 +24,6 @@ from qiskit.aqua import AquaError, aqua_globals
 from qiskit.aqua import Pluggable, get_pluggable_class, PluggableType
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.components.neural_networks.quantum_generator import QuantumGenerator
-from qiskit.aqua.components.neural_networks.classical_discriminator import ClassicalDiscriminator
 
 
 logger = logging.getLogger(__name__)
@@ -258,6 +257,7 @@ class QGAN(QuantumAlgorithm):
         Returns:
 
         """
+        from qiskit.aqua.components.neural_networks.classical_discriminator import ClassicalDiscriminator
         self._discriminator = ClassicalDiscriminator(len(self._num_qubits))
         self._discriminator.set_seed(self._random_seed)
         return

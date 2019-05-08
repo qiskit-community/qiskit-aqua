@@ -40,7 +40,7 @@ requirements = [
     "fastdtw",
     "quandl",
     "setuptools>=40.1.0",
-    "torch"
+    "torch; sys_platform != 'win32'"
 ]
 
 if not hasattr(setuptools, 'find_namespace_packages') or not inspect.ismethod(setuptools.find_namespace_packages):
