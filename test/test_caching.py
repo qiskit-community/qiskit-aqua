@@ -22,8 +22,6 @@ class TestCaching(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
-        # TODO: temporally skip all tests
-        self.skipTest("Temporally skip all tests.")
         np.random.seed(50)
         pauli_dict = {
             'paulis': [{"coeff": {"imag": 0.0, "real": -1.052373245772859}, "label": "II"},
