@@ -44,10 +44,10 @@ class TestMeasurementErrorMitigation(QiskitAquaTestCase):
         noise_model.add_all_qubit_readout_error(read_err)
 
         backend = Aer.get_backend('qasm_simulator')
-        quantum_instance = QuantumInstance(backend=backend, seed=167, seed_transpiler=167,
+        quantum_instance = QuantumInstance(backend=backend, seed_simulator=167, seed_transpiler=167,
                                            noise_model=noise_model)
 
-        quantum_instance_with_mitigation = QuantumInstance(backend=backend, seed=167, seed_transpiler=167,
+        quantum_instance_with_mitigation = QuantumInstance(backend=backend, seed_simulator=167, seed_transpiler=167,
                                                            noise_model=noise_model,
                                                            measurement_error_mitigation_cls=CompleteMeasFitter)
 
@@ -81,7 +81,7 @@ class TestMeasurementErrorMitigation(QiskitAquaTestCase):
         noise_model.add_all_qubit_readout_error(read_err)
 
         backend = Aer.get_backend('qasm_simulator')
-        quantum_instance = QuantumInstance(backend=backend, seed=1679, seed_transpiler=167,
+        quantum_instance = QuantumInstance(backend=backend, seed_simulator=1679, seed_transpiler=167,
                                            noise_model=noise_model,
                                            measurement_error_mitigation_cls=CompleteMeasFitter,
                                            cals_matrix_refresh_period=0)
@@ -93,7 +93,7 @@ class TestMeasurementErrorMitigation(QiskitAquaTestCase):
 
         time.sleep(15)
         aqua_globals.random_seed = 2
-        quantum_instance.set_config(seed=111)
+        quantum_instance.set_config(seed_simulator=111)
         _ = grover.run(quantum_instance)
         cals_matrix_2 = quantum_instance.cals_matrix.copy()
 
