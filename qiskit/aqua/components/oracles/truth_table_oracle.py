@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 """
 The Truth Table-based Quantum Oracle.
 """
@@ -23,15 +20,13 @@ import operator
 import math
 import numpy as np
 from functools import reduce
-
 from dlx import DLX
-from pyeda.inter import exprvars, And, Xor
 from qiskit import QuantumRegister, QuantumCircuit
-
 from qiskit.aqua import AquaError
 from qiskit.aqua.circuits import ESOP
 from qiskit.aqua.components.oracles import Oracle
 from qiskit.aqua.utils.arithmetic import is_power_of_2
+from ._pyeda_check import _check_pluggable_valid as check_pyeda_valid
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +48,7 @@ def get_prime_implicants(ones=None, dcs=None):
             num1s_dict = {}
             for num in terms:
                 num1s = bin(num).count('1')
-                if not num1s in num1s_dict:
+                if num1s not in num1s_dict:
                     num1s_dict[num1s] = [num]
                 else:
                     num1s_dict[num1s].append(num)
@@ -92,10 +87,10 @@ def get_prime_implicants(ones=None, dcs=None):
                                 dc_mask
                             )
                             num1s = bin(implicant_mask).count('1')
-                            if not num1s in new_num1s_dict:
+                            if num1s not in new_num1s_dict:
                                 new_num1s_dict[num1s] = [cur_implicant]
                             else:
-                                if not cur_implicant in new_num1s_dict[num1s]:
+                                if cur_implicant not in new_num1s_dict[num1s]:
                                     new_num1s_dict[num1s].append(cur_implicant)
             cur_num1s += 1
         return new_implicants, new_num1s_dict, prime_dict
@@ -188,6 +183,7 @@ class TruthTableOracle(Oracle):
                         {
                             'enum': [
                                 'basic',
+                                'basic-dirty-ancilla',
                                 'advanced',
                                 'noancilla',
                             ]
@@ -243,7 +239,12 @@ class TruthTableOracle(Oracle):
 
         self.construct_circuit()
 
+    @staticmethod
+    def check_pluggable_valid():
+        check_pyeda_valid(TruthTableOracle.CONFIGURATION['name'])
+
     def _get_esop_ast(self, bitmap):
+        from pyeda.inter import exprvars, And, Xor
         v = exprvars('v', self._nbits)
 
         def binstr_to_vars(binstr):

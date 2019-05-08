@@ -12,7 +12,7 @@ domains, such as Optimization, Artificial Intelligence, and
 Finance, with both code and notebook examples available in the
 [qiskit/aqua](https://github.com/Qiskit/qiskit-tutorials/tree/master/qiskit/aqua)
 and [community/aqua](https://github.com/Qiskit/qiskit-tutorials/tree/master/community/aqua)
-folders of the [qiskit-tutorials GitHub Repository](https://github.com/Qiskit/qiskit-tutorials).  
+folders of the [qiskit-tutorials GitHub Repository](https://github.com/Qiskit/qiskit-tutorials).
 
 Aqua was designed to be extensible, and uses a pluggable framework where algorithms and support objects used
 by algorithms—such as optimizers, variational forms, and oracles—are derived from a defined base class for the type and
@@ -20,10 +20,11 @@ discovered dynamically at run time.
 
 ## Installation
 
-We encourage installing Qiskit Aqua via the pip tool (a python package manager):
+Qiskit Aqua is part of the Qiskit software framework.  We encourage installing Qiskit Aqua as part of Qiskit via the pip tool
+(a python package manager):
 
 ```bash
-pip install qiskit-aqua
+pip install qiskit
 ```
 
 pip will handle all dependencies automatically for you, including the other Qiskit elements on which
@@ -31,6 +32,14 @@ Aqua is built, such as [Qiskit Terra](https://github.com/Qiskit/qiskit-terra/),
 and you will always install the latest (and well-tested) version.
 
 To install from source, follow the instructions in the [contribution guidelines](.github/CONTRIBUTING.rst).
+
+Please note that one of Aqua's dependencies, [PyEDA](https://pyeda.readthedocs.io/en/latest/),
+which is used in Aqua's
+[`LogicalExpressionOracle`](https://github.com/Qiskit/qiskit-aqua/blob/master/qiskit/aqua/components/oracles/logical_expression_oracle.py) and
+[`TruthTableOracle`](https://github.com/Qiskit/qiskit-aqua/blob/master/qiskit/aqua/components/oracles/truth_table_oracle.py) implementations,
+will not be automatically installed on the Windows platform.
+You can follow [these notes](https://pyeda.readthedocs.io/en/latest/install.html#windows-notes)
+to manually install PyEDA on Windows if necessary.
 
 ## Creating Your First Quantum Program in Qiskit Aqua
 
@@ -64,7 +73,7 @@ print(result["result"])
 
 The code above demonstrates how `Grover`’s search algorithm can be used with the
 `LogicalExpressionOracle` to find one satisfying assignment
-for the Satisfiability (SAT) problem instance encoded in the 
+for the Satisfiability (SAT) problem instance encoded in the
 [DIMACS CNF format](http://www.satcompetition.org/2009/format-benchmarks2009.html).
 The input string `sat_cnf` corresponds to the following Conjunctive Normal
 Form (CNF):
@@ -73,7 +82,7 @@ Form (CNF):
 (<i>x</i><sub>1</sub> &or; &not;<i>x</i><sub>2</sub> &or; <i>x</i><sub>3</sub>) &and;
 (<i>x</i><sub>1</sub> &or; <i>x</i><sub>2</sub> &or; &not;<i>x</i><sub>3</sub>) &and;
 (<i>x</i><sub>1</sub> &or; &not;<i>x</i><sub>2</sub> &or; &not;<i>x</i><sub>3</sub>) &and;
-(&not;<i>x</i><sub>1</sub> &or; <i>x</i><sub>2</sub> &or; <i>x</i><sub>3</sub>)  
+(&not;<i>x</i><sub>1</sub> &or; <i>x</i><sub>2</sub> &or; <i>x</i><sub>3</sub>)
 
 The Python code above prints out one possible solution for this CNF.
 For example, output `1, -2, 3` indicates
@@ -85,7 +94,7 @@ In order to do so, you need to configure Qiskit to use the credentials in
 your [IBM Q](https://quantumexperience.ng.bluemix.net) account.
 Please consult the relevant instructions in the
 [Qiskit Terra GitHub repository](https://github.com/Qiskit/qiskit-terra/blob/master/README.md#executing-your-code-on-a-real-quantum-chip)
-for more details.  
+for more details.
 
 ## Contribution Guidelines
 

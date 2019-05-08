@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 
 import unittest
 import os
@@ -53,7 +50,6 @@ class TestVQE(QiskitAquaTestCase):
 
         params = {
             'algorithm': {'name': 'VQE'},
-            'problem': {'circuit_caching': False},
             'backend': {'name': 'statevector_simulator',
                         'provider': 'qiskit.BasicAer',
                         'coupling_map': coupling_map,
@@ -123,6 +119,8 @@ class TestVQE(QiskitAquaTestCase):
         quantum_instance = QuantumInstance(backend)
         result = algo.run(quantum_instance)
         self.assertAlmostEqual(result['energy'], -1.85727503)
+        if quantum_instance.has_circuit_caching:
+            self.assertLess(quantum_instance._circuit_cache.misses, 3)
 
     def test_vqe_callback(self):
 
@@ -144,7 +142,7 @@ class TestVQE(QiskitAquaTestCase):
         algo = VQE(self.algo_input.qubit_op, var_form, optimizer, 'paulis',
                    callback=store_intermediate_result)
         aqua_globals.random_seed = 50
-        quantum_instance = QuantumInstance(backend, seed_mapper=50, shots=1024, seed=50)
+        quantum_instance = QuantumInstance(backend, seed_transpiler=50, shots=1024, seed=50)
         algo.run(quantum_instance)
 
         is_file_exist = os.path.exists(self._get_resource_path(tmp_filename))

@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 
 import unittest
 from test.common import QiskitAquaTestCase
@@ -22,10 +19,41 @@ from qiskit.aqua import (local_pluggables_types,
                          get_pluggable_class,
                          get_pluggable_configuration,
                          PluggableType)
+from qiskit.aqua.input import AlgorithmInput
 import inspect
 
 
 class TestConfigurationIntegrity(QiskitAquaTestCase):
+
+    def test_pluggable_inputs(self):
+        algorithm_problems = set()
+        for pluggable_name in local_pluggables(PluggableType.ALGORITHM):
+            configuration = get_pluggable_configuration(PluggableType.ALGORITHM, pluggable_name)
+            if isinstance(configuration, dict):
+                algorithm_problems.update(configuration.get('problems', []))
+
+        err_msgs = []
+        all_problems = set()
+        for pluggable_name in local_pluggables(PluggableType.INPUT):
+            cls = get_pluggable_class(PluggableType.INPUT, pluggable_name)
+            configuration = get_pluggable_configuration(PluggableType.INPUT, pluggable_name)
+            missing_problems = []
+            if isinstance(configuration, dict):
+                problem_names = configuration.get('problems', [])
+                all_problems.update(problem_names)
+                for problem_name in problem_names:
+                    if problem_name not in algorithm_problems:
+                        missing_problems.append(problem_name)
+
+            if len(missing_problems) > 0:
+                err_msgs.append("{}: No algorithm declares the problems {}.".format(cls, missing_problems))
+
+        invalid_problems = list(set(AlgorithmInput._PROBLEM_SET).difference(all_problems))
+        if len(invalid_problems) > 0:
+            err_msgs.append("Base Class AlgorithmInput contains problems {} that don't belong to any Input class.".format(invalid_problems))
+
+        if len(err_msgs) > 0:
+            self.fail('\n'.join(err_msgs))
 
     def test_pluggable_configuration(self):
         err_msgs = []
@@ -37,17 +65,20 @@ class TestConfigurationIntegrity(QiskitAquaTestCase):
                     err_msgs.append("{} configuration isn't a dictionary.".format(cls))
                     continue
 
+                if pluggable_type in [PluggableType.ALGORITHM, PluggableType.INPUT]:
+                    if len(configuration.get('problems', [])) == 0:
+                        err_msgs.append("{} missing or empty 'problems' section.".format(cls))
+
                 schema_found = False
                 for configuration_name, configuration_value in configuration.items():
-                    if configuration_name in ['problem', 'depends']:
+                    if configuration_name in ['problems', 'depends']:
                         if not isinstance(configuration_value, list):
                             err_msgs.append("{} configuration section:'{}' isn't a list.".format(cls, configuration_name))
                             continue
 
-                        if configuration_name == 'problems':
-                            continue
+                        if configuration_name == 'depends':
+                            err_msgs.extend(self._validate_depends(cls, configuration_value))
 
-                        err_msgs.extend(self._validate_depends(cls, configuration_value))
                         continue
 
                     if configuration_name == 'input_schema':
@@ -80,8 +111,8 @@ class TestConfigurationIntegrity(QiskitAquaTestCase):
             parameter = parameters.get(prop_name)
             if parameter is None:
                 # TODO for now just let QSVMVariational pass
-                from qiskit.aqua.algorithms import QSVMVariational
-                if cls != QSVMVariational:
+                from qiskit.aqua.algorithms import VQC
+                if cls not in {VQC}:
                     err_msgs.append("{} missing __init__ param '{}' found on its configuration schema.".format(cls, prop_name))
                 continue
 

@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 
 import copy
 import itertools
@@ -29,7 +26,7 @@ from scipy import linalg as scila
 from qiskit import ClassicalRegister, QuantumCircuit
 from qiskit.quantum_info import Pauli
 from qiskit.qasm import pi
-from qiskit.compiler.run_config import RunConfig
+from qiskit.assembler.run_config import RunConfig
 from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
 
@@ -799,19 +796,12 @@ class Operator(object):
         else:
             if is_statevector_backend(backend):
                 run_config.shots = 1
-                has_shared_circuits = True
-
-                if operator_mode == 'matrix':
-                    has_shared_circuits = False
-            else:
-                has_shared_circuits = False
 
             circuits = self.construct_evaluation_circuit(operator_mode, input_circuit, backend)
             result = compile_and_run_circuits(circuits, backend=backend, backend_config=backend_config,
                                               compile_config=compile_config, run_config=run_config,
                                               qjob_config=qjob_config, noise_config=noise_config,
-                                              show_circuit_summary=self._summarize_circuits,
-                                              has_shared_circuits=has_shared_circuits)
+                                              show_circuit_summary=self._summarize_circuits)
             avg, std_dev = self.evaluate_with_result(operator_mode, circuits, backend, result)
 
         return avg, std_dev

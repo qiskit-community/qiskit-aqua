@@ -1,35 +1,26 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 """
 The General Logical Expression-based Quantum Oracle.
 """
 
 import logging
-
-from pyeda.inter import espresso_exprs
-from pyeda.boolalg.expr import AndOp, OrOp, ast2expr, expr, Variable
-from pyeda.parsing.dimacs import parse_cnf
 from qiskit import QuantumCircuit, QuantumRegister
-
 from qiskit.aqua import AquaError
 from qiskit.aqua.circuits import CNF, DNF
-
 from .oracle import Oracle
-
+from ._pyeda_check import _check_pluggable_valid as check_pyeda_valid
 logger = logging.getLogger(__name__)
 
 
@@ -66,6 +57,7 @@ class LogicalExpressionOracle(Oracle):
                         {
                             'enum': [
                                 'basic',
+                                'basic-dirty-ancilla',
                                 'advanced',
                                 'noancilla'
                             ]
@@ -90,13 +82,14 @@ class LogicalExpressionOracle(Oracle):
                 <https://en.wikipedia.org/wiki/Espresso_heuristic_logic_minimizer>
             mct_mode (str): The mode to use for building Multiple-Control Toffoli.
         """
-
         self.validate(locals())
         super().__init__()
 
         self._mct_mode = mct_mode
         self._optimization = optimization
 
+        from pyeda.boolalg.expr import ast2expr, expr
+        from pyeda.parsing.dimacs import parse_cnf
         if expression is None:
             raw_expr = expr(None)
         else:
@@ -111,6 +104,10 @@ class LogicalExpressionOracle(Oracle):
         self._expr = raw_expr
         self._process_expr()
         self.construct_circuit()
+
+    @staticmethod
+    def check_pluggable_valid():
+        check_pyeda_valid(LogicalExpressionOracle.CONFIGURATION['name'])
 
     @staticmethod
     def _normalize_literal_indices(raw_ast, raw_indices):
@@ -134,6 +131,8 @@ class LogicalExpressionOracle(Oracle):
         return (raw_ast[0], *clauses)
 
     def _process_expr(self):
+        from pyeda.inter import espresso_exprs
+        from pyeda.boolalg.expr import AndOp, OrOp, Variable
         self._num_vars = self._expr.degree
         ast = self._expr.to_ast() if self._expr.is_cnf() else self._expr.to_cnf().to_ast()
         ast = LogicalExpressionOracle._normalize_literal_indices(ast, self._expr.usupport)
@@ -186,6 +185,7 @@ class LogicalExpressionOracle(Oracle):
         return self._circuit
 
     def evaluate_classically(self, measurement):
+        from pyeda.boolalg.expr import AndOp, OrOp, Variable
         assignment = [(var + 1) * (int(tf) * 2 - 1) for tf, var in zip(measurement[::-1], range(len(measurement)))]
         if self._expr.is_zero():
             return False, assignment
