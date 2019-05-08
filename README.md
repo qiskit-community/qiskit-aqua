@@ -23,10 +23,11 @@ are suited to simulate molecular structures.
 
 ## Installation
 
-We encourage installing Qiskit Chemistry via the pip tool (a python package manager):
+Qiskit Chemistry is now included in the Qiskit software framework.  We encourage installing Qiskit Chemistry as part of Qiskit 
+via the pip tool (a python package manager):
 
 ```bash
-pip install qiskit-chemistry
+pip install qiskit
 ```
 pip will handle all dependencies automatically for you, including the other Qiskit elements upon which
 Qiskit Chemistry is built, such as [Aqua](https://github.com/Qiskit/qiskit-aqua) and
@@ -34,12 +35,12 @@ Qiskit Chemistry is built, such as [Aqua](https://github.com/Qiskit/qiskit-aqua)
 version.
 
 To run chemistry experiments using Qiskit Chemistry, it is recommended that you to install a classical
-computation chemistry software program interfaced by Qiskit Chemistry. 
+computation chemistry software program interfaced by Qiskit Chemistry.
 Several such programs are supported, and while logic to
 interface these programs is supplied by Qiskit Chemistry via the above pip installation,
 the dependent programs themselves need to be installed separately becausea they are not part of the Qiskit
 Chemistry installation bundle.
-Qiskit Chemistry comes with prebuilt support to interface the following computational chemistry
+Qiskit Chemistry comes with prebuilt support to interface the following classical computational chemistry
 software programs:
 
 1. [Gaussian 16&trade;](http://gaussian.com/gaussian16/), a commercial chemistry program
@@ -47,6 +48,9 @@ software programs:
 3. [PySCF](https://github.com/sunqm/pyscf), an open-source Python chemistry program
 4. [PyQuante](https://github.com/rpmuller/pyquante2), a pure cross-platform open-source Python chemistry program
 
+Except for the Windows platform, PySCF is installed automatically as a dependency by the pip tool whenever Qiskit Chemistry is
+installed.  The other classical computational chemistry software programs will have to be installed separately, even though
+Qiskit Chemistry includes the code for interfacing all of them.
 Please refer to the [Qiskit Chemistry drivers installation instructions](https://qiskit.org/documentation/aqua/aqua_chemistry_drivers.html)
 for details on how to integrate these drivers into Qiskit Chemistry.
 
@@ -135,22 +139,15 @@ For the full set of options, please refer to the documentation of the Aqua `Quan
 
 ### Qiskit Chemistry Wizard and Command-line Interfaces
 
-Qiskit Chemistry comes with wizard and command-line tools, which may be used when conducting
-chemistry simulation experiments on a quantum machine. Both can load and run an input file
-specifying both the chemistry and quantum configurations of the ecperiment.
-You can find several
-input files to experiment with in the
-[qiskit/aqua/chemistry/input_files](https://github.com/Qiskit/qiskit-tutorials/tree/master/qiskit/aqua/chemistry)
-and [community/aqua/chemistry/input_files](https://github.com/Qiskit/qiskit-tutorials/tree/master/community/aqua/chemistry)
-folders of the [qiskit-tutorials GitHub Repository](https://github.com/Qiskit/qiskit-tutorials).
+Qiskit Chemistry is a modular and extensible software framework that allows researchers to contribute new components to it
+and extend its functionality.  For this reason, Qiskit Chemistry exposes all the Application Programming Interfaces (APIs) 
+necessary to access its functionality programmatically.
 
-The wizard provides an easy means to load and run an input file specifying your chemistry problem and
-the configuration of the quantum experiment.  The wizard verifies that the quantum-chemistry experiment
-is not misconfigured and also allows for automatically generating Python code for easily transitioning
-into running Qiskit Chemistry experiments programmatically.
-
-The pip installation creates the `qiskit_chemistry_ui` command that allows you to start the wizard.  Similarly,
-the command-line tool can be launched by entering the `qiskit_chemistry_cmd` command.
+Those users who are interested in executing Qiskit as a tool should install
+[Qiskit Aqua Interfaces](https://github.com/Qiskit/qiskit-aqua-interfaces) via the pip tool.  This software package contains
+command-line and graphical user interfaces to easily configure an experiment and executing without having to write any
+line of code.  Both interfaces come with a schema-based configuration-correctness mechanism.  Furthermore, the
+Graphical User Interface (GUI) includes capabilities for automatic code generation.
 
 You can also use Qiskit to execute your code on a **real quantum chip**.
 In order to do so, you need to configure Qiskit to use the credentials in
@@ -162,7 +159,8 @@ for more details.
 ## Contribution Guidelines
 
 If you'd like to contribute to Qiskit, please take a look at our
-[contribution guidelines](.github/CONTRIBUTING.rst). This project adheres to Qiskit's [code of conduct](.github/CODE_OF_CONDUCT.rst).
+[contribution guidelines](.github/CONTRIBUTING.rst). This project adheres to Qiskit's
+[code of conduct](.github/CODE_OF_CONDUCT.rst).
 By participating, you are expected to uphold to this code.
 
 We use [GitHub issues](https://github.com/Qiskit/qiskit-aqua/issues) for tracking requests and bugs. Please
