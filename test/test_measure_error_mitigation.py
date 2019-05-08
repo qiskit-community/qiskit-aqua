@@ -15,14 +15,12 @@
 import unittest
 import time
 
-from qiskit import Aer
 import numpy as np
 
 from test.common import QiskitAquaTestCase
 from qiskit.aqua.components.oracles import LogicalExpressionOracle
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.ignis.mitigation.measurement import CompleteMeasFitter
-from qiskit.providers.aer import noise
 from qiskit.aqua.algorithms import Grover
 
 
@@ -30,6 +28,14 @@ class TestMeasurementErrorMitigation(QiskitAquaTestCase):
     """Test measurement error mitigation."""
 
     def test_measurement_error_mitigation(self):
+
+        try:
+            from qiskit import Aer
+            from qiskit.providers.aer import noise
+        except Exception as e:
+            self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(e)))
+            return
+
         aqua_globals.random_seed = 0
 
         # build noise model
@@ -59,6 +65,14 @@ class TestMeasurementErrorMitigation(QiskitAquaTestCase):
         self.assertGreaterEqual(prob_top_measurement_w_mitigation, prob_top_measurement_wo_mitigation)
 
     def test_measurement_error_mitigation_auto_refresh(self):
+
+        try:
+            from qiskit import Aer
+            from qiskit.providers.aer import noise
+        except Exception as e:
+            self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(e)))
+            return
+
         aqua_globals.random_seed = 0
 
         # build noise model
