@@ -282,10 +282,4 @@ def mct(self, q_controls, q_target, q_ancilla, mode='basic'):
             raise AquaError('Unrecognized mode for building MCT circuit: {}.'.format(mode))
 
 
-def cnx(self, *args, **kwargs):
-    logger.warning("The gate name 'cnx' will be deprecated. Please use 'mct' (Multiple-Control Toffoli) instead.")
-    return mct(self, *args, **kwargs)
-
-
 QuantumCircuit.mct = mct
-QuantumCircuit.cnx = cnx
