@@ -209,8 +209,8 @@ class VQE(VQAlgorithm):
             warning_msg += "since operator_mode is '{}', '{}' backend is used.".format(
                 self._operator_mode, temp_backend_name)
             logger.warning(warning_msg)
-        circuit = self._operator.construct_evaluation_circuit(self._operator_mode,
-                                                              input_circuit, backend, use_simulator_operator_mode)
+        circuit = self._operator.construct_evaluation_circuit(self._operator_mode, input_circuit, backend,
+                                                              use_simulator_operator_mode=use_simulator_operator_mode)
         return circuit
 
     def _eval_aux_ops(self, threshold=1e-12, params=None):
