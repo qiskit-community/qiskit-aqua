@@ -63,6 +63,11 @@ def rccx(self, q_control_1, q_control_2, q_target):
     """
     Apply 2-Control Relative-Phase Toffoli gate from q_control_1 and q_control_2 to q_target.
 
+    Args:
+        q_control_1: The 1st control qubit.
+        q_control_2: The 2nd control qubit.
+        q_target: The target qubit.
+        
     https://arxiv.org/pdf/1508.03273.pdf Figure 3
     """
     if not is_qubit(q_control_1):
@@ -85,8 +90,14 @@ def rccx(self, q_control_1, q_control_2, q_target):
 
 def rcccx(self, q_control_1, q_control_2, q_control_3, q_target):
     """
-    Apply 3-Control Relative-Phase Toffoli gate from ctl1, ctl2, and ctl3 to tgt.
+    Apply 3-Control Relative-Phase Toffoli gate from q_control_1, q_control_2, and q_control_3 to q_target.
 
+    Args:
+        q_control_1: The 1st control qubit.
+        q_control_2: The 2nd control qubit.
+        q_control_3: The 3rd control qubit.
+        q_target: The target qubit.
+        
     https://arxiv.org/pdf/1508.03273.pdf Figure 4
     """
     if not is_qubit(q_control_1):
