@@ -271,7 +271,7 @@ class QiskitAqua(object):
 
             backend_cfg['backend'] = backend
             if random_seed is not None:
-                backend_cfg['seed'] = random_seed
+                backend_cfg['seed_simulator'] = random_seed
             skip_qobj_validation = self._parser.get_section_property(JSONSchema.PROBLEM, 'skip_qobj_validation')
             if skip_qobj_validation is not None:
                 backend_cfg['skip_qobj_validation'] = skip_qobj_validation
