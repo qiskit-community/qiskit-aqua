@@ -18,7 +18,7 @@ Controlled-RY (cry) and Multiple-Control RY (mcry) Gates
 
 import logging
 
-from qiskit import QuantumCircuit, QuantumRegister
+from qiskit.circuit import QuantumCircuit, QuantumRegister
 
 from qiskit.aqua import AquaError
 from qiskit.aqua.utils.circuit_utils import is_qubit
@@ -31,10 +31,10 @@ def cry(self, theta, q_control, q_target):
     Apply Controlled-RY (cry) Gate.
 
     Args:
-        self (QuantumCircuit): The circuit to apply the ch gate on.
+        self (QuantumCircuit): The circuit to apply the cry gate on.
         theta (float): The rotation angle.
-        q_control ((QuantumRegister, int)): The control qubit.
-        q_target ((QuantumRegister, int)): The target qubit.
+        q_control (tuple(QuantumRegister, int)): The control qubit.
+        q_target (tuple(QuantumRegister, int)): The target qubit.
     """
 
     if not is_qubit(q_control):
@@ -62,11 +62,11 @@ def mcry(self, theta, q_controls, q_target, q_ancillae):
     Apply Multiple-Control RY (mcry) Gate.
 
     Args:
-        self (QuantumCircuit): The circuit to apply the ch gate on.
+        self (QuantumCircuit): The circuit to apply the mcry gate on.
         theta (float): The rotation angle.
-        q_controls (QuantumRegister | (QuantumRegister, int)): The control qubits.
-        q_target ((QuantumRegister, int)): The target qubit.
-        q_ancillae (QuantumRegister | (QuantumRegister, int)): The ancillary qubits.
+        q_controls (QuantumRegister | tuple(QuantumRegister, int)): The control qubits.
+        q_target (tuple(QuantumRegister, int)): The target qubit.
+        q_ancillae (QuantumRegister | tuple(QuantumRegister, int)): The ancillary qubits.
     """
 
     # check controls
