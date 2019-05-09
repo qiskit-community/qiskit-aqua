@@ -18,7 +18,7 @@ Multiple-Control U3 gate. Not using ancillary qubits.
 import logging
 
 from sympy.combinatorics.graycode import GrayCode
-from qiskit import QuantumCircuit, QuantumRegister
+from qiskit.circuit import QuantumCircuit, QuantumRegister
 
 from qiskit.aqua.utils.controlled_circuit import apply_cu3
 
@@ -73,12 +73,14 @@ def _apply_mcu3(circuit, theta, phi, lam, ctls, tgt):
 def mcu3(self, theta, phi, lam, control_qubits, target_qubit):
     """
     Apply Multiple-Controlled U3 gate
+
     Args:
-        theta: angle theta
-        phi: angle phi
-        lam: angle lambda
-        control_qubits: The list of control qubits
-        target_qubit: The target qubit
+        self (QuantumCircuit): The QuantumCircuit object to apply the mcu3 gate on.
+        theta (float): angle theta
+        phi (float): angle phi
+        lam (float): angle lambda
+        control_qubits (list(tuple(QuantumRegister, int))): The list of control qubits
+        target_qubit (tuple(QuantumRegister, int)): The target qubit
     """
     if isinstance(target_qubit, QuantumRegister) and len(target_qubit) == 1:
         target_qubit = target_qubit[0]
