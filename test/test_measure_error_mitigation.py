@@ -15,14 +15,12 @@
 import unittest
 import time
 
-from qiskit import Aer
 import numpy as np
 
 from test.common import QiskitAquaTestCase
 from qiskit.aqua.components.oracles import LogicalExpressionOracle
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.ignis.mitigation.measurement import CompleteMeasFitter
-from qiskit.providers.aer import noise
 from qiskit.aqua.algorithms import Grover
 
 
@@ -30,6 +28,14 @@ class TestMeasurementErrorMitigation(QiskitAquaTestCase):
     """Test measurement error mitigation."""
 
     def test_measurement_error_mitigation(self):
+
+        try:
+            from qiskit import Aer
+            from qiskit.providers.aer import noise
+        except Exception as e:
+            self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(e)))
+            return
+
         aqua_globals.random_seed = 0
 
         # build noise model
@@ -38,10 +44,10 @@ class TestMeasurementErrorMitigation(QiskitAquaTestCase):
         noise_model.add_all_qubit_readout_error(read_err)
 
         backend = Aer.get_backend('qasm_simulator')
-        quantum_instance = QuantumInstance(backend=backend, seed=167, seed_transpiler=167,
+        quantum_instance = QuantumInstance(backend=backend, seed_simulator=167, seed_transpiler=167,
                                            noise_model=noise_model)
 
-        quantum_instance_with_mitigation = QuantumInstance(backend=backend, seed=167, seed_transpiler=167,
+        quantum_instance_with_mitigation = QuantumInstance(backend=backend, seed_simulator=167, seed_transpiler=167,
                                                            noise_model=noise_model,
                                                            measurement_error_mitigation_cls=CompleteMeasFitter)
 
@@ -59,6 +65,14 @@ class TestMeasurementErrorMitigation(QiskitAquaTestCase):
         self.assertGreaterEqual(prob_top_measurement_w_mitigation, prob_top_measurement_wo_mitigation)
 
     def test_measurement_error_mitigation_auto_refresh(self):
+
+        try:
+            from qiskit import Aer
+            from qiskit.providers.aer import noise
+        except Exception as e:
+            self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(e)))
+            return
+
         aqua_globals.random_seed = 0
 
         # build noise model
@@ -67,7 +81,7 @@ class TestMeasurementErrorMitigation(QiskitAquaTestCase):
         noise_model.add_all_qubit_readout_error(read_err)
 
         backend = Aer.get_backend('qasm_simulator')
-        quantum_instance = QuantumInstance(backend=backend, seed=1679, seed_transpiler=167,
+        quantum_instance = QuantumInstance(backend=backend, seed_simulator=1679, seed_transpiler=167,
                                            noise_model=noise_model,
                                            measurement_error_mitigation_cls=CompleteMeasFitter,
                                            cals_matrix_refresh_period=0)
@@ -79,7 +93,7 @@ class TestMeasurementErrorMitigation(QiskitAquaTestCase):
 
         time.sleep(15)
         aqua_globals.random_seed = 2
-        quantum_instance.set_config(seed=111)
+        quantum_instance.set_config(seed_simulator=111)
         _ = grover.run(quantum_instance)
         cals_matrix_2 = quantum_instance.cals_matrix.copy()
 
