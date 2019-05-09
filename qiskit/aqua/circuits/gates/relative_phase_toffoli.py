@@ -64,9 +64,9 @@ def rccx(self, q_control_1, q_control_2, q_target):
 
     Args:
         self (QuantumCircuit): The QuantumCircuit object to apply the rccx gate on.
-        q_control_1 (tuple(QuantumRegister, int)): The 1st control qubit.
-        q_control_2 (tuple(QuantumRegister, int)): The 2nd control qubit.
-        q_target (tuple(QuantumRegister, int)): The target qubit.
+        q_control_1 ((QuantumRegister, int)): The 1st control qubit.
+        q_control_2 ((QuantumRegister, int)): The 2nd control qubit.
+        q_target ((QuantumRegister, int)): The target qubit.
         
     """
     if not is_qubit(q_control_1):
@@ -95,10 +95,10 @@ def rcccx(self, q_control_1, q_control_2, q_control_3, q_target):
 
     Args:
         self (QuantumCircuit): The QuantumCircuit object to apply the rcccx gate on.
-        q_control_1 (tuple(QuantumRegister, int)): The 1st control qubit.
-        q_control_2 (tuple(QuantumRegister, int)): The 2nd control qubit.
-        q_control_3 (tuple(QuantumRegister, int)): The 3rd control qubit.
-        q_target (tuple(QuantumRegister, int)): The target qubit.
+        q_control_1 ((QuantumRegister, int)): The 1st control qubit.
+        q_control_2 ((QuantumRegister, int)): The 2nd control qubit.
+        q_control_3 ((QuantumRegister, int)): The 3rd control qubit.
+        q_target ((QuantumRegister, int)): The target qubit.
 
     """
     if not is_qubit(q_control_1):

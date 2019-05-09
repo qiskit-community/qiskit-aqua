@@ -33,8 +33,8 @@ def cry(self, theta, q_control, q_target):
     Args:
         self (QuantumCircuit): The circuit to apply the cry gate on.
         theta (float): The rotation angle.
-        q_control (tuple(QuantumRegister, int)): The control qubit.
-        q_target (tuple(QuantumRegister, int)): The target qubit.
+        q_control ((QuantumRegister, int)): The control qubit.
+        q_target ((QuantumRegister, int)): The target qubit.
     """
 
     if not is_qubit(q_control):
@@ -64,9 +64,9 @@ def mcry(self, theta, q_controls, q_target, q_ancillae):
     Args:
         self (QuantumCircuit): The circuit to apply the mcry gate on.
         theta (float): The rotation angle.
-        q_controls (QuantumRegister | tuple(QuantumRegister, int)): The control qubits.
-        q_target (tuple(QuantumRegister, int)): The target qubit.
-        q_ancillae (QuantumRegister | tuple(QuantumRegister, int)): The ancillary qubits.
+        q_controls (QuantumRegister | (QuantumRegister, int)): The control qubits.
+        q_target ((QuantumRegister, int)): The target qubit.
+        q_ancillae (QuantumRegister | (QuantumRegister, int)): The ancillary qubits.
     """
 
     # check controls

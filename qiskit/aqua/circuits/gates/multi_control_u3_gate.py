@@ -79,8 +79,8 @@ def mcu3(self, theta, phi, lam, control_qubits, target_qubit):
         theta (float): angle theta
         phi (float): angle phi
         lam (float): angle lambda
-        control_qubits (list(tuple(QuantumRegister, int))): The list of control qubits
-        target_qubit (tuple(QuantumRegister, int)): The target qubit
+        control_qubits (list((QuantumRegister, int))): The list of control qubits
+        target_qubit ((QuantumRegister, int)): The target qubit
     """
     if isinstance(target_qubit, QuantumRegister) and len(target_qubit) == 1:
         target_qubit = target_qubit[0]

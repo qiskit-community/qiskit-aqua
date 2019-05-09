@@ -80,10 +80,10 @@ def mcmt(self,
 
     Args:
         self (QuantumCircuit): The QuantumCircuit object to apply the mcmt gate on.
-        q_controls (QuantumRegister | list(tuple(QuantumRegister, int))): The list of control qubits
-        q_ancillae (QuantumRegister | list(tuple(QuantumRegister, int))): The list of ancillary qubits
+        q_controls (QuantumRegister | list((QuantumRegister, int))): The list of control qubits
+        q_ancillae (QuantumRegister | list((QuantumRegister, int))): The list of ancillary qubits
         single_control_gate_fun (Gate): The single control gate function (e.g QuantumCircuit.cz or QuantumCircuit.ch)
-        q_targets (QuantumRegister | list(tuple(QuantumRegister, int))): A list of qubits or a QuantumRegister
+        q_targets (QuantumRegister | list((QuantumRegister, int))): A list of qubits or a QuantumRegister
             to which the gate function should be applied.
         mode (string): The implementation mode to use (at the moment, only the basic mode is supported)
 

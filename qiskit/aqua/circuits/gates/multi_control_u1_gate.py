@@ -78,8 +78,8 @@ def mcu1(self, theta, control_qubits, target_qubit):
     Args:
         self (QuantumCircuit): The QuantumCircuit object to apply the mcu1 gate on.
         theta (float): angle theta
-        control_qubits (list(tuple(QuantumRegister, int))): The list of control qubits
-        target_qubit (tuple(QuantumRegister, int)): The target qubit
+        control_qubits (list((QuantumRegister, int))): The list of control qubits
+        target_qubit ((QuantumRegister, int)): The target qubit
     """
     if isinstance(target_qubit, QuantumRegister) and len(target_qubit) == 1:
         target_qubit = target_qubit[0]

@@ -230,9 +230,9 @@ def mct(self, q_controls, q_target, q_ancilla, mode='basic'):
 
     Args:
         self (QuantumCircuit): The QuantumCircuit object to apply the mct gate on.
-        q_controls (QuantumRegister | list(tuple(QuantumRegister, int))): The list of control qubits
-        q_target (tuple(QuantumRegister, int)): The target qubit
-        q_ancilla (QuantumRegister | list(tuple(QuantumRegister, int))): The list of ancillary qubits
+        q_controls (QuantumRegister | list((QuantumRegister, int))): The list of control qubits
+        q_target ((QuantumRegister, int)): The target qubit
+        q_ancilla (QuantumRegister | list((QuantumRegister, int))): The list of ancillary qubits
         mode (string): The implementation mode to use
     """
 
