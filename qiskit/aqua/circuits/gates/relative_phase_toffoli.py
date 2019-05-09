@@ -16,7 +16,7 @@
 Relative Phase Toffoli Gates.
 """
 
-from qiskit import QuantumCircuit, QuantumRegister
+from qiskit.circuit import QuantumCircuit, QuantumRegister
 from qiskit.qasm import pi
 
 from qiskit.aqua import AquaError
