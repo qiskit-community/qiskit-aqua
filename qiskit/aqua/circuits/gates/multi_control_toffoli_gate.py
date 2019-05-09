@@ -23,6 +23,7 @@ from qiskit.circuit import QuantumCircuit, QuantumRegister
 
 from qiskit.aqua import AquaError
 from qiskit.aqua.utils.circuit_utils import is_qubit
+from .relative_phase_toffoli import rccx
 
 logger = logging.getLogger(__name__)
 
@@ -41,24 +42,24 @@ def _ccx_v_chain(qc, control_qubits, target_qubit, ancillary_qubits, dirty_ancil
         anci_idx = len(control_qubits) - 3
         qc.ccx(control_qubits[len(control_qubits) - 1], ancillary_qubits[anci_idx], target_qubit)
         for idx in reversed(range(2, len(control_qubits) - 1)):
-            qc.ccx(control_qubits[idx], ancillary_qubits[anci_idx - 1], ancillary_qubits[anci_idx])
+            qc.rccx(control_qubits[idx], ancillary_qubits[anci_idx - 1], ancillary_qubits[anci_idx])
             anci_idx -= 1
 
     anci_idx = 0
-    qc.ccx(control_qubits[0], control_qubits[1], ancillary_qubits[anci_idx])
+    qc.rccx(control_qubits[0], control_qubits[1], ancillary_qubits[anci_idx])
     for idx in range(2, len(control_qubits) - 1):
-        qc.ccx(control_qubits[idx], ancillary_qubits[anci_idx], ancillary_qubits[anci_idx + 1])
+        qc.rccx(control_qubits[idx], ancillary_qubits[anci_idx], ancillary_qubits[anci_idx + 1])
         anci_idx += 1
     qc.ccx(control_qubits[len(control_qubits) - 1], ancillary_qubits[anci_idx], target_qubit)
     for idx in reversed(range(2, len(control_qubits) - 1)):
-        qc.ccx(control_qubits[idx], ancillary_qubits[anci_idx - 1], ancillary_qubits[anci_idx])
+        qc.rccx(control_qubits[idx], ancillary_qubits[anci_idx - 1], ancillary_qubits[anci_idx])
         anci_idx -= 1
-    qc.ccx(control_qubits[0], control_qubits[1], ancillary_qubits[anci_idx])
+    qc.rccx(control_qubits[0], control_qubits[1], ancillary_qubits[anci_idx])
 
     if dirty_ancilla:
         anci_idx = 0
         for idx in range(2, len(control_qubits) - 1):
-            qc.ccx(control_qubits[idx], ancillary_qubits[anci_idx], ancillary_qubits[anci_idx + 1])
+            qc.rccx(control_qubits[idx], ancillary_qubits[anci_idx], ancillary_qubits[anci_idx + 1])
             anci_idx += 1
 
 
