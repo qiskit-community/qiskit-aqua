@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 """
 The Amplitude Estimation Algorithm.
 """
@@ -71,7 +68,7 @@ class AmplitudeEstimation(QuantumAlgorithm):
         ],
     }
 
-    def __init__(self, num_eval_qubits, a_factory, q_factory=None, iqft=None):
+    def __init__(self, num_eval_qubits, a_factory, i_objective=None, q_factory=None, iqft=None):
         """
         Constructor.
 
@@ -87,7 +84,9 @@ class AmplitudeEstimation(QuantumAlgorithm):
         # get/construct A/Q operator
         self.a_factory = a_factory
         if q_factory is None:
-            self.q_factory = QFactory(a_factory)
+            if i_objective is None:
+                i_objective = self.a_factory.num_target_qubits - 1
+            self.q_factory = QFactory(a_factory, i_objective)
         else:
             self.q_factory = q_factory
 
@@ -137,9 +136,12 @@ class AmplitudeEstimation(QuantumAlgorithm):
 
         return cls(num_eval_qubits, uncertainty_problem, q_factory=None, iqft=iqft)
 
-    def construct_circuit(self):
+    def construct_circuit(self, measurement=False):
         """
         Construct the Amplitude Estimation quantum circuit.
+
+        Args:
+            measurement (bool): Boolean flag to indicate if measurement should be included in the circuit.
 
         Returns:
             the QuantumCircuit object for the constructed circuit
@@ -150,7 +152,7 @@ class AmplitudeEstimation(QuantumAlgorithm):
             unitary_circuit_factory=self.q_factory
         )
 
-        self._circuit = pec.construct_circuit()
+        self._circuit = pec.construct_circuit(measurement=measurement)
         return self._circuit
 
     def _evaluate_statevector_results(self, probabilities):
@@ -172,11 +174,8 @@ class AmplitudeEstimation(QuantumAlgorithm):
         return a_probabilities, y_probabilities
 
     def _run(self):
-
-        # construct circuit
-        self.construct_circuit()
-
         if self._quantum_instance.is_statevector:
+            self.construct_circuit(measurement=False)
             # run circuit on statevector simlator
             ret = self._quantum_instance.execute(self._circuit)
             state_vector = np.asarray([ret.get_statevector(self._circuit)])
@@ -191,10 +190,7 @@ class AmplitudeEstimation(QuantumAlgorithm):
                 state_probabilities)
         else:
             # run circuit on QASM simulator
-            qc = self._circuit
-            cr = ClassicalRegister(self._m)
-            qc.add_register(cr)
-            qc.measure([q for q in qc.qregs if q.name == 'a'][0], cr)
+            self.construct_circuit(measurement=True)
             ret = self._quantum_instance.execute(self._circuit)
 
             # get counts

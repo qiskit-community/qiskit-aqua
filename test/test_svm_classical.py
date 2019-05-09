@@ -1,29 +1,28 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 import numpy as np
 
+from qiskit.aqua import aqua_globals
 from qiskit.aqua import run_algorithm
-from qiskit.aqua.input import SVMInput
+from qiskit.aqua.input import ClassificationInput
 from test.common import QiskitAquaTestCase
 
 
 class TestSVMClassical(QiskitAquaTestCase):
     def setUp(self):
         super().setUp()
+        aqua_globals.random_seed = 10598
         pass
 
     def test_classical_binary(self):
@@ -89,17 +88,17 @@ class TestSVMClassical(QiskitAquaTestCase):
                                        [0.06195634, -0.23262325],
                                        [0.06183066, -0.53376975]])}
 
-        temp = [test_input[k] for k in test_input]
+        temp = [test_input[k] for k in sorted(test_input)]
         total_array = np.concatenate(temp)
 
         params = {
-            'problem': {'name': 'svm_classification'},
+            'problem': {'name': 'classification'},
             'algorithm': {
                 'name': 'SVM',
             }
         }
 
-        algo_input = SVMInput(training_input, test_input, total_array)
+        algo_input = ClassificationInput(training_input, test_input, total_array)
 
         result = run_algorithm(params, algo_input)
         self.assertEqual(result['testing_accuracy'], 1.0)
@@ -200,18 +199,18 @@ class TestSVMClassical(QiskitAquaTestCase):
                                        [-0.73856328, 0.80699537],
                                        [-0.66489165, 0.1181712]])}
 
-        temp = [test_input[k] for k in test_input]
+        temp = [test_input[k] for k in sorted(test_input)]
         total_array = np.concatenate(temp)
 
         params = {
-            'problem': {'name': 'svm_classification'},
+            'problem': {'name': 'classification'},
             'algorithm': {
                 'name': 'SVM'
             },
             'multiclass_extension': {'name': 'OneAgainstRest'}
         }
 
-        algo_input = SVMInput(training_input, test_input, total_array)
+        algo_input = ClassificationInput(training_input, test_input, total_array)
 
         result = run_algorithm(params, algo_input)
         self.assertEqual(result['testing_accuracy'], 1.0)
@@ -312,11 +311,11 @@ class TestSVMClassical(QiskitAquaTestCase):
                                        [-0.73856328, 0.80699537],
                                        [-0.66489165, 0.1181712]])}
 
-        temp = [test_input[k] for k in test_input]
+        temp = [test_input[k] for k in sorted(test_input)]
         total_array = np.concatenate(temp)
 
         params = {
-            'problem': {'name': 'svm_classification'},
+            'problem': {'name': 'classification'},
             'algorithm': {
                 'name': 'SVM'
             },
@@ -324,7 +323,7 @@ class TestSVMClassical(QiskitAquaTestCase):
 
         }
 
-        algo_input = SVMInput(training_input, test_input, total_array)
+        algo_input = ClassificationInput(training_input, test_input, total_array)
 
         result = run_algorithm(params, algo_input)
         self.assertEqual(result['testing_accuracy'], 1.0)
@@ -426,18 +425,18 @@ class TestSVMClassical(QiskitAquaTestCase):
                                        [-0.73856328, 0.80699537],
                                        [-0.66489165, 0.1181712]])}
 
-        temp = [test_input[k] for k in test_input]
+        temp = [test_input[k] for k in sorted(test_input)]
         total_array = np.concatenate(temp)
 
         params = {
-            'problem': {'name': 'svm_classification'},
+            'problem': {'name': 'classification'},
             'algorithm': {
                 'name': 'SVM',
             },
             'multiclass_extension': {'name': 'ErrorCorrectingCode', 'code_size': 5},
         }
 
-        algo_input = SVMInput(training_input, test_input, total_array)
+        algo_input = ClassificationInput(training_input, test_input, total_array)
 
         result = run_algorithm(params, algo_input)
         self.assertEqual(result['testing_accuracy'], 1.0)

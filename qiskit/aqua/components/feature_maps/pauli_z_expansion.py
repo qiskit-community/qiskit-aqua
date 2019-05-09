@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 """
 This module contains the definition of a base class for
 feature map. Several types of commonly used approaches.
@@ -63,12 +60,12 @@ class PauliZExpansion(PauliExpansion):
         }
     }
 
-    def __init__(self, num_qubits, depth=2, entangler_map=None,
+    def __init__(self, feature_dimension, depth=2, entangler_map=None,
                  entanglement='full', z_order=2, data_map_func=self_product):
         """Constructor.
 
         Args:
-            num_qubits (int): number of qubits
+            feature_dimension (int): number of features
             depth (int): the number of repeated circuits
             entangler_map (list[list]): describe the connectivity of qubits, each list describes
                                         [source, target], or None for full entanglement.
@@ -82,5 +79,5 @@ class PauliZExpansion(PauliExpansion):
         pauli_string = []
         for i in range(1, z_order + 1):
             pauli_string.append('Z' * i)
-        super().__init__(num_qubits, depth, entangler_map, entanglement,
+        super().__init__(feature_dimension, depth, entangler_map, entanglement,
                          paulis=pauli_string, data_map_func=data_map_func)

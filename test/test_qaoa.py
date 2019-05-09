@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM RESEARCH. All Rights Reserved.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 
 import unittest
 
@@ -22,7 +19,7 @@ from parameterized import parameterized
 from qiskit import BasicAer
 
 from test.common import QiskitAquaTestCase
-from qiskit.aqua.translators.ising import maxcut
+from qiskit.aqua.translators.ising import max_cut
 from qiskit.aqua.components.optimizers import COBYLA
 from qiskit.aqua.algorithms import QAOA
 from qiskit.aqua import Operator, QuantumInstance
@@ -65,20 +62,22 @@ class TestQAOA(QiskitAquaTestCase):
 
         backend = BasicAer.get_backend('statevector_simulator')
         optimizer = COBYLA()
-        qubitOp, offset = maxcut.get_maxcut_qubitops(w)
+        qubitOp, offset = max_cut.get_max_cut_qubitops(w)
 
         qaoa = QAOA(qubitOp, optimizer, p, operator_mode='matrix', mixer=m)
         quantum_instance = QuantumInstance(backend)
 
         result = qaoa.run(quantum_instance)
-        x = maxcut.sample_most_likely(result['eigvecs'][0])
-        graph_solution = maxcut.get_graph_solution(x)
+        x = max_cut.sample_most_likely(result['eigvecs'][0])
+        graph_solution = max_cut.get_graph_solution(x)
         self.log.debug('energy:             {}'.format(result['energy']))
         self.log.debug('time:               {}'.format(result['eval_time']))
         self.log.debug('maxcut objective:   {}'.format(result['energy'] + offset))
         self.log.debug('solution:           {}'.format(graph_solution))
-        self.log.debug('solution objective: {}'.format(maxcut.maxcut_value(x, w)))
+        self.log.debug('solution objective: {}'.format(max_cut.max_cut_value(x, w)))
         self.assertIn(''.join([str(int(i)) for i in graph_solution]), solutions)
+        if quantum_instance.has_circuit_caching:
+            self.assertLess(quantum_instance._circuit_cache.misses, 3)
 
 
 if __name__ == '__main__':
