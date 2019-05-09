@@ -18,7 +18,7 @@ The Boolean Logical AND and OR Gates.
 import logging
 import numpy as np
 
-from qiskit import QuantumCircuit, QuantumRegister
+from qiskit.circuit import QuantumCircuit, QuantumRegister
 from qiskit.qasm import pi
 
 from qiskit.aqua import AquaError

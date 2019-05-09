@@ -11,15 +11,12 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-"""
-Multiple-Control, Multiple-Target Gate.
-"""
 
 """
 Relative Phase Toffoli Gates.
 """
 
-from qiskit import QuantumCircuit
+from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.qasm import pi
 
 from qiskit.aqua import AquaError
@@ -63,12 +60,14 @@ def rccx(self, q_control_1, q_control_2, q_target):
     """
     Apply 2-Control Relative-Phase Toffoli gate from q_control_1 and q_control_2 to q_target.
 
+    The implementation is based on https://arxiv.org/pdf/1508.03273.pdf Figure 3
+
     Args:
-        q_control_1: The 1st control qubit.
-        q_control_2: The 2nd control qubit.
-        q_target: The target qubit.
+        self (QuantumCircuit): The QuantumCircuit object to apply the rccx gate on.
+        q_control_1 (tuple(QuantumRegister, int)): The 1st control qubit.
+        q_control_2 (tuple(QuantumRegister, int)): The 2nd control qubit.
+        q_target (tuple(QuantumRegister, int)): The target qubit.
         
-    https://arxiv.org/pdf/1508.03273.pdf Figure 3
     """
     if not is_qubit(q_control_1):
         raise AquaError('A qubit is expected for the first control.')
@@ -92,13 +91,15 @@ def rcccx(self, q_control_1, q_control_2, q_control_3, q_target):
     """
     Apply 3-Control Relative-Phase Toffoli gate from q_control_1, q_control_2, and q_control_3 to q_target.
 
+    The implementation is based on https://arxiv.org/pdf/1508.03273.pdf Figure 4
+
     Args:
-        q_control_1: The 1st control qubit.
-        q_control_2: The 2nd control qubit.
-        q_control_3: The 3rd control qubit.
-        q_target: The target qubit.
-        
-    https://arxiv.org/pdf/1508.03273.pdf Figure 4
+        self (QuantumCircuit): The QuantumCircuit object to apply the rcccx gate on.
+        q_control_1 (tuple(QuantumRegister, int)): The 1st control qubit.
+        q_control_2 (tuple(QuantumRegister, int)): The 2nd control qubit.
+        q_control_3 (tuple(QuantumRegister, int)): The 3rd control qubit.
+        q_target (tuple(QuantumRegister, int)): The target qubit.
+
     """
     if not is_qubit(q_control_1):
         raise AquaError('A qubit is expected for the first control.')
