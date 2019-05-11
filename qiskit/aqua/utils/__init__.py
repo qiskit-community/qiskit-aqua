@@ -27,13 +27,11 @@ from .dataset_helper import (get_feature_dimension, get_num_classes,
                              map_label_to_class_name, reduce_dim_to_via_pca)
 from .qp_solver import optimize_svm
 from .circuit_factory import CircuitFactory
-from .run_circuits import compile_and_run_circuits, compile_circuits, run_qobjs, find_regs_by_name
+from .run_circuits import compile_and_run_circuits, compile_circuits, run_qobj, find_regs_by_name
 from .circuit_cache import CircuitCache
 from .backend_utils import has_ibmq, has_aer
 from .measurement_error_mitigation import (get_measured_qubits_from_qobj,
-                                           mitigate_measurement_error,
-                                           build_measurement_error_mitigation_fitter)
-
+                                           add_measurement_error_mitigation_to_qobj)
 
 __all__ = [
     'tensorproduct',
@@ -60,12 +58,11 @@ __all__ = [
     'CircuitFactory',
     'compile_and_run_circuits',
     'compile_circuits',
-    'run_qobjs',
+    'run_qobj',
     'find_regs_by_name',
     'CircuitCache',
     'has_ibmq',
     'has_aer',
     'get_measured_qubits_from_qobj',
-    'mitigate_measurement_error',
-    'build_measurement_error_mitigation_fitter'
+    'add_measurement_error_mitigation_to_qobj'
 ]

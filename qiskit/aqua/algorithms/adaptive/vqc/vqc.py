@@ -243,6 +243,8 @@ class VQC(VQAlgorithm):
 
         if datapoints is not None and not isinstance(datapoints, np.ndarray):
             datapoints = np.asarray(datapoints)
+            if len(datapoints) == 0:
+                datapoints = None
         self._datapoints = datapoints
         self._minibatch_size = minibatch_size
 
