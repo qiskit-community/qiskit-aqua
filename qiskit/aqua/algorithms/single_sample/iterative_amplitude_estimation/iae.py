@@ -15,6 +15,7 @@ from qiskit.aqua import AquaError
 # from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.algorithms.single_sample.amplitude_estimation.q_factory import QFactory
+from qiskit.aqua.algorithms.single_sample.amplitude_estimation.ci_utils import chi2_quantile
 
 logger = logging.getLogger(__name__)
 
@@ -135,8 +136,13 @@ class IterativeAmplitudeEstimation(QuantumAlgorithm):
         return qc
 
     def maximize(self, likelihood):
+        # Should be this many numbers also for LR statistic later in self.ci!
         thetas = np.linspace(0, np.pi / 2, num=int(1e6))
         vals = np.array([likelihood(t) for t in thetas])
+
+        # Avoid double evaluation in likelihood ratio
+        self._thetas_grid = thetas
+        self._logliks_grid = np.log(vals)
 
         idx = np.argmax(vals)
 
@@ -150,6 +156,23 @@ class IterativeAmplitudeEstimation(QuantumAlgorithm):
             return np.prod([lik(theta) for lik in self._likelihoods])
 
         return self.maximize(likelihood)
+
+    def ci(self, alpha, kind="likelihood_ratio"):
+        if kind == "likelihood_ratio":
+            # Threshold defining confidence interval
+            loglik_mle = np.max(self._logliks_grid)
+            thres = loglik_mle - chi2_quantile(alpha) / 2
+
+            # Which values are above the threshold?
+            above_thres = self._thetas_grid[self._logliks_grid >= thres]
+
+            # Get boundaries
+            # since thetas_grid is sorted [0] == min, [1] == max
+            ci = np.array([above_thres[0], above_thres[-1]])
+
+            return ci
+        else:
+            raise AquaError(f"confidence interval kind {kind} not implemented")
 
     def _run(self):
         for num_rotations in self._rotations:
