@@ -115,7 +115,7 @@ class TestVQC(QiskitAquaTestCase):
         feature_map = SecondOrderExpansion(feature_dimension=num_qubits, depth=2)
         var_form = RYRZ(num_qubits=num_qubits, depth=3)
         svm = VQC(optimizer, feature_map, var_form, training_input, test_input, minibatch_size=2)
-        quantum_instance = QuantumInstance(backend, seed=seed, seed_transpiler=seed)
+        quantum_instance = QuantumInstance(backend, seed_simulator=seed, seed_transpiler=seed)
         result = svm.run(quantum_instance)
         svm_accuracy_threshold = 0.85
         self.log.debug(result['testing_accuracy'])
@@ -135,7 +135,7 @@ class TestVQC(QiskitAquaTestCase):
         feature_map = SecondOrderExpansion(feature_dimension=num_qubits, depth=2)
         var_form = RYRZ(num_qubits=num_qubits, depth=3)
         svm = VQC(optimizer, feature_map, var_form, training_input, test_input, minibatch_size=2)
-        quantum_instance = QuantumInstance(backend, seed=seed, seed_transpiler=seed)
+        quantum_instance = QuantumInstance(backend, seed_simulator=seed, seed_transpiler=seed)
         result = svm.run(quantum_instance)
         svm_accuracy_threshold = 0.85
         self.log.debug(result['testing_accuracy'])
@@ -153,7 +153,7 @@ class TestVQC(QiskitAquaTestCase):
         var_form = RYRZ(num_qubits=num_qubits, depth=3)
 
         svm = VQC(optimizer, feature_map, var_form, self.training_data, self.testing_data)
-        quantum_instance = QuantumInstance(backend, shots=1024, seed=self.random_seed, seed_transpiler=self.random_seed)
+        quantum_instance = QuantumInstance(backend, shots=1024, seed_simulator=self.random_seed, seed_transpiler=self.random_seed)
         result = svm.run(quantum_instance)
 
         np.testing.assert_array_almost_equal(result['opt_params'], self.ref_opt_params, decimal=4)
@@ -210,7 +210,7 @@ class TestVQC(QiskitAquaTestCase):
 
         svm = VQC(optimizer, feature_map, var_form, self.training_data,
                   self.testing_data, callback=store_intermediate_result)
-        quantum_instance = QuantumInstance(backend, shots=1024, seed=self.random_seed, seed_transpiler=self.random_seed)
+        quantum_instance = QuantumInstance(backend, shots=1024, seed_simulator=self.random_seed, seed_transpiler=self.random_seed)
         svm.run(quantum_instance)
 
         is_file_exist = os.path.exists(self._get_resource_path(tmp_filename))

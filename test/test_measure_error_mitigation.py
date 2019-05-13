@@ -15,21 +15,34 @@
 import unittest
 import time
 
-from qiskit import Aer
 import numpy as np
+from qiskit.ignis.mitigation.measurement import CompleteMeasFitter
 
 from test.common import QiskitAquaTestCase
 from qiskit.aqua.components.oracles import LogicalExpressionOracle
 from qiskit.aqua import QuantumInstance, aqua_globals
-from qiskit.ignis.mitigation.measurement import CompleteMeasFitter
-from qiskit.providers.aer import noise
 from qiskit.aqua.algorithms import Grover
 
 
 class TestMeasurementErrorMitigation(QiskitAquaTestCase):
     """Test measurement error mitigation."""
 
+    def setUp(self):
+        super().setUp()
+        try:
+            from qiskit import Aer
+        except Exception as e:
+            self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(e)))
+            return
+
     def test_measurement_error_mitigation(self):
+        try:
+            from qiskit import Aer
+            from qiskit.providers.aer import noise
+        except Exception as e:
+            self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(e)))
+            return
+
         aqua_globals.random_seed = 0
 
         # build noise model
@@ -38,10 +51,10 @@ class TestMeasurementErrorMitigation(QiskitAquaTestCase):
         noise_model.add_all_qubit_readout_error(read_err)
 
         backend = Aer.get_backend('qasm_simulator')
-        quantum_instance = QuantumInstance(backend=backend, seed=167, seed_transpiler=167,
+        quantum_instance = QuantumInstance(backend=backend, seed_simulator=167, seed_transpiler=167,
                                            noise_model=noise_model)
 
-        quantum_instance_with_mitigation = QuantumInstance(backend=backend, seed=167, seed_transpiler=167,
+        quantum_instance_with_mitigation = QuantumInstance(backend=backend, seed_simulator=167, seed_transpiler=167,
                                                            noise_model=noise_model,
                                                            measurement_error_mitigation_cls=CompleteMeasFitter)
 
@@ -59,6 +72,13 @@ class TestMeasurementErrorMitigation(QiskitAquaTestCase):
         self.assertGreaterEqual(prob_top_measurement_w_mitigation, prob_top_measurement_wo_mitigation)
 
     def test_measurement_error_mitigation_auto_refresh(self):
+        try:
+            from qiskit import Aer
+            from qiskit.providers.aer import noise
+        except Exception as e:
+            self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(e)))
+            return
+
         aqua_globals.random_seed = 0
 
         # build noise model
@@ -67,7 +87,7 @@ class TestMeasurementErrorMitigation(QiskitAquaTestCase):
         noise_model.add_all_qubit_readout_error(read_err)
 
         backend = Aer.get_backend('qasm_simulator')
-        quantum_instance = QuantumInstance(backend=backend, seed=1679, seed_transpiler=167,
+        quantum_instance = QuantumInstance(backend=backend, seed_simulator=1679, seed_transpiler=167,
                                            noise_model=noise_model,
                                            measurement_error_mitigation_cls=CompleteMeasFitter,
                                            cals_matrix_refresh_period=0)
@@ -75,18 +95,51 @@ class TestMeasurementErrorMitigation(QiskitAquaTestCase):
         oracle = LogicalExpressionOracle(input, optimization='off')
         grover = Grover(oracle)
         _ = grover.run(quantum_instance)
-        cals_matrix_1 = quantum_instance.cals_matrix.copy()
+        cals_matrix_1, timestamp_1 = quantum_instance.cals_matrix(qubit_index=[0, 1, 2])
 
         time.sleep(15)
         aqua_globals.random_seed = 2
-        quantum_instance.set_config(seed=111)
+        quantum_instance.set_config(seed_simulator=111)
         _ = grover.run(quantum_instance)
-        cals_matrix_2 = quantum_instance.cals_matrix.copy()
+        cals_matrix_2, timestamp_2 = quantum_instance.cals_matrix(qubit_index=[0, 1, 2])
 
         diff = cals_matrix_1 - cals_matrix_2
         total_diff = np.sum(np.abs(diff))
 
         self.assertGreater(total_diff, 0.0)
+        self.assertGreater(timestamp_2, timestamp_1)
+
+    def test_measurement_error_mitigation_with_dedicated_shots(self):
+        from qiskit import Aer
+        from qiskit.providers.aer import noise
+
+        aqua_globals.random_seed = 0
+
+        # build noise model
+        noise_model = noise.NoiseModel()
+        read_err = noise.errors.readout_error.ReadoutError([[0.9, 0.1], [0.25, 0.75]])
+        noise_model.add_all_qubit_readout_error(read_err)
+
+        backend = Aer.get_backend('qasm_simulator')
+        quantum_instance = QuantumInstance(backend=backend, seed=1679, seed_transpiler=167, shots=100,
+                                           noise_model=noise_model,
+                                           measurement_error_mitigation_cls=CompleteMeasFitter,
+                                           cals_matrix_refresh_period=0)
+        input = 'a & b & c'
+        oracle = LogicalExpressionOracle(input, optimization='off')
+        grover = Grover(oracle)
+        _ = grover.run(quantum_instance)
+        cals_matrix_1, timestamp_1 = quantum_instance.cals_matrix(qubit_index=[0, 1, 2])
+
+        quantum_instance.measurement_error_mitigation_shots = 1000
+        _ = grover.run(quantum_instance)
+        cals_matrix_2, timestamp_2 = quantum_instance.cals_matrix(qubit_index=[0, 1, 2])
+
+        diff = cals_matrix_1 - cals_matrix_2
+        total_diff = np.sum(np.abs(diff))
+
+        self.assertGreater(total_diff, 0.0)
+        self.assertGreater(timestamp_2, timestamp_1)
 
 
 if __name__ == '__main__':
