@@ -196,7 +196,6 @@ class TestHHL(QiskitAquaTestCase):
 
         # compare results
         fidelity = state_fidelity(ref_normed, hhl_normed)
-        print(fidelity)
         np.testing.assert_approx_equal(fidelity, 1, significant=2)
 
         self.log.debug('HHL solution vector:       {}'.format(hhl_solution))
