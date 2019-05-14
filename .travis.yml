@@ -33,9 +33,11 @@ stage_dependencies: &stage_dependencies
         - ubuntu-toolchain-r-test
       packages:
         - libopenblas-dev
-        - g++-7    
+        - g++-7
+        - gdb   
         
   before_install:
+    - ulimit -c unlimited -S       # enable core dumps
     - |
       INIT_FILE="$TRAVIS_BUILD_DIR/qiskit/__init__.py"
       if [ -f $INIT_FILE ]; then
@@ -64,6 +66,11 @@ stage_dependencies: &stage_dependencies
       # install Aqua and dev requirements
       - pip install -e $TRAVIS_BUILD_DIR --progress-bar off
       - pip install -U -r requirements-dev.txt --progress-bar off
+  after_failure:
+      - COREFILE=$(find . -maxdepth 1 -name "core*" | head -n 1) # find core file
+      - if [[ -f "$COREFILE" ]]; then gdb -c "$COREFILE" example -ex "thread apply all bt" -ex "set pagination 0" -batch; fi
+
+    
 
 # Define the order of the stages.
 stages:
