@@ -36,9 +36,15 @@ stage_dependencies: &stage_dependencies
         echo "File '$INIT_FILE' found. It should not exist, since this repo extends qiskit namespace.";
         travis_terminate 1;
       fi
-    - pip install --upgrade pip setuptools wheel
-    # download Qiskit Terra master and unzip it only if forced from master or not stable branch, otherwise use the pypi version
-    - |
+      if [ "$BUILD_AER" != "false" ]; then
+        # install Aer build dependencies
+        sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+        sudo apt-get -y update
+        sudo apt-get -y install g++-7
+        sudo apt-get -y install libopenblas-dev
+      fi
+      pip install --upgrade pip setuptools wheel
+      # download Qiskit Terra master and unzip it only if forced from master or not stable branch, otherwise use the pypi version
       if [ ${MASTER_BRANCH_DEPENDENCIES} = "true" ] || [ ${TRAVIS_BRANCH} != "stable" ]; then
         # Download github Terra
         wget https://codeload.github.com/Qiskit/qiskit-terra/zip/master -O /tmp/qiskit-terra.zip
@@ -53,11 +59,19 @@ stage_dependencies: &stage_dependencies
         # Install local Qiskit Ignis
         pip install -e /tmp/qiskit-ignis-master --progress-bar off
       fi
+      if [ "$BUILD_AER" != "false" ]; then
+        # Download github Aer
+        wget https://codeload.github.com/Qiskit/qiskit-aer/zip/master -O /tmp/qiskit-aer.zip
+        unzip /tmp/qiskit-aer.zip -d /tmp/
+        # build Aer from master
+        python /tmp/qiskit-aer-master/setup.py bdist_wheel -- -DCMAKE_CXX_COMPILER=g++-7 -- -j4
+        pip install dist/qiskit_aer*whl
+      fi
   install:
       # install Aqua and dev requirements
       - pip install -e $TRAVIS_BUILD_DIR --progress-bar off
       - pip install -U -r requirements-dev.txt --progress-bar off
-    
+  
 # Define the order of the stages.
 stages:
   - test first half
