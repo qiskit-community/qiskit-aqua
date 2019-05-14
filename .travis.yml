@@ -60,7 +60,7 @@ stage_dependencies: &stage_dependencies
         pip install -e /tmp/qiskit-ignis-master --progress-bar off
       fi
       if [ "$BUILD_AER" != "false" ]; then
-      # Download github Qiskit Aer
+        # Download github Qiskit Aer
         wget https://codeload.github.com/Qiskit/qiskit-aer/zip/master -O /tmp/qiskit-aer.zip
         unzip /tmp/qiskit-aer.zip -d /tmp/
         # Install Qiskit Aer requirements.
