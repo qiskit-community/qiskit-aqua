@@ -32,7 +32,6 @@ stage_dependencies: &stage_dependencies
       sources:
         - ubuntu-toolchain-r-test
       packages:
-        - libopenblas-dev
         - g++-7
         - gdb   
         
