@@ -67,7 +67,7 @@ stage_dependencies: &stage_dependencies
         pip install -U -r /tmp/qiskit-aer-master/requirements-dev.txt --progress-bar off
         # build Qiskit Aer from master
         python /tmp/qiskit-aer-master/setup.py bdist_wheel -- -DCMAKE_CXX_COMPILER=g++-7 -- -j4
-        pip install /tmp/qiskit-aer-master/dist/qiskit_aer*whl
+        pip install dist/qiskit_aer*whl
       fi
   install:
       # install Aqua and dev requirements
