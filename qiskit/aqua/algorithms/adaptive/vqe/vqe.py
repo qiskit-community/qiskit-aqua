@@ -225,7 +225,7 @@ class VQE(VQAlgorithm):
                 temp_circuit = QuantumCircuit() + wavefn_circuit
                 circuit = operator.construct_evaluation_circuit(self._operator_mode, temp_circuit,
                                                                 self._quantum_instance.backend,
-                                                                self._use_simulator_operator_mode)
+                                                                use_simulator_operator_mode=self._use_simulator_operator_mode)
                 params.append(operator.aer_paulis)
             else:
                 circuit = None
