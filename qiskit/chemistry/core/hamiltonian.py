@@ -201,15 +201,19 @@ class Hamiltonian(ChemistryOperator):
         #
         orbitals_list = list(set(core_list + reduce_list))
         nel = qmolecule.num_alpha + qmolecule.num_beta
+        num_alpha = qmolecule.num_alpha
+        num_beta = qmolecule.num_beta
         new_nel = nel
+        new_num_alpha = num_alpha
+        new_num_beta = num_beta
         if len(orbitals_list) > 0:
             orbitals_list = np.array(orbitals_list)
             orbitals_list = orbitals_list[(orbitals_list >= 0) & (orbitals_list < qmolecule.num_orbitals)]
 
-            freeze_list = [i for i in orbitals_list if i < int(nel/2)]
+            freeze_list = [i for i in orbitals_list if i < nel // 2]
             freeze_list = np.append(np.array(freeze_list), np.array(freeze_list) + qmolecule.num_orbitals)
 
-            remove_list = [i for i in orbitals_list if i >= int(nel/2)]
+            remove_list = [i for i in orbitals_list if i >= nel // 2]
             remove_list_orig_idx = np.append(np.array(remove_list), np.array(remove_list) + qmolecule.num_orbitals)
             remove_list = np.append(np.array(remove_list) - int(len(freeze_list)/2), np.array(remove_list) + qmolecule.num_orbitals - len(freeze_list))
             logger.info("Combined orbital reduction list: {}".format(orbitals_list))
@@ -218,6 +222,8 @@ class Hamiltonian(ChemistryOperator):
             logger.info("    => removing spin orbitals: {} (indexes accounting for freeze {})".format(remove_list_orig_idx, remove_list))
 
             new_nel -= len(freeze_list)
+            new_num_alpha -= len(freeze_list) // 2
+            new_num_beta -= len(freeze_list) // 2
 
         fer_op = FermionicOperator(h1=qmolecule.one_body_integrals, h2=qmolecule.two_body_integrals)
         fer_op, self._energy_shift, did_shift = Hamiltonian._try_reduce_fermionic_operator(fer_op, freeze_list, remove_list)
@@ -275,7 +281,7 @@ class Hamiltonian(ChemistryOperator):
         new_nspinorbs = nspinorbs - len(freeze_list) - len(remove_list)
         logger.info('Molecule num spin orbitals: {}, remaining for processing: {}'.format(nspinorbs, new_nspinorbs))
 
-        self._add_molecule_info(self.INFO_NUM_PARTICLES, new_nel)
+        self._add_molecule_info(self.INFO_NUM_PARTICLES, [new_num_alpha, new_num_beta])
         self._add_molecule_info(self.INFO_NUM_ORBITALS, new_nspinorbs)
         self._add_molecule_info(self.INFO_TWO_QUBIT_REDUCTION,
                                 self._two_qubit_reduction if self._qubit_mapping == 'parity' else False)
