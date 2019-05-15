@@ -15,7 +15,7 @@ from qiskit.aqua import AquaError
 # from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.algorithms.single_sample.amplitude_estimation.q_factory import QFactory
-from qiskit.aqua.algorithms.single_sample.amplitude_estimation.ci_utils import chi2_quantile
+from qiskit.aqua.algorithms.single_sample.amplitude_estimation.ci_utils import chi2_quantile, normal_quantile
 
 logger = logging.getLogger(__name__)
 
@@ -84,6 +84,7 @@ class IterativeAmplitudeEstimation(QuantumAlgorithm):
         # Store likelihood functions of single experiments here
         self._likelihoods = []
 
+        # Results dictionary
         self._ret = {}
 
         # determine number of ancillas
@@ -91,17 +92,19 @@ class IterativeAmplitudeEstimation(QuantumAlgorithm):
         self._num_qubits = self.a_factory.num_target_qubits + \
             + self._num_ancillas
 
-        print("ancillas:", self._num_ancillas)
-        print("targets:", self.a_factory.num_target_qubits)
-        print("num_qubits", self._num_qubits)
-
     def get_single_likelihood(self, good, total, num_rotations):
         """
-        @brief
+        @brief Likelihood function for a Amplitude Amplification experiment
+        @param good Number of times we measured |1>
+        @param total Number of times we measured
+        @param num_rotations The amount of times we applied Q
+        @return Function handle for the likelihood (*not* log-likelihood!)
         """
         def likelihood(theta):
-            return (np.sin((2 * num_rotations + 1) * theta)**2)**good \
+            L = (np.sin((2 * num_rotations + 1) * theta)**2)**good \
                 * (np.cos((2 * num_rotations + 1) * theta)**2)**(total - good)
+            return L
+
         return likelihood
 
     def construct_single_circuit(self, num_rotations, measurement=False):
@@ -121,8 +124,6 @@ class IterativeAmplitudeEstimation(QuantumAlgorithm):
             aux = QuantumRegister(num_aux_qubits, name='aux')
             qc.add_register(aux)
 
-        print("Final circ size:", len(qc.qubits))
-
         self.a_factory.build(qc, q, aux)
         self.q_factory.build_power(qc, q, num_rotations, aux)
 
@@ -137,8 +138,9 @@ class IterativeAmplitudeEstimation(QuantumAlgorithm):
 
     def maximize(self, likelihood):
         # Should be this many numbers also for LR statistic later in self.ci!
-        thetas = np.linspace(0, np.pi / 2, num=int(1e6))
+        thetas = np.linspace(0, np.pi / 2, num=int(1e5))
         vals = np.array([likelihood(t) for t in thetas])
+        vals = np.array([np.maximum(v, 1e-8) for v in vals])
 
         # Avoid double evaluation in likelihood ratio
         self._thetas_grid = thetas
@@ -171,6 +173,17 @@ class IterativeAmplitudeEstimation(QuantumAlgorithm):
             ci = np.array([above_thres[0], above_thres[-1]])
 
             return ci
+        if kind == "fisher":
+            q = normal_quantile(alpha)
+            est = self._ret['estimation']
+
+            shots = sum(self._ret['counts'].values())
+            fi = shots / (est * (1 - est)) * \
+                sum((2 * nr + 1)**2 for nr in self._rotations)
+
+            ci = est + np.array([-1, 1]) * q / np.sqrt(fi)
+            return ci
+
         else:
             raise AquaError(f"confidence interval kind {kind} not implemented")
 
@@ -183,11 +196,6 @@ class IterativeAmplitudeEstimation(QuantumAlgorithm):
                 ret = self._quantum_instance.execute(qc)
                 state_vector = np.asarray([ret.get_statevector(qc)])
                 self._ret['statevector'] = state_vector
-
-                print(state_vector)
-                pr = np.real(state_vector.conj() * state_vector)
-                print(pr)
-                print(pr.shape)
 
                 # get probability for good measurement
                 pr_good = np.real(state_vector.conj() * state_vector).flatten()[1]
@@ -205,9 +213,16 @@ class IterativeAmplitudeEstimation(QuantumAlgorithm):
                 self._ret['counts'] = ret.get_counts()
 
                 # sum all counts where last qubit is one
-                good_counts = ret.get_counts()['1']
-                total_counts = sum(ret.get_counts().values())
+                try:
+                    good_counts = ret.get_counts()['1']
+                except KeyError:
+                    good_counts = 0
 
+                total_counts = sum(ret.get_counts().values())
+                good_counts /= total_counts
+                total_counts = 1
+
+            print(f"good/total: {good_counts}/{total_counts}")
             self._likelihoods.append(self.get_single_likelihood(good_counts,
                                                                 total_counts,
                                                                 num_rotations))
