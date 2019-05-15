@@ -121,7 +121,7 @@ class TestMeasurementErrorMitigation(QiskitAquaTestCase):
         noise_model.add_all_qubit_readout_error(read_err)
 
         backend = Aer.get_backend('qasm_simulator')
-        quantum_instance = QuantumInstance(backend=backend, seed=1679, seed_transpiler=167, shots=100,
+        quantum_instance = QuantumInstance(backend=backend, seed_simulator=1679, seed_transpiler=167, shots=100,
                                            noise_model=noise_model,
                                            measurement_error_mitigation_cls=CompleteMeasFitter,
                                            cals_matrix_refresh_period=0)
