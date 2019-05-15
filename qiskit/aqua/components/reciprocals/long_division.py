@@ -1,23 +1,23 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
+
+import numpy as np
 
 from qiskit import QuantumRegister, QuantumCircuit
+
 from qiskit.aqua.components.reciprocals import Reciprocal
-import numpy as np
+from qiskit.aqua.circuits.gates import mct
 
 
 class LongDivision(Reciprocal):
@@ -175,11 +175,11 @@ class LongDivision(Reciprocal):
                 for i in range(n):
                     qc2.cx(r, a[i]) 
                 
-                un_qc = qc2.reverse()        
+                un_qc = qc2.mirror()
                 un_qc.cx(r, z[0])   
                 return un_qc
             
-            #ASSEMBLING CIRCUIT FOR CONTROLLED SUBTRACTION:
+            # assembling circuit for controlled subtraction
             subtract_in(qc, a, b, b0, c, z, r[rj], n)
             qc.x(a[n-1])
             qc.cx(a[n-1], r[rj])
@@ -192,20 +192,20 @@ class LongDivision(Reciprocal):
             return qc       
     
         def shift_to_one(qc, b, anc, n):
-            '''controlled bit shifting for the initial alignment of the most 
-            significant bits'''
+            """controlled bit shifting for the initial alignment of the most
+            significant bits """
             
-            for i in range(n-2):            #set all the anc1 qubits to 1
+            for i in range(n-2):            # set all the anc1 qubits to 1
                 qc.x(anc[i])
             
-            for j2 in range(n-2):           #if msb is 1, change ancilla j2 to 0
+            for j2 in range(n-2):           # if msb is 1, change ancilla j2 to 0
                 qc.cx(b[0+self._neg_offset], anc[j2])                            
                 for i in  np.arange(0,n-2):
-                    i = int(i)                  #which activates shifting with the 2 Toffoli gates
+                    i = int(i)              # which activates shifting with the 2 Toffoli gates
                     qc.ccx(anc[j2], b[i+1+self._neg_offset], b[i+self._neg_offset])
                     qc.ccx(anc[j2], b[i+self._neg_offset], b[i+1+self._neg_offset]) 
                                        
-            for i in range(n-2):                #negate all the anc1
+            for i in range(n-2):            # negate all the ancilla
                 qc.x(anc[i])
                               
         def shift_one_left(qc, b, n):   
@@ -231,12 +231,12 @@ class LongDivision(Reciprocal):
         self._circuit.x(self._a[self._n-2])
         shift_to_one(self._circuit, self._ev, self._anc1, self._n)  #initial alignment of most significant bits
 
-        for rj in range(self._precision): #iterated subtraction and shifting
+        for rj in range(self._precision): # iterated subtraction and shifting
             self._circuit += subtract(self._a, self._ev, self._b0, self._c,
                                       self._z, self._rec, rj, self._n)
             shift_one_left(self._circuit, self._a, self._n)
                
-        for ish in range(self._n-2): #unshifting due to initial alignment
+        for ish in range(self._n-2): # unshifting due to initial alignment
             shift_one_leftc(self._circuit, self._rec, self._anc1[ish],
                             self._precision + self._num_ancillae)
             self._circuit.x(self._anc1[ish])
@@ -265,15 +265,15 @@ class LongDivision(Reciprocal):
         """Construct the Long Division Rotation circuit.
 
         Args:
-            mode (str): consctruction mode, 'vector' not supported
+            mode (str): consctruction mode, 'matrix' not supported
             inreg (QuantumRegister): input register, typically output register of Eigenvalues
 
         Returns:
             QuantumCircuit containing the Long Division Rotation circuit.
         """
 
-        if mode == 'vector':
-            raise NotImplementedError('mode vector not supported')
+        if mode == 'matrix':
+            raise NotImplementedError('The matrix mode is not supported.')
         self._ev = inreg
 
         if self._scale == 0:

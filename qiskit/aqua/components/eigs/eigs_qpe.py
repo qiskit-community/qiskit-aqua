@@ -1,26 +1,23 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 
 import numpy as np
 from qiskit import QuantumRegister
 from qiskit.aqua import Operator, AquaError
 from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.components.eigs import Eigenvalues
-from qiskit.aqua.algorithms.single_sample import PhaseEstimationCircuit
+from qiskit.aqua.circuits import PhaseEstimationCircuit
 
 
 class EigsQPE(Eigenvalues):
@@ -209,23 +206,22 @@ class EigsQPE(Eigenvalues):
         """ Construct the eigenvalues estimation using the PhaseEstimationCircuit
 
         Args:
-            mode (str): consctruction mode, 'vector' not supported
+            mode (str): consctruction mode, 'matrix' not supported
             register (QuantumRegister): the register to use for the quantum state
 
         Returns:
             the QuantumCircuit object for the constructed circuit
         """
 
-        if mode == 'vector':
-            raise ValueError('QPE only posslible as circuit not as vector.')
+        if mode == 'matrix':
+            raise ValueError('QPE is only possible as a circuit not as a matrix.')
 
-        pe = PhaseEstimationCircuit(operator=self._operator,
-                                    state_in=None, iqft=self._iqft,
-                                    num_time_slices=self._num_time_slices,
-                                    num_ancillae=self._num_ancillae,
-                                    expansion_mode=self._expansion_mode,
-                                    expansion_order=self._expansion_order,
-                                    evo_time=self._evo_time)
+        pe = PhaseEstimationCircuit(
+            operator=self._operator, state_in=None, iqft=self._iqft,
+            num_time_slices=self._num_time_slices, num_ancillae=self._num_ancillae,
+            expansion_mode=self._expansion_mode, expansion_order=self._expansion_order,
+            evo_time=self._evo_time
+        )
 
         a = QuantumRegister(self._num_ancillae)
         q = register
@@ -246,7 +242,7 @@ class EigsQPE(Eigenvalues):
         qs = [q[i] for i in range(1, len(q))]
         for qi in qs:
             qc.cx(sgn, qi)
-        self._ne_qfts[0].construct_circuit('circuit', qs, qc)
+        self._ne_qfts[0].construct_circuit(mode='circuit', qubits=qs, circuit=qc, do_swaps=False)
         for i, qi in enumerate(reversed(qs)):
             qc.cu1(2*np.pi/2**(i+1), sgn, qi)
-        self._ne_qfts[1].construct_circuit('circuit', qs, qc)
+        self._ne_qfts[1].construct_circuit(mode='circuit', qubits=qs, circuit=qc, do_swaps=False)

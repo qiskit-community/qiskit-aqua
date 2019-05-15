@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 """
 The Variational Quantum Eigensolver algorithm.
 See https://arxiv.org/abs/1304.3061
@@ -25,7 +22,7 @@ import functools
 import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit
 
-from qiskit.aqua.algorithms.adaptive.vqalgorithm import VQAlgorithm
+from qiskit.aqua.algorithms.adaptive.vq_algorithm import VQAlgorithm
 from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.utils.backend_utils import is_aer_statevector_backend
 from qiskit.aqua.utils import find_regs_by_name
@@ -212,8 +209,8 @@ class VQE(VQAlgorithm):
             warning_msg += "since operator_mode is '{}', '{}' backend is used.".format(
                 self._operator_mode, temp_backend_name)
             logger.warning(warning_msg)
-        circuit = self._operator.construct_evaluation_circuit(self._operator_mode,
-                                                              input_circuit, backend, use_simulator_operator_mode)
+        circuit = self._operator.construct_evaluation_circuit(self._operator_mode, input_circuit, backend,
+                                                              use_simulator_operator_mode=use_simulator_operator_mode)
         return circuit
 
     def _eval_aux_ops(self, threshold=1e-12, params=None):
@@ -228,7 +225,7 @@ class VQE(VQAlgorithm):
                 temp_circuit = QuantumCircuit() + wavefn_circuit
                 circuit = operator.construct_evaluation_circuit(self._operator_mode, temp_circuit,
                                                                 self._quantum_instance.backend,
-                                                                self._use_simulator_operator_mode)
+                                                                use_simulator_operator_mode=self._use_simulator_operator_mode)
                 params.append(operator.aer_paulis)
             else:
                 circuit = None

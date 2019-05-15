@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 
 import unittest
 import itertools
@@ -22,7 +19,7 @@ from parameterized import parameterized
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import Grover
-from qiskit.aqua.components.oracles import LogicExpressionOracle as LEO, TruthTableOracle as TTO
+from qiskit.aqua.components.oracles import LogicalExpressionOracle as LEO, TruthTableOracle as TTO
 from test.common import QiskitAquaTestCase
 
 
@@ -37,7 +34,7 @@ tests = [
     ['00000000', [], TTO],
 ]
 
-mct_modes = ['basic', 'advanced', 'noancilla']
+mct_modes = ['basic', 'basic-dirty-ancilla', 'advanced', 'noancilla']
 simulators = ['statevector_simulator', 'qasm_simulator']
 optimizations = ['on', 'off']
 
@@ -54,7 +51,7 @@ class TestGrover(QiskitAquaTestCase):
             oracle = oracle_cls(input, optimization='qm-dlx' if oracle_cls == TTO else 'espresso')
         grover = Grover(oracle, incremental=True, mct_mode=mct_mode)
         backend = BasicAer.get_backend(simulator)
-        quantum_instance = QuantumInstance(backend, shots=1000, circuit_caching=False)
+        quantum_instance = QuantumInstance(backend, shots=1000)
 
         ret = grover.run(quantum_instance)
 

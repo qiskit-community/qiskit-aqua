@@ -1,26 +1,24 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 
 import unittest
 
 import numpy as np
 
-from test.common import QiskitAquaTestCase
+from qiskit.aqua import AquaError
 from qiskit.aqua.components.initial_states import Custom
+from test.common import QiskitAquaTestCase
 
 
 class TestInitialStateCustom(QiskitAquaTestCase):
@@ -93,12 +91,12 @@ class TestInitialStateCustom(QiskitAquaTestCase):
         self.assertAlmostEqual(prob, 1.0)
 
     def test_qubits_qubits_given_mistmatch(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaises(AquaError):
             self.custom = Custom(5, state_vector=[1.0]*23)
 
     def test_qubits_2_zero_vector_wrong_cct_mode(self):
         self.custom = Custom(5, state='zero')
-        with self.assertRaises(ValueError):
+        with self.assertRaises(AquaError):
             cct = self.custom.construct_circuit('matrix')
 
 

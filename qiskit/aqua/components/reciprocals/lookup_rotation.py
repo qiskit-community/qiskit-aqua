@@ -1,27 +1,27 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 
 """Controlled rotation for the HHL algorithm based on partial table lookup"""
 
 import itertools
 import logging
 import numpy as np
+
 from qiskit import QuantumRegister, QuantumCircuit
+
 from qiskit.aqua.components.reciprocals import Reciprocal
+from qiskit.aqua.circuits.gates import mct
 
 logger = logging.getLogger(__name__)
 
@@ -294,7 +294,7 @@ class LookupRotation(Reciprocal):
         """Construct the Lookup Rotation circuit.
 
         Args:
-            mode (str): consctruction mode, 'vector' not supported
+            mode (str): consctruction mode, 'matrix' not supported
             inreg (QuantumRegister): input register, typically output register of Eigenvalues
 
         Returns:
@@ -302,8 +302,8 @@ class LookupRotation(Reciprocal):
         """
 
         # initialize circuit
-        if mode == 'vector':
-            raise NotImplementedError('vector mode not supported')
+        if mode == 'matrix':
+            raise NotImplementedError('The matrix mode is not supported.')
         if self._lambda_min:
             self._scale = self._lambda_min/2/np.pi*self._evo_time
         if self._scale == 0:

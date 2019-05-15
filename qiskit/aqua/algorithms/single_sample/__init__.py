@@ -1,33 +1,29 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 
-from .qpe.phase_estimation_circuit import PhaseEstimationCircuit
 from .grover.grover import Grover
-from .iqpe.iqpe import IQPE
+from .iterative_qpe.iqpe import IQPE
 from .qpe.qpe import QPE
-from .ae.ae import AmplitudeEstimation
+from .amplitude_estimation.ae import AmplitudeEstimation
 from .simon.simon import Simon
-from .dj.deutsch_jozsa import DeutschJozsa
-from .bv.bernstein_vazirani import BernsteinVazirani
+from .deutsch_jozsa.dj import DeutschJozsa
+from .bernstein_vazirani.bv import BernsteinVazirani
 from .hhl.hhl import HHL
+from .shor.shor import Shor
 
 
 __all__ = [
-    'PhaseEstimationCircuit',
     'Grover',
     'IQPE',
     'QPE',
@@ -35,5 +31,6 @@ __all__ = [
     'Simon',
     'DeutschJozsa',
     'BernsteinVazirani',
-    'HHL'
+    'HHL',
+    'Shor',
 ]

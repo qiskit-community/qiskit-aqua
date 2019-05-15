@@ -1,26 +1,23 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 
 import numpy as np
 
 from test.common import QiskitAquaTestCase
 from qiskit.aqua import run_algorithm, AquaError
 from qiskit.aqua.input import EnergyInput
-from qiskit.aqua.translators.ising import maxcut
+from qiskit.aqua.translators.ising import max_cut
 from qiskit.aqua.algorithms.classical.cplex.cplex_ising import CPLEX_Ising
 
 
@@ -30,8 +27,8 @@ class TestCplexIsing(QiskitAquaTestCase):
     def setUp(self):
         super().setUp()
         np.random.seed(8123179)
-        self.w = maxcut.random_graph(4, edge_prob=0.5, weight_range=10)
-        self.qubit_op, self.offset = maxcut.get_maxcut_qubitops(self.w)
+        self.w = max_cut.random_graph(4, edge_prob=0.5, weight_range=10)
+        self.qubit_op, self.offset = max_cut.get_max_cut_qubitops(self.w)
         self.algo_input = EnergyInput(self.qubit_op)
 
     def test_cplex_ising_via_run_algorithm(self):
@@ -45,8 +42,8 @@ class TestCplexIsing(QiskitAquaTestCase):
             x_dict = result['x_sol']
             x = np.array([x_dict[i] for i in sorted(x_dict.keys())])
             np.testing.assert_array_equal(
-                maxcut.get_graph_solution(x), [1, 0, 1, 1])
-            self.assertEqual(maxcut.maxcut_value(x, self.w), 24)
+                max_cut.get_graph_solution(x), [1, 0, 1, 1])
+            self.assertEqual(max_cut.max_cut_value(x, self.w), 24)
         except AquaError as e:
             self.skipTest(str(e))
 
@@ -58,7 +55,7 @@ class TestCplexIsing(QiskitAquaTestCase):
             x_dict = result['x_sol']
             x = np.array([x_dict[i] for i in sorted(x_dict.keys())])
             np.testing.assert_array_equal(
-                maxcut.get_graph_solution(x), [1, 0, 1, 1])
-            self.assertEqual(maxcut.maxcut_value(x, self.w), 24)
+                max_cut.get_graph_solution(x), [1, 0, 1, 1])
+            self.assertEqual(max_cut.max_cut_value(x, self.w), 24)
         except AquaError as e:
             self.skipTest(str(e))

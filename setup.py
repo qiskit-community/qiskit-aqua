@@ -1,21 +1,21 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 
 import setuptools
+import inspect
+import sys
+import os
 
 long_description = """<a href="https://qiskit.org/aqua" rel=nofollow>Qiskit Aqua</a> is an extensible,
  modular, open-source library of quantum computing algorithms.
@@ -25,9 +25,9 @@ long_description = """<a href="https://qiskit.org/aqua" rel=nofollow>Qiskit Aqua
  Qiskit Aqua Artificial Intelligence, and Qiskit Aqua Optimization to experiment with real-world applications to quantum computing."""
 
 requirements = [
-    "qiskit-terra>=0.8.0,<0.9",
-    "qiskit-ignis>=0.1.0,<0.2",
-    "scipy>=0.19,!=0.19.1",
+    "qiskit-terra>=0.9.0,<0.10.0",
+    "qiskit-ignis>=0.2.0,<0.3.0",
+    "scipy>=1.0",
     "sympy>=1.3",
     "numpy>=1.13",
     "psutil>=5",
@@ -35,12 +35,26 @@ requirements = [
     "scikit-learn>=0.20.0",
     "cvxopt",
     "dlx",
-    "pyeda"
+    "pyeda; sys_platform != 'win32'",
+    "docplex",
+    "fastdtw",
+    "quandl",
+    "setuptools>=40.1.0",
+    "torch; sys_platform != 'win32'"
 ]
+
+if not hasattr(setuptools, 'find_namespace_packages') or not inspect.ismethod(setuptools.find_namespace_packages):
+    print("Your setuptools version:'{}' does not support PEP 420 (find_namespace_packages). "
+          "Upgrade it to version >='40.1.0' and repeat install.".format(setuptools.__version__))
+    sys.exit(1)
+
+VERSION_PATH = os.path.join(os.path.dirname(__file__), "qiskit", "aqua", "VERSION.txt")
+with open(VERSION_PATH, "r") as version_file:
+    VERSION = version_file.read().strip()
 
 setuptools.setup(
     name='qiskit-aqua',
-    version="0.4.2",  # this should match __init__.__version__
+    version=VERSION,
     description='Qiskit Aqua: An extensible library of quantum computing algorithms',
     long_description=long_description,
     long_description_content_type="text/markdown",

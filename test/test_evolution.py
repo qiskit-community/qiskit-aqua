@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 
 import unittest
 import copy
@@ -73,7 +70,11 @@ class TestEvolution(QiskitAquaTestCase):
 
         # get the exact state_out from raw matrix multiplication
         state_out_exact = qubit_op.evolve(
-            state_in.construct_circuit('vector'), evo_time, 'matrix', 0)
+            state_in=state_in.construct_circuit('vector'),
+            evo_time=evo_time,
+            evo_mode='matrix',
+            num_time_slices=0
+        )
         # self.log.debug('exact:\n{}'.format(state_out_exact))
         qubit_op_temp = copy.deepcopy(qubit_op)
         for expansion_mode in ['trotter', 'suzuki']:
@@ -86,8 +87,10 @@ class TestEvolution(QiskitAquaTestCase):
                     self.log.debug(
                         'With expansion order {}:'.format(expansion_order))
                 state_out_matrix = qubit_op.evolve(
-                    state_in.construct_circuit(
-                        'vector'), evo_time, 'matrix', num_time_slices,
+                    state_in=state_in.construct_circuit('vector'),
+                    evo_time=evo_time,
+                    evo_mode='matrix',
+                    num_time_slices=num_time_slices,
                     expansion_mode=expansion_mode,
                     expansion_order=expansion_order
                 )
@@ -97,7 +100,9 @@ class TestEvolution(QiskitAquaTestCase):
                 qc += state_in.construct_circuit(
                     'circuit', quantum_registers)
                 qc += qubit_op.evolve(
-                    None, evo_time, 'circuit', num_time_slices,
+                    evo_time=evo_time,
+                    evo_mode='circuit',
+                    num_time_slices=num_time_slices,
                     quantum_registers=quantum_registers,
                     expansion_mode=expansion_mode,
                     expansion_order=expansion_order,

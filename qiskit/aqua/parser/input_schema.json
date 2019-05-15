@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/schema#",
     "id": "input_schema.json",
-    
+
     "definitions": {
         "problem": {
             "type": "object",
@@ -34,6 +34,18 @@
                 "skip_qobj_validation": {
                     "type": "boolean",
                     "default": true
+                },
+                "measurement_error_mitigation": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "measurement_error_mitigation_shots": {
+                    "type": ["integer", "null"],
+                    "default": null
+                },
+                "measurement_error_mitigation_refresh_period": {
+                    "type": "integer",
+                    "default": 30
                 }
             },
             "required": ["name"],
@@ -66,7 +78,7 @@
             "additionalProperties": false
         }
     },
-    
+
     "type": "object",
     "properties": {
         "problem":          { "$ref": "#/definitions/problem" },

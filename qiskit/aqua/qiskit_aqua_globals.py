@@ -1,25 +1,25 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
+
+import logging
 
 import numpy as np
-from .aqua_error import AquaError
 from qiskit.util import local_hardware_info
 import qiskit
-import logging
+
+from .aqua_error import AquaError
+
 
 logger = logging.getLogger(__name__)
 
@@ -56,13 +56,15 @@ class QiskitAquaGlobals(object):
         if num_processes < 1:
             raise AquaError('Invalid Number of Processes {}.'.format(num_processes))
         if num_processes > QiskitAquaGlobals.CPU_COUNT:
-            raise AquaError('Number of Processes {} cannot be greater than cpu count {}.'.format(num_processes, QiskitAquaGlobals._CPU_COUNT))
+            raise AquaError('Number of Processes {} cannot be greater than cpu count {}.'
+                            .format(num_processes, QiskitAquaGlobals.CPU_COUNT))
         self._num_processes = num_processes
         # TODO: change Terra CPU_COUNT until issue gets resolved: https://github.com/Qiskit/qiskit-terra/issues/1963
         try:
             qiskit.tools.parallel.CPU_COUNT = self.num_processes
         except Exception as e:
-            logger.warning("Failed to set qiskit.tools.parallel.CPU_COUNT to value: '{}': Error: '{}'".format(self.num_processes, str(e)))
+            logger.warning("Failed to set qiskit.tools.parallel.CPU_COUNT to value: '{}': Error: '{}'".
+                           format(self.num_processes, str(e)))
 
     @property
     def random(self):

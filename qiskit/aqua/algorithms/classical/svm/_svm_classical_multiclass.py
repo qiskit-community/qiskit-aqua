@@ -1,21 +1,20 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 
 import logging
+
+import numpy as np
 
 from qiskit.aqua.algorithms.classical.svm import _SVM_Classical_ABC
 from qiskit.aqua.utils import map_label_to_class_name
@@ -61,3 +60,20 @@ class _SVM_Classical_Multiclass(_SVM_Classical_ABC):
             self._ret['predicted_classes'] = predicted_classes
 
         return self._ret
+
+    def load_model(self, file_path):
+        model_npz = np.load(file_path)
+        for i in range(len(self.multiclass_classifier.estimators)):
+            self.multiclass_classifier.estimators.ret['svm']['alphas'] = model_npz['alphas_{}'.format(i)]
+            self.multiclass_classifier.estimators.ret['svm']['bias'] = model_npz['bias_{}'.format(i)]
+            self.multiclass_classifier.estimators.ret['svm']['support_vectors'] = model_npz['support_vectors_{}'.format(i)]
+            self.multiclass_classifier.estimators.ret['svm']['yin'] = model_npz['yin_{}'.format(i)]
+
+    def save_model(self, file_path):
+        model = {}
+        for i, estimator in enumerate(self.multiclass_classifier.estimators):
+            model['alphas_{}'.format(i)] = estimator.ret['svm']['alphas']
+            model['bias_{}'.format(i)] = estimator.ret['svm']['bias']
+            model['support_vectors_{}'.format(i)] = estimator.ret['svm']['support_vectors']
+            model['yin_{}'.format(i)] = estimator.ret['svm']['yin']
+        np.savez(file_path, **model)

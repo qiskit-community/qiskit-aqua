@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 
 """
 This module implements the abstract base class for Pluggable modules.
@@ -26,8 +23,10 @@ Doing so requires that the required pluggable interface is implemented.
 from abc import ABC, abstractmethod
 import logging
 import copy
+import numpy as np
 from qiskit.aqua import PluggableType
 from qiskit.aqua.parser import JSONSchema
+
 
 logger = logging.getLogger(__name__)
 
@@ -52,9 +51,12 @@ class Pluggable(ABC):
     SECTION_KEY_FEATURE_MAP = PluggableType.FEATURE_MAP.value
     SECTION_KEY_MULTICLASS_EXTENSION = PluggableType.MULTICLASS_EXTENSION.value
     SECTION_KEY_UNCERTAINTY_PROBLEM = PluggableType.UNCERTAINTY_PROBLEM.value
-    SECTION_KEY_UNCERTAINTY_MODEL = PluggableType.UNCERTAINTY_MODEL.value
+    SECTION_KEY_UNIVARIATE_DISTRIBUTION = PluggableType.UNIVARIATE_DISTRIBUTION.value
+    SECTION_KEY_MULTIVARIATE_DISTRIBUTION = PluggableType.MULTIVARIATE_DISTRIBUTION.value
     SECTION_KEY_EIGS = PluggableType.EIGENVALUES.value
     SECTION_KEY_RECIPROCAL = PluggableType.RECIPROCAL.value
+    SECTION_KEY_DISCRIMINATIVE_NETWORK = PluggableType.DISCRIMINATIVE_NETWORK.value
+    SECTION_KEY_GENERATIVE_NETWORK = PluggableType.GENERATIVE_NETWORK.value
 
     @abstractmethod
     def __init__(self):
@@ -81,6 +83,9 @@ class Pluggable(ABC):
         json_dict = {}
         for property_name in schema_property_names:
             if property_name in args_dict:
-                json_dict[property_name] = args_dict[property_name]
+                value = args_dict[property_name]
+                if isinstance(value, np.ndarray):
+                    value = value.tolist()
+                json_dict[property_name] = value
 
         jsonSchema.validate(json_dict)
