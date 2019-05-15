@@ -38,6 +38,14 @@
                 "measurement_error_mitigation": {
                     "type": "boolean",
                     "default": false
+                },
+                "measurement_error_mitigation_shots": {
+                    "type": ["integer", "null"],
+                    "default": null
+                },
+                "measurement_error_mitigation_refresh_period": {
+                    "type": "integer",
+                    "default": 30
                 }
             },
             "required": ["name"],

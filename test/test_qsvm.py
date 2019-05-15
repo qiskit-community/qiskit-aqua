@@ -94,7 +94,7 @@ class TestQSVM(QiskitAquaTestCase):
         num_qubits = 2
         feature_map = SecondOrderExpansion(feature_dimension=num_qubits, depth=2, entangler_map=[[0, 1]])
         svm = QSVM(feature_map, self.training_data, self.testing_data, None)
-        quantum_instance = QuantumInstance(backend, shots=self.shots, seed=self.random_seed,
+        quantum_instance = QuantumInstance(backend, shots=self.shots, seed_simulator=self.random_seed,
                                            seed_transpiler=self.random_seed)
 
         result = svm.run(quantum_instance)

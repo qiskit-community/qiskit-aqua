@@ -19,7 +19,7 @@ Multiple-Control Toffoli Gate.
 import logging
 from math import pi, ceil
 
-from qiskit import QuantumCircuit, QuantumRegister
+from qiskit.circuit import QuantumCircuit, QuantumRegister
 
 from qiskit.aqua import AquaError
 from qiskit.aqua.utils.circuit_utils import is_qubit
@@ -64,15 +64,14 @@ def _ccx_v_chain(qc, control_qubits, target_qubit, ancillary_qubits, dirty_ancil
 
 def _cccx(qc, qrs, angle=pi / 4):
     """
-        a 3-qubit controlled-NOT.
-        An implementation based on Page 17 of Barenco et al.
-        Parameters:
-            qrs:
-                list of quantum registers. The last qubit is the target, the rest are controls
+    A 3-qubit controlled-NOT.
 
-            angle:
-                default pi/4 when x is not gate
-                set to pi/8 for square root of not
+    Implementation based on Page 17 of Barenco et al.
+
+    Args:
+        qrs: list of quantum registers. The last qubit is the target, the rest are controls
+
+        angle: default pi/4 when x is the NOT gate, set to pi/8 for square root of NOT
     """
     assert len(qrs) == 4, "There must be exactly 4 qubits of quantum registers for cccx"
 
@@ -132,11 +131,12 @@ def _cccx(qc, qrs, angle=pi / 4):
 
 def _ccccx(qc, qrs):
     """
-       a 4-qubit controlled-NOT.
-        An implementation based on Page 21 (Lemma 7.5) of Barenco et al.
-        Parameters:
-            qrs:
-                list of quantum registers. The last qubit is the target, the rest are controls
+    a 4-qubit controlled-NOT.
+
+    An implementation based on Page 21 (Lemma 7.5) of Barenco et al.
+
+    Args:
+        qrs: list of quantum registers. The last qubit is the target, the rest are controls
     """
     assert len(qrs) == 5, "There must be exactly 5 qubits for ccccx"
 
@@ -160,18 +160,15 @@ def _ccccx(qc, qrs):
 
 def _multicx(qc, qrs, qancilla=None):
     """
-        construct a circuit for multi-qubit controlled not
-        Parameters:
-            qc:
-                quantum circuit
-            qrs:
-                list of quantum registers of at least length 1
-            qancilla:
-                a quantum register. can be None if len(qrs) <= 5
+    Construct a circuit for multi-qubit controlled not
 
-        Returns:
-            qc:
-                a circuit appended with multi-qubit cnot
+    Args:
+        qc: quantum circuit
+        qrs: list of quantum registers of at least length 1
+        qancilla: a quantum register. can be None if len(qrs) <= 5
+
+    Returns:
+        qc: a circuit appended with multi-qubit cnot
     """
     if len(qrs) <= 0:
         pass
@@ -202,17 +199,14 @@ def _multicx_recursion(qc, qrs, qancilla=None):
 
 def _multicx_noancilla(qc, qrs):
     """
-        construct a circuit for multi-qubit controlled not without ancillary
-        qubits
-        Parameters:
-            qc:
-                quantum circuit
-            qrs:
-                list of quantum registers of at least length 1
+    Construct a circuit for multi-qubit controlled not without ancillary qubits
 
-        Returns:
-            qc:
-                a circuit appended with multi-qubit cnot
+    Args:
+        qc: quantum circuit
+        qrs: list of quantum registers of at least length 1
+
+    Returns:
+        qc: a circuit appended with multi-qubit cnot
     """
     if len(qrs) <= 0:
         pass
@@ -232,10 +226,12 @@ def _multicx_noancilla(qc, qrs):
 def mct(self, q_controls, q_target, q_ancilla, mode='basic'):
     """
     Apply Multiple-Control Toffoli operation
+
     Args:
-        q_controls: The list of control qubits
-        q_target: The target qubit
-        q_ancilla: The list of ancillary qubits
+        self (QuantumCircuit): The QuantumCircuit object to apply the mct gate on.
+        q_controls (QuantumRegister | list(tuple(QuantumRegister, int))): The list of control qubits
+        q_target (tuple(QuantumRegister, int)): The target qubit
+        q_ancilla (QuantumRegister | list(tuple(QuantumRegister, int))): The list of ancillary qubits
         mode (string): The implementation mode to use
     """
 
