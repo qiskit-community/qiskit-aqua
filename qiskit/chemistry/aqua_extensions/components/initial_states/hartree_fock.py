@@ -96,14 +96,14 @@ class HartreeFock(InitialState):
 
         self._num_orbitals = num_orbitals
         if isinstance(num_particles, list):
-            self._num_alphas = num_particles[0]
-            self._num_betas = num_particles[1]
+            self._num_alpha = num_particles[0]
+            self._num_beta = num_particles[1]
         else:
             logger.info("We assume that the number of alphas and betas are the same.")
-            self._num_alphas = num_particles // 2
-            self._num_betas = num_particles // 2
+            self._num_alpha = num_particles // 2
+            self._num_beta = num_particles // 2
 
-        self._num_particles = self._num_alphas + self._num_betas
+        self._num_particles = self._num_alpha + self._num_beta
 
         if self._num_particles > self._num_orbitals:
             raise ValueError("# of particles must be less than or equal to # of orbitals.")
@@ -121,8 +121,8 @@ class HartreeFock(InitialState):
 
         half_orbitals = self._num_orbitals // 2
         bitstr = np.zeros(self._num_orbitals, np.bool)
-        bitstr[-self._num_alphas:] = True
-        bitstr[-(half_orbitals + self._num_betas):-half_orbitals] = True
+        bitstr[-self._num_alpha:] = True
+        bitstr[-(half_orbitals + self._num_beta):-half_orbitals] = True
 
         if self._qubit_mapping == 'parity':
             new_bitstr = bitstr.copy()

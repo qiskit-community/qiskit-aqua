@@ -58,9 +58,13 @@ class UCCSD(VariationalForm):
                     'minimum': 1
                 },
                 'num_particles': {
-                    'type': 'integer',
-                    'default': 2,
-                    'minimum': 1
+                    'type': ['integer', 'array'],
+                    'default': [1, 1],
+                    'contains': {
+                        'type': 'integer'
+                    },
+                    'minItems': 2,
+                    'maxItems': 2
                 },
                 'active_occupied': {
                     'type': ['array', 'null'],
@@ -109,7 +113,8 @@ class UCCSD(VariationalForm):
         Args:
             num_orbitals (int): number of spin orbitals
             depth (int): number of replica of basic module
-            num_particles (int): number of particles
+            num_particles (list, int): number of particles, if it is a tuple, the first number is alpha
+                                        and the second number if beta.
             active_occupied (list): list of occupied orbitals to consider as active space
             active_unoccupied (list): list of unoccupied orbitals to consider as active space
             initial_state (InitialState): An initial state object.
@@ -144,6 +149,14 @@ class UCCSD(VariationalForm):
                              .format(self._num_qubits, num_qubits))
         self._depth = depth
         self._num_orbitals = num_orbitals
+        if isinstance(num_particles, list):
+            self._num_alpha = num_particles[0]
+            self._num_beta = num_particles[1]
+        else:
+            logger.info("We assume that the number of alphas and betas are the same.")
+            self._num_alpha = num_particles // 2
+            self._num_beta = num_particles // 2
+
         self._num_particles = num_particles
 
         if self._num_particles > self._num_orbitals:
@@ -156,7 +169,7 @@ class UCCSD(VariationalForm):
         self._shallow_circuit_concat = shallow_circuit_concat
 
         self._single_excitations, self._double_excitations = \
-            UCCSD.compute_excitation_lists(num_particles, num_orbitals,
+            UCCSD.compute_excitation_lists([self._num_alpha, self._num_beta], self._num_orbitals,
                                            active_occupied, active_unoccupied)
 
         self._hopping_ops, self._num_parameters = self._build_hopping_operators()
@@ -166,7 +179,6 @@ class UCCSD(VariationalForm):
 
     def _build_hopping_operators(self):
         from .uccsd import UCCSD
-        hopping_ops = []
 
         if logger.isEnabledFor(logging.DEBUG):
             TextProgressBar(sys.stderr)
@@ -294,75 +306,115 @@ class UCCSD(VariationalForm):
         Computes single and double excitation lists
 
         Args:
-            num_particles: Total number of particles
-            num_orbitals:  Total number of spin orbitals
-            active_occ_list: List of occupied orbitals to include, indices are
-                             0 to n where n is num particles // 2
-            active_unocc_list: List of unoccupied orbitals to include, indices are
-                               0 to m where m is (num_orbitals - num particles) // 2
-            same_spin_doubles: True to include alpha,alpha and beta,beta double excitations
+            num_particles (list, int): number of particles, if it is a tuple, the first number is alpha
+                                        and the second number if beta.
+            num_orbitals (int): Total number of spin orbitals
+            active_occ_list (list): List of occupied orbitals to include, indices are
+                             0 to n where n is max(num_alpha, num_beta)
+            active_unocc_list (list): List of unoccupied orbitals to include, indices are
+                               0 to m where m is num_orbitals // 2 - min(num_alpha, num_beta)
+            same_spin_doubles (bool): True to include alpha,alpha and beta,beta double excitations
                                as well as alpha,beta pairings. False includes only alpha,beta
 
         Returns:
-            Single and double excitation lists
+            list: Single excitation list
+            list: Double excitation list
+
+        Raises:
+            ValueError: invalid setting of number of particles
+            ValueError: invalid setting of number of orbitals
         """
-        if num_particles < 2 or num_particles % 2 != 0:
+
+        if isinstance(num_particles, list):
+            num_alpha = num_particles[0]
+            num_beta = num_particles[1]
+        else:
+            logger.info("We assume that the number of alphas and betas are the same.")
+            num_alpha = num_particles // 2
+            num_beta = num_particles // 2
+
+        num_particles = num_alpha + num_beta
+
+        if num_particles < 2:
             raise ValueError('Invalid number of particles {}'.format(num_particles))
         if num_orbitals < 4 or num_orbitals % 2 != 0:
             raise ValueError('Invalid number of orbitals {}'.format(num_orbitals))
         if num_orbitals <= num_particles:
             raise ValueError('No unoccupied orbitals')
+
+        # convert the user-defined active space for alpha and beta respectively
+        active_occ_list_alpha = []
+        active_occ_list_beta = []
+        active_unocc_list_alpha = []
+        active_unocc_list_beta = []
+
         if active_occ_list is not None:
-            active_occ_list = [i if i >= 0 else i + num_particles // 2 for i in active_occ_list]
+            active_occ_list = [i if i >= 0 else i + max(num_alpha, num_beta) for i in active_occ_list]
             for i in active_occ_list:
-                if i >= num_particles // 2:
-                    raise ValueError('Invalid index {} in active active_occ_list {}'
-                                     .format(i, active_occ_list))
+                if i < num_alpha:
+                    active_occ_list_alpha.append(i)
+                else:
+                    raise ValueError('Invalid index {} in active active_occ_list {}'.format(i, active_occ_list))
+                if i < num_beta:
+                    active_occ_list_beta.append(i)
+                else:
+                    raise ValueError('Invalid index {} in active active_occ_list {}'.format(i, active_occ_list))
+        else:
+            active_occ_list_alpha = [i for i in range(0, num_alpha)]
+            active_occ_list_beta = [i for i in range(0, num_beta)]
+
         if active_unocc_list is not None:
-            active_unocc_list = [i + num_particles // 2 if i >=
+            active_unocc_list = [i + min(num_alpha, num_beta) if i >=
                                  0 else i + num_orbitals // 2 for i in active_unocc_list]
             for i in active_unocc_list:
-                if i < 0 or i >= num_orbitals // 2:
+                if i >= num_alpha:
+                    active_unocc_list_alpha.append(i)
+                else:
                     raise ValueError('Invalid index {} in active active_unocc_list {}'
                                      .format(i, active_unocc_list))
+                if i >= num_beta:
+                    active_unocc_list_beta.append(i)
+                else:
+                    raise ValueError('Invalid index {} in active active_unocc_list {}'
+                                     .format(i, active_unocc_list))
+        else:
+            active_unocc_list_alpha = [i for i in range(num_alpha, num_orbitals // 2)]
+            active_unocc_list_beta = [i for i in range(num_beta, num_orbitals // 2)]
 
-        if active_occ_list is None or len(active_occ_list) <= 0:
-            active_occ_list = [i for i in range(0, num_particles // 2)]
+        logger.debug('active_occ_list_alpha {}'.format(active_occ_list_alpha))
+        logger.debug('active_unocc_list_alpha {}'.format(active_unocc_list_alpha))
 
-        if active_unocc_list is None or len(active_unocc_list) <= 0:
-            active_unocc_list = [i for i in range(num_particles // 2, num_orbitals // 2)]
+        logger.debug('active_occ_list_beta {}'.format(active_occ_list_beta))
+        logger.debug('active_unocc_list_beta {}'.format(active_unocc_list_beta))
 
         single_excitations = []
         double_excitations = []
 
-        logger.debug('active_occ_list {}'.format(active_occ_list))
-        logger.debug('active_unocc_list {}'.format(active_unocc_list))
-
         beta_idx = num_orbitals // 2
-        for occ_alpha in active_occ_list:
-            for unocc_alpha in active_unocc_list:
+        for occ_alpha in active_occ_list_alpha:
+            for unocc_alpha in active_unocc_list_alpha:
                 single_excitations.append([occ_alpha, unocc_alpha])
 
-        for occ_beta in [i + beta_idx for i in active_occ_list]:
-            for unocc_beta in [i + beta_idx for i in active_unocc_list]:
+        for occ_beta in [i + beta_idx for i in active_occ_list_beta]:
+            for unocc_beta in [i + beta_idx for i in active_unocc_list_beta]:
                 single_excitations.append([occ_beta, unocc_beta])
 
-        for occ_alpha in active_occ_list:
-            for unocc_alpha in active_unocc_list:
-                for occ_beta in [i + beta_idx for i in active_occ_list]:
-                    for unocc_beta in [i + beta_idx for i in active_unocc_list]:
+        for occ_alpha in active_occ_list_alpha:
+            for unocc_alpha in active_unocc_list_alpha:
+                for occ_beta in [i + beta_idx for i in active_occ_list_beta]:
+                    for unocc_beta in [i + beta_idx for i in active_unocc_list_beta]:
                         double_excitations.append([occ_alpha, unocc_alpha, occ_beta, unocc_beta])
 
-        if same_spin_doubles and len(active_occ_list) > 1 and len(active_unocc_list) > 1:
-            for i, occ_alpha in enumerate(active_occ_list[:-1]):
-                for j, unocc_alpha in enumerate(active_unocc_list[:-1]):
-                    for occ_alpha_1 in active_occ_list[i + 1:]:
-                        for unocc_alpha_1 in active_unocc_list[j + 1:]:
+        if same_spin_doubles and len(active_occ_list_alpha) > 1 and len(active_unocc_list_alpha) > 1:
+            for i, occ_alpha in enumerate(active_occ_list_alpha[:-1]):
+                for j, unocc_alpha in enumerate(active_unocc_list_alpha[:-1]):
+                    for occ_alpha_1 in active_occ_list_alpha[i + 1:]:
+                        for unocc_alpha_1 in active_unocc_list_alpha[j + 1:]:
                             double_excitations.append([occ_alpha, unocc_alpha,
                                                        occ_alpha_1, unocc_alpha_1])
 
-            up_active_occ_list = [i + beta_idx for i in active_occ_list]
-            up_active_unocc_list = [i + beta_idx for i in active_unocc_list]
+            up_active_occ_list = [i + beta_idx for i in active_occ_list_beta]
+            up_active_unocc_list = [i + beta_idx for i in active_unocc_list_beta]
             for i, occ_beta in enumerate(up_active_occ_list[:-1]):
                 for j, unocc_beta in enumerate(up_active_unocc_list[:-1]):
                     for occ_beta_1 in up_active_occ_list[i + 1:]:

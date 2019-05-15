@@ -163,13 +163,12 @@ def _compute_mp2(qmolecule, threshold):
     terms = {}
     mp2_delta = 0
 
-    num_particles = qmolecule.num_alpha + qmolecule.num_beta
     num_orbitals = qmolecule.num_orbitals
     ints = qmolecule.mo_eri_ints
     oe = qmolecule.orbital_energies
 
     # Orbital indexes given by this method are numbered according to the blocked spin ordering
-    singles, doubles = UCCSD.compute_excitation_lists(num_particles, num_orbitals * 2, same_spin_doubles=True)
+    singles, doubles = UCCSD.compute_excitation_lists([qmolecule.num_alpha, qmolecule.num_beta], num_orbitals * 2, same_spin_doubles=True)
 
     # doubles is list of [from, to, from, to] in spin orbital indexing where alpha runs
     # from 0 to num_orbitals-1, and beta from num_orbitals to num_orbitals*2-1
