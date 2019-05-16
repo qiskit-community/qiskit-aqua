@@ -16,8 +16,9 @@ The Quantum Phase Estimation Algorithm.
 """
 
 import logging
-import numpy as np
+from copy import deepcopy
 
+import numpy as np
 from qiskit.quantum_info import Pauli
 
 from qiskit.aqua import Operator, AquaError
@@ -112,7 +113,7 @@ class QPE(QuantumAlgorithm):
 
         self._num_ancillae = num_ancillae
         self._ret = {}
-        self._operator = operator
+        self._operator = deepcopy(operator)
         self._pauli_list = self._operator.get_flat_pauli_list()
         self._ret['translation'] = sum([abs(p[0]) for p in self._pauli_list])
         self._ret['stretch'] = 0.5 / self._ret['translation']

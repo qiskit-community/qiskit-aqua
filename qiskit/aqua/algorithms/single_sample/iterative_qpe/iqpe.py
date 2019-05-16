@@ -18,6 +18,7 @@ See https://arxiv.org/abs/quant-ph/0610214
 
 import logging
 import numpy as np
+from copy import deepcopy
 
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.quantum_info import Pauli
@@ -106,7 +107,7 @@ class IQPE(QuantumAlgorithm):
         """
         self.validate(locals())
         super().__init__()
-        self._operator = operator
+        self._operator = deepcopy(operator)
         self._state_in = state_in
         self._num_time_slices = num_time_slices
         self._num_iterations = num_iterations
