@@ -709,6 +709,9 @@ class JSONSchema(object):
 
             return value
 
+        if 'array' in types and isinstance(value, list):
+            return value
+
         if 'number' in types or 'integer' in types:
             try:
                 if 'integer' in types:
