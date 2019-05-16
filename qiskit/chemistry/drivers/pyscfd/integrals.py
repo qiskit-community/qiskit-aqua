@@ -32,17 +32,17 @@ def compute_integrals(atom,
                       charge,
                       spin,
                       basis,
-                      max_memory,
-                      calc_type='rhf'):
+                      hf_method='rhf',
+                      max_memory=None):
     # Get config from input parameters
     # molecule is in PySCF atom string format e.g. "H .0 .0 .0; H .0 .0 0.2"
     #          or in Z-Matrix format e.g. "H; O 1 1.08; H 2 1.08 1 107.5"
     # other parameters are as per PySCF got.Mole format
 
     atom = _check_molecule_format(atom)
+    hf_method = hf_method.lower()
     if max_memory is None:
         max_memory = param.MAX_MEMORY
-    calc_type = calc_type.lower()
 
     try:
         mol = gto.Mole(atom=atom, unit=unit, basis=basis, max_memory=max_memory, verbose=pylogger.QUIET)
@@ -50,7 +50,7 @@ def compute_integrals(atom,
         mol.charge = charge
         mol.spin = spin
         mol.build(parse_arg=False)
-        ehf, enuke, norbs, mohij, mohijkl, mo_coeff, orbs_energy, x_dip, y_dip, z_dip, nucl_dip = _calculate_integrals(mol, calc_type)
+        ehf, enuke, norbs, mohij, mohijkl, mo_coeff, orbs_energy, x_dip, y_dip, z_dip, nucl_dip = _calculate_integrals(mol, hf_method)
     except Exception as exc:
         raise QiskitChemistryError('Failed electronic structure computation') from exc
 
@@ -113,12 +113,12 @@ def _check_molecule_format(val):
     return val
 
 
-def _calculate_integrals(mol, calc_type='rhf'):
+def _calculate_integrals(mol, hf_method='rhf'):
     """Function to calculate the one and two electron terms. Perform a Hartree-Fock calculation in
         the given basis.
     Args:
         mol : A PySCF gto.Mole object.
-        calc_type: rhf, uhf, rohf
+        hf_method: rhf, uhf, rohf
     Returns:
         ehf : Hartree-Fock energy
         enuke : Nuclear repulsion energy
@@ -134,14 +134,14 @@ def _calculate_integrals(mol, calc_type='rhf'):
     """
     enuke = gto.mole.energy_nuc(mol)
 
-    if calc_type == 'rhf':
+    if hf_method == 'rhf':
         mf = scf.RHF(mol)
-    elif calc_type == 'rohf':
+    elif hf_method == 'rohf':
         mf = scf.ROHF(mol)
-    elif calc_type == 'uhf':
+    elif hf_method == 'uhf':
         mf = scf.UHF(mol)
     else:
-        raise QiskitChemistryError('Invalid calc_type: {}'.format(calc_type))
+        raise QiskitChemistryError('Invalid hf_method type: {}'.format(hf_method))
 
     ehf = mf.kernel()
 
@@ -169,7 +169,7 @@ def _calculate_integrals(mol, calc_type='rhf'):
     z_dip_ints = QMolecule.oneeints2mo(ao_dip[2], mo_coeff)
 
     dm = mf.make_rdm1(mf.mo_coeff, mf.mo_occ)
-    if calc_type == 'rohf' or calc_type == 'uhf':
+    if hf_method == 'rohf' or hf_method == 'uhf':
         dm = dm[0]
     elec_dip = np.negative(np.einsum('xij,ji->x', ao_dip, dm).real)
     elec_dip = np.round(elec_dip, decimals=8)

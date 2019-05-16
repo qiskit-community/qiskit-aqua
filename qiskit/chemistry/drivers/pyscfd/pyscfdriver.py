@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from qiskit.chemistry.drivers import BaseDriver, UnitsType
+from qiskit.chemistry.drivers import BaseDriver, UnitsType, HFMethodType
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers.pyscfd.integrals import compute_integrals
 import importlib
@@ -58,6 +58,16 @@ class PySCFDriver(BaseDriver):
                     "type": "string",
                     "default": "sto3g"
                 },
+                "hf_method": {
+                    "type": "string",
+                    "default": HFMethodType.RHF.value,
+                    "oneOf": [
+                        {"enum": [
+                            HFMethodType.RHF.value,
+                            HFMethodType.ROHF.value,
+                        ]}
+                    ]
+                },
                 "max_memory": {
                     "type": ["integer", "null"],
                     "default": None
@@ -73,6 +83,7 @@ class PySCFDriver(BaseDriver):
                  charge=0,
                  spin=0,
                  basis='sto3g',
+                 hf_method=HFMethodType.RHF,
                  max_memory=None):
         """
         Initializer
@@ -82,6 +93,7 @@ class PySCFDriver(BaseDriver):
             charge (int): charge
             spin (int): spin
             basis (str): basis set
+            hf_method (HFMethodType): Hartree-Fock Method type
             max_memory (int): maximum memory
         """
         if not isinstance(atom, list) and not isinstance(atom, str):
@@ -93,6 +105,7 @@ class PySCFDriver(BaseDriver):
             atom = atom.replace('\n', ';')
 
         unit = unit.value
+        hf_method = hf_method.value
         self.validate(locals())
         super().__init__()
         self._atom = atom
@@ -100,11 +113,12 @@ class PySCFDriver(BaseDriver):
         self._charge = charge
         self._spin = spin
         self._basis = basis
+        self._hf_method = hf_method
         self._max_memory = max_memory
 
     @staticmethod
     def check_driver_valid():
-        err_msg = "PySCF is not installed. Use 'pip install pyscf'"
+        err_msg = "PySCF is not installed. See https://sunqm.github.io/pyscf/install.html"
         try:
             spec = importlib.util.find_spec('pyscf')
             if spec is not None:
@@ -121,7 +135,7 @@ class PySCFDriver(BaseDriver):
         Initialize via section dictionary.
 
         Args:
-            params (dict): section dictionary
+            section (dict): section dictionary
 
         Returns:
             Driver: Driver object
@@ -134,6 +148,8 @@ class PySCFDriver(BaseDriver):
         for k, v in params.items():
             if k == 'unit':
                 v = UnitsType(v)
+            elif k == 'hf_method':
+                v = HFMethodType(v)
 
             kwargs[k] = v
 
@@ -146,4 +162,5 @@ class PySCFDriver(BaseDriver):
                                  charge=self._charge,
                                  spin=self._spin,
                                  basis=self._basis,
+                                 hf_method=self._hf_method,
                                  max_memory=self._max_memory)

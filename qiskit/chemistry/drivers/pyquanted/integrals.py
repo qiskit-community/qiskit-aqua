@@ -35,7 +35,7 @@ def compute_integrals(atoms,
                       charge,
                       multiplicity,
                       basis,
-                      calc_type='rhf'):
+                      hf_method='rhf'):
     # Get config from input parameters
     # Molecule is in this format xyz as below or in Z-matrix e.g "H; O 1 1.08; H 2 1.08 1 107.5":
     # atoms=H .0 .0 .0; H .0 .0 0.2
@@ -46,10 +46,10 @@ def compute_integrals(atoms,
 
     units = _check_units(units)
     mol = _parse_molecule(atoms, units, charge, multiplicity)
-    calc_type = calc_type.lower()
+    hf_method = hf_method.lower()
 
     try:
-        ehf, enuke, norbs, mohij, mohijkl, orbs, orbs_energy = _calculate_integrals(mol, basis, calc_type)
+        ehf, enuke, norbs, mohij, mohijkl, orbs, orbs_energy = _calculate_integrals(mol, basis, hf_method)
     except Exception as exc:
         raise QiskitChemistryError('Failed electronic structure computation') from exc
 
@@ -83,13 +83,13 @@ def compute_integrals(atoms,
     return _q_
 
 
-def _calculate_integrals(molecule, basis='sto3g', calc_type='rhf'):
+def _calculate_integrals(molecule, basis='sto3g', hf_method='rhf'):
     """Function to calculate the one and two electron terms. Perform a Hartree-Fock calculation in
         the given basis.
     Args:
         molecule : A pyquante2 molecular object.
         basis : The basis set for the electronic structure computation
-        calc_type: rhf, uhf, rohf
+        hf_method: rhf, uhf, rohf
     Returns:
         ehf : Hartree-Fock energy
         enuke: Nuclear repulsion energy
@@ -107,14 +107,14 @@ def _calculate_integrals(molecule, basis='sto3g', calc_type='rhf'):
     # convert overlap integrals to molecular basis
     # calculate the Hartree-Fock solution of the molecule
 
-    if calc_type == 'rhf':
+    if hf_method == 'rhf':
         solver = rhf(molecule, bfs)
-    elif calc_type == 'rohf':
+    elif hf_method == 'rohf':
         solver = rohf(molecule, bfs)
-    elif calc_type == 'uhf':
+    elif hf_method == 'uhf':
         solver = uhf(molecule, bfs)
     else:
-        raise QiskitChemistryError('Invalid calc_type: {}'.format(calc_type))
+        raise QiskitChemistryError('Invalid hf_method type: {}'.format(hf_method))
     logger.debug('Solver name {}'.format(solver.name))
     ehf = solver.converge()
     if hasattr(solver, 'orbs'):

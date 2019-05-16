@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from qiskit.chemistry.drivers import BaseDriver, UnitsType
+from qiskit.chemistry.drivers import BaseDriver, UnitsType, HFMethodType
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers.pyquanted.integrals import compute_integrals
 import importlib
@@ -74,6 +74,16 @@ class PyQuanteDriver(BaseDriver):
                              BasisType.B631GSS.value,
                          ]}
                     ]
+                },
+                "hf_method": {
+                    "type": "string",
+                    "default": HFMethodType.RHF.value,
+                    "oneOf": [
+                        {"enum": [
+                            HFMethodType.RHF.value,
+                            HFMethodType.ROHF.value,
+                        ]}
+                    ]
                 }
             },
             "additionalProperties": False
@@ -85,7 +95,8 @@ class PyQuanteDriver(BaseDriver):
                  units=UnitsType.ANGSTROM,
                  charge=0,
                  multiplicity=1,
-                 basis=BasisType.BSTO3G):
+                 basis=BasisType.BSTO3G,
+                 hf_method=HFMethodType.RHF):
         """
         Initializer
         Args:
@@ -94,6 +105,7 @@ class PyQuanteDriver(BaseDriver):
             charge (int): charge
             multiplicity (int): spin multiplicity
             basis (BasisType): sto3g or 6-31g or 6-31g**
+            hf_method (HFMethodType): Hartree-Fock Method type
         """
         if not isinstance(atoms, list) and not isinstance(atoms, str):
             raise QiskitChemistryError("Invalid atom input for PYQUANTE Driver '{}'".format(atoms))
@@ -105,7 +117,7 @@ class PyQuanteDriver(BaseDriver):
 
         units = units.value
         basis = basis.value
-
+        hf_method = hf_method.value
         self.validate(locals())
         super().__init__()
         self._atoms = atoms
@@ -113,6 +125,7 @@ class PyQuanteDriver(BaseDriver):
         self._charge = charge
         self._multiplicity = multiplicity
         self._basis = basis
+        self._hf_method = hf_method
 
     @staticmethod
     def check_driver_valid():
@@ -133,7 +146,7 @@ class PyQuanteDriver(BaseDriver):
         Initialize via section dictionary.
 
         Args:
-            params (dict): section dictionary
+            section (dict): section dictionary
 
         Returns:
             Driver: Driver object
@@ -148,6 +161,8 @@ class PyQuanteDriver(BaseDriver):
                 v = UnitsType(v)
             elif k == PyQuanteDriver.KEY_BASIS:
                 v = BasisType(v)
+            elif k == 'hf_method':
+                v = HFMethodType(v)
 
             kwargs[k] = v
 
@@ -159,4 +174,5 @@ class PyQuanteDriver(BaseDriver):
                                  units=self._units,
                                  charge=self._charge,
                                  multiplicity=self._multiplicity,
-                                 basis=self._basis)
+                                 basis=self._basis,
+                                 hf_method=self._hf_method)
