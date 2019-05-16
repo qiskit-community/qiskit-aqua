@@ -312,13 +312,10 @@ the patch will provide to users of the stable branch. Only a limited class of ch
 stable branch. A large, risky patch for a major issue might make sense, as might a trivial fix for a fairly obscure error 
 handling case. A number of factors must be weighed when considering a change:
 
-- The risk of regression: even the tiniest changes carry some risk of breaking something, and we really want to avoid 
-regressions on the stable branch.
+- The risk of regression: even the tiniest changes carry some risk of breaking something, and we really want to avoid regressions on the stable branch.
 - The user visible benefit: are we fixing something that users might actually notice and, if so, how important is it?
-- How self-contained the fix is: if it fixes a significant issue, but also refactors a lot of code, it’s probably worth 
-thinking about what a less risky fix might look like.
-- Whether the fix is already on master: a change must be a backport of a change already merged onto master, unless the change 
-simply does not make sense on master.
+- How self-contained the fix is: if it fixes a significant issue, but also refactors a lot of code, it’s probably worth thinking about what a less risky fix might look like.
+- Whether the fix is already on master: a change must be a backport of a change already merged onto master, unless the change simply does not make sense on master.
 
 Backporting procedure:
 ----------------------
