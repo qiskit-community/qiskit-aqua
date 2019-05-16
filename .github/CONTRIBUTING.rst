@@ -303,7 +303,7 @@ The ``stable`` branch should only receive changes in the form of bug fixes, so t
 third version number (the maintenance number: [major].[minor].[maintenance])
 will increase on every new change.
 
-Stable Branch Policy
+Stable-branch Policy
 ====================
 
 The stable branch is intended to be a safe source of fixes for high-impact bugs and security issues which have been fixed on 
