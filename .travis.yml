@@ -24,7 +24,6 @@ python:
 
 stage_dependencies: &stage_dependencies
   # Install Dependencies
-  # The env. variable MASTER_BRANCH_DEPENDENCIES forces dependencies used from master
   env:
     - DEPENDENCY_BRANCH=$(if [ "$TRAVIS_BRANCH" = "stable" ]; then echo "stable"; else echo "master"; fi)
     - INIT_FILE="$TRAVIS_BUILD_DIR/qiskit/__init__.py"
