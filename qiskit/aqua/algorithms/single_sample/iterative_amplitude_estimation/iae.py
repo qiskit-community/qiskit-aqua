@@ -50,7 +50,7 @@ class IterativeAmplitudeEstimation(QuantumAlgorithm):
     }
 
     def __init__(self, num_iterations, a_factory,
-                 q_factory=None, rotations=None):
+                 q_factory=None, rotations=None, i_objective=None):
         """
         Constructor.
 
@@ -70,7 +70,9 @@ class IterativeAmplitudeEstimation(QuantumAlgorithm):
         # get/construct A/Q operator
         self.a_factory = a_factory
         if q_factory is None:
-            self.q_factory = QFactory(a_factory)
+            if i_objective is None:
+                i_objective = self.a_factory.num_target_qubits - 1
+            self.q_factory = QFactory(a_factory, i_objective)
         else:
             self.q_factory = q_factory
 
