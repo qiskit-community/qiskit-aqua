@@ -87,7 +87,7 @@ class MaximumLikelihood:
             right_of_qae = np.sin(np.pi * (y + 1) / M)**2
             bubbles = [self._qae, right_of_qae]
 
-        elif y == M:
+        elif y == int(M / 2):
             left_of_qae = np.sin(np.pi * (y - 1) / M)**2
             bubbles = [left_of_qae, self._qae]
 
