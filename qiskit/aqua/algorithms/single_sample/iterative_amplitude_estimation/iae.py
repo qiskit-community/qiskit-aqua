@@ -203,9 +203,6 @@ class IterativeAmplitudeEstimation(QuantumAlgorithm):
                 state_vector = np.asarray([ret.get_statevector(qc)])
                 self._ret['statevector'] = state_vector
 
-                # get probability for good measurement
-                print("Statevec:", state_vector)
-
                 # get all states where the last qubit is 1
                 n = self.a_factory._uncertainty_model.num_target_qubits
                 good_states = np.array([i for i in np.arange(
@@ -213,8 +210,6 @@ class IterativeAmplitudeEstimation(QuantumAlgorithm):
 
                 # sum over all probabilities of these states
                 amplitudes = np.real(state_vector.conj() * state_vector)[0]
-                print(amplitudes)
-                print(good_states)
                 pr_good = np.sum(amplitudes[good_states])
 
                 # get the counts
@@ -243,7 +238,6 @@ class IterativeAmplitudeEstimation(QuantumAlgorithm):
                 good_counts /= total_counts
                 total_counts = 1
 
-            print(f"good/total: {good_counts}/{total_counts}")
             self._likelihoods.append(self.get_single_likelihood(good_counts,
                                                                 total_counts,
                                                                 num_rotations))
