@@ -140,7 +140,7 @@ class IterativeAmplitudeEstimation(QuantumAlgorithm):
 
     def maximize(self, likelihood):
         # Should be this many numbers also for LR statistic later in self.ci!
-        thetas = np.linspace(0, np.pi / 2, num=int(1e5))
+        thetas = np.linspace(0, np.pi / 2, num=int(1e6))
         vals = np.array([likelihood(t) for t in thetas])
         vals = np.array([np.maximum(v, 1e-8) for v in vals])
 
@@ -189,6 +189,10 @@ class IterativeAmplitudeEstimation(QuantumAlgorithm):
         else:
             raise AquaError(f"confidence interval kind {kind} not implemented")
 
+    def last_qubit_is_one(self, i):
+        n = self.a_factory._uncertainty_model.num_target_qubits
+        return "{0:b}".format(i).rjust(n + 1, "0")[0] == "1"
+
     def _run(self):
         for num_rotations in self._rotations:
             if self._quantum_instance.is_statevector:
@@ -200,8 +204,20 @@ class IterativeAmplitudeEstimation(QuantumAlgorithm):
                 self._ret['statevector'] = state_vector
 
                 # get probability for good measurement
-                pr_good = np.real(state_vector.conj() * state_vector).flatten()[1]
+                print("Statevec:", state_vector)
 
+                # get all states where the last qubit is 1
+                n = self.a_factory._uncertainty_model.num_target_qubits
+                good_states = np.array([i for i in np.arange(
+                    2**(n + 1)) if self.last_qubit_is_one(i)])
+
+                # sum over all probabilities of these states
+                amplitudes = np.real(state_vector.conj() * state_vector)[0]
+                print(amplitudes)
+                print(good_states)
+                pr_good = np.sum(amplitudes[good_states])
+
+                # get the counts
                 good_counts = pr_good
                 total_counts = 1
 
@@ -215,11 +231,14 @@ class IterativeAmplitudeEstimation(QuantumAlgorithm):
                 self._ret['counts'] = ret.get_counts()
 
                 # sum all counts where last qubit is one
-                try:
-                    good_counts = ret.get_counts()['1']
-                except KeyError:
-                    good_counts = 0
+                good_counts = 0
+                counts = ret.get_counts()
+                for state, count in counts.items():
+                    if state[0] == '1':
+                        good_counts += count
 
+                # normalise the counts, otherwise the maximum search
+                # is numerically very difficult, as the values tend to 0
                 total_counts = sum(ret.get_counts().values())
                 good_counts /= total_counts
                 total_counts = 1
