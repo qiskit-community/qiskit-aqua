@@ -17,6 +17,7 @@ from .iterative_qpe.iqpe import IQPE
 from .qpe.qpe import QPE
 from .amplitude_estimation.ae import AmplitudeEstimation
 from .amplitude_estimation.ml import MaximumLikelihood
+from .iterative_amplitude_estimation.iae import IterativeAmplitudeEstimation
 from .simon.simon import Simon
 from .deutsch_jozsa.dj import DeutschJozsa
 from .bernstein_vazirani.bv import BernsteinVazirani
@@ -30,6 +31,7 @@ __all__ = [
     'QPE',
     'AmplitudeEstimation',
     'MaximumLikelihood',
+    'IterativeAmplitudeEstimation',
     'Simon',
     'DeutschJozsa',
     'BernsteinVazirani',
