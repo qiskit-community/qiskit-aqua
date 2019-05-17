@@ -19,7 +19,6 @@ import logging
 from collections import OrderedDict
 import numpy as np
 
-from qiskit import ClassicalRegister
 from qiskit.aqua import AquaError
 from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.algorithms import QuantumAlgorithm
@@ -167,8 +166,8 @@ class AmplitudeEstimation(QuantumAlgorithm):
         for y, probability in y_probabilities.items():
             if y >= int(self._M / 2):
                 y = self._M - y
-            a = np.round(
-                np.power(np.sin(y * np.pi / 2 ** self._m), 2), decimals=7)
+            a = np.round(np.power(np.sin(y * np.pi / 2 ** self._m), 2),
+                         decimals=7)
             a_probabilities[a] = a_probabilities.get(a, 0) + probability
 
         return a_probabilities, y_probabilities
@@ -204,7 +203,8 @@ class AmplitudeEstimation(QuantumAlgorithm):
                 y = int(state.replace(' ', '')[:self._m][::-1], 2)
                 p = counts / shots
                 y_probabilities[y] = p
-                a = np.power(np.sin(y * np.pi / 2 ** self._m), 2)
+                a = np.round(np.power(np.sin(y * np.pi / 2 ** self._m), 2),
+                             decimals=7)
                 a_probabilities[a] = a_probabilities.get(a, 0.0) + p
 
         # construct a_items and y_items
