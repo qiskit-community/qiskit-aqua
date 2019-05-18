@@ -66,7 +66,7 @@ class TestHHL(QiskitAquaTestCase):
             }
         }
 
-    @parameterized.expand([[[0, 1]], [[1, 0]], [[1, 1]], [[1, 10]]])
+    @parameterized.expand([[[0, 1]], [[1, 0]], [[1, 0.1]], [[1, 1]], [[1, 10]]])
     def test_hhl_diagonal(self, vector):
         self.log.debug('Testing HHL simple test in mode Lookup with '
                        'statevector simulator')
@@ -134,7 +134,7 @@ class TestHHL(QiskitAquaTestCase):
         self.log.debug('probability of result:     {}'.
                        format(hhl_result["probability_result"]))
 
-    @parameterized.expand([[[0, 1]], [[1, 0]], [[1, 1]], [[1, 10]]])
+    @parameterized.expand([[[0, 1]], [[1, 0.1]], [[1, 1]]])
     def test_hhl_diagonal_longdivison(self, vector):
         self.log.debug('Testing HHL simple test in mode LongDivision and '
                        'statevector simulator')
@@ -169,7 +169,7 @@ class TestHHL(QiskitAquaTestCase):
         self.log.debug('probability of result:     {}'.
                        format(hhl_result["probability_result"]))
 
-    @parameterized.expand([[[0, 1]], [[1, 0]], [[1, 1]], [[1, 10]]])
+    @parameterized.expand([[[0, 1]], [[1, 0]], [[1, 0.1]], [[1, 1]], [[1, 10]]])
     def test_hhl_diagonal_qasm(self, vector):
         self.log.debug('Testing HHL simple test with qasm simulator')
 
@@ -196,7 +196,7 @@ class TestHHL(QiskitAquaTestCase):
 
         # compare results
         fidelity = state_fidelity(ref_normed, hhl_normed)
-        self.assertGreater(fidelity, 0.8)
+        np.testing.assert_approx_equal(fidelity, 1, significant=1)
 
         self.log.debug('HHL solution vector:       {}'.format(hhl_solution))
         self.log.debug('algebraic solution vector: {}'.format(ref_normed))

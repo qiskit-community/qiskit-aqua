@@ -18,6 +18,12 @@ The format is based on `Keep a Changelog`_.
 `UNRELEASED`_
 =============
 
+Added
+-----
+
+- Relative-Phase Toffoli gates ``rccx`` (with 2 controls) and ``rcccx`` (with 3 controls).
+
+
 `0.5.0`_ - 2019-05-02
 =====================
 
