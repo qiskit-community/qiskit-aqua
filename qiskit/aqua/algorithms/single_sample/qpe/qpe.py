@@ -114,8 +114,8 @@ class QPE(QuantumAlgorithm):
         self._num_ancillae = num_ancillae
         self._ret = {}
         self._operator = deepcopy(operator)
-        self._pauli_list = self._operator.get_flat_pauli_list()
-        self._ret['translation'] = sum([abs(p[0]) for p in self._pauli_list])
+
+        self._ret['translation'] = sum([abs(p[0]) for p in self._operator.get_flat_pauli_list()])
         self._ret['stretch'] = 0.5 / self._ret['translation']
 
         # translate the operator
@@ -131,6 +131,7 @@ class QPE(QuantumAlgorithm):
         ])
         translation_op._simplify_paulis()
         self._operator += translation_op
+        self._pauli_list = self._operator.get_flat_pauli_list()
 
         # stretch the operator
         for p in self._pauli_list:
