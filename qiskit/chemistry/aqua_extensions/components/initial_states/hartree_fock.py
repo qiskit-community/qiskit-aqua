@@ -39,7 +39,7 @@ class HartreeFock(InitialState):
                     'minimum': 1
                 },
                 'num_particles': {
-                    'type': ['integer', 'array'],
+                    'type': ['array', 'integer'],
                     'default': [1, 1],
                     'contains': {
                         'type': 'integer'
@@ -70,7 +70,7 @@ class HartreeFock(InitialState):
         Args:
             num_qubits (int): number of qubits
             num_orbitals (int): number of spin orbitals
-            num_particles (list, int): number of particles, if it is a tuple, the first number is alpha and the second
+            num_particles (list, int): number of particles, if it is a list, the first number is alpha and the second
                                         number if beta.
             qubit_mapping (str): mapping type for qubit operator
             two_qubit_reduction (bool): flag indicating whether or not two qubit is reduced
