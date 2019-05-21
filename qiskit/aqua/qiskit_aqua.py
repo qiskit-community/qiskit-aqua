@@ -271,7 +271,7 @@ class QiskitAqua(object):
 
             backend_cfg['backend'] = backend
             if random_seed is not None:
-                backend_cfg['seed'] = random_seed
+                backend_cfg['seed_simulator'] = random_seed
             skip_qobj_validation = self._parser.get_section_property(JSONSchema.PROBLEM, 'skip_qobj_validation')
             if skip_qobj_validation is not None:
                 backend_cfg['skip_qobj_validation'] = skip_qobj_validation
@@ -291,6 +291,15 @@ class QiskitAqua(object):
             measurement_error_mitigation = self._parser.get_section_property(JSONSchema.PROBLEM, 'measurement_error_mitigation')
             if measurement_error_mitigation:
                 backend_cfg['measurement_error_mitigation_cls'] = CompleteMeasFitter
+
+            measurement_error_mitigation_shots = self._parser.get_section_property(JSONSchema.PROBLEM,
+                                                                             'measurement_error_mitigation_shots')
+            if measurement_error_mitigation:
+                backend_cfg['measurement_error_mitigation_shots'] = measurement_error_mitigation_shots
+
+            measurement_error_mitigation_refresh_period = self._parser.get_section_property(JSONSchema.PROBLEM,
+                                                                                            'measurement_error_mitigation_refresh_period')
+            backend_cfg['cals_matrix_refresh_period'] = measurement_error_mitigation_refresh_period
 
             self._quantum_instance = QuantumInstance(**backend_cfg)
 

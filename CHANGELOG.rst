@@ -21,6 +21,15 @@ The format is based on `Keep a Changelog`_.
 Added
 -----
 
+- Relative-Phase Toffoli gates ``rccx`` (with 2 controls) and ``rcccx`` (with 3 controls).
+
+
+`0.5.0`_ - 2019-05-02
+=====================
+
+Added
+-----
+
 - Implementation of the HHL algorithm supporting ``LinearSystemInput``.
 - Pluggable component ``Eigenvalues`` with variant ``EigQPE``.
 - Pluggable component ``Reciprocal`` with variants ``LookupRotation`` and ``LongDivision``.
@@ -30,7 +39,7 @@ Added
 - ``QuantumInstance`` accepts ``basis_gates`` and ``coupling_map`` again.
 - Support to use ``cx`` gate for the entangement in ``RY`` and ``RYRZ`` variational form. (``cz`` is the default choice.)
 - Support to use arbitrary mixer Hamiltonian in ``QAOA``. This allows to use QAOA in constrained optimization problems [arXiv:1709.03489].
-- Added variational algorithm base class ``VQAlgorithm``, implemented by ``VQE`` and ``QSVMVariational``.
+- Added variational algorithm base class ``VQAlgorithm``, implemented by ``VQE`` and ``VQC``.
 - Added ``ising/docplex.py`` for automatically generating Ising Hamiltonian from optimization models of DOcplex.
 - Added ``'basic-dirty-ancilla'`` mode for ``mct``.
 - Added ``mcmt`` for Multi-Controlled, Multi-Target gate.
@@ -52,7 +61,8 @@ Added
 - Added parameters ``auto_hermitian`` and ``auto_resize`` to ``HHL`` algorithm to support non-hermititan and non 2**n sized matrices by default.
 - Added another feature map, ``RawFeatureVector``, that directly maps feature vectors to qubits' states for classification.
 - ``SVM_Classical`` can now load models trained by ``QSVM``.
-- Added CompleteMeasFitter for mitigating measurement error when jobs are run on a real device or noise simulation.
+- Added ``CompleteMeasFitter`` for mitigating measurement error when jobs are run on a real device or noisy simulator.
+- Added ``QGAN`` (Quantum Generative Adversarial Network) algorithm, along with neural network components comprising a quantum generator and classical discriminator.
 
 Removed
 -------
@@ -250,7 +260,8 @@ Changed
 - Updated qiskit minimum version in setup.py.
 - Fixed links in readme.me.
 
-.. _UNRELEASED: https://github.com/Qiskit/qiskit-aqua/compare/0.4.1...HEAD
+.. _UNRELEASED: https://github.com/Qiskit/qiskit-aqua/compare/0.5.0...HEAD
+.. _0.5.0: https://github.com/Qiskit/qiskit-aqua/compare/0.4.1...0.5.0
 .. _0.4.1: https://github.com/Qiskit/qiskit-aqua/compare/0.4.0...0.4.1
 .. _0.4.0: https://github.com/Qiskit/qiskit-aqua/compare/0.3.1...0.4.0
 .. _0.3.1: https://github.com/Qiskit/qiskit-aqua/compare/0.3.0...0.3.1
