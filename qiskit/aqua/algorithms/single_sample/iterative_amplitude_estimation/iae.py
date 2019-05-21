@@ -294,7 +294,7 @@ class IterativeAmplitudeEstimation(QuantumAlgorithm):
             return ci
 
         else:
-            raise AquaError(f"confidence interval kind {kind} not implemented")
+            raise AquaError("confidence interval kind {} not implemented".format(kind))
 
     def last_qubit_is_one(self, i):
         n = self.a_factory._uncertainty_model.num_target_qubits
