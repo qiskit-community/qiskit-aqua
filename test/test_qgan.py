@@ -37,7 +37,7 @@ class TestQGAN(QiskitAquaTestCase):
         super().setUp()
 
         # Number training data samples
-        N = 1000
+        N = 5000
         # Load data samples from log-normal distribution with mean=1 and standard deviation=1
         mu = 1
         sigma = 1
@@ -71,9 +71,9 @@ class TestQGAN(QiskitAquaTestCase):
         self.qgan.seed = 7
         # Set quantum instance to run the quantum generator
         self.quantum_instance_statevector = QuantumInstance(backend=BasicAer.get_backend('statevector_simulator'),
-                                                            shots=batch_size, circuit_caching=False)
+                                                            circuit_caching=False)
         self.quantum_instance_qasm = QuantumInstance(backend=BasicAer.get_backend('qasm_simulator'),
-                                                     shots=batch_size, circuit_caching=False)
+                                                     shots=1000, circuit_caching=False)
         # Set entangler map
         entangler_map = [[0, 1]]
 
