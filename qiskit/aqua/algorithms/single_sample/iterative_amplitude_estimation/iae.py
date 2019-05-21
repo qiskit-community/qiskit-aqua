@@ -225,15 +225,18 @@ class IterativeAmplitudeEstimation(QuantumAlgorithm):
             # Look for the first sign change starting from MLE
             diff = self._logliks_grid - thres
             ci_angle = []
-            for direction in [-1, 1]:
+            are_valid = [lambda i: i >= 0, lambda i: i <= diff.size - 1]
+            for direction, is_valid in zip([-1, 1], are_valid):
                 changed = False
                 idx = loglik_mle_idx
-                while not changed:
+                while not changed and is_valid(idx):
                     next = idx + direction
                     if diff[idx] * diff[next] < 0:
                         changed = True
                         ci_angle.append(self._thetas_grid[idx])
                     idx = next
+                if not changed:
+                    ci_angle.append(self._thetas_grid[idx - direction])
 
             ci = np.sin(ci_angle)**2
 
