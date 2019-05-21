@@ -86,6 +86,9 @@ class IterativeAmplitudeEstimation(QuantumAlgorithm):
         # Store likelihood functions of single experiments here
         self._likelihoods = []
 
+        # Store the number of good counts, needed for observed Fisher info
+        self._good_counts = []
+
         # Results dictionary
         self._ret = {}
 
@@ -161,7 +164,7 @@ class IterativeAmplitudeEstimation(QuantumAlgorithm):
 
         return self.maximize(likelihood)
 
-    def ci(self, alpha, kind="likelihood_ratio"):
+    def ci(self, alpha, kind="likelihood_ratio", plot=None):
         if kind == "likelihood_ratio":
             # Threshold defining confidence interval
             loglik_mle = np.max(self._logliks_grid)
@@ -172,9 +175,98 @@ class IterativeAmplitudeEstimation(QuantumAlgorithm):
 
             # Get boundaries
             # since thetas_grid is sorted [0] == min, [1] == max
-            ci = np.array([above_thres[0], above_thres[-1]])
+            ci_angle = np.array([above_thres[0], above_thres[-1]])
+            ci = np.sin(ci_angle)**2
+
+            if plot == "single":
+                import matplotlib.pyplot as plt
+                plt.title("Log likelihood for iterative Amplitude Estimation")
+                plt.plot(np.sin(self._thetas_grid)**2,
+                         self._logliks_grid,
+                         label="log likelihood")
+                plt.plot(self._ret['estimation'],
+                         loglik_mle,
+                         "ro",
+                         label="Estimator")
+                plt.axhline(y=thres, color="k", linestyle="--")
+                [plt.axvline(x=bound, color="r", linestyle=":") for bound in ci]
+                plt.xlabel("Value $a^*$")
+                plt.ylabel("$\\log L(a^*)$")
+                plt.legend(loc="best")
+                plt.show()
+
+            if plot == "joint":
+                print("""
+                      You called joint plots, this argument makes only sense if
+                      you call first likelihood_ratio and then
+                      likelihood_ratio_min
+                      """)
+                import matplotlib.pyplot as plt
+                plt.plot(np.sin(self._thetas_grid)**2,
+                         self._logliks_grid,
+                         label="log likelihood")
+                plt.plot(self._ret['estimation'],
+                         loglik_mle,
+                         "ro",
+                         label="Estimator")
+                plt.axhline(y=thres, color="k", linestyle="--")
+                plt.axvline(x=ci[0], color="r", linestyle="-.",
+                            label="outer bounds")
+                plt.axvline(x=ci[1], color="r", linestyle="-.")
 
             return ci
+
+        if kind == "likelihood_ratio_min":
+            # Threshold defining confidence interval
+            loglik_mle_idx = np.argmax(self._logliks_grid)
+            loglik_mle = self._logliks_grid[loglik_mle_idx]
+            thres = loglik_mle - chi2_quantile(alpha) / 2
+
+            # Look for the first sign change starting from MLE
+            diff = self._logliks_grid - thres
+            ci_angle = []
+            for direction in [-1, 1]:
+                changed = False
+                idx = loglik_mle_idx
+                while not changed:
+                    next = idx + direction
+                    if diff[idx] * diff[next] < 0:
+                        changed = True
+                        ci_angle.append(self._thetas_grid[idx])
+                    idx = next
+
+            ci = np.sin(ci_angle)**2
+
+            if plot == "single":
+                import matplotlib.pyplot as plt
+                plt.title("Log likelihood for iterative Amplitude Estimation")
+                plt.plot(np.sin(self._thetas_grid)**2,
+                         self._logliks_grid,
+                         label="log likelihood")
+                plt.plot(self._ret['estimation'],
+                         loglik_mle,
+                         "ro",
+                         label="Estimator")
+                plt.axhline(y=thres, color="k", linestyle="--")
+                [plt.axvline(x=bound, color="orange", linestyle=":") for bound in ci]
+                plt.xlabel("Value $a^*$")
+                plt.ylabel("$\\log L(a^*)$")
+                plt.legend(loc="best")
+                plt.show()
+
+            if plot == "joint":
+                import matplotlib.pyplot as plt
+                plt.axvline(x=ci[0], color="orange", linestyle=":",
+                            label="inner bounds")
+                plt.axvline(x=ci[1], color="orange", linestyle=":")
+                plt.title("Log likelihood for iterative Amplitude Estimation")
+                plt.xlabel("Value $a^*$")
+                plt.ylabel("$\\log L(a^*)$")
+                plt.legend(loc="best")
+                plt.show()
+
+            return ci
+
         if kind == "fisher":
             q = normal_quantile(alpha)
             est = self._ret['estimation']
@@ -184,6 +276,21 @@ class IterativeAmplitudeEstimation(QuantumAlgorithm):
                 sum((2 * nr + 1)**2 for nr in self._rotations)
 
             ci = est + np.array([-1, 1]) * q / np.sqrt(fi)
+            return ci
+
+        if kind == "observed_fisher":
+            q = normal_quantile(alpha)
+            angle = self._ret['angle']
+            est = self._ret['estimation']
+
+            shots = sum(self._ret['counts'].values())
+            obs_fi = 0
+            for nr, hk in zip(self._rotations, self._good_counts):
+                mk = (2 * nr + 1)
+                tan = np.tan(mk * angle)
+                obs_fi += (2 * mk * (hk / tan - (shots - hk) * tan))**2
+
+            ci = est + np.array([-1, 1]) * q / np.sqrt(obs_fi)
             return ci
 
         else:
@@ -238,6 +345,7 @@ class IterativeAmplitudeEstimation(QuantumAlgorithm):
                 good_counts /= total_counts
                 total_counts = 1
 
+            self._good_counts.append(good_counts)
             self._likelihoods.append(self.get_single_likelihood(good_counts,
                                                                 total_counts,
                                                                 num_rotations))
