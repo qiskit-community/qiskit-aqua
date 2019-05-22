@@ -18,7 +18,7 @@ The Boolean Logical AND and OR Gates.
 import logging
 import numpy as np
 
-from qiskit.circuit import QuantumCircuit, QuantumRegister
+from qiskit.circuit import QuantumCircuit, QuantumRegister, Qubit
 from qiskit.qasm import pi
 
 from qiskit.aqua import AquaError
@@ -66,7 +66,7 @@ def _do_checks(flags, qr_variables, qb_target, qr_ancillae, circuit):
         raise ValueError('A QuantumRegister or list of qubits is expected for variables.')
 
     # check target
-    if isinstance(qb_target, tuple):
+    if isinstance(qb_target, Qubit):
         target_qubit = qb_target
     else:
         raise ValueError('A single qubit is expected for the target.')

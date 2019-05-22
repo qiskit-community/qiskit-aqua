@@ -19,10 +19,9 @@ Multiple-Control Toffoli Gate.
 import logging
 from math import pi, ceil
 
-from qiskit.circuit import QuantumCircuit, QuantumRegister
+from qiskit.circuit import QuantumCircuit, QuantumRegister, Qubit
 
 from qiskit.aqua import AquaError
-from qiskit.aqua.utils.circuit_utils import is_qubit
 
 logger = logging.getLogger(__name__)
 
@@ -229,9 +228,9 @@ def mct(self, q_controls, q_target, q_ancilla, mode='basic'):
 
     Args:
         self (QuantumCircuit): The QuantumCircuit object to apply the mct gate on.
-        q_controls (QuantumRegister | list(tuple(QuantumRegister, int))): The list of control qubits
-        q_target (tuple(QuantumRegister, int)): The target qubit
-        q_ancilla (QuantumRegister | list(tuple(QuantumRegister, int))): The list of ancillary qubits
+        q_controls (QuantumRegister | list(Qubit)): The list of control qubits
+        q_target (Qubit): The target qubit
+        q_ancilla (QuantumRegister | list(Qubit)): The list of ancillary qubits
         mode (string): The implementation mode to use
     """
 
@@ -249,7 +248,7 @@ def mct(self, q_controls, q_target, q_ancilla, mode='basic'):
             raise AquaError('MCT needs a list of qubits or a quantum register for controls.')
 
         # check target
-        if is_qubit(q_target):
+        if isinstance(q_target, Qubit):
             target_qubit = q_target
         else:
             raise AquaError('MCT needs a single qubit as target.')
