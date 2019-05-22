@@ -66,7 +66,7 @@ class FourierTransformCircuits:
                     circuit.add_register(qubits)
             elif isinstance(qubits, list):
                 for qubit in qubits:
-                    if not isinstance(qubit, Qubit):
+                    if isinstance(qubit, Qubit):
                         if not circuit.has_register(qubit.register):
                             circuit.add_register(qubit.register)
                     else:
