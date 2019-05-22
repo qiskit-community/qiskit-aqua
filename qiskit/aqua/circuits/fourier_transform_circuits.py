@@ -45,7 +45,7 @@ class FourierTransformCircuits:
 
         Args:
             circuit (QuantumCircuit): The optional circuit to extend from.
-            qubits (QuantumRegister | list(Qubit)): The optional qubits to construct the circuit with.
+            qubits (QuantumRegister | list of Qubit): The optional qubits to construct the circuit with.
             approximation_degree (int): degree of approximation for the desired circuit
             inverse (bool): Boolean flag to indicate Inverse Quantum Fourier Transform
             do_swaps (bool): Boolean flag to specify if swaps should be included to align the qubit order of

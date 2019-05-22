@@ -97,7 +97,7 @@ def logical_and(self, qr_variables, qb_target, qr_ancillae, flags=None, mct_mode
         self (QuantumCircuit): The QuantumCircuit object to build the conjunction on.
         variable_register (QuantumRegister): The QuantumRegister holding the variable qubits.
         flags (list): A list of +1/-1/0 to mark negations or omissions of qubits.
-        target_qubit (tuple(QuantumRegister, int)): The target qubit to hold the conjunction result.
+        target_qubit (Qubit): The target qubit to hold the conjunction result.
         ancillary_register (QuantumRegister): The ancillary QuantumRegister for building the mct.
         mct_mode (str): The mct building mode.
     """
@@ -113,7 +113,7 @@ def logical_or(self, qr_variables, qb_target, qr_ancillae, flags=None, mct_mode=
         self (QuantumCircuit): The QuantumCircuit object to build the disjunction on.
         qr_variables (QuantumRegister): The QuantumRegister holding the variable qubits.
         flags (list): A list of +1/-1/0 to mark negations or omissions of qubits.
-        qb_target (tuple(QuantumRegister, int)): The target qubit to hold the disjunction result.
+        qb_target (Qubit): The target qubit to hold the disjunction result.
         qr_ancillae (QuantumRegister): The ancillary QuantumRegister for building the mct.
         mct_mode (str): The mct building mode.
     """
