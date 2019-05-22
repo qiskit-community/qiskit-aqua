@@ -398,8 +398,7 @@ class Hamiltonian(ChemistryOperator):
     def _map_fermionic_operator_to_qubit(fer_op, qubit_mapping, num_particles, two_qubit_reduction):
         qubit_op = fer_op.mapping(map_type=qubit_mapping, threshold=0.00000001)
         if qubit_mapping == 'parity' and two_qubit_reduction:
-            # TODO The two qubit reduction needs to be updated for the [alpha,beta] list
-            qubit_op = qubit_op.two_qubit_reduced_operator(num_particles[0] + num_particles[1])
+            qubit_op = qubit_op.two_qubit_reduced_operator(num_particles)
         return qubit_op
 
     @staticmethod

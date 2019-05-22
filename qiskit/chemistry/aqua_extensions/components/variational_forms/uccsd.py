@@ -157,9 +157,9 @@ class UCCSD(VariationalForm):
             self._num_alpha = num_particles // 2
             self._num_beta = num_particles // 2
 
-        self._num_particles = self._num_alpha + self._num_beta
+        self._num_particles = [self._num_alpha, self._num_beta]
 
-        if self._num_particles > self._num_orbitals:
+        if sum(self._num_particles) > self._num_orbitals:
             raise ValueError('# of particles must be less than or equal to # of orbitals.')
 
         self._initial_state = initial_state
