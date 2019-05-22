@@ -463,10 +463,17 @@ class FermionicOperator(object):
         P. Barkoutsos, arXiv:1805.04340(https://arxiv.org/abs/1805.04340).
 
         Args:
-            num_particles (int): number of particles
+            num_particles (list, int): number of particles, if it is a list, the first number is alpha
+                                       and the second number is beta.
         """
+        if isinstance(num_particles, list):
+            total_particles = num_particles[0]
+            total_particles += num_particles[1]
+        else:
+            total_particles = num_particles
+        # TODO Particle hole transformation should be updated to support alpha & beta numbers
         self._convert_to_interleaved_spins()
-        h1, h2, energy_shift = particle_hole_transformation(self._modes, num_particles,
+        h1, h2, energy_shift = particle_hole_transformation(self._modes, total_particles,
                                                             self._h1, self._h2)
         new_fer_op = FermionicOperator(h1=h1, h2=h2, ph_trans_shift=energy_shift)
         new_fer_op._convert_to_block_spins()

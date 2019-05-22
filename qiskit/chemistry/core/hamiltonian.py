@@ -200,30 +200,36 @@ class Hamiltonian(ChemistryOperator):
         # the indexes for elimination according to how many orbitals were removed when freezing.
         #
         orbitals_list = list(set(core_list + reduce_list))
-        nel = qmolecule.num_alpha + qmolecule.num_beta
         num_alpha = qmolecule.num_alpha
         num_beta = qmolecule.num_beta
-        new_nel = nel
         new_num_alpha = num_alpha
         new_num_beta = num_beta
         if len(orbitals_list) > 0:
             orbitals_list = np.array(orbitals_list)
             orbitals_list = orbitals_list[(orbitals_list >= 0) & (orbitals_list < qmolecule.num_orbitals)]
 
-            freeze_list = [i for i in orbitals_list if i < nel // 2]
-            freeze_list = np.append(np.array(freeze_list), np.array(freeze_list) + qmolecule.num_orbitals)
+            freeze_list_alpha = [i for i in orbitals_list if i < num_alpha]
+            freeze_list_beta = [i for i in orbitals_list if i < num_beta]
+            freeze_list = np.append(freeze_list_alpha, [i + qmolecule.num_orbitals for i in freeze_list_beta])
 
-            remove_list = [i for i in orbitals_list if i >= nel // 2]
-            remove_list_orig_idx = np.append(np.array(remove_list), np.array(remove_list) + qmolecule.num_orbitals)
-            remove_list = np.append(np.array(remove_list) - int(len(freeze_list)/2), np.array(remove_list) + qmolecule.num_orbitals - len(freeze_list))
+            remove_list_alpha = [i for i in orbitals_list if i >= num_alpha]
+            remove_list_beta = [i for i in orbitals_list if i >= num_beta]
+            rla_adjust = -len(freeze_list_alpha)
+            rlb_adjust = -len(freeze_list_alpha) - len(freeze_list_beta) + qmolecule.num_orbitals
+            remove_list = np.append([i + rla_adjust for i in remove_list_alpha],
+                                    [i + rlb_adjust for i in remove_list_beta])
+
             logger.info("Combined orbital reduction list: {}".format(orbitals_list))
-            logger.info("  converting to spin orbital reduction list: {}".format(np.append(np.array(orbitals_list), np.array(orbitals_list) + qmolecule.num_orbitals)))
+            logger.info("  converting to spin orbital reduction list: {}".format(
+                np.append(np.array(orbitals_list), np.array(orbitals_list) + qmolecule.num_orbitals)))
             logger.info("    => freezing spin orbitals: {}".format(freeze_list))
-            logger.info("    => removing spin orbitals: {} (indexes accounting for freeze {})".format(remove_list_orig_idx, remove_list))
+            logger.info("    => removing spin orbitals: {} (indexes accounting for freeze {})".format(
+                np.append(remove_list_alpha, np.array(remove_list_beta) + qmolecule.num_orbitals), remove_list))
 
-            new_nel -= len(freeze_list)
-            new_num_alpha -= len(freeze_list) // 2
-            new_num_beta -= len(freeze_list) // 2
+            new_num_alpha -= len(freeze_list_alpha)
+            new_num_beta -= len(freeze_list_beta)
+
+        new_nel = [new_num_alpha, new_num_beta]
 
         fer_op = FermionicOperator(h1=qmolecule.one_body_integrals, h2=qmolecule.two_body_integrals)
         fer_op, self._energy_shift, did_shift = Hamiltonian._try_reduce_fermionic_operator(fer_op, freeze_list, remove_list)
@@ -276,7 +282,7 @@ class Hamiltonian(ChemistryOperator):
             algo_input.add_aux_op(op_dipole_y)
             algo_input.add_aux_op(op_dipole_z)
 
-        logger.info('Molecule num electrons: {}, remaining for processing: {}'.format(nel, new_nel))
+        logger.info('Molecule num electrons: {}, remaining for processing: {}'.format([num_alpha, num_beta], new_nel))
         nspinorbs = qmolecule.num_orbitals * 2
         new_nspinorbs = nspinorbs - len(freeze_list) - len(remove_list)
         logger.info('Molecule num spin orbitals: {}, remaining for processing: {}'.format(nspinorbs, new_nspinorbs))
@@ -392,7 +398,8 @@ class Hamiltonian(ChemistryOperator):
     def _map_fermionic_operator_to_qubit(fer_op, qubit_mapping, num_particles, two_qubit_reduction):
         qubit_op = fer_op.mapping(map_type=qubit_mapping, threshold=0.00000001)
         if qubit_mapping == 'parity' and two_qubit_reduction:
-            qubit_op = qubit_op.two_qubit_reduced_operator(num_particles)
+            # TODO The two qubit reduction needs to be updated for the [alpha,beta] list
+            qubit_op = qubit_op.two_qubit_reduced_operator(num_particles[0] + num_particles[1])
         return qubit_op
 
     @staticmethod
