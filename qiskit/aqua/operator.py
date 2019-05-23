@@ -1097,7 +1097,8 @@ class Operator(object):
         sectors, (block spin order) according to the number of particles in the system.
 
         Args:
-            m (int): number of fermionic particles
+            m (list, int): number of particles, if it is a list, the first number is alpha
+                            and the second number if beta.
             threshold (float): threshold for Pauli simplification
 
         Returns:
