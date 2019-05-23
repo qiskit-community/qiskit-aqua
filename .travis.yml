@@ -85,14 +85,14 @@ jobs:
     - stage: test first
       <<: *stage_dependencies
       script:
-        - python test/custom_tests.py 0 -end 21
+        - python test/custom_tests.py 0 -end 20
 
     - stage: test second
       <<: *stage_dependencies
       script:
-        - python test/custom_tests.py 21 -end 37
+        - python test/custom_tests.py 20 -end 34
 
     - stage: test third
       <<: *stage_dependencies
       script:
-        - python test/custom_tests.py 37
+        - python test/custom_tests.py 34
