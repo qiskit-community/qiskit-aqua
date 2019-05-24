@@ -1097,7 +1097,8 @@ class Operator(object):
         sectors, (block spin order) according to the number of particles in the system.
 
         Args:
-            m (int): number of fermionic particles
+            m (list, int): number of particles, if it is a list, the first number is alpha
+                            and the second number if beta.
             threshold (float): threshold for Pauli simplification
 
         Returns:
@@ -1107,9 +1108,17 @@ class Operator(object):
         if self._paulis is None or self._paulis == []:
             return self
 
+        if isinstance(m, list):
+            num_alpha = m[0]
+            num_beta = m[1]
+        else:
+            num_alpha = m // 2
+            num_beta = m // 2
+
         operator_out = Operator(paulis=[])
-        par_1 = 1 if m % 2 == 0 else -1
-        par_2 = 1 if m % 4 == 0 else -1
+
+        par_1 = 1 if (num_alpha + num_beta) % 2 == 0 else -1
+        par_2 = 1 if num_alpha % 2 == 0 else -1
 
         n = self.num_qubits
         last_idx = n - 1
