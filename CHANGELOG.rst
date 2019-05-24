@@ -23,6 +23,13 @@ Added
 
 - Relative-Phase Toffoli gates ``rccx`` (with 2 controls) and ``rcccx`` (with 3 controls).
 
+`0.5.1`_ - 2019-05-24
+=====================
+
+Changed
+-------
+
+- Make torch optional install
 
 `0.5.0`_ - 2019-05-02
 =====================
@@ -260,7 +267,8 @@ Changed
 - Updated qiskit minimum version in setup.py.
 - Fixed links in readme.me.
 
-.. _UNRELEASED: https://github.com/Qiskit/qiskit-aqua/compare/0.5.0...HEAD
+.. _UNRELEASED: https://github.com/Qiskit/qiskit-aqua/compare/0.5.1...HEAD
+.. _0.5.1: https://github.com/Qiskit/qiskit-aqua/compare/0.5.0...0.5.1
 .. _0.5.0: https://github.com/Qiskit/qiskit-aqua/compare/0.4.1...0.5.0
 .. _0.4.1: https://github.com/Qiskit/qiskit-aqua/compare/0.4.0...0.4.1
 .. _0.4.0: https://github.com/Qiskit/qiskit-aqua/compare/0.3.1...0.4.0
