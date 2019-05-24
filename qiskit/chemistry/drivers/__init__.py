@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from ._basedriver import BaseDriver, UnitsType
+from ._basedriver import BaseDriver, UnitsType, HFMethodType
 from ._discover_driver import (DRIVERS_ENTRY_POINT,
                                refresh_drivers,
                                register_driver,
@@ -28,6 +28,7 @@ from .pyscfd import PySCFDriver
 
 __all__ = ['BaseDriver',
            'UnitsType',
+           'HFMethodType',
            'DRIVERS_ENTRY_POINT',
            'refresh_drivers',
            'register_driver',

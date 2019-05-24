@@ -38,7 +38,7 @@ class TestCoreHamiltonian(QiskitChemistryTestCase):
         self.assertAlmostEqual(core._energy_shift, energy_shift)
         self.assertAlmostEqual(core._ph_energy_shift, ph_energy_shift)
 
-    def _validate_info(self, core, num_particles=2, num_orbitals=4, actual_two_qubit_reduction=False):
+    def _validate_info(self, core, num_particles=[1, 1], num_orbitals=4, actual_two_qubit_reduction=False):
         self.assertEqual(core.molecule_info, {'num_particles': num_particles,
                                               'num_orbitals': num_orbitals,
                                               'two_qubit_reduction': actual_two_qubit_reduction})

@@ -33,6 +33,11 @@ class UnitsType(Enum):
     BOHR = 'Bohr'
 
 
+class HFMethodType(Enum):
+    RHF = 'rhf'
+    ROHF = 'rohf'
+
+
 class BaseDriver(ABC):
     """
     Base class for Drivers.

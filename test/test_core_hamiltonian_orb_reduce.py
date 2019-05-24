@@ -38,7 +38,7 @@ class TestCoreHamiltonianOrbReduce(QiskitChemistryTestCase):
         self.assertAlmostEqual(core._energy_shift, energy_shift)
         self.assertAlmostEqual(core._ph_energy_shift, ph_energy_shift)
 
-    def _validate_info(self, core, num_particles=4, num_orbitals=12, actual_two_qubit_reduction=False):
+    def _validate_info(self, core, num_particles=[2, 2], num_orbitals=12, actual_two_qubit_reduction=False):
         self.assertEqual(core.molecule_info, {'num_particles': num_particles,
                                               'num_orbitals': num_orbitals,
                                               'two_qubit_reduction': actual_two_qubit_reduction})
@@ -79,7 +79,7 @@ class TestCoreHamiltonianOrbReduce(QiskitChemistryTestCase):
                            orbital_reduction=[])
         qubit_op, aux_ops = core.run(self.qmolecule)
         self._validate_vars(core, energy_shift=-7.7962196)
-        self._validate_info(core, num_particles=2, num_orbitals=10)
+        self._validate_info(core, num_particles=[1, 1], num_orbitals=10)
         self._validate_input_object(qubit_op, num_qubits=10, num_paulis=276)
 
     def test_freeze_core_orb_reduction(self):
@@ -90,7 +90,7 @@ class TestCoreHamiltonianOrbReduce(QiskitChemistryTestCase):
                            orbital_reduction=[-3, -2])
         qubit_op, aux_ops = core.run(self.qmolecule)
         self._validate_vars(core, energy_shift=-7.7962196)
-        self._validate_info(core, num_particles=2, num_orbitals=6)
+        self._validate_info(core, num_particles=[1, 1], num_orbitals=6)
         self._validate_input_object(qubit_op, num_qubits=6, num_paulis=118)
 
     def test_freeze_core_all_reduction(self):
@@ -101,7 +101,7 @@ class TestCoreHamiltonianOrbReduce(QiskitChemistryTestCase):
                            orbital_reduction=[-3, -2])
         qubit_op, aux_ops = core.run(self.qmolecule)
         self._validate_vars(core, energy_shift=-7.7962196)
-        self._validate_info(core, num_particles=2, num_orbitals=6, actual_two_qubit_reduction=True)
+        self._validate_info(core, num_particles=[1, 1], num_orbitals=6, actual_two_qubit_reduction=True)
         self._validate_input_object(qubit_op, num_qubits=4, num_paulis=100)
 
     def test_freeze_core_all_reduction_ph(self):
@@ -112,7 +112,7 @@ class TestCoreHamiltonianOrbReduce(QiskitChemistryTestCase):
                            orbital_reduction=[-2, -1])
         qubit_op, aux_ops = core.run(self.qmolecule)
         self._validate_vars(core, energy_shift=-7.7962196, ph_energy_shift=-1.05785247)
-        self._validate_info(core, num_particles=2, num_orbitals=6, actual_two_qubit_reduction=True)
+        self._validate_info(core, num_particles=[1, 1], num_orbitals=6, actual_two_qubit_reduction=True)
         self._validate_input_object(qubit_op, num_qubits=4, num_paulis=52)
 
 
