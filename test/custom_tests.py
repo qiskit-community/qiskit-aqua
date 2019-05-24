@@ -86,6 +86,10 @@ if __name__ == '__main__':
     if tests_count == 0:
         raise Exception('No test modules found.')
 
+    # for index, test_module in enumerate(test_modules):
+    #    print(index, test_module)
+
+    # print('Total modules:', tests_count)
     start_index = args.start
     if start_index >= tests_count:
         raise Exception('Start index {} >= number of test modules {}.'.format(
