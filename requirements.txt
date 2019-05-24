@@ -1,4 +1,4 @@
-qiskit-aqua>=0.5.0
+qiskit-aqua>=0.5.2
 numpy>=1.13
 h5py
 psutil>=5
