@@ -29,7 +29,7 @@ DRIVERS_ENTRY_POINT = 'qiskit.chemistry.drivers'
 
 _NAMES_TO_EXCLUDE = [os.path.basename(__file__)]
 
-_FOLDERS_TO_EXCLUDE = ['__pycache__']
+_FOLDERS_TO_EXCLUDE = ['__pycache__', 'gauopen']
 
 RegisteredDriver = namedtuple(
     'RegisteredDriver', ['name', 'cls', 'configuration'])
