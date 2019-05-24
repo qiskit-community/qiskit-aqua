@@ -27,7 +27,7 @@ Qiskit Aqua is part of the Qiskit software framework.  We encourage installing Q
 pip install qiskit
 ```
 
-pip will handle all dependencies automatically for you, including the other Qiskit elements on which
+pip will handle all dependencies automatically for you, including the other Qiskit elements upon which
 Aqua is built, such as [Qiskit Terra](https://github.com/Qiskit/qiskit-terra/),
 and you will always install the latest (and well-tested) version.
 
