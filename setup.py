@@ -79,6 +79,6 @@ setuptools.setup(
     include_package_data=True,
     python_requires=">=3.5",
     extras_require={
-        'neural-network': ["torch; sys_platform != 'win32'"]
+        'torch': ["torch; sys_platform != 'win32'"]
     }
 )
