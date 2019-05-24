@@ -176,6 +176,7 @@ class QiskitChemistry(object):
 
         # set provider and name in input file for proper backend schema dictionary build
         if isinstance(backend, BaseBackend):
+            self._parser.backend = backend
             self._parser.add_section_properties(JSONSchema.BACKEND,
                                                 {
                                                     JSONSchema.PROVIDER: get_provider_from_backend(backend),
