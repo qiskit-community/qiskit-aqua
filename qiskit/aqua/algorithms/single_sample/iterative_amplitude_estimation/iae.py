@@ -218,28 +218,28 @@ class IterativeAmplitudeEstimation(QuantumAlgorithm):
 
         if kind == "likelihood_ratio_min":
             # Threshold defining confidence interval
-            loglik_mle_idx = np.argmax(self._logliks_grid)
-            loglik_mle = self._logliks_grid[loglik_mle_idx]
+            mle_idx = np.argmax(self._logliks_grid)
+            loglik_mle = self._logliks_grid[mle_idx]
             thres = loglik_mle - chi2_quantile(alpha) / 2
 
-            # Look for the first sign change starting from MLE
-            diff = self._logliks_grid - thres
-            ci_angle = []
-            are_valid = [lambda i: i >= 0, lambda i: i <= diff.size - 1]
-            for direction, is_valid in zip([-1, 1], are_valid):
-                changed = False
-                idx = loglik_mle_idx
-                while not changed and is_valid(idx):
-                    next = idx + direction
-                    if diff[idx] * diff[next] < 0:
-                        changed = True
-                        ci_angle.append(self._thetas_grid[idx])
-                    idx = next
-                if not changed:
-                    ci_angle.append(self._thetas_grid[idx - direction])
+            # Look for the the first theta below the thres before (and after) the MLE
+            theta_mle = self._thetas_grid[mle_idx]
+            below_thres = self._thetas_grid[self._logliks_grid <= thres]
 
+            before = below_thres[below_thres < theta_mle]
+            after = below_thres[below_thres > theta_mle]
+
+            # Add safeguard
+            if before.size == 0:
+                before = np.array([0])
+            if after.size == 0:
+                after = np.array([np.pi / 2])
+
+            # Get boundaries
+            # since thetas_grid is sorted [0] == min, [1] == max
+            ci_angle = np.append(before[-1], after[0])
             ci = np.sin(ci_angle)**2
-
+             
             if plot == "single":
                 import matplotlib.pyplot as plt
                 plt.title("Log likelihood for iterative Amplitude Estimation")
@@ -256,7 +256,7 @@ class IterativeAmplitudeEstimation(QuantumAlgorithm):
                 plt.ylabel("$\\log L(a^*)$")
                 plt.legend(loc="best")
                 plt.show()
-
+          
             if plot == "joint":
                 import matplotlib.pyplot as plt
                 plt.axvline(x=ci[0], color="orange", linestyle=":",
@@ -267,7 +267,7 @@ class IterativeAmplitudeEstimation(QuantumAlgorithm):
                 plt.ylabel("$\\log L(a^*)$")
                 plt.legend(loc="best")
                 plt.show()
-
+         
             return ci
 
         if kind == "fisher":
