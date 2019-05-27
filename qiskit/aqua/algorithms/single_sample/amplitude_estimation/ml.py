@@ -64,7 +64,7 @@ class MaximumLikelihood:
                       np.asarray(self.ae._ret['probabilities']),
                       self._shots)
 
-    def mle(self):
+    def mle(self, debug=False):
         """
         @brief Compute the Maximum Likelihood Estimator (MLE)
         @return The MLE for the previous AE run
@@ -81,7 +81,11 @@ class MaximumLikelihood:
         # the maximum of the log-likelihood function: the two bubbles next to
         # the QAE estimate
         M = 2**self.ae._m
-        y = int(M * np.arcsin(np.sqrt(self._qae)) / np.pi)
+
+        # y is pretty much an integer, but to map 1.9999 to 2 we must first
+        # use round and then int conversion
+        y = int(np.round(M * np.arcsin(np.sqrt(self._qae)) / np.pi, 0))
+
         bubbles = None
         if y == 0:
             right_of_qae = np.sin(np.pi * (y + 1) / M)**2
@@ -111,6 +115,20 @@ class MaximumLikelihood:
         # Store MLE and the MLE mapped to an estimation
         self._mle = a_opt
         self._mapped_mle = val_opt
+
+        if debug:
+            print("M =", M)
+            print("y =", y)
+            print("bubbles =", bubbles)
+            import matplotlib.pyplot as plt
+            t = np.linspace(0, 1, num=200)
+            plt.plot(t, [self.loglik_wrapper(v) for v in t])
+            for v in bubbles:
+                plt.axvline(x=v, color="r", linestyle=":")
+            plt.plot(a_opt, loglik_opt, "g*")
+            plt.plot(self._qae, self.loglik_wrapper(self._qae), "ko")
+            plt.axvline(x=0.2, color="k", linestyle="--")
+            plt.show()
 
         return val_opt
 
