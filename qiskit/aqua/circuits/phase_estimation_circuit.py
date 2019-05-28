@@ -186,6 +186,14 @@ class PhaseEstimationCircuit:
                 for i in range(self._num_ancillae):
                     self._unitary_circuit_factory.build_controlled_power(qc, q, a[i], 2 ** i, aux)
 
+<<<<<<< HEAD
+=======
+            if measure_u and measure_u_before_iqft:
+                c_objective = ClassicalRegister(1, name='cobj')
+                qc.add_register(c_objective)
+                qc.measure(q[-1], c_objective)
+
+>>>>>>> 42919238... measure objective qubit
             # inverse qft on ancillae
             self._iqft.construct_circuit(mode='circuit', qubits=a, circuit=qc, do_swaps=False)
 
@@ -195,6 +203,14 @@ class PhaseEstimationCircuit:
                 # qc.barrier(a)
                 qc.measure(a, c_ancilla)
 
+<<<<<<< HEAD
+=======
+            if measure_u and not measure_u_before_iqft:
+                c_objective = ClassicalRegister(1, name='cobj')
+                qc.add_register(c_objective)
+                qc.measure(q[-1], c_objective)
+
+>>>>>>> 42919238... measure objective qubit
             self._circuit = qc
 
         return self._circuit
