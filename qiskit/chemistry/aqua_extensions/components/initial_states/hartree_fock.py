@@ -140,8 +140,8 @@ class HartreeFock(InitialState):
             for i in range(binary_superset_size):
                 beta = np.kron(basis, beta)
                 beta[0, :] = 1
-
-            beta = beta[:self._num_orbitals, :self._num_orbitals]
+            start_idx = beta.shape[0] - self._num_orbitals
+            beta = beta[start_idx:, start_idx:]
             new_bitstr = beta.dot(bitstr.astype(int)) % 2
             bitstr = new_bitstr.astype(np.bool)
 

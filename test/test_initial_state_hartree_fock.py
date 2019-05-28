@@ -15,8 +15,12 @@
 import unittest
 
 import numpy as np
+from parameterized import parameterized
 
 from test.common import QiskitChemistryTestCase
+from qiskit.chemistry import QiskitChemistryError
+from qiskit.chemistry.drivers import PySCFDriver, UnitsType
+from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
 from qiskit.chemistry.aqua_extensions.components.initial_states import HartreeFock
 
 
@@ -57,6 +61,40 @@ class TestInitialStateHartreeFock(QiskitChemistryTestCase):
         self.assertEqual(cct.qasm(), 'OPENQASM 2.0;\ninclude "qelib1.inc";\nqreg q[6];\n'
                                      'u3(3.14159265358979,0.0,3.14159265358979) q[0];\n'
                                      'u3(3.14159265358979,0.0,3.14159265358979) q[1];\n')
+
+    def test_qubits_10_bk_lih_bitstr(self):
+        self.hf = HartreeFock(10, 10, [1, 1], 'bravyi_kitaev', False)
+        bitstr = self.hf.bitstr
+        np.testing.assert_array_equal(bitstr, [False, False, False, False, True, False, True, False, True, True])
+
+    @parameterized.expand([
+        [QubitMappingType.JORDAN_WIGNER],
+        [QubitMappingType.PARITY],
+        [QubitMappingType.BRAVYI_KITAEV]
+    ])
+    def test_hf_value(self, mapping):
+        try:
+            driver = PySCFDriver(atom='Li .0 .0 .0; H .0 .0 1.6',
+                                 unit=UnitsType.ANGSTROM,
+                                 charge=0,
+                                 spin=0,
+                                 basis='sto3g')
+        except QiskitChemistryError:
+            self.skipTest('PYSCF driver does not appear to be installed')
+        qmolecule = driver.run()
+        core = Hamiltonian(transformation=TransformationType.FULL,
+                           qubit_mapping=mapping,
+                           two_qubit_reduction=False,
+                           freeze_core=False,
+                           orbital_reduction=[])
+
+        qubit_op, _ = core.run(qmolecule)
+
+        hf = HartreeFock(qubit_op.num_qubits, core.molecule_info['num_orbitals'], core.molecule_info['num_particles'], mapping.value, False)
+        qc = hf.construct_circuit('vector')
+        hf_energy = qubit_op.eval('matrix', qc, None)[0].real + core._nuclear_repulsion_energy
+
+        self.assertAlmostEqual(qmolecule.hf_energy, hf_energy, places=8)
 
 
 if __name__ == '__main__':
