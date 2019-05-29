@@ -24,6 +24,7 @@ class TestDriverPSI4(QiskitChemistryTestCase, TestDriver):
     """PSI4 Driver tests."""
 
     def setUp(self):
+        super().setUp()
         try:
             driver = PSI4Driver([
                 'molecule h2 {',

@@ -23,6 +23,7 @@ class TestDriverPySCF(QiskitChemistryTestCase, TestDriver):
     """PYSCF Driver tests."""
 
     def setUp(self):
+        super().setUp()
         try:
             driver = PySCFDriver(atom='H .0 .0 .0; H .0 .0 0.735',
                                  unit=UnitsType.ANGSTROM,
