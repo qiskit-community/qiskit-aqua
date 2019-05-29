@@ -16,16 +16,11 @@ The General Logical Expression-based Quantum Oracle.
 """
 
 import logging
-
-from pyeda.boolalg.expr import ast2expr, expr
-from pyeda.parsing.dimacs import parse_cnf
 from qiskit import QuantumCircuit, QuantumRegister
-
 from qiskit.aqua import AquaError
 from qiskit.aqua.circuits import CNF, DNF
 from .oracle import Oracle
 from ._pyeda_check import _check_pluggable_valid as check_pyeda_valid
-
 logger = logging.getLogger(__name__)
 
 
@@ -93,6 +88,8 @@ class LogicalExpressionOracle(Oracle):
         self._mct_mode = mct_mode
         self._optimization = optimization
 
+        from pyeda.boolalg.expr import ast2expr, expr
+        from pyeda.parsing.dimacs import parse_cnf
         if expression is None:
             raw_expr = expr(None)
         else:

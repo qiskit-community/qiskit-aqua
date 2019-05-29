@@ -18,13 +18,10 @@ The Truth Table-based Quantum Oracle.
 import logging
 import operator
 import math
-from functools import reduce
-
 import numpy as np
+from functools import reduce
 from dlx import DLX
-from pyeda.inter import exprvars, And, Xor
 from qiskit import QuantumRegister, QuantumCircuit
-
 from qiskit.aqua import AquaError
 from qiskit.aqua.circuits import ESOP
 from qiskit.aqua.components.oracles import Oracle
@@ -247,6 +244,7 @@ class TruthTableOracle(Oracle):
         check_pyeda_valid(TruthTableOracle.CONFIGURATION['name'])
 
     def _get_esop_ast(self, bitmap):
+        from pyeda.inter import exprvars, And, Xor
         v = exprvars('v', self._nbits)
 
         def binstr_to_vars(binstr):
