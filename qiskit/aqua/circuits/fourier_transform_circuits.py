@@ -17,10 +17,9 @@ Quantum Fourier Transform Circuit.
 
 import numpy as np
 
-from qiskit import QuantumRegister, QuantumCircuit
+from qiskit.circuit import QuantumRegister, QuantumCircuit, Qubit
 
 from qiskit.aqua import AquaError
-from qiskit.aqua.utils.circuit_utils import is_qubit_list
 
 
 class FourierTransformCircuits:
@@ -46,7 +45,7 @@ class FourierTransformCircuits:
 
         Args:
             circuit (QuantumCircuit): The optional circuit to extend from.
-            qubits (QuantumRegister | list of qubits): The optional qubits to construct the circuit with.
+            qubits (QuantumRegister | list of Qubit): The optional qubits to construct the circuit with.
             approximation_degree (int): degree of approximation for the desired circuit
             inverse (bool): Boolean flag to indicate Inverse Quantum Fourier Transform
             do_swaps (bool): Boolean flag to specify if swaps should be included to align the qubit order of
@@ -65,10 +64,13 @@ class FourierTransformCircuits:
             if isinstance(qubits, QuantumRegister):
                 if not circuit.has_register(qubits):
                     circuit.add_register(qubits)
-            elif is_qubit_list(qubits):
+            elif isinstance(qubits, list):
                 for qubit in qubits:
-                    if not circuit.has_register(qubit[0]):
-                        circuit.add_register(qubit[0])
+                    if isinstance(qubit, Qubit):
+                        if not circuit.has_register(qubit.register):
+                            circuit.add_register(qubit.register)
+                    else:
+                        raise AquaError('A QuantumRegister or a list of qubits is expected for the input qubits.')
             else:
                 raise AquaError('A QuantumRegister or a list of qubits is expected for the input qubits.')
 
