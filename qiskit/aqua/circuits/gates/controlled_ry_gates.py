@@ -18,10 +18,9 @@ Controlled-RY (cry) and Multiple-Control RY (mcry) Gates
 
 import logging
 
-from qiskit.circuit import QuantumCircuit, QuantumRegister
+from qiskit.circuit import QuantumCircuit, QuantumRegister, Qubit
 
 from qiskit.aqua import AquaError
-from qiskit.aqua.utils.circuit_utils import is_qubit
 
 logger = logging.getLogger(__name__)
 
@@ -33,16 +32,16 @@ def cry(self, theta, q_control, q_target):
     Args:
         self (QuantumCircuit): The circuit to apply the cry gate on.
         theta (float): The rotation angle.
-        q_control ((QuantumRegister, int)): The control qubit.
-        q_target ((QuantumRegister, int)): The target qubit.
+        q_control (Qubit): The control qubit.
+        q_target (Qubit): The target qubit.
     """
 
-    if not is_qubit(q_control):
+    if not isinstance(q_control, Qubit):
         raise AquaError('A qubit is expected for the control.')
     if not self.has_register(q_control[0]):
         raise AquaError('The control qubit is expected to be part of the circuit.')
 
-    if not is_qubit(q_target):
+    if not isinstance(q_target, Qubit):
         raise AquaError('A qubit is expected for the target.')
     if not self.has_register(q_target[0]):
         raise AquaError('The target qubit is expected to be part of the circuit.')
@@ -64,9 +63,9 @@ def mcry(self, theta, q_controls, q_target, q_ancillae):
     Args:
         self (QuantumCircuit): The circuit to apply the mcry gate on.
         theta (float): The rotation angle.
-        q_controls (QuantumRegister | (QuantumRegister, int)): The control qubits.
-        q_target ((QuantumRegister, int)): The target qubit.
-        q_ancillae (QuantumRegister | (QuantumRegister, int)): The ancillary qubits.
+        q_controls (QuantumRegister | list of Qubit): The control qubits.
+        q_target (Qubit): The target qubit.
+        q_ancillae (QuantumRegister | list of Qubit): The ancillary qubits.
     """
 
     # check controls
@@ -78,7 +77,7 @@ def mcry(self, theta, q_controls, q_target, q_ancillae):
         raise AquaError('The mcry gate needs a list of qubits or a quantum register for controls.')
 
     # check target
-    if is_qubit(q_target):
+    if isinstance(q_target, Qubit):
         target_qubit = q_target
     else:
         raise AquaError('The mcry gate needs a single qubit as target.')

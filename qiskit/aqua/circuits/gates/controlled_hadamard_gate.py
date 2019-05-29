@@ -19,10 +19,9 @@ Controlled-Hadamard (ch) Gate.
 import logging
 from math import pi
 
-from qiskit.circuit import QuantumCircuit, QuantumRegister
+from qiskit.circuit import QuantumCircuit, Qubit
 
 from qiskit.aqua import AquaError
-from qiskit.aqua.utils.circuit_utils import is_qubit
 
 logger = logging.getLogger(__name__)
 
@@ -36,17 +35,17 @@ def ch(self, q_control, q_target):
 
     Args:
         self (QuantumCircuit): The circuit to apply the ch gate on.
-        q_control ((QuantumRegister, int)): The control qubit.
-        q_target ((QuantumRegister, int)): The target qubit.
+        q_control (Qubit): The control qubit.
+        q_target (Qubit): The target qubit.
     """
-    if not is_qubit(q_control):
+    if not isinstance(q_control, Qubit):
         raise AquaError('A qubit is expected for the control.')
-    if not self.has_register(q_control[0]):
+    if not self.has_register(q_control.register):
         raise AquaError('The control qubit is expected to be part of the circuit.')
 
-    if not is_qubit(q_target):
+    if not isinstance(q_target, Qubit):
         raise AquaError('A qubit is expected for the target.')
-    if not self.has_register(q_target[0]):
+    if not self.has_register(q_target.register):
         raise AquaError('The target qubit is expected to be part of the circuit.')
 
     if q_control == q_target:
