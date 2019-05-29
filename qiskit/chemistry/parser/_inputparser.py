@@ -261,7 +261,18 @@ class InputParser(BaseParser):
         Args:
             section_name (str): the name of the section, case insensitive
         """
+        section_name = JSONSchema.format_section_name(section_name).lower()
+        driver_name = None
+        if section_name == InputParser.DRIVER:
+            driver_name = self.get_section_property(section_name, JSONSchema.NAME)
+            if driver_name is not None:
+                driver_name = driver_name.strip().lower()
+
         super().delete_section(section_name)
+        if driver_name is not None:
+            # delete correspondent driver name section
+            super().delete_section(driver_name)
+
         self._update_driver_input_schemas()
         self._update_operator_input_schema()
 

@@ -24,6 +24,7 @@ class TestDriverGaussian(QiskitChemistryTestCase, TestDriver):
     """Gaussian Driver tests."""
 
     def setUp(self):
+        super().setUp()
         try:
             driver = GaussianDriver([
                     '# rhf/sto-3g scf(conventional) geom=nocrowd',

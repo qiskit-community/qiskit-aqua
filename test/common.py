@@ -19,13 +19,9 @@ import inspect
 import logging
 import os
 import unittest
+import time
 
 from qiskit.chemistry import __path__ as qiskit_chemistry_path
-
-TRAVIS_FORK_PULL_REQUEST = False
-if os.getenv('TRAVIS_PULL_REQUEST_SLUG'):
-    if os.getenv('TRAVIS_REPO_SLUG') != os.getenv('TRAVIS_PULL_REQUEST_SLUG'):
-        TRAVIS_FORK_PULL_REQUEST = True
 
 
 class Path(Enum):
@@ -39,7 +35,13 @@ class Path(Enum):
 class QiskitChemistryTestCase(unittest.TestCase):
     """Helper class that contains common functionality."""
 
-    SLOW_TEST = int(os.getenv('SLOW_TEST', '0'))
+    def setUp(self):
+        self._started_at = time.time()
+
+    def tearDown(self):
+        elapsed = time.time() - self._started_at
+        if elapsed > 5.0:
+            print('({:.2f}s)'.format(round(elapsed, 2)), flush=True)
 
     @classmethod
     def setUpClass(cls):

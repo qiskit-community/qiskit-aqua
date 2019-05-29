@@ -25,6 +25,7 @@ class TestMP2Info(QiskitChemistryTestCase):
     """Test Mp2 Info class - uses PYSCF drive to get molecule."""
 
     def setUp(self):
+        super().setUp()
         try:
             driver = PySCFDriver(atom='Li .0 .0 .0; H .0 .0 1.6',
                                  unit=UnitsType.ANGSTROM,

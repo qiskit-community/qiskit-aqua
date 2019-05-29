@@ -26,6 +26,7 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
     """Test for these aqua extensions."""
 
     def setUp(self):
+        super().setUp()
         self.config = {'driver': {'name': 'HDF5'},
                        'hdf5': {'hdf5_input': self._get_resource_path('test_driver_hdf5.hdf5')},
                        'operator': {'name': 'hamiltonian', 'qubit_mapping': 'parity', 'two_qubit_reduction': True},

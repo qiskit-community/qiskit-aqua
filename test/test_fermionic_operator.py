@@ -55,6 +55,7 @@ class TestFermionicOperator(QiskitChemistryTestCase):
     """Fermionic Operator tests."""
 
     def setUp(self):
+        super().setUp()
         try:
             driver = PySCFDriver(atom='Li .0 .0 .0; H .0 .0 1.595',
                                  unit=UnitsType.ANGSTROM,

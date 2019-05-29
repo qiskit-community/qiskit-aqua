@@ -22,6 +22,7 @@ class TestDriverHDF5(QiskitChemistryTestCase, TestDriver):
     """HDF5 Driver tests."""
 
     def setUp(self):
+        super().setUp()
         driver = HDF5Driver(hdf5_input=self._get_resource_path('test_driver_hdf5.hdf5'))
         self.qmolecule = driver.run()
 
