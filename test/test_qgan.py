@@ -85,9 +85,9 @@ class TestQGAN(QiskitAquaTestCase):
         self.qgan.seed = 7
         # Set quantum instance to run the quantum generator
         self.quantum_instance_statevector = QuantumInstance(backend=BasicAer.get_backend('statevector_simulator'),
-                                                            circuit_caching=False)
-        self.quantum_instance_qasm = QuantumInstance(backend=BasicAer.get_backend('qasm_simulator'),
-                                                     shots=1000, circuit_caching=False)
+                                                            circuit_caching=False, seed_simulator=2, seed_transpiler=2)
+        self.quantum_instance_qasm = QuantumInstance(backend=BasicAer.get_backend('qasm_simulator'), shots=1000,
+                                                     circuit_caching=False, seed_simulator=2, seed_transpiler=2)
         # Set entangler map
         entangler_map = [[0, 1]]
 
