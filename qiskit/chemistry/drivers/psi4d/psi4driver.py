@@ -135,6 +135,8 @@ class PSI4Driver(BaseDriver):
         _q_molecule.load()
         # remove internal file
         _q_molecule.remove_file()
+        _q_molecule.origin_driver_name = self.configuration['name']
+        _q_molecule.origin_driver_config = self._config
         return _q_molecule
 
     @staticmethod

@@ -82,6 +82,7 @@ class PyQuanteDriver(BaseDriver):
                         {"enum": [
                             HFMethodType.RHF.value,
                             HFMethodType.ROHF.value,
+                            HFMethodType.UHF.value
                         ]}
                     ]
                 }
@@ -170,9 +171,21 @@ class PyQuanteDriver(BaseDriver):
         return cls(**kwargs)
 
     def run(self):
-        return compute_integrals(atoms=self._atoms,
-                                 units=self._units,
-                                 charge=self._charge,
-                                 multiplicity=self._multiplicity,
-                                 basis=self._basis,
-                                 hf_method=self._hf_method)
+        q_mol = compute_integrals(atoms=self._atoms,
+                                  units=self._units,
+                                  charge=self._charge,
+                                  multiplicity=self._multiplicity,
+                                  basis=self._basis,
+                                  hf_method=self._hf_method)
+
+        q_mol.origin_driver_name = self.configuration['name']
+        cfg = ['atoms={}'.format(self._atoms),
+               'units={}'.format(self._units),
+               'charge={}'.format(self._charge),
+               'multiplicity={}'.format(self._multiplicity),
+               'basis={}'.format(self._basis),
+               'hf_method={}'.format(self._hf_method),
+               '']
+        q_mol.origin_driver_config = '\n'.join(cfg)
+
+        return q_mol

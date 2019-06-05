@@ -12,10 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from .transform import transformintegrals, ijkl2intindex
 from .pyquantedriver import PyQuanteDriver, BasisType
 
-__all__ = ['transformintegrals',
-           'ijkl2intindex',
-           'PyQuanteDriver',
+__all__ = ['PyQuanteDriver',
            'BasisType']

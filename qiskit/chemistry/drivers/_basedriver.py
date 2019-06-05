@@ -36,6 +36,7 @@ class UnitsType(Enum):
 class HFMethodType(Enum):
     RHF = 'rhf'
     ROHF = 'rohf'
+    UHF = 'uhf'
 
 
 class BaseDriver(ABC):

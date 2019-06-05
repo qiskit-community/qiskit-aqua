@@ -219,8 +219,6 @@ class QiskitChemistry(object):
         molecule.log()
 
         if self._hdf5_file is not None:
-            molecule._origin_driver_name = driver_name
-            molecule._origin_driver_config = section if isinstance(section, str) else json.dumps(section, sort_keys=True, indent=4)
             molecule.save(self._hdf5_file)
             logger.info("HDF5 file saved '{}'".format(self._hdf5_file))
 

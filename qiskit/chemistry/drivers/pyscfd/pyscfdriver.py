@@ -65,6 +65,7 @@ class PySCFDriver(BaseDriver):
                         {"enum": [
                             HFMethodType.RHF.value,
                             HFMethodType.ROHF.value,
+                            HFMethodType.UHF.value
                         ]}
                     ]
                 },
@@ -157,10 +158,23 @@ class PySCFDriver(BaseDriver):
         return cls(**kwargs)
 
     def run(self):
-        return compute_integrals(atom=self._atom,
-                                 unit=self._unit,
-                                 charge=self._charge,
-                                 spin=self._spin,
-                                 basis=self._basis,
-                                 hf_method=self._hf_method,
-                                 max_memory=self._max_memory)
+        q_mol = compute_integrals(atom=self._atom,
+                                  unit=self._unit,
+                                  charge=self._charge,
+                                  spin=self._spin,
+                                  basis=self._basis,
+                                  hf_method=self._hf_method,
+                                  max_memory=self._max_memory)
+
+        q_mol.origin_driver_name = self.configuration['name']
+        cfg = ['atom={}'.format(self._atom),
+               'unit={}'.format(self._unit),
+               'charge={}'.format(self._charge),
+               'spin={}'.format(self._spin),
+               'basis={}'.format(self._basis),
+               'hf_method={}'.format(self._hf_method),
+               'max_memory={}'.format(self._max_memory),
+               '']
+        q_mol.origin_driver_config = '\n'.join(cfg)
+
+        return q_mol
