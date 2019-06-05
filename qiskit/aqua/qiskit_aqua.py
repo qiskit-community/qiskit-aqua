@@ -271,6 +271,8 @@ class QiskitAqua(object):
                 backend_cfg['pass_manager'] = pass_manager
 
             optimization_level = self._parser.get_section_property(JSONSchema.PROBLEM, 'circuit_optimization_level')
+            if optimization_level == "default":
+                optimization_level = None
             backend_cfg['optimization_level'] = optimization_level
 
             backend_cfg['backend'] = backend
