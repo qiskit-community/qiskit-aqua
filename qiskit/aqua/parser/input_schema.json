@@ -25,7 +25,7 @@
                 },
                 "circuit_optimization_level": {
                     "type": ["integer", "null"],
-                    "enum": [0, 1, 2, null],
+                    "enum": [0, 1, 2, 3, null],
                     "default": null
                 },
                 "skip_qobj_deepcopy": {
