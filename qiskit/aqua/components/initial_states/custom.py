@@ -42,9 +42,7 @@ class Custom(InitialState):
                 'state': {
                     'type': 'string',
                     'default': 'zero',
-                    'oneOf': [
-                        {'enum': ['zero', 'uniform', 'random']}
-                    ]
+                    'enum': ['zero', 'uniform', 'random']
                 },
                 'state_vector': {
                     'type': ['array', 'null'],

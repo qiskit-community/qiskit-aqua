@@ -167,27 +167,19 @@ class TruthTableOracle(Oracle):
                 "optimization": {
                     "type": "string",
                     "default": "off",
-                    'oneOf': [
-                        {
-                            'enum': [
-                                'off',
-                                'qm-dlx'
-                            ]
-                        }
+                    'enum': [
+                        'off',
+                        'qm-dlx'
                     ]
                 },
                 'mct_mode': {
                     'type': 'string',
                     'default': 'basic',
-                    'oneOf': [
-                        {
-                            'enum': [
-                                'basic',
-                                'basic-dirty-ancilla',
-                                'advanced',
-                                'noancilla',
-                            ]
-                        }
+                    'enum': [
+                        'basic',
+                        'basic-dirty-ancilla',
+                        'advanced',
+                        'noancilla',
                     ]
                 },
             },

@@ -48,9 +48,7 @@ class VQE(VQAlgorithm):
                 'operator_mode': {
                     'type': 'string',
                     'default': 'matrix',
-                    'oneOf': [
-                        {'enum': ['matrix', 'paulis', 'grouped_paulis']}
-                    ]
+                    'enum': ['matrix', 'paulis', 'grouped_paulis']
                 },
                 'initial_point': {
                     'type': ['array', 'null'],

@@ -46,12 +46,10 @@ class EOH(QuantumAlgorithm):
                 PROP_OPERATOR_MODE: {
                     'type': 'string',
                     'default': 'paulis',
-                    'oneOf': [
-                        {'enum': [
-                            'paulis',
-                            'grouped_paulis',
-                            'matrix'
-                        ]}
+                    'enum': [
+                        'paulis',
+                        'grouped_paulis',
+                        'matrix'
                     ]
                 },
                 PROP_EVO_TIME: {
@@ -67,11 +65,9 @@ class EOH(QuantumAlgorithm):
                 PROP_EXPANSION_MODE: {
                     'type': 'string',
                     'default': 'trotter',
-                    'oneOf': [
-                        {'enum': [
-                            'trotter',
-                            'suzuki'
-                        ]}
+                    'enum': [
+                        'trotter',
+                        'suzuki'
                     ]
                 },
                 PROP_EXPANSION_ORDER: {
