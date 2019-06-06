@@ -34,7 +34,9 @@ def compute_integrals(atoms,
                       charge,
                       multiplicity,
                       basis,
-                      hf_method='rhf'):
+                      hf_method='rhf',
+                      tol=1e-8,
+                      maxiters=100):
     # Get config from input parameters
     # Molecule is in this format xyz as below or in Z-matrix e.g "H; O 1 1.08; H 2 1.08 1 107.5":
     # atoms=H .0 .0 .0; H .0 .0 0.2
@@ -48,14 +50,14 @@ def compute_integrals(atoms,
     hf_method = hf_method.lower()
 
     try:
-        q_mol = _calculate_integrals(mol, basis, hf_method)
+        q_mol = _calculate_integrals(mol, basis, hf_method, tol, maxiters)
     except Exception as exc:
         raise QiskitChemistryError('Failed electronic structure computation') from exc
 
     return q_mol
 
 
-def _calculate_integrals(molecule, basis='sto3g', hf_method='rhf'):
+def _calculate_integrals(molecule, basis='sto3g', hf_method='rhf', tol=1e-8, maxiters=100):
     """Function to calculate the one and two electron terms. Perform a Hartree-Fock calculation in
         the given basis.
     Args:
@@ -82,7 +84,7 @@ def _calculate_integrals(molecule, basis='sto3g', hf_method='rhf'):
     else:
         raise QiskitChemistryError('Invalid hf_method type: {}'.format(hf_method))
     logger.debug('Solver name {}'.format(solver.name))
-    ehf = solver.converge()
+    ehf = solver.converge(tol=tol, maxiters=maxiters)
     if hasattr(solver, 'orbs'):
         orbs = solver.orbs
         orbs_B = None
@@ -109,7 +111,7 @@ def _calculate_integrals(molecule, basis='sto3g', hf_method='rhf'):
     mohijkl_BA = None
     if orbs_B is not None:
         mohijkl_BB = hijkl.transform(orbs_B)
-        mohijkl_BA = np.einsum('aI,bJ,cK,dL,abcd->IJKL', orbs, orbs, orbs_B, orbs_B, hijkl[...])
+        mohijkl_BA = np.einsum('aI,bJ,cK,dL,abcd->IJKL', orbs_B, orbs_B, orbs, orbs, hijkl[...])
 
     # Create driver level molecule object and populate
     _q_ = QMolecule()
