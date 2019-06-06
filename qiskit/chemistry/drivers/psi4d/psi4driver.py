@@ -38,7 +38,8 @@ class PSI4Driver(BaseDriver):
             "$schema": "http://json-schema.org/schema#",
             "id": "psi4_schema",
             "type": "string",
-            "default": "molecule h2 {\n  0 1\n  H  0.0 0.0 0.0\n  H  0.0 0.0 0.735\n}\n\nset {\n  basis sto-3g\n  scf_type pk\n}"
+            "default": "molecule h2 {\n  0 1\n  H  0.0 0.0 0.0\n  H  0.0 0.0 0.735\n}\n\n"
+                       "set {\n  basis sto-3g\n  scf_type pk\n  reference rhf\n}"
         }
     }
 

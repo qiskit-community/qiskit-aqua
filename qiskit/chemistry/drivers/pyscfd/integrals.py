@@ -25,7 +25,7 @@ try:
     from pyscf.lib import param
     from pyscf.lib import logger as pylogger
 except ImportError:
-    logger.info("PySCF is not installed. Use 'pip install pyscf'")
+    logger.info("PySCF is not installed. See https://sunqm.github.io/pyscf/install.html")
 
 
 def compute_integrals(atom,
@@ -34,6 +34,8 @@ def compute_integrals(atom,
                       spin,
                       basis,
                       hf_method='rhf',
+                      conv_tol=1e-9,
+                      max_cycle=50,
                       max_memory=None):
     # Get config from input parameters
     # molecule is in PySCF atom string format e.g. "H .0 .0 .0; H .0 .0 0.2"
@@ -46,12 +48,13 @@ def compute_integrals(atom,
         max_memory = param.MAX_MEMORY
 
     try:
-        mol = gto.Mole(atom=atom, unit=unit, basis=basis, max_memory=max_memory, verbose=pylogger.QUIET)
+        pyscf_log_level = pylogger.INFO if logger.isEnabledFor(logging.DEBUG) else pylogger.QUIET
+        mol = gto.Mole(atom=atom, unit=unit, basis=basis, max_memory=max_memory, verbose=pyscf_log_level)
         mol.symmetry = False
         mol.charge = charge
         mol.spin = spin
         mol.build(parse_arg=False)
-        q_mol = _calculate_integrals(mol, hf_method)
+        q_mol = _calculate_integrals(mol, hf_method, conv_tol, max_cycle)
     except Exception as exc:
         raise QiskitChemistryError('Failed electronic structure computation') from exc
 
@@ -80,7 +83,7 @@ def _check_molecule_format(val):
     return val
 
 
-def _calculate_integrals(mol, hf_method='rhf'):
+def _calculate_integrals(mol, hf_method='rhf', conv_tol=1e-9, max_cycle=50):
     """Function to calculate the one and two electron terms. Perform a Hartree-Fock calculation in
         the given basis.
     Args:
@@ -100,7 +103,10 @@ def _calculate_integrals(mol, hf_method='rhf'):
     else:
         raise QiskitChemistryError('Invalid hf_method type: {}'.format(hf_method))
 
+    mf.conv_tol = conv_tol
+    mf.max_cycle = max_cycle
     ehf = mf.kernel()
+    logger.info('PySCF kernel() converged: {}, e(hf): {}'.format(mf.converged, mf.e_tot))
     if type(mf.mo_coeff) is tuple:
         mo_coeff = mf.mo_coeff[0]
         mo_coeff_B = mf.mo_coeff[1]

@@ -65,6 +65,15 @@ class PySCFDriver(BaseDriver):
                         HFMethodType.UHF.value
                     ]
                 },
+                "conv_tol": {
+                    "type": "number",
+                    "default": 1e-09
+                },
+                "max_cycle": {
+                    "type": "integer",
+                    "default": 50,
+                    "minimum": 1
+                },
                 "max_memory": {
                     "type": ["integer", "null"],
                     "default": None
@@ -81,6 +90,8 @@ class PySCFDriver(BaseDriver):
                  spin=0,
                  basis='sto3g',
                  hf_method=HFMethodType.RHF,
+                 conv_tol=1e-9,
+                 max_cycle=50,
                  max_memory=None):
         """
         Initializer
@@ -91,6 +102,8 @@ class PySCFDriver(BaseDriver):
             spin (int): spin
             basis (str): basis set
             hf_method (HFMethodType): Hartree-Fock Method type
+            conv_tol (float): Convergence tolerance see PySCF docs and pyscf/scf/hf.py
+            max_cycle (int): Max convergence cycles see PySCF docs and pyscf/scf/hf.py
             max_memory (int): maximum memory
         """
         if not isinstance(atom, list) and not isinstance(atom, str):
@@ -111,6 +124,8 @@ class PySCFDriver(BaseDriver):
         self._spin = spin
         self._basis = basis
         self._hf_method = hf_method
+        self._conv_tol = conv_tol
+        self._max_cycle = max_cycle
         self._max_memory = max_memory
 
     @staticmethod
@@ -160,6 +175,8 @@ class PySCFDriver(BaseDriver):
                                   spin=self._spin,
                                   basis=self._basis,
                                   hf_method=self._hf_method,
+                                  conv_tol=self._conv_tol,
+                                  max_cycle=self._max_cycle,
                                   max_memory=self._max_memory)
 
         q_mol.origin_driver_name = self.configuration['name']
@@ -169,6 +186,8 @@ class PySCFDriver(BaseDriver):
                'spin={}'.format(self._spin),
                'basis={}'.format(self._basis),
                'hf_method={}'.format(self._hf_method),
+               'conv_tol={}'.format(self._conv_tol),
+               'max_cycle={}'.format(self._max_cycle),
                'max_memory={}'.format(self._max_memory),
                '']
         q_mol.origin_driver_config = '\n'.join(cfg)
