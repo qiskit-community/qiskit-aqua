@@ -39,11 +39,9 @@ class PySCFDriver(BaseDriver):
                 "unit": {
                     "type": "string",
                     "default": UnitsType.ANGSTROM.value,
-                    "oneOf": [
-                        {"enum": [
-                            UnitsType.ANGSTROM.value,
-                            UnitsType.BOHR.value,
-                        ]}
+                    "enum": [
+                        UnitsType.ANGSTROM.value,
+                        UnitsType.BOHR.value,
                     ]
                 },
                 "charge": {
@@ -61,12 +59,10 @@ class PySCFDriver(BaseDriver):
                 "hf_method": {
                     "type": "string",
                     "default": HFMethodType.RHF.value,
-                    "oneOf": [
-                        {"enum": [
-                            HFMethodType.RHF.value,
-                            HFMethodType.ROHF.value,
-                            HFMethodType.UHF.value
-                        ]}
+                    "enum": [
+                        HFMethodType.RHF.value,
+                        HFMethodType.ROHF.value,
+                        HFMethodType.UHF.value
                     ]
                 },
                 "max_memory": {

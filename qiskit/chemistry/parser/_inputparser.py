@@ -62,12 +62,11 @@ class InputParser(BaseParser):
         }
         super().__init__(json_schema)
 
-        # limit Chemistry problems to energy and excited_states
+        # limit Chemistry problems to only valid for chemistry
         chemistry_problems = [problem for problem in
                               self.json_schema.get_property_default_values(JSONSchema.PROBLEM, JSONSchema.NAME)
                               if any(problem == item.value for item in ChemistryProblem)]
-        self.json_schema.schema['properties'][JSONSchema.PROBLEM]['properties'][JSONSchema.NAME]['oneOf'] = \
-            [{'enum': chemistry_problems}]
+        self.json_schema.schema['properties'][JSONSchema.PROBLEM]['properties'][JSONSchema.NAME]['enum'] = chemistry_problems
         self._json_schema.commit_changes()
         # ---
 

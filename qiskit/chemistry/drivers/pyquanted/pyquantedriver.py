@@ -49,12 +49,10 @@ class PyQuanteDriver(BaseDriver):
                 KEY_UNITS: {
                     "type": "string",
                     "default": UnitsType.ANGSTROM.value,
-                    "oneOf": [
-                         {"enum": [
-                            UnitsType.ANGSTROM.value,
-                            UnitsType.BOHR.value,
-                         ]}
-                    ]
+                    "enum": [
+                        UnitsType.ANGSTROM.value,
+                        UnitsType.BOHR.value,
+                     ]
                 },
                 "charge": {
                     "type": "integer",
@@ -67,23 +65,19 @@ class PyQuanteDriver(BaseDriver):
                 KEY_BASIS: {
                     "type": "string",
                     "default": BasisType.BSTO3G.value,
-                    "oneOf": [
-                         {"enum": [
-                             BasisType.BSTO3G.value,
-                             BasisType.B631G.value,
-                             BasisType.B631GSS.value,
-                         ]}
+                    "enum": [
+                         BasisType.BSTO3G.value,
+                         BasisType.B631G.value,
+                         BasisType.B631GSS.value,
                     ]
                 },
                 "hf_method": {
                     "type": "string",
                     "default": HFMethodType.RHF.value,
-                    "oneOf": [
-                        {"enum": [
-                            HFMethodType.RHF.value,
-                            HFMethodType.ROHF.value,
-                            HFMethodType.UHF.value
-                        ]}
+                    "enum": [
+                        HFMethodType.RHF.value,
+                        HFMethodType.ROHF.value,
+                        HFMethodType.UHF.value
                     ]
                 },
                 "tol": {

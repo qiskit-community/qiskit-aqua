@@ -60,23 +60,19 @@ class Hamiltonian(ChemistryOperator):
             'properties': {
                 KEY_TRANSFORMATION: {
                     'type': 'string',
-                    'default': 'full',
-                    'oneOf': [
-                        {'enum': [
-                                TransformationType.FULL.value,
-                                TransformationType.PH.value,
-                                ]}
+                    'default': TransformationType.FULL.value,
+                    'enum': [
+                        TransformationType.FULL.value,
+                        TransformationType.PH.value,
                     ]
                 },
                 KEY_QUBIT_MAPPING: {
                     'type': 'string',
-                    'default': 'parity',
-                    'oneOf': [
-                        {'enum': [
-                                QubitMappingType.JORDAN_WIGNER.value,
-                                QubitMappingType.PARITY.value,
-                                QubitMappingType.BRAVYI_KITAEV.value,
-                                ]}
+                    'default': QubitMappingType.PARITY.value,
+                    'enum': [
+                        QubitMappingType.JORDAN_WIGNER.value,
+                        QubitMappingType.PARITY.value,
+                        QubitMappingType.BRAVYI_KITAEV.value,
                     ]
                 },
                 KEY_TWO_QUBIT_REDUCTION: {
