@@ -287,6 +287,9 @@ class JSONSchema(object):
             if 'boolean' in types:
                 return [True, False]
 
+        if 'enum' in prop:
+            return prop['enum']
+
         if 'oneOf' not in prop:
             return None
 
