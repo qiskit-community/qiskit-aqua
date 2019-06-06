@@ -41,27 +41,19 @@ class LogicalExpressionOracle(Oracle):
                 "optimization": {
                     "type": "string",
                     "default": "off",
-                    'oneOf': [
-                        {
-                            'enum': [
-                                'off',
-                                'espresso'
-                            ]
-                        }
+                    'enum': [
+                        'off',
+                        'espresso'
                     ]
                 },
                 'mct_mode': {
                     'type': 'string',
                     'default': 'basic',
-                    'oneOf': [
-                        {
-                            'enum': [
-                                'basic',
-                                'basic-dirty-ancilla',
-                                'advanced',
-                                'noancilla'
-                            ]
-                        }
+                    'enum': [
+                        'basic',
+                        'basic-dirty-ancilla',
+                        'advanced',
+                        'noancilla'
                     ]
                 },
             },

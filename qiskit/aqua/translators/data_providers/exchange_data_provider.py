@@ -39,27 +39,21 @@ class ExchangeDataProvider(BaseDataProvider):
                 "stockmarket": {
                     "type":
                     "string",
-                    "default":
-                    StockMarket.LONDON.value,
-                    "oneOf": [{
-                        "enum": [
-                            StockMarket.LONDON.value,
-                            StockMarket.EURONEXT.value,
-                            StockMarket.SINGAPORE.value,
-                        ]
-                    }]
+                    "default": StockMarket.LONDON.value,
+                    "enum": [
+                        StockMarket.LONDON.value,
+                        StockMarket.EURONEXT.value,
+                        StockMarket.SINGAPORE.value,
+                    ]
                 },
                 "datatype": {
                     "type":
                     "string",
-                    "default":
-                    DataType.DAILYADJUSTED.value,
-                    "oneOf": [{
-                        "enum": [
-                            DataType.DAILYADJUSTED.value,
-                            DataType.DAILY.value,
-                        ]
-                    }]
+                    "default": DataType.DAILYADJUSTED.value,
+                    "enum": [
+                        DataType.DAILYADJUSTED.value,
+                        DataType.DAILY.value,
+                    ]
                 },
             },
         }
