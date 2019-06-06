@@ -23,6 +23,7 @@ class TestCoreHamiltonianOrbReduce(QiskitChemistryTestCase):
     """core/hamiltonian Driver tests."""
 
     def setUp(self):
+        super().setUp()
         try:
             driver = PySCFDriver(atom='Li .0 .0 -0.8; H .0 .0 0.8',
                                  unit=UnitsType.ANGSTROM,

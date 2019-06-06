@@ -23,6 +23,7 @@ class TestDriverPyQuante(QiskitChemistryTestCase, TestDriver):
     """PYQUANTE Driver tests."""
 
     def setUp(self):
+        super().setUp()
         try:
             driver = PyQuanteDriver(atoms='H .0 .0 .0; H .0 .0 0.735',
                                     units=UnitsType.ANGSTROM,

@@ -28,6 +28,7 @@ class TestInputParser(QiskitChemistryTestCase):
     """InputParser tests."""
 
     def setUp(self):
+        super().setUp()
         filepath = self._get_resource_path('test_input_parser.txt')
         self.parser = InputParser(filepath)
         self.parser.parse()

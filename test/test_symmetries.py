@@ -36,6 +36,7 @@ class TestSymmetries(QiskitChemistryTestCase):
     """Test for symmetry processing."""
 
     def setUp(self):
+        super().setUp()
         try:
             driver = PySCFDriver(atom='Li .0 .0 .0; H .0 .0 1.6',
                                  unit=UnitsType.ANGSTROM,
