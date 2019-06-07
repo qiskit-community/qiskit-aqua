@@ -34,6 +34,16 @@ class QMolecule(object):
 
         # All the following fields are saved/loaded in the save/load methods.
         # If fields are added in a version they are noted by version comment
+        #
+        # Originally support was limited to closed shell, when open shell was
+        # added, and new integrals to allow different Beta orbitals needed,
+        # these have been added as new similarly named fields but with suffices
+        # such as _B, _BB and _BA. So mo_coeff (with no suffix) is the original
+        # and is for alpha molecular coefficients, the added one for beta is
+        # name mo_coeff_B, i.e. same name but with _B suffix. To keep backward
+        # compatibility the original fields were not renamed with an _A suffix
+        # but rather its implicit in the lack thereof given another field of
+        # the same name but with an explicit suffix.
 
         # Driver origin from which this QMolecule was created
         self.origin_driver_name = "?"
@@ -358,6 +368,10 @@ class QMolecule(object):
         return eri_mo
 
     @staticmethod
+    def twoeints2mo_general(ints, moc1, moc2, moc3, moc4):
+        return numpy.einsum('pqrs,pi,qj,rk,sl->ijkl', ints, moc1, moc2, moc3, moc4)
+
+    @staticmethod
     def onee_to_spin(mohij, mohij_B=None, threshold=1E-12):
         """Convert one-body MO integrals to spin orbital basis
 
@@ -463,30 +477,6 @@ class QMolecule(object):
 
         return moh2_qubit
 
-    @staticmethod
-    def mo_to_spin(mohij, mohijkl, threshold=1E-12):
-        """Convert one and two-body MO integrals to spin orbital basis
-
-        Takes one and two body integrals in molecular orbital basis and returns
-        integrals in spin orbitals
-
-        Args:
-            mohij: One body orbitals in molecular basis
-            mohijkl: Two body orbitals in molecular basis
-            threshold: Threshold value for assignments
-
-        Returns:
-             One and two body integrals in spin orbitals
-        """
-
-        # One electron terms
-        moh1_qubit = QMolecule.onee_to_spin(mohij, threshold)
-
-        # Two electron terms
-        moh2_qubit = QMolecule.twoe_to_spin(mohijkl, threshold)
-
-        return moh1_qubit, moh2_qubit
-
     symbols = [
         '_',
         'H',  'He',
@@ -553,14 +543,14 @@ class QMolecule(object):
                 logger.debug("\n{}".format(self.eri))
 
             if self.mo_onee_ints is not None:
-                logger.info("One body MO integrals: {}".format(self.mo_onee_ints.shape))
+                logger.info("One body MO A integrals: {}".format(self.mo_onee_ints.shape))
                 logger.debug("\n{}".format(self.mo_onee_ints))
             if self.mo_onee_ints_B is not None:
-                logger.info("One body MO Beta integrals: {}".format(self.mo_onee_ints_B.shape))
+                logger.info("One body MO B integrals: {}".format(self.mo_onee_ints_B.shape))
                 logger.debug(self.mo_onee_ints_B)
 
             if self.mo_eri_ints is not None:
-                logger.info("Two body ERI MO integrals: {}".format(self.mo_eri_ints.shape))
+                logger.info("Two body ERI MO AA integrals: {}".format(self.mo_eri_ints.shape))
                 logger.debug("\n{}".format(self.mo_eri_ints))
             if self.mo_eri_ints_BB is not None:
                 logger.info("Two body ERI MO BB integrals: {}".format(self.mo_eri_ints_BB.shape))
@@ -580,22 +570,22 @@ class QMolecule(object):
                 logger.debug("\n{}".format(self.z_dip_ints))
 
             if self.x_dip_mo_ints is not None:
-                logger.info("x dipole MO integrals: {}".format(self.x_dip_mo_ints.shape))
+                logger.info("x dipole MO A integrals: {}".format(self.x_dip_mo_ints.shape))
                 logger.debug("\n{}".format(self.x_dip_mo_ints))
             if self.x_dip_mo_ints_B is not None:
-                logger.info("x dipole MO Beta integrals: {}".format(self.x_dip_mo_ints_B.shape))
+                logger.info("x dipole MO B integrals: {}".format(self.x_dip_mo_ints_B.shape))
                 logger.debug("\n{}".format(self.x_dip_mo_ints_B))
             if self.y_dip_mo_ints is not None:
-                logger.info("y dipole MO integrals: {}".format(self.y_dip_mo_ints.shape))
+                logger.info("y dipole MO A integrals: {}".format(self.y_dip_mo_ints.shape))
                 logger.debug("\n{}".format(self.y_dip_mo_ints))
             if self.y_dip_mo_ints_B is not None:
-                logger.info("y dipole MO Beta integrals: {}".format(self.y_dip_mo_ints_B.shape))
+                logger.info("y dipole MO B integrals: {}".format(self.y_dip_mo_ints_B.shape))
                 logger.debug("\n{}".format(self.y_dip_mo_ints_B))
             if self.z_dip_mo_ints is not None:
-                logger.info("z dipole MO integrals: {}".format(self.z_dip_mo_ints.shape))
+                logger.info("z dipole MO A integrals: {}".format(self.z_dip_mo_ints.shape))
                 logger.debug("\n{}".format(self.z_dip_mo_ints))
             if self.z_dip_mo_ints_B is not None:
-                logger.info("z dipole MO Beta integrals: {}".format(self.z_dip_mo_ints_B.shape))
+                logger.info("z dipole MO B integrals: {}".format(self.z_dip_mo_ints_B.shape))
                 logger.debug("\n{}".format(self.z_dip_mo_ints_B))
 
             if self.nuclear_dipole_moment is not None:

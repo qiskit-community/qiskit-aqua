@@ -223,7 +223,7 @@ class GaussianDriver(BaseDriver):
         orbs_energy = self._get_matrix(mel, 'ALPHA ORBITAL ENERGIES')
         _q_.orbital_energies = orbs_energy
         orbs_energy_B = self._get_matrix(mel, 'BETA ORBITAL ENERGIES')
-        _q_.orbital_energies_B = orbs_energy_B
+        _q_.orbital_energies_B = orbs_energy_B if moc_B is not None else None
         # Molecule geometry
         _q_.molecular_charge = mel.icharg
         _q_.multiplicity = mel.multip
@@ -261,12 +261,23 @@ class GaussianDriver(BaseDriver):
 
         eri = self._get_matrix(mel, 'REGULAR 2E INTEGRALS')
         logger.debug('REGULAR 2E INTEGRALS {}'.format(eri.shape))
+        if moc_B is None and mel.matlist.get('BB MO 2E INTEGRALS') is not None:
+            # It seems that when using ROHF, where alpha and beta coeffs are the same, that integrals
+            # for BB and BA are included in the output, as well as just AA that would have been expected
+            # Using these fails to give the right answer (is ok for UHF). So in this case we revert to
+            # using 2 electron ints in atomic basis from the output and converting them ourselves.
+            useAO2E = True
+            logger.info('Identical A and B coeffs but BB ints are present - using regular 2E ints instead')
+
         if useAO2E:
             # eri are 2-body in AO. We can convert to MO via the QMolecule
             # method but using ints in MO already, as in the else here, is better
             mohijkl = QMolecule.twoeints2mo(eri, moc)
             mohijkl_BB = None
             mohijkl_BA = None
+            if moc_B is not None:
+                mohijkl_BB = QMolecule.twoeints2mo(eri, moc_B)
+                mohijkl_BA = QMolecule.twoeints2mo_general(eri, moc_B, moc_B, moc, moc)
         else:
             # These are in MO basis but by default will be reduced in size by
             # frozen core default so to use them we need to add Window=Full
