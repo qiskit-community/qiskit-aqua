@@ -451,9 +451,9 @@ class QMolecule(object):
                         if spinq != spinr:
                             continue
                         if spinp == 0:
-                            ints = ints_AA if spinq == 0 else ints_AB
+                            ints = ints_AA if spinq == 0 else ints_BA
                         else:
-                            ints = ints_BA if spinq == 0 else ints_BB
+                            ints = ints_AB if spinq == 0 else ints_BB
                         orbp = int(p % norbs)
                         orbq = int(q % norbs)
                         orbr = int(r % norbs)
