@@ -13,6 +13,8 @@
 # that they have been altered from the originals.
 
 import logging
+import tempfile
+import os
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry import QMolecule
 import numpy as np
@@ -48,13 +50,26 @@ def compute_integrals(atom,
         max_memory = param.MAX_MEMORY
 
     try:
-        pyscf_log_level = pylogger.INFO if logger.isEnabledFor(logging.DEBUG) else pylogger.QUIET
-        mol = gto.Mole(atom=atom, unit=unit, basis=basis, max_memory=max_memory, verbose=pyscf_log_level)
+        verbose = pylogger.QUIET
+        output = None
+        if logger.isEnabledFor(logging.DEBUG):
+            verbose = pylogger.INFO
+            fd, output = tempfile.mkstemp(suffix='.log')
+            os.close(fd)
+
+        mol = gto.Mole(atom=atom, unit=unit, basis=basis, max_memory=max_memory, verbose=verbose, output=output)
         mol.symmetry = False
         mol.charge = charge
         mol.spin = spin
         mol.build(parse_arg=False)
         q_mol = _calculate_integrals(mol, hf_method, conv_tol, max_cycle)
+        if output is not None:
+            _process_pyscf_log(output)
+            try:
+                os.remove(output)
+            except:
+                pass
+
     except Exception as exc:
         raise QiskitChemistryError('Failed electronic structure computation') from exc
 
@@ -217,3 +232,15 @@ def _calculate_integrals(mol, hf_method='rhf', conv_tol=1e-9, max_cycle=50):
     _q_.reverse_dipole_sign = True
 
     return _q_
+
+
+def _process_pyscf_log(logfile):
+    with open(logfile) as f:
+        content = f.readlines()
+
+    for i in range(len(content)):
+        if content[i].startswith('System:'):
+            content = content[i:]
+            break
+
+    logger.debug('PySCF processing messages log:\n{}'.format(''.join(content)))
