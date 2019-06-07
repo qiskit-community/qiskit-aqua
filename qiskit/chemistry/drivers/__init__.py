@@ -24,7 +24,7 @@ from .gaussiand import GaussianDriver
 from .hdf5d import HDF5Driver
 from .psi4d import PSI4Driver
 from .pyquanted import PyQuanteDriver, BasisType
-from .pyscfd import PySCFDriver
+from .pyscfd import PySCFDriver, InitialGuess
 
 __all__ = ['BaseDriver',
            'UnitsType',
@@ -41,4 +41,5 @@ __all__ = ['BaseDriver',
            'PSI4Driver',
            'BasisType',
            'PyQuanteDriver',
-           'PySCFDriver']
+           'PySCFDriver',
+           'InitialGuess']

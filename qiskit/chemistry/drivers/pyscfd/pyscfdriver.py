@@ -16,9 +16,17 @@ from qiskit.chemistry.drivers import BaseDriver, UnitsType, HFMethodType
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers.pyscfd.integrals import compute_integrals
 import importlib
+from enum import Enum
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+class InitialGuess(Enum):
+    MINAO = 'minao'
+    HCORE = '1e'
+    ONE_E = '1e'
+    ATOM = 'atom'
 
 
 class PySCFDriver(BaseDriver):
@@ -74,6 +82,15 @@ class PySCFDriver(BaseDriver):
                     "default": 50,
                     "minimum": 1
                 },
+                "init_guess": {
+                    "type": "string",
+                    "default": InitialGuess.MINAO.value,
+                    "enum": [
+                        InitialGuess.MINAO.value,
+                        InitialGuess.HCORE.value,
+                        InitialGuess.ATOM.value
+                    ]
+                },
                 "max_memory": {
                     "type": ["integer", "null"],
                     "default": None
@@ -92,6 +109,7 @@ class PySCFDriver(BaseDriver):
                  hf_method=HFMethodType.RHF,
                  conv_tol=1e-9,
                  max_cycle=50,
+                 init_guess=InitialGuess.MINAO,
                  max_memory=None):
         """
         Initializer
@@ -104,6 +122,7 @@ class PySCFDriver(BaseDriver):
             hf_method (HFMethodType): Hartree-Fock Method type
             conv_tol (float): Convergence tolerance see PySCF docs and pyscf/scf/hf.py
             max_cycle (int): Max convergence cycles see PySCF docs and pyscf/scf/hf.py
+            init_guess (InitialGuess): See PySCF pyscf/scf/hf.py init_guess_by_minao/1e/atom methods
             max_memory (int): maximum memory
         """
         if not isinstance(atom, list) and not isinstance(atom, str):
@@ -116,6 +135,7 @@ class PySCFDriver(BaseDriver):
 
         unit = unit.value
         hf_method = hf_method.value
+        init_guess = init_guess.value
         self.validate(locals())
         super().__init__()
         self._atom = atom
@@ -126,6 +146,7 @@ class PySCFDriver(BaseDriver):
         self._hf_method = hf_method
         self._conv_tol = conv_tol
         self._max_cycle = max_cycle
+        self._init_guess = init_guess
         self._max_memory = max_memory
 
     @staticmethod
@@ -162,6 +183,8 @@ class PySCFDriver(BaseDriver):
                 v = UnitsType(v)
             elif k == 'hf_method':
                 v = HFMethodType(v)
+            elif k == 'init_guess':
+                v = InitialGuess(v)
 
             kwargs[k] = v
 
@@ -177,6 +200,7 @@ class PySCFDriver(BaseDriver):
                                   hf_method=self._hf_method,
                                   conv_tol=self._conv_tol,
                                   max_cycle=self._max_cycle,
+                                  init_guess=self._init_guess,
                                   max_memory=self._max_memory)
 
         q_mol.origin_driver_name = self.configuration['name']
@@ -188,6 +212,7 @@ class PySCFDriver(BaseDriver):
                'hf_method={}'.format(self._hf_method),
                'conv_tol={}'.format(self._conv_tol),
                'max_cycle={}'.format(self._max_cycle),
+               'init_guess={}'.format(self._init_guess),
                'max_memory={}'.format(self._max_memory),
                '']
         q_mol.origin_driver_config = '\n'.join(cfg)

@@ -38,6 +38,7 @@ def compute_integrals(atom,
                       hf_method='rhf',
                       conv_tol=1e-9,
                       max_cycle=50,
+                      init_guess='minao',
                       max_memory=None):
     # Get config from input parameters
     # molecule is in PySCF atom string format e.g. "H .0 .0 .0; H .0 .0 0.2"
@@ -62,7 +63,7 @@ def compute_integrals(atom,
         mol.charge = charge
         mol.spin = spin
         mol.build(parse_arg=False)
-        q_mol = _calculate_integrals(mol, hf_method, conv_tol, max_cycle)
+        q_mol = _calculate_integrals(mol, hf_method, conv_tol, max_cycle, init_guess)
         if output is not None:
             _process_pyscf_log(output)
             try:
@@ -98,12 +99,15 @@ def _check_molecule_format(val):
     return val
 
 
-def _calculate_integrals(mol, hf_method='rhf', conv_tol=1e-9, max_cycle=50):
+def _calculate_integrals(mol, hf_method='rhf', conv_tol=1e-9, max_cycle=50, init_guess='minao'):
     """Function to calculate the one and two electron terms. Perform a Hartree-Fock calculation in
         the given basis.
     Args:
         mol (gto.Mole) : A PySCF gto.Mole object.
         hf_method (str): rhf, uhf, rohf
+        conv_tol (float): Convergence tolerance
+        max_cycle (int): Max convergence cycles
+        init_guess (str): Initial guess for SCF
     Returns:
         QMolecule: QMolecule populated with driver integrals etc
     """
@@ -120,6 +124,7 @@ def _calculate_integrals(mol, hf_method='rhf', conv_tol=1e-9, max_cycle=50):
 
     mf.conv_tol = conv_tol
     mf.max_cycle = max_cycle
+    mf.init_guess = init_guess
     ehf = mf.kernel()
     logger.info('PySCF kernel() converged: {}, e(hf): {}'.format(mf.converged, mf.e_tot))
     if type(mf.mo_coeff) is tuple:
