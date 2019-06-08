@@ -83,8 +83,8 @@ def _calculate_integrals(molecule, basis='sto3g', hf_method='rhf', tol=1e-8, max
         solver = uhf(molecule, bfs)
     else:
         raise QiskitChemistryError('Invalid hf_method type: {}'.format(hf_method))
-    logger.debug('Solver name {}'.format(solver.name))
     ehf = solver.converge(tol=tol, maxiters=maxiters)
+    logger.debug('PyQuante2 processing information:\n{}'.format(solver))
     if hasattr(solver, 'orbs'):
         orbs = solver.orbs
         orbs_B = None
