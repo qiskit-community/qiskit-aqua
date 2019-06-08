@@ -19,8 +19,7 @@ from math import pi
 
 from parameterized import parameterized
 from qiskit import QuantumCircuit, QuantumRegister
-from qiskit import execute as q_execute
-from qiskit.quantum_info import state_fidelity
+from qiskit import execute as execute
 
 from qiskit import BasicAer
 from test.common import QiskitAquaTestCase
@@ -28,15 +27,17 @@ from test.common import QiskitAquaTestCase
 
 class TestMCU3(QiskitAquaTestCase):
     @parameterized.expand(
-        [[i + 1] for i in range(7)]
+        [[i + 1] for i in range(6)]
     )
     def test_mcu3(self, num_controls):
         c = QuantumRegister(num_controls, name='c')
         o = QuantumRegister(1, name='o')
         allsubsets = list(chain(*[combinations(range(num_controls), ni) for ni in range(num_controls + 1)]))
         for subset in allsubsets:
+            control_num = 0
             qc = QuantumCircuit(o, c)
             for idx in subset:
+                control_num += 2**idx
                 qc.x(c[idx])
             qc.mcu3(
                 pi, 0, 0,
@@ -46,12 +47,15 @@ class TestMCU3(QiskitAquaTestCase):
             for idx in subset:
                 qc.x(c[idx])
 
-            vec = np.asarray(q_execute(qc, BasicAer.get_backend(
-                'statevector_simulator')).result().get_statevector(qc, decimals=16))
-            vec_o = [0, 1] if len(subset) == num_controls else [1, 0]
-            # print(vec, np.array(vec_o + [0] * (2 ** (num_controls + num_ancillae + 1) - 2)))
-            f = state_fidelity(vec, np.array(vec_o + [0] * (2 ** (num_controls + 1) - 2)))
-            self.assertAlmostEqual(f, 1)
+            mat_mcu = execute(qc, BasicAer.get_backend('unitary_simulator')).result().get_unitary(qc)
+
+            dim = 2**(num_controls+1)
+            pos = dim - 2*(control_num+1)
+            mat_groundtruth = np.eye(dim)
+            mat_groundtruth[pos:pos+2, pos:pos+2] = [[0, -1], [1, 0]]
+            print(mat_mcu)
+            print(mat_groundtruth)
+            self.assertTrue(np.allclose(mat_mcu, mat_groundtruth))
 
 
 if __name__ == '__main__':
