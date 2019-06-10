@@ -316,7 +316,7 @@ class GaussianDriver(BaseDriver):
         if moc_B is not None:
             _q_.x_dip_mo_ints_B = QMolecule.oneeints2mo(dipints[0], moc_B)
             _q_.y_dip_mo_ints_B = QMolecule.oneeints2mo(dipints[1], moc_B)
-            _q_.z_dip_mo_ints_N = QMolecule.oneeints2mo(dipints[2], moc_B)
+            _q_.z_dip_mo_ints_B = QMolecule.oneeints2mo(dipints[2], moc_B)
 
         nucl_dip = np.einsum('i,ix->x', syms, xyz)
         nucl_dip = np.round(nucl_dip, decimals=8)
