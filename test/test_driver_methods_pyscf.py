@@ -12,12 +12,20 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType, HFMethodType
 from qiskit.chemistry.core import TransformationType, QubitMappingType
 from test.test_driver_methods import TestDriverMethods
 
 
 class TestDriverMethodsPySCF(TestDriverMethods):
+
+    def setUp(self):
+        super().setup()
+        try:
+            PySCFDriver(atom=self.LIH)
+        except QiskitChemistryError:
+            self.skipTest('PySCF driver does not appear to be installed')
 
     def test_lih_rhf(self):
         driver = PySCFDriver(atom=self.LIH, unit=UnitsType.ANGSTROM,

@@ -12,11 +12,19 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PyQuanteDriver, UnitsType, BasisType, HFMethodType
 from test.test_driver_methods import TestDriverMethods
 
 
 class TestDriverMethodsPyquante(TestDriverMethods):
+
+    def setUp(self):
+        super().setup()
+        try:
+            PyQuanteDriver(atom=self.LIH)
+        except QiskitChemistryError:
+            self.skipTest('PyQuante driver does not appear to be installed')
 
     def test_lih_rhf(self):
         driver = PyQuanteDriver(atoms=self.LIH, units=UnitsType.ANGSTROM,

@@ -495,7 +495,12 @@ class QMolecule(object):
     DEBYE = 0.393430307   # No ea0 in Debye. Use to convert our dipole moment numbers to Debye
 
     def log(self):
-        with numpy.printoptions(precision=8, suppress=True):
+        if not logger.isEnabledFor(logging.INFO):
+            return
+        opts = numpy.get_printoptions()
+        try:
+            numpy.set_printoptions(precision=8, suppress=True)
+
             # Originating driver name & config if set
             if len(self.origin_driver_name) > 0 and self.origin_driver_name != "?":
                 logger.info("Originating driver name: {}".format(self.origin_driver_name))
@@ -594,3 +599,5 @@ class QMolecule(object):
                 logger.info("Reversal of electronic dipole moment sign needed: {}".format(self.reverse_dipole_sign))
 
             logger.info("Core orbitals list {}".format(self.core_orbitals))
+        finally:
+            numpy.set_printoptions(**opts)

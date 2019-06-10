@@ -12,6 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import GaussianDriver
 from test.test_driver_methods import TestDriverMethods
 
@@ -39,6 +40,13 @@ O   0.0  0.0    0.0
 H   0.0  0.0    0.9697
     
 '''
+
+    def setUp(self):
+        super().setup()
+        try:
+            GaussianDriver(config=self.g16_lih_config.format('rhf'))
+        except QiskitChemistryError:
+            self.skipTest('GAUSSIAN driver does not appear to be installed')
 
     def test_lih_rhf(self):
         driver = GaussianDriver(config=self.g16_lih_config.format('rhf'))

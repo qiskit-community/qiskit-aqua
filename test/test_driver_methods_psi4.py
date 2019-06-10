@@ -12,6 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PSI4Driver
 from test.test_driver_methods import TestDriverMethods
 
@@ -45,6 +46,13 @@ set {{
       reference {}
 }}
 '''
+
+    def setUp(self):
+        super().setup()
+        try:
+            PSI4Driver(config=self.psi4_lih_config.format('rhf'))
+        except QiskitChemistryError:
+            self.skipTest('PSI4 driver does not appear to be installed')
 
     def test_lih_rhf(self):
         driver = PSI4Driver(config=self.psi4_lih_config.format('rhf'))
