@@ -38,7 +38,8 @@ class PSI4Driver(BaseDriver):
             "$schema": "http://json-schema.org/schema#",
             "id": "psi4_schema",
             "type": "string",
-            "default": "molecule h2 {\n  0 1\n  H  0.0 0.0 0.0\n  H  0.0 0.0 0.735\n}\n\nset {\n  basis sto-3g\n  scf_type pk\n}"
+            "default": "molecule h2 {\n  0 1\n  H  0.0 0.0 0.0\n  H  0.0 0.0 0.735\n}\n\n"
+                       "set {\n  basis sto-3g\n  scf_type pk\n  reference rhf\n}"
         }
     }
 
@@ -135,6 +136,8 @@ class PSI4Driver(BaseDriver):
         _q_molecule.load()
         # remove internal file
         _q_molecule.remove_file()
+        _q_molecule.origin_driver_name = self.configuration['name']
+        _q_molecule.origin_driver_config = self._config
         return _q_molecule
 
     @staticmethod

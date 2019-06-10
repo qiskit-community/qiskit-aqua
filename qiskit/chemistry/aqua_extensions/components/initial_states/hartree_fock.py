@@ -50,9 +50,7 @@ class HartreeFock(InitialState):
                 'qubit_mapping': {
                     'type': 'string',
                     'default': 'parity',
-                    'oneOf': [
-                        {'enum': ['jordan_wigner', 'parity', 'bravyi_kitaev']}
-                    ]
+                    'enum': ['jordan_wigner', 'parity', 'bravyi_kitaev']
                 },
                 'two_qubit_reduction': {
                     'type': 'boolean',

@@ -12,6 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from .pyscfdriver import PySCFDriver
+from .pyscfdriver import PySCFDriver, InitialGuess
 
-__all__ = ['PySCFDriver']
+__all__ = ['PySCFDriver',
+           'InitialGuess']

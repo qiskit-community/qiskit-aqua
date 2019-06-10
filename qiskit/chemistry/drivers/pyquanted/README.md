@@ -5,9 +5,6 @@
 PyQuante2 is an open-source library for computational chemistry, see https://github.com/rpmuller/pyquante2 for
 installation instructions and its licensing terms. 
 
-This driver contains a couple of methods here, in transform.py, from Pyquante1, which was licensed under a
-[modified BSD license](./LICENSE.txt) 
-
 This driver requires PyQuante2 to be installed and available for Qiskit Chemistry to access/call.
 
 _**Note**: molecular dipole moment is not computed by Qiskit Chemistry when using this driver._

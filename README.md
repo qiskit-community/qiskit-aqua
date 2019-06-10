@@ -193,5 +193,3 @@ Some of the code embedded in Qiskit Chemistry to interface some of the computati
 software drivers requires additional licensing:
 * The [Gaussian 16 driver](qiskit/chemistry/drivers/gaussiand/README.md) contains work licensed under the
 [Gaussian Open-Source Public License](qiskit/chemistry/drivers/gaussiand/gauopen/LICENSE.txt).
-* The [Pyquante driver](qiskit/chemistry/drivers/pyquanted/README.md) contains work licensed under the
-[modified BSD license](qiskit/chemistry/drivers/pyquanted/LICENSE.txt).```

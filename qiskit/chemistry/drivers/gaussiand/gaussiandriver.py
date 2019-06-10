@@ -118,6 +118,8 @@ class GaussianDriver(BaseDriver):
         except:
             logger.warning("Failed to remove MatrixElement file " + fname)
 
+        q_mol.origin_driver_name = self.configuration['name']
+        q_mol.origin_driver_config = self._config
         return q_mol
 
     # Adds the extra config we need to the input file
@@ -203,14 +205,27 @@ class GaussianDriver(BaseDriver):
 
         # Create driver level molecule object and populate
         _q_ = QMolecule()
+        _q_.origin_driver_version = mel.gversion
         # Energies and orbits
         _q_.hf_energy = mel.scalar('ETOTAL')
         _q_.nuclear_repulsion_energy = mel.scalar('ENUCREP')
         _q_.num_orbitals = 0  # updated below from orbital coeffs size
         _q_.num_alpha = (mel.ne + mel.multip - 1) // 2
         _q_.num_beta = (mel.ne - mel.multip + 1) // 2
-        _q_.molecular_charge = mel.icharg
+        moc = self._get_matrix(mel, 'ALPHA MO COEFFICIENTS')
+        moc_B = self._get_matrix(mel, 'BETA MO COEFFICIENTS')
+        if np.array_equal(moc, moc_B):
+            logger.debug('ALPHA and BETA MO COEFFS identical, keeping only ALPHA')
+            moc_B = None
+        _q_.num_orbitals = moc.shape[0]
+        _q_.mo_coeff = moc
+        _q_.mo_coeff_B = moc_B
+        orbs_energy = self._get_matrix(mel, 'ALPHA ORBITAL ENERGIES')
+        _q_.orbital_energies = orbs_energy
+        orbs_energy_B = self._get_matrix(mel, 'BETA ORBITAL ENERGIES')
+        _q_.orbital_energies_B = orbs_energy_B if moc_B is not None else None
         # Molecule geometry
+        _q_.molecular_charge = mel.icharg
         _q_.multiplicity = mel.multip
         _q_.num_atoms = mel.natoms
         _q_.atom_symbol = []
@@ -225,38 +240,83 @@ class GaussianDriver(BaseDriver):
                     coord = 0
                 _q_.atom_xyz[_n][_i] = coord
 
-        moc = self._getMatrix(mel, 'ALPHA MO COEFFICIENTS')
-        _q_.num_orbitals = moc.shape[0]
-        _q_.mo_coeff = moc
-        orbs_energy = self._getMatrix(mel, 'ALPHA ORBITAL ENERGIES')
-        _q_.orbital_energies = orbs_energy
-
         # 1 and 2 electron integrals
-        hcore = self._getMatrix(mel, 'CORE HAMILTONIAN ALPHA')
+        hcore = self._get_matrix(mel, 'CORE HAMILTONIAN ALPHA')
         logger.debug('CORE HAMILTONIAN ALPHA {}'.format(hcore.shape))
+        hcore_B = self._get_matrix(mel, 'CORE HAMILTONIAN BETA')
+        if np.array_equal(hcore, hcore_B):
+            # From Gaussian interfacing documentation: "The two core Hamiltonians are identical unless
+            # a Fermi contact perturbation has been applied."
+            logger.debug('CORE HAMILTONIAN ALPHA and BETA identical, keeping only ALPHA')
+            hcore_B = None
+        logger.debug('CORE HAMILTONIAN BETA {}'.format('- Not present' if hcore_B is None else hcore_B.shape))
+        kinetic = self._get_matrix(mel, 'KINETIC ENERGY')
+        logger.debug('KINETIC ENERGY {}'.format(kinetic.shape))
+        overlap = self._get_matrix(mel, 'OVERLAP')
+        logger.debug('OVERLAP {}'.format(overlap.shape))
         mohij = QMolecule.oneeints2mo(hcore, moc)
+        mohij_B = None
+        if moc_B is not None:
+            mohij_B = QMolecule.oneeints2mo(hcore if hcore_B is None else hcore_B, moc_B)
+
+        eri = self._get_matrix(mel, 'REGULAR 2E INTEGRALS')
+        logger.debug('REGULAR 2E INTEGRALS {}'.format(eri.shape))
+        if moc_B is None and mel.matlist.get('BB MO 2E INTEGRALS') is not None:
+            # It seems that when using ROHF, where alpha and beta coeffs are the same, that integrals
+            # for BB and BA are included in the output, as well as just AA that would have been expected
+            # Using these fails to give the right answer (is ok for UHF). So in this case we revert to
+            # using 2 electron ints in atomic basis from the output and converting them ourselves.
+            useAO2E = True
+            logger.info('Identical A and B coeffs but BB ints are present - using regular 2E ints instead')
+
         if useAO2E:
-            # These are 2-body in AO. We can convert to MO via the QMolecule
+            # eri are 2-body in AO. We can convert to MO via the QMolecule
             # method but using ints in MO already, as in the else here, is better
-            eri = self._getMatrix(mel, 'REGULAR 2E INTEGRALS')
-            logger.debug('REGULAR 2E INTEGRALS {}'.format(eri.shape))
             mohijkl = QMolecule.twoeints2mo(eri, moc)
+            mohijkl_BB = None
+            mohijkl_BA = None
+            if moc_B is not None:
+                mohijkl_BB = QMolecule.twoeints2mo(eri, moc_B)
+                mohijkl_BA = QMolecule.twoeints2mo_general(eri, moc_B, moc_B, moc, moc)
         else:
             # These are in MO basis but by default will be reduced in size by
             # frozen core default so to use them we need to add Window=Full
             # above when we augment the config
-            mohijkl = self._getMatrix(mel, 'AA MO 2E INTEGRALS')
+            mohijkl = self._get_matrix(mel, 'AA MO 2E INTEGRALS')
             logger.debug('AA MO 2E INTEGRALS {}'.format(mohijkl.shape))
+            mohijkl_BB = self._get_matrix(mel, 'BB MO 2E INTEGRALS')
+            logger.debug('BB MO 2E INTEGRALS {}'.format('- Not present' if mohijkl_BB is None else mohijkl_BB.shape))
+            mohijkl_BA = self._get_matrix(mel, 'BA MO 2E INTEGRALS')
+            logger.debug('BA MO 2E INTEGRALS {}'.format('- Not present' if mohijkl_BA is None else mohijkl_BA.shape))
+
+        _q_.hcore = hcore
+        _q_.hcore_B = hcore_B
+        _q_.kinetic = kinetic
+        _q_.overlap = overlap
+        _q_.eri = eri
 
         _q_.mo_onee_ints = mohij
+        _q_.mo_onee_ints_B = mohij_B
         _q_.mo_eri_ints = mohijkl
+        _q_.mo_eri_ints_BB = mohijkl_BB
+        _q_.mo_eri_ints_BA = mohijkl_BA
 
         # dipole moment
-        dipints = self._getMatrix(mel, 'DIPOLE INTEGRALS')
+        dipints = self._get_matrix(mel, 'DIPOLE INTEGRALS')
         dipints = np.einsum('ijk->kji', dipints)
+        _q_.x_dip_ints = dipints[0]
+        _q_.y_dip_ints = dipints[1]
+        _q_.z_dip_ints = dipints[2]
         _q_.x_dip_mo_ints = QMolecule.oneeints2mo(dipints[0], moc)
+        _q_.x_dip_mo_ints_B = None
         _q_.y_dip_mo_ints = QMolecule.oneeints2mo(dipints[1], moc)
+        _q_.y_dip_mo_ints_B = None
         _q_.z_dip_mo_ints = QMolecule.oneeints2mo(dipints[2], moc)
+        _q_.z_dip_mo_ints_B = None
+        if moc_B is not None:
+            _q_.x_dip_mo_ints_B = QMolecule.oneeints2mo(dipints[0], moc_B)
+            _q_.y_dip_mo_ints_B = QMolecule.oneeints2mo(dipints[1], moc_B)
+            _q_.z_dip_mo_ints_B = QMolecule.oneeints2mo(dipints[2], moc_B)
 
         nucl_dip = np.einsum('i,ix->x', syms, xyz)
         nucl_dip = np.round(nucl_dip, decimals=8)
@@ -265,10 +325,12 @@ class GaussianDriver(BaseDriver):
 
         return _q_
 
-    def _getMatrix(self, mel, name):
+    def _get_matrix(self, mel, name):
         # Gaussian dimens values may be negative which it itself handles in expand
         # but convert to all positive for use in reshape. Note: Fortran index ordering.
         mx = mel.matlist.get(name)
+        if mx is None:
+            return None
         dims = tuple([abs(i) for i in mx.dimens])
         mat = np.reshape(mx.expand(), dims, order='F')
         return mat

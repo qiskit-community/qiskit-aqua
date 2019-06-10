@@ -18,6 +18,36 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 [UNRELEASED](https://github.com/Qiskit/qiskit-chemistry/compare/0.5.0...HEAD)
 =============================================================================
 
+Added
+-----
+
+- ROHF open-shell support
+    - Supported for all drivers: Gaussian16, PyQuante, PySCF and PSI4
+    - HartreeFock initial state, UCCSD variational form and two qubit reduction for
+      parity mapping now support different alpha and beta particle numbers for open
+      shell support
+
+- UHF open-shell support
+    - Supported for all drivers: Gaussian16, PyQuante, PySCF and PSI4
+    - QMolecule extended to include integrals, coeffiecients etc for separate beta
+    
+- QMolecule extended with integrals in atomic orbital basis to facilitate common access
+  to these for experimentation
+    - Supported for all drivers: Gaussian16, PyQuante, PySCF and PSI4
+
+- Additional PyQuante and PySCF driver configuration
+    - Convergence tolerance and max convergence iteration controls.
+    - For PySCF initial guess choice
+    
+- Processing output added to debug log from PyQuante and PySCF computations (Gaussian16 
+  and PSI4 outputs were already added to debug log)
+
+Fixed
+-----
+
+- Bravyi-Kitaev mapping fixed when num qubits was not a power of 2
+
+
 [0.5.0](https://github.com/Qiskit/qiskit-chemistry/compare/0.4.2...0.5.0) - 2019-05-02
 ======================================================================================
 

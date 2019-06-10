@@ -12,7 +12,6 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from .transform import transformintegrals, ijkl2intindex
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry import QMolecule
 import numpy as np
@@ -35,7 +34,9 @@ def compute_integrals(atoms,
                       charge,
                       multiplicity,
                       basis,
-                      hf_method='rhf'):
+                      hf_method='rhf',
+                      tol=1e-8,
+                      maxiters=100):
     # Get config from input parameters
     # Molecule is in this format xyz as below or in Z-matrix e.g "H; O 1 1.08; H 2 1.08 1 107.5":
     # atoms=H .0 .0 .0; H .0 .0 0.2
@@ -49,41 +50,14 @@ def compute_integrals(atoms,
     hf_method = hf_method.lower()
 
     try:
-        ehf, enuke, norbs, mohij, mohijkl, orbs, orbs_energy = _calculate_integrals(mol, basis, hf_method)
+        q_mol = _calculate_integrals(mol, basis, hf_method, tol, maxiters)
     except Exception as exc:
         raise QiskitChemistryError('Failed electronic structure computation') from exc
 
-    # Create driver level molecule object and populate
-    _q_ = QMolecule()
-    # Energies and orbits
-    _q_.hf_energy = ehf
-    _q_.nuclear_repulsion_energy = enuke
-    _q_.num_orbitals = norbs
-    _q_.num_alpha = mol.nup()
-    _q_.num_beta = mol.ndown()
-    _q_.mo_coeff = orbs
-    _q_.orbital_energies = orbs_energy
-    # Molecule geometry
-    _q_.molecular_charge = mol.charge
-    _q_.multiplicity = mol.multiplicity
-    _q_.num_atoms = len(mol)
-    _q_.atom_symbol = []
-    _q_.atom_xyz = np.empty([len(mol), 3])
-    atoms = mol.atoms
-    for _n in range(0, _q_.num_atoms):
-        atuple = atoms[_n].atuple()
-        _q_.atom_symbol.append(QMolecule.symbols[atuple[0]])
-        _q_.atom_xyz[_n][0] = atuple[1]
-        _q_.atom_xyz[_n][1] = atuple[2]
-        _q_.atom_xyz[_n][2] = atuple[3]
-    # 1 and 2 electron integrals
-    _q_.mo_onee_ints = mohij
-    _q_.mo_eri_ints = mohijkl
-
-    return _q_
+    return q_mol
 
 
-def _calculate_integrals(molecule, basis='sto3g', hf_method='rhf'):
+def _calculate_integrals(molecule, basis='sto3g', hf_method='rhf', tol=1e-8, maxiters=100):
     """Function to calculate the one and two electron terms. Perform a Hartree-Fock calculation in
         the given basis.
     Args:
@@ -91,18 +65,12 @@ def _calculate_integrals(molecule, basis='sto3g', hf_method='rhf'):
         basis : The basis set for the electronic structure computation
         hf_method: rhf, uhf, rohf
     Returns:
-        ehf : Hartree-Fock energy
-        enuke: Nuclear repulsion energy
-        norbs : Number of orbitals
-        mohij : One electron terms of the Hamiltonian.
-        mohijkl : Two electron terms of the Hamiltonian.
-        orbs: Molecular orbital coefficients
-        orbs_energy: Orbital energies
+        QMolecule: QMolecule populated with driver integrals etc
     """
     bfs = basisset(molecule, basis)
     integrals = onee_integrals(bfs, molecule)
     hij = integrals.T + integrals.V
-    hijkl_compressed = twoe_integrals(bfs)
+    hijkl = twoe_integrals(bfs)
 
     # convert overlap integrals to molecular basis
     # calculate the Hartree-Fock solution of the molecule
@@ -115,29 +83,75 @@ def _calculate_integrals(molecule, basis='sto3g', hf_method='rhf'):
         solver = uhf(molecule, bfs)
     else:
         raise QiskitChemistryError('Invalid hf_method type: {}'.format(hf_method))
-    logger.debug('Solver name {}'.format(solver.name))
-    ehf = solver.converge()
+    ehf = solver.converge(tol=tol, maxiters=maxiters)
+    logger.debug('PyQuante2 processing information:\n{}'.format(solver))
     if hasattr(solver, 'orbs'):
         orbs = solver.orbs
+        orbs_B = None
     else:
         orbs = solver.orbsa
+        orbs_B = solver.orbsb
     norbs = len(orbs)
     if hasattr(solver, 'orbe'):
         orbs_energy = solver.orbe
+        orbs_energy_B = None
     else:
         orbs_energy = solver.orbea
+        orbs_energy_B = solver.orbeb
     enuke = molecule.nuclear_repulsion()
     # Get ints in molecular orbital basis
     mohij = simx(hij, orbs)
-    mohijkl_compressed = transformintegrals(hijkl_compressed, orbs)
-    mohijkl = np.zeros((norbs, norbs, norbs, norbs))
-    for i in range(norbs):
-        for j in range(norbs):
-            for k in range(norbs):
-                for l in range(norbs):
-                    mohijkl[i, j, k, l] = mohijkl_compressed[ijkl2intindex(i, j, k, l)]
+    mohij_B = None
+    if orbs_B is not None:
+        mohij_B = simx(hij, orbs_B)
 
-    return ehf[0], enuke, norbs, mohij, mohijkl, orbs, orbs_energy
+    eri = hijkl.transform(np.identity(norbs))
+    mohijkl = hijkl.transform(orbs)
+    mohijkl_BB = None
+    mohijkl_BA = None
+    if orbs_B is not None:
+        mohijkl_BB = hijkl.transform(orbs_B)
+        mohijkl_BA = np.einsum('aI,bJ,cK,dL,abcd->IJKL', orbs_B, orbs_B, orbs, orbs, hijkl[...])
+
+    # Create driver level molecule object and populate
+    _q_ = QMolecule()
+    _q_.origin_driver_version = '?'  # No version info seems available to access
+    # Energies and orbits
+    _q_.hf_energy = ehf[0]
+    _q_.nuclear_repulsion_energy = enuke
+    _q_.num_orbitals = norbs
+    _q_.num_alpha = molecule.nup()
+    _q_.num_beta = molecule.ndown()
+    _q_.mo_coeff = orbs
+    _q_.mo_coeff_B = orbs_B
+    _q_.orbital_energies = orbs_energy
+    _q_.orbital_energies_B = orbs_energy_B
+    # Molecule geometry
+    _q_.molecular_charge = molecule.charge
+    _q_.multiplicity = molecule.multiplicity
+    _q_.num_atoms = len(molecule)
+    _q_.atom_symbol = []
+    _q_.atom_xyz = np.empty([len(molecule), 3])
+    atoms = molecule.atoms
+    for _n in range(0, _q_.num_atoms):
+        atuple = atoms[_n].atuple()
+        _q_.atom_symbol.append(QMolecule.symbols[atuple[0]])
+        _q_.atom_xyz[_n][0] = atuple[1]
+        _q_.atom_xyz[_n][1] = atuple[2]
+        _q_.atom_xyz[_n][2] = atuple[3]
+    # 1 and 2 electron integrals
+    _q_.hcore = hij
+    _q_.hcore_B = None
+    _q_.kinetic = integrals.T
+    _q_.overlap = integrals.S
+    _q_.eri = eri
+    _q_.mo_onee_ints = mohij
+    _q_.mo_onee_ints_B = mohij_B
+    _q_.mo_eri_ints = mohijkl
+    _q_.mo_eri_ints_BB = mohijkl_BB
+    _q_.mo_eri_ints_BA = mohijkl_BA
+
+    return _q_
 
 
 def _parse_molecule(val, units, charge, multiplicity):

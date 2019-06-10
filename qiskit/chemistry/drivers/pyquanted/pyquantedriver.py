@@ -49,12 +49,10 @@ class PyQuanteDriver(BaseDriver):
                 KEY_UNITS: {
                     "type": "string",
                     "default": UnitsType.ANGSTROM.value,
-                    "oneOf": [
-                         {"enum": [
-                            UnitsType.ANGSTROM.value,
-                            UnitsType.BOHR.value,
-                         ]}
-                    ]
+                    "enum": [
+                        UnitsType.ANGSTROM.value,
+                        UnitsType.BOHR.value,
+                     ]
                 },
                 "charge": {
                     "type": "integer",
@@ -67,23 +65,29 @@ class PyQuanteDriver(BaseDriver):
                 KEY_BASIS: {
                     "type": "string",
                     "default": BasisType.BSTO3G.value,
-                    "oneOf": [
-                         {"enum": [
-                             BasisType.BSTO3G.value,
-                             BasisType.B631G.value,
-                             BasisType.B631GSS.value,
-                         ]}
+                    "enum": [
+                         BasisType.BSTO3G.value,
+                         BasisType.B631G.value,
+                         BasisType.B631GSS.value,
                     ]
                 },
                 "hf_method": {
                     "type": "string",
                     "default": HFMethodType.RHF.value,
-                    "oneOf": [
-                        {"enum": [
-                            HFMethodType.RHF.value,
-                            HFMethodType.ROHF.value,
-                        ]}
+                    "enum": [
+                        HFMethodType.RHF.value,
+                        HFMethodType.ROHF.value,
+                        HFMethodType.UHF.value
                     ]
+                },
+                "tol": {
+                    "type": "number",
+                    "default": 1e-08
+                },
+                "maxiters": {
+                    "type": "integer",
+                    "default": 100,
+                    "minimum": 1
                 }
             },
             "additionalProperties": False
@@ -96,7 +100,9 @@ class PyQuanteDriver(BaseDriver):
                  charge=0,
                  multiplicity=1,
                  basis=BasisType.BSTO3G,
-                 hf_method=HFMethodType.RHF):
+                 hf_method=HFMethodType.RHF,
+                 tol=1e-8,
+                 maxiters=100):
         """
         Initializer
         Args:
@@ -106,6 +112,8 @@ class PyQuanteDriver(BaseDriver):
             multiplicity (int): spin multiplicity
             basis (BasisType): sto3g or 6-31g or 6-31g**
             hf_method (HFMethodType): Hartree-Fock Method type
+            tol (float): Convergence tolerance see pyquante2.scf hamiltonians and iterators
+            maxiters (int): Convergence max iterations see pyquante2.scf hamiltonians and iterators
         """
         if not isinstance(atoms, list) and not isinstance(atoms, str):
             raise QiskitChemistryError("Invalid atom input for PYQUANTE Driver '{}'".format(atoms))
@@ -126,6 +134,8 @@ class PyQuanteDriver(BaseDriver):
         self._multiplicity = multiplicity
         self._basis = basis
         self._hf_method = hf_method
+        self._tol = tol
+        self._maxiters = maxiters
 
     @staticmethod
     def check_driver_valid():
@@ -170,9 +180,25 @@ class PyQuanteDriver(BaseDriver):
         return cls(**kwargs)
 
     def run(self):
-        return compute_integrals(atoms=self._atoms,
-                                 units=self._units,
-                                 charge=self._charge,
-                                 multiplicity=self._multiplicity,
-                                 basis=self._basis,
-                                 hf_method=self._hf_method)
+        q_mol = compute_integrals(atoms=self._atoms,
+                                  units=self._units,
+                                  charge=self._charge,
+                                  multiplicity=self._multiplicity,
+                                  basis=self._basis,
+                                  hf_method=self._hf_method,
+                                  tol=self._tol,
+                                  maxiters=self._maxiters)
+
+        q_mol.origin_driver_name = self.configuration['name']
+        cfg = ['atoms={}'.format(self._atoms),
+               'units={}'.format(self._units),
+               'charge={}'.format(self._charge),
+               'multiplicity={}'.format(self._multiplicity),
+               'basis={}'.format(self._basis),
+               'hf_method={}'.format(self._hf_method),
+               'tol={}'.format(self._tol),
+               'maxiters={}'.format(self._maxiters),
+               '']
+        q_mol.origin_driver_config = '\n'.join(cfg)
+
+        return q_mol
