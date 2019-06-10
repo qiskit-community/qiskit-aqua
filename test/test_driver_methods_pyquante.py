@@ -22,7 +22,7 @@ class TestDriverMethodsPyquante(TestDriverMethods):
     def setUp(self):
         super().setup()
         try:
-            PyQuanteDriver(atom=self.LIH)
+            PyQuanteDriver(atoms=self.LIH)
         except QiskitChemistryError:
             self.skipTest('PyQuante driver does not appear to be installed')
 
