@@ -36,10 +36,10 @@ class TestMCU1(QiskitAquaTestCase):
         o = QuantumRegister(1, name='o')
         allsubsets = list(chain(*[combinations(range(num_controls), ni) for ni in range(num_controls + 1)]))
         for subset in allsubsets:
-            control_num = 0
+            control_int = 0
             qc = QuantumCircuit(o, c)
             for idx in subset:
-                control_num += 2**idx
+                control_int += 2**idx
                 qc.x(c[idx])
             qc.h(o[0])
             qc.mcu1(
@@ -54,7 +54,7 @@ class TestMCU1(QiskitAquaTestCase):
             mat_mcu = execute(qc, BasicAer.get_backend('unitary_simulator')).result().get_unitary(qc)
 
             dim = 2**(num_controls+1)
-            pos = dim - 2*(control_num+1)
+            pos = dim - 2*(control_int+1)
             mat_groundtruth = np.eye(dim)
             mat_groundtruth[pos:pos+2, pos:pos+2] = [[0, 1], [1, 0]]
             self.assertTrue(np.allclose(mat_mcu, mat_groundtruth))

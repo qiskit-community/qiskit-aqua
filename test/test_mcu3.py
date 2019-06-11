@@ -24,20 +24,22 @@ from qiskit import execute as execute
 from qiskit import BasicAer
 from test.common import QiskitAquaTestCase
 
+nums_controls = [[i + 1] for i in range(6)]
+
 
 class TestMCU3(QiskitAquaTestCase):
     @parameterized.expand(
-        [[i + 1] for i in range(6)]
+        nums_controls
     )
     def test_mcu3(self, num_controls):
         c = QuantumRegister(num_controls, name='c')
         o = QuantumRegister(1, name='o')
         allsubsets = list(chain(*[combinations(range(num_controls), ni) for ni in range(num_controls + 1)]))
         for subset in allsubsets:
-            control_num = 0
+            control_int = 0
             qc = QuantumCircuit(o, c)
             for idx in subset:
-                control_num += 2**idx
+                control_int += 2**idx
                 qc.x(c[idx])
             qc.mcu3(
                 pi, 0, 0,
@@ -50,11 +52,9 @@ class TestMCU3(QiskitAquaTestCase):
             mat_mcu = execute(qc, BasicAer.get_backend('unitary_simulator')).result().get_unitary(qc)
 
             dim = 2**(num_controls+1)
-            pos = dim - 2*(control_num+1)
+            pos = dim - 2*(control_int+1)
             mat_groundtruth = np.eye(dim)
             mat_groundtruth[pos:pos+2, pos:pos+2] = [[0, -1], [1, 0]]
-            print(mat_mcu)
-            print(mat_groundtruth)
             self.assertTrue(np.allclose(mat_mcu, mat_groundtruth))
 
 
