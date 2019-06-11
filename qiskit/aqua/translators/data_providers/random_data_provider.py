@@ -43,9 +43,7 @@ class RandomDataProvider(BaseDataProvider):
                 "datatype": {
                     "type": "string",
                     "default": DataType.DAILYADJUSTED.value,
-                    "oneOf": [{
-                        "enum": [DataType.DAILYADJUSTED.value]
-                    }]
+                    "enum": [DataType.DAILYADJUSTED.value]
                 },
             },
         }
@@ -64,11 +62,11 @@ class RandomDataProvider(BaseDataProvider):
             stockmarket (StockMarket): RANDOM
             start (datetime): first data point
             end (datetime): last data point precedes this date
-            seed (None or int): shall a seed be used?                 
+            seed (None or int): shall a seed be used?
         """
         super().__init__()
 
-        #if not isinstance(atoms, list) and not isinstance(atoms, str):
+        # if not isinstance(atoms, list) and not isinstance(atoms, str):
         #    raise QiskitFinanceError("Invalid atom input for RANDOM data provider '{}'".format(atoms))
 
         if isinstance(tickers, list):
@@ -90,7 +88,7 @@ class RandomDataProvider(BaseDataProvider):
         self._end = end
         self._seed = seed
 
-        #self.validate(locals())
+        # self.validate(locals())
 
     @staticmethod
     def check_provider_valid():
@@ -113,7 +111,7 @@ class RandomDataProvider(BaseDataProvider):
 
         params = section
         kwargs = {}
-        #for k, v in params.items():
+        # for k, v in params.items():
         #    if k == ExchangeDataDriver. ...: v = UnitsType(v)
         #    kwargs[k] = v
         logger.debug('init_from_input: {}'.format(kwargs))

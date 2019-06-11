@@ -270,6 +270,11 @@ class QiskitAqua(object):
             if pass_manager is not None:
                 backend_cfg['pass_manager'] = pass_manager
 
+            optimization_level = self._parser.get_section_property(JSONSchema.PROBLEM, 'circuit_optimization_level')
+            if optimization_level == "default":
+                optimization_level = None
+            backend_cfg['optimization_level'] = optimization_level
+
             backend_cfg['backend'] = backend
             if random_seed is not None:
                 backend_cfg['seed_simulator'] = random_seed
@@ -289,17 +294,18 @@ class QiskitAqua(object):
             if cache_file is not None:
                 backend_cfg['cache_file'] = cache_file
 
-            measurement_error_mitigation = self._parser.get_section_property(JSONSchema.PROBLEM, 'measurement_error_mitigation')
+            measurement_error_mitigation = self._parser.get_section_property(JSONSchema.PROBLEM,
+                                                                             'measurement_error_mitigation')
             if measurement_error_mitigation:
                 backend_cfg['measurement_error_mitigation_cls'] = CompleteMeasFitter
 
             measurement_error_mitigation_shots = self._parser.get_section_property(JSONSchema.PROBLEM,
-                                                                             'measurement_error_mitigation_shots')
+                                                                                   'measurement_error_mitigation_shots')
             if measurement_error_mitigation:
                 backend_cfg['measurement_error_mitigation_shots'] = measurement_error_mitigation_shots
 
-            measurement_error_mitigation_refresh_period = self._parser.get_section_property(JSONSchema.PROBLEM,
-                                                                                            'measurement_error_mitigation_refresh_period')
+            measurement_error_mitigation_refresh_period = \
+                self._parser.get_section_property(JSONSchema.PROBLEM, 'measurement_error_mitigation_refresh_period')
             backend_cfg['cals_matrix_refresh_period'] = measurement_error_mitigation_refresh_period
 
             self._quantum_instance = QuantumInstance(**backend_cfg)

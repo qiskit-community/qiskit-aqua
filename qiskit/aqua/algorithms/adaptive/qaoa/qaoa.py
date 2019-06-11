@@ -39,9 +39,7 @@ class QAOA(VQE):
                 'operator_mode': {
                     'type': 'string',
                     'default': 'matrix',
-                    'oneOf': [
-                        {'enum': ['matrix', 'paulis', 'grouped_paulis']}
-                    ]
+                    'enum': ['matrix', 'paulis', 'grouped_paulis']
                 },
                 'p': {
                     'type': 'integer',

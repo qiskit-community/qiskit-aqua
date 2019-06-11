@@ -60,11 +60,9 @@ class IQPE(QuantumAlgorithm):
                 PROP_EXPANSION_MODE: {
                     'type': 'string',
                     'default': 'suzuki',
-                    'oneOf': [
-                        {'enum': [
-                            'suzuki',
-                            'trotter'
-                        ]}
+                    'enum': [
+                        'suzuki',
+                        'trotter'
                     ]
                 },
                 PROP_EXPANSION_ORDER: {

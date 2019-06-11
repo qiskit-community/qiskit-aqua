@@ -56,9 +56,7 @@ class PauliExpansion(FeatureMap):
                 'entanglement': {
                     'type': 'string',
                     'default': 'full',
-                    'oneOf': [
-                        {'enum': ['full', 'linear']}
-                    ]
+                    'enum': ['full', 'linear']
                 },
                 'paulis': {
                     'type': ['array'],
