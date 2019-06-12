@@ -146,7 +146,7 @@ class TestQSVM(QiskitAquaTestCase):
 
         self.assertTrue(os.path.exists(file_path))
 
-        loaded_svm = QSVM(feature_map, self.training_data, None, None)
+        loaded_svm = QSVM(feature_map)
         loaded_svm.load_model(file_path)
 
         np.testing.assert_array_almost_equal(
@@ -179,12 +179,7 @@ class TestQSVM(QiskitAquaTestCase):
         num_qubits = 2
         feature_map = SecondOrderExpansion(feature_dimension=num_qubits, depth=2, entangler_map=[[0, 1]])
 
-        with self.assertRaises(AquaError):
-            QSVM(feature_map, test_dataset=self.testing_data)
-
         svm = QSVM(feature_map)
-        with self.assertRaises(AquaError):
-            svm.setup_test_data(self.testing_data)
 
         svm.setup_training_data(self.training_data)
         svm.setup_test_data(self.testing_data)
