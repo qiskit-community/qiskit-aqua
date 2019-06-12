@@ -64,5 +64,7 @@ install:
   - pip install -U -r requirements-dev.txt --progress-bar off
   - pip install -e $TRAVIS_BUILD_DIR --progress-bar off
 script:
+  # Remove OpenBLAS warning message when compiled without USE_OPENMP=1 in PySCF
+  - export OPENBLAS_NUM_THREADS=1
   - python -m unittest discover -v test
     
