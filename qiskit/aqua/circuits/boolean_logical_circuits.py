@@ -472,22 +472,31 @@ class ESOP(BooleanLogicNormalForm):
             mct_mode=mct_mode
         )
 
+        def build_clause(clause_expr):
+            if clause_expr[0] == 'and':
+                lits = [l[1] for l in clause_expr[1:]]
+            else:  # clause_expr[0] == 'lit':
+                lits = [clause_expr[1]]
+            flags = BooleanLogicNormalForm._lits_to_flags(lits)
+            circuit.AND(
+                self._variable_register,
+                self._output_register[self._output_idx],
+                self._ancillary_register,
+                flags=flags,
+                mct_mode=mct_mode
+            )
+
         # compute all clauses
         if self._depth == 0:
             self._construct_circuit_for_tiny_expr(circuit, output_idx=output_idx)
+        elif self._depth == 1:
+            build_clause(self._ast)
+        elif self._depth == 2:
+            if not self._ast[0] == 'xor':
+                raise AquaError('Unexpcted root logical operation {} for ESOP.'.format(self._ast[0]))
+            for clause_expr in self._ast[1:]:
+                build_clause(clause_expr)
         else:
-            for clause_index, clause_expr in enumerate(self._ast[1:]):
-                if clause_expr[0] == 'and':
-                    lits = [l[1] for l in clause_expr[1:]]
-                else:  # clause_expr[0] == 'lit':
-                    lits = [clause_expr[1]]
-                flags = BooleanLogicNormalForm._lits_to_flags(lits)
-                circuit.AND(
-                    self._variable_register,
-                    self._output_register[self._output_idx],
-                    self._ancillary_register,
-                    flags=flags,
-                    mct_mode=mct_mode
-                )
+            raise AquaError('Unexpcted ESOP expression {}.'.format(self._ast))
 
         return circuit
