@@ -23,6 +23,7 @@ Added
 
 -   Relative-Phase Toffoli gates `rccx` (with 2 controls) and `rcccx`
     (with 3 controls).
+-   Variational form `RYCRX` 
 
 [0.5.1](https://github.com/Qiskit/qiskit-aqua/compare/0.5.0...0.5.1) - 2019-05-24
 =================================================================================
