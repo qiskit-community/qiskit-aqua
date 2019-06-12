@@ -405,8 +405,7 @@ class QSVM(QuantumAlgorithm):
             training_dataset (dict): training dataset.
         """
         if training_dataset is not None:
-            self.training_dataset, self.class_to_label = split_dataset_to_data_and_labels(
-                training_dataset)
+            self.training_dataset, self.class_to_label = split_dataset_to_data_and_labels(training_dataset)
             self.label_to_class = {label: class_name for class_name, label
                                    in self.class_to_label.items()}
             self.num_classes = len(list(self.class_to_label.keys()))
@@ -416,14 +415,14 @@ class QSVM(QuantumAlgorithm):
 
         Args:
             test_dataset (dict): test dataset.
-
-        Raises:
-            AquaError: setup test data prior to training data
         """
         if test_dataset is not None:
             if self.class_to_label is None:
-                raise AquaError("Please setup training data first to know how to map the class name to the label.")
-            self.test_dataset = split_dataset_to_data_and_labels(test_dataset, self.class_to_label)
+                logger.warning("The mapping from the class name to the label is missed, "
+                               "regenerate it but it might be mismatched to previous mapping.")
+                self.test_dataset, self.class_to_label = split_dataset_to_data_and_labels(test_dataset)
+            else:
+                self.test_dataset = split_dataset_to_data_and_labels(test_dataset, self.class_to_label)
 
     def setup_datapoint(self, datapoints):
         """Setup data points, if the data were there, they would be overwritten.
