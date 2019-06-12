@@ -63,9 +63,9 @@ def mcry(self, theta, q_controls, q_target, q_ancillae):
     Args:
         self (QuantumCircuit): The circuit to apply the mcry gate on.
         theta (float): The rotation angle.
-        q_controls (QuantumRegister | Qubit): The control qubits.
+        q_controls (QuantumRegister | list of Qubit): The control qubits.
         q_target (Qubit): The target qubit.
-        q_ancillae (QuantumRegister | Qubit): The ancillary qubits.
+        q_ancillae (QuantumRegister | list of Qubit): The ancillary qubits.
     """
 
     # check controls
