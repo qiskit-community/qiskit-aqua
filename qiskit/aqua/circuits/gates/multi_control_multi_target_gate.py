@@ -86,7 +86,7 @@ def mcmt(self,
         single_control_gate_fun (Gate): The single control gate function (e.g QuantumCircuit.cz or QuantumCircuit.ch)
         q_targets (QuantumRegister | list of Qubit): A list of qubits or a QuantumRegister
             to which the gate function should be applied.
-        mode (string): The implementation mode to use (at the moment, only the basic mode is supported)
+        mode (str): The implementation mode to use (at the moment, only the basic mode is supported)
 
     """
     # check controls
