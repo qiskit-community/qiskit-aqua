@@ -16,8 +16,9 @@ import os
 
 import numpy as np
 from qiskit import BasicAer
+
 from test.common import QiskitAquaTestCase
-from qiskit.aqua import run_algorithm, QuantumInstance, aqua_globals
+from qiskit.aqua import run_algorithm, QuantumInstance, aqua_globals, AquaError
 from qiskit.aqua.input import ClassificationInput
 from qiskit.aqua.components.feature_maps import SecondOrderExpansion
 from qiskit.aqua.algorithms import QSVM
@@ -165,6 +166,42 @@ class TestQSVM(QiskitAquaTestCase):
                 os.remove(file_path)
             except:
                 pass
+
+    def test_qsvm_setup_data(self):
+
+        ref_kernel_testing = np. array([[0.1443953, 0.18170069, 0.47479649, 0.14691763],
+                                        [0.33041779, 0.37663733, 0.02115561, 0.16106199]])
+
+        ref_support_vectors = np.array([[2.95309709, 2.51327412], [3.14159265, 4.08407045],
+                                        [4.08407045, 2.26194671], [4.46106157, 2.38761042]])
+
+        backend = BasicAer.get_backend('statevector_simulator')
+        num_qubits = 2
+        feature_map = SecondOrderExpansion(feature_dimension=num_qubits, depth=2, entangler_map=[[0, 1]])
+
+        with self.assertRaises(AquaError):
+            QSVM(feature_map, test_dataset=self.testing_data)
+
+        svm = QSVM(feature_map)
+        with self.assertRaises(AquaError):
+            svm.setup_test_data(self.testing_data)
+
+        svm.setup_training_data(self.training_data)
+        svm.setup_test_data(self.testing_data)
+
+        aqua_globals.random_seed = self.random_seed
+
+        quantum_instance = QuantumInstance(backend, seed_transpiler=self.random_seed)
+        result = svm.run(quantum_instance)
+
+        np.testing.assert_array_almost_equal(
+            result['kernel_matrix_testing'], ref_kernel_testing, decimal=4)
+
+        self.assertEqual(len(result['svm']['support_vectors']), 4)
+        np.testing.assert_array_almost_equal(
+            result['svm']['support_vectors'], ref_support_vectors, decimal=4)
+
+        self.assertEqual(result['testing_accuracy'], 0.5)
 
     def test_qsvm_multiclass_one_against_all(self):
 
