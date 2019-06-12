@@ -142,7 +142,7 @@ class TestVQE(QiskitAquaTestCase):
         algo = VQE(self.algo_input.qubit_op, var_form, optimizer, 'paulis',
                    callback=store_intermediate_result)
         aqua_globals.random_seed = 50
-        quantum_instance = QuantumInstance(backend, seed_transpiler=50, shots=1024, seed=50)
+        quantum_instance = QuantumInstance(backend, seed_transpiler=50, shots=1024, seed_simulator=50)
         algo.run(quantum_instance)
 
         is_file_exist = os.path.exists(self._get_resource_path(tmp_filename))

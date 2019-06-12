@@ -24,60 +24,77 @@ python:
 
 stage_dependencies: &stage_dependencies
   # Install Dependencies
-  # The env. variable MASTER_BRANCH_DEPENDENCIES forces dependencies used from master
   env:
-    - MASTER_BRANCH_DEPENDENCIES=true
-  addons:
-    apt:
-      sources:
-        - ubuntu-toolchain-r-test
-      packages:
-        - libopenblas-dev
-        - g++-7    
+    - DEPENDENCY_BRANCH=$(if [ "$TRAVIS_BRANCH" = "stable" ]; then echo "stable"; else echo "master"; fi)
+    - INIT_FILE="$TRAVIS_BUILD_DIR/qiskit/__init__.py"
         
   before_install:
     - |
-      INIT_FILE="$TRAVIS_BUILD_DIR/qiskit/__init__.py"
       if [ -f $INIT_FILE ]; then
         # stops travis if __init__.py exists under qiskit
         echo "File '$INIT_FILE' found. It should not exist, since this repo extends qiskit namespace.";
         travis_terminate 1;
       fi
+      if [ "$BUILD_AER" != "false" ]; then
+        # install Qiskit Aer build dependencies
+        sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+        sudo apt-get -y update
+        sudo apt-get -y install g++-7
+        sudo apt-get -y install libopenblas-dev
+      fi
     - pip install --upgrade pip setuptools wheel
-    # download Qiskit Terra master and unzip it only if forced from master or not stable branch, otherwise use the pypi version
+    # Download github Terra
+    - wget https://codeload.github.com/Qiskit/qiskit-terra/zip/$DEPENDENCY_BRANCH -O /tmp/qiskit-terra.zip
+    - unzip /tmp/qiskit-terra.zip -d /tmp/
+    # Install Qiskit Terra requirements.
+    - pip install -U -r /tmp/qiskit-terra-$DEPENDENCY_BRANCH/requirements-dev.txt --progress-bar off
+    # Install local Qiskit Terra
+    - pip install -e /tmp/qiskit-terra-$DEPENDENCY_BRANCH --progress-bar off
+    # Download github Ignis
+    - wget https://codeload.github.com/Qiskit/qiskit-ignis/zip/$DEPENDENCY_BRANCH -O /tmp/qiskit-ignis.zip
+    - unzip /tmp/qiskit-ignis.zip -d /tmp/
+    # Install local Qiskit Ignis
+    - pip install -e /tmp/qiskit-ignis-$DEPENDENCY_BRANCH --progress-bar off
     - |
-      if [ ${MASTER_BRANCH_DEPENDENCIES} = "true" ] || [ ${TRAVIS_BRANCH} != "stable" ]; then
-        # Download github Terra
-        wget https://codeload.github.com/Qiskit/qiskit-terra/zip/master -O /tmp/qiskit-terra.zip
-        unzip /tmp/qiskit-terra.zip -d /tmp/
-        # Install Qiskit Terra requirements.
-        pip install -U -r /tmp/qiskit-terra-master/requirements-dev.txt --progress-bar off
-        # Install local Qiskit Terra
-        pip install -e /tmp/qiskit-terra-master --progress-bar off
-        # Download github Ignis
-        wget https://codeload.github.com/Qiskit/qiskit-ignis/zip/master -O /tmp/qiskit-ignis.zip
-        unzip /tmp/qiskit-ignis.zip -d /tmp/
-        # Install local Qiskit Ignis
-        pip install -e /tmp/qiskit-ignis-master --progress-bar off
+      if [ "$BUILD_AER" != "false" ]; then
+        # Download github Qiskit Aer
+        wget https://codeload.github.com/Qiskit/qiskit-aer/zip/$DEPENDENCY_BRANCH -O /tmp/qiskit-aer.zip
+        unzip /tmp/qiskit-aer.zip -d /tmp/
+        # Install Qiskit Aer requirements.
+        pip install -U -r /tmp/qiskit-aer-$DEPENDENCY_BRANCH/requirements-dev.txt --progress-bar off
+        # build Qiskit Aer
+        cd /tmp/qiskit-aer-$DEPENDENCY_BRANCH
+        python setup.py bdist_wheel -- -DCMAKE_CXX_COMPILER=g++-7 -- -j4
+        pip install dist/qiskit_aer*whl
+        # back to current repo directory
+        cd $TRAVIS_BUILD_DIR
       fi
   install:
       # install Aqua and dev requirements
       - pip install -e $TRAVIS_BUILD_DIR --progress-bar off
       - pip install -U -r requirements-dev.txt --progress-bar off
-
+  
 # Define the order of the stages.
 stages:
-  - test first half
-  - test second half
+  - test first
+  - test second
+  - test third
 
 jobs:
   include:
-    - stage: test first half
+    - stage: test first
       <<: *stage_dependencies
       script:
-        - python test/custom_tests.py 0 -end 34
+        - python test/custom_tests.py 0 -end 24
 
-    - stage: test second half
+    - stage: test second
       <<: *stage_dependencies
       script:
-        - python test/custom_tests.py 34
+        - python test/custom_tests.py 24 -end 43
+
+    - stage: test third
+      <<: *stage_dependencies
+      script:
+        - python test/custom_tests.py 43
+        
+

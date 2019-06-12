@@ -55,7 +55,7 @@ class TestSkipQobjValidation(QiskitAquaTestCase):
 
     def test_wo_backend_options(self):
         quantum_instance = QuantumInstance(self.backend, seed_transpiler=self.random_seed,
-                                           seed=self.random_seed, shots=1024, circuit_caching=False)
+                                           seed_simulator=self.random_seed, shots=1024, circuit_caching=False)
         # run without backend_options and without noise
         res_wo_bo = quantum_instance.execute(self.qc).get_counts(self.qc)
 
@@ -66,7 +66,7 @@ class TestSkipQobjValidation(QiskitAquaTestCase):
     def test_w_backend_options(self):
         # run with backend_options
         quantum_instance = QuantumInstance(self.backend, seed_transpiler=self.random_seed,
-                                           seed=self.random_seed, shots=1024,
+                                           seed_simulator=self.random_seed, shots=1024,
                                            backend_options={'initial_statevector': [.5, .5, .5, .5]},
                                            circuit_caching=False)
         res_w_bo = quantum_instance.execute(self.qc).get_counts(self.qc)
@@ -79,6 +79,8 @@ class TestSkipQobjValidation(QiskitAquaTestCase):
         # Asymetric readout error on qubit-0 only
         try:
             from qiskit.providers.aer.noise import NoiseModel
+            from qiskit import Aer
+            self.backend = Aer.get_backend('qasm_simulator')
         except Exception as e:
             self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(e)))
             return
@@ -89,7 +91,7 @@ class TestSkipQobjValidation(QiskitAquaTestCase):
         noise_model.add_readout_error([probs_given0, probs_given1], [0])
 
         quantum_instance = QuantumInstance(self.backend, seed_transpiler=self.random_seed,
-                                           seed=self.random_seed, shots=1024,
+                                           seed_simulator=self.random_seed, shots=1024,
                                            noise_model=noise_model,
                                            circuit_caching=False)
         res_w_noise = quantum_instance.execute(self.qc).get_counts(self.qc)

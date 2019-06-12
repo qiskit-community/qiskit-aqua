@@ -36,7 +36,7 @@ import pickle
 import logging
 
 from qiskit import QuantumRegister
-from qiskit.circuit import CompositeGate
+from qiskit.circuit import Qubit
 from qiskit.assembler.run_config import RunConfig
 from qiskit.qobj import Qobj, QasmQobjConfig
 
@@ -98,13 +98,12 @@ class CircuitCache:
             # Unroll circuit in case of composite gates
             raw_gates = []
             for gate in input_circuit.data:
-                if isinstance(gate, CompositeGate): raw_gates += gate.instruction_list()
-                else: raw_gates += [gate]
+                raw_gates += [gate]
 
             for i, (uncompiled_gate, regs, _) in enumerate(raw_gates):
                 if not hasattr(uncompiled_gate, 'params') or len(uncompiled_gate.params) < 1: continue
                 if uncompiled_gate.name == 'snapshot': continue
-                qubits = [qubit+qreg_indeces[reg.name] for reg, qubit in regs if isinstance(reg, QuantumRegister)]
+                qubits = [bit.index + qreg_indeces[bit.register.name] for bit in regs if isinstance(bit, Qubit)]
                 gate_type = uncompiled_gate.name
                 type_and_qubits = gate_type + qubits.__str__()
                 op_graph[type_and_qubits] = \
@@ -117,7 +116,7 @@ class CircuitCache:
                 if len(op_graph[type_and_qubits]) > 0:
                     uncompiled_gate_index = op_graph[type_and_qubits].pop(0)
                     (uncompiled_gate, regs, _) = raw_gates[uncompiled_gate_index]
-                    qubits = [qubit + qreg_indeces[reg.name] for reg, qubit in regs if isinstance(reg, QuantumRegister)]
+                    qubits = [bit.index + qreg_indeces[bit.register.name] for bit in regs if isinstance(bit, Qubit)]
                     if (compiled_gate.name == uncompiled_gate.name) and (compiled_gate.qubits.__str__() ==
                                                                          qubits.__str__()):
                         mapping[compiled_gate_index] = uncompiled_gate_index
@@ -171,8 +170,7 @@ class CircuitCache:
             # Unroll circuit in case of composite gates
             raw_gates = []
             for gate in input_circuit.data:
-                if isinstance(gate, CompositeGate): raw_gates += gate.instruction_list()
-                else: raw_gates += [gate]
+                raw_gates += [gate]
             self.qobjs[chunk].experiments[circ_num].header.name = input_circuit.name
             for gate_num, compiled_gate in enumerate(self.qobjs[chunk].experiments[circ_num].instructions):
                 if not hasattr(compiled_gate, 'params') or len(compiled_gate.params) < 1: continue

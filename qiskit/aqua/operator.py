@@ -554,7 +554,8 @@ class Operator(object):
             raise ValueError('Mode should be one of "matrix", "paulis", "grouped_paulis"')
         return ret
 
-    def construct_evaluation_circuit(self, operator_mode, input_circuit, backend, use_simulator_operator_mode=False):
+    def construct_evaluation_circuit(self, operator_mode, input_circuit, backend, qr=None, cr=None,
+                                     use_simulator_operator_mode=False):
         """
         Construct the circuits for evaluation.
 
@@ -562,12 +563,29 @@ class Operator(object):
             operator_mode (str): representation of operator, including paulis, grouped_paulis and matrix
             input_circuit (QuantumCircuit): the quantum circuit.
             backend (BaseBackend): backend selection for quantum machine.
+            qr (QuantumRegister, optional): the quantum register associated with the input_circuit
+            cr (ClassicalRegister, optional): the classical register associated with the input_circuit
             use_simulator_operator_mode (bool): if aer_provider is used, we can do faster
                            evaluation for pauli mode on statevector simualtion
 
         Returns:
             [QuantumCircuit]: the circuits for evaluation.
+
+        Raises:
+            AquaError: Can not find quantum register with `q` as the name and do not provide
+                       quantum register explicitly
+            AquaError: The provided qr is not in the input_circuit
         """
+
+        if qr is None:
+            qr = find_regs_by_name(input_circuit, 'q')
+            if qr is None:
+                raise AquaError("Either providing the quantum register (qr) explicitly"
+                                "or used `q` as the name in the input circuit.")
+        else:
+            if not input_circuit.has_register(qr):
+                raise AquaError("The provided QuantumRegister (qr) is not in the circuit.")
+
         if is_statevector_backend(backend):
             if operator_mode == 'matrix':
                 circuits = [input_circuit]
@@ -577,7 +595,6 @@ class Operator(object):
                     circuits = [input_circuit]
                 else:
                     n_qubits = self.num_qubits
-                    q = find_regs_by_name(input_circuit, 'q')
                     circuits = [input_circuit]
                     for idx, pauli in enumerate(self._paulis):
                         circuit = QuantumCircuit() + input_circuit
@@ -585,11 +602,11 @@ class Operator(object):
                             continue
                         for qubit_idx in range(n_qubits):
                             if not pauli[1].z[qubit_idx] and pauli[1].x[qubit_idx]:
-                                circuit.u3(np.pi, 0.0, np.pi, q[qubit_idx])  # x
+                                circuit.u3(np.pi, 0.0, np.pi, qr[qubit_idx])  # x
                             elif pauli[1].z[qubit_idx] and not pauli[1].x[qubit_idx]:
-                                circuit.u1(np.pi, q[qubit_idx])  # z
+                                circuit.u1(np.pi, qr[qubit_idx])  # z
                             elif pauli[1].z[qubit_idx] and pauli[1].x[qubit_idx]:
-                                circuit.u3(np.pi, np.pi/2, np.pi/2, q[qubit_idx])  # y
+                                circuit.u3(np.pi, np.pi/2, np.pi/2, qr[qubit_idx])  # y
                         circuits.append(circuit)
         else:
             if operator_mode == 'matrix':
@@ -599,48 +616,49 @@ class Operator(object):
             circuits = []
 
             base_circuit = QuantumCircuit() + input_circuit
-            c = find_regs_by_name(base_circuit, 'c', qreg=False)
-            if c is None:
-                c = ClassicalRegister(n_qubits, name='c')
-            base_circuit.add_register(c)
+
+            if cr is not None:
+                if not base_circuit.has_register(cr):
+                    base_circuit.add_register(cr)
+            else:
+                cr = find_regs_by_name(base_circuit, 'c', qreg=False)
+                if cr is None:
+                    cr = ClassicalRegister(n_qubits, name='c')
+                    base_circuit.add_register(cr)
 
             if operator_mode == "paulis":
                 self._check_representation("paulis")
 
                 for idx, pauli in enumerate(self._paulis):
                     circuit = QuantumCircuit() + base_circuit
-                    q = find_regs_by_name(circuit, 'q')
-                    c = find_regs_by_name(circuit, 'c', qreg=False)
                     for qubit_idx in range(n_qubits):
                         if pauli[1].x[qubit_idx]:
                             if pauli[1].z[qubit_idx]:
                                 # Measure Y
-                                circuit.u1(np.pi/2, q[qubit_idx]).inverse()  # s
-                                circuit.u2(0.0, np.pi, q[qubit_idx])  # h
+                                circuit.u1(np.pi/2, qr[qubit_idx]).inverse()  # s
+                                circuit.u2(0.0, np.pi, qr[qubit_idx])  # h
                             else:
                                 # Measure X
-                                circuit.u2(0.0, np.pi, q[qubit_idx])  # h
-                    circuit.barrier(q)
-                    circuit.measure(q, c)
+                                circuit.u2(0.0, np.pi, qr[qubit_idx])  # h
+                    circuit.barrier(qr)
+                    circuit.measure(qr, cr)
                     circuits.append(circuit)
             else:
                 self._check_representation("grouped_paulis")
 
                 for idx, tpb_set in enumerate(self._grouped_paulis):
                     circuit = QuantumCircuit() + base_circuit
-                    q = find_regs_by_name(circuit, 'q')
-                    c = find_regs_by_name(circuit, 'c', qreg=False)
                     for qubit_idx in range(n_qubits):
                         if tpb_set[0][1].x[qubit_idx]:
                             if tpb_set[0][1].z[qubit_idx]:
                                 # Measure Y
-                                circuit.u1(np.pi/2, q[qubit_idx]).inverse()  # s
-                                circuit.u2(0.0, np.pi, q[qubit_idx])  # h
+                                circuit.u1(np.pi/2, qr[qubit_idx]).inverse()  # s
+                                circuit.u2(0.0, np.pi, qr[qubit_idx])  # h
                             else:
                                 # Measure X
-                                circuit.u2(0.0, np.pi, q[qubit_idx])  # h
-                    circuit.barrier(q)
-                    circuit.measure(q, c)
+                                circuit.u2(0.0, np.pi, qr[qubit_idx])  # h
+                    circuit.barrier(qr)
+                    circuit.measure(qr, cr)
                     circuits.append(circuit)
         return circuits
 
@@ -1079,7 +1097,8 @@ class Operator(object):
         sectors, (block spin order) according to the number of particles in the system.
 
         Args:
-            m (int): number of fermionic particles
+            m (list, int): number of particles, if it is a list, the first number is alpha
+                            and the second number if beta.
             threshold (float): threshold for Pauli simplification
 
         Returns:
@@ -1089,9 +1108,17 @@ class Operator(object):
         if self._paulis is None or self._paulis == []:
             return self
 
+        if isinstance(m, list):
+            num_alpha = m[0]
+            num_beta = m[1]
+        else:
+            num_alpha = m // 2
+            num_beta = m // 2
+
         operator_out = Operator(paulis=[])
-        par_1 = 1 if m % 2 == 0 else -1
-        par_2 = 1 if m % 4 == 0 else -1
+
+        par_1 = 1 if (num_alpha + num_beta) % 2 == 0 else -1
+        par_2 = 1 if num_alpha % 2 == 0 else -1
 
         n = self.num_qubits
         last_idx = n - 1

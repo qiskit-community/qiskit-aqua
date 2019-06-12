@@ -19,7 +19,7 @@ import logging
 from numpy import angle
 
 from sympy.combinatorics.graycode import GrayCode
-from qiskit import QuantumCircuit, QuantumRegister
+from qiskit.circuit import QuantumCircuit, QuantumRegister, Qubit
 
 from qiskit.aqua.utils.controlled_circuit import apply_cu1
 
@@ -74,10 +74,12 @@ def _apply_mcu1(circuit, theta, ctls, tgt, global_phase=0):
 def mcu1(self, theta, control_qubits, target_qubit):
     """
     Apply Multiple-Controlled U1 gate
+
     Args:
-        theta: angle theta
-        control_qubits: The list of control qubits
-        target_qubit: The target qubit
+        self (QuantumCircuit): The QuantumCircuit object to apply the mcu1 gate on.
+        theta (float): angle theta
+        control_qubits (list of Qubit): The list of control qubits
+        target_qubit (Qubit): The target qubit
     """
     if isinstance(target_qubit, QuantumRegister) and len(target_qubit) == 1:
         target_qubit = target_qubit[0]
