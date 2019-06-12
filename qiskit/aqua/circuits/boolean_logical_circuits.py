@@ -493,9 +493,9 @@ class ESOP(BooleanLogicNormalForm):
             build_clause(self._ast)
         elif self._depth == 2:
             if not self._ast[0] == 'xor':
-            for clause_expr in self._ast[1:]:
-                build_clause(clause_expr)
                 raise AquaError('Unexpected root logical operation {} for ESOP.'.format(self._ast[0]))
+            for cur_clause_expr in self._ast[1:]:
+                build_clause(cur_clause_expr)
         else:
             raise AquaError('Unexpected ESOP expression {}.'.format(self._ast))
 
