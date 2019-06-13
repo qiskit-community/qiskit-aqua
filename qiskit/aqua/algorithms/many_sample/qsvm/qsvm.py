@@ -137,23 +137,23 @@ class QSVM(QuantumAlgorithm):
                    algo_input.datapoints, multiclass_extension)
 
     @staticmethod
-    def _construct_circuit(x, num_qubits, feature_map, measurement, is_statevector_sim=False):
+    def _construct_circuit(x, feature_map, measurement, is_statevector_sim=False):
         """
-        The `is_statevector_sim` means that we only build the circuits for Psi(x1)|0> rather than
+        If `is_statevector_sim` is True, we only build the circuits for Psi(x1)|0> rather than
         Psi(x2)^dagger Psi(x1)|0>.
         """
         x1, x2 = x
         if x1.shape[0] != x2.shape[0]:
             raise ValueError("x1 and x2 must be the same dimension.")
 
-        q = QuantumRegister(num_qubits, 'q')
-        c = ClassicalRegister(num_qubits, 'c')
+        q = QuantumRegister(feature_map.num_qubits, 'q')
+        c = ClassicalRegister(feature_map.num_qubits, 'c')
         qc = QuantumCircuit(q, c)
 
         # write input state from sample distribution
         qc += feature_map.construct_circuit(x1, q)
         if not is_statevector_sim:
-            qc += feature_map.construct_circuit(x2, q, inverse=True)
+            qc += feature_map.construct_circuit(x2, q).inverse()
             if measurement:
                 qc.barrier(q)
                 qc.measure(q, c)
@@ -185,10 +185,10 @@ class QSVM(QuantumAlgorithm):
             x2 (numpy.ndarray): data points, 1-D array, dimension is D
             measurement (bool): add measurement gates at the end
         """
-        return QSVM._construct_circuit((x1, x2), self.num_qubits,
-                                       self.feature_map, measurement)
+        return QSVM._construct_circuit((x1, x2), self.feature_map, measurement)
 
-    def construct_kernel_matrix(self, x1_vec, x2_vec=None, quantum_instance=None):
+    @staticmethod
+    def get_kernel_matrix(quantum_instance, feature_map, x1_vec, x2_vec=None):
         """
         Construct kernel matrix, if x2_vec is None, self-innerproduct is conducted.
 
@@ -199,24 +199,15 @@ class QSVM(QuantumAlgorithm):
             O(N^2) for `qasm_simulator`.
 
         Args:
+            quantum_instance (QuantumInstance): quantum backend with all settings
+            feature_map (FeatureMap): a feature map that maps data to feature space
             x1_vec (numpy.ndarray): data points, 2-D array, N1xD, where N1 is the number of data,
                                     D is the feature dimension
             x2_vec (numpy.ndarray): data points, 2-D array, N2xD, where N2 is the number of data,
                                     D is the feature dimension
-            quantum_instance (QuantumInstance): quantum backend with all settings
-
         Returns:
             numpy.ndarray: 2-D matrix, N1xN2
-
-        Raises:
-            AquaError: Quantum instance is not present.
         """
-        self._quantum_instance = self._quantum_instance \
-            if quantum_instance is None else quantum_instance
-
-        if self._quantum_instance is None:
-            raise AquaError("Either setup quantum instance or provide it in the parameter.")
-
         from .qsvm import QSVM
 
         if x2_vec is None:
@@ -225,10 +216,10 @@ class QSVM(QuantumAlgorithm):
         else:
             is_symmetric = False
 
-        is_statevector_sim = self.quantum_instance.is_statevector
+        is_statevector_sim = quantum_instance.is_statevector
 
         measurement = not is_statevector_sim
-        measurement_basis = '0' * self.num_qubits
+        measurement_basis = '0' * feature_map.num_qubits
         mat = np.ones((x1_vec.shape[0], x2_vec.shape[0]))
 
         # get all indices
@@ -253,10 +244,10 @@ class QSVM(QuantumAlgorithm):
                 TextProgressBar(sys.stderr)
             circuits = parallel_map(QSVM._construct_circuit,
                                     to_be_computed_data_pair,
-                                    task_args=(self.num_qubits, self.feature_map, measurement, is_statevector_sim),
+                                    task_args=(feature_map, measurement, is_statevector_sim),
                                     num_processes=aqua_globals.num_processes)
 
-            results = self.quantum_instance.execute(circuits)
+            results = quantum_instance.execute(circuits)
 
             if logger.isEnabledFor(logging.DEBUG):
                 logger.debug("Calculating overlap:")
@@ -289,10 +280,10 @@ class QSVM(QuantumAlgorithm):
                     TextProgressBar(sys.stderr)
                 circuits = parallel_map(QSVM._construct_circuit,
                                         to_be_computed_data_pair,
-                                        task_args=(self.num_qubits, self.feature_map, measurement),
+                                        task_args=(feature_map, measurement),
                                         num_processes=aqua_globals.num_processes)
 
-                results = self.quantum_instance.execute(circuits)
+                results = quantum_instance.execute(circuits)
 
                 if logger.isEnabledFor(logging.DEBUG):
                     logger.debug("Calculating overlap:")
@@ -307,6 +298,36 @@ class QSVM(QuantumAlgorithm):
                         mat[j, i] = mat[i, j]
 
         return mat
+
+    def construct_kernel_matrix(self, x1_vec, x2_vec=None, quantum_instance=None):
+        """
+        Construct kernel matrix, if x2_vec is None, self-innerproduct is conducted.
+
+        Notes:
+            When using `statevector_simulator`, we only build the circuits for Psi(x1)|0> rather than
+            Psi(x2)^dagger Psi(x1)|0>, and then we perform the inner product classically.
+            That is, for `statevector_simulator`, the total number of circuits will be O(N) rather than
+            O(N^2) for `qasm_simulator`.
+
+        Args:
+            x1_vec (numpy.ndarray): data points, 2-D array, N1xD, where N1 is the number of data,
+                                    D is the feature dimension
+            x2_vec (numpy.ndarray): data points, 2-D array, N2xD, where N2 is the number of data,
+                                    D is the feature dimension
+            quantum_instance (QuantumInstance): quantum backend with all settings
+
+        Returns:
+            numpy.ndarray: 2-D matrix, N1xN2
+
+        Raises:
+            AquaError: Quantum instance is not present.
+        """
+        self._quantum_instance = self._quantum_instance \
+            if quantum_instance is None else quantum_instance
+        if self._quantum_instance is None:
+            raise AquaError("Either setup quantum instance or provide it in the parameter.")
+
+        return QSVM.get_kernel_matrix(self._quantum_instance, self.feature_map, x1_vec, x2_vec)
 
     def train(self, data, labels, quantum_instance=None):
         """
