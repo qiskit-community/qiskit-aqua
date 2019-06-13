@@ -173,14 +173,14 @@ For questions that are more suited for a forum, we use the **Qiskit** tag in
 ## Next Steps
 
 Now you're set up and ready to check out some of the other examples from the
-[qiskit/aqua/chemistry](https://github.com/Qiskit/qiskit-tutorials/tree/master/qiskit/aqua/chemistry)
-and [community/aqua/chemistry](https://github.com/Qiskit/qiskit-tutorials/tree/master/community/aqua/chemistry)
+[qiskit/chemistry](https://github.com/Qiskit/qiskit-tutorials/tree/master/qiskit/chemistry)
+and [community/chemistry](https://github.com/Qiskit/qiskit-tutorials/tree/master/community/chemistry)
 folders of the [qiskit-tutorials GitHub Repository](https://github.com/Qiskit/qiskit-tutorials).
 
 ## Authors
 
 Qiskit Chemistry was inspired, authored and brought about by the collective work of a team of researchers.
-Aqua continues to grow with the help and work of [many people](./CONTRIBUTORS.rst), who contribute
+Aqua continues to grow with the help and work of [many people](./CONTRIBUTORS.md), who contribute
 to the project at different levels.
 If you use Qiskit, please cite as per the included
 [BibTeX file](https://github.com/Qiskit/qiskit/blob/master/Qiskit.bib).
