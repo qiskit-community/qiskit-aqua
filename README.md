@@ -10,8 +10,8 @@ built. The **Qiskit Chemistry** component has
 been created to utilize Aqua for quantum chemistry computations. Aqua is also showcased for other
 domains, such as Optimization, Artificial Intelligence, and
 Finance, with both code and notebook examples available in the
-[qiskit/aqua/chemistry](https://github.com/Qiskit/qiskit-tutorials/tree/master/qiskit/aqua/chemistry)
-and [community/aqua/chemistry](https://github.com/Qiskit/qiskit-tutorials/tree/master/community/aqua/chemistry)
+[qiskit/chemistry](https://github.com/Qiskit/qiskit-tutorials/tree/master/qiskit/chemistry)
+and [community/chemistry](https://github.com/Qiskit/qiskit-tutorials/tree/master/community/chemistry)
 folders of the [qiskit-tutorials GitHub Repository](https://github.com/Qiskit/qiskit-tutorials).  
 
 Qiskit Aqua and its applications, such as Qiskit Chemistry, were all designed to be extensible,
@@ -51,7 +51,7 @@ software programs:
 Except for the Windows platform, PySCF is installed automatically as a dependency by the pip tool whenever Qiskit Chemistry is
 installed.  The other classical computational chemistry software programs will have to be installed separately, even though
 Qiskit Chemistry includes the code for interfacing all of them.
-Please refer to the [Qiskit Chemistry drivers installation instructions](https://qiskit.org/documentation/aqua/aqua_chemistry_drivers.html)
+Please refer to the [Qiskit Chemistry drivers installation instructions](https://qiskit.org/documentation/aqua/chemistry/qiskit_chemistry_drivers.html)
 for details on how to integrate these drivers into Qiskit Chemistry.
 
 A useful functionality integrated into Qiskit Chemistry is its ability to serialize a file in Hierarchical Data
@@ -62,7 +62,7 @@ algorithm.  Therefore, even without installing one of the drivers above, it is s
 chemistry experiments as long as you have a Hierarchical Data Format 5 (HDF5) file that has been previously
 created.  Qiskit Chemistry's built-in HDF5 driver accepts such such HDF5 files as input.  
 A few sample HDF5 files for different are provided in the 
-[chemistry folder](https://github.com/Qiskit/qiskit-tutorials/tree/master/qiskit/aqua/chemistry) of the
+[chemistry folder](https://github.com/Qiskit/qiskit-tutorials/tree/master/qiskit/chemistry) of the
 [Qiskit Tutorials](https://github.com/Qiskit/qiskit-tutorials) repository.
 
 To install from source, follow the instructions in the [contribution guidelines](./CONTRIBUTING.md).
