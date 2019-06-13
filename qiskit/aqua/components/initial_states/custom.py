@@ -15,7 +15,7 @@
 import numpy as np
 import logging
 
-from qiskit import QuantumRegister, QuantumCircuit
+from qiskit.circuit import QuantumRegister, QuantumCircuit, Qubit
 from qiskit import execute as q_execute
 from qiskit import BasicAer
 
@@ -101,7 +101,7 @@ class Custom(InitialState):
                 self._state_vector = normalize_vector(state_vector)
                 self._state = None
 
-    def construct_circuit(self, mode, register=None):
+    def construct_circuit(self, mode, qubits=None):
         """
         Construct the statevector of desired initial state.
 
@@ -109,7 +109,7 @@ class Custom(InitialState):
             mode (string): `vector` or `circuit`. The `vector` mode produces the vector.
                             While the `circuit` constructs the quantum circuit corresponding that
                             vector.
-            register (QuantumRegister): register for circuit construction.
+            qubits (QuantumRegister | list of Qubit): qubits for circuit construction.
 
         Returns:
             QuantumCircuit or numpy.ndarray: statevector.
@@ -125,33 +125,37 @@ class Custom(InitialState):
             return self._state_vector
         elif mode == 'circuit':
             if self._circuit is None:
-                if register is None:
-                    register = QuantumRegister(self._num_qubits, name='q')
+                if qubits is None:
+                    qubits = QuantumRegister(self._num_qubits, name='q')
 
                 # create emtpy quantum circuit
                 circuit = QuantumCircuit()
 
-                # if register is actually a list of qubits
-                if type(register) is list:
-
-                    # loop over all qubits and add the required registers
-                    for q in register:
-                        if not circuit.has_register(q[0]):
-                            circuit.add_register(q[0])
-                else:
-                    # if an actual register is given, add it
-                    circuit.add_register(register)
-
                 if self._state is None or self._state == 'random':
                     svc = StateVectorCircuit(self._state_vector)
-                    svc.construct_circuit(circuit, register)
+                    svc.construct_circuit(circuit=circuit, qubits=qubits)
+                elif self._state == 'uniform':
+                    # in case `qubits` is a list of Qubits
+                    if isinstance(qubits, list):
+                        # loop over all qubits and add the required registers
+                        for q in qubits:
+                            if not isinstance(q, Qubit):
+                                raise AquaError('Unexpected element type {} in qubit list.'.format(type(q)))
+                            if not circuit.has_register(q.register):
+                                circuit.add_register(q.register)
+                    # otherwise, if it is a QuantumRegister
+                    elif isinstance(qubits, QuantumRegister):
+                        if not circuit.has_register(qubits):
+                            circuit.add_register(qubits)
+                    else:
+                        raise AquaError('Unexpected qubits type {}.'.format(type(qubits)))
+
+                    for i in range(self._num_qubits):
+                        circuit.u2(0.0, np.pi, qubits[i])
                 elif self._state == 'zero':
                     pass
-                elif self._state == 'uniform':
-                    for i in range(self._num_qubits):
-                        circuit.u2(0.0, np.pi, register[i])
                 else:
-                    pass
+                    AquaError('Unexpected state mode {}.'.format(self._state))
                 self._circuit = circuit
             return self._circuit.copy()
         else:
