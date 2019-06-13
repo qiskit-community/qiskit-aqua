@@ -65,7 +65,7 @@ A few sample HDF5 files for different are provided in the
 [chemistry folder](https://github.com/Qiskit/qiskit-tutorials/tree/master/qiskit/aqua/chemistry) of the
 [Qiskit Tutorials](https://github.com/Qiskit/qiskit-tutorials) repository.
 
-To install from source, follow the instructions in the [contribution guidelines](.github/CONTRIBUTING.rst).
+To install from source, follow the instructions in the [contribution guidelines](./CONTRIBUTING.md).
 
 ## Creating Your First Qiskit Chemistry Programming Experiment
 
@@ -159,8 +159,8 @@ for more details.
 ## Contribution Guidelines
 
 If you'd like to contribute to Qiskit, please take a look at our
-[contribution guidelines](.github/CONTRIBUTING.rst). This project adheres to Qiskit's
-[code of conduct](.github/CODE_OF_CONDUCT.rst).
+[contribution guidelines](./CONTRIBUTING.md). This project adheres to Qiskit's
+[code of conduct](./CODE_OF_CONDUCT.md).
 By participating, you are expected to uphold to this code.
 
 We use [GitHub issues](https://github.com/Qiskit/qiskit-aqua/issues) for tracking requests and bugs. Please
