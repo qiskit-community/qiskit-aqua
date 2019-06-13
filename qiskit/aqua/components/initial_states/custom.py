@@ -101,7 +101,7 @@ class Custom(InitialState):
                 self._state_vector = normalize_vector(state_vector)
                 self._state = None
 
-    def construct_circuit(self, mode, qubits=None):
+    def construct_circuit(self, mode='circuit', qubits=None):
         """
         Construct the statevector of desired initial state.
 

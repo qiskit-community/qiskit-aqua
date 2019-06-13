@@ -31,7 +31,7 @@ class VarFormBased:
         self._var_form = var_form
         self._var_form_params = params
 
-    def construct_circuit(self, mode, register=None):
+    def construct_circuit(self, mode='circuit', qubits=None):
         """
         Construct the statevector of desired initial state.
 
@@ -39,7 +39,7 @@ class VarFormBased:
             mode (string): `vector` or `circuit`. The `vector` mode produces the vector.
                             While the `circuit` constructs the quantum circuit corresponding that
                             vector.
-            register (QuantumRegister): register for circuit construction.
+            qubits (QuantumRegister): register for circuit construction.
 
         Returns:
             QuantumCircuit or numpy.ndarray: statevector.
@@ -50,6 +50,6 @@ class VarFormBased:
         if mode == 'vector':
             raise RuntimeError('Initial state based on variational form does not support vector mode.')
         elif mode == 'circuit':
-            return self._var_form.construct_circuit(self._var_form_params, q=register)
+            return self._var_form.construct_circuit(self._var_form_params, q=qubits)
         else:
             raise ValueError('Mode should be either "vector" or "circuit"')
