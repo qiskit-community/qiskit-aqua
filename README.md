@@ -10,8 +10,8 @@ built. The **Qiskit Chemistry** component has
 been created to utilize Aqua for quantum chemistry computations. Aqua is also showcased for other
 domains, such as Optimization, Artificial Intelligence, and
 Finance, with both code and notebook examples available in the
-[qiskit/aqua/chemistry](https://github.com/Qiskit/qiskit-tutorials/tree/master/qiskit/aqua/chemistry)
-and [community/aqua/chemistry](https://github.com/Qiskit/qiskit-tutorials/tree/master/community/aqua/chemistry)
+[qiskit/chemistry](https://github.com/Qiskit/qiskit-tutorials/tree/master/qiskit/chemistry)
+and [community/chemistry](https://github.com/Qiskit/qiskit-tutorials/tree/master/community/chemistry)
 folders of the [qiskit-tutorials GitHub Repository](https://github.com/Qiskit/qiskit-tutorials).  
 
 Qiskit Aqua and its applications, such as Qiskit Chemistry, were all designed to be extensible,
@@ -51,7 +51,7 @@ software programs:
 Except for the Windows platform, PySCF is installed automatically as a dependency by the pip tool whenever Qiskit Chemistry is
 installed.  The other classical computational chemistry software programs will have to be installed separately, even though
 Qiskit Chemistry includes the code for interfacing all of them.
-Please refer to the [Qiskit Chemistry drivers installation instructions](https://qiskit.org/documentation/aqua/aqua_chemistry_drivers.html)
+Please refer to the [Qiskit Chemistry drivers installation instructions](https://qiskit.org/documentation/aqua/chemistry/qiskit_chemistry_drivers.html)
 for details on how to integrate these drivers into Qiskit Chemistry.
 
 A useful functionality integrated into Qiskit Chemistry is its ability to serialize a file in Hierarchical Data
@@ -62,10 +62,10 @@ algorithm.  Therefore, even without installing one of the drivers above, it is s
 chemistry experiments as long as you have a Hierarchical Data Format 5 (HDF5) file that has been previously
 created.  Qiskit Chemistry's built-in HDF5 driver accepts such such HDF5 files as input.  
 A few sample HDF5 files for different are provided in the 
-[chemistry folder](https://github.com/Qiskit/qiskit-tutorials/tree/master/qiskit/aqua/chemistry) of the
+[chemistry folder](https://github.com/Qiskit/qiskit-tutorials/tree/master/qiskit/chemistry) of the
 [Qiskit Tutorials](https://github.com/Qiskit/qiskit-tutorials) repository.
 
-To install from source, follow the instructions in the [contribution guidelines](.github/CONTRIBUTING.rst).
+To install from source, follow the instructions in the [contribution guidelines](./CONTRIBUTING.md).
 
 ## Creating Your First Qiskit Chemistry Programming Experiment
 
@@ -159,8 +159,8 @@ for more details.
 ## Contribution Guidelines
 
 If you'd like to contribute to Qiskit, please take a look at our
-[contribution guidelines](.github/CONTRIBUTING.rst). This project adheres to Qiskit's
-[code of conduct](.github/CODE_OF_CONDUCT.rst).
+[contribution guidelines](./CONTRIBUTING.md). This project adheres to Qiskit's
+[code of conduct](./CODE_OF_CONDUCT.md).
 By participating, you are expected to uphold to this code.
 
 We use [GitHub issues](https://github.com/Qiskit/qiskit-aqua/issues) for tracking requests and bugs. Please
@@ -173,14 +173,14 @@ For questions that are more suited for a forum, we use the **Qiskit** tag in
 ## Next Steps
 
 Now you're set up and ready to check out some of the other examples from the
-[qiskit/aqua/chemistry](https://github.com/Qiskit/qiskit-tutorials/tree/master/qiskit/aqua/chemistry)
-and [community/aqua/chemistry](https://github.com/Qiskit/qiskit-tutorials/tree/master/community/aqua/chemistry)
+[qiskit/chemistry](https://github.com/Qiskit/qiskit-tutorials/tree/master/qiskit/chemistry)
+and [community/chemistry](https://github.com/Qiskit/qiskit-tutorials/tree/master/community/chemistry)
 folders of the [qiskit-tutorials GitHub Repository](https://github.com/Qiskit/qiskit-tutorials).
 
 ## Authors
 
 Qiskit Chemistry was inspired, authored and brought about by the collective work of a team of researchers.
-Aqua continues to grow with the help and work of [many people](./CONTRIBUTORS.rst), who contribute
+Aqua continues to grow with the help and work of [many people](./CONTRIBUTORS.md), who contribute
 to the project at different levels.
 If you use Qiskit, please cite as per the included
 [BibTeX file](https://github.com/Qiskit/qiskit/blob/master/Qiskit.bib).
