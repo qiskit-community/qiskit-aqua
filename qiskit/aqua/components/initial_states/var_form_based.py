@@ -41,7 +41,7 @@ class VarFormBased:
             mode (string): `vector` or `circuit`. The `vector` mode produces the vector.
                             While the `circuit` constructs the quantum circuit corresponding that
                             vector.
-            register (QuantumRegister | list of Qubit): qubits for circuit construction.
+            register (QuantumRegister): qubits for circuit construction.
 
         Returns:
             QuantumCircuit or numpy.ndarray: statevector.
