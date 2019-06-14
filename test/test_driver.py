@@ -12,11 +12,28 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+from abc import ABC, abstractmethod
 import numpy as np
 
 
-class TestDriver(object):
+class TestDriver(ABC):
     """Common driver tests. For H2 @ 0.735, sto3g"""
+
+    def __init__(self):
+        self.log = None
+        self.qmolecule = None
+
+    @abstractmethod
+    def assertAlmostEqual(self, first, second, places=None, msg=None, delta=None):
+        raise Exception('Abstract method')
+
+    @abstractmethod
+    def assertEqual(self, first, second, msg=None):
+        raise Exception('Abstract method')
+
+    @abstractmethod
+    def assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None):
+        raise Exception('Abstract method')
 
     def test_driver_hf_energy(self):
         self.log.debug('QMolecule HF energy: {}'.format(self.qmolecule.hf_energy))

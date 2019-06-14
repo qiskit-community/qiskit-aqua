@@ -27,7 +27,7 @@ Lih molecule
 0 1
 Li  0.0  0.0    0.0
 H   0.0  0.0    1.6
-    
+
 '''
 
     g16_oh_config = '''
@@ -38,7 +38,7 @@ Lih molecule
 0 2
 O   0.0  0.0    0.0
 H   0.0  0.0    0.9697
-    
+
 '''
 
     def setUp(self):

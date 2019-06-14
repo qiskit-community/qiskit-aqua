@@ -47,6 +47,9 @@ class BaseDriver(ABC):
     use an exception if a component of the module is available.
 
     """
+
+    CONFIGURATION = None
+
     @abstractmethod
     def __init__(self):
         self.check_driver_valid()

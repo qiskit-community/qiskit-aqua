@@ -132,12 +132,18 @@ class QMolecule(object):
         count = 0
         for i in range(self.num_atoms):
             Z = self.Z(i)
-            if Z > 2:  count += 1
-            if Z > 10: count += 4
-            if Z > 18: count += 4
-            if Z > 36: count += 9
-            if Z > 54: count += 9
-            if Z > 86: count += 16
+            if Z > 2:
+                count += 1
+            if Z > 10:
+                count += 4
+            if Z > 18:
+                count += 4
+            if Z > 36:
+                count += 9
+            if Z > 54:
+                count += 9
+            if Z > 86:
+                count += 16
         return list(range(count))
 
     @property
@@ -145,9 +151,9 @@ class QMolecule(object):
         if self._filename is None:
             fd, self._filename = tempfile.mkstemp(suffix='.hdf5')
             os.close(fd)
-            
+
         return self._filename
-    
+
     def load(self):
         """loads info saved."""
         try:
@@ -158,7 +164,7 @@ class QMolecule(object):
                 def read_array(name):
                     _data = f[name][...]
                     if _data.dtype == numpy.bool and _data.size == 1 and not _data:
-                       _data = None
+                        _data = None
                     return _data
 
                 # A version field was added to save format from version 2 so if
@@ -183,7 +189,7 @@ class QMolecule(object):
                 self.hf_energy = float(data) if data.dtype.num != 0 else None
                 data = f["energy/nuclear_repulsion_energy"][...]
                 self.nuclear_repulsion_energy = float(data) if data.dtype.num != 0 else None
-                
+
                 # Orbitals
                 data = f["orbitals/num_orbitals"][...]
                 self.num_orbitals = int(data) if data.dtype.num != 0 else None
@@ -206,7 +212,7 @@ class QMolecule(object):
                 data = f["geometry/atom_symbol"][...]
                 self.atom_symbol = [a.decode('utf8') for a in data]
                 self.atom_xyz = f["geometry/atom_xyz"][...]
-               
+
                 # 1 and 2 electron integrals in AO basis
                 self.hcore = read_array("integrals/hcore") if version > 1 else None
                 self.hcore_B = read_array("integrals/hcore_B") if version > 1 else None
@@ -248,7 +254,7 @@ class QMolecule(object):
         else:
             file = self.filename
             self.remove_file()
-            
+
         with h5py.File(file, "w") as f:
             def create_dataset(group, name, value):
                 group.create_dataset(name, data=(value if value is not None else False))
@@ -292,7 +298,7 @@ class QMolecule(object):
                                      if self.atom_symbol is not None else False))
             create_dataset(g_geometry, "atom_xyz", self.atom_xyz)
 
-            # 1 and 2 electron integrals  
+            # 1 and 2 electron integrals
             g_integrals = f.create_group("integrals")
             create_dataset(g_integrals, "hcore", self.hcore)
             create_dataset(g_integrals, "hcore_B", self.hcore_B)

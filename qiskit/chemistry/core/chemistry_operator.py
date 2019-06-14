@@ -36,6 +36,7 @@ class ChemistryOperator(ABC):
             configuration (dict): configuration dictionary
     """
 
+    CONFIGURATION = None
     INFO_NUM_PARTICLES = 'num_particles'
     INFO_NUM_ORBITALS = 'num_orbitals'
     INFO_TWO_QUBIT_REDUCTION = 'two_qubit_reduction'

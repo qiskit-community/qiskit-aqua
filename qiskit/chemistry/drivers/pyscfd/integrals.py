@@ -68,7 +68,7 @@ def compute_integrals(atom,
             _process_pyscf_log(output)
             try:
                 os.remove(output)
-            except:
+            except Exception:
                 pass
 
     except Exception as exc:

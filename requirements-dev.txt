@@ -1,2 +1,5 @@
 discover
 parameterized
+pycodestyle
+pylint>=2.3,<2.4
+pylintfileheader>=0.0.2
