@@ -115,7 +115,7 @@ class GaussianDriver(BaseDriver):
         q_mol = self._parse_matrix_file(fname)
         try:
             os.remove(fname)
-        except:
+        except Exception:
             logger.warning("Failed to remove MatrixElement file " + fname)
 
         q_mol.origin_driver_name = self.configuration['name']
@@ -345,7 +345,7 @@ class GaussianDriver(BaseDriver):
             process = Popen(GAUSSIAN_16, stdin=PIPE, stdout=PIPE, universal_newlines=True)
             stdout, stderr = process.communicate(cfg)
             process.wait()
-        except:
+        except Exception:
             if process is not None:
                 process.kill()
 

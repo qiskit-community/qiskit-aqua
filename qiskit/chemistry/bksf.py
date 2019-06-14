@@ -23,8 +23,7 @@ from qiskit.aqua import Operator
 
 def _one_body(edge_list, p, q, h1_pq):
     """
-    Map the term a^\dagger_p a_q + a^\dagger_q a_p to qubit operator.
-
+    Map the term a^\\dagger_p a_q + a^\\dagger_q a_p to qubit operator.
     Args:
         edge_list (numpy.ndarray): 2xE matrix, each indicates (from, to) pair
         p (int): index of the one body term
@@ -62,7 +61,7 @@ def _one_body(edge_list, p, q, h1_pq):
 
 def _two_body(edge_list, p, q, r, s, h2_pqrs):
     """
-    Map the term a^\dagger_p a^\dagger_q a_r a_s + h.c. to qubit operator.
+    Map the term a^\\dagger_p a^\\dagger_q a_r a_s + h.c. to qubit operator.
 
     Args:
         edge_list (numpy.ndarray): 2xE matrix, each indicates (from, to) pair
@@ -296,8 +295,8 @@ def bksf_mapping(fer_op):
     The electronic Hamiltonian is represented in terms of creation and
     annihilation operators. These creation and annihilation operators could be
     used to define Majorana modes as follows:
-        c_{2i} = a_i + a^{\dagger}_i,
-        c_{2i+1} = (a_i - a^{\dagger}_{i})/(1j)
+        c_{2i} = a_i + a^{\\dagger}_i,
+        c_{2i+1} = (a_i - a^{\\dagger}_{i})/(1j)
     These Majorana modes can be used to define edge operators B_i and A_{ij}:
         B_i=c_{2i}c_{2i+1},
         A_{ij}=c_{2i}c_{2j}
@@ -308,7 +307,7 @@ def bksf_mapping(fer_op):
     expression for each of those five types. For example, the excitation
     operator term in Hamiltonian when represented in terms of edge operators
     becomes:
-        a_i^{\dagger}a_j+a_j^{\dagger}a_i = (-1j/2)*(A_ij*B_i+B_j*A_ij)
+        a_i^{\\dagger}a_j+a_j^{\\dagger}a_i = (-1j/2)*(A_ij*B_i+B_j*A_ij)
     For the sake of brevity the reader is encouraged to look up the
     expressions of other terms from the code below. The variables for edge
     operators are chosen according to the nomenclature defined above

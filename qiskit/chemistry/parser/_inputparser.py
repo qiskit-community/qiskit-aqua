@@ -143,7 +143,7 @@ class InputParser(BaseParser):
                         if isinstance(v, dict):
                             self._inputdict = json.loads(json.dumps(v))
                             self._load_parser_from_dict()
-                    except:
+                    except Exception:
                         pass
         else:
             self._load_parser_from_dict()
@@ -492,7 +492,7 @@ class InputParser(BaseParser):
         config = {}
         try:
             config = get_chemistry_operator_configuration(operator_name)
-        except:
+        except Exception:
             pass
 
         input_schema = config['input_schema'] if 'input_schema' in config else {}
@@ -592,7 +592,8 @@ class InputParser(BaseParser):
     def section_is_driver(self, section_name):
         section_name = JSONSchema.format_section_name(section_name).lower()
         InputParser._load_driver_names()
-        return section_name in InputParser._DRIVER_NAMES
+        driver_names = InputParser._DRIVER_NAMES if isinstance(InputParser._DRIVER_NAMES, list) else []
+        return section_name in driver_names
 
     def _update_operator_problem(self):
         problem_name = self.get_section_property(JSONSchema.PROBLEM, JSONSchema.NAME)

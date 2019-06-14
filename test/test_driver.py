@@ -18,6 +18,22 @@ import numpy as np
 class TestDriver(object):
     """Common driver tests. For H2 @ 0.735, sto3g"""
 
+    def __init__(self):
+        self.log = None
+        self.qmolecule = None
+
+    def assertAlmostEqual(self, first, second, places=None, msg=None, delta=None):
+        # it will be overriden
+        pass
+
+    def assertEqual(self, first, second, msg=None):
+        # it will be overriden
+        pass
+
+    def assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None):
+        # it will be overriden
+        pass
+
     def test_driver_hf_energy(self):
         self.log.debug('QMolecule HF energy: {}'.format(self.qmolecule.hf_energy))
         self.assertAlmostEqual(self.qmolecule.hf_energy, -1.117, places=3)

@@ -213,7 +213,7 @@ def _parse_atom(val):
     if val is None or len(val) < 1:
         raise QiskitChemistryError('Molecule atom format error: empty')
 
-    parts = re.split('\s+', val)
+    parts = re.split(r'\s+', val)
     if len(parts) != 4:
         raise QiskitChemistryError('Molecule atom format error: ' + val)
 

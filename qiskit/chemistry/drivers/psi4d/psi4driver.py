@@ -119,17 +119,17 @@ class PSI4Driver(BaseDriver):
                     os.remove(run_directory + '/' + local_file)
             try:
                 os.remove('timer.dat')
-            except:
+            except Exception:
                 pass
 
             try:
                 os.remove(input_file)
-            except:
+            except Exception:
                 pass
 
             try:
                 os.remove(output_file)
-            except:
+            except Exception:
                 pass
 
         _q_molecule = QMolecule(molecule.filename)
@@ -150,7 +150,7 @@ class PSI4Driver(BaseDriver):
                                        stdout=subprocess.PIPE, universal_newlines=True)
             stdout, stderr = process.communicate()
             process.wait()
-        except:
+        except Exception:
             if process is not None:
                 process.kill()
 

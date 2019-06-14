@@ -528,33 +528,33 @@ class FermionicOperator(object):
         energy_shift = 0.0
         if np.count_nonzero(self._h2) > 0:
             # First simplify h2 and renormalize original h1
-            for i, j, l, k in itertools.product(range(n_modes_old), repeat=4):
+            for i, j, ll, k in itertools.product(range(n_modes_old), repeat=4):
                 # Untouched terms
-                h2_ijlk = self._h2[i, j, l, k]
+                h2_ijlk = self._h2[i, j, ll, k]
                 if h2_ijlk == 0.0:
                     continue
                 if (i in mode_set_diff and j in mode_set_diff and
-                        l in mode_set_diff and k in mode_set_diff):
+                        ll in mode_set_diff and k in mode_set_diff):
                     h2_new[i - np.where(fermion_mode_array < i)[0].size,
                            j - np.where(fermion_mode_array < j)[0].size,
-                           l - np.where(fermion_mode_array < l)[0].size,
+                           ll - np.where(fermion_mode_array < ll)[0].size,
                            k - np.where(fermion_mode_array < k)[0].size] = h2_ijlk
                 else:
                     if i in fermion_mode_array:
-                        if l not in fermion_mode_array:
+                        if ll not in fermion_mode_array:
                             if i == k and j not in fermion_mode_array:
-                                h1[l, j] -= h2_ijlk
+                                h1[ll, j] -= h2_ijlk
                             elif i == j and k not in fermion_mode_array:
-                                h1[l, k] += h2_ijlk
-                        elif i != l:
-                            if j in fermion_mode_array and i == k and l == j:
+                                h1[ll, k] += h2_ijlk
+                        elif i != ll:
+                            if j in fermion_mode_array and i == k and ll == j:
                                 energy_shift -= h2_ijlk
-                            elif l in fermion_mode_array and i == j and l == k:
+                            elif ll in fermion_mode_array and i == j and ll == k:
                                 energy_shift += h2_ijlk
-                    elif i not in fermion_mode_array and l in fermion_mode_array:
-                        if l == k and j not in fermion_mode_array:
+                    elif i not in fermion_mode_array and ll in fermion_mode_array:
+                        if ll == k and j not in fermion_mode_array:
                             h1[i, j] += h2_ijlk
-                        elif l == j and k not in fermion_mode_array:
+                        elif ll == j and k not in fermion_mode_array:
                             h1[i, k] -= h2_ijlk
 
         # now simplify h1
