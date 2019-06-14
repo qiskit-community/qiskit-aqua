@@ -17,6 +17,8 @@ initial states. An initial state might be used by a variational
 form or in eoh as a trial state to evolve
 """
 
+from qiskit.circuit import Qubit, QuantumRegister
+
 from qiskit.aqua import Pluggable
 from abc import abstractmethod
 
@@ -52,7 +54,7 @@ class InitialState(Pluggable):
             mode (string): `vector` or `circuit`. The `vector` mode produces the vector.
                             While the `circuit` constructs the quantum circuit corresponding that
                             vector.
-            qubits (QuantumRegister): register for circuit construction.
+            qubits (QuantumRegister | list of Qubit): qubits for circuit construction.
 
         Returns:
             QuantumCircuit or numpy.ndarray: statevector.
