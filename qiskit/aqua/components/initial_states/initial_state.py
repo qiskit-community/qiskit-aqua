@@ -46,7 +46,7 @@ class InitialState(Pluggable):
         return cls(**args)
 
     @abstractmethod
-    def construct_circuit(self, mode='circuit', qubits=None):
+    def construct_circuit(self, mode='circuit', register=None):
         """
         Construct the statevector of desired initial state.
 
@@ -54,7 +54,7 @@ class InitialState(Pluggable):
             mode (string): `vector` or `circuit`. The `vector` mode produces the vector.
                             While the `circuit` constructs the quantum circuit corresponding that
                             vector.
-            qubits (QuantumRegister | list of Qubit): qubits for circuit construction.
+            register (QuantumRegister | list of Qubit): qubits for circuit construction.
 
         Returns:
             QuantumCircuit or numpy.ndarray: statevector.

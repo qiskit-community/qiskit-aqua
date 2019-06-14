@@ -84,4 +84,4 @@ class RawFeatureVector(FeatureMap):
         state_vector = np.pad(x, (0, (1 << self.num_qubits) - len(x)), 'constant')
 
         svc = StateVectorCircuit(state_vector)
-        return svc.construct_circuit(qubits=qr)
+        return svc.construct_circuit(register=qr)

@@ -109,7 +109,7 @@ class Grover(QuantumAlgorithm):
         self._oracle = oracle
         self._mct_mode = mct_mode
         self._init_state = init_state if init_state else Custom(len(oracle.variable_register), state='uniform')
-        self._init_state_circuit = self._init_state.construct_circuit(mode='circuit', qubits=oracle.variable_register)
+        self._init_state_circuit = self._init_state.construct_circuit(mode='circuit', register=oracle.variable_register)
         self._init_state_circuit_inverse = self._init_state_circuit.inverse()
 
         self._diffusion_circuit = self._construct_diffusion_circuit()

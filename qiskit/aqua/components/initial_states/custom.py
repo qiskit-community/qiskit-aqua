@@ -101,7 +101,7 @@ class Custom(InitialState):
                 self._state_vector = normalize_vector(state_vector)
                 self._state = None
 
-    def construct_circuit(self, mode='circuit', qubits=None):
+    def construct_circuit(self, mode='circuit', register=None):
         if mode == 'vector':
             if self._state_vector is None:
                 if self._circuit is not None:
@@ -113,27 +113,27 @@ class Custom(InitialState):
                 # create emtpy quantum circuit
                 circuit = QuantumCircuit()
 
-                if qubits is None:
-                    qubits = QuantumRegister(self._num_qubits, name='q')
+                if register is None:
+                    register = QuantumRegister(self._num_qubits, name='q')
 
-                if isinstance(qubits, QuantumRegister):
-                    circuit.add_register(qubits)
-                elif isinstance(qubits, list):
-                    for q in qubits:
+                if isinstance(register, QuantumRegister):
+                    circuit.add_register(register)
+                elif isinstance(register, list):
+                    for q in register:
                         if isinstance(q, Qubit):
                             if not circuit.has_register(q.register):
                                 circuit.add_register(q.register)
                         else:
                             raise AquaError('Unexpected qubit type {}.'.format(type(q)))
                 else:
-                    raise AquaError('Unexpected qubits type {}.'.format(type(qubits)))
+                    raise AquaError('Unexpected register type {}.'.format(type(register)))
 
                 if self._state is None or self._state == 'random':
                     svc = StateVectorCircuit(self._state_vector)
-                    svc.construct_circuit(circuit=circuit, qubits=qubits)
+                    svc.construct_circuit(circuit=circuit, register=register)
                 elif self._state == 'uniform':
                     for i in range(self._num_qubits):
-                        circuit.u2(0.0, np.pi, qubits[i])
+                        circuit.u2(0.0, np.pi, register[i])
                 elif self._state == 'zero':
                     pass
                 else:
@@ -141,4 +141,4 @@ class Custom(InitialState):
                 self._circuit = circuit
             return self._circuit.copy()
         else:
-            raise AquaError('Mode should be either "vector" or "circuit"')
+            raise ValueError('Mode should be either "vector" or "circuit"')

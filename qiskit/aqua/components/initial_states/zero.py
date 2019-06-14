@@ -43,13 +43,13 @@ class Zero(InitialState):
         super().__init__()
         self._num_qubits = num_qubits
 
-    def construct_circuit(self, mode='circuit', qubits=None):
+    def construct_circuit(self, mode='circuit', register=None):
         if mode == 'vector':
             return np.array([1.0] + [0.0] * (np.power(2, self._num_qubits) - 1))
         elif mode == 'circuit':
-            if qubits is None:
-                qubits = QuantumRegister(self._num_qubits, name='q')
-            quantum_circuit = QuantumCircuit(qubits)
+            if register is None:
+                register = QuantumRegister(self._num_qubits, name='q')
+            quantum_circuit = QuantumCircuit(register)
             return quantum_circuit
         else:
             raise ValueError('Mode should be either "vector" or "circuit"')
