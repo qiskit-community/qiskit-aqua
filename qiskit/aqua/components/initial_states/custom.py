@@ -118,6 +118,13 @@ class Custom(InitialState):
 
                 if isinstance(register, QuantumRegister):
                     circuit.add_register(register)
+                elif isinstance(register, list):
+                    for q in register:
+                        if isinstance(q, Qubit):
+                            if not circuit.has_register(q.register):
+                                circuit.add_register(q.register)
+                        else:
+                            raise AquaError('Unexpected qubit type {}.'.format(type(q)))
                 else:
                     raise AquaError('Unexpected register type {}.'.format(type(register)))
 
