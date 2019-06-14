@@ -110,31 +110,28 @@ class Custom(InitialState):
             return self._state_vector
         elif mode == 'circuit':
             if self._circuit is None:
+                # create emtpy quantum circuit
+                circuit = QuantumCircuit()
+
                 if qubits is None:
                     qubits = QuantumRegister(self._num_qubits, name='q')
 
-                # create emtpy quantum circuit
-                circuit = QuantumCircuit()
+                if isinstance(qubits, QuantumRegister):
+                    circuit.add_register(qubits)
+                elif isinstance(qubits, list):
+                    for q in qubits:
+                        if isinstance(q, Qubit):
+                            if not circuit.has_register(q.register):
+                                circuit.add_register(q.register)
+                        else:
+                            raise AquaError('Unexpected qubit type {}.'.format(type(q)))
+                else:
+                    raise AquaError('Unexpected qubits type {}.'.format(type(qubits)))
 
                 if self._state is None or self._state == 'random':
                     svc = StateVectorCircuit(self._state_vector)
                     svc.construct_circuit(circuit=circuit, qubits=qubits)
                 elif self._state == 'uniform':
-                    # in case `qubits` is a list of Qubits
-                    if isinstance(qubits, list):
-                        # loop over all qubits and add the required registers
-                        for q in qubits:
-                            if not isinstance(q, Qubit):
-                                raise AquaError('Unexpected element type {} in qubit list.'.format(type(q)))
-                            if not circuit.has_register(q.register):
-                                circuit.add_register(q.register)
-                    # otherwise, if it is a QuantumRegister
-                    elif isinstance(qubits, QuantumRegister):
-                        if not circuit.has_register(qubits):
-                            circuit.add_register(qubits)
-                    else:
-                        raise AquaError('Unexpected qubits type {}.'.format(type(qubits)))
-
                     for i in range(self._num_qubits):
                         circuit.u2(0.0, np.pi, qubits[i])
                 elif self._state == 'zero':
