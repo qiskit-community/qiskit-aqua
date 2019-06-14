@@ -226,7 +226,9 @@ class BooleanLogicNormalForm(ABC):
         return circuit
 
     def _construct_circuit_for_tiny_expr(self, circuit, output_idx=0):
-        if self._ast == ('const', 1):
+        if self._ast == ('const', 0):
+            pass
+        elif self._ast == ('const', 1):
             circuit.u3(pi, 0, pi, self._output_register[output_idx])
         elif self._ast[0] == 'lit':
             idx = abs(self._ast[1]) - 1
