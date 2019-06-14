@@ -15,6 +15,7 @@
 from qiskit import QuantumRegister, QuantumCircuit
 import numpy as np
 
+from qiskit.aqua import AquaError
 from qiskit.aqua.components.initial_states import InitialState
 
 
@@ -52,4 +53,4 @@ class Zero(InitialState):
             quantum_circuit = QuantumCircuit(register)
             return quantum_circuit
         else:
-            raise ValueError('Mode should be either "vector" or "circuit"')
+            raise AquaError('Mode should be either "vector" or "circuit"')

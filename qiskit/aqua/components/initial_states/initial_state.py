@@ -19,7 +19,7 @@ form or in eoh as a trial state to evolve
 
 from qiskit.circuit import Qubit, QuantumRegister
 
-from qiskit.aqua import Pluggable
+from qiskit.aqua import Pluggable, AquaError
 from abc import abstractmethod
 
 
@@ -60,7 +60,7 @@ class InitialState(Pluggable):
             QuantumCircuit or numpy.ndarray: statevector.
 
         Raises:
-            ValueError: when mode is not 'vector' or 'circuit'.
+            AquaError: when mode is not 'vector' or 'circuit'.
         """
         raise NotImplementedError()
 

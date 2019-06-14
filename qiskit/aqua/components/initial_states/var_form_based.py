@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+from qiskit.aqua import AquaError
+
 
 class VarFormBased:
     """An initial state derived from a variational form.
@@ -45,11 +47,11 @@ class VarFormBased:
             QuantumCircuit or numpy.ndarray: statevector.
 
         Raises:
-            ValueError: when mode is not 'vector' or 'circuit'.
+            AquaError: when mode is not 'vector' or 'circuit'.
         """
         if mode == 'vector':
             raise RuntimeError('Initial state based on variational form does not support vector mode.')
         elif mode == 'circuit':
             return self._var_form.construct_circuit(self._var_form_params, q=register)
         else:
-            raise ValueError('Mode should be either "vector" or "circuit"')
+            raise AquaError('Mode should be either "vector" or "circuit"')

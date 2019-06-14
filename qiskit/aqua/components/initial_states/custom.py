@@ -141,4 +141,4 @@ class Custom(InitialState):
                 self._circuit = circuit
             return self._circuit.copy()
         else:
-            raise ValueError('Mode should be either "vector" or "circuit"')
+            raise AquaError('Mode should be either "vector" or "circuit"')
