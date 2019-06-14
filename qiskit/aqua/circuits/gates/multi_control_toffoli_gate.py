@@ -29,9 +29,15 @@ logger = logging.getLogger(__name__)
 
 def _mct_v_chain(qc, control_qubits, target_qubit, ancillary_qubits, dirty_ancilla=False):
     """
-    Create new MCT circuit by chaining ccx gates into a V shape.
+    Create new MCT circuit by chaining Toffoli gates into a V shape.
 
     The dirty_ancilla mode is from https://arxiv.org/abs/quant-ph/9503016 Lemma 7.2
+
+    All intermediate Toffoli gates are implemented up to a relative phase,
+    see https://arxiv.org/abs/1508.03273
+
+    An additional saving of 4 CNOTs is achieved
+    by using the Toffoli implementation from Section IV.B of https://arxiv.org/abs/1508.03273
     """
 
     if len(ancillary_qubits) < len(control_qubits) - 2:
@@ -39,7 +45,17 @@ def _mct_v_chain(qc, control_qubits, target_qubit, ancillary_qubits, dirty_ancil
 
     if dirty_ancilla:
         anci_idx = len(control_qubits) - 3
-        qc.ccx(control_qubits[len(control_qubits) - 1], ancillary_qubits[anci_idx], target_qubit)
+
+        qc.u2(0, pi, target_qubit)
+        qc.cx(target_qubit, ancillary_qubits[anci_idx])
+        qc.u1(-pi/4, ancillary_qubits[anci_idx])
+        qc.cx(control_qubits[len(control_qubits) - 1], ancillary_qubits[anci_idx])
+        qc.u1(pi/4, ancillary_qubits[anci_idx])
+        qc.cx(target_qubit, ancillary_qubits[anci_idx])
+        qc.u1(-pi/4, ancillary_qubits[anci_idx])
+        qc.cx(control_qubits[len(control_qubits) - 1], ancillary_qubits[anci_idx])
+        qc.u1(pi/4, ancillary_qubits[anci_idx])
+
         for idx in reversed(range(2, len(control_qubits) - 1)):
             qc.rccx(control_qubits[idx], ancillary_qubits[anci_idx - 1], ancillary_qubits[anci_idx])
             anci_idx -= 1
@@ -49,7 +65,20 @@ def _mct_v_chain(qc, control_qubits, target_qubit, ancillary_qubits, dirty_ancil
     for idx in range(2, len(control_qubits) - 1):
         qc.rccx(control_qubits[idx], ancillary_qubits[anci_idx], ancillary_qubits[anci_idx + 1])
         anci_idx += 1
-    qc.ccx(control_qubits[len(control_qubits) - 1], ancillary_qubits[anci_idx], target_qubit)
+
+    if dirty_ancilla:
+        qc.u1(-pi/4, ancillary_qubits[anci_idx])
+        qc.cx(control_qubits[len(control_qubits) - 1], ancillary_qubits[anci_idx])
+        qc.u1(pi/4, ancillary_qubits[anci_idx])
+        qc.cx(target_qubit, ancillary_qubits[anci_idx])
+        qc.u1(-pi/4, ancillary_qubits[anci_idx])
+        qc.cx(control_qubits[len(control_qubits) - 1], ancillary_qubits[anci_idx])
+        qc.u1(pi/4, ancillary_qubits[anci_idx])
+        qc.cx(target_qubit, ancillary_qubits[anci_idx])
+        qc.u2(0, pi, target_qubit)
+    else:
+        qc.ccx(control_qubits[len(control_qubits) - 1], ancillary_qubits[anci_idx], target_qubit)
+
     for idx in reversed(range(2, len(control_qubits) - 1)):
         qc.rccx(control_qubits[idx], ancillary_qubits[anci_idx - 1], ancillary_qubits[anci_idx])
         anci_idx -= 1
