@@ -47,10 +47,12 @@ class BaseDriver(ABC):
     use an exception if a component of the module is available.
 
     """
+
+    CONFIGURATION = None
+
     @abstractmethod
     def __init__(self):
         self.check_driver_valid()
-        # pylint: disable=no-member
         self._configuration = copy.deepcopy(self.CONFIGURATION)
         self._work_path = None
 
@@ -78,7 +80,6 @@ class BaseDriver(ABC):
         pass
 
     def validate(self, args_dict):
-        # pylint: disable=no-member
         schema_dict = self.CONFIGURATION.get('input_schema', None)
         if schema_dict is None:
             return

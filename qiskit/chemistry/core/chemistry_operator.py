@@ -36,13 +36,13 @@ class ChemistryOperator(ABC):
             configuration (dict): configuration dictionary
     """
 
+    CONFIGURATION = None
     INFO_NUM_PARTICLES = 'num_particles'
     INFO_NUM_ORBITALS = 'num_orbitals'
     INFO_TWO_QUBIT_REDUCTION = 'two_qubit_reduction'
 
     @abstractmethod
     def __init__(self):
-        # pylint: disable=no-member
         self._configuration = copy.deepcopy(self.CONFIGURATION)
         self._molecule_info = {}
 
@@ -56,7 +56,6 @@ class ChemistryOperator(ABC):
         pass
 
     def validate(self, args_dict):
-        # pylint: disable=no-member
         schema_dict = self.CONFIGURATION.get('input_schema', None)
         if schema_dict is None:
             return
