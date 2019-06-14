@@ -48,7 +48,11 @@ class TestRYCRX(QiskitAquaTestCase):
         backend = BasicAer.get_backend('statevector_simulator')
         params = {
             'algorithm': {'name': 'VQE'},
-            'variational_form': {'name': 'RYCRX', 'depth': depth},
+            'variational_form': {'name': 'RY',
+                                 'depth': depth,
+                                 'entanglement': 'circular',
+                                 'entanglement_gate': 'crx',
+                                 'skip_final_ry': True},
             'backend': {'shots': 1}
         }
         result = run_algorithm(params, self.algo_input, backend=backend)
