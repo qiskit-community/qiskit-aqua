@@ -102,21 +102,6 @@ class Custom(InitialState):
                 self._state = None
 
     def construct_circuit(self, mode='circuit', qubits=None):
-        """
-        Construct the statevector of desired initial state.
-
-        Args:
-            mode (string): `vector` or `circuit`. The `vector` mode produces the vector.
-                            While the `circuit` constructs the quantum circuit corresponding that
-                            vector.
-            qubits (QuantumRegister | list of Qubit): qubits for circuit construction.
-
-        Returns:
-            QuantumCircuit or numpy.ndarray: statevector.
-
-        Raises:
-            AquaError: when mode is not 'vector' or 'circuit'.
-        """
         if mode == 'vector':
             if self._state_vector is None:
                 if self._circuit is not None:

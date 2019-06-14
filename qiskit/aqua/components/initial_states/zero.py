@@ -44,21 +44,6 @@ class Zero(InitialState):
         self._num_qubits = num_qubits
 
     def construct_circuit(self, mode='circuit', qubits=None):
-        """
-        Construct the statevector of desired initial state.
-
-        Args:
-            mode (string): `vector` or `circuit`. The `vector` mode produces the vector.
-                            While the `circuit` constructs the quantum circuit corresponding that
-                            vector.
-            qubits (QuantumRegister): register for circuit construction.
-
-        Returns:
-            QuantumCircuit or numpy.ndarray: statevector.
-
-        Raises:
-            ValueError: when mode is not 'vector' or 'circuit'.
-        """
         if mode == 'vector':
             return np.array([1.0] + [0.0] * (np.power(2, self._num_qubits) - 1))
         elif mode == 'circuit':
