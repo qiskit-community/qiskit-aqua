@@ -68,6 +68,12 @@ class _SVM_Classical_Multiclass(_SVM_Classical_ABC):
             self.multiclass_classifier.estimators.ret['svm']['bias'] = model_npz['bias_{}'.format(i)]
             self.multiclass_classifier.estimators.ret['svm']['support_vectors'] = model_npz['support_vectors_{}'.format(i)]
             self.multiclass_classifier.estimators.ret['svm']['yin'] = model_npz['yin_{}'.format(i)]
+        try:
+            self.class_to_label = model_npz['class_to_label']
+            self.label_to_class = model_npz['label_to_class']
+        except KeyError as e:
+            logger.warning("The model saved in Aqua 0.5 does not contain the mapping between class names and labels. "
+                           "Please setup them and save the model again for further use. Error: {}".format(str(e)))
 
     def save_model(self, file_path):
         model = {}
@@ -76,4 +82,6 @@ class _SVM_Classical_Multiclass(_SVM_Classical_ABC):
             model['bias_{}'.format(i)] = estimator.ret['svm']['bias']
             model['support_vectors_{}'.format(i)] = estimator.ret['svm']['support_vectors']
             model['yin_{}'.format(i)] = estimator.ret['svm']['yin']
+        model['class_to_label'] = self._qalgo.class_to_label
+        model['label_to_class'] = self._qalgo.label_to_class
         np.savez(file_path, **model)
