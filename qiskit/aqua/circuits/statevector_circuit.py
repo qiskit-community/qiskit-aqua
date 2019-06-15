@@ -15,7 +15,7 @@
 Arbitrary State-Vector Circuit.
 """
 
-from qiskit import QuantumRegister, QuantumCircuit
+from qiskit.circuit import QuantumRegister, QuantumCircuit, Qubit
 
 from qiskit.aqua import AquaError
 from qiskit.aqua.utils.arithmetic import normalize_vector, is_power_of_2, log2
@@ -41,7 +41,7 @@ class StateVectorCircuit:
 
         Args:
             circuit (QuantumCircuit): The optional circuit to extend from.
-            register (QuantumRegister): The optional register to construct the circuit with.
+            register (QuantumRegister | list of Qubit): The optional qubits to construct the circuit with.
 
         Returns:
             QuantumCircuit.
@@ -50,34 +50,34 @@ class StateVectorCircuit:
         if register is None:
             register = QuantumRegister(self._num_qubits, name='q')
 
-        # in case the register is a list of qubits
-        if type(register) is list:
-
+        # in case `register` is a list of Qubits
+        if isinstance(register, list):
             # create empty circuit if necessary
             if circuit is None:
                 circuit = QuantumCircuit()
-
-            # loop over all qubits and add the required registers
+            # loop over all register and add the required registers
             for q in register:
-                if not circuit.has_register(q[0]):
-                    circuit.add_register(q[0])
-
+                if not isinstance(q, Qubit):
+                    raise AquaError('Unexpected element type {} in qubit list.'.format(type(q)))
+                if not circuit.has_register(q.register):
+                    circuit.add_register(q.register)
             # construct state initialization circuit
             temp = QuantumCircuit(*circuit.qregs)
 
-        # otherwise, if it is a real register
-        else:
-            if len(register) < self._num_qubits:
-                raise AquaError('The provided register does not have enough qubits.')
-
+        # otherwise, if it is a QuantumRegister
+        elif isinstance(register, QuantumRegister):
             if circuit is None:
                 circuit = QuantumCircuit(register)
             else:
                 if not circuit.has_register(register):
                     circuit.add_register(register)
-
-            # TODO: add capability to start in the middle of the register
             temp = QuantumCircuit(register)
+
+        else:
+            raise AquaError('Unexpected register type {}.'.format(type(register)))
+
+        if len(register) < self._num_qubits:
+            raise AquaError('Insufficient register are provided for the intended state-vector.')
 
         temp.initialize(self._state_vector, [register[i] for i in range(self._num_qubits)])
         temp = convert_to_basis_gates(temp)

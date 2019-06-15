@@ -15,6 +15,7 @@
 from qiskit import QuantumRegister, QuantumCircuit
 import numpy as np
 
+from qiskit.aqua import AquaError
 from qiskit.aqua.components.initial_states import InitialState
 
 
@@ -43,22 +44,7 @@ class Zero(InitialState):
         super().__init__()
         self._num_qubits = num_qubits
 
-    def construct_circuit(self, mode, register=None):
-        """
-        Construct the statevector of desired initial state.
-
-        Args:
-            mode (string): `vector` or `circuit`. The `vector` mode produces the vector.
-                            While the `circuit` constructs the quantum circuit corresponding that
-                            vector.
-            register (QuantumRegister): register for circuit construction.
-
-        Returns:
-            QuantumCircuit or numpy.ndarray: statevector.
-
-        Raises:
-            ValueError: when mode is not 'vector' or 'circuit'.
-        """
+    def construct_circuit(self, mode='circuit', register=None):
         if mode == 'vector':
             return np.array([1.0] + [0.0] * (np.power(2, self._num_qubits) - 1))
         elif mode == 'circuit':
@@ -67,4 +53,4 @@ class Zero(InitialState):
             quantum_circuit = QuantumCircuit(register)
             return quantum_circuit
         else:
-            raise ValueError('Mode should be either "vector" or "circuit"')
+            raise AquaError('Mode should be either "vector" or "circuit"')
