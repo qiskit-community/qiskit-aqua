@@ -128,11 +128,10 @@ class MaximumLikelihood:
             plt.plot(a_opt, loglik_opt, "g*")
             plt.plot(self._qae, self.loglik_wrapper(self._qae), "ko")
             plt.axvline(x=0.2, color="k", linestyle="--")
-            plt.show()
 
         return val_opt
 
-    def ci(self, alpha, kind="likelihood_ratio"):
+    def ci(self, alpha, kind="likelihood_ratio", debug=False):
         """
         @brief Compute the (1 - alpha) confidence interval (CI) with the method
                specified in `kind`
@@ -195,6 +194,12 @@ class MaximumLikelihood:
                     if cut(locmax) * cut(b) < 0:
                         right = bisect(cut, locmax, b)
                         upper = np.maximum(upper, right)
+
+            if debug:
+                import matplotlib.pyplot as plt
+                plt.axhline(y=thres)
+                plt.plot(lower, self.loglik_wrapper(lower), "ro")
+                plt.plot(upper, self.loglik_wrapper(upper), "ro")
 
             # Put together CI
             ci = np.append(lower, upper)
