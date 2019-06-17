@@ -151,12 +151,12 @@ class TestMCR(QiskitAquaTestCase):
                                   ni in range(num_controls + 1)]))
         for subset in allsubsets:
             control_int = 0
-            phi = np.random.random(1)[0] * pi
+            lam = np.random.random(1)[0] * pi
             qc = QuantumCircuit(o, c)
             for idx in subset:
                 control_int += 2**idx
                 qc.x(c[idx])
-            qc.mcrz(phi, [c[i] for i in range(num_controls)], o[0],
+            qc.mcrz(lam, [c[i] for i in range(num_controls)], o[0],
                     use_basis_gates=use_basis_gates)
             for idx in subset:
                 qc.x(c[idx])
@@ -168,8 +168,8 @@ class TestMCR(QiskitAquaTestCase):
             pos = dim - 2*(control_int+1)
             mat_groundtruth = np.eye(dim, dtype=complex)
             rot_mat = np.array(
-                [[np.exp(-1j * (phi) / 2), 0],
-                [0, np.exp(1j * (phi) / 2)]],
+                [[1, 0],
+                [0, np.exp(1j * lam)]],
                 dtype=complex)
             mat_groundtruth[pos:pos + 2, pos:pos + 2] = rot_mat
             self.assertTrue(np.allclose(mat_mcu, mat_groundtruth))

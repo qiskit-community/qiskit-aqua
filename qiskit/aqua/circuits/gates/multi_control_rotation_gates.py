@@ -171,7 +171,7 @@ def mcry(self, theta, q_controls, q_target, q_ancillae, mode='basic',
         raise AquaError('Unrecognized mode for building MCRY circuit: {}.'.format(mode))
 
 
-def mcrz(self, phi, q_controls, q_target, use_basis_gates=False):
+def mcrz(self, lam, q_controls, q_target, use_basis_gates=False):
     """
     Apply Multiple-Controlled Z rotation gate
 
@@ -203,7 +203,7 @@ def mcrz(self, phi, q_controls, q_target, use_basis_gates=False):
     self._check_dups(all_qubits)
 
     n_c = len(control_qubits)
-    lam_step = phi*(1/(2**(n_c-1)))
+    lam_step = lam*(1/(2**(n_c-1)))
     if n_c == 1:  # cu3
         apply_cu3(self, 0, 0, lam_step, control_qubits[0],
                   target_qubit, use_basis_gates=use_basis_gates)
