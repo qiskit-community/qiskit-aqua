@@ -19,6 +19,7 @@ import numpy as np
 from sklearn.utils import shuffle
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class, AquaError
+from qiskit.aqua.components.feature_maps import FeatureMap
 from qiskit.aqua.utils import get_feature_dimension
 from qiskit.aqua.utils import map_label_to_class_name
 from qiskit.aqua.utils import split_dataset_to_data_and_labels

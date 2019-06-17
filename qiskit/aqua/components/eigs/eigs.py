@@ -15,6 +15,7 @@
 This module contains the definition of a base class for eigenvalue estimators.
 """
 from qiskit.aqua import Pluggable
+from qiskit import QuantumCircuit
 from abc import abstractmethod
 
 

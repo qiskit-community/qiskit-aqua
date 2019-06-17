@@ -15,6 +15,7 @@
 The Custom Circuit-based Quantum Oracle.
 """
 
+from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.aqua import AquaError
 from .oracle import Oracle
 
