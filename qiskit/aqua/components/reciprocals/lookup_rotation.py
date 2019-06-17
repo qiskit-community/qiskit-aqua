@@ -384,12 +384,12 @@ class LookupRotation(Reciprocal):
                     # rotation is happening here
                     # 1. rotate by half angle
                     qc.mcry(theta / 2, [self._workq[0], self._msq[0]],
-                            self._anc[0], 0, mode='noancilla')
+                            self._anc[0], None, mode='noancilla')
                     # 2. mct gate to reverse rotation direction
                     self._set_bit_pattern(subpattern, self._anc[0], offset)
                     # 3. rotate by inverse of halfangle to uncompute / complete
                     qc.mcry(-theta / 2, [self._workq[0], self._msq[0]],
-                            self._anc[0], 0, mode='noancilla')
+                            self._anc[0], None, mode='noancilla')
                     # 4. mct gate to uncompute first mct gate
                     self._set_bit_pattern(subpattern, self._anc[0], offset)
                 # uncompute m-bit pattern
