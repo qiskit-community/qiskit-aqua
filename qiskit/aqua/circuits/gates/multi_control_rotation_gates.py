@@ -101,11 +101,11 @@ def mcrx(self, theta, q_controls, q_target, use_basis_gates=False):
     self._check_dups(all_qubits)
 
     n_c = len(control_qubits)
-    theta_step = theta*(1/(2**(n_c-1)))
     if n_c == 1:  # cu3
-        apply_cu3(self, theta_step, -pi/2, pi/2, control_qubits[0],
+        apply_cu3(self, theta, -pi/2, pi/2, control_qubits[0],
                   target_qubit, use_basis_gates=use_basis_gates)
     else:
+        theta_step = theta * (1 / (2 ** (n_c - 1)))
         _apply_mcu3_graycode(self, theta_step, -pi/2, pi/2, control_qubits,
                              target_qubit, use_basis_gates=use_basis_gates)
 
@@ -160,11 +160,11 @@ def mcry(self, theta, q_controls, q_target, q_ancillae, mode='basic',
         self.mct(q_controls, q_target, q_ancillae)
     elif mode == 'noancilla':
         n_c = len(control_qubits)
-        theta_step = theta*(1/(2**(n_c-1)))
         if n_c == 1:  # cu3
-            apply_cu3(self, theta_step, 0, 0, control_qubits[0],
+            apply_cu3(self, theta, 0, 0, control_qubits[0],
                       target_qubit, use_basis_gates=use_basis_gates)
         else:
+            theta_step = theta * (1 / (2 ** (n_c - 1)))
             _apply_mcu3_graycode(self, theta_step, 0, 0, control_qubits,
                                  target_qubit, use_basis_gates=use_basis_gates)
     else:
@@ -203,11 +203,11 @@ def mcrz(self, lam, q_controls, q_target, use_basis_gates=False):
     self._check_dups(all_qubits)
 
     n_c = len(control_qubits)
-    lam_step = lam*(1/(2**(n_c-1)))
     if n_c == 1:  # cu3
-        apply_cu3(self, 0, 0, lam_step, control_qubits[0],
+        apply_cu3(self, 0, 0, lam, control_qubits[0],
                   target_qubit, use_basis_gates=use_basis_gates)
     else:
+        lam_step = lam * (1 / (2 ** (n_c - 1)))
         _apply_mcu3_graycode(self, 0, 0, lam_step, control_qubits,
                              target_qubit, use_basis_gates=use_basis_gates)
 
