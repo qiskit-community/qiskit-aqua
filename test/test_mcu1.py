@@ -37,13 +37,14 @@ class TestMCU1(QiskitAquaTestCase):
         allsubsets = list(chain(*[combinations(range(num_controls), ni) for ni in range(num_controls + 1)]))
         for subset in allsubsets:
             control_int = 0
+            lam = np.random.random(1)[0] * pi
             qc = QuantumCircuit(o, c)
             for idx in subset:
                 control_int += 2**idx
                 qc.x(c[idx])
             qc.h(o[0])
             qc.mcu1(
-                pi,
+                lam,
                 [c[i] for i in range(num_controls)],
                 o[0]
             )
@@ -55,8 +56,10 @@ class TestMCU1(QiskitAquaTestCase):
 
             dim = 2**(num_controls+1)
             pos = dim - 2*(control_int+1)
-            mat_groundtruth = np.eye(dim)
-            mat_groundtruth[pos:pos+2, pos:pos+2] = [[0, 1], [1, 0]]
+            mat_groundtruth = np.eye(dim, dtype=complex)
+            d = np.exp(1.j*lam)
+            mat_groundtruth[pos:pos+2, pos:pos+2] = [[(1+d)/2, (1-d)/2],
+                                                     [(1-d)/2, (1+d)/2]]
             self.assertTrue(np.allclose(mat_mcu, mat_groundtruth))
 
 
