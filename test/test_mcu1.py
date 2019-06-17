@@ -16,12 +16,12 @@ import unittest
 from itertools import combinations, chain
 import numpy as np
 from math import pi
-
 from parameterized import parameterized
+
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit import execute
-
 from qiskit import BasicAer
+
 from test.common import QiskitAquaTestCase
 
 nums_controls = [[i + 1] for i in range(6)]
