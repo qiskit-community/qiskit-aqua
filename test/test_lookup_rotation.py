@@ -23,17 +23,16 @@ from qiskit import BasicAer
 import numpy as np
 from qiskit.quantum_info import state_fidelity, basis_state
 
+
 class TestLookupRotation(QiskitAquaTestCase):
     """Lookup Rotation tests."""
-
-    #def setUp(self):
 
     @parameterized.expand([[3, 1/2], [5, 1/4], [7, 1/8], [9, 1/16], [11, 1/32]])
     def test_lookup_rotation(self, reg_size, ref_rot):
         self.log.debug('Testing Lookup Rotation with positive eigenvalues')
 
         ref_sv_ampl = ref_rot**2
-        ref_size = reg_size + 3 # add work, msq and anc qubits
+        ref_size = reg_size + 3  # add work, msq and anc qubits
         ref_dim = 2**ref_size
         ref_sv = np.zeros(ref_dim, dtype=complex)
         ref_sv[int(ref_dim/2)+1] = ref_sv_ampl+0j
@@ -57,7 +56,7 @@ class TestLookupRotation(QiskitAquaTestCase):
                        'eigenvalues')
 
         ref_sv_ampl = ref_rot**2
-        ref_size = reg_size + 3 # add work, msq and anc qubits
+        ref_size = reg_size + 3  # add work, msq and anc qubits
         ref_dim = 2**ref_size
         ref_sv = np.zeros(ref_dim, dtype=complex)
         ref_sv[int(ref_dim/2)+1] = -ref_sv_ampl+0j

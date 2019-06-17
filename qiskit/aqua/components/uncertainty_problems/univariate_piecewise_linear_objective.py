@@ -159,4 +159,3 @@ class UnivariatePiecewiseLinearObjective(CircuitFactory):
 
         # apply piecewise linear rotation
         self._pwl_ry.build(qc, q_state + [q_objective], q_ancillas)
-

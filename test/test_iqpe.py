@@ -32,8 +32,8 @@ from qiskit.aqua.components.initial_states import Custom
 X = np.array([[0, 1], [1, 0]])
 Y = np.array([[0, -1j], [1j, 0]])
 Z = np.array([[1, 0], [0, -1]])
-I = np.array([[1, 0], [0, 1]])
-h1 = X + Y + Z + I
+_I = np.array([[1, 0], [0, 1]])
+h1 = X + Y + Z + _I
 qubitOp_simple = Operator(matrix=h1)
 
 

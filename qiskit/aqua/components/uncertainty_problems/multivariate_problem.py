@@ -11,6 +11,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
 from qiskit.aqua.components.uncertainty_problems import UncertaintyProblem
 from qiskit.aqua.circuits.gates import mct
 import numpy as np
