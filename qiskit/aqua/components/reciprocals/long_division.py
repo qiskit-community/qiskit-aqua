@@ -15,6 +15,7 @@
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.aqua.components.reciprocals import Reciprocal
+from qiskit.aqua.circuits.gates import mct
 
 
 class LongDivision(Reciprocal):
