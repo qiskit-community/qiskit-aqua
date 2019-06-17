@@ -28,7 +28,7 @@ from qiskit.aqua import AquaError
 logger = logging.getLogger(__name__)
 
 
-def _apply_mcu3_graycode(circuit, theta, phi, lam, ctls, tgt):
+def _apply_mcu3_graycode(circuit, theta, phi, lam, ctls, tgt, use_basis_gates):
     """Apply multi-controlled u3 gate from ctls to tgt using graycode
     pattern with single-step angles theta, phi, lam."""
 
@@ -62,14 +62,14 @@ def _apply_mcu3_graycode(circuit, theta, phi, lam, ctls, tgt):
         if pattern.count('1') % 2 == 0:
             # inverse CU3: u3(theta, phi, lamb)^dagger = u3(-theta, -lam, -phi)
             apply_cu3(circuit, -theta, -lam, -phi, ctls[lm_pos], tgt,
-                      use_basis_gates=False)
+                      use_basis_gates=use_basis_gates)
         else:
             apply_cu3(circuit, theta, phi, lam, ctls[lm_pos], tgt,
-                      use_basis_gates=False)
+                      use_basis_gates=use_basis_gates)
         last_pattern = pattern
 
 
-def mcrx(self, theta, q_controls, q_target):
+def mcrx(self, theta, q_controls, q_target, use_basis_gates=False):
     """
     Apply Multiple-Controlled X rotation gate
 
@@ -104,13 +104,14 @@ def mcrx(self, theta, q_controls, q_target):
     theta_step = theta*(1/(2**(n_c-1)))
     if n_c == 1:  # cu3
         apply_cu3(self, theta_step, -pi/2, pi/2, control_qubits[0],
-                  target_qubit, use_basis_gates=False)
+                  target_qubit, use_basis_gates=use_basis_gates)
     else:
         _apply_mcu3_graycode(self, theta_step, -pi/2, pi/2, control_qubits,
-                             target_qubit)
+                             target_qubit, use_basis_gates=use_basis_gates)
 
 
-def mcry(self, theta, q_controls, q_target, q_ancillae, mode='basic'):
+def mcry(self, theta, q_controls, q_target, q_ancillae, mode='basic',
+         use_basis_gates=False):
     """
     Apply Multiple-Controlled Y rotation gate
 
@@ -162,15 +163,15 @@ def mcry(self, theta, q_controls, q_target, q_ancillae, mode='basic'):
         theta_step = theta*(1/(2**(n_c-1)))
         if n_c == 1:  # cu3
             apply_cu3(self, theta_step, 0, 0, control_qubits[0],
-                      target_qubit, use_basis_gates=False)
+                      target_qubit, use_basis_gates=use_basis_gates)
         else:
             _apply_mcu3_graycode(self, theta_step, 0, 0, control_qubits,
-                                 target_qubit)
+                                 target_qubit, use_basis_gates=use_basis_gates)
     else:
         raise AquaError('Unrecognized mode for building MCRY circuit: {}.'.format(mode))
 
 
-def mcrz(self, phi, q_controls, q_target):
+def mcrz(self, phi, q_controls, q_target, use_basis_gates=False):
     """
     Apply Multiple-Controlled Z rotation gate
 
@@ -205,10 +206,10 @@ def mcrz(self, phi, q_controls, q_target):
     lam_step = phi*(1/(2**(n_c-1)))
     if n_c == 1:  # cu3
         apply_cu3(self, 0, 0, lam_step, control_qubits[0],
-                  target_qubit, use_basis_gates=False)
+                  target_qubit, use_basis_gates=use_basis_gates)
     else:
         _apply_mcu3_graycode(self, 0, 0, lam_step, control_qubits,
-                             target_qubit)
+                             target_qubit, use_basis_gates=use_basis_gates)
 
 
 QuantumCircuit.mcrx = mcrx
