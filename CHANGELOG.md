@@ -23,6 +23,15 @@ Added
 
 -   Relative-Phase Toffoli gates `rccx` (with 2 controls) and `rcccx`
     (with 3 controls).
+-   Multi-controlled rotation gates `mcrx`, `mcry`, and `mcrz` as a general 
+    `u3` gate is not supported by graycode implementation of multi-controlled
+     rotation gates
+
+Removed
+-------
+
+-   General multi-controlled rotation gate `mcu3` is replaced by 
+    multi-controlled rotation gates `mcrx`, `mcry`, and `mcrz` 
 
 [0.5.1](https://github.com/Qiskit/qiskit-aqua/compare/0.5.0...0.5.1) - 2019-05-24
 =================================================================================
