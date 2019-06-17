@@ -38,12 +38,12 @@ def cry(self, theta, q_control, q_target):
 
     if not isinstance(q_control, Qubit):
         raise AquaError('A qubit is expected for the control.')
-    if not self.has_register(q_control[0]):
+    if not self.has_register(q_control.register):
         raise AquaError('The control qubit is expected to be part of the circuit.')
 
     if not isinstance(q_target, Qubit):
         raise AquaError('A qubit is expected for the target.')
-    if not self.has_register(q_target[0]):
+    if not self.has_register(q_target.register):
         raise AquaError('The target qubit is expected to be part of the circuit.')
 
     if q_control == q_target:

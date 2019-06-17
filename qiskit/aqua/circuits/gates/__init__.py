@@ -19,6 +19,7 @@ from .multi_control_multi_target_gate import mcmt
 from .boolean_logical_gates import logical_and, logical_or
 from .controlled_hadamard_gate import ch
 from .controlled_ry_gate import cry
+from .relative_phase_toffoli import rccx, rcccx
 
 __all__ = [
     'mcu1',
@@ -30,5 +31,7 @@ __all__ = [
     'logical_and',
     'logical_or',
     'ch',
-    'cry'
+    'cry',
+    'rccx',
+    'rcccx'
 ]
