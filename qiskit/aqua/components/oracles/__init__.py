@@ -16,6 +16,7 @@ from .oracle import Oracle
 from .truth_table_oracle import TruthTableOracle
 from .logical_expression_oracle import LogicalExpressionOracle
 from .custom_circuit_oracle import CustomCircuitOracle
+from .grover_utils import FunctionInversionOracle
 
 
 __all__ = [
@@ -23,4 +24,5 @@ __all__ = [
     'TruthTableOracle',
     'LogicalExpressionOracle',
     'CustomCircuitOracle',
+    'FunctionInversionOracle'
 ]
