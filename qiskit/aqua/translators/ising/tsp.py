@@ -93,7 +93,7 @@ def parse_tsplib_format(filename):
 
     """
     name = ''
-    coord = None
+    coord = []
     with open(filename) as infile:
         coord_section = False
         for line in infile:

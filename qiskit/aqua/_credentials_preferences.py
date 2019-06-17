@@ -33,7 +33,7 @@ class CredentialsPreferences(object):
             self._credentials = read_credentials_from_qiskitrc()
             if self._credentials is None:
                 self._credentials = OrderedDict()
-        except:
+        except Exception:
             self._credentials = OrderedDict()
 
         credentials = list(self._credentials.values())
@@ -47,7 +47,7 @@ class CredentialsPreferences(object):
                 if dict is not None:
                     for credentials in dict.values():
                         remove_credentials(credentials)
-            except:
+            except Exception:
                 self._credentials = OrderedDict()
 
             for credentials in self._credentials.values():

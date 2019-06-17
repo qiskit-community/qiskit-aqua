@@ -56,7 +56,7 @@ def get_portfolio_qubitops(mu, sigma, q, budget, penalty):
     E = np.matmul(np.asmatrix(e).T, np.asmatrix(e))
 
     # map problem to Ising model
-    offset = - np.dot(mu, e)/2 + penalty*budget**2 - budget*n*penalty + n**2*penalty/4 + q/4*np.dot(e, np.dot(sigma, e))
+    offset = -1*np.dot(mu, e)/2 + penalty*budget**2 - budget*n*penalty + n**2*penalty/4 + q/4*np.dot(e, np.dot(sigma, e))
     mu_z = mu/2 + budget*penalty*e - n*penalty/2*e - q/2*np.dot(sigma, e)
     sigma_z = penalty/4*E + q/4*sigma
 
