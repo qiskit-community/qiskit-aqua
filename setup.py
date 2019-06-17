@@ -25,9 +25,9 @@ long_description = """<a href="https://qiskit.org/aqua" rel=nofollow>Qiskit Aqua
  Qiskit Aqua Artificial Intelligence, and Qiskit Aqua Optimization to experiment with real-world applications to quantum computing."""
 
 requirements = [
-    "qiskit-terra>=0.8.0,<0.9",
-    "qiskit-ignis>=0.1.0,<0.2",
-    "scipy>=0.19,!=0.19.1",
+    "qiskit-terra>=0.9.0,<0.10.0",
+    "qiskit-ignis>=0.2.0,<0.3.0",
+    "scipy>=1.0",
     "sympy>=1.3",
     "numpy>=1.13",
     "psutil>=5",
@@ -40,7 +40,6 @@ requirements = [
     "fastdtw",
     "quandl",
     "setuptools>=40.1.0",
-    "torch; sys_platform != 'win32'"
 ]
 
 if not hasattr(setuptools, 'find_namespace_packages') or not inspect.ismethod(setuptools.find_namespace_packages):
@@ -79,4 +78,7 @@ setuptools.setup(
     install_requires=requirements,
     include_package_data=True,
     python_requires=">=3.5",
+    extras_require={
+        'torch': ["torch; sys_platform != 'win32'"]
+    }
 )

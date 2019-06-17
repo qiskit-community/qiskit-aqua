@@ -33,7 +33,7 @@ class PhaseEstimationCircuit:
             num_ancillae=1,
             expansion_mode='trotter',
             expansion_order=1,
-            evo_time=2*np.pi,
+            evo_time=2 * np.pi,
             state_in_circuit_factory=None,
             unitary_circuit_factory=None,
             shallow_circuit_concat=False,

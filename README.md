@@ -27,11 +27,11 @@ Qiskit Aqua is part of the Qiskit software framework.  We encourage installing Q
 pip install qiskit
 ```
 
-pip will handle all dependencies automatically for you, including the other Qiskit elements on which
+pip will handle all dependencies automatically for you, including the other Qiskit elements upon which
 Aqua is built, such as [Qiskit Terra](https://github.com/Qiskit/qiskit-terra/),
 and you will always install the latest (and well-tested) version.
 
-To install from source, follow the instructions in the [contribution guidelines](.github/CONTRIBUTING.rst).
+To install from source, follow the instructions in the [contribution guidelines](./CONTRIBUTING.md).
 
 Please note that one of Aqua's dependencies, [PyEDA](https://pyeda.readthedocs.io/en/latest/),
 which is used in Aqua's
@@ -99,7 +99,7 @@ for more details.
 ## Contribution Guidelines
 
 If you'd like to contribute to Qiskit, please take a look at our
-[contribution guidelines](.github/CONTRIBUTING.rst). This project adheres to Qiskit's [code of conduct](.github/CODE_OF_CONDUCT.rst). By participating, you are expected to uphold to this code.
+[contribution guidelines](./CONTRIBUTING.md). This project adheres to Qiskit's [code of conduct](./CODE_OF_CONDUCT.md). By participating, you are expected to uphold to this code.
 
 We use [GitHub issues](https://github.com/Qiskit/qiskit-aqua/issues) for tracking requests and bugs. Please
 [join the Qiskit Slack community](https://join.slack.com/t/qiskit/shared_invite/enQtNDc2NjUzMjE4Mzc0LTMwZmE0YTM4ZThiNGJmODkzN2Y2NTNlMDIwYWNjYzA2ZmM1YTRlZGQ3OGM0NjcwMjZkZGE0MTA4MGQ1ZTVmYzk)

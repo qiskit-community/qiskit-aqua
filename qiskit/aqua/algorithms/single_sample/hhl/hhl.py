@@ -382,7 +382,7 @@ class HHL(QuantumAlgorithm):
         results_noanc = self._tomo_postselect(results)
         tomo_data = StateTomographyFitter(results_noanc, tomo_circuits_noanc)
         rho_fit = tomo_data.fit()
-        vec = np.diag(rho_fit) / np.sqrt(sum(np.diag(rho_fit) ** 2))
+        vec = np.sqrt(np.diag(rho_fit))
         self._hhl_results(vec)
 
     def _tomo_postselect(self, results):

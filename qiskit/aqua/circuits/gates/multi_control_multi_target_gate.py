@@ -17,7 +17,10 @@ Multiple-Control, Multiple-Target Gate.
 
 import logging
 
-from qiskit import QuantumCircuit, QuantumRegister
+from qiskit.circuit import Gate
+from qiskit.circuit import QuantumCircuit
+from qiskit.circuit import QuantumRegister
+from qiskit.circuit import Qubit
 
 from qiskit.aqua import AquaError
 
@@ -75,13 +78,15 @@ def mcmt(self,
     """
     Apply a Multi-Control, Multi-Target using a generic gate.
     It can also be used to implement a generic Multi-Control gate, as the target could also be of length 1.
-    Args:
 
-        q_controls: The list of control qubits
-        q_ancillae: The list of ancillary qubits
-        single_control_gate_fun: The single control gate function (e.g QuantumCircuit.cz or QuantumCircuit.ch)
-        q_targets: A list of qubits or a QuantumRegister to which the gate function should be applied.
-        mode (string): The implementation mode to use (at the moment, only the basic mode is supported)
+    Args:
+        self (QuantumCircuit): The QuantumCircuit object to apply the mcmt gate on.
+        q_controls (QuantumRegister | list of Qubit): The list of control qubits
+        q_ancillae (QuantumRegister | list of Qubit): The list of ancillary qubits
+        single_control_gate_fun (Gate): The single control gate function (e.g QuantumCircuit.cz or QuantumCircuit.ch)
+        q_targets (QuantumRegister | list of Qubit): A list of qubits or a QuantumRegister
+            to which the gate function should be applied.
+        mode (str): The implementation mode to use (at the moment, only the basic mode is supported)
 
     """
     # check controls
@@ -90,8 +95,7 @@ def mcmt(self,
     elif isinstance(q_controls, list):
         control_qubits = q_controls
     else:
-        raise AquaError(
-            'MCT needs a list of qubits or a quantum register for controls.')
+        raise AquaError('MCT needs a list of qubits or a quantum register for controls.')
 
     # check target
     if isinstance(q_targets, QuantumRegister):
@@ -99,8 +103,7 @@ def mcmt(self,
     elif isinstance(q_targets, list):
         target_qubits = q_targets
     else:
-        raise AquaError(
-            'MCT needs a list of qubits or a quantum register for targets.')
+        raise AquaError('MCT needs a list of qubits or a quantum register for targets.')
 
     # check ancilla
     if q_ancillae is None:
@@ -110,9 +113,7 @@ def mcmt(self,
     elif isinstance(q_ancillae, list):
         ancillary_qubits = q_ancillae
     else:
-        raise AquaError(
-            'MCT needs None or a list of qubits or a quantum register for ancilla.'
-        )
+        raise AquaError('MCT needs None or a list of qubits or a quantum register for ancilla.')
 
     all_qubits = control_qubits + target_qubits + ancillary_qubits
 

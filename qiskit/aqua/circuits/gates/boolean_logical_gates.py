@@ -18,7 +18,7 @@ The Boolean Logical AND and OR Gates.
 import logging
 import numpy as np
 
-from qiskit import QuantumCircuit, QuantumRegister
+from qiskit.circuit import QuantumCircuit, QuantumRegister, Qubit
 from qiskit.qasm import pi
 
 from qiskit.aqua import AquaError
@@ -66,7 +66,7 @@ def _do_checks(flags, qr_variables, qb_target, qr_ancillae, circuit):
         raise ValueError('A QuantumRegister or list of qubits is expected for variables.')
 
     # check target
-    if isinstance(qb_target, tuple):
+    if isinstance(qb_target, Qubit):
         target_qubit = qb_target
     else:
         raise ValueError('A single qubit is expected for the target.')
@@ -96,8 +96,8 @@ def logical_and(self, qr_variables, qb_target, qr_ancillae, flags=None, mct_mode
     Args:
         self (QuantumCircuit): The QuantumCircuit object to build the conjunction on.
         variable_register (QuantumRegister): The QuantumRegister holding the variable qubits.
-        flags (list): A list of +1/-1/0 to mark negations or omissions of qubits.
-        target_qubit (tuple(QuantumRegister, int)): The target qubit to hold the conjunction result.
+        flags (list of int): A list of +1/-1/0 to mark negations or omissions of qubits.
+        target_qubit (Qubit): The target qubit to hold the conjunction result.
         ancillary_register (QuantumRegister): The ancillary QuantumRegister for building the mct.
         mct_mode (str): The mct building mode.
     """
@@ -112,8 +112,8 @@ def logical_or(self, qr_variables, qb_target, qr_ancillae, flags=None, mct_mode=
     Args:
         self (QuantumCircuit): The QuantumCircuit object to build the disjunction on.
         qr_variables (QuantumRegister): The QuantumRegister holding the variable qubits.
-        flags (list): A list of +1/-1/0 to mark negations or omissions of qubits.
-        qb_target (tuple(QuantumRegister, int)): The target qubit to hold the disjunction result.
+        flags (list of int): A list of +1/-1/0 to mark negations or omissions of qubits.
+        qb_target (Qubit): The target qubit to hold the disjunction result.
         qr_ancillae (QuantumRegister): The ancillary QuantumRegister for building the mct.
         mct_mode (str): The mct building mode.
     """

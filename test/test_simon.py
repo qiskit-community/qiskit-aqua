@@ -34,6 +34,8 @@ simulators = ['statevector_simulator', 'qasm_simulator']
 
 
 class TestSimon(QiskitAquaTestCase):
+
+    # TODO disable for now due to error
     @parameterized.expand(
         itertools.product(bitmaps, mct_modes, optimizations, simulators)
     )

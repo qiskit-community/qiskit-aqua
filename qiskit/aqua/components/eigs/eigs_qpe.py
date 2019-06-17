@@ -45,11 +45,9 @@ class EigsQPE(Eigenvalues):
                 'expansion_mode': {
                     'type': 'string',
                     'default': 'trotter',
-                    'oneOf': [
-                        {'enum': [
-                            'suzuki',
-                            'trotter'
-                        ]}
+                    'enum': [
+                        'suzuki',
+                        'trotter'
                     ]
                 },
                 'expansion_order': {
