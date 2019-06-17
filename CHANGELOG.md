@@ -23,14 +23,28 @@ Added
 
 -   Relative-Phase Toffoli gates `rccx` (with 2 controls) and `rcccx`
     (with 3 controls).
+-   A new `'basic-no-ancilla'` mode to `mct`.
 -   Multi-controlled rotation gates `mcrx`, `mcry`, and `mcrz` as a general 
-    `u3` gate is not supported by graycode implementation of multi-controlled
-     rotation gates
+    `u3` gate is not supported by graycode implementation
+
+Changed
+-------
+
+-   Improve `mct`'s `'basic'` mode by using relative-phase Toffoli gates to build intermediate results.
+-   Adapt to Qiskit Terra's newly introduced `Qubit` class.
+-   Prevent `QPE/IQPE` from modifying input `Operator`s.
+
+Fixed
+-------
+
+-   A bug where `TruthTableOracle` would build incorrect circuits for truth tables with only a single `1` value. 
+-   A bug caused by `PyEDA`'s indeterminism.
+-   A bug with `QPE/IQPE`'s translation and stretch computation.
 
 Removed
 -------
 
--   General multi-controlled rotation gate `mcu3` is replaced by 
+-   General multi-controlled rotation gate `mcu3` is removed and replaced by 
     multi-controlled rotation gates `mcrx`, `mcry`, and `mcrz` 
 
 [0.5.1](https://github.com/Qiskit/qiskit-aqua/compare/0.5.0...0.5.1) - 2019-05-24
