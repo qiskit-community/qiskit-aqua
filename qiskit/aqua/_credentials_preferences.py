@@ -14,6 +14,7 @@
 
 import copy
 from collections import OrderedDict
+# pylint: disable=no-name-in-module, import-error
 from qiskit.providers.ibmq.ibmqprovider import QE_URL
 from qiskit.providers.ibmq.credentials import (read_credentials_from_qiskitrc,
                                                store_credentials,
