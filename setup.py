@@ -28,7 +28,7 @@ requirements = [
     "psutil>=5",
     "jsonschema>=2.6,<2.7",
     "networkx>=2.2",
-    "pyscf; sys_platform != 'win32'",
+    "pyscf!=1.6.2; sys_platform != 'win32'",
     "setuptools>=40.1.0"
 ]
 
