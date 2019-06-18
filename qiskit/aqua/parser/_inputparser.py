@@ -189,7 +189,7 @@ class InputParser(BaseParser):
         config = {}
         try:
             config = get_pluggable_configuration(PluggableType.INPUT, input_name)
-        except:
+        except Exception:
             pass
 
         input_schema = config['input_schema'] if 'input_schema' in config else {}

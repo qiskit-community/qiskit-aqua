@@ -45,8 +45,8 @@ class TestVQC(QiskitAquaTestCase):
 
         self.ref_opt_params = np.array([10.03814083, -12.22048954, -7.58026833, -2.42392954,
                                         12.91555293, 13.44064652, -2.89951454, -10.20639406,
-                                        0.81414546, -1.00551752, -4.7988307, 14.00831419 ,
-                                        8.26008064, -7.07543736, 11.43368677 ,-5.74857438])
+                                        0.81414546, -1.00551752, -4.7988307, 14.00831419,
+                                        8.26008064, -7.07543736, 11.43368677, -5.74857438])
         self.ref_train_loss = 0.69366523
         self.ref_prediction_a_probs = [[0.79882812, 0.20117188]]
         self.ref_prediction_a_label = [0]
@@ -184,7 +184,7 @@ class TestVQC(QiskitAquaTestCase):
         if os.path.exists(file_path):
             try:
                 os.remove(file_path)
-            except:
+            except Exception:
                 pass
 
     def test_vqc_callback(self):
@@ -339,14 +339,14 @@ def ad_hoc_data(training_size, test_size, n, gap):
 
     sample_Total = [[[0 for x in range(N)] for y in range(N)] for z in range(N)]
 
-    interactions = np.transpose(np.array([[1, 0], [0, 1], [1, 1]]))
+    # interactions = np.transpose(np.array([[1, 0], [0, 1], [1, 1]]))
 
     steps = 2 * np.pi / N
 
-    sx = np.array([[0, 1], [1, 0]])
-    X = np.asmatrix(sx)
-    sy = np.array([[0, -1j], [1j, 0]])
-    Y = np.asmatrix(sy)
+    # sx = np.array([[0, 1], [1, 0]])
+    # X = np.asmatrix(sx)
+    # sy = np.array([[0, -1j], [1j, 0]])
+    # Y = np.asmatrix(sy)
     sz = np.array([[1, 0], [0, -1]])
     Z = np.asmatrix(sz)
     J = np.array([[1, 0], [0, 1]])
@@ -373,7 +373,7 @@ def ad_hoc_data(training_size, test_size, n, gap):
     # Define decision functions
     maj = (-1) ** (2 * my_array.sum(axis=0) > n)
     parity = (-1) ** (my_array.sum(axis=0))
-    dict1 = (-1) ** (my_array[0])
+    # dict1 = (-1) ** (my_array[0])
     if n == 2:
         D = np.diag(parity)
     elif n == 3:
@@ -404,6 +404,7 @@ def ad_hoc_data(training_size, test_size, n, gap):
                 x1 = steps * n1
                 x2 = steps * n2
                 phi = x1 * np.kron(Z, J) + x2 * np.kron(J, Z) + (np.pi-x1) * (np.pi-x2) * np.kron(Z, Z)
+                # pylint: disable=no-member
                 Uu = scipy.linalg.expm(1j * phi)
                 psi = np.asmatrix(Uu) * H2 * np.asmatrix(Uu) * np.transpose(psi_0)
                 temp = np.asscalar(np.real(psi.getH() * M * psi))
@@ -456,11 +457,12 @@ def ad_hoc_data(training_size, test_size, n, gap):
                     x2 = steps * n2
                     x3 = steps * n3
                     phi = x1 * np.kron(np.kron(Z, J), J) + \
-                          x2 * np.kron(np.kron(J, Z), J) + \
-                          x3 * np.kron(np.kron(J, J), Z) + \
-                          (np.pi - x1) * (np.pi - x2) * np.kron(np.kron(Z, Z), J) + \
-                          (np.pi - x2) * (np.pi - x3) * np.kron(np.kron(J, Z), Z) + \
-                          (np.pi - x1) * (np.pi - x3) * np.kron(np.kron(Z, J), Z)
+                        x2 * np.kron(np.kron(J, Z), J) + \
+                        x3 * np.kron(np.kron(J, J), Z) + \
+                        (np.pi - x1) * (np.pi - x2) * np.kron(np.kron(Z, Z), J) + \
+                        (np.pi - x2) * (np.pi - x3) * np.kron(np.kron(J, Z), Z) + \
+                        (np.pi - x1) * (np.pi - x3) * np.kron(np.kron(Z, J), Z)
+                    # pylint: disable=no-member
                     Uu = scipy.linalg.expm(1j * phi)
                     psi = np.asmatrix(Uu) * H3 * np.asmatrix(Uu) * np.transpose(psi_0)
                     temp = np.asscalar(np.real(psi.getH() * M * psi))

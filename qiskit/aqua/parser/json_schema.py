@@ -566,7 +566,7 @@ class JSONSchema(object):
         try:
             if pluggable_type is not None and pluggable_name is not None:
                 config = get_pluggable_configuration(pluggable_type, pluggable_name)
-        except:
+        except Exception:
             pass
 
         input_schema = config.get('input_schema', {})
@@ -702,7 +702,7 @@ class JSONSchema(object):
                 v = json.loads(json.dumps(v))
 
             return v
-        except:
+        except Exception:
             return value
 
     @staticmethod
@@ -745,7 +745,7 @@ class JSONSchema(object):
                     return int(value), True
                 else:
                     return float(value), True
-            except:
+            except Exception:
                 value = 0
 
         return value, False

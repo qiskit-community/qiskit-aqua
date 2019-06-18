@@ -123,6 +123,7 @@ def parse_gset_format(filename):
     w += w.T
     return w
 
+
 def stable_set_value(x, w):
     """Compute the value of a stable set, and its feasibility.
 
@@ -145,6 +146,7 @@ def stable_set_value(x, w):
                 break
     return len(x) - np.sum(x), feasible
 
+
 def get_graph_solution(x):
     """Get graph solution from binary string.
 
@@ -155,6 +157,7 @@ def get_graph_solution(x):
         numpy.ndarray: graph solution as binary numpy array.
     """
     return 1 - x
+
 
 def sample_most_likely(state_vector):
     """Compute the most likely binary string from state vector.

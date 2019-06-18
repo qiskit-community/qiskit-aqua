@@ -18,7 +18,6 @@ from test.common import QiskitAquaTestCase
 from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import EnergyInput
 from qiskit.aqua.translators.ising.vehicle_routing import get_vehiclerouting_qubitops
-from qiskit.aqua.algorithms import ExactEigensolver
 from qiskit.quantum_info import Pauli
 
 # To run only this test, issue:
@@ -45,7 +44,7 @@ class TestVehicleRouting(QiskitAquaTestCase):
         paulis = [(79.6, Pauli(z=[True, False], x=[False, False])),
                   (79.6, Pauli(z=[False, True], x=[False, False])),
                   (160.8, Pauli(z=[False, False], x=[False, False]))]
-        # Could also consider op = Operator(paulis) and then __eq__, but 
+        # Could also consider op = Operator(paulis) and then __eq__, but
         # that would not use assert_approx_equal
         for pauliA, pauliB in zip(self.qubit_op._paulis, paulis):
             costA, binaryA = pauliA

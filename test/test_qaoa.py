@@ -31,10 +31,10 @@ w1 = np.array([
     [1, 0, 1, 0]
 ])
 p1 = 1
-m1 = Operator().load_from_dict({'paulis':[{'label': 'IIIX', 'coeff': {'real': 1}},
-                                          {'label': 'IIXI', 'coeff': {'real': 1}},
-                                          {'label': 'IXII', 'coeff': {'real': 1}},
-                                          {'label': 'XIII', 'coeff': {'real': 1}}]
+m1 = Operator().load_from_dict({'paulis': [{'label': 'IIIX', 'coeff': {'real': 1}},
+                                           {'label': 'IIXI', 'coeff': {'real': 1}},
+                                           {'label': 'IXII', 'coeff': {'real': 1}},
+                                           {'label': 'XIII', 'coeff': {'real': 1}}]
                                 })
 s1 = {'0101', '1010'}
 

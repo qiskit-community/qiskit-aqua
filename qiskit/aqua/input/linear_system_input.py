@@ -61,7 +61,7 @@ class LinearSystemInput(AlgorithmInput):
     @property
     def vector(self):
         return self._vector
-    
+
     @vector.setter
     def vector(self, vector):
         self._vector = vector
@@ -98,7 +98,7 @@ class LinearSystemInput(AlgorithmInput):
 
     @staticmethod
     def load_mat_from_list(mat):
-        depth = lambda l: isinstance(l, list) and max(map(depth, l))+1
+        def depth(x): return isinstance(x, list) and max(map(depth, x))+1
         if depth(mat) == 3:
             return np.array(mat[0])+1j*np.array(mat[1])
         elif depth(mat) == 2:
@@ -108,7 +108,7 @@ class LinearSystemInput(AlgorithmInput):
 
     @staticmethod
     def load_vec_from_list(vec):
-        depth = lambda l: isinstance(l, list) and max(map(depth, l))+1
+        def depth(x): return isinstance(x, list) and max(map(depth, x))+1
         if depth(vec) == 2:
             return np.array(vec[0])+1j*np.array(vec[1])
         elif depth(vec) == 1:
