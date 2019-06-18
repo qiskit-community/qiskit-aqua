@@ -119,10 +119,12 @@ class TestConfigurationIntegrity(QiskitAquaTestCase):
             if 'default' in value:
                 default_value = value['default']
                 if parameter.default != inspect.Parameter.empty and parameter.default != default_value:
-                    err_msgs.append("{} __init__ param '{}' default value '{}' different from default value '{}' found on its configuration schema.".format(cls, prop_name, parameter.default, default_value))
+                    err_msgs.append("{} __init__ param '{}' default value '{}' different from default value '{}' "
+                                    "found on its configuration schema.".format(cls, prop_name, parameter.default, default_value))
             else:
                 if parameter.default != inspect.Parameter.empty:
-                    err_msgs.append("{} __init__ param '{}' default value '{}' missing in its configuration schema.".format(cls, prop_name, parameter.default))
+                    err_msgs.append("{} __init__ param '{}' default value '{}' missing "
+                                    "in its configuration schema.".format(cls, prop_name, parameter.default))
 
         return err_msgs
 
@@ -139,7 +141,8 @@ class TestConfigurationIntegrity(QiskitAquaTestCase):
                 continue
 
             if not any(x for x in PluggableType if x.value == dependency_pluggable_type):
-                err_msgs.append("{} configuration section:'{}' item:'{}/{}' doesn't exist.".format(cls, 'depends', 'pluggable_type', dependency_pluggable_type))
+                err_msgs.append("{} configuration section:'{}' item:'{}/{}' "
+                                "doesn't exist.".format(cls, 'depends', 'pluggable_type', dependency_pluggable_type))
                 continue
 
             defaults = dependency.get('default')
@@ -149,7 +152,8 @@ class TestConfigurationIntegrity(QiskitAquaTestCase):
             default_name = defaults.get('name')
             if default_name not in local_pluggables(dependency_pluggable_type):
                 print(default_name, dependency_pluggable_type, local_pluggables(dependency_pluggable_type))
-                err_msgs.append("{} configuration section:'{}' item:'{}/{}/{}/{}' not found.".format(cls, 'depends', dependency_pluggable_type, 'default', 'name', default_name))
+                err_msgs.append("{} configuration section:'{}' item:'{}/{}/{}/{}' "
+                                "not found.".format(cls, 'depends', dependency_pluggable_type, 'default', 'name', default_name))
                 continue
 
             del defaults['name']
@@ -176,7 +180,8 @@ class TestConfigurationIntegrity(QiskitAquaTestCase):
         for default_property_name, default_property_value in defaults.items():
             prop = properties.get(default_property_name)
             if not isinstance(prop, dict):
-                err_msgs.append("{} configuration schema '{}/{}' missing or isn't a dictionary.".format(cls, 'properties', default_property_name))
+                err_msgs.append("{} configuration schema '{}/{}' "
+                                "missing or isn't a dictionary.".format(cls, 'properties', default_property_name))
         return err_msgs
 
 

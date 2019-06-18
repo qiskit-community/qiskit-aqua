@@ -18,7 +18,6 @@ import numpy as np
 
 from sklearn.utils import shuffle
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
-
 from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class, AquaError
 from qiskit.aqua.components.feature_maps import FeatureMap
 from qiskit.aqua.utils import get_feature_dimension
@@ -110,8 +109,8 @@ def cost_estimate_sigmoid(shots, probs, gt_labels):
     Returns:
         float: sigmoid cross entropy loss between estimated probs and gt_labels
     """
-    #Error in the order of parameters corrected below - 19 Dec 2018
-    #x = cost_estimate(shots, probs, gt_labels)
+    # Error in the order of parameters corrected below - 19 Dec 2018
+    # x = cost_estimate(shots, probs, gt_labels)
     x = cost_estimate(probs, gt_labels, shots)
     loss = (1.) / (1. + np.exp(-x))
     return loss
@@ -427,7 +426,7 @@ class VQC(VQAlgorithm):
             var_form=self.var_form,
             cost_fn=self._cost_function_wrapper,
             optimizer=self.optimizer,
-            gradient_fn = grad_fn  # func for computing gradient
+            gradient_fn=grad_fn  # func for computing gradient
         )
 
         if self._ret['num_optimizer_evals'] is not None and self._eval_count >= self._ret['num_optimizer_evals']:

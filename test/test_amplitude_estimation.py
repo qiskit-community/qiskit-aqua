@@ -201,19 +201,19 @@ class TestCreditRiskAnalysis(QiskitAquaTestCase):
         # set problem parameters
         n_z = 2
         z_max = 2
-        z_values = np.linspace(-z_max, z_max, 2 ** n_z)
+        # z_values = np.linspace(-z_max, z_max, 2 ** n_z)
         p_zeros = [0.15, 0.25]
         rhos = [0.1, 0.05]
         lgd = [1, 2]
         K = len(p_zeros)
-        alpha = 0.05
+        # alpha = 0.05
 
         # set var value
         var = 2
         var_prob = 0.961940
 
         # determine number of qubits required to represent total loss
-        n_s = WeightedSumOperator.get_required_sum_qubits(lgd)
+        # n_s = WeightedSumOperator.get_required_sum_qubits(lgd)
 
         # create circuit factory (add Z qubits with weight/loss 0)
         agg = WeightedSumOperator(n_z + K, [0] * n_z + lgd)
@@ -268,6 +268,7 @@ class TestCreditRiskAnalysis(QiskitAquaTestCase):
 
         # compare to precomputed solution
         self.assertEqual(0.0, np.round(normalized_value - 3.3796, decimals=4))
+
 
 if __name__ == '__main__':
     unittest.main()

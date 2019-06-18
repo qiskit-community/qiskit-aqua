@@ -105,9 +105,9 @@ class GaussianConditionalIndependenceModel(MultivariateDistribution):
             self.i_ps = range(n_normal, n_normal + self.K)
 
         # get normal (inverse) CDF and pdf
-        F = lambda x: norm.cdf(x)
-        F_inv = lambda q: norm.ppf(q)
-        f = lambda x: norm.pdf(x)
+        def F(x): return norm.cdf(x)
+        def F_inv(x): return norm.ppf(x)
+        def f(x): return norm.pdf(x)
 
         # set low/high values
         low = [-normal_max_value] + [0]*self.K
@@ -147,13 +147,3 @@ class GaussianConditionalIndependenceModel(MultivariateDistribution):
         self._normal.build(qc, q, q_ancillas)
         for lry in self._rotations:
             lry.build(qc, q, q_ancillas)
-
-
-
-
-
-
-
-
-
-

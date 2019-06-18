@@ -40,6 +40,8 @@ class Pluggable(ABC):
 
     """
 
+    CONFIGURATION = None
+
     # Configuration dictionary keys
     SECTION_KEY_ALGORITHM = PluggableType.ALGORITHM.value
     SECTION_KEY_OPTIMIZER = PluggableType.OPTIMIZER.value

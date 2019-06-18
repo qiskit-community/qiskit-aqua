@@ -12,11 +12,10 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-import unittest, math
-
+import unittest
+import math
 from parameterized import parameterized
 from qiskit import BasicAer
-
 from qiskit.aqua import run_algorithm, QuantumInstance, AquaError
 from qiskit.aqua.algorithms import Shor
 from test.common import QiskitAquaTestCase
