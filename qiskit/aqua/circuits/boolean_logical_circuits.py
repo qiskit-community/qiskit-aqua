@@ -226,13 +226,17 @@ class BooleanLogicNormalForm(ABC):
         return circuit
 
     def _construct_circuit_for_tiny_expr(self, circuit, output_idx=0):
-        if self._ast == ('const', 1):
+        if self._ast == ('const', 0):
+            pass
+        elif self._ast == ('const', 1):
             circuit.u3(pi, 0, pi, self._output_register[output_idx])
         elif self._ast[0] == 'lit':
             idx = abs(self._ast[1]) - 1
             if self._ast[1] < 0:
                 circuit.u3(pi, 0, pi, self._variable_register[idx])
             circuit.cx(self._variable_register[idx], self._output_register[output_idx])
+        else:
+            raise AquaError('Unexpected tiny expression {}.'.format(self._ast))
 
     @abstractmethod
     def construct_circuit(self, *args, **kwargs):
@@ -475,8 +479,10 @@ class ESOP(BooleanLogicNormalForm):
         def build_clause(clause_expr):
             if clause_expr[0] == 'and':
                 lits = [l[1] for l in clause_expr[1:]]
-            else:  # clause_expr[0] == 'lit':
+            elif clause_expr[0] == 'lit':
                 lits = [clause_expr[1]]
+            else:
+                raise AquaError('Unexpected clause expression {}.'.format(clause_expr))
             flags = BooleanLogicNormalForm._lits_to_flags(lits)
             circuit.AND(
                 self._variable_register,
