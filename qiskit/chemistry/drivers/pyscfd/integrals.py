@@ -152,7 +152,7 @@ def _calculate_integrals(mol, hf_method='rhf', conv_tol=1e-9, max_cycle=50, init
         orbs_energy_B = mf.mo_energy[1]
     else:
         # See PYSCF 1.6.2 comment above - this was similarly changed
-        if len(mf.mo_coeff.shape) > 1:
+        if len(mf.mo_energy.shape) > 1:
             orbs_energy = mf.mo_energy[0]
             orbs_energy_B = mf.mo_energy[1]
         else:
