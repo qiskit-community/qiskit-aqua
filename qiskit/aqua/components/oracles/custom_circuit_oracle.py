@@ -16,9 +16,7 @@ The Custom Circuit-based Quantum Oracle.
 """
 
 from qiskit import QuantumCircuit, QuantumRegister
-
 from qiskit.aqua import AquaError
-
 from .oracle import Oracle
 
 
@@ -72,4 +70,4 @@ class CustomCircuitOracle(Oracle):
         Returns:
             A quantum circuit for the oracle.
         """
-        raise self._circuit
+        return self._circuit

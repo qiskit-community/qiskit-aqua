@@ -19,7 +19,6 @@ import logging
 import numpy as np
 
 from qiskit import QuantumRegister, QuantumCircuit
-
 from qiskit.aqua.components.reciprocals import Reciprocal
 from qiskit.aqua.circuits.gates import mct
 
@@ -115,6 +114,7 @@ class LookupRotation(Reciprocal):
         vec = statevector[half:half + 2 ** num_q]
         return vec
 
+    @staticmethod
     def _classic_approx(k, n, m, negative_evals=False):
         """Approximate arcsin(1/x) for controlled-rotation.
 

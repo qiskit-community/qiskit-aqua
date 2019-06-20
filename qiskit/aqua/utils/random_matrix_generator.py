@@ -65,7 +65,7 @@ def random_h2_body(N, M):
             max_nonzero_elements += 4 * 3 * 8 * scipy.special.comb(N//2, 3)
         if N / 2 >= 4:
             max_nonzero_elements += 4 * scipy.special.factorial(N//2) / scipy.special.factorial(N//2-4)
-        #print('Max number of non-zero elements for {} spin-orbitals is: {}'.format(N, max_nonzero_elements))
+        # print('Max number of non-zero elements for {} spin-orbitals is: {}'.format(N, max_nonzero_elements))
 
     if M > max_nonzero_elements:
         assert 0, 'Too many non-zero elements required, given the molecular symmetries. \n\
@@ -191,12 +191,12 @@ def limit_paulis(mat, n=5, sparsity=None):
     """
     from qiskit.aqua import Operator
     # Bringing matrix into form 2**Nx2**N
-    l = mat.shape[0]
-    if np.log2(l) % 1 != 0:
-        k = int(2**np.ceil(np.log2(l)))
+    _l = mat.shape[0]
+    if np.log2(_l) % 1 != 0:
+        k = int(2**np.ceil(np.log2(_l)))
         m = np.zeros([k, k], dtype=np.complex128)
-        m[:l, :l] = mat
-        m[l:, l:] = np.identity(k-l)
+        m[:_l, :_l] = mat
+        m[_l:, _l:] = np.identity(k-_l)
         mat = m
 
     # Getting Pauli matrices
@@ -214,12 +214,12 @@ def limit_paulis(mat, n=5, sparsity=None):
             mat += pa[0]*pa[1].to_spmatrix()
     else:
         idx = 0
-        while mat[:l, :l].nnz/l**2 < sparsity:
+        while mat[:_l, :_l].nnz/_l**2 < sparsity:
             mat += paulis[idx][0]*paulis[idx][1].to_spmatrix()
             idx += 1
         n = idx
     mat = mat.toarray()
-    return mat[:l, :l]
+    return mat[:_l, :_l]
 
 
 def random_hermitian(N, eigs=None, K=None, eigrange=[0, 1], sparsity=None,

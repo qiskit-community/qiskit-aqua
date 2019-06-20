@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2018, 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -13,18 +11,13 @@
 # that they have been altered from the originals.
 
 
-from .generative_network import GenerativeNetwork
-from .quantum_generator import QuantumGenerator
-from .discriminative_network import DiscriminativeNetwork
+.PHONY: lint style test
 
-__all__ = [
-    'DiscriminativeNetwork',
-    'GenerativeNetwork',
-    'QuantumGenerator'
-]
+lint:
+	pylint -rn --errors-only qiskit/aqua test
 
-try:
-    from .pytorch_discriminator import ClassicalDiscriminator
-    __all__ += ['ClassicalDiscriminator']
-except Exception:
-    pass
+style:
+	pycodestyle --max-line-length=170 qiskit/aqua test
+
+test:
+	python -m unittest discover -v test

@@ -15,12 +15,13 @@
 import math
 
 import numpy as np
-from qiskit import BasicAer
 from qiskit.quantum_info import Pauli
 
 from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import EnergyInput
-from qiskit.aqua.translators.ising.portfolio_diversification import *
+from qiskit.aqua.translators.ising.portfolio_diversification import (get_portfoliodiversification_solution,
+                                                                     get_portfoliodiversification_qubitops,
+                                                                     get_portfoliodiversification_value)
 from test.common import QiskitAquaTestCase
 
 
@@ -36,6 +37,10 @@ class ClassicalOptimizer:
         return int(f(self.n) / f(self.q) / f(self.n - self.q))
 
     def cplex_solution(self):
+        try:
+            import cplex
+        except ImportError as e:
+            print(e)
 
         # refactoring
         rho = self.rho
@@ -47,7 +52,7 @@ class ClassicalOptimizer:
         my_lb = [0 for x in range(0, n ** 2 + n)]
         my_ctype = "".join(['I' for x in range(0, n ** 2 + n)])
 
-        my_rhs = [q] + [1 for x in range (0, n)] +[0 for x in range (0, n)] + [0.1 for x in range(0, n ** 2)]
+        my_rhs = [q] + [1 for x in range(0, n)] + [0 for x in range(0, n)] + [0.1 for x in range(0, n ** 2)]
         my_sense = "".join(['E' for x in range(0, 1+n)]) + "".join(['E' for x in range(0, n)]) + "".join(
             ['L' for x in range(0, n ** 2)])
 
@@ -57,7 +62,7 @@ class ClassicalOptimizer:
 
             my_prob.solve()
 
-        except CplexError as exc:
+        except Exception as exc:
             print(exc)
             return
 
@@ -101,7 +106,7 @@ class ClassicalOptimizer:
                 coef = [1, -1]
 
                 rows.append([col, coef])
-        
+
         prob.linear_constraints.add(lin_expr=rows, senses=my_sense, rhs=my_rhs)
 
 
@@ -113,12 +118,12 @@ class TestPortfolioDiversification(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
-        np.random.seed(100)        
+        np.random.seed(100)
         self.n = 2
         self.q = 1
-        self.instance = np.ones((self.n,self.n))
-        self.instance[0,1] = 0.8
-        self.instance[1,0] = 0.8
+        self.instance = np.ones((self.n, self.n))
+        self.instance[0, 1] = 0.8
+        self.instance[1, 0] = 0.8
         # self.instance = -1 * self.instance
         self.qubit_op = get_portfoliodiversification_qubitops(self.instance, self.n, self.q)
         self.algo_input = EnergyInput(self.qubit_op)
@@ -200,11 +205,11 @@ class TestPortfolioDiversification(QiskitAquaTestCase):
             'problem': {'name': 'ising'},
             'algorithm': {'name': 'ExactEigensolver'}
         }
-        result = run_algorithm(params, self.algo_input)        
+        result = run_algorithm(params, self.algo_input)
         quantum_solution = get_portfoliodiversification_solution(self.instance, self.n, self.q, result)
         ground_level = get_portfoliodiversification_value(self.instance, self.n, self.q, quantum_solution)
         np.testing.assert_approx_equal(ground_level, 1.8)
-    
+
     def test_portfolio_diversification(self):
         # Something of an integration test
         # Solve the problem in a classical fashion via CPLEX and compare the solution
@@ -213,7 +218,7 @@ class TestPortfolioDiversification(QiskitAquaTestCase):
         try:
             classical_optimizer = ClassicalOptimizer(self.instance, self.n, self.q)
             x, classical_cost = classical_optimizer.cplex_solution()
-        except: 
+        except Exception:
             # This test should not focus on the availability of CPLEX, so we just eat the exception.
             self.skipTest("CPLEX may be missing.")
         # Solve the problem using the exact eigensolver
@@ -221,7 +226,7 @@ class TestPortfolioDiversification(QiskitAquaTestCase):
             'problem': {'name': 'ising'},
             'algorithm': {'name': 'ExactEigensolver'}
         }
-        result = run_algorithm(params, self.algo_input)        
+        result = run_algorithm(params, self.algo_input)
         quantum_solution = get_portfoliodiversification_solution(self.instance, self.n, self.q, result)
         ground_level = get_portfoliodiversification_value(self.instance, self.n, self.q, quantum_solution)
         if x:

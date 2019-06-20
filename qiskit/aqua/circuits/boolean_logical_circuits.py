@@ -226,13 +226,17 @@ class BooleanLogicNormalForm(ABC):
         return circuit
 
     def _construct_circuit_for_tiny_expr(self, circuit, output_idx=0):
-        if self._ast == ('const', 1):
+        if self._ast == ('const', 0):
+            pass
+        elif self._ast == ('const', 1):
             circuit.u3(pi, 0, pi, self._output_register[output_idx])
         elif self._ast[0] == 'lit':
             idx = abs(self._ast[1]) - 1
             if self._ast[1] < 0:
                 circuit.u3(pi, 0, pi, self._variable_register[idx])
             circuit.cx(self._variable_register[idx], self._output_register[output_idx])
+        else:
+            raise AquaError('Unexpected tiny expression {}.'.format(self._ast))
 
     @abstractmethod
     def construct_circuit(self, *args, **kwargs):
@@ -472,22 +476,33 @@ class ESOP(BooleanLogicNormalForm):
             mct_mode=mct_mode
         )
 
+        def build_clause(clause_expr):
+            if clause_expr[0] == 'and':
+                lits = [l[1] for l in clause_expr[1:]]
+            elif clause_expr[0] == 'lit':
+                lits = [clause_expr[1]]
+            else:
+                raise AquaError('Unexpected clause expression {}.'.format(clause_expr))
+            flags = BooleanLogicNormalForm._lits_to_flags(lits)
+            circuit.AND(
+                self._variable_register,
+                self._output_register[self._output_idx],
+                self._ancillary_register,
+                flags=flags,
+                mct_mode=mct_mode
+            )
+
         # compute all clauses
         if self._depth == 0:
             self._construct_circuit_for_tiny_expr(circuit, output_idx=output_idx)
+        elif self._depth == 1:
+            build_clause(self._ast)
+        elif self._depth == 2:
+            if not self._ast[0] == 'xor':
+                raise AquaError('Unexpected root logical operation {} for ESOP.'.format(self._ast[0]))
+            for cur_clause_expr in self._ast[1:]:
+                build_clause(cur_clause_expr)
         else:
-            for clause_index, clause_expr in enumerate(self._ast[1:]):
-                if clause_expr[0] == 'and':
-                    lits = [l[1] for l in clause_expr[1:]]
-                else:  # clause_expr[0] == 'lit':
-                    lits = [clause_expr[1]]
-                flags = BooleanLogicNormalForm._lits_to_flags(lits)
-                circuit.AND(
-                    self._variable_register,
-                    self._output_register[self._output_idx],
-                    self._ancillary_register,
-                    flags=flags,
-                    mct_mode=mct_mode
-                )
+            raise AquaError('Unexpected ESOP expression {}.'.format(self._ast))
 
         return circuit
