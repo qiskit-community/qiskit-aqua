@@ -133,18 +133,31 @@ def _calculate_integrals(mol, hf_method='rhf', conv_tol=1e-9, max_cycle=50, init
         # mo_occ   = mf.mo_occ[0]
         # mo_occ_B = mf.mo_occ[1]
     else:
-        mo_coeff = mf.mo_coeff
-        mo_coeff_B = None
-        # mo_occ   = mf.mo_occ
-        # mo_occ_B = None
+        # With PySCF 1.6.2, instead of a tuple of 2 dimensional arrays, its a 3 dimensional
+        # array with the first dimension indexing to the coeff arrays for alpha and beta
+        if len(mf.mo_coeff.shape) > 2:
+            mo_coeff = mf.mo_coeff[0]
+            mo_coeff_B = mf.mo_coeff[1]
+            # mo_occ   = mf.mo_occ[0]
+            # mo_occ_B = mf.mo_occ[1]
+        else:
+            mo_coeff = mf.mo_coeff
+            mo_coeff_B = None
+            # mo_occ   = mf.mo_occ
+            # mo_occ_B = None
     norbs = mo_coeff.shape[0]
 
     if type(mf.mo_energy) is tuple:
         orbs_energy = mf.mo_energy[0]
         orbs_energy_B = mf.mo_energy[1]
     else:
-        orbs_energy = mf.mo_energy
-        orbs_energy_B = None
+        # See PYSCF 1.6.2 comment above - this was similarly changed
+        if len(mf.mo_coeff.shape) > 1:
+            orbs_energy = mf.mo_energy[0]
+            orbs_energy_B = mf.mo_energy[1]
+        else:
+            orbs_energy = mf.mo_energy
+            orbs_energy_B = None
 
     hij = mf.get_hcore()
     mohij = np.dot(np.dot(mo_coeff.T, hij), mo_coeff)
