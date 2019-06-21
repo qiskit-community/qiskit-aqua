@@ -128,7 +128,7 @@ class HHL(QuantumAlgorithm):
             raise ValueError("Input matrix dimension must be 2**n!")
         if truncate_powerdim and orig_size is None:
             raise ValueError("Truncation to {} dimensions is not "
-                            "possible!".format(self._original_dimension))
+                             "possible!".format(orig_size))
 
         self._matrix = matrix
         self._vector = vector
@@ -419,7 +419,7 @@ class HHL(QuantumAlgorithm):
         # Rescaling the output vector to the real solution vector
         tmp_vec = matrix.dot(res_vec)
         f1 = np.linalg.norm(in_vec)/np.linalg.norm(tmp_vec)
-        f2 = sum(np.angle(in_vec*tmp_vec.conj()-1+1))/(np.log2(matrix.shape[0])) # "-1+1" to fix angle error for -0.-0.j
+        f2 = sum(np.angle(in_vec*tmp_vec.conj()-1+1))/(np.log2(matrix.shape[0]))  # "-1+1" to fix angle error for -0.-0.j
         self._ret["solution"] = f1*res_vec*np.exp(-1j*f2)
 
     def _run(self):

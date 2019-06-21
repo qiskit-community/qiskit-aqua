@@ -85,7 +85,7 @@ jobs:
     - stage: test first
       <<: *stage_dependencies
       script:
-        - python test/custom_tests.py 0 -end 24
+        - make style && make lint && python test/custom_tests.py 0 -end 24
 
     - stage: test second
       <<: *stage_dependencies

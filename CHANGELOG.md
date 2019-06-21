@@ -24,6 +24,21 @@ Added
 -   Relative-Phase Toffoli gates `rccx` (with 2 controls) and `rcccx`
     (with 3 controls).
 -   Variational form `RYCRX` 
+-   A new `'basic-no-ancilla'` mode to `mct`.
+
+Changed
+-------
+
+-   Improve `mct`'s `'basic'` mode by using relative-phase Toffoli gates to build intermediate results.
+-   Adapt to Qiskit Terra's newly introduced `Qubit` class.
+-   Prevent `QPE/IQPE` from modifying input `Operator`s.
+
+Fixed
+-------
+
+-   A bug where `TruthTableOracle` would build incorrect circuits for truth tables with only a single `1` value. 
+-   A bug caused by `PyEDA`'s indeterminism.
+-   A bug with `QPE/IQPE`'s translation and stretch computation.
 
 [0.5.1](https://github.com/Qiskit/qiskit-aqua/compare/0.5.0...0.5.1) - 2019-05-24
 =================================================================================

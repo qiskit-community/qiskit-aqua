@@ -32,6 +32,7 @@ class _SVM_Classical_Multiclass(_SVM_Classical_ABC):
     def __init__(self, training_dataset, test_dataset, datapoints, gamma, multiclass_classifier):
         super().__init__(training_dataset, test_dataset, datapoints, gamma)
         self.multiclass_classifier = multiclass_classifier
+        self._qalgo = None
 
     def train(self, data, labels):
         self.multiclass_classifier.train(data, labels)

@@ -75,14 +75,14 @@ class _SVM_Classical_Binary(_SVM_Classical_ABC):
         self._ret['kernel_matrix_testing'] = kernel_matrix
 
         success_ratio = 0
-        l = 0
+        _l = 0
         total_num_points = len(data)
         lsign = np.zeros(total_num_points)
         for tin in range(total_num_points):
             ltot = 0
             for sin in range(len(svms)):
-                l = yin[sin] * alphas[sin] * kernel_matrix[tin][sin]
-                ltot += l
+                _l = yin[sin] * alphas[sin] * kernel_matrix[tin][sin]
+                ltot += _l
             lsign[tin] = (np.sign(ltot + bias) + 1.) / 2.
 
             logger.debug("\n=============================================")
@@ -120,8 +120,8 @@ class _SVM_Classical_Binary(_SVM_Classical_ABC):
         for tin in range(total_num_points):
             ltot = 0
             for sin in range(len(svms)):
-                l = yin[sin] * alphas[sin] * kernel_matrix[tin][sin]
-                ltot += l
+                _l = yin[sin] * alphas[sin] * kernel_matrix[tin][sin]
+                ltot += _l
             lsign[tin] = np.int((np.sign(ltot + bias) + 1.) / 2.)
         self._ret['predicted_labels'] = lsign
         return lsign
