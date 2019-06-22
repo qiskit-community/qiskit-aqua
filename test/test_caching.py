@@ -152,12 +152,12 @@ class TestCaching(QiskitAquaTestCase):
             circ0 = var_form.construct_circuit(params0)
 
             quantum_instance0 = QuantumInstance(backend,
-                                                       circuit_caching=True,
-                                                       cache_file=cache_tmp_file_name,
-                                                       skip_qobj_deepcopy=True,
-                                                       skip_qobj_validation=True)
+                                                circuit_caching=True,
+                                                cache_file=cache_tmp_file_name,
+                                                skip_qobj_deepcopy=True,
+                                                skip_qobj_validation=True)
 
-            result0 = quantum_instance0.execute([circ0])
+            _ = quantum_instance0.execute([circ0])
             with open(cache_tmp_file_name, "rb") as cache_handler:
                 saved_cache = pickle.load(cache_handler, encoding="ASCII")
             self.assertIn('qobjs', saved_cache)
@@ -167,10 +167,10 @@ class TestCaching(QiskitAquaTestCase):
             self.assertGreaterEqual(len(saved_cache['mappings'][0][0]), 50)
 
             quantum_instance1 = QuantumInstance(backend,
-                                               circuit_caching=True,
-                                               cache_file=cache_tmp_file_name,
-                                               skip_qobj_deepcopy=True,
-                                               skip_qobj_validation=True)
+                                                circuit_caching=True,
+                                                cache_file=cache_tmp_file_name,
+                                                skip_qobj_deepcopy=True,
+                                                skip_qobj_validation=True)
 
             params1 = np.random.random(var_form.num_parameters)
             circ1 = var_form.construct_circuit(params1)
@@ -178,7 +178,7 @@ class TestCaching(QiskitAquaTestCase):
             qobj1 = quantum_instance1.circuit_cache.load_qobj_from_cache([circ1], 0,
                                                                          run_config=quantum_instance1.run_config)
             self.assertTrue(isinstance(qobj1, Qobj))
-            result1 = quantum_instance1.execute([circ1])
+            _ = quantum_instance1.execute([circ1])
 
             self.assertEqual(quantum_instance0.circuit_cache.mappings, quantum_instance1.circuit_cache.mappings)
             self.assertLessEqual(quantum_instance1.circuit_cache.misses, 0)

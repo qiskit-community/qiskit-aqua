@@ -117,7 +117,7 @@ folders of the [qiskit-tutorials GitHub Repository](https://github.com/Qiskit/qi
 ## Authors and Citation
 
 Aqua was inspired, authored and brought about by the collective work of a team of researchers.
-Aqua continues to grow with the help and work of [many people](./CONTRIBUTORS.rst), who contribute
+Aqua continues to grow with the help and work of [many people](./CONTRIBUTORS.md), who contribute
 to the project at different levels. If you use Qiskit, please cite as per the included [BibTeX file](https://github.com/Qiskit/qiskit/blob/master/Qiskit.bib).
 
 ## License

@@ -37,4 +37,5 @@ class Standard(Approximate):
         super().__init__(num_qubits, degree=0)
 
     def _build_matrix(self):
+        # pylint: disable=no-member
         return linalg.dft(2 ** self._num_qubits, scale='sqrtn')

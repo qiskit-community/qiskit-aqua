@@ -164,7 +164,7 @@ class TestQSVM(QiskitAquaTestCase):
         if os.path.exists(file_path):
             try:
                 os.remove(file_path)
-            except:
+            except Exception:
                 pass
 
     def test_qsvm_setup_data(self):

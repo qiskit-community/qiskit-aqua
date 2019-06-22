@@ -66,7 +66,7 @@ def rccx(self, q_control_1, q_control_2, q_target):
         q_control_1 (Qubit): The 1st control qubit.
         q_control_2 (Qubit): The 2nd control qubit.
         q_target (Qubit): The target qubit.
-        
+
     """
     if not isinstance(q_control_1, Qubit):
         raise AquaError('A qubit is expected for the first control.')
