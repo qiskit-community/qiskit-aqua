@@ -50,7 +50,7 @@ class TestRYCRX(QiskitAquaTestCase):
             'algorithm': {'name': 'VQE'},
             'variational_form': {'name': 'RY',
                                  'depth': depth,
-                                 'entanglement': 'circular',
+                                 'entanglement': 'sca',
                                  'entanglement_gate': 'crx',
                                  'skip_final_ry': True},
             'backend': {'shots': 1}
