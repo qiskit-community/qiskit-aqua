@@ -39,6 +39,7 @@ Fixed
 -   A bug where `TruthTableOracle` would build incorrect circuits for truth tables with only a single `1` value. 
 -   A bug caused by `PyEDA`'s indeterminism.
 -   A bug with `QPE/IQPE`'s translation and stretch computation.
+-   A bug with `docplex.get_qubitops`'s incorrect translation
 
 [0.5.1](https://github.com/Qiskit/qiskit-aqua/compare/0.5.0...0.5.1) - 2019-05-24
 =================================================================================
