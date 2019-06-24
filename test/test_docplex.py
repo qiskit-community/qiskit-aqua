@@ -276,3 +276,29 @@ class TestDocplex(QiskitAquaTestCase):
 
         # Compare objective
         self.assertEqual(result['energy'] + offset, expected_result)
+
+    def test_docplex_constant_and_quadratic_terms_in_object_function(self):
+        # Create an Ising Homiltonian with docplex
+        laplacian = np.array([[-3., 1., 1., 1.],
+                              [1., -2., 1., -0.],
+                              [1., 1., -3., 1.],
+                              [1., -0., 1., -2.]])
+
+        mdl = Model()
+        n = laplacian.shape[0]
+        bias = [0] * 4
+        x = {i: mdl.binary_var(name='x_{0}'.format(i)) for i in range(n)}
+        couplers_func = mdl.sum(
+            2 * laplacian[i, j] * (2 * x[i] - 1) * (2 * x[j] - 1) for i in range(n - 1) for j in range(i, n))
+        bias_func = mdl.sum(float(bias[i]) * x[i] for i in range(n))
+        ising_func = couplers_func + bias_func
+        mdl.minimize(ising_func)
+        qubitOp, offset = docplex.get_qubitops(mdl)
+
+        ee = ExactEigensolver(qubitOp, k=1)
+        result = ee.run()
+
+        expected_result = -22
+
+        # Compare objective
+        self.assertEqual(result['energy'] + offset, expected_result)
