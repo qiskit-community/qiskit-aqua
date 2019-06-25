@@ -20,40 +20,40 @@ import numpy as np
 
 from qiskit.qasm import pi
 
-from . import QFT
-from .qft import set_up
-
-
-class Swap(QFT):
-    """A normal standard QFT."""
-
-    CONFIGURATION = {
-        'name': 'SWAP',
-        'description': 'QFT',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
-            'id': 'std_qft_schema',
-            'type': 'object',
-            'properties': {
-            },
-            'additionalProperties': False
-        }
-    }
-
-    def __init__(self, num_qubits):
-        super().__init__()
-        self._num_qubits = num_qubits
-
-    def construct_circuit(self, mode='circuit', qubits=None, circuit=None):
-        if mode == 'vector':
-            raise ValueError('Mode should be "circuit"')
-        elif mode == 'circuit':
-            circuit, qubits = set_up(circuit, qubits, self._num_qubits)
-
-            for i in range(int(self._num_qubits/2)):
-
-                circuit.swap(qubits[i],qubits[self._num_qubits-1-i])
-
-            return circuit
-        else:
-            raise ValueError('Mode should be either "vector" or "circuit"')
+# from . import QFT
+# from .qft import set_up
+#
+#
+# class Swap(QFT):
+#     """A normal standard QFT."""
+#
+#     CONFIGURATION = {
+#         'name': 'SWAP',
+#         'description': 'QFT',
+#         'input_schema': {
+#             '$schema': 'http://json-schema.org/schema#',
+#             'id': 'std_qft_schema',
+#             'type': 'object',
+#             'properties': {
+#             },
+#             'additionalProperties': False
+#         }
+#     }
+#
+#     def __init__(self, num_qubits):
+#         super().__init__()
+#         self._num_qubits = num_qubits
+#
+#     def construct_circuit(self, mode='circuit', qubits=None, circuit=None):
+#         if mode == 'vector':
+#             raise ValueError('Mode should be "circuit"')
+#         elif mode == 'circuit':
+#             circuit, qubits = set_up(circuit, qubits, self._num_qubits)
+#
+#             for i in range(int(self._num_qubits/2)):
+#
+#                 circuit.swap(qubits[i],qubits[self._num_qubits-1-i])
+#
+#             return circuit
+#         else:
+#             raise ValueError('Mode should be either "vector" or "circuit"')
