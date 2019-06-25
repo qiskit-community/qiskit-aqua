@@ -23,11 +23,6 @@ import time
 
 from qiskit.aqua import __path__ as qiskit_aqua_path
 
-TRAVIS_FORK_PULL_REQUEST = False
-if os.getenv('TRAVIS_PULL_REQUEST_SLUG'):
-    if os.getenv('TRAVIS_REPO_SLUG') != os.getenv('TRAVIS_PULL_REQUEST_SLUG'):
-        TRAVIS_FORK_PULL_REQUEST = True
-
 
 class Path(Enum):
     """Helper with paths commonly used during the tests."""
@@ -39,8 +34,6 @@ class Path(Enum):
 
 class QiskitAquaTestCase(unittest.TestCase):
     """Helper class that contains common functionality."""
-
-    SLOW_TEST = int(os.getenv('SLOW_TEST', '0'))
 
     def setUp(self):
         self._started_at = time.time()

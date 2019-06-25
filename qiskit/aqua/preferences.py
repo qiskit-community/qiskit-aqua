@@ -39,7 +39,7 @@ class Preferences(object):
                     del self._preferences['packages']
                 if 'logging_config' in self._preferences:
                     del self._preferences['logging_config']
-        except:
+        except Exception:
             pass
 
     @property

@@ -33,8 +33,8 @@ from test.common import QiskitAquaTestCase
 X = np.array([[0, 1], [1, 0]])
 Y = np.array([[0, -1j], [1j, 0]])
 Z = np.array([[1, 0], [0, -1]])
-I = np.array([[1, 0], [0, 1]])
-h1 = X + Y + Z + I
+_I = np.array([[1, 0], [0, 1]])
+h1 = X + Y + Z + _I
 qubitOp_simple = Operator(matrix=h1)
 
 
@@ -50,12 +50,21 @@ pauli_dict = {
 qubitOp_h2_with_2_qubit_reduction = Operator.load_from_dict(pauli_dict)
 
 
+pauli_dict_zz = {
+    'paulis': [
+        {"coeff": {"imag": 0.0, "real": 1.0}, "label": "ZZ"}
+    ]
+}
+qubitOp_zz = Operator.load_from_dict(pauli_dict_zz)
+
+
 class TestQPE(QiskitAquaTestCase):
     """QPE tests."""
 
     @parameterized.expand([
-        [qubitOp_simple, 'statevector_simulator'],
-        [qubitOp_h2_with_2_qubit_reduction, 'qasm_simulator'],
+        [qubitOp_simple, 'qasm_simulator'],
+        [qubitOp_zz, 'statevector_simulator'],
+        [qubitOp_h2_with_2_qubit_reduction, 'statevector_simulator'],
     ])
     def test_qpe(self, qubitOp, simulator):
         self.algorithm = 'QPE'
@@ -71,11 +80,11 @@ class TestQPE(QiskitAquaTestCase):
 
         self.qubitOp.to_matrix()
         np.testing.assert_almost_equal(
-            self.qubitOp.matrix @ v[0],
+            self.qubitOp._matrix @ v[0],
             w[0] * v[0]
         )
         np.testing.assert_almost_equal(
-            expm(-1.j * sparse.csc_matrix(self.qubitOp.matrix)) @ v[0],
+            expm(-1.j * sparse.csc_matrix(self.qubitOp._matrix)) @ v[0],
             np.exp(-1.j * w[0]) * v[0]
         )
 

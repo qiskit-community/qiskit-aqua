@@ -66,7 +66,7 @@ class WeightedSumOperator(CircuitFactory):
                 self.i_sum = i_sum
             else:
                 raise AquaError('Invalid number of sum qubits {}! Required {}'.format(
-                    len(i_sum), self.get_required_sum_qubits()
+                    len(i_sum), self.get_required_sum_qubits(weights)
                 ))
 
     @staticmethod

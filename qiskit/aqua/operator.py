@@ -1048,6 +1048,7 @@ class Operator(object):
         p_z_or_x = np.logical_or(pauli.z, pauli.x)
         for key, value in data.items():
             bitstr = np.asarray(list(key))[::-1].astype(np.bool)
+            # pylint: disable=no-member
             sign = -1.0 if np.logical_xor.reduce(np.logical_and(bitstr, p_z_or_x)) else 1.0
             observable += sign * value
         observable /= num_shots
@@ -1080,6 +1081,7 @@ class Operator(object):
         p2_z_or_x = np.logical_or(pauli_2.z, pauli_2.x)
         for key, value in data.items():
             bitstr = np.asarray(list(key))[::-1].astype(np.bool)
+            # pylint: disable=no-member
             sign_1 = -1.0 if np.logical_xor.reduce(np.logical_and(bitstr, p1_z_or_x)) else 1.0
             sign_2 = -1.0 if np.logical_xor.reduce(np.logical_and(bitstr, p2_z_or_x)) else 1.0
             cov += (sign_1 - avg_1) * (sign_2 - avg_2) * value
@@ -1097,7 +1099,8 @@ class Operator(object):
         sectors, (block spin order) according to the number of particles in the system.
 
         Args:
-            m (int): number of fermionic particles
+            m (list, int): number of particles, if it is a list, the first number is alpha
+                            and the second number if beta.
             threshold (float): threshold for Pauli simplification
 
         Returns:
@@ -1107,9 +1110,17 @@ class Operator(object):
         if self._paulis is None or self._paulis == []:
             return self
 
+        if isinstance(m, list):
+            num_alpha = m[0]
+            num_beta = m[1]
+        else:
+            num_alpha = m // 2
+            num_beta = m // 2
+
         operator_out = Operator(paulis=[])
-        par_1 = 1 if m % 2 == 0 else -1
-        par_2 = 1 if m % 4 == 0 else -1
+
+        par_1 = 1 if (num_alpha + num_beta) % 2 == 0 else -1
+        par_2 = 1 if num_alpha % 2 == 0 else -1
 
         n = self.num_qubits
         last_idx = n - 1
@@ -1298,6 +1309,7 @@ class Operator(object):
         Returns:
             numpy array: The matrix representation corresponding to the specified suzuki expansion
         """
+        # pylint: disable=no-member
         if expansion_order == 1:
             left = reduce(
                 lambda x, y: x @ y,
@@ -1380,6 +1392,7 @@ class Operator(object):
             or the constructed QuantumCircuit.
 
         """
+        # pylint: disable=no-member
         if num_time_slices < 0 or not isinstance(num_time_slices, int):
             raise ValueError('Number of time slices should be a non-negative integer.')
         if not (expansion_mode == 'trotter' or expansion_mode == 'suzuki'):
@@ -1759,7 +1772,7 @@ class Operator(object):
                 self._paulis[idx] = [self._paulis[idx][0] * scaling_factor, self._paulis[idx][1]]
         elif self._grouped_paulis is not None:
             self._grouped_paulis_to_paulis()
-            self._scale_paulis(scaling_factor)
+            # self._scale_paulis(scaling_factor)
             self._paulis_to_grouped_paulis()
         elif self._matrix is not None:
             self._matrix *= scaling_factor

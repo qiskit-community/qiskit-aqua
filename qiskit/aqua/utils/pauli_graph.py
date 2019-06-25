@@ -65,7 +65,7 @@ class PauliGraph(object):
         a = np.array([[conv[e] for e in reversed(n.to_label())] for n in self.nodes], dtype=np.int8)
         b = a[:, None]
         c = (((a * b) * (a - b)) == 0).all(axis=2)  # i and j are commutable with TPB if c[i, j] is True
-        edges = {i: np.where(c[i] == False)[0] for i in range(len(self.nodes))}
+        edges = {i: np.where(c[i] == False)[0] for i in range(len(self.nodes))}  # noqa
         return edges
 
     def _coloring(self, mode="largest-degree"):

@@ -53,7 +53,7 @@ class DataType(Enum):
 class BaseDataProvider(ABC):
     """
     This module implements the abstract base class for data_provider modules
-    within Qiskit Finance. 
+    within Qiskit Finance.
 
     To create add-on data_provider module subclass the BaseDataProvider class in this module.
     Doing so requires that the required driver interface is implemented.
@@ -63,10 +63,14 @@ class BaseDataProvider(ABC):
 
     """
 
+    CONFIGURATION = None
+
     @abstractmethod
     def __init__(self):
         self.check_driver_valid()
         self._configuration = copy.deepcopy(self.CONFIGURATION)
+        self._data = None
+        self._n = 0
 
     @property
     def configuration(self):
@@ -114,10 +118,10 @@ class BaseDataProvider(ABC):
 
     # it does not have to be overridden in non-abstract derived classes.
     def get_mean_vector(self):
-        """ Returns a vector containing the mean value of each asset. 
-        
-    Returns:
-        mean (numpy.ndarray) : a per-asset mean vector.        
+        """ Returns a vector containing the mean value of each asset.
+
+        Returns:
+            mean (numpy.ndarray) : a per-asset mean vector.
         """
         try:
             if not self._data:
@@ -155,10 +159,10 @@ class BaseDataProvider(ABC):
 
     # it does not have to be overridden in non-abstract derived classes.
     def get_covariance_matrix(self):
-        """ Returns the covariance matrix. 
-        
-    Returns:
-        rho (numpy.ndarray) : an asset-to-asset covariance matrix.        
+        """ Returns the covariance matrix.
+
+        Returns:
+            rho (numpy.ndarray) : an asset-to-asset covariance matrix.
         """
         try:
             if not self._data:
@@ -196,10 +200,10 @@ class BaseDataProvider(ABC):
 
     # it does not have to be overridden in non-abstract derived classes.
     def get_similarity_matrix(self):
-        """ Returns time-series similarity matrix computed using dynamic time warping. 
+        """ Returns time-series similarity matrix computed using dynamic time warping.
 
-    Returns:
-        rho (numpy.ndarray) : an asset-to-asset similarity matrix.
+        Returns:
+            rho (numpy.ndarray) : an asset-to-asset similarity matrix.
         """
         try:
             if not self._data:
@@ -230,7 +234,7 @@ class BaseDataProvider(ABC):
         yc = np.zeros([self._n, 1])
         xc = (np.random.rand(self._n) - 0.5) * 1
         yc = (np.random.rand(self._n) - 0.5) * 1
-        #for (cnt, s) in enumerate(self.tickers):
-        #xc[cnt, 1] = self.data[cnt][0]
+        # for (cnt, s) in enumerate(self.tickers):
+        # xc[cnt, 1] = self.data[cnt][0]
         # yc[cnt, 0] = self.data[cnt][-1]
         return xc, yc

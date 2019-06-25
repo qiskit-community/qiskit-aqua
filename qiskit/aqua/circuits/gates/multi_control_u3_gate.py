@@ -18,8 +18,7 @@ Multiple-Control U3 gate. Not using ancillary qubits.
 import logging
 
 from sympy.combinatorics.graycode import GrayCode
-from qiskit.circuit import QuantumCircuit, QuantumRegister
-
+from qiskit.circuit import QuantumCircuit, QuantumRegister, Qubit
 from qiskit.aqua.utils.controlled_circuit import apply_cu3
 
 logger = logging.getLogger(__name__)
@@ -39,14 +38,14 @@ def _apply_mcu3(circuit, theta, phi, lam, ctls, tgt):
     lam_angle = lam*(1/(2**(n-1)))
 
     for pattern in gray_code:
-        if not '1' in pattern:
+        if '1' not in pattern:
             continue
         if last_pattern is None:
             last_pattern = pattern
-        #find left most set bit
+        # find left most set bit
         lm_pos = list(pattern).index('1')
 
-        #find changed bit
+        # find changed bit
         comp = [i != j for i, j in zip(pattern, last_pattern)]
         if True in comp:
             pos = comp.index(True)
@@ -59,9 +58,9 @@ def _apply_mcu3(circuit, theta, phi, lam, ctls, tgt):
                 indices = [i for i, x in enumerate(pattern) if x == '1']
                 for idx in indices[1:]:
                     circuit.cx(ctls[idx], ctls[lm_pos])
-        #check parity
+        # check parity
         if pattern.count('1') % 2 == 0:
-            #inverse
+            # inverse
             apply_cu3(circuit, -theta_angle, phi_angle, lam_angle,
                       ctls[lm_pos], tgt)
         else:
@@ -79,8 +78,8 @@ def mcu3(self, theta, phi, lam, control_qubits, target_qubit):
         theta (float): angle theta
         phi (float): angle phi
         lam (float): angle lambda
-        control_qubits (list(tuple(QuantumRegister, int))): The list of control qubits
-        target_qubit (tuple(QuantumRegister, int)): The target qubit
+        control_qubits (list of Qubit): The list of control qubits
+        target_qubit (Qubit): The target qubit
     """
     if isinstance(target_qubit, QuantumRegister) and len(target_qubit) == 1:
         target_qubit = target_qubit[0]

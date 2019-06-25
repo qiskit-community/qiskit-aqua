@@ -34,6 +34,7 @@ simulators = ['statevector_simulator', 'qasm_simulator']
 
 
 class TestSimon(QiskitAquaTestCase):
+
     @parameterized.expand(
         itertools.product(bitmaps, mct_modes, optimizations, simulators)
     )
