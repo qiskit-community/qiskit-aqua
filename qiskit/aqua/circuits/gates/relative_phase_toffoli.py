@@ -16,11 +16,10 @@
 Relative Phase Toffoli Gates.
 """
 
-from qiskit.circuit import QuantumCircuit, QuantumRegister
+from qiskit.circuit import QuantumCircuit, Qubit
 from qiskit.qasm import pi
 
 from qiskit.aqua import AquaError
-from qiskit.aqua.utils.circuit_utils import is_qubit
 
 
 def _apply_rccx(circ, a, b, c):
@@ -64,24 +63,24 @@ def rccx(self, q_control_1, q_control_2, q_target):
 
     Args:
         self (QuantumCircuit): The QuantumCircuit object to apply the rccx gate on.
-        q_control_1 (tuple(QuantumRegister, int)): The 1st control qubit.
-        q_control_2 (tuple(QuantumRegister, int)): The 2nd control qubit.
-        q_target (tuple(QuantumRegister, int)): The target qubit.
-        
+        q_control_1 (Qubit): The 1st control qubit.
+        q_control_2 (Qubit): The 2nd control qubit.
+        q_target (Qubit): The target qubit.
+
     """
-    if not is_qubit(q_control_1):
+    if not isinstance(q_control_1, Qubit):
         raise AquaError('A qubit is expected for the first control.')
-    if not self.has_register(q_control_1[0]):
+    if not self.has_register(q_control_1.register):
         raise AquaError('The first control qubit is expected to be part of the circuit.')
 
-    if not is_qubit(q_control_2):
+    if not isinstance(q_control_2, Qubit):
         raise AquaError('A qubit is expected for the second control.')
-    if not self.has_register(q_control_2[0]):
+    if not self.has_register(q_control_2.register):
         raise AquaError('The second control qubit is expected to be part of the circuit.')
 
-    if not is_qubit(q_target):
+    if not isinstance(q_target, Qubit):
         raise AquaError('A qubit is expected for the target.')
-    if not self.has_register(q_target[0]):
+    if not self.has_register(q_target.register):
         raise AquaError('The target qubit is expected to be part of the circuit.')
     self._check_dups([q_control_1, q_control_2, q_target])
     _apply_rccx(self, q_control_1, q_control_2, q_target)
@@ -95,25 +94,30 @@ def rcccx(self, q_control_1, q_control_2, q_control_3, q_target):
 
     Args:
         self (QuantumCircuit): The QuantumCircuit object to apply the rcccx gate on.
-        q_control_1 (tuple(QuantumRegister, int)): The 1st control qubit.
-        q_control_2 (tuple(QuantumRegister, int)): The 2nd control qubit.
-        q_control_3 (tuple(QuantumRegister, int)): The 3rd control qubit.
-        q_target (tuple(QuantumRegister, int)): The target qubit.
+        q_control_1 (Qubit): The 1st control qubit.
+        q_control_2 (Qubit): The 2nd control qubit.
+        q_control_3 (Qubit): The 3rd control qubit.
+        q_target (Qubit): The target qubit.
 
     """
-    if not is_qubit(q_control_1):
+    if not isinstance(q_control_1, Qubit):
         raise AquaError('A qubit is expected for the first control.')
-    if not self.has_register(q_control_1[0]):
+    if not self.has_register(q_control_1.register):
         raise AquaError('The first control qubit is expected to be part of the circuit.')
 
-    if not is_qubit(q_control_2):
+    if not isinstance(q_control_2, Qubit):
         raise AquaError('A qubit is expected for the second control.')
-    if not self.has_register(q_control_2[0]):
+    if not self.has_register(q_control_2.register):
         raise AquaError('The second control qubit is expected to be part of the circuit.')
 
-    if not is_qubit(q_target):
+    if not isinstance(q_control_3, Qubit):
+        raise AquaError('A qubit is expected for the third control.')
+    if not self.has_register(q_control_3.register):
+        raise AquaError('The third control qubit is expected to be part of the circuit.')
+
+    if not isinstance(q_target, Qubit):
         raise AquaError('A qubit is expected for the target.')
-    if not self.has_register(q_target[0]):
+    if not self.has_register(q_target.register):
         raise AquaError('The target qubit is expected to be part of the circuit.')
 
     self._check_dups([q_control_1, q_control_2, q_control_3, q_target])

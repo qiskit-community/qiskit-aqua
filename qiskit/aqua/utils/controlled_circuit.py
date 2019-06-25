@@ -13,10 +13,10 @@
 # that they have been altered from the originals.
 
 import numpy as np
-from qiskit import QuantumCircuit, compiler
+from qiskit import compiler, BasicAer
+from qiskit.circuit import QuantumCircuit, Qubit
 from qiskit.transpiler.passes import Unroller
 from qiskit.transpiler import PassManager
-from qiskit import BasicAer
 
 
 def apply_cu1(circuit, lam, c, t, use_basis_gates=True):
@@ -73,7 +73,7 @@ def get_controlled_circuit(circuit, ctl_qubit, tgt_circuit=None, use_basis_gates
 
     Args:
         circuit (QuantumCircuit) : the base circuit
-        ctl_qubit (indexed QuantumRegister) : the control qubit to use
+        ctl_qubit (Qubit) : the control qubit to use
         tgt_circuit (QuantumCircuit) : the target controlled circuit to be modified in-place
         use_basis_gates (bool) : boolean flag to indicate whether or not only basis gates should be used
 
@@ -109,8 +109,8 @@ def get_controlled_circuit(circuit, ctl_qubit, tgt_circuit=None, use_basis_gates
     ).data
 
     # process all basis gates to add control
-    if not qc.has_register(ctl_qubit[0]):
-        qc.add(ctl_qubit[0])
+    if not qc.has_register(ctl_qubit.register):
+        qc.add_register(ctl_qubit.register)
     for op in ops:
         if op[0].name == 'id':
             apply_cu3(qc, 0, 0, 0, ctl_qubit, op[1][0], use_basis_gates=use_basis_gates)

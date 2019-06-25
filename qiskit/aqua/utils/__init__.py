@@ -31,7 +31,7 @@ from .run_circuits import compile_and_run_circuits, compile_circuits, run_qobj, 
 from .circuit_cache import CircuitCache
 from .backend_utils import has_ibmq, has_aer
 from .measurement_error_mitigation import (get_measured_qubits_from_qobj,
-                                           add_measurement_error_mitigation_to_qobj)
+                                           build_measurement_error_mitigation_qobj)
 
 __all__ = [
     'tensorproduct',
@@ -64,5 +64,5 @@ __all__ = [
     'has_ibmq',
     'has_aer',
     'get_measured_qubits_from_qobj',
-    'add_measurement_error_mitigation_to_qobj'
+    'build_measurement_error_mitigation_qobj'
 ]

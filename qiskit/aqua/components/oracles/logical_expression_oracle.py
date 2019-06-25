@@ -41,27 +41,19 @@ class LogicalExpressionOracle(Oracle):
                 "optimization": {
                     "type": "string",
                     "default": "off",
-                    'oneOf': [
-                        {
-                            'enum': [
-                                'off',
-                                'espresso'
-                            ]
-                        }
+                    'enum': [
+                        'off',
+                        'espresso'
                     ]
                 },
                 'mct_mode': {
                     'type': 'string',
                     'default': 'basic',
-                    'oneOf': [
-                        {
-                            'enum': [
-                                'basic',
-                                'basic-dirty-ancilla',
-                                'advanced',
-                                'noancilla'
-                            ]
-                        }
+                    'enum': [
+                        'basic',
+                        'basic-dirty-ancilla',
+                        'advanced',
+                        'noancilla'
                     ]
                 },
             },
@@ -95,10 +87,10 @@ class LogicalExpressionOracle(Oracle):
         else:
             try:
                 raw_expr = expr(expression)
-            except:
+            except Exception:
                 try:
                     raw_expr = ast2expr(parse_cnf(expression.strip(), varname='v'))
-                except:
+                except Exception:
                     raise AquaError('Failed to parse the input expression: {}.'.format(expression))
 
         self._expr = raw_expr

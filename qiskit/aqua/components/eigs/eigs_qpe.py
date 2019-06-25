@@ -45,11 +45,9 @@ class EigsQPE(Eigenvalues):
                 'expansion_mode': {
                     'type': 'string',
                     'default': 'trotter',
-                    'oneOf': [
-                        {'enum': [
-                            'suzuki',
-                            'trotter'
-                        ]}
+                    'enum': [
+                        'suzuki',
+                        'trotter'
                     ]
                 },
                 'expansion_order': {
@@ -179,8 +177,8 @@ class EigsQPE(Eigenvalues):
     def _init_constants(self):
         # estimate evolution time
         self._operator._check_representation('paulis')
-        paulis = self._operator.paulis
-        if self._evo_time == None:
+        # paulis = self._operator.paulis
+        if self._evo_time is None:
             lmax = sum([abs(p[0]) for p in self._operator.paulis])
             if not self._negative_evals:
                 self._evo_time = (1-2**-self._num_ancillae)*2*np.pi/lmax

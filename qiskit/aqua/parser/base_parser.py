@@ -20,8 +20,9 @@ import copy
 from qiskit.aqua import (local_pluggables_types,
                          PluggableType,
                          get_pluggable_configuration,
-                         local_pluggables,
-                         get_backends_from_provider)
+                         local_pluggables)
+from qiskit.aqua.utils.backend_utils import (get_backends_from_provider,
+                                             get_provider_from_backend)
 from qiskit.aqua.aqua_error import AquaError
 from .json_schema import JSONSchema
 import traceback
@@ -45,6 +46,7 @@ class BaseParser(ABC):
 
     def __init__(self, jsonSchema):
         """Create InputParser object."""
+        self._section_order = None
         self._original_sections = None
         self._filename = None
         self._sections = None
@@ -66,6 +68,15 @@ class BaseParser(ABC):
                                                               else _property_order.index(BaseParser._UNKNOWN)))
 
         return sections_sorted
+
+    @property
+    def backend(self):
+        """Getter of backend."""
+        return self.json_schema.backend
+
+    @backend.setter
+    def backend(self, new_value):
+        self.json_schema.backend = new_value
 
     @property
     def json_schema(self):
@@ -471,24 +482,34 @@ class BaseParser(ABC):
             return False
 
         # check if the provider/backend is loadable and valid
-        backend_names = []
+        # set values from self.backend if exists
         if JSONSchema.BACKEND == section_name and property_name in [JSONSchema.PROVIDER, JSONSchema.NAME]:
-            provider_name = value if property_name == JSONSchema.PROVIDER else self.get_section_property(section_name, JSONSchema.PROVIDER)
-            backend_names = get_backends_from_provider(provider_name)
-            if property_name == JSONSchema.NAME and value not in backend_names:
-                raise AquaError("Backend '{}' not valid for provider: '{}' backends: '{}'".format(value, provider_name, backend_names))
+            if self.backend is not None:
+                value = self.backend.name() if property_name == JSONSchema.NAME else get_provider_from_backend(self.backend)
+            elif property_name == JSONSchema.NAME:
+                provider_name = self.get_section_property(section_name, JSONSchema.PROVIDER)
+                backend_names = get_backends_from_provider(provider_name)
+                if value not in backend_names:
+                    raise AquaError("Backend '{}' not valid for provider: '{}' backends: '{}'".format(value, provider_name, backend_names))
 
         # update value internally
         BaseParser._set_section_property(self._sections, section_name, property_name, value, types)
 
-        if JSONSchema.BACKEND == section_name and property_name in [JSONSchema.PROVIDER, JSONSchema.NAME]:
-            if property_name == JSONSchema.PROVIDER:
+        if JSONSchema.BACKEND == section_name and property_name == JSONSchema.PROVIDER:
+            if self.backend is not None:
+                # set value from self.backend if exists
+                BaseParser._set_section_property(self._sections, section_name, JSONSchema.NAME, self.backend.name(), ['string'])
+            else:
                 backend_name = self.get_section_property(section_name, JSONSchema.NAME)
+                backend_names = get_backends_from_provider(value)
                 if backend_name not in backend_names:
                     # use first backend available in provider
                     backend_name = backend_names[0] if len(backend_names) > 0 else ''
                     BaseParser._set_section_property(self._sections, section_name, JSONSchema.NAME, backend_name, ['string'])
 
+        # update backend schema
+        if JSONSchema.BACKEND == section_name and property_name in [JSONSchema.PROVIDER, JSONSchema.NAME]:
+            # update backend schema
             self._json_schema.update_backend_schema(self)
             return True
 

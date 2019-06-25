@@ -76,7 +76,7 @@ class TestVQE(QiskitAquaTestCase):
         ['POWELL', 5, 1],
         ['SLSQP', 5, 4],
         ['SLSQP', 5, 1],
-        ['SPSA', 3, 2], # max_evals_grouped=n is considered as max_evals_grouped=2 if n>2
+        ['SPSA', 3, 2],  # max_evals_grouped=n is considered as max_evals_grouped=2 if n>2
         ['SPSA', 3, 1],
         ['TNC', 2, 4],
         ['TNC', 2, 1]
