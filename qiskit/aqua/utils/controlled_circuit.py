@@ -14,7 +14,7 @@
 
 import numpy as np
 from qiskit import compiler, BasicAer
-from qiskit.circuit import QuantumCircuit, Qubit
+from qiskit.circuit import QuantumCircuit
 from qiskit.transpiler.passes import Unroller
 from qiskit.transpiler import PassManager
 
