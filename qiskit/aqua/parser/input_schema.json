@@ -23,6 +23,11 @@
                     "type": "boolean",
                     "default": true
                 },
+                "circuit_optimization_level": {
+                    "type": ["integer", "string"],
+                    "enum": [0, 1, 2, 3, "default"],
+                    "default": "default"
+                },
                 "skip_qobj_deepcopy": {
                     "type": "boolean",
                     "default": true

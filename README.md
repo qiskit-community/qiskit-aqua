@@ -31,7 +31,7 @@ pip will handle all dependencies automatically for you, including the other Qisk
 Aqua is built, such as [Qiskit Terra](https://github.com/Qiskit/qiskit-terra/),
 and you will always install the latest (and well-tested) version.
 
-To install from source, follow the instructions in the [contribution guidelines](.github/CONTRIBUTING.rst).
+To install from source, follow the instructions in the [contribution guidelines](./CONTRIBUTING.md).
 
 Please note that one of Aqua's dependencies, [PyEDA](https://pyeda.readthedocs.io/en/latest/),
 which is used in Aqua's
@@ -99,7 +99,7 @@ for more details.
 ## Contribution Guidelines
 
 If you'd like to contribute to Qiskit, please take a look at our
-[contribution guidelines](.github/CONTRIBUTING.rst). This project adheres to Qiskit's [code of conduct](.github/CODE_OF_CONDUCT.rst). By participating, you are expected to uphold to this code.
+[contribution guidelines](./CONTRIBUTING.md). This project adheres to Qiskit's [code of conduct](./CODE_OF_CONDUCT.md). By participating, you are expected to uphold to this code.
 
 We use [GitHub issues](https://github.com/Qiskit/qiskit-aqua/issues) for tracking requests and bugs. Please
 [join the Qiskit Slack community](https://join.slack.com/t/qiskit/shared_invite/enQtNDc2NjUzMjE4Mzc0LTMwZmE0YTM4ZThiNGJmODkzN2Y2NTNlMDIwYWNjYzA2ZmM1YTRlZGQ3OGM0NjcwMjZkZGE0MTA4MGQ1ZTVmYzk)
@@ -117,7 +117,7 @@ folders of the [qiskit-tutorials GitHub Repository](https://github.com/Qiskit/qi
 ## Authors and Citation
 
 Aqua was inspired, authored and brought about by the collective work of a team of researchers.
-Aqua continues to grow with the help and work of [many people](./CONTRIBUTORS.rst), who contribute
+Aqua continues to grow with the help and work of [many people](./CONTRIBUTORS.md), who contribute
 to the project at different levels. If you use Qiskit, please cite as per the included [BibTeX file](https://github.com/Qiskit/qiskit/blob/master/Qiskit.bib).
 
 ## License

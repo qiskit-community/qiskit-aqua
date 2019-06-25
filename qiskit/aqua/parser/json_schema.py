@@ -100,9 +100,7 @@ class JSONSchema(object):
             for problem in problems:
                 problems_dict[problem] = None
 
-        problems_enum = {'enum': list(problems_dict.keys())}
-        self._schema['properties'][JSONSchema.PROBLEM]['properties'][JSONSchema.NAME]['oneOf'] = [
-            problems_enum]
+        self._schema['properties'][JSONSchema.PROBLEM]['properties'][JSONSchema.NAME]['enum'] = list(problems_dict.keys())
 
     def copy_section_from_aqua_schema(self, section_name):
         """
@@ -287,6 +285,9 @@ class JSONSchema(object):
             if 'boolean' in types:
                 return [True, False]
 
+        if 'enum' in prop:
+            return prop['enum']
+
         if 'oneOf' not in prop:
             return None
 
@@ -442,11 +443,7 @@ class JSONSchema(object):
                 self._schema['properties'][JSONSchema.BACKEND]['properties']['coupling_map_from_device'] = {
                     'type': ['string', 'null'],
                     'default': None,
-                    'oneOf': [
-                        {
-                            'enum': coupling_map_devices
-                        }
-                    ],
+                    'enum': coupling_map_devices,
                 }
 
         # noise model that can be setup for Aer simulator so as to model noise of an actual device.
@@ -455,11 +452,7 @@ class JSONSchema(object):
             self._schema['properties'][JSONSchema.BACKEND]['properties']['noise_model'] = {
                 'type': ['string', 'null'],
                 'default': None,
-                'oneOf': [
-                    {
-                        'enum': noise_model_devices
-                    }
-                ],
+                'enum': noise_model_devices,
             }
 
         # If a noise model is supplied then the basis gates is set as per the noise model
@@ -573,7 +566,7 @@ class JSONSchema(object):
         try:
             if pluggable_type is not None and pluggable_name is not None:
                 config = get_pluggable_configuration(pluggable_type, pluggable_name)
-        except:
+        except Exception:
             pass
 
         input_schema = config.get('input_schema', {})
@@ -709,7 +702,7 @@ class JSONSchema(object):
                 v = json.loads(json.dumps(v))
 
             return v
-        except:
+        except Exception:
             return value
 
     @staticmethod
@@ -752,7 +745,7 @@ class JSONSchema(object):
                     return int(value), True
                 else:
                     return float(value), True
-            except:
+            except Exception:
                 value = 0
 
         return value, False

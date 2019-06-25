@@ -167,27 +167,19 @@ class TruthTableOracle(Oracle):
                 "optimization": {
                     "type": "string",
                     "default": "off",
-                    'oneOf': [
-                        {
-                            'enum': [
-                                'off',
-                                'qm-dlx'
-                            ]
-                        }
+                    'enum': [
+                        'off',
+                        'qm-dlx'
                     ]
                 },
                 'mct_mode': {
                     'type': 'string',
                     'default': 'basic',
-                    'oneOf': [
-                        {
-                            'enum': [
-                                'basic',
-                                'basic-dirty-ancilla',
-                                'advanced',
-                                'noancilla',
-                            ]
-                        }
+                    'enum': [
+                        'basic',
+                        'basic-dirty-ancilla',
+                        'advanced',
+                        'noancilla',
                     ]
                 },
             },
@@ -330,7 +322,11 @@ class TruthTableOracle(Oracle):
         if self._esops:
             for i, e in enumerate(self._esops):
                 if e is not None:
-                    ci = e.construct_circuit(output_register=self._output_register, output_idx=i)
+                    ci = e.construct_circuit(
+                        output_register=self._output_register,
+                        output_idx=i,
+                        mct_mode=self._mct_mode
+                    )
                     self._circuit += ci
             self._variable_register = self._ancillary_register = None
             for qreg in self._circuit.qregs:

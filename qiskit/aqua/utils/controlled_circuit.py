@@ -110,7 +110,7 @@ def get_controlled_circuit(circuit, ctl_qubit, tgt_circuit=None, use_basis_gates
 
     # process all basis gates to add control
     if not qc.has_register(ctl_qubit.register):
-        qc.add(ctl_qubit.register)
+        qc.add_register(ctl_qubit.register)
     for op in ops:
         if op[0].name == 'id':
             apply_cu3(qc, 0, 0, 0, ctl_qubit, op[1][0], use_basis_gates=use_basis_gates)

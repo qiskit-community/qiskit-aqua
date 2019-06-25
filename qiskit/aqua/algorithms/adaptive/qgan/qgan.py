@@ -264,7 +264,6 @@ class QGAN(QuantumAlgorithm):
         """
 
         if discriminator is None:
-            from qiskit.aqua.components.neural_networks.pytorch_discriminator import ClassicalDiscriminator
             self._discriminator = NumpyDiscriminator(len(self._num_qubits))
         else:
             self._discriminator = discriminator
@@ -411,9 +410,9 @@ class QGAN(QuantumAlgorithm):
                 self._store_params(e, np.around(d_loss_min.detach().numpy(), 4),
                                    np.around(g_loss_min, 4), np.around(rel_entr, 4))
             logger.debug('Epoch {}/{}...'.format(e + 1, self._num_epochs))
-            logger.debug('Loss Discriminator: ', np.around(d_loss_min, 4))
-            logger.debug('Loss Generator: ', np.around(g_loss_min, 4))
-            logger.debug('Relative Entropy: ', np.around(rel_entr, 4))
+            logger.debug('Loss Discriminator: {}'.format(np.around(d_loss_min, 4)))
+            logger.debug('Loss Generator: {}'.format(np.around(g_loss_min, 4)))
+            logger.debug('Relative Entropy: {}'.format(np.around(rel_entr, 4)))
 
             if self._tol_rel_ent is not None:
                 if rel_entr <= self._tol_rel_ent:

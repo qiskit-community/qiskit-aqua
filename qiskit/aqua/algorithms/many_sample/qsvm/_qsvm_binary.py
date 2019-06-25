@@ -145,10 +145,18 @@ class _QSVM_Binary(_QSVM_ABC):
                  'support_vectors': model_npz['support_vectors'],
                  'yin': model_npz['yin']}
         self._ret['svm'] = model
+        try:
+            self._qalgo.class_to_label = model_npz['class_to_label']
+            self._qalgo.label_to_class = model_npz['label_to_class']
+        except KeyError as e:
+            logger.warning("The model saved in Aqua 0.5 does not contain the mapping between class names and labels. "
+                           "Please setup them and save the model again for further use. Error: {}".format(str(e)))
 
     def save_model(self, file_path):
         model = {'alphas': self._ret['svm']['alphas'],
                  'bias': self._ret['svm']['bias'],
                  'support_vectors': self._ret['svm']['support_vectors'],
-                 'yin': self._ret['svm']['yin']}
+                 'yin': self._ret['svm']['yin'],
+                 'class_to_label': self._qalgo.class_to_label,
+                 'label_to_class': self._qalgo.label_to_class}
         np.savez(file_path, **model)

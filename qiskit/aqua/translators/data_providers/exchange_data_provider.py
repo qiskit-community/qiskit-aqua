@@ -39,27 +39,21 @@ class ExchangeDataProvider(BaseDataProvider):
                 "stockmarket": {
                     "type":
                     "string",
-                    "default":
-                    StockMarket.LONDON.value,
-                    "oneOf": [{
-                        "enum": [
-                            StockMarket.LONDON.value,
-                            StockMarket.EURONEXT.value,
-                            StockMarket.SINGAPORE.value,
-                        ]
-                    }]
+                    "default": StockMarket.LONDON.value,
+                    "enum": [
+                        StockMarket.LONDON.value,
+                        StockMarket.EURONEXT.value,
+                        StockMarket.SINGAPORE.value,
+                    ]
                 },
                 "datatype": {
                     "type":
                     "string",
-                    "default":
-                    DataType.DAILYADJUSTED.value,
-                    "oneOf": [{
-                        "enum": [
-                            DataType.DAILYADJUSTED.value,
-                            DataType.DAILY.value,
-                        ]
-                    }]
+                    "default": DataType.DAILYADJUSTED.value,
+                    "enum": [
+                        DataType.DAILYADJUSTED.value,
+                        DataType.DAILY.value,
+                    ]
                 },
             },
         }
@@ -133,9 +127,9 @@ class ExchangeDataProvider(BaseDataProvider):
             raise QiskitFinanceError(
                 'Invalid or missing section {}'.format(section))
 
-        params = section
+        # params = section
         kwargs = {}
-        #for k, v in params.items():
+        # for k, v in params.items():
         #    if k == ExchangeDataProvider. ...: v = UnitsType(v)
         #    kwargs[k] = v
         logger.debug('init_from_input: {}'.format(kwargs))
