@@ -18,6 +18,11 @@ The format is based on `Keep a Changelog`_.
 `UNRELEASED`_
 =============
 
+Changed
+-------
+
+- The pyeda requirement was made optional instead of an install requirement
+
 `0.5.1`_ - 2019-05-24
 =====================
 
