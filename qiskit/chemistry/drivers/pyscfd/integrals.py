@@ -26,6 +26,7 @@ try:
     from pyscf import __version__ as pyscf_version
     from pyscf.lib import param
     from pyscf.lib import logger as pylogger
+    from pyscf.tools import dump_mat
 except ImportError:
     logger.info("PySCF is not installed. See https://sunqm.github.io/pyscf/install.html")
 
@@ -158,6 +159,19 @@ def _calculate_integrals(mol, hf_method='rhf', conv_tol=1e-9, max_cycle=50, init
         else:
             orbs_energy = mf.mo_energy
             orbs_energy_B = None
+
+    if logger.isEnabledFor(logging.DEBUG):
+        # Add some more to PySCF output...
+        # First analyze() which prints extra information about MO energy and occupation
+        mol.stdout.write('\n')
+        mf.analyze()
+        # Now labelled orbitals for contributions to the MOs for s,p,d etc of each atom
+        mol.stdout.write('\n\n--- Alpha Molecular Orbitals ---\n\n')
+        dump_mat.dump_mo(mol, mo_coeff, digits=7, start=1)
+        if mo_coeff_B is not None:
+            mol.stdout.write('\n--- Beta Molecular Orbitals ---\n\n')
+            dump_mat.dump_mo(mol, mo_coeff_B, digits=7, start=1)
+        mol.stdout.flush()
 
     hij = mf.get_hcore()
     mohij = np.dot(np.dot(mo_coeff.T, hij), mo_coeff)
