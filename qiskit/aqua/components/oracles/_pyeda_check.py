@@ -32,4 +32,4 @@ def _check_pluggable_valid(name):
         logger.debug('{} {}'.format(err_msg, str(e)))
         raise AquaError(err_msg) from e
 
-    raise AquaError(err_msg)
+    # raise AquaError(err_msg)
