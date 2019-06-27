@@ -18,6 +18,9 @@ The format is based on `Keep a Changelog`_.
 `UNRELEASED`_
 =============
 
+`0.5.2`_ - 2019-06-27
+=====================
+
 Changed
 -------
 
@@ -266,7 +269,8 @@ Changed
 - Updated qiskit minimum version in setup.py.
 - Fixed links in readme.me.
 
-.. _UNRELEASED: https://github.com/Qiskit/qiskit-aqua/compare/0.5.1...HEAD
+.. _UNRELEASED: https://github.com/Qiskit/qiskit-aqua/compare/0.5.2...HEAD
+.. _0.5.2: https://github.com/Qiskit/qiskit-aqua/compare/0.5.1...0.5.2
 .. _0.5.1: https://github.com/Qiskit/qiskit-aqua/compare/0.5.0...0.5.1
 .. _0.5.0: https://github.com/Qiskit/qiskit-aqua/compare/0.4.1...0.5.0
 .. _0.4.1: https://github.com/Qiskit/qiskit-aqua/compare/0.4.0...0.4.1
