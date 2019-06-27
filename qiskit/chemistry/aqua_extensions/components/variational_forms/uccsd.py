@@ -134,8 +134,10 @@ class UCCSD(VariationalForm):
         self._tapering_values = tapering_values
         self._symmetries = symmetries
 
-        if self._cliffords is not None and self._sq_list is not None and \
-                self._tapering_values is not None and self._symmetries is not None:
+        if self._cliffords is not None and self._cliffords != [] and \
+                self._sq_list is not None and self._sq_list != [] and \
+                self._tapering_values is not None and self._tapering_values != [] and \
+                self._symmetries is not None and self._symmetries != []:
             self._qubit_tapering = True
         else:
             self._qubit_tapering = False
@@ -217,18 +219,14 @@ class UCCSD(VariationalForm):
             if two_qubit_reduction else qubit_op
 
         if qubit_tapering:
+            symm_commuting = True
             for symmetry in symmetries:
                 symmetry_op = Operator(paulis=[[1.0, symmetry]])
                 symm_commuting = check_commutativity(symmetry_op, qubit_op)
                 if not symm_commuting:
                     break
-
-        if qubit_tapering:
-            if symm_commuting:
-                qubit_op = Operator.qubit_tapering(qubit_op, cliffords,
-                                                   sq_list, tapering_values)
-            else:
-                qubit_op = None
+            qubit_op = Operator.qubit_tapering(qubit_op, cliffords,
+                                               sq_list, tapering_values) if symm_commuting else None
 
         if qubit_op is None:
             logger.debug('Excitation ({}) is skipped since it is not commuted '
