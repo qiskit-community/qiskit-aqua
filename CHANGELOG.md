@@ -23,6 +23,7 @@ Added
 
 -   Relative-Phase Toffoli gates `rccx` (with 2 controls) and `rcccx`
     (with 3 controls).
+-   Variational form `RYCRX` 
 -   A new `'basic-no-ancilla'` mode to `mct`.
 -   Multi-controlled rotation gates `mcrx`, `mcry`, and `mcrz` as a general 
     `u3` gate is not supported by graycode implementation
