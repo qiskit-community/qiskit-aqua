@@ -16,6 +16,8 @@ The General Logical Expression-based Quantum Oracle.
 """
 
 import logging
+import warnings
+import re
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.aqua import AquaError
 from qiskit.aqua.circuits import CNF, DNF
@@ -77,29 +79,95 @@ class LogicalExpressionOracle(Oracle):
         self.validate(locals())
         super().__init__()
 
-        self._mct_mode = mct_mode
-        self._optimization = optimization
+        try:
+            import pyeda
+            self._pyeda = True
+        except ImportError:
+            self._pyeda = False
+            warnings.warn('Please consider installing PyEDA for richer functionality.')
 
-        from pyeda.boolalg.expr import ast2expr, expr
-        from pyeda.parsing.dimacs import parse_cnf
-        if expression is None:
-            raw_expr = expr(None)
-        else:
-            try:
-                raw_expr = expr(expression)
-            except Exception:
+        self._mct_mode = mct_mode.strip().lower()
+        self._optimization = optimization.strip().lower()
+
+        if not self._optimization == 'off' and not self._pyeda:
+            warnings.warn('Logical expression optimization will not be performed without PyEDA.')
+
+        if self._pyeda:
+            from pyeda.boolalg.expr import ast2expr, expr
+            from pyeda.parsing.dimacs import parse_cnf
+            if expression is None:
+                raw_expr = expr(None)
+            else:
+                orig_expression = expression
+                # try parsing as normal logical expression that pyeda recognizes
                 try:
-                    raw_expr = ast2expr(parse_cnf(expression.strip(), varname='v'))
+                    expression = re.sub('(?i)' + re.escape(' and '), ' & ', expression)
+                    expression = re.sub('(?i)' + re.escape(' xor '), ' ^ ', expression)
+                    expression = re.sub('(?i)' + re.escape(' or '),  ' | ', expression)
+                    expression = re.sub('(?i)' + re.escape('not '),  '~',   expression)
+                    raw_expr = expr(expression)
                 except Exception:
-                    raise AquaError('Failed to parse the input expression: {}.'.format(expression))
+                    # try parsing as dimacs cnf
+                    try:
+                        raw_expr = ast2expr(parse_cnf(expression.strip(), varname='v'))
+                    except Exception:
+                        raise AquaError('Failed to parse the input expression: {}.'.format(orig_expression))
 
-        self._expr = raw_expr
-        self._process_expr()
+            self._expr = raw_expr
+            self._process_expr_with_pyeda()
+        else:
+            from tt import BooleanExpression, to_cnf
+            if expression is None:
+                raise AquaError('do none expr for tt!')
+            else:
+                orig_expression = expression
+                # try parsing as normal logical expression that tt recognizes
+                try:
+                    expression = re.sub('(?i)' + re.escape('^'), ' xor ', expression)
+                    expression = to_cnf(BooleanExpression(expression)).raw_expr
+                    expression = re.sub('(?i)' + re.escape(' and '), ' & ', expression)
+                    expression = re.sub('(?i)' + re.escape('not '), '~', expression)
+                    expression = re.sub('(?i)' + re.escape(' or '), ' | ', expression)
+                    raw_expr = BooleanExpression(expression)
+                except Exception:
+                    # try parsing as dimacs cnf
+                    try:
+                        expression = LogicalExpressionOracle._dimacs_cnf_to_expression(expression)
+                        raw_expr = BooleanExpression(expression)
+                    except Exception:
+                        raise AquaError('Failed to parse the input expression: {}.'.format(orig_expression))
+            self._expr = raw_expr
+            self._process_expr_with_tt()
         self.construct_circuit()
 
     @staticmethod
     def check_pluggable_valid():
         check_pyeda_valid(LogicalExpressionOracle.CONFIGURATION['name'])
+
+    @staticmethod
+    def _dimacs_cnf_to_expression(dimacs):
+        lines = [
+            ll for ll in [
+                l.strip().lower() for l in dimacs.strip().split('\n')
+            ] if len(ll) > 0 and not ll[0] == 'c'
+        ]
+
+        if not lines[0][:6] == 'p cnf ':
+            raise AquaError('Unrecognized dimacs cnf header {}.'.format(lines[0]))
+
+        def create_var(cnf_tok):
+            return ('~v' + cnf_tok[1:]) if cnf_tok[0] == '-' else ('v' + cnf_tok)
+
+        clauses = []
+        for line in lines[1:]:
+            toks = line.split()
+            if not toks[-1] == '0':
+                raise AquaError('Unrecognized dimacs line {}.'.format(line))
+            else:
+                clauses.append('({})'.format(' | '.join(
+                    [create_var(t) for t in toks[:-1]]
+                )))
+        return ' & '.join(clauses)
 
     @staticmethod
     def _normalize_literal_indices(raw_ast, raw_indices):
@@ -122,7 +190,34 @@ class LogicalExpressionOracle(Oracle):
             raise AquaError('Unrecognized root expression type: {}.'.format(raw_ast[0]))
         return (raw_ast[0], *clauses)
 
-    def _process_expr(self):
+    def _process_expr_with_tt(self):
+        self._num_vars = len(self._expr.symbols)
+        self._lit_to_var = [None] + sorted(self._expr.symbols)
+        self._var_to_lit = {v: l for v, l in zip(self._lit_to_var[1:], range(1, self._num_vars + 1))}
+        # ast = self._expr.to_ast() if self._expr.is_cnf() else self._expr.to_cnf().to_ast()
+        ast_clauses = []
+        for clause in self._expr.iter_cnf_clauses():
+            literals = []
+            for literal in clause.iter_dnf_clauses():
+                if not literal.raw_expr[0] == '~':
+                    literals.append(('lit', self._var_to_lit[literal.raw_expr]))
+                else:
+                    literals.append(('lit', -1 * self._var_to_lit[literal.raw_expr[1:]]))
+            if len(literals) == 1:
+                ast_clauses.append(literals[0])
+            else:
+                ast_clauses.append(('or', *literals))
+        if len(ast_clauses) == 1:
+            ast = ast_clauses[0]
+        else:
+            ast = ('and', *ast_clauses,)
+
+        if ast[0] == 'or':
+            self._nf = DNF(ast, num_vars=self._num_vars)
+        else:
+            self._nf = CNF(ast, num_vars=self._num_vars)
+
+    def _process_expr_with_pyeda(self):
         from pyeda.inter import espresso_exprs
         from pyeda.boolalg.expr import AndOp, OrOp, Variable
         self._num_vars = self._expr.degree
@@ -176,7 +271,7 @@ class LogicalExpressionOracle(Oracle):
                 self._circuit = QuantumCircuit(self._variable_register, self._output_register)
         return self._circuit
 
-    def evaluate_classically(self, measurement):
+    def evaluate_classically_with_pyeda(self, measurement):
         from pyeda.boolalg.expr import AndOp, OrOp, Variable
         assignment = [(var + 1) * (int(tf) * 2 - 1) for tf, var in zip(measurement[::-1], range(len(measurement)))]
         if self._expr.is_zero():
@@ -207,3 +302,22 @@ class LogicalExpressionOracle(Oracle):
                     return True, assignment
             else:
                 return False, assignment
+
+    def evaluate_classically_with_tt(self, measurement):
+        from tt import BooleanExpression
+        assignment = [(var + 1) * (int(tf) * 2 - 1) for tf, var in zip(measurement[::-1], range(len(measurement)))]
+        if self._expr == BooleanExpression('0'):
+            return False, assignment
+        elif self._expr == BooleanExpression('1'):
+            return True, assignment
+        else:
+            assignment_dict = dict()
+            for v in assignment:
+                assignment_dict[self._lit_to_var[abs(v)]] = 1 if v > 0 else 0
+            return self._expr.evaluate(**assignment_dict), assignment
+
+    def evaluate_classically(self, measurement):
+        if self._pyeda:
+            return self.evaluate_classically_with_pyeda(measurement)
+        else:
+            return self.evaluate_classically_with_tt(measurement)
