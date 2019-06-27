@@ -28,6 +28,7 @@ nums_controls = [[i + 1] for i in range(6)]
 nums_controls_basic = [[i + 1] for i in range(4)]
 use_basis_gates_vals = [True, False]
 
+
 class TestMCR(QiskitAquaTestCase):
     @parameterized.expand(
         product(nums_controls, use_basis_gates_vals)
@@ -57,9 +58,9 @@ class TestMCR(QiskitAquaTestCase):
             pos = dim - 2*(control_int+1)
             mat_groundtruth = np.eye(dim, dtype=complex)
             rot_mat = np.array(
-                [[np.cos(theta / 2), - 1j * np.sin(theta / 2)],
-                [- 1j * np.sin(theta / 2), np.cos(theta / 2)]],
-                dtype=complex)
+                               [[np.cos(theta / 2), - 1j * np.sin(theta / 2)],
+                                [- 1j * np.sin(theta / 2), np.cos(theta / 2)]],
+                               dtype=complex)
             mat_groundtruth[pos:pos + 2, pos:pos + 2] = rot_mat
             self.assertTrue(np.allclose(mat_mcu, mat_groundtruth))
 
@@ -90,9 +91,9 @@ class TestMCR(QiskitAquaTestCase):
             pos = dim - 2*(control_int+1)
             mat_groundtruth = np.eye(dim, dtype=complex)
             rot_mat = np.array(
-                [[np.cos(theta / 2), - np.sin(theta / 2)],
-                [np.sin(theta / 2), np.cos(theta / 2)]],
-                dtype=complex)
+                               [[np.cos(theta / 2), - np.sin(theta / 2)],
+                                [np.sin(theta / 2), np.cos(theta / 2)]],
+                               dtype=complex)
             mat_groundtruth[pos:pos + 2, pos:pos + 2] = rot_mat
             self.assertTrue(np.allclose(mat_mcu, mat_groundtruth))
 
@@ -134,9 +135,9 @@ class TestMCR(QiskitAquaTestCase):
             pos = dim - 2*(control_int+1)
             mat_groundtruth = np.eye(dim, dtype=complex)
             rot_mat = np.array(
-                [[np.cos(theta / 2), - np.sin(theta / 2)],
-                [np.sin(theta / 2), np.cos(theta / 2)]],
-                dtype=complex)
+                               [[np.cos(theta / 2), - np.sin(theta / 2)],
+                                [np.sin(theta / 2), np.cos(theta / 2)]],
+                               dtype=complex)
             mat_groundtruth[pos:pos + 2, pos:pos + 2] = rot_mat
             self.assertTrue(np.allclose(mat_mcu, mat_groundtruth))
 
@@ -168,9 +169,9 @@ class TestMCR(QiskitAquaTestCase):
             pos = dim - 2*(control_int+1)
             mat_groundtruth = np.eye(dim, dtype=complex)
             rot_mat = np.array(
-                [[1, 0],
-                [0, np.exp(1j * lam)]],
-                dtype=complex)
+                               [[1, 0],
+                                [0, np.exp(1j * lam)]],
+                               dtype=complex)
             mat_groundtruth[pos:pos + 2, pos:pos + 2] = rot_mat
             self.assertTrue(np.allclose(mat_mcu, mat_groundtruth))
 
