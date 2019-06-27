@@ -33,6 +33,7 @@ Changed
 -   Improve `mct`'s `'basic'` mode by using relative-phase Toffoli gates to build intermediate results.
 -   Adapt to Qiskit Terra's newly introduced `Qubit` class.
 -   Prevent `QPE/IQPE` from modifying input `Operator`s.
+-   The pyeda requirement was made optional instead of an install requirement
 
 Fixed
 -------
@@ -40,6 +41,7 @@ Fixed
 -   A bug where `TruthTableOracle` would build incorrect circuits for truth tables with only a single `1` value. 
 -   A bug caused by `PyEDA`'s indeterminism.
 -   A bug with `QPE/IQPE`'s translation and stretch computation.
+-   A bug with `docplex.get_qubitops`'s incorrect translation
 
 Removed
 -------

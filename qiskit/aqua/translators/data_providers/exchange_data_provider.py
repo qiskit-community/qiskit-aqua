@@ -127,9 +127,9 @@ class ExchangeDataProvider(BaseDataProvider):
             raise QiskitFinanceError(
                 'Invalid or missing section {}'.format(section))
 
-        params = section
+        # params = section
         kwargs = {}
-        #for k, v in params.items():
+        # for k, v in params.items():
         #    if k == ExchangeDataProvider. ...: v = UnitsType(v)
         #    kwargs[k] = v
         logger.debug('init_from_input: {}'.format(kwargs))

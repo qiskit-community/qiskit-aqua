@@ -38,7 +38,7 @@ def _apply_mcu3_graycode(circuit, theta, phi, lam, ctls, tgt, use_basis_gates):
     last_pattern = None
 
     for pattern in gray_code:
-        if not '1' in pattern:
+        if '1' not in pattern:
             continue
         if last_pattern is None:
             last_pattern = pattern

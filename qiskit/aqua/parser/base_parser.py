@@ -46,6 +46,7 @@ class BaseParser(ABC):
 
     def __init__(self, jsonSchema):
         """Create InputParser object."""
+        self._section_order = None
         self._original_sections = None
         self._filename = None
         self._sections = None

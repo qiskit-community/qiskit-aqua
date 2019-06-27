@@ -52,33 +52,33 @@ class TestQGAN(QiskitAquaTestCase):
         # Set number of training epochs
         num_epochs = 10
         self._params_torch = {'algorithm': {'name': 'QGAN',
-                                      'num_qubits': num_qubits,
-                                      'batch_size': batch_size,
-                                      'num_epochs': num_epochs},
-                        'problem': {'name': 'distribution_learning_loading', 'random_seed': 7},
-                        'generative_network': {'name': 'QuantumGenerator',
-                                               'bounds': self._bounds,
-                                               'num_qubits': num_qubits,
-                                               'init_params': None,
-                                               'snapshot_dir': None
-                                               },
+                                            'num_qubits': num_qubits,
+                                            'batch_size': batch_size,
+                                            'num_epochs': num_epochs},
+                              'problem': {'name': 'distribution_learning_loading', 'random_seed': 7},
+                              'generative_network': {'name': 'QuantumGenerator',
+                                                     'bounds': self._bounds,
+                                                     'num_qubits': num_qubits,
+                                                     'init_params': None,
+                                                     'snapshot_dir': None
+                                                     },
                               'discriminative_network': {'name': 'PytorchDiscriminator',
-                                                   'n_features': len(num_qubits)}
+                                                         'n_features': len(num_qubits)}
                               }
         self._params_numpy = {'algorithm': {'name': 'QGAN',
-                                      'num_qubits': num_qubits,
-                                      'batch_size': batch_size,
-                                      'num_epochs': num_epochs},
-                        'problem': {'name': 'distribution_learning_loading', 'random_seed': 7},
-                        'generative_network': {'name': 'QuantumGenerator',
-                                               'bounds': self._bounds,
-                                               'num_qubits': num_qubits,
-                                               'init_params': None,
-                                               'snapshot_dir': None
-                                               },
-                        'discriminative_network': {'name': 'NumpyDiscriminator',
-                                                   'n_features': len(num_qubits)}
-                        }
+                                            'num_qubits': num_qubits,
+                                            'batch_size': batch_size,
+                                            'num_epochs': num_epochs},
+                              'problem': {'name': 'distribution_learning_loading', 'random_seed': 7},
+                              'generative_network': {'name': 'QuantumGenerator',
+                                                     'bounds': self._bounds,
+                                                     'num_qubits': num_qubits,
+                                                     'init_params': None,
+                                                     'snapshot_dir': None
+                                                     },
+                              'discriminative_network': {'name': 'NumpyDiscriminator',
+                                                         'n_features': len(num_qubits)}
+                              }
 
         # Initialize qGAN
         self.qgan = QGAN(self._real_data, self._bounds, num_qubits, batch_size, num_epochs, snapshot_dir=None)
@@ -106,7 +106,7 @@ class TestQGAN(QiskitAquaTestCase):
         g_circuit = UnivariateVariationalDistribution(sum(num_qubits), var_form, init_params,
                                                       low=self._bounds[0],
                                                       high=self._bounds[1])
-                                                      # initial_distribution=init_distribution,
+        # initial_distribution=init_distribution,
         # Set quantum generator
         self.qgan.set_generator(generator_circuit=g_circuit)
 
@@ -124,11 +124,14 @@ class TestQGAN(QiskitAquaTestCase):
         self.assertAlmostEqual(trained_qasm['rel_entr'], trained_statevector['rel_entr'], delta=0.1)
 
     def test_qgan_training_run_algo_torch(self):
-        algo_input = QGANInput(self._real_data, self._bounds)
-        trained_statevector = run_algorithm(params=self._params_torch, algo_input=algo_input,
-                                            backend=BasicAer.get_backend('statevector_simulator'))
-        trained_qasm = run_algorithm(self._params_torch, algo_input, backend=BasicAer.get_backend('qasm_simulator'))
-        self.assertAlmostEqual(trained_qasm['rel_entr'], trained_statevector['rel_entr'], delta=0.1)
+        try:
+            algo_input = QGANInput(self._real_data, self._bounds)
+            trained_statevector = run_algorithm(params=self._params_torch, algo_input=algo_input,
+                                                backend=BasicAer.get_backend('statevector_simulator'))
+            trained_qasm = run_algorithm(self._params_torch, algo_input, backend=BasicAer.get_backend('qasm_simulator'))
+            self.assertAlmostEqual(trained_qasm['rel_entr'], trained_statevector['rel_entr'], delta=0.1)
+        except Exception as e:
+            self.skipTest("Torch may not be installed: '{}'".format(str(e)))
 
     def test_qgan_training_run_algo_numpy(self):
         algo_input = QGANInput(self._real_data, self._bounds)

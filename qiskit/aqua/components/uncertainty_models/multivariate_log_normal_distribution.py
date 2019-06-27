@@ -98,8 +98,8 @@ class MultivariateLogNormalDistribution(MultivariateDistribution):
         self.cov = cov
         probs, values = self._compute_probabilities([], [], num_qubits, low, high)
         probs = np.asarray(probs) / np.sum(probs)
-        self._values = values
         super().__init__(num_qubits, low, high, probs)
+        self._values = values
 
     def _compute_probabilities(self, probs, values, num_qubits, low, high, x=None):
 

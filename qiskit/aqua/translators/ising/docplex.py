@@ -108,6 +108,9 @@ def get_qubitops(mdl, auto_penalty=True, default_penalty=1e5):
     shift = 0
     zero = np.zeros(num_nodes, dtype=np.bool)
 
+    # convert a constant part of the object function into Hamiltonian.
+    shift += mdl.get_objective_expr().get_constant() * sign
+
     # convert linear parts of the object function into Hamiltonian.
     l_itr = mdl.get_objective_expr().iter_terms()
     for j in l_itr:
@@ -126,10 +129,13 @@ def get_qubitops(mdl, auto_penalty=True, default_penalty=1e5):
         index2 = qd[i[0][1]]
         weight = i[1] * sign / 4
 
-        zp = np.zeros(num_nodes, dtype=np.bool)
-        zp[index1] = True
-        zp[index2] = True
-        pauli_list.append([weight, Pauli(zp, zero)])
+        if index1 == index2:
+            shift += weight
+        else:
+            zp = np.zeros(num_nodes, dtype=np.bool)
+            zp[index1] = True
+            zp[index2] = True
+            pauli_list.append([weight, Pauli(zp, zero)])
 
         zp = np.zeros(num_nodes, dtype=np.bool)
         zp[index1] = True

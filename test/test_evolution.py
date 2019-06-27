@@ -31,13 +31,13 @@ class TestEvolution(QiskitAquaTestCase):
 
     def test_evolution(self):
         SIZE = 2
-        #SPARSITY = 0
-        #X = [[0, 1], [1, 0]]
-        #Y = [[0, -1j], [1j, 0]]
+        # SPARSITY = 0
+        # X = [[0, 1], [1, 0]]
+        # Y = [[0, -1j], [1j, 0]]
         Z = [[1, 0], [0, -1]]
-        I = [[1, 0], [0, 1]]
+        _I = [[1, 0], [0, 1]]
         # + 0.5 * np.kron(Y, X)# + 0.3 * np.kron(Z, X) + 0.4 * np.kron(Z, Y)
-        h1 = np.kron(I, Z)
+        h1 = np.kron(_I, Z)
 
         # np.random.seed(2)
         temp = np.random.random((2 ** SIZE, 2 ** SIZE))
