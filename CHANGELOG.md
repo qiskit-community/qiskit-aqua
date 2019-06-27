@@ -23,6 +23,7 @@ Added
 
 -   Relative-Phase Toffoli gates `rccx` (with 2 controls) and `rcccx`
     (with 3 controls).
+-   Variational form `RYCRX` 
 -   A new `'basic-no-ancilla'` mode to `mct`.
 
 Changed
