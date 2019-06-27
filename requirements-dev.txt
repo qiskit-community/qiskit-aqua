@@ -2,3 +2,4 @@ qiskit-aer
 discover
 parameterized
 torch; sys_platform != 'win32'
+pyeda; sys_platform != 'win32'
