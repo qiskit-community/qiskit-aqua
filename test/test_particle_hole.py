@@ -25,7 +25,7 @@ class TestParticleHole(QiskitChemistryTestCase):
 
     H2 = 'H 0 0 0; H 0 0 0.735'
     LIH = 'Li 0 0 0; H 0 0 1.6'
-    H20 = 'H; O 1 1.08; H 2 1.08 1 107.5'
+    H2O = 'H; O 1 1.08; H 2 1.08 1 107.5'
     OH = 'O 0 0 0; H 0 0 0.9697'
     CH2 = 'C; H 1 1; H 1 1 2 125.0'
 
@@ -38,7 +38,7 @@ class TestParticleHole(QiskitChemistryTestCase):
         [LIH, 0, 0, 'sto3g', HFMethodType.RHF],
         [LIH, 0, 0, 'sto3g', HFMethodType.ROHF],
         [LIH, 0, 0, 'sto3g', HFMethodType.UHF],
-        [H20, 0, 0, 'sto3g', HFMethodType.RHF],
+        [H2O, 0, 0, 'sto3g', HFMethodType.RHF],
         [OH,  0, 1, 'sto3g', HFMethodType.ROHF],
         [OH,  0, 1, 'sto3g', HFMethodType.UHF],
         #[CH2, 0, 2, 'sto3g', HFMethodType.ROHF],
